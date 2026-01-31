@@ -1,0 +1,30 @@
+{
+  "baseline_accuracy": 100.0,
+  "test_cases": [
+    {
+      "query": "start the project",
+      "expected": "/lets-go",
+      "tags": ["core", "intent"]
+    },
+    {
+      "query": "resume creating the store",
+      "expected": "/lets-go",
+      "tags": ["synonym", "expansion"]
+    },
+    {
+      "query": "make a new shoe page",
+      "expected": "/run-task",
+      "tags": ["core", "intent"]
+    },
+    {
+      "query": "check the login bug",
+      "expected": "/investigate",
+      "tags": ["core", "intent"]
+    },
+    {
+      "query": "wrap it up for the day",
+      "expected": "/wrap-it-up",
+      "tags": ["core", "intent"]
+    }
+  ]
+}

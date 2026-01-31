@@ -14,19 +14,21 @@ Preserve the "why" behind technical decisions and provide a narrative history of
 
 # Developer Journal
 
-## 2026-01-30 - AgLng Framework Deployment
+## 2026-01-30 - Intelligent Handshake & Skill Proactivity
 ### Summary
-- Successfully designed and implemented the AgLng (Agent Language) framework.
-- Created `SovereignVector` (sv_engine.py) for local, dependency-free intent recognition.
-- Established a visible Interpretation Trace protocol for user feedback.
-- Populated a core Skill Ecosystem (GitHub, Environment, KnowledgeHunter).
-- Developed a monolithic `install.ps1` for portable protocol initialization.
+- Enhanced `install.ps1` with "Intelligent Handshake": Non-destructive installation with interactive conflict resolution (Skip, Overwrite, Merge, Diff).
+- Implemented **Global Skill Registry** (`skills_db/`) for framework-wide skill sharing.
+- Updated `SovereignVector` (sv_engine.py) with proactive recommendations:
+    - >90% confidence triggers an immediate `PROPOSE_INSTALL` command.
+    - >50% confidence generates a tiered recommendation report.
+- Fixed critical encoding bugs (UTF-16LE vs UTF-8 BOM) in PowerShell-Python interoperability.
 
 ### Architectural Decisions
-- **Python Engine**: Chose a standalone Python script for the vector engine to ensure cross-platform compatibility without heavy Node dependencies.
-- **Trace-First Interaction**: Decided to require visible interpretation traces to build trust and enable the learning loop before execution.
-- **Generic-First Sterility**: Maintained sterile templates in `sterileAgent/` to ensure the framework can initialize any project.
+- **BOM-less UTF-8**: Standardized on BOM-less UTF-8 for all configuration and content files to ensure silent failure-free JSON loading in Python.
+- **JIT Skill Deployment**: Decided on a "Just-in-Time" installation model for skills to prevent local project bloat while maintaining expert capabilities.
+- **Simple Handshake Commands**: Optimized interactive prompts for speed (single-letter commands) as per user feedback.
 
-### Lessons Learned
-- Initial regex for thesaurus mapping was too strict. Relaxed it to handle multiple markdown styles.
-- Path handling in cross-platform (Windows PowerShell) script execution requires careful absolute path management.
+### Current State
+- Framework is fully portable and robust.
+- Discovery engine is proactive and intelligent.
+- System is ready for a visual "Sci-Fi" UI overhaul of the tracer.

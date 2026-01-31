@@ -20,6 +20,7 @@ Maintain a searchable, accurate map of the project's UI and service architecture
 - `.agent/skills`: Specialized Agent Skills (SKILL.md definitions)
 - `.agent/workflows`: Core AgLng Workflows (lets-go, run-task, etc.)
 - `sterileAgent`: Generic template repository for new project initialization.
+- `skills_db`: Global Skill Registry for proactive framework recommendations.
 - `skills`: (Optional) Project-specific custom skills.
 
 ## 🏗️ Core Components
@@ -28,8 +29,14 @@ Maintain a searchable, accurate map of the project's UI and service architecture
 - **Path**: `.agent/scripts/sv_engine.py`
 - **Description**: High-performance local TF-IDF vector matching script.
 - **Key Functions**:
-    - `search(query)`: Maps natural language to the best skill trigger.
+    - `search(query)`: Maps natural language to local and global (proactive) skill triggers.
     - `expand_query()`: Handles synonyms and stemming via `thesaurus.md`.
+    - `propose_immediate_install`: Generates JIT installation commands for high-confidence global matches.
+    - **Proactive Recommendation**: Scours Global Registry if `config.json` provides `FrameworkRoot`.
+
+### Skill Management
+- **Path**: `.agent/scripts/install_skill.py`
+- **Description**: Utility to deploy skills from the Global Registry to the local project.
 
 ### AgLng Workflows
 - **Path**: `.agent/workflows/[name].md`
