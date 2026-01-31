@@ -6,7 +6,9 @@ saved_memory:
     enabled: true
     announce_writes: true
   items:
-    - AgLng Framework: Plain-English-to-Workflow mapping using SovereignVector (TF-IDF/Cosine).
+    - Corvus Star (C*): Formerly AgLng. Plain-English-to-Workflow mapping using SovereignVector.
+    - Aesthetic Standard: CLI tools must use the `HUD` class for Box-Drawing/Color/Progress output. "Text is User Interface."
+    - Smart-Merge 2.0: Installation script supports section-aware merging and automatic backups.
     - SovereignVector: Local Python engine for intent recognition; supports tiered proactive recommendations (>90% triggers JIT install).
     - Intelligent Handshake: Non-destructive installation script (`install.ps1`) with interactive conflict resolution (O/S/M/D).
     - Global Registry: Centralized `skills_db/` in `CorvusStar` for cross-project capability sharing.

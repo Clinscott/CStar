@@ -25,3 +25,29 @@ The SovereignVector engine now scours the Global Registry:
 
 ### Verification Proof
 The system was verified by initializing a `mock_project` and searching for "futuristic interface", which correctly triggered a proactive proposal for the `ui-sci-fi` skill.
+
+---
+
+# Walkthrough: The "Triple Threat" Update (Corvus Star 1.0)
+
+This session marked the official rebranding to **Corvus Star (C*)** and the execution of the "Triple Threat" roadmap, focusing on Aesthetics, Capability, and Robustness.
+
+## 1. Sci-Fi CLI Aesthetics (Proposal A)
+The terminal interface (`sv_engine.py`) was upgraded from plain text to a high-fidelity **HUD (Heads-Up Display)**.
+- **Trace Visualization**: Visualizes confidence scores with progress bars (`[||||||....]`).
+- **Color Coding**: Critical data is highlighted in Cyan, Green (High Confidence), and Yellow (Partial).
+- **Box Drawing**: All output is framed in strict Unicode boxes for a premium feel.
+
+## 2. Global Skill Expansion (Proposal B)
+Two major skills were added to the `skills_db` registry:
+- **Agent Lightning**: A wrapper for the Microsoft optimization framework, triggered by terms like "optimize" or "RL".
+- **Playwright E2E**: A skill for browser automation and end-to-end testing, triggered by "test", "verify", or "browser".
+
+## 3. Logic Robustness (Proposal C)
+The `install.ps1` script received critical safety upgrades:
+- **Smart-Merge 2.0**: Capable of detecting section headers (`## Header`) to avoid duplication.
+- **Safety Backups**: Automatically creates `.bak` files before modifying any target.
+
+## Verification
+- **Output Check**: Ran `python .agent/scripts/sv_engine.py "optimize"` -> HUD displayed correct trace and matched `agent-lightning`.
+- **Install Check**: Verified `.bak` creation during installation.

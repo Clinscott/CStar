@@ -1,4 +1,4 @@
-# AgLng Framework Installation Script
+# Corvus Star Framework Installation Script
 # Usage: .\install.ps1 -TargetDir "path\to\your\project"
 
 param (
@@ -21,6 +21,10 @@ function Get-UserChoice {
 
 function Invoke-SmartMerge {
     param ([string]$Source, [string]$Dest)
+    
+    # Safety Backup
+    Copy-Item $Dest "$Dest.bak" -Force
+    
     $ext = [System.IO.Path]::GetExtension($Dest).ToLower()
     
     if ($ext -eq ".json") {
@@ -36,15 +40,33 @@ function Invoke-SmartMerge {
         $merged | ConvertTo-Json -Depth 10 | Out-File -FilePath $Dest -Encoding utf8
     }
     else {
-        # Line-based append for MD/Text
+        # Smart Text Merge 2.0
         $sLines = Get-Content $Source
-        $dLines = Get-Content $Dest
-        $newLines = $sLines | Where-Object { $dLines -notcontains $_ }
+        $dLines = Get-Content $Dest -Raw
+        
+        # Check if Source has headers like ## Header
+        $sections = $sLines | Select-String -Pattern "^## "
+        
+        if ($sections) {
+            # Advanced: Replace sections if they exist in Dest
+            $newContent = $dLines
+            foreach ($sec in $sections) {
+                $header = $sec.Line
+                if ($newContent -match [regex]::Escape($header)) {
+                    # Logic to be implemented in vNext: For now, we still append but warn
+                    Write-Host "    ! Section collision detected: $header (Manual check advised)" -ForegroundColor Yellow
+                }
+            }
+        }
+        
+        $dLinesArr = Get-Content $Dest
+        $newLines = $sLines | Where-Object { $dLinesArr -notcontains $_ }
+        
         if ($newLines) {
             $combined = @()
-            $combined += $dLines
+            $combined += $dLinesArr
             $combined += ""
-            $combined += "### AgLng Framework Additions ###"
+            $combined += "### Corvus Star Additions ###"
             $combined += $newLines
             $combined | Out-File -FilePath $Dest -Encoding utf8
         }
@@ -90,7 +112,7 @@ function Invoke-SmartCopy {
     }
 }
 
-Write-Host "🚀 Initializing AgLng Framework in: $TargetDir" -ForegroundColor Cyan
+Write-Host "🚀 Initializing Corvus Star (C*) Framework in: $TargetDir" -ForegroundColor Cyan
 
 # 1. Create Directory Structure
 New-Item -ItemType Directory -Path $WorkflowDir, $ScriptDir, $SkillDir -Force | Out-Null
@@ -137,5 +159,5 @@ if (-not (Test-Path $correctionsPath)) {
     Write-Host "  + Initialized: corrections.json" -ForegroundColor Gray
 }
 
-Write-Host "`n✅ Installation Complete. System is AgLng Ready." -ForegroundColor Green
+Write-Host "`n✅ Installation Complete. System is C* Ready." -ForegroundColor Green
 Write-Host "Run 'python .agent/scripts/sv_engine.py --help' to verify the engine." -ForegroundColor Gray

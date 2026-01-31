@@ -4,6 +4,42 @@ import re
 import sys
 import os
 
+
+class HUD:
+    CYAN = "\033[36m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    MAGENTA = "\033[35m"
+    RED = "\033[31m"
+    RESET = "\033[0m"
+    BOLD = "\033[1m"
+    
+    @staticmethod
+    def box_top(title=""):
+        width = 60
+        t_len = len(title)
+        padding = (width - t_len - 4) // 2
+        print(f"{HUD.CYAN}┌{'─'*padding} {HUD.BOLD}{title}{HUD.RESET}{HUD.CYAN} {'─'*padding}┐{HUD.RESET}")
+
+    @staticmethod
+    def box_row(label, value, color=CYAN):
+        print(f"{HUD.CYAN}│{HUD.RESET} {label:<20} {color}{value}{HUD.RESET}")
+
+    @staticmethod
+    def box_separator():
+        print(f"{HUD.CYAN}├{'─'*58}┤{HUD.RESET}")
+
+    @staticmethod
+    def box_bottom():
+        print(f"{HUD.CYAN}└{'─'*58}┘{HUD.RESET}")
+    
+    @staticmethod
+    def progress_bar(val: float):
+        # [||||||....]
+        blocks = int(val * 10)
+        bar = "█" * blocks + "░" * (10 - blocks)
+        return bar
+
 class SovereignVector:
     def __init__(self, thesaurus_path=None, corrections_path=None):
         self.thesaurus = self._load_thesaurus(thesaurus_path) if thesaurus_path else {}
@@ -177,4 +213,35 @@ if __name__ == "__main__":
             "propose_immediate_install": propose_install,
             "recommendation_report": recommendations if not propose_install else []
         }
-        print(json.dumps(trace, indent=2))
+        
+        if "--json-only" in sys.argv:
+            print(json.dumps(trace, indent=2))
+            sys.exit(0)
+
+        # --- SCI-FI TERMINAL UI (SovereignFish Improvement) ---
+        HUD.box_top("C* NEURAL TRACE")
+        HUD.box_row("Intent", query, HUD.BOLD)
+        
+        if top_match:
+            score = top_match['score']
+            score_color = HUD.GREEN if score > 0.8 else HUD.YELLOW
+            is_global = f"{HUD.MAGENTA}[GLOBAL]{HUD.RESET} " if top_match['is_global'] else ""
+            
+            bar = HUD.progress_bar(score)
+            HUD.box_row("Match", f"{is_global}{top_match['trigger']}")
+            HUD.box_row("Confidence", f"{bar} {score:.2f}", score_color)
+        
+        if propose_install:
+            HUD.box_separator()
+            HUD.box_row("⚠️  PROACTIVE", "Handshake Detected", HUD.YELLOW)
+            HUD.box_row("Action", f"Install {skill_name}", HUD.GREEN)
+        elif recommendations:
+            HUD.box_separator()
+            for rec in recommendations[:2]:
+               HUD.box_row("🔍 Discovery", f"{rec['trigger']} ({rec['score']:.2f})", HUD.MAGENTA)
+        
+        HUD.box_bottom()
+        
+        # Optional: Keep raw JSON for agent parsing if requested via --json
+        if "--json" in sys.argv:
+            print(json.dumps(trace, indent=2))

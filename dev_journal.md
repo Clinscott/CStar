@@ -32,3 +32,20 @@ Preserve the "why" behind technical decisions and provide a narrative history of
 - Framework is fully portable and robust.
 - Discovery engine is proactive and intelligent.
 - System is ready for a visual "Sci-Fi" UI overhaul of the tracer.
+
+## 2026-01-30 - Corvus Star & The Triple Threat
+### Summary
+- **Rebranded**: Officially renamed AgLng to **Corvus Star (C*)** globally.
+- **Aesthetic Overhaul**: Implemented a `HUD` class in `sv_engine.py` to drive a "Sci-Fi" terminal interface with box drawing and progress bars.
+- **Skill Expansion**: Added `agent-lightning` (RL Optimization) and `playwright-e2e` (Testing) to the global registry.
+- **Robustness**: Upgraded `install.ps1` with "Smart-Merge 2.0" (section awareness) and automatic `.bak` backups.
+
+### Architectural Decisions
+- **Terminal UI as "Product"**: Decided that for a CLI tool, the terminal output *is* the product UI. Treating it with the same care as a React frontend (styling, components) increases perceived value.
+- **Sidecar Optimization**: Chose to implement "Agent Lightning" as a skill rather than a core dependency, keeping the C* core lightweight while allowing advanced users to opt-in to RL optimization.
+- **Aggressive Safety**: Added automatic backups to the installer. In a tool meant to "inject" code into existing projects, safety is the primary feature.
+
+### Current State
+- **Corvus Star 1.0** is visually distinct and operationally safer.
+- The Skill Registry now contains 3 powerful capabilities (Search, Optimization, Testing).
+- The installer is robust enough for "production" usage.

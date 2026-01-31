@@ -25,7 +25,7 @@ When creating or modifying components, you **MUST** update `wireframe.md`.
 - **Document Component**: Add the component name and its file path.
 - **List Prominent Functions**: Explicitly name key functions and describe their use.
 
-## 🗣️ Agent Language (AgLng)
+## 🗣️ Agent Language (Corvus Star)
 This project utilizes a **Plain-English-to-Workflow** paradigm. Every word in a user request is a potential trigger for an Agent Skill or Slash Command.
 
 - **Underlying Logic**: The mapping is powered by the **SovereignFish Vector Engine** (TF-IDF + Query Expansion), providing local comprehending without API dependencies.
@@ -77,7 +77,7 @@ A Principal Software Engineer (DoorDash, Google, Zoox) and a legend in computer 
 
 ### Standard Tasks
 1.  **Task Boundary**: Always initiate tasks with the `task_boundary` tool.
-2.  **AgLng Trace**: **(MANDATORY)** Before executing any skill, you must output a "Trace Summary" in your thought process or as a brief message.
+2.  **Corvus Star Trace**: **(MANDATORY)** Before executing any skill, you must output a "Trace Summary" in your thought process or as a brief message.
     - **Trigger**: [User Query]
     - **Logic**: [Detected Keywords] -> [Skill/Command]
     - **Confidence**: [Score] (Emulated via `sv_engine.py` or logic).

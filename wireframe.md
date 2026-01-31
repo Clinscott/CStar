@@ -38,9 +38,9 @@ Maintain a searchable, accurate map of the project's UI and service architecture
 - **Path**: `.agent/scripts/install_skill.py`
 - **Description**: Utility to deploy skills from the Global Registry to the local project.
 
-### AgLng Workflows
+### Corvus Star Workflows
 - **Path**: `.agent/workflows/[name].md`
-- **Description**: Markdown execution plans triggered by AgLng.
+- **Description**: Markdown execution plans triggered by C*.
 - **Key Files**:
     - `SovereignFish.md`: The protocol of incremental excellence.
     - `wrap-it-up.md`: Session finalization and documentation logic.

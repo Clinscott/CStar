@@ -1,0 +1,33 @@
+---
+name: Playwright E2E
+description: Browser automation and End-to-End testing testing framework.
+---
+# 🎭 Playwright E2E
+
+**Activation Words**: test, browser, e2e, automation, scrape, verify ui, integration test
+
+## Description
+Playwright is a powerful browser automation library from Microsoft. It allows for reliable end-to-end testing of web applications across Chromium, Firefox, and WebKit.
+
+## Installation
+Installs Playwright and the necessary browser binaries.
+
+```powershell
+pip install playwright
+playwright install
+```
+
+## Usage
+Create a test file `tests/e2e/test_example.py`:
+
+```python
+from playwright.sync_api import sync_playwright
+
+def test_homepage():
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        page = browser.new_page()
+        page.goto("http://localhost:3000")
+        assert page.title() == "Corvus Star"
+        browser.close()
+```

@@ -1,10 +1,10 @@
-# 🐟 AgLng Framework: Agent Language & Skill Ecosystem
+# 🐟 Corvus Star Framework: Agent Language & Skill Ecosystem
 
-AgLng is a high-performance, local intelligence framework designed to map natural language intent to specialized agent workflows. It enables seamless "Plain-English-to-Workflow" interaction for AI agents, specifically optimized for the Antigravity/Gemini API.
+Corvus Star (C*) is a high-performance, local intelligence framework designed to map natural language intent to specialized agent workflows. It enables seamless "Plain-English-to-Workflow" interaction for AI agents, specifically optimized for the Antigravity/Gemini API.
 
 ## 🚀 Quick Start (Installation)
 
-To deploy the AgLng protocols into a new project, run the following command from this project's root:
+To deploy the Corvus Star protocols into a new project, run the following command from this project's root:
 
 ```powershell
 .\install.ps1 -TargetDir "C:\path\to\your\new\project"

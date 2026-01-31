@@ -6,10 +6,17 @@ Use this file to map project-specific jargon, synonyms, and variations to core c
 
 ### Core Workflows
 - **start**: resume, begin, go, initiate
+- **futuristic**: sci-fi, holographic, glow, neon, glass
+- **visuals**: aesthetics, appearance, look, ui
+- **glowing**: glow
+- **interface**: ui
 - **create**: make, new, build, generate
 - **finish**: done, wrap, complete, finalize
 - **investigate**: debug, check, find, analyze
-- **polish**: clean, improve, refine, SovereignFish
+- **polish**: refine, improve, clean, aesthetics
+- **optimize**: rl, reinforcement learning, fine-tune, train, agent-lightning
+- **test**: verify, validate, check, audit, playwright, e2e, browser
+- **automation**: scrape, bot, crawl
 
 ### Domain: Shoe Store (Example)
 - **shoes**: sneakers, footwear, boots, kicks
