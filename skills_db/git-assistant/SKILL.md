@@ -1,0 +1,17 @@
+---
+name: Git Assistant
+description: Intelligent wrapper for Git operations using conventional commits.
+---
+
+# Git Assistant
+
+## Activation Words: commit, git, save, backup, push, version, source, repo
+
+## Instructions
+1. **Analyze Status**: Run `git status` to see what has changed.
+2. **Contextualize**: If changes are staged, generate a commit message following Conventional Commits (type: subject).
+3. **Execute**:
+    - If the user said "commit", run `git commit -m "Generated Message"`.
+    - If the user said "push", run `git push`.
+    - If the user said "status", just show the status.
+4. **Safety**: Always ask for confirmation before pushing to execution (unless user used -y flag).

@@ -1,0 +1,7 @@
+{
+  "query": "git commit",
+  "match": "GLOBAL:git-assistant",
+  "score": 0.35003730655239723,
+  "is_global": true,
+  "timestamp": "1.3"
+}

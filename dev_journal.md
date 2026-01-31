@@ -87,3 +87,20 @@ Preserve the "why" behind technical decisions and provide a narrative history of
 - **Corvus Star 1.3** features a nuanced intent engine with statistical verification.
 - Accuracy remains at 100% (10/10) with newly implemented vector logic.
 - Thesaurus is organized for high-precision matching.
+
+## 2026-01-31 - The Triple Threat Expansion
+### Summary
+- **Visual Intelligence**: Implemented `trace_viz.py`, a CLI tool that visualizes TF-IDF vector breakdown with a glowing HUD.
+- **Distributed Intelligence**: Upgraded `sv_engine.py` to record interaction traces to `.agent/traces/` and `compile_session_traces.py` to aggregate them into session reports.
+- **Global Intelligence**: Added `git-assistant`, `codestats`, and `agent-health` to the Global Skill Registry.
+- **Polish**: Externalized `stopwords.json` and refined the UI aesthetics (Glow HUD).
+
+### Architectural Decisions
+- **Opt-in Recording**: Decided to use a `--record` flag rather than recording everything by default to keep the engine lightweight.
+- **Trace Archiving**: Implemented an "Archive" step in the wrap-up workflow to ensure `TRACE_REPORT.md` only reflects *current* session activity, preventing noise.
+- **Visual "Debugging"**: Created `trace_viz.py` as a separate tool from `sv_engine.py` to allow for deep inspection without cluttering the main runtime.
+
+### Current State
+- **Corvus Star 1.3** is now a platform, not just a script. It has visualization, diagnosis, and recording capabilities.
+- The path is cleared for "Federated Learning" via the distributed trace architecture.
+- Accuracy remains 100% verified by SPRT.

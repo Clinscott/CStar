@@ -1,0 +1,7 @@
+{
+  "query": "check health",
+  "match": "Environment",
+  "score": 0.42576164128246224,
+  "is_global": false,
+  "timestamp": "1.3"
+}

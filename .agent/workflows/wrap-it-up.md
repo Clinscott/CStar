@@ -4,7 +4,8 @@ description: Finalizes the current session, updates documentation, runs a produc
 
 // turbo-all
 1. **Execute SovereignFish**: Run the SovereignFish protocol (`SovereignFish.md`). Identify, fix, and log 2 minor improvements. Verify with `fishtest.py`.
-2. Modify existing tasks in `tasks.md` as completed. **Do not overwrite history.**
+2. **Compile Neural Traces**: Run `python .agent/scripts/compile_session_traces.py` to generate the session's `TRACE_REPORT.md`.
+3. Modify existing tasks in `tasks.md` as completed. **Do not overwrite history.**
 2. **Review & Update Wireframe**: Check `wireframe.md` against your changes. If you added new pages, components, or services, YOU MUST update `wireframe.md` to match the codebase.
 3. Add a `## ⏭️ Start Here Next` section at the bottom of `tasks.md` with a detailed, step-by-step plan for the next priority.
 3. Update `walkthrough.md` with all session accomplishments.

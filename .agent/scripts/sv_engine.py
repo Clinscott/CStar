@@ -6,8 +6,11 @@ import os
 
 
 class HUD:
+    # "Glow" Palette - Using standard ANSI but simulating intensity
     CYAN = "\033[36m"
-    GREEN = "\033[32m"
+    CYAN_DIM = "\033[2;36m" 
+    GREEN = "\033[32m" 
+    GREEN_DIM = "\033[2;32m"
     YELLOW = "\033[33m"
     MAGENTA = "\033[35m"
     RED = "\033[31m"
@@ -19,31 +22,34 @@ class HUD:
         width = 60
         t_len = len(title)
         padding = (width - t_len - 4) // 2
-        print(f"{HUD.CYAN}┌{'─'*padding} {HUD.BOLD}{title}{HUD.RESET}{HUD.CYAN} {'─'*padding}┐{HUD.RESET}")
+        # Glow effect: Dim corners, bright center
+        print(f"{HUD.CYAN_DIM}┌{'─'*padding} {HUD.CYAN}{HUD.BOLD}{title}{HUD.RESET}{HUD.CYAN_DIM} {'─'*padding}┐{HUD.RESET}")
 
     @staticmethod
-    def box_row(label, value, color=CYAN):
-        print(f"{HUD.CYAN}│{HUD.RESET} {label:<20} {color}{value}{HUD.RESET}")
+    def box_row(label, value, color=CYAN, dim_label=False):
+        lbl_color = HUD.CYAN_DIM if dim_label else HUD.CYAN
+        print(f"{HUD.CYAN_DIM}│{HUD.RESET} {lbl_color}{label:<20}{HUD.RESET} {color}{value}{HUD.RESET}")
 
     @staticmethod
     def box_separator():
-        print(f"{HUD.CYAN}├{'─'*58}┤{HUD.RESET}")
+        print(f"{HUD.CYAN_DIM}├{'─'*58}┤{HUD.RESET}")
 
     @staticmethod
     def box_bottom():
-        print(f"{HUD.CYAN}└{'─'*58}┘{HUD.RESET}")
+        print(f"{HUD.CYAN_DIM}└{'─'*58}┘{HUD.RESET}")
     
     @staticmethod
     def progress_bar(val: float):
-        # [||||||....]
+        # [||||||....] with subtle coloring
         blocks = int(val * 10)
-        bar = "█" * blocks + "░" * (10 - blocks)
+        bar = f"{HUD.GREEN}" + "█" * blocks + f"{HUD.GREEN_DIM}" + "░" * (10 - blocks) + f"{HUD.RESET}"
         return bar
 
 class SovereignVector:
-    def __init__(self, thesaurus_path=None, corrections_path=None):
+    def __init__(self, thesaurus_path=None, corrections_path=None, stopwords_path=None):
         self.thesaurus = self._load_thesaurus(thesaurus_path) if thesaurus_path else {}
         self.corrections = self._load_json(corrections_path) if corrections_path else {"phrase_mappings": {}, "synonym_updates": {}}
+        self.stopwords = self._load_stopwords(stopwords_path)
         self.skills = {} # {trigger: "full text of skill description"}
         self.vocab = set()
         self.idf = {}
@@ -56,6 +62,23 @@ class SovereignVector:
                 return json.load(f)
         except:
             return {}
+
+    def _load_stopwords(self, path):
+        defaults = {
+            'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 
+            'is', 'are', 'was', 'were', 'be', 'been', 'it', 'this', 'that', 'these', 'those', 
+            'i', 'you', 'he', 'she', 'we', 'they', 'me', 'him', 'her', 'us', 'them',
+            'what', 'which', 'who', 'whom', 'whose', 'where', 'when', 'why', 'how',
+            'some', 'any', 'no', 'not', 'do', 'does', 'did', 'done', 'will', 'would', 'shall', 'should',
+            'can', 'could', 'may', 'might', 'must', 'have', 'has', 'had', 'go', 'get', 'make', 'do'
+        }
+        if not path or not os.path.exists(path): return defaults
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                loaded = set(json.load(f))
+                return loaded if loaded else defaults
+        except:
+            return defaults
 
     def _load_thesaurus(self, path):
         if not path or not os.path.exists(path): return {}
@@ -95,15 +118,7 @@ class SovereignVector:
     def tokenize(self, text):
         if not text: return []
         tokens = re.findall(r'\w+', text.lower())
-        stop_words = {
-            'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 
-            'is', 'are', 'was', 'were', 'be', 'been', 'it', 'this', 'that', 'these', 'those', 
-            'i', 'you', 'he', 'she', 'we', 'they', 'me', 'him', 'her', 'us', 'them',
-            'what', 'which', 'who', 'whom', 'whose', 'where', 'when', 'why', 'how',
-            'some', 'any', 'no', 'not', 'do', 'does', 'did', 'done', 'will', 'would', 'shall', 'should',
-            'can', 'could', 'may', 'might', 'must', 'have', 'has', 'had', 'go', 'get', 'make', 'do'
-        }
-        filtered = [t for t in tokens if t not in stop_words]
+        filtered = [t for t in tokens if t not in self.stopwords]
         return filtered if filtered else tokens
 
     def expand_query(self, query):
@@ -235,7 +250,8 @@ if __name__ == "__main__":
 
     engine = SovereignVector(
         thesaurus_path=os.path.join(project_root, "thesaurus.md"), 
-        corrections_path=os.path.join(base_path, "corrections.json")
+        corrections_path=os.path.join(base_path, "corrections.json"),
+        stopwords_path=os.path.join(base_path, "scripts", "stopwords.json")
     )
     
     # 1. Load Core & Local Skills (Adding repetition for weight and specific phrases)
@@ -256,7 +272,7 @@ if __name__ == "__main__":
     engine.build_index()
 
     if len(sys.argv) > 1:
-        args = [a for a in sys.argv[1:] if a not in ["--json-only", "--json"]]
+        args = [a for a in sys.argv[1:] if a not in ["--json-only", "--json", "--record"]]
         query = " ".join(args)
         results = engine.search(query)
         
@@ -269,6 +285,23 @@ if __name__ == "__main__":
             skill_name = top_match['trigger'].replace("GLOBAL:", "")
             propose_install = f"powershell -Command \"& {{ python .agent/scripts/install_skill.py {skill_name} }}\""
 
+        # Trace Recording (Distributed Fishtest Foundation)
+        if "--record" in sys.argv and top_match:
+            traces_dir = os.path.join(base_path, "traces")
+            if not os.path.exists(traces_dir): os.makedirs(traces_dir)
+            
+            trace_id = re.sub(r'\W+', '_', query[:20]) + f"_{top_match['score']:.2f}"
+            trace_path = os.path.join(traces_dir, f"{trace_id}.json")
+            
+            trace_data = {
+                "query": query,
+                "match": top_match['trigger'],
+                "score": top_match['score'],
+                "is_global": top_match['is_global'],
+                "timestamp": config.get("version", "unknown") # Placeholder for eventual timestamps
+            }
+            with open(trace_path, "w", encoding='utf-8') as f:
+                json.dump(trace_data, f, indent=2)
 
         trace = {
             "query": query,
@@ -291,8 +324,8 @@ if __name__ == "__main__":
             is_global = f"{HUD.MAGENTA}[GLOBAL]{HUD.RESET} " if top_match['is_global'] else ""
             
             bar = HUD.progress_bar(score)
-            HUD.box_row("Match", f"{is_global}{top_match['trigger']}")
-            HUD.box_row("Confidence", f"{bar} {score:.2f}", score_color)
+            HUD.box_row("Match", f"{is_global}{top_match['trigger']}", dim_label=True)
+            HUD.box_row("Confidence", f"{bar} {score:.2f}", score_color, dim_label=True)
         
         if propose_install:
             HUD.box_separator()

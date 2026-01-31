@@ -1,0 +1,7 @@
+{
+  "query": "check status",
+  "match": "GLOBAL:agent-health",
+  "score": 0.3651166288271766,
+  "is_global": true,
+  "timestamp": "1.3"
+}

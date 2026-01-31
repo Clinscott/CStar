@@ -22,5 +22,8 @@ saved_memory:
     - Weighted Nuance: Use `word:weight` in `thesaurus.md` (e.g., `go:0.5`) to dampen broad synonyms and preserve engine precision.
     - SPRT Standard: Sequential Probability Ratio Test (LLR-based) is the project's statistical verification standard for engine-level improvements.
     - Stemming Rule: Automated stemming for `-ing`, `-ed`, `-es`, `-s` suffixes is applied with a 0.8 weight to prevent noise in small datasets.
+    - Neural Tracing: `trace_viz.py` is the standard tool for inspecting engine logic. It uses the "Glow" HUD aesthetic.
+    - Stopword Policy: Stopwords must be externalized to `stopwords.json` to keep engine logic clean and allow for easy language swapping.
+    - Trace Archiving: `TRACE_REPORT.md` must only show the CURRENT session's traces. Processed traces are moved to `traces/archive/`.
 deletions: []
 ```

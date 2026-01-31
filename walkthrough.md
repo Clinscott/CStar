@@ -69,3 +69,28 @@ Implementation of the **Sequential Probability Ratio Test (SPRT)**.
 ## Verification
 - **Test Suite**: Ran `python fishtest.py` -> **100.0% Accuracy (10/10)**.
 - **Confidence Tracking**: SPRT reported successfully with an LLR of 0.41, confirming functional stability across the new vectorizing logic.
+
+# Walkthrough: The Triple Threat Expansion (Corvus Star 1.3)
+
+This session executed the "Triple Threat" strategy, focusing on Visual Insight, Distributed Infrastructure, and Global Utility.
+
+## 1. Neural Trace Visualizer (`trace_viz.py`)
+A "Sci-Fi X-Ray" utility for the intention engine.
+- **HUD Glow**: Implemented an advanced ANSI-based HUD with "glow" effects (dim/bright contrasts).
+- **Signal Breakdown**: Visualizes the engine's decision-making process, showing exactly which tokens contributed to the confidence score and their IDF weights.
+
+## 2. Distributed Fishtest Foundation
+- **Trace Recording**: `sv_engine.py` now supports a `--record` flag for high-confidence interactions.
+- **Trace Reporting**: Created `compile_session_traces.py` to aggregate these JSON traces into a markdown report (`TRACE_REPORT.md`) during the wrap-up sequence.
+- **Archiving**: Processed traces are automatically moved to `.agent/traces/archive/` to keep sessions clean.
+
+## 3. Global Skill Expansion
+Added three new high-utility skills to the registry:
+- **Git Assistant**: Context-aware commit message generation.
+- **Code Stats**: Deep codebase metrics and debt estimation.
+- **Agent Health**: Diagnostic utility for framework integrity.
+
+## Verification
+- **Visual**: Confirmed distinct "Glow" UI in terminal output.
+- **Functional**: Verified high-confidence (>0.8) queries generate readable trace reports.
+- **Statistical**: `fishtest.py` maintained 100% accuracy (10/10) after engine refactor.

@@ -42,7 +42,24 @@
 - [x] **SPRT**: Formalize Sequential Probability Ratio Test in `fishtest.py` [x]
 - [x] **Stemming**: Improve query expansion with suffix handling [x]
 
-## ⏭️ Future Roadmap
-1. **Distributed Fishtest**: Explore a distributed testing model where agents can contribute traces to a central `fishtest_data.json` repository.
-2. **Global Expansion**: Ingest 3-4 more high-value skills into `skills_db`.
-3. **Trace Visualizer**: Create a CLI tool to visualize the TF-IDF vector of a query vs a match.
+### 8. The Triple Threat Expansion (Next Phase)
+- [x] **Trace Visualizer**: Create `.agent/scripts/trace_viz.py` (Sci-Fi HUD "X-Ray"). [x]
+- [x] **Global Skills**: [x]
+    - [x] `git-assistant`: Context-aware commit logic. [x]
+    - [x] `codestats`: Deep codebase metrics. [x]
+    - [x] `agent-health`: Workflow diagnostics. [x]
+- [x] **Distributed Fishtest**: [x]
+    - [x] Refactor `sv_engine.py` for trace recording. [x]
+    - [x] Update `fishtest.py` for distributed ingest (Pending Trace accumulation). [x]
+
+### 9. SovereignFish Mandate (Session Standards)
+- [x] **Refactor**: Externalize stopwords to `stopwords.json`. [x]
+- [x] **Aesthetic**: Implement "Glow" effect in `HUD` class. [x]
+
+## ⏭️ Start Here Next
+1. **Holographic UI Investigation**:
+   - Create a `holographic_ui/` folder in `skills_db`.
+   - Draft a React/Next.js "Terminal" component that connects to `trace_viz.py` output.
+2. **Federated Learning Pilot**:
+   - Manually "push" a `Trace Report` to a shared folder (mock network).
+   - Update `sv_engine.py` to "ingest" external traces.

@@ -58,3 +58,8 @@ Maintain a searchable, accurate map of the project's UI and service architecture
 - **Key Files**:
     - `SovereignFish.md`: The protocol of incremental excellence.
     - `wrap-it-up.md`: Session finalization and documentation logic.
+
+### Neural Trace Tools (Triple Threat)
+- **Trace Visualizer**: `.agent/scripts/trace_viz.py` - Sci-Fi HUD "X-Ray" for engine debugging.
+- **Trace Compiler**: `.agent/scripts/compile_session_traces.py` - Aggregates JSON traces into `.agent/TRACE_REPORT.md`.
+- **Global Registry**: `skills_db/` - Central repository for `git-assistant`, `codestats`, `agent-health`, and more.
