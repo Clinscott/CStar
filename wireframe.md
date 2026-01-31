@@ -31,8 +31,18 @@ Maintain a searchable, accurate map of the project's UI and service architecture
 - **Key Functions**:
     - `search(query)`: Maps natural language to local and global (proactive) skill triggers.
     - `expand_query()`: Handles synonyms and stemming via `thesaurus.md`.
-    - `propose_immediate_install`: Generates JIT installation commands for high-confidence global matches.
+    - `propose_immediate_install`: Generates JIT installation commands for high-confidence global matches (>0.85).
     - **Proactive Recommendation**: Scours Global Registry if `config.json` provides `FrameworkRoot`.
+    - **Correction Path**: Short-circuits vector search if query matches `.agent/corrections.json`. Returns score of 1.1.
+
+### Testing Protocol (Fishtest)
+- **Path**: `fishtest.py`
+- **Logic**: Statistical validator comparing `actual` results against `fishtest_data.json`.
+- **SPRT Implementation**: Uses Log-Likelihood Ratio (LLR) to calculate statistical confidence (H1 vs H0) for engine improvements.
+- **Verification Parameters**:
+    - `min_score`: Minimum confidence threshold (Standard: 0.85).
+    - `expected_mode`: Resolution logic type (`vector` or `correction`).
+    - `is_global`: Context source verification.
 
 ### Skill Management
 - **Path**: `.agent/scripts/install_skill.py`

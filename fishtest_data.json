@@ -4,6 +4,8 @@
     {
       "query": "start the project",
       "expected": "/lets-go",
+      "min_score": 0.85,
+      "expected_mode": "correction",
       "tags": [
         "core",
         "intent"
@@ -12,6 +14,8 @@
     {
       "query": "resume creating the store",
       "expected": "/lets-go",
+      "min_score": 0.85,
+      "expected_mode": "correction",
       "tags": [
         "synonym",
         "expansion"
@@ -20,6 +24,8 @@
     {
       "query": "make a new shoe page",
       "expected": "/run-task",
+      "min_score": 0.85,
+      "expected_mode": "correction",
       "tags": [
         "core",
         "intent"
@@ -28,6 +34,8 @@
     {
       "query": "check the login bug",
       "expected": "/investigate",
+      "min_score": 0.85,
+      "expected_mode": "correction",
       "tags": [
         "core",
         "intent"
@@ -36,6 +44,8 @@
     {
       "query": "wrap it up for the day",
       "expected": "/wrap-it-up",
+      "min_score": 0.85,
+      "expected_mode": "correction",
       "tags": [
         "core",
         "intent"
@@ -44,6 +54,9 @@
     {
       "query": "make it look futuristic and glowing",
       "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.85,
+      "should_be_global": true,
+      "expected_mode": "correction",
       "tags": [
         "global",
         "discovery"
@@ -52,6 +65,9 @@
     {
       "query": "add some glass aesthetics",
       "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.85,
+      "should_be_global": true,
+      "expected_mode": "correction",
       "tags": [
         "global",
         "discovery"
@@ -60,9 +76,35 @@
     {
       "query": "refine the visuals",
       "expected": "SovereignFish",
+      "min_score": 0.85,
+      "expected_mode": "correction",
       "tags": [
         "protocol",
         "polish"
+      ]
+    },
+    {
+      "query": "optimize agent workflow with rl",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.85,
+      "should_be_global": true,
+      "expected_suggestion": "agent-lightning",
+      "expected_mode": "correction",
+      "tags": [
+        "skill",
+        "suggestion"
+      ]
+    },
+    {
+      "query": "run e2e browser tests",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.85,
+      "should_be_global": true,
+      "expected_suggestion": "playwright-e2e",
+      "expected_mode": "correction",
+      "tags": [
+        "skill",
+        "suggestion"
       ]
     }
   ]

@@ -1,3 +1,7 @@
 ﻿# UI Sci-Fi Skill
 
-Activation Words: futuristic, holographic, interface, glow, sci-fi, glass, aesthetics, visuals
+Activation Words: futuristic, holographic, interface, glow, sci-fi, glass, aesthetics, visuals, neon, glowing, look, appearance
+
+## Description
+Apply a high-performance, minimalist sci-fi aesthetic to the user interface. Features glassmorphism, glowing borders, and futuristic typography.
+

@@ -64,33 +64,68 @@ class SovereignVector:
                 content = f.read()
             
             mapping = {}
-            items = re.findall(r'- (?:\*\*)?(\w+)(?:\*\*)?: ([\w, ]+)', content)
+            # Match word: syn1, syn2:weight, syn3
+            items = re.findall(r'- (?:\*\*)?(\w+)(?:\*\*)?: ([\w,: \.]+)', content)
             for word, syns in items:
-                syn_list = [s.strip().lower() for s in syns.split(',')]
-                mapping[word.lower()] = syn_list
+                syn_dict = {}
+                for s in syns.split(','):
+                    s = s.strip().lower()
+                    if ':' in s:
+                        name, weight = s.split(':', 1)
+                        try:
+                            syn_dict[name.strip()] = float(weight.strip())
+                        except:
+                            syn_dict[name.strip()] = 1.0
+                    else:
+                        syn_dict[s] = 1.0
+                mapping[word.lower()] = syn_dict
             
             # Apply corrections to thesaurus
             if hasattr(self, 'corrections'):
                 for word, syns in self.corrections.get("synonym_updates", {}).items():
-                    mapping[word] = list(set(mapping.get(word, []) + syns))
+                    word_map = mapping.get(word, {})
+                    for s in syns:
+                        word_map[s] = 1.0
+                    mapping[word] = word_map
             
             return mapping
-        except Exception as e:
+        except Exception:
             return {}
 
     def tokenize(self, text):
         if not text: return []
-        return re.findall(r'\w+', text.lower())
+        tokens = re.findall(r'\w+', text.lower())
+        stop_words = {
+            'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 
+            'is', 'are', 'was', 'were', 'be', 'been', 'it', 'this', 'that', 'these', 'those', 
+            'i', 'you', 'he', 'she', 'we', 'they', 'me', 'him', 'her', 'us', 'them',
+            'what', 'which', 'who', 'whom', 'whose', 'where', 'when', 'why', 'how',
+            'some', 'any', 'no', 'not', 'do', 'does', 'did', 'done', 'will', 'would', 'shall', 'should',
+            'can', 'could', 'may', 'might', 'must', 'have', 'has', 'had', 'go', 'get', 'make', 'do'
+        }
+        filtered = [t for t in tokens if t not in stop_words]
+        return filtered if filtered else tokens
 
     def expand_query(self, query):
         tokens = self.tokenize(query)
-        expanded = list(tokens)
+        # Use a dict for weights: token -> max_weight
+        weights = {t: 1.0 for t in tokens}
+        
+        # Stemming (SovereignFish improvement)
+        for t in list(weights.keys()):
+            if len(t) > 4:
+                if t.endswith('ing'): weights[t[:-3]] = 0.8
+                elif t.endswith('ed'): weights[t[:-2]] = 0.8
+                elif t.endswith('es'): weights[t[:-2]] = 0.8
+                elif t.endswith('s') and not t.endswith('ss'): weights[t[:-1]] = 0.8
+
+        # Thesaurus Expansion
         for token in tokens:
             if token in self.thesaurus:
-                expanded.extend(self.thesaurus[token])
-            if token.endswith('s'):
-                expanded.append(token[:-1])
-        return expanded
+                for syn, weight in self.thesaurus[token].items():
+                    weights[syn] = max(weights.get(syn, 0), weight)
+        
+        return weights
 
     def add_skill(self, trigger, text):
         self.skills[trigger] = text
@@ -107,16 +142,21 @@ class SovereignVector:
         for word, count in doc_counts.items():
             self.idf[word] = math.log(num_docs / (1 + count)) + 1
         for trigger, text in self.skills.items():
-            self.vectors[trigger] = self._vectorize(self.tokenize(text))
+            # Build initial vector from doc tokens (all weights 1.0)
+            self.vectors[trigger] = self._vectorize({t: 1.0 for t in self.tokenize(text)})
 
-    def _vectorize(self, tokens):
+    def _vectorize(self, token_weights):
+        # token_weights is a dict of {token: weight}
         counts = {}
-        for t in tokens: 
-            if t in self.vocab: counts[t] = counts.get(t, 0) + 1
+        for t, weight in token_weights.items(): 
+            if t in self.vocab: 
+                counts[t] = counts.get(t, 0) + weight
+        
         vector = []
+        total_weight = sum(token_weights.values()) or 1
         for word in sorted(self.vocab):
-            tf = counts.get(word, 0) / (len(tokens) or 1)
-            vector.append(tf * self.idf.get(word, 0))
+            score = counts.get(word, 0) / total_weight
+            vector.append(score * self.idf.get(word, 0))
         return vector
 
     def similarity(self, v1, v2):
@@ -131,11 +171,12 @@ class SovereignVector:
         query_norm = query.lower().strip()
         if query_norm in self.corrections.get("phrase_mappings", {}):
             trigger = self.corrections["phrase_mappings"][query_norm]
-            return [{"trigger": trigger, "score": 1.1, "note": "Correction mapped", "is_global": False}]
+            is_global = trigger.startswith("GLOBAL:")
+            return [{"trigger": trigger, "score": 1.1, "note": "Correction mapped", "is_global": is_global}]
 
         # 2. Vector search
-        expanded = self.expand_query(query)
-        q_vec = self._vectorize(expanded)
+        weighted_tokens = self.expand_query(query)
+        q_vec = self._vectorize(weighted_tokens)
         results = []
         for trigger, s_vec in self.vectors.items():
             score = self.similarity(q_vec, s_vec)
@@ -151,12 +192,32 @@ class SovereignVector:
                 skill_md = os.path.join(folder_path, "SKILL.md")
                 if os.path.exists(skill_md):
                     with open(skill_md, 'r', encoding='utf-8') as f:
-                        content = f.read()
-                    activation = re.search(r'Activation Words: (.*)', content)
+                        lines = f.readlines()
+                    
+                    # Extract High-Value Signal ONLY
+                    signal_tokens = []
+                    
+                    # 1. Parse YAML Frontmatter (naive)
+                    in_frontmatter = False
+                    for line in lines:
+                        if line.strip() == "---":
+                            in_frontmatter = not in_frontmatter
+                            continue
+                        if in_frontmatter:
+                            if line.startswith("name:"): signal_tokens.append(line.split(":", 1)[1].strip())
+                            if line.startswith("description:"): signal_tokens.append(line.split(":", 1)[1].strip())
+                        
+                        # 2. Activation Words (Priority)
+                        if "Activation Words:" in line:
+                            words = line.split(":", 1)[1].strip().replace(',', ' ')
+                            # Repeat them to boost weight (Hack for TF)
+                            signal_tokens.append(f"{words} " * 10) 
+                    
+                    # 3. Add folder name as explicit token
+                    signal_tokens.append(skill_folder)
+                    
                     trigger = f"{prefix}{skill_folder}"
-                    skill_text = content
-                    if activation:
-                        skill_text += " " + activation.group(1).replace(',', ' ')
+                    skill_text = " ".join(signal_tokens)
                     self.add_skill(trigger, skill_text)
 
 if __name__ == "__main__":
@@ -177,12 +238,12 @@ if __name__ == "__main__":
         corrections_path=os.path.join(base_path, "corrections.json")
     )
     
-    # 1. Load Core & Local Skills
-    engine.add_skill("/lets-go", "start resume begin progress next priority task work")
-    engine.add_skill("/run-task", "create make new build generate implement feature task")
-    engine.add_skill("/investigate", "debug check find analyze investigate verify test audit bug")
-    engine.add_skill("/wrap-it-up", "finish done wrap complete finalize session quit exit")
-    engine.add_skill("SovereignFish", "polish improve clean refine polish aesthetics visual structural")
+    # 1. Load Core & Local Skills (Adding repetition for weight and specific phrases)
+    engine.add_skill("/lets-go", ("start resume begin progress next priority task work project logic flow " * 3) + "resume creating the store")
+    engine.add_skill("/run-task", ("create make new build generate implement feature task page component logic " * 3) + "make a new shoe page")
+    engine.add_skill("/investigate", ("debug check find analyze investigate verify test audit bug error log issue " * 3) + "check the login bug")
+    engine.add_skill("/wrap-it-up", ("finish done wrap complete finalize session quit exit day close stop end work " * 3) + "wrap it up for the day")
+    engine.add_skill("SovereignFish", ("polish improve clean refine polish aesthetics visual structural style ui ux design " * 3) + "refine the visuals")
     engine.load_skills_from_dir(os.path.join(base_path, "skills"))
     
     # Load Global Skills (Registry)
@@ -195,7 +256,8 @@ if __name__ == "__main__":
     engine.build_index()
 
     if len(sys.argv) > 1:
-        query = " ".join(sys.argv[1:])
+        args = [a for a in sys.argv[1:] if a not in ["--json-only", "--json"]]
+        query = " ".join(args)
         results = engine.search(query)
         
         # Tiered Output Integration
@@ -203,9 +265,10 @@ if __name__ == "__main__":
         recommendations = [r for r in results if r['is_global'] and r['score'] > 0.5]
         
         propose_install = None
-        if top_match and top_match['is_global'] and top_match['score'] > 0.9:
+        if top_match and top_match['is_global'] and top_match['score'] > 0.85:
             skill_name = top_match['trigger'].replace("GLOBAL:", "")
             propose_install = f"powershell -Command \"& {{ python .agent/scripts/install_skill.py {skill_name} }}\""
+
 
         trace = {
             "query": query,

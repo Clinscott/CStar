@@ -36,6 +36,13 @@
 - [x] **Sync**: Propagate `install.ps1` to `sterileAgent`. [x]
 - [x] **Verify**: Ensure template is up-to-date. [x]
 
-## ⏭️ Next Steps
-1. **Verification**: Run `lightning_rod.py` on a test file. [x]
-2. **Commit**: Finalize changes and wrap up.
+### 7. Core Nuance (Current Phase)
+- [x] **Thesaurus**: Implement weighted synonyms in `sv_engine.py` [x]
+- [x] **Engine**: Update vectorizer to handle token weights [x]
+- [x] **SPRT**: Formalize Sequential Probability Ratio Test in `fishtest.py` [x]
+- [x] **Stemming**: Improve query expansion with suffix handling [x]
+
+## ⏭️ Future Roadmap
+1. **Distributed Fishtest**: Explore a distributed testing model where agents can contribute traces to a central `fishtest_data.json` repository.
+2. **Global Expansion**: Ingest 3-4 more high-value skills into `skills_db`.
+3. **Trace Visualizer**: Create a CLI tool to visualize the TF-IDF vector of a query vs a match.

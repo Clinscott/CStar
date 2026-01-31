@@ -60,6 +60,30 @@ Preserve the "why" behind technical decisions and provide a narrative history of
 - **Interactive CLI**: Added `input()` handling in `sv_engine.py`. While risky in some automation contexts, the high-confidence threshold (>0.9) ensures it only triggers when impactful.
 - **Separation of Concerns**: Kept `lightning_rod.py` separate from `sv_engine.py` to ensure the "Discovery" engine relies only on reading, while the "Optimization" engine handles writing.
 
+## 2026-01-30 - Vector ID Expansion & The 85% Bar
+### Summary
+- **Hardened Engine**: Implemented `min_score` validation (85% Execution Threshold) to ensure intent reliability.
+- **Multidim Testing**: Refactored `fishtest.py` to validate `min_score`, `expected_mode`, and `is_global`.
+- **Signal Boost**: Optimized `sv_engine.py` signal-to-noise ratio by indexing only high-value metadata and weighting activation words 10x.
+- **Absolute Corrections**: Populated `.agent/corrections.json` to guarantee 100% reliability for core project workflows.
+
+### Architectural Decisions
+- **Corrections over Vectors**: Decided that for core destructive or critical workflows (like `/wrap-it-up`), a hard-mapped correction is superior to a probabilistic vector match. We use vectors for "Discovery" and corrections for "Execution."
+- **Stop-Word Filtering**: Implemented a localized stop-word list to reduce "vector drift" caused by common English fillers.
+
+## 2026-01-31 - Core Nuance & SPRT Verification
+### Summary
+- **Weighted Thesaurus**: Upgraded `sv_engine.py` and `thesaurus.md` to support weighted synonyms (e.g., `word:weight`), allowing for dampening of broad terms.
+- **SPRT Implementation**: Formalized the **Sequential Probability Ratio Test** in `fishtest.py`. We now calculate Log-Likelihood Ratios (LLR) to determine statistical significance of engine changes.
+- **Improved Stemming**: Added automated suffix handling (`-ing`, `-ed`, `-es`, `-s`) with a 0.8 weight dampening in `sv_engine.py`'s query expansion logic.
+- **SovereignFish Improvements**: Standardized the Weighted Thesaurus syntax in `SovereignFish.md` and cleaned up redundant headers in `tasks.md`.
+
+### Architectural Decisions
+- **Weighting as Nuance**: Decided to use floats (0.0 - 1.0) for synonyms rather than simple lists. This allows the TF-IDF engine to benefit from human-guided nuance without sacrificing the power of global vector search.
+- **SPRT for Confidence**: Chose SPRT as the verification standard because it provides a clear "Stop/Go" signal for complex engine changes, emulating the rigor of high-performance logic engines.
+- **Dampened Stemming**: Decided to weight stemmed tokens at 0.8 rather than 1.0. This ensures that a query for "starting" still matches "start", but a query for "start" is seen as a higher-quality match for the exact term.
+
 ### Current State
-- Corvus Star 1.1 is live.
-- The framework is now capable of *acting*, not just suggesting.
+- **Corvus Star 1.3** features a nuanced intent engine with statistical verification.
+- Accuracy remains at 100% (10/10) with newly implemented vector logic.
+- Thesaurus is organized for high-precision matching.

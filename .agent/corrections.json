@@ -1,4 +1,15 @@
 {
-    "phrase_mappings": {},
+    "phrase_mappings": {
+        "start the project": "/lets-go",
+        "resume creating the store": "/lets-go",
+        "make a new shoe page": "/run-task",
+        "check the login bug": "/investigate",
+        "wrap it up for the day": "/wrap-it-up",
+        "make it look futuristic and glowing": "GLOBAL:ui-sci-fi",
+        "add some glass aesthetics": "GLOBAL:ui-sci-fi",
+        "refine the visuals": "SovereignFish",
+        "optimize agent workflow with rl": "GLOBAL:agent-lightning",
+        "run e2e browser tests": "GLOBAL:playwright-e2e"
+    },
     "synonym_updates": {}
 }

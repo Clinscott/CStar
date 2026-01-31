@@ -16,5 +16,11 @@ saved_memory:
     - Interaction Pattern: High-confidence (>90%) local intent matches should trigger an interactive confirmation (Y/n) rather than just a proposal.
     - Lightning Protocol: File optimization skills should follow a Read -> HUD -> Modify -> Report loop (as seen in `lightning_rod.py`).
     - SovereignFish Mandate: Use the `SovereignFish` protocol EVERY session to implement 2 minor improvements (visual/code) that are NOT in the prompt.
+    - The 85% Bar: Execution-level triggers must meet an 85% confidence score. Core workflows should be hard-mapped in `corrections.json` for 110% (1.10) confidence.
+    - Intent Polarity: Use Vector Search for *Discovery* (finding new skills) and Corrections for *Execution* (triggering established workflows).
+    - Fishtest Protocol 2.0: Tests must verify `min_score`, `is_global`, and `expected_mode` to be considered passing.
+    - Weighted Nuance: Use `word:weight` in `thesaurus.md` (e.g., `go:0.5`) to dampen broad synonyms and preserve engine precision.
+    - SPRT Standard: Sequential Probability Ratio Test (LLR-based) is the project's statistical verification standard for engine-level improvements.
+    - Stemming Rule: Automated stemming for `-ing`, `-ed`, `-es`, `-s` suffixes is applied with a 0.8 weight to prevent noise in small datasets.
 deletions: []
 ```
