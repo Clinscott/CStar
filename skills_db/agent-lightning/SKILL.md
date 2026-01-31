@@ -19,7 +19,7 @@ echo "Agent Lightning Installed. Consult specific documentation for sidecar inje
 ```
 
 ## Usage
-To use Agent Lightning, wrap your agent's execution loop:
+To use Agent Lightning, encapsulate your agent's execution loop:
 
 ```python
 from agent_lightning import Sidecar

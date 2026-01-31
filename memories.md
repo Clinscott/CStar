@@ -13,5 +13,8 @@ saved_memory:
     - Intelligent Handshake: Non-destructive installation script (`install.ps1`) with interactive conflict resolution (O/S/M/D).
     - Global Registry: Centralized `skills_db/` in `CorvusStar` for cross-project capability sharing.
     - Encoding Rule: Use BOM-less UTF-8 for all Inter-agent configs (JSON/MD) to avoid PowerShell/Python encoding conflicts.
+    - Interaction Pattern: High-confidence (>90%) local intent matches should trigger an interactive confirmation (Y/n) rather than just a proposal.
+    - Lightning Protocol: File optimization skills should follow a Read -> HUD -> Modify -> Report loop (as seen in `lightning_rod.py`).
+    - SovereignFish Mandate: Use the `SovereignFish` protocol EVERY session to implement 2 minor improvements (visual/code) that are NOT in the prompt.
 deletions: []
 ```

@@ -38,6 +38,10 @@ Maintain a searchable, accurate map of the project's UI and service architecture
 - **Path**: `.agent/scripts/install_skill.py`
 - **Description**: Utility to deploy skills from the Global Registry to the local project.
 
+### Agent Lightning (PoC)
+- **Path**: `.agent/scripts/lightning_rod.py`
+- **Description**: Proof-of-concept optimization loop for self-improving code.
+
 ### Corvus Star Workflows
 - **Path**: `.agent/workflows/[name].md`
 - **Description**: Markdown execution plans triggered by C*.

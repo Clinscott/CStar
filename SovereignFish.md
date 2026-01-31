@@ -95,3 +95,8 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 -   **Refactor**: Centralized fetch utilities and standardized error propagation.
 -   **UI**: Implemented tactile feedback and hover states on core navigation elements and action buttons.
 -   **Optimization**: Replaced monolithic component calls with granular hooks to reduce re-renders.
+
+### 2026-01-30 (Session 2)
+-   **Fix**: Resolved keyword collision in `agent-lightning` skill ("wrap" -> "encapsulate") to protect `/wrap-it-up` intent accuracy.
+-   **Docs**: Renamed generic "Shoe Store" title in `tasks.md` to "Corvus Star Framework Development".
+-   **Code**: Added explanatory comments to `sv_engine.py` interactive flush logic to clarify stdout behavior.

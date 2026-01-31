@@ -1,4 +1,4 @@
-# Task: Shoe Store Project Initialization
+# Task: Corvus Star Framework Development
 
 - [x] Initialize project structure [x]
 - [x] Populate agent workflows [.agent/workflows] [x]
@@ -23,24 +23,19 @@
 - [x] Global Skill Registry & Proactive Recommendations [x]
     - [x] Achieved 100% Fishtest Accuracy (N=8) [x]
 
-## ⏭️ Execution Phase: "Triple Threat"
+### 4. Interactive Reactivity (Proposal A)
+- [x] **sv_engine.py**: Implement interactive `input()` for JIT skill installation. [x]
+- [x] **sv_engine.py**: Verify HUD feedback during installation. [x]
 
-### 1. Sci-Fi CLI Polish (Proposal A)
-- [x] **sv_engine.py**: Implement `HUD` class for box drawing and color output. [x]
-- [x] **sv_engine.py**: Upgrade "Trace" output to look like a digital readout/scan. [x]
-- [x] **install.ps1**: Add ASCII banner and colored status messages. [x]
+### 5. Agent Lightning PoC (Proposal B)
+- [x] **lightning_rod.py**: Create PoC script for file read/write optimization loop. [x]
+- [x] **lightning_rod.py**: Integrate HUD for status reporting. [x]
 
-### 2. Global Skill Expansion (Proposal B)
-- [x] **Agent Lightning**: Create `skills_db/agent-lightning/SKILL.md` (optimization skill). [x]
-- [x] **Playwright E2E**: Create `skills_db/playwright-e2e/SKILL.md` (testing skill). [x]
-- [x] **Thesaurus**: Update `thesaurus.md` with new terms (optimize, rl, e2e, browser). [x]
+### 6. Sterile Agent Sync (Proposal C)
+- [x] **Sync**: Propagate `sv_engine.py` to `sterileAgent`. [x]
+- [x] **Sync**: Propagate `install.ps1` to `sterileAgent`. [x]
+- [x] **Verify**: Ensure template is up-to-date. [x]
 
-### 3. Logic Robustness (Proposal C)
-- [x] **install.ps1**: Upgrade `Invoke-SmartMerge` to support `### Section` replacement logic. [x]
-- [x] **install.ps1**: Add "Backup" step before file modification. [x]
-- [x] **Fishtest**: Verify installation flow doesn't break. [x]
-
-## ⏭️ Start Here Next
-1. **Interactive Skill Installation**: Update `sv_engine.py` to allow the user to press 'Y' to auto-install a proactive recommendation immediately (currently it just *proposes* the command).
-2. **"Agent Lightning" Integration**: Create a proof-of-concept script that actually *runs* the optimization loop defined in the new skill.
-3. **Sterile Agent Sync**: Propagate the new `sv_engine.py` (with HUD) and `install.ps1` (Smart-Merge 2.0) back to the `sterileAgent` template folder to ensure new projects start with the latest tech.
+## ⏭️ Next Steps
+1. **Verification**: Run `lightning_rod.py` on a test file. [x]
+2. **Commit**: Finalize changes and wrap up.

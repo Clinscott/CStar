@@ -4,6 +4,13 @@
 This project adheres to a strict "Sci-Fi / Minimalist / High-Performance" aesthetic. 
 **DO NOT** create generic or standard layouts.
 
+## 🐟 SovereignFish Mandate (CRITICAL)
+> [!IMPORTANT]
+> **SovereignFish** is NOT optional. It must be run **EVERY SESSION** to maintain the "Campfire Rule".
+> - You **MUST** execute the protocol defined in `SovereignFish.md`.
+> - You **MUST** identify and fix **two (2)** minor issues (Visual or Code) that are NOT in the user's prompt.
+> - You **MUST** log these improvements in `SovereignFish.md`.
+
 **Reference the Project Map:**
 > [!IMPORTANT]
  > **ALWAYS** refer to `wireframe.md` for specific component names, layout structures, and design tokens before making UI changes.

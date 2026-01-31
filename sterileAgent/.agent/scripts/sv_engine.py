@@ -239,7 +239,7 @@ if __name__ == "__main__":
             # Interactive Handshake
             HUD.box_bottom()
             try:
-                # Flush stdout ensures the HUD box finishes rendering before the input prompt appears
+                # Flush stdout to ensure HUD is visible
                 sys.stdout.flush()
                 # Use raw input if possible, but keep it simple
                 choice = input(f"\n{HUD.CYAN}>> [C*] Initialize Handshake for {skill_name}? [Y/n] {HUD.RESET}").strip().lower()
