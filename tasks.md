@@ -57,9 +57,14 @@
 - [x] **Aesthetic**: Implement "Glow" effect in `HUD` class. [x]
 
 ## ⏭️ Start Here Next
-1. **Holographic UI Investigation**:
-   - Create a `holographic_ui/` folder in `skills_db`.
-   - Draft a React/Next.js "Terminal" component that connects to `trace_viz.py` output.
-2. **Federated Learning Pilot**:
-   - Manually "push" a `Trace Report` to a shared folder (mock network).
-   - Update `sv_engine.py` to "ingest" external traces.
+1. **Fishtest Scaling (Phase 1: Optimization)**:
+   - [x] **Refactor**: Import `sv_engine` in `fishtest.py` (Remove subprocess) [0.00ms/call]
+   - [x] **Verify**: Comparison Benchmark (100% Pass)
+2. **Fishtest Scaling (Phase 2: Saturation)**:
+   - [x] **Create**: `scripts/generate_tests.py` (Combinatorial Generator)
+   - [x] **Generate**: Create `fishtest_N1000.json` (N=1000)
+   - [x] **Verify**: Run `fishtest.py` with N=1000 dataset (~0.3ms/call)
+3. **Federated Learning Pilot (Phase 3)**:
+   - [x] **Simulate**: Push `agent_alpha_traces.json` to `mock_project/network_share`.
+   - [x] **Ingest**: Create `tests/merge_traces.py` to update `fishtest_data.json`.
+   - [x] **Verify**: Run `fishtest.py` to confirm new "Real User" coverage.

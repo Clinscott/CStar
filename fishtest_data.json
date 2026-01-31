@@ -106,6 +106,25 @@
         "skill",
         "suggestion"
       ]
+    },
+    {
+      "query": "deploy the application",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.85,
+      "tags": [
+        "federated",
+        "real-user"
+      ],
+      "should_be_global": true
+    },
+    {
+      "query": "fix the login bug",
+      "expected": "/investigate",
+      "min_score": 0.85,
+      "tags": [
+        "federated",
+        "real-user"
+      ]
     }
   ]
 }

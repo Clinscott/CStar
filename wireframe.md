@@ -63,3 +63,8 @@ Maintain a searchable, accurate map of the project's UI and service architecture
 - **Trace Visualizer**: `.agent/scripts/trace_viz.py` - Sci-Fi HUD "X-Ray" for engine debugging.
 - **Trace Compiler**: `.agent/scripts/compile_session_traces.py` - Aggregates JSON traces into `.agent/TRACE_REPORT.md`.
 - **Global Registry**: `skills_db/` - Central repository for `git-assistant`, `codestats`, `agent-health`, and more.
+
+### Fishtest Scaling & Federation Tools
+- **Test Generator**: `.agent/scripts/generate_tests.py` - Combinatorial generator for producing N-scale synthetic datasets (`fishtest_N1000.json`).
+- **Trace Ingest**: `tests/merge_traces.py` - Merges external agent traces from network shares into `fishtest_data.json` ("Real User Wins" logic).
+- **Network Share**: `mock_project/network_share/` - Simulated folder for multi-agent trace exchange.

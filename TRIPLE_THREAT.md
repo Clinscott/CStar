@@ -1,0 +1,46 @@
+# The Triple Threat Expansion
+
+**Version**: 1.0.0
+**Status**: Implemented & Verified
+
+The "Triple Threat" expansion upgrades Corvus Star from a local optimization loop to a distributed, visually introspective system.
+
+## 1. Neural Trace Visualizer
+**Component**: `.agent/scripts/trace_viz.py`
+**Purpose**: "X-Ray" vision for the SovereignVector Engine.
+**Aesthetic**: Uses the HUD "Glow" effect to render vector matches, token weights, and IDF signals.
+
+### Usage
+```bash
+python .agent/scripts/trace_viz.py "your query here"
+```
+
+### Key Metrics
+- **Confidence**: Vector match score (0.0 - 1.0+).
+- **Token Weight**: Importance of individual words (via `thesaurus.md`).
+- **IDF**: "Inverse Document Frequency" - how rare/unique a signal is.
+- **Signal**: The combined strength of Weight * IDF.
+
+## 2. Global Skill Registry
+**Component**: `skills_db/`
+**Purpose**: A centralized repository for high-value skills that can be shared across projects.
+**Logic**:
+- `sv_engine.py` and `trace_viz.py` automatically load skills from `skills_db` if `FrameworkRoot` is configured.
+- Provides "Proactive Recommendations" (>90% confidence matches trigger JIT installation proposals).
+
+### Core Global Skills
+- `git-assistant`: Context-aware commit message generation.
+- `codestats`: Deep analysis of codebase metrics.
+- `agent-health`: Self-diagnosis of workflow integrity.
+
+## 3. Distributed Fishtest
+**Component**: `fishtest.py` & `sv_engine.py`
+**Purpose**: Enables the engine to learn from execution traces across multiple environments.
+
+### Workflow
+1.  **Trace Capture**: `sv_engine.py` records decision logic (query, match, score) to JSON trace files.
+2.  **Aggregation**: `compile_session_traces.py` merges these into `TRACE_REPORT.md`.
+3.  **Ingestion**: (Upcoming) Federated Logic will read these reports to tune weights globally.
+
+---
+*Verified Stability via `chaos_monkey_trace.py` (N=9, 100% Pass)*

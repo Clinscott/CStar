@@ -1,5 +1,4 @@
 import json
-import subprocess
 import os
 import sys
 import math
@@ -35,7 +34,57 @@ class SPRT:
         return "INCONCLUSIVE"
 
 def run_test():
-    with open('fishtest_data.json', 'r', encoding='utf-8') as f:
+    # Import Engine In-Process (Optimization Phase 1)
+    try:
+        from .agent.scripts.sv_engine import SovereignVector
+    except ImportError:
+        # Fallback for direct execution
+        sys.path.append(os.path.join(os.path.dirname(__file__), ".agent", "scripts"))
+        from sv_engine import SovereignVector
+
+    # Initialize Engine Once
+    base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".agent")
+    engine = SovereignVector(
+        thesaurus_path=os.path.join(os.path.dirname(base_path), "thesaurus.md"),
+        corrections_path=os.path.join(base_path, "corrections.json"),
+        stopwords_path=os.path.join(base_path, "scripts", "stopwords.json")
+    )
+    
+    # Load Skills
+    skills_dir = os.path.join(base_path, "skills")
+    if os.path.exists(skills_dir):
+        engine.load_skills_from_dir(skills_dir)
+        
+    # Load Core Skills from Engine Definition (DRY)
+    if hasattr(engine, 'load_core_skills'):
+        engine.load_core_skills()
+    else:
+        # Fallback if engine improperly imported or old version
+        engine.add_skill("/lets-go", "start resume begin")
+
+    # Load Global Skills if Configured
+    config_path = os.path.join(base_path, "config.json")
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+                framework_root = config.get("FrameworkRoot")
+                if framework_root:
+                    global_path = os.path.join(framework_root, "skills_db")
+                    if os.path.exists(global_path):
+                        engine.load_skills_from_dir(global_path, prefix="GLOBAL:")
+        except: pass
+
+    engine.build_index()
+
+    # Load Test Data
+    target_file = 'fishtest_data.json'
+    if len(sys.argv) > 1 and sys.argv[1] == '--file':
+        if len(sys.argv) > 2:
+            target_file = sys.argv[2]
+            
+    print(f"Loading test data from: {target_file}")
+    with open(target_file, 'r', encoding='utf-8') as f:
         data = json.load(f)
     
     test_cases = data['test_cases']
@@ -48,56 +97,65 @@ def run_test():
     print(f"--- CorvusStar FISHTEST: Statistical Verification (SPRT) ---")
     print(f"Total Cases: {total}\n")
     
+    import time
+    start_time = time.time()
+
     for case in test_cases:
         query = case['query']
         expected = case['expected']
         
-        cmd = ["python", ".agent/scripts/sv_engine.py", "--json-only", query]
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        # Direct Engine Call
+        results = engine.search(query)
         
-        try:
-            trace = json.loads(result.stdout)
-            top_match = trace.get('top_match', {})
+        if results:
+            top_match = results[0]
             actual = top_match.get('trigger')
             score = top_match.get('score', 0)
             is_global = top_match.get('is_global', False)
+        else:
+            actual = None
+            score = 0
+            is_global = False
             
-            failed = False
-            fail_reasons = []
+        failed = False
+        fail_reasons = []
 
-            if actual != expected:
-                # Special check for SovereignFish which can match polish/improvement/reform
-                if expected == "SovereignFish" and actual is not None and "Fish" in actual:
-                    pass
-                else:
-                    failed = True
-                    fail_reasons.append(f"Expected '{expected}', Got '{actual}'")
-
-            min_score = case.get('min_score', 0)
-            if score < min_score:
-                failed = True
-                fail_reasons.append(f"Score {score:.2f} < Min {min_score}")
-
-            if 'should_be_global' in case:
-                expected_global = case['should_be_global']
-                if is_global != expected_global:
-                    failed = True
-                    fail_reasons.append(f"Global mismatch: Expected {expected_global}, Got {is_global}")
-
-            if not failed:
-                status = "\033[32mPASS\033[0m"
-                passed += 1
+        if actual != expected:
+            # Special check for SovereignFish which can match polish/improvement/reform
+            if expected == "SovereignFish" and actual is not None and "Fish" in actual:
+                pass
             else:
-                status = f"\033[31mFAIL\033[0m"
-                print(f"[{status}] Query: '{query}' -> {actual} ({score:.2f}) -> {', '.join(fail_reasons)}")
-        except Exception as e:
-            print(f"[\033[31mERROR\033[0m] Query: '{query}' -> Parse Error: {e}")
+                failed = True
+                fail_reasons.append(f"Expected '{expected}', Got '{actual}'")
+
+        min_score = case.get('min_score', 0)
+        if score < min_score:
+            failed = True
+            fail_reasons.append(f"Score {score:.2f} < Min {min_score}")
+
+        if 'should_be_global' in case:
+            expected_global = case['should_be_global']
+            if is_global != expected_global:
+                failed = True
+                fail_reasons.append(f"Global mismatch: Expected {expected_global}, Got {is_global}")
+
+        if not failed:
+            status = "\033[32mPASS\033[0m"
+            passed += 1
+        else:
+            status = f"\033[31mFAIL\033[0m"
+            print(f"[{status}] Query: '{query}' -> {actual} ({score:.2f}) -> {', '.join(fail_reasons)}")
+
+    end_time = time.time()
+    duration = end_time - start_time
+    avg_time = (duration / total) * 1000 if total > 0 else 0
 
     accuracy = (passed / total) * 100
     sprt_result = sprt.update(passed, total)
     
     print(f"\nFinal Accuracy: {accuracy:.1f}% ({passed}/{total})")
     print(f"SPRT Status:   {sprt_result} (LLR: {sprt.llr:.2f})")
+    print(f"Performance:   {duration:.4f}s total ({avg_time:.2f}ms/call)")
     
     if accuracy < 100:
         sys.exit(1)

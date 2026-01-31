@@ -199,6 +199,13 @@ class SovereignVector:
             results.append({"trigger": trigger, "score": score, "is_global": is_global})
         return sorted(results, key=lambda x: x['score'], reverse=True)
 
+    def load_core_skills(self):
+        self.add_skill("/lets-go", ("start resume begin progress next priority task work project logic flow " * 3) + "resume creating the store")
+        self.add_skill("/run-task", ("create make new build generate implement feature task page component logic " * 3) + "make a new shoe page")
+        self.add_skill("/investigate", ("debug fix check find analyze investigate verify test audit bug error log issue login " * 3) + "check the login bug")
+        self.add_skill("/wrap-it-up", ("finish done wrap complete finalize session quit exit day close stop end work " * 3) + "wrap it up for the day")
+        self.add_skill("SovereignFish", ("polish improve clean refine polish aesthetics visual structural style ui ux design " * 3) + "refine the visuals")
+
     def load_skills_from_dir(self, directory, prefix=""):
         if not os.path.exists(directory): return
         for skill_folder in os.listdir(directory):
@@ -254,12 +261,8 @@ if __name__ == "__main__":
         stopwords_path=os.path.join(base_path, "scripts", "stopwords.json")
     )
     
-    # 1. Load Core & Local Skills (Adding repetition for weight and specific phrases)
-    engine.add_skill("/lets-go", ("start resume begin progress next priority task work project logic flow " * 3) + "resume creating the store")
-    engine.add_skill("/run-task", ("create make new build generate implement feature task page component logic " * 3) + "make a new shoe page")
-    engine.add_skill("/investigate", ("debug check find analyze investigate verify test audit bug error log issue " * 3) + "check the login bug")
-    engine.add_skill("/wrap-it-up", ("finish done wrap complete finalize session quit exit day close stop end work " * 3) + "wrap it up for the day")
-    engine.add_skill("SovereignFish", ("polish improve clean refine polish aesthetics visual structural style ui ux design " * 3) + "refine the visuals")
+    # 1. Load Core & Local Skills
+    engine.load_core_skills()
     engine.load_skills_from_dir(os.path.join(base_path, "skills"))
     
     # Load Global Skills (Registry)

@@ -1,0 +1,9005 @@
+{
+  "baseline_accuracy": 100.0,
+  "test_cases": [
+    {
+      "query": "finalize for the day work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "create logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "finish day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "begin project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please finalize day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "check bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you start work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you generate feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "end day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "generate feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please investigate error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "begin logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "debug nasty bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "investigate log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "build new feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "quit it day right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "end day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "finalize session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "investigate bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "begin logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "start task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you stop work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "finish day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "new new component right now",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "implement logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "begin work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "stop immediately session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "build task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "begin logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to implement logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "create task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you create page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "complete session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "make task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "progress logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to new logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "quit session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "resume flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "build another logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "make task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "check issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "begin work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "create logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "resume flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "complete work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "wrap work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "audit log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "new component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you implement logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "investigate log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to generate component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "analyze error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please build component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please generate feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to finalize day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "check error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "build component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "investigate error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "investigate error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "build feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to finish day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "investigate issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "audit issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "start work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "start work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please wrap day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "generate page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "begin task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "check bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to generate feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "finalize work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please check log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "resume flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "done day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please complete session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "quit session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "make task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "begin task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "investigate bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "build logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "make new component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "start my logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "analyze weird log right now",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "quit now session right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "finalize day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "check error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "finish for the day work right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "find issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to find log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "stop day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to create logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "complete day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "implement logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "make feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please stop session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "new page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "analyze error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to stop work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to find error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "finalize now session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "implement new component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "make task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "exit it day right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you done session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "done session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "wrap now day right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "resume current work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "begin work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "progress work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to progress logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "create page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "progress task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "progress flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please resume work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "end day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to end work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you finish session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "debug bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to check issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "resume new task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "analyze issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please analyze error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "exit session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "make new page right now",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "start task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "resume new work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to end work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to begin work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "verify error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you start work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "resume task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "implement component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "exit session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "check weird issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "resume flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "exit for the day work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to quit work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to begin logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "end work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "finish session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you resume work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "progress flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "progress task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you resume logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "resume logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please resume flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "exit up session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "audit issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "begin flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "debug issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "implement another logic right now",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "finish it work right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "finalize work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "investigate weird log right now",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you check error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you find error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "make page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "progress current work right now",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "finalize now day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please generate component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "implement fresh feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "start logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "finish session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "end day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "begin work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "audit nasty error right now",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to progress task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to implement component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you start work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to finalize work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "stop day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "begin logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "audit nasty issue right now",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "verify issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please done session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "end session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to begin flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you begin work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to check log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "generate feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to exit work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "build component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to verify bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you check bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "implement page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "resume work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to create feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you verify error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to done day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please implement feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "complete day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "end now session right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "analyze error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "implement task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to debug log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you wrap session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "implement logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please new component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "check that bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "finalize session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "stop it work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "exit for the day session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please end work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "find that error right now",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "finish day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you start task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to create page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "audit bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "verify this error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please resume task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "analyze issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please wrap work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you make page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "analyze bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "done session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "stop up work right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "implement component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please implement page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "analyze bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "investigate issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "analyze this log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "start new logic right now",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "new component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you analyze issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "start this flow right now",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "analyze issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you complete session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "progress work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "finalize for the day day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "resume new logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "make page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "verify critical bug right now",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "verify issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "finish work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "create task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "wrap session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "finish work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to new logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "debug error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "begin task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "find that bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "progress the task right now",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to debug error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "wrap day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "verify log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "generate mock logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "new feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "verify issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "new task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you begin logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to generate logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please investigate bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "start task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "end session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "verify nasty bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "make page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "new task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please start work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please finish work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "create component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please build component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you build logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "progress flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to build logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "investigate log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "finish now day right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please quit day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "start this project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please begin logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "generate page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "analyze log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "new fresh task right now",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "check log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "start my project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please new logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "begin flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "implement page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to analyze log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "make custom logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "done session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "finish day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "analyze issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "make logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "done session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "audit bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "verify log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "make another component right now",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "end session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you progress logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you find error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please begin logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "create feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to make page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to build task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to new page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "begin logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "finalize immediately work right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "new task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "generate component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "implement test component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to build feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "implement test page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please verify issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "build task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "stop up day right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "begin flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you new component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "audit critical issue right now",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "resume the project right now",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "create component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "finalize work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "implement another feature right now",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "find bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "build page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you start task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "wrap day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please finish session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "progress current flow right now",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "wrap day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to begin work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "resume project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "begin flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "find bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "begin work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "begin our task right now",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "finalize for the day work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "implement feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "complete session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you progress project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "finish now session right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "wrap for the day work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "check error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "generate new page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to analyze issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "debug bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "stop day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you audit bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "quit day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "debug issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to end session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to investigate log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "quit day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to debug issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "finalize now session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "finish day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "resume work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "resume our logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you wrap work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "verify error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "find error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to end day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "progress new work right now",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you begin work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "find error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please wrap day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "generate mock task right now",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "start project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you investigate log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to debug log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please finalize day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "stop up work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "start our logic right now",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "done work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please progress project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you resume task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you build logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "new test task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "make task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please wrap work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "start project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "check issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "implement task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "audit critical bug right now",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "exit session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "new new page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you audit issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "end for the day session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please exit day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "finalize immediately day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "end it session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "done immediately day right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "new feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you resume project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "begin task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "new page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "find log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "investigate bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "complete immediately work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you create logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "implement logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please generate component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "stop day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you generate page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "begin flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you new page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "resume work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "stop work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "end immediately session right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "audit log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to progress work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "progress current project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to wrap work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please implement logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "investigate issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you make logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "exit session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "new page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you debug error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please make logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "implement component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to implement feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "implement page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "wrap immediately work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you analyze error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "wrap work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "debug bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please build page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "create task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "build component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please investigate bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "generate logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you analyze log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please analyze log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to find issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "progress task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you new component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please exit work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "exit now day right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you quit day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "start project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "verify the log right now",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "analyze weird bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please complete session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "find bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please exit day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "start work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "begin task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you analyze error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "start this task right now",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "resume this project right now",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to end day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "generate task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "implement feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "implement mock feature right now",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "build feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "create task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "new page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "exit it work right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "investigate issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to quit work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "create task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you check issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "check log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "end day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "exit for the day day right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to debug issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "progress project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "begin task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "debug issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "wrap session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please begin work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "end session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you begin work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "begin current task right now",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "check error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "implement feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to verify error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "done day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to quit day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to complete work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you audit log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to check log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please generate component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please progress work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "generate component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "implement mock component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to audit issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you end session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to create task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "end session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "analyze error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "generate task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "progress current task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "new logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to debug log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "start task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "new new page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you exit work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "begin project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please find log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you start task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "end day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "build test feature right now",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to end session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "finalize now session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "debug issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "build task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "finalize day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you complete session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to audit bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "verify log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "finalize it day right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "new task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "debug nasty error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "create mock page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "audit log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "audit bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to find error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "finalize session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to analyze log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to analyze error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you progress logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "progress work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please finish work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you start task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "quit work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "make mock page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "make page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "end now work right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "resume logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to resume task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "end up day right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please verify bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "new component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "implement page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please analyze log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please debug issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "audit error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "wrap work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "progress task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please find issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "generate feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "build custom feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "build component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "complete work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "start logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "verify nasty error right now",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you end work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "quit up session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please find log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "exit work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "done work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please begin flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to start work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "find log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "investigate nasty issue right now",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to analyze issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you resume logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "finish day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "audit log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you implement feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "stop work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "investigate bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "start task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "new logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "verify error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please debug error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to end work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "audit log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "generate new page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "audit error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "implement page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "implement page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "investigate error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "make component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "exit work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to create component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to finish day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "progress project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "start task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "make page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "implement feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "find weird log right now",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "build page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "find issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "debug log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "create mock logic right now",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "analyze bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "begin logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "new page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please begin work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "wrap work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to progress flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "start task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "create fresh task right now",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you wrap session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to resume flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to audit error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "create page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "progress flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to wrap day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "analyze this log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "progress flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "wrap for the day day right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "resume project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "generate logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you stop day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "resume work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to implement component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you finalize work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you progress logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to exit work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please wrap work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please begin project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "resume task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "analyze error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "analyze critical issue right now",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "investigate issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "new mock task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "find critical issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to new feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please make page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "exit work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "implement component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please resume project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you start flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you implement logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "implement custom task right now",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "verify issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to end day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "create custom feature right now",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "done day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please start task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to exit work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "start flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "wrap day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "start project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please audit error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "build logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "new another feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "analyze bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to start project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "complete work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "stop work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "new task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "build page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "finalize for the day work right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you create component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you make page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "end work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you implement component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "resume current flow right now",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to analyze issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "implement page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "create another feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "check log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "resume flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to progress task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "find log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "generate logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "start current flow right now",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "audit that log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "complete day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "implement feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "finish it session right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "build component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "progress task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "resume new flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "stop day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to progress logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "resume logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "resume project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "build component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "begin work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to new feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please progress flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "build custom task right now",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "begin my project right now",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "progress flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to verify issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "complete it session right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "begin flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "stop work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "debug log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "resume task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "exit day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "wrap day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "audit log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to find error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "investigate bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "start project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "exit session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please finish day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "finalize session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "new fresh logic right now",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "debug error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you quit work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "investigate error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "exit work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please done day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please begin flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "exit session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "end day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "progress new logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "debug log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "start task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "verify that error right now",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "resume project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "audit this bug right now",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to quit day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "start new flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please new feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to create task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "find issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "exit now session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "start flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "make new component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "verify critical issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "verify the issue right now",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "quit session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you make component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "generate mock task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "check log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "start task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "make test component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please resume task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "new custom feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "progress logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to complete work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "implement component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "exit for the day work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "make page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "implement logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you make task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "start flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "build task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please build page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "new component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "audit bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "begin project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "find log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "complete work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to debug error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "done for the day work right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "complete session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "investigate bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "build component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "create task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "end now session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to debug issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "investigate weird error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "new logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "end day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "start work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "investigate log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "finish it day right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "find bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to progress work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "verify error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "finish session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you debug log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to wrap day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "create new task right now",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "quit session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "make component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "done day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to create feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "check error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "progress flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "end day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you quit session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "analyze log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "build task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you resume logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please verify log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please create page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you quit session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "implement logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "start logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "begin project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "start this work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "begin the logic right now",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please quit day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to generate task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "check log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you create page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "generate component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please verify log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "check that error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "start work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "generate component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "resume task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "create page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "audit critical bug right now",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "create logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to make page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "new logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "investigate error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "check error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "analyze bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "generate feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you make page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to debug error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please build feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "generate logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "end it session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "wrap work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "begin task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to begin work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "progress project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "new logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you start logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "end immediately day right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "resume task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please stop session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "generate fresh component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "finalize day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "end day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "begin our task right now",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please start task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please find error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to make logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "check nasty bug right now",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "investigate that log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to make page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "investigate error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "analyze bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "implement page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "analyze bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "new logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "generate page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "done session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "finalize work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "exit day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "resume new task right now",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "generate task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "complete work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "end it session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "debug bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please analyze log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "done day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "new feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "stop session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you find log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "analyze nasty bug right now",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please check error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to resume logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "find bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you check issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "new component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "generate feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "progress flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "generate task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "end work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "debug issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "analyze the error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "complete day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "audit issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "done it session right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "end session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "finalize immediately session right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "implement page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "investigate log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "implement custom feature right now",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to implement task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "build component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "exit now session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "debug issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please finalize work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "implement another task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "finish immediately work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "audit issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "investigate error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to debug bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please begin flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you verify error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to analyze error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "audit error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "start task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "create component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "generate page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "analyze log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "verify bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "start task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "generate logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "resume task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please make page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "end work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "audit issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "begin task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you audit bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you create task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you new logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "progress project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to finalize day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to investigate log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "done now session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you end day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you analyze issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please progress task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "find issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "create logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you complete day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "implement fresh logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to make page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to end work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "end session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "exit up day right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "finalize day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you make component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "stop it work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you analyze log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "implement component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "find log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "progress flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "end work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please stop work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to verify bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "generate task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "create page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "new feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "quit day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "create mock logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you generate page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you resume project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "investigate this error right now",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "create new page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "quit session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you investigate log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you finish work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "verify log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "create mock task right now",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to complete work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "create feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "stop work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you find bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to begin flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to resume work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "investigate bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "wrap now session right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "begin new flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "generate task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "wrap work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "make logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you end day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "generate page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "begin flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "end for the day session right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "resume logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you find log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "make component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "generate feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "debug log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you new page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "exit work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "resume logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "end for the day session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "verify weird error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to finalize session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "finalize it work right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you progress task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "make feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "can you resume work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "progress flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please audit issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "resume flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "check this log right now",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to stop session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "complete work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to debug error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "audit bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "verify issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "begin work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please finalize work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "quit work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please make task",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "stop day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "begin task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to generate component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "begin project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "i need to exit session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to begin project",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "build feature",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "generate another feature right now",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "audit issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "progress new work right now",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "check error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please find issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "audit this issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "progress work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "resume my logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "end session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "exit it session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "start task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "generate logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "please progress flow",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please check log",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "find this bug",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "complete immediately work right now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "i need to create page",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "can you find error",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "please build component",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "progress work",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "begin current flow right now",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "finish work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "wrap it work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "resume logic",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "audit issue",
+      "expected": "/investigate",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    },
+    {
+      "query": "begin task",
+      "expected": "/lets-go",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "core"
+      ]
+    },
+    {
+      "query": "make logic",
+      "expected": "/run-task",
+      "min_score": 0.3,
+      "tags": [
+        "synthetic",
+        "combinatorial"
+      ]
+    }
+  ]
+}
