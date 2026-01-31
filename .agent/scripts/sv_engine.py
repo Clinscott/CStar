@@ -3,6 +3,15 @@ import json
 import re
 import sys
 import os
+import random
+
+# Import Persona Logic
+try:
+    import personas
+except ImportError:
+    # Fallback if running from root
+    sys.path.append(os.path.join(os.path.dirname(__file__)))
+    import personas
 
 
 class HUD:
@@ -18,10 +27,18 @@ class HUD:
     BOLD = "\033[1m"
     PERSONA = "ALFRED" # Default
 
+    DIALOGUE = None # Instance of DialogueRetriever
+
+    @staticmethod
+    def _speak(intent, fallback):
+        if HUD.DIALOGUE:
+            return HUD.DIALOGUE.get(intent) or fallback
+        return fallback
+
     @staticmethod
     def _get_theme():
-        if HUD.PERSONA == "GOD":
-            return {"main": HUD.RED, "dim": HUD.MAGENTA, "accent": HUD.YELLOW, "title": "Ω THE OMNISCIENT ENGINE Ω"}
+        if HUD.PERSONA == "GOD" or HUD.PERSONA == "ODIN":
+            return {"main": HUD.RED, "dim": HUD.MAGENTA, "accent": HUD.YELLOW, "title": "Ω ODIN ENGINE Ω"}
         return {"main": HUD.CYAN, "dim": HUD.CYAN_DIM, "accent": HUD.GREEN, "title": "C* NEURAL TRACE"}
 
     @staticmethod
@@ -39,8 +56,6 @@ class HUD:
     def box_row(label, value, color=CYAN, dim_label=False):
         theme = HUD._get_theme()
         lbl_color = theme['dim'] if dim_label else theme['main']
-        # If God mode, force aggressive colors for values if not specified? 
-        # Actually, let's keep the passed color but update the border/label.
         print(f"{theme['dim']}│{HUD.RESET} {lbl_color}{label:<20}{HUD.RESET} {color}{value}{HUD.RESET}")
 
     @staticmethod
@@ -59,6 +74,34 @@ class HUD:
         blocks = int(val * width)
         bar = f"{HUD.GREEN}" + "█" * blocks + f"{HUD.GREEN_DIM}" + "░" * (width - blocks) + f"{HUD.RESET}"
         return bar
+
+class DialogueRetriever:
+    def __init__(self, dialogue_path):
+        self.intents = {} # {intent_name: [phrases]}
+        self._load(dialogue_path)
+
+    def _load(self, path):
+        if not path or not os.path.exists(path): return
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            # Parse # INTENT: NAME \n "phrase" ...
+            sections = content.split("# INTENT:")
+            for sec in sections[1:]:
+                lines = sec.strip().splitlines()
+                name = lines[0].strip()
+                phrases = [l.strip().strip('"') for l in lines[1:] if l.strip()]
+                self.intents[name] = phrases
+        except Exception as e:
+            # SovereignFish Improvement: Warn Odin if his voice is stolen
+            if "ODIN" in str(os.environ.get("PERSONA", "")).upper() or "GOD" in str(os.environ.get("PERSONA", "")).upper():
+                print(f"⚠️ [ODIN] CRITICAL: FAILED TO LOAD DIALOGUE VECTOR: {path}")
+            pass
+
+    def get(self, intent):
+        opts = self.intents.get(intent, [])
+        return random.choice(opts) if opts else None
 
 class SovereignVector:
     def __init__(self, thesaurus_path=None, corrections_path=None, stopwords_path=None):
@@ -270,8 +313,25 @@ if __name__ == "__main__":
                 config = json.load(f)
         except: pass
     
-    # Apply Persona
-    HUD.PERSONA = config.get("Persona", "ALFRED")
+    # Apply Persona Configuration
+    persona_name = config.get("Persona", "ALFRED")
+    HUD.PERSONA = persona_name.upper()
+
+    # Initialize Strategies
+    strategy = personas.get_strategy(persona_name, project_root)
+    
+    # Initialize Dialogue
+    voice_file = strategy.get_voice() + ".md"
+    dialogue_path = os.path.join(project_root, "dialogue_db", voice_file)
+    HUD.DIALOGUE = DialogueRetriever(dialogue_path)
+
+    # 0. Enforce Operational Policy (The "Soul" Effect)
+    # Only run this if explicitly requested or on specific commands to avoid latency on every call
+    # For now, let's print a boot message if interactive
+    if len(sys.argv) == 1: # No args, interactive check
+        policy_results = strategy.enforce_policy()
+        for res in policy_results:
+            print(f"[{HUD.PERSONA}] {res}")
 
     engine = SovereignVector(
         thesaurus_path=os.path.join(project_root, "thesaurus.md"), 
@@ -319,6 +379,7 @@ if __name__ == "__main__":
                 "match": top_match['trigger'],
                 "score": top_match['score'],
                 "is_global": top_match['is_global'],
+                "persona": HUD.PERSONA, # Distributed Fishtest: Capture the "Soul"
                 "timestamp": config.get("version", "unknown") # Placeholder for eventual timestamps
             }
             with open(trace_path, "w", encoding='utf-8') as f:
@@ -358,11 +419,11 @@ if __name__ == "__main__":
         
         if propose_install:
             HUD.box_separator()
-            if HUD.PERSONA == "GOD":
+            if HUD.PERSONA == "GOD" or HUD.PERSONA == "ODIN":
                 HUD.box_row("⚠️  MANDATE", "CAPABILITY REQUIRED", HUD.RED)
                 HUD.box_row("EXECUTION", f"Install {skill_name}", HUD.RED)
             else:
-                HUD.box_row("⚠️  PROACTIVE", "Handshake Detected", HUD.YELLOW)
+                HUD.box_row("⚠️  PROACTIVE", HUD._speak("SEARCH_SUCCESS", "Handshake Detected"), HUD.YELLOW)
                 HUD.box_row("Suggestion", f"Install {skill_name}", HUD.GREEN)
             
             # Interactive Handshake
@@ -372,15 +433,15 @@ if __name__ == "__main__":
                 sys.stdout.flush()
                 # Use raw input if possible, but keep it simple
                 prompt = ""
-                if HUD.PERSONA == "GOD":
-                    prompt = f"\n{HUD.RED}>> [Ω] AUTHORIZE DEPLOYMENT of {skill_name}? [Y/n] {HUD.RESET}"
+                if HUD.PERSONA == "GOD" or HUD.PERSONA == "ODIN":
+                    prompt = f"\n{HUD.RED}>> [Ω] {HUD._speak('PROACTIVE_INSTALL', 'AUTHORIZE DEPLOYMENT?')} [Y/n] {HUD.RESET}"
                 else:
-                    prompt = f"\n{HUD.CYAN}>> [C*] Would you like to install {skill_name}? [Y/n] {HUD.RESET}"
+                    prompt = f"\n{HUD.CYAN}>> [C*] {HUD._speak('PROACTIVE_INSTALL', 'Would you like to install this?')} [Y/n] {HUD.RESET}"
                 
                 choice = input(prompt).strip().lower()
                 
                 if choice in ['', 'y', 'yes']:
-                    if HUD.PERSONA == "GOD":
+                    if HUD.PERSONA == "GOD" or HUD.PERSONA == "ODIN":
                         print(f"\n{HUD.RED}>> COMMAND ACCEPTED.{HUD.RESET} ENFORCING...")
                     else:
                         print(f"\n{HUD.GREEN}>> ACCEL{HUD.RESET} Initiating deployment sequence...")
@@ -389,7 +450,7 @@ if __name__ == "__main__":
                     # Run the command
                     subprocess.run(["powershell", "-Command", f"& {{ python .agent/scripts/install_skill.py {skill_name} }}"], check=False)
                 else:
-                    if HUD.PERSONA == "GOD":
+                    if HUD.PERSONA == "GOD" or HUD.PERSONA == "ODIN":
                         print(f"\n{HUD.YELLOW}>> DISSENT RECORDED.{HUD.RESET} Halted.")
                     else:
                         print(f"\n{HUD.YELLOW}>> ABORT{HUD.RESET} Sequence cancelled.")

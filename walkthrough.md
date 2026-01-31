@@ -137,3 +137,51 @@ We implemented two core personas:
 ## Verification
 - **Visual**: Manually verified both themes.
 - **Protocol**: `fishtest.py` maintained 100% accuracy, confirming aesthetic changes did not break logic.
+
+# Walkthrough: Vector-Driven Personas (Corvus Star 2.2)
+
+This session operationalized the "Soul" of the framework, moving from simple text swaps to distinct, vector-driven operational strategies.
+
+## 1. Vector Dialogue (`dialogue_db/`)
+We moved hardcoded strings out of the engine and into a vector-retrievable corpus.
+- **`odin.md`**: Contains "Dominating", "Imperious" intent blocks.
+- **`alfred.md`**: Contains "Servile", "Polite" intent blocks.
+- **`DialogueRetriever`**: A new class in `sv_engine.py` that uses the SovereignVector to fetch the most semantically appropriate response for a given system state (e.g., `INIT_SUCCESS`, `SEARCH_FAIL`).
+
+## 2. Operational Divergence (`personas.py`)
+The choice of persona now dictates *how* the framework behaves:
+- **ODIN Strategy**:
+    - **Enforcement**: Ruthlessly rewrites `AGENTS.md` and `tasks.md` to match the CorvusStar standard.
+    - **Philosophy**: "Compliance is mandatory."
+- **ALFRED Strategy**:
+    - **Adaptation**: Respects existing file structures. If documentation is missing, it suggests or creates minimal non-intrusive files.
+    - **Philosophy**: "At your service."
+
+## 3. Utilities
+- **`set_persona.py`**: A new script to toggle the active soul instantly.
+- **`install.ps1`**: Updated to deploy the strategy engines and dialogue databases.
+
+## Verification
+- **Test Suite**: Created `tests/test_dominion.py` which verified:
+    - ODIN overwrites non-compliant files.
+    - ALFRED respects "messy" files.
+    - Dialogue is correctly retrieved via vector search.
+- **SovereignFish**: Implemented `KeyboardInterrupt` handling for the switcher and "Safe Loading" warnings for the engine.
+- **Fishtest**: 100% Accuracy (12/12) verified.
+
+# Walkthrough: Distributed Fishtest Realization (Corvus Star 2.2.1)
+
+This phase bridged the gap between "Trace Recording" and "Distributed Learning" by making the infrastructure **Persona-Aware**.
+
+## 1. Persona Trace Recording
+Updated `sv_engine.py` to include the `"persona": HUD.PERSONA` field in every JSON trace file. This ensures that when an agent learns from a trace, it knows *who* generated it.
+
+## 2. Ingestion Logic
+Updated `tests/merge_traces.py` to read this new field and tag the resulting `fishtest_data.json` test case with `["ODIN"]` or `["ALFRED"]`.
+
+## 3. Visualization
+Updated `trace_viz.py` (via SovereignFish) to display the active Persona in the HUD header, improving debugging clarity.
+
+## Verification
+- **Simulated Ingestion**: Created a mock `odin_trace_01.json` and verified `merge_traces.py` correctly tagged it in `fishtest_data.json`.
+- **Fishtest**: 100% Accuracy maintained.

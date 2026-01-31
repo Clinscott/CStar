@@ -35,8 +35,10 @@ class SPRT:
 
 def run_test():
     # Import Engine In-Process (Optimization Phase 1)
+    # Import Engine In-Process (Optimization Phase 1)
     try:
-        from .agent.scripts.sv_engine import SovereignVector
+        sys.path.append(os.path.join(os.path.dirname(__file__), ".agent", "scripts"))
+        from sv_engine import SovereignVector
     except ImportError:
         # Fallback for direct execution
         sys.path.append(os.path.join(os.path.dirname(__file__), ".agent", "scripts"))
@@ -153,8 +155,12 @@ def run_test():
     accuracy = (passed / total) * 100
     sprt_result = sprt.update(passed, total)
     
+    # SovereignFish Improvement: Colorized SPRT
+    sprt_color = "\033[32m" if "PASS" in sprt_result else "\033[31m"
+    if "INCONCLUSIVE" in sprt_result: sprt_color = "\033[33m" # Yellow
+
     print(f"\nFinal Accuracy: {accuracy:.1f}% ({passed}/{total})")
-    print(f"SPRT Status:   {sprt_result} (LLR: {sprt.llr:.2f})")
+    print(f"SPRT Status:   {sprt_color}{sprt_result}\033[0m (LLR: {sprt.llr:.2f})")
     print(f"Performance:   {duration:.4f}s total ({avg_time:.2f}ms/call)")
     
     if accuracy < 100:

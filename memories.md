@@ -29,5 +29,8 @@ saved_memory:
     - Scalability Benchmark: The testing infrastructure is certified for N=1000 execution at <0.5ms per call.
     - Learning by Memorization: High-value failing traces should be added directly to `corrections.json` for immediate resolution.
     - Persona Pattern: Store personality/voice settings in `config.json` and use a centralized theme dictionary (like `_get_theme()`) to drive CLI aesthetics dynamically.
+    - Operational Divergence: Use the Strategy Pattern (`Personas.py`) to map "Soul" to "Behavior". ODIN = Strict Enforcement; ALFRED = Adaptive Service.
+    - Vector Dialogue: Store system responses in markdown corpora (`dialogue_db/`) to be retrieved by semantic intent, not hardcoded strings.
+    - Metadata Tagging: Use flexible `tags` arrays in test/trace data to store origin metadata (like Persona) rather than rigid schema columns.
 deletions: []
 ```

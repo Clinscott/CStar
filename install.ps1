@@ -148,6 +148,14 @@ foreach ($wf in $Workflows) {
 # 3. Deploy Engine Scripts
 Invoke-SmartCopy -Source (Join-Path $SourceBase ".agent\scripts\sv_engine.py") -Dest (Join-Path $ScriptDir "sv_engine.py")
 Invoke-SmartCopy -Source (Join-Path $SourceBase ".agent\scripts\install_skill.py") -Dest (Join-Path $ScriptDir "install_skill.py")
+Invoke-SmartCopy -Source (Join-Path $SourceBase ".agent\scripts\personas.py") -Dest (Join-Path $ScriptDir "personas.py")
+Invoke-SmartCopy -Source (Join-Path $SourceBase ".agent\scripts\set_persona.py") -Dest (Join-Path $ScriptDir "set_persona.py")
+
+# 3b. Deploy Dialogue Database
+$DialogueDir = Join-Path $TargetDir "dialogue_db"
+if (-not (Test-Path $DialogueDir)) { New-Item -ItemType Directory -Path $DialogueDir -Force | Out-Null }
+Invoke-SmartCopy -Source (Join-Path $SourceBase "dialogue_db\odin.md") -Dest (Join-Path $DialogueDir "odin.md")
+Invoke-SmartCopy -Source (Join-Path $SourceBase "dialogue_db\alfred.md") -Dest (Join-Path $DialogueDir "alfred.md")
 
 # 4. Deploy Skills Ecosystem
 if (Test-Path (Join-Path $SourceBase ".agent\skills")) {

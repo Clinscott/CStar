@@ -39,6 +39,10 @@ def merge_traces(network_share, target_file="fishtest_data.json"):
                     "tags": ["federated", "real-user"]
                 }
                 
+                # Distributed Fishtest: Tag the Persona
+                if trace.get('persona'):
+                    new_case['tags'].append(trace.get('persona'))
+                
                 if trace.get('is_global'):
                     new_case['should_be_global'] = True
 

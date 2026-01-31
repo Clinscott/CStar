@@ -47,6 +47,9 @@ Maintain a searchable, accurate map of the project's UI and service architecture
 ### Skill Management
 - **Path**: `.agent/scripts/install_skill.py`
 - **Description**: Utility to deploy skills from the Global Registry to the local project.
+- **Persona Switcher**: `.agent/scripts/set_persona.py` - interactive utility to toggle between ODIN and ALFRED modes.
+- **Persona Strategies**: `.agent/scripts/personas.py` - Defines operational logic for "Dominion" vs "Service".
+- **Dialogue Database**: `dialogue_db/` - Markdown corpus for vector-based speech generation (`odin.md`, `alfred.md`).
 
 ### Agent Lightning (PoC)
 - **Path**: `.agent/scripts/lightning_rod.py`

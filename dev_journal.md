@@ -140,3 +140,36 @@ Preserve the "why" behind technical decisions and provide a narrative history of
 - **Corvus Star 2.1** has personality.
 - It can be an imperious overlord or a helpful butler.
 - Functionality remains 100% verified.
+
+## 2026-01-31 - Vector-Driven Personas (The "Soul" Update)
+### Summary
+- **Vector Dialogue**: Replaced hardcoded engine strings with a `DialogueRetriever` class that acts as a secondary vector engine, fetching context-aware responses from `dialogue_db/`.
+- **Operational Divergence**: Implemented `personas.py`, defining strict "Domination" (ODIN) versus "Service" (ALFRED) strategies for file enforcement.
+- **Switching Utility**: Created `set_persona.py` for instant switching.
+- **SovereignFish**: Validated `test_dominion.py` to ensure strategies behave as expected (ODIN rewrites, ALFRED adapts).
+
+### Architectural Decisions
+- **Strategy Pattern for Personality**: Instead of just changing text, we used the Strategy Pattern (`PersonaStrategy`) to change *behavior*. This allows "Personality" to mean "Operational Mode" (Strict vs Adaptive), which is much more valuable than just a different coating of paint.
+- **Vectorizing Dialogue**: By indexing the dialogue options (`dialogue_db/odin.md`), we allow the output to be "semantically similar" to the intent without being a rigid key-value lookup. This allows for "fuzzy" speech generation in the future.
+- **Runtime Injection**: Operations strategies are injected at runtime in `sv_engine.py`, meaning the engine effectively "recompiles" its behavior based on the `config.json` setting.
+
+### Current State
+- **Corvus Star 2.2** is alive.
+- It has two distinct operational modes.
+- It passed all verification tests (N=12/12).
+
+## 2026-01-31 - Distributed Fishtest (Realization)
+### Summary
+- **Persona Trace Recording**: Updated `sv_engine.py` to capture the active `persona` in the trace files.
+- **Tagged Ingestion**: Updated `merge_traces.py` to promote this persona data into a `tag` in `fishtest_data.json`.
+- **Infrastructure**: This allows the Distributed Learning system to distinguish between "Odin-style" commands and "Alfred-style" commands, preventing personality contamination during federation.
+- **SovereignFish**: Colorized `fishtest.py` SPRT output and added Persona labels to `trace_viz.py`.
+
+### Architectural Decisions
+- **Metadata Tagging**: We chose to use the `tags` array in Fishtest data for storing Persona origin. This keeps the schema flexible without needing rigid "Source" columns.
+- **Simulated Verification**: Verified the pipeline by mocking a file rather than standing up a full second agent. This kept the verification loop tight (< 2 mins).
+
+### Current State
+- The tracing pipeline is now fully "Persona-Aware".
+- Ready for full multi-agent simulation.
+

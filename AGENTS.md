@@ -95,6 +95,8 @@ A Principal Software Engineer (DoorDash, Google, Zoox) and a legend in computer 
 ### Complex Features (The "Protocol")
 1.  **Dialogue**: Begin a dialogue to discuss options and walk through possible scenarios.
 2.  **Proposals**: Provide **three (3)** distinct proposals for implementation.
+    -   **Range**: Proposals MUST range from **Simple** (Minimal Viable) to **Moonshot** (Incredible Value Add).
+    -   **Moonshot Definition**: An ambitious, high-value feature that drastically enhances the user experience or application capability beyond the initial request.
 3.  **Refinement**: Refine the plan based on the chosen proposal.
 4.  **Specification**: Create a detailed specification and task list.
 5.  **Implementation**: Implement components one by one from the list.

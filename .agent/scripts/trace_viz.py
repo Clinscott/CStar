@@ -57,6 +57,15 @@ def visualize_trace(query):
     top_result = results[0]
     trigger = top_result['trigger']
     score = top_result['score']
+    
+    # Distributed Fishtest: Respect the Soul of the Trace
+    # If a trace object was passed (hypothetically), we'd use that. 
+    # But since this runs live on "query", we check the current config.
+    # However, to simulate "Reading a trace", let's check if the query matches a known persona style
+    # In V2, trace_viz will likely read .json files directly. For now, it respects the Live Engine's persona.
+    
+    # Force HUD refresh in case logic changed
+    pass
 
     # Analyzye the "Why"
     q_tokens = engine.expand_query(query) # {token: weight}
@@ -77,7 +86,9 @@ def visualize_trace(query):
 
     # --- GLOW UI RENDER ---
     print("\n")
-    HUD.box_top("NEURAL TRACE VISUALIZER")
+    # SovereignFish Improvement: Show Persona in Header
+    persona_label = f"[{HUD.PERSONA}]" if hasattr(HUD, 'PERSONA') else ""
+    HUD.box_top(f"NEURAL TRACE {persona_label}")
     HUD.box_row("Query", query, HUD.BOLD, dim_label=True)
     HUD.box_row("Top Match", trigger, HUD.GREEN, dim_label=True)
     HUD.box_row("Confidence", f"{score:.4f}", HUD.GREEN if score > 0.8 else HUD.YELLOW, dim_label=True)

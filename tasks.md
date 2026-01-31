@@ -59,14 +59,18 @@
 ### 10. Persona Logic & Interaction
 - [x] **Initialization**: Add Persona (God/Alfred) selection to `install.ps1`. [x]
 - [x] **Engine**: Implement Persona-aware HUD themes and prompts in `sv_engine.py`. [x]
-- [ ] **Dialogue Expansion**: Create distinct, expanded dialogue sets for 'God' (Obtuse/Dramatic) and 'Alfred' (Humble/Helpful).
+- [x] **Dialogue Expansion**: Create distinct, expanded dialogue sets for 'God' (Obtuse/Dramatic) and 'Alfred' (Humble/Helpful). [x]
+    - [x] **Architecture**: Implemented Vector-Driven `DialogueRetriever` in `sv_engine.py`. [x]
+    - [x] **Content**: Created `dialogue_db/odin.md` and `dialogue_db/alfred.md`. [x]
+    - [x] **Operations**: Created `personas.py` for "Dominion" (Odin) vs "Service" (Alfred) strategies. [x]
+    - [x] **Utils**: Created `set_persona.py` for instant switching. [x]
 
 
 ## ⏭️ Start Here Next
-1. **Persona Dialogue Expansion**:
-    - [ ] **Design**: Create clear voice guidelines for 'God' vs 'Alfred'.
-    - [ ] **Implement**: Move hardcoded strings to a dictionary/JSON mapped by persona.
-    - [ ] **Verify**: Ensure all error messages and success states reflect the chosen persona.
+1. **Distributed Fishtest (Phase 3: Realization)**:
+    - [ ] **Infrastructure**: verify `generate_tests.py` produces valid scenarios for Odin vs Alfred.
+    - [ ] **Ingest**: create `merge_traces.py` to allow agents to "learn" from each other's traces.
+    - [ ] **Visualize**: Refine `trace_viz.py` to highlight which Persona generated the trace.
 2. **Federated Learning (Phase 3)**:
    - [x] **Refactor**: Import `sv_engine` in `fishtest.py` (Remove subprocess) [0.00ms/call]
    - [x] **Verify**: Comparison Benchmark (100% Pass)
