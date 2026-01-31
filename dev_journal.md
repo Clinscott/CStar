@@ -124,3 +124,19 @@ Preserve the "why" behind technical decisions and provide a narrative history of
 - **Corvus Star 2.0** is enterprise-ready.
 - Testing throughput is >3000 tests/sec.
 - The framework can officially learn from other agents.
+
+## 2026-01-31 - Persona Initialization
+### Summary
+- **Persona Implementation**: Introduced `Get-PersonaChoice` in `install.ps1`, allowing users to choose between "Complete Domination" (God) and "Humble Servant" (Alfred).
+- **Engine Adaptation**: `sv_engine.py` now supports dynamic themes (Labels, Colors, Interaction Prompts) based on the selected persona in `config.json`.
+- **SovereignFish Improvements**: Refined HUD progress bars to be dynamic and added a polished header to the installation script.
+
+### Architectural Decisions
+- **Config-Driven Personality**: Decided to store persona choice in `config.json` rather than an environment variable to ensure persistence across sessions and machines.
+- **Theme Dictionaries**: Implemented a `_get_theme()` method in `sv_engine` to centralize color/text logic, preventing "if/else" spaghetti throughout the codebase.
+- **Default Robustness**: The system defaults to "ALFRED" (Safe/Hpolite) if no config is found, ensuring a non-hostile experience for new users or broken configs.
+
+### Current State
+- **Corvus Star 2.1** has personality.
+- It can be an imperious overlord or a helpful butler.
+- Functionality remains 100% verified.

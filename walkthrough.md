@@ -115,3 +115,25 @@ We simulated a multi-agent environment to enable distributed learning.
 ## Verification
 - **Performance**: N=1000 Verified at ~0.3ms/call.
 - **Learning**: Achieved 100.0% accuracy on federated traces after training.
+
+# Walkthrough: Persona Initialization (Corvus Star 2.1)
+
+This session introduced **Persona Logic**, allowing the framework to adopt distinct "personalities" that influence user interaction.
+
+## 1. Dual Persona Framework
+We implemented two core personas:
+- **ODIN (GOD/Complete Domination)**: "The engine is law." Uses aggressive red/magenta themes, obtuse "Omniscient" language, and "Mandates" instead of suggestions.
+- **ALFRED (Humble Servant)**: "Optimized options." Uses helpful cyan/green themes, polite language, and "Suggestions."
+
+## 2. Interactive Initialization
+`install.ps1` was updated to capture this preference during setup (`Get-PersonaChoice`) and store it in `.agent/config.json`.
+
+## 3. Sovereign Vector Adaptation
+`sv_engine.py` reads the config and dynamically adjusts:
+- **Visuals**: Color palettes (Red vs Cyan).
+- **Labels**: "COMMAND" vs "Intent", "ENTITY" vs "Match".
+- **Interaction**: "AUTHORIZE DEPLOYMENT?" vs "Would you like to install?".
+
+## Verification
+- **Visual**: Manually verified both themes.
+- **Protocol**: `fishtest.py` maintained 100% accuracy, confirming aesthetic changes did not break logic.

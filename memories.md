@@ -28,5 +28,6 @@ saved_memory:
     - Real User Wins: In conflict resolution (Federated Learning), actual user trace data always overrides synthetic or theoretical test cases.
     - Scalability Benchmark: The testing infrastructure is certified for N=1000 execution at <0.5ms per call.
     - Learning by Memorization: High-value failing traces should be added directly to `corrections.json` for immediate resolution.
+    - Persona Pattern: Store personality/voice settings in `config.json` and use a centralized theme dictionary (like `_get_theme()`) to drive CLI aesthetics dynamically.
 deletions: []
 ```

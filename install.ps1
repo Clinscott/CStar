@@ -19,6 +19,28 @@ function Get-UserChoice {
     return $choice.ToUpper()
 }
 
+function Get-PersonaChoice {
+    Clear-Host
+    Write-Host "============================" -ForegroundColor Cyan
+    Write-Host "   CORVUS STAR INIT v1.0    " -ForegroundColor White
+    Write-Host "============================" -ForegroundColor Cyan
+    
+    Write-Host "`n🎭 Choose your Corvus Star Persona:" -ForegroundColor Cyan
+    Write-Host "  [1] COMPLETE DOMINATION (God Mode)" -ForegroundColor Red
+    Write-Host "      - The engine is law. Files are sacred. Over-dramatic."
+    Write-Host "  [2] Humble Servant (Alfred Mode)" -ForegroundColor Green
+    Write-Host "      - Optimized options. Polite suggestions. Works in the background."
+    
+    while ($true) {
+        $choice = Read-Host "Select Persona [1/2]"
+        switch ($choice) {
+            "1" { return "GOD" }
+            "2" { return "ALFRED" }
+            default { Write-Host "Please select 1 or 2." -ForegroundColor Yellow }
+        }
+    }
+}
+
 function Invoke-SmartMerge {
     param ([string]$Source, [string]$Dest)
     
@@ -145,9 +167,11 @@ foreach ($tpl in $Templates) {
 }
 
 # 6. Initialize Config & Corrections
+$Persona = Get-PersonaChoice
 $configPath = Join-Path $AgentDir "config.json"
 $configData = @{
     FrameworkRoot = $SourceBase
+    Persona       = $Persona
 } | ConvertTo-Json
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 [System.IO.File]::WriteAllText($configPath, $configData, $utf8NoBom)

@@ -16,33 +16,48 @@ class HUD:
     RED = "\033[31m"
     RESET = "\033[0m"
     BOLD = "\033[1m"
-    
+    PERSONA = "ALFRED" # Default
+
+    @staticmethod
+    def _get_theme():
+        if HUD.PERSONA == "GOD":
+            return {"main": HUD.RED, "dim": HUD.MAGENTA, "accent": HUD.YELLOW, "title": "Ω THE OMNISCIENT ENGINE Ω"}
+        return {"main": HUD.CYAN, "dim": HUD.CYAN_DIM, "accent": HUD.GREEN, "title": "C* NEURAL TRACE"}
+
     @staticmethod
     def box_top(title=""):
+        theme = HUD._get_theme()
+        display_title = title if title else theme["title"]
+        
         width = 60
-        t_len = len(title)
+        t_len = len(display_title)
         padding = (width - t_len - 4) // 2
-        # Glow effect: Dim corners, bright center
-        print(f"{HUD.CYAN_DIM}┌{'─'*padding} {HUD.CYAN}{HUD.BOLD}{title}{HUD.RESET}{HUD.CYAN_DIM} {'─'*padding}┐{HUD.RESET}")
+        # Glow effect
+        print(f"{theme['dim']}┌{'─'*padding} {theme['main']}{HUD.BOLD}{display_title}{HUD.RESET}{theme['dim']} {'─'*padding}┐{HUD.RESET}")
 
     @staticmethod
     def box_row(label, value, color=CYAN, dim_label=False):
-        lbl_color = HUD.CYAN_DIM if dim_label else HUD.CYAN
-        print(f"{HUD.CYAN_DIM}│{HUD.RESET} {lbl_color}{label:<20}{HUD.RESET} {color}{value}{HUD.RESET}")
+        theme = HUD._get_theme()
+        lbl_color = theme['dim'] if dim_label else theme['main']
+        # If God mode, force aggressive colors for values if not specified? 
+        # Actually, let's keep the passed color but update the border/label.
+        print(f"{theme['dim']}│{HUD.RESET} {lbl_color}{label:<20}{HUD.RESET} {color}{value}{HUD.RESET}")
 
     @staticmethod
     def box_separator():
-        print(f"{HUD.CYAN_DIM}├{'─'*58}┤{HUD.RESET}")
+        theme = HUD._get_theme()
+        print(f"{theme['dim']}├{'─'*58}┤{HUD.RESET}")
 
     @staticmethod
     def box_bottom():
-        print(f"{HUD.CYAN_DIM}└{'─'*58}┘{HUD.RESET}")
+        theme = HUD._get_theme()
+        print(f"{theme['dim']}└{'─'*58}┘{HUD.RESET}")
     
     @staticmethod
-    def progress_bar(val: float):
+    def progress_bar(val: float, width=10):
         # [||||||....] with subtle coloring
-        blocks = int(val * 10)
-        bar = f"{HUD.GREEN}" + "█" * blocks + f"{HUD.GREEN_DIM}" + "░" * (10 - blocks) + f"{HUD.RESET}"
+        blocks = int(val * width)
+        bar = f"{HUD.GREEN}" + "█" * blocks + f"{HUD.GREEN_DIM}" + "░" * (width - blocks) + f"{HUD.RESET}"
         return bar
 
 class SovereignVector:
@@ -254,6 +269,9 @@ if __name__ == "__main__":
             with open(config_path, 'r', encoding='utf-8') as f:
                 config = json.load(f)
         except: pass
+    
+    # Apply Persona
+    HUD.PERSONA = config.get("Persona", "ALFRED")
 
     engine = SovereignVector(
         thesaurus_path=os.path.join(project_root, "thesaurus.md"), 
@@ -318,22 +336,34 @@ if __name__ == "__main__":
             sys.exit(0)
 
         # --- SCI-FI TERMINAL UI (SovereignFish Improvement) ---
-        HUD.box_top("C* NEURAL TRACE")
-        HUD.box_row("Intent", query, HUD.BOLD)
+        HUD.box_top() # Title handled by theme
+        
+        # Flavor Text for Persona
+        intent_label = "COMMAND" if HUD.PERSONA == "GOD" else "User Intent"
+        HUD.box_row(intent_label, query, HUD.BOLD)
         
         if top_match:
             score = top_match['score']
             score_color = HUD.GREEN if score > 0.8 else HUD.YELLOW
+            if HUD.PERSONA == "GOD": score_color = HUD.RED if score > 0.8 else HUD.YELLOW
+            
             is_global = f"{HUD.MAGENTA}[GLOBAL]{HUD.RESET} " if top_match['is_global'] else ""
             
             bar = HUD.progress_bar(score)
-            HUD.box_row("Match", f"{is_global}{top_match['trigger']}", dim_label=True)
-            HUD.box_row("Confidence", f"{bar} {score:.2f}", score_color, dim_label=True)
+            match_label = "ENTITY DETECTED" if HUD.PERSONA == "GOD" else "Match"
+            conf_label = "PROBABILITY" if HUD.PERSONA == "GOD" else "Confidence"
+            
+            HUD.box_row(match_label, f"{is_global}{top_match['trigger']}", dim_label=True)
+            HUD.box_row(conf_label, f"{bar} {score:.2f}", score_color, dim_label=True)
         
         if propose_install:
             HUD.box_separator()
-            HUD.box_row("⚠️  PROACTIVE", "Handshake Detected", HUD.YELLOW)
-            HUD.box_row("Action", f"Install {skill_name}", HUD.GREEN)
+            if HUD.PERSONA == "GOD":
+                HUD.box_row("⚠️  MANDATE", "CAPABILITY REQUIRED", HUD.RED)
+                HUD.box_row("EXECUTION", f"Install {skill_name}", HUD.RED)
+            else:
+                HUD.box_row("⚠️  PROACTIVE", "Handshake Detected", HUD.YELLOW)
+                HUD.box_row("Suggestion", f"Install {skill_name}", HUD.GREEN)
             
             # Interactive Handshake
             HUD.box_bottom()
@@ -341,14 +371,28 @@ if __name__ == "__main__":
                 # Flush stdout ensures the HUD box finishes rendering before the input prompt appears
                 sys.stdout.flush()
                 # Use raw input if possible, but keep it simple
-                choice = input(f"\n{HUD.CYAN}>> [C*] Initialize Handshake for {skill_name}? [Y/n] {HUD.RESET}").strip().lower()
+                prompt = ""
+                if HUD.PERSONA == "GOD":
+                    prompt = f"\n{HUD.RED}>> [Ω] AUTHORIZE DEPLOYMENT of {skill_name}? [Y/n] {HUD.RESET}"
+                else:
+                    prompt = f"\n{HUD.CYAN}>> [C*] Would you like to install {skill_name}? [Y/n] {HUD.RESET}"
+                
+                choice = input(prompt).strip().lower()
+                
                 if choice in ['', 'y', 'yes']:
-                    print(f"\n{HUD.GREEN}>> ACCEL{HUD.RESET} Initiating deployment sequence...")
+                    if HUD.PERSONA == "GOD":
+                        print(f"\n{HUD.RED}>> COMMAND ACCEPTED.{HUD.RESET} ENFORCING...")
+                    else:
+                        print(f"\n{HUD.GREEN}>> ACCEL{HUD.RESET} Initiating deployment sequence...")
+                    
                     import subprocess
                     # Run the command
                     subprocess.run(["powershell", "-Command", f"& {{ python .agent/scripts/install_skill.py {skill_name} }}"], check=False)
                 else:
-                    print(f"\n{HUD.YELLOW}>> ABORT{HUD.RESET} Sequence cancelled.")
+                    if HUD.PERSONA == "GOD":
+                        print(f"\n{HUD.YELLOW}>> DISSENT RECORDED.{HUD.RESET} Halted.")
+                    else:
+                        print(f"\n{HUD.YELLOW}>> ABORT{HUD.RESET} Sequence cancelled.")
             except (EOFError, KeyboardInterrupt):
                 # Handle cases where input isn't possible (e.g. non-interactive shells)
                 print(f"\n{HUD.RED}>> SKIP{HUD.RESET} Non-interactive mode detected.")
@@ -357,8 +401,9 @@ if __name__ == "__main__":
             sys.exit(0) # Exit after handling proactive install to avoid redundant output
         elif recommendations:
             HUD.box_separator()
+            rec_label = "ALTERNATE REALITIES" if HUD.PERSONA == "GOD" else "Discovery"
             for rec in recommendations[:2]:
-               HUD.box_row("🔍 Discovery", f"{rec['trigger']} ({rec['score']:.2f})", HUD.MAGENTA)
+               HUD.box_row(rec_label, f"{rec['trigger']} ({rec['score']:.2f})", HUD.MAGENTA)
         
         HUD.box_bottom()
         
