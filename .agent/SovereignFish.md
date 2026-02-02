@@ -14,3 +14,7 @@
 ### Session: [CURRENT]
 - [x] **Improvement 1 (Visual)**: Implemented "Neural Handshake" animation in `sv_engine.py` (simulated link establishment).
 - [x] **Improvement 2 (Code)**: Refactored `sv_engine.py` to use `argparse` for robust argument handling and simpler extension.
+
+### Session: [PLAN_INIT]
+- [x] **Improvement 1 (Doc/Arch)**: Extended "Subconscious Architecture" (Whisper/Void) to `AGENTS.md` and `investigate.md` ensuring consistent persona duality.
+- [x] **Improvement 2 (Visual)**: Standardized header formatting for `run-task.md` to match the new `plan.md` style.

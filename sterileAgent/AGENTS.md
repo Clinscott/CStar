@@ -33,18 +33,19 @@ This project adheres to a strict "Sci-Fi / Minimalist / High-Performance" aesthe
 - **Seamlessness is Key.** The user experience must be fluid. No hard refreshes, no unstyled flashes.
 
 ## 📂 Key Documentation
-- **`memories.md`**: **(PRIMARY CONTEXT)** The agent's persistent memory. Read this first to understand active investigations and plans.
-- **`wireframe.md`**: The source of truth for UI structure, naming conventions, and accepted patterns.
-- **`tasks.md`**: The current active checklist. Update this file as you complete tasks.
-- **`dev_journal.md`**: Log significant architectural decisions or debugging breakthroughs here.
+## 📂 Key Documentation
+- **`memories.md`**: **(PRIMARY CONTEXT)** `c:/Users/Craig/Corvus/CorvusStar/memories.md` - The agent's persistent memory. Read this first to understand active investigations and plans.
+- **`wireframe.md`**: `c:/Users/Craig/Corvus/CorvusStar/wireframe.md` - The source of truth for UI structure, naming conventions, and accepted patterns.
+- **`tasks.md`**: `c:/Users/Craig/Corvus/CorvusStar/tasks.md` - The current active checklist. Update this file as you complete tasks.
+- **`dev_journal.md`**: `c:/Users/Craig/Corvus/CorvusStar/dev_journal.md` - Log significant architectural decisions or debugging breakthroughs here.
 
 ## 🗺️ Wireframe Maintenance (CRITICAL)
-When creating or modifying components, you **MUST** update `wireframe.md`.
+When creating or modifying components, you **MUST** update `c:/Users/Craig/Corvus/CorvusStar/wireframe.md`.
 - **Document Component**: Add the component name and its file path.
 - **List Prominent Functions**: Explicitly name key functions and describe their use.
 
 ## 🛠️ Development Workflow
-1.  **🐟 Execute SovereignFish Protocol**: **(MANDATORY)** Rules are found in `SovereignFish.md`. You must perform 2 small incremental improvements every session.
+1.  **🐟 Execute SovereignFish Protocol**: **(MANDATORY)** Rules are found in `c:/Users/Craig/Corvus/CorvusStar/sterileAgent/SovereignFish.md`. You must perform 2 small incremental improvements every session.
 2.  **Read & Maintain `memories.md`**: **(PRIMARY CONTEXT)** This is your persistent memory. Read it at the start. **Update it** before you finish if you have new findings, plan changes, or completed tasks.
 3.  **Check `tasks.md`** for active priorities.
 4.  **Read and Update `wireframe.md`** to maintain the project map.

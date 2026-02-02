@@ -134,4 +134,7 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 ### 2026-02-01 (Session 7: Iron Clad)
 - **Code**: Hardened .agent/scripts/ui.py with strict type hinting and docstrings.
 - **Safety**: Fortified overwatch.py with try-except blocks for msvcrt and strict typing.
-- **Protocol**: Enforced the Torvalds Mandate across core utilities including latency_check.py and trace_viz.py.
+### 2026-02-02 (The ODIN Protocol)
+-   **Improvement 1 (Doc/Arch)**: Extended "Subconscious Architecture" to `/plan` and `/investigate`, ensuring 360-degree persona awareness.
+-   **Improvement 2 (Visual/Doc)**: Standardized header formatting for `run-task.md` and `investigate.md` to match the new `/execute` standard.
+

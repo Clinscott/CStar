@@ -103,3 +103,10 @@
 ## 12. Compliance & Feedback
 - [x] **Persona Fidelity**: Investigate why `investigate` workflow output failed to adopt ODIN persona. [x]
 - [x] **Engine Performance**: Benchmark `sv_engine.py` (500 lines) startup time to validate CLI architecture viability. [x]
+
+### 13. Operation Iron Cortex (Refactor & Intelligence)
+- [x] **Refactor**: Split `sv_engine.py` into `engine/vector.py` and `engine/dialogue.py` (Iron Core). [x]
+- [x] **Intelligence**: Implement `engine/cortex.py` (RAG) and integrate via `--cortex`. [x]
+- [x] **Documentation**: Enforce "No Web Visualization" in `AGENTS.md`. [x]
+- [x] **Verification**: Created `tests/test_cortex.py`. [x]
+

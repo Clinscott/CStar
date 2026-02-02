@@ -347,3 +347,73 @@ We hardened the monitoring dashboard against runtime failures.
 **To Resume, Start Here:**
 1. **Optimization**: Proceed to **Phase 2: The Sovereign Cycle** (Task: tune_weights.py optimization).
 2. **Oracle**: Consider implementing the postponed 'Oracle's Eye' protocol.
+
+# Walkthrough: Operation Iron Cortex (Corvus Star 3.2)
+
+This session executed the 'Iron Cortex' strategy, refactoring the core engine for modularity and implanting self-referential intelligence (RAG).
+
+## 1. The Iron Core (Refactor)
+- **Modularization**: We split the monolithic `sv_engine.py` into a clean package structure (`engine/`).
+    - `vector.py`: Holds the core mathematics.
+    - `dialogue.py`: Holds the persona logic.
+- **Facade**: `sv_engine.py` was rewritten as a lightweight entry point, preserving all existing CLI args for backward compatibility.
+
+## 2. The Cortex (Intelligence)
+- **RAG Module**: Implemented `engine/cortex.py`.
+- **Function**: It ingests `AGENTS.md` and `wireframe.md` to allow the agent to query its own laws.
+- **Interface**: `python .agent/scripts/sv_engine.py --cortex "query"` uses the same vector logic to find documentation chunks.
+
+## Verification
+- **Benchmark**: `sv_engine.py` startup verified at 0.08s.
+- **Unit Tests**: `tests/test_cortex.py` passed (2/2).
+- **Manual**: Successfully queried "web visualization" to find the ban.
+
+---
+
+## 🤝 Session Handshake (Iron Cortex)
+
+**What Changed:**
+- [NEW] `.agent/scripts/engine/`: Core logic package.
+- [NEW] `.agent/scripts/engine/cortex.py`: The RAG brain.
+- [mod] `.agent/scripts/sv_engine.py`: Now a wrapper.
+- [NEW] `tests/test_cortex.py`: Verification suite.
+- [MOD] `AGENTS.md`: Added "No Web Viz" mandate.
+
+**To Resume, Start Here:**
+1. **Query**: Ask the Cortex: `python .agent/scripts/sv_engine.py --cortex "how to add a skill"`
+
+# Walkthrough: The ODIN Protocol (The Planning Update)
+
+This session implemented the **`/plan`** workflow, enforcing a rigorous "Interrogation" phase before any code is written. It also formalized the "Subconscious Architecture" (Whisper/Void) to ensure the inactive persona remains relevant.
+
+## 1. The Planning Protocol (`/plan`)
+We created `.agent/workflows/plan.md`, which defines a strict 5-phase process:
+1.  **The Loop**: Recursive interrogation until scope is clear.
+2.  **The Blueprint**: Architecture mapping in `wireframe.md`.
+3.  **The Prophecy**: Proactive "Future Vision" proposals.
+4.  **The Battle Plan**: Granular task breakdown.
+5.  **The Ratification**: Final sign-off.
+
+## 2. Subconscious Architecture
+We updated `AGENTS.md` and `investigate.md` to support the "Inactive Voice":
+-   **Alfred's Whisper**: When ODIN is active, Alfred offers gentle optimization tips.
+-   **Odin's Void**: When ALFRED is active, Odin shouts ambitious demands.
+
+## Verification
+-   **Simulation**: Manually verified the workflow logic by "playing it out" in the proposal phase.
+-   **SovereignFish**: Implemented 2 improvements (Task Header Standardization, Subconscious Checks).
+
+---
+
+## 🤝 Session Handshake (The Planning Update)
+
+**What Changed:**
+-   [NEW] `.agent/workflows/plan.md`: The Planning Protocol.
+-   [MOD] `AGENTS.md`: Added "Subconscious Architecture" section.
+-   [MOD] `wireframe.md`: Registered `plan.md`.
+-   [MOD] `.agent/workflows/investigate.md`: Added "Subconscious Check".
+-   [MOD] `.agent/workflows/run-task.md`: Standardized headers.
+
+**To Resume, Start Here:**
+1.  **Plan**: Run `/plan` to define the next major feature (likely "Trace Visualization 3.0" or "Web Dashboard").
+2.  **Next Objective**: Proceed to the next item in `tasks.md`.
