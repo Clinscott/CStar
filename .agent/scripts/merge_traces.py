@@ -53,10 +53,16 @@ def merge_traces(source_dir, target_file="fishtest_data.json"):
                 traces = content if isinstance(content, list) else [content]
                 
             for trace in traces:
+                # 1. Schema Validation (SovereignFish Item 68)
+                if not isinstance(trace, dict):
+                    HUD.log("WARN", f"Skipping non-object trace in {trace_file.name}")
+                    continue
+                    
                 query = trace.get('query')
                 match = trace.get('match')
                 
-                if not query or not match: 
+                if not query or not isinstance(query, str) or not match or not isinstance(match, str):
+                    HUD.log("WARN", f"Skipping malformed trace (missing query/match) in {trace_file.name}")
                     continue
 
                 # Create Standard Test Case

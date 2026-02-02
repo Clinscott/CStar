@@ -41,7 +41,7 @@ class SPRT:
         if self.llr <= self.la: return "FAIL (Likely Regression)"
         return "INCONCLUSIVE"
 
-def run_test_case(engine, case):
+def run_test_case(engine: object, case: dict) -> tuple[bool, dict]:
     """Evaluates a single test case using the engine."""
     query = case['query']
     expected = case['expected']
@@ -100,7 +100,8 @@ def run_test():
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
                 config = json.load(f)
-        except: pass
+        except (FileNotFoundError, json.JSONDecodeError):
+            pass
     
     persona_name = config.get("Persona", "ALFRED").upper()
     # Import Shared UI

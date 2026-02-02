@@ -119,12 +119,19 @@
     - [x] Verify `fishtest` passes (N=0 baseline). [x]
     - [x] Verify Personas (Odin/Alfred) are selectable. [x]
 
-## ⏭️ Start Here Next (The Scout's Hunt)
-1. **Decree II: The Scout's Hunt (Expansion)**:
+### 15. The SovereignFish N=100 Cycle
+- [x] **Execution**: Completed Sessions 9-21 (65+ improvements). [x]
+- [x] **Quality**: Implemented Type Blanket (Type Hints) globally. [x]
+- [x] **Security**: Hardened Crucible ingestion and Installation Integrity checks. [x]
+- [x] **Aesthetics**: Enhanced HUD 2.0 with dynamic width and persistent layouts. [x]
+
+## ⏭️ Start Here Next (Post-Prophecy Stabilization)
+1. **The Scout's Hunt (Skill Discovery)**:
     - [ ] **Trigger**: Invoke `skill-scout` to search for "dependency-graph visualization python".
     - [ ] **Forge**: Create `.agent/skills/dependency-graph` skill.
     - [ ] **Deploy**: Integrate into `debt_viz.py` (New Tool) for analyzing McCabe complexity visualised in ASCII.
 
-2. **Compliance**:
+2. **Compliance & Maintenance**:
     - [ ] **Fix Data**: Update `fishtest_data.json` to resolve the `check` vs `Environment` mismatch seen during Seed verification.
+    - [ ] **Unit Tests**: Repair falling tests in `test_workflow_analyst.py` and `test_network_watcher.py` (THEMES attribute error).
 

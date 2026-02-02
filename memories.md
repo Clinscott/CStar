@@ -1,7 +1,7 @@
 ```yaml
 saved_memory:
   version: 1
-  updated: 2026-02-01
+  updated: 2026-02-02
   settings:
     enabled: true
     announce_writes: true
@@ -15,7 +15,7 @@ saved_memory:
     - Encoding Rule: Use BOM-less UTF-8 for all Inter-agent configs (JSON/MD) to avoid PowerShell/Python encoding conflicts.
     - Interaction Pattern: High-confidence (>90%) local intent matches should trigger an interactive confirmation (Y/n) rather than just a proposal.
     - Lightning Protocol: File optimization skills should follow a Read -> HUD -> Modify -> Report loop (as seen in `lightning_rod.py`).
-    - SovereignFish Mandate: Use the `SovereignFish` protocol (`c:/Users/Craig/Corvus/CorvusStar/SovereignFish.md`) EVERY session to implement 2 minor improvements (visual/code) that are NOT in the prompt.
+    - SovereignFish Mandate: Use `/sovereignfish` workflow (`c:/Users/Craig/Corvus/CorvusStar/.agent/workflows/sovereignfish.md`) EVERY session to implement 5 improvements. Log to `c:/Users/Craig/Corvus/CorvusStar/SOVEREIGNFISH_LEDGER.md`.
     - The 85% Bar: Execution-level triggers must meet an 85% confidence score. Core workflows should be hard-mapped in `corrections.json` for 110% (1.10) confidence.
     - Intent Polarity: Use Vector Search for *Discovery* (finding new skills) and Corrections for *Execution* (triggering established workflows).
     - Fishtest Protocol 2.0: Tests must verify `min_score`, `is_global`, and `expected_mode` to be considered passing.
@@ -42,4 +42,6 @@ deletions: []
 
     - Torvalds Mandate: Code quality is non-negotiable. Strict typing and Google-style docstrings are required for all core utilities.
     - Backbone Verification: Shared libraries (like ui.py) must have their own independent test suites (test_ui.py).
-    - Subconscious Architecture: The inactive persona must contribute 'Whispers' (Safety) or 'Void Shouts' (Ambition) to plans and reports.
+    - Subconscious Architecture: Inactive personas contribute Observation/Reminders (Alfred) or Void Shouts (Odin) to session context.
+    - Alfred Persona Refinement: Alfred is firm but gentle. His subconscious voices are Aliased as [Alfred's Reminder], [Alfred's Query], and [Alfred's Observation].
+    - SovereignFish N=100: Successfully completed the initial 100-improvement milestone (Sessions 9-21) to achieve system sovereignty.

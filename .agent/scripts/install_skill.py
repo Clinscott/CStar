@@ -43,6 +43,17 @@ def install_skill(skill_name, target_root=None):
         shutil.rmtree(quarantine_zone)
     shutil.copytree(source, quarantine_zone)
     
+    # Step 1.5: Integrity Check (SovereignFish Item 69)
+    # Ensure mandatory files exist and are not empty
+    mandatory_files = ["SKILL.md"]
+    for mf in mandatory_files:
+        mf_path = os.path.join(quarantine_zone, mf)
+        if not os.path.exists(mf_path) or os.path.getsize(mf_path) == 0:
+            print(f"{HUD.RED}>> INTEGRITY FAILURE: Missing or empty {mf} in '{skill_name}'.{HUD.RESET}")
+            shutil.rmtree(quarantine_zone)
+            return
+    
+    
     # Step 2: Scan
     scan_script = os.path.join(os.path.dirname(__file__), "security_scan.py")
     threat_level = 0

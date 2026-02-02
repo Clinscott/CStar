@@ -29,13 +29,18 @@ if __name__ == "__main__":
     import argparse
     import time
     
-    # Calculate Paths
-    base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    project_root = os.path.dirname(base_path)
-    
     # Load Config
     config = {}
     config_path = os.path.join(base_path, "config.json")
+    
+    # THRESHOLDS (SovereignFish Item 2)
+    THRESHOLDS = {
+        "REC": 0.5,
+        "INSTALL": 0.85,
+        "HANDSHAKE": 0.9,
+        "ACCURACY": 0.8
+    }
+
     if os.path.exists(config_path):
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
@@ -74,6 +79,13 @@ if __name__ == "__main__":
         sys.exit(0)
 
     query_text = " ".join(args.query)
+    
+    # Sanitize Query (SovereignFish Item 71)
+    if query_text:
+        # Strip potentially dangerous shell characters
+        query_text = re.sub(r'[;&|`$(){}<>\\!]', '', query_text)
+        # Collapse whitespace
+        query_text = " ".join(query_text.split())
 
     # 3. CORTEX MODE
     if args.cortex and query_text:
@@ -91,7 +103,7 @@ if __name__ == "__main__":
             # Show top 3
             for r in results[:3]:
                 score = r['score']
-                color = HUD.GREEN if score > 0.5 else HUD.YELLOW
+                color = HUD.GREEN if score > THRESHOLDS["REC"] else HUD.YELLOW
                 HUD.box_row("SOURCE", r['trigger'], HUD.MAGENTA, dim_label=True)
                 HUD.box_row("RELEVANCE", f"{score:.2f}", color, dim_label=True)
                 HUD.box_separator()
@@ -130,10 +142,10 @@ if __name__ == "__main__":
         
         # Tiered Output Integration
         top_match = results[0] if results else None
-        recommendations = [r for r in results if r['is_global'] and r['score'] > 0.5]
+        recommendations = [r for r in results if r['is_global'] and r['score'] > THRESHOLDS["REC"]]
         
         propose_install = None
-        if top_match and top_match['is_global'] and top_match['score'] > 0.85:
+        if top_match and top_match['is_global'] and top_match['score'] > THRESHOLDS["INSTALL"]:
             skill_name = top_match['trigger'].replace("GLOBAL:", "")
             # Windows/PowerShell specific command
             propose_install = f"powershell -Command \"& {{ python .agent/scripts/install_skill.py {skill_name} }}\""
@@ -172,7 +184,7 @@ if __name__ == "__main__":
         # --- SCI-FI TERMINAL UI ---
         
         # Neural Handshake Animation
-        if top_match and top_match['score'] > 0.9:
+        if top_match and top_match['score'] > THRESHOLDS["HANDSHAKE"]:
             theme = HUD._get_theme()
             print(f"{theme['dim']}>> ESTABLISHING ROBUST LINK...{HUD.RESET}", end="\r")
             time.sleep(0.3)
@@ -180,19 +192,19 @@ if __name__ == "__main__":
 
         HUD.box_top() 
         
-        intent_label = "COMMAND" if HUD.PERSONA == "GOD" else "User Intent"
+        intent_label = "COMMAND" if HUD.PERSONA == "ODIN" else "User Intent"
         HUD.box_row(intent_label, query_text, HUD.BOLD)
         
         if top_match:
             score = top_match['score']
-            score_color = HUD.GREEN if score > 0.8 else HUD.YELLOW
-            if HUD.PERSONA == "GOD": score_color = HUD.RED if score > 0.8 else HUD.YELLOW
+            score_color = HUD.GREEN if score > THRESHOLDS["ACCURACY"] else HUD.YELLOW
+            if HUD.PERSONA == "ODIN": score_color = HUD.RED if score > THRESHOLDS["ACCURACY"] else HUD.YELLOW
             
             is_global = f"{HUD.MAGENTA}[GLOBAL]{HUD.RESET} " if top_match['is_global'] else ""
             
             bar = HUD.progress_bar(score)
-            match_label = "ENTITY DETECTED" if HUD.PERSONA == "GOD" else "Match"
-            conf_label = "PROBABILITY" if HUD.PERSONA == "GOD" else "Confidence"
+            match_label = "ENTITY DETECTED" if HUD.PERSONA == "ODIN" else "Match"
+            conf_label = "PROBABILITY" if HUD.PERSONA == "ODIN" else "Confidence"
             
             HUD.box_row(match_label, f"{is_global}{top_match['trigger']}", dim_label=True)
             HUD.box_row(conf_label, f"{bar} {score:.2f}", score_color, dim_label=True)
@@ -200,7 +212,7 @@ if __name__ == "__main__":
         if propose_install:
             HUD.box_separator()
             skill_short = skill_name if 'skill_name' in locals() else ""
-            if HUD.PERSONA == "GOD" or HUD.PERSONA == "ODIN":
+            if HUD.PERSONA == "ODIN":
                 HUD.box_row("⚠️  MANDATE", "CAPABILITY REQUIRED", HUD.RED)
                 HUD.box_row("EXECUTION", f"Install {skill_short}", HUD.RED)
             else:
@@ -211,7 +223,7 @@ if __name__ == "__main__":
             try:
                 sys.stdout.flush()
                 prompt = ""
-                if HUD.PERSONA == "GOD" or HUD.PERSONA == "ODIN":
+                if HUD.PERSONA == "ODIN":
                     prompt = f"\n{HUD.RED}>> [Ω] {HUD._speak('PROACTIVE_INSTALL', 'AUTHORIZE DEPLOYMENT?')} [Y/n] {HUD.RESET}"
                 else:
                     prompt = f"\n{HUD.CYAN}>> [C*] {HUD._speak('PROACTIVE_INSTALL', 'Would you like to install this?')} [Y/n] {HUD.RESET}"
@@ -219,7 +231,7 @@ if __name__ == "__main__":
                 choice = input(prompt).strip().lower()
                 
                 if choice in ['', 'y', 'yes']:
-                    if HUD.PERSONA == "GOD" or HUD.PERSONA == "ODIN":
+                    if HUD.PERSONA == "ODIN":
                         print(f"\n{HUD.RED}>> COMMAND ACCEPTED.{HUD.RESET} ENFORCING...")
                     else:
                         print(f"\n{HUD.GREEN}>> ACCEL{HUD.RESET} Initiating deployment sequence...")
@@ -236,7 +248,7 @@ if __name__ == "__main__":
             sys.exit(0)
         elif recommendations:
             HUD.box_separator()
-            rec_label = "ALTERNATE REALITIES" if HUD.PERSONA == "GOD" else "Discovery"
+            rec_label = "ALTERNATE REALITIES" if HUD.PERSONA == "ODIN" else "Discovery"
             for rec in recommendations[:2]:
                HUD.box_row(rec_label, f"{rec['trigger']} ({rec['score']:.2f})", HUD.MAGENTA)
         

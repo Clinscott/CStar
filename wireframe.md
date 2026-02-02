@@ -16,8 +16,9 @@ Maintain a searchable, accurate map of the project's UI and service architecture
 # Project Map / Wireframe
 
 ## 📂 Directory Structure
-- `.agent/scripts`: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts` - SovereignVector Engine (sv_engine.py)
-- `.agent/skills`: `c:/Users/Craig/Corvus/CorvusStar/.agent/skills` - Specialized Agent Skills (SKILL.md definitions)
+- `.agent/scripts`: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts` - SovereignVector Entry point and CLI Utilities.
+- `.agent/scripts/engine`: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/engine` - Modular Brain (Iron Core): `vector.py`, `dialogue.py`, `cortex.py`.
+- `.agent/skills`: `c:/Users/Craig/Corvus/CorvusStar/.agent/skills` - Specialized Agent Skills (SKILL.md definitions).
 - `.agent/workflows`: `c:/Users/Craig/Corvus/CorvusStar/.agent/workflows` - Core AgLng Workflows (lets-go, run-task, etc.)
 - `sterileAgent`: `c:/Users/Craig/Corvus/CorvusStar/sterileAgent` - Generic template repository for new project initialization.
 - `skills_db`: `c:/Users/Craig/Corvus/CorvusStar/skills_db` - Global Skill Registry for proactive framework recommendations.
@@ -26,8 +27,8 @@ Maintain a searchable, accurate map of the project's UI and service architecture
 ## 🏗️ Core Components
 
 ### SovereignVector Engine
-- **Path**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/sv_engine.py`
-- **Description**: High-performance local TF-IDF vector matching script.
+- **Path**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/sv_engine.py` (Shell) & `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/engine/` (Core).
+- **Description**: High-performance local TF-IDF vector matching script. Sub-modules handle mathematics (`vector.py`), persona retrieval (`dialogue.py`), and RAG intelligence (`cortex.py`).
 - **Key Functions**:
     - `search(query)`: Maps natural language to local and global (proactive) skill triggers.
     - `expand_query()`: Handles synonyms and stemming via `thesaurus.md`.
@@ -72,7 +73,7 @@ The framework's soul (The Linscott Standard) manifests through two distinct oper
     - `plan.md`: `c:/Users/Craig/Corvus/CorvusStar/.agent/workflows/plan.md` - **The Planning Protocol**. Strict "Interrogation" loops and "Subconscious Voice" architecture.
     - `execute.md`: `c:/Users/Craig/Corvus/CorvusStar/.agent/workflows/execute.md` - **The Builder**. Turns plans into code + tests.
     - `test.md`: `c:/Users/Craig/Corvus/CorvusStar/.agent/workflows/test.md` - **The Auditor**. Verifies code integrity and Fishtest status.
-    - `SovereignFish.md`: `c:/Users/Craig/Corvus/CorvusStar/SovereignFish.md` - Protocol of incremental excellence. Supports **ODIN: Dominion Audit** (SECURED) and **ALFRED: Manor Polish** (IMPROVED).
+    - `SOVEREIGNFISH_LEDGER.md`: `c:/Users/Craig/Corvus/CorvusStar/SOVEREIGNFISH_LEDGER.md` - Protocol of incremental excellence + Session Log. Supports **ODIN: Dominion Audit** (SECURED) and **ALFRED: Manor Polish** (IMPROVED).
     - `wrap-it-up.md`: `c:/Users/Craig/Corvus/CorvusStar/.agent/workflows/wrap-it-up.md` - Session finalization and documentation logic.
 
 ### Neural Trace Tools (Triple Threat)

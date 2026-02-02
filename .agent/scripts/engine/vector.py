@@ -34,7 +34,7 @@ class SovereignVector:
         try:
             with open(path, 'r', encoding='utf-8') as f:
                 return json.load(f)
-        except:
+        except (FileNotFoundError, json.JSONDecodeError):
             return {}
 
     def _load_stopwords(self, path):
@@ -51,7 +51,7 @@ class SovereignVector:
             with open(path, 'r', encoding='utf-8') as f:
                 loaded = set(json.load(f))
                 return loaded if loaded else defaults
-        except:
+        except (FileNotFoundError, json.JSONDecodeError, TypeError):
             return defaults
 
     def _load_thesaurus(self, path):
@@ -89,13 +89,13 @@ class SovereignVector:
         except Exception:
             return {}
 
-    def tokenize(self, text):
+    def tokenize(self, text: str) -> list[str]:
         if not text: return []
         tokens = re.findall(r'\w+', text.lower())
         filtered = [t for t in tokens if t not in self.stopwords]
         return filtered if filtered else tokens
 
-    def expand_query(self, query):
+    def expand_query(self, query: str) -> dict[str, float]:
         tokens = self.tokenize(query)
         # Use a dict for weights: token -> max_weight
         weights = {t: 1.0 for t in tokens}
@@ -116,11 +116,11 @@ class SovereignVector:
         
         return weights
 
-    def add_skill(self, trigger, text):
+    def add_skill(self, trigger: str, text: str) -> None:
         self.skills[trigger] = text
         self.vocab.update(self.tokenize(text))
 
-    def build_index(self):
+    def build_index(self) -> None:
         num_docs = len(self.skills)
         if num_docs == 0: return
         doc_counts = {word: 0 for word in self.vocab}
@@ -152,14 +152,14 @@ class SovereignVector:
             vector.append(score * self.idf.get(word, 0))
         return vector
 
-    def similarity(self, v1, v2):
+    def similarity(self, v1: list[float], v2: list[float]) -> float:
         dot = sum(a*b for a, b in zip(v1, v2))
         mag1 = math.sqrt(sum(a*a for a in v1))
         mag2 = math.sqrt(sum(b*b for b in v2))
         if mag1 == 0 or mag2 == 0: return 0
         return dot / (mag1 * mag2)
 
-    def search(self, query):
+    def search(self, query: str) -> list[dict]:
         # 1. Check direct phrase mappings (Corrections)
         query_norm = query.lower().strip()
         if query_norm in self.corrections.get("phrase_mappings", {}):
@@ -238,7 +238,7 @@ class SovereignVector:
                     skill_text = " ".join(signal_tokens)
                     self.add_skill(trigger, skill_text)
 
-    def score_identity(self, text, persona_name):
+    def score_identity(self, text: str, persona_name: str) -> float:
         """
         Calculates a 'Purity Score' (0-1) by comparing input text 
         to the vector space of the chosen persona's dialogue.

@@ -61,16 +61,19 @@ class HUD:
         }
 
     @staticmethod
-    def box_top(title: str = "", color: Optional[str] = None, width: int = 60) -> None:
+    def box_top(title: str = "", color: Optional[str] = None, width: Optional[int] = None) -> None:
         """
         Renders the top implementation of a box with a title.
         
         Args:
             title: The text to display in the center header.
             color: Optional override for the main color.
-            width: Total character width of the box (min 10).
+            width: Override width. Defaults to 60 or HUD_WIDTH env var.
         """
+        if width is None:
+            width = int(os.environ.get("HUD_WIDTH", 60))
         assert isinstance(width, int) and width >= 10, "Width must be integer >= 10"
+        HUD._last_width = width
         
         theme = HUD._get_theme()
         display_title = title if title else theme["title"]
@@ -87,7 +90,7 @@ class HUD:
         print(f"{dim_color}┌{'─'*pad_l} {main_color}{HUD.BOLD}{display_title}{HUD.RESET}{dim_color} {'─'*pad_r}┐{HUD.RESET}")
 
     @staticmethod
-    def box_row(label: str, value: Any, color: Optional[str] = None, dim_label: bool = False, width: int = 60) -> None:
+    def box_row(label: str, value: Any, color: Optional[str] = None, dim_label: bool = False, width: Optional[int] = None) -> None:
         """
         Renders a row within a box.
         
@@ -96,8 +99,10 @@ class HUD:
             value: The value string (right side).
             color: Optional color for the value.
             dim_label: Whether to dim the label color.
-            width: Total width of the box.
+            width: Override width.
         """
+        if width is None:
+            width = getattr(HUD, "_last_width", 60)
         theme = HUD._get_theme()
         val_color = color if color else theme['main']
         lbl_color = theme['dim'] if dim_label else theme['main']
@@ -123,16 +128,20 @@ class HUD:
         print(f"{theme['dim']}│{HUD.RESET} {lbl_color}{str_lbl:<20}{HUD.RESET} {val_color}{str_val}{' '*padding}{theme['dim']}│{HUD.RESET}")
 
     @staticmethod
-    def box_separator(color: Optional[str] = None, width: int = 60) -> None:
+    def box_separator(color: Optional[str] = None, width: Optional[int] = None) -> None:
         """Renders a middle separator line."""
+        if width is None:
+            width = getattr(HUD, "_last_width", 60)
         theme = HUD._get_theme()
         dim_color = color if color else theme['dim']
         inner_width = width - 2
         print(f"{dim_color}├{'─'*inner_width}┤{HUD.RESET}")
 
     @staticmethod
-    def box_bottom(color: Optional[str] = None, width: int = 60) -> None:
+    def box_bottom(color: Optional[str] = None, width: Optional[int] = None) -> None:
         """Renders the bottom closure of a box."""
+        if width is None:
+            width = getattr(HUD, "_last_width", 60)
         theme = HUD._get_theme()
         dim_color = color if color else theme['dim']
         inner_width = width - 2
@@ -201,3 +210,32 @@ class HUD:
         if level == "CRITICAL": color = HUD.MAGENTA
         
         print(f"{HUD.DIM}[{ts}]{HUD.RESET} {color}[{level}]{HUD.RESET} {msg} {HUD.DIM}{detail}{HUD.RESET}")
+
+    @staticmethod
+    def warning(msg: str) -> None:
+        """Shorthand for a yellow warning log."""
+        HUD.log("WARN", msg)
+
+    @staticmethod
+    def divider(label: str = "") -> None:
+        """Prints a visual divider line."""
+        theme = HUD._get_theme()
+        width = 60
+        if label:
+            print(f"{theme['dim']}── {theme['accent']}{label}{theme['dim']} {'─'*(width-len(label)-4)}{HUD.RESET}")
+        else:
+            print(f"{theme['dim']}{'─'*width}{HUD.RESET}")
+
+    @staticmethod
+    def log_rejection(persona: str, reason: str, details: str) -> None:
+        """Logs a rejected attempt to the rejection ledger."""
+        ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        entry = f"| {ts} | {persona} | {reason} | {details} |\n"
+        # We target a specific ledger path: .agent/traces/quarantine/REJECTIONS.md
+        ledger_path = os.path.join(os.getcwd(), ".agent", "traces", "quarantine", "REJECTIONS.md")
+        os.makedirs(os.path.dirname(ledger_path), exist_ok=True)
+        if not os.path.exists(ledger_path):
+            with open(ledger_path, "w", encoding="utf-8") as f:
+                f.write("# 🧪 The Crucible: Rejection Ledger\n\n| Timestamp | Persona | Reason | Details |\n| :--- | :--- | :--- | :--- |\n")
+        with open(ledger_path, "a", encoding="utf-8") as f:
+            f.write(entry)
