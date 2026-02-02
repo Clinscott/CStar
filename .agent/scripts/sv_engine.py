@@ -42,15 +42,17 @@ class HUD:
         return {"main": HUD.CYAN, "dim": HUD.CYAN_DIM, "accent": HUD.GREEN, "title": "C* NEURAL TRACE"}
 
     @staticmethod
-    def box_top(title=""):
+    def box_top(title="", color=None):
         theme = HUD._get_theme()
         display_title = title if title else theme["title"]
+        main_color = color if color else theme['main']
+        dim_color = color if color else theme['dim'] # If override, use it for everything
         
         width = 60
         t_len = len(display_title)
         padding = (width - t_len - 4) // 2
         # Glow effect
-        print(f"{theme['dim']}┌{'─'*padding} {theme['main']}{HUD.BOLD}{display_title}{HUD.RESET}{theme['dim']} {'─'*padding}┐{HUD.RESET}")
+        print(f"{dim_color}┌{'─'*padding} {main_color}{HUD.BOLD}{display_title}{HUD.RESET}{dim_color} {'─'*padding}┐{HUD.RESET}")
 
     @staticmethod
     def box_row(label, value, color=CYAN, dim_label=False):
@@ -59,14 +61,16 @@ class HUD:
         print(f"{theme['dim']}│{HUD.RESET} {lbl_color}{label:<20}{HUD.RESET} {color}{value}{HUD.RESET}")
 
     @staticmethod
-    def box_separator():
+    def box_separator(color=None):
         theme = HUD._get_theme()
-        print(f"{theme['dim']}├{'─'*58}┤{HUD.RESET}")
+        dim_color = color if color else theme['dim']
+        print(f"{dim_color}├{'─'*58}┤{HUD.RESET}")
 
     @staticmethod
-    def box_bottom():
+    def box_bottom(color=None):
         theme = HUD._get_theme()
-        print(f"{theme['dim']}└{'─'*58}┘{HUD.RESET}")
+        dim_color = color if color else theme['dim']
+        print(f"{dim_color}└{'─'*58}┘{HUD.RESET}")
     
     @staticmethod
     def progress_bar(val: float, width=10):
@@ -109,6 +113,7 @@ class SovereignVector:
         self.corrections = self._load_json(corrections_path) if corrections_path else {"phrase_mappings": {}, "synonym_updates": {}}
         self.stopwords = self._load_stopwords(stopwords_path)
         self.skills = {} # {trigger: "full text of skill description"}
+        self.trigger_map = {} # {keyword: [triggers]}
         self.vocab = set()
         self.idf = {}
         self.vectors = {} # {trigger: [vector]}
@@ -215,8 +220,12 @@ class SovereignVector:
         for word, count in doc_counts.items():
             self.idf[word] = math.log(num_docs / (1 + count)) + 1
         for trigger, text in self.skills.items():
-            # Build initial vector from doc tokens (all weights 1.0)
-            self.vectors[trigger] = self._vectorize({t: 1.0 for t in self.tokenize(text)})
+            # Build initial vector from doc tokens (Use Term Frequency)
+            tokens = self.tokenize(text)
+            counts = {}
+            for t in tokens:
+                counts[t] = counts.get(t, 0) + 1.0
+            self.vectors[trigger] = self._vectorize(counts)
 
     def _vectorize(self, token_weights):
         # token_weights is a dict of {token: weight}
@@ -250,9 +259,22 @@ class SovereignVector:
         # 2. Vector search
         weighted_tokens = self.expand_query(query)
         q_vec = self._vectorize(weighted_tokens)
+        
+        # 3. Direct Trigger Boost
+        trigger_boosts = {}
+        tokens = self.tokenize(query)
+        for t in tokens:
+            if t in self.trigger_map:
+                for skill in self.trigger_map[t]:
+                    trigger_boosts[skill] = 1.0 # Force max confidence for explicit triggers
+
         results = []
         for trigger, s_vec in self.vectors.items():
             score = self.similarity(q_vec, s_vec)
+            # Apply boost
+            if trigger in trigger_boosts:
+                score = max(score, trigger_boosts[trigger])
+            
             is_global = trigger.startswith("GLOBAL:")
             results.append({"trigger": trigger, "score": score, "is_global": is_global})
         return sorted(results, key=lambda x: x['score'], reverse=True)
@@ -269,6 +291,7 @@ class SovereignVector:
         for skill_folder in os.listdir(directory):
             folder_path = os.path.join(directory, skill_folder)
             if os.path.isdir(folder_path):
+                trigger = f"{prefix}{skill_folder}" # Defined early for mapping
                 skill_md = os.path.join(folder_path, "SKILL.md")
                 if os.path.exists(skill_md):
                     with open(skill_md, 'r', encoding='utf-8') as f:
@@ -287,20 +310,27 @@ class SovereignVector:
                             if line.startswith("name:"): signal_tokens.append(line.split(":", 1)[1].strip())
                             if line.startswith("description:"): signal_tokens.append(line.split(":", 1)[1].strip())
                         
-                        # 2. Activation Words (Priority)
+                        # 2. Activation Words (Priority - Direct Mapping)
                         if "Activation Words:" in line:
                             words = line.split(":", 1)[1].strip().replace(',', ' ')
-                            # Repeat them to boost weight (Hack for TF)
-                            signal_tokens.append(f"{words} " * 10) 
+                            for w in words.split():
+                                clean_w = w.lower().strip()
+                                if clean_w not in self.stopwords:
+                                    if clean_w not in self.trigger_map: self.trigger_map[clean_w] = []
+                                    self.trigger_map[clean_w].append(trigger)
+                            
+                            signal_tokens.append(words) 
                     
                     # 3. Add folder name as explicit token
                     signal_tokens.append(skill_folder)
                     
-                    trigger = f"{prefix}{skill_folder}"
                     skill_text = " ".join(signal_tokens)
                     self.add_skill(trigger, skill_text)
 
 if __name__ == "__main__":
+    import argparse
+    import time
+    
     base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     project_root = os.path.dirname(base_path)
     
@@ -325,10 +355,17 @@ if __name__ == "__main__":
     dialogue_path = os.path.join(project_root, "dialogue_db", voice_file)
     HUD.DIALOGUE = DialogueRetriever(dialogue_path)
 
-    # 0. Enforce Operational Policy (The "Soul" Effect)
-    # Only run this if explicitly requested or on specific commands to avoid latency on every call
-    # For now, let's print a boot message if interactive
-    if len(sys.argv) == 1: # No args, interactive check
+    # Argument Parsing (Refactored for Robustness - SovereignFish Improvement 1)
+    parser = argparse.ArgumentParser(description="Corvus Star SovereignVector Engine")
+    parser.add_argument("query", nargs="*", help="The natural language intent to analyze")
+    parser.add_argument("--json", action="store_true", help="Output only JSON for Agent consumption")
+    parser.add_argument("--record", action="store_true", help="Record this interaction as a trace")
+    args = parser.parse_args()
+    
+    query_text = " ".join(args.query)
+
+    # 0. Enforce Operational Policy (Interactive Mode Only)
+    if not query_text and not args.json:
         policy_results = strategy.enforce_policy()
         for res in policy_results:
             print(f"[{HUD.PERSONA}] {res}")
@@ -352,10 +389,8 @@ if __name__ == "__main__":
     
     engine.build_index()
 
-    if len(sys.argv) > 1:
-        args = [a for a in sys.argv[1:] if a not in ["--json-only", "--json", "--record"]]
-        query = " ".join(args)
-        results = engine.search(query)
+    if query_text:
+        results = engine.search(query_text)
         
         # Tiered Output Integration
         top_match = results[0] if results else None
@@ -366,42 +401,50 @@ if __name__ == "__main__":
             skill_name = top_match['trigger'].replace("GLOBAL:", "")
             propose_install = f"powershell -Command \"& {{ python .agent/scripts/install_skill.py {skill_name} }}\""
 
-        # Trace Recording (Distributed Fishtest Foundation)
-        if "--record" in sys.argv and top_match:
+        # Trace Recording
+        if args.record and top_match:
             traces_dir = os.path.join(base_path, "traces")
             if not os.path.exists(traces_dir): os.makedirs(traces_dir)
             
-            trace_id = re.sub(r'\W+', '_', query[:20]) + f"_{top_match['score']:.2f}"
+            trace_id = re.sub(r'\W+', '_', query_text[:20]) + f"_{top_match['score']:.2f}"
             trace_path = os.path.join(traces_dir, f"{trace_id}.json")
             
             trace_data = {
-                "query": query,
+                "query": query_text,
                 "match": top_match['trigger'],
                 "score": top_match['score'],
                 "is_global": top_match['is_global'],
-                "persona": HUD.PERSONA, # Distributed Fishtest: Capture the "Soul"
-                "timestamp": config.get("version", "unknown") # Placeholder for eventual timestamps
+                "persona": HUD.PERSONA,
+                "timestamp": config.get("version", "unknown")
             }
             with open(trace_path, "w", encoding='utf-8') as f:
                 json.dump(trace_data, f, indent=2)
 
         trace = {
-            "query": query,
+            "query": query_text,
             "top_match": top_match,
             "propose_immediate_install": propose_install,
             "recommendation_report": recommendations if not propose_install else []
         }
         
-        if "--json-only" in sys.argv:
+        # JSON Output (Pure Data)
+        if args.json:
             print(json.dumps(trace, indent=2))
             sys.exit(0)
 
-        # --- SCI-FI TERMINAL UI (SovereignFish Improvement) ---
-        HUD.box_top() # Title handled by theme
+        # --- SCI-FI TERMINAL UI ---
         
-        # Flavor Text for Persona
+        # Neural Handshake Animation (SovereignFish Improvement 2)
+        if top_match and top_match['score'] > 0.9:
+            theme = HUD._get_theme()
+            print(f"{theme['dim']}>> ESTABLISHING ROBUST LINK...{HUD.RESET}", end="\r")
+            time.sleep(0.3)
+            print(f"{theme['main']}>> LINK ESTABLISHED           {HUD.RESET}")
+
+        HUD.box_top() 
+        
         intent_label = "COMMAND" if HUD.PERSONA == "GOD" else "User Intent"
-        HUD.box_row(intent_label, query, HUD.BOLD)
+        HUD.box_row(intent_label, query_text, HUD.BOLD)
         
         if top_match:
             score = top_match['score']
@@ -426,12 +469,9 @@ if __name__ == "__main__":
                 HUD.box_row("⚠️  PROACTIVE", HUD._speak("SEARCH_SUCCESS", "Handshake Detected"), HUD.YELLOW)
                 HUD.box_row("Suggestion", f"Install {skill_name}", HUD.GREEN)
             
-            # Interactive Handshake
             HUD.box_bottom()
             try:
-                # Flush stdout ensures the HUD box finishes rendering before the input prompt appears
                 sys.stdout.flush()
-                # Use raw input if possible, but keep it simple
                 prompt = ""
                 if HUD.PERSONA == "GOD" or HUD.PERSONA == "ODIN":
                     prompt = f"\n{HUD.RED}>> [Ω] {HUD._speak('PROACTIVE_INSTALL', 'AUTHORIZE DEPLOYMENT?')} [Y/n] {HUD.RESET}"
@@ -447,19 +487,15 @@ if __name__ == "__main__":
                         print(f"\n{HUD.GREEN}>> ACCEL{HUD.RESET} Initiating deployment sequence...")
                     
                     import subprocess
-                    # Run the command
                     subprocess.run(["powershell", "-Command", f"& {{ python .agent/scripts/install_skill.py {skill_name} }}"], check=False)
                 else:
-                    if HUD.PERSONA == "GOD" or HUD.PERSONA == "ODIN":
-                        print(f"\n{HUD.YELLOW}>> DISSENT RECORDED.{HUD.RESET} Halted.")
-                    else:
-                        print(f"\n{HUD.YELLOW}>> ABORT{HUD.RESET} Sequence cancelled.")
+                    msg = "DISSENT RECORDED" if "ODIN" in HUD.PERSONA else "ABORT"
+                    color = HUD.YELLOW
+                    print(f"\n{color}>> {msg}.{HUD.RESET}")
             except (EOFError, KeyboardInterrupt):
-                # Handle cases where input isn't possible (e.g. non-interactive shells)
-                print(f"\n{HUD.RED}>> SKIP{HUD.RESET} Non-interactive mode detected.")
                 pass
             
-            sys.exit(0) # Exit after handling proactive install to avoid redundant output
+            sys.exit(0)
         elif recommendations:
             HUD.box_separator()
             rec_label = "ALTERNATE REALITIES" if HUD.PERSONA == "GOD" else "Discovery"
@@ -467,7 +503,3 @@ if __name__ == "__main__":
                HUD.box_row(rec_label, f"{rec['trigger']} ({rec['score']:.2f})", HUD.MAGENTA)
         
         HUD.box_bottom()
-        
-        # Optional: Keep raw JSON for agent parsing if requested via --json
-        if "--json" in sys.argv:
-            print(json.dumps(trace, indent=2))

@@ -1,7 +1,7 @@
 ```yaml
 saved_memory:
   version: 1
-  updated: 2026-01-30
+  updated: 2026-02-01
   settings:
     enabled: true
     announce_writes: true
@@ -32,5 +32,10 @@ saved_memory:
     - Operational Divergence: Use the Strategy Pattern (`Personas.py`) to map "Soul" to "Behavior". ODIN = Strict Enforcement; ALFRED = Adaptive Service.
     - Vector Dialogue: Store system responses in markdown corpora (`dialogue_db/`) to be retrieved by semantic intent, not hardcoded strings.
     - Metadata Tagging: Use flexible `tags` arrays in test/trace data to store origin metadata (like Persona) rather than rigid schema columns.
+    - Distributed Conflict Resolution: Real Trace > Synthetic Test. In Real vs Real conflicts, Last Writer Wins.
+    - Trace Archiving: To prevent infinite ingestion loops, processed trace files must be moved to a `processed/` subdirectory immediately after reading.
+    - Principle of Symmetry: Every feature or UI element for one persona must have a thematic equivalent for the others.
+    - Linscott Standard: Universal rule. Code and Verification are an atomic unit.
+    - The Great Duality: ODIN (Enforcer) and ALFRED (Servant) are distinct operational states.
 deletions: []
 ```

@@ -62,23 +62,23 @@
 - [x] **Dialogue Expansion**: Create distinct, expanded dialogue sets for 'God' (Obtuse/Dramatic) and 'Alfred' (Humble/Helpful). [x]
     - [x] **Architecture**: Implemented Vector-Driven `DialogueRetriever` in `sv_engine.py`. [x]
     - [x] **Content**: Created `dialogue_db/odin.md` and `dialogue_db/alfred.md`. [x]
+    - [x] **Skill Proposal**: Create `workflow-analyst` skill to scan session logs and specific files for patterns. [x]
     - [x] **Operations**: Created `personas.py` for "Dominion" (Odin) vs "Service" (Alfred) strategies. [x]
     - [x] **Utils**: Created `set_persona.py` for instant switching. [x]
+    - [x] **Bug Fix**: Enforced First-Prompt Persona Response via `.cursorrules` and `AGENTS.md` hoisting. [x]
+    - [x] **Security**: Implemented `Heimdall/WayneTech` Protocol (Scanner + Quarantine) for skill installation. [x]
 
 
 ## ⏭️ Start Here Next
-1. **Distributed Fishtest (Phase 3: Realization)**:
-    - [ ] **Infrastructure**: verify `generate_tests.py` produces valid scenarios for Odin vs Alfred.
-    - [ ] **Ingest**: create `merge_traces.py` to allow agents to "learn" from each other's traces.
-    - [ ] **Visualize**: Refine `trace_viz.py` to highlight which Persona generated the trace.
-2. **Federated Learning (Phase 3)**:
-   - [x] **Refactor**: Import `sv_engine` in `fishtest.py` (Remove subprocess) [0.00ms/call]
-   - [x] **Verify**: Comparison Benchmark (100% Pass)
-2. **Fishtest Scaling (Phase 2: Saturation)**:
-   - [x] **Create**: `scripts/generate_tests.py` (Combinatorial Generator)
-   - [x] **Generate**: Create `fishtest_N1000.json` (N=1000)
-   - [x] **Verify**: Run `fishtest.py` with N=1000 dataset (~0.3ms/call)
-3. **Federated Learning Pilot (Phase 3)**:
-   - [x] **Simulate**: Push `agent_alpha_traces.json` to `mock_project/network_share`.
-   - [x] **Ingest**: Create `tests/merge_traces.py` to update `fishtest_data.json`.
-   - [x] **Verify**: Run `fishtest.py` to confirm new "Real User" coverage.
+1. **Distributed Fishtest (Phase 4: Visualization & Analysis)**:
+    - [x] **Trace Viz 2.0**: Update `trace_viz.py` to accept a `--file` argument to visualize a stored JSON trace (instead of just a live query). [x]
+    - [x] **Identity Rendering**: Ensure that when viewing a stored trace, the HUD renders using the *Origin Persona's* theme, not the current session's theme. [x]
+    - [x] **Conflict Analysis**: Create a utility to report on "War Zones" (queries where Odin and Alfred frequently disagree). [x]
+
+2. **Federated Learning (Phase 4: The Network)**:
+    - [x] **Network Watcher**: Create a file watcher script that auto-ingests from `mock_project/network_share` in real-time. ("The Crucible")
+    - [x] **Feedback Loop**: Implement a mechanism for the engine to "reject" bad traces (e.g. if their score drops below baseline after ingest).
+
+## 12. Compliance & Feedback
+- [ ] **Persona Fidelity**: Investigate why `investigate` workflow output failed to adopt ODIN persona.
+- [ ] **Engine Performance**: Benchmark `sv_engine.py` (500 lines) startup time to validate CLI architecture viability.

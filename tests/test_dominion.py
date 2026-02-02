@@ -46,7 +46,7 @@ class TestDominion(unittest.TestCase):
         alfred = personas.get_strategy("ALFRED", self.test_root)
         results = alfred.enforce_policy()
         
-        self.assertTrue(any("OBSERVED" in r for r in results))
+        self.assertTrue(any("PROVISIONED" in r for r in results))
         
         with open(self.agents_path, 'r', encoding='utf-8') as f:
             content = f.read()

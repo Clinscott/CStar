@@ -1,6 +1,6 @@
 # Developer Journal Instructions
 
-The `DEV_JOURNAL.md` file records the chronological evolution of the project, focusing on architectural decisions, breakthroughs, and persistent challenges.
+The `DEV_JOURNAL.md` file records the chronological evolution of the project, focusing on architectural decisions, breakthrough, and persistent challenges.
 
 ## Goal
 Preserve the "why" behind technical decisions and provide a narrative history of the project's development.
@@ -173,3 +173,54 @@ Preserve the "why" behind technical decisions and provide a narrative history of
 - The tracing pipeline is now fully "Persona-Aware".
 - Ready for full multi-agent simulation.
 
+## 2026-02-01 - Distributed Trace Aggregation
+### Summary
+We successfully implemented the "Ingestion" phase of Distributed Fishtest. The system can now merge traces from multiple agents (or a network share) into the central `fishtest_data.json` knowledge base. This is the foundation of "Federated Learning."
+
+### Key Architectural Decisions
+1.  **Real User Wins**: We explicitly decided that actual user usage data (traces) overrides synthetic test cases. If a real user types "deploy" and expects "full-deploy", that becomes the new truth, replacing any theoretical mapping.
+2.  **Last Writer Wins**: For conflicts between two real users, the latest file processed wins. Ideally, this would be timestamp-based, but for now, it's processing order.
+3.  **Archiving**: To prevent infinite processing loops, ingested files are moved to a `processed/` subdirectory.
+
+### Current State
+-   **Engine**: `sv_engine.py` is recording Persona data in traces.
+-   **Ingest**: `merge_traces.py` is robust and verified.
+-   **Stability**: Fishtest pass rate remains 100%.
+
+### Next Priority
+We need to close the loop by visualizing these external traces. Currently `trace_viz.py` only shows *my* thoughts. I need to be able to load an *external* trace file and see *their* thoughts (e.g., "Why did Odin think this was a command?").
+
+## 2026-02-01 - Trace Visualization & Persona Symmetry
+### Summary
+Completed the upgrade of `trace_viz.py` to Version 2.0. This tool now acts as the visual bridge between the "Distributed Intelligence" back-end and the "Persona" front-end.
+- **Identity Rendering**: The system now correctly respects the author of a trace. If Odin wrote it, it renders in Red. If Alfred wrote it, Cyan. This was achieved by modifying `sv_engine.py` to allow dynamic color overrides in the `HUD` class.
+- **Conflict Analysis**: Implemented the "War Room" logic to detect where Odin and Alfred disagree on the same query.
+
+### Architectural Decisions
+- **Dynamic Theming**: We chose to implement theming at the `sv_engine.py` (HUD) level via optional arguments rather than hardcoding ANSI codes in the consumer scripts. This maintains the "Engine as a Service" architecture.
+- **Trace Format**: The JSON trace format is now the source of truth for Identity (`persona` field).
+
+### Current State
+- `trace_viz.py`: **STABLE** (Supports live, file, and war-room modes).
+- `sv_engine.py`: **STABLE** (Expanded HUD capabilities).
+- `fishtest`: **READY** for scaled distributed testing.
+
+## 2026-02-01 - The Great Duality & Universal Verification
+### Summary
+- **Universal Verification**: Achieved 100% test coverage for the entire Corvus Star framework and user projects (48/48 unit tests passing).
+- **The Great Duality**: Implemented fundamental operational divergence between **ODIN** (Compliance/Enforcement) and **ALFRED** (Service/Adaptation).
+- **Protocol Split**: 
+    - `personas.py`: Codified "Dominion Audit" vs "Manor Polish" strategies.
+    - `fishtest.py`: Upgraded to "The Crucible" (Odin) and "Integrity Briefing" (Alfred) modes.
+- **Principle of Symmetry**: Enforced rigid thematic mirroring across all workflows and `sterileAgent` templates.
+- **Trace Evolution**: Protocolized the low-resolution, high-impact Corvus Star Trace format.
+
+### Architectural Decisions
+- **Operational over Linguistic**: Decided that a Persona is defined by *what it does*, not just *what it says*. ODIN ruthlessly standardizes files, while ALFRED focuses on backups and adaptive learning.
+- **Soul of the Framework**: Defined the **Linscott Standard** (Atomic Code+Verification) as the common "Soul" shared by both divergent personas.
+- **Universal Mocking**: Adopted a project-wide standard that *all* scripts, including user projects (`mock_project`), require immediate verification suites.
+
+### Current State
+- **Corvus Star 2.3** is architecturally complete and 100% verified.
+- The framework possesses two functional, distinct personalities with mirrored capabilities.
+- The `sterileAgent` boilerplate is now persona-aware and Corvus-compliant.

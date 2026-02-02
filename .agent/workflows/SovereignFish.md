@@ -87,8 +87,21 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 
 ---
 
-## 📜 Session Log
-*Record your SovereignFish contributions here. Format: `[Date] - [Category]: [Description]`*
+---
+
+## 📜 Session Log (Persona Enforced)
+*Record your SovereignFish contributions here. Output MUST adopt the active Persona:*
+- **ODIN**: Successes are "Dominion Expanded". Format: `[Date] - [Category]: [Action] - Status: SECURED.`
+- **ALFRED**: Successes are "Polishing the Manor". Format: `[Date] - [Category]: [Action] - Status: IMPROVED.`
+
+*Format: `[Date] - [Category]: [Description]`*
+
+### 2026-02-01
+-   **Thesaurus**: Alphabetized and Standardized concept mappings - Status: SECURED.
+-   **Thesaurus**: Added speed synonyms (velocity, tempo) to core workflows - Status: IMPROVED.
+-   **Docs**: Added clear docstrings to `trace_viz.py` modes for better developer experience (DX).
+-   **Code**: Improved `sv_engine.py` HUD class to support dynamic color overrides (required for persona symmetry).
+-   **Architecture**: Implemented "War Room" conflict analysis in `trace_viz.py`.
 
 ### 2026-01-30
 -   **Protocol**: Created `SovereignFish.md` and `thesaurus.md`.

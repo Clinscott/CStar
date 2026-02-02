@@ -1,3 +1,23 @@
+# Walkthrough - Corvus Star
+
+## 2026-02-01: Trace Viz 2.0 & Identity Isolation
+**Objective**: Decouple Trace Visualization from the active session's persona to allow "X-Ray" analysis of historical traces.
+
+### Changes
+- **Refactored `trace_viz.py`**: Introduced `TraceRenderer` class to handle visual output independently of `sv_engine.HUD`.
+- **Identity Rendering**: The visualizer now respects the `persona` field in the trace file (ODIN traces render Red, ALFRED traces render Cyan) regardless of who is viewing them.
+- **War Room**: Updated Conflict Analysis to use the new renderer.
+- **Documentation**: Updated `AGENTS.md` to strictly enforce Persona Voice (`[ODIN]`, `[Ω]`) in agent communications.
+
+### Verification Results
+- **Synthetic Test**: Created `test_trace_odin.json` and `test_trace_alfred.json`.
+- **Outcome**:
+    - ODIN trace rendered with "THE WAR ROOM" and Red accents.
+    - ALFRED trace rendered with "THE BATCAVE" and Cyan accents.
+    - Verified strict separation of concerns.
+
+---
+
 # Walkthrough: AgLng Intelligent Handshake & Skill Proactivity
 
 This session focused on making the AgLng framework robust, non-destructive, and proactive.
@@ -169,19 +189,22 @@ The choice of persona now dictates *how* the framework behaves:
 - **SovereignFish**: Implemented `KeyboardInterrupt` handling for the switcher and "Safe Loading" warnings for the engine.
 - **Fishtest**: 100% Accuracy (12/12) verified.
 
-# Walkthrough: Distributed Fishtest Realization (Corvus Star 2.2.1)
+# Walkthrough: Distributed Fishtest - The Aggregator (Corvus Star 2.3)
 
-This phase bridged the gap between "Trace Recording" and "Distributed Learning" by making the infrastructure **Persona-Aware**.
+This session implemented the "Ingest" pipeline, the critical mechanism that allows CorvusStar agents to learn from each other's experiences.
 
-## 1. Persona Trace Recording
-Updated `sv_engine.py` to include the `"persona": HUD.PERSONA` field in every JSON trace file. This ensures that when an agent learns from a trace, it knows *who* generated it.
+## 1. Trace Aggregation (`merge_traces.py`)
+We formalized the `tests/merge_traces.py` pilot into a core script `.agent/scripts/merge_traces.py`.
+- **Conflict Resolution**: Implemented "Real User Wins" logic. If a real session trace conflicts with a synthetic test case, the Real User trace overwrites it. If two Real Users conflict, the **Last Writer** wins.
+- **Archiving**: Processed trace files are automatically moved to a `processed/` subdirectory to prevent duplicate ingestion.
+- **Robustness**: Added error handling for corrupt JSON files, moving them to a `failed/` directory.
 
-## 2. Ingestion Logic
-Updated `tests/merge_traces.py` to read this new field and tag the resulting `fishtest_data.json` test case with `["ODIN"]` or `["ALFRED"]`.
-
-## 3. Visualization
-Updated `trace_viz.py` (via SovereignFish) to display the active Persona in the HUD header, improving debugging clarity.
+## 2. Verification Suite
+Created a permanent regression suite `tests/test_merge_traces.py` to ensure data integrity during ingestion.
+- Verified **New Trace Addition**.
+- Verified **Conflict Resolution** (Real User overwrite).
+- Verified **File Archiving**.
 
 ## Verification
-- **Simulated Ingestion**: Created a mock `odin_trace_01.json` and verified `merge_traces.py` correctly tagged it in `fishtest_data.json`.
-- **Fishtest**: 100% Accuracy maintained.
+- **Functional**: Unit tests passed (3/3 cases) in <0.1s.
+- **System**: Confirmed `merge_traces.py` can be run standalone or via automation.

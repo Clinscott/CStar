@@ -3,6 +3,14 @@ import os
 import sys
 import math
 
+# Add script path for engine import
+sys.path.append(os.path.join(os.path.dirname(__file__), ".agent", "scripts"))
+try:
+    from sv_engine import SovereignVector
+except ImportError:
+    # Handle cases where pathing might differ (e.g. nested calls)
+    pass
+
 class SPRT:
     """Sequential Probability Ratio Test for automated verification."""
     def __init__(self, alpha=0.05, beta=0.05, elo_diff=10):
@@ -33,49 +41,97 @@ class SPRT:
         if self.llr <= self.la: return "FAIL (Likely Regression)"
         return "INCONCLUSIVE"
 
-def run_test():
-    # Import Engine In-Process (Optimization Phase 1)
-    # Import Engine In-Process (Optimization Phase 1)
-    try:
-        sys.path.append(os.path.join(os.path.dirname(__file__), ".agent", "scripts"))
-        from sv_engine import SovereignVector
-    except ImportError:
-        # Fallback for direct execution
-        sys.path.append(os.path.join(os.path.dirname(__file__), ".agent", "scripts"))
-        from sv_engine import SovereignVector
-
-    # Initialize Engine Once
-    base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".agent")
-    engine = SovereignVector(
-        thesaurus_path=os.path.join(os.path.dirname(base_path), "thesaurus.md"),
-        corrections_path=os.path.join(base_path, "corrections.json"),
-        stopwords_path=os.path.join(base_path, "scripts", "stopwords.json")
-    )
+def run_test_case(engine, case):
+    """Evaluates a single test case using the engine."""
+    query = case['query']
+    expected = case['expected']
     
-    # Load Skills
-    skills_dir = os.path.join(base_path, "skills")
-    if os.path.exists(skills_dir):
-        engine.load_skills_from_dir(skills_dir)
-        
-    # Load Core Skills from Engine Definition (DRY)
-    if hasattr(engine, 'load_core_skills'):
-        engine.load_core_skills()
+    # Direct Engine Call
+    results = engine.search(query)
+    
+    if results:
+        top_match = results[0]
+        actual = top_match.get('trigger')
+        score = top_match.get('score', 0)
+        is_global = top_match.get('is_global', False)
     else:
-        # Fallback if engine improperly imported or old version
-        engine.add_skill("/lets-go", "start resume begin")
+        actual = None
+        score = 0
+        is_global = False
+        
+    failed = False
+    fail_reasons = []
 
-    # Load Global Skills if Configured
+    if actual != expected:
+        # Special check for SovereignFish which can match polish/improvement/reform
+        if expected == "SovereignFish" and actual is not None and "Fish" in actual:
+            pass
+        else:
+            failed = True
+            fail_reasons.append(f"Expected '{expected}', Got '{actual}'")
+
+    min_score = case.get('min_score', 0)
+    if score < min_score:
+        failed = True
+        fail_reasons.append(f"Score {score:.2f} < Min {min_score}")
+
+    if 'should_be_global' in case:
+        expected_global = case['should_be_global']
+        if is_global != expected_global:
+            failed = True
+            fail_reasons.append(f"Global mismatch: Expected {expected_global}, Got {is_global}")
+
+    return not failed, {
+        "actual": actual,
+        "score": score,
+        "is_global": is_global,
+        "reasons": fail_reasons
+    }
+
+def run_test():
+    # Setup Paths
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    base_path = os.path.join(current_dir, ".agent")
+    
+    # Load Config & Persona
+    config = {}
     config_path = os.path.join(base_path, "config.json")
     if os.path.exists(config_path):
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
                 config = json.load(f)
-                framework_root = config.get("FrameworkRoot")
-                if framework_root:
-                    global_path = os.path.join(framework_root, "skills_db")
-                    if os.path.exists(global_path):
-                        engine.load_skills_from_dir(global_path, prefix="GLOBAL:")
         except: pass
+    
+    persona_name = config.get("Persona", "ALFRED").upper()
+    try:
+        from sv_engine import HUD
+        HUD.PERSONA = persona_name
+    except ImportError:
+        class HUD:
+            PERSONA = persona_name
+            RESET = ""
+            BOLD = ""
+            def box_top(t=""): print(f"--- {t} ---")
+            def box_row(l, v, c="", dm=False): print(f"{l}: {v}")
+            def box_separator(): print("-" * 40)
+            def box_bottom(): print("-" * 40)
+            def progress_bar(v): return "=" * int(v*10)
+
+    # Initialize Engine Once
+    engine = SovereignVector(
+        thesaurus_path=os.path.join(current_dir, "thesaurus.md"),
+        corrections_path=os.path.join(base_path, "corrections.json"),
+        stopwords_path=os.path.join(base_path, "scripts", "stopwords.json")
+    )
+    
+    engine.load_core_skills()
+    engine.load_skills_from_dir(os.path.join(base_path, "skills"))
+    
+    framework_root = config.get("FrameworkRoot")
+    if framework_root:
+        global_path = os.path.join(framework_root, "skills_db")
+        if os.path.exists(global_path):
+            engine.load_skills_from_dir(global_path, prefix="GLOBAL:")
 
     engine.build_index()
 
@@ -85,83 +141,52 @@ def run_test():
         if len(sys.argv) > 2:
             target_file = sys.argv[2]
             
-    print(f"Loading test data from: {target_file}")
     with open(target_file, 'r', encoding='utf-8') as f:
         data = json.load(f)
     
     test_cases = data['test_cases']
     passed = 0
     total = len(test_cases)
-    
-    # Initialize SPRT
     sprt = SPRT()
     
-    print(f"--- CorvusStar FISHTEST: Statistical Verification (SPRT) ---")
-    print(f"Total Cases: {total}\n")
-    
+    # --- Persona Header ---
+    title = "Ω THE CRUCIBLE (GATEKEEPER) Ω" if HUD.PERSONA == "ODIN" else "Linguistic Integrity Briefing"
+    HUD.box_top(title)
+    HUD.box_row("TARGET", target_file, HUD.BOLD)
+    HUD.box_row("POPULATION", f"{total} Cases", HUD.BOLD)
+    HUD.box_separator()
+
     import time
     start_time = time.time()
 
     for case in test_cases:
-        query = case['query']
-        expected = case['expected']
-        
-        # Direct Engine Call
-        results = engine.search(query)
-        
-        if results:
-            top_match = results[0]
-            actual = top_match.get('trigger')
-            score = top_match.get('score', 0)
-            is_global = top_match.get('is_global', False)
-        else:
-            actual = None
-            score = 0
-            is_global = False
-            
-        failed = False
-        fail_reasons = []
-
-        if actual != expected:
-            # Special check for SovereignFish which can match polish/improvement/reform
-            if expected == "SovereignFish" and actual is not None and "Fish" in actual:
-                pass
-            else:
-                failed = True
-                fail_reasons.append(f"Expected '{expected}', Got '{actual}'")
-
-        min_score = case.get('min_score', 0)
-        if score < min_score:
-            failed = True
-            fail_reasons.append(f"Score {score:.2f} < Min {min_score}")
-
-        if 'should_be_global' in case:
-            expected_global = case['should_be_global']
-            if is_global != expected_global:
-                failed = True
-                fail_reasons.append(f"Global mismatch: Expected {expected_global}, Got {is_global}")
-
-        if not failed:
-            status = "\033[32mPASS\033[0m"
+        passed_case, info = run_test_case(engine, case)
+        if passed_case:
             passed += 1
         else:
-            status = f"\033[31mFAIL\033[0m"
-            print(f"[{status}] Query: '{query}' -> {actual} ({score:.2f}) -> {', '.join(fail_reasons)}")
+            status = "FAIL"
+            HUD.box_row("ERROR", f"INGEST FAILED", "\033[31m")
+            HUD.box_row("QUERY", case['query'], dim_label=True)
+            HUD.box_row("ACTUAL", f"{info['actual']} ({info['score']:.2f})", dim_label=True)
+            HUD.box_separator()
 
     end_time = time.time()
     duration = end_time - start_time
     avg_time = (duration / total) * 1000 if total > 0 else 0
-
     accuracy = (passed / total) * 100
     sprt_result = sprt.update(passed, total)
     
-    # SovereignFish Improvement: Colorized SPRT
+    # --- Final Stats ---
+    passed_color = "\033[32m" if accuracy == 100 else "\033[33m"
+    if accuracy < 90: passed_color = "\033[31m"
+    
     sprt_color = "\033[32m" if "PASS" in sprt_result else "\033[31m"
-    if "INCONCLUSIVE" in sprt_result: sprt_color = "\033[33m" # Yellow
+    if "INCONCLUSIVE" in sprt_result: sprt_color = "\033[33m"
 
-    print(f"\nFinal Accuracy: {accuracy:.1f}% ({passed}/{total})")
-    print(f"SPRT Status:   {sprt_color}{sprt_result}\033[0m (LLR: {sprt.llr:.2f})")
-    print(f"Performance:   {duration:.4f}s total ({avg_time:.2f}ms/call)")
+    HUD.box_row("ACCURACY", f"{accuracy:.1f}%", passed_color)
+    HUD.box_row("VERDICT", sprt_result, sprt_color)
+    HUD.box_row("LATENCY", f"{avg_time:.2f}ms/target", dim_label=True)
+    HUD.box_bottom()
     
     if accuracy < 100:
         sys.exit(1)

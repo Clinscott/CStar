@@ -136,6 +136,9 @@ function Invoke-SmartCopy {
 
 Write-Host "🚀 Initializing Corvus Star (C*) Framework in: $TargetDir" -ForegroundColor Cyan
 
+# 0. Select Persona (Early Binding)
+$Persona = Get-PersonaChoice
+
 # 1. Create Directory Structure
 New-Item -ItemType Directory -Path $WorkflowDir, $ScriptDir, $SkillDir -Force | Out-Null
 
@@ -175,10 +178,9 @@ foreach ($tpl in $Templates) {
 }
 
 # 6. Initialize Config & Corrections
-$Persona = Get-PersonaChoice
 $configPath = Join-Path $AgentDir "config.json"
 $configData = @{
-    FrameworkRoot = $SourceBase
+    FrameworkRoot = $TargetDir
     Persona       = $Persona
 } | ConvertTo-Json
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)

@@ -1,0 +1,9 @@
+[
+    {
+        "query": "start the project",
+        "match": "/wrap-it-up",
+        "score": 0.99,
+        "is_global": false,
+        "persona": "LOKI"
+    }
+]

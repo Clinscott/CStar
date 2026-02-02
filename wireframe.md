@@ -34,11 +34,14 @@ Maintain a searchable, accurate map of the project's UI and service architecture
     - `propose_immediate_install`: Generates JIT installation commands for high-confidence global matches (>0.85).
     - **Proactive Recommendation**: Scours Global Registry if `config.json` provides `FrameworkRoot`.
     - **Correction Path**: Short-circuits vector search if query matches `.agent/corrections.json`. Returns score of 1.1.
+    - **HUD Class**: Visual rendering engine. Updated to support dynamic `color` overrides for Persona Symmetry.
 
 ### Testing Protocol (Fishtest)
 - **Path**: `fishtest.py`
 - **Logic**: Statistical validator comparing `actual` results against `fishtest_data.json`.
-- **SPRT Implementation**: Uses Log-Likelihood Ratio (LLR) to calculate statistical confidence (H1 vs H0) for engine improvements.
+- **Duality Implementation**:
+    - **ODIN (The Crucible)**: Success is Survival. SPRT culls regressions with zero tolerance.
+    - **ALFRED (Integrity Briefing)**: Success is Insight. SPRT provides suggestions for improvement.
 - **Verification Parameters**:
     - `min_score`: Minimum confidence threshold (Standard: 0.85).
     - `expected_mode`: Resolution logic type (`vector` or `correction`).
@@ -48,26 +51,35 @@ Maintain a searchable, accurate map of the project's UI and service architecture
 - **Path**: `.agent/scripts/install_skill.py`
 - **Description**: Utility to deploy skills from the Global Registry to the local project.
 - **Persona Switcher**: `.agent/scripts/set_persona.py` - interactive utility to toggle between ODIN and ALFRED modes.
-- **Persona Strategies**: `.agent/scripts/personas.py` - Defines operational logic for "Dominion" vs "Service".
+- **Persona Strategies**: `.agent/scripts/personas.py`
+    - **ODIN Strategy**: Dominion & Enforcement. Ruthless standardization of headers, AgLng compliance, and testing mandates.
+    - **ALFRED Strategy**: Service & Facilitation. Provisioning of backups, adaptive structural learning, and humble refinement.
 - **Dialogue Database**: `dialogue_db/` - Markdown corpus for vector-based speech generation (`odin.md`, `alfred.md`).
 
-### Agent Lightning (PoC)
-- **Path**: `.agent/scripts/lightning_rod.py`
-- **Description**: Proof-of-concept optimization loop for self-improving code.
+### 🌓 The Great Duality (Operational Architecture)
+The framework's soul (The Linscott Standard) manifests through two distinct operational minds:
+1. **Compliance (ODIN)**: Focuses on **Structural Rigidity**. Operates via "Decrees" and "Dominion Audits". Overwrites for Standard.
+2. **Service (ALFRED)**: Focuses on **Adaptive Support**. Operates via "Briefings" and "Manor Polish". Backups for Safety.
 
 ### Corvus Star Workflows
 - **Path**: `.agent/workflows/[name].md`
 - **Description**: Markdown execution plans triggered by C*.
 - **Key Files**:
-    - `SovereignFish.md`: The protocol of incremental excellence.
+    - `SovereignFish.md`: Protocol of incremental excellence. Supports **ODIN: Dominion Audit** (SECURED) and **ALFRED: Manor Polish** (IMPROVED).
     - `wrap-it-up.md`: Session finalization and documentation logic.
+    - `SovereignFish Protocol`: Enforced differently per persona (Audit vs. Polish).
 
 ### Neural Trace Tools (Triple Threat)
-- **Trace Visualizer**: `.agent/scripts/trace_viz.py` - Sci-Fi HUD "X-Ray" for engine debugging.
+- **Trace Visualizer**: `.agent/scripts/trace_viz.py`
+    - **Identity Rendering**: Dynamic ASCII/Color shifting (Red for Odin, Cyan for Alfred).
+    - **War Room**: Logic to compare traces and detect "Faction Wars" (Odin vs Alfred conflicts).
 - **Trace Compiler**: `.agent/scripts/compile_session_traces.py` - Aggregates JSON traces into `.agent/TRACE_REPORT.md`.
 - **Global Registry**: `skills_db/` - Central repository for `git-assistant`, `codestats`, `agent-health`, and more.
 
 ### Fishtest Scaling & Federation Tools
 - **Test Generator**: `.agent/scripts/generate_tests.py` - Combinatorial generator for producing N-scale synthetic datasets (`fishtest_N1000.json`).
-- **Trace Ingest**: `tests/merge_traces.py` - Merges external agent traces from network shares into `fishtest_data.json` ("Real User Wins" logic).
+- **Trace Ingest**: `.agent/scripts/merge_traces.py` - Core script for merging external agent traces. Implements "Real User Wins" conflict resolution.
+- **Network Watcher**: `.agent/scripts/network_watcher.py` - "The Crucible". Autonomously watches `mock_project/network_share`, ingests traces, runs fishtest, and Commits (Processed) or Purges (Quarantine) based on result.
+- **Ingest Verification**: `tests/test_merge_traces.py` - Permanent regression suite for ingestion logic.
 - **Network Share**: `mock_project/network_share/` - Simulated folder for multi-agent trace exchange.
+- **Crucible Directories**: `.agent/traces/processed` (Safe Haven), `.agent/traces/quarantine` (Purged Weakness).

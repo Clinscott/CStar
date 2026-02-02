@@ -1,0 +1,9 @@
+[
+    {
+        "query": "initialize the project",
+        "match": "/lets-go",
+        "score": 0.95,
+        "is_global": false,
+        "persona": "ALFRED"
+    }
+]

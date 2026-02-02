@@ -35,7 +35,10 @@ The Standard demands more than just "working code." It demands **Thorough Verifi
 3.  **EXECUTE**: Implement the changes.
     *   Keep it small. If it takes more than 15 minutes, it's too big for SovereignFish (move it to `tasks.md`).
 4.  **VERIFY**: Run Fishtest logic and manual verification to ensure no regressions.
-5.  **LOG**: Record your contribution in the **Session Log** below.
+5.  **ANALYZE (New)**: Briefly scan the User's recent requests. Is there a pattern?
+    *   *Yes*: Create a new Skill or Slash Command proposal in `tasks.md`.
+    *   *No*: Continue.
+6.  **LOG**: Record your contribution in the **Session Log** below.
 
 ---
 

@@ -2,12 +2,15 @@ import os
 import json
 import glob
 
-def compile_traces():
+def compile_traces(traces_dir=None, report_path=None):
     # Setup Paths
     current_dir = os.path.dirname(os.path.abspath(__file__))
     base_path = os.path.dirname(current_dir) # .agent
-    traces_dir = os.path.join(base_path, "traces")
-    report_path = os.path.join(base_path, "TRACE_REPORT.md")
+    
+    if traces_dir is None:
+        traces_dir = os.path.join(base_path, "traces")
+    if report_path is None:
+        report_path = os.path.join(base_path, "TRACE_REPORT.md")
 
     if not os.path.exists(traces_dir):
         print("No traces directory found.")

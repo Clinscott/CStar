@@ -9,7 +9,7 @@ scripts_dir = os.path.join(os.path.dirname(current_dir), ".agent", "scripts")
 sys.path.append(scripts_dir)
 
 try:
-    from trace_viz import visualize_trace
+    from trace_viz import mode_live as visualize_trace
 except ImportError as e:
     print(f"FAILED to import trace_viz: {e}")
     sys.exit(1)

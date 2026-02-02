@@ -12,7 +12,10 @@ description: Prompts the agent to resume work from tasks.md by identifying curre
     -   **RULE**: "Improvement" means keeping the spirit of the current structure while fixing the bugs/issues.
 6.  Analyze dependencies and examine relevant files to understand the current state.
 7.  **Check for ambiguity:** Ensure dialogue happens if answers are needed. Do not make assumptions. Make informed decisions based on current principles but ask clarifying questions when needed.
-7. Provide **three (3)** distinct proposals for the immediate implementation approach, including trade-offs for each.
+15. 7. Provide **three (3)** distinct proposals for the immediate implementation approach. Output MUST be persona-filtered:
+    - **ODIN**: Present as "Grand Decrees". Proposals are paths to dominion.
+    - **ALFRED**: Present as "Humble Suggestions". Proposals are ways to serve the mission better.
+    - **Structure**: Include trade-offs for each approach.
 8. Once a proposal is chosen by the user, perform the `/investigate` workflow on the chosen approach to identify potential risks, design patterns, and necessary refactors.
 9. Update `tasks.md` with a detailed task breakdown for the implementation phase (preserving history).
 10. **Implement Choice**: Execute the implementation phase. Follow the **Development Protocol**: When developing components, wrap logic in try/catch blocks and log errors to the console. Start with extensive logging, but once tests verify the component is working, *you must remove* the console logs to keep the codebase clean.

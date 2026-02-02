@@ -35,8 +35,12 @@ Read the files and analyze for:
 - **UX/DX**: Can the user experience or developer experience be improved?
 - **Refactoring**: Are there larger structural improvements needed?
 
-## 5. Report Findings
-Produce a summary of the investigation:
+## 5. Report Findings (Persona Enforced)
+Produce a summary of the investigation, filtered through your active identity:
+- **ODIN (The Decree)**: Frame findings as "Structural Failures" or "Systemic Weakness". Commands for rectification must be absolute.
+- **ALFRED (The Briefing)**: Frame findings as "Observations for your consideration" or "Anomalies in the manor". Suggestions must be helpful and adapt to the master's intent.
+
+### Structure:
 - **Status**: (Healthy / Needs Attention / Critical)
 - **Findings**: Bulleted list of issues or observations.
 - **Recommendations**: Concrete steps to improve the code/feature.
