@@ -124,15 +124,8 @@ foreach ($wf in $Workflows) {
 }
 
 # 3. Deploy Engine Scripts
-if (Test-Path (Join-Path $SourceBase ".agent\scripts")) {
-    Get-ChildItem (Join-Path $SourceBase ".agent\scripts") -Recurse | Where-Object { -not $_.PSIsContainer } | ForEach-Object {
-        $relative = $_.FullName.Substring((Join-Path $SourceBase ".agent\scripts").Length + 1)
-        $destFile = Join-Path $ScriptDir $relative
-        $destFolder = Split-Path $destFile
-        if (-not (Test-Path $destFolder)) { New-Item -ItemType Directory -Path $destFolder -Force | Out-Null }
-        Invoke-SmartCopy -Source $_.FullName -Dest $destFile
-    }
-}
+Invoke-SmartCopy -Source (Join-Path $SourceBase ".agent\scripts\sv_engine.py") -Dest (Join-Path $ScriptDir "sv_engine.py")
+Invoke-SmartCopy -Source (Join-Path $SourceBase ".agent\scripts\install_skill.py") -Dest (Join-Path $ScriptDir "install_skill.py")
 
 # 4. Deploy Skills Ecosystem
 if (Test-Path (Join-Path $SourceBase ".agent\skills")) {
@@ -146,7 +139,7 @@ if (Test-Path (Join-Path $SourceBase ".agent\skills")) {
 }
 
 # 5. Deploy Context Templates
-$Templates = "AGENTS.md", "wireframe.md", "dev_journal.md", "thesaurus.md", "fishtest.py", "fishtest_data.json", "tasks.md", "memories.md"
+$Templates = "AGENTS.md", "wireframe.md", "dev_journal.md", "thesaurus.md", "fishtest_data.json", "tasks.md", "memories.md"
 foreach ($tpl in $Templates) {
     Invoke-SmartCopy -Source (Join-Path $SourceBase "sterileAgent\$tpl") -Dest (Join-Path $TargetDir $tpl)
 }

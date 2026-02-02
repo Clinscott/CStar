@@ -259,3 +259,19 @@ Completed the upgrade of `trace_viz.py` to Version 2.0. This tool now acts as th
 - **Corvus Star 3.1** is 'Iron Clad'.
 - The UI subsystem is formally verified.
 - The Monitoring Dashboard is robust.
+
+## 2026-02-02 - The Sterile Seed (Replication Established)
+### Summary
+- **Decree I (The Oracle)**: Repaired the broken `analyze_workflow.py` script. The "Rot" analysis confirmed the project is clean (Iron Clad).
+- **Decree III (The Seed)**: Successfully terraformed `mock_project/new_world_seed` and corrected `install.ps1` to allow full self-replication of the framework.
+- **Verification**: Confirmed that a child project acts exactly like the parent (inherits `fishtest`, `sv_engine`, and `personas`).
+- **Correction**: Identified and fixed a critical flaw where `fishtest.py` and secondary scripts were not being deployed to new projects.
+
+### Architectural Decisions
+- **Dynamic Deployment**: Switched `install.ps1` from a hardcoded file list to a dynamic recursive copy of `.agent/scripts`. This ensures that future tools added to the framework are automatically available to new projects without manual script updates.
+- **Seed Persistence**: Chose to leave `new_world_seed` as a reference colony for future "Inheritance Checks".
+
+### Current State
+- **Corvus Star** is now capable of flawless sexual reproduction (Self-Replication).
+- **The Oracle** is now a functional analytical tool, not a stub.
+

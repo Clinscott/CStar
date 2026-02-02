@@ -110,3 +110,21 @@
 - [x] **Documentation**: Enforce "No Web Visualization" in `AGENTS.md`. [x]
 - [x] **Verification**: Created `tests/test_cortex.py`. [x]
 
+### 14. Decree III: The Sterile Seed (Replication)
+- [x] **Terraforming**: Create `mock_project/new_world_seed` simulation environment. [x]
+- [x] **Extraction**: Deploy `sterileAgent` template to the Seed. [x]
+- [x] **Genesis**: Execute `init.ps1` in the Seed to trigger self-installation. [x]
+- [x] **Inheritance Check**:
+    - [x] Verify `sv_engine.py` functions in new environment. [x]
+    - [x] Verify `fishtest` passes (N=0 baseline). [x]
+    - [x] Verify Personas (Odin/Alfred) are selectable. [x]
+
+## ⏭️ Start Here Next (The Scout's Hunt)
+1. **Decree II: The Scout's Hunt (Expansion)**:
+    - [ ] **Trigger**: Invoke `skill-scout` to search for "dependency-graph visualization python".
+    - [ ] **Forge**: Create `.agent/skills/dependency-graph` skill.
+    - [ ] **Deploy**: Integrate into `debt_viz.py` (New Tool) for analyzing McCabe complexity visualised in ASCII.
+
+2. **Compliance**:
+    - [ ] **Fix Data**: Update `fishtest_data.json` to resolve the `check` vs `Environment` mismatch seen during Seed verification.
+

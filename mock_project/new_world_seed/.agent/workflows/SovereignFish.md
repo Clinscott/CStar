@@ -9,9 +9,6 @@ Its goal is not to rewrite the application, but to polish it relentlessly.
 **The Golden Rule:**
 > **"Leave the campsite cleaner than you found it."**
 > In every session, you must identify and execute **TWO (2)** small improvements that are NOT strictly part of the user's main request, but contribute to the overall health, beauty, or efficiency of the system.
-> 
-> **The Torvalds Mandate:**
-> Excellence is not a goal; it is the starting line. We do not tolerate mediocrity.
 
 ---
 
@@ -38,10 +35,7 @@ The Standard demands more than just "working code." It demands **Thorough Verifi
 3.  **EXECUTE**: Implement the changes.
     *   Keep it small. If it takes more than 15 minutes, it's too big for SovereignFish (move it to `tasks.md`).
 4.  **VERIFY**: Run Fishtest logic and manual verification to ensure no regressions.
-5.  **ANALYZE (New)**: Briefly scan the User's recent requests. Is there a pattern?
-    *   *Yes*: Create a new Skill or Slash Command proposal in `tasks.md`.
-    *   *No*: Continue.
-6.  **LOG**: Record your contribution in the **Session Log** below.
+5.  **LOG**: Record your contribution in the **Session Log** below.
 
 ---
 
@@ -54,11 +48,7 @@ The "brain" converts text into mathematical vectors based on the specific vocabu
 ### 2. Query Expansion (Recall Enhancement)
 To handle variations in language, the query is expanded before vectorization using a domain-specific **Thesaurus** (`thesaurus.md`).
 
-#### The Weighting Standard
--   **Direct Match**: 1.0 (Implicit).
--   **Weighted Synonym**: `word:weight` (e.g., `go:0.5`). 
--   **Stemming**: Suffixes (`-ing`, `-ed`, `-es`, `-s`) are automatically stemmed with a 0.8 weight to preserve intent while dampening noise.
--   **Usage Rule**: Use lower weights for broad, common terms and higher weights for precise technical jargon.
+---
 
 ## 🐟 The Fishtest Protocol
 Fishtest is a data-driven verification suite used to ensure the engine isn't regressing as the corpus or logic grows.
@@ -97,49 +87,22 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 
 ---
 
-## 📜 Session Log
-*Record your SovereignFish contributions here. Format: `[Date] - [Category]: [Description]`*
+---
+
+## 📜 Session Log (Persona Enforced)
+*Record your SovereignFish contributions here. Output MUST adopt the active Persona:*
+- **ODIN**: Successes are "Dominion Expanded". Format: `[Date] - [Category]: [Action] - Status: SECURED.`
+- **ALFRED**: Successes are "Polishing the Manor". Format: `[Date] - [Category]: [Action] - Status: IMPROVED.`
+
+*Format: `[Date] - [Category]: [Description]`*
+
+### 2026-02-01
+-   **Docs**: Added clear docstrings to `trace_viz.py` modes for better developer experience (DX).
+-   **Code**: Improved `sv_engine.py` HUD class to support dynamic color overrides (required for persona symmetry).
+-   **Architecture**: Implemented "War Room" conflict analysis in `trace_viz.py`.
 
 ### 2026-01-30
 -   **Protocol**: Created `SovereignFish.md` and `thesaurus.md`.
 -   **Refactor**: Centralized fetch utilities and standardized error propagation.
 -   **UI**: Implemented tactile feedback and hover states on core navigation elements and action buttons.
 -   **Optimization**: Replaced monolithic component calls with granular hooks to reduce re-renders.
-
-### 2026-01-30 (Session 3)
--   **Protocol**: Expanded `fishtest` parameters to include `min_score` (Target: 85%), `expected_mode`, and `is_global` verification.
--   **Optimization**: Achieved 100% accuracy and 110% confidence across N=10 cases by implementing a robust `corrections.json` mapping for core intents.
--   **Code**: Fixed a critical bug in `sv_engine.py` where `--json-only` flags were polluting query strings, causing vector mismatches.
--   **Skills**: Refined `ui-sci-fi` and `agent-lightning` skill signals to ensure reliable discovery and suggestion.
-
-### 2026-01-31 (Session 4)
--   **Visual**: Added `[{HUD.PERSONA}]` label to `trace_viz.py` header, improving debugging context.
--   **UX**: Colorized SPRT output in `fishtest.py` (Green=Pass, Red=Fail, Yellow=Inconclusive).
--   **Safety**: Added `KeyboardInterrupt` handling to `set_persona.py`.
-
-
-### 2026-02-01 (Session 5)
-- **Visual**: Added real-time timestamp and duration tracking to `fishtest.py` headers.
-- **Protocol**: Implemented "Decree of Finality" (Alpha) and mapped Federated Learning Infrastructure.
-- **Code**: Added HUD boot sequence to `sv_engine.py` to verify engine health on initialization.
-- **Safety**: Integrated `log_rejection` into the Crucible to prevent silent trace failures.
-- **Protocol**: Formalized the **Torvalds Mandate** in `AGENTS.md`. Mediocrity is purged.
-
-### 2026-02-01 (Session 6)
-- **Visual**: Forged the `Neural Overwatch` dashboard for real-time federated monitoring.
-- **Protocol**: Implemented the `Law of Latency` ensuring engine remains under 100ms startup threshold.
-- **Code**: Created `latency_check.py` with multi-iteration averaging for statistical cooling.
-- **Protocol**: Enabled `War Zone` conflict detection via Persona Identity overlap in the Federated Database.
-
-### 2026-02-01 (Session 7: Iron Clad)
-- **Code**: Hardened .agent/scripts/ui.py with strict type hinting and docstrings.
-- **Safety**: Fortified overwatch.py with try-except blocks for msvcrt and strict typing.
-### 2026-02-02 (The ODIN Protocol)
--   **Improvement 1 (Doc/Arch)**: Extended "Subconscious Architecture" to `/plan` and `/investigate`, ensuring 360-degree persona awareness.
--   **Improvement 2 (Visual/Doc)**: Standardized header formatting for `run-task.md` and `investigate.md` to match the new `/execute` standard.
-
-### 2026-02-02 (Session 8: The Seed)
--   **Improvement 1 (Code/Tool)**: Repaired `analyze_workflow.py` (The Oracle) to correctly identify task states and journal patterns (was a stub).
--   **Improvement 2 (Critial/Infra)**: Repaired `install.ps1` to correctly deploy `fishtest.py` and all scripts in `.agent/scripts` (dynamic loop) instead of hardcoded lists.
-
-
