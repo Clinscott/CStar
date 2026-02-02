@@ -17,6 +17,7 @@
 -   **SPRT**: Uses Sequential Probability Ratio Test to statistically validate engine changes (H0 vs H1).
 -   **Distributed Learning**: Can ingest traces from other agents to learn new synonyms.
     -   **Real User Wins**: User traces always override synthetic test data.
+    -   **Rejection Audit**: Purged traces are logged in `REJECTIONS.md` with persona-stamped reasoning.
 
 ### 3. Persona Architecture (The "Soul" System)
 -   **Vector Dialogue**: Response text is fetched via `DialogueRetriever` from `dialogue_db/` markdown files, treating conversation as a vector search problem.
@@ -37,3 +38,4 @@
 -   **Do NOT Overwrite**: When editing `tasks.md`, mark as complete but keep history.
 -   **Always Test**: Run `fishtest.py` before committing engine changes.
 -   **SovereignFish**: Run the SovereignFish protocol EVERY session to polish the codebase.
+-   **Torvalds Mandate**: Strictly enforced. No PoCs, no bare-bones. Every feature must be production-hardened and structurally sound from the first commit. Efficiency follows Excellence.

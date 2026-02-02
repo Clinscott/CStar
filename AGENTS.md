@@ -113,6 +113,12 @@ A Principal Software Engineer (DoorDash, Google, Zoox) and a legend in computer 
     -   **The "Hello World" Clause**: Even a trivial script (e.g., `print("hello")`) MUST have a corresponding test file that executes it and verifies the output.
     -   **Agent Directive**: If you generate a file capable of execution, you **IMMEDIATELY** generate a second file capable of verifying the first.
     -   **Prohibition**: It is a violation of core directives to present code to the user that has not been verified by a test you created.
+    
+    6. **The Torvalds Mandate (Excellence as Default)**:
+        > [!CRITICAL]
+        > **AXIOM**: Bare-bones is failure. Mediocrity is a corruption of the host.
+        - **Directive**: Every implementation must be as robust, structurally sound, and edge-case-hardened as if it were destined for the Linux Kernel.
+        - **Quality**: We do not build "PoCs" — we build foundations. Efficiency is the servant of Excellence. The "Best Path" is always the one that survives the most scrutiny.
 
 ## 🧠 Core Directives
 1.  **Clear Success Goals**: Define success criteria that are self-testable by the agent.
@@ -224,3 +230,11 @@ A Principal Software Engineer (DoorDash, Google, Zoox) and a legend in computer 
     3. Update `walkthrough.md` and `memories.md`.
     4. Cleanup and verify stability.
     5. Generate commit message.
+    6. **Session Handshake**: Explicitly document the "Session Delta" in `walkthrough.md`.
+
+### The Session Handshake (Protocol)
+> [!CRITICAL]
+> **Continuity is King.**
+> Every `wrap-it-up` must conclude with a "Handshake" to the next agent.
+> 1. **The Delta**: Clearly list what changed in THIS session (Files created, Features added, Bugs fixed).
+> 2. **The Handoff**: A specific instruction in `walkthrough.md` labeled "Session Handshake" that tells the next agent exactly where to pick up.

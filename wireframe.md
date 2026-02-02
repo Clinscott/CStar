@@ -35,6 +35,7 @@ Maintain a searchable, accurate map of the project's UI and service architecture
     - **Proactive Recommendation**: Scours Global Registry if `config.json` provides `FrameworkRoot`.
     - **Correction Path**: Short-circuits vector search if query matches `.agent/corrections.json`. Returns score of 1.1.
     - **HUD Class**: Visual rendering engine. Updated to support dynamic `color` overrides for Persona Symmetry.
+    - **Backbone**: `ui.py` is the centralized UI library for all scripts (HUD, Sparklines, Boxes). Hardened with strict typing and docstrings.
 
 ### Testing Protocol (Fishtest)
 - **Path**: `fishtest.py`
@@ -79,7 +80,29 @@ The framework's soul (The Linscott Standard) manifests through two distinct oper
 ### Fishtest Scaling & Federation Tools
 - **Test Generator**: `.agent/scripts/generate_tests.py` - Combinatorial generator for producing N-scale synthetic datasets (`fishtest_N1000.json`).
 - **Trace Ingest**: `.agent/scripts/merge_traces.py` - Core script for merging external agent traces. Implements "Real User Wins" conflict resolution.
-- **Network Watcher**: `.agent/scripts/network_watcher.py` - "The Crucible". Autonomously watches `mock_project/network_share`, ingests traces, runs fishtest, and Commits (Processed) or Purges (Quarantine) based on result.
+- **Network Watcher**: `.agent/scripts/network_watcher.py` - "The Crucible". Autonomously watches `mock_project/network_share`, ingests traces, runs fishtest, and Commits (Processed) or Purges (Quarantine) based on result. Updated with **Law of Latency** to reject traces causing >5ms regression.
+- **Latency Benchmark**: `.agent/scripts/latency_check.py` - Optimized utility for measuring engine startup performance.
+- **Neural Overwatch**: `.agent/scripts/overwatch.py` - Real-time terminal dashboard for monitoring the Federated Network, latency trends, and "War Zones". Hardened with `msvcrt` safety checks.
 - **Ingest Verification**: `tests/test_merge_traces.py` - Permanent regression suite for ingestion logic.
+- **UI Verification**: `tests/test_ui.py` - Unit tests for the shared UI library.
 - **Network Share**: `mock_project/network_share/` - Simulated folder for multi-agent trace exchange.
 - **Crucible Directories**: `.agent/traces/processed` (Safe Haven), `.agent/traces/quarantine` (Purged Weakness).
+
+## 🌐 Federated Learning Infrastructure
+The framework supports cross-agent intelligence sharing via the "Federated Network" protocol.
+
+### Real-Time Ingestion (The Crucible)
+- **Watcher**: `.agent/scripts/network_watcher.py`
+    - Monitors `network_share/` for incoming JSON traces.
+    - Implements an atomic "Trial and Rollback" cycle:
+        1. **Stage**: Moves trace to staging for isolation.
+        2. **Merge**: Ingests into `fishtest_data.json` via `merge_traces.py`.
+        3. **Ordeal**: Executes `fishtest.py` to verify accuracy integrity.
+        4. **Verdict**: If pass, commits data. If fail, rolls back `fishtest_data.json` and purges trace.
+- **Rejection Ledger**: `.agent/traces/quarantine/REJECTIONS.md`
+    - Audit trail of failed ingestion attempts, including persona and reason (e.g., Regression, Format Error, Latency Breach).
+
+### Conflict Resolution
+- **Logic**: Implemented in `merge_traces.py`.
+- **Primary Rule**: **Real User Wins**. External trace data (real-world usage) overrides existing synthetic test cases or older traces.
+- **Persistence**: Successful merges are archived in `.agent/traces/processed` to prevent re-ingestion loops.

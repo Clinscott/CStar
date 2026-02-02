@@ -11,36 +11,11 @@ from collections import defaultdict
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
 
-from sv_engine import SovereignVector, HUD
+from sv_engine import SovereignVector
+from ui import HUD
 
 # --- CONFIGURATION (SYMMETRY MANDATE) ---
-
-THEMES = {
-    "ODIN": {
-        "WAR_ROOM_TITLE": "THE WAR ROOM (CONFLICT RADAR)",
-        "CONFLICT_STATUS": "HOSTILES DETECTED",
-        "NO_CONFLICT_STATUS": "NO CONFLICTS DETECTED",
-        "TRUTH_LABEL": "TRUTH (LAW)",
-        "TRACE_LABEL": "TRACE (LIES)",
-        "COLOR_MAIN": HUD.RED,
-        "COLOR_DIM": HUD.MAGENTA
-    },
-    "ALFRED": {
-        "WAR_ROOM_TITLE": "THE BATCAVE (ANOMALY DETECTOR)",
-        "CONFLICT_STATUS": "ANOMALIES DETECTED", 
-        "NO_CONFLICT_STATUS": "SYSTEM INTEGRITY NORMAL",
-        "TRUTH_LABEL": "KNOWN TRUTH",
-        "TRACE_LABEL": "EVENT LOG",
-        "COLOR_MAIN": HUD.CYAN,
-        "COLOR_DIM": HUD.CYAN_DIM
-    }
-}
-
-def get_theme():
-    # Fallback to Alfred if unknown, or if God/Odin alias used
-    p = HUD.PERSONA.upper()
-    if p in ["GOD", "ODIN"]: return THEMES["ODIN"]
-    return THEMES["ALFRED"]
+# Themes are now handled by ui.HUD based on HUD.PERSONA setting
 
 # --- UTILITIES ---
 
@@ -85,55 +60,60 @@ def get_engine():
 
 # --- RENDERER (IDENTITY ISOLATION) ---
 
-class TraceRenderer:
     """
     Decoupled renderer that enforces a specific theme, regardless of the
     Host Agent's current persona. This allows ODIN to view ALFRED traces
     in their native Cyan, without polluted by Odin's Red.
     """
-    def __init__(self, theme):
-        self.theme = theme
-        self.width = 60
+    def __init__(self, target_persona: str):
+        self.target_persona = target_persona
+        # Temporarily switch global HUD persona to get theme colors
+        self.original_persona = HUD.PERSONA
+        HUD.PERSONA = target_persona
+        self.theme = HUD._get_theme()
+        HUD.PERSONA = self.original_persona # Restore
 
-    def box_top(self, title):
-        t_len = len(title)
-        padding = (self.width - t_len - 4) // 2
-        c_main = self.theme["COLOR_MAIN"]
-        c_dim = self.theme["COLOR_DIM"]
-        print(f"{c_dim}┌{'─'*padding} {c_main}{HUD.BOLD}{title}{HUD.RESET}{c_dim} {'─'*padding}┐{HUD.RESET}")
+    def box_top(self, title: str) -> None:
+        HUD.PERSONA = self.target_persona
+        HUD.box_top(title)
 
-    def box_row(self, label, value, value_color=None, dim_label=False):
-        lbl_color = self.theme['COLOR_DIM'] if dim_label else self.theme['COLOR_MAIN']
-        val_color = value_color if value_color else self.theme['COLOR_MAIN']
-        print(f"{self.theme['COLOR_DIM']}│{HUD.RESET} {lbl_color}{label:<20}{HUD.RESET} {val_color}{value}{HUD.RESET}")
+    def box_row(self, label: str, value: Any, value_color: str = None, dim_label: bool = False) -> None:
+        HUD.PERSONA = self.target_persona
+        HUD.box_row(label, value, value_color, dim_label)
 
     def box_separator(self):
-        print(f"{self.theme['COLOR_DIM']}├{'─'*58}┤{HUD.RESET}")
+        HUD.PERSONA = self.target_persona
+        HUD.box_separator()
 
     def box_bottom(self):
-        print(f"{self.theme['COLOR_DIM']}└{'─'*58}┘{HUD.RESET}")
+        HUD.PERSONA = self.target_persona
+        HUD.box_bottom()
 
     def render_analysis(self, query, trigger, score, is_global, engine_instance=None):
+        # Set Persona Context
+        HUD.PERSONA = self.target_persona
+        theme = HUD._get_theme()
+        
         # Header
         print("\n")
         
         # Scanline Effect (Simulated)
-        if self.theme == THEMES["ODIN"]:
-             print(f"{self.theme['COLOR_DIM']}>> INITIATING WAR PROTOCOL...{HUD.RESET}")
+        if self.target_persona in ["ODIN", "GOD"]:
+             print(f"{theme['dim']}>> INITIATING WAR PROTOCOL...{HUD.RESET}")
         else:
-             print(f"{self.theme['COLOR_DIM']}>> DECRYPTING LOG...{HUD.RESET}")
+             print(f"{theme['dim']}>> DECRYPTING LOG...{HUD.RESET}")
 
-        self.box_top(self.theme["WAR_ROOM_TITLE"])
+        self.box_top(theme["war_title"])
         
         self.box_row("Query", query, dim_label=True)
         
         # Score Color Logic (Relative to Theme)
         match_color = HUD.GREEN if score > 0.8 else HUD.YELLOW
-        if self.theme == THEMES["ODIN"]:
+        if self.target_persona in ["ODIN", "GOD"]:
              match_color = HUD.RED if score > 0.8 else HUD.YELLOW
 
         global_tag = f"{HUD.MAGENTA}[GLOBAL]{HUD.RESET} " if is_global else ""
-        self.box_row(self.theme["TRACE_LABEL"], f"{global_tag}{trigger}", match_color, dim_label=True)
+        self.box_row(theme["trace_label"], f"{global_tag}{trigger}", match_color, dim_label=True)
         self.box_row("Confidence", f"{score:.4f}", match_color, dim_label=True)
         
         self.box_separator()
@@ -152,12 +132,12 @@ class TraceRenderer:
                     overlaps.append((qt, qw, count, idf))
             overlaps.sort(key=lambda x: x[3], reverse=True)
 
-            print(f"{self.theme['COLOR_DIM']}│{HUD.RESET} {self.theme['COLOR_MAIN']}{'TOKEN':<15} {'WEIGHT':<10} {'IDF':<10} {'SIGNAL'}{HUD.RESET}")
+            print(f"{theme['dim']}│{HUD.RESET} {theme['main']}{'TOKEN':<15} {'WEIGHT':<10} {'IDF':<10} {'SIGNAL'}{HUD.RESET}")
             
             for token, weight, count, idf in overlaps[:5]:
                 signal_strength = weight * idf * math.log(1 + count)
                 # Bar is always main theme color
-                print(f"{self.theme['COLOR_DIM']}│{HUD.RESET} {token:<15} {weight:<10.2f} {idf:<10.2f} {self.theme['COLOR_MAIN']}{'█' * int(signal_strength * 2)}{HUD.RESET}")
+                print(f"{theme['dim']}│{HUD.RESET} {token:<15} {weight:<10.2f} {idf:<10.2f} {theme['main']}{'█' * int(signal_strength * 2)}{HUD.RESET}")
         else:
             self.box_row("Status", "Offline (No Engine)", HUD.YELLOW)
 
@@ -172,8 +152,9 @@ def mode_live(query):
     top_match = results[0] if results else None
     
     # Live always uses CURRENT Identity
-    theme = get_theme()
-    renderer = TraceRenderer(theme)
+    # Live always uses CURRENT Identity
+    p = HUD.PERSONA
+    renderer = TraceRenderer(p)
     
     trigger = top_match['trigger'] if top_match else "NONE"
     score = top_match['score'] if top_match else 0.0
@@ -188,12 +169,17 @@ def mode_file(file_path):
         return
 
     # Identity Rendering: Respect the ORIGIN SOUL
+    # Identity Rendering: Respect the ORIGIN SOUL
     stored_persona = data.get("persona", "ALFRED").upper()
-    theme = THEMES["ODIN"] if stored_persona in ["ODIN", "GOD"] else THEMES["ALFRED"]
+    renderer = TraceRenderer(stored_persona)
     
-    renderer = TraceRenderer(theme)
+    # Get Theme for message (temp switch)
+    original = HUD.PERSONA
+    HUD.PERSONA = stored_persona
+    theme = HUD._get_theme()
+    HUD.PERSONA = original # Restore
     
-    print(f"{theme['COLOR_DIM']}>> REPLAYING ARTIFACT: {file_path} [{stored_persona}]{HUD.RESET}")
+    print(f"{theme['dim']}>> REPLAYING ARTIFACT: {file_path} [{stored_persona}]{HUD.RESET}")
     
     engine = get_engine() # For token analysis
     
@@ -207,8 +193,9 @@ def mode_file(file_path):
 
 def mode_war_room():
     # War Room is ODIN'S DOMAIN
-    theme = THEMES["ODIN"] 
-    renderer = TraceRenderer(theme)
+    renderer = TraceRenderer("ODIN")
+    HUD.PERSONA = "ODIN" # Enforce globally for direct log calls
+    theme = HUD._get_theme()
     
     print("\n")
     renderer.box_top("⚔️  THE WAR ROOM  ⚔️")
@@ -226,7 +213,7 @@ def mode_war_room():
             query_map[q].append(t_data)
             
     conflicts = []
-    print(f"{HUD.CYAN_DIM}>> SCANNING {len(trace_files)} SECTORS...{HUD.RESET}")
+    print(f"{theme['dim']}>> SCANNING {len(trace_files)} SECTORS...{HUD.RESET}")
     
     for query, traces in query_map.items():
         matches = set()
@@ -248,13 +235,13 @@ def mode_war_room():
         renderer.box_row("STATUS", f"{len(conflicts)} ACTIVE CONFLICTS", HUD.RED)
         renderer.box_separator()
         
-        print(f"{theme['COLOR_DIM']}│{HUD.RESET} {theme['COLOR_MAIN']}{'QUERY':<25} {'FACTIONS':<20} {'CONFLICTING OUTCOMES'}{HUD.RESET}")
+        print(f"{theme['dim']}│{HUD.RESET} {theme['main']}{'QUERY':<25} {'FACTIONS':<20} {'CONFLICTING OUTCOMES'}{HUD.RESET}")
         
         for c in conflicts:
             q_short = (c['query'][:22] + '..') if len(c['query']) > 22 else c['query']
             f_str = ",".join(c['factions'])
             o_str = " vs ".join([str(o) for o in c['outcomes']])
-            print(f"{theme['COLOR_DIM']}│{HUD.RESET} {q_short:<25} {f_str:<20} {o_str}")
+            print(f"{theme['dim']}│{HUD.RESET} {q_short:<25} {f_str:<20} {o_str}")
 
     renderer.box_bottom()
     print("\n")

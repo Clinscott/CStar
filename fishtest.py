@@ -103,19 +103,14 @@ def run_test():
         except: pass
     
     persona_name = config.get("Persona", "ALFRED").upper()
+    # Import Shared UI
     try:
-        from sv_engine import HUD
+        from ui import HUD
         HUD.PERSONA = persona_name
     except ImportError:
-        class HUD:
-            PERSONA = persona_name
-            RESET = ""
-            BOLD = ""
-            def box_top(t=""): print(f"--- {t} ---")
-            def box_row(l, v, c="", dm=False): print(f"{l}: {v}")
-            def box_separator(): print("-" * 40)
-            def box_bottom(): print("-" * 40)
-            def progress_bar(v): return "=" * int(v*10)
+        # Should not happen given sys.path augmentation above
+        print("CRITICAL: Failed to load UI module.")
+        sys.exit(1)
 
     # Initialize Engine Once
     engine = SovereignVector(
@@ -149,9 +144,13 @@ def run_test():
     total = len(test_cases)
     sprt = SPRT()
     
+    import time
+    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+    
     # --- Persona Header ---
     title = "Ω THE CRUCIBLE (GATEKEEPER) Ω" if HUD.PERSONA == "ODIN" else "Linguistic Integrity Briefing"
     HUD.box_top(title)
+    HUD.box_row("TIMESTAMP", timestamp, HUD.BOLD, dim_label=True)
     HUD.box_row("TARGET", target_file, HUD.BOLD)
     HUD.box_row("POPULATION", f"{total} Cases", HUD.BOLD)
     HUD.box_separator()

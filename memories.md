@@ -39,3 +39,6 @@ saved_memory:
     - The Great Duality: ODIN (Enforcer) and ALFRED (Servant) are distinct operational states.
 deletions: []
 ```
+
+    - Torvalds Mandate: Code quality is non-negotiable. Strict typing and Google-style docstrings are required for all core utilities.
+    - Backbone Verification: Shared libraries (like ui.py) must have their own independent test suites (test_ui.py).

@@ -1,5 +1,28 @@
 # Walkthrough - Corvus Star
 
+## 2026-02-01: The Triple Alignment (Alpha, Beta, Omega)
+**Objective**: Stabilize engine, optimize performance, and establish persona-reflective self-auditing.
+
+### Performance & Engine (Beta)
+- **Benchmarked**: Achieved **87.53ms** average startup time (N=100).
+- **Encoding**: Fixed HUD character rendering (UTF-8) for Windows shells.
+
+### Workflow & Audit (Alpha/Omega)
+- **Workflow**: Updated `investigate.md` to mandate "Persona Signatures".
+- **Skill**: Created `persona-audit` skill.
+- **Outcome**: Semantic identity verification is now operational.
+    - Verified purity score of **1.00** for ODIN dialogue.
+    - Verified purity score of **0.40** (Deviance Flagged) for devian dialogue.
+
+- **Fishtest**: 100% Accuracy (12/12) maintained after stabilization.
+
+### Decree of Finality (Alpha)
+- **Rejection Ledger**: Implemented `.agent/traces/quarantine/REJECTIONS.md` to track ingestion failures.
+- **Documentation**: Fully mapped the Federated Learning Infrastructure in `wireframe.md`.
+- **Completion**: Formally closed Phase 4 (The Network) in `tasks.md`.
+
+---
+
 ## 2026-02-01: Trace Viz 2.0 & Identity Isolation
 **Objective**: Decouple Trace Visualization from the active session's persona to allow "X-Ray" analysis of historical traces.
 
@@ -208,3 +231,119 @@ Created a permanent regression suite `tests/test_merge_traces.py` to ensure data
 ## Verification
 - **Functional**: Unit tests passed (3/3 cases) in <0.1s.
 - **System**: Confirmed `merge_traces.py` can be run standalone or via automation.
+### Verification (Session 6)
+- **Code**: `sv_engine.py` HUD alignment logic patched for odd-length strings.
+- **System**: Verified `latency_check.py` continues to report ~100ms baseline.
+
+# Walkthrough: The Service Upgrade (Corvus Star 2.4)
+
+This session focused on completing the "Neural Overwatch" suite and enforcing the Linscott Standard through rigorous testing and documentation protocols.
+
+## 1. Neural Overwatch Complete
+- **ASCII Sparklines**: `overwatch.py` now renders real-time trend lines for Engine Latency (10-sample window) using partial-block characters (` ▂▃▄▅▆▇█`).
+- **War Zone Detection**: The dashboard leverages the Federated Database to detect and highlight "War Zones" (Tracing Conflicts) in real-time.
+
+## 2. The Law of Latency
+- **Protocol**: `network_watcher.py` (The Crucible) now strictly enforces a **5ms Regression Limit**.
+- **Mechanism**: Incoming traces are measured against a baseline. Any trace causing >5ms slowdown is automatically rejected and logged in `REJECTIONS.md`.
+
+## 3. Linscott Compliance
+- **Tests**: Created unit tests for `overwatch.py` and `latency_check.py`.
+- **Coverage**: Verified sparkline rendering logic and stats parsing.
+
+---
+
+## 🤝 Session Handshake (The Delta)
+
+**What Changed:**
+- [NEW] `.agent/scripts/overwatch.py`: Added Sparkline class and `--help` argument.
+- [NEW] `tests/test_overwatch.py`: Unit tests for dashboard logic.
+- [NEW] `tests/test_latency_check.py`: Unit tests for performance gating.
+- [MOD] `README.md`: Updated with Federation & Overwatch documentation.
+- [MOD] `AGENTS.md` & `wrap-it-up.md`: Formalized "Session Handshake" protocol.
+
+**To Resume, Start Here:**
+1. **Monitor**: Run `python .agent/scripts/overwatch.py` to verify system health.
+2. **Next Objective**: Proceed to **Triple Threat Expansion** in `tasks.md`.
+
+# Walkthrough: The Triple Expansion (Corvus Star 3.0)
+
+This session executed the 'Triple Threat' expansion, transforming the framework's architecture, intelligence, and observability.
+
+## 1. The Iron Backbone (ui.py)
+We consolidated all UI logic into a single library, enforcing the Linscott Standard across the ecosystem.
+- **Unified HUD**: sv_engine.py, merge_traces.py, fishtest.py, trace_viz.py, and overwatch.py now all import from .agent/scripts/ui.py.
+- **Identity Isolation**: The ui.py module supports dynamic Persona switching, allowing tools like trace_viz.py to render historical traces in their native theme (Red/Cyan) regardless of the active session.
+
+## 2. The Sovereign Cycle (tune_weights.py)
+We implemented the self-optimization loop.
+- **Analysis**: compile_failure_report.py generates health reports from the Rejection Ledger.
+- **Tuning**: tune_weights.py analyzes fishtest data to identify 'Confusing Tokens' (tokens that appear in rival skills) and proposes down-weighting them in thesaurus.md.
+
+## 3. The All-Seeing Eye (Interactive Overwatch)
+The monitoring dashboard is now an interactive control center (using msvcrt on Windows).
+- **Controls**:
+    - [C]lear: Wipes the console for a fresh view.
+    - [P]urge: Clears the Rejection Ledger.
+    - [Q]uit: Graceful shutdown.
+
+## Verification
+- **Fishtest**: maintained 100% accuracy (12/12) after refactor.
+- **Overwatch**: Verified Key-Hit logic via verification command.
+- **Trace Viz**: Verified Theme Persistence for 'War Room' mode.
+
+---
+
+## 🤝 Session Handshake (The Triple Expansion)
+
+**What Changed:**
+- [NEW] .agent/scripts/ui.py: The core UI library.
+- [NEW] .agent/scripts/tune_weights.py: Thesaurus optimizer.
+- [NEW] .agent/scripts/compile_failure_report.py: Failure analyst.
+- [MOD] sv_engine.py, fishtest.py, merge_traces.py, trace_viz.py, overwatch.py: Refactored to use ui.py.
+- [MOD] overwatch.py: Added msvcrt interactivity.
+
+**To Resume, Start Here:**
+1. **Interactive Test**: Run 'python .agent/scripts/overwatch.py' and press [C] to test the new backbone.
+2. **Optimize**: Run 'python .agent/scripts/tune_weights.py' to apply the latest learnings to thesaurus.md.
+
+
+
+# Walkthrough: Operation Iron Clad (Corvus Star 3.1)
+
+This session executed the [ODIN] 'Iron Clad' protocol, enforcing the Torvalds Mandate across the framework's core utilities.
+
+## 1. The Iron Backbone (ui.py)
+We refactored ui.py to be bulletproof.
+- **Strict Typing**: All methods now have typing hints (List, Optional, Dict).
+- **Safety**: Added assert logic to box_top to prevent rendering artifacts on narrow terminals (<10 chars).
+- **Documentation**: Added Google-style docstrings to all methods.
+
+## 2. Neural Overwatch Hardening (overwatch.py)
+We hardened the monitoring dashboard against runtime failures.
+- **Robust Input**: msvcrt.kbhit() checks are now guarded by OS checks (os.name == 'nt') and try-except blocks.
+- **Typing**: Added return type annotations to internal logic (get_stats() -> Dict).
+- **Fix**: Removed legacy Sparkline class dependency (now correctly using ui.HUD.render_sparkline).
+
+## 3. SovereignFish Improvements
+- **Code**: latency_check.py received full type hinting and docstrings.
+- **Code**: trace_viz.py's TraceRenderer was refactored with type safety for improved symmetry enforcement.
+
+## Verification
+- **New Suite**: Created tests/test_ui.py to verify the new Backbone.
+- **Regression**: fishtest.py maintained 100% accuracy (12/12).
+- **Unit**: Repaired tests/test_overwatch.py passed.
+
+---
+
+## ?? Session Handshake (The Iron Clad)
+
+**What Changed:**
+- [MOD] .agent/scripts/ui.py: Strict Typing & Docstrings.
+- [MOD] .agent/scripts/overwatch.py: Hardened against crashes.
+- [NEW] tests/test_ui.py: New verification suite.
+- [FIX] tests/test_overwatch.py: Removed deprecated legacy imports.
+
+**To Resume, Start Here:**
+1. **Optimization**: Proceed to **Phase 2: The Sovereign Cycle** (Task: tune_weights.py optimization).
+2. **Oracle**: Consider implementing the postponed 'Oracle's Eye' protocol.

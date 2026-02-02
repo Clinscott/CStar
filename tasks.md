@@ -48,9 +48,15 @@
     - [x] `git-assistant`: Context-aware commit logic. [x]
     - [x] `codestats`: Deep codebase metrics. [x]
     - [x] `agent-health`: Workflow diagnostics. [x]
-- [x] **Distributed Fishtest**: [x]
-    - [x] Refactor `sv_engine.py` for trace recording. [x]
-    - [x] Update `fishtest.py` for distributed ingest (Pending Trace accumulation). [x]
+- [x] **Distributed Fishtest**:- [x] **Verification**:
+    - [x] Update `tests/test_ui.py` (or create if missing).
+    - [x] Update `tests/test_overwatch.py`.
+    - [x] Verify `fishtest` pass.
+- [x] **SovereignFish**:
+    - [x] Harden `latency_check.py` (Code Hardening).
+    - [x] Harden `trace_viz.py` (Code Hardening).
+(Pending Trace accumulation). [x]
+    - [x] **Phase 4 Complete**: Automated trace ingestion and conflict resolution verified. [x]
 
 ### 9. SovereignFish Mandate (Session Standards)
 - [x] **Refactor**: Externalize stopwords to `stopwords.json`. [x]
@@ -76,9 +82,24 @@
     - [x] **Conflict Analysis**: Create a utility to report on "War Zones" (queries where Odin and Alfred frequently disagree). [x]
 
 2. **Federated Learning (Phase 4: The Network)**:
-    - [x] **Network Watcher**: Create a file watcher script that auto-ingests from `mock_project/network_share` in real-time. ("The Crucible")
-    - [x] **Feedback Loop**: Implement a mechanism for the engine to "reject" bad traces (e.g. if their score drops below baseline after ingest).
+    - [x] **Network Watcher**: Create a file watcher script that auto-ingests from `mock_project/network_share` in real-time. ("The Crucible") [x]
+    - [x] **Feedback Loop**: Implement a mechanism for the engine to "reject" bad traces (e.g. if their score drops below baseline after ingest). [x]
+    - [x] **Rejection Ledger**: Audit trail for purged traces in `REJECTIONS.md`. [x]
+
+## ⏭️ Start Here Next (The Triple Expansion)
+1. **Phase 1: The Iron Backbone (Structural Consolidation)**:
+    - [x] **UI Logic**: Consolidate `HUD` and `Sparkline` into `.agent/scripts/ui.py`. [x]
+    - [x] **Refactor**: Update `sv_engine.py`, `merge_traces.py`, `fishtest.py`, `trace_viz.py`, `overwatch.py` to use shared UI. [x]
+    - [x] **Verify**: Ensure generic `tests/` pass with new import structure. [x]
+
+2. **Phase 2: The Sovereign Cycle (Self-Optimization)**:
+    - [x] **Analysis**: Create `compile_failure_report.py`. [x]
+    - [x] **Tuning**: Create `tune_weights.py` to auto-adjust `thesaurus.md`. [x]
+
+3. **Phase 3: The All-Seeing Eye (Interactive Overwatch)**:
+    - [x] **Interactive**: Implement key-based input loop in `overwatch.py`. [x]
+    - [x] **Control**: Add Purge/Clear capabilities to the dashboard. [x]
 
 ## 12. Compliance & Feedback
-- [ ] **Persona Fidelity**: Investigate why `investigate` workflow output failed to adopt ODIN persona.
-- [ ] **Engine Performance**: Benchmark `sv_engine.py` (500 lines) startup time to validate CLI architecture viability.
+- [x] **Persona Fidelity**: Investigate why `investigate` workflow output failed to adopt ODIN persona. [x]
+- [x] **Engine Performance**: Benchmark `sv_engine.py` (500 lines) startup time to validate CLI architecture viability. [x]

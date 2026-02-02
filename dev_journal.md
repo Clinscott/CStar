@@ -224,3 +224,38 @@ Completed the upgrade of `trace_viz.py` to Version 2.0. This tool now acts as th
 - **Corvus Star 2.3** is architecturally complete and 100% verified.
 - The framework possesses two functional, distinct personalities with mirrored capabilities.
 - The `sterileAgent` boilerplate is now persona-aware and Corvus-compliant.
+
+## 2026-02-01 - Federated Learning Phase 4: Finality
+### Summary
+- **Decree of Finality**: Successfully completed Phase 4 of the Federated Learning system.
+- **Auditability**: Implemented `REJECTIONS.md` in the quarantine directory to track purged traces with persona-filtered reasoning.
+- **Documentation**: Fully mapped the ingestion, staging, and conflict resolution flow in `wireframe.md`.
+- **Polish**: Added real-time timestamps to `fishtest.py` and a HUD boot sequence to `sv_engine.py` (SovereignFish).
+- **Stability**: Verified logic with synthetic "bad trace" rejection.
+
+### Architectural Decisions
+- **Trace Rejection Ledger**: Chose Markdown over JSON for the rejection ledger to ensure immediate human/agent readability in the quarantine zone.
+- **Boot Verification**: Decided that a visual "Online" signal on engine initialization is a critical safety feature for a tool that may be called as a library or submodule.
+
+### Current State
+- **Federated Learning Phase 4** is STABLE and fully documented.
+- The Crucible is hardened against regression with a clear audit trail.
+- System accuracy remains 100%.
+
+
+## 2026-02-01 - Operation Iron Clad (The Hardening)
+### Summary
+- **Protocol Executed**: 'Iron Clad' (Hardening Phase).
+- **Core Refactor**: ui.py and overwatch.py were fully typed, documented, and hardened against runtime errors.
+- **Verification**: Created tests/test_ui.py and repaired tests/test_overwatch.py. Achieved 100% pass rate.
+- **SovereignFish**: Extended verify-before-build mandate to latency_check.py and trace_viz.py.
+
+### Architectural Decisions
+- **Strict Typing as Doctrine**: We enforced typing usage across the board. This isn't just for IDEs; it's a statement of intent. The code validates itself.
+- **Safety First**: Added OS-specific checks for msvcrt in overwatch.py to prevent crashes on non-Windows environments (portability preparation), even if the user is currently on Windows.
+- **Centralized UI Testing**: Decided to test ui.py in isolation (test_ui.py) rather than relying on consumer scripts to verify it. If the backbone breaks, we want to know *before* we check the limbs.
+
+### Current State
+- **Corvus Star 3.1** is 'Iron Clad'.
+- The UI subsystem is formally verified.
+- The Monitoring Dashboard is robust.

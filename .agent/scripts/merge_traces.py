@@ -4,27 +4,12 @@ import sys
 import shutil
 from pathlib import Path
 
-# --- HUD Utils (Mini-Port) ---
-# Keeping this self-contained to avoid import issues during standalone runs
-class HUD:
-    CYAN = "\033[36m"
-    DIM = "\033[2m"
-    GREEN = "\033[32m"
-    YELLOW = "\033[33m"
-    RESET = "\033[0m"
-    BOLD = "\033[1m"
-    
-    @staticmethod
-    def info(msg, detail=""):
-        print(f"{HUD.DIM}[INFO]{HUD.RESET} {HUD.CYAN}{msg}{HUD.RESET} {detail}")
-
-    @staticmethod
-    def success(msg):
-        print(f"{HUD.GREEN}[SUCCESS]{HUD.RESET} {msg}")
-
-    @staticmethod
-    def warn(msg):
-        print(f"{HUD.YELLOW}[WARN]{HUD.RESET} {msg}")
+# Import Shared UI
+try:
+    from ui import HUD
+except ImportError:
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    from ui import HUD
 
 def merge_traces(source_dir, target_file="fishtest_data.json"):
     """
@@ -40,7 +25,7 @@ def merge_traces(source_dir, target_file="fishtest_data.json"):
     processed_dir.mkdir(exist_ok=True)
     failed_dir.mkdir(exist_ok=True)
 
-    HUD.info(f"Scanning {source_path} for traces...")
+    HUD.log("INFO", f"Scanning {source_path} for traces...")
     
     dataset = {"test_cases": []}
     if target_path.exists():
@@ -48,7 +33,7 @@ def merge_traces(source_dir, target_file="fishtest_data.json"):
             with open(target_path, 'r', encoding='utf-8') as f:
                 dataset = json.load(f)
         except Exception as e:
-            HUD.warn(f"Could not load target file: {e}. Starting fresh.")
+            HUD.log("WARN", f"Could not load target file: {e}. Starting fresh.")
 
     # Index existing by query for O(1) lookups
     # Format: {query: {data}}
@@ -111,21 +96,21 @@ def merge_traces(source_dir, target_file="fishtest_data.json"):
             files_processed += 1
             
         except json.JSONDecodeError:
-            HUD.warn(f"Invalid JSON: {trace_file.name}")
+            HUD.log("WARN", f"Invalid JSON: {trace_file.name}")
             shutil.move(str(trace_file), str(failed_dir / trace_file.name))
         except Exception as e:
-            HUD.warn(f"Failed to process {trace_file.name}: {e}")
+            HUD.log("WARN", f"Failed to process {trace_file.name}: {e}")
 
     # Write back to target
     try: 
         with open(target_path, 'w', encoding='utf-8') as f:
             json.dump(dataset, f, indent=2)
         
-        HUD.success(f"Merge Complete. Processed {files_processed} files.")
-        HUD.info(f"Stats: +{new_count} New | ~{update_count} Updated")
+        HUD.log("PASS", f"Merge Complete. Processed {files_processed} files.")
+        HUD.log("INFO", f"Stats: +{new_count} New | ~{update_count} Updated")
         
     except Exception as e:
-        HUD.warn(f"Failed to save target file: {e}")
+        HUD.log("WARN", f"Failed to save target file: {e}")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

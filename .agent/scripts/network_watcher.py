@@ -13,6 +13,7 @@ sys.path.append(current_dir)
 from sv_engine import HUD
 try:
     from merge_traces import merge_traces
+    from latency_check import measure_startup
 except ImportError:
     # Ensure merge_traces can be imported even if running from root
     pass
@@ -25,6 +26,8 @@ FISHTEST_DB = os.path.join(PROJECT_ROOT, "fishtest_data.json")
 PROCESSED_DIR = os.path.join(BASE_PATH, "traces", "processed")
 QUARANTINE_DIR = os.path.join(BASE_PATH, "traces", "quarantine")
 STAGING_DIR = os.path.join(BASE_PATH, "traces", "staging")
+REJECTION_LEDGER = os.path.join(QUARANTINE_DIR, "REJECTIONS.md")
+
 
 THEMES = {
     "ODIN": {
@@ -68,6 +71,20 @@ def run_fishtest():
         print(f"Fishtest Error: {e}")
         return False
 
+def log_rejection(filename, reason):
+    """Logs a rejection to the REJECTIONS.md file in the quarantine directory."""
+    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+    theme = get_theme()
+    persona = "ODIN" if theme["TITLE"].startswith("THE CRUCIBLE") else "ALFRED"
+    
+    # Create file with header if it doesn't exist
+    if not os.path.exists(REJECTION_LEDGER):
+        with open(REJECTION_LEDGER, 'w', encoding='utf-8') as f:
+            f.write("# Rejection Ledger\n\n| Timestamp | Filename | Persona | Reason |\n| --- | --- | --- | --- |\n")
+    
+    with open(REJECTION_LEDGER, 'a', encoding='utf-8') as f:
+        f.write(f"| {timestamp} | {filename} | {persona} | {reason} |\n")
+
 def process_file(file_path):
     theme = get_theme()
     filename = os.path.basename(file_path)
@@ -101,36 +118,56 @@ def process_file(file_path):
             
     except Exception as e:
         HUD.box_row("ERROR", "INGEST FAILED", HUD.RED)
-        if os.path.exists(staging_path): shutil.move(staging_path, os.path.join(QUARANTINE_DIR, filename))
+        if os.path.exists(staging_path): 
+            shutil.move(staging_path, os.path.join(QUARANTINE_DIR, filename))
+            log_rejection(filename, f"Ingest Failure: {str(e)}")
         if os.path.exists(backup_path): shutil.move(backup_path, FISHTEST_DB)
         HUD.box_bottom()
         return
 
-    # 3. The Ordeal (Fishtest)
+    # 3. The Law of Latency (Phase A)
+    HUD.box_row("PROFILING", "MEASURING LATENCY...", HUD.YELLOW)
+    baseline = measure_startup(3)
+    HUD.box_row("BASELINE", f"{baseline:.2f}ms", HUD.CYAN)
+
+    # 4. The Ordeal (Fishtest)
     passed = run_fishtest()
     
-    if passed:
+    # 5. Post-Ordeal Latency Check
+    new_latency = measure_startup(3)
+    delta = new_latency - baseline
+    
+    latency_passed = delta <= 5.0
+    
+    if passed and latency_passed:
         HUD.box_row("VERDICT", theme["PASS"], HUD.GREEN)
+        HUD.box_row("LATENCY", f"{new_latency:.2f}ms (Δ {delta:+.2f}ms)", HUD.GREEN)
         # Commit: Delete backup
         if os.path.exists(backup_path): os.remove(backup_path)
         
         # Move from Staging/Processed to Final Processed
-        # merge_traces moves successful files to STAGING_DIR/processed
         ingested_path = os.path.join(STAGING_DIR, "processed", filename)
         if os.path.exists(ingested_path):
              shutil.move(ingested_path, os.path.join(PROCESSED_DIR, filename))
         
     else:
-        HUD.box_row("VERDICT", theme["FAIL"], HUD.RED)
+        if not passed:
+            HUD.box_row("VERDICT", theme["FAIL"], HUD.RED)
+            reason = "Regression: Failed Fishtest Ordeal"
+        elif not latency_passed:
+            HUD.box_row("VERDICT", "LATENCY REJECTION", HUD.RED)
+            HUD.box_row("LATENCY", f"{new_latency:.2f}ms (Δ {delta:+.2f}ms)", HUD.RED)
+            reason = f"Latency Breach: {delta:.2f}ms exceeds 5ms limit"
+        
         # Rollback
         shutil.copy2(backup_path, FISHTEST_DB)
         os.remove(backup_path)
         
         # Quarantine
-        # merge_traces moved it to STAGING_DIR/processed (optimistically). find it there.
         ingested_path = os.path.join(STAGING_DIR, "processed", filename)
         if os.path.exists(ingested_path):
             shutil.move(ingested_path, os.path.join(QUARANTINE_DIR, filename))
+            log_rejection(filename, reason)
 
     HUD.box_bottom()
 

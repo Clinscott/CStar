@@ -34,6 +34,11 @@ A collection of specialized agent abilities:
 - **EnvDoctor**: System health and dependency audits.
 - **KnowledgeHunter**: Deep-dive research across local files and the web.
 
+### 4. The Neural Overwatch & Federation
+- **Neural Overwatch**: Real-time terminal dashboard (`overwatch.py`) for monitoring federated agent activity.
+- **The Crucible**: Automated "Trial by Combat" ingestion system that verifies external traces before merging.
+- **Law of Latency**: Strict performance monitoring ensures the engine never regresses >5ms.
+
 ---
 
 ## 📂 Directory Structure

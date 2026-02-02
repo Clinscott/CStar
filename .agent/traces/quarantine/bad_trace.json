@@ -1,9 +1,6 @@
-[
-    {
-        "query": "start the project",
-        "match": "/wrap-it-up",
-        "score": 0.99,
-        "is_global": false,
-        "persona": "LOKI"
-    }
-]
+{
+    "query": "totally non-existent command",
+    "match": "SovereignFish",
+    "persona": "ODIN",
+    "is_global": false
+}

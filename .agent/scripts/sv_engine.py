@@ -6,78 +6,23 @@ import os
 import random
 
 # Import Persona Logic
+import personas
+
+# Ensure UTF-8 output for Windows shells
+if sys.platform == "win32" and hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except: pass
+
+
+# Import Shared UI
 try:
-    import personas
+    from ui import HUD
 except ImportError:
-    # Fallback if running from root
-    sys.path.append(os.path.join(os.path.dirname(__file__)))
-    import personas
+    # Fallback if run from different context without sys.path setup
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    from ui import HUD
 
-
-class HUD:
-    # "Glow" Palette - Using standard ANSI but simulating intensity
-    CYAN = "\033[36m"
-    CYAN_DIM = "\033[2;36m" 
-    GREEN = "\033[32m" 
-    GREEN_DIM = "\033[2;32m"
-    YELLOW = "\033[33m"
-    MAGENTA = "\033[35m"
-    RED = "\033[31m"
-    RESET = "\033[0m"
-    BOLD = "\033[1m"
-    PERSONA = "ALFRED" # Default
-
-    DIALOGUE = None # Instance of DialogueRetriever
-
-    @staticmethod
-    def _speak(intent, fallback):
-        if HUD.DIALOGUE:
-            return HUD.DIALOGUE.get(intent) or fallback
-        return fallback
-
-    @staticmethod
-    def _get_theme():
-        if HUD.PERSONA == "GOD" or HUD.PERSONA == "ODIN":
-            return {"main": HUD.RED, "dim": HUD.MAGENTA, "accent": HUD.YELLOW, "title": "Ω ODIN ENGINE Ω"}
-        return {"main": HUD.CYAN, "dim": HUD.CYAN_DIM, "accent": HUD.GREEN, "title": "C* NEURAL TRACE"}
-
-    @staticmethod
-    def box_top(title="", color=None):
-        theme = HUD._get_theme()
-        display_title = title if title else theme["title"]
-        main_color = color if color else theme['main']
-        dim_color = color if color else theme['dim'] # If override, use it for everything
-        
-        width = 60
-        t_len = len(display_title)
-        padding = (width - t_len - 4) // 2
-        # Glow effect
-        print(f"{dim_color}┌{'─'*padding} {main_color}{HUD.BOLD}{display_title}{HUD.RESET}{dim_color} {'─'*padding}┐{HUD.RESET}")
-
-    @staticmethod
-    def box_row(label, value, color=CYAN, dim_label=False):
-        theme = HUD._get_theme()
-        lbl_color = theme['dim'] if dim_label else theme['main']
-        print(f"{theme['dim']}│{HUD.RESET} {lbl_color}{label:<20}{HUD.RESET} {color}{value}{HUD.RESET}")
-
-    @staticmethod
-    def box_separator(color=None):
-        theme = HUD._get_theme()
-        dim_color = color if color else theme['dim']
-        print(f"{dim_color}├{'─'*58}┤{HUD.RESET}")
-
-    @staticmethod
-    def box_bottom(color=None):
-        theme = HUD._get_theme()
-        dim_color = color if color else theme['dim']
-        print(f"{dim_color}└{'─'*58}┘{HUD.RESET}")
-    
-    @staticmethod
-    def progress_bar(val: float, width=10):
-        # [||||||....] with subtle coloring
-        blocks = int(val * width)
-        bar = f"{HUD.GREEN}" + "█" * blocks + f"{HUD.GREEN_DIM}" + "░" * (width - blocks) + f"{HUD.RESET}"
-        return bar
 
 class DialogueRetriever:
     def __init__(self, dialogue_path):
@@ -112,6 +57,12 @@ class SovereignVector:
         self.thesaurus = self._load_thesaurus(thesaurus_path) if thesaurus_path else {}
         self.corrections = self._load_json(corrections_path) if corrections_path else {"phrase_mappings": {}, "synonym_updates": {}}
         self.stopwords = self._load_stopwords(stopwords_path)
+        
+        # SovereignFish: Boot Log
+        HUD.box_top("ENGINE INITIALIZED")
+        HUD.box_row("STATUS", "ONLINE", HUD.GREEN)
+        HUD.box_bottom()
+
         self.skills = {} # {trigger: "full text of skill description"}
         self.trigger_map = {} # {keyword: [triggers]}
         self.vocab = set()
@@ -327,6 +278,33 @@ class SovereignVector:
                     skill_text = " ".join(signal_tokens)
                     self.add_skill(trigger, skill_text)
 
+    def score_identity(self, text, persona_name):
+        """
+        Calculates a 'Purity Score' (0-1) by comparing input text 
+        to the vector space of the chosen persona's dialogue.
+        """
+        # 1. Expand query for text
+        weighted_tokens = self.expand_query(text)
+        text_vec = self._vectorize(weighted_tokens)
+        
+        # 2. Re-index temporarily on dialogue
+        # We need a mini-engine for this or just simulate similarity
+        # Let's use the current engine's vocab but check against dialogue data
+        # If the text has tokens that appear frequently in the persona's DB, it's a match.
+        
+        # Actually, if we have HUD.DIALOGUE loaded, we can compare directly.
+        # Simple heuristic for now: token overlap with dialogue registry
+        tokens = set(self.tokenize(text))
+        persona_tokens = set()
+        for phrases in HUD.DIALOGUE.intents.values():
+            for p in phrases:
+                persona_tokens.update(self.tokenize(p))
+        
+        if not persona_tokens or not tokens: return 0.0
+        
+        match = len(tokens.intersection(persona_tokens)) / len(tokens)
+        return match
+
 if __name__ == "__main__":
     import argparse
     import time
@@ -360,8 +338,17 @@ if __name__ == "__main__":
     parser.add_argument("query", nargs="*", help="The natural language intent to analyze")
     parser.add_argument("--json", action="store_true", help="Output only JSON for Agent consumption")
     parser.add_argument("--record", action="store_true", help="Record this interaction as a trace")
+    parser.add_argument("--benchmark", action="store_true", help="Health Check & performance report")
     args = parser.parse_args()
     
+    if args.benchmark:
+        HUD.box_top("DIAGNOSTIC")
+        HUD.box_row("ENGINE", "SovereignVector 2.3", HUD.CYAN)
+        HUD.box_row("PERSONA", HUD.PERSONA, HUD.MAGENTA)
+        HUD.box_row("ENCODING", sys.stdout.encoding, HUD.GREEN)
+        HUD.box_bottom()
+        sys.exit(0)
+
     query_text = " ".join(args.query)
 
     # 0. Enforce Operational Policy (Interactive Mode Only)

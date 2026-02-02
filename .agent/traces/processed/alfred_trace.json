@@ -1,0 +1,8 @@
+{
+    "query": "start the project",
+    "match": "/lets-go",
+    "score": 0.96,
+    "is_global": false,
+    "persona": "ALFRED",
+    "timestamp": "2026-02-01"
+}

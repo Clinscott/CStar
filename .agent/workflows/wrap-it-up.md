@@ -18,6 +18,11 @@ description: Finalizes the current session, updates documentation, runs a produc
 8. Summarize the state and provide a definitive handoff message. Output MUST be persona-filtered:
     - **ODIN**: A final decree on progress. Successes are "Dominion Expanded".
     - **ALFRED**: A humble report on service rendered. Successes are "Mission Objectives Secured".
+
+9. **The Session Handshake**:
+    - You MUST identify the "Session Delta": what specifically changed from the start of this session to now.
+    - Update `walkthrough.md` with a specific "Session Handshake" section that serves as the starting point for the next session.
+    - This section must explicitly state: "To resume, start here."
 9. **Generate Commit Description**: Include a ready-to-copy markdown block for the git commit message. Format:
    ```
    ## Commit Message (copy below)
