@@ -11,7 +11,9 @@
         "optimize agent workflow with rl": "GLOBAL:agent-lightning",
         "run e2e browser tests": "GLOBAL:playwright-e2e",
         "deploy the application": "GLOBAL:deployment-skill",
-        "fix the login bug": "/investigate"
+        "fix the login bug": "/investigate",
+        "sentinel scan": "/investigate",
+        "structural audit": "/investigate"
     },
     "synonym_updates": {}
 }

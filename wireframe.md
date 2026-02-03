@@ -59,7 +59,10 @@ Maintain a searchable, accurate map of the project's UI and service architecture
 - **Persona Strategies**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/personas.py`
     - **ODIN Strategy**: Dominion & Enforcement. Ruthless standardization of headers, AgLng compliance, and testing mandates.
     - **ALFRED Strategy**: Service & Facilitation. Provisioning of backups, adaptive structural learning, and humble refinement.
-- **Dialogue Database**: `c:/Users/Craig/Corvus/CorvusStar/dialogue_db/` - Markdown corpus for vector-based speech generation (`odin.md`, `alfred.md`).
+- **Dialogue Database**: `c:/Users/Craig/Corvus/CorvusStar/dialogue_db/` - Markdown corpus for vector-based speech generation (`odin.md`, `alfred.md`). Implements Lore Alignment (Hávamál & Pennyworth Protocols).
+- **Thematic Naming**:
+    - **ODIN**: *Mimir's Well* (Engine), *Heimdall's Vigil* (Security), *Huginn & Muninn* (Archive).
+    - **ALFRED**: *The Brain* (Engine), *The Perimeter* (Security), *The Archive* (Archive).
 
 ### 🌓 The Great Duality (Operational Architecture)
 The framework's soul (The Linscott Standard) manifests through two distinct operational minds:
@@ -84,6 +87,7 @@ The framework's soul (The Linscott Standard) manifests through two distinct oper
         - `render_trace()`: Displays visual representation of a trace.
         - `compare_traces()`: Analyzes differences between traces.
 - **Trace Compiler**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/compile_session_traces.py` - Aggregates JSON traces into `.agent/TRACE_REPORT.md`.
+- **Code Sentinel**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/code_sentinel.py` - Structural integrity scanner powered by **Ruff**. Supports Persona-themed output and CLI-driven automated repair (`--fix`).
 - **Global Registry**: `c:/Users/Craig/Corvus/CorvusStar/skills_db/` - Central repository for `git-assistant`, `codestats`, `agent-health`, and more.
 
 ### Fishtest Scaling & Federation Tools

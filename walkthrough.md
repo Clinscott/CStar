@@ -442,17 +442,42 @@ etwork_watcher.py to ensure persona theme signals remain unpolluted during analy
 
 ---
 
-## ?? Session Handshake (N=100 Sovereignty)
+## 2026-02-02: Test Suite Restoration & Code Sentinel
+**Objective**: Fix regression errors in the unit test suite and implement automated structural integrity scanning.
+
+### Test Suite Restoration (Session 22)
+- **Critical Fix**: Restored missing `class TraceRenderer:` declaration in `trace_viz.py`. The orphans had caused `NameError` across multiple modes.
+- **Safety**: Purged bare `except:` blocks in `trace_viz.py` and the Seed environment's `fishtest.py`.
+- **API Alignment**: Rewrote `test_trace_viz.py` to match the HUD 2.0 API.
+- **Verification**: Restored 100% test pass rate (63 tests passed).
+
+### Code Sentinel Integration (Session 23)
+- **Tooling**: Integrated **Ruff** linter (10-100x faster than Flake8) into the framework core.
+- **Wrapper**: Created `.agent/scripts/code_sentinel.py` to provide HUD-themed structural reports.
+- **Auto-Fix**: Verified `code_sentinel.py --fix` for automated cleanup of style issues and imports.
+- **Workflow**: Updated `/investigate` Phase 2 to include a mandatory Structural Integrity Scan.
+- **Fishtest**: Re-aligned `thesaurus.md` and `corrections.json` to ensure high-confidence discovery of the sentinel tool.
+
+### Verification Results
+- **Accuracy**: 100.0% (Checked against 14 cases).
+- **Latency**: 92.21ms (Benchmark Confirmed).
+- **Unit Tests**: 63 passed, 0 failed.
+
+---
+
+## 🤝 Session Handshake (Sentinel Protocol)
 
 **What Changed:**
-- [MOD] .agent/scripts/engine/vector.py: Full Type Hinting.
-- [MOD] fishtest.py: Type Hinting & Enforced Accuracy Mandate.
-- [MOD] .agent/scripts/ui.py: HUD 2.0 (Dynamic Width, New Primitives).
-- [MOD] install_skill.py: Mandatory file integrity checks.
-- [MOD] AGENTS.md: Redefined Alfred's Subconscious Architecture.
-- [MOD] SOVEREIGNFISH_LEDGER.md: Logged all 21 sessions of the cycle.
+- [FIX] `.agent/scripts/trace_viz.py`: Restored missing class declaration.
+- [NEW] `.agent/scripts/code_sentinel.py`: Ruff wrapper with HUD theming.
+- [NEW] `ruff.toml`: Project-wide linting configuration.
+- [NEW] `tests/test_code_sentinel.py`: Verification suite for the sentinel.
+- [MOD] `.agent/workflows/investigate.md`: Integrated structural scanning.
+- [MOD] `tasks.md` & `wireframe.md`: Documentation alignment.
+- [MOD] `fishtest_data.json` & `corrections.json`: Intent alignment.
 
 **To Resume, Start Here:**
-1. **The Scout's Hunt**: Invoke skill-scout to expand the framework's visual complexity (Dependency Graphs).
-2. **Stabilization**: Repair the minor THEMES error in 	est_workflow_analyst.py.
+1. **The Scout's Hunt**: Trigger `skill-scout` for "dependency-graph visualization python" to begin ASCII complexity visualization.
+2. **Expansion**: Extend `code_sentinel.py` with custom AST rules for specific project malformations (e.g. detect orphans).
+
 

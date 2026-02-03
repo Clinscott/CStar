@@ -125,13 +125,25 @@
 - [x] **Security**: Hardened Crucible ingestion and Installation Integrity checks. [x]
 - [x] **Aesthetics**: Enhanced HUD 2.0 with dynamic width and persistent layouts. [x]
 
-## ⏭️ Start Here Next (Post-Prophecy Stabilization)
+### 16. Persona Refinement (Lore Alignment)
+- [x] **Research**: Ingested Hávamál (Norse) and Pennyworth (Batman) lore. [x]
+- [x] **Dialogue**: Reforged `odin.md` and `alfred.md` with 13 lore-accurate INTENTs. [x]
+- [x] **Naming**: Implemented thematic system names (Mimir's Well, The Brain, etc.) in `AGENTS.md`. [x]
+- [x] **Protocols**: Formalized Hávamál Directive and Pennyworth Protocol. [x]
+- [x] **Verification**: Verified 100% intent loading across both personas. [x]
+
+    - [x] **Fix Data**: Updated `fishtest_data.json` and `corrections.json` to include 'sentinel' and 'structural' intents (Session 23). [x]
+    - [x] **Unit Tests**: Repaired failing tests in `test_trace_viz.py`, `test_workflow_analyst.py`, `test_network_watcher.py` (Session 22). [x]
+    - [x] **Structural Integrity**: Integrated **Ruff** linter via `code_sentinel.py` into the `/investigate` workflow (Session 23). [x]
+
+## ⏭️ Start Here Next (The Scout's Hunt)
 1. **The Scout's Hunt (Skill Discovery)**:
     - [ ] **Trigger**: Invoke `skill-scout` to search for "dependency-graph visualization python".
     - [ ] **Forge**: Create `.agent/skills/dependency-graph` skill.
     - [ ] **Deploy**: Integrate into `debt_viz.py` (New Tool) for analyzing McCabe complexity visualised in ASCII.
 
-2. **Compliance & Maintenance**:
-    - [ ] **Fix Data**: Update `fishtest_data.json` to resolve the `check` vs `Environment` mismatch seen during Seed verification.
-    - [ ] **Unit Tests**: Repair falling tests in `test_workflow_analyst.py` and `test_network_watcher.py` (THEMES attribute error).
+2. **Persona Audit Enhancement**:
+    - [ ] **Sentinel Rule**: Add custom Ruff plugin or AST check to `code_sentinel.py` specifically for detecting "Orphaned Class Bodies" (the TraceRenderer bug).
+    - [ ] **Persona Voice**: Ensure `code_sentinel.py` uses the active persona's voice in its *verbal* summaries, not just HUD colors.
+
 

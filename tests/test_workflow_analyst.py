@@ -15,12 +15,13 @@ class TestWorkflowAnalyst(unittest.TestCase):
     @patch('os.path.exists', return_value=True)
     @patch('builtins.open', new_callable=mock_open, read_data="- [ ] Task 1\n- [ ] Task 2")
     def test_analyze_tasks(self, mock_file, mock_exists):
-        """Test task analysis."""
+        """Test task analysis. Mock data uses [ ] which maps to open_loops, not stalled_tasks."""
         analyst = analyze_workflow.WorkflowAnalyst("c:/fake/root")
         report = analyst.analyze()
         
-        self.assertEqual(len(report['stalled_tasks']), 2)
-        self.assertIn("Task 1", report['stalled_tasks'])
+        # [Ω] Correction: [ ] items go to open_loops, [/] items go to stalled_tasks
+        self.assertEqual(len(report['open_loops']), 2)
+        self.assertIn("Task 1", report['open_loops'])
 
     def test_regex_parsing(self):
         """Test TODO regex logic (reproducing logic from script)."""

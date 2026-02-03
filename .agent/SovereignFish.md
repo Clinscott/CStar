@@ -11,6 +11,10 @@
 
 ## Session Log
 
+### Session: Persona Refinement
+- [x] **Improvement 1 (Doc)**: Updated `README.md` with Refined Persona (Odin/Alfred) lore-alignment details.
+- [x] **Improvement 2 (Code)**: Added `__repr__` method to `DialogueRetriever` in `engine/dialogue.py` for improved debuggability.
+
 ### Session: [CURRENT]
 - [x] **Improvement 1 (Visual)**: Implemented "Neural Handshake" animation in `sv_engine.py` (simulated link establishment).
 - [x] **Improvement 2 (Code)**: Refactored `sv_engine.py` to use `argparse` for robust argument handling and simpler extension.

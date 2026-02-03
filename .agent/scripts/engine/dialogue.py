@@ -34,3 +34,6 @@ class DialogueRetriever:
         """Retrieves a random phrase for the specified intent."""
         opts = self.intents.get(intent, [])
         return random.choice(opts) if opts else None
+
+    def __repr__(self):
+        return f"<DialogueRetriever: {len(self.intents)} intents loaded>"

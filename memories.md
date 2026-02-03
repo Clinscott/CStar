@@ -45,3 +45,5 @@ deletions: []
     - Subconscious Architecture: Inactive personas contribute Observation/Reminders (Alfred) or Void Shouts (Odin) to session context.
     - Alfred Persona Refinement: Alfred is firm but gentle. His subconscious voices are Aliased as [Alfred's Reminder], [Alfred's Query], and [Alfred's Observation].
     - SovereignFish N=100: Successfully completed the initial 100-improvement milestone (Sessions 9-21) to achieve system sovereignty.
+    - Code Sentinel: The framework uses **Ruff** for structural integrity. Integrated into `/investigate` workflow to detect orphans and code smells via `code_sentinel.py`.
+    - No Bare Except: Per the Linscott Standard, all `except:` blocks must specify exceptions (e.g. `except (json.JSONDecodeError, IOError)`) to prevent silent structural failures.

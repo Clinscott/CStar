@@ -23,7 +23,8 @@ def load_json(path):
     if not os.path.exists(path): return {}
     try:
         with open(path, 'r', encoding='utf-8') as f: return json.load(f)
-    except: return {}
+    except (json.JSONDecodeError, IOError):
+        return {}  # [Ω] Specific exception handling
 
 def get_engine():
     # Setup Paths
@@ -58,8 +59,10 @@ def get_engine():
     return engine
 
 
-# --- RENDERER (IDENTITY ISOLATION) ---
+from typing import Any
 
+# --- RENDERER (IDENTITY ISOLATION) ---
+class TraceRenderer:
     """
     Decoupled renderer that enforces a specific theme, regardless of the
     Host Agent's current persona. This allows ODIN to view ALFRED traces

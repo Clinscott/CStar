@@ -34,7 +34,13 @@ A collection of specialized agent abilities:
 - **EnvDoctor**: System health and dependency audits.
 - **KnowledgeHunter**: Deep-dive research across local files and the web.
 
-### 4. The Neural Overwatch & Federation
+### 4. Refined Personas (The Great Duality)
+The framework operates under two lore-accurate personas:
+- **ODIN (The All-Father)**: Cryptic, observational, and riddling. Guided by the *Hávamál*.
+- **ALFRED (The Butler)**: Firm, gentle, and witty. Guided by the *Pennyworth Protocol*.
+- **System Naming**: Mirroring names like *Mimir's Well* vs *The Brain* ensure thematic consistency.
+
+### 5. The Neural Overwatch & Federation
 - **Neural Overwatch**: Real-time terminal dashboard (`overwatch.py`) for monitoring federated agent activity.
 - **The Crucible**: Automated "Trial by Combat" ingestion system that verifies external traces before merging.
 - **Law of Latency**: Strict performance monitoring ensures the engine never regresses >5ms.

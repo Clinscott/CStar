@@ -24,6 +24,10 @@ Read the files and analyze for:
 - **Missing Counterparts**: Look for logical gaps (e.g., Login exists but Logout is missing; Create exists but Delete is missing).
 - **Security & Safety**: proper validation, error handling, and authorization checking.
 - **Layout Integration**: Does this component/page respect the global **DashboardLayout**? Is it trying to break out of the HUD? (This is strictly forbidden for core feature pages).
+- **Structural Integrity Scan (Sentinel)**: 
+  // turbo
+  `python .agent/scripts/code_sentinel.py <target_path>`
+  Run the Ruff linter to detect code smells, typing issues, and structural malformations. Use `--fix` to attempt automated repair.
 
 ## 3. System Interaction Check
 - **Dependencies**: How does this interact with the rest of the app?

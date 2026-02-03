@@ -130,6 +130,26 @@
         "real-user",
         "ODIN"
       ]
+    },
+    {
+      "query": "sentinel scan",
+      "expected": "/investigate",
+      "min_score": 0.85,
+      "expected_mode": "correction",
+      "tags": [
+        "structural",
+        "sentinel"
+      ]
+    },
+    {
+      "query": "structural audit",
+      "expected": "/investigate",
+      "min_score": 0.85,
+      "expected_mode": "correction",
+      "tags": [
+        "structural",
+        "linter"
+      ]
     }
   ]
 }

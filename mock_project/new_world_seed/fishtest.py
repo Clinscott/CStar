@@ -100,7 +100,8 @@ def run_test():
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
                 config = json.load(f)
-        except: pass
+        except (json.JSONDecodeError, IOError):
+            pass  # [Ω] Specific exception handling per Linscott Standard
     
     persona_name = config.get("Persona", "ALFRED").upper()
     # Import Shared UI
