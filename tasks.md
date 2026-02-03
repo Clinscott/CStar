@@ -145,4 +145,41 @@
         - [x] Verified `synapse_sync.py --pull` correctly syncs files. [x]
         - [x] Verified Engine can detect global skills from the new Core path. [x]
 
+## ⏭️ Start Here Next (Expansion Protocol)
+1. **Installation Upgrade (Session 24)**:
+    - [x] **Portability**: Implement dynamic source resolution (`$PSScriptRoot`). [x]
+    - [x] **Synapse Deployment**: Add `synapse_sync.py` to installer payload. [x]
+    - [x] **Dependency Management**: Auto-install `ruff` and `radon` via `Invoke-DependencyCheck`. [x]
+    - [x] **Logging**: Create `install.log` for audit trail. [x]
+    - [x] **Version Stamping**: Add metadata (install date, Git hash) to `config.json`. [x]
+    - [x] **Engine Module**: Deploy `engine/` directory (vector.py, dialogue.py, cortex.py). [x]
+    - [x] **UI Library**: Deploy `ui.py` for shared HUD functionality. [x]
+    - [x] **Documentation**: Update `README.md` and `wireframe.md`. [x]
+    - [x] **Verification**:
+        - [x] Tested sterile seed installation. [x]
+        - [x] Verified `synapse_sync.py` deployment. [x]
+        - [x] Verified dependency installation (ruff, radon). [x]
+        - [x] Verified engine functionality in new project. [x]
+        - [x] Created `walkthrough.md` with comprehensive documentation. [x]
 
+### 17. Alfred's Manor Inspection (Security Hardening)
+- [x] **Synapse Auth**: Implement verified push permissions and audit logging. [x]
+- [x] **Path Traversal**: Implement absolute resolution and common prefix validation. [x]
+- [x] **Subprocess Injection**: Secure all external calls with argument lists. [x]
+- [x] **JSON Validation**: Implement size-limited, type-safe JSON loading. [x]
+- [x] **Documentation**: Create `SECURITY.md` and update `walkthrough.md`. [x]
+- [x] **Verification**: 100% pass on security regression tests and fishtest. [x]
+
+## ⏭️ Start Here Next (Strategic Expansion)
+1. **Multi-Agent Orchestration**:
+    - [x] **Heimdall's Gate**: Expand `synapse_sync.py` to support multi-remote knowledge distribution. [x]
+    - [ ] **Neural Handshake 3.0**: Implement zero-knowledge proof for persona verification during sync.
+    - [ ] **War Room Dashboard**: Update `overwatch.py` to show visual security heatmaps.
+2. **Skill Forge Expansion**:
+    - [x] **Automated Skill Synthesis**: Use RAG to generate new `.py` skills from documentation fragments. [x]
+    - [ ] **Performance Profiler**: Create `sentinel-perf` to identify execution bottlenecks in user-written skills.
+
+## ⏭️ Start Here Next (Federated Evolution)
+1. **The Pulse of Mimir**:
+    - [ ] Implement `synapse_watch` to automatically pull updates when remotes are updated.
+    - [ ] Add `conflicts` resolution UI to Skill Forge for draft reviewing.

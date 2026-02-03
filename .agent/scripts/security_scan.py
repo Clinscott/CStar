@@ -39,6 +39,8 @@ class SecurityScanner:
         ]
     }
 
+    MAX_FILE_SIZE_MB = 10
+
     def __init__(self, file_path):
         self.path = file_path
         self.content = ""
@@ -49,6 +51,15 @@ class SecurityScanner:
         if not os.path.exists(self.path):
             return False, ["File not found"]
         
+        # 0. Size Check [SovereignFish]
+        try:
+            size_mb = os.path.getsize(self.path) / (1024 * 1024)
+            if size_mb > self.MAX_FILE_SIZE_MB:
+                self.threat_score = 20
+                self.findings.append(f"[DoS] File too large ({size_mb:.1f}MB > {self.MAX_FILE_SIZE_MB}MB)")
+                return False, self.findings
+        except: pass
+
         try:
             with open(self.path, 'r', encoding='utf-8') as f:
                 self.content = f.read()

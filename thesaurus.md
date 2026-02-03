@@ -10,6 +10,8 @@ Use this file to map project-specific jargon, synonyms, and variations to core c
 - **investigate**: analyze:1.0, audit:1.0, bug:1.0, check:0.7, debug:1.0, error:1.0, find:0.7, issue:0.9, investigate:1.0, linter:1.0, log:0.8, sentinel:1.0, structural:0.9, test:0.9, verify:0.9
 - **speed**: agent-lightning:0.7, fast:1.0, pace:0.8, quick:1.0, tempo:0.9, velocity:1.0
 - **start**: begin:1.0, flow:0.7, go:0.5, initiate:1.0, lets-go:1.0, logic:0.7, priority:0.9, project:0.8, resume:1.0, task:0.9, work:0.8
+- **forge**: create:0.9, forge:1.0, generate:1.0, synthesize:1.0, skill-forge:1.0, template:0.8
+- **knowledge**: core:0.7, extraction:0.9, learn:0.8, remote:0.9, shared:0.8, synapse:1.0, sync:0.9
 
 ### Skills & Discoverability
 - **e2e**: automation:0.9, browser:0.8, end-to-end:1.0, playwright:1.0, playwright-e2e:1.0, test:0.9

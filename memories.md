@@ -1,7 +1,7 @@
 ```yaml
 saved_memory:
   version: 1
-  updated: 2026-02-02
+  updated: 2026-02-03
   settings:
     enabled: true
     announce_writes: true
@@ -40,6 +40,8 @@ saved_memory:
     - Mimir's Eye (Knowledge Core): All Corvus instances sync to a central Git repo (`CorvusKnowledge`). 
     - Synapse Protocol: Use `synapse_sync.py` to Inhale (Pull) global skills and Exhale (Push) new discoveries.
     - Zero-Copy Discovery: `sv_engine.py` indexes `CorvusKnowledge/skills` directly, bypassing local copy until verified.
+    - Skill Forge: New capabilities can be synthesized via `skill_forge.py` using RAG context from `AGENTS.md` and `wireframe.md`. Staged in `drafts/` for review.
+    - Knowledge Extraction: `synapse_sync.py` automatically scrapes high-confidence `phrase_mappings` from `corrections.json` for global contribution.
 deletions: []
 ```
 
@@ -51,3 +53,6 @@ deletions: []
     - Code Sentinel: The framework uses **Ruff** for structural integrity. Integrated into `/investigate` workflow to detect orphans and code smells via `code_sentinel.py`.
     - No Bare Except: Per the Linscott Standard, all `except:` blocks must specify exceptions (e.g. `except (json.JSONDecodeError, IOError)`) to prevent silent structural failures.
     - Structural Debt Analysis: `debt_viz.py` is the project's "X-Ray". Use it regularly to identify unmaintainable blocks (CC > 10) before they become defects.
+    - Secure Subprocess Standard: All external calls MUST use argument lists and `sys.executable`. Usage of `shell=True` is a Class-A violation of the Manor Protocol.
+    - Path Sovereignty: No script may operate on a file path without first resolving it via `os.path.realpath` and verifying its prefix.
+    - Synapse Lockout: Pushes to Mimir's Eye are governed by a 10/hour rate limit to prevent knowledge poisoning.

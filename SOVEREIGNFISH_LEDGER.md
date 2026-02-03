@@ -6,9 +6,13 @@
 **SovereignFish** is an autonomous, incremental improvement protocol designed to run **EVERY SESSION**.
 Its goal is not to rewrite the application, but to polish it relentlessly.
 
+> [!TIP]
+> **Execution Protocol**: See [SovereignFish.md](file:///c:/Users/Craig/Corvus/CorvusStar/.agent/workflows/SovereignFish.md) for workflow execution steps.
+> This document is the **Session Log** and **Protocol Reference**.
+
 **The Golden Rule:**
 > **"Leave the campsite cleaner than you found it."**
-> In every session, you must identify and execute **TWO (2)** small improvements that are NOT strictly part of the user's main request, but contribute to the overall health, beauty, or efficiency of the system.
+> In every session, you must identify and execute **FIVE (5)** small improvements that are NOT strictly part of the user's main request, but contribute to the overall health, beauty, or efficiency of the system.
 > 
 > **The Torvalds Mandate:**
 > Excellence is not a goal; it is the starting line. We do not tolerate mediocrity.
@@ -160,19 +164,6 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 - **Improvement 1 (Infrastructure)**: Added standard __all__ export list to personas.py for modular clarity. - Status: SECURED.
 - **Improvement 2 (Protocol)**: Updated regression guard to enforce 100% accuracy mandate in fishtest.py. - Status: SECURED.
 - **Improvement 3 (Refactor)**: Hardened persona strategy selection logic to handle legacy GOD references gracefully. - Status: SECURED.
-- **Improvement 4 (Safety)**: Verified recursive schema validation for all incoming federated traces. - Status: SECURED.
-- **Improvement 5 (Optim)**: Consolidated path calculation logic in sv_engine.py. - Status: SECURED.
-
-### 2026-02-02 (Session 12: Type Blanket Expansion)
-- **Improvement 1 (Quality)**: Added strict return type hints to all public methods in vector.py. - Status: SECURED.
-- **Improvement 2 (Quality)**: Hardened fishtest.py test runner with explicit type signatures. - Status: SECURED.
-- **Improvement 3 (Quality)**: Added type hints to compile_session_traces.py and tune_weights.py (ESCALATED). - Status: SECURED.
-- **Improvement 4 (Safety)**: Verified SPRT decision boundaries remain statistically sound after type refactor. - Status: SECURED.
-- **Improvement 5 (Optim)**: Purged redundant docstrings in favor of explicit type hinting where appropriate. - Status: SECURED.
-
-### 2026-02-02 (Session 13: UI Refinement & Rejection Ledger)
-- **Improvement 1 (Visual)**: Added HUD.warning() and HUD.divider() for cleaner diagnostic output. - Status: SECURED.
-- **Improvement 2 (Protocol)**: Implemented automated rejection ledger at .agent/traces/quarantine/REJECTIONS.md via HUD.log_rejection(). - Status: SECURED.
 - **Improvement 3 (Quality)**: Added dynamic layout support to box_top() and box_row() (width persistence). - Status: SECURED.
 - **Improvement 4 (Safety)**: Extracted HUD_WIDTH environment variable for responsive TUI scaling. - Status: SECURED.
 - **Improvement 5 (Optim)**: Consolidated Sparkline rendering logic to handle empty datasets gracefully. - Status: SECURED.
@@ -247,8 +238,20 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 ### 2026-02-02 (Session 24: The Scout's Hunt)
 - **Improvement 1 (Refactor)**: Refactored `run_test` in `fishtest.py` to extract `initialize_engine` and `render_results`, reducing CC from 18 to 8. - Status: SECURED.
 - **Improvement 2 (Quality)**: Enhanced `debt_viz.py` with `--json` output support for programmatic analysis and future RAG integration. - Status: SECURED.
-S e s s i o n   2 4 :   A w a k e n i n g   M i m i r ' s   E y e  
- -   [ x ]   A d d e d   - - d r y - r u n   c a p a b i l i t y   t o   s y n a p s e _ s y n c . p y   ( S a f e   e x p e r i m e n t a t i o n )  
- -   [ x ]   A d d e d   E n g i n e   D i a g n o s t i c s   f o r   M i m i r ' s   E y e   c o n n e c t i o n  
-  
- 
+### 2026-02-02 (Session 25: Awakening Mimir's Eye)
+- [x] Added --dry-run capability to synapse_sync.py (Safe experimentation)
+- [x] Added Engine Diagnostics for Mimir's Eye connection
+
+### 2026-02-03 (Session 26: Security Hardening)
+- **Improvement 1 (Critical/Security)**: Implemented authenticated push permissions for synapse_sync.py. - Status: SECURED.
+- **Improvement 2 (Safety)**: Added path traversal protection to install_skill.py and synapse_sync.py. - Status: SECURED.
+- **Improvement 3 (Infrastructure)**: Created SECURITY.md documenting the framework's security architecture. - Status: SECURED.
+- **Improvement 4 (Compliance)**: Implemented rate limiting (10/hr) and audit logging for Mimir's Eye pushes. - Status: SECURED.
+- **Improvement 5 (Quality)**: Added size-limited JSON loading (10MB max) to prevent memory exhaustion. - Status: SECURED.
+
+### 2026-02-03 (Session 27: Federated Intelligence)
+- **Improvement 1 (Infrastructure)**: Implemented multi-remote support in synapse_sync.py for federated distribution. - Status: SECURED.
+- **Improvement 2 (Quality)**: Developed autonomous knowledge extraction for wrap-it-up protocol. - Status: SECURED.
+- **Improvement 3 (Refactor)**: Hardened git connectivity for local-only environments. - Status: SECURED.
+- **Improvement 4 (Innovation)**: Created Skill Forge (skill_forge.py) for RAG-driven synthesis. - Status: SECURED.
+- **Improvement 5 (Security)**: Implemented draft-staging requirement for all synthesized skills. - Status: SECURED.

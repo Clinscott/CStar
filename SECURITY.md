@@ -1,0 +1,49 @@
+# Security Policy - Corvus Star
+
+## [Alfred's Manor Inspection] protocol
+
+This document outlines the security architecture and self-defense mechanisms of the Corvus Star framework.
+
+## 🛡️ Operational Directives (Torvalds / Hávamál alignment)
+
+1. **Memory is Dominion**: All local data is strictly isolated.
+2. **Access requires Intent**: Knowledge Core pushes require verified authentication and identity.
+3. **The Sentinel's Vigil**: Every file operation is validated against path traversal and metadata corruption.
+
+## 🔒 Implemented Security Protocols
+
+### 1. Synapse Authentication (Knowledge Core)
+The `synapse_sync.py` utility enforces strict authentication for outbound synchronization (`--push`):
+- **Pre-flight verification**: Uses `git push --dry-run` to verify remote write access before any operations.
+- **Audit Logging**: All push attempts (successful or failed) are recorded in `.synapse_audit.log` with:
+    - Timestamp (ISO 8601)
+    - Git Identity (`user.name` <`user.email`>)
+    - Manifest of modified items
+- **Rate Limiting**: Automated lockout mechanism prevents brute-force or spam attempts (10 attempts/hour).
+
+### 2. Path Traversal & Injection Shield
+- **Absolute Resolution**: All paths are resolved via `realpath()` before validation.
+- **Common Prefix Validation**: Files are rejected if they attempt to escape their assigned project sub-directories.
+- **Input Sanitization**: Query inputs and skill names are stripped of shell control characters and traversal sequences.
+- **Subprocess Isolation**: All external commands are executed via argument lists without shell interpolation.
+
+### 3. Airlock Protocol (Skill Installation)
+The `install_skill.py` utility implements a multi-stage quarantine:
+1. **Isolation**: Skills are downloaded into a `.agent/quarantine` zone.
+2. **Integrity Check**: Mandatory metadata (`SKILL.md`) is verified.
+3. **Security Scan**: Every Python and Markdown file is scanned for dangerous patterns (OS manipulation, network escape) via `security_scan.py`.
+4. **Promotion**: Only verified items are promoted to the active `.agent/skills` folder.
+
+## 🧪 Verification & Audit
+
+To verify the security state of your local installation:
+- Run `python .agent/scripts/sv_engine.py --benchmark` to check internal integrity.
+- Review `.agent/install.log` for setup transparency.
+- Review the Synapse Audit Log in your Knowledge Core repository.
+
+## 🚩 Reporting Vulnerabilities
+If you identify a security weakness in the Corvus Star shields, do not broadcast it in the clear. Report it via the secure "Pennyworth" channel or standard Git issue reporting protocols for your local instance.
+
+`[Odin's Decree]: THE GATE IS SEALED. THE PASSWORDS ARE CHANGED. ONLY THE WORTHY SHALL ENTER.`
+
+`[Alfred's Whisper]: "Sir, I have fortified the manor. Shall I continue monitoring the perimeter?"`

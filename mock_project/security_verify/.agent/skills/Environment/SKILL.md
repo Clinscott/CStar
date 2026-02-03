@@ -1,0 +1,13 @@
+# Skill: Environment (EnvDoctor)
+
+Activation Words: port, server, dependencies, npm, install, health, check port
+
+## Instructions
+When the user mentions "port 3000", "broken server", or "installing", trigger the EnvDoctor skill.
+1. **Audit**: Check if ports are occupied.
+2. **Clean**: Offer to clear ports if a process is frozen.
+3. **Install**: Run `npm install` if new packages are detected.
+4. **Report**: Summarize the system health.
+
+## Tracing logic
+Match this skill if query refers to infrastructure or dependency issues.

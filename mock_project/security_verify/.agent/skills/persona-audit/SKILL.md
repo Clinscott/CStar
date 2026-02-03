@@ -1,0 +1,24 @@
+---
+name: Persona Audit
+description: Analyzes text to ensure semantic alignment with the active persona (ODIN/ALFRED).
+---
+
+# Persona Audit Skill
+
+Utilize this skill to verify that the agent's recent communication adheres to the mandated persona.
+
+## Activation Words:
+audit, identity, purity, check voice, persona alignment
+
+## Usage:
+1. **Audit String**: `python .agent/scripts/audit_dialogue.py "Your text here"`
+2. **Audit File**: `python .agent/scripts/audit_dialogue.py --file path/to/report.md`
+
+## Logic:
+The skill calculate the token overlap between the input and the persona's designated `dialogue_db` corpus.
+
+- **ODIN**: Expects powerful, archaic, and clinical terminology.
+- **ALFRED**: Expects polite, servile, and manor-context terminology.
+
+## Workflow Integration:
+Run this as the final step of any major report generation to ensure compliance with the Linscott Standard's Persona Fidelity mandate.

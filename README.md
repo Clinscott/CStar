@@ -4,13 +4,28 @@ Corvus Star (C*) is a high-performance, local intelligence framework designed to
 
 ## 🚀 Quick Start (Installation)
 
-To deploy the Corvus Star protocols into a new project, run the following command from this project's root:
+To deploy the Corvus Star protocols into a new project, run the following command **from this project's root**:
 
 ```powershell
 .\install.ps1 -TargetDir "C:\path\to\your\new\project"
 ```
 
-*This will initialize the `.agent/` structure, deploy the `SovereignVector` engine, and install all core workflows and context templates.*
+**What it does:**
+- Initializes the `.agent/` structure with workflows, skills, and the SovereignVector engine.
+- Deploys `synapse_sync.py` for Mimir's Eye connectivity.
+- **Automatically installs** Python dependencies (`ruff`, `radon`) if Python is detected.
+- Creates an installation log at `.agent/install.log` for troubleshooting.
+- Stamps version metadata (install date, Git hash) into `config.json`.
+
+## 🔒 Security & Performance
+- **Dynamic Portability**: Resolves source paths via `$PSScriptRoot` for flexible deployment.
+- **Automated Dependency Injection**: Auto-installs `ruff` and `radon` via `pip`.
+- **Knowledge Audit Trail**: Comprehensive installation logging in `.agent/install.log`.
+- **Hardened Authentication**: `synapse_sync.py --push` requires verified Git permissions.
+- **Shielded Operations**: Comprehensive path traversal and shell injection protection.
+- **Lore-Accurate Versioning**: Stamped installation metadata in `config.json`.
+
+**Note:** The installer is now **fully portable** - you can clone this repo anywhere and run the script from its location.
 
 ---
 

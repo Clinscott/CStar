@@ -23,7 +23,11 @@ description: Finalizes the current session, updates documentation, runs a produc
     - You MUST identify the "Session Delta": what specifically changed from the start of this session to now.
     - Update `walkthrough.md` with a specific "Session Handshake" section that serves as the starting point for the next session.
     - This section must explicitly state: "To resume, start here."
-9. **Generate Commit Description**: Include a ready-to-copy markdown block for the git commit message. Format:
+10. **Knowledge Extraction & Contribution**:
+    - Run `python .agent/scripts/synapse_sync.py --push --dry-run`.
+    - Review the extracted knowledge items (corrections, patterns, thesaurus).
+    - If items look valid and contribute to global intelligence: `python .agent/scripts/synapse_sync.py --push`.
+11. **Generate Commit Description**: Include a ready-to-copy markdown block for the git commit message. Format:
    ```
    ## Commit Message (copy below)
    

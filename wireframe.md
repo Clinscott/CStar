@@ -57,6 +57,18 @@ Maintain a searchable, accurate map of the project's UI and service architecture
     - `install()`: Copies skill files and registers them.
     - `scan_skill()`: Checks for security risks.
 - **The Synapse**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/synapse_sync.py` - **Knowledge Bridge**. Bidirectional sync (Push/Pull) between local `skills_db` and `CorvusKnowledge`.
+    - **Key Functions**:
+        - `push()`: Uploads local skills/corrections to Mimir's Eye. Supports **Knowledge Extraction** (auto-detects corrections from project data).
+        - `pull()`: Downloads global skills/corrections from Mimir's Eye.
+        - **Multi-Remote**: Supports `--remote` alias selection for targeting different Knowledge Cores (e.g., primary, team).
+        - **Security Model**: 
+            - **Authentication**: Pre-flight `git push --dry-run` validation.
+            - **Rate Limiting**: 10 push attempts/hr with 30-min lockout.
+            - **The Gatekeeper**: Validates Python syntax and structural integrity (`ruff`) before pushing.
+            - **The Ledger**: Comprehensive audit logging in `.synapse_audit.log`.
+- **The Skill Forge**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/skill_forge.py` - **Capability Alchemist**. Synthesizes new Python skills using RAG-enriched archetypes.
+    - **Archetypes**: `test`, `workflow`, `scanner`, `utility`.
+    - **Logic**: Queries **Cortex** for documentation context, validates safety, and stages code in `.agent/skills/drafts/`.
 - **Persona Switcher**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/set_persona.py` - interactive utility to toggle between ODIN and ALFRED modes.
 - **Persona Strategies**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/personas.py`
     - **ODIN Strategy**: Dominion & Enforcement. Ruthless standardization of headers, AgLng compliance, and testing mandates.

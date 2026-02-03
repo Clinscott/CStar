@@ -1,0 +1,9 @@
+{
+    "Version":  {
+                    "SourceHash":  "b99d2ce",
+                    "Installer":  "install.ps1",
+                    "InstalledAt":  "2026-02-02T22:33:35-05:00"
+                },
+    "FrameworkRoot":  ".\\mock_project\\expansion_test_new",
+    "Persona":  "GOD"
+}

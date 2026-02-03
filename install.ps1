@@ -1,19 +1,40 @@
-# Corvus Star Framework Installation Script
+﻿# Corvus Star Framework Installation Script
 # Usage: .\install.ps1 -TargetDir "path\to\your\project"
 
 param (
     [string]$TargetDir = (Get-Location).Path
 )
 
-$SourceBase = "c:\Users\Craig\Corvus\CorvusStar"
+# Dynamic Source Resolution (Portability)
+$SourceBase = $PSScriptRoot
+if (-not $SourceBase) {
+    Write-Error "FATAL: Cannot determine script location. Run the script from its file path."
+    exit 1
+}
+
+# Validate Source Integrity
+$requiredPaths = @(
+    (Join-Path $SourceBase ".agent\scripts\sv_engine.py"),
+    (Join-Path $SourceBase "sterileAgent\AGENTS.md")
+)
+foreach ($path in $requiredPaths) {
+    if (-not (Test-Path $path)) {
+        Write-Error "FATAL: Source integrity check failed. Missing: $path"
+        exit 1
+    }
+}
+
 $AgentDir = Join-Path $TargetDir ".agent"
 $WorkflowDir = Join-Path $AgentDir "workflows"
 $ScriptDir = Join-Path $AgentDir "scripts"
 $SkillDir = Join-Path $AgentDir "skills"
 
+# Initialize logging early (before directory creation to catch errors)
+$LogPath = Join-Path $AgentDir "install.log"
+
 function Get-UserChoice {
     param ([string]$FilePath)
-    Write-Host "`n⚠️ Conflict detected: $FilePath" -ForegroundColor Yellow
+    Write-Host "`n?? Conflict detected: $FilePath" -ForegroundColor Yellow
     Write-Host "[S] Skip  [O] Overwrite  [M] Merge (Unique)  [D] Diff  [Q] Quit" -ForegroundColor White
     $choice = Read-Host "Choose an action"
     return $choice.ToUpper()
@@ -25,7 +46,7 @@ function Get-PersonaChoice {
     Write-Host "   CORVUS STAR INIT v1.0    " -ForegroundColor White
     Write-Host "============================" -ForegroundColor Cyan
     
-    Write-Host "`n🎭 Choose your Corvus Star Persona:" -ForegroundColor Cyan
+    Write-Host "`n?? Choose your Corvus Star Persona:" -ForegroundColor Cyan
     Write-Host "  [1] COMPLETE DOMINATION (God Mode)" -ForegroundColor Red
     Write-Host "      - The engine is law. Files are sacred. Over-dramatic."
     Write-Host "  [2] Humble Servant (Alfred Mode)" -ForegroundColor Green
@@ -95,8 +116,87 @@ function Invoke-SmartMerge {
     }
 }
 
+function Write-Log {
+    param (
+        [string]$Message,
+        [string]$Path
+    )
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $entry = "[$timestamp] $Message"
+    
+    # Ensure parent directory exists
+    $parentDir = Split-Path $Path -Parent
+    if ($parentDir -and -not (Test-Path $parentDir)) {
+        New-Item -ItemType Directory -Path $parentDir -Force | Out-Null
+    }
+    
+    Add-Content -Path $Path -Value $entry -ErrorAction SilentlyContinue
+}
+
+function Invoke-DependencyCheck {
+    param (
+        [string]$LogPath
+    )
+    
+    $dependencies = @("ruff", "radon")
+    $pythonCmd = $null
+    
+    # Step 1: Find a usable Python interpreter
+    foreach ($cmd in @("python", "python3", "py")) {
+        try {
+            $version = & $cmd --version 2>&1
+            if ($version -match "Python 3\.\d+") {
+                $pythonCmd = $cmd
+                Write-Log "Found Python: $version" -Path $LogPath
+                break
+            }
+        }
+        catch {
+            # Command not found, continue to next
+        }
+    }
+    
+    if (-not $pythonCmd) {
+        Write-Log "ERROR: No Python 3 interpreter found. Dependencies NOT installed." -Path $LogPath
+        Write-Warning "?? Python 3 not found. Please install dependencies manually: pip install ruff radon"
+        return $false
+    }
+    
+    # Step 2: Check for pip
+    try {
+        $pipCheck = & $pythonCmd -m pip --version 2>&1
+        if ($pipCheck -notmatch "pip") {
+            throw "pip not available"
+        }
+    }
+    catch {
+        Write-Log "ERROR: pip not available for $pythonCmd" -Path $LogPath
+        Write-Warning "?? pip not found. Please install dependencies manually."
+        return $false
+    }
+    
+    # Step 3: Install each dependency
+    foreach ($dep in $dependencies) {
+        Write-Host "  ?? Installing $dep..." -ForegroundColor Gray
+        try {
+            $result = & $pythonCmd -m pip install --upgrade --quiet $dep 2>&1
+            if ($LASTEXITCODE -ne 0) {
+                throw $result
+            }
+            Write-Log "SUCCESS: Installed $dep" -Path $LogPath
+        }
+        catch {
+            Write-Log "WARNING: Failed to install $dep - $_" -Path $LogPath
+            Write-Warning "?? Could not install $dep. Manual install may be required."
+        }
+    }
+    
+    return $true
+}
+
 function Invoke-SmartCopy {
     param ([string]$Source, [string]$Dest)
+
     
     if (-not (Test-Path $Dest)) {
         Copy-Item -Path $Source -Destination $Dest -Force
@@ -127,20 +227,26 @@ function Invoke-SmartCopy {
                 break
             }
             "D" { Show-Diff -Source $Source -Dest $Dest; continue }
-            "Q" { Write-Host "❌ Installation Aborted." -ForegroundColor Red; exit }
+            "Q" { Write-Host "? Installation Aborted." -ForegroundColor Red; exit }
             default { Write-Host "Invalid choice." -ForegroundColor Red; continue }
         }
         break
     }
 }
 
-Write-Host "🚀 Initializing Corvus Star (C*) Framework in: $TargetDir" -ForegroundColor Cyan
+Write-Host "?? Initializing Corvus Star (C*) Framework in: $TargetDir" -ForegroundColor Cyan
 
 # 0. Select Persona (Early Binding)
 $Persona = Get-PersonaChoice
 
 # 1. Create Directory Structure
 New-Item -ItemType Directory -Path $WorkflowDir, $ScriptDir, $SkillDir -Force | Out-Null
+
+# 1b. Initialize Logging
+Write-Log "=== Installation Started ===" -Path $LogPath
+Write-Log "Source: $SourceBase" -Path $LogPath
+Write-Log "Target: $TargetDir" -Path $LogPath
+Write-Log "Persona: $Persona" -Path $LogPath
 
 # 2. Deploy Sterile Workflows
 $Workflows = "lets-go.md", "run-task.md", "investigate.md", "wrap-it-up.md", "SovereignFish.md"
@@ -149,12 +255,40 @@ foreach ($wf in $Workflows) {
 }
 
 # 3. Deploy Engine Scripts
-Invoke-SmartCopy -Source (Join-Path $SourceBase ".agent\scripts\sv_engine.py") -Dest (Join-Path $ScriptDir "sv_engine.py")
-Invoke-SmartCopy -Source (Join-Path $SourceBase ".agent\scripts\install_skill.py") -Dest (Join-Path $ScriptDir "install_skill.py")
-Invoke-SmartCopy -Source (Join-Path $SourceBase ".agent\scripts\personas.py") -Dest (Join-Path $ScriptDir "personas.py")
-Invoke-SmartCopy -Source (Join-Path $SourceBase ".agent\scripts\set_persona.py") -Dest (Join-Path $ScriptDir "set_persona.py")
+$engineFiles = @(
+    "sv_engine.py",
+    "install_skill.py",
+    "personas.py",
+    "set_persona.py",
+    "synapse_sync.py",
+    "ui.py"
+)
+foreach ($file in $engineFiles) {
+    $src = Join-Path $SourceBase ".agent\scripts\$file"
+    $dst = Join-Path $ScriptDir $file
+    if (Test-Path $src) {
+        Invoke-SmartCopy -Source $src -Dest $dst
+        Write-Log "Deployed: $file" -Path $LogPath
+    }
+    else {
+        Write-Warning "Optional engine file not found: $file (Skipping)"
+        Write-Log "WARNING: Missing source file: $file" -Path $LogPath
+    }
+}
 
-# 3b. Deploy Dialogue Database
+# 3b. Deploy Engine Module (Iron Core)
+$EngineModuleDir = Join-Path $ScriptDir "engine"
+if (Test-Path (Join-Path $SourceBase ".agent\scripts\engine")) {
+    New-Item -ItemType Directory -Path $EngineModuleDir -Force | Out-Null
+    Get-ChildItem (Join-Path $SourceBase ".agent\scripts\engine") -Filter "*.py" | ForEach-Object {
+        $src = $_.FullName
+        $dst = Join-Path $EngineModuleDir $_.Name
+        Invoke-SmartCopy -Source $src -Dest $dst
+        Write-Log "Deployed: engine/$($_.Name)" -Path $LogPath
+    }
+}
+
+# 3c. Deploy Dialogue Database
 $DialogueDir = Join-Path $TargetDir "dialogue_db"
 if (-not (Test-Path $DialogueDir)) { New-Item -ItemType Directory -Path $DialogueDir -Force | Out-Null }
 Invoke-SmartCopy -Source (Join-Path $SourceBase "dialogue_db\odin.md") -Dest (Join-Path $DialogueDir "odin.md")
@@ -179,13 +313,28 @@ foreach ($tpl in $Templates) {
 
 # 6. Initialize Config & Corrections
 $configPath = Join-Path $AgentDir "config.json"
+$installDate = Get-Date -Format "yyyy-MM-dd'T'HH:mm:ssK"
+$gitHash = $null
+try {
+    $gitHash = (git -C $SourceBase rev-parse --short HEAD 2>$null)
+}
+catch {
+    $gitHash = "unknown"
+}
+
 $configData = @{
     FrameworkRoot = $TargetDir
     Persona       = $Persona
-} | ConvertTo-Json
+    Version       = @{
+        InstalledAt = $installDate
+        SourceHash  = $gitHash
+        Installer   = "install.ps1"
+    }
+} | ConvertTo-Json -Depth 3
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 [System.IO.File]::WriteAllText($configPath, $configData, $utf8NoBom)
 Write-Host "  + Created: config.json" -ForegroundColor Gray
+Write-Log "Config created with version stamp" -Path $LogPath
 
 $correctionsPath = Join-Path $AgentDir "corrections.json"
 if (-not (Test-Path $correctionsPath)) {
@@ -193,5 +342,12 @@ if (-not (Test-Path $correctionsPath)) {
     Write-Host "  + Initialized: corrections.json" -ForegroundColor Gray
 }
 
-Write-Host "`n✅ Installation Complete. System is C* Ready." -ForegroundColor Green
+# 7. Install Dependencies
+Write-Host "`n[*] Checking Python dependencies..." -ForegroundColor Cyan
+$depsInstalled = Invoke-DependencyCheck -LogPath $LogPath
+
+Write-Host "`n[+] Installation Complete. System is C* Ready." -ForegroundColor Green
 Write-Host "Run 'python .agent/scripts/sv_engine.py --help' to verify the engine." -ForegroundColor Gray
+Write-Log "=== Installation Complete ===" -Path $LogPath
+Write-Host "[i] Installation log: $LogPath" -ForegroundColor Gray
+

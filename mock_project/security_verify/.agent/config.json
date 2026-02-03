@@ -1,0 +1,9 @@
+{
+    "Version":  {
+                    "SourceHash":  "b99d2ce",
+                    "Installer":  "install.ps1",
+                    "InstalledAt":  "2026-02-03T07:10:20-05:00"
+                },
+    "FrameworkRoot":  ".\\mock_project\\security_verify",
+    "Persona":  "GOD"
+}

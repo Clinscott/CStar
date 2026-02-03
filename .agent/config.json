@@ -1,5 +1,18 @@
 {
     "FrameworkRoot": "C:\\Users\\Craig\\Corvus\\CorvusStar",
     "KnowledgeCore": "C:\\Users\\Craig\\Corvus\\CorvusKnowledge",
+    "KnowledgeCores": {
+        "primary": "C:\\Users\\Craig\\Corvus\\CorvusKnowledge"
+    },
+    "LearningConfig": {
+        "auto_extract": true,
+        "min_confidence_for_push": 0.9,
+        "extract_on_session_end": true,
+        "categories": [
+            "corrections",
+            "patterns",
+            "thesaurus"
+        ]
+    },
     "Persona": "ODIN"
 }
