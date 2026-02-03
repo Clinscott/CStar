@@ -21,6 +21,8 @@ A standalone Python engine that handles intent recognition locally. It uses **TF
 
 - **No APIs Required**: Works entirely offline.
 - **Context-Aware**: Ingests your `thesaurus.md` and active project context to improve accuracy.
+- **Mimir's Eye (Synapse)**: Distributed knowledge core allowing bidirectional synchronization of Skills and Corrections.
+- **Iron Cortex**: RAG-based intelligence for querying project documentation.
 
 ### 2. The Trace & Learning Loop
 The system is designed to be transparent. Every action starts with an **Interpretation Trace**:

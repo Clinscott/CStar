@@ -12,6 +12,7 @@ import json
 import shutil
 import argparse
 import subprocess
+import py_compile
 from datetime import datetime
 
 # Ensure we can import shared UI
@@ -161,6 +162,34 @@ class Synapse:
         HUD.box_bottom()
 
 
+    def _validate_skill(self, file_path: str) -> bool:
+        """
+        The Gatekeeper: Validates Syntax and Structural Integrity before intent to push.
+        """
+        # 1. Syntax Check
+        try:
+            py_compile.compile(file_path, doraise=True)
+        except py_compile.PyCompileError as e:
+            HUD.box_row("REJECTED", f"Syntax Error in {os.path.basename(file_path)}", HUD.RED)
+            return False
+
+        # 2. Structural Integrity (Ruff)
+        try:
+            # Check for Errors (E) and Fatal (F) only
+            # Use sys.executable -m ruff to ensure we find the installed module
+            result = subprocess.run(
+                [sys.executable, "-m", "ruff", "check", "--select=E,F", "--quiet", file_path],
+                capture_output=True, text=True
+            )
+            if result.returncode != 0:
+                 HUD.box_row("REJECTED", f"Code Sentinel Alert (Ruff) in {os.path.basename(file_path)}", HUD.RED)
+                 return False
+        except FileNotFoundError:
+             HUD.box_row("WARNING", "Code Sentinel (Ruff) not found. Skipping integrity check.", HUD.YELLOW)
+
+        return True
+
+
     def push(self):
         HUD.box_top("SYNAPSE: EXHALE")
         
@@ -180,6 +209,12 @@ class Synapse:
                             if "GLOBAL: True" in content.read():
                                 # Candidate found
                                 dst = os.path.join(core_skills_dir, f)
+                                
+                                # Gatekeeper Validation
+                                if not self._validate_skill(path):
+                                    updates.append(f"REJECTED: {f}")
+                                    continue
+
                                 if not os.path.exists(dst) or os.path.getmtime(path) > os.path.getmtime(dst):
                                     shutil.copy2(path, dst)
                                     updates.append(f"Skill: {f}")
