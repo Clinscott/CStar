@@ -23,6 +23,7 @@ Maintain a searchable, accurate map of the project's UI and service architecture
 - `sterileAgent`: `c:/Users/Craig/Corvus/CorvusStar/sterileAgent` - Generic template repository for new project initialization.
 - `skills_db`: `c:/Users/Craig/Corvus/CorvusStar/skills_db` - Global Skill Registry for proactive framework recommendations.
 - `skills`: `c:/Users/Craig/Corvus/CorvusStar/skills` - (Optional) Project-specific custom skills.
+- `CorvusKnowledge`: `c:/Users/Craig/Corvus/CorvusKnowledge` - **Mimir's Eye**. The Central Knowledge Core for all Corvus instances. Stores global skills, dialogue, and memories.
 
 ## 🏗️ Core Components
 
@@ -55,6 +56,7 @@ Maintain a searchable, accurate map of the project's UI and service architecture
 - **Key Functions**:
     - `install()`: Copies skill files and registers them.
     - `scan_skill()`: Checks for security risks.
+- **The Synapse**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/synapse_sync.py` - **Knowledge Bridge**. Bidirectional sync (Push/Pull) between local `skills_db` and `CorvusKnowledge`.
 - **Persona Switcher**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/set_persona.py` - interactive utility to toggle between ODIN and ALFRED modes.
 - **Persona Strategies**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/personas.py`
     - **ODIN Strategy**: Dominion & Enforcement. Ruthless standardization of headers, AgLng compliance, and testing mandates.

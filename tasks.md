@@ -136,15 +136,13 @@
     - [x] **Unit Tests**: Repaired failing tests in `test_trace_viz.py`, `test_workflow_analyst.py`, `test_network_watcher.py` (Session 22). [x]
     - [x] **Structural Integrity**: Integrated **Ruff** linter via `code_sentinel.py` into the `/investigate` workflow (Session 23). [x]
 
-## ⏭️ Start Here Next (The Scout's Hunt)
-1. **The Scout's Hunt (Structural Debt Visualizer) [COMPLETED]**:
-    - [x] **Trigger**: Invoked `search_web` to identify `radon` as the primary complexity engine. [x]
-    - [x] **Forge**: Created `.agent/skills/radon` skill. [x]
-    - [x] **Deploy**: Implemented `debt_viz.py` for analyzing Cyclomatic Complexity visualised in ASCII HUD. [x]
-    - [x] **Verify**: Created `tests/test_debt_viz.py` and verified 100% pass. [x]
-
-2. **Persona Audit Enhancement**:
-    - [ ] **Sentinel Rule**: Add custom Ruff plugin or AST check to `code_sentinel.py` specifically for detecting "Orphaned Class Bodies" (the TraceRenderer bug).
-    - [ ] **Persona Voice**: Ensure `code_sentinel.py` uses the active persona's voice in its *verbal* summaries, not just HUD colors.
+## ⏭️ Start Here Next (Protocol: Mimir's Eye)
+1. **Mimir's Eye (The Knowledge Core)**:
+    - [x] **Genesis**: Initialize `CorvusKnowledge` git repository structure. [x]
+    - [x] **Synapse**: Implement `.agent/scripts/synapse_sync.py` to push/pull from the Core. [x]
+    - [x] **Integration**: Update `sv_engine.py` to index the Core's `skills/` and `corrections.json`. [x]
+    - [x] **Verification**:
+        - [x] Verified `synapse_sync.py --pull` correctly syncs files. [x]
+        - [x] Verified Engine can detect global skills from the new Core path. [x]
 
 

@@ -37,6 +37,9 @@ saved_memory:
     - Principle of Symmetry: Every feature or UI element for one persona must have a thematic equivalent for the others.
     - Linscott Standard: Universal rule. Code and Verification are an atomic unit.
     - The Great Duality: ODIN (Enforcer) and ALFRED (Servant) are distinct operational states.
+    - Mimir's Eye (Knowledge Core): All Corvus instances sync to a central Git repo (`CorvusKnowledge`). 
+    - Synapse Protocol: Use `synapse_sync.py` to Inhale (Pull) global skills and Exhale (Push) new discoveries.
+    - Zero-Copy Discovery: `sv_engine.py` indexes `CorvusKnowledge/skills` directly, bypassing local copy until verified.
 deletions: []
 ```
 

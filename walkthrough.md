@@ -1,4 +1,22 @@
-# Walkthrough - Corvus Star
+# Session Handshake (Mimir's Eye Genesis)
+
+## The Delta
+- **New Repository**: `C:\Users\Craig\Corvus\CorvusKnowledge` (Mimir's Eye) - The Central Knowledge Core.
+- **New Utility**: `.agent/scripts/synapse_sync.py` (The Synapse) - Handles Push/Pull of Global Skills and Corrections.
+- **Engine Upgrade**: `sv_engine.py` now directly indexes `CorvusKnowledge/skills` for Proactive Discovery (Zero Copy).
+- **Core Content**: Seeded `dialogue/`, `memories/`, and `corrections.json` in the Core.
+
+## The Handoff
+> [!NOTE]
+> **To Future Agents**:
+> The Knowledge Core is ACTIVE.
+> - **Inhaling**: Run `python .agent/scripts/synapse_sync.py --pull` to update local cache.
+> - **Exhaling**: To contribute a new global skill, tag it with `GLOBAL: True` in the docstring and run `--push`.
+> - **Offline**: If the Core is unreachable, the engine falls back to the local `skills_db`.
+
+## Verification
+- **Test Skill**: `test_wisdom` was successfully deployed to Core, pulled to `skills_db`, and detected by `sv_engine`.
+- **Latency**: No impact on engine startup time observed.
 
 ## 2026-02-01: The Triple Alignment (Alpha, Beta, Omega)
 **Objective**: Stabilize engine, optimize performance, and establish persona-reflective self-auditing.

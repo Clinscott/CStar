@@ -28,7 +28,11 @@ from engine import SovereignVector, DialogueRetriever, Cortex
 if __name__ == "__main__":
     import argparse
     import time
-    
+    # Path Setup
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(os.path.dirname(script_dir))
+    base_path = os.path.join(project_root, ".agent")
+
     # Load Config
     config = {}
     config_path = os.path.join(base_path, "config.json")
@@ -128,11 +132,22 @@ if __name__ == "__main__":
     engine.load_core_skills()
     engine.load_skills_from_dir(os.path.join(base_path, "skills"))
     
-    # Load Global Skills (Registry)
-    framework_root = config.get("FrameworkRoot")
-    if framework_root:
-        global_path = os.path.join(framework_root, "skills_db")
-        if os.path.exists(global_path):
+    # Load Global Skills (Mimir's Eye)
+    knowledge_core = config.get("KnowledgeCore")
+    if knowledge_core:
+        if not os.path.exists(knowledge_core): 
+            if HUD.PERSONA == "ODIN":
+                 print(f"{HUD._get_theme()['dim']}>> [Ω] WARNING: Mimir's Eye is blind. Path not found: {knowledge_core}{HUD.RESET}")
+            else:
+                 print(f"{HUD._get_theme()['dim']}>> [C*] Briefing: Knowledge Core unreachable at {knowledge_core}{HUD.RESET}")
+        else:
+            global_path = os.path.join(knowledge_core, "skills")
+            if os.path.exists(global_path):
+                engine.load_skills_from_dir(global_path, prefix="GLOBAL:")
+    elif config.get("FrameworkRoot"):
+         # Fallback to legacy
+         global_path = os.path.join(config.get("FrameworkRoot"), "skills_db")
+         if os.path.exists(global_path):
             engine.load_skills_from_dir(global_path, prefix="GLOBAL:")
     
     engine.build_index()
