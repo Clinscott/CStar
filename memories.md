@@ -47,3 +47,4 @@ deletions: []
     - SovereignFish N=100: Successfully completed the initial 100-improvement milestone (Sessions 9-21) to achieve system sovereignty.
     - Code Sentinel: The framework uses **Ruff** for structural integrity. Integrated into `/investigate` workflow to detect orphans and code smells via `code_sentinel.py`.
     - No Bare Except: Per the Linscott Standard, all `except:` blocks must specify exceptions (e.g. `except (json.JSONDecodeError, IOError)`) to prevent silent structural failures.
+    - Structural Debt Analysis: `debt_viz.py` is the project's "X-Ray". Use it regularly to identify unmaintainable blocks (CC > 10) before they become defects.

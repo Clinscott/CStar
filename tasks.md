@@ -137,10 +137,11 @@
     - [x] **Structural Integrity**: Integrated **Ruff** linter via `code_sentinel.py` into the `/investigate` workflow (Session 23). [x]
 
 ## ⏭️ Start Here Next (The Scout's Hunt)
-1. **The Scout's Hunt (Skill Discovery)**:
-    - [ ] **Trigger**: Invoke `skill-scout` to search for "dependency-graph visualization python".
-    - [ ] **Forge**: Create `.agent/skills/dependency-graph` skill.
-    - [ ] **Deploy**: Integrate into `debt_viz.py` (New Tool) for analyzing McCabe complexity visualised in ASCII.
+1. **The Scout's Hunt (Structural Debt Visualizer) [COMPLETED]**:
+    - [x] **Trigger**: Invoked `search_web` to identify `radon` as the primary complexity engine. [x]
+    - [x] **Forge**: Created `.agent/skills/radon` skill. [x]
+    - [x] **Deploy**: Implemented `debt_viz.py` for analyzing Cyclomatic Complexity visualised in ASCII HUD. [x]
+    - [x] **Verify**: Created `tests/test_debt_viz.py` and verified 100% pass. [x]
 
 2. **Persona Audit Enhancement**:
     - [ ] **Sentinel Rule**: Add custom Ruff plugin or AST check to `code_sentinel.py` specifically for detecting "Orphaned Class Bodies" (the TraceRenderer bug).

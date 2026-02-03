@@ -335,5 +335,23 @@ Completed the upgrade of `trace_viz.py` to Version 2.0. This tool now acts as th
 ### Current State
 - **Corvus Star** now has automated structural monitoring.
 - **Test Coverage**: 63 unit tests pass.
+
 - **Intent Engine**: 100% accuracy on sentinel/linter queries.
+
+## 2026-02-02 - The Scout's Hunt (Structural Debt Visualizer)
+### Summary
+- **Tooling**: Implemented `debt_viz.py` utilizing **Radon** for Cyclomatic Complexity analysis.
+- **Visualization**: Created a HUD-styled "Combat Analysis" dashboard that identifies code "War Zones" (Rank C-F).
+- **Refactoring**: Used the findings of the new tool to refactor `fishtest.py`, reducing its highest function complexity from 18 to 8.
+- **Skill Discovery**: Forged the `radon` skill to allow the agent to proactively analyze code health.
+
+### Architectural Decisions
+- **Cyclomatic Complexity as Debt**: Chose CC as the primary metric for "Structural Debt" because it correlates directly with testing difficulty and bug density.
+- **HUD-First Rendering**: Maintained the "Text is Interface" standard by building a custom table and distribution chart in ASCII rather than relying on external web visualization.
+- **JSON for Interoperability**: Added a `--json` flag to `debt_viz.py` to enable future automated monitoring or dashboarding without needing to parse ASCII boxes.
+
+### Current State
+- **Corvus Star** now has the power to "see through" its own complexity.
+- Structural debt in `fishtest.py` has been purged.
+- Total unit tests: 65 (100% Pass).
 

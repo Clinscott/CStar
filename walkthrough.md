@@ -477,7 +477,50 @@ etwork_watcher.py to ensure persona theme signals remain unpolluted during analy
 - [MOD] `fishtest_data.json` & `corrections.json`: Intent alignment.
 
 **To Resume, Start Here:**
-1. **The Scout's Hunt**: Trigger `skill-scout` for "dependency-graph visualization python" to begin ASCII complexity visualization.
-2. **Expansion**: Extend `code_sentinel.py` with custom AST rules for specific project malformations (e.g. detect orphans).
+- No Bare Except: Per the Linscott Standard, all `except:` blocks must specify exceptions (e.g. `except (json.JSONDecodeError, IOError)`) to prevent silent structural failures.
+- Structural Debt Analysis: `debt_viz.py` is the project's "X-Ray". Use it regularly to identify unmaintainable blocks (CC > 10) before they become defects.
+---
+### 2026-02-02 (Session 24: The Scout's Hunt)
+- **Improvement 1 (Refactor)**: Refactored `run_test` in `fishtest.py` to extract `initialize_engine` and `render_results`, reducing CC from 18 to 8. - Status: SECURED.
+- **Improvement 2 (Quality)**: Enhanced `debt_viz.py` with `--json` output support for programmatic analysis and future RAG integration. - Status: SECURED.
+---
+
+## 2026-02-02: The Scout's Hunt (Structural Debt Visualization)
+**Objective**: Implement automated complexity analysis to identify technical debt "War Zones".
+
+### Structural Debt Visualizer (`debt_viz.py`)
+- **Integration**: Leveraged `radon` for Cyclomatic Complexity (CC) analysis. 
+- **Tooling**: Created `.agent/scripts/debt_viz.py` which renders a full HUD report of function and class complexity.
+- **Features**:
+    - **Heatmap**: Identifies top 10 most complex blocks.
+    - **Distribution**: Visualizes the codebase spread (Rank A-F).
+    - **Automation**: Added `--json` output flag for programmatic consumption.
+- **Verification**: 
+    - Created `tests/test_debt_viz.py`.
+    - Performed live run confirming `fishtest.py` as a primary "War Zone" (CC=18).
+
+### SovereignFish Refactoring
+- **Code Hardening**: Refactored `fishtest.py` to reduce complexity. Extracted `initialize_engine` and `render_results`, lowering the CC of `run_test` from **18 (C)** to **8 (B)**.
+- **Documentation**: Registered `debt_viz.py` and the `radon` skill in `wireframe.md` and `tasks.md`.
+
+### Verification Results
+- **Accuracy**: 100.0% (Checked against 16 cases).
+- **Complexity**: Rank C blocks reduced from 1% to 0% after refactoring.
+- **Unit Tests**: 65 passed, 0 failed.
+
+---
+
+## 🤝 Session Handshake (The Scout's Hunt)
+
+**What Changed:**
+- [NEW] `.agent/scripts/debt_viz.py`: Structural debt visualizer.
+- [NEW] `.agent/skills/radon`: Skill definition for complexity analysis.
+- [NEW] `tests/test_debt_viz.py`: Verification suite for the visualizer.
+- [MOD] `fishtest.py`: Refactored for lower complexity and better modularity.
+- [MOD] `tasks.md` & `wireframe.md`: Documentation synchronization.
+
+**To Resume, Start Here:**
+1. **Audit**: Run `python .agent/scripts/debt_viz.py` to identify remaining complexity hot-spots.
+2. **Next Objective**: Proceed to **Persona Audit Enhancement** in `tasks.md` (identifying orphaned class bodies).
 
 

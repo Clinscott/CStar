@@ -88,6 +88,7 @@ The framework's soul (The Linscott Standard) manifests through two distinct oper
         - `compare_traces()`: Analyzes differences between traces.
 - **Trace Compiler**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/compile_session_traces.py` - Aggregates JSON traces into `.agent/TRACE_REPORT.md`.
 - **Code Sentinel**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/code_sentinel.py` - Structural integrity scanner powered by **Ruff**. Supports Persona-themed output and CLI-driven automated repair (`--fix`).
+- **Debt Visualizer**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/debt_viz.py` - Structural debt scanner powered by **Radon**. Visualizes Cyclomatic Complexity "War Zones" in ASCII HUD.
 - **Global Registry**: `c:/Users/Craig/Corvus/CorvusStar/skills_db/` - Central repository for `git-assistant`, `codestats`, `agent-health`, and more.
 
 ### Fishtest Scaling & Federation Tools

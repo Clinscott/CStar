@@ -88,32 +88,17 @@ def run_test_case(engine: object, case: dict) -> tuple[bool, dict]:
         "reasons": fail_reasons
     }
 
-def run_test():
-    # Setup Paths
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    base_path = os.path.join(current_dir, ".agent")
-    
-    # Load Config & Persona
-    config = {}
+def load_config(base_path: str) -> dict:
     config_path = os.path.join(base_path, "config.json")
     if os.path.exists(config_path):
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
-                config = json.load(f)
+                return json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
             pass
-    
-    persona_name = config.get("Persona", "ALFRED").upper()
-    # Import Shared UI
-    try:
-        from ui import HUD
-        HUD.PERSONA = persona_name
-    except ImportError:
-        # Should not happen given sys.path augmentation above
-        print("CRITICAL: Failed to load UI module.")
-        sys.exit(1)
+    return {}
 
-    # Initialize Engine Once
+def initialize_engine(current_dir: str, base_path: str, config: dict) -> object:
     engine = SovereignVector(
         thesaurus_path=os.path.join(current_dir, "thesaurus.md"),
         corrections_path=os.path.join(base_path, "corrections.json"),
@@ -130,6 +115,43 @@ def run_test():
             engine.load_skills_from_dir(global_path, prefix="GLOBAL:")
 
     engine.build_index()
+    return engine
+
+def render_results(passed: int, total: int, target_file: str, duration: float, sprt_result: str):
+    from ui import HUD
+    avg_time = (duration / total) * 1000 if total > 0 else 0
+    accuracy = (passed / total) * 100
+    
+    passed_color = "\033[32m" if accuracy == 100 else "\033[33m"
+    if accuracy < 90: passed_color = "\033[31m"
+    
+    sprt_color = "\033[32m" if "PASS" in sprt_result else "\033[31m"
+    if "INCONCLUSIVE" in sprt_result: sprt_color = "\033[33m"
+
+    HUD.box_row("ACCURACY", f"{accuracy:.1f}%", passed_color)
+    HUD.box_row("VERDICT", sprt_result, sprt_color)
+    HUD.box_row("LATENCY", f"{avg_time:.2f}ms/target", dim_label=True)
+    HUD.box_bottom()
+    
+    if accuracy < 100:
+        sys.exit(1)
+
+def run_test():
+    # Setup Paths
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    base_path = os.path.join(current_dir, ".agent")
+    
+    config = load_config(base_path)
+    persona_name = config.get("Persona", "ALFRED").upper()
+    
+    try:
+        from ui import HUD
+        HUD.PERSONA = persona_name
+    except ImportError:
+        print("CRITICAL: Failed to load UI module.")
+        sys.exit(1)
+
+    engine = initialize_engine(current_dir, base_path, config)
 
     # Load Test Data
     target_file = 'fishtest_data.json'
@@ -164,32 +186,14 @@ def run_test():
         if passed_case:
             passed += 1
         else:
-            status = "FAIL"
             HUD.box_row("ERROR", f"INGEST FAILED", "\033[31m")
             HUD.box_row("QUERY", case['query'], dim_label=True)
             HUD.box_row("ACTUAL", f"{info['actual']} ({info['score']:.2f})", dim_label=True)
             HUD.box_separator()
 
     end_time = time.time()
-    duration = end_time - start_time
-    avg_time = (duration / total) * 1000 if total > 0 else 0
-    accuracy = (passed / total) * 100
     sprt_result = sprt.update(passed, total)
-    
-    # --- Final Stats ---
-    passed_color = "\033[32m" if accuracy == 100 else "\033[33m"
-    if accuracy < 90: passed_color = "\033[31m"
-    
-    sprt_color = "\033[32m" if "PASS" in sprt_result else "\033[31m"
-    if "INCONCLUSIVE" in sprt_result: sprt_color = "\033[33m"
-
-    HUD.box_row("ACCURACY", f"{accuracy:.1f}%", passed_color)
-    HUD.box_row("VERDICT", sprt_result, sprt_color)
-    HUD.box_row("LATENCY", f"{avg_time:.2f}ms/target", dim_label=True)
-    HUD.box_bottom()
-    
-    if accuracy < 100:
-        sys.exit(1)
+    render_results(passed, total, target_file, end_time - start_time, sprt_result)
 
 if __name__ == "__main__":
     run_test()
