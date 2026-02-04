@@ -1,0 +1,1536 @@
+{
+    "baseline_accuracy": 0.0,
+    "test_cases": [
+        {
+            "query": "spin up the record player",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "benchmark in the park",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "wrap the text around the image",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "help me cross the street",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "pull the lever",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "oracle database for the bank",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "kick off your shoes",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "audit the library books",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "latency in the nervous system",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "holographic trading cards",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "deployment of troops to the border",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "fire up the grill",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "wrap up the meeting in 5 minutes",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "fix the broken chair",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "consult a doctor",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "playwright for the theater",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "scaffold for the skyscraper",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "build a sandcastle",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "automation of the assembly line",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "wrap the baby in a blanket",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "implement a new diet plan",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "debug the garden hose",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "glow in the dark toys",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "glass of water please",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "performance of the orchestra",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "create a drawing of a cat",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "develop a new hobby",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "wrap the wound with gauze",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "check the weather forecast",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "find my keys in the house",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "begin the race",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "starting line of the marathon",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "wrap the wires together",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "construct a lego tower",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "neon sign for the bar",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "investigate the cold case from 1950",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "start the engine",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "resume your favorite movie",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "bubble wrap the fragile items",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "suggest a restaurant",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "wrap the sandwich in foil",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "look into the telescope for stars",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "initiate the launch sequence for the rocket",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "wisdom tooth extraction",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "check the mailbox",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "make a cup of coffee",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "add sugar to the tea",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "profile of a suspect",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "gift wrap the present",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "lets go to the park",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "ship a box via fedex",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "measure the length of the table",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "tortilla wrap with chicken",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "git your act together",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "wrap the pipe to prevent freezing",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "readme stories to the kids",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "release the kraken",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "browser history check",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "inspect the fruit for bruises",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "publish a book of poetry",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "push the door open",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "documentation of the ancient ruins",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "go to the store to buy milk",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "analyze the chemical reaction",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "feature film casting",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "generate a random number",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "logic puzzle for kids",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "sci-fi movie reviews",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "assistant manager of the bank",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "make a cup of cffee",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "ship a boxvia fedex",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "look into the telescope or stars",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "wrap the bab in a blanket",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "automation of theassembly line",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "automation o theassembly line",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "strt the engine",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "audit the library boos",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "deployment of troops to the borer",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "construct a lego towr",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "go to the stre to buy milk",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "bencmark in the park",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "neon sign for the ar",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "relese the kraken",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "look into the telescope orstars",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "go to th store to buy milk",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "assistant maager of the bank",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "inspect the frut for bruises",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "logic puzle for kids",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "go to th store to buy mil",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "make a cup ofcoffee",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "gift rap the present",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "reame stories to the kids",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "wrap th baby in a blanket",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "begi the race",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "automation otheassembly line",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "make a cup of cfee",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "go to th stoe to buy mil",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "inspect the fruit fr bruises",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "sci-fi mvie reviews",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "sci-fi movie reviws",
+            "expected": null,
+            "min_score": 0.0,
+            "expected_mode": "none",
+            "tags": [
+                "adversarial",
+                "phase-2",
+                "typo"
+            ]
+        },
+        {
+            "query": "can you make updates",
+            "expected": "/run-task",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "go and finish the project",
+            "expected": "/wrap-it-up",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "go and deploy",
+            "expected": "GLOBAL:deployment-skill",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "time to execute tests",
+            "expected": "/test",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "please document",
+            "expected": "GLOBAL:doc-generator",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "I want to verify everything",
+            "expected": "/test",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "time to analyze",
+            "expected": "/investigate",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "time to deploy",
+            "expected": "GLOBAL:deployment-skill",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "can you deploy",
+            "expected": "GLOBAL:deployment-skill",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "can you analyze",
+            "expected": "/investigate",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "can you build the site",
+            "expected": "/run-task",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "I want to push changes",
+            "expected": "GLOBAL:git-assistant",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "please fix the bug",
+            "expected": "/investigate",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "please fix the bug",
+            "expected": "/investigate",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "please improve the code",
+            "expected": "SovereignFish",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "please deploy",
+            "expected": "GLOBAL:deployment-skill",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "I want to document",
+            "expected": "GLOBAL:doc-generator",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "time to run it",
+            "expected": "/run-task",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "can you polish",
+            "expected": "SovereignFish",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "I want to plan",
+            "expected": "/plan",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "I want to finish the project",
+            "expected": "/wrap-it-up",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "time to push changes",
+            "expected": "GLOBAL:git-assistant",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "please document",
+            "expected": "GLOBAL:doc-generator",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "I want to run it",
+            "expected": "/run-task",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "can you make updates",
+            "expected": "/run-task",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "go and run it",
+            "expected": "/run-task",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "go and build the site",
+            "expected": "/run-task",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "please analyze",
+            "expected": "/investigate",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "time to push changes",
+            "expected": "GLOBAL:git-assistant",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "I want to deploy",
+            "expected": "GLOBAL:deployment-skill",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "go and finish the project",
+            "expected": "/wrap-it-up",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "I want to deploy",
+            "expected": "GLOBAL:deployment-skill",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "I want to make updates",
+            "expected": "/run-task",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "please analyze",
+            "expected": "/investigate",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "go and push changes",
+            "expected": "GLOBAL:git-assistant",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "time to improve the code",
+            "expected": "SovereignFish",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "I want to document",
+            "expected": "GLOBAL:doc-generator",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "please fix the bug",
+            "expected": "/investigate",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "can you polish",
+            "expected": "SovereignFish",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "go and push changes",
+            "expected": "GLOBAL:git-assistant",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "go and make updates",
+            "expected": "/run-task",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "please improve the code",
+            "expected": "SovereignFish",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "I want to polish",
+            "expected": "SovereignFish",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "I want to deploy",
+            "expected": "GLOBAL:deployment-skill",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "I want to plan",
+            "expected": "/plan",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "please check health",
+            "expected": "GLOBAL:agent-health",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "can you improve the code",
+            "expected": "SovereignFish",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "time to build the site",
+            "expected": "/run-task",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "I want to execute tests",
+            "expected": "/test",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        },
+        {
+            "query": "can you execute tests",
+            "expected": "/test",
+            "min_score": 0.35,
+            "expected_mode": "vector",
+            "tags": [
+                "ambiguity",
+                "phase-2"
+            ]
+        }
+    ]
+}

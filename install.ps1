@@ -2,7 +2,11 @@
 # Usage: .\install.ps1 -TargetDir "path\to\your\project"
 
 param (
-    [string]$TargetDir = (Get-Location).Path
+    [string]$TargetDir = (Get-Location).Path,
+    [ValidateSet("ODIN", "ALFRED", "")]
+    [string]$Persona = "",
+    [switch]$Silent,
+    [switch]$NoBackup
 )
 
 # Dynamic Source Resolution (Portability)
@@ -40,10 +44,36 @@ function Get-UserChoice {
     return $choice.ToUpper()
 }
 
+function Invoke-SafeQuarantine {
+    param (
+        [string]$FilePath,
+        [string]$LogPath,
+        [switch]$NoBackup
+    )
+    
+    if (-not (Test-Path $FilePath)) { return $true }
+    
+    if (-not $NoBackup) {
+        $quarantineDir = Join-Path (Split-Path $FilePath -Parent) ".corvus_quarantine"
+        if (-not (Test-Path $quarantineDir)) {
+            New-Item -ItemType Directory -Path $quarantineDir -Force | Out-Null
+        }
+        
+        $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+        $basename = Split-Path $FilePath -Leaf
+        $quarantinePath = Join-Path $quarantineDir "${timestamp}_${basename}"
+        
+        Move-Item $FilePath $quarantinePath -Force
+        if ($LogPath) { Write-Log "QUARANTINED: $basename -> $quarantinePath" -Path $LogPath }
+    }
+    
+    return $true
+}
+
 function Get-PersonaChoice {
     Clear-Host
     Write-Host "============================" -ForegroundColor Cyan
-    Write-Host "   CORVUS STAR INIT v1.0    " -ForegroundColor White
+    Write-Host "   CORVUS STAR INIT v1.1    " -ForegroundColor White
     Write-Host "============================" -ForegroundColor Cyan
     
     Write-Host "`n?? Choose your Corvus Star Persona:" -ForegroundColor Cyan
@@ -55,11 +85,46 @@ function Get-PersonaChoice {
     while ($true) {
         $choice = Read-Host "Select Persona [1/2]"
         switch ($choice) {
-            "1" { return "GOD" }
+            "1" { return "ODIN" }
             "2" { return "ALFRED" }
             default { Write-Host "Please select 1 or 2." -ForegroundColor Yellow }
         }
     }
+}
+
+function Resolve-Persona {
+    param ([string]$CliPersona, [switch]$Silent, [string]$AgentDir, [string]$LogPath)
+    
+    # Priority: CLI Flag > Existing Config > Interactive Prompt
+    if ($CliPersona) {
+        $normalized = switch ($CliPersona.ToUpper()) {
+            "GOD" { "ODIN" }
+            "ODIN" { "ODIN" }
+            default { "ALFRED" }
+        }
+        Write-Host "  [Persona] $normalized (CLI Override)" -ForegroundColor Cyan
+        return $normalized
+    }
+    
+    # Check existing config
+    $existingConfig = Join-Path $AgentDir "config.json"
+    if (Test-Path $existingConfig) {
+        try {
+            $cfg = Get-Content $existingConfig -Raw | ConvertFrom-Json
+            if ($cfg.Persona) {
+                Write-Host "  [Persona] $($cfg.Persona) (Existing Config)" -ForegroundColor Yellow
+                return $cfg.Persona
+            }
+        }
+        catch { }
+    }
+    
+    if ($Silent) {
+        Write-Host "  [Persona] ALFRED (Silent Default)" -ForegroundColor Gray
+        return "ALFRED"
+    }
+    
+    return Get-PersonaChoice
 }
 
 function Invoke-SmartMerge {
@@ -114,6 +179,45 @@ function Invoke-SmartMerge {
             $combined | Out-File -FilePath $Dest -Encoding utf8
         }
     }
+}
+
+function Invoke-DocumentationTakeover {
+    param (
+        [string]$ExistingFile,
+        [string]$CorvusTemplate,
+        [string]$OutputFile,
+        [string]$LogPath,
+        [switch]$NoBackup
+    )
+    
+    $existingContent = if (Test-Path $ExistingFile) { Get-Content $ExistingFile -Raw } else { "" }
+    $templateContent = if (Test-Path $CorvusTemplate) { Get-Content $CorvusTemplate -Raw } else { "" }
+    
+    if (-not $existingContent) {
+        # Fresh install: Use template directly
+        Copy-Item $CorvusTemplate $OutputFile -Force
+        if ($LogPath) { Write-Log "CREATED: $(Split-Path $OutputFile -Leaf) (Fresh)" -Path $LogPath }
+        return
+    }
+    
+    # Takeover: Quarantine original, create merged file
+    Invoke-SafeQuarantine -FilePath $ExistingFile -LogPath $LogPath -NoBackup:$NoBackup | Out-Null
+    
+    # Inject original content into template's "Project Legacy" section
+    $legacySection = @"
+
+---
+
+## 📜 Project Legacy (Pre-Corvus Documentation)
+
+> The following content was imported from the original project files during Corvus Star installation.
+
+$existingContent
+"@
+
+    $merged = $templateContent + $legacySection
+    $merged | Out-File -FilePath $OutputFile -Encoding utf8
+    if ($LogPath) { Write-Log "TAKEOVER: $(Split-Path $OutputFile -Leaf) (Original preserved in .corvus_quarantine/)" -Path $LogPath }
 }
 
 function Write-Log {
@@ -236,118 +340,187 @@ function Invoke-SmartCopy {
 
 Write-Host "?? Initializing Corvus Star (C*) Framework in: $TargetDir" -ForegroundColor Cyan
 
-# 0. Select Persona (Early Binding)
-$Persona = Get-PersonaChoice
-
-# 1. Create Directory Structure
-New-Item -ItemType Directory -Path $WorkflowDir, $ScriptDir, $SkillDir -Force | Out-Null
-
-# 1b. Initialize Logging
-Write-Log "=== Installation Started ===" -Path $LogPath
-Write-Log "Source: $SourceBase" -Path $LogPath
-Write-Log "Target: $TargetDir" -Path $LogPath
-Write-Log "Persona: $Persona" -Path $LogPath
-
-# 2. Deploy Sterile Workflows
-$Workflows = "lets-go.md", "run-task.md", "investigate.md", "wrap-it-up.md", "SovereignFish.md"
-foreach ($wf in $Workflows) {
-    Invoke-SmartCopy -Source (Join-Path $SourceBase "sterileAgent\$wf") -Dest (Join-Path $WorkflowDir $wf)
+# Helper: Validate Path is Absolute and Safe
+function Assert-SafePath {
+    param ([string]$Path)
+    $resolved = [System.IO.Path]::GetFullPath($Path)
+    if ($resolved -ne $Path -and $Path -match '\.\.') {
+        throw "SECURITY: Path traversal detected in target directory: $Path"
+    }
+    return $resolved
 }
 
-# 3. Deploy Engine Scripts
-$engineFiles = @(
-    "sv_engine.py",
-    "install_skill.py",
-    "personas.py",
-    "set_persona.py",
-    "synapse_sync.py",
-    "ui.py"
-)
-foreach ($file in $engineFiles) {
-    $src = Join-Path $SourceBase ".agent\scripts\$file"
-    $dst = Join-Path $ScriptDir $file
-    if (Test-Path $src) {
-        Invoke-SmartCopy -Source $src -Dest $dst
-        Write-Log "Deployed: $file" -Path $LogPath
+# 0. Select Persona (Early Binding)
+$Persona = Resolve-Persona -CliPersona $Persona -Silent $Silent -AgentDir $AgentDir -LogPath $LogPath
+
+$rollbackActions = @()
+
+try {
+    Assert-SafePath -Path $TargetDir | Out-Null
+    
+    # 1. Create Directory Structure
+    New-Item -ItemType Directory -Path $WorkflowDir, $ScriptDir, $SkillDir -Force | Out-Null
+    $rollbackActions += @{ Action = "CreatedDir"; Path = $AgentDir }
+
+    # 1b. Initialize Logging
+    Write-Log "=== Installation Started ===" -Path $LogPath
+    Write-Log "Source: $SourceBase" -Path $LogPath
+    Write-Log "Target: $TargetDir" -Path $LogPath
+    Write-Log "Persona: $Persona" -Path $LogPath
+
+    # 2. Deploy Sterile Workflows
+    $Workflows = "lets-go.md", "run-task.md", "investigate.md", "wrap-it-up.md", "SovereignFish.md"
+    foreach ($wf in $Workflows) {
+        # Check if persona-specific template exists
+        $wfName = [System.IO.Path]::GetFileNameWithoutExtension($wf)
+        $wfExt = [System.IO.Path]::GetExtension($wf)
+        $personaWf = Join-Path $SourceBase "sterileAgent\${wfName}_${Persona}${wfExt}"
+        
+        $src = if (Test-Path $personaWf) { $personaWf } else { Join-Path $SourceBase "sterileAgent\$wf" }
+        Invoke-SmartCopy -Source $src -Dest (Join-Path $WorkflowDir $wf)
+    }
+
+    # 3. Deploy Engine Scripts
+    $engineFiles = @(
+        "sv_engine.py",
+        "install_skill.py",
+        "personas.py",
+        "set_persona.py",
+        "synapse_sync.py",
+        "ui.py"
+    )
+    foreach ($file in $engineFiles) {
+        $src = Join-Path $SourceBase ".agent\scripts\$file"
+        $dst = Join-Path $ScriptDir $file
+        if (Test-Path $src) {
+            Invoke-SmartCopy -Source $src -Dest $dst
+            Write-Log "Deployed: $file" -Path $LogPath
+        }
+        else {
+            Write-Warning "Optional engine file not found: $file (Skipping)"
+            Write-Log "WARNING: Missing source file: $file" -Path $LogPath
+        }
+    }
+
+    # 3b. Deploy Engine Module (Iron Core)
+    $EngineModuleDir = Join-Path $ScriptDir "engine"
+    if (Test-Path (Join-Path $SourceBase ".agent\scripts\engine")) {
+        New-Item -ItemType Directory -Path $EngineModuleDir -Force | Out-Null
+        Get-ChildItem (Join-Path $SourceBase ".agent\scripts\engine") -Filter "*.py" | ForEach-Object {
+            $src = $_.FullName
+            $dst = Join-Path $EngineModuleDir $_.Name
+            Invoke-SmartCopy -Source $src -Dest $dst
+            Write-Log "Deployed: engine/$($_.Name)" -Path $LogPath
+        }
+    }
+
+    # 3c. Deploy Dialogue Database
+    $DialogueDir = Join-Path $TargetDir "dialogue_db"
+    if (-not (Test-Path $DialogueDir)) { New-Item -ItemType Directory -Path $DialogueDir -Force | Out-Null }
+    Invoke-SmartCopy -Source (Join-Path $SourceBase "dialogue_db\odin.md") -Dest (Join-Path $DialogueDir "odin.md")
+    Invoke-SmartCopy -Source (Join-Path $SourceBase "dialogue_db\alfred.md") -Dest (Join-Path $DialogueDir "alfred.md")
+
+    # 4. Deploy Skills Ecosystem
+    if (Test-Path (Join-Path $SourceBase ".agent\skills")) {
+        Get-ChildItem (Join-Path $SourceBase ".agent\skills") -Recurse | Where-Object { -not $_.PSIsContainer } | ForEach-Object {
+            $relative = $_.FullName.Substring((Join-Path $SourceBase ".agent\skills").Length + 1)
+            $destFile = Join-Path $SkillDir $relative
+            $destFolder = Split-Path $destFile
+            if (-not (Test-Path $destFolder)) { New-Item -ItemType Directory -Path $destFolder -Force | Out-Null }
+            Invoke-SmartCopy -Source $_.FullName -Dest $destFile
+        }
+    }
+
+    # 5. Deploy Context Templates & Takeover Documentation
+    $agentsSource = if ($Persona -eq "ODIN") {
+        Join-Path $SourceBase "sterileAgent\AGENTS_ODIN.md"
     }
     else {
-        Write-Warning "Optional engine file not found: $file (Skipping)"
-        Write-Log "WARNING: Missing source file: $file" -Path $LogPath
+        Join-Path $SourceBase "sterileAgent\AGENTS_ALFRED.md"
     }
-}
+    if (-not (Test-Path $agentsSource)) { $agentsSource = Join-Path $SourceBase "sterileAgent\AGENTS.md" }
 
-# 3b. Deploy Engine Module (Iron Core)
-$EngineModuleDir = Join-Path $ScriptDir "engine"
-if (Test-Path (Join-Path $SourceBase ".agent\scripts\engine")) {
-    New-Item -ItemType Directory -Path $EngineModuleDir -Force | Out-Null
-    Get-ChildItem (Join-Path $SourceBase ".agent\scripts\engine") -Filter "*.py" | ForEach-Object {
-        $src = $_.FullName
-        $dst = Join-Path $EngineModuleDir $_.Name
-        Invoke-SmartCopy -Source $src -Dest $dst
-        Write-Log "Deployed: engine/$($_.Name)" -Path $LogPath
+    $takeoverTargets = @(
+        @{ File = "AGENTS.md"; Template = $agentsSource },
+        @{ File = "tasks.md"; Template = (Join-Path $SourceBase "sterileAgent\tasks.md") },
+        @{ File = "wireframe.md"; Template = (Join-Path $SourceBase "sterileAgent\wireframe.md") },
+        @{ File = "memories.md"; Template = (Join-Path $SourceBase "sterileAgent\memories.md") },
+        @{ File = "dev_journal.md"; Template = (Join-Path $SourceBase "sterileAgent\dev_journal.md") },
+        @{ File = "thesaurus.md"; Template = (Join-Path $SourceBase "sterileAgent\thesaurus.md") }
+    )
+
+    foreach ($target in $takeoverTargets) {
+        Invoke-DocumentationTakeover `
+            -ExistingFile (Join-Path $TargetDir $target.File) `
+            -CorvusTemplate $target.Template `
+            -OutputFile (Join-Path $TargetDir $target.File) `
+            -LogPath $LogPath `
+            -NoBackup:$NoBackup
     }
-}
 
-# 3c. Deploy Dialogue Database
-$DialogueDir = Join-Path $TargetDir "dialogue_db"
-if (-not (Test-Path $DialogueDir)) { New-Item -ItemType Directory -Path $DialogueDir -Force | Out-Null }
-Invoke-SmartCopy -Source (Join-Path $SourceBase "dialogue_db\odin.md") -Dest (Join-Path $DialogueDir "odin.md")
-Invoke-SmartCopy -Source (Join-Path $SourceBase "dialogue_db\alfred.md") -Dest (Join-Path $DialogueDir "alfred.md")
-
-# 4. Deploy Skills Ecosystem
-if (Test-Path (Join-Path $SourceBase ".agent\skills")) {
-    Get-ChildItem (Join-Path $SourceBase ".agent\skills") -Recurse | Where-Object { -not $_.PSIsContainer } | ForEach-Object {
-        $relative = $_.FullName.Substring((Join-Path $SourceBase ".agent\skills").Length + 1)
-        $destFile = Join-Path $SkillDir $relative
-        $destFolder = Split-Path $destFile
-        if (-not (Test-Path $destFolder)) { New-Item -ItemType Directory -Path $destFolder -Force | Out-Null }
-        Invoke-SmartCopy -Source $_.FullName -Dest $destFile
+    # 5b. Alfred's Shadow (ALWAYS installed, even for ODIN)
+    $alfredSuggestionsPath = Join-Path $TargetDir "ALFRED_SUGGESTIONS.md"
+    if (-not (Test-Path $alfredSuggestionsPath)) {
+        $alfredTemplate = Join-Path $SourceBase "sterileAgent\ALFRED_SUGGESTIONS.md"
+        if (Test-Path $alfredTemplate) {
+            Copy-Item $alfredTemplate $alfredSuggestionsPath -Force
+            Write-Host "  + Created: ALFRED_SUGGESTIONS.md (Shadow Advisor)" -ForegroundColor Gray
+            Write-Log "SHADOW INSTALLED: Alfred's suggestions file" -Path $LogPath
+        }
     }
-}
 
-# 5. Deploy Context Templates
-$Templates = "AGENTS.md", "wireframe.md", "dev_journal.md", "thesaurus.md", "fishtest_data.json", "tasks.md", "memories.md"
-foreach ($tpl in $Templates) {
-    Invoke-SmartCopy -Source (Join-Path $SourceBase "sterileAgent\$tpl") -Dest (Join-Path $TargetDir $tpl)
-}
+    # 6. Initialize Config & Corrections
+    $configPath = Join-Path $AgentDir "config.json"
+    $installDate = Get-Date -Format "yyyy-MM-dd'T'HH:mm:ssK"
+    $gitHash = $null
+    try { $gitHash = (git -C $SourceBase rev-parse --short HEAD 2>$null) } catch { $gitHash = "unknown" }
 
-# 6. Initialize Config & Corrections
-$configPath = Join-Path $AgentDir "config.json"
-$installDate = Get-Date -Format "yyyy-MM-dd'T'HH:mm:ssK"
-$gitHash = $null
-try {
-    $gitHash = (git -C $SourceBase rev-parse --short HEAD 2>$null)
+    $configData = @{
+        FrameworkRoot = $TargetDir
+        Persona       = $Persona
+        Version       = @{
+            InstalledAt = $installDate
+            SourceHash  = $gitHash
+            Installer   = "install.ps1"
+        }
+    } | ConvertTo-Json -Depth 3
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText($configPath, $configData, $utf8NoBom)
+    Write-Host "  + Created: config.json" -ForegroundColor Gray
+    Write-Log "Config created" -Path $LogPath
+
+    $correctionsPath = Join-Path $AgentDir "corrections.json"
+    if (-not (Test-Path $correctionsPath)) {
+        '{"phrase_mappings": {}, "synonym_updates": {}}' | Out-File -FilePath $correctionsPath -Encoding utf8
+    }
+
+    # 7. Install Dependencies
+    Write-Host "`n[*] Checking Python dependencies..." -ForegroundColor Cyan
+    Invoke-DependencyCheck -LogPath $LogPath | Out-Null
+
+    Write-Host "`n[+] Installation Complete. System is C* Ready." -ForegroundColor Green
+    Write-Host "Run 'python .agent/scripts/sv_engine.py --help' to verify the engine." -ForegroundColor Gray
+    Write-Log "=== Installation Complete ===" -Path $LogPath
+    Write-Host "[i] Installation log: $LogPath" -ForegroundColor Gray
+
 }
 catch {
-    $gitHash = "unknown"
-}
-
-$configData = @{
-    FrameworkRoot = $TargetDir
-    Persona       = $Persona
-    Version       = @{
-        InstalledAt = $installDate
-        SourceHash  = $gitHash
-        Installer   = "install.ps1"
+    Write-Host "`n[FATAL] Installation failed: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Log "FATAL ERROR: $($_.Exception.Message)" -Path $LogPath
+    
+    Write-Host "Rolling back partial installation..." -ForegroundColor Yellow
+    foreach ($action in $rollbackActions) {
+        if ($action.Action -eq "CreatedDir" -and (Test-Path $action.Path)) {
+            Remove-Item $action.Path -Recurse -Force -ErrorAction SilentlyContinue
+        }
     }
-} | ConvertTo-Json -Depth 3
-$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
-[System.IO.File]::WriteAllText($configPath, $configData, $utf8NoBom)
-Write-Host "  + Created: config.json" -ForegroundColor Gray
-Write-Log "Config created with version stamp" -Path $LogPath
-
-$correctionsPath = Join-Path $AgentDir "corrections.json"
-if (-not (Test-Path $correctionsPath)) {
-    '{"phrase_mappings": {}, "synonym_updates": {}}' | Out-File -FilePath $correctionsPath -Encoding utf8
-    Write-Host "  + Initialized: corrections.json" -ForegroundColor Gray
+    
+    # [ALFRED] Attempt rescue of quarantine if possible
+    $quarantineDir = Join-Path $TargetDir ".corvus_quarantine"
+    if (Test-Path $quarantineDir) {
+        Write-Host "[i] Original files preserved in .corvus_quarantine/" -ForegroundColor Gray
+    }
+    
+    exit 1
 }
-
-# 7. Install Dependencies
-Write-Host "`n[*] Checking Python dependencies..." -ForegroundColor Cyan
-$depsInstalled = Invoke-DependencyCheck -LogPath $LogPath
-
-Write-Host "`n[+] Installation Complete. System is C* Ready." -ForegroundColor Green
-Write-Host "Run 'python .agent/scripts/sv_engine.py --help' to verify the engine." -ForegroundColor Gray
-Write-Log "=== Installation Complete ===" -Path $LogPath
-Write-Host "[i] Installation log: $LogPath" -ForegroundColor Gray
 

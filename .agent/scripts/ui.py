@@ -37,28 +37,60 @@ class HUD:
 
     @staticmethod
     def _get_theme() -> Dict[str, str]:
-        """Returns the color palette for the active Persona."""
+        """Returns the comprehensive color palette for the active Persona."""
         p = HUD.PERSONA.upper()
+        
         if p in ["GOD", "ODIN"]:
             return {
                 "main": HUD.RED, 
                 "dim": HUD.MAGENTA, 
-                "accent": HUD.YELLOW, 
+                "accent": HUD.YELLOW,
+                "success": HUD.GREEN,
+                "warning": HUD.YELLOW,
+                "error": HUD.RED,
                 "title": "Ω ODIN ENGINE Ω",
+                "prefix": "[ODIN]",
                 "war_title": "THE WAR ROOM (CONFLICT RADAR)",
                 "trace_label": "TRACE (LIES)",
-                "truth_label": "TRUTH (LAW)"
+                "truth_label": "TRUTH (LAW)",
+                "greeting": "Speak, wanderer. The Hooded One listens.",
+                "success_msg": "It is done. The rune is carved in stone.",
+                "error_msg": "The thread snaps. Fate denies this path.",
+                "warning_msg": "Gjallarhorn sounds low. Heed this omen."
             }
         # Default / Alfred
         return {
             "main": HUD.CYAN, 
             "dim": HUD.CYAN_DIM, 
-            "accent": HUD.GREEN, 
-            "title": "C* NEURAL TRACE",
+            "accent": HUD.GREEN,
+            "success": HUD.GREEN,
+            "warning": HUD.YELLOW,
+            "error": HUD.RED,
+            "title": "C* BUTLER INTERFACE",
+            "prefix": "[ALFRED]",
             "war_title": "THE BATCAVE (ANOMALY DETECTOR)",
             "trace_label": "EVENT LOG",
-            "truth_label": "KNOWN TRUTH"
+            "truth_label": "KNOWN TRUTH",
+            "greeting": "Good day, sir. How may I be of service?",
+            "success_msg": "The task is complete, sir. Everything is in order.",
+            "error_msg": "I'm afraid we've encountered a difficulty, sir.",
+            "warning_msg": "A word of caution, sir, if I may."
         }
+
+    @staticmethod
+    def persona_log(level: str, msg: str) -> None:
+        """Log with persona prefix for major announcements."""
+        theme = HUD._get_theme()
+        prefix = theme["prefix"]
+        
+        color = {
+            "INFO": theme["main"],
+            "SUCCESS": theme["success"],
+            "WARN": theme["warning"],
+            "ERROR": theme["error"]
+        }.get(level.upper(), theme["main"])
+        
+        print(f"{color}{prefix}{HUD.RESET} {msg}")
 
     @staticmethod
     def box_top(title: str = "", color: Optional[str] = None, width: Optional[int] = None) -> None:

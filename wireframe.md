@@ -105,7 +105,8 @@ The framework's soul (The Linscott Standard) manifests through two distinct oper
 - **Trace Compiler**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/compile_session_traces.py` - Aggregates JSON traces into `.agent/TRACE_REPORT.md`.
 - **Code Sentinel**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/code_sentinel.py` - Structural integrity scanner powered by **Ruff**. Supports Persona-themed output and CLI-driven automated repair (`--fix`).
 - **Debt Visualizer**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/debt_viz.py` - Structural debt scanner powered by **Radon**. Visualizes Cyclomatic Complexity "War Zones" in ASCII HUD.
-- **Global Registry**: `c:/Users/Craig/Corvus/CorvusStar/skills_db/` - Central repository for `git-assistant`, `codestats`, `agent-health`, and more.
+- **Global Registry**: `c:/Users/Craig/Corvus/CorvusStar/skills_db/` - Central repository for `git-assistant`, `codestats`, `agent-health`, `noise`, and more.
+    - **Noise Skill**: `c:/Users/Craig/Corvus/CorvusStar/skills_db/noise/SKILL.md` - **The Intent Sink**. Provides a target for non-technical adversarial traps (e.g., "coffee", "baby") to prevent false-positive triggers in core workflows.
 
 ### Fishtest Scaling & Federation Tools
 - **Test Generator**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/generate_tests.py` - Combinatorial generator for producing N-scale synthetic datasets (`fishtest_N1000.json`).
@@ -114,6 +115,11 @@ The framework's soul (The Linscott Standard) manifests through two distinct oper
 - **Latency Benchmark**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/latency_check.py` - Optimized utility for measuring engine startup performance.
 - **Precision Profiler**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/sentinel_perf.py` - High-resolution engine profiler (Rank A-F) targeting core search and tokenization bottlenecks.
 - **Neural Overwatch**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/overwatch.py` - Real-time terminal dashboard for monitoring the Federated Network. Features visual **Security Heatmaps** and live **Pulse Logs** of neural trigger events.
+- **N=1000 Robustness (Phase 2)**:
+    - **Phase 2 Generator**: `c:/Users/Craig/Corvus/CorvusStar/generate_fishtest_phase2.py` - Creates adversarial traps and ambiguity clusters for engine stress-testing.
+    - **Phase 2 Debugger**: `c:/Users/Craig/Corvus/CorvusStar/debug_fishtest_phase2.py` - High-fidelity debugging utility for Phase 2 datasets.
+    - **Engine Diagnostics**: `c:/Users/Craig/Corvus/CorvusStar/diag_engine.py` - Investigates thesaurus ingestion and vector distance for specific technical keywords.
+    - **Thesaurus Sanity**: `c:/Users/Craig/Corvus/CorvusStar/sanitize_thesaurus.py` - Rebuilds the `thesaurus.md` from a sanitized, high-fidelity cluster set to eliminate cross-contamination.
 - **Ingest Verification**: `c:/Users/Craig/Corvus/CorvusStar/tests/test_merge_traces.py` - Permanent regression suite for ingestion logic.
 - **UI Verification**: `c:/Users/Craig/Corvus/CorvusStar/tests/test_ui.py` - Unit tests for the shared UI library.
 - **Network Share**: `c:/Users/Craig/Corvus/CorvusStar/mock_project/network_share/` - Simulated folder for multi-agent trace exchange.
