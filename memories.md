@@ -63,3 +63,6 @@ deletions: []
     - Campaign Roadmap (N=1000): Large-scale architectural campaigns must be indexed in a master `IMPLEMENTATION_PLAN.md` with numbered targets (1-1000) for high-fidelity progress tracking.
 deletions: []
 ```
+    - Intent Sink Pattern: Use a dedicated 'noise' skill with worldly nouns (e.g., 'coffee', 'gift') to act as a mathematical sink for non-technical adversarial traps.
+    - Sanitized Clustering: Thesaurus intent groups must be atomic and non-overlapping. Overlapping keywords cause vector ambiguity.
+    - Trigger Boost Dampening: Direct keyword trigger boosts should be dampened (0.3-0.5) for common technical verbs to prevent keyword gravity from overriding vector proximity.

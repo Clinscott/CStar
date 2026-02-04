@@ -1,0 +1,13 @@
+# Performance Profiler
+
+> **Type**: Utility  
+> **Domain**: Performance
+
+## Description
+Profiles code performance, measures latency, identifies bottlenecks, and generates performance metrics and benchmarks.
+
+## Keywords
+profile, perf-profiler, benchmark, latency, measure, performance, timing, metrics
+
+## Status
+🔮 PLACEHOLDER — Skill not yet implemented.

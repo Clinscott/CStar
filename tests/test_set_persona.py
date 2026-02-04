@@ -12,7 +12,7 @@ import set_persona
 
 class TestSetPersona(unittest.TestCase):
     
-    @patch('builtins.input', side_effect=['1']) # Select ODIN
+    @patch('builtins.input', side_effect=['1', 'y']) # Select ODIN, then confirm
     @patch('builtins.open', new_callable=mock_open)
     @patch('os.path.exists', return_value=True)
     def test_set_odin(self, mock_exists, mock_file, mock_input):
@@ -27,6 +27,7 @@ class TestSetPersona(unittest.TestCase):
         # Create a mock strategy 
         with patch('personas.get_strategy') as mock_strat:
              mock_strat.return_value.enforce_policy.return_value = ["Policy Enforced"]
+             mock_strat.return_value.retheme_docs.return_value = ["RE-THEMED: AGENTS.md"]
              set_persona.set_persona()
         
         # Verify Write
