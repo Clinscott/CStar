@@ -47,7 +47,14 @@ def main():
     # Persona & Strategy Init
     HUD.PERSONA = config.get("Persona", "ALFRED").upper()
     strategy = personas.get_strategy(HUD.PERSONA, project_root)
-    HUD.DIALOGUE = DialogueRetriever(os.path.join(project_root, "dialogue_db", strategy.get_voice() + ".md"))
+    
+    # [ALFRED] Staged Symbiosis: Dialogue Fallback
+    def _resolve_dialogue_path(root, voice):
+        qmd = os.path.join(root, "dialogue_db", f"{voice}.qmd")
+        md = os.path.join(root, "dialogue_db", f"{voice}.md")
+        return qmd if os.path.exists(qmd) else md
+        
+    HUD.DIALOGUE = DialogueRetriever(_resolve_dialogue_path(project_root, strategy.get_voice()))
 
     p = argparse.ArgumentParser()
     p.add_argument("query", nargs="*"), p.add_argument("--json", action="store_true")

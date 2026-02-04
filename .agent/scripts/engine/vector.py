@@ -62,7 +62,19 @@ class SovereignVector:
 
     def _load_thesaurus(self, path):
         """[ALFRED] Secure thesaurus loader with weight clamping and correction merging."""
-        if not path or not os.path.exists(path) or os.path.getsize(path) > 2*10**6: return {}
+        # [ALFRED] Staged Symbiosis: Support .qmd with .md fallback
+        if not path: return {}
+        
+        actual_path = path
+        if not os.path.exists(actual_path):
+            if actual_path.endswith('.md'):
+                qmd = actual_path.replace('.md', '.qmd')
+                if os.path.exists(qmd): actual_path = qmd
+            elif actual_path.endswith('.qmd'):
+                md = actual_path.replace('.qmd', '.md')
+                if os.path.exists(md): actual_path = md
+        
+        if not os.path.exists(actual_path) or os.path.getsize(actual_path) > 2*10**6: return {}
         try:
             with open(path, 'r', encoding='utf-8') as f: content = f.read()
             mapping = {}
@@ -273,8 +285,12 @@ class SovereignVector:
             path = os.path.join(directory, folder)
             if not os.path.isdir(path): continue
             
+            # [ALFRED] Staged Symbiosis: Support SKILL.qmd or SKILL.md
+            qmd_path = os.path.join(path, "SKILL.qmd")
             md_path = os.path.join(path, "SKILL.md")
-            if os.path.exists(md_path):
+            if os.path.exists(qmd_path):
+                self._load_single_skill(folder, qmd_path, prefix)
+            elif os.path.exists(md_path):
                 self._load_single_skill(folder, md_path, prefix)
 
     def _load_single_skill(self, folder, md_path, prefix):

@@ -43,9 +43,14 @@ class OdinStrategy(PersonaStrategy):
         """ODIN documentation re-theming: Overwrite for Dominion."""
         results = []
         
-        # Target: AGENTS.md
-        agents_path = os.path.join(self.root, "AGENTS.md")
-        source_template = os.path.join(self.root, "sterileAgent", "AGENTS_ODIN.md")
+        # Target: AGENTS.qmd > AGENTS.md
+        def _res(fname):
+            qmd = os.path.join(self.root, fname.replace('.md', '.qmd'))
+            md = os.path.join(self.root, fname)
+            return qmd if os.path.exists(qmd) else md
+
+        agents_path = _res("AGENTS.md")
+        source_template = _res("sterileAgent/AGENTS_ODIN.md")
         
         if os.path.exists(source_template):
             # Capture legacy content if it exists
@@ -76,9 +81,11 @@ class OdinStrategy(PersonaStrategy):
         """ODIN Policy: Complete Dominion. Standardize or Perish."""
         results = []
         
-        # 1. Enforce AGENTS.md (Main & Sterile)
+        # 1. Enforce AGENTS.qmd (Main & Sterile)
         for target in [self.root, os.path.join(self.root, "sterileAgent")]:
-            agents_path = os.path.join(target, "AGENTS.md")
+            qmd = os.path.join(target, "AGENTS.qmd")
+            md = os.path.join(target, "AGENTS.md")
+            agents_path = qmd if os.path.exists(qmd) else md
             try:
                 if os.path.exists(agents_path):
                     with open(agents_path, 'r', encoding='utf-8') as f:
@@ -152,9 +159,12 @@ class AlfredStrategy(PersonaStrategy):
         """ALFRED Policy: Humble Service. Adapt and Assist."""
         results = []
         
-        # 1. Adaptive Backup (The Safety Net)
-        for file in ["AGENTS.md", "tasks.md", "thesaurus.md"]:
-            path = os.path.join(self.root, file)
+        # 1. Adaptive Backup (The Safety Net) - Support .qmd or .md
+        doc_targets = ["AGENTS", "tasks", "thesaurus"]
+        for name in doc_targets:
+            qmd = os.path.join(self.root, f"{name}.qmd")
+            md = os.path.join(self.root, f"{name}.md")
+            path = qmd if os.path.exists(qmd) else md
             try:
                 if os.path.exists(path):
                     bak = path + ".bak"
