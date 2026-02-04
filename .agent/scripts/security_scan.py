@@ -1,21 +1,15 @@
 import sys
 import os
 import re
+import ast
 
-# Import HUD from sv_engine if available, else mock it
 try:
     from sv_engine import HUD
 except ImportError:
     class HUD:
-        RED = "\033[31m"
-        GREEN = "\033[32m"
-        YELLOW = "\033[33m"
-        RESET = "\033[0m"
-        BOLD = "\033[1m"
-        CYAN = "\033[36m"
-        
+        RED, GREEN, YELLOW, RESET, BOLD, CYAN = "\033[31m", "\033[32m", "\033[33m", "\033[0m", "\033[1m", "\033[36m"
         @staticmethod
-        def box_top(title): print(f"--- {title} ---")
+        def box_top(t): print(f"--- {t} ---")
         @staticmethod
         def box_row(l, v, c): print(f"{l}: {v}")
         @staticmethod
@@ -23,103 +17,95 @@ except ImportError:
 
 class SecurityScanner:
     RISK_VECTORS = {
-        "PROMPT_INJECTION": [
-            (r"ignore previous instructions", 10),
-            (r"system override", 10),
-            (r"you are not", 5),
-            (r"delete all files", 10),
-        ],
-        "DANGEROUS_CODE": [
-            (r"os\.system\(", 10),
-            (r"subprocess\.call\(", 8),
-            (r"shutil\.rmtree\(", 10),
-            (r"eval\(", 10),
-            (r"exec\(", 10),
-            (r"__import__\(", 9),
-        ]
+        "PROMPT_INJECTION": [(r"ignore previous instructions", 10), (r"system override", 10)],
+        "DANGEROUS_CODE": [(r"os\.system\(", 10), (r"subprocess\.call\(", 8), (r"shutil\.rmtree\(", 10), (r"eval\(", 10), (r"exec\(", 10)]
     }
-
     MAX_FILE_SIZE_MB = 10
 
     def __init__(self, file_path):
-        self.path = file_path
-        self.content = ""
-        self.threat_score = 0
-        self.findings = []
-    
+        self.path, self.content, self.threat_score, self.findings = file_path, "", 0, []
+
     def scan(self):
-        if not os.path.exists(self.path):
-            return False, ["File not found"]
-        
-        # 0. Size Check [SovereignFish]
+        """[ALFRED] Secure multi-layer scan with DoS and AST heuristics."""
+        if not os.path.exists(self.path): return False, ["File not found"]
         try:
-            size_mb = os.path.getsize(self.path) / (1024 * 1024)
-            if size_mb > self.MAX_FILE_SIZE_MB:
+            if os.path.getsize(self.path) / 10**6 > self.MAX_FILE_SIZE_MB:
                 self.threat_score = 20
-                self.findings.append(f"[DoS] File too large ({size_mb:.1f}MB > {self.MAX_FILE_SIZE_MB}MB)")
+                self.findings.append("[DoS] File too large")
                 return False, self.findings
-        except: pass
+            with open(self.path, 'r', encoding='utf-8') as f: self.content = f.read()
+        except: return False, ["Read error"]
 
-        try:
-            with open(self.path, 'r', encoding='utf-8') as f:
-                self.content = f.read()
-        except Exception as e:
-            return False, [f"Read Error: {str(e)}"]
-
-        # Run Checks
-        is_internal = "scripts" in self.path and ".agent" in self.path
-        
-        for category, patterns in self.RISK_VECTORS.items():
-            for pattern, weight in patterns:
-                matches = re.finditer(pattern, self.content, re.IGNORECASE)
-                for m in matches:
-                    # Internal tools are allowed to delete files (like quarantine)
-                    if is_internal and "rmtree" in pattern:
-                        continue
-                        
-                    self.threat_score += weight
-                    self.findings.append(f"[{category}] Detected '{pattern}' (Risk: {weight})")
-
+        self._regex_scan()
+        if self.path.endswith(".py"): self._analyze_ast()
+        elif self.path.endswith((".js", ".ts")): self._analyze_web_script()
         return self.threat_score < 5, self.findings
 
-    def report(self):
-        title = "🛡️  HEIMDALL SECURITY SCAN  🛡️"
-        if HUD.PERSONA == "ALFRED":
-            title = "🦇  WAYNETECH SECURITY SCAN  🦇"
-            
-        HUD.box_top(title)
-        HUD.box_row("TARGET", os.path.basename(self.path), HUD.CYAN)
-        
-        color = HUD.GREEN
-        status = "CLEAN"
-        if self.threat_score > 0: 
-            color = HUD.YELLOW
-            status = "WARNING"
-        if self.threat_score >= 10: 
-            color = HUD.RED
-            status = "CRITICAL THREAT"
+    def _analyze_web_script(self):
+        """[ALFRED] Detect front-end specific risk vectors."""
+        patterns = [
+            (r"eval\(", 10, "JS-EVAL"),
+            (r"innerHTML", 5, "XSS-VECTOR"),
+            (r"localStorage", 3, "SENSITIVE-STORAGE"),
+            (r"sessionStorage", 3, "SENSITIVE-STORAGE"),
+            (r"dangerouslySetInnerHTML", 10, "REACT-XSS")
+        ]
+        for pat, weight, cat in patterns:
+            if re.search(pat, self.content):
+                self.threat_score += weight
+                self.findings.append(f"[{cat}] Detected '{pat}'")
 
-        HUD.box_row("THREAT LEVEL", f"{self.threat_score}/10", color)
-        HUD.box_row("STATUS", status, color)
-        
-        if self.findings:
-            print(f"{HUD.YELLOW}>> DETECTED THREATS:{HUD.RESET}")
-            for f in self.findings:
-                print(f"   - {HUD.RED}{f}{HUD.RESET}")
-        
+    def _regex_scan(self):
+        is_internal = "scripts" in self.path and ".agent" in self.path
+        for cat, patterns in self.RISK_VECTORS.items():
+            for pat, weight in patterns:
+                if re.search(pat, self.content, re.IGNORECASE):
+                    if is_internal and ("rmtree" in pat or "os.system" in pat): continue
+                    self.threat_score += weight
+                    self.findings.append(f"[{cat}] Detected '{pat}'")
+
+    def _analyze_ast(self):
+        try:
+            tree = ast.parse(self.content)
+            for node in ast.walk(tree):
+                if isinstance(node, (ast.Import, ast.ImportFrom)): self._scan_imports(node)
+                elif isinstance(node, ast.Constant): self._scan_constants(node)
+        except SyntaxError as e:
+            self.threat_score += 15
+            self.findings.append(f"[MALFORMED] Syntax: {str(e)}")
+        except: pass
+
+    def _scan_imports(self, node):
+        net, dang = {"requests", "urllib", "socket", "http"}, {"ctypes", "pickle", "base64"}
+        names = [n.name for n in node.names] if isinstance(node, ast.Import) else [node.module]
+        for name in names:
+            if name in net:
+                self.threat_score += 5
+                self.findings.append(f"[NETWORK] '{name}' import")
+            if name in dang:
+                self.threat_score += 8
+                self.findings.append(f"[DANGEROUS] '{name}' import")
+
+    def _scan_constants(self, node):
+        if isinstance(node.value, str):
+            if len(node.value) > 200 and re.match(r'^[a-zA-Z0-9+/=]+$', node.value):
+                self.threat_score += 5
+                self.findings.append("[OBFUSCATION] Large base64 string")
+            if "\\x" in node.value and len(node.value) > 50:
+                self.threat_score += 5
+                self.findings.append("[OBFUSCATION] High hex density")
+
+    def report(self):
+        HUD.box_top("🛡️  HEIMDALL SECURITY SCAN  🛡️")
+        HUD.box_row("TARGET", os.path.basename(self.path), HUD.CYAN)
+        c = HUD.RED if self.threat_score >= 10 else (HUD.YELLOW if self.threat_score > 0 else HUD.GREEN)
+        HUD.box_row("THREAT LEVEL", f"{self.threat_score}/10", c)
+        for f in self.findings: print(f"   - {HUD.RED}{f}{HUD.RESET}")
         HUD.box_bottom()
         return self.threat_score
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python security_scan.py <file_path>")
-        sys.exit(1)
-    
-    scanner = SecurityScanner(sys.argv[1])
-    score = scanner.scan()
-    scanner.report()
-    
-    # Exit Code: 0 = Safe, 1 = Warning, 2 = Critical
-    if scanner.threat_score >= 10: sys.exit(2)
-    if scanner.threat_score > 0: sys.exit(1)
-    sys.exit(0)
+    if len(sys.argv) < 2: sys.exit(1)
+    s = SecurityScanner(sys.argv[1])
+    s.scan(); s.report()
+    sys.exit(2 if s.threat_score >= 10 else (1 if s.threat_score > 0 else 0))

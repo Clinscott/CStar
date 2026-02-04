@@ -19,12 +19,21 @@ from ui import HUD
 
 # --- UTILITIES ---
 
-def load_json(path):
+def load_json(path, max_size_mb: int = 10):
+    """[ALFRED] Secure JSON loader with size-gating for trace artifacts."""
     if not os.path.exists(path): return {}
     try:
-        with open(path, 'r', encoding='utf-8') as f: return json.load(f)
-    except (json.JSONDecodeError, IOError):
-        return {}  # [Ω] Specific exception handling
+        # [ALFRED] DoS Protection: Prevent loading massive artifacts
+        file_size = os.path.getsize(path)
+        if file_size > max_size_mb * 1024 * 1024:
+            HUD.log("WARN", "Trace Integrity", f"Artifact too large: {os.path.basename(path)}")
+            return {}
+            
+        with open(path, 'r', encoding='utf-8') as f: 
+            return json.load(f)
+    except (json.JSONDecodeError, IOError, PermissionError) as e:
+        HUD.log("FAIL", "Replay Error", f"{os.path.basename(path)} ({str(e)})")
+        return {}
 
 def get_engine():
     # Setup Paths
@@ -91,6 +100,31 @@ class TraceRenderer:
     def box_bottom(self):
         HUD.PERSONA = self.target_persona
         HUD.box_bottom()
+        HUD.PERSONA = self.original_persona
+
+    def render_neural_path(self, traces: list[dict]):
+        """[ALFRED] Render a chronological flowchart of triggered intents."""
+        self.box_top("NEURAL PATH (THE CAUSAL CHAIN)")
+        
+        path = []
+        for t in traces:
+            trigger = t.get("trigger", "UNKNOWN")
+            if not path or path[-1] != trigger:
+                path.append(trigger)
+        
+        if not path:
+            self.box_row("PATH", "Empty Signal", HUD.YELLOW)
+        else:
+            for i, step in enumerate(path):
+                arrow = "  ▼  " if i < len(path)-1 else "  🏁  "
+                self.box_row(f"STEP {i+1:02}", step, HUD.CYAN)
+                if i < len(path)-1:
+                    HUD.PERSONA = self.target_persona
+                    inner_width = getattr(HUD, "_last_width", 60)
+                    pad = " " * (inner_width - 2 - 20 - 5 - 1)
+                    print(f"{HUD.DIM}│{HUD.RESET} {' '*20} {HUD.DIM}{arrow}{HUD.RESET}{pad}{HUD.DIM}│{HUD.RESET}")
+                    
+        self.box_bottom()
 
     def render_analysis(self, query, trigger, score, is_global, engine_instance=None):
         # Set Persona Context

@@ -5,12 +5,12 @@ Use this file to map project-specific jargon, synonyms, and variations to core c
 ## 🗺️ Domain Mappings
 
 ### Core Workflows
-- **create**: build:1.0, component:0.8, feature:0.9, generate:1.0, implement:1.0, make:1.0, new:1.0, page:0.8, run-task:1.0
+- **create**: build:1.0, component:0.9, develop:0.9, feature:0.9, generate:1.0, implement:1.0, logic:0.9, make:1.0, new:1.0, page:0.8, run-task:1.0
 - **finish**: close:0.9, complete:1.0, day:0.7, done:1.0, end:0.9, exit:1.0, finalize:1.0, quit:1.0, session:0.9, stop:0.9, wrap:1.0, wrap-it-up:1.0
-- **investigate**: analyze:1.0, audit:1.0, bug:1.0, check:0.7, debug:1.0, error:1.0, find:0.7, issue:0.9, investigate:1.0, linter:1.0, log:0.8, sentinel:1.0, structural:0.9, test:0.9, verify:0.9
+- **investigate**: analyze:1.0, audit:1.0, bug:1.0, check:0.9, confirm:0.9, debug:1.0, error:1.0, find:0.9, issue:0.9, investigate:1.0, linter:1.0, log:0.9, scanner:0.9, sentinel:1.0, structural:0.9, test:0.9, validate:0.9, verify:1.0
 - **speed**: agent-lightning:0.7, fast:1.0, pace:0.8, quick:1.0, tempo:0.9, velocity:1.0
-- **start**: begin:1.0, flow:0.7, go:0.5, initiate:1.0, lets-go:1.0, logic:0.7, priority:0.9, project:0.8, resume:1.0, task:0.9, work:0.8
-- **forge**: create:0.9, forge:1.0, generate:1.0, synthesize:1.0, skill-forge:1.0, template:0.8
+- **start**: begin:1.0, flow:0.7, go:0.5, initiate:1.0, lets-go:1.0, priority:0.9, project:0.8, resume:1.0, session:0.8, work:0.8
+- **forge**: create:0.9, forge:1.0, generate:1.0, synthesis:1.0, synthesize:1.0, skill-forge:1.0, template:0.8
 - **knowledge**: core:0.7, extraction:0.9, learn:0.8, remote:0.9, shared:0.8, synapse:1.0, sync:0.9
 
 ### Skills & Discoverability
