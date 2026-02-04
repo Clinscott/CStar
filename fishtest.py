@@ -2,198 +2,113 @@ import json
 import os
 import sys
 import math
+import time
 
 # Add script path for engine import
 sys.path.append(os.path.join(os.path.dirname(__file__), ".agent", "scripts"))
 try:
-    from sv_engine import SovereignVector
+    from sv_engine import SovereignVector, HUD
 except ImportError:
-    # Handle cases where pathing might differ (e.g. nested calls)
     pass
 
 class SPRT:
     """Sequential Probability Ratio Test for automated verification."""
-    def __init__(self, alpha=0.05, beta=0.05, elo_diff=10):
-        self.alpha = alpha
-        self.beta = beta
-        self.elo_diff = elo_diff
-        self.llr = 0.0
-        # Decision boundaries
+    def __init__(self, alpha=0.05, beta=0.05, p0=0.95, p1=0.99):
         self.la = math.log(beta / (1 - alpha))
         self.lb = math.log((1 - beta) / alpha)
+        self.p0, self.p1 = p0, p1
 
-    def update(self, passed, total):
-        if total == 0: return "INCONCLUSIVE"
-        
-        # Simplified LLR calculation for Pass/Fail
-        # P0: Baseline Accuracy (e.g., 0.95 or provided data)
-        # P1: Improved Accuracy (e.g., 0.98)
-        p0 = 0.95 
-        p1 = 0.99
-        
-        # LLR = sum( ln( P(result|H1) / P(result|H0) ) )
-        for _ in range(passed):
-            self.llr += math.log(p1 / p0)
-        for _ in range(total - passed):
-            self.llr += math.log((1 - p1) / (1 - p0))
-
-        if self.llr >= self.lb: return "PASS (Likely Improvement)"
-        if self.llr <= self.la: return "FAIL (Likely Regression)"
-        return "INCONCLUSIVE"
+    def evaluate(self, passed, total):
+        if total == 0: return "INCONCLUSIVE", HUD.YELLOW
+        llr = (passed * math.log(self.p1 / self.p0)) + ((total - passed) * math.log((1 - self.p1) / (1 - self.p0)))
+        if llr >= self.lb: return "PASS (Confirmed)", HUD.GREEN
+        if llr <= self.la: return "FAIL (Regression)", HUD.RED
+        return "INCONCLUSIVE", HUD.YELLOW
 
 def run_test_case(engine: object, case: dict) -> tuple[bool, dict]:
-    """Evaluates a single test case using the engine."""
-    query = case['query']
-    expected = case['expected']
+    """[ALFRED] Secure test case execution with defensive validation."""
+    if not isinstance(case, dict) or not case.get('query') or case.get('expected') is None:
+        return False, {"actual": None, "score": 0, "reasons": ["Malformed Case"]}
     
-    # Direct Engine Call
-    results = engine.search(query)
-    
-    if results:
-        top_match = results[0]
-        actual = top_match.get('trigger')
-        score = top_match.get('score', 0)
-        is_global = top_match.get('is_global', False)
-    else:
-        actual = None
-        score = 0
-        is_global = False
+    try:
+        results = engine.search(case['query'])
+        top = results[0] if results else {}
+        actual, score, is_global = top.get('trigger'), top.get('score', 0), top.get('is_global', False)
         
-    failed = False
-    fail_reasons = []
+        reasons = []
+        if actual != case['expected'] and not (case['expected'] == "SovereignFish" and actual and "Fish" in actual):
+            reasons.append(f"Expected '{case['expected']}', Got '{actual}'")
+        if score < case.get('min_score', 0):
+            reasons.append(f"Score {score:.2f} < Min {case['min_score']}")
+        if 'should_be_global' in case and is_global != case['should_be_global']:
+            reasons.append(f"Global mismatch: {is_global} != {case['should_be_global']}")
+            
+        return len(reasons) == 0, {"actual": actual, "score": score, "reasons": reasons}
+    except Exception as e:
+        return False, {"actual": None, "score": 0, "reasons": [f"Runtime Error: {str(e)[:40]}"]}
 
-    if actual != expected:
-        # Special check for SovereignFish which can match polish/improvement/reform
-        if expected == "SovereignFish" and actual is not None and "Fish" in actual:
-            pass
-        else:
-            failed = True
-            fail_reasons.append(f"Expected '{expected}', Got '{actual}'")
-
-    min_score = case.get('min_score', 0)
-    if score < min_score:
-        failed = True
-        fail_reasons.append(f"Score {score:.2f} < Min {min_score}")
-
-    if 'should_be_global' in case:
-        expected_global = case['should_be_global']
-        if is_global != expected_global:
-            failed = True
-            fail_reasons.append(f"Global mismatch: Expected {expected_global}, Got {is_global}")
-
-    return not failed, {
-        "actual": actual,
-        "score": score,
-        "is_global": is_global,
-        "reasons": fail_reasons
-    }
-
-def load_config(base_path: str) -> dict:
+def initialize_engine(base_path: str, current_dir: str):
     config_path = os.path.join(base_path, "config.json")
-    if os.path.exists(config_path):
-        try:
-            with open(config_path, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            pass
-    return {}
-
-def initialize_engine(current_dir: str, base_path: str, config: dict) -> object:
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f: config = json.load(f)
+    except: config = {}
+    
     engine = SovereignVector(
         thesaurus_path=os.path.join(current_dir, "thesaurus.md"),
         corrections_path=os.path.join(base_path, "corrections.json"),
         stopwords_path=os.path.join(base_path, "scripts", "stopwords.json")
     )
-    
     engine.load_core_skills()
     engine.load_skills_from_dir(os.path.join(base_path, "skills"))
     
-    framework_root = config.get("FrameworkRoot")
-    if framework_root:
-        global_path = os.path.join(framework_root, "skills_db")
-        if os.path.exists(global_path):
-            engine.load_skills_from_dir(global_path, prefix="GLOBAL:")
-
+    root = config.get("FrameworkRoot")
+    if root and os.path.exists(os.path.join(root, "skills_db")):
+        engine.load_skills_from_dir(os.path.join(root, "skills_db"), prefix="GLOBAL:")
+    
     engine.build_index()
-    return engine
-
-def render_results(passed: int, total: int, target_file: str, duration: float, sprt_result: str):
-    from ui import HUD
-    avg_time = (duration / total) * 1000 if total > 0 else 0
-    accuracy = (passed / total) * 100
-    
-    passed_color = "\033[32m" if accuracy == 100 else "\033[33m"
-    if accuracy < 90: passed_color = "\033[31m"
-    
-    sprt_color = "\033[32m" if "PASS" in sprt_result else "\033[31m"
-    if "INCONCLUSIVE" in sprt_result: sprt_color = "\033[33m"
-
-    HUD.box_row("ACCURACY", f"{accuracy:.1f}%", passed_color)
-    HUD.box_row("VERDICT", sprt_result, sprt_color)
-    HUD.box_row("LATENCY", f"{avg_time:.2f}ms/target", dim_label=True)
-    HUD.box_bottom()
-    
-    if accuracy < 100:
-        sys.exit(1)
+    return engine, config.get("Persona", "ALFRED").upper()
 
 def run_test():
-    # Setup Paths
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    base_path = os.path.join(current_dir, ".agent")
+    """[ALFRED] Optimized Fishtest runner with statistical SPRT verification."""
+    cur_dir = os.path.dirname(os.path.abspath(__file__))
+    base = os.path.join(cur_dir, ".agent")
     
-    config = load_config(base_path)
-    persona_name = config.get("Persona", "ALFRED").upper()
+    engine, persona = initialize_engine(base, cur_dir)
+    HUD.PERSONA = persona
     
-    try:
-        from ui import HUD
-        HUD.PERSONA = persona_name
-    except ImportError:
-        print("CRITICAL: Failed to load UI module.")
-        sys.exit(1)
-
-    engine = initialize_engine(current_dir, base_path, config)
-
-    # Load Test Data
-    target_file = 'fishtest_data.json'
-    if len(sys.argv) > 1 and sys.argv[1] == '--file':
-        if len(sys.argv) > 2:
-            target_file = sys.argv[2]
+    target = 'fishtest_data.json'
+    if len(sys.argv) > 2 and sys.argv[1] == '--file': target = sys.argv[2]
             
-    with open(target_file, 'r', encoding='utf-8') as f:
-        data = json.load(f)
+    try:
+        with open(target, 'r', encoding='utf-8') as f: cases = json.load(f).get('test_cases', [])
+    except Exception as e:
+        print(f"FAILED: {str(e)}"); sys.exit(1)
     
-    test_cases = data['test_cases']
-    passed = 0
-    total = len(test_cases)
-    sprt = SPRT()
-    
-    import time
-    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-    
-    # --- Persona Header ---
-    title = "Ω THE CRUCIBLE (GATEKEEPER) Ω" if HUD.PERSONA == "ODIN" else "Linguistic Integrity Briefing"
-    HUD.box_top(title)
-    HUD.box_row("TIMESTAMP", timestamp, HUD.BOLD, dim_label=True)
-    HUD.box_row("TARGET", target_file, HUD.BOLD)
-    HUD.box_row("POPULATION", f"{total} Cases", HUD.BOLD)
+    if not cases: HUD.log("WARN", "EMPTY", "No test cases."); sys.exit(0)
+
+    HUD.box_top("Ω THE CRUCIBLE Ω" if persona == "ODIN" else "Linguistic Integrity Briefing")
+    HUD.box_row("TIMESTAMP", time.strftime("%Y-%m-%d %H:%M:%S"), dim_label=True)
+    HUD.box_row("POPULATION", f"{len(cases)} Cases", HUD.BOLD)
     HUD.box_separator()
 
-    import time
-    start_time = time.time()
-
-    for case in test_cases:
-        passed_case, info = run_test_case(engine, case)
-        if passed_case:
-            passed += 1
+    passed, start = 0, time.time()
+    for case in cases:
+        ok, info = run_test_case(engine, case)
+        if ok: passed += 1
         else:
-            HUD.box_row("ERROR", f"INGEST FAILED", "\033[31m")
-            HUD.box_row("QUERY", case['query'], dim_label=True)
-            HUD.box_row("ACTUAL", f"{info['actual']} ({info['score']:.2f})", dim_label=True)
+            HUD.box_row("FAIL", case['query'], HUD.RED)
+            for r in info['reasons']: HUD.box_row("  -", r, dim_label=True)
             HUD.box_separator()
 
-    end_time = time.time()
-    sprt_result = sprt.update(passed, total)
-    render_results(passed, total, target_file, end_time - start_time, sprt_result)
+    duration = time.time() - start
+    accuracy = (passed / len(cases)) * 100
+    sprt_msg, sprt_color = SPRT().evaluate(passed, len(cases))
 
-if __name__ == "__main__":
-    run_test()
+    HUD.box_row("ACCURACY", f"{accuracy:.1f}%", HUD.GREEN if accuracy == 100 else HUD.YELLOW)
+    HUD.box_row("VERDICT", sprt_msg, sprt_color)
+    HUD.box_row("LATENCY", f"{(duration/len(cases))*1000:.2f}ms/target", dim_label=True)
+    HUD.box_bottom()
+    
+    if accuracy < 100: sys.exit(1)
+
+if __name__ == "__main__": run_test()

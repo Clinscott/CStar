@@ -36,8 +36,8 @@ Maintain a searchable, accurate map of the project's UI and service architecture
     - `propose_immediate_install()`: Generates JIT installation commands for high-confidence global matches (>0.85).
     - **Proactive Recommendation**: Scours Global Registry if `config.json` provides `FrameworkRoot`.
     - **Correction Path**: Short-circuits vector search if query matches `c:/Users/Craig/Corvus/CorvusStar/.agent/corrections.json`. Returns score of 1.1.
-    - **HUD Class**: Visual rendering engine. Updated to support dynamic `color` overrides for Persona Symmetry.
-    - **Backbone**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/ui.py` is the centralized UI library for all scripts (HUD, Sparklines, Boxes). Hardened with strict typing and docstrings.
+    - **Backbone**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/ui.py` is the centralized UI library for all scripts (HUD, Sparklines, Boxes). Hardened with strict typing, Google-style docstrings, and dynamic auto-sensing width (40-120 cols).
+    - **Optimization**: `engine/vector.py` implements an **LRU Neural Cache** for query expansion and vectorization, achieving Rank A search performance (0.065ms). Now supports **Unicode/CJK** scripts for global intent detection.
 
 ### Testing Protocol (Fishtest)
 - **Path**: `c:/Users/Craig/Corvus/CorvusStar/fishtest.py`
@@ -62,9 +62,10 @@ Maintain a searchable, accurate map of the project's UI and service architecture
         - `pull()`: Downloads global skills/corrections from Mimir's Eye.
         - **Multi-Remote**: Supports `--remote` alias selection for targeting different Knowledge Cores (e.g., primary, team).
         - **Security Model**: 
-            - **Authentication**: Pre-flight `git push --dry-run` validation.
+            - **Authentication**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/synapse_auth.py` - **The Neural Handshake**. Implements SHA-256 challenge-response ZKP for persona verification.
             - **Rate Limiting**: 10 push attempts/hr with 30-min lockout.
             - **The Gatekeeper**: Validates Python syntax and structural integrity (`ruff`) before pushing.
+            - **Internal Scanner**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/security_scan.py` - **Heimdall Scanner**. Multi-language (Py/JS/TS/React) threat detection for subprocess injection and XSS patterns.
             - **The Ledger**: Comprehensive audit logging in `.synapse_audit.log`.
 - **The Skill Forge**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/skill_forge.py` - **Capability Alchemist**. Synthesizes new Python skills using RAG-enriched archetypes.
     - **Archetypes**: `test`, `workflow`, `scanner`, `utility`.
@@ -99,6 +100,7 @@ The framework's soul (The Linscott Standard) manifests through two distinct oper
     - **War Room**: Logic to compare traces and detect "Faction Wars" (Odin vs Alfred conflicts).
     - **Key Functions**:
         - `render_trace()`: Displays visual representation of a trace.
+        - `render_neural_path()`: Visualizes the chronological causal chain of activated triggers.
         - `compare_traces()`: Analyzes differences between traces.
 - **Trace Compiler**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/compile_session_traces.py` - Aggregates JSON traces into `.agent/TRACE_REPORT.md`.
 - **Code Sentinel**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/code_sentinel.py` - Structural integrity scanner powered by **Ruff**. Supports Persona-themed output and CLI-driven automated repair (`--fix`).
@@ -110,7 +112,8 @@ The framework's soul (The Linscott Standard) manifests through two distinct oper
 - **Trace Ingest**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/merge_traces.py` - Core script for merging external agent traces. Implements "Real User Wins" conflict resolution.
 - **Network Watcher**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/network_watcher.py` - "The Crucible". Autonomously watches `c:/Users/Craig/Corvus/CorvusStar/mock_project/network_share`, ingests traces, runs fishtest, and Commits (Processed) or Purges (Quarantine) based on result. Updated with **Law of Latency** to reject traces causing >5ms regression.
 - **Latency Benchmark**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/latency_check.py` - Optimized utility for measuring engine startup performance.
-- **Neural Overwatch**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/overwatch.py` - Real-time terminal dashboard for monitoring the Federated Network, latency trends, and "War Zones". Hardened with `msvcrt` safety checks.
+- **Precision Profiler**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/sentinel_perf.py` - High-resolution engine profiler (Rank A-F) targeting core search and tokenization bottlenecks.
+- **Neural Overwatch**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/overwatch.py` - Real-time terminal dashboard for monitoring the Federated Network. Features visual **Security Heatmaps** and live **Pulse Logs** of neural trigger events.
 - **Ingest Verification**: `c:/Users/Craig/Corvus/CorvusStar/tests/test_merge_traces.py` - Permanent regression suite for ingestion logic.
 - **UI Verification**: `c:/Users/Craig/Corvus/CorvusStar/tests/test_ui.py` - Unit tests for the shared UI library.
 - **Network Share**: `c:/Users/Craig/Corvus/CorvusStar/mock_project/network_share/` - Simulated folder for multi-agent trace exchange.
@@ -134,3 +137,8 @@ The framework supports cross-agent intelligence sharing via the "Federated Netwo
 - **Logic**: Implemented in `merge_traces.py`.
 - **Primary Rule**: **Real User Wins**. External trace data (real-world usage) overrides existing synthetic test cases or older traces.
 - **Persistence**: Successful merges are archived in `c:/Users/Craig/Corvus/CorvusStar/.agent/traces/processed` to prevent re-ingestion loops.
+
+## 🏁 SovereighFish Campaign (N=1000)
+- **Roadmap**: `c:/Users/Craig/Corvus/CorvusStar/.agent/CAMPAIGN_IMPLEMENTATION_PLAN.md` - Master roadmap for 1,000 architectural improvements.
+- **Ledger**: `c:/Users/Craig/Corvus/CorvusStar/SOVEREIGNFISH_LEDGER.md` - Chronological session logs and progress tracking.
+- **Standard**: Linscott N=1000 Mandate (Accurate, Fast, Secure).

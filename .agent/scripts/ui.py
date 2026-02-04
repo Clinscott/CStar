@@ -70,8 +70,28 @@ class HUD:
             color: Optional override for the main color.
             width: Override width. Defaults to 60 or HUD_WIDTH env var.
         """
+    @staticmethod
+    def _get_width() -> int:
+        """Dynamically calculates the optimal HUD width (40-120 range)."""
+        try:
+            # [ALFRED] Attempt to get terminal size, fallback to 60
+            width = os.get_terminal_size().columns - 2
+            return max(40, min(120, width))
+        except:
+            return int(os.environ.get("HUD_WIDTH", 60))
+
+    @staticmethod
+    def box_top(title: str = "", color: Optional[str] = None, width: Optional[int] = None) -> None:
+        """
+        Renders the top implementation of a box with a title.
+        
+        Args:
+            title: The text to display in the center header.
+            color: Optional override for the main color.
+            width: Override width. Defaults to auto-calculated width.
+        """
         if width is None:
-            width = int(os.environ.get("HUD_WIDTH", 60))
+            width = HUD._get_width()
         assert isinstance(width, int) and width >= 10, "Width must be integer >= 10"
         HUD._last_width = width
         
@@ -114,8 +134,12 @@ class HUD:
         # but ensure the box closes at 'width'
         
         # Safe string conversion
-        str_val = str(value)
-        str_lbl = str(label)
+        try:
+            str_val = str(value)
+            str_lbl = str(label)
+        except Exception:
+            str_val = "[TYPE ERROR]"
+            str_lbl = "[TYPE ERROR]"
         
         # Truncate if too long (Defensive)
         max_val_len = width - 24 # 1(L) + 20(Lbl) + 1(Space) + 1(Space) + 1(R)
@@ -174,23 +198,26 @@ class HUD:
         BARS = " ▂▃▄▅▆▇█"
         if not data: return ""
         
-        # Slice to max points
-        visible = data[-max_points:]
-        if not visible: return ""
-        
-        min_val = min(visible)
-        max_val = max(visible)
-        range_val = max_val - min_val
-        
-        if range_val == 0:
-            return BARS[0] * len(visible)
+        try:
+            # [ALFRED] Filter non-numeric to prevent crashes
+            visible = [float(x) for x in data[-max_points:] if isinstance(x, (int, float, str))]
+            if not visible: return ""
             
-        line = ""
-        for x in visible:
-            normalized = (x - min_val) / range_val
-            index = int(normalized * (len(BARS) - 1))
-            line += BARS[index]
-        return line
+            min_val = min(visible)
+            max_val = max(visible)
+            range_val = max_val - min_val
+            
+            if range_val == 0:
+                return BARS[0] * len(visible)
+                
+            line = ""
+            for x in visible:
+                normalized = (x - min_val) / range_val
+                index = int(normalized * (len(BARS) - 1))
+                line += BARS[index]
+            return line
+        except (ValueError, TypeError, ZeroDivisionError):
+            return "ERR"
 
     @staticmethod
     def log(level: str, msg: str, detail: str = "") -> None:
@@ -233,9 +260,13 @@ class HUD:
         entry = f"| {ts} | {persona} | {reason} | {details} |\n"
         # We target a specific ledger path: .agent/traces/quarantine/REJECTIONS.md
         ledger_path = os.path.join(os.getcwd(), ".agent", "traces", "quarantine", "REJECTIONS.md")
-        os.makedirs(os.path.dirname(ledger_path), exist_ok=True)
-        if not os.path.exists(ledger_path):
-            with open(ledger_path, "w", encoding="utf-8") as f:
-                f.write("# 🧪 The Crucible: Rejection Ledger\n\n| Timestamp | Persona | Reason | Details |\n| :--- | :--- | :--- | :--- |\n")
-        with open(ledger_path, "a", encoding="utf-8") as f:
-            f.write(entry)
+        try:
+            os.makedirs(os.path.dirname(ledger_path), exist_ok=True)
+            if not os.path.exists(ledger_path):
+                with open(ledger_path, "w", encoding="utf-8") as f:
+                    f.write("# 🧪 The Crucible: Rejection Ledger\n\n| Timestamp | Persona | Reason | Details |\n| :--- | :--- | :--- | :--- |\n")
+            with open(ledger_path, "a", encoding="utf-8") as f:
+                f.write(entry)
+        except (IOError, PermissionError):
+            # Fail silently to avoid interrupting the main flow
+            pass

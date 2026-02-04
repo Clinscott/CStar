@@ -105,7 +105,7 @@ class HeimdallScanner:
         return violations
 
 def run_ruff(target: str = ".", fix: bool = False) -> list[dict]:
-    """Execute ruff check and return parsed violations."""
+    """[ALFRED] Execute ruff check with robust error handling and binary detection."""
     cmd = [sys.executable, "-m", "ruff", "check", target, "--output-format=json"]
 
     # Locate ruff.toml relative to this script
@@ -118,14 +118,28 @@ def run_ruff(target: str = ".", fix: bool = False) -> list[dict]:
     if fix:
         cmd.append("--fix")
 
-    result = subprocess.run(cmd, capture_output=True, text=True)
-
-    if not result.stdout.strip():
-        return []
-
     try:
-        return json.loads(result.stdout)
-    except json.JSONDecodeError:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+        
+        if not result.stdout.strip():
+            # If ruff found errors but stderr is the only thing with data, something is wrong
+            if result.stderr and "error:" in result.stderr.lower():
+                HUD.box_row("RUFF ERROR", result.stderr.splitlines()[0][:50], HUD.RED)
+            return []
+
+        try:
+            return json.loads(result.stdout)
+        except json.JSONDecodeError:
+            return []
+            
+    except FileNotFoundError:
+        HUD.log("WARN", "Sentinel Briefing", "Ruff binary not found. Style scan skipped.")
+        return []
+    except subprocess.TimeoutExpired:
+        HUD.log("WARN", "Sentinel Briefing", "Ruff scan timed out. Performance bottleneck detected.")
+        return []
+    except Exception as e:
+        HUD.log("FAIL", "Sentinel Error", str(e))
         return []
 
 def format_results(violations: list[dict], target: str, fixed: bool = False) -> None:

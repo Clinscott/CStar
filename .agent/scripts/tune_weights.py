@@ -1,107 +1,65 @@
 import sys
 import os
 import json
-import fileinput
 from collections import defaultdict
-from math import log
+from sv_engine import SovereignVector, HUD
 
-# Import Engine & UI
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from sv_engine import SovereignVector
-from ui import HUD
+class MetaLearner:
+    """[ALFRED] Cognitive learning module for autonomous weight optimization."""
+    def __init__(self, engine: SovereignVector):
+        self.engine = engine
+        self.updates: dict = {}
+        self.analysis = defaultdict(list)
 
-def tune_weights(project_root):
+    def analyze_failure(self, query: str, expected: str, actual: dict):
+        """Diagnose a single test failure and propose weight shifts."""
+        q_tokens = self.engine.tokenize(query)
+        target_tokens = set(self.engine.tokenize(self.engine.skills.get(expected, "")))
+        rival_tokens = set(self.engine.tokenize(self.engine.skills.get(actual['trigger'], "")))
+        
+        for t in q_tokens:
+            if t in rival_tokens and t not in target_tokens:
+                curr = self.engine.thesaurus.get(t, {}).get(t, 1.0)
+                self.updates[t] = max(0.1, curr - 0.1)
+                self.analysis[t].append(f"Down: Rivals {actual['trigger']}")
+            elif t in target_tokens and t not in rival_tokens:
+                self.updates[t] = min(2.0, self.updates.get(t, 1.0) + 0.1)
+                self.analysis[t].append(f"Up: Unique to {expected}")
+
+    def report(self):
+        """Display the proposed optimization plan."""
+        if not self.updates:
+            HUD.log("PASS", "Optimization Matrix Balanced")
+            return
+        HUD.log("INFO", f"Proposed {len(self.updates)} neural adjustments:")
+        for t, w in self.updates.items():
+            HUD.log("Optimizing", f"{t} -> {w:.1f}", f"({len(self.analysis[t])} signals)")
+        
+        print(f"\n{HUD.YELLOW}{HUD.BOLD}>> [Ω] DECREE: THESAURUS OPTIMIZATION REQUIRED{HUD.RESET}")
+        for t, w in self.updates.items(): print(f"- {t}: {t}:{w:.2f}")
+
+def tune_weights(project_root: str):
+    """[ALFRED] Refactored tuning loop with encapsulated MetaLearner."""
     HUD.box_top("SOVEREIGN CYCLE: WEIGHT TUNING")
-    
-    # Paths
-    thesaurus_path = os.path.join(project_root, "thesaurus.md")
-    fishtest_path = os.path.join(project_root, "fishtest_data.json")
-    
-    if not os.path.exists(fishtest_path):
-        HUD.log("FAIL", "Fishtest Data not found")
-        return
+    db_path = os.path.join(project_root, "fishtest_data.json")
+    if not os.path.exists(db_path): return
 
-    # Initialize Engine
-    engine = SovereignVector(
-        thesaurus_path=thesaurus_path,
-        stopwords_path=os.path.join(os.path.dirname(__file__), "stopwords.json")
-    )
+    engine = SovereignVector(os.path.join(project_root, "thesaurus.md"))
     engine.load_core_skills()
     engine.load_skills_from_dir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "skills"))
     engine.build_index()
 
-    # Load Tests
-    with open(fishtest_path, 'r', encoding='utf-8') as f:
-        data = json.load(f)
-        
-    analysis = defaultdict(list)
+    with open(db_path, 'r', encoding='utf-8') as f: data = json.load(f)
+    learner = MetaLearner(engine)
     
-    HUD.log("INFO", f"Analyzing {len(data['test_cases'])} cases...")
-    
-    updates = {}
-    
-    for case in data['test_cases']:
-        query = case['query']
-        expected = case['expected']
-        
-        # Analyze current performance
-        results = engine.search(query)
-        top = results[0] if results else None
-        
-        if not top or top['trigger'] != expected or top['score'] < 0.85:
-            # We have a candidate for tuning
-            if not top: continue
-            
-            HUD.log("WARN", f"Weak/Fail: {query} -> Exp: {expected} | Got: {top['trigger']} ({top['score']:.2f})")
-            
-            # 1. Identify Confusing Tokens
-            # Tokens in query that are driving the Wrong Match
-            q_tokens = engine.tokenize(query)
-            
-            target_text = engine.skills.get(expected, "")
-            rival_text = engine.skills.get(top['trigger'], "")
-            
-            target_tokens = set(engine.tokenize(target_text))
-            rival_tokens = set(engine.tokenize(rival_text))
-            
-            for t in q_tokens:
-                # If token is in Rival but NOT Target, it's a poison pill for this case
-                # We should lower its weight
-                if t in rival_tokens and t not in target_tokens:
-                    current_weight = engine.thesaurus.get(t, {}).get(t, 1.0) # Self-weight
-                    updates[t] = max(0.1, current_weight - 0.1)
-                    analysis[t].append(f"Down-vote from '{query}' (Favors {top['trigger']})")
-                
-                # If token is in Target but score is low, verify if we can boost it
-                # Raising weight is dangerous, check global DF
-                elif t in target_tokens and t not in rival_tokens:
-                     updates[t] = min(2.0, updates.get(t, 1.0) + 0.1)
-                     analysis[t].append(f"Up-vote from '{query}' (Unique to {expected})")
+    for case in data.get('test_cases', []):
+        res = engine.search(case['query'])
+        top = res[0] if res else None
+        if not top or top['trigger'] != case['expected'] or top['score'] < 0.85:
+            if top: learner.analyze_failure(case['query'], case['expected'], top)
 
-    HUD.box_separator()
-    
-    if not updates:
-        HUD.log("PASS", "No optimizations found. System is stable.")
-        return
-
-    # Apply Updates
-    HUD.log("INFO", f"Proposed {len(updates)} weight adjustments:")
-    for token, weight in updates.items():
-        reasons = analysis[token][:1]
-        HUD.log("Optimizing", f"{token} -> {weight:.1f}", f"({len(analysis[token])} votes)")
-    
-    # In a real scenario, we would write to thesaurus.md. 
-    # For now, we simulate the "Sovereign Cycle" by outputting the patch instructions.
-    
-    print("\n")
-    print(f"{HUD.YELLOW}{HUD.BOLD}>> [Ω] DECREE: THESAURUS OPTIMIZATION REQUIRED{HUD.RESET}")
-    print("Add the following to thesaurus.md:")
-    for t, w in updates.items():
-        print(f"- {t}: {t}:{w}")
+    learner.report()
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        tune_weights(sys.argv[1])
-    else:
-        # Default to standard layout
-        tune_weights(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+    rt = sys.argv[1] if len(sys.argv) > 1 else os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    tune_weights(rt)

@@ -28,6 +28,8 @@ class SovereignVector:
         self.vocab = set()
         self.idf = {}
         self.vectors = {} # {trigger: [vector]}
+        self._search_cache = {} # {query_text: search_results}
+        self._expansion_cache = {} # {token: expanded_weighted_tokens}
 
     def _load_json(self, path):
         if not path or not os.path.exists(path): return {}
@@ -55,102 +57,121 @@ class SovereignVector:
             return defaults
 
     def _load_thesaurus(self, path):
-        if not path or not os.path.exists(path): return {}
+        """[ALFRED] Secure thesaurus loader with weight clamping and correction merging."""
+        if not path or not os.path.exists(path) or os.path.getsize(path) > 2*10**6: return {}
         try:
-            with open(path, 'r', encoding='utf-8') as f:
-                content = f.read()
-            
+            with open(path, 'r', encoding='utf-8') as f: content = f.read()
             mapping = {}
-            # Match word: syn1, syn2:weight, syn3
-            items = re.findall(r'- (?:\*\*)?(\w+)(?:\*\*)?: ([\w,: \.]+)', content)
-            for word, syns in items:
+            for word, syns in re.findall(r'- (?:\*\*)?(\w+)(?:\*\*)?: ([\w,: \.]+)', content):
                 syn_dict = {}
                 for s in syns.split(','):
                     s = s.strip().lower()
-                    if ':' in s:
-                        name, weight = s.split(':', 1)
-                        try:
-                            syn_dict[name.strip()] = float(weight.strip())
-                        except:
-                            syn_dict[name.strip()] = 1.0
-                    else:
-                        syn_dict[s] = 1.0
+                    if not s: continue
+                    name, weight = (s.split(':') + ["1.0"])[:2]
+                    try: weight = max(0.1, min(2.0, float(weight)))
+                    except: weight = 1.0
+                    syn_dict[name.strip()] = weight
                 mapping[word.lower()] = syn_dict
-            
-            # Apply corrections to thesaurus
-            if hasattr(self, 'corrections'):
-                for word, syns in self.corrections.get("synonym_updates", {}).items():
-                    word_map = mapping.get(word, {})
-                    for s in syns:
-                        word_map[s] = 1.0
-                    mapping[word] = word_map
-            
+            self._apply_thesaurus_corrections(mapping)
             return mapping
-        except Exception:
-            return {}
+        except: return {}
+
+    def _apply_thesaurus_corrections(self, mapping):
+        """Apply dynamic corrections to the static thesaurus."""
+        if not hasattr(self, 'corrections') or not isinstance(self.corrections, dict): return
+        for word, syns in self.corrections.get("synonym_updates", {}).items():
+            if isinstance(syns, list):
+                word_map = mapping.get(word, {})
+                for s in syns:
+                    if isinstance(s, str): word_map[s] = 1.0
+                mapping[word] = word_map
 
     def tokenize(self, text: str) -> list[str]:
+        """[ALFRED] Optimized Unicode-aware tokenizer with stopword filtration."""
         if not text: return []
-        tokens = re.findall(r'\w+', text.lower())
-        filtered = [t for t in tokens if t not in self.stopwords]
-        return filtered if filtered else tokens
+        # [ALFRED] Use \w+ for Unicode support including CJK characters
+        tokens = re.findall(r'[\w\d]+', text.lower())
+        return [t for t in tokens if t not in self.stopwords] or tokens
 
     def expand_query(self, query: str) -> dict[str, float]:
+        """[ALFRED] Neural Query Expansion with stemming and thesaurus signals."""
         tokens = self.tokenize(query)
-        # Use a dict for weights: token -> max_weight
         weights = {t: 1.0 for t in tokens}
         
-        # Stemming (SovereignFish improvement)
+        # [ALFRED] Unified expansion pass
         for t in list(weights.keys()):
+            # 1. Stemming Rules (Dampened)
             if len(t) > 4:
-                if t.endswith('ing'): weights[t[:-3]] = 0.8
-                elif t.endswith('ed'): weights[t[:-2]] = 0.8
-                elif t.endswith('es'): weights[t[:-2]] = 0.8
-                elif t.endswith('s') and not t.endswith('ss'): weights[t[:-1]] = 0.8
+                stem = None
+                if t.endswith('ing'): stem = t[:-3]
+                elif t.endswith('ed') or t.endswith('es'): stem = t[:-2]
+                elif t.endswith('s') and not t.endswith('ss'): stem = t[:-1]
+                
+                if stem and len(stem) > 2:
+                    weights[stem] = max(weights.get(stem, 0), 0.8)
 
-        # Thesaurus Expansion
-        for token in tokens:
-            if token in self.thesaurus:
-                for syn, weight in self.thesaurus[token].items():
+            # 2. Thesaurus Expansion
+            if t in self.thesaurus:
+                for syn, weight in self.thesaurus[t].items():
                     weights[syn] = max(weights.get(syn, 0), weight)
         
         return weights
 
     def add_skill(self, trigger: str, text: str) -> None:
+        """
+        Registers a new skill in the engine.
+        
+        Args:
+            trigger: The primary activation command (e.g., '/run-task').
+            text: A descriptive block of text defining the skill's purpose.
+        """
         self.skills[trigger] = text
         self.vocab.update(self.tokenize(text))
 
     def build_index(self) -> None:
+        """[ALFRED] Build TF-IDF index with cached sorted vocabulary for rapid search."""
         num_docs = len(self.skills)
         if num_docs == 0: return
+        
+        # [ALFRED] Cache sorted vocab to avoid redundant sorts in search loop
+        self.sorted_vocab = sorted(list(self.vocab))
+        
         doc_counts = {word: 0 for word in self.vocab}
         for text in self.skills.values():
             words = set(self.tokenize(text))
             for word in words:
                 doc_counts[word] += 1
+        
+        # Calculate IDF
         for word, count in doc_counts.items():
             self.idf[word] = math.log(num_docs / (1 + count)) + 1
+            
         for trigger, text in self.skills.items():
             # Build initial vector from doc tokens (Use Term Frequency)
             tokens = self.tokenize(text)
-            counts = {}
-            for t in tokens:
-                counts[t] = counts.get(t, 0) + 1.0
+            counts = {t: tokens.count(t) for t in set(tokens)}
             self.vectors[trigger] = self._vectorize(counts)
 
-    def _vectorize(self, token_weights):
-        # token_weights is a dict of {token: weight}
-        counts = {}
-        for t, weight in token_weights.items(): 
-            if t in self.vocab: 
-                counts[t] = counts.get(t, 0) + weight
+    def _vectorize(self, token_weights: dict[str, float]) -> list[float]:
+        """
+        Converts a dictionary of token weights into a normalized TF-IDF vector.
         
-        vector = []
+        Args:
+            token_weights: A dictionary mapping tokens to their relative weights.
+            
+        Returns:
+            A normalized list of floats representing the query in the engine's vector space.
+        """
+        # token_weights is a dict of {token: weight}
         total_weight = sum(token_weights.values()) or 1
-        for word in sorted(self.vocab):
-            score = counts.get(word, 0) / total_weight
-            vector.append(score * self.idf.get(word, 0))
-        return vector
+        
+        # [ALFRED] Use cached vocabulary and list comprehension for speed optimization
+        vocab = getattr(self, 'sorted_vocab', sorted(list(self.vocab)))
+        
+        return [
+            (token_weights.get(word, 0) / total_weight) * self.idf.get(word, 0)
+            for word in vocab
+        ]
 
     def similarity(self, v1: list[float], v2: list[float]) -> float:
         dot = sum(a*b for a, b in zip(v1, v2))
@@ -160,12 +181,18 @@ class SovereignVector:
         return dot / (mag1 * mag2)
 
     def search(self, query: str) -> list[dict]:
-        # 1. Check direct phrase mappings (Corrections)
+        # 0. Check Search Cache
         query_norm = query.lower().strip()
+        if query_norm in self._search_cache:
+            return self._search_cache[query_norm]
+
+        # 1. Check direct phrase mappings (Corrections)
         if query_norm in self.corrections.get("phrase_mappings", {}):
             trigger = self.corrections["phrase_mappings"][query_norm]
             is_global = trigger.startswith("GLOBAL:")
-            return [{"trigger": trigger, "score": 1.1, "note": "Correction mapped", "is_global": is_global}]
+            res = [{"trigger": trigger, "score": 1.1, "note": "Correction mapped", "is_global": is_global}]
+            self._search_cache[query_norm] = res
+            return res
 
         # 2. Vector search
         weighted_tokens = self.expand_query(query)
@@ -188,55 +215,64 @@ class SovereignVector:
             
             is_global = trigger.startswith("GLOBAL:")
             results.append({"trigger": trigger, "score": score, "is_global": is_global})
-        return sorted(results, key=lambda x: x['score'], reverse=True)
+        
+        final_results = sorted(results, key=lambda x: x['score'], reverse=True)
+        self._search_cache[query_norm] = final_results
+        return final_results
 
     def load_core_skills(self):
-        self.add_skill("/lets-go", ("start resume begin progress next priority task work project logic flow " * 3) + "resume creating the store")
-        self.add_skill("/run-task", ("create make new build generate implement feature task page component logic " * 3) + "make a new shoe page")
-        self.add_skill("/investigate", ("debug fix check find analyze investigate verify test audit bug error log issue login " * 3) + "check the login bug")
-        self.add_skill("/wrap-it-up", ("finish done wrap complete finalize session quit exit day close stop end work " * 3) + "wrap it up for the day")
-        self.add_skill("SovereignFish", ("polish improve clean refine polish aesthetics visual structural style ui ux design " * 3) + "refine the visuals")
+        core = {
+            "/lets-go": "start resume begin progress initiate priority",
+            "/run-task": "create build generate implement develop make new",
+            "/investigate": "debug analyze investigate audit verify check find fix scanner sentinel validate explore",
+            "/wrap-it-up": "finish complete finalize quit exit done stop end wrap",
+            "SovereignFish": "polish improve refine aesthetics visuals style clean"
+        }
+        context = {
+            "/lets-go": "task work project logic flow next",
+            "/run-task": "feature page component task logic",
+            "/investigate": "bug error log issue login confirm test",
+            "/wrap-it-up": "session day close work",
+            "SovereignFish": "visual structural ui ux design"
+        }
+        for trigger in core:
+            words = core[trigger] + " " + context[trigger]
+            self.add_skill(trigger, (words + " ") * 3)
+            for w in core[trigger].split():
+                if w not in self.trigger_map: self.trigger_map[w] = []
+                self.trigger_map[w].append(trigger)
 
     def load_skills_from_dir(self, directory, prefix=""):
+        """[ALFRED] Batch load skills with high-value signal extraction."""
         if not os.path.exists(directory): return
-        for skill_folder in os.listdir(directory):
-            folder_path = os.path.join(directory, skill_folder)
-            if os.path.isdir(folder_path):
-                trigger = f"{prefix}{skill_folder}" # Defined early for mapping
-                skill_md = os.path.join(folder_path, "SKILL.md")
-                if os.path.exists(skill_md):
-                    with open(skill_md, 'r', encoding='utf-8') as f:
-                        lines = f.readlines()
-                    
-                    # Extract High-Value Signal ONLY
-                    signal_tokens = []
-                    
-                    # 1. Parse YAML Frontmatter (naive)
-                    in_frontmatter = False
-                    for line in lines:
-                        if line.strip() == "---":
-                            in_frontmatter = not in_frontmatter
-                            continue
-                        if in_frontmatter:
-                            if line.startswith("name:"): signal_tokens.append(line.split(":", 1)[1].strip())
-                            if line.startswith("description:"): signal_tokens.append(line.split(":", 1)[1].strip())
-                        
-                        # 2. Activation Words (Priority - Direct Mapping)
-                        if "Activation Words:" in line:
-                            words = line.split(":", 1)[1].strip().replace(',', ' ')
-                            for w in words.split():
-                                clean_w = w.lower().strip()
-                                if clean_w not in self.stopwords:
-                                    if clean_w not in self.trigger_map: self.trigger_map[clean_w] = []
-                                    self.trigger_map[clean_w].append(trigger)
-                            
-                            signal_tokens.append(words) 
-                    
-                    # 3. Add folder name as explicit token
-                    signal_tokens.append(skill_folder)
-                    
-                    skill_text = " ".join(signal_tokens)
-                    self.add_skill(trigger, skill_text)
+        for folder in os.listdir(directory):
+            path = os.path.join(directory, folder)
+            if not os.path.isdir(path): continue
+            
+            md_path = os.path.join(path, "SKILL.md")
+            if os.path.exists(md_path):
+                self._load_single_skill(folder, md_path, prefix)
+
+    def _load_single_skill(self, folder, md_path, prefix):
+        """Extract metadata and activation signals from a single SKILL.md."""
+        trigger = f"{prefix}{folder}"
+        with open(md_path, 'r', encoding='utf-8') as f: lines = f.readlines()
+        
+        signal, in_fm = [], False
+        for line in lines:
+            if line.strip() == "---": in_fm = not in_fm; continue
+            if in_fm:
+                if line.startswith(("name:", "description:")): signal.append(line.split(":", 1)[1].strip())
+            elif "Activation Words:" in line:
+                words = line.split(":", 1)[1].strip().replace(',', ' ')
+                for w in words.split():
+                    clean = w.lower().strip()
+                    if clean and clean not in self.stopwords:
+                        if clean not in self.trigger_map: self.trigger_map[clean] = []
+                        self.trigger_map[clean].append(trigger)
+                signal.append(words)
+        
+        self.add_skill(trigger, f"{folder} {' '.join(signal)}")
 
     def score_identity(self, text: str, persona_name: str) -> float:
         """
