@@ -56,3 +56,10 @@ deletions: []
     - Secure Subprocess Standard: All external calls MUST use argument lists and `sys.executable`. Usage of `shell=True` is a Class-A violation of the Manor Protocol.
     - Path Sovereignty: No script may operate on a file path without first resolving it via `os.path.realpath` and verifying its prefix.
     - Synapse Lockout: Pushes to Mimir's Eye are governed by a 10/hour rate limit to prevent knowledge poisoning.
+    - Neural Handshake (ZKP): Knowledge Core pushes require a SHA-256 challenge-response verification based on the `NeuralSecret`. Raw secrets are never transmitted.
+    - Unicode Tokenization: Use `\w+` in tokenizers to capture CJK, Cyrillic, and other non-Latin scripts, ensuring intent parity for international teams.
+    - LRU Search Cache: Vector engine search results should be cached by query phrase to achieve O(1) retrieval for common natural language commands.
+    - Dynamic HUD Width: Auto-sensing UI width should include a 40-120 column "Safety Bracket" to ensure ASCII art and progress bars remain readable across varied console environments.
+    - Campaign Roadmap (N=1000): Large-scale architectural campaigns must be indexed in a master `IMPLEMENTATION_PLAN.md` with numbered targets (1-1000) for high-fidelity progress tracking.
+deletions: []
+```

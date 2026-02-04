@@ -26,16 +26,19 @@ class OdinStrategy(PersonaStrategy):
         # 1. Enforce AGENTS.md (Main & Sterile)
         for target in [self.root, os.path.join(self.root, "sterileAgent")]:
             agents_path = os.path.join(target, "AGENTS.md")
-            if os.path.exists(agents_path):
-                with open(agents_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                
-                # Check for absolute requirements: ODIN identity, Symmetry, SovereignFish
-                if "ODIN" not in content or "Symmetry" not in content or "SovereignFish" not in content:
-                    self._create_standard_agents(agents_path)
-                    results.append(f"REWRITTEN: {os.path.relpath(agents_path, self.root)} (Compliance Enforced)")
-                else:
-                    results.append(f"VERIFIED: {os.path.relpath(agents_path, self.root)} (Compliant)")
+            try:
+                if os.path.exists(agents_path):
+                    with open(agents_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                    
+                    # Check for absolute requirements: ODIN identity, Symmetry, SovereignFish
+                    if "ODIN" not in content or "Symmetry" not in content or "SovereignFish" not in content:
+                        self._create_standard_agents(agents_path)
+                        results.append(f"REWRITTEN: {os.path.relpath(agents_path, self.root)} (Compliance Enforced)")
+                    else:
+                        results.append(f"VERIFIED: {os.path.relpath(agents_path, self.root)} (Compliant)")
+            except (IOError, PermissionError) as e:
+                results.append(f"DEFIANCE: Failed to access {os.path.basename(agents_path)} ({str(e)})")
 
         # 2. Enforce .cursorrules (The System Directive)
         rules_path = os.path.join(self.root, ".cursorrules")
@@ -98,11 +101,14 @@ class AlfredStrategy(PersonaStrategy):
         # 1. Adaptive Backup (The Safety Net)
         for file in ["AGENTS.md", "tasks.md", "thesaurus.md"]:
             path = os.path.join(self.root, file)
-            if os.path.exists(path):
-                bak = path + ".bak"
-                if not os.path.exists(bak):
-                    shutil.copy2(path, bak)
-                    results.append(f"PROVISIONED: Backup of {file}")
+            try:
+                if os.path.exists(path):
+                    bak = path + ".bak"
+                    if not os.path.exists(bak):
+                        shutil.copy2(path, bak)
+                        results.append(f"PROVISIONED: Backup of {file}")
+            except (IOError, PermissionError):
+                pass # [ALFRED] Quietly fail if background process has lock
 
         # 2. Adaptive Discovery (Help the user find their own way)
         agents_found = False

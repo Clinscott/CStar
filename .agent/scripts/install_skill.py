@@ -7,125 +7,86 @@ import re
 from sv_engine import HUD
 
 def _sanitize_skill_name(name):
-    """Purify skill name."""
     sanitized = name.replace("/", "").replace("\\", "").replace("..", "")
-    if not re.match(r'^[a-zA-Z0-9_-]+$', sanitized):
-        return None
-    return sanitized
+    return sanitized if re.match(r'^[a-zA-Z0-9_-]+$', sanitized) else None
 
 def _validate_path(base, target):
-    """Ensure path is within base."""
     try:
-        b = os.path.realpath(base)
-        t = os.path.realpath(target)
+        b, t = os.path.realpath(base), os.path.realpath(target)
         return os.path.commonpath([b, t]) == b
     except: return False
 
-def install_skill(skill_name, target_root=None):
-    safe_name = _sanitize_skill_name(skill_name)
-    if not safe_name:
-        print(f"{HUD.RED}Error: Invalid skill name pattern: {skill_name}{HUD.RESET}")
-        return
-
-    if target_root:
-        base_path = target_root
-    else:
-        base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    config_path = os.path.join(base_path, "config.json")
-    
-    if not os.path.exists(config_path):
-        print(f"Error: .agent/config.json not found.")
-        return
-
+def _get_config(base_path):
+    path = os.path.join(base_path, "config.json")
     try:
-        with open(config_path, 'r', encoding='utf-8') as f:
-            config = json.load(f)
-    except:
-        print("Error: Corrupt config.json")
-        return
+        with open(path, 'r', encoding='utf-8') as f: return json.load(f), None
+    except Exception as e: return None, f"Config Error: {str(e)[:30]}"
+
+def _verify_integrity(quarantine_zone):
+    md_path = os.path.join(quarantine_zone, "SKILL.md")
+    if not os.path.exists(md_path) or os.path.getsize(md_path) == 0:
+        return False, "Missing/empty SKILL.md"
+    return True, None
+
+def _run_security_scan(quarantine_zone):
+    scanner = os.path.join(os.path.dirname(__file__), "security_scan.py")
+    if not os.path.exists(scanner): return -1, "Scanner missing"
     
-    framework_root = config.get("FrameworkRoot")
-    if not framework_root:
-        print("Error: FrameworkRoot not defined in config.json")
-        return
+    threat = 0
+    for root, _, files in os.walk(quarantine_zone):
+        for f in [f for f in files if f.endswith((".py", ".md"))]:
+            try:
+                res = subprocess.run([sys.executable, scanner, os.path.join(root, f)], capture_output=True, timeout=15)
+                threat = max(threat, res.returncode)
+                if res.stdout: print(res.stdout.decode('utf-8', errors='ignore'))
+            except: threat = max(threat, 1)
+    return threat, None
 
-    source = os.path.join(framework_root, "skills_db", safe_name)
-    if not _validate_path(os.path.join(framework_root, "skills_db"), source):
-        print(f"{HUD.RED}Error: Path traversal attempt blocked.{HUD.RESET}")
-        return
+def _promote_skill(quarantine, dest):
+    """Securely move skill from quarantine to final destination."""
+    try:
+        if os.path.exists(dest): shutil.rmtree(dest)
+        shutil.move(quarantine, dest)
+        return True
+    except Exception as e:
+        HUD.log("FAIL", "Promotion Failed", str(e)[:30])
+        return False
 
-    # AIRLOCK PROTOCOL: Quarantine
-    quarantine_zone = os.path.join(base_path, "quarantine", safe_name)
-    final_dest = os.path.join(base_path, "skills", safe_name)
+def install_skill(skill_name, target_root=None):
+    """[ALFRED] Refactored skill installer with isolated sub-phases and path validation."""
+    name = _sanitize_skill_name(skill_name)
+    base = target_root or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    config, err = _get_config(base)
+    if not name or err or not config.get("FrameworkRoot"):
+        HUD.log("FAIL", "Pre-install Check", err or "Invalid Name"); return
+
+    src = os.path.join(config["FrameworkRoot"], "skills_db", name)
+    qua = os.path.join(base, "quarantine", name)
+    dst = os.path.join(base, "skills", name)
+
+    if not all(_validate_path(base if "db" not in p[0] else config["FrameworkRoot"], p[1]) for p in [(src, src), (base, qua), (base, dst)]):
+        HUD.log("CRITICAL", "Path Violation"); return
+
+    if not os.path.exists(src): HUD.log("FAIL", f"Skill '{name}' not found"); return
     
-    if not _validate_path(base_path, quarantine_zone) or not _validate_path(base_path, final_dest):
-        print(f"{HUD.RED}Error: Installation target outside project scope.{HUD.RESET}")
-        return
-
-    if not os.path.exists(source):
-        print(f"{HUD.RED}Error: Skill '{safe_name}' not found in registry.{HUD.RESET}")
-        return
-
-    if os.path.exists(final_dest):
-        print(f"{HUD.YELLOW}Skill '{safe_name}' is already installed.{HUD.RESET}")
-        return
+    try:
+        if os.path.exists(qua): shutil.rmtree(qua)
+        shutil.copytree(src, qua)
         
-    # Step 1: Quarantine
-    if os.path.exists(quarantine_zone):
-        shutil.rmtree(quarantine_zone)
-    shutil.copytree(source, quarantine_zone)
-    
-    # Step 1.5: Integrity Check (SovereignFish Item 69)
-    # Ensure mandatory files exist and are not empty
-    mandatory_files = ["SKILL.md"]
-    for mf in mandatory_files:
-        mf_path = os.path.join(quarantine_zone, mf)
-        if not os.path.exists(mf_path) or os.path.getsize(mf_path) == 0:
-            print(f"{HUD.RED}>> INTEGRITY FAILURE: Missing or empty {mf} in '{safe_name}'.{HUD.RESET}")
-            shutil.rmtree(quarantine_zone)
-            return
-    
-    
-    # Step 2: Scan
-    scan_script = os.path.join(os.path.dirname(__file__), "security_scan.py")
-    threat_level = 0
-    
-    # Scan every file
-    for root, dirs, files in os.walk(quarantine_zone):
-        for file in files:
-            if file.endswith(".md") or file.endswith(".py"):
-                fpath = os.path.join(root, file)
-                try:
-                    res = subprocess.run([sys.executable, scan_script, fpath], capture_output=True, timeout=10)
-                    if res.returncode > 0:
-                        threat_level = max(threat_level, res.returncode)
-                        print(res.stdout.decode('utf-8')) # Show Report
-                except: pass
+        ok, i_err = _verify_integrity(qua)
+        if not ok: HUD.log("FAIL", i_err); shutil.rmtree(qua); return
 
-    # Step 3: Verdict
-    if threat_level == 2: # CRITICAL
-        print(f"{HUD.RED}>> BLOCKED: '{safe_name}' contains CRITICAL THREATS.{HUD.RESET}")
-        print(f"{HUD.RED}>> DESTROYING QUARANTINED FILES...{HUD.RESET}")
-        shutil.rmtree(quarantine_zone)
-        sys.exit(1)
-        
-    if threat_level == 1: # WARNING
-        print(f"{HUD.YELLOW}>> WARNING: Suspicious patterns detected.{HUD.RESET}")
-        prompt = f"{HUD.CYAN}>> Proceed with Caution? [y/N]: {HUD.RESET}"
-             
-        choice = input(prompt).strip().lower()
-        if choice != 'y':
-            print(f"{HUD.YELLOW}>> ABORTED. Cleaning up.{HUD.RESET}")
-            shutil.rmtree(quarantine_zone)
-            return
+        threat, s_err = _run_security_scan(qua)
+        if threat >= 2: HUD.log("CRITICAL", "BLOCKED: Security Threat"); shutil.rmtree(qua); return
+        if threat == 1:
+            if input(f"{HUD.CYAN}>> Proceed with Warning? [y/N]: {HUD.RESET}").lower() != 'y':
+                shutil.rmtree(qua); return
 
-    # Step 4: Promote
-    if os.path.exists(quarantine_zone):
-        shutil.move(quarantine_zone, final_dest)
-        print(f"{HUD.GREEN}>> VERIFIED. Skill '{safe_name}' deployed to active matrix.{HUD.RESET}")
+        if _promote_skill(qua, dst): HUD.log("PASS", f"Skill '{name}' deployed.")
+    except Exception as e:
+        HUD.log("FAIL", f"Install Crash: {str(e)[:40]}")
+        if os.path.exists(qua): shutil.rmtree(qua)
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        install_skill(sys.argv[1])
-    else:
-        print("Usage: python install_skill.py [skill_name]")
+    if len(sys.argv) > 1: install_skill(sys.argv[1])
+    else: print("Usage: python install_skill.py <skill>")

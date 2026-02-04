@@ -1,87 +1,85 @@
 import os
 import json
 import glob
+import shutil
+from datetime import datetime
+from typing import List, Dict
 
-def compile_traces(traces_dir=None, report_path=None):
-    # Setup Paths
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    base_path = os.path.dirname(current_dir) # .agent
-    
-    if traces_dir is None:
-        traces_dir = os.path.join(base_path, "traces")
-    if report_path is None:
-        report_path = os.path.join(base_path, "TRACE_REPORT.md")
+class TraceAnalyzer:
+    """[ALFRED] Advanced analytics for neural traces."""
+    def __init__(self, traces: List[dict]):
+        self.traces = traces
 
-    if not os.path.exists(traces_dir):
-        print("No traces directory found.")
-        return
+    def get_summary(self) -> Dict:
+        if not self.traces: return {}
+        scores = [t.get('score', 0) for t in self.traces]
+        return {
+            "total": len(self.traces),
+            "avg_score": sum(scores) / len(scores),
+            "top_performer": self._get_top_performer(),
+            "critical_fails": [t for t in self.traces if t.get('score', 0) < 0.6]
+        }
 
-    json_files = glob.glob(os.path.join(traces_dir, "*.json"))
-    if not json_files:
-        print("No traces found for this session.")
-        # Create empty report
-        with open(report_path, "w", encoding="utf-8") as f:
-            f.write("# Neural Trace Report\n\nNo traces recorded this session.\n")
-        return
+    def _get_top_performer(self) -> str:
+        counts = {}
+        for t in self.traces:
+            m = t.get('match', 'N/A')
+            counts[m] = counts.get(m, 0) + 1
+        return max(counts, key=counts.get) if counts else "N/A"
 
-    traces = []
-    for jf in json_files:
-        try:
-            with open(jf, "r", encoding="utf-8") as f:
-                traces.append(json.load(f))
-        except: pass
-    
-    # Sort by score (descending) or timestamp (if we had real ones)
-    # For now, let's sort by score to highlight best matches
-    traces.sort(key=lambda x: x.get('score', 0), reverse=True)
+class ReportRenderer:
+    """[ALFRED] Markdown report generation with thematic elements."""
+    def __init__(self, report_path: str):
+        self.path = report_path
 
-    with open(report_path, "w", encoding="utf-8") as f:
-        f.write("# 🧠 C* Neural Trace Report\n\n")
-        f.write(f"**Session Traces**: {len(traces)}\n\n")
+    def render(self, traces: List[dict], stats: Dict):
+        lines = [
+            "# 🧠 C* Neural Trace Report\n",
+            f"**Session Traces**: {stats.get('total', 0)}\n",
+            f"**Avg Score**: {stats.get('avg_score', 0):.4f}\n",
+            f"**Most Active Skill**: `{stats.get('top_performer', 'N/A')}`\n",
+            f"**Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n",
+            "| Query | Match | Score | Type |",
+            "| :--- | :--- | :--- | :--- |"
+        ]
         
-        f.write("| Query | Match | Score | Type |\n")
-        f.write("| :--- | :--- | :--- | :--- |\n")
-        
-        # Identify weak spots
-        improvements = []
-        seen_skills = set()
-
         for t in traces:
-            query = t.get('query', 'N/A')
-            match = t.get('match', 'N/A')
-            score = t.get('score', 0)
-            is_global = "GLOBAL" if t.get('is_global') else "LOCAL"
-            
-            # Simple visual indicator for score
-            score_icon = "🟢" if score > 0.8 else "🟡"
-            
-            f.write(f"| `{query}` | **{match}** | {score_icon} {score:.2f} | {is_global} |\n")
-            
-            if score < 0.8 and match not in seen_skills and len(improvements) < 2:
-                improvements.append(f"- **{match}**: Score {score:.2f} on query `{query}`. Consider adding more activation words or using this trace for future training.")
-                seen_skills.add(match)
+            q, m, s = t.get('query', 'N/A'), t.get('match', 'N/A'), t.get('score', 0)
+            icon = "🟢" if s > 0.8 else ("🟡" if s > 0.6 else "🔴")
+            g = "GLOBAL" if t.get('is_global') else "LOCAL"
+            lines.append(f"| `{q}` | **{m}** | {icon} {s:.2f} | {g} |")
 
-        if improvements:
-            f.write("\n## 🔧 Suggested Improvements\n")
-            for imp in improvements:
-                f.write(f"{imp}\n")
+        if stats.get('critical_fails'):
+            lines.append("\n## 🚨 Critical Failures (Score < 0.6)")
+            for f in stats['critical_fails']:
+                lines.append(f"- `{f.get('query')}` matched `{f.get('match')}` with score {f.get('score'):.2f}")
 
-    print(f"Trace report generated at: {report_path}")
+        with open(self.path, "w", encoding="utf-8") as f: f.write("\n".join(lines))
 
-    # Output to terminal
-    with open(report_path, "r", encoding="utf-8") as f:
-        print(f.read())
-    
-    # Archive processed traces
-    archive_dir = os.path.join(traces_dir, "archive")
-    if not os.path.exists(archive_dir): os.makedirs(archive_dir)
-    
-    for jf in json_files:
+def compile_traces():
+    """[ALFRED] Refactored trace compiler with decoupled analysis and reporting."""
+    base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    tdir = os.path.join(base, "traces")
+    rpath = os.path.join(base, "TRACE_REPORT.md")
+
+    if not os.path.exists(tdir): return
+    files = glob.glob(os.path.join(tdir, "*.json"))
+    if not files: return
+
+    raw_traces = []
+    for f in files:
         try:
-            filename = os.path.basename(jf)
-            os.rename(jf, os.path.join(archive_dir, filename))
+            with open(f, 'r') as j: raw_traces.append(json.load(j))
         except: pass
-    print(f"Archived {len(json_files)} traces.")
+    
+    analyzer = TraceAnalyzer(raw_traces)
+    stats = analyzer.get_summary()
+    ReportRenderer(rpath).render(raw_traces, stats)
+    
+    # Archival
+    archive = os.path.join(tdir, "archive")
+    os.makedirs(archive, exist_ok=True)
+    for f in files: shutil.move(f, os.path.join(archive, os.path.basename(f)))
+    print(f"Report generated: {rpath}")
 
-if __name__ == "__main__":
-    compile_traces()
+if __name__ == "__main__": compile_traces()

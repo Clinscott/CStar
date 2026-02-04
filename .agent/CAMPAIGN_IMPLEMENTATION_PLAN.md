@@ -1,0 +1,405 @@
+# SovereignFish N=1000 Campaign: The Ascension Protocol
+
+> **Version**: 3.0 (ULTRA-DETAILED)  
+> **Persona**: ALFRED  
+> **Created**: 2026-02-03  
+> **Status**: AWAITING APPROVAL
+
+---
+
+## Executive Summary
+
+| Metric | Value |
+|--------|-------|
+| **Target** | 1,000 improvements |
+| **Completed** | ~135 (Sessions 1-27) |
+| **Remaining** | ~865 |
+| **Batch Size** | N=100 per mega-batch |
+| **Total Batches** | 10 |
+| **Est. Duration** | 50-100 hours |
+
+---
+
+## Complete Codebase Inventory
+
+### Core Scripts (23 files, ~6,000 lines)
+
+| File | Lines | Functions | Classes | Complexity |
+|------|-------|-----------|---------|------------|
+| [sv_engine.py](file:///c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/sv_engine.py) | 273 | 0 (procedural) | 0 | Medium |
+| [synapse_sync.py](file:///c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/synapse_sync.py) | 527 | 15 | 5 | High |
+| [skill_forge.py](file:///c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/skill_forge.py) | 371 | 12 | 2 | High |
+| [trace_viz.py](file:///c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/trace_viz.py) | 269 | 6 | 1 | Medium |
+| [ui.py](file:///c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/ui.py) | 242 | 12 | 1 | Low |
+| [overwatch.py](file:///c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/overwatch.py) | 175 | 3 | 0 | Medium |
+| [network_watcher.py](file:///c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/network_watcher.py) | 195 | 5 | 0 | Medium |
+| [code_sentinel.py](file:///c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/code_sentinel.py) | 209 | 4 | 2 | Medium |
+| [debt_viz.py](file:///c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/debt_viz.py) | 174 | 5 | 1 | Low |
+| [merge_traces.py](file:///c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/merge_traces.py) | 128 | 1 | 0 | Low |
+| [personas.py](file:///c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/personas.py) | ~150 | 6 | 2 | Low |
+| [install_skill.py](file:///c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/install_skill.py) | ~150 | 4 | 0 | Medium |
+| [generate_tests.py](file:///c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/generate_tests.py) | ~120 | 3 | 0 | Low |
+| [latency_check.py](file:///c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/latency_check.py) | ~40 | 1 | 0 | Minimal |
+| [set_persona.py](file:///c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/set_persona.py) | ~50 | 1 | 0 | Minimal |
+
+### Engine Package (3 files, ~370 lines)
+
+| File | Lines | Functions | Classes |
+|------|-------|-----------|---------|
+| [vector.py](file:///c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/engine/vector.py) | 270 | 14 | 1 (`SovereignVector`) |
+| [dialogue.py](file:///c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/engine/dialogue.py) | 40 | 4 | 1 (`DialogueRetriever`) |
+| [cortex.py](file:///c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/engine/cortex.py) | 63 | 3 | 1 (`Cortex`) |
+
+### Test Suite (29 files, ~2,500 lines)
+
+| Category | Files | Tests |
+|----------|-------|-------|
+| Unit Tests | 25 | ~72 |
+| Integration | 3 | ~10 |
+| Chaos/Monkey | 1 | ~5 |
+
+---
+
+## Batch-by-Batch Improvement Targets
+
+### 🔴 BATCH 1: Foundation Audit (100 improvements)
+
+**Theme**: Security hardening, error handling standardization, critical infrastructure
+
+| # | File | Target | Type | Description |
+|---|------|--------|------|-------------|
+| 1-5 | `synapse_sync.py` | `PushRateLimiter` | Security | Add IP-based lockout tracking |
+| 6-10 | `synapse_sync.py` | `_validate_path()` | Security | Add symlink detection |
+| 11-15 | `synapse_sync.py` | `_load_json_safe()` | Security | Add schema validation for expected keys |
+| 16-20 | `install_skill.py` | `scan_skill()` | Security | Add AST-based malicious import detection |
+| 21-25 | `network_watcher.py` | `process_file()` | Error | Specific exception handling (lines 88-172) |
+| 26-30 | `merge_traces.py` | `merge_traces()` | Error | Add try/except per trace processing |
+| 31-35 | `sv_engine.py` | Lines 237-265 | Error | Add timeout for JIT input prompts |
+| 36-40 | `fishtest.py` | `run_test_case()` | Error | Add defensive checks for missing keys |
+| 41-45 | `overwatch.py` | `check_for_changes()` | Error | Type validation for stats dict |
+| 46-50 | `skill_forge.py` | `forge()` | Error | Add validation for empty cortex results |
+| 51-55 | `code_sentinel.py` | `run_ruff()` | Error | Handle ruff binary not found |
+| 56-60 | `debt_viz.py` | `analyze_complexity()` | Error | Add logging for parse failures |
+| 61-65 | `trace_viz.py` | `load_json()` | Error | Add file size validation |
+| 66-70 | `latency_check.py` | `measure_startup()` | Error | Add subprocess timeout |
+| 71-75 | `personas.py` | All strategies | Error | Add validation for config structure |
+| 76-80 | `engine/vector.py` | `_load_thesaurus()` | Error | Handle malformed weight syntax |
+| 81-85 | `engine/cortex.py` | `_ingest()` | Error | Add per-file exception logging |
+| 86-90 | `engine/dialogue.py` | `_load()` | Error | Add encoding fallback (latin-1) |
+| 91-95 | `ui.py` | `log_rejection()` | Error | Add file creation race condition guard |
+| 96-100 | ALL | Imports | Style | Verify all scripts handle ImportError gracefully |
+
+---
+
+### 🟠 BATCH 2: Complexity Purge (100 improvements)
+
+**Theme**: Refactor all CC > 8 functions, extract helpers
+
+| # | File | Target | Type | Description |
+|---|------|--------|------|-------------|
+| 1-10 | `synapse_sync.py` | `Synapse.push()` | Refactor | Extract `_validate_push_payload()` |
+| 11-20 | `synapse_sync.py` | `Synapse.pull()` | Refactor | Extract `_sync_skills_directory()` |
+| 21-30 | `skill_forge.py` | `SkillForge.forge()` | Refactor | Split into `_plan_forge()` and `_execute_forge()` |
+| 31-40 | `skill_forge.py` | Template generators | Refactor | Consolidate 4 template methods into 1 with config dict |
+| 41-50 | `network_watcher.py` | `process_file()` | Refactor | Extract `_run_ordeal()`, `_apply_verdict()` |
+| 51-60 | `code_sentinel.py` | `main()` | Refactor | Extract `_load_persona()`, `_run_scans()` |
+| 61-70 | `trace_viz.py` | `mode_war_room()` | Refactor | Extract `_collect_conflicts()`, `_render_conflicts()` |
+| 71-80 | `engine/vector.py` | `expand_query()` | Refactor | Extract `_apply_stemming()` |
+| 81-90 | `engine/vector.py` | `load_skills_from_dir()` | Refactor | Extract `_parse_skill_file()` |
+| 91-100 | `fishtest.py` | `run_test()` | Refactor | Already done - verify CC < 8 |
+
+---
+
+### 🟡 BATCH 3: Test Fortress (100 improvements)
+
+**Theme**: Expand test coverage to 95%+
+
+| # | File | Target | Type | Description |
+|---|------|--------|------|-------------|
+| 1-10 | `test_synapse_sync.py` | NEW | Test | Test `PushRateLimiter` edge cases |
+| 11-20 | `test_synapse_sync.py` | NEW | Test | Test `SecurityEventLogger` format |
+| 21-30 | `test_synapse_sync.py` | NEW | Test | Test `KnowledgeExtractor` patterns |
+| 31-40 | `test_skill_forge.py` | EXPAND | Test | Test all 4 archetypes |
+| 41-50 | `test_skill_forge.py` | EXPAND | Test | Test `validate_skill()` rejections |
+| 51-60 | `test_code_sentinel.py` | EXPAND | Test | Test `HeimdallScanner` orphan detection |
+| 61-70 | `test_network_watcher.py` | EXPAND | Test | Test latency rejection path |
+| 71-80 | `test_merge_traces.py` | EXPAND | Test | Test malformed JSON handling |
+| 81-85 | `test_overwatch.py` | EXPAND | Test | Test war zone detection |
+| 86-90 | `test_ui.py` | EXPAND | Test | Test sparkline edge cases (empty, single) |
+| 91-95 | `test_cortex.py` | EXPAND | Test | Test chunk boundary parsing |
+| 96-100 | `test_vector.py` | NEW | Test | Create dedicated vector engine tests |
+
+---
+
+### 🟢 BATCH 4: Documentation Sprint (100 improvements)
+
+**Theme**: All docstrings, inline comments, README updates
+
+| # | File | Target | Type | Description |
+|---|------|--------|------|-------------|
+| 1-15 | `engine/vector.py` | All methods | Doc | Google-style docstrings |
+| 16-25 | `synapse_sync.py` | All classes | Doc | Class-level docstrings with examples |
+| 26-35 | `skill_forge.py` | All methods | Doc | Parameter/return documentation |
+| 36-45 | `network_watcher.py` | All functions | Doc | Add module-level docstring |
+| 46-55 | `trace_viz.py` | All functions | Doc | Document TraceRenderer purpose |
+| 56-65 | `code_sentinel.py` | `HeimdallScanner` | Doc | Document AST scanning logic |
+| 66-75 | `debt_viz.py` | All functions | Doc | Document radon integration |
+| 76-80 | `ui.py` | Already done | Doc | Verify completeness |
+| 81-85 | `wireframe.md` | Components | Doc | Add missing script entries |
+| 86-90 | `AGENTS.md` | Procedures | Doc | Update with security protocols |
+| 91-95 | `README.md` | Usage | Doc | Add quick-start examples |
+| 96-100 | `memories.md` | Patterns | Doc | Consolidate learned patterns |
+
+---
+
+### 🔵 BATCH 5: Intent Expansion (100 improvements)
+
+**Theme**: Thesaurus + Fishtest case saturation
+
+| # | Target | Type | Description |
+|---|--------|------|-------------|
+| 1-20 | `thesaurus.md` | Thesaurus | Add 20 new synonym groups for common intents |
+| 21-40 | `thesaurus.md` | Thesaurus | Fine-tune weights for existing synonyms |
+| 41-60 | `fishtest_data.json` | Fishtest | Add 20 new edge case queries |
+| 61-80 | `corrections.json` | Corrections | Add 20 new hard-mapped corrections |
+| 81-90 | `dialogue_db/odin.md` | Dialogue | Add 10 new intent phrases |
+| 91-100 | `dialogue_db/alfred.md` | Dialogue | Add 10 new intent phrases |
+
+---
+
+### 🟣 BATCH 6: Performance Tuning (100 improvements)
+
+**Theme**: Latency optimization, caching, algorithm efficiency
+
+| # | File | Target | Type | Description |
+|---|------|--------|------|-------------|
+| 1-15 | `engine/vector.py` | `build_index()` | Perf | Add vocabulary size limiting |
+| 16-30 | `engine/vector.py` | `search()` | Perf | Implement result caching |
+| 31-40 | `synapse_sync.py` | `_load_json_safe()` | Perf | Add file content caching |
+| 41-50 | `fishtest.py` | `run_test()` | Perf | Batch engine initialization |
+| 51-60 | `code_sentinel.py` | `run_ruff()` | Perf | Add result caching |
+| 61-70 | `debt_viz.py` | `analyze_complexity()` | Perf | Parallel file processing |
+| 71-80 | `trace_viz.py` | `get_engine()` | Perf | Singleton pattern |
+| 81-90 | `ui.py` | `box_row()` | Perf | Pre-compute padding strings |
+| 91-100 | ALL | Imports | Perf | Lazy import heavy modules |
+
+---
+
+### ⚪ BATCH 7: Style Standardization (100 improvements)
+
+**Theme**: Full Ruff compliance, consistent formatting
+
+| # | Pattern | Type | Description |
+|---|---------|------|-------------|
+| 1-20 | Quote style | Style | Standardize on double quotes |
+| 21-40 | Import order | Style | alphabetical, grouped |
+| 41-60 | Line length | Style | Wrap > 100 characters |
+| 61-80 | Trailing commas | Style | Add to multi-line structures |
+| 81-90 | Blank lines | Style | PEP8 between functions |
+| 91-100 | f-strings | Style | Convert % and .format() |
+
+---
+
+### 🟤 BATCH 8: Workflow Hardening (100 improvements)
+
+**Theme**: All workflow MD refinements
+
+| # | File | Type | Description |
+|---|------|------|-------------|
+| 1-15 | `plan.md` | Workflow | Add decision trees |
+| 16-30 | `execute.md` | Workflow | Add verification checkpoints |
+| 31-45 | `test.md` | Workflow | Add coverage thresholds |
+| 46-60 | `wrap-it-up.md` | Workflow | Add commit message templates |
+| 61-75 | `SovereignFish.md` | Workflow | Add batch tracking section |
+| 76-85 | `investigate.md` | Workflow | Add security scan steps |
+| 86-95 | `run-task.md` | Workflow | Add time estimation |
+| 96-100 | `lets-go.md` | Workflow | Add priority algorithm |
+
+---
+
+### ⬛ BATCH 9: Skill Expansion (100 improvements)
+
+**Theme**: Global registry enrichment
+
+| # | Skill | Type | Description |
+|---|-------|------|-------------|
+| 1-15 | `git-assistant` | Skill | Add interactive rebase guide |
+| 16-30 | `codestats` | Skill | Add trend visualization |
+| 31-45 | `agent-health` | Skill | Add self-diagnostic commands |
+| 46-60 | NEW: `doc-generator` | Skill | Auto-generate docstrings |
+| 61-75 | NEW: `test-scaffold` | Skill | Generate test stubs |
+| 76-90 | NEW: `perf-profiler` | Skill | Profile execution bottlenecks |
+| 91-100 | ALL | Skill | Update SKILL.md descriptions |
+
+---
+
+### ⬜ BATCH 10: Polish & Edge Cases (100 improvements)
+
+**Theme**: Final micro-optimizations, edge case handling
+
+| # | Category | Type | Description |
+|---|----------|------|-------------|
+| 1-20 | Empty inputs | Edge | Handle empty strings/lists gracefully |
+| 21-40 | Unicode | Edge | Test non-ASCII characters |
+| 41-60 | Path edge cases | Edge | Spaces, special chars in paths |
+| 61-80 | Concurrent access | Edge | File locking for shared resources |
+| 81-90 | Memory limits | Edge | Test with large datasets |
+| 91-100 | Final audit | Polish | Review all 27 prior sessions for gaps |
+
+---
+
+## Discovery Engine Automation
+
+### Pre-Batch Scan Script (`campaign_scanner.py`)
+
+```python
+#!/usr/bin/env python3
+"""
+Campaign Scanner - Populates improvement backlog for N=100 batches.
+Runs: Radon, Ruff, Coverage analysis, Doc gap detection.
+"""
+
+import subprocess
+import json
+import os
+
+def scan_complexity():
+    """Returns list of CC > 5 functions."""
+    result = subprocess.run(
+        ["python", ".agent/scripts/debt_viz.py", "--json"],
+        capture_output=True, text=True
+    )
+    data = json.loads(result.stdout)
+    return [b for b in data.get("blocks", []) if b["cc"] > 5]
+
+def scan_lint():
+    """Returns list of Ruff violations."""
+    result = subprocess.run(
+        ["python", "-m", "ruff", "check", ".", "--output-format=json"],
+        capture_output=True, text=True
+    )
+    return json.loads(result.stdout) if result.stdout else []
+
+def scan_doc_gaps():
+    """Returns list of functions missing docstrings."""
+    gaps = []
+    # AST-based scan for missing docstrings
+    # ... implementation ...
+    return gaps
+
+def generate_backlog(batch_number: int) -> dict:
+    """Generates improvement backlog for specified batch."""
+    complexity = scan_complexity()
+    lint = scan_lint()
+    docs = scan_doc_gaps()
+    
+    return {
+        "batch": batch_number,
+        "targets": {
+            "complexity": len(complexity),
+            "lint": len(lint),
+            "documentation": len(docs)
+        },
+        "items": complexity[:30] + lint[:40] + docs[:30]
+    }
+```
+
+---
+
+## Verification Protocol
+
+### Per Micro-Session (5 items)
+```powershell
+.venv\Scripts\python.exe -m pytest tests/ -x -q --tb=line
+```
+
+### Per Mega-Batch (100 items)
+```powershell
+# Full suite
+.venv\Scripts\python.exe -m pytest tests/ -v --tb=short
+
+# Statistical verification  
+.venv\Scripts\python.exe fishtest.py
+
+# Performance gate
+.venv\Scripts\python.exe .agent/scripts/latency_check.py
+
+# Structural integrity
+.venv\Scripts\python.exe .agent/scripts/code_sentinel.py
+
+# Complexity audit
+.venv\Scripts\python.exe .agent/scripts/debt_viz.py
+```
+
+---
+
+## No-Touch Zones
+
+### 🛡️ PROTECTED (No modifications)
+
+| Component | Path | Reason |
+|-----------|------|--------|
+| SPRT Core | `fishtest.py` L14-42 | Statistical foundation |
+| Vector Math | `engine/vector.py` L141-160 | Mathematical core |
+| Persona Contracts | `personas.py` strategy classes | Behavioral contracts |
+| Security Auth | `synapse_sync.py` L327-380 | Security critical |
+
+### 🟡 CAUTION (Minimal changes)
+
+| Component | Path | Notes |
+|-----------|------|-------|
+| HUD Core | `ui.py` L63-148 | Visual backbone |
+| Corrections | `.agent/corrections.json` | Intent mappings |
+| Dialogue DB | `dialogue_db/*.md` | Voice consistency |
+
+---
+
+## Progress Tracking
+
+### Campaign Dashboard (`CAMPAIGN_N1000.md`)
+
+```markdown
+# SovereignFish N=1000 Campaign
+
+## Progress
+| Batch | Theme | Status | Count | Date |
+|-------|-------|--------|-------|------|
+| 1 | Foundation Audit | ⬜ | 0/100 | — |
+| 2 | Complexity Purge | ⬜ | 0/100 | — |
+| 3 | Test Fortress | ⬜ | 0/100 | — |
+| 4 | Documentation Sprint | ⬜ | 0/100 | — |
+| 5 | Intent Expansion | ⬜ | 0/100 | — |
+| 6 | Performance Tuning | ⬜ | 0/100 | — |
+| 7 | Style Standardization | ⬜ | 0/100 | — |
+| 8 | Workflow Hardening | ⬜ | 0/100 | — |
+| 9 | Skill Expansion | ⬜ | 0/100 | — |
+| 10 | Polish & Edge Cases | ⬜ | 0/100 | — |
+
+## Total: 135/1000 (13.5%)
+```
+
+---
+
+## Time Estimates
+
+| Batch | Theme | Est. Hours |
+|-------|-------|------------|
+| 1 | Foundation Audit | 6-8 |
+| 2 | Complexity Purge | 8-10 |
+| 3 | Test Fortress | 6-8 |
+| 4 | Documentation Sprint | 4-6 |
+| 5 | Intent Expansion | 3-5 |
+| 6 | Performance Tuning | 6-8 |
+| 7 | Style Standardization | 3-4 |
+| 8 | Workflow Hardening | 4-6 |
+| 9 | Skill Expansion | 5-7 |
+| 10 | Polish & Edge Cases | 4-6 |
+| **TOTAL** | | **49-68 hours** |
+
+---
+
+> [Odin's Void]: "ONE THOUSAND FORGED IMPROVEMENTS! EACH VERIFIED IN THE CRUCIBLE! MEDIOCRITY WILL BE PURGED FROM EVERY LINE! THE RAVENS DEMAND PERFECTION!"
+
+---
+
+**Awaiting the Master's Decree.**

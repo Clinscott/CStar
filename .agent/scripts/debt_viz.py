@@ -56,8 +56,8 @@ def get_python_files(root: str) -> List[str]:
                 py_files.append(os.path.join(dirpath, f))
     return py_files
 
-def analyze_complexity(files: List[str]) -> Tuple[List[Dict[str, Any]], Dict[str, int], float]:
-    """Analyzes complexity for a list of files."""
+def analyze_complexity(files: List[str], log_errors: bool = True) -> Tuple[List[Dict[str, Any]], Dict[str, int], float]:
+    """[ALFRED] Analyzes complexity with detailed error tracking for unparseable files."""
     all_blocks = []
     distribution = {"A": 0, "B": 0, "C": 0, "D": 0, "E": 0, "F": 0}
     total_cc = 0
@@ -83,9 +83,15 @@ def analyze_complexity(files: List[str]) -> Tuple[List[Dict[str, Any]], Dict[str
                         "rank": rank,
                         "lineno": b.lineno
                     })
+        except SyntaxError as e:
+            if log_errors:
+                HUD.log("WARN", "Parse Failure", f"{os.path.basename(f)} (Syntax Error)")
+        except (IOError, PermissionError) as e:
+            if log_errors:
+                HUD.log("FAIL", "IO Error", f"{os.path.basename(f)} ({str(e)})")
         except Exception as e:
-            # Skip files that can't be parsed
-            continue
+            if log_errors:
+                HUD.log("WARN", "Complexity Error", f"{os.path.basename(f)} ({str(e)})")
             
     avg_cc = total_cc / count if count > 0 else 0
     return all_blocks, distribution, avg_cc

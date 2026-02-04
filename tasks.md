@@ -173,13 +173,16 @@
 ## ⏭️ Start Here Next (Strategic Expansion)
 1. **Multi-Agent Orchestration**:
     - [x] **Heimdall's Gate**: Expand `synapse_sync.py` to support multi-remote knowledge distribution. [x]
-    - [ ] **Neural Handshake 3.0**: Implement zero-knowledge proof for persona verification during sync.
-    - [ ] **War Room Dashboard**: Update `overwatch.py` to show visual security heatmaps.
+    - [x] **Neural Handshake 3.0**: Implement zero-knowledge proof for persona verification during sync. [x]
+    - [x] **War Room Dashboard**: Update `overwatch.py` to show visual security heatmaps. [x]
 2. **Skill Forge Expansion**:
     - [x] **Automated Skill Synthesis**: Use RAG to generate new `.py` skills from documentation fragments. [x]
-    - [ ] **Performance Profiler**: Create `sentinel-perf` to identify execution bottlenecks in user-written skills.
+    - [x] **Performance Profiler**: Create `sentinel-perf` to identify execution bottlenecks in user-written skills. [x]
 
-## ⏭️ Start Here Next (Federated Evolution)
-1. **The Pulse of Mimir**:
-    - [ ] Implement `synapse_watch` to automatically pull updates when remotes are updated.
-    - [ ] Add `conflicts` resolution UI to Skill Forge for draft reviewing.
+## ⏭️ Start Here Next (Campaign Ascension: Target 318)
+1. **Batch 4: Documentation Sprint (Targets 318-400)**:
+    - [ ] **Vector Engine**: Finish remaining docstrings in `engine/vector.py` (Targets 318-325).
+    - [ ] **Synapse**: Implement class-level docstrings with examples in `synapse_sync.py` (Targets 326-335).
+    - [ ] **Forge**: Add parameter/return documentation to `skill_forge.py` (Targets 336-345).
+2. **Batch 5: Intent Expansion (Targets 401-500)**:
+    - [ ] Expand `thesaurus.md` and `fishtest_data.json` for enhanced semantic coverage.

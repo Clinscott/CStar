@@ -22,9 +22,18 @@ class Cortex:
         self._ingest()
     
     def _ingest(self):
+        """[ALFRED] Secure ingestion of project laws into the Cortex."""
+        from ui import HUD # Lazy import to avoid circularity
+        
         for name, path in self.knowledge_map.items():
-            if not os.path.exists(path): continue
+            if not os.path.exists(path): 
+                continue
             try:
+                # [ALFRED] Size guard for the Cortex
+                if os.path.getsize(path) > 1 * 1024 * 1024: # 1MB limit for docs
+                    HUD.log("WARN", "Cortex Security", f"Doc too large: {name}")
+                    continue
+
                 with open(path, 'r', encoding='utf-8') as f:
                     content = f.read()
                 
@@ -45,16 +54,12 @@ class Cortex:
                     if section.startswith('#'):
                         current_header = f"{name} > {section.lstrip('#').strip()}"
                     else:
-                        # This is content for the previous header
-                        # Add to Brain: Trigger = Header, Content = Text
-                        # We append random ID to trigger if duplicate headers exist? 
-                        # SovereignVector overwrites duplicates. 
-                        # For RAG, unique triggers are better. 
-                        # We'll trust the headers are mostly unique or the last one wins (fine for now).
                         self.brain.add_skill(current_header, section)
+            except (IOError, PermissionError) as e:
+                HUD.log("FAIL", "Cortex Ingest", f"{name} ({str(e)})")
             except Exception as e:
-                # Fail silently, Cortex is auxiliary
-                pass
+                # [ALFRED] Log but do not crash; Cortex is auxiliary
+                HUD.log("WARN", "Cortex Warning", f"Failed to digest {name}")
         
         self.brain.build_index()
 
