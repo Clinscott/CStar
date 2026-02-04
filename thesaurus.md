@@ -1,28 +1,145 @@
-# Corvus Star Thesaurus (Standard Version)
+# Corvus Star Thesaurus (Sanitized Expanded Version)
 
-Use this file to map project-specific jargon, synonyms, and variations to core concepts. This file is ingested by the SovereignFish Query Expansion logic.
+## 🌊 Expanded Intent Clusters
 
-## 🗺️ Domain Mappings
-
-### Core Workflows
-- **create**: build:1.0, component:0.9, develop:0.9, feature:0.9, generate:1.0, implement:1.0, logic:0.9, make:1.0, new:1.0, page:0.8, run-task:1.0
-- **finish**: close:0.9, complete:1.0, day:0.7, done:1.0, end:0.9, exit:1.0, finalize:1.0, quit:1.0, session:0.9, stop:0.9, wrap:1.0, wrap-it-up:1.0
-- **investigate**: analyze:1.0, audit:1.0, bug:1.0, check:0.9, confirm:0.9, debug:1.0, error:1.0, find:0.9, issue:0.9, investigate:1.0, linter:1.0, log:0.9, scanner:0.9, sentinel:1.0, structural:0.9, test:0.9, validate:0.9, verify:1.0
-- **speed**: agent-lightning:0.7, fast:1.0, pace:0.8, quick:1.0, tempo:0.9, velocity:1.0
-- **start**: begin:1.0, flow:0.7, go:0.5, initiate:1.0, lets-go:1.0, priority:0.9, project:0.8, resume:1.0, session:0.8, work:0.8
-- **forge**: create:0.9, forge:1.0, generate:1.0, synthesis:1.0, synthesize:1.0, skill-forge:1.0, template:0.8
-- **knowledge**: core:0.7, extraction:0.9, learn:0.8, remote:0.9, shared:0.8, synapse:1.0, sync:0.9
-
-### Skills & Discoverability
-- **e2e**: automation:0.9, browser:0.8, end-to-end:1.0, playwright:1.0, playwright-e2e:1.0, test:0.9
-- **futuristic**: aesthetics:0.7, glass:0.8, glow:0.8, holographic:1.0, neon:0.8, sci-fi:1.0, ui:0.6, ui-sci-fi:1.0, visual:0.7
-- **optimize**: agent:0.6, agent-lightning:1.0, gradient:0.7, learning:0.9, reinforcement:1.0, reward:0.7, rl:1.0, train:0.8, workflow:0.7
-- **polish**: aesthetics:0.9, clean:0.8, improve:1.0, linter:0.8, refine:1.0, sentinel:0.8, SovereignFish:1.0, structural:1.0, visual:0.9
-- **rl**: agent:0.7, agent-lightning:1.0, learning:0.9, optimization:1.0, reinforcement:1.0
-- **test**: audit:0.9, automation:0.9, browser:0.8, check:0.6, e2e:1.0, playwright:1.0, playwright-e2e:1.0, scrape:0.8, validate:1.0, verify:0.9
-- **visuals**: aesthetics:1.0, appearance:1.0, design:0.8, look:0.7, polish:0.9, refine:0.9, style:0.9, SovereignFish:1.0, ui:0.6
-
-### Domain: Shoe Store (Example)
-- **selling**: checkout, ecommerce, retail, shop, store
-- **shoes**: boots, footwear, kicks, sneakers
-- **web project**: app, dashboard, frontend, site
+- **aesthetics**: beautify, clean, futuristic, glass, glow, holographic, improve, neon, polish, refine, sci-fi, sovereignfish, ui-sci-fi, visual
+- **agent-health**: health, heartbeat, monitoring, pulse, status
+- **agent-lightning**: benchmark, fast, measure, metrics, optimization, optimize, perf, perf-profiler, performance, profile, quick, reinforcement, rl, speed, timing, velocity
+- **analyze**: audit, bug, check, debug, dig-into, error, find, investigate, issue, linter, look-into, sentinel, track-down, validate, verify
+- **api-docs**: doc-generator, docs, docstring, document, documentation, jsdoc, readme, write-docs, write-documentation
+- **architect**: blueprint, design, itinerary, map, outline, plan, prepare, roadmap, strategy
+- **audit**: analyze, bug, check, debug, dig-into, error, find, investigate, issue, linter, look-into, sentinel, track-down, validate, verify
+- **automation**: browser-automation, e2e, playwright, playwright-e2e
+- **beautify**: aesthetics, clean, futuristic, glass, glow, holographic, improve, neon, polish, refine, sci-fi, sovereignfish, ui-sci-fi, visual
+- **begin**: boot, fire-up, initiate, kick-off, lets-go, resume, spin-up, start
+- **benchmark**: agent-lightning, fast, measure, metrics, optimization, optimize, perf, perf-profiler, performance, profile, quick, reinforcement, rl, speed, timing, velocity
+- **blueprint**: architect, design, itinerary, map, outline, plan, prepare, roadmap, strategy
+- **boot**: begin, fire-up, initiate, kick-off, lets-go, resume, spin-up, start
+- **browser-automation**: automation, e2e, playwright, playwright-e2e
+- **bug**: analyze, audit, check, debug, dig-into, error, find, investigate, issue, linter, look-into, sentinel, track-down, validate, verify
+- **build**: component, construct, create, develop, feature, generate, implement, make, modification, page, run-task, update
+- **check**: analyze, audit, bug, debug, dig-into, error, find, integrity, investigate, issue, linter, look-into, performance, sentinel, test, track-down, validate, validity, verification, verify
+- **clean**: aesthetics, beautify, futuristic, glass, glow, holographic, improve, neon, polish, refine, sci-fi, sovereignfish, ui-sci-fi, visual
+- **close**: complete, done, end, exit, finalize, finish, pack-up, quit, stop, wind-down, wrap, wrap-it-up
+- **commit**: git, git-assistant, github, merge, rebase, repo, repository
+- **complete**: close, done, end, exit, finalize, finish, pack-up, quit, stop, wind-down, wrap, wrap-it-up
+- **component**: build, construct, create, develop, feature, generate, implement, make, modification, page, run-task, update
+- **construct**: build, component, create, develop, feature, generate, implement, make, modification, page, run-task, update
+- **create**: build, component, construct, develop, feature, generate, implement, make, modification, page, run-task, update
+- **debug**: analyze, audit, bug, check, dig-into, error, find, investigate, issue, linter, look-into, sentinel, track-down, validate, verify
+- **deploy**: deployment, launch, publish, push, release, ship
+- **deployment**: deploy, launch, publish, push, release, ship
+- **design**: architect, blueprint, itinerary, map, outline, plan, prepare, roadmap, strategy
+- **develop**: build, component, construct, create, feature, generate, implement, make, modification, page, run-task, update
+- **dig-into**: analyze, audit, bug, check, debug, error, find, investigate, issue, linter, look-into, sentinel, track-down, validate, verify
+- **doc-generator**: api-docs, docs, docstring, document, documentation, jsdoc, readme, write-docs, write-documentation
+- **docs**: api-docs, doc-generator, docstring, document, documentation, jsdoc, readme, write-docs, write-documentation
+- **docstring**: api-docs, doc-generator, docs, document, documentation, jsdoc, readme, write-docs, write-documentation
+- **document**: api-docs, doc-generator, docs, docstring, documentation, jsdoc, readme, write-docs, write-documentation
+- **documentation**: api-docs, doc-generator, docs, docstring, document, find, how-does, hunter, jsdoc, knowledge, knowledge-hunter, readme, research, scour, search, where-is, write-docs, write-documentation
+- **done**: close, complete, end, exit, finalize, finish, pack-up, quit, stop, wind-down, wrap, wrap-it-up
+- **e2e**: automation, browser-automation, playwright, playwright-e2e
+- **end**: close, complete, done, exit, finalize, finish, pack-up, quit, stop, wind-down, wrap, wrap-it-up
+- **error**: analyze, audit, bug, check, debug, dig-into, find, investigate, issue, linter, look-into, sentinel, track-down, validate, verify
+- **exit**: close, complete, done, end, finalize, finish, pack-up, quit, stop, wind-down, wrap, wrap-it-up
+- **fast**: agent-lightning, benchmark, measure, metrics, optimization, optimize, perf, perf-profiler, performance, profile, quick, reinforcement, rl, speed, timing, velocity
+- **feature**: build, component, construct, create, develop, generate, implement, make, modification, page, run-task, update
+- **finalize**: close, complete, done, end, exit, finish, pack-up, quit, stop, wind-down, wrap, wrap-it-up
+- **find**: analyze, audit, bug, check, debug, dig-into, documentation, error, how-does, hunter, investigate, issue, knowledge, knowledge-hunter, linter, look-into, research, scour, search, sentinel, track-down, validate, verify, where-is
+- **finish**: close, complete, done, end, exit, finalize, pack-up, quit, stop, wind-down, wrap, wrap-it-up
+- **fire-up**: begin, boot, initiate, kick-off, lets-go, resume, spin-up, start
+- **futuristic**: aesthetics, beautify, clean, glass, glow, holographic, improve, neon, polish, refine, sci-fi, sovereignfish, ui-sci-fi, visual
+- **generate**: build, component, construct, create, develop, feature, implement, make, modification, page, run-task, update
+- **git**: commit, git-assistant, github, merge, rebase, repo, repository
+- **git-assistant**: commit, git, github, merge, rebase, repo, repository
+- **github**: commit, git, git-assistant, merge, rebase, repo, repository
+- **glass**: aesthetics, beautify, clean, futuristic, glow, holographic, improve, neon, polish, refine, sci-fi, sovereignfish, ui-sci-fi, visual
+- **glow**: aesthetics, beautify, clean, futuristic, glass, holographic, improve, neon, polish, refine, sci-fi, sovereignfish, ui-sci-fi, visual
+- **health**: agent-health, heartbeat, monitoring, pulse, status
+- **heartbeat**: agent-health, health, monitoring, pulse, status
+- **holographic**: aesthetics, beautify, clean, futuristic, glass, glow, improve, neon, polish, refine, sci-fi, sovereignfish, ui-sci-fi, visual
+- **how-does**: documentation, find, hunter, knowledge, knowledge-hunter, research, scour, search, where-is
+- **hunter**: documentation, find, how-does, knowledge, knowledge-hunter, research, scour, search, where-is
+- **implement**: build, component, construct, create, develop, feature, generate, make, modification, page, run-task, update
+- **improve**: aesthetics, beautify, clean, futuristic, glass, glow, holographic, neon, polish, refine, sci-fi, sovereignfish, ui-sci-fi, visual
+- **initiate**: begin, boot, fire-up, kick-off, lets-go, resume, spin-up, start
+- **integrity**: check, performance, test, validate, validity, verification, verify
+- **investigate**: analyze, audit, bug, check, debug, dig-into, error, find, issue, linter, look-into, sentinel, track-down, validate, verify
+- **issue**: analyze, audit, bug, check, debug, dig-into, error, find, investigate, linter, look-into, sentinel, track-down, validate, verify
+- **itinerary**: architect, blueprint, design, map, outline, plan, prepare, roadmap, strategy
+- **jsdoc**: api-docs, doc-generator, docs, docstring, document, documentation, readme, write-docs, write-documentation
+- **kick-off**: begin, boot, fire-up, initiate, lets-go, resume, spin-up, start
+- **knowledge**: documentation, find, how-does, hunter, knowledge-hunter, research, scour, search, where-is
+- **knowledge-hunter**: documentation, find, how-does, hunter, knowledge, research, scour, search, where-is
+- **launch**: deploy, deployment, publish, push, release, ship
+- **lets-go**: begin, boot, fire-up, initiate, kick-off, resume, spin-up, start
+- **linter**: analyze, audit, bug, check, debug, dig-into, error, find, investigate, issue, look-into, sentinel, track-down, validate, verify
+- **look-into**: analyze, audit, bug, check, debug, dig-into, error, find, investigate, issue, linter, sentinel, track-down, validate, verify
+- **make**: build, component, construct, create, develop, feature, generate, implement, modification, page, run-task, update
+- **map**: architect, blueprint, design, itinerary, outline, plan, prepare, roadmap, strategy
+- **measure**: agent-lightning, benchmark, fast, metrics, optimization, optimize, perf, perf-profiler, performance, profile, quick, reinforcement, rl, speed, timing, velocity
+- **merge**: commit, git, git-assistant, github, rebase, repo, repository
+- **metrics**: agent-lightning, benchmark, fast, measure, optimization, optimize, perf, perf-profiler, performance, profile, quick, reinforcement, rl, speed, timing, velocity
+- **modification**: build, component, construct, create, develop, feature, generate, implement, make, page, run-task, update
+- **monitoring**: agent-health, health, heartbeat, pulse, status
+- **neon**: aesthetics, beautify, clean, futuristic, glass, glow, holographic, improve, polish, refine, sci-fi, sovereignfish, ui-sci-fi, visual
+- **optimization**: agent-lightning, benchmark, fast, measure, metrics, optimize, perf, perf-profiler, performance, profile, quick, reinforcement, rl, speed, timing, velocity
+- **optimize**: agent-lightning, benchmark, fast, measure, metrics, optimization, perf, perf-profiler, performance, profile, quick, reinforcement, rl, speed, timing, velocity
+- **outline**: architect, blueprint, design, itinerary, map, plan, prepare, roadmap, strategy
+- **pack-up**: close, complete, done, end, exit, finalize, finish, quit, stop, wind-down, wrap, wrap-it-up
+- **page**: build, component, construct, create, develop, feature, generate, implement, make, modification, run-task, update
+- **perf**: agent-lightning, benchmark, fast, measure, metrics, optimization, optimize, perf-profiler, performance, profile, quick, reinforcement, rl, speed, timing, velocity
+- **perf-profiler**: agent-lightning, benchmark, fast, measure, metrics, optimization, optimize, perf, performance, profile, quick, reinforcement, rl, speed, timing, velocity
+- **performance**: agent-lightning, benchmark, check, fast, integrity, measure, metrics, optimization, optimize, perf, perf-profiler, profile, quick, reinforcement, rl, speed, test, timing, validate, validity, velocity, verification, verify
+- **plan**: architect, blueprint, design, itinerary, map, outline, prepare, roadmap, strategy
+- **playwright**: automation, browser-automation, e2e, playwright-e2e
+- **playwright-e2e**: automation, browser-automation, e2e, playwright
+- **polish**: aesthetics, beautify, clean, futuristic, glass, glow, holographic, improve, neon, refine, sci-fi, sovereignfish, ui-sci-fi, visual
+- **prepare**: architect, blueprint, design, itinerary, map, outline, plan, roadmap, strategy
+- **profile**: agent-lightning, benchmark, fast, measure, metrics, optimization, optimize, perf, perf-profiler, performance, quick, reinforcement, rl, speed, timing, velocity
+- **publish**: deploy, deployment, launch, push, release, ship
+- **pulse**: agent-health, health, heartbeat, monitoring, status
+- **push**: deploy, deployment, launch, publish, release, ship
+- **quick**: agent-lightning, benchmark, fast, measure, metrics, optimization, optimize, perf, perf-profiler, performance, profile, reinforcement, rl, speed, timing, velocity
+- **quit**: close, complete, done, end, exit, finalize, finish, pack-up, stop, wind-down, wrap, wrap-it-up
+- **readme**: api-docs, doc-generator, docs, docstring, document, documentation, jsdoc, write-docs, write-documentation
+- **rebase**: commit, git, git-assistant, github, merge, repo, repository
+- **refine**: aesthetics, beautify, clean, futuristic, glass, glow, holographic, improve, neon, polish, sci-fi, sovereignfish, ui-sci-fi, visual
+- **reinforcement**: agent-lightning, benchmark, fast, measure, metrics, optimization, optimize, perf, perf-profiler, performance, profile, quick, rl, speed, timing, velocity
+- **release**: deploy, deployment, launch, publish, push, ship
+- **repo**: commit, git, git-assistant, github, merge, rebase, repository
+- **repository**: commit, git, git-assistant, github, merge, rebase, repo
+- **research**: documentation, find, how-does, hunter, knowledge, knowledge-hunter, scour, search, where-is
+- **resume**: begin, boot, fire-up, initiate, kick-off, lets-go, spin-up, start
+- **rl**: agent-lightning, benchmark, fast, measure, metrics, optimization, optimize, perf, perf-profiler, performance, profile, quick, reinforcement, speed, timing, velocity
+- **roadmap**: architect, blueprint, design, itinerary, map, outline, plan, prepare, strategy
+- **run-task**: build, component, construct, create, develop, feature, generate, implement, make, modification, page, update
+- **sci-fi**: aesthetics, beautify, clean, futuristic, glass, glow, holographic, improve, neon, polish, refine, sovereignfish, ui-sci-fi, visual
+- **scour**: documentation, find, how-does, hunter, knowledge, knowledge-hunter, research, search, where-is
+- **search**: documentation, find, how-does, hunter, knowledge, knowledge-hunter, research, scour, where-is
+- **sentinel**: analyze, audit, bug, check, debug, dig-into, error, find, investigate, issue, linter, look-into, track-down, validate, verify
+- **ship**: deploy, deployment, launch, publish, push, release
+- **sovereignfish**: aesthetics, beautify, clean, futuristic, glass, glow, holographic, improve, neon, polish, refine, sci-fi, ui-sci-fi, visual
+- **speed**: agent-lightning, benchmark, fast, measure, metrics, optimization, optimize, perf, perf-profiler, performance, profile, quick, reinforcement, rl, timing, velocity
+- **spin-up**: begin, boot, fire-up, initiate, kick-off, lets-go, resume, start
+- **start**: begin, boot, fire-up, initiate, kick-off, lets-go, resume, spin-up
+- **status**: agent-health, health, heartbeat, monitoring, pulse
+- **stop**: close, complete, done, end, exit, finalize, finish, pack-up, quit, wind-down, wrap, wrap-it-up
+- **strategy**: architect, blueprint, design, itinerary, map, outline, plan, prepare, roadmap
+- **test**: check, integrity, performance, validate, validity, verification, verify
+- **timing**: agent-lightning, benchmark, fast, measure, metrics, optimization, optimize, perf, perf-profiler, performance, profile, quick, reinforcement, rl, speed, velocity
+- **track-down**: analyze, audit, bug, check, debug, dig-into, error, find, investigate, issue, linter, look-into, sentinel, validate, verify
+- **ui-sci-fi**: aesthetics, beautify, clean, futuristic, glass, glow, holographic, improve, neon, polish, refine, sci-fi, sovereignfish, visual
+- **update**: build, component, construct, create, develop, feature, generate, implement, make, modification, page, run-task
+- **validate**: analyze, audit, bug, check, debug, dig-into, error, find, integrity, investigate, issue, linter, look-into, performance, sentinel, test, track-down, validity, verification, verify
+- **validity**: check, integrity, performance, test, validate, verification, verify
+- **velocity**: agent-lightning, benchmark, fast, measure, metrics, optimization, optimize, perf, perf-profiler, performance, profile, quick, reinforcement, rl, speed, timing
+- **verification**: check, integrity, performance, test, validate, validity, verify
+- **verify**: analyze, audit, bug, check, debug, dig-into, error, find, integrity, investigate, issue, linter, look-into, performance, sentinel, test, track-down, validate, validity, verification
+- **visual**: aesthetics, beautify, clean, futuristic, glass, glow, holographic, improve, neon, polish, refine, sci-fi, sovereignfish, ui-sci-fi
+- **where-is**: documentation, find, how-does, hunter, knowledge, knowledge-hunter, research, scour, search
+- **wind-down**: close, complete, done, end, exit, finalize, finish, pack-up, quit, stop, wrap, wrap-it-up
+- **wrap**: close, complete, done, end, exit, finalize, finish, pack-up, quit, stop, wind-down, wrap-it-up
+- **wrap-it-up**: close, complete, done, end, exit, finalize, finish, pack-up, quit, stop, wind-down, wrap
+- **write-docs**: api-docs, doc-generator, docs, docstring, document, documentation, jsdoc, readme, write-documentation
+- **write-documentation**: api-docs, doc-generator, docs, docstring, document, documentation, jsdoc, readme, write-docs

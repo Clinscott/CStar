@@ -1,8 +1,8 @@
-import math
 import json
+import math
+import os
 import re
 import sys
-import os
 
 # Import Shared UI from parent directory
 try:
@@ -14,6 +14,10 @@ except ImportError:
 
 class SovereignVector:
     def __init__(self, thesaurus_path=None, corrections_path=None, stopwords_path=None):
+        """
+        [ALFRED] Initializes the Sovereign Vector Engine.
+        Loads the thesaurus, corrections, and stopwords to build the project's intent vocabulary.
+        """
         self.thesaurus = self._load_thesaurus(thesaurus_path) if thesaurus_path else {}
         self.corrections = self._load_json(corrections_path) if corrections_path else {"phrase_mappings": {}, "synonym_updates": {}}
         self.stopwords = self._load_stopwords(stopwords_path)
@@ -62,7 +66,7 @@ class SovereignVector:
         try:
             with open(path, 'r', encoding='utf-8') as f: content = f.read()
             mapping = {}
-            for word, syns in re.findall(r'- (?:\*\*)?(\w+)(?:\*\*)?: ([\w,: \.]+)', content):
+            for word, syns in re.findall(r'- (?:\*\*)?([\w\d\-\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff]+)(?:\*\*)?: ([\w\d,\.: \-\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff]+)', content):
                 syn_dict = {}
                 for s in syns.split(','):
                     s = s.strip().lower()
@@ -189,7 +193,7 @@ class SovereignVector:
         # 1. Check direct phrase mappings (Corrections)
         if query_norm in self.corrections.get("phrase_mappings", {}):
             trigger = self.corrections["phrase_mappings"][query_norm]
-            is_global = trigger.startswith("GLOBAL:")
+            is_global = trigger.startswith("GLOBAL:") if trigger else False
             res = [{"trigger": trigger, "score": 1.1, "note": "Correction mapped", "is_global": is_global}]
             self._search_cache[query_norm] = res
             return res
@@ -198,43 +202,63 @@ class SovereignVector:
         weighted_tokens = self.expand_query(query)
         q_vec = self._vectorize(weighted_tokens)
         
-        # 3. Direct Trigger Boost
+        # 3. Direct Trigger Boost (Dampened)
         trigger_boosts = {}
         tokens = self.tokenize(query)
+        common_verbs = {
+            'make', 'start', 'go', 'check', 'look', 'wrap', 'run', 'build', 'create', 'do', 'begin',
+            'construct', 'implement', 'develop', 'generate', 'analyze', 'audit', 'debug', 'validate',
+            'verify', 'plan', 'design', 'test', 'deploy', 'launch', 'push', 'release', 'ship'
+        }
+        
         for t in tokens:
             if t in self.trigger_map:
+                boost_val = 0.3 if t in common_verbs else 0.6
                 for skill in self.trigger_map[t]:
-                    trigger_boosts[skill] = 1.0 # Force max confidence for explicit triggers
+                    trigger_boosts[skill] = max(trigger_boosts.get(skill, 0), boost_val)
+
 
         results = []
         for trigger, s_vec in self.vectors.items():
             score = self.similarity(q_vec, s_vec)
-            # Apply boost
+            # Apply dampened boost
             if trigger in trigger_boosts:
-                score = max(score, trigger_boosts[trigger])
+                score = score + trigger_boosts[trigger] * (1.0 - score)
             
             is_global = trigger.startswith("GLOBAL:")
             results.append({"trigger": trigger, "score": score, "is_global": is_global})
         
         final_results = sorted(results, key=lambda x: x['score'], reverse=True)
-        self._search_cache[query_norm] = final_results
-        return final_results
+        # Apply Confidence Floor (The 85% Bar - Dampened for Vector Search)
+        # [ALFRED] Ensure we don't return low-confidence noise.
+        confident_results = []
+        for r in final_results:
+            if r['score'] >= 0.25 or r.get('note') == 'Correction mapped':
+                # [ALFRED] Sink noise to None
+                if r['trigger'] == 'GLOBAL:noise':
+                    r['trigger'] = None
+                confident_results.append(r)
+        
+        self._search_cache[query_norm] = confident_results
+        return confident_results
+
 
     def load_core_skills(self):
         core = {
-            "/lets-go": "start resume begin progress initiate priority",
-            "/run-task": "create build generate implement develop make new",
-            "/investigate": "debug analyze investigate audit verify check find fix scanner sentinel validate explore",
-            "/wrap-it-up": "finish complete finalize quit exit done stop end wrap",
-            "SovereignFish": "polish improve refine aesthetics visuals style clean"
+            "/lets-go": "begin progress initiate priority resume",
+            "/run-task": "create build generate implement develop construct new",
+            "/investigate": "debug analyze audit sentinel validate explore",
+            "/wrap-it-up": "finish complete finalize quit exit done stop end",
+            "SovereignFish": "polish improve refine aesthetics style"
         }
         context = {
             "/lets-go": "task work project logic flow next",
             "/run-task": "feature page component task logic",
-            "/investigate": "bug error log issue login confirm test",
+            "/investigate": "bug error log issue login confirm",
             "/wrap-it-up": "session day close work",
             "SovereignFish": "visual structural ui ux design"
         }
+
         for trigger in core:
             words = core[trigger] + " " + context[trigger]
             self.add_skill(trigger, (words + " ") * 3)
