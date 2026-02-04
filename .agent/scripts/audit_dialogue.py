@@ -23,16 +23,22 @@ def run_audit(text_to_audit):
     
     persona_name = config.get("Persona", "ALFRED")
     
+    def _res(root, fname, subdir=None):
+        base = os.path.join(root, subdir) if subdir else root
+        qmd = os.path.join(base, fname.replace('.md', '.qmd'))
+        md = os.path.join(base, fname)
+        return qmd if os.path.exists(qmd) else md
+
     # Setup engine with paths
     engine = sv_engine.SovereignVector(
-        thesaurus_path=os.path.join(project_root, "thesaurus.md"),
+        thesaurus_path=_res(project_root, "thesaurus.md"),
         corrections_path=os.path.join(base_path, "corrections.json"),
         stopwords_path=os.path.join(scripts_dir, "stopwords.json")
     )
     
     # Initialize HUD Dialogue (needed for score_identity heuristic)
     voice_file = ("odin" if persona_name.upper() in ["GOD", "ODIN"] else "alfred") + ".md"
-    dialogue_path = os.path.join(project_root, "dialogue_db", voice_file)
+    dialogue_path = _res(project_root, voice_file, "dialogue_db")
     sv_engine.HUD.DIALOGUE = sv_engine.DialogueRetriever(dialogue_path)
     sv_engine.HUD.PERSONA = persona_name.upper()
 
