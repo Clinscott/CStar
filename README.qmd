@@ -1,0 +1,91 @@
+# 🐟 Corvus Star Framework: Agent Language & Skill Ecosystem
+
+Corvus Star (C*) is a high-performance, local intelligence framework designed to map natural language intent to specialized agent workflows. It enables seamless "Plain-English-to-Workflow" interaction for AI agents, specifically optimized for the Antigravity/Gemini API.
+
+## 🚀 Quick Start (Installation)
+
+To deploy the Corvus Star protocols into a new project, run the following command **from this project's root**:
+
+```powershell
+.\install.ps1 -TargetDir "C:\path\to\your\new\project"
+```
+
+**What it does:**
+- Initializes the `.agent/` structure with workflows, skills, and the SovereignVector engine.
+- Deploys `synapse_sync.py` for Mimir's Eye connectivity.
+- **Automatically installs** Python dependencies (`ruff`, `radon`) if Python is detected.
+- Creates an installation log at `.agent/install.log` for troubleshooting.
+- Stamps version metadata (install date, Git hash) into `config.json`.
+
+## 🔒 Security & Performance
+- **Dynamic Portability**: Resolves source paths via `$PSScriptRoot` for flexible deployment.
+- **Automated Dependency Injection**: Auto-installs `ruff` and `radon` via `pip`.
+- **Knowledge Audit Trail**: Comprehensive installation logging in `.agent/install.log`.
+- **Hardened Authentication**: `synapse_sync.py --push` requires verified Git permissions.
+- **Shielded Operations**: Comprehensive path traversal and shell injection protection.
+- **Lore-Accurate Versioning**: Stamped installation metadata in `config.json`.
+
+**Note:** The installer is now **fully portable** - you can clone this repo anywhere and run the script from its location.
+
+---
+
+## 🏗️ Core Components
+
+### 1. SovereignVector Engine (`.agent/scripts/sv_engine.py`)
+A standalone Python engine that handles intent recognition locally. It uses **TF-IDF Vectorization** and **Cosine Similarity** to match your requests to the most relevant "Skill" or "Workflow."
+
+- **No APIs Required**: Works entirely offline.
+- **Context-Aware**: Ingests your `thesaurus.qmd` and active project context to improve accuracy.
+- **Mimir's Eye (Synapse)**: Distributed knowledge core allowing bidirectional synchronization of Skills and Corrections.
+- **Iron Cortex**: RAG-based intelligence for querying project documentation.
+
+### 2. The Trace & Learning Loop
+The system is designed to be transparent. Every action starts with an **Interpretation Trace**:
+1. **Trace Output**: The agent explains *what* it heard and *why* it chose a specific skill.
+2. **User Correction**: If the mapping is wrong, simply say: *"No, I meant [Skill Name]"*.
+3. **Learning**: The system automatically saves this correction to `.agent/corrections.json`, ensuring it never makes the same mistake again.
+
+### 3. Skills Repository (`.agent/skills/`)
+A collection of specialized agent abilities:
+- **GitAuto**: Managed commits and branch safety.
+- **EnvDoctor**: System health and dependency audits.
+- **KnowledgeHunter**: Deep-dive research across local files and the web.
+
+### 4. Refined Personas (The Great Duality)
+The framework operates under two lore-accurate personas:
+- **ODIN (The All-Father)**: Cryptic, observational, and riddling. Guided by the *Hávamál*.
+- **ALFRED (The Butler)**: Firm, gentle, and witty. Guided by the *Pennyworth Protocol*.
+- **System Naming**: Mirroring names like *Mimir's Well* vs *The Brain* ensure thematic consistency.
+
+### 5. The Neural Overwatch & Federation
+- **Neural Overwatch**: Real-time terminal dashboard (`overwatch.py`) for monitoring federated agent activity.
+- **The Crucible**: Automated "Trial by Combat" ingestion system that verifies external traces before merging.
+- **Law of Latency**: Strict performance monitoring ensures the engine never regresses >5ms.
+
+---
+
+## 📂 Directory Structure
+
+```text
+root/
+├── .agent/
+│   ├── scripts/          # The SovereignVector engine
+│   ├── skills/           # Specialized agent abilities
+│   ├── workflows/        # Core execution protocols (lets-go, run-task, etc.)
+│   └── corrections.json  # Your project-specific learning data
+├── AGENTS.qmd             # The Linscott Standard & instructions
+├── wireframe.qmd          # The Project Map
+└── tasks.qmd              # The Active Checklist
+```
+
+---
+
+## 🏆 The Linscott Standard
+This framework is built on the **Linscott Standard** of software excellence:
+- **Trust, but Verify**: Every interpretation is traced for your review.
+- **Statistical Proof**: Features must be verified via the **Fishtest Protocol**.
+- **No Regressions**: High-performance local checks ensure system stability.
+
+---
+
+> *"Complexity is the enemy of execution. Excellence is the habit of small corrections."*

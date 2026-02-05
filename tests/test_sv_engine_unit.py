@@ -92,7 +92,7 @@ class TestHUD(unittest.TestCase):
         
         HUD.PERSONA = "ALFRED"
         theme = HUD._get_theme()
-        self.assertEqual(theme['title'], "C* NEURAL TRACE")
+        self.assertEqual(theme['title'], "C* BUTLER INTERFACE")
 
 if __name__ == '__main__':
     unittest.main()

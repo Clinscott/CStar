@@ -408,7 +408,7 @@ if __name__ == "__main__":
         py_path = os.path.join(draft_path, f"{subject}.py")
         with open(py_path, 'w', encoding='utf-8') as f: f.write(code)
         
-        # Target 302: Generate SKILL.md
+        # Target 302: Generate SKILL.qmd
         md_content = f"""---
 name: {subject.replace('_', ' ').title()}
 description: Generated {archetype} skill for {subject.replace('_', ' ')}.
@@ -421,7 +421,7 @@ description: Generated {archetype} skill for {subject.replace('_', ' ')}.
 ## Automatically Generated Pattern
 This skill was synthesized by the Skill Forge from project documentation.
 """
-        with open(os.path.join(draft_path, "SKILL.md"), 'w', encoding='utf-8') as f:
+        with open(os.path.join(draft_path, "SKILL.qmd"), 'w', encoding='utf-8') as f:
             f.write(md_content)
             
         return draft_path

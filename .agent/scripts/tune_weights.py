@@ -44,7 +44,12 @@ def tune_weights(project_root: str):
     db_path = os.path.join(project_root, "fishtest_data.json")
     if not os.path.exists(db_path): return
 
-    engine = SovereignVector(os.path.join(project_root, "thesaurus.md"))
+    def _res(fname):
+        qmd = os.path.join(project_root, fname.replace('.md', '.qmd'))
+        md = os.path.join(project_root, fname)
+        return qmd if os.path.exists(qmd) else md
+
+    engine = SovereignVector(_res("thesaurus.qmd"))
     engine.load_core_skills()
     engine.load_skills_from_dir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "skills"))
     engine.build_index()

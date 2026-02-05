@@ -60,7 +60,7 @@ def compile_traces():
     """[ALFRED] Refactored trace compiler with decoupled analysis and reporting."""
     base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     tdir = os.path.join(base, "traces")
-    rpath = os.path.join(base, "TRACE_REPORT.md")
+    rpath = os.path.join(base, "TRACE_REPORT.qmd")
 
     if not os.path.exists(tdir): return
     files = glob.glob(os.path.join(tdir, "*.json"))

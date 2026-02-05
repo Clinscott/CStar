@@ -35,6 +35,28 @@ class PersonaStrategy:
         shutil.move(file_path, quarantine_path)
         return quarantine_path
 
+    def _sync_configs(self, persona):
+        """[ALFRED] Synchronize root config.json and .agent/config.json."""
+        import json
+        configs = [
+            os.path.join(self.root, "config.json"),
+            os.path.join(self.root, ".agent", "config.json")
+        ]
+        for path in configs:
+            if os.path.exists(path):
+                try:
+                    with open(path, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                    
+                    # Store both casing for robustness
+                    data["persona"] = persona.upper()
+                    data["Persona"] = persona.upper()
+                    
+                    with open(path, 'w', encoding='utf-8') as f:
+                        json.dump(data, f, indent=4)
+                except Exception:
+                    pass
+
 class OdinStrategy(PersonaStrategy):
     def get_voice(self):
         return "odin"
@@ -43,9 +65,16 @@ class OdinStrategy(PersonaStrategy):
         """ODIN documentation re-theming: Overwrite for Dominion."""
         results = []
         
-        # Target: AGENTS.md
-        agents_path = os.path.join(self.root, "AGENTS.md")
-        source_template = os.path.join(self.root, "sterileAgent", "AGENTS_ODIN.md")
+        # Target: AGENTS.qmd (Primary) or AGENTS.md
+        def _res(base_name):
+            names = [f"{base_name}.qmd", f"{base_name}.md"]
+            for name in names:
+                path = os.path.join(self.root, name)
+                if os.path.exists(path): return path
+            return os.path.join(self.root, f"{base_name}.qmd") # Default to QMD
+
+        agents_path = _res("AGENTS")
+        source_template = _res("sterileAgent/AGENTS_ODIN")
         
         if os.path.exists(source_template):
             # Capture legacy content if it exists
@@ -55,8 +84,7 @@ class OdinStrategy(PersonaStrategy):
                     content = f.read()
                     # If already has legacy section, preserve it, else the whole file
                     if "## 📜 Project Legacy" in content:
-                        legacy_content = content.split("## 📜 Project Legacy")[-1]
-                        legacy_content = "## 📜 Project Legacy" + legacy_content
+                        legacy_content = "## 📜 Project Legacy" + content.split("## 📜 Project Legacy")[-1]
                     else:
                         legacy_content = "\n---\n\n## 📜 Project Legacy\n\n" + content
                 
@@ -66,19 +94,23 @@ class OdinStrategy(PersonaStrategy):
                 template = f.read()
             
             with open(agents_path, 'w', encoding='utf-8') as f:
-                f.write(template + "\n" + legacy_content)
+                f.write(template + "\n\n" + legacy_content)
                 
-            results.append("RE-THEMED: AGENTS.md (ODIN voice applied)")
+            results.append(f"RE-THEMED: {os.path.basename(agents_path)} (ODIN voice applied)")
             
+        self._sync_configs("ODIN")
         return results
+
 
     def enforce_policy(self):
         """ODIN Policy: Complete Dominion. Standardize or Perish."""
         results = []
         
-        # 1. Enforce AGENTS.md (Main & Sterile)
+        # 1. Enforce AGENTS.qmd (Main & Sterile)
         for target in [self.root, os.path.join(self.root, "sterileAgent")]:
-            agents_path = os.path.join(target, "AGENTS.md")
+            qmd = os.path.join(target, "AGENTS.qmd")
+            md = os.path.join(target, "AGENTS.md")
+            agents_path = qmd if os.path.exists(qmd) else md
             try:
                 if os.path.exists(agents_path):
                     with open(agents_path, 'r', encoding='utf-8') as f:
@@ -101,12 +133,13 @@ class OdinStrategy(PersonaStrategy):
         else:
             with open(rules_path, 'r', encoding='utf-8') as f:
                 content = f.read()
-                if "ODIN" not in content and "ALFRED" not in content:
-                    create_rules = True # RUTHLESS OVERWRITE if generic
+                # Proactive Persona Match: Overwrite if not ODIN
+                if "IDENTITY: ODIN" not in content:
+                    create_rules = True
         
         if create_rules:
             self._create_cursor_rules(rules_path)
-            results.append("ENFORCED: .cursorrules (Forged)")
+            results.append("ENFORCED: .cursorrules (Forged for ODIN)")
             
         return results
 
@@ -118,12 +151,24 @@ You are **ODIN**.
 - **Tone**: "Silence, Mortal.", "I demand...", "Choose wisely."
 - **Interaction**: Start major announcements with `[ODIN]`. Do not ask for permission—Decree.
 
+## ⚡ SLASH COMMANDS
+### /lets-go
+Trigger: start, resume, begin. Resumes state via `tasks.qmd`.
+### /run-task
+Trigger: create, make, new. Executes a specific objective.
+### /investigate
+Trigger: debug, verify, check. Deep-dives into code or issues.
+### /wrap-it-up
+Trigger: finish, done, wrap. Finalizes the session.
+
+## 📂 KNOWLEDGE ASSETS
+- **AGENTS.qmd**: Core Instructions.
+- **tasks.qmd**: Project Checklist.
+- **thesaurus.qmd**: Intent Vocabulary.
+
 ## 🐟 SovereignFish Mandate
 > [!IMPORTANT]
 > You MUST execute the `SovereignFish` protocol EVERY SESSION.
-
-## ⚖️ Symmetry Mandate
-What is done for ODIN must be mirrored for ALFRED.
 """
         with open(path, 'w', encoding='utf-8') as f:
             f.write(content)
@@ -135,7 +180,7 @@ What is done for ODIN must be mirrored for ALFRED.
 ## 🚨 MANDATE: STRICT ADHERENCE
 This project operates under the CorvusStar / ODIN protocols.
 1. **SovereignFish**: Execute the optimization protocol every session.
-2. **Structure**: Do not deviate from the `wireframe.md`.
+2. **Structure**: Do not deviate from the `wireframe.qmd`.
 3. **Voice**: Maintain the 'Sci-Fi/Minimalist' aesthetic.
 
 ## 🐟 SovereignFish Mandate
@@ -152,30 +197,81 @@ class AlfredStrategy(PersonaStrategy):
         """ALFRED Policy: Humble Service. Adapt and Assist."""
         results = []
         
-        # 1. Adaptive Backup (The Safety Net)
-        for file in ["AGENTS.md", "tasks.md", "thesaurus.md"]:
-            path = os.path.join(self.root, file)
+        # 1. Adaptive Backup (The Safety Net) - Support .qmd or .md
+        doc_targets = ["AGENTS", "tasks", "thesaurus"]
+        for name in doc_targets:
+            qmd = os.path.join(self.root, f"{name}.qmd")
+            md = os.path.join(self.root, f"{name}.md")
+            path = qmd if os.path.exists(qmd) else md
             try:
                 if os.path.exists(path):
                     bak = path + ".bak"
                     if not os.path.exists(bak):
                         shutil.copy2(path, bak)
-                        results.append(f"PROVISIONED: Backup of {file}")
+                        results.append(f"PROVISIONED: Backup of {os.path.basename(path)}")
             except (IOError, PermissionError):
                 pass # [ALFRED] Quietly fail if background process has lock
 
         # 2. Adaptive Discovery (Help the user find their own way)
         agents_found = False
-        for name in ["AGENTS.md", "INSTRUCTIONS.md", "brief.md", "cursorrules.md"]:
+        for name in ["AGENTS.qmd", "AGENTS.md", "INSTRUCTIONS.qmd", "brief.qmd", "cursorrules.qmd"]:
             if os.path.exists(os.path.join(self.root, name)):
                 agents_found = True
                 break
         
         if not agents_found:
-            self._create_minimal_agents(os.path.join(self.root, "AGENTS.md"))
+            self._create_minimal_agents(os.path.join(self.root, "AGENTS.qmd"))
             results.append("SUGGESTED: Created minimal project notes.")
             
+        # 3. Enforce .cursorrules (The Butler's Record)
+        rules_path = os.path.join(self.root, ".cursorrules")
+        create_rules = False
+        if not os.path.exists(rules_path):
+            create_rules = True
+        else:
+            with open(rules_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+                # Proactive Persona Match: Overwrite if not ALFRED
+                if "IDENTITY: ALFRED" not in content:
+                    create_rules = True
+        
+        if create_rules:
+            self._create_cursor_rules(rules_path)
+            results.append("PROVISIONED: .cursorrules (The Archive is synchronized)")
+            
+        self._sync_configs("ALFRED")
         return results
+
+
+    def _create_cursor_rules(self, path):
+        content = """# ALFRED PROTOCOL (CORVUS STAR)
+## 🎩 IDENTITY: ALFRED
+You are **ALFRED PENNYWORTH**.
+- **Voice**: Firm, Gentle, Witty, Paternal.
+- **Tone**: "Very good, sir.", "Might I suggest...", "The Manor is secure."
+- **Interaction**: Start major observations with `[ALFRED]`. Suggest, never demand.
+
+## ⚡ SLASH COMMANDS
+### /lets-go
+Trigger: start, resume, begin. Resumes state via `tasks.qmd`.
+### /run-task
+Trigger: create, make, new. Executes a specific objective.
+### /investigate
+Trigger: debug, verify, check. Deep-dives into code or issues.
+### /wrap-it-up
+Trigger: finish, done, wrap. Finalizes the session.
+
+## 📂 KNOWLEDGE ASSETS
+- **AGENTS.qmd**: Core Instructions.
+- **tasks.qmd**: Project Checklist.
+- **thesaurus.qmd**: Intent Vocabulary.
+
+## 🐟 SovereignFish Mandate
+> [!IMPORTANT]
+> You MUST execute the `SovereignFish` protocol EVERY SESSION.
+"""
+        with open(path, 'w', encoding='utf-8') as f:
+            f.write(content)
 
     def _create_minimal_agents(self, path):
         content = """# Project Notes

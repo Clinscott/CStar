@@ -17,7 +17,7 @@ Target the specific files created in `/execute`.
 ## 2. **Phase 2: The Constellation Check (Integration)**
 Does this break the larger system?
 1.  **Dependencies**: Check files that import the new code.
-2.  **Wireframe**: Does `wireframe.md` need updates?
+2.  **Wireframe**: Does `wireframe.qmd` need updates?
 
 ## 3. **Phase 3: The Fishtest (System)**
 Run the Engine's own verification suite to ensure NO REGRESSION in the agent itself.

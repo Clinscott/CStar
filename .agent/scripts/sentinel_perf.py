@@ -25,8 +25,13 @@ class SentinelPerf:
     def __init__(self, project_root: str):
         self.root = project_root
         self.base = os.path.join(project_root, ".agent")
+        def _res(fname):
+            qmd = os.path.join(project_root, fname.replace('.md', '.qmd'))
+            md = os.path.join(project_root, fname)
+            return qmd if os.path.exists(qmd) else md
+
         self.engine = SovereignVector(
-            thesaurus_path=os.path.join(project_root, "thesaurus.md"),
+            thesaurus_path=_res("thesaurus.md"),
             corrections_path=os.path.join(self.base, "corrections.json"),
             stopwords_path=os.path.join(self.base, "scripts", "stopwords.json")
         )

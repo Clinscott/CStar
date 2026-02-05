@@ -1,0 +1,22 @@
+# Protocol Initialization (God Command)
+
+To initialize a new project with the **Sovereign Agent Protocols**, copy and run the following command in your new project's root directory:
+
+## 🚀 The God Command (PowerShell)
+
+```powershell
+New-Item -ItemType Directory -Path ".agent/workflows" -Force; Copy-Item -Path "c:\Users\Craig\Corvus\CorvusStar\sterileAgent\lets-go.qmd", "c:\Users\Craig\Corvus\CorvusStar\sterileAgent\run-task.qmd", "c:\Users\Craig\Corvus\CorvusStar\sterileAgent\investigate.qmd", "c:\Users\Craig\Corvus\CorvusStar\sterileAgent\wrap-it-up.qmd", "c:\Users\Craig\Corvus\CorvusStar\sterileAgent\SovereignFish.qmd" -Destination ".agent/workflows\" -Force; Copy-Item -Path "c:\Users\Craig\Corvus\CorvusStar\sterileAgent\AGENTS.qmd", "c:\Users\Craig\Corvus\CorvusStar\sterileAgent\wireframe.qmd", "c:\Users\Craig\Corvus\CorvusStar\sterileAgent\dev_journal.qmd", "c:\Users\Craig\Corvus\CorvusStar\sterileAgent\thesaurus.qmd", "c:\Users\Craig\Corvus\CorvusStar\sterileAgent\fishtest_data.json", "c:\Users\Craig\Corvus\CorvusStar\sterileAgent\tasks.qmd", "c:\Users\Craig\Corvus\CorvusStar\sterileAgent\memories.qmd" -Destination ".\" -Force
+```
+
+---
+
+## 📂 What this does:
+1.  **Creates `.agent/workflows/`**: The folder for Agent Skills.
+2.  **Deploys Workflows**: Copies `lets-go`, `run-task`, `investigate`, `wrap-it-up`, and `SovereignFish` (AgLng enabled).
+3.  **Deploys Context Docs**:
+    -   `AGENTS.qmd`: The "Linscott Standard" instruction set.
+    -   `wireframe.qmd`: The project map.
+    -   `tasks.qmd`: The active checklist.
+    -   `memories.qmd`: Persistent agent context.
+    -   `thesaurus.qmd` / `fishtest_data.json`: SovereignFish Engine templates.
+    -   `dev_journal.qmd`: Architectural record.

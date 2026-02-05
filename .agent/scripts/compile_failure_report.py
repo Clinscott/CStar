@@ -12,7 +12,7 @@ def compile_report(project_root):
     
     # Paths
     base_dir = os.path.join(project_root, ".agent")
-    rej_path = os.path.join(base_dir, "traces", "quarantine", "REJECTIONS.md")
+    rej_path = os.path.join(base_dir, "traces", "quarantine", "REJECTIONS.qmd")
     
     rejections = []
     if os.path.exists(rej_path):

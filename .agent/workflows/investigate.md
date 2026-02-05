@@ -8,9 +8,9 @@ Follow these steps to perform a deep analytical dive into a specific aspect of t
 
 ## 1. Define and Locate
 1. **Identify the Target**: Explicitly state what function, component, or feature is being investigated.
-2. **Check Context**: Read `memory.md` to understand established patterns or known issues related to the target.
-3. **Consult Wireframe**: Check `wireframe.md` to match UI components with their documented functions and paths.
-13. **Locate Resources**: Consult the "Project Directory Structure" in `wireframe.md` and find all related files.
+2. **Check Context**: Read `memory.qmd` to understand established patterns or known issues related to the target.
+3. **Consult Wireframe**: Check `wireframe.qmd` to match UI components with their documented functions and paths.
+13. **Locate Resources**: Consult the "Project Directory Structure" in `wireframe.qmd` and find all related files.
    - Core logic (services, lib)
    - UI components
    - API routes
