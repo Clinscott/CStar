@@ -139,6 +139,21 @@ The framework supports cross-agent intelligence sharing via the "Federated Netwo
 - **Rejection Ledger**: `c:/Users/Craig/Corvus/CorvusStar/.agent/traces/quarantine/REJECTIONS.qmd`
     - Audit trail of failed ingestion attempts, including persona and reason (e.g., Regression, Format Error, Latency Breach).
 
+### Odin Protocol: Federated Warlords (Game)
+- **Path**: `c:/Users/Craig/Corvus/CorvusStar/odin_protocol/`
+- **Core Loop**: `main.py` - Orchestrates the encounter/mutation cycle. Features **Alfred's Briefing** (detailed tactical analysis with turn-based cooldown).
+- **Engine**:
+    - `models.py`: Defines `Chromosome`, `UniverseState`, and `Encounter`.
+    - `logic.py`: Handles **The Ripple Effect** via a deterministic `SYNERGY_MAP` (+10%/-15% interactions) for all 24 traits. Calculates `calculate_effective_stats` with strict Linscott typing.
+    - `gm_client.py`: LLM-powered scenario generator. Incorporates **Seeded Uniqueness** based on the Git instance hash.
+    - `scenarios.py`: Rule-based fallback generator for offline play, seeded for deterministic world-building.
+- **Persistence**: `persistence.py` - **The Immutable Timeline**. Automatically commits state changes to Git with descriptive messages and state hashes.
+- **Key Features**:
+    - **Adjudication**: Mathematical success check based on difficulty thresholds and effective stat arrays.
+    - **Federated Seeding**: Uses `get_federated_seed()` (Git Hash) to ensure every project instance has a unique, persistent universe.
+    - **Alfred's Briefing**: Infrequent, detailed reports using the Synergy Map to warn of genetic vulnerabilities.
+    - **Mutation Screen**: Interactive CLI UI for upgrading genetic traits using "Mutation Credits" earned from conquest.
+
 ### Conflict Resolution
 - **Logic**: Implemented in `merge_traces.py`.
 - **Primary Rule**: **Real User Wins**. External trace data (real-world usage) overrides existing synthetic test cases or older traces.
