@@ -1,0 +1,17 @@
+project:
+  type: website
+  output-dir: docs
+
+title: "Corvus Star"
+author: "Craig Linscott"
+
+format:
+  html:
+    theme: darkly
+    toc: true
+    code-fold: true
+  gfm:
+    variant: +yaml_metadata_block
+
+execute:
+  enabled: false

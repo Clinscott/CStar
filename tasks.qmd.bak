@@ -1,0 +1,61 @@
+# Task: Corvus Star Framework Development
+
+## ⚡ Sovereign Commands (Workflows)
+All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md` for Menu discovery).
+- `/lets-go` → [lets-go.md](.agent/workflows/lets-go.md): Resume state and identify priorities.
+- `/run-task` → [run-task.md](.agent/workflows/run-task.md): Targeted execution of user requests.
+- `/investigate` → [investigate.md](.agent/workflows/investigate.md): Deep code exploration and debugging.
+- `/plan` → [plan.md](.agent/workflows/plan.md): Blueprinting and architecture.
+- `/test` → [test.md](.agent/workflows/test.md): Integrity, regression, and performance validation.
+- `/wrap-it-up` → [wrap-it-up.md](.agent/workflows/wrap-it-up.md): Session cleanup and handshake.
+- `/sovereignfish` → [SovereignFish.qmd](.agent/workflows/SovereignFish.qmd): Self-improvement protocol.
+
+## 🗺️ Core Components
+- **The Sovereign Engine** (`.agent/scripts/engine/`):
+    - `vector.py`: High-performance intent resolution (LRU Cache, Unicode, Stemming).
+    - `dialogue.py`: Persona-aware response retrieval and scoring.
+    - `cortex.py`: RAG-powered documentation ingestion and querying.
+- **The Knowledge Core** (`skills_db/`): Decentralized skill registry.
+- **The Workforce** (`skills/` and `.agent/skills/`): Project-specific automation logic.
+
+## ✅ Completed Phases
+
+### 1-10. Foundation & Core Engine
+- [x] **Project Genesis**: Initialized Corvus Star structure and Linscott Standard. [x]
+- [x] **Neural Engine**: Implemented `SovereignVector` with weighted synonyms and stemming. [x]
+- [x] **Workflow Automation**: Populated core workflows (`lets-go`, `run-task`, `plan`). [x]
+- [x] **Global Registry**: Established `skills_db` for cross-project capability sharing. [x]
+- [x] **Interactive JIT**: Enabled real-time skill installation via `sv_engine.py`. [x]
+- [x] **Trace Visualization**: Created `trace_viz.py` for neural path exploration. [x]
+
+### 11-15. Performance & Security
+- [x] **Mimir's Boost**: Achieved 0.06ms search latency via LRU caching. [x]
+- [x] **Heimdall Vigil**: Implemented SHA-256 challenge-response and security scanning. [x]
+- [x] **Sterile Seed**: Verified replicability via `sterileAgent` template. [x]
+- [x] **The Great Duality**: Implemented asymmetric ODIN/ALFRED persona support. [x]
+
+### 16-19. Campaign N=1000 (Saturation)
+- [x] **Phase 1 (Saturation)**: Achieved 100.0% accuracy on N=1000 benchmark cases. [x]
+- [x] **Phase 2 (Robustness)**: Commenced stress-testing (baseline 66.1%). [x]
+- [x] **Thesaurus Expansion**: Refactored `thesaurus.qmd` into 152 atomic clusters. [x]
+
+### 20. QMD Migration & Linguistic Integrity
+- [x] **QMD Migration**: Converted all 149 .md files to .qmd (Docs, Skills, Workflows). [x]
+- [x] **Engine Sync**: Updated `SovereignVector`, `Cortex`, and `TraceViz` for .qmd support. [x]
+- [x] **Linguistic Integrity**: Achieved 91.1% Accuracy for English intents. [x]
+- [x] **Priority Logic**: Implemented Sovereign Priority (1.05x) for core intents. [x]
+- [x] **Script Modernization**: Updated all 15+ system scripts to prefer .qmd. [x]
+- [x] **Verification**: 100% pass on pytest for core engine components. [x]
+- [x] **Hybrid Calibration**: Restored .md for workflows; verified Persona sync and HUD aesthetics. [x]
+
+## ⏭️ Start Here Next (Strategic Expansion)
+
+### 1. Robustness & Multi-Agent Logic
+- [ ] **International Calibration**: Re-enable and tune non-ASCII test cases in `fishtest.py`.
+- [ ] **Ambiguity Resolution**: Resolve the remaining 8.9% failures in intent routing.
+- [ ] **Conflict Radar**: Polish the `--war-room` mode in `trace_viz.py` for collision analysis.
+
+### 2. Documentation & Refinement
+- [ ] **Thesaurus Sanitization**: Finalize cluster cleaning in `thesaurus.qmd`.
+- [ ] **Docstring Sprint**: Complete Target 318 (docstrings for `engine/vector.py`).
+- [ ] **Alfred's Mirror**: Populate `ALFRED_SUGGESTIONS.qmd` from session telemetry.

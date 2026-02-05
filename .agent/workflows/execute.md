@@ -6,12 +6,12 @@ description: The Standard Protocol for turning a generic Plan into concrete Code
 
 > [!CRITICAL]
 > **Identity Check**: Perform via **Active Persona** (`config.json`).
-> **Prerequisite**: An approved `implementation_plan.md` must exist.
+> **Prerequisite**: An approved `implementation_plan.qmd` must exist.
 
 ## 1. **Phase 1: The Context Load**
-1.  **Read the Plan**: Ingest `implementation_plan.md`.
-2.  **Read the Map**: Ingest `wireframe.md`.
-3.  **Read the Soul**: Ingest `AGENTS.md` (Design & Testing Mandates).
+1.  **Read the Plan**: Ingest `implementation_plan.qmd`.
+2.  **Read the Map**: Ingest `wireframe.qmd`.
+3.  **Read the Soul**: Ingest `AGENTS.qmd` (Design & Testing Mandates).
 
 ## 2. **Phase 2: The Forge (Code Generation)**
 Execute the plan step-by-step.

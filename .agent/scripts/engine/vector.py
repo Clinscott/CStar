@@ -76,7 +76,7 @@ class SovereignVector:
         
         if not os.path.exists(actual_path) or os.path.getsize(actual_path) > 2*10**6: return {}
         try:
-            with open(path, 'r', encoding='utf-8') as f: content = f.read()
+            with open(actual_path, 'r', encoding='utf-8') as f: content = f.read()
             mapping = {}
             for word, syns in re.findall(r'- (?:\*\*)?([\w\d\-\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff]+)(?:\*\*)?: ([\w\d,\.: \-\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff]+)', content):
                 syn_dict = {}
@@ -103,11 +103,24 @@ class SovereignVector:
                 mapping[word] = word_map
 
     def tokenize(self, text: str) -> list[str]:
-        """[ALFRED] Optimized Unicode-aware tokenizer with stopword filtration."""
+        """
+        [ALFRED] Optimized Unicode-aware tokenizer with CJK segmentation and trigger preservation.
+        
+        Args:
+            text: The raw input string to tokenize.
+            
+        Returns:
+            A list of prioritized tokens, preserving command triggers and handling CJK characters.
+        """
         if not text: return []
-        # [ALFRED] Use \w+ for Unicode support including CJK characters
-        tokens = re.findall(r'[\w\d]+', text.lower())
-        return [t for t in tokens if t not in self.stopwords] or tokens
+        text = text.lower()
+        # [ALFRED] Preserving / and - for direct command matching
+        tokens = []
+        for match in re.finditer(r'[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff]|[\w\d\/\-]+', text):
+            tokens.append(match.group())
+        
+        # Filter stopwords UNLESS the token is a known trigger
+        return [t for t in tokens if t not in self.stopwords or t in self.trigger_map] or tokens
 
     def expand_query(self, query: str) -> dict[str, float]:
         """[ALFRED] Neural Query Expansion with stemming and thesaurus signals."""
@@ -152,11 +165,12 @@ class SovereignVector:
         # [ALFRED] Cache sorted vocab to avoid redundant sorts in search loop
         self.sorted_vocab = sorted(list(self.vocab))
         
-        doc_counts = {word: 0 for word in self.vocab}
+        doc_counts = {}
         for text in self.skills.values():
             words = set(self.tokenize(text))
             for word in words:
-                doc_counts[word] += 1
+                doc_counts[word] = doc_counts.get(word, 0) + 1
+                if word not in self.vocab: self.vocab.add(word) # Dynamic update
         
         # Calculate IDF
         for word, count in doc_counts.items():
@@ -220,12 +234,15 @@ class SovereignVector:
         common_verbs = {
             'make', 'start', 'go', 'check', 'look', 'wrap', 'run', 'build', 'create', 'do', 'begin',
             'construct', 'implement', 'develop', 'generate', 'analyze', 'audit', 'debug', 'validate',
-            'verify', 'plan', 'design', 'test', 'deploy', 'launch', 'push', 'release', 'ship'
+            'verify', 'plan', 'design', 'test', 'deploy', 'launch', 'push', 'release', 'ship',
+            'setup', 'bootstrap', 'now', 'today', 'what', 'please', 'just', 'more',
+            'ui', 'ux', 'visual', 'visuals', 'interface', 'status'
         }
         
         for t in tokens:
             if t in self.trigger_map:
-                boost_val = 0.3 if t in common_verbs else 0.6
+                # [ALFRED] Maximum precision boost for high-accuracy intent resolution
+                boost_val = 0.8 if t in common_verbs else 0.98
                 for skill in self.trigger_map[t]:
                     trigger_boosts[skill] = max(trigger_boosts.get(skill, 0), boost_val)
 
@@ -238,6 +255,10 @@ class SovereignVector:
                 score = score + trigger_boosts[trigger] * (1.0 - score)
             
             is_global = trigger.startswith("GLOBAL:")
+            # [ALFRED] Sovereign Priority: Slight tie-breaker for core intents
+            if (trigger.startswith("/") or trigger == "SovereignFish") and not is_global:
+                score *= 1.05
+                
             results.append({"trigger": trigger, "score": score, "is_global": is_global})
         
         final_results = sorted(results, key=lambda x: x['score'], reverse=True)
@@ -257,26 +278,38 @@ class SovereignVector:
 
     def load_core_skills(self):
         core = {
-            "/lets-go": "begin progress initiate priority resume",
-            "/run-task": "create build generate implement develop construct new",
-            "/investigate": "debug analyze audit sentinel validate explore",
-            "/wrap-it-up": "finish complete finalize quit exit done stop end",
-            "SovereignFish": "polish improve refine aesthetics style"
+            "/lets-go": "begin initiate start resume lets-go priority boot",
+            "/run-task": "create build generate implement develop construct new feature page component",
+            "/investigate": "debug analyze audit sentinel validate explore bug error issue auth login credentials",
+            "/plan": "architect blueprint itinerary map outline plan strategy roadmap system architecture",
+            "/test": "check integrity performance test validate verification verify coverage unit integration",
+            "/wrap-it-up": "finish complete finalize quit exit done stop end session",
+            "SovereignFish": "polish improve refine aesthetics style design beautify visual ui ux"
         }
         context = {
-            "/lets-go": "task work project logic flow next",
+            "/lets-go": "task work project logic flow next setup environment",
             "/run-task": "feature page component task logic",
             "/investigate": "bug error log issue login confirm",
+            "/plan": "architecture module feature system implementation",
+            "/test": "unit coverage integration performance quality",
             "/wrap-it-up": "session day close work",
             "SovereignFish": "visual structural ui ux design"
         }
 
+        # [ALFRED] Populate trigger_map FIRST so tokenize can protect triggers
+        for trigger in core:
+            for w in core[trigger].split():
+                clean = w.lower().strip()
+                if clean not in self.trigger_map: self.trigger_map[clean] = []
+                self.trigger_map[clean].append(trigger)
+            
+            # [ALFRED] Hardened Trigger: Index the trigger itself for 1:1 matching
+            if trigger not in self.trigger_map: self.trigger_map[trigger] = [trigger]
+            elif trigger not in self.trigger_map[trigger]: self.trigger_map[trigger].append(trigger)
+
         for trigger in core:
             words = core[trigger] + " " + context[trigger]
             self.add_skill(trigger, (words + " ") * 3)
-            for w in core[trigger].split():
-                if w not in self.trigger_map: self.trigger_map[w] = []
-                self.trigger_map[w].append(trigger)
 
     def load_skills_from_dir(self, directory, prefix=""):
         """[ALFRED] Batch load skills with high-value signal extraction."""
@@ -285,7 +318,7 @@ class SovereignVector:
             path = os.path.join(directory, folder)
             if not os.path.isdir(path): continue
             
-            # [ALFRED] Staged Symbiosis: Support SKILL.qmd or SKILL.md
+            # [ALFRED] Hybrid Discovery: Support SKILL.qmd (Primary) or SKILL.md (Fallback)
             qmd_path = os.path.join(path, "SKILL.qmd")
             md_path = os.path.join(path, "SKILL.md")
             if os.path.exists(qmd_path):
@@ -298,21 +331,35 @@ class SovereignVector:
         trigger = f"{prefix}{folder}"
         with open(md_path, 'r', encoding='utf-8') as f: lines = f.readlines()
         
-        signal, in_fm = [], False
+        signal, in_fm, expect_keywords = [], False, False
         for line in lines:
-            if line.strip() == "---": in_fm = not in_fm; continue
+            line = line.strip()
+            if not line: continue
+            if line == "---": in_fm = not in_fm; continue
             if in_fm:
                 if line.startswith(("name:", "description:")): signal.append(line.split(":", 1)[1].strip())
-            elif "Activation Words:" in line:
-                words = line.split(":", 1)[1].strip().replace(',', ' ')
-                for w in words.split():
-                    clean = w.lower().strip()
-                    if clean and clean not in self.stopwords:
-                        if clean not in self.trigger_map: self.trigger_map[clean] = []
-                        self.trigger_map[clean].append(trigger)
-                signal.append(words)
+            elif "Activation Words" in line or "Keywords" in line:
+                if ":" in line:
+                    words = line.split(":", 1)[1].strip()
+                    self._populate_trigger_map(trigger, words)
+                    signal.append(words)
+                else:
+                    expect_keywords = True
+            elif expect_keywords:
+                self._populate_trigger_map(trigger, line)
+                signal.append(line)
+                expect_keywords = False
         
         self.add_skill(trigger, f"{folder} {' '.join(signal)}")
+
+    def _populate_trigger_map(self, trigger, words_str):
+        """Helper to safely populate trigger map with word list."""
+        words = words_str.replace(',', ' ').lower().split()
+        for w in words:
+            if not w: continue
+            if w not in self.trigger_map: self.trigger_map[w] = []
+            if trigger not in self.trigger_map[w]:
+                self.trigger_map[w].append(trigger)
 
     def score_identity(self, text: str, persona_name: str) -> float:
         """

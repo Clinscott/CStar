@@ -49,7 +49,7 @@ def tune_weights(project_root: str):
         md = os.path.join(project_root, fname)
         return qmd if os.path.exists(qmd) else md
 
-    engine = SovereignVector(_res("thesaurus.md"))
+    engine = SovereignVector(_res("thesaurus.qmd"))
     engine.load_core_skills()
     engine.load_skills_from_dir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "skills"))
     engine.build_index()

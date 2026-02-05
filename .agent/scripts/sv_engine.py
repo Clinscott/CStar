@@ -45,7 +45,7 @@ def main():
     config = utils.load_config(project_root)
 
     # Persona & Strategy Init
-    HUD.PERSONA = config.get("Persona", "ALFRED").upper()
+    HUD.PERSONA = (config.get("persona") or config.get("Persona") or "ALFRED").upper()
     strategy = personas.get_strategy(HUD.PERSONA, project_root)
     
     # [ALFRED] Staged Symbiosis: Dialogue Fallback
@@ -74,7 +74,11 @@ def main():
         for res in strategy.enforce_policy(): print(f"[{HUD.PERSONA}] {res}")
 
     # Engine Execution
-    engine = SovereignVector(os.path.join(project_root, "thesaurus.md"), os.path.join(base_path, "corrections.json"))
+    engine = SovereignVector(
+        os.path.join(project_root, "thesaurus.qmd"), 
+        os.path.join(base_path, "corrections.json"),
+        os.path.join(base_path, "scripts", "stopwords.json")
+    )
     engine.load_core_skills()
     engine.load_skills_from_dir(os.path.join(base_path, "skills"))
     

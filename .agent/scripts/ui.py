@@ -4,6 +4,13 @@ import random
 from datetime import datetime
 from typing import List, Optional, Dict, Any, Union
 
+# [ALFRED] Force UTF-8 for CLI aesthetics on Windows
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except (AttributeError, IOError):
+        pass
+
 class HUD:
     """
     Hyper-Refined User Interface (HUD) Class.
@@ -178,10 +185,12 @@ class HUD:
         if len(str_val) > max_val_len:
             str_val = str_val[:max_val_len-3] + "..."
             
-        padding = width - 1 - 20 - 1 - len(str_val) - 1
-        if padding < 0: padding = 0
+        inner_content = f"{lbl_color}{str_lbl:<20}{HUD.RESET} {val_color}{str_val}{HUD.RESET}"
+        # We need to calculate spaces based on RAW text length to avoid ANSI code interference
+        raw_len = 1 + 20 + 1 + len(str_val)
+        padding = max(0, width - 2 - raw_len)
             
-        print(f"{theme['dim']}│{HUD.RESET} {lbl_color}{str_lbl:<20}{HUD.RESET} {val_color}{str_val}{' '*padding}{theme['dim']}│{HUD.RESET}")
+        print(f"{theme['dim']}│{HUD.RESET} {inner_content}{' '*padding} {theme['dim']}│{HUD.RESET}")
 
     @staticmethod
     def box_separator(color: Optional[str] = None, width: Optional[int] = None) -> None:
@@ -290,8 +299,8 @@ class HUD:
         """Logs a rejected attempt to the rejection ledger."""
         ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         entry = f"| {ts} | {persona} | {reason} | {details} |\n"
-        # We target a specific ledger path: .agent/traces/quarantine/REJECTIONS.md
-        ledger_path = os.path.join(os.getcwd(), ".agent", "traces", "quarantine", "REJECTIONS.md")
+        # We target a specific ledger path: .agent/traces/quarantine/REJECTIONS.qmd
+        ledger_path = os.path.join(os.getcwd(), ".agent", "traces", "quarantine", "REJECTIONS.qmd")
         try:
             os.makedirs(os.path.dirname(ledger_path), exist_ok=True)
             if not os.path.exists(ledger_path):
