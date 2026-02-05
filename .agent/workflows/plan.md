@@ -23,10 +23,10 @@ Check your Active Persona (`config.json`).
 ### 🔄 The Recursive Loop
 **Rule**: You generally CANNOT proceed to Phase 2 immediately. You MUST enter a definition loop.
 
-1.  **Analyze**: Read the user's request and project context (`memories.md`, `wireframe.md`).
+1.  **Analyze**: Read the user's request and project context (`memories.qmd`, `wireframe.qmd`).
 2.  **Iterate**: Formulate 3-5 clarifying questions.
     -   *Scope*: What is strictly IN vs OUT?
-    -   *Components*: Which `wireframe.md` items are touched?
+    -   *Components*: Which `wireframe.qmd` items are touched?
     -   *Triple Threat*: Does this need Trace Viz, Global Skills, or Fishtest?
 3.  **Halt**: Use `notify_user` to ask these questions.
 4.  **Refine**: When answered, if still vague, ask again.
@@ -35,9 +35,9 @@ Check your Active Persona (`config.json`).
 
 Once scope is locked:
 
-1.  **Wireframe Mapping**: Explicitly list which components in `wireframe.md` will be [MODIFIED], [CREATED], or [DELETED].
+1.  **Wireframe Mapping**: Explicitly list which components in `wireframe.qmd` will be [MODIFIED], [CREATED], or [DELETED].
 2.  **Skill Check**: Scan `skills_db/` for Global Skills (`git-assistant`, `codestats`) that should be installed or used.
-3.  **Trace Analysis**: Consult `TRACE_REPORT.md` (if exists) for historical pitfalls.
+3.  **Trace Analysis**: Consult `TRACE_REPORT.qmd` (if exists) for historical pitfalls.
 
 ## 3. **Phase 3: The Future (Prophecy / Preparation)**
 
@@ -51,8 +51,8 @@ Once scope is locked:
 ## 4. **Phase 4: The Battle Plan (Execution Strategy)**
 
 Generate the following Session Artifacts:
-1.  **`task.md`**: Breakdown of steps. *No step > 1 hour*.
-2.  **`implementation_plan.md`**: Technical specs, file paths, and verification steps (The Linscott Standard).
+1.  **`task.qmd`**: Breakdown of steps. *No step > 1 hour*.
+2.  **`implementation_plan.qmd`**: Technical specs, file paths, and verification steps (The Linscott Standard).
 
 ## 5. **Phase 5: The Ratification (Sign-off)**
 
@@ -69,4 +69,4 @@ You MUST include a thought from the **Inactive Persona**.
 ---
 
 **Wait for the User's Decree.**
-(Do not execute code until `implementation_plan.md` is approved via `/lets-go` or `proceed`).
+(Do not execute code until `implementation_plan.qmd` is approved via `/lets-go` or `proceed`).

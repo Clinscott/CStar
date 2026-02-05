@@ -31,13 +31,13 @@ def run_audit(text_to_audit):
 
     # Setup engine with paths
     engine = sv_engine.SovereignVector(
-        thesaurus_path=_res(project_root, "thesaurus.md"),
+        thesaurus_path=_res(project_root, "thesaurus.qmd"),
         corrections_path=os.path.join(base_path, "corrections.json"),
         stopwords_path=os.path.join(scripts_dir, "stopwords.json")
     )
     
     # Initialize HUD Dialogue (needed for score_identity heuristic)
-    voice_file = ("odin" if persona_name.upper() in ["GOD", "ODIN"] else "alfred") + ".md"
+    voice_file = ("odin" if persona_name.upper() in ["GOD", "ODIN"] else "alfred") + ".qmd"
     dialogue_path = _res(project_root, voice_file, "dialogue_db")
     sv_engine.HUD.DIALOGUE = sv_engine.DialogueRetriever(dialogue_path)
     sv_engine.HUD.PERSONA = persona_name.upper()

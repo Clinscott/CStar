@@ -50,7 +50,7 @@ def get_engine():
         return qmd if os.path.exists(qmd) else md
 
     engine = SovereignVector(
-        thesaurus_path=_res("thesaurus.md"), 
+        thesaurus_path=_res("thesaurus.qmd"), 
         corrections_path=os.path.join(base_path, "corrections.json"),
         stopwords_path=os.path.join(base_path, "scripts", "stopwords.json")
     )

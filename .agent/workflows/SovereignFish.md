@@ -21,10 +21,10 @@ description: Automated improvement discovery and execution. Runs N=5 improvement
 **Goal**: Establish current state and identify improvement surface.
 
 1. Read `config.json` → Load Active Persona (ODIN/ALFRED)
-2. Read `SOVEREIGNFISH_LEDGER.md` → Parse Session Log for last entry date
-3. Read `tasks.md` → Identify incomplete `[/]` or `[ ]` items
-4. Read `implementation_plan.md` → Load improvement backlog (if exists)
-5. Read `DEV_JOURNAL.md` → Understand recent trajectory
+2. Read `SOVEREIGNFISH_LEDGER.qmd` → Parse Session Log for last entry date
+3. Read `tasks.qmd` → Identify incomplete `[/]` or `[ ]` items
+4. Read `implementation_plan.qmd` → Load improvement backlog (if exists)
+5. Read `dev_journal.qmd` → Understand recent trajectory
 
 **Output**: Context summary with persona, last session date, and item counts.
 
@@ -37,7 +37,7 @@ description: Automated improvement discovery and execution. Runs N=5 improvement
 ### Priority Algorithm (Alfred's Wisdom: Impact > Quantity)
 1. **CRITICAL/HIGH First**: Always prioritize structural fixes and security gaps
 2. **Batch by Theme**: Group related items to minimize context switching
-3. **Stale Tasks**: Any `tasks.md` item marked `[/]` for >24h gets priority
+3. **Stale Tasks**: Any `tasks.qmd` item marked `[/]` for >24h gets priority
 4. **Opportunistic**: If current tier exhausted, advance to next
 
 ### Impact Tiers
@@ -70,7 +70,7 @@ description: Automated improvement discovery and execution. Runs N=5 improvement
 
 ### Time Box
 - Each improvement: **≤15 minutes**
-- If exceeds → Mark `[ESCALATE]` and defer to `tasks.md`
+- If exceeds → Mark `[ESCALATE]` and defer to `tasks.qmd`
 
 ---
 
@@ -93,7 +93,7 @@ python .agent/scripts/latency_check.py
 ```
 
 ### Failure Protocol
-- **Test Fails** → Revert item, log to `REJECTIONS.md`, continue to next
+- **Test Fails** → Revert item, log to `REJECTIONS.qmd`, continue to next
 - **Fishtest Regresses** → STOP, escalate to user immediately
 - **Latency Exceeds 100ms** → Flag for optimization review
 
@@ -103,7 +103,7 @@ python .agent/scripts/latency_check.py
 
 **Goal**: Update documentation with session results.
 
-1. **Append** to `SOVEREIGNFISH_LEDGER.md` Session Log:
+1. **Append** to `SOVEREIGNFISH_LEDGER.qmd` Session Log:
 ```markdown
 ### YYYY-MM-DD (Session N: Category)
 - **Improvement 1 (Category)**: Description
@@ -111,9 +111,9 @@ python .agent/scripts/latency_check.py
 ...
 ```
 
-2. **Mark items complete** in `implementation_plan.md` (strikethrough)
-3. **Update** `tasks.md` if improvement resolves a task
-4. **Log session** in `DEV_JOURNAL.md` (brief entry)
+2. **Mark items complete** in `implementation_plan.qmd` (strikethrough)
+3. **Update** `tasks.qmd` if improvement resolves a task
+4. **Log session** in `dev_journal.qmd` (brief entry)
 
 ---
 

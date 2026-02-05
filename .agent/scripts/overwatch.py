@@ -14,7 +14,7 @@ class StatsCollector:
         self.root = project_root
         self.base = base_dir
         self.db_path = os.path.join(project_root, "fishtest_data.json")
-        self.rej_path = os.path.join(base_dir, "traces", "quarantine", "REJECTIONS.md")
+        self.rej_path = os.path.join(base_dir, "traces", "quarantine", "REJECTIONS.qmd")
 
     def collect(self) -> Dict[str, int]:
         stats = {"cases": 0, "rejections": 0, "war_zones": 0}

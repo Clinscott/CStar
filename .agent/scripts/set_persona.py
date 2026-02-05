@@ -18,7 +18,7 @@ def set_persona():
         with open(config_path, 'r', encoding='utf-8') as f:
             config = json.load(f)
     
-    old_persona = config.get("Persona", "ALFRED").upper()
+    old_persona = (config.get("persona") or config.get("Persona") or "ALFRED").upper()
 
     try:
         choice = input("\nSelect Persona [1/2]: ").strip()
@@ -53,9 +53,15 @@ def set_persona():
         print("  Your documentation remains intact. I've been... observing.")
         print("")
         
-        # Offer top suggestion from Alfred's shadow file
-        suggestions_path = os.path.join(project_root, "ALFRED_SUGGESTIONS.md")
-        if os.path.exists(suggestions_path):
+        # Offer top suggestion from Alfred's shadow file (Support .qmd or .md)
+        def _get_sug():
+            for ext in ['.qmd', '.md']:
+                p = os.path.join(project_root, f"ALFRED_SUGGESTIONS{ext}")
+                if os.path.exists(p): return p
+            return None
+            
+        suggestions_path = _get_sug()
+        if suggestions_path:
             with open(suggestions_path, 'r', encoding='utf-8') as f:
                 content = f.read()
             # Extract first non-header suggestion line
@@ -68,10 +74,17 @@ def set_persona():
         print("  [Alfred's Whisper]: \"Shall I prepare the usual, sir?\"")
         print("="*60 + "\n")
 
-    # Update Config
-    config["Persona"] = new_persona
-    with open(config_path, 'w', encoding='utf-8') as f:
-        json.dump(config, f, indent=4)
+    # Update Config (Sync both)
+    for path in [config_path, os.path.join(project_root, "config.json")]:
+        if os.path.exists(path):
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                data["persona"] = new_persona
+                data["Persona"] = new_persona
+                with open(path, 'w', encoding='utf-8') as f:
+                    json.dump(data, f, indent=4)
+            except: pass
     
     print(f"\n✅ Persona set to: {new_persona}")
     print("Applying operational policy...")
