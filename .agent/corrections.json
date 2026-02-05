@@ -358,7 +358,11 @@
         "i want to rebase the repository": "GLOBAL:git-assistant",
         "i want to fire up theproject": "/lets-go",
         "i want to go the store": "/lets-go",
-        "i want to push the app": "GLOBAL:deployment-skill"
+        "i want to push the app": "GLOBAL:deployment-skill",
+        "play the odingame": "python odin_protocol/main.py",
+        "play the game": "python odin_protocol/main.py",
+        "start the odin protocol": "python odin_protocol/main.py",
+        "launch the game": "python odin_protocol/main.py"
     },
     "synonym_updates": {}
 }

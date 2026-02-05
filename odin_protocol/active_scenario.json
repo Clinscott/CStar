@@ -1,0 +1,36 @@
+{
+    "planet_name": "Grave of Yggdrasil",
+    "environmental_hazard": "A unstable Temperature field is neutralizing your biomass.",
+    "evolutionary_pressure": "High Energy_Stability detects weakness in SURTR_FLAME.",
+    "immediate_question": "How shall we bypass this unstable obstruction, Warlord?",
+    "dominance_gain": 2.5,
+    "failure_penalty": 10.9,
+    "potential_item": null,
+    "alfred_hint": "Sir, research suggests that Energy_Stability can be bypassed with a high enough Combat Rating.",
+    "options": [
+        {
+            "id": "A",
+            "text": "Brute Force biomass (Might/Fury)",
+            "threshold": 30.0,
+            "difficulty": "Hard"
+        },
+        {
+            "id": "B",
+            "text": "Analyze Temperature patterns (Intellect)",
+            "threshold": 26.0,
+            "difficulty": "Normal"
+        },
+        {
+            "id": "C",
+            "text": "Evasive biomass Maneuvers (Agility)",
+            "threshold": 25.5,
+            "difficulty": "Easy"
+        },
+        {
+            "id": "D",
+            "text": "Sacrifice biomass segments (Risky)",
+            "threshold": 23.0,
+            "difficulty": "Gamble"
+        }
+    ]
+}

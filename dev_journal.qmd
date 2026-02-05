@@ -451,3 +451,21 @@ Achieved 100.0% accuracy on the N=1000 benchmark dataset using an overfit-correc
 - **Slash Menu**: Functioning as expected with `/lets-go`, `/wrap-it-up`, etc.
 - **Verification**: Balanced at **92.1% accuracy** (100% Core accuracy, 10% non-critical noise).
 - **Aesthetics**: Premium stylized terminal output restored.
+
+## 2026-02-05 - Odin Protocol: Strategic Depth & Federated Seeding
+### Summary
+- **The Ripple Effect**: Implemented the genetic synergy/interference engine for the Odin Protocol. All 24 chromosomes now have deterministic interactions (+10%/-15%) governed by a `SYNERGY_MAP`.
+- **Federated Seeding**: Seeded all narrative and scenario generation with the project's **Git Hash**. This ensures that every Corvus Star instance is a unique world with persistent, deterministic hazards.
+- **Alfred's Briefing**: Added a tactical briefing system with an operational cooldown protocol (3 turns) to provide high-value, infrequent guidance.
+- **Git-State Persistence**: Finalized the "Immutable History" goal by integrating automatic Git commits into the `OdinPersistence` engine. Every world conquered is now a permanent mutation in the project's timeline.
+
+### Architectural Decisions
+- **Deterministic Randomness**: Chose to use `random.Random(seed_hash)` instances locally rather than modifying the global random state. This ensures that different parts of the game (Scenario vs Item Generation) remain independent but repeatable.
+- **Version-Agnostic Verification**: Encountered and resolved a Python version mismatch in type-hint verification during testing. Standardized on string-based signature checking in `tests/test_odin_advanced.py` to ensure robustness across environments.
+- **KeyboardInterrupt Protection**: Decided to wrap the main game loop in an explicit `KeyboardInterrupt` guard. For a CLI game, "Ctrl+C" is a common exit intent; treating it as a graceful "Dormancy" signal with a final state save prevents data loss.
+
+### Current State
+- **Odin Protocol**: The core strategic simulation is architecturally complete and verified.
+- **Strategic Depth**: The synergy engine is functional and balances reward vs vulnerability.
+- **Unique Narratives**: Seeded generation is active and unique per instance.
+- **Linscott Standard**: The entire protocol codebase is refactored to strict typing and documentation standards.

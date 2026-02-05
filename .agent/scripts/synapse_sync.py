@@ -151,6 +151,7 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--push", action="store_true")
     p.add_argument("--pull", action="store_true")
+    p.add_argument("--dry-run", action="store_true")
     p.add_argument("--remote", default="primary")
     p.add_argument("--all", action="store_true")
     args = p.parse_args()
@@ -168,7 +169,7 @@ def main():
     for r_name in remotes:
         try:
             s = Synapse(remote=r_name)
-            if args.push: s.push()
+            if args.push: s.push(dry_run=args.dry_run)
             else: s.pull()
         except Exception as e:
             HUD.log("FAIL", f"Sync Failed: {r_name}", str(e)[:30])

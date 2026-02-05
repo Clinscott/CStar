@@ -61,8 +61,14 @@ deletions: []
     - LRU Search Cache: Vector engine search results should be cached by query phrase to achieve O(1) retrieval for common natural language commands.
     - Dynamic HUD Width: Auto-sensing UI width should include a 40-120 column "Safety Bracket" to ensure ASCII art and progress bars remain readable across varied console environments.
     - Campaign Roadmap (N=1000): Large-scale architectural campaigns must be indexed in a master `IMPLEMENTATION_PLAN.qmd` with numbered targets (1-1000) for high-fidelity progress tracking.
-deletions: []
-```
     - Intent Sink Pattern: Use a dedicated 'noise' skill with worldly nouns (e.g., 'coffee', 'gift') to act as a mathematical sink for non-technical adversarial traps.
     - Sanitized Clustering: Thesaurus intent groups must be atomic and non-overlapping. Overlapping keywords cause vector ambiguity.
     - Trigger Boost Dampening: Direct keyword trigger boosts should be dampened (0.3-0.5) for common technical verbs to prevent keyword gravity from overriding vector proximity.
+    - The Ripple Effect (Genetic Math): Use a deterministic map for stat interactions (Synergy/Interference). One-level depth is the safety standard to prevent infinite recursive loops in effective stat calculations.
+    - Federated Seeding: Seeding game instances with project-level Git metadata (hashes) ensures unique, persistent "Universes" across different framework instances.
+    - Briefing Cooldown Protocol: High-value guidance systems should implement turn-based or time-based cooldowns (e.g., 3 turns) to preserve narrative weight and strategic value.
+    - Immutable Game History: Use Git to persist game states. Committing the `save_state.json` with a descriptive message acts as a permanent, versioned chronicle of a player's journey.
+    - Version-Agnostic Signature Check: When verifying type hints in tests, use string-based signature inspection (`inspect.signature`) to accommodate Python 3.9+ `dict` vs `typing.Dict` variants in different runtime environments.
+    - Graceful Terminal Shutdown: Wrap main CLI loops in `KeyboardInterrupt` guards. Treat Ctrl+C as a saved "Dormancy" state rather than an exit crash to preserve user progress.
+deletions: []
+```
