@@ -45,9 +45,16 @@ def main():
     config = utils.load_config(project_root)
 
     # Persona & Strategy Init
-    HUD.PERSONA = config.get("Persona", "ALFRED").upper()
+    HUD.PERSONA = (config.get("persona") or config.get("Persona") or "ALFRED").upper()
     strategy = personas.get_strategy(HUD.PERSONA, project_root)
-    HUD.DIALOGUE = DialogueRetriever(os.path.join(project_root, "dialogue_db", strategy.get_voice() + ".md"))
+    
+    # [ALFRED] Staged Symbiosis: Dialogue Fallback
+    def _resolve_dialogue_path(root, voice):
+        qmd = os.path.join(root, "dialogue_db", f"{voice}.qmd")
+        md = os.path.join(root, "dialogue_db", f"{voice}.md")
+        return qmd if os.path.exists(qmd) else md
+        
+    HUD.DIALOGUE = DialogueRetriever(_resolve_dialogue_path(project_root, strategy.get_voice()))
 
     p = argparse.ArgumentParser()
     p.add_argument("query", nargs="*"), p.add_argument("--json", action="store_true")
@@ -67,7 +74,11 @@ def main():
         for res in strategy.enforce_policy(): print(f"[{HUD.PERSONA}] {res}")
 
     # Engine Execution
-    engine = SovereignVector(os.path.join(project_root, "thesaurus.md"), os.path.join(base_path, "corrections.json"))
+    engine = SovereignVector(
+        os.path.join(project_root, "thesaurus.qmd"), 
+        os.path.join(base_path, "corrections.json"),
+        os.path.join(base_path, "scripts", "stopwords.json")
+    )
     engine.load_core_skills()
     engine.load_skills_from_dir(os.path.join(base_path, "skills"))
     

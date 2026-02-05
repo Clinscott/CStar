@@ -14,16 +14,16 @@ class TestCortex(unittest.TestCase):
         self.cortex = Cortex(self.project_root, self.base_path)
 
     def test_ingestion(self):
-        # Should have ingested AGENTS.md
+        # Should have ingested AGENTS.qmd
         # We can check if brain has skills
         self.assertTrue(len(self.cortex.brain.skills) > 0, "Cortex brain should not be empty")
 
     def test_query(self):
-        # We know "No Web Visualization" is in AGENTS.md
+        # We know "No Web Visualization" is in AGENTS.qmd
         results = self.cortex.query("web visualization")
         self.assertTrue(len(results) > 0, "Should return results")
         top = results[0]
-        self.assertTrue("AGENTS.md" in top['trigger'], "Should find source in AGENTS.md")
+        self.assertTrue("AGENTS.qmd" in top['trigger'], "Should find source in AGENTS.qmd")
 
 if __name__ == '__main__':
     unittest.main()

@@ -23,9 +23,9 @@ def _get_config(base_path):
     except Exception as e: return None, f"Config Error: {str(e)[:30]}"
 
 def _verify_integrity(quarantine_zone):
-    md_path = os.path.join(quarantine_zone, "SKILL.md")
+    md_path = os.path.join(quarantine_zone, "SKILL.qmd")
     if not os.path.exists(md_path) or os.path.getsize(md_path) == 0:
-        return False, "Missing/empty SKILL.md"
+        return False, "Missing/empty SKILL.qmd"
     return True, None
 
 def _run_security_scan(quarantine_zone):
@@ -34,7 +34,7 @@ def _run_security_scan(quarantine_zone):
     
     threat = 0
     for root, _, files in os.walk(quarantine_zone):
-        for f in [f for f in files if f.endswith((".py", ".md"))]:
+        for f in [f for f in files if f.endswith((".py", ".qmd", ".md"))]:
             try:
                 res = subprocess.run([sys.executable, scanner, os.path.join(root, f)], capture_output=True, timeout=15)
                 threat = max(threat, res.returncode)

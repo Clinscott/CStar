@@ -43,8 +43,14 @@ def get_engine():
     # Load Config for Framework Root
     config = load_json(os.path.join(base_path, "config.json"))
 
+    # [ALFRED] Staged Symbiosis: Support .qmd or .md
+    def _res(fname):
+        qmd = os.path.join(project_root, fname.replace('.md', '.qmd'))
+        md = os.path.join(project_root, fname)
+        return qmd if os.path.exists(qmd) else md
+
     engine = SovereignVector(
-        thesaurus_path=os.path.join(project_root, "thesaurus.md"), 
+        thesaurus_path=_res("thesaurus.qmd"), 
         corrections_path=os.path.join(base_path, "corrections.json"),
         stopwords_path=os.path.join(base_path, "scripts", "stopwords.json")
     )

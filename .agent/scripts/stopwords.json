@@ -51,6 +51,7 @@
     "do",
     "does",
     "did",
+    "done",
     "will",
     "would",
     "shall",
@@ -94,14 +95,5 @@
     "for-me",
     "now",
     "today",
-    "our",
-    "make",
-    "start",
-    "go",
-    "check",
-    "look",
-    "wrap",
-    "run",
-    "beautify",
-    "inspect"
+    "our"
 ]

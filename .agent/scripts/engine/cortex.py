@@ -12,13 +12,17 @@ class Cortex:
         # Initialize a fresh brain for knowledge (separate from skills)
         self.brain = SovereignVector(stopwords_path=os.path.join(base_path, "scripts", "stopwords.json"))
         
-        # Knowledge Sources
-        self.knowledge_map = {
-            "AGENTS.md": os.path.join(project_root, "AGENTS.md"),
-            "wireframe.md": os.path.join(project_root, "wireframe.md"),
-            "memories.md": os.path.join(project_root, "memories.md"),
-            "SovereignFish.md": os.path.join(project_root, "SovereignFish.md")
-        }
+        # Knowledge Sources - [ALFRED] Staged Symbiosis: Support .qmd with .md fallback
+        doc_names = ["AGENTS", "wireframe", "memories", "SovereignFish"]
+        self.knowledge_map = {}
+        for name in doc_names:
+            qmd_path = os.path.join(project_root, f"{name}.qmd")
+            md_path = os.path.join(project_root, f"{name}.md")
+            if os.path.exists(qmd_path):
+                self.knowledge_map[f"{name}.qmd"] = qmd_path
+            elif os.path.exists(md_path):
+                self.knowledge_map[f"{name}.md"] = md_path
+        
         self._ingest()
     
     def _ingest(self):
