@@ -4,7 +4,7 @@
     "final_state": {
         "seed": "C*VERIFICATION",
         "player_name": "Morderith",
-        "domination_percent": 4.699999999999999,
+        "domination_percent": 5.0,
         "max_percent_reached": 15.0,
         "total_worlds_conquered": 0,
         "domination_count": 0,
@@ -380,7 +380,7 @@
                 "buffs": {
                     "VALKYRIE_LUNGE": 1.0
                 },
-                "durability": 75
+                "durability": 50
             }
         ],
         "conquests": [],
