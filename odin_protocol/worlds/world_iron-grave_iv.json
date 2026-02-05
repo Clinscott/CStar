@@ -1,9 +1,13 @@
 {
     "world_name": "Iron-Grave IV",
-    "outcome": "CONQUERED",
+    "outcome": "VICTORY",
     "final_state": {
         "seed": "C*9881e12",
-        "domination_count": 3,
+        "player_name": "Morderith",
+        "domination_percent": 25.0,
+        "max_percent_reached": 25.0,
+        "total_worlds_conquered": 1,
+        "domination_count": 4,
         "inventory": {
             "AESIR_MIGHT": {
                 "id": "AESIR_MIGHT",
@@ -27,7 +31,7 @@
             "LOKI_STEALTH": {
                 "id": "LOKI_STEALTH",
                 "name": "Shadow Step",
-                "level": 1,
+                "level": 2,
                 "benefits": {
                     "major": "Light Refraction",
                     "minor": "Silenced Footfalls"
@@ -55,8 +59,13 @@
                 "planet": "Iron-Grave IV",
                 "outcome": "CONQUERED",
                 "timestamp": 1770256358.0287414
+            },
+            {
+                "planet": "Iron-Grave IV",
+                "outcome": "CONQUERED",
+                "timestamp": 1770257606.1328912
             }
         ],
-        "last_updated": 1770256129.46811
+        "last_updated": 1770257528.2824817
     }
 }
