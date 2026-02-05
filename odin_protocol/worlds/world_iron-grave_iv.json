@@ -3,12 +3,12 @@
     "outcome": "CONQUERED",
     "final_state": {
         "seed": "C*9881e12",
-        "domination_count": 1,
+        "domination_count": 2,
         "inventory": {
             "AESIR_MIGHT": {
                 "id": "AESIR_MIGHT",
                 "name": "Odin's Grip",
-                "level": 2,
+                "level": 3,
                 "benefits": {
                     "major": "Thermal Insulation",
                     "minor": "Dense Bone Structure"
@@ -45,6 +45,11 @@
                 "planet": "Iron-Grave IV",
                 "outcome": "CONQUERED",
                 "timestamp": 1770256341.1838896
+            },
+            {
+                "planet": "Iron-Grave IV",
+                "outcome": "CONQUERED",
+                "timestamp": 1770256351.6579452
             }
         ],
         "last_updated": 1770256129.46811
