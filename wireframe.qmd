@@ -145,11 +145,13 @@ The framework supports cross-agent intelligence sharing via the "Federated Netwo
 - **Engine**:
     - `models.py`: Defines `Chromosome`, `UniverseState`, and `Encounter`.
     - `logic.py`: Handles **The Ripple Effect** via a deterministic `SYNERGY_MAP` (+10%/-15% interactions) for all 24 traits. Calculates `calculate_effective_stats` with strict Linscott typing.
+    - `adjudicator.py`: **The Hive Executioner**. Background queue processor for pending planetary actions. Implements **Nodal Persistence** (node-locking) and handles retreat penalties.
     - `gm_client.py`: LLM-powered scenario generator. Incorporates **Seeded Uniqueness** based on the Git instance hash.
     - `scenarios.py`: Rule-based fallback generator for offline play, seeded for deterministic world-building.
 - **Persistence**: `persistence.py` - **The Immutable Timeline**. Automatically commits state changes to Git with descriptive messages and state hashes.
 - **Key Features**:
-    - **Adjudication**: Mathematical success check based on difficulty thresholds and effective stat arrays.
+    - **Weighted Die Cast**: Probabilistic tactical adjudication. Success is the ratio of Warlord Rating vs. Threshold, modified by Gene Seed alignment.
+    - **Nodal Campaigns**: Players are locked into planetary nodes. Retreating incurrs a 50% Force penalty and progress loss.
     - **Federated Seeding**: Uses `get_federated_seed()` (Git Hash) to ensure every project instance has a unique, persistent universe.
     - **Alfred's Briefing**: Infrequent, detailed reports using the Synergy Map to warn of genetic vulnerabilities.
     - **Mutation Screen**: Interactive CLI UI for upgrading genetic traits using "Mutation Credits" earned from conquest.

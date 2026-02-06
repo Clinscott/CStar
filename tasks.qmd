@@ -56,14 +56,21 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Immutable History**: Finalized Git-based persistence with state-hash commit records. [x]
 - [x] **Linscott Compliance**: Refactored logic/persistence to strict typing and docstring standards. [x]
 
+### 21. Odin Protocol Phase 9: Tactical Adjudication & Nodal Campaigns
+- [x] **Weighted Die Cast**: Implemented probabilistic tactical adjudication based on Warlord rating. [x]
+- [x] **Nodal Persistence**: Locked players into campaign nodes with retreat penalties (50%). [x]
+- [x] **Dynamic Attrition**: Tied Force costs and Domination gains to choice difficulty. [x]
+- [x] **Structural Audit**: Resolved 400+ breaches using the Heimdall Security Scan. [x]
+
 ## ⏭️ Start Here Next (Strategic Expansion)
 
 ### 3. Campaign & Multi-Agent Evolution
-- [ ] **Campaign N=2000**: Scale robustness testing to include cross-persona identity conflicts.
+- [ ] **Ambiguity Resolution**: Fix the remaining 5.3% intent failures in the core engine (e.g., 'clean design', 'dashboard' patterns).
 - [ ] **Federated War Room**: Implement the multi-agent tactical display for the Warlord.
 - [ ] **Artifact Extraction**: Allow Warlords to export their Genetic Manifest to Mimir's Eye.
+- [ ] **Campaign N=2000**: Scale robustness testing to include cross-persona identity conflicts.
 
-## ⏭️ Start Here Next (Odin Phase 2)
-1. **Ambiguity Resolution**: Finalize the remaining 10% intent failures in the core engine.
+## ⏭️ Start Here Next (Odin Phase 10)
+1. **Dynamic Event Ripples**: Implement world-level events that shift trait synergies in real-time.
 2. **War Room Mode**: Enable `--war-room` in `trace_viz.py` to visualize the strategic ripple effects.
 3. **Federated Handshake**: Implement SHA-256 genetic verification for multi-warlord sync.

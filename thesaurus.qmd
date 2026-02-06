@@ -5,13 +5,13 @@
 - **aesthetics**: beautify, clean, futuristic, glass, glow, holographic, improve, layout, neon, polish, refine, sci-fi, sovereignfish, ui-sci-fi, visual
 - **agent-health**: health, heartbeat, monitoring, pulse, status
 - **agent-lightning**: benchmark, fast, measure, metrics, optimization, optimize, perf, perf-profiler, performance, profile, quick, reinforcement, rl, speed, timing, velocity
-- **analyze**: audit, bug, check, debug, dig-into, error, find, investigate, issue, linter, look-into, sentinel, track-down, validate, verify
+- **analyze**: audit, bug, check, debug, dig-into, error, failure, find, fix, investigate, issue, linter, look-into, sentinel, track-down, validate, verify
 - **api-docs**: doc-generator, docs, docstring, document, documentation, jsdoc, readme, write-docs, write-documentation
 - **architect**: blueprint, design, itinerary, map, outline, plan, prepare, roadmap, strategy
-- **audit**: analyze, bug, check, debug, dig-into, error, find, investigate, issue, linter, look-into, sentinel, track-down, validate, verify, 审计, 監査
+- **audit**: analyze, bug, check, debug, dig-into, error, failure, find, fix, investigate, issue, latency, linter, look-into, sentinel, track-down, validate, verify, 审计, 監査
 - **automation**: browser-automation, e2e, playwright, playwright-e2e
 - **beautify**: aesthetics, clean, futuristic, glass, glow, holographic, improve, neon, polish, refine, sci-fi, sovereignfish, ui-sci-fi, visual
-- **begin**: boot, fire-up, initiate, kick-off, lets-go, resume, spin-up, start, 开始, スタート
+- **begin**: begin, boot, c*, cstar, fire-up, initiate, kick-off, lets-go, resume, spin-up, start, 开始, スタート
 - **benchmark**: agent-lightning, fast, measure, metrics, optimization, optimize, perf, perf-profiler, performance, profile, quick, reinforcement, rl, speed, timing, velocity
 - **blueprint**: architect, design, itinerary, map, outline, plan, prepare, roadmap, strategy
 - **boot**: begin, fire-up, initiate, kick-off, lets-go, resume, spin-up, start
@@ -28,8 +28,8 @@
 - **construct**: build, component, create, develop, feature, generate, implement, make, modification, page, run-task, update
 - **create**: build, component, construct, develop, feature, generate, implement, make, modification, page, run-task, update
 - **debug**: analyze, audit, bug, check, dig-into, error, find, investigate, issue, linter, look-into, sentinel, track-down, validate, verify
-- **deploy**: deployment, launch, publish, push, release, ship, 部署, デプロイ
-- **deployment**: deploy, launch, publish, push, release, ship, 部署, デプロイ
+- **deploy**: deployment, launch, production, publish, push, release, ship, 部署, デプロイ
+- **deployment**: deploy, launch, production, publish, push, release, ship, 部署, デプロイ
 - **design**: architect, blueprint, itinerary, map, outline, plan, prepare, roadmap, strategy
 - **develop**: build, component, construct, create, feature, generate, implement, make, modification, page, run-task, update
 - **dig-into**: analyze, audit, bug, check, debug, error, find, investigate, issue, linter, look-into, sentinel, track-down, validate, verify
@@ -82,7 +82,7 @@
 - **merge**: commit, git, git-assistant, github, rebase, repo, repository
 - **metrics**: agent-lightning, benchmark, fast, measure, optimization, optimize, perf, perf-profiler, performance, profile, quick, reinforcement, rl, speed, timing, velocity
 - **modification**: build, component, construct, create, develop, feature, generate, implement, make, page, run-task, update
-- **monitoring**: agent-health, health, heartbeat, pulse, status
+- **monitoring**: agent-health, dashboard, health, heartbeat, overwatch, pulse, status
 - **neon**: aesthetics, beautify, clean, futuristic, glass, glow, holographic, improve, polish, refine, sci-fi, sovereignfish, ui-sci-fi, visual
 - **optimization**: agent-lightning, benchmark, fast, measure, metrics, optimize, perf, perf-profiler, performance, profile, quick, reinforcement, rl, speed, timing, velocity
 - **optimize**: agent-lightning, benchmark, fast, measure, metrics, optimization, perf, perf-profiler, performance, profile, quick, reinforcement, rl, speed, timing, velocity

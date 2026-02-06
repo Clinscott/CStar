@@ -61,14 +61,31 @@ class UniverseState:
     domination_percent: float = 10.0    # Current progress (0-100)
     max_percent_reached: float = 10.0   # Highest percent ever
     total_worlds_conquered: int = 0     # Total count across all runs
-    domination_count: int = 0           # Count in current run
+    planets_dominated: int = 0          # New metric for total conquest
+    mutation_charges: int = 0           # Capacity based on conquest
+    total_turns_played: int = 0          # Monotonically increasing counter for turn uniqueness
+
+    # Resources (Phase 9)
+    force: float = 100.0                # Tactical resource (consumes 10% per node entry)
 
     # Planet Progress (Kingdom Death Siege)
     current_planet_name: str | None = None
     current_planet_progress: float = 0.0
 
+    # Nodal Tracking (Phase 9) - Progress per node type (capped at 24.0)
+    nodal_progress: dict[str, float] = field(default_factory=lambda: {
+        "HIVE": 0.0, "SIEGE": 0.0, "RESOURCE": 0.0, "DROP": 0.0
+    })
+
+    # Ticker State
+    ticker_velocity: float = 0.0
+    momentum_turns: int = 0
+    active_node: str | None = None      # Current node the warlord is locked into
+
     # Alfred's Protocols
     last_briefing_turn: int = -5        # Cooldown management
+    active_persona: str = "ALFRED"      # Track the chosen guide
+    active_campaigns: dict[str, dict] = field(default_factory=dict) # Planet Name -> Campaign Data
 
     inventory: dict[str, Chromosome] = field(default_factory=dict)
     items: list[Item] = field(default_factory=list)
@@ -82,10 +99,19 @@ class UniverseState:
             "domination_percent": self.domination_percent,
             "max_percent_reached": self.max_percent_reached,
             "total_worlds_conquered": self.total_worlds_conquered,
-            "domination_count": self.domination_count,
+            "planets_dominated": self.planets_dominated,
+            "mutation_charges": self.mutation_charges,
+            "total_turns_played": self.total_turns_played,
+            "force": self.force,
             "current_planet_name": self.current_planet_name,
             "current_planet_progress": self.current_planet_progress,
+            "nodal_progress": self.nodal_progress,
+            "ticker_velocity": self.ticker_velocity,
+            "momentum_turns": self.momentum_turns,
             "last_briefing_turn": self.last_briefing_turn,
+            "active_persona": self.active_persona,
+            "active_campaigns": self.active_campaigns,
+            "active_node": self.active_node,
             "inventory": {k: v.to_dict() for k, v in self.inventory.items()},
             "items": [i.to_dict() for i in self.items],
             "conquests": self.conquests,
