@@ -1,6 +1,6 @@
 {
     "world_name": "Testia Prime",
-    "outcome": "RETREAT",
+    "outcome": "STEP",
     "final_state": {
         "seed": "C*VERIFICATION",
         "player_name": "Morderith",
@@ -9,7 +9,8 @@
         "total_worlds_conquered": 0,
         "domination_count": 0,
         "current_planet_name": "Testia Prime",
-        "current_planet_progress": 12.5,
+        "current_planet_progress": 16.4,
+        "last_briefing_turn": 5,
         "inventory": {
             "AESIR_MIGHT": {
                 "id": "AESIR_MIGHT",
@@ -381,9 +382,18 @@
                     "VALKYRIE_LUNGE": 1.0
                 },
                 "durability": 50
+            },
+            {
+                "id": "ITEM_BERSERKER_RAGE",
+                "name": "Ancient Berserker Rage Catalyst",
+                "category": "Augment",
+                "buffs": {
+                    "BERSERKER_RAGE": 1.0
+                },
+                "durability": 100
             }
         ],
         "conquests": [],
-        "last_updated": 1770260048.4030037
+        "last_updated": 1770337191.9240239
     }
 }
