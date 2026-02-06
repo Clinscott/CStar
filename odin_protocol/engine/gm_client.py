@@ -19,7 +19,9 @@ class OdinGM:
     and the rule-based local engine.
     """
 
-    def __init__(self, api_key: str | None = None, model_name: str = "gemini-1.5-flash"):
+    def __init__(
+        self, api_key: str | None = None, model_name: str = "gemini-1.5-flash"
+    ):
         """Initializes the GM client.
 
         Args:
@@ -40,56 +42,95 @@ class OdinGM:
         else:
             logging.info("OdinGM: Running in Sovereign Agent Mode (Offline).")
 
-    def generate_scenario(self, stats: dict[str, float], seed: str, turn_id: int, current_planet: str | None = None) -> dict[str, Any]:
+    def generate_scenario(
+        self,
+        stats: dict[str, float],
+        seed: str,
+        turn_id: int,
+        player_name: str = "Odin",
+        campaign_data: dict | None = None,
+    ) -> dict[str, Any]:
         """Generates a brutal Kingdom Death scenario using the best available engine.
 
         Args:
             stats: Effective player stats.
             seed: The Federated Seed for uniqueness.
             turn_id: Current turn/conquest index.
-            current_planet: Name of the current target world.
+            player_name: The name of the Warlord.
+            campaign_data: Persistent story data for the current world.
 
         Returns:
             Dictionary containing scenario details.
         """
         if not self.model:
-            return self.agent_engine.generate(stats, seed=seed, turn_id=turn_id)
+            return self.agent_engine.generate_scenario(
+                stats,
+                seed=seed,
+                turn_id=turn_id,
+                player_name=player_name,
+                campaign_data=campaign_data,
+            )
 
         strongest = max(stats, key=stats.get) if stats else "None"
         combat_rating = sum(stats.values())
 
-        # Include the seed in the prompt to encourage 'Seeded Uniqueness' in the LLM output
+        planet = (
+            campaign_data.get("planet_name", "Unknown") if campaign_data else "Unknown"
+        )
+        obj = (
+            campaign_data.get("current_objective", "Recon") if campaign_data else "Recon"
+        )
+        cast = campaign_data.get("personas", "None") if campaign_data else "None"
+
+        # Include the seed in the prompt to encourage 'Seeded Uniqueness' in
+        # the LLM output
         prompt = f"""
-        ROLE: You are the Game Master of 'The Odin Protocol', a brutal Kingdom Death-inspired RPG.
+        ROLE: You are the Game Master of 'The Odin Protocol',
+        a brutal Kingdom Death-inspired RPG.
         UNIVERSE SEED: {seed}
         CONQUEST INDEX: {turn_id}
+        WARLORD NAME: {player_name}
 
         CONTEXT:
         Highest Trait: {strongest}
         Combat Rating: {combat_rating}
-        Target Planet: {current_planet or "Unknown Frontiers"}
+        Target Planet: {planet}
+        Active Campaign: {obj}
+        Cast: {cast}
 
         TASK:
-        Generate a high-stakes planetary hazard. Avoid mundane issues. Think cosmic horror, radiation death-zones, or siege of frozen hells.
-        The seed should influence the 'vibe' or 'type' of hazard found in this sector.
+        Generate a high-stakes planetary SCENE using the Scene/Sequel literary structure.
+        The scene must have a clear 'goal' and a tangible 'conflict'.
+        The 'options' (A, B, C, H) MUST be highly thematic and directly
+        related to resolving the goal or navigating the conflict.
+        Avoid generic terms like 'Brute Force' unless it's specific to the scene (e.g. 'Shatter the Vault Seal').
 
         OUTPUT FORMAT (JSON ONLY):
         {{
-          "planet_name": "Name",
+          "planet_name": "Evocative Name",
+          "lore": "A 1-sentence description of why it's a target (e.g. 'A primordial furnace world needing kinetic siege').",
+          "goal": "A specific literary goal (e.g., 'Extraction of a Primordial Essence')",
+          "conflict": "A specific literary conflict (e.g., 'Gravity storms are crushing all tactical structure')",
+          "disaster": "A potential failure disaster (e.g., 'A temporal feedback loop erases your gains')",
           "environmental_hazard": "A brutal description of the lethal threat",
-          "evolutionary_pressure": "Why {strongest} is becoming a liability here",
-          "immediate_question": "A life-or-death choice for the Warlord",
-          "dominance_gain": 3.5,  # Percentage gain on success (range 1.0 - 5.0)
-          "failure_penalty": 10.0, # Percentage loss on failure (range 5.0 - 15.0)
+          "fauna": "Apex Predators/Docile Grazers/etc",
+          "flora": "Glow-Forests/Adaptive Fungi/etc",
+          "sediment": "Explosive Crust/Solid Obsidian/etc",
+          "civ_type": "Ascended Neural Nets/Industrial Bastions/etc",
+          "immediate_question": "How shall we achieve our goal on {{planet_name}}, Warlord {{player_name}}?",
+          "dominance_gain": 3.5,
+          "failure_penalty": 10.0,
           "potential_item": {{
-             "id": "BOOTS_OF_ICE",
-             "name": "Frost-Treader Soles",
-             "category": "Gear",
-             "buffs": {{"HEL_COLD": 1.0}}
-          }}, # OPTIONAL: Only include if the environment warrants a discovery
+             "id": "ITEMID",
+             "name": "Flavorful Name",
+             "category": "Gear/Augment",
+             "buffs": {{"TRAIT_ID": 1.0}}
+          }},
           "options": [
-              {{"id": "A", "text": "Brutal aggressive approach", "threshold": {combat_rating + 4.0}, "difficulty": "Hard"}},
-              {{"id": "B", "text": "Calculating defensive approach", "threshold": {combat_rating + 1.0}, "difficulty": "Normal"}}
+              {{"id": "A", "text": "Hard (e.g. 'Sunder the Core')", "threshold": {combat_rating + 5.0}, "difficulty": "Hard"}},
+              {{"id": "B", "text": "Normal (e.g. 'Navigate Spire')", "threshold": {combat_rating + 1.0}, "difficulty": "Normal"}},
+              {{"id": "C", "text": "Gamble (e.g. 'Bargain Warden')", "threshold": {combat_rating + 10.0}, "difficulty": "Gamble"}},
+              {{"id": "H", "text": "Easy (e.g. 'Gather Essences')", "threshold": {combat_rating - 2.0}, "difficulty": "Easy"}}
           ]
         }}
         """
@@ -103,7 +144,13 @@ class OdinGM:
             return data
         except Exception as e:
             logging.error(f"GM Error: {e}. Falling back to offline generator.")
-            return self.agent_engine.generate(stats, seed=seed, turn_id=turn_id)
+            return self.agent_engine.generate_scenario(
+                stats,
+                seed=seed,
+                turn_id=turn_id,
+                player_name=player_name,
+                campaign_data=campaign_data,
+            )
 
     def describe_outcome(self, scenario: dict[str, Any], player_name: str, choice_id: str, success: bool) -> str:
         """Narrates the result of a choice as a cautious or over-excited Bard.
@@ -121,7 +168,8 @@ class OdinGM:
             return self.agent_engine.get_outcome(player_name, choice_id, success)
 
         prompt = f"""
-        ROLE: You are 'The Bard of the Void', a traveling singer-historian for the Great Warlord {player_name}.
+        ROLE: You are 'The Bard of the Void',
+        a traveling singer-historian for the Great Warlord {player_name}.
         CONTEXT:
         Planet: {scenario['planet_name']}
         Action Taken: {choice_id}
@@ -149,7 +197,10 @@ class OdinGM:
         if not self.model:
             return self.agent_engine.get_scientist_query()
 
-        prompt = "Generate a 1-sentence query from a starship scientist or mechanic asking if Odin wants to modify his genes after a conquest. Be thematic."
+        prompt = (
+            "Generate a 1-sentence thematic query from a starship scientist "
+            "asking if Odin wants to modify his genes after a conquest."
+        )
         try:
             response = self.model.generate_content(prompt)
             return {"speaker": "GENETICIST", "message": response.text.strip()}

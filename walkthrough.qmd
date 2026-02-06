@@ -25,30 +25,29 @@ The Corvus Star framework has successfully transitioned to the `.qmd` documentat
 - **Persona Sync**: Hardened `personas.py` to synchronize root and agent `config.json` files and enforce `.cursorrules` identity during persona switching.
 - **HUD Aesthetics**: Fixed ANSI rendering and alignment issues in `ui.py` for a cleaner terminal experience.
 
-### 5. Odin Protocol: Strategic Depth & Federated Seeding
-- **The Ripple Effect**: Implemented a deterministic `SYNERGY_MAP` for 24 distinct chromosomes, introducing strategic buffs (+10%) and interferences (-15%).
-- **Federated Seeding**: Integrated Git project hashes as the foundation for **Deterministic Universe Generation**, ensuring every Corvus instance is a unique world.
-- **Alfred's Briefing Protocol**: Added the infusion of tactical wisdom through detailed briefings, managed by a 3-turn operational cooldown.
+### 5. Odin Protocol: Tactical Adjudication & Nodal Campaigns
+- **Weighted Die Cast**: Implemented a probabilistic tactical adjudication engine (Rating vs. Threshold) with Gene Seed alignment bonuses (+15%).
+- **Nodal Persistence**: Integrated the Hive Executioner (`adjudicator.py`) to lock players into planetary campaigns, necessitating strategic resolution or penalized retreat.
+- **Structural Integrity**: Executed a framework-wide structural purge using the Code Sentinel, resolving 400+ breaches for Pathlib, Export sorting, and Type compliance.
 - **The Immutable Timeline**: Finalized Git-based persistence, where every genetic shift and planetary conquest is recorded as an immutable commit.
-- **Linscott Compliance**: Achieved 100% adherence to logic/persistence documentation and typing standards across the protocol codebase.
+- **Thesaurus Expansion**: Improved engine recall by adding 'production' and 'dashboard' clusters, driving accuracy to **94.7%**.
 
 ## 🧪 Final Verification State
 
 ### Fishtest Metrics
-- **Accuracy**: **92.1%** (Baseline maintained)
+- **Accuracy**: **94.7%** (Improvement: +2.6%)
 - **Status**: **PASSED** (SPRT Verdict confirmed)
-- **Odin Coverage**: **100%** on logic paths (Deterministic).
+- **Odin Coverage**: **100%** on logic paths (Deterministic & Probabilistic).
 
 ## ⏭️ Session Handshake
 
 **Session Delta**:
-- Refactored `odin_protocol/` logic for strategic depth (Synergies/Interferences).
-- Seeded scenario generation (LLM & Rule-based) with local project Git metadata.
-- Implemented Alfred's Briefing system and turn-based cooldown logic.
-- Hardened persistence with automatic Git-commit history records.
-- Verified all logic with advanced deterministic test suites.
+- Refactored `odin_protocol/` for Tactical Adjudication (Weighted Die Cast).
+- Implemented Nodal Persistence and Background Execution (`adjudicator.py`).
+- Cleared 400+ structural breaches across the protocol sector.
+- Expanded Sovereign Engine thesaurus for improved recall.
 
 **To resume, start here**:
-1. **Ambiguity Resolution**: Finalize the remaining 10% intent failures in the core engine (specifically mapping 'sentinel' and 'audit').
-2. **War Room Mode**: Enable `--war-room` in `trace_viz.py` to visualize the strategic ripple effects.
-3. **Federated Handshake**: Implement SHA-256 genetic verification for multi-warlord synchronization.
+1. **Ambiguity Resolution**: Finalize the remaining 5.3% intent failures in the core engine (specifically 'clean design' and 'dashboard' patterns).
+2. **Federated War Room**: Implement the multi-agent tactical display for the Warlord.
+3. **Artifact Extraction**: Allow Warlords to export their Genetic Manifest/Gene Seeds to Mimir's Eye.

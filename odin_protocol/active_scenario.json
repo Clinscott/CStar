@@ -1,36 +1,92 @@
 {
-    "planet_name": "Grave of Yggdrasil",
-    "environmental_hazard": "A unstable Temperature field is neutralizing your biomass.",
-    "evolutionary_pressure": "High Energy_Stability detects weakness in SURTR_FLAME.",
-    "immediate_question": "How shall we bypass this unstable obstruction, Warlord?",
-    "dominance_gain": 2.5,
-    "failure_penalty": 10.9,
+    "planet_name": "SIEGE OF BURNING YGGDRASIL",
+    "lore": "A lush, bio-synthetic forest world where the flora is sentient and connected. Every action here ripples through the global neural network.",
+    "pillar": "FAILURE",
+    "pillar_description": "Technical or gear-related malfunctions requiring urgent triage.",
+    "goal": "Establish Forward Hive-Base",
+    "conflict": "critical gear failure manifests as the local flora is a sentient, pulsating mesh actively resisting your neural probes.",
+    "disaster": "The world-seed rejects your presence, triggering a planet-wide tectonic collapse.",
+    "fauna": "Docile Grazers",
+    "flora": "Glow-Forests",
+    "sediment": "Solid Obsidian",
+    "civ_type": "Industrial Bastions",
+    "world_modifiers": [],
+    "active_persona": {
+        "name": "Thorne",
+        "rank": "Corporal",
+        "trait": "Grim",
+        "role": "Bio-Tech",
+        "status": "Healthy"
+    },
+    "campaign_state": {
+        "planet_name": "SIEGE OF BURNING YGGDRASIL",
+        "planet_suffix": "Yggdrasil",
+        "intro_text": "A lush, bio-synthetic forest world where the flora is sentient and connected. Every action here ripples through the global neural network.",
+        "current_objective": "Establish Forward Hive-Base",
+        "personas": [
+            {
+                "name": "Thorne",
+                "rank": "Specialist",
+                "trait": "Grim",
+                "role": "Scout",
+                "status": "Healthy"
+            },
+            {
+                "name": "Thorne",
+                "rank": "Sergeant",
+                "trait": "Grim",
+                "role": "Resistance",
+                "status": "Healthy"
+            },
+            {
+                "name": "Thorne",
+                "rank": "Corporal",
+                "trait": "Grim",
+                "role": "Bio-Tech",
+                "status": "Healthy"
+            }
+        ],
+        "attributes": {
+            "fauna": "Docile Grazers",
+            "flora": "Glow-Forests",
+            "sediment": "Solid Obsidian",
+            "civ_type": "Industrial Bastions"
+        },
+        "history": [],
+        "state_vars": {
+            "casualties": 0,
+            "loyalty": 1.0
+        }
+    },
+    "environmental_hazard": "A volatile Vibration field is straining your structure.",
+    "immediate_question": "Critical gear failure manifests as the local flora is a sentient, pulsating mesh actively resisting your neural probes. How shall we achieve our goal on SIEGE OF BURNING YGGDRASIL, Warlord Morderith?",
+    "dominance_gain": 5.7,
+    "failure_penalty": 9.1,
     "potential_item": null,
-    "alfred_hint": "Sir, research suggests that Energy_Stability can be bypassed with a high enough Combat Rating.",
     "options": [
         {
             "id": "A",
-            "text": "Brute Force biomass (Might/Fury)",
+            "text": "Overclock Damaged Systems and crash through the pulsating mesh using brute-force kinetic overrides",
             "threshold": 30.0,
             "difficulty": "Hard"
         },
         {
             "id": "B",
-            "text": "Analyze Temperature patterns (Intellect)",
-            "threshold": 26.0,
+            "text": "Manual Triage & Repair and manually prune the sentient vines blocking the entry conduits",
+            "threshold": 25.0,
             "difficulty": "Normal"
         },
         {
             "id": "C",
-            "text": "Evasive biomass Maneuvers (Agility)",
-            "threshold": 25.5,
-            "difficulty": "Easy"
+            "text": "Purge Compromised Buffers and induce a localized necrosis to wither the flora's neural center",
+            "threshold": 35.0,
+            "difficulty": "Gamble"
         },
         {
-            "id": "D",
-            "text": "Sacrifice biomass segments (Risky)",
+            "id": "H",
+            "text": "Standard Diagnostic Loop and modify ship resonance to match the flora and sneak through undetected",
             "threshold": 23.0,
-            "difficulty": "Gamble"
+            "difficulty": "Easy"
         }
     ]
 }

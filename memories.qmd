@@ -70,5 +70,8 @@ deletions: []
     - Immutable Game History: Use Git to persist game states. Committing the `save_state.json` with a descriptive message acts as a permanent, versioned chronicle of a player's journey.
     - Version-Agnostic Signature Check: When verifying type hints in tests, use string-based signature inspection (`inspect.signature`) to accommodate Python 3.9+ `dict` vs `typing.Dict` variants in different runtime environments.
     - Graceful Terminal Shutdown: Wrap main CLI loops in `KeyboardInterrupt` guards. Treat Ctrl+C as a saved "Dormancy" state rather than an exit crash to preserve user progress.
+    - Weighted Die Cast (Probabilistic Adjudication): Use the ratio of Warlord Rating vs. Strategy Threshold for tactical success. Clamped between 5% and 95% to ensure perpetual stakes.
+    - Nodal Persistence (Node Locking): Players are locked into campaign nodes until success or retreat. Retreating triggers "Panic Withdrawal" penalties (50% Force loss).
+    - Structural Integrity (Sentinel Mandate): All core engine logic in the Odin Protocol must pass a 0-breach Code Sentinel audit to maintain Phase 9 structural standards.
 deletions: []
 ```
