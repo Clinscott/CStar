@@ -1,0 +1,445 @@
+{
+    "world_name": "Frozen Vanaheim",
+    "outcome": "INTENT_RECORDED",
+    "final_state": {
+        "seed": "C*VERIFICATION",
+        "player_name": "Morderith",
+        "domination_percent": 5.0,
+        "max_percent_reached": 15.0,
+        "total_worlds_conquered": 0,
+        "total_turns_played": 1,
+        "domination_count": 0,
+        "current_planet_name": "Testia Prime",
+        "current_planet_progress": 38.1,
+        "last_briefing_turn": 5,
+        "inventory": {
+            "AESIR_MIGHT": {
+                "id": "AESIR_MIGHT",
+                "name": "Aesir Might",
+                "level": 1,
+                "benefits": {
+                    "major": "Primary",
+                    "minor": "Secondary"
+                },
+                "defects": {
+                    "vulnerability": "Weakness",
+                    "cost": "High"
+                },
+                "synergies": [],
+                "interferences": []
+            },
+            "BERSERKER_RAGE": {
+                "id": "BERSERKER_RAGE",
+                "name": "Berserker Rage",
+                "level": 1,
+                "benefits": {
+                    "major": "Primary",
+                    "minor": "Secondary"
+                },
+                "defects": {
+                    "vulnerability": "Weakness",
+                    "cost": "High"
+                },
+                "synergies": [],
+                "interferences": []
+            },
+            "VALKYRIE_LUNGE": {
+                "id": "VALKYRIE_LUNGE",
+                "name": "Valkyrie Lunge",
+                "level": 1,
+                "benefits": {
+                    "major": "Primary",
+                    "minor": "Secondary"
+                },
+                "defects": {
+                    "vulnerability": "Weakness",
+                    "cost": "High"
+                },
+                "synergies": [],
+                "interferences": []
+            },
+            "SKADI_GLIDE": {
+                "id": "SKADI_GLIDE",
+                "name": "Skadi Glide",
+                "level": 1,
+                "benefits": {
+                    "major": "Primary",
+                    "minor": "Secondary"
+                },
+                "defects": {
+                    "vulnerability": "Weakness",
+                    "cost": "High"
+                },
+                "synergies": [],
+                "interferences": []
+            },
+            "HUGINN_SIGHT": {
+                "id": "HUGINN_SIGHT",
+                "name": "Huginn Sight",
+                "level": 1,
+                "benefits": {
+                    "major": "Primary",
+                    "minor": "Secondary"
+                },
+                "defects": {
+                    "vulnerability": "Weakness",
+                    "cost": "High"
+                },
+                "synergies": [],
+                "interferences": []
+            },
+            "MUNINN_MEM": {
+                "id": "MUNINN_MEM",
+                "name": "Muninn Mem",
+                "level": 1,
+                "benefits": {
+                    "major": "Primary",
+                    "minor": "Secondary"
+                },
+                "defects": {
+                    "vulnerability": "Weakness",
+                    "cost": "High"
+                },
+                "synergies": [],
+                "interferences": []
+            },
+            "LOKI_SHADOW": {
+                "id": "LOKI_SHADOW",
+                "name": "Loki Shadow",
+                "level": 1,
+                "benefits": {
+                    "major": "Primary",
+                    "minor": "Secondary"
+                },
+                "defects": {
+                    "vulnerability": "Weakness",
+                    "cost": "High"
+                },
+                "synergies": [],
+                "interferences": []
+            },
+            "FAFNIR_SILENCE": {
+                "id": "FAFNIR_SILENCE",
+                "name": "Fafnir Silence",
+                "level": 1,
+                "benefits": {
+                    "major": "Primary",
+                    "minor": "Secondary"
+                },
+                "defects": {
+                    "vulnerability": "Weakness",
+                    "cost": "High"
+                },
+                "synergies": [],
+                "interferences": []
+            },
+            "TYR_BARRIER": {
+                "id": "TYR_BARRIER",
+                "name": "Tyr Barrier",
+                "level": 1,
+                "benefits": {
+                    "major": "Primary",
+                    "minor": "Secondary"
+                },
+                "defects": {
+                    "vulnerability": "Weakness",
+                    "cost": "High"
+                },
+                "synergies": [],
+                "interferences": []
+            },
+            "YMIR_STONE": {
+                "id": "YMIR_STONE",
+                "name": "Ymir Stone",
+                "level": 1,
+                "benefits": {
+                    "major": "Primary",
+                    "minor": "Secondary"
+                },
+                "defects": {
+                    "vulnerability": "Weakness",
+                    "cost": "High"
+                },
+                "synergies": [],
+                "interferences": []
+            },
+            "SURTR_FLAME": {
+                "id": "SURTR_FLAME",
+                "name": "Surtr Flame",
+                "level": 1,
+                "benefits": {
+                    "major": "Primary",
+                    "minor": "Secondary"
+                },
+                "defects": {
+                    "vulnerability": "Weakness",
+                    "cost": "High"
+                },
+                "synergies": [],
+                "interferences": []
+            },
+            "HEL_COLD": {
+                "id": "HEL_COLD",
+                "name": "Hel Cold",
+                "level": 1,
+                "benefits": {
+                    "major": "Primary",
+                    "minor": "Secondary"
+                },
+                "defects": {
+                    "vulnerability": "Weakness",
+                    "cost": "High"
+                },
+                "synergies": [],
+                "interferences": []
+            },
+            "IDUNN_BLOOM": {
+                "id": "IDUNN_BLOOM",
+                "name": "Idunn Bloom",
+                "level": 1,
+                "benefits": {
+                    "major": "Primary",
+                    "minor": "Secondary"
+                },
+                "defects": {
+                    "vulnerability": "Weakness",
+                    "cost": "High"
+                },
+                "synergies": [],
+                "interferences": []
+            },
+            "NIDHOGG_DECAY": {
+                "id": "NIDHOGG_DECAY",
+                "name": "Nidhogg Decay",
+                "level": 1,
+                "benefits": {
+                    "major": "Primary",
+                    "minor": "Secondary"
+                },
+                "defects": {
+                    "vulnerability": "Weakness",
+                    "cost": "High"
+                },
+                "synergies": [],
+                "interferences": []
+            },
+            "FREYJA_WEAVE": {
+                "id": "FREYJA_WEAVE",
+                "name": "Freyja Weave",
+                "level": 1,
+                "benefits": {
+                    "major": "Primary",
+                    "minor": "Secondary"
+                },
+                "defects": {
+                    "vulnerability": "Weakness",
+                    "cost": "High"
+                },
+                "synergies": [],
+                "interferences": []
+            },
+            "GINNUNGAGAP_VOID": {
+                "id": "GINNUNGAGAP_VOID",
+                "name": "Ginnungagap Void",
+                "level": 1,
+                "benefits": {
+                    "major": "Primary",
+                    "minor": "Secondary"
+                },
+                "defects": {
+                    "vulnerability": "Weakness",
+                    "cost": "High"
+                },
+                "synergies": [],
+                "interferences": []
+            },
+            "HEIMDALL_WATCH": {
+                "id": "HEIMDALL_WATCH",
+                "name": "Heimdall Watch",
+                "level": 1,
+                "benefits": {
+                    "major": "Primary",
+                    "minor": "Secondary"
+                },
+                "defects": {
+                    "vulnerability": "Weakness",
+                    "cost": "High"
+                },
+                "synergies": [],
+                "interferences": []
+            },
+            "JORMUNGANDR_COIL": {
+                "id": "JORMUNGANDR_COIL",
+                "name": "Jormungandr Coil",
+                "level": 1,
+                "benefits": {
+                    "major": "Primary",
+                    "minor": "Secondary"
+                },
+                "defects": {
+                    "vulnerability": "Weakness",
+                    "cost": "High"
+                },
+                "synergies": [],
+                "interferences": []
+            },
+            "BALDR_LIGHT": {
+                "id": "BALDR_LIGHT",
+                "name": "Baldr Light",
+                "level": 1,
+                "benefits": {
+                    "major": "Primary",
+                    "minor": "Secondary"
+                },
+                "defects": {
+                    "vulnerability": "Weakness",
+                    "cost": "High"
+                },
+                "synergies": [],
+                "interferences": []
+            },
+            "BRAGI_SONG": {
+                "id": "BRAGI_SONG",
+                "name": "Bragi Song",
+                "level": 1,
+                "benefits": {
+                    "major": "Primary",
+                    "minor": "Secondary"
+                },
+                "defects": {
+                    "vulnerability": "Weakness",
+                    "cost": "High"
+                },
+                "synergies": [],
+                "interferences": []
+            },
+            "FENRIR_JAW": {
+                "id": "FENRIR_JAW",
+                "name": "Fenrir Jaw",
+                "level": 1,
+                "benefits": {
+                    "major": "Primary",
+                    "minor": "Secondary"
+                },
+                "defects": {
+                    "vulnerability": "Weakness",
+                    "cost": "High"
+                },
+                "synergies": [],
+                "interferences": []
+            },
+            "SURTR_ASH": {
+                "id": "SURTR_ASH",
+                "name": "Surtr Ash",
+                "level": 1,
+                "benefits": {
+                    "major": "Primary",
+                    "minor": "Secondary"
+                },
+                "defects": {
+                    "vulnerability": "Weakness",
+                    "cost": "High"
+                },
+                "synergies": [],
+                "interferences": []
+            },
+            "MIMIR_WELL": {
+                "id": "MIMIR_WELL",
+                "name": "Mimir Well",
+                "level": 1,
+                "benefits": {
+                    "major": "Primary",
+                    "minor": "Secondary"
+                },
+                "defects": {
+                    "vulnerability": "Weakness",
+                    "cost": "High"
+                },
+                "synergies": [],
+                "interferences": []
+            },
+            "ODIN_EYE": {
+                "id": "ODIN_EYE",
+                "name": "Odin Eye",
+                "level": 1,
+                "benefits": {
+                    "major": "Primary",
+                    "minor": "Secondary"
+                },
+                "defects": {
+                    "vulnerability": "Weakness",
+                    "cost": "High"
+                },
+                "synergies": [],
+                "interferences": []
+            }
+        },
+        "items": [
+            {
+                "id": "MAG_BOOTS",
+                "name": "Magnetic Soles",
+                "category": "Gear",
+                "buffs": {
+                    "VALKYRIE_LUNGE": 1.0
+                },
+                "durability": 50
+            },
+            {
+                "id": "ITEM_BERSERKER_RAGE",
+                "name": "Ancient Berserker Rage Catalyst",
+                "category": "Augment",
+                "buffs": {
+                    "BERSERKER_RAGE": 1.0
+                },
+                "durability": 100
+            },
+            {
+                "id": "ITEM_BERSERKER_RAGE",
+                "name": "Ancient Berserker Rage Catalyst",
+                "category": "Augment",
+                "buffs": {
+                    "BERSERKER_RAGE": 1.0
+                },
+                "durability": 100
+            },
+            {
+                "id": "ITEM_BERSERKER_RAGE",
+                "name": "Ancient Berserker Rage Catalyst",
+                "category": "Augment",
+                "buffs": {
+                    "BERSERKER_RAGE": 1.0
+                },
+                "durability": 100
+            },
+            {
+                "id": "ITEM_BERSERKER_RAGE",
+                "name": "Ancient Berserker Rage Catalyst",
+                "category": "Augment",
+                "buffs": {
+                    "BERSERKER_RAGE": 1.0
+                },
+                "durability": 100
+            },
+            {
+                "id": "ITEM_BERSERKER_RAGE",
+                "name": "Ancient Berserker Rage Catalyst",
+                "category": "Augment",
+                "buffs": {
+                    "BERSERKER_RAGE": 1.0
+                },
+                "durability": 100
+            },
+            {
+                "id": "ITEM_NIDHOGG_DECAY",
+                "name": "Ancient Nidhogg Decay Catalyst",
+                "category": "Augment",
+                "buffs": {
+                    "NIDHOGG_DECAY": 1.0
+                },
+                "durability": 100
+            }
+        ],
+        "conquests": [],
+        "last_updated": 1770339832.3284607
+    }
+}

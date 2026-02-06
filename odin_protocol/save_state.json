@@ -4,9 +4,10 @@
     "domination_percent": 5.0,
     "max_percent_reached": 15.0,
     "total_worlds_conquered": 0,
+    "total_turns_played": 1,
     "domination_count": 0,
     "current_planet_name": "Testia Prime",
-    "current_planet_progress": 20.299999999999997,
+    "current_planet_progress": 38.1,
     "last_briefing_turn": 5,
     "inventory": {
         "AESIR_MIGHT": {
@@ -397,8 +398,44 @@
                 "BERSERKER_RAGE": 1.0
             },
             "durability": 100
+        },
+        {
+            "id": "ITEM_BERSERKER_RAGE",
+            "name": "Ancient Berserker Rage Catalyst",
+            "category": "Augment",
+            "buffs": {
+                "BERSERKER_RAGE": 1.0
+            },
+            "durability": 100
+        },
+        {
+            "id": "ITEM_BERSERKER_RAGE",
+            "name": "Ancient Berserker Rage Catalyst",
+            "category": "Augment",
+            "buffs": {
+                "BERSERKER_RAGE": 1.0
+            },
+            "durability": 100
+        },
+        {
+            "id": "ITEM_BERSERKER_RAGE",
+            "name": "Ancient Berserker Rage Catalyst",
+            "category": "Augment",
+            "buffs": {
+                "BERSERKER_RAGE": 1.0
+            },
+            "durability": 100
+        },
+        {
+            "id": "ITEM_NIDHOGG_DECAY",
+            "name": "Ancient Nidhogg Decay Catalyst",
+            "category": "Augment",
+            "buffs": {
+                "NIDHOGG_DECAY": 1.0
+            },
+            "durability": 100
         }
     ],
     "conquests": [],
-    "last_updated": 1770337512.5837111
+    "last_updated": 1770339832.3284607
 }
