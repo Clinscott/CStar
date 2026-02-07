@@ -1,0 +1,41 @@
+---
+title: Empire Contract - The Annexation Protocol
+type: verification
+status: active
+tags: [odin, annex, scanner, linscott, torvalds]
+---
+
+# The Annexation Protocol Verification
+
+> [!CRITICAL]
+> **Goal**: Verify that `annex.py` correctly scans for code violations and document transmutation tasks, generating a valid `ANNEXATION_PLAN.qmd`.
+
+## Scenarios
+
+### 1. The Strategy (Scan & Plan)
+**GIVEN** a project root `mock_dominion/`.
+**WHEN** `annex.py --scan mock_dominion` is executed.
+**THEN** a file `mock_dominion/ANNEXATION_PLAN.qmd` is generated.
+
+### 2. The Linscott Watch (Missing Tests)
+**GIVEN** a script `mock_dominion/src/unguarded.py` without a corresponding `tests/test_unguarded.py`.
+**WHEN** scanned.
+**THEN** the plan contains a `LINSCOTT_BREACH` task:
+- `[MISSING TEST] src/unguarded.py → Scaffold test`
+
+### 3. The Torvalds Decree (Quality)
+**GIVEN** a script `mock_dominion/src/messy.py` with a bare `except:` block.
+**WHEN** scanned.
+**THEN** the plan contains a `TORVALDS_BREACH` task:
+- `[quality] src/messy.py → Fix bare except`
+
+### 4. The Edda Census (Documentation)
+**GIVEN** a markdown file `mock_dominion/docs/scroll.md`.
+**WHEN** scanned.
+**THEN** the plan contains an `EDDA_TASK`:
+- `[TRANSMUTE] docs/scroll.md → scroll.qmd`
+
+### 5. The Ignore Protocol
+**GIVEN** a workflow file `mock_dominion/.agent/workflows/ignored.md`.
+**WHEN** scanned.
+**THEN** it is NOT listed in the plan.

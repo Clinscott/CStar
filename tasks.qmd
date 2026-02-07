@@ -69,14 +69,22 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Empire Expansion**: Forged 4 new contracts (`Cortex`, `Persistence`, `Network`, `UI`) for 100% coverage. [x]
 - [x] **Verification**: 11/11 New tests passed. System is fully verified. [x]
 
-## ⏭️ Start Here Next (Strategic Expansion)
+## ⏭️ Start Here Next (Strategic Annexation)
 
-### 3. Campaign & Multi-Agent Evolution
-- [ ] **Federated War Room**: Implement the multi-agent tactical display for the Warlord.
-- [ ] **Artifact Extraction**: Allow Warlords to export their Genetic Manifest to Mimir's Eye.
-- [ ] **Campaign N=2000**: Scale robustness testing to include cross-persona identity conflicts.
+### 1. Annexation Execution
+- [ ] **Execution Module**: Implement `--execute` in `annex.py` to auto-remediate breaches.
+- [ ] **Rollback Safety**: Implement a reversal protocol for failed annexation attempts.
 
-## ⏭️ Start Here Next (Odin Phase 10)
-1. **Dynamic Event Ripples**: Implement world-level events that shift trait synergies in real-time.
-2. **War Room Mode**: Enable `--war-room` in `trace_viz.py` to visualize the strategic ripple effects.
-3. **Federated Handshake**: Implement SHA-256 genetic verification for multi-warlord sync.
+### 2. Edda Synthesis Evolution
+- [ ] **Multi-Language Support**: Extend `edda.py` to synthesize API docs for TypeScript and JavaScript.
+- [ ] **Visual Theme**: Create a dedicated Quarto theme for synthesized API documentation.
+
+### 3. Federated War Room
+- [ ] **Conflict Resolution**: Implement the multi-agent tactical display for the Warlord.
+- [ ] **Artifact Extraction**: Export Genetic Manifests to Mimir's Eye.
+
+### Documentation Conversion Protocol
+- [x] **Planning**: Define scope and preservation strategy with User. [x]
+- [x] **Implementation**: Develop `Invoke-DocumentationConversion` logic (`edda.py` & `annex.py`). [x]
+- [x] **Integration**: Bind methodology to `install.ps1` (ODIN option). [x]
+- [x] **Verification**: Test on mock project with `fishtest`. [x]

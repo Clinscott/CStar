@@ -395,7 +395,9 @@ try {
         "personas.py",
         "set_persona.py",
         "synapse_sync.py",
-        "ui.py"
+        "ui.py",
+        "edda.py",
+        "annex.py"
     )
     foreach ($file in $engineFiles) {
         $src = Join-Path $SourceBase ".agent\scripts\$file"
@@ -523,6 +525,30 @@ try {
     # 7. Install Dependencies
     Write-Host "`n[*] Checking Python dependencies..." -ForegroundColor Cyan
     Invoke-DependencyCheck -LogPath $LogPath | Out-Null
+
+    # 8. The Annexation (Odin's Conquest / Scan & Plan)
+    Write-Host "`n[*] Initiating Annexation Protocol (The Scan)..." -ForegroundColor Cyan
+    try {
+        $annexScript = Join-Path $ScriptDir "annex.py"
+        if (Test-Path $annexScript) {
+            $pythonCmd = (Get-Command python).Source
+            if (-not $pythonCmd) { $pythonCmd = "python" } # Fallback
+            
+            # Execute Scan
+            $proc = Start-Process -FilePath $pythonCmd -ArgumentList "$annexScript --scan ." -WorkingDirectory $TargetDir -NoNewWindow -PassThru -Wait
+            if ($proc.ExitCode -eq 0) {
+                Write-Host "`n[+] ANNEXATION PLAN GENERATED." -ForegroundColor Green
+                Write-Host "    Review: $(Join-Path $TargetDir 'ANNEXATION_PLAN.qmd')" -ForegroundColor Yellow
+                Write-Host "    To Execute: Run 'c* annex --execute' (Implement Plan)" -ForegroundColor Gray
+            }
+            else {
+                Write-Warning "Annexation scan encountered an issue."
+            }
+        }
+    }
+    catch {
+        Write-Warning "Failed to initiate Annexation Protocol."
+    }
 
     Write-Host "`n[+] Installation Complete. System is C* Ready." -ForegroundColor Green
     Write-Host "Run 'python .agent/scripts/sv_engine.py --help' to verify the engine." -ForegroundColor Gray

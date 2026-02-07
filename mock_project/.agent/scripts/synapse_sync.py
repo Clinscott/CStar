@@ -155,7 +155,7 @@ class KnowledgeExtractor:
             for query, target in phrase_mappings.items():
                 # Logic: If it's a correction and high context, it's core-worthy
                 # (Simple filter for demonstration)
-                if target and not target.startswith("GLOBAL:"):
+                if not target.startswith("GLOBAL:"):
                     extracted.append({
                         "type": "correction",
                         "query": query,

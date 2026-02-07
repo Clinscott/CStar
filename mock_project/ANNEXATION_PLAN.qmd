@@ -1,0 +1,136 @@
+---
+title: Annexation Plan
+date: 2026-02-07 10:44:57
+status: pending_approval
+---
+
+# ⚔️ The Annexation Plan
+
+> [!IMPORTANT]
+> **The Runes Have Been Cast.**
+> Review the identified weaknesses below. To execute this plan, run: `c* annex --execute`
+
+## 🛡️ Linscott Standard (Test Verification)
+Every script must have a companion test. 'Trust, but Verify.'
+
+- [ ] **[MISSING TEST]** `debug_discovery.py` → Scaffold `Scaffold test for debug_discovery.py`
+- [ ] **[MISSING TEST]** `test_math.py` → Scaffold `Scaffold test for test_math.py`
+- [ ] **[MISSING TEST]** `new_world_seed/fishtest.py` → Scaffold `Scaffold test for fishtest.py`
+- [ ] **[MISSING TEST]** `src/legacy_chaos.py` → Scaffold `Scaffold test for legacy_chaos.py`
+- [ ] **[MISSING TEST]** `security_verify/.agent/scripts/install_skill.py` → Scaffold `Scaffold test for install_skill.py`
+- [ ] **[MISSING TEST]** `security_verify/.agent/scripts/personas.py` → Scaffold `Scaffold test for personas.py`
+- [ ] **[MISSING TEST]** `security_verify/.agent/scripts/set_persona.py` → Scaffold `Scaffold test for set_persona.py`
+- [ ] **[MISSING TEST]** `security_verify/.agent/scripts/sv_engine.py` → Scaffold `Scaffold test for sv_engine.py`
+- [ ] **[MISSING TEST]** `security_verify/.agent/scripts/synapse_sync.py` → Scaffold `Scaffold test for synapse_sync.py`
+- [ ] **[MISSING TEST]** `security_verify/.agent/scripts/ui.py` → Scaffold `Scaffold test for ui.py`
+- [ ] **[MISSING TEST]** `security_verify/.agent/skills/workflow-analyst/analyze_workflow.py` → Scaffold `Scaffold test for analyze_workflow.py`
+- [ ] **[MISSING TEST]** `security_verify/.agent/scripts/engine/cortex.py` → Scaffold `Scaffold test for cortex.py`
+- [ ] **[MISSING TEST]** `security_verify/.agent/scripts/engine/dialogue.py` → Scaffold `Scaffold test for dialogue.py`
+- [ ] **[MISSING TEST]** `security_verify/.agent/scripts/engine/vector.py` → Scaffold `Scaffold test for vector.py`
+- [ ] **[MISSING TEST]** `security_verify/.agent/scripts/engine/__init__.py` → Scaffold `Scaffold test for __init__.py`
+- [ ] **[MISSING TEST]** `new_world_seed/.agent/scripts/audit_dialogue.py` → Scaffold `Scaffold test for audit_dialogue.py`
+- [ ] **[MISSING TEST]** `new_world_seed/.agent/scripts/benchmark_engine.py` → Scaffold `Scaffold test for benchmark_engine.py`
+- [ ] **[MISSING TEST]** `new_world_seed/.agent/scripts/compile_failure_report.py` → Scaffold `Scaffold test for compile_failure_report.py`
+- [ ] **[MISSING TEST]** `new_world_seed/.agent/scripts/compile_session_traces.py` → Scaffold `Scaffold test for compile_session_traces.py`
+- [ ] **[MISSING TEST]** `new_world_seed/.agent/scripts/generate_tests.py` → Scaffold `Scaffold test for generate_tests.py`
+- [ ] **[MISSING TEST]** `new_world_seed/.agent/scripts/install_skill.py` → Scaffold `Scaffold test for install_skill.py`
+- [ ] **[MISSING TEST]** `new_world_seed/.agent/scripts/latency_check.py` → Scaffold `Scaffold test for latency_check.py`
+- [ ] **[MISSING TEST]** `new_world_seed/.agent/scripts/lightning_rod.py` → Scaffold `Scaffold test for lightning_rod.py`
+- [ ] **[MISSING TEST]** `new_world_seed/.agent/scripts/merge_traces.py` → Scaffold `Scaffold test for merge_traces.py`
+- [ ] **[MISSING TEST]** `new_world_seed/.agent/scripts/network_watcher.py` → Scaffold `Scaffold test for network_watcher.py`
+- [ ] **[MISSING TEST]** `new_world_seed/.agent/scripts/overwatch.py` → Scaffold `Scaffold test for overwatch.py`
+- [ ] **[MISSING TEST]** `new_world_seed/.agent/scripts/personas.py` → Scaffold `Scaffold test for personas.py`
+- [ ] **[MISSING TEST]** `new_world_seed/.agent/scripts/security_scan.py` → Scaffold `Scaffold test for security_scan.py`
+- [ ] **[MISSING TEST]** `new_world_seed/.agent/scripts/set_persona.py` → Scaffold `Scaffold test for set_persona.py`
+- [ ] **[MISSING TEST]** `new_world_seed/.agent/scripts/sv_engine.py` → Scaffold `Scaffold test for sv_engine.py`
+- [ ] **[MISSING TEST]** `new_world_seed/.agent/scripts/trace_viz.py` → Scaffold `Scaffold test for trace_viz.py`
+- [ ] **[MISSING TEST]** `new_world_seed/.agent/scripts/tune_weights.py` → Scaffold `Scaffold test for tune_weights.py`
+- [ ] **[MISSING TEST]** `new_world_seed/.agent/scripts/ui.py` → Scaffold `Scaffold test for ui.py`
+- [ ] **[MISSING TEST]** `new_world_seed/.agent/skills/workflow-analyst/analyze_workflow.py` → Scaffold `Scaffold test for analyze_workflow.py`
+- [ ] **[MISSING TEST]** `new_world_seed/.agent/scripts/engine/cortex.py` → Scaffold `Scaffold test for cortex.py`
+- [ ] **[MISSING TEST]** `new_world_seed/.agent/scripts/engine/dialogue.py` → Scaffold `Scaffold test for dialogue.py`
+- [ ] **[MISSING TEST]** `new_world_seed/.agent/scripts/engine/vector.py` → Scaffold `Scaffold test for vector.py`
+- [ ] **[MISSING TEST]** `new_world_seed/.agent/scripts/engine/__init__.py` → Scaffold `Scaffold test for __init__.py`
+- [ ] **[MISSING TEST]** `expansion_test_new/.agent/scripts/install_skill.py` → Scaffold `Scaffold test for install_skill.py`
+- [ ] **[MISSING TEST]** `expansion_test_new/.agent/scripts/personas.py` → Scaffold `Scaffold test for personas.py`
+- [ ] **[MISSING TEST]** `expansion_test_new/.agent/scripts/set_persona.py` → Scaffold `Scaffold test for set_persona.py`
+- [ ] **[MISSING TEST]** `expansion_test_new/.agent/scripts/sv_engine.py` → Scaffold `Scaffold test for sv_engine.py`
+- [ ] **[MISSING TEST]** `expansion_test_new/.agent/scripts/synapse_sync.py` → Scaffold `Scaffold test for synapse_sync.py`
+- [ ] **[MISSING TEST]** `expansion_test_new/.agent/scripts/ui.py` → Scaffold `Scaffold test for ui.py`
+- [ ] **[MISSING TEST]** `expansion_test_new/.agent/skills/workflow-analyst/analyze_workflow.py` → Scaffold `Scaffold test for analyze_workflow.py`
+- [ ] **[MISSING TEST]** `expansion_test_new/.agent/scripts/engine/cortex.py` → Scaffold `Scaffold test for cortex.py`
+- [ ] **[MISSING TEST]** `expansion_test_new/.agent/scripts/engine/dialogue.py` → Scaffold `Scaffold test for dialogue.py`
+- [ ] **[MISSING TEST]** `expansion_test_new/.agent/scripts/engine/vector.py` → Scaffold `Scaffold test for vector.py`
+- [ ] **[MISSING TEST]** `expansion_test_new/.agent/scripts/engine/__init__.py` → Scaffold `Scaffold test for __init__.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/annex.py` → Scaffold `Scaffold test for annex.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/edda.py` → Scaffold `Scaffold test for edda.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/install_skill.py` → Scaffold `Scaffold test for install_skill.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/personas.py` → Scaffold `Scaffold test for personas.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/set_persona.py` → Scaffold `Scaffold test for set_persona.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/sv_engine.py` → Scaffold `Scaffold test for sv_engine.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/synapse_sync.py` → Scaffold `Scaffold test for synapse_sync.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/ui.py` → Scaffold `Scaffold test for ui.py`
+- [ ] **[MISSING TEST]** `.agent/skills/workflow-analyst/analyze_workflow.py` → Scaffold `Scaffold test for analyze_workflow.py`
+- [ ] **[MISSING TEST]** `.agent/skills/drafts/workflow_backup_sequence_steps_gen/backup_sequence_steps.py` → Scaffold `Scaffold test for backup_sequence_steps.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/engine/alfred_observer.py` → Scaffold `Scaffold test for alfred_observer.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/engine/cortex.py` → Scaffold `Scaffold test for cortex.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/engine/dialogue.py` → Scaffold `Scaffold test for dialogue.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/engine/vector.py` → Scaffold `Scaffold test for vector.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/engine/__init__.py` → Scaffold `Scaffold test for __init__.py`
+
+## 🐧 Torvalds Protocol (Code Quality)
+Structural integrity mandates. No bare excepts. Strict typing.
+- [ ] **[quality]** `src/legacy_chaos.py` → Fix bare except at line 5
+- [ ] **[quality]** `security_verify/.agent/scripts/install_skill.py` → Fix bare except at line 22
+- [ ] **[quality]** `security_verify/.agent/scripts/install_skill.py` → Fix bare except at line 43
+- [ ] **[quality]** `security_verify/.agent/scripts/install_skill.py` → Fix bare except at line 103
+- [ ] **[quality]** `security_verify/.agent/scripts/sv_engine.py` → Fix bare except at line 15
+- [ ] **[quality]** `security_verify/.agent/scripts/sv_engine.py` → Fix bare except at line 52
+- [ ] **[quality]** `security_verify/.agent/scripts/synapse_sync.py` → Fix bare except at line 66
+- [ ] **[quality]** `security_verify/.agent/scripts/synapse_sync.py` → Fix bare except at line 104
+- [ ] **[quality]** `security_verify/.agent/scripts/synapse_sync.py` → Fix bare except at line 132
+- [ ] **[quality]** `security_verify/.agent/scripts/synapse_sync.py` → Fix bare except at line 140
+- [ ] **[quality]** `security_verify/.agent/scripts/synapse_sync.py` → Fix bare except at line 150
+- [ ] **[quality]** `security_verify/.agent/scripts/synapse_sync.py` → Fix bare except at line 291
+- [ ] **[quality]** `security_verify/.agent/scripts/synapse_sync.py` → Fix bare except at line 59
+- [ ] **[quality]** `security_verify/.agent/scripts/synapse_sync.py` → Fix bare except at line 251
+- [ ] **[quality]** `security_verify/.agent/scripts/engine/vector.py` → Fix bare except at line 74
+- [ ] **[quality]** `new_world_seed/.agent/scripts/compile_session_traces.py` → Fix bare except at line 32
+- [ ] **[quality]** `new_world_seed/.agent/scripts/compile_session_traces.py` → Fix bare except at line 83
+- [ ] **[quality]** `new_world_seed/.agent/scripts/latency_check.py` → Fix bare except at line 39
+- [ ] **[quality]** `new_world_seed/.agent/scripts/network_watcher.py` → Fix bare except at line 56
+- [ ] **[quality]** `new_world_seed/.agent/scripts/overwatch.py` → Fix bare except at line 114
+- [ ] **[quality]** `new_world_seed/.agent/scripts/sv_engine.py` → Fix bare except at line 15
+- [ ] **[quality]** `new_world_seed/.agent/scripts/sv_engine.py` → Fix bare except at line 43
+- [ ] **[quality]** `new_world_seed/.agent/scripts/trace_viz.py` → Fix bare except at line 26
+- [ ] **[quality]** `new_world_seed/.agent/scripts/engine/vector.py` → Fix bare except at line 37
+- [ ] **[quality]** `new_world_seed/.agent/scripts/engine/vector.py` → Fix bare except at line 54
+- [ ] **[quality]** `new_world_seed/.agent/scripts/engine/vector.py` → Fix bare except at line 74
+- [ ] **[quality]** `expansion_test_new/.agent/scripts/sv_engine.py` → Fix bare except at line 15
+- [ ] **[quality]** `expansion_test_new/.agent/scripts/sv_engine.py` → Fix bare except at line 52
+- [ ] **[quality]** `expansion_test_new/.agent/scripts/synapse_sync.py` → Fix bare except at line 66
+- [ ] **[quality]** `expansion_test_new/.agent/scripts/synapse_sync.py` → Fix bare except at line 255
+- [ ] **[quality]** `expansion_test_new/.agent/scripts/synapse_sync.py` → Fix bare except at line 226
+- [ ] **[quality]** `expansion_test_new/.agent/scripts/engine/vector.py` → Fix bare except at line 74
+- [ ] **[quality]** `.agent/scripts/install_skill.py` → Fix bare except at line 17
+- [ ] **[quality]** `.agent/scripts/install_skill.py` → Fix bare except at line 43
+- [ ] **[quality]** `.agent/scripts/ui.py` → Fix bare except at line 118
+- [ ] **[quality]** `.agent/scripts/engine/vector.py` → Fix bare except at line 94
+- [ ] **[quality]** `.agent/scripts/engine/vector.py` → Fix bare except at line 89
+
+## 📜 The Edda (Documentation)
+Legacy markdown must be transmuted to Quarto. Workflows are preserved.
+- [ ] **[TRANSMUTE]** `AGENTS.md` → `AGENTS.qmd` (Original Quarantined)
+- [ ] **[TRANSMUTE]** `ALFRED_SUGGESTIONS.md` → `ALFRED_SUGGESTIONS.qmd` (Original Quarantined)
+- [ ] **[TRANSMUTE]** `dev_journal.md` → `dev_journal.qmd` (Original Quarantined)
+- [ ] **[TRANSMUTE]** `memories.md` → `memories.qmd` (Original Quarantined)
+- [ ] **[TRANSMUTE]** `tasks.md` → `tasks.qmd` (Original Quarantined)
+- [ ] **[TRANSMUTE]** `thesaurus.md` → `thesaurus.qmd` (Original Quarantined)
+- [ ] **[TRANSMUTE]** `wireframe.md` → `wireframe.qmd` (Original Quarantined)
+- [ ] **[TRANSMUTE]** `docs/ancient_scroll.md` → `ancient_scroll.qmd` (Original Quarantined)
+
+---
+
+## ⚡ Execution Strategy
+1. **Approve**: Mark items as `[x]` to confirm.
+2. **Execute**: Run the annexation command.
