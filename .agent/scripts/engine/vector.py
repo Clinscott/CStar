@@ -257,7 +257,7 @@ class SovereignVector:
             is_global = trigger.startswith("GLOBAL:")
             # [ALFRED] Sovereign Priority: Slight tie-breaker for core intents
             if (trigger.startswith("/") or trigger == "SovereignFish") and not is_global:
-                score *= 1.05
+                score *= 1.1
                 
             results.append({"trigger": trigger, "score": score, "is_global": is_global})
         

@@ -49,14 +49,29 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Hybrid Calibration**: Restored .md for workflows; verified Persona sync and HUD aesthetics. [x]
 - [x] **SPRT Calibration**: Adjusted integrity threshold to 90% and hardened adversarial testing. [x]
 
+### 21. Odin Protocol Strategic Depth
+- [x] **Genetic Ripple Effect**: Implemented `SYNERGY_MAP` and interference logic for 24 traits. [x]
+- [x] **Federated Seeding**: Seeded scenario generation with Git hash for unique deterministic universes. [x]
+- [x] **Alfred's Briefing**: Added infrequent tactical scans with turn-based cooldown protocol. [x]
+- [x] **Immutable History**: Finalized Git-based persistence with state-hash commit records. [x]
+- [x] **Linscott Compliance**: Refactored logic/persistence to strict typing and docstring standards. [x]
+
+### 21. Odin Protocol Phase 9: Tactical Adjudication & Nodal Campaigns
+- [x] **Weighted Die Cast**: Implemented probabilistic tactical adjudication based on Warlord rating. [x]
+- [x] **Nodal Persistence**: Locked players into campaign nodes with retreat penalties (50%). [x]
+- [x] **Dynamic Attrition**: Tied Force costs and Domination gains to choice difficulty. [x]
+- [x] **Structural Audit**: Resolved 400+ breaches using the Heimdall Security Scan. [x]
+- [x] **Baseline Remediation**: Closed all audit findings from Baseline Audit (Structural, Neural, Complexity). [x]
+
+
 ## ⏭️ Start Here Next (Strategic Expansion)
 
-### 1. Robustness & Multi-Agent Logic
-- [ ] **International Calibration**: Re-enable and tune non-ASCII test cases in `fishtest.py` (Currenlty 64 skipped).
-- [ ] **Ambiguity Resolution**: Resolve the remaining 10% failures in intent routing (addressing `skill-scout` collisions).
-- [ ] **Conflict Radar**: Polish the `--war-room` mode in `trace_viz.py` for collision analysis.
+### 3. Campaign & Multi-Agent Evolution
+- [ ] **Federated War Room**: Implement the multi-agent tactical display for the Warlord.
+- [ ] **Artifact Extraction**: Allow Warlords to export their Genetic Manifest to Mimir's Eye.
+- [ ] **Campaign N=2000**: Scale robustness testing to include cross-persona identity conflicts.
 
-### 2. Documentation & Refinement
-- [ ] **Thesaurus Sanitization**: Finalize cluster cleaning in `thesaurus.qmd`.
-- [ ] **Docstring Sprint**: Complete Target 318 (docstrings for `engine/vector.py`).
-- [ ] **Alfred's Mirror**: Populate `ALFRED_SUGGESTIONS.qmd` from session telemetry.
+## ⏭️ Start Here Next (Odin Phase 10)
+1. **Dynamic Event Ripples**: Implement world-level events that shift trait synergies in real-time.
+2. **War Room Mode**: Enable `--war-room` in `trace_viz.py` to visualize the strategic ripple effects.
+3. **Federated Handshake**: Implement SHA-256 genetic verification for multi-warlord sync.

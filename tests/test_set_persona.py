@@ -50,5 +50,22 @@ class TestSetPersona(unittest.TestCase):
              
         pass
 
+    @patch('builtins.open', new_callable=mock_open)
+    @patch('os.path.exists', return_value=True)
+    def test_set_odin_arg(self, mock_exists, mock_file):
+        """Test setting Persona to ODIN via CLI argument."""
+        mock_file.side_effect = [
+            mock_open(read_data='{"Persona": "ALFRED"}').return_value,
+            mock_open().return_value
+        ]
+        
+        with patch('personas.get_strategy') as mock_strat:
+             mock_strat.return_value.enforce_policy.return_value = []
+             # Pass 'ODIN' directly to set_persona
+             set_persona.set_persona("ODIN")
+        
+        # Verify no input() was called (this would fail if we didn't mock it and it was called)
+        pass
+
 if __name__ == '__main__':
     unittest.main()

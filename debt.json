@@ -1,0 +1,2518 @@
+{
+  "avg_complexity": 3.8274760383386583,
+  "avg_rank": "A",
+  "distribution": {
+    "A": 238,
+    "B": 61,
+    "C": 14,
+    "D": 0,
+    "E": 0,
+    "F": 0
+  },
+  "blocks": [
+    {
+      "file": ".agent\\scripts\\audit_dialogue.py",
+      "name": "main",
+      "type": "Func",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 82
+    },
+    {
+      "file": ".agent\\scripts\\audit_dialogue.py",
+      "name": "DialogueAuditor",
+      "type": "Class",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 22
+    },
+    {
+      "file": ".agent\\scripts\\audit_dialogue.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 27
+    },
+    {
+      "file": ".agent\\scripts\\audit_dialogue.py",
+      "name": "_load_config",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 34
+    },
+    {
+      "file": ".agent\\scripts\\audit_dialogue.py",
+      "name": "_resolve",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 41
+    },
+    {
+      "file": ".agent\\scripts\\audit_dialogue.py",
+      "name": "_init_engine",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 47
+    },
+    {
+      "file": ".agent\\scripts\\audit_dialogue.py",
+      "name": "audit",
+      "type": "Func",
+      "cc": 6,
+      "rank": "B",
+      "lineno": 54
+    },
+    {
+      "file": ".agent\\scripts\\benchmark_engine.py",
+      "name": "benchmark",
+      "type": "Func",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 7
+    },
+    {
+      "file": ".agent\\scripts\\code_sentinel.py",
+      "name": "main",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 222
+    },
+    {
+      "file": ".agent\\scripts\\code_sentinel.py",
+      "name": "HUD",
+      "type": "Class",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 30
+    },
+    {
+      "file": ".agent\\scripts\\code_sentinel.py",
+      "name": "box_top",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 35
+    },
+    {
+      "file": ".agent\\scripts\\code_sentinel.py",
+      "name": "box_row",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 37
+    },
+    {
+      "file": ".agent\\scripts\\code_sentinel.py",
+      "name": "box_separator",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 39
+    },
+    {
+      "file": ".agent\\scripts\\code_sentinel.py",
+      "name": "box_bottom",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 41
+    },
+    {
+      "file": ".agent\\scripts\\code_sentinel.py",
+      "name": "_get_theme",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 43
+    },
+    {
+      "file": ".agent\\scripts\\code_sentinel.py",
+      "name": "log",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 45
+    },
+    {
+      "file": ".agent\\scripts\\code_sentinel.py",
+      "name": "CodeSentinel",
+      "type": "Class",
+      "cc": 8,
+      "rank": "B",
+      "lineno": 48
+    },
+    {
+      "file": ".agent\\scripts\\code_sentinel.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 74
+    },
+    {
+      "file": ".agent\\scripts\\code_sentinel.py",
+      "name": "_load_config",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 84
+    },
+    {
+      "file": ".agent\\scripts\\code_sentinel.py",
+      "name": "scan_for_orphans",
+      "type": "Func",
+      "cc": 10,
+      "rank": "B",
+      "lineno": 94
+    },
+    {
+      "file": ".agent\\scripts\\code_sentinel.py",
+      "name": "run_ruff",
+      "type": "Func",
+      "cc": 13,
+      "rank": "C",
+      "lineno": 137
+    },
+    {
+      "file": ".agent\\scripts\\code_sentinel.py",
+      "name": "format_results",
+      "type": "Func",
+      "cc": 10,
+      "rank": "B",
+      "lineno": 176
+    },
+    {
+      "file": ".agent\\scripts\\code_sentinel.py",
+      "name": "execute_audit",
+      "type": "Func",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 207
+    },
+    {
+      "file": ".agent\\scripts\\compile_failure_report.py",
+      "name": "compile_report",
+      "type": "Func",
+      "cc": 12,
+      "rank": "C",
+      "lineno": 10
+    },
+    {
+      "file": ".agent\\scripts\\compile_session_traces.py",
+      "name": "compile_traces",
+      "type": "Func",
+      "cc": 8,
+      "rank": "B",
+      "lineno": 82
+    },
+    {
+      "file": ".agent\\scripts\\compile_session_traces.py",
+      "name": "TraceAnalyzer",
+      "type": "Class",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 8
+    },
+    {
+      "file": ".agent\\scripts\\compile_session_traces.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 10
+    },
+    {
+      "file": ".agent\\scripts\\compile_session_traces.py",
+      "name": "get_summary",
+      "type": "Func",
+      "cc": 5,
+      "rank": "A",
+      "lineno": 13
+    },
+    {
+      "file": ".agent\\scripts\\compile_session_traces.py",
+      "name": "_group_by_persona",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 24
+    },
+    {
+      "file": ".agent\\scripts\\compile_session_traces.py",
+      "name": "_get_top_performer",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 32
+    },
+    {
+      "file": ".agent\\scripts\\compile_session_traces.py",
+      "name": "ReportRenderer",
+      "type": "Class",
+      "cc": 8,
+      "rank": "B",
+      "lineno": 39
+    },
+    {
+      "file": ".agent\\scripts\\compile_session_traces.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 41
+    },
+    {
+      "file": ".agent\\scripts\\compile_session_traces.py",
+      "name": "render",
+      "type": "Func",
+      "cc": 13,
+      "rank": "C",
+      "lineno": 44
+    },
+    {
+      "file": ".agent\\scripts\\cstar_dispatcher.py",
+      "name": "main",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 96
+    },
+    {
+      "file": ".agent\\scripts\\cstar_dispatcher.py",
+      "name": "CorvusDispatcher",
+      "type": "Class",
+      "cc": 5,
+      "rank": "A",
+      "lineno": 16
+    },
+    {
+      "file": ".agent\\scripts\\cstar_dispatcher.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 22
+    },
+    {
+      "file": ".agent\\scripts\\cstar_dispatcher.py",
+      "name": "show_help",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 43
+    },
+    {
+      "file": ".agent\\scripts\\cstar_dispatcher.py",
+      "name": "run",
+      "type": "Func",
+      "cc": 7,
+      "rank": "B",
+      "lineno": 57
+    },
+    {
+      "file": ".agent\\scripts\\debt_viz.py",
+      "name": "main",
+      "type": "Func",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 163
+    },
+    {
+      "file": ".agent\\scripts\\debt_viz.py",
+      "name": "HUD",
+      "type": "Class",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 20
+    },
+    {
+      "file": ".agent\\scripts\\debt_viz.py",
+      "name": "box_top",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 24
+    },
+    {
+      "file": ".agent\\scripts\\debt_viz.py",
+      "name": "box_row",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 26
+    },
+    {
+      "file": ".agent\\scripts\\debt_viz.py",
+      "name": "box_separator",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 28
+    },
+    {
+      "file": ".agent\\scripts\\debt_viz.py",
+      "name": "box_bottom",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 30
+    },
+    {
+      "file": ".agent\\scripts\\debt_viz.py",
+      "name": "log",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 32
+    },
+    {
+      "file": ".agent\\scripts\\debt_viz.py",
+      "name": "DebtAnalyzer",
+      "type": "Class",
+      "cc": 7,
+      "rank": "B",
+      "lineno": 43
+    },
+    {
+      "file": ".agent\\scripts\\debt_viz.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 51
+    },
+    {
+      "file": ".agent\\scripts\\debt_viz.py",
+      "name": "_get_python_files",
+      "type": "Func",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 58
+    },
+    {
+      "file": ".agent\\scripts\\debt_viz.py",
+      "name": "analyze",
+      "type": "Func",
+      "cc": 13,
+      "rank": "C",
+      "lineno": 67
+    },
+    {
+      "file": ".agent\\scripts\\debt_viz.py",
+      "name": "render_json",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 114
+    },
+    {
+      "file": ".agent\\scripts\\debt_viz.py",
+      "name": "render_dashboard",
+      "type": "Func",
+      "cc": 9,
+      "rank": "B",
+      "lineno": 125
+    },
+    {
+      "file": ".agent\\scripts\\generate_tests.py",
+      "name": "generate_cases",
+      "type": "Func",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 7
+    },
+    {
+      "file": ".agent\\scripts\\install_skill.py",
+      "name": "_sanitize_skill_name",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 9
+    },
+    {
+      "file": ".agent\\scripts\\install_skill.py",
+      "name": "_validate_path",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 13
+    },
+    {
+      "file": ".agent\\scripts\\install_skill.py",
+      "name": "_get_config",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 19
+    },
+    {
+      "file": ".agent\\scripts\\install_skill.py",
+      "name": "_verify_integrity",
+      "type": "Func",
+      "cc": 5,
+      "rank": "A",
+      "lineno": 25
+    },
+    {
+      "file": ".agent\\scripts\\install_skill.py",
+      "name": "_run_security_scan",
+      "type": "Func",
+      "cc": 8,
+      "rank": "B",
+      "lineno": 32
+    },
+    {
+      "file": ".agent\\scripts\\install_skill.py",
+      "name": "_promote_skill",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 46
+    },
+    {
+      "file": ".agent\\scripts\\install_skill.py",
+      "name": "install_skill",
+      "type": "Func",
+      "cc": 19,
+      "rank": "C",
+      "lineno": 56
+    },
+    {
+      "file": ".agent\\scripts\\latency_check.py",
+      "name": "main",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 59
+    },
+    {
+      "file": ".agent\\scripts\\latency_check.py",
+      "name": "LatencyProfiler",
+      "type": "Class",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 15
+    },
+    {
+      "file": ".agent\\scripts\\latency_check.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 20
+    },
+    {
+      "file": ".agent\\scripts\\latency_check.py",
+      "name": "measure_startup",
+      "type": "Func",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 27
+    },
+    {
+      "file": ".agent\\scripts\\lightning_rod.py",
+      "name": "optimize_file",
+      "type": "Func",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 26
+    },
+    {
+      "file": ".agent\\scripts\\lightning_rod.py",
+      "name": "HUD",
+      "type": "Class",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 12
+    },
+    {
+      "file": ".agent\\scripts\\lightning_rod.py",
+      "name": "box_top",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 20
+    },
+    {
+      "file": ".agent\\scripts\\lightning_rod.py",
+      "name": "box_row",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 22
+    },
+    {
+      "file": ".agent\\scripts\\lightning_rod.py",
+      "name": "box_bottom",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 24
+    },
+    {
+      "file": ".agent\\scripts\\merge_traces.py",
+      "name": "_load_dataset",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 14
+    },
+    {
+      "file": ".agent\\scripts\\merge_traces.py",
+      "name": "_save_dataset",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 25
+    },
+    {
+      "file": ".agent\\scripts\\merge_traces.py",
+      "name": "_process_single_trace",
+      "type": "Func",
+      "cc": 9,
+      "rank": "B",
+      "lineno": 38
+    },
+    {
+      "file": ".agent\\scripts\\merge_traces.py",
+      "name": "_process_trace_file",
+      "type": "Func",
+      "cc": 5,
+      "rank": "A",
+      "lineno": 62
+    },
+    {
+      "file": ".agent\\scripts\\merge_traces.py",
+      "name": "merge_traces",
+      "type": "Func",
+      "cc": 6,
+      "rank": "B",
+      "lineno": 80
+    },
+    {
+      "file": ".agent\\scripts\\migrate_to_qmd.py",
+      "name": "get_checksum",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 14
+    },
+    {
+      "file": ".agent\\scripts\\migrate_to_qmd.py",
+      "name": "migrate_file",
+      "type": "Func",
+      "cc": 6,
+      "rank": "B",
+      "lineno": 24
+    },
+    {
+      "file": ".agent\\scripts\\migrate_to_qmd.py",
+      "name": "main",
+      "type": "Func",
+      "cc": 8,
+      "rank": "B",
+      "lineno": 50
+    },
+    {
+      "file": ".agent\\scripts\\network_watcher.py",
+      "name": "get_theme",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 16
+    },
+    {
+      "file": ".agent\\scripts\\network_watcher.py",
+      "name": "log_rejection",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 20
+    },
+    {
+      "file": ".agent\\scripts\\network_watcher.py",
+      "name": "process_file",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 24
+    },
+    {
+      "file": ".agent\\scripts\\network_watcher.py",
+      "name": "CruciblePipeline",
+      "type": "Class",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 31
+    },
+    {
+      "file": ".agent\\scripts\\network_watcher.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 33
+    },
+    {
+      "file": ".agent\\scripts\\network_watcher.py",
+      "name": "process",
+      "type": "Func",
+      "cc": 5,
+      "rank": "A",
+      "lineno": 40
+    },
+    {
+      "file": ".agent\\scripts\\network_watcher.py",
+      "name": "NetworkWatcher",
+      "type": "Class",
+      "cc": 5,
+      "rank": "A",
+      "lineno": 68
+    },
+    {
+      "file": ".agent\\scripts\\network_watcher.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 70
+    },
+    {
+      "file": ".agent\\scripts\\network_watcher.py",
+      "name": "watch",
+      "type": "Func",
+      "cc": 7,
+      "rank": "B",
+      "lineno": 74
+    },
+    {
+      "file": ".agent\\scripts\\overwatch.py",
+      "name": "get_stats",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 168
+    },
+    {
+      "file": ".agent\\scripts\\overwatch.py",
+      "name": "StatsCollector",
+      "type": "Class",
+      "cc": 5,
+      "rank": "A",
+      "lineno": 11
+    },
+    {
+      "file": ".agent\\scripts\\overwatch.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 13
+    },
+    {
+      "file": ".agent\\scripts\\overwatch.py",
+      "name": "collect",
+      "type": "Func",
+      "cc": 7,
+      "rank": "B",
+      "lineno": 19
+    },
+    {
+      "file": ".agent\\scripts\\overwatch.py",
+      "name": "OverwatchRenderer",
+      "type": "Class",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 34
+    },
+    {
+      "file": ".agent\\scripts\\overwatch.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 36
+    },
+    {
+      "file": ".agent\\scripts\\overwatch.py",
+      "name": "render_header",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 39
+    },
+    {
+      "file": ".agent\\scripts\\overwatch.py",
+      "name": "render_heatmap",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 44
+    },
+    {
+      "file": ".agent\\scripts\\overwatch.py",
+      "name": "_color_cell",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 53
+    },
+    {
+      "file": ".agent\\scripts\\overwatch.py",
+      "name": "render_pulse_logs",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 58
+    },
+    {
+      "file": ".agent\\scripts\\overwatch.py",
+      "name": "update_latency",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 65
+    },
+    {
+      "file": ".agent\\scripts\\overwatch.py",
+      "name": "InputManager",
+      "type": "Class",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 71
+    },
+    {
+      "file": ".agent\\scripts\\overwatch.py",
+      "name": "poll",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 74
+    },
+    {
+      "file": ".agent\\scripts\\overwatch.py",
+      "name": "Overwatch",
+      "type": "Class",
+      "cc": 5,
+      "rank": "A",
+      "lineno": 79
+    },
+    {
+      "file": ".agent\\scripts\\overwatch.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 80
+    },
+    {
+      "file": ".agent\\scripts\\overwatch.py",
+      "name": "run",
+      "type": "Func",
+      "cc": 7,
+      "rank": "B",
+      "lineno": 88
+    },
+    {
+      "file": ".agent\\scripts\\overwatch.py",
+      "name": "_handle_input",
+      "type": "Func",
+      "cc": 7,
+      "rank": "B",
+      "lineno": 111
+    },
+    {
+      "file": ".agent\\scripts\\overwatch.py",
+      "name": "_check_delta",
+      "type": "Func",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 123
+    },
+    {
+      "file": ".agent\\scripts\\overwatch.py",
+      "name": "_measure_latency",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 133
+    },
+    {
+      "file": ".agent\\scripts\\overwatch.py",
+      "name": "_update_heatmap",
+      "type": "Func",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 140
+    },
+    {
+      "file": ".agent\\scripts\\overwatch.py",
+      "name": "_get_latest_pulses",
+      "type": "Func",
+      "cc": 7,
+      "rank": "B",
+      "lineno": 153
+    },
+    {
+      "file": ".agent\\scripts\\personas.py",
+      "name": "get_strategy",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 283
+    },
+    {
+      "file": ".agent\\scripts\\personas.py",
+      "name": "PersonaStrategy",
+      "type": "Class",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 6
+    },
+    {
+      "file": ".agent\\scripts\\personas.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 7
+    },
+    {
+      "file": ".agent\\scripts\\personas.py",
+      "name": "enforce_policy",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 10
+    },
+    {
+      "file": ".agent\\scripts\\personas.py",
+      "name": "get_voice",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 14
+    },
+    {
+      "file": ".agent\\scripts\\personas.py",
+      "name": "retheme_docs",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 18
+    },
+    {
+      "file": ".agent\\scripts\\personas.py",
+      "name": "_quarantine",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 22
+    },
+    {
+      "file": ".agent\\scripts\\personas.py",
+      "name": "_sync_configs",
+      "type": "Func",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 38
+    },
+    {
+      "file": ".agent\\scripts\\personas.py",
+      "name": "OdinStrategy",
+      "type": "Class",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 60
+    },
+    {
+      "file": ".agent\\scripts\\personas.py",
+      "name": "get_voice",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 61
+    },
+    {
+      "file": ".agent\\scripts\\personas.py",
+      "name": "retheme_docs",
+      "type": "Func",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 64
+    },
+    {
+      "file": ".agent\\scripts\\personas.py",
+      "name": "enforce_policy",
+      "type": "Func",
+      "cc": 10,
+      "rank": "B",
+      "lineno": 105
+    },
+    {
+      "file": ".agent\\scripts\\personas.py",
+      "name": "_create_cursor_rules",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 146
+    },
+    {
+      "file": ".agent\\scripts\\personas.py",
+      "name": "_create_standard_agents",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 176
+    },
+    {
+      "file": ".agent\\scripts\\personas.py",
+      "name": "AlfredStrategy",
+      "type": "Class",
+      "cc": 5,
+      "rank": "A",
+      "lineno": 192
+    },
+    {
+      "file": ".agent\\scripts\\personas.py",
+      "name": "get_voice",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 193
+    },
+    {
+      "file": ".agent\\scripts\\personas.py",
+      "name": "enforce_policy",
+      "type": "Func",
+      "cc": 12,
+      "rank": "C",
+      "lineno": 196
+    },
+    {
+      "file": ".agent\\scripts\\personas.py",
+      "name": "_create_cursor_rules",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 246
+    },
+    {
+      "file": ".agent\\scripts\\personas.py",
+      "name": "_create_minimal_agents",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 276
+    },
+    {
+      "file": ".agent\\scripts\\security_scan.py",
+      "name": "HUD",
+      "type": "Class",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 9
+    },
+    {
+      "file": ".agent\\scripts\\security_scan.py",
+      "name": "box_top",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 12
+    },
+    {
+      "file": ".agent\\scripts\\security_scan.py",
+      "name": "box_row",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 14
+    },
+    {
+      "file": ".agent\\scripts\\security_scan.py",
+      "name": "box_bottom",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 16
+    },
+    {
+      "file": ".agent\\scripts\\security_scan.py",
+      "name": "SecurityScanner",
+      "type": "Class",
+      "cc": 6,
+      "rank": "B",
+      "lineno": 18
+    },
+    {
+      "file": ".agent\\scripts\\security_scan.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 25
+    },
+    {
+      "file": ".agent\\scripts\\security_scan.py",
+      "name": "scan",
+      "type": "Func",
+      "cc": 6,
+      "rank": "B",
+      "lineno": 28
+    },
+    {
+      "file": ".agent\\scripts\\security_scan.py",
+      "name": "_analyze_web_script",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 44
+    },
+    {
+      "file": ".agent\\scripts\\security_scan.py",
+      "name": "_regex_scan",
+      "type": "Func",
+      "cc": 8,
+      "rank": "B",
+      "lineno": 58
+    },
+    {
+      "file": ".agent\\scripts\\security_scan.py",
+      "name": "_analyze_ast",
+      "type": "Func",
+      "cc": 6,
+      "rank": "B",
+      "lineno": 67
+    },
+    {
+      "file": ".agent\\scripts\\security_scan.py",
+      "name": "_scan_imports",
+      "type": "Func",
+      "cc": 6,
+      "rank": "B",
+      "lineno": 78
+    },
+    {
+      "file": ".agent\\scripts\\security_scan.py",
+      "name": "_scan_constants",
+      "type": "Func",
+      "cc": 6,
+      "rank": "B",
+      "lineno": 89
+    },
+    {
+      "file": ".agent\\scripts\\security_scan.py",
+      "name": "report",
+      "type": "Func",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 98
+    },
+    {
+      "file": ".agent\\scripts\\sentinel_perf.py",
+      "name": "SentinelPerf",
+      "type": "Class",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 22
+    },
+    {
+      "file": ".agent\\scripts\\sentinel_perf.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 25
+    },
+    {
+      "file": ".agent\\scripts\\sentinel_perf.py",
+      "name": "profile_search",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 41
+    },
+    {
+      "file": ".agent\\scripts\\sentinel_perf.py",
+      "name": "profile_tokenization",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 49
+    },
+    {
+      "file": ".agent\\scripts\\sentinel_perf.py",
+      "name": "run_suite",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 57
+    },
+    {
+      "file": ".agent\\scripts\\set_persona.py",
+      "name": "main",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 191
+    },
+    {
+      "file": ".agent\\scripts\\set_persona.py",
+      "name": "PersonaManager",
+      "type": "Class",
+      "cc": 5,
+      "rank": "A",
+      "lineno": 14
+    },
+    {
+      "file": ".agent\\scripts\\set_persona.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 21
+    },
+    {
+      "file": ".agent\\scripts\\set_persona.py",
+      "name": "_load_union_config",
+      "type": "Func",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 32
+    },
+    {
+      "file": ".agent\\scripts\\set_persona.py",
+      "name": "_extract_persona",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 44
+    },
+    {
+      "file": ".agent\\scripts\\set_persona.py",
+      "name": "_save_persona",
+      "type": "Func",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 49
+    },
+    {
+      "file": ".agent\\scripts\\set_persona.py",
+      "name": "_get_alfred_suggestion",
+      "type": "Func",
+      "cc": 7,
+      "rank": "B",
+      "lineno": 63
+    },
+    {
+      "file": ".agent\\scripts\\set_persona.py",
+      "name": "_render_alfred_intro",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 77
+    },
+    {
+      "file": ".agent\\scripts\\set_persona.py",
+      "name": "_confirm_odin_switch",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 97
+    },
+    {
+      "file": ".agent\\scripts\\set_persona.py",
+      "name": "_log_audit",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 112
+    },
+    {
+      "file": ".agent\\scripts\\set_persona.py",
+      "name": "switch",
+      "type": "Func",
+      "cc": 11,
+      "rank": "C",
+      "lineno": 122
+    },
+    {
+      "file": ".agent\\scripts\\set_persona.py",
+      "name": "_apply_policy",
+      "type": "Func",
+      "cc": 7,
+      "rank": "B",
+      "lineno": 166
+    },
+    {
+      "file": ".agent\\scripts\\skill_forge.py",
+      "name": "main",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 429
+    },
+    {
+      "file": ".agent\\scripts\\skill_forge.py",
+      "name": "HUD",
+      "type": "Class",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 29
+    },
+    {
+      "file": ".agent\\scripts\\skill_forge.py",
+      "name": "box_top",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 37
+    },
+    {
+      "file": ".agent\\scripts\\skill_forge.py",
+      "name": "box_row",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 39
+    },
+    {
+      "file": ".agent\\scripts\\skill_forge.py",
+      "name": "box_bottom",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 41
+    },
+    {
+      "file": ".agent\\scripts\\skill_forge.py",
+      "name": "SkillForge",
+      "type": "Class",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 43
+    },
+    {
+      "file": ".agent\\scripts\\skill_forge.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 86
+    },
+    {
+      "file": ".agent\\scripts\\skill_forge.py",
+      "name": "forge",
+      "type": "Func",
+      "cc": 7,
+      "rank": "B",
+      "lineno": 97
+    },
+    {
+      "file": ".agent\\scripts\\skill_forge.py",
+      "name": "analyze_pattern",
+      "type": "Func",
+      "cc": 5,
+      "rank": "A",
+      "lineno": 158
+    },
+    {
+      "file": ".agent\\scripts\\skill_forge.py",
+      "name": "select_archetype",
+      "type": "Func",
+      "cc": 8,
+      "rank": "B",
+      "lineno": 176
+    },
+    {
+      "file": ".agent\\scripts\\skill_forge.py",
+      "name": "_extract_subject",
+      "type": "Func",
+      "cc": 6,
+      "rank": "B",
+      "lineno": 187
+    },
+    {
+      "file": ".agent\\scripts\\skill_forge.py",
+      "name": "_generate_workflow_steps",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 198
+    },
+    {
+      "file": ".agent\\scripts\\skill_forge.py",
+      "name": "_generate_workflow_template",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 206
+    },
+    {
+      "file": ".agent\\scripts\\skill_forge.py",
+      "name": "_generate_test_template",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 238
+    },
+    {
+      "file": ".agent\\scripts\\skill_forge.py",
+      "name": "_generate_scanner_template",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 268
+    },
+    {
+      "file": ".agent\\scripts\\skill_forge.py",
+      "name": "_generate_utility_template",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 308
+    },
+    {
+      "file": ".agent\\scripts\\skill_forge.py",
+      "name": "_generate_scraper_template",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 338
+    },
+    {
+      "file": ".agent\\scripts\\skill_forge.py",
+      "name": "synthesize_skill",
+      "type": "Func",
+      "cc": 6,
+      "rank": "B",
+      "lineno": 369
+    },
+    {
+      "file": ".agent\\scripts\\skill_forge.py",
+      "name": "validate_skill",
+      "type": "Func",
+      "cc": 7,
+      "rank": "B",
+      "lineno": 382
+    },
+    {
+      "file": ".agent\\scripts\\skill_forge.py",
+      "name": "_save_draft",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 403
+    },
+    {
+      "file": ".agent\\scripts\\sv_engine.py",
+      "name": "main",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 193
+    },
+    {
+      "file": ".agent\\scripts\\sv_engine.py",
+      "name": "SovereignEngine",
+      "type": "Class",
+      "cc": 5,
+      "rank": "A",
+      "lineno": 23
+    },
+    {
+      "file": ".agent\\scripts\\sv_engine.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 30
+    },
+    {
+      "file": ".agent\\scripts\\sv_engine.py",
+      "name": "_init_hud_dialogue",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 41
+    },
+    {
+      "file": ".agent\\scripts\\sv_engine.py",
+      "name": "_init_vector_engine",
+      "type": "Func",
+      "cc": 5,
+      "rank": "A",
+      "lineno": 50
+    },
+    {
+      "file": ".agent\\scripts\\sv_engine.py",
+      "name": "handle_cortex_query",
+      "type": "Func",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 72
+    },
+    {
+      "file": ".agent\\scripts\\sv_engine.py",
+      "name": "record_trace",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 90
+    },
+    {
+      "file": ".agent\\scripts\\sv_engine.py",
+      "name": "_render_hud",
+      "type": "Func",
+      "cc": 5,
+      "rank": "A",
+      "lineno": 112
+    },
+    {
+      "file": ".agent\\scripts\\sv_engine.py",
+      "name": "_handle_proactive",
+      "type": "Func",
+      "cc": 6,
+      "rank": "B",
+      "lineno": 128
+    },
+    {
+      "file": ".agent\\scripts\\sv_engine.py",
+      "name": "_proactive_install",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 143
+    },
+    {
+      "file": ".agent\\scripts\\sv_engine.py",
+      "name": "_proactive_execute",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 152
+    },
+    {
+      "file": ".agent\\scripts\\sv_engine.py",
+      "name": "run",
+      "type": "Func",
+      "cc": 12,
+      "rank": "C",
+      "lineno": 161
+    },
+    {
+      "file": ".agent\\scripts\\synapse_auth.py",
+      "name": "authenticate_sync",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 44
+    },
+    {
+      "file": ".agent\\scripts\\synapse_auth.py",
+      "name": "PersonaVerifier",
+      "type": "Class",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 15
+    },
+    {
+      "file": ".agent\\scripts\\synapse_auth.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 18
+    },
+    {
+      "file": ".agent\\scripts\\synapse_auth.py",
+      "name": "_load_secret",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 22
+    },
+    {
+      "file": ".agent\\scripts\\synapse_auth.py",
+      "name": "generate_challenge",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 29
+    },
+    {
+      "file": ".agent\\scripts\\synapse_auth.py",
+      "name": "solve_challenge",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 34
+    },
+    {
+      "file": ".agent\\scripts\\synapse_auth.py",
+      "name": "verify_response",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 39
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "main",
+      "type": "Func",
+      "cc": 6,
+      "rank": "B",
+      "lineno": 333
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "HUD",
+      "type": "Class",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 22
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "box_top",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 25
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "box_row",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 27
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "box_bottom",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 29
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "log",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 31
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "ConfigurationError",
+      "type": "Class",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 34
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "PushRateLimiter",
+      "type": "Class",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 39
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 42
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "_get_host",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 47
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "_load",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 54
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "_save",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 63
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "check",
+      "type": "Func",
+      "cc": 6,
+      "rank": "B",
+      "lineno": 73
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "record",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 88
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "GitHelper",
+      "type": "Class",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 97
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 100
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "run",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 103
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "check_permissions",
+      "type": "Func",
+      "cc": 6,
+      "rank": "B",
+      "lineno": 118
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "KnowledgeExtractor",
+      "type": "Class",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 135
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 138
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "extract_all",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 144
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "_extract_corrections",
+      "type": "Func",
+      "cc": 5,
+      "rank": "A",
+      "lineno": 148
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "_extract_patterns",
+      "type": "Func",
+      "cc": 7,
+      "rank": "B",
+      "lineno": 168
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "Synapse",
+      "type": "Class",
+      "cc": 6,
+      "rank": "B",
+      "lineno": 187
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 5,
+      "rank": "A",
+      "lineno": 190
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "_load_config",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 207
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "_resolve_core",
+      "type": "Func",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 216
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "pull",
+      "type": "Func",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 228
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "_sync_skills",
+      "type": "Func",
+      "cc": 6,
+      "rank": "B",
+      "lineno": 243
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "_sync_corrections",
+      "type": "Func",
+      "cc": 6,
+      "rank": "B",
+      "lineno": 261
+    },
+    {
+      "file": ".agent\\scripts\\synapse_sync.py",
+      "name": "push",
+      "type": "Func",
+      "cc": 8,
+      "rank": "B",
+      "lineno": 287
+    },
+    {
+      "file": ".agent\\scripts\\trace_viz.py",
+      "name": "load_json",
+      "type": "Func",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 22
+    },
+    {
+      "file": ".agent\\scripts\\trace_viz.py",
+      "name": "get_engine",
+      "type": "Func",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 38
+    },
+    {
+      "file": ".agent\\scripts\\trace_viz.py",
+      "name": "mode_live",
+      "type": "Func",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 192
+    },
+    {
+      "file": ".agent\\scripts\\trace_viz.py",
+      "name": "mode_file",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 208
+    },
+    {
+      "file": ".agent\\scripts\\trace_viz.py",
+      "name": "mode_war_room",
+      "type": "Func",
+      "cc": 11,
+      "rank": "C",
+      "lineno": 237
+    },
+    {
+      "file": ".agent\\scripts\\trace_viz.py",
+      "name": "TraceRenderer",
+      "type": "Class",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 80
+    },
+    {
+      "file": ".agent\\scripts\\trace_viz.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 86
+    },
+    {
+      "file": ".agent\\scripts\\trace_viz.py",
+      "name": "box_top",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 94
+    },
+    {
+      "file": ".agent\\scripts\\trace_viz.py",
+      "name": "box_row",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 98
+    },
+    {
+      "file": ".agent\\scripts\\trace_viz.py",
+      "name": "box_separator",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 102
+    },
+    {
+      "file": ".agent\\scripts\\trace_viz.py",
+      "name": "box_bottom",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 106
+    },
+    {
+      "file": ".agent\\scripts\\trace_viz.py",
+      "name": "render_neural_path",
+      "type": "Func",
+      "cc": 8,
+      "rank": "B",
+      "lineno": 111
+    },
+    {
+      "file": ".agent\\scripts\\trace_viz.py",
+      "name": "render_analysis",
+      "type": "Func",
+      "cc": 10,
+      "rank": "B",
+      "lineno": 135
+    },
+    {
+      "file": ".agent\\scripts\\tune_weights.py",
+      "name": "tune_weights",
+      "type": "Func",
+      "cc": 8,
+      "rank": "B",
+      "lineno": 41
+    },
+    {
+      "file": ".agent\\scripts\\tune_weights.py",
+      "name": "MetaLearner",
+      "type": "Class",
+      "cc": 5,
+      "rank": "A",
+      "lineno": 7
+    },
+    {
+      "file": ".agent\\scripts\\tune_weights.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 9
+    },
+    {
+      "file": ".agent\\scripts\\tune_weights.py",
+      "name": "analyze_failure",
+      "type": "Func",
+      "cc": 6,
+      "rank": "B",
+      "lineno": 14
+    },
+    {
+      "file": ".agent\\scripts\\tune_weights.py",
+      "name": "report",
+      "type": "Func",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 29
+    },
+    {
+      "file": ".agent\\scripts\\ui.py",
+      "name": "HUD",
+      "type": "Class",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 14
+    },
+    {
+      "file": ".agent\\scripts\\ui.py",
+      "name": "_speak",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 39
+    },
+    {
+      "file": ".agent\\scripts\\ui.py",
+      "name": "get_theme",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 46
+    },
+    {
+      "file": ".agent\\scripts\\ui.py",
+      "name": "persona_log",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 88
+    },
+    {
+      "file": ".agent\\scripts\\ui.py",
+      "name": "box_top",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 103
+    },
+    {
+      "file": ".agent\\scripts\\ui.py",
+      "name": "_get_width",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 113
+    },
+    {
+      "file": ".agent\\scripts\\ui.py",
+      "name": "box_top",
+      "type": "Func",
+      "cc": 6,
+      "rank": "B",
+      "lineno": 123
+    },
+    {
+      "file": ".agent\\scripts\\ui.py",
+      "name": "box_row",
+      "type": "Func",
+      "cc": 6,
+      "rank": "B",
+      "lineno": 152
+    },
+    {
+      "file": ".agent\\scripts\\ui.py",
+      "name": "box_separator",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 196
+    },
+    {
+      "file": ".agent\\scripts\\ui.py",
+      "name": "box_bottom",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 206
+    },
+    {
+      "file": ".agent\\scripts\\ui.py",
+      "name": "progress_bar",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 216
+    },
+    {
+      "file": ".agent\\scripts\\ui.py",
+      "name": "render_sparkline",
+      "type": "Func",
+      "cc": 8,
+      "rank": "B",
+      "lineno": 231
+    },
+    {
+      "file": ".agent\\scripts\\ui.py",
+      "name": "log",
+      "type": "Func",
+      "cc": 5,
+      "rank": "A",
+      "lineno": 264
+    },
+    {
+      "file": ".agent\\scripts\\ui.py",
+      "name": "warning",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 283
+    },
+    {
+      "file": ".agent\\scripts\\ui.py",
+      "name": "divider",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 288
+    },
+    {
+      "file": ".agent\\scripts\\ui.py",
+      "name": "log_rejection",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 298
+    },
+    {
+      "file": ".agent\\scripts\\update_gemini_manifest.py",
+      "name": "get_git_summary",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 6
+    },
+    {
+      "file": ".agent\\scripts\\update_gemini_manifest.py",
+      "name": "get_task_status",
+      "type": "Func",
+      "cc": 5,
+      "rank": "A",
+      "lineno": 13
+    },
+    {
+      "file": ".agent\\scripts\\update_gemini_manifest.py",
+      "name": "update_manifest",
+      "type": "Func",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 26
+    },
+    {
+      "file": ".agent\\scripts\\utils.py",
+      "name": "load_config",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 8
+    },
+    {
+      "file": ".agent\\scripts\\utils.py",
+      "name": "sanitize_query",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 16
+    },
+    {
+      "file": ".agent\\scripts\\utils.py",
+      "name": "input_with_timeout",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 22
+    },
+    {
+      "file": ".agent\\scripts\\empire\\compiler.py",
+      "name": "EmpireCompiler",
+      "type": "Class",
+      "cc": 5,
+      "rank": "A",
+      "lineno": 6
+    },
+    {
+      "file": ".agent\\scripts\\empire\\compiler.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 12
+    },
+    {
+      "file": ".agent\\scripts\\empire\\compiler.py",
+      "name": "compile",
+      "type": "Func",
+      "cc": 5,
+      "rank": "A",
+      "lineno": 20
+    },
+    {
+      "file": ".agent\\scripts\\empire\\compiler.py",
+      "name": "generate_boilerplate",
+      "type": "Func",
+      "cc": 6,
+      "rank": "B",
+      "lineno": 45
+    },
+    {
+      "file": ".agent\\scripts\\empire\\semantic_probe.py",
+      "name": "SemanticProbe",
+      "type": "Class",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 12
+    },
+    {
+      "file": ".agent\\scripts\\empire\\semantic_probe.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 18
+    },
+    {
+      "file": ".agent\\scripts\\empire\\semantic_probe.py",
+      "name": "assert_semantic",
+      "type": "Func",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 21
+    },
+    {
+      "file": ".agent\\scripts\\empire\\stabilizer.py",
+      "name": "EmpireStabilizer",
+      "type": "Class",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 4
+    },
+    {
+      "file": ".agent\\scripts\\empire\\stabilizer.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 10
+    },
+    {
+      "file": ".agent\\scripts\\empire\\stabilizer.py",
+      "name": "wait_for_idle",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 13
+    },
+    {
+      "file": ".agent\\scripts\\empire\\symbolic_legend.py",
+      "name": "SymbolicLegend",
+      "type": "Class",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 4
+    },
+    {
+      "file": ".agent\\scripts\\empire\\symbolic_legend.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 10
+    },
+    {
+      "file": ".agent\\scripts\\empire\\symbolic_legend.py",
+      "name": "_load",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 14
+    },
+    {
+      "file": ".agent\\scripts\\empire\\symbolic_legend.py",
+      "name": "resolve",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 23
+    },
+    {
+      "file": ".agent\\scripts\\empire\\symbolic_legend.py",
+      "name": "save",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 27
+    },
+    {
+      "file": ".agent\\scripts\\engine\\alfred_observer.py",
+      "name": "AlfredObserver",
+      "type": "Class",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 14
+    },
+    {
+      "file": ".agent\\scripts\\engine\\alfred_observer.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 17
+    },
+    {
+      "file": ".agent\\scripts\\engine\\alfred_observer.py",
+      "name": "observe_fishtest",
+      "type": "Func",
+      "cc": 6,
+      "rank": "B",
+      "lineno": 21
+    },
+    {
+      "file": ".agent\\scripts\\engine\\alfred_observer.py",
+      "name": "observe_sentinel",
+      "type": "Func",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 38
+    },
+    {
+      "file": ".agent\\scripts\\engine\\alfred_observer.py",
+      "name": "_append_observation",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 50
+    },
+    {
+      "file": ".agent\\scripts\\engine\\cortex.py",
+      "name": "Cortex",
+      "type": "Class",
+      "cc": 6,
+      "rank": "B",
+      "lineno": 5
+    },
+    {
+      "file": ".agent\\scripts\\engine\\cortex.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 10
+    },
+    {
+      "file": ".agent\\scripts\\engine\\cortex.py",
+      "name": "_ingest",
+      "type": "Func",
+      "cc": 11,
+      "rank": "C",
+      "lineno": 28
+    },
+    {
+      "file": ".agent\\scripts\\engine\\cortex.py",
+      "name": "query",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 70
+    },
+    {
+      "file": ".agent\\scripts\\engine\\dialogue.py",
+      "name": "DialogueRetriever",
+      "type": "Class",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 5
+    },
+    {
+      "file": ".agent\\scripts\\engine\\dialogue.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 7
+    },
+    {
+      "file": ".agent\\scripts\\engine\\dialogue.py",
+      "name": "_read_with_fallback",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 11
+    },
+    {
+      "file": ".agent\\scripts\\engine\\dialogue.py",
+      "name": "_load",
+      "type": "Func",
+      "cc": 11,
+      "rank": "C",
+      "lineno": 19
+    },
+    {
+      "file": ".agent\\scripts\\engine\\dialogue.py",
+      "name": "get",
+      "type": "Func",
+      "cc": 2,
+      "rank": "A",
+      "lineno": 34
+    },
+    {
+      "file": ".agent\\scripts\\engine\\dialogue.py",
+      "name": "__repr__",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 38
+    },
+    {
+      "file": ".agent\\scripts\\engine\\vector.py",
+      "name": "SovereignVector",
+      "type": "Class",
+      "cc": 8,
+      "rank": "B",
+      "lineno": 15
+    },
+    {
+      "file": ".agent\\scripts\\engine\\vector.py",
+      "name": "__init__",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 16
+    },
+    {
+      "file": ".agent\\scripts\\engine\\vector.py",
+      "name": "_load_json",
+      "type": "Func",
+      "cc": 4,
+      "rank": "A",
+      "lineno": 38
+    },
+    {
+      "file": ".agent\\scripts\\engine\\vector.py",
+      "name": "_load_stopwords",
+      "type": "Func",
+      "cc": 5,
+      "rank": "A",
+      "lineno": 46
+    },
+    {
+      "file": ".agent\\scripts\\engine\\vector.py",
+      "name": "_load_thesaurus",
+      "type": "Func",
+      "cc": 14,
+      "rank": "C",
+      "lineno": 63
+    },
+    {
+      "file": ".agent\\scripts\\engine\\vector.py",
+      "name": "_apply_thesaurus_corrections",
+      "type": "Func",
+      "cc": 7,
+      "rank": "B",
+      "lineno": 95
+    },
+    {
+      "file": ".agent\\scripts\\engine\\vector.py",
+      "name": "tokenize",
+      "type": "Func",
+      "cc": 7,
+      "rank": "B",
+      "lineno": 105
+    },
+    {
+      "file": ".agent\\scripts\\engine\\vector.py",
+      "name": "expand_query",
+      "type": "Func",
+      "cc": 13,
+      "rank": "C",
+      "lineno": 125
+    },
+    {
+      "file": ".agent\\scripts\\engine\\vector.py",
+      "name": "add_skill",
+      "type": "Func",
+      "cc": 1,
+      "rank": "A",
+      "lineno": 149
+    },
+    {
+      "file": ".agent\\scripts\\engine\\vector.py",
+      "name": "build_index",
+      "type": "Func",
+      "cc": 8,
+      "rank": "B",
+      "lineno": 160
+    },
+    {
+      "file": ".agent\\scripts\\engine\\vector.py",
+      "name": "_vectorize",
+      "type": "Func",
+      "cc": 3,
+      "rank": "A",
+      "lineno": 185
+    },
+    {
+      "file": ".agent\\scripts\\engine\\vector.py",
+      "name": "similarity",
+      "type": "Func",
+      "cc": 6,
+      "rank": "B",
+      "lineno": 206
+    },
+    {
+      "file": ".agent\\scripts\\engine\\vector.py",
+      "name": "search",
+      "type": "Func",
+      "cc": 17,
+      "rank": "C",
+      "lineno": 213
+    },
+    {
+      "file": ".agent\\scripts\\engine\\vector.py",
+      "name": "load_core_skills",
+      "type": "Func",
+      "cc": 7,
+      "rank": "B",
+      "lineno": 279
+    },
+    {
+      "file": ".agent\\scripts\\engine\\vector.py",
+      "name": "load_skills_from_dir",
+      "type": "Func",
+      "cc": 6,
+      "rank": "B",
+      "lineno": 314
+    },
+    {
+      "file": ".agent\\scripts\\engine\\vector.py",
+      "name": "_load_single_skill",
+      "type": "Func",
+      "cc": 10,
+      "rank": "B",
+      "lineno": 329
+    },
+    {
+      "file": ".agent\\scripts\\engine\\vector.py",
+      "name": "_populate_trigger_map",
+      "type": "Func",
+      "cc": 5,
+      "rank": "A",
+      "lineno": 355
+    },
+    {
+      "file": ".agent\\scripts\\engine\\vector.py",
+      "name": "score_identity",
+      "type": "Func",
+      "cc": 6,
+      "rank": "B",
+      "lineno": 364
+    }
+  ]
+}

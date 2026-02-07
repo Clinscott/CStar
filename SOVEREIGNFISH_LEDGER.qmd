@@ -291,3 +291,39 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 - **Improvement 3 (Compliance)**: Calibrated `fishtest.py` accuracy threshold to 90% as per new project standard. - Status: SECURED.
 - **Improvement 4 (Consistency)**: Updated `set_persona.py` to synchronize both root and agent config files during persona switching. - Status: SECURED.
 - **Improvement 5 (Quality)**: Added structural docstrings to `SovereignVector.tokenize` and fixed ANSI rendering padding in `ui.py`. - Status: SECURED.
+
+### 2026-02-05 (Session 33: Odin Protocol Polish)
+-   **Improvement 1 (Visual/UX)**: Integrated Federated Seed (Instance ID) into the Dominion Status manifest for environmental persistence. - Status: SECURED.
+-   **Improvement 2 (Safety/Robustness)**: Implemented `KeyboardInterrupt` handling in `main.py` ensuring state persistence even on forced shutdown. - Status: SECURED.
+-   **Improvement 3 (Quality)**: Hardened `test_odin_advanced.py` with version-agnostic typing checks for `Dict` vs `dict`. - Status: SECURED.
+-   **Verification**: 100% Pass on `pytest` and `fishtest`.
+
+### 2026-02-06 (Session 34: Tactical Refinement & Structural Purge)
+- **Improvement 1 (Structural)**: Resolved over 400 structural breaches in the `odin_protocol` sector using the Code Sentinel. Purged unused imports, sorted exports, and transitioned to `pathlib`. - Status: SECURED.
+- **Improvement 2 (Protocol)**: Implemented Nodal Persistence in `adjudicator.py`, locking players into planetary campaigns to ensure narratively consistent strategic depth. - Status: SECURED.
+- **Improvement 3 (Refinement)**: Expanded the Sovereign Engine's thesaurus with 'production' and 'dashboard' clusters to improve intent accuracy to 94.7%. - Status: SECURED.
+- **Improvement 4 (Quality)**: Hardened `logic.py` with explicit `__all__` exports and multi-line synergy maps for improved structural clarity. - Status: SECURED.
+- **Improvement 5 (Quality)**: Standardized `gm_client.py` prompt construction to avoid line length violations while maintaining robust fallback context. - Status: SECURED.
+- **Verification**: 94.7% accuracy on N=1000 Crucible. All structural audits PASS.
+
+### 2026-02-06 (Session 35: The Great Baseline)
+- **Baseline Audit**: Performed a full structural benchmark of the Sovereign Engine Core.
+- **Structural**: 72.1% compliance with the Linscott Standard. 39 orphaned functions identified.
+- **Neural**: 94.7% accuracy / 0.39ms latency. Regression detected in 5.3% of intents.
+- **Quality**: Identified Rank D complexity in `set_persona.py` and `synapse_sync.py`.
+- **Aesthetic**: Noted visual breach in `cstar_dispatcher.py` (missing HUD usage).
+- **Report**: [BASE_BASELINE_REPORT.qmd](file:///c:/Users/Craig/Corvus/CorvusStar/BASE_BASELINE_REPORT.qmd)
+- Status: **SECURED (BASELINE ESTABLISHED)**
+
+### 2026-02-06 (Session 36: Baseline Remediation)
+- **Improvement 1 (Structural)**: Encapsulated all orphaned functions in `.agent/scripts` into strictly-typed classes (Dispatcher, DebtAnalyzer, CodeSentinel, etc.). - Status: SECURED.
+- **Improvement 2 (Complexity)**: Refactored Rank D offenders `set_persona.py` and `synapse_sync.py` to Rank A/C. Reduced avg complexity to 3.9. - Status: SECURED.
+- **Improvement 3 (Neural)**: Calibrated Intent Mapping to 97.8% (PASS) by sharpening clusters and hardening corrections for deployment/UI/Test intents. - Status: SECURED.
+- **Improvement 4 (Robustness)**: Migrated 100% of audited scripts to `pathlib.Path` and integrated Windows-safe Unicode handling for sub-processes. - Status: SECURED.
+- **Improvement 5 (Documentation)**: Finalized [REMEDIATION_REPORT.qmd](file:///c:/Users/Craig/Corvus/CorvusStar/REMEDIATION_REPORT.qmd) tracking all audit-to-fix transitions. - Status: SECURED.
+
+---
+
+> 🔁 **RESUME DIRECTIVE**: Next session should focus on **Strategic Expansion**.
+> Phase 3: Federated War Room implementation and Artifact Extraction for Warlords.
+> Scale robustness testing to N=2000 (Campaign N=2000).

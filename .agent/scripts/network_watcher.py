@@ -7,6 +7,27 @@ import subprocess
 from pathlib import Path
 from ui import HUD
 
+# --- CRUCIBLE CONFIGURATION (THEMES) ---
+THEMES = {
+    "ODIN": {"TITLE": "Ω CRUCIBLE (WAR ROOM) Ω", "DETECTED": "Anomaly Sector", "PASS": "Subjugated", "FAIL": "Defiant", "COLOR_MAIN": HUD.RED},
+    "ALFRED": {"TITLE": "C* THE CRUCIBLE (SYNC)", "DETECTED": "Trace Detected", "PASS": "Ingested", "FAIL": "Rejected", "COLOR_MAIN": HUD.CYAN}
+}
+
+def get_theme():
+    """Module-level theme retriever for legacy tests."""
+    return THEMES.get(HUD.PERSONA, THEMES["ALFRED"])
+
+def log_rejection(filename: str, reason: str):
+    """Module-level rejection log."""
+    HUD.log_rejection(HUD.PERSONA, reason, filename)
+
+def process_file(file_path: str):
+    """Module-level process alias."""
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    base = os.path.dirname(script_dir)
+    root = os.path.dirname(base)
+    CruciblePipeline(root, base).process(file_path)
+
 class CruciblePipeline:
     """[ALFRED] Secure ingestion pipeline for the Federated Crucible."""
     def __init__(self, root: str, base: str):

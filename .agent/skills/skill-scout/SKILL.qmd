@@ -5,7 +5,7 @@ description: Proactively searches the web to acquire new skills when the local e
 
 # Skill Scout Protocol
 
-**Activation Words**: learn find how to scour search scout
+**Activation Words**: learn, find-skill, acquire, scour, search-web, scout-skill
 
 ## Protocol
 

@@ -16,12 +16,12 @@ class TestUI(unittest.TestCase):
 
     def test_theme_switching(self):
         # Default (Alfred)
-        theme = HUD._get_theme()
+        theme = HUD.get_theme()
         self.assertEqual(theme['main'], HUD.CYAN)
         
         # Switch to ODIN
         HUD.PERSONA = "ODIN"
-        theme = HUD._get_theme()
+        theme = HUD.get_theme()
         self.assertEqual(theme['main'], HUD.RED)
         self.assertIn("ODIN", theme['title'])
 

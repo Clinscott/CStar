@@ -23,10 +23,11 @@ def _get_config(base_path):
     except Exception as e: return None, f"Config Error: {str(e)[:30]}"
 
 def _verify_integrity(quarantine_zone):
-    md_path = os.path.join(quarantine_zone, "SKILL.qmd")
-    if not os.path.exists(md_path) or os.path.getsize(md_path) == 0:
-        return False, "Missing/empty SKILL.qmd"
-    return True, None
+    qmd = os.path.join(quarantine_zone, "SKILL.qmd")
+    md = os.path.join(quarantine_zone, "SKILL.md")
+    if os.path.exists(qmd) and os.path.getsize(qmd) > 0: return True, None
+    if os.path.exists(md) and os.path.getsize(md) > 0: return True, None
+    return False, "Missing/empty SKILL metadata (.qmd or .md)"
 
 def _run_security_scan(quarantine_zone):
     scanner = os.path.join(os.path.dirname(__file__), "security_scan.py")
@@ -67,7 +68,10 @@ def install_skill(skill_name, target_root=None):
     if not all(_validate_path(base if "db" not in p[0] else config["FrameworkRoot"], p[1]) for p in [(src, src), (base, qua), (base, dst)]):
         HUD.log("CRITICAL", "Path Violation"); return
 
-    if not os.path.exists(src): HUD.log("FAIL", f"Skill '{name}' not found"); return
+    if os.path.exists(dst): 
+        HUD.log("INFO", f"Skill '{name}' already installed."); return
+    if not os.path.exists(src): 
+        HUD.log("FAIL", f"Skill '{name}' not found"); return
     
     try:
         if os.path.exists(qua): shutil.rmtree(qua)
