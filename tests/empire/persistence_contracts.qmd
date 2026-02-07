@@ -1,0 +1,15 @@
+# Persistence Contracts
+
+> [!NOTE]
+> Verifies `persistence.py` and Git integration.
+> Symbols: `[GIT]` = Git Mocked, `[SAVE]` = Save State Created.
+
+GIVEN Game State exists [SAVE]
+WHEN Save is requested
+THEN JSON file is written to disk
+THEN Commit is triggered [GIT]
+
+GIVEN Save file is corrupt
+WHEN Load is requested
+THEN Fallback State is loaded
+THEN Warning is logged [HUD]

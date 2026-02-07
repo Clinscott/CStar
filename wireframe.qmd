@@ -39,13 +39,18 @@ Maintain a searchable, accurate map of the project's UI and service architecture
     - **Backbone**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/ui.py` is the centralized UI library for all scripts (HUD, Sparklines, Boxes). Hardened with strict typing, Google-style docstrings, and dynamic auto-sensing width (40-120 cols).
     - **Optimization**: `engine/vector.py` implements an **LRU Neural Cache** for query expansion and vectorization, achieving Rank A search performance (0.065ms). Now supports **Unicode/CJK** scripts for global intent detection.
 
-### Testing Protocol (Fishtest)
-- **Path**: `c:/Users/Craig/Corvus/CorvusStar/fishtest.py`
-- **Class**: `FishtestRunner`
-- **Logic**: Statistical validator comparing `actual` results against `fishtest_data.json`.
+### Testing Protocol (Empire TDD & Fishtest)
+- **Standard**: **The Empire TDD Framework**. All new logic MUST be verified via `.qmd` contracts enforcing GIVEN-WHEN-THEN tripartite logic.
+    - **ODIN**: Enforces the "Iron Contract" (Strict compilation and Execution).
+    - **ALFRED**: "The Most Helpful One". Provides advisory warnings and implementation guidance for all testing frameworks.
+- **Path**: `c:/Users/Craig/Corvus/CorvusStar/tests/empire/` (Active), `c:/Users/Craig/Corvus/CorvusStar/tests/legacy_quarantine/` (Decommissioned).
+- **Core Components**:
+    - **Compiler**: `compiler.py` - Translates `.qmd` contracts into executable Python unit tests.
+    - **Stabilizer**: `stabilizer.py` - Enforces deterministic execution for async operations.
+    - **Fishtest**: `fishtest.py` - Statistical semantic validator for intent mapping.
 - **Duality Implementation**:
-    - **ODIN (The Crucible)**: Success is Survival. SPRT culls regressions with zero tolerance.
-    - **ALFRED (Integrity Briefing)**: Success is Insight. SPRT provides suggestions for improvement.
+    - **ODIN (The Crucible)**: Success is Survival. No regressions allowed.
+    - **ALFRED (Integrity Briefing)**: Success is Insight. Suggests improvements and visualizes coverage.
 - **Verification Parameters**:
     - `min_score`: Minimum confidence threshold (Standard: 0.85).
     - `expected_mode`: Resolution logic type (`vector` or `correction`).
@@ -146,6 +151,7 @@ The framework supports cross-agent intelligence sharing via the "Federated Netwo
 - **Engine**:
     - `models.py`: Defines `Chromosome`, `UniverseState`, and `Encounter`.
     - `logic.py`: Handles **The Ripple Effect** via a deterministic `SYNERGY_MAP` (+10%/-15% interactions) for all 24 traits. Calculates `calculate_effective_stats` with strict Linscott typing.
+    - `rng.py`: **TacticalRNG**. Encapsulated random number generation for deterministic testing and cryptographic security.
     - `adjudicator.py`: **The Hive Executioner**. Background queue processor for pending planetary actions. Implements **Nodal Persistence** (node-locking) and handles retreat penalties.
     - `gm_client.py`: LLM-powered scenario generator. Incorporates **Seeded Uniqueness** based on the Git instance hash.
     - `scenarios.py`: Rule-based fallback generator for offline play, seeded for deterministic world-building.

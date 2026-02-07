@@ -1,0 +1,15 @@
+# Network (Crucible) Contracts
+
+> [!NOTE]
+> Verifies `network_watcher.py` and trace ingestion.
+> Symbols: `[NET]` = Network Share Mocked.
+
+GIVEN Valid Trace file appears [NET]
+WHEN Watcher Cycle runs
+THEN Trace is moved to Processing
+THEN Data is merged
+
+GIVEN Malformed Trace file appears [NET]
+WHEN Watcher Cycle runs
+THEN Trace is moved to Quarantine
+THEN Rejection is logged

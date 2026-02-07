@@ -1,0 +1,14 @@
+# Cortex (Memory) Contracts
+
+> [!NOTE]
+> Verifies `cortex.py` (RAG) and `dialogue.py` (Memory).
+> Symbols: `[CTX]` = Cortex Initialized.
+
+GIVEN Context is initialized [CTX]
+WHEN Query "Who is Odin?" is executed
+THEN Result contains "God" or "Engine"
+THEN Score is > 0.5
+
+GIVEN Context is initialized [CTX]
+WHEN Query "dsfhjkdsfhkjsd" is executed (Nonsense)
+THEN Result is Empty

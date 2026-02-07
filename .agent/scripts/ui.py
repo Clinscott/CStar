@@ -1,14 +1,13 @@
-import sys
 import os
-import random
+import sys
 from datetime import datetime
-from typing import List, Optional, Dict, Any, Union
+from typing import Any
 
 # [ALFRED] Force UTF-8 for CLI aesthetics on Windows
 if sys.platform == "win32":
     try:
         sys.stdout.reconfigure(encoding='utf-8')
-    except (AttributeError, IOError):
+    except (OSError, AttributeError):
         pass
 
 class HUD:
@@ -18,11 +17,11 @@ class HUD:
     Provides ANSI-colored terminal output primitives for the Corvus Star framework.
     Strictly follows the Linscott Standard for "Iron Clad" reliability.
     """
-    
+
     # "Glow" Palette - Standard ANSI
     CYAN: str = "\033[36m"
-    CYAN_DIM: str = "\033[2;36m" 
-    GREEN: str = "\033[32m" 
+    CYAN_DIM: str = "\033[2;36m"
+    GREEN: str = "\033[32m"
     GREEN_DIM: str = "\033[2;32m"
     YELLOW: str = "\033[33m"
     MAGENTA: str = "\033[35m"
@@ -30,10 +29,10 @@ class HUD:
     RESET: str = "\033[0m"
     BOLD: str = "\033[1m"
     DIM: str = "\033[2m"
-    
+
     # State
     PERSONA: str = "ALFRED" # Default
-    DIALOGUE: Optional[Any] = None # Instance of DialogueRetriever
+    DIALOGUE: Any | None = None # Instance of DialogueRetriever
 
     @staticmethod
     def _speak(intent: str, fallback: str) -> str:
@@ -43,14 +42,14 @@ class HUD:
         return fallback
 
     @staticmethod
-    def get_theme() -> Dict[str, str]:
+    def get_theme() -> dict[str, str]:
         """Returns the comprehensive color palette for the active Persona."""
         p = HUD.PERSONA.upper()
-        
+
         if p in ["GOD", "ODIN"]:
             return {
-                "main": HUD.RED, 
-                "dim": HUD.MAGENTA, 
+                "main": HUD.RED,
+                "dim": HUD.MAGENTA,
                 "accent": HUD.YELLOW,
                 "success": HUD.GREEN,
                 "warning": HUD.YELLOW,
@@ -67,8 +66,8 @@ class HUD:
             }
         # Default / Alfred
         return {
-            "main": HUD.CYAN, 
-            "dim": HUD.CYAN_DIM, 
+            "main": HUD.CYAN,
+            "dim": HUD.CYAN_DIM,
             "accent": HUD.GREEN,
             "success": HUD.GREEN,
             "warning": HUD.YELLOW,
@@ -89,18 +88,18 @@ class HUD:
         """Log with persona prefix for major announcements."""
         theme = HUD.get_theme()
         prefix = theme["prefix"]
-        
+
         color = {
             "INFO": theme["main"],
             "SUCCESS": theme["success"],
             "WARN": theme["warning"],
             "ERROR": theme["error"]
         }.get(level.upper(), theme["main"])
-        
+
         print(f"{color}{prefix}{HUD.RESET} {msg}")
 
     @staticmethod
-    def box_top(title: str = "", color: Optional[str] = None, width: Optional[int] = None) -> None:
+    def box_top(title: str = "", color: str | None = None, width: int | None = None) -> None:
         """
         Renders the top implementation of a box with a title.
         
@@ -120,7 +119,7 @@ class HUD:
             return int(os.environ.get("HUD_WIDTH", 60))
 
     @staticmethod
-    def box_top(title: str = "", color: Optional[str] = None, width: Optional[int] = None) -> None:
+    def box_top(title: str = "", color: str | None = None, width: int | None = None) -> None:
         """
         Renders the top implementation of a box with a title.
         
@@ -133,23 +132,23 @@ class HUD:
             width = HUD._get_width()
         assert isinstance(width, int) and width >= 10, "Width must be integer >= 10"
         HUD._last_width = width
-        
+
         theme = HUD.get_theme()
         display_title = title if title else theme["title"]
         main_color = color if color else theme['main']
         dim_color = color if color else theme['dim']
-        
+
         # Calculate padding
         t_len = len(display_title)
         total_padding = max(0, width - t_len - 4) # -4 for corners and spaces
         pad_l = total_padding // 2
         pad_r = total_padding - pad_l
-        
+
         # Glow effect
         print(f"{dim_color}┌{'─'*pad_l} {main_color}{HUD.BOLD}{display_title}{HUD.RESET}{dim_color} {'─'*pad_r}┐{HUD.RESET}")
 
     @staticmethod
-    def box_row(label: str, value: Any, color: Optional[str] = None, dim_label: bool = False, width: Optional[int] = None) -> None:
+    def box_row(label: str, value: Any, color: str | None = None, dim_label: bool = False, width: int | None = None) -> None:
         """
         Renders a row within a box.
         
@@ -165,13 +164,13 @@ class HUD:
         theme = HUD.get_theme()
         val_color = color if color else theme['main']
         lbl_color = theme['dim'] if dim_label else theme['main']
-        
+
         # Calculate spacing
         # Structure: "│ Label      Value │"
         # Border(1) + Label(20) + Space(1) + Value(N) + Border(1)
-        # For now, we keep the fixed label width of 20 for alignment, 
+        # For now, we keep the fixed label width of 20 for alignment,
         # but ensure the box closes at 'width'
-        
+
         # Safe string conversion
         try:
             str_val = str(value)
@@ -179,21 +178,21 @@ class HUD:
         except Exception:
             str_val = "[TYPE ERROR]"
             str_lbl = "[TYPE ERROR]"
-        
+
         # Truncate if too long (Defensive)
         max_val_len = width - 24 # 1(L) + 20(Lbl) + 1(Space) + 1(Space) + 1(R)
         if len(str_val) > max_val_len:
             str_val = str_val[:max_val_len-3] + "..."
-            
+
         inner_content = f"{lbl_color}{str_lbl:<20}{HUD.RESET} {val_color}{str_val}{HUD.RESET}"
         # We need to calculate spaces based on RAW text length to avoid ANSI code interference
         raw_len = 1 + 20 + 1 + len(str_val)
         padding = max(0, width - 2 - raw_len)
-            
+
         print(f"{theme['dim']}│{HUD.RESET} {inner_content}{' '*padding} {theme['dim']}│{HUD.RESET}")
 
     @staticmethod
-    def box_separator(color: Optional[str] = None, width: Optional[int] = None) -> None:
+    def box_separator(color: str | None = None, width: int | None = None) -> None:
         """Renders a middle separator line."""
         if width is None:
             width = getattr(HUD, "_last_width", 60)
@@ -203,7 +202,7 @@ class HUD:
         print(f"{dim_color}├{'─'*inner_width}┤{HUD.RESET}")
 
     @staticmethod
-    def box_bottom(color: Optional[str] = None, width: Optional[int] = None) -> None:
+    def box_bottom(color: str | None = None, width: int | None = None) -> None:
         """Renders the bottom closure of a box."""
         if width is None:
             width = getattr(HUD, "_last_width", 60)
@@ -211,7 +210,7 @@ class HUD:
         dim_color = color if color else theme['dim']
         inner_width = width - 2
         print(f"{dim_color}└{'─'*inner_width}┘{HUD.RESET}")
-    
+
     @staticmethod
     def progress_bar(val: float, width: int = 10) -> str:
         """
@@ -226,9 +225,9 @@ class HUD:
         blocks = int(safe_val * width)
         bar = f"{HUD.GREEN}" + "█" * blocks + f"{HUD.GREEN_DIM}" + "░" * (width - blocks) + f"{HUD.RESET}"
         return bar
-    
+
     @staticmethod
-    def render_sparkline(data: List[float], max_points: int = 20) -> str:
+    def render_sparkline(data: list[float], max_points: int = 20) -> str:
         """
         Generates an ASCII Sparkline.
         
@@ -238,19 +237,19 @@ class HUD:
         """
         BARS = " ▂▃▄▅▆▇█"
         if not data: return ""
-        
+
         try:
             # [ALFRED] Filter non-numeric to prevent crashes
             visible = [float(x) for x in data[-max_points:] if isinstance(x, (int, float, str))]
             if not visible: return ""
-            
+
             min_val = min(visible)
             max_val = max(visible)
             range_val = max_val - min_val
-            
+
             if range_val == 0:
                 return BARS[0] * len(visible)
-                
+
             line = ""
             for x in visible:
                 normalized = (x - min_val) / range_val
@@ -276,7 +275,7 @@ class HUD:
         if level == "FAIL": color = HUD.RED
         if level == "PASS": color = HUD.GREEN
         if level == "CRITICAL": color = HUD.MAGENTA
-        
+
         print(f"{HUD.DIM}[{ts}]{HUD.RESET} {color}[{level}]{HUD.RESET} {msg} {HUD.DIM}{detail}{HUD.RESET}")
 
     @staticmethod
@@ -308,6 +307,6 @@ class HUD:
                     f.write("# 🧪 The Crucible: Rejection Ledger\n\n| Timestamp | Persona | Reason | Details |\n| :--- | :--- | :--- | :--- |\n")
             with open(ledger_path, "a", encoding="utf-8") as f:
                 f.write(entry)
-        except (IOError, PermissionError):
+        except (OSError, PermissionError):
             # Fail silently to avoid interrupting the main flow
             pass

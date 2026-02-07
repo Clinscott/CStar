@@ -1,0 +1,19 @@
+# Sovereign Engine Contracts
+
+> [!NOTE]
+> Verifies `sv_engine.py` logic including Vector Search, Cortex RAG, and Proactive Installs.
+> Symbols: `[HSV]` = Engine Loaded, `[HUD]` = UI Output, `[Git]` = Mocked Install
+
+GIVEN Engine is initialized [HSV]
+WHEN Query "status" is executed
+THEN HUD Output contains "STATUS" [HUD]
+THEN Output contains "SovereignVector"
+
+GIVEN Engine is initialized [HSV]
+WHEN Query "GLOBAL:git-assistant" is executed
+THEN Proactive Install triggers for "git-assistant" [HUD]
+THEN Output contains "Install skill?" [HUD]
+
+GIVEN Engine is initialized [HSV]
+WHEN Query "coffee" is executed (Intent Sink)
+THEN Output matches "NO DATA FOUND" or Sink Response [HUD]

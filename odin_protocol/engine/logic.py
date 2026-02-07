@@ -176,10 +176,9 @@ def adjudicate_choice(
 ) -> dict:
     """Calculates tactical outcome using a 'Weighted Die Cast' model.
 
-    Success probability is rooted in the ratio of Warlord Rating vs. Threshold,
-    with additional weight granted by specific Gene Seed alignment.
     """
-    import random
+    from .rng import TacticalRNG
+
     threshold = choice.get('threshold', 50.0)
     l_void = stats.get("GINNUNGAGAP_VOID", 0.0)
 
@@ -198,7 +197,7 @@ def adjudicate_choice(
         base_chance += 0.15
 
     success_chance = max(0.05, min(0.95, base_chance))
-    roll = random.random()
+    roll = TacticalRNG.random()
     success = roll < success_chance
 
     # Force Adjudication (Resource Drains)
@@ -211,16 +210,16 @@ def adjudicate_choice(
 
     # Domination Adjudication
     if success:
-        dom_delta = random.uniform(1.5, 4.0)
+        dom_delta = TacticalRNG.uniform(1.5, 4.0)
     else:
-        dom_delta = -random.uniform(2.0, 5.0)
+        dom_delta = -TacticalRNG.uniform(2.0, 5.0)
 
     penalty_msg = ""
     if not success:
         # Kingdom Death Penalties (Chromosome Decay)
-        cid = random.choice(list(state.inventory.keys()))
+        cid = TacticalRNG.choice(list(state.inventory.keys()))
         old_lvl = state.inventory[cid].level
-        damage = random.randint(1, 3)
+        damage = TacticalRNG.randint(1, 3)
         state.inventory[cid].level = max(1, old_lvl - damage)
         penalty_msg = f"{cid} decayed by {damage} points."
 

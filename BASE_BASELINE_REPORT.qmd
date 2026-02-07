@@ -5,6 +5,7 @@
 **Active Persona**: ODIN
 **Audit Scope**: Sovereign Engine Core (Baseline)
 **Subject Status**: SYSTEM STABLE / QUALITY RECOVERING
+**Annexation Status**: EMPIRE TDD ESTABLISHED (Legacy Tests Quarantined)
 
 ---
 

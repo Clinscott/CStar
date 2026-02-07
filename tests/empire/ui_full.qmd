@@ -1,0 +1,14 @@
+# UI Full Contracts
+
+> [!NOTE]
+> Verifies remaining UI components.
+> Symbols: `[HUD]` = HUD rendering.
+
+GIVEN HUD is active
+WHEN Progress Bar (0.5) is rendered
+THEN Output contains "██" [HUD]
+THEN Output contains "░░" [HUD]
+
+GIVEN HUD is active
+WHEN Sparkline [1, 5, 1] is rendered
+THEN Output contains " █ " [HUD]
