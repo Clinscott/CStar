@@ -164,30 +164,6 @@ def calculate_effective_stats(inventory: dict[str, Chromosome], items: list[Item
         for target in mapping["interferences"]:
             if target in eff_stats: eff_stats[target] += (level * int_mult)
 
-    # 3. Tier 2: Recursive Cascades (Depth 2)
-    # Condition: If L_eff > (L_base * 1.5), trigger cascades to neighbors at 5% efficiency
-    tier1_snapshot = dict(eff_stats)
-    for char_id, eff_level in tier1_snapshot.items():
-        base = base_snapshot.get(char_id, 1.0)
-        if eff_level > (base * 1.5):
-            cascade_power = (eff_level - base) * 0.05
-            mapping = SYNERGY_MAP.get(char_id)
-            if mapping:
-                for target in mapping["synergies"]:
-                    if target in eff_stats: eff_stats[target] += cascade_power
-                for target in mapping["interferences"]:
-                    if target in eff_stats: eff_stats[target] -= cascade_power
-
-    # 4. Mathematical Compounds (Resonance)
-    # If two traits in a pair both Level > 5, they gain Resonance = log2(L1 + L2)
-    for cid1, mapping in SYNERGY_MAP.items():
-        for cid2 in mapping["synergies"]:
-            l1, l2 = base_snapshot.get(cid1, 0), base_snapshot.get(cid2, 0)
-            if l1 > 5 and l2 > 5:
-                res = math.log2(l1 + l2)
-                eff_stats[cid1] += res
-                eff_stats[cid2] += res
-
     return eff_stats
 
 def get_combat_rating(effective_stats: dict[str, float]) -> float:

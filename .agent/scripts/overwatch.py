@@ -165,5 +165,11 @@ class Overwatch:
             except: pass
         return triggers
 
+def get_stats() -> Dict[str, int]:
+    """[ALFRED] Compatibility wrapper for the test suite."""
+    base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    root = os.path.dirname(base)
+    return StatsCollector(root, base).collect()
+
 if __name__ == "__main__":
     Overwatch().run()

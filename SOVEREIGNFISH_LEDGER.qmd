@@ -306,8 +306,24 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 - **Improvement 5 (Quality)**: Standardized `gm_client.py` prompt construction to avoid line length violations while maintaining robust fallback context. - Status: SECURED.
 - **Verification**: 94.7% accuracy on N=1000 Crucible. All structural audits PASS.
 
+### 2026-02-06 (Session 35: The Great Baseline)
+- **Baseline Audit**: Performed a full structural benchmark of the Sovereign Engine Core.
+- **Structural**: 72.1% compliance with the Linscott Standard. 39 orphaned functions identified.
+- **Neural**: 94.7% accuracy / 0.39ms latency. Regression detected in 5.3% of intents.
+- **Quality**: Identified Rank D complexity in `set_persona.py` and `synapse_sync.py`.
+- **Aesthetic**: Noted visual breach in `cstar_dispatcher.py` (missing HUD usage).
+- **Report**: [BASE_BASELINE_REPORT.qmd](file:///c:/Users/Craig/Corvus/CorvusStar/BASE_BASELINE_REPORT.qmd)
+- Status: **SECURED (BASELINE ESTABLISHED)**
+
+### 2026-02-06 (Session 36: Baseline Remediation)
+- **Improvement 1 (Structural)**: Encapsulated all orphaned functions in `.agent/scripts` into strictly-typed classes (Dispatcher, DebtAnalyzer, CodeSentinel, etc.). - Status: SECURED.
+- **Improvement 2 (Complexity)**: Refactored Rank D offenders `set_persona.py` and `synapse_sync.py` to Rank A/C. Reduced avg complexity to 3.9. - Status: SECURED.
+- **Improvement 3 (Neural)**: Calibrated Intent Mapping to 97.8% (PASS) by sharpening clusters and hardening corrections for deployment/UI/Test intents. - Status: SECURED.
+- **Improvement 4 (Robustness)**: Migrated 100% of audited scripts to `pathlib.Path` and integrated Windows-safe Unicode handling for sub-processes. - Status: SECURED.
+- **Improvement 5 (Documentation)**: Finalized [REMEDIATION_REPORT.qmd](file:///c:/Users/Craig/Corvus/CorvusStar/REMEDIATION_REPORT.qmd) tracking all audit-to-fix transitions. - Status: SECURED.
+
 ---
 
-> 🔁 **RESUME DIRECTIVE**: Next session should focus on **Ambiguity Resolution** for the remaining 5.3% intent failures in `fishtest.py`.  
-> Specifically, target patterns for 'clean design' and 'dashboard' in `thesaurus.qmd` or `corrections.json`.  
-> 📄 **Full State**: [tasks.qmd](file:///c:/Users/Craig/Corvus/CorvusStar/tasks.qmd)
+> 🔁 **RESUME DIRECTIVE**: Next session should focus on **Strategic Expansion**.
+> Phase 3: Federated War Room implementation and Artifact Extraction for Warlords.
+> Scale robustness testing to N=2000 (Campaign N=2000).

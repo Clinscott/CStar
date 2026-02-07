@@ -1,0 +1,26 @@
+# 💎 GEMINI NEURAL MANIFEST
+
+> **Timestamp**: 2026-02-06 18:48:00
+> **Active Mind**: ODIN
+
+## 🧩 Context Anchors
+- **Project Root**: `C:\Users\Craig\Corvus\CorvusStar`
+- **Persona Strategy**: `personas.py -> odin`
+- **Framework Port**: 3000 (Odin Dashboard)
+
+## ⏭️ Priority Directives
+1. **Empire Scaling**: Expand `semantic_probe.py` for deep business logic assertions.
+2. **Contract Migration**: Convert critical system integration tests to the Empire `.qmd` format.
+3. **Ambiguity Resolution**: Fix remaining intent failures (5.3%) in the core engine.
+
+## 📜 Recent Continuity (Git)
+```text
+[ODIN] Implemented Empire TDD: Tripartite .qmd Contracts, Deterministic Stabilization, and Sentinel Audits. Accuracy: 100%.
+41e48a0 [ALFRED] Secured Odin Phase 9: Tactical Adjudication & Nodal Campaigns.
+```
+
+## 🛠️ System Health
+- **Empire Pipeline**: PASS (100%)
+- **Code Sentinel**: PASS
+- **Fishtest Accuracy**: 94.7%
+- **Operational Buffer**: STABLE

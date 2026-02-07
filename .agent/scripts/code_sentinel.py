@@ -1,33 +1,35 @@
+#!/usr/bin/env python3
 """
-Code Sentinel - Structural Integrity Scanner.
+[ODIN] Code Sentinel - Structural Integrity Scanner.
 [Ω] HEIMDALL'S VIGIL / [ALFRED] THE PERIMETER
+Refined for the Linscott Standard (Typing, Pathlib, Encapsulation).
 """
+
 import argparse
 import ast
 import json
 import os
 import subprocess
 import sys
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Ensure UTF-8 output for box-drawing characters
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding='utf-8')
 
 # Add script directory to path to allow imports from common script directory
-current_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(current_dir)
+current_dir = Path(__file__).parent.absolute()
+if str(current_dir) not in sys.path:
+    sys.path.append(str(current_dir))
 
 try:
     from ui import HUD
 except ImportError:
-    # Minimal fallback if ui.py is not reachable or in-path
+    # Minimal fallback
     class HUD:
-        RED = "\033[31m"
-        GREEN = "\033[32m"
-        YELLOW = "\033[33m"
-        CYAN = "\033[36m"
-        RESET = "\033[0m"
-        BOLD = "\033[1m"
+        RED = "\033[31m"; GREEN = "\033[32m"; YELLOW = "\033[33m"
+        CYAN = "\033[36m"; RESET = "\033[0m"; BOLD = "\033[1m"
         PERSONA = "ALFRED"
         @staticmethod
         def box_top(t): print(f"--- {t} ---")
@@ -39,35 +41,59 @@ except ImportError:
         def box_bottom(): print("-" * 20)
         @staticmethod
         def _get_theme(): return {"main": "\033[36m", "dim": "\033[90m"}
+        @staticmethod
+        def log(lv, msg, d=""): print(f"[{lv}] {msg} {d}")
 
-TEXT_MAP = {
-    "ODIN": {
-        "TITLE": "[Ω] HEIMDALL SECURITY SCAN",
-        "PASS": "SECTOR SECURE. NO ANOMALIES.",
-        "FAIL": "CONTAINMENT BREACH DETECTED.",
-        "SCAN_TARGET": "TARGET SECTOR",
-        "VIOLATIONS": "ANOMALIES",
-        "V_PREFIX": "[!] BREACH",
-        "STRUCT_CODE": "STRUCT-001"
-    },
-    "ALFRED": {
-        "TITLE": "[A] THE PERIMETER SCAN",
-        "PASS": "The manor is immaculate, sir.",
-        "FAIL": "I found some items out of place, sir.",
-        "SCAN_TARGET": "SCAN AREA",
-        "VIOLATIONS": "FINDINGS",
-        "V_PREFIX": "[i] NOTE",
-        "STRUCT_CODE": "HOUSEKEEP-01"
+
+class CodeSentinel:
+    """
+    Main orchestrator for code integrity scanning.
+    """
+
+    TEXT_MAP = {
+        "ODIN": {
+            "TITLE": "[Ω] HEIMDALL SECURITY SCAN",
+            "PASS": "SECTOR SECURE. NO ANOMALIES.",
+            "FAIL": "CONTAINMENT BREACH DETECTED.",
+            "SCAN_TARGET": "TARGET SECTOR",
+            "VIOLATIONS": "ANOMALIES",
+            "V_PREFIX": "[!] BREACH",
+            "STRUCT_CODE": "STRUCT-001"
+        },
+        "ALFRED": {
+            "TITLE": "[A] THE PERIMETER SCAN",
+            "PASS": "The manor is immaculate, sir.",
+            "FAIL": "I found some items out of place, sir.",
+            "SCAN_TARGET": "SCAN AREA",
+            "VIOLATIONS": "FINDINGS",
+            "V_PREFIX": "[i] NOTE",
+            "STRUCT_CODE": "HOUSEKEEP-01"
+        }
     }
-}
 
-class HeimdallScanner:
-    """AST-based structural enforcer."""
+    def __init__(self, target: str = ".", fix: bool = False, persona_override: Optional[str] = None):
+        self.target = Path(target)
+        self.fix = fix
+        self.scripts_dir = Path(__file__).parent.absolute()
+        self.project_root = self.scripts_dir.parent.parent
+        self.config = self._load_config()
+        HUD.PERSONA = persona_override.upper() if persona_override else self.config.get("Persona", "ALFRED").upper()
+        if HUD.PERSONA == "GOD":
+            HUD.PERSONA = "ODIN"
 
-    @staticmethod
-    def scan_file(filepath: str) -> list[dict]:
-        """Scan for orphaned top-level functions."""
-        if not filepath.endswith(".py") or not os.path.isfile(filepath):
+    def _load_config(self) -> dict:
+        config_path = self.scripts_dir.parent / "config.json"
+        if config_path.exists():
+            try:
+                with open(config_path, encoding='utf-8') as f:
+                    return json.load(f)
+            except:
+                pass
+        return {}
+
+    def scan_for_orphans(self, filepath: Path) -> List[Dict[str, Any]]:
+        """AST-based scan for top-level functions (orphans)."""
+        if not filepath.suffix == ".py" or not filepath.is_file():
             return []
 
         violations = []
@@ -78,145 +104,135 @@ class HeimdallScanner:
             
             tree = ast.parse(content)
         except Exception as e:
-            return [{"code": "SYNTAX", "filename": filepath, "location": {"row": 1, "column": 0}, "message": str(e), "severity": "CRITICAL"}]
+            return [{
+                "code": "SYNTAX", 
+                "filename": str(filepath), 
+                "location": {"row": 1, "column": 0}, 
+                "message": str(e), 
+                "severity": "CRITICAL"
+            }]
 
-        persona = HUD.PERSONA if HUD.PERSONA in TEXT_MAP else "ALFRED"
-        v_code = TEXT_MAP[persona]["STRUCT_CODE"]
+        persona = HUD.PERSONA if HUD.PERSONA in self.TEXT_MAP else "ALFRED"
+        v_code = self.TEXT_MAP[persona]["STRUCT_CODE"]
 
         for node in tree.body:
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                # Skip main entry point and private helpers
                 if node.name == "main" or node.name.startswith("_"):
                     continue
 
-                # Skip explicitly ignored functions
                 def_line = lines[node.lineno - 1]
                 if "@sentinel: ignore" in def_line:
                     continue
 
                 violations.append({
                     "code": v_code,
-                    "filename": filepath,
+                    "filename": str(filepath),
                     "location": {"row": node.lineno, "column": node.col_offset},
-                    "message": f"Orphaned Function '{node.name}'. Logic must be encapsulated in Class or Privatized (_).",
+                    "message": f"Orphaned Function '{node.name}'. Encapsulate or Privatize.",
                     "severity": "CRITICAL"
                 })
         
         return violations
 
-def run_ruff(target: str = ".", fix: bool = False) -> list[dict]:
-    """[ALFRED] Execute ruff check with robust error handling and binary detection."""
-    cmd = [sys.executable, "-m", "ruff", "check", target, "--output-format=json"]
+    def run_ruff(self) -> List[Dict[str, Any]]:
+        """Executes Ruff check for linting and style metrics."""
+        cmd = [sys.executable, "-m", "ruff", "check", str(self.target), "--output-format=json"]
+        config_path = self.project_root / "ruff.toml"
 
-    # Locate ruff.toml relative to this script
-    script_parent = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-    config_path = os.path.join(script_parent, "ruff.toml")
+        if config_path.exists():
+            cmd.extend(["--config", str(config_path)])
 
-    if os.path.exists(config_path):
-        cmd.extend(["--config", config_path])
-
-    if fix:
-        cmd.append("--fix")
-
-    try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-        
-        if not result.stdout.strip():
-            # If ruff found errors but stderr is the only thing with data, something is wrong
-            if result.stderr and "error:" in result.stderr.lower():
-                HUD.box_row("RUFF ERROR", result.stderr.splitlines()[0][:50], HUD.RED)
-            return []
+        if self.fix:
+            cmd.append("--fix")
 
         try:
-            return json.loads(result.stdout)
-        except json.JSONDecodeError:
+            # Use specific encoding for Windows compatibility
+            result = subprocess.run(cmd, capture_output=True, timeout=30)
+            stdout = result.stdout.decode('utf-8', errors='replace')
+            stderr = result.stderr.decode('utf-8', errors='replace')
+            
+            if not stdout.strip():
+                if stderr and "error:" in stderr.lower():
+                    # Strip lines for brevity
+                    err_lines = [l for l in stderr.splitlines() if l.strip()]
+                    HUD.box_row("RUFF ERROR", err_lines[0][:60] if err_lines else "Unknown", HUD.RED)
+                return []
+
+            try:
+                return json.loads(stdout)
+            except json.JSONDecodeError:
+                return []
+                
+        except FileNotFoundError:
+            HUD.log("WARN", "Sentinel", "Ruff not found. Style scan skipped.")
             return []
-            
-    except FileNotFoundError:
-        HUD.log("WARN", "Sentinel Briefing", "Ruff binary not found. Style scan skipped.")
-        return []
-    except subprocess.TimeoutExpired:
-        HUD.log("WARN", "Sentinel Briefing", "Ruff scan timed out. Performance bottleneck detected.")
-        return []
-    except Exception as e:
-        HUD.log("FAIL", "Sentinel Error", str(e))
-        return []
+        except subprocess.TimeoutExpired:
+            HUD.log("WARN", "Sentinel", "Ruff scan timed out.")
+            return []
+        except Exception as e:
+            HUD.log("FAIL", "Sentinel Error", str(e))
+            return []
 
-def format_results(violations: list[dict], target: str, fixed: bool = False) -> None:
-    """Display violations with HUD theming."""
-    persona = HUD.PERSONA if HUD.PERSONA in TEXT_MAP else "ALFRED"
-    text = TEXT_MAP[persona]
-    
-    HUD.box_top(text["TITLE"])
-    HUD.box_row(text["SCAN_TARGET"], target, HUD.CYAN)
+    def format_results(self, violations: List[Dict[str, Any]]) -> None:
+        """Visual representation of scan results."""
+        persona = HUD.PERSONA if HUD.PERSONA in self.TEXT_MAP else "ALFRED"
+        text = self.TEXT_MAP[persona]
+        
+        HUD.box_top(text["TITLE"])
+        HUD.box_row(text["SCAN_TARGET"], str(self.target), HUD.CYAN)
 
-    if fixed:
-        HUD.box_row("ACTION", "REPAIR ATTEMPTED (--fix)", HUD.YELLOW)
+        if self.fix:
+            HUD.box_row("ACTION", "REPAIR ATTEMPTED (--fix)", HUD.YELLOW)
 
-    HUD.box_row(text["VIOLATIONS"], str(len(violations)), HUD.RED if violations else HUD.GREEN)
+        HUD.box_row(text["VIOLATIONS"], str(len(violations)), HUD.RED if violations else HUD.GREEN)
 
-    if violations:
-        HUD.box_separator()
-        # Cap at 15 for readability
-        for v in violations[:15]:
-            filename = os.path.basename(v['filename'])
-            row = v['location']['row']
-            col = v['location']['column']
-            loc = f"{filename}:{row}:{col}"
+        if violations:
+            HUD.box_separator()
+            # Show top 15 findings
+            for v in violations[:15]:
+                filename = Path(v['filename']).name
+                loc = f"{filename}:{v['location']['row']}:{v['location']['column']}"
+                severity = v.get('severity', '')
+                color = HUD.RED if ("Error" in severity or "CRITICAL" in severity or severity == "ERROR") else HUD.YELLOW
+                prefix = text["V_PREFIX"]
+                HUD.box_row(f"{prefix} {v['code']}", f"{loc} - {v['message'][:50]}", color, dim_label=True)
 
-            # Use color based on severity
-            severity = v.get('severity', '')
-            color = HUD.RED if ("Error" in severity or "CRITICAL" in severity) else HUD.YELLOW
-            
-            prefix = text["V_PREFIX"]
-            HUD.box_row(f"{prefix} {v['code']}", f"{loc} - {v['message'][:50]}...", color, dim_label=True)
+            if len(violations) > 15:
+                HUD.box_row("...", f"+ {len(violations) - 15} more findings", dim_label=True)
+        else:
+            HUD.box_row("STATUS", text["PASS"], HUD.GREEN)
 
-        if len(violations) > 15:
-            HUD.box_row("...", f"+ {len(violations) - 15} more findings", dim_label=True)
-    else:
-        HUD.box_row("STATUS", text["PASS"], HUD.GREEN)
+        HUD.box_bottom()
 
-    HUD.box_bottom()
+    def execute_audit(self) -> bool:
+        """Main entry point for the audit cycle."""
+        violations = self.run_ruff()
+        
+        # Structure Scan
+        if self.target.is_file():
+            violations.extend(self.scan_for_orphans(self.target))
+        elif self.target.is_dir():
+            for py_file in self.target.rglob("*.py"):
+                violations.extend(self.scan_for_orphans(py_file))
 
-def main():
-    parser = argparse.ArgumentParser(description="Corvus Star Code Sentinel (Structural Linter)")
-    parser.add_argument("target", nargs="?", default=".", help="Target file or directory to scan")
-    parser.add_argument("--fix", action="store_true", help="Attempt to automatically fix violations")
-    parser.add_argument("--persona", choices=["ODIN", "ALFRED"], help="Override active persona")
+        self.format_results(violations)
+        return len(violations) == 0
 
+
+def main() -> None:
+    """CLI entry point."""
+    parser = argparse.ArgumentParser(description="Corvus Star Code Sentinel")
+    parser.add_argument("target", nargs="?", default=".", help="File or directory to scan")
+    parser.add_argument("--fix", action="store_true", help="Auto-fix violations")
+    parser.add_argument("--persona", choices=["ODIN", "ALFRED"], help="Override persona")
     args = parser.parse_args()
 
-    if args.persona:
-        HUD.PERSONA = args.persona
-    else:
-        # Try to load from config.json
-        script_parent = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) # .agent
-        config_path = os.path.join(script_parent, "config.json")
-        if os.path.exists(config_path):
-            try:
-                with open(config_path) as f:
-                    config = json.load(f)
-                    HUD.PERSONA = config.get("Persona", "ALFRED").upper()
-                    if HUD.PERSONA == "GOD": HUD.PERSONA = "ODIN"
-            except:
-                pass
-
-    # Run Ruff (Style/Lint)
-    violations = run_ruff(args.target, args.fix)
+    sentinel = CodeSentinel(target=args.target, fix=args.fix, persona_override=args.persona)
+    success = sentinel.execute_audit()
     
-    # Run Heimdall (Structure)
-    if os.path.isfile(args.target):
-        violations.extend(HeimdallScanner.scan_file(args.target))
-    elif os.path.isdir(args.target):
-        for root, _, files in os.walk(args.target):
-            for file in files:
-                if file.endswith(".py"):
-                    violations.extend(HeimdallScanner.scan_file(os.path.join(root, file)))
-
-    format_results(violations, args.target, args.fix)
-    
-    if violations:
+    if not success:
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

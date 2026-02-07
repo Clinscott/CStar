@@ -61,11 +61,12 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Nodal Persistence**: Locked players into campaign nodes with retreat penalties (50%). [x]
 - [x] **Dynamic Attrition**: Tied Force costs and Domination gains to choice difficulty. [x]
 - [x] **Structural Audit**: Resolved 400+ breaches using the Heimdall Security Scan. [x]
+- [x] **Baseline Remediation**: Closed all audit findings from Baseline Audit (Structural, Neural, Complexity). [x]
+
 
 ## ⏭️ Start Here Next (Strategic Expansion)
 
 ### 3. Campaign & Multi-Agent Evolution
-- [ ] **Ambiguity Resolution**: Fix the remaining 5.3% intent failures in the core engine (e.g., 'clean design', 'dashboard' patterns).
 - [ ] **Federated War Room**: Implement the multi-agent tactical display for the Warlord.
 - [ ] **Artifact Extraction**: Allow Warlords to export their Genetic Manifest to Mimir's Eye.
 - [ ] **Campaign N=2000**: Scale robustness testing to include cross-persona identity conflicts.

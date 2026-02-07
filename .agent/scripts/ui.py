@@ -43,7 +43,7 @@ class HUD:
         return fallback
 
     @staticmethod
-    def _get_theme() -> Dict[str, str]:
+    def get_theme() -> Dict[str, str]:
         """Returns the comprehensive color palette for the active Persona."""
         p = HUD.PERSONA.upper()
         
@@ -87,7 +87,7 @@ class HUD:
     @staticmethod
     def persona_log(level: str, msg: str) -> None:
         """Log with persona prefix for major announcements."""
-        theme = HUD._get_theme()
+        theme = HUD.get_theme()
         prefix = theme["prefix"]
         
         color = {
@@ -134,7 +134,7 @@ class HUD:
         assert isinstance(width, int) and width >= 10, "Width must be integer >= 10"
         HUD._last_width = width
         
-        theme = HUD._get_theme()
+        theme = HUD.get_theme()
         display_title = title if title else theme["title"]
         main_color = color if color else theme['main']
         dim_color = color if color else theme['dim']
@@ -162,7 +162,7 @@ class HUD:
         """
         if width is None:
             width = getattr(HUD, "_last_width", 60)
-        theme = HUD._get_theme()
+        theme = HUD.get_theme()
         val_color = color if color else theme['main']
         lbl_color = theme['dim'] if dim_label else theme['main']
         
@@ -197,7 +197,7 @@ class HUD:
         """Renders a middle separator line."""
         if width is None:
             width = getattr(HUD, "_last_width", 60)
-        theme = HUD._get_theme()
+        theme = HUD.get_theme()
         dim_color = color if color else theme['dim']
         inner_width = width - 2
         print(f"{dim_color}├{'─'*inner_width}┤{HUD.RESET}")
@@ -207,7 +207,7 @@ class HUD:
         """Renders the bottom closure of a box."""
         if width is None:
             width = getattr(HUD, "_last_width", 60)
-        theme = HUD._get_theme()
+        theme = HUD.get_theme()
         dim_color = color if color else theme['dim']
         inner_width = width - 2
         print(f"{dim_color}└{'─'*inner_width}┘{HUD.RESET}")
@@ -287,7 +287,7 @@ class HUD:
     @staticmethod
     def divider(label: str = "") -> None:
         """Prints a visual divider line."""
-        theme = HUD._get_theme()
+        theme = HUD.get_theme()
         width = 60
         if label:
             print(f"{theme['dim']}── {theme['accent']}{label}{theme['dim']} {'─'*(width-len(label)-4)}{HUD.RESET}")

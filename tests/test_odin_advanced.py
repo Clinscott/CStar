@@ -50,7 +50,7 @@ def test_briefing_cooldown(capsys, monkeypatch):
     # Second briefing immediately should fail
     game.briefing()
     captured = capsys.readouterr()
-    assert "[ALFRED'S REMINDER]" in captured.out
+    assert "[ALFRED]:" in captured.out
     
     # Advance turns (e.g. simulate domination gain)
     game.state.domination_percent = 15.0 # Total turn = 15

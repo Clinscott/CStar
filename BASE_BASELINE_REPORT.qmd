@@ -1,0 +1,83 @@
+# BASE_BASELINE_REPORT.qmd
+
+## [Ω] THE BASELINE DECREE: Operational Snapshot
+**Timestamp**: 2026-02-06 18:54 EST
+**Active Persona**: ODIN
+**Audit Scope**: Sovereign Engine Core (Baseline)
+**Subject Status**: SYSTEM STABLE / QUALITY RECOVERING
+
+---
+
+## 🏗️ 1. Structural Integrity (The Sentinel's Vigil)
+**Linscott Standard Compliance Rating**: **72.1%**
+
+### 🚩 Critical Breaches (STRUCT-001)
+The following sectors exhibit "Orphaned Logic" (Logic not encapsulated in Classes or privatized). This is a Class-A violation of the Linscott Standard.
+- **`.agent/scripts/`**: 39 Anomalies detected.
+  - `audit_dialogue.py`: `run_audit` is orphaned.
+  - `benchmark_engine.py`: `benchmark` is orphaned.
+  - `code_sentinel.py`: `run_ruff`/`format_results` are orphaned.
+  - `cstar_dispatcher.py`: `help_command` is orphaned.
+  - `debt_viz.py`: Entire scan logic is orphaned.
+  - `latency_check.py`: `measure_startup` is orphaned.
+
+### ⚠️ Linting & Typing (Ruff/ANN)
+- **`sv_engine.py`**: 58 Breaches (Missing type annotations, `os.path` usage instead of `Pathlib`).
+- **`fishtest.py`**: 74 Breaches (Unsorted imports, missing return types, line length violations).
+- **`cstar_dispatcher.py`**: 26 Breaches (Unused `json` import, missing return types).
+
+---
+
+## 🧠 2. Neural Performance (The Crucible)
+**Verdict**: **FAIL (Regression)**
+**Accuracy**: 94.7%
+**Latency**: 0.39ms / target
+
+### Analysis
+While 94.7% is mathematically high, it fails the "Zero Regression" mandate. Specific failures in intent mapping:
+- "I want to make the dashboard" -> Expected `/run-task`, Got `skill-scout`.
+- "visuals clean" -> Expected `SovereignFish`, Got `GLOBAL:ui-sci-fi`.
+- "can you investigate the latency?" -> Expected `/investigate`, Got `GLOBAL:perf-profiler`.
+
+---
+
+## 🛡️ 3. Security Perimeter (Heimdall's Gate)
+**System Threat Score**: **Low (1.5/10)**
+
+- **`.agent/scripts/sv_engine.py`**: 0/10 (Secure).
+- **`.agent/scripts/cstar_dispatcher.py`**: 0/10 (Secure).
+- **`.agent/scripts/synapse_sync.py`**: 5/10 (Flagged: External Network/Socket imports. *Status: Authorized for Sync*).
+
+---
+
+## 🎨 4. HUD Aesthetic Audit
+**Verdict**: **MODERATE INCONSISTENCY**
+
+- **`cstar_dispatcher.py`**: **VIOLATION**. Uses raw `print()` and emojis instead of the `HUD` primitives defined in `ui.py`.
+- **`ui.py`**: **INTEGRATED**. Provides robust Glow/Odin theme support, but many scripts only use basic `HUD.log` rather than full `box_top`/`box_row` layout patterns.
+- **Alignment**: Box-drawing characters are correctly handled via UTF-8 enforcement in `ui.py`.
+
+---
+
+## 📉 5. Structural Debt (Combat Analysis)
+**Average Complexity**: 4.1 (Rank A)
+
+### ☢️ War Zones (Top Complexity)
+1. **`set_persona.py`**: Rank D (28) - Logic block in `main` is monolithic and needs refactoring.
+2. **`synapse_sync.py`**: Rank D (30) - `main` entry point is overly complex.
+3. **`install_skill.py`**: Rank C (19) - Error handling loop is deeply nested.
+4. **`sv_engine.py`**: Rank C (17) - `search` function is becoming a "God Function".
+
+---
+
+## 📄 6. Documentation & QMD Sovereignty
+- **Migration Status**: **INCOMPLETE**.
+  - `odin_protocol/README.md` still exists as `.md`.
+  - Core workflows (`plan.md`, `execute.md`, etc.) are kept as `.md` for "Hybrid Menu Discovery" (Approved), but internal links in `wireframe.qmd` are healthy.
+- **Link Integrity**: 100% of paths in `wireframe.qmd` resolved successfully to the filesystem.
+
+---
+
+> `[Odin's Void]: THE FOUNDATION IS CRACKED. 400 BREACHES WERE PURGED IN PHASE 21, YET THE ROT RETURNS. ENCAPSULATE OR BE PURGED.`
+> 
+> `[Alfred's Whisper]: "Sir, I have recorded these findings in the ledger. While the manor is standing, the dusting is long overdue, especially in the dispatcher's quarters."`
