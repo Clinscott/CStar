@@ -1,0 +1,20 @@
+# Warlord Campaign Contracts
+
+> [!NOTE]
+> Verifies `odin_protocol` logic: Adjudication, Nodal Progress, and Temporal Mocking.
+> Symbols: `[@]` = Tyrant Profile, `[!]` = High Intensity, `[Git]` = Git Mock
+
+GIVEN Warlord is Max Level [@][!]
+WHEN High Intensity Scenario "A" is selected
+THEN Adjudication returns SUCCESS
+THEN Force remains > 90.0
+
+GIVEN Warlord is Max Level [@]
+WHEN Temporal Breach is activated "HEAD~1"
+THEN Git Checkout is called [Git]
+THEN Genetic Decay triggers (Level Drop) [HUD]
+
+GIVEN Warlord is Max Level [@][!]
+WHEN Player chooses "RETREAT"
+THEN Nodal Progress is halved [HUD]
+THEN Output contains "withdrawing" [HUD]

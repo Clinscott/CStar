@@ -1,0 +1,39 @@
+{
+    "[@]": {
+        "type": "warlord",
+        "tier": "MAX_LEVEL_TYRANT",
+        "trait": "AGGRESSIVE",
+        "inventory": "FULL"
+    },
+    "[!]": {
+        "type": "scenario",
+        "intensity": "HIGH",
+        "penalty": 9.1,
+        "difficulty": "HARD"
+    },
+    "[G]": {
+        "type": "seed",
+        "value": "0xDEADBEEF",
+        "deterministic": true
+    },
+    "[Git]": {
+        "type": "mock",
+        "target": "subprocess.run",
+        "behavior": "git_checkout_sim"
+    },
+    "[HSV]": {
+        "type": "engine",
+        "component": "SovereignVector",
+        "state": "INDEX_LOADED"
+    },
+    "[HUD]": {
+        "type": "ui",
+        "component": "HUD",
+        "capture": "ANSI"
+    },
+    "[$]": {
+        "type": "user",
+        "tier": "premium",
+        "balance": 1000
+    }
+}

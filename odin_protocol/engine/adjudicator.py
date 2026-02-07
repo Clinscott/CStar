@@ -38,6 +38,7 @@ def process_queue(project_root: Path) -> list[dict] | None:
     gm = SovereignScenarioEngine()
     narratives = []
 
+    for action in actions:
         # Align with Phase 9 signature: adjudicate_choice(state, choice, stats, scenario)
         result = adjudicate_choice(
             state=state,
@@ -70,7 +71,7 @@ def process_queue(project_root: Path) -> list[dict] | None:
             "goal": action["scenario"].get("goal", "Extraction"),
             "conflict": action["scenario"].get("conflict", "Standard opposition"),
             "disaster": action["scenario"].get("disaster", "Structural collapse"),
-            "choice": action["choice_text"],
+            "choice": action.get("choice_text", "Unknown"),
             "success": success,
             "text": outcome_text
         })

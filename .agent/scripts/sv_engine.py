@@ -7,12 +7,11 @@ Refined for the Linscott Standard (Typing, Pathlib, Encapsulation).
 
 import argparse
 import json
-import os
 import re
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import personas
 import utils
@@ -27,12 +26,12 @@ class SovereignEngine:
 
     THRESHOLDS = {"REC": 0.5, "INSTALL": 0.85, "HANDSHAKE": 0.9, "ACCURACY": 0.8}
 
-    def __init__(self, project_root: Optional[Path] = None):
+    def __init__(self, project_root: Path | None = None):
         self.script_dir = Path(__file__).parent.absolute()
         self.project_root = project_root if project_root else self.script_dir.parent.parent
         self.base_path = self.project_root / ".agent"
         self.config = utils.load_config(str(self.project_root))
-        
+
         # Persona & HUD Initialization
         HUD.PERSONA = (self.config.get("persona") or self.config.get("Persona") or "ALFRED").upper()
         self.strategy = personas.get_strategy(HUD.PERSONA, str(self.project_root))
@@ -56,16 +55,16 @@ class SovereignEngine:
         )
         engine.load_core_skills()
         engine.load_skills_from_dir(str(self.base_path / "skills"))
-        
+
         # Load Remote Knowledge Skills
         remote_path_str = self.config.get("KnowledgeCore") or \
-                         os.path.join(self.config.get("FrameworkRoot", ""), "skills_db")
+                         str(Path(self.config.get("FrameworkRoot", "")) / "skills_db")
         if remote_path_str:
             remote_path = Path(remote_path_str)
             if remote_path.exists():
                 skill_dir = remote_path / "skills" if "KnowledgeCores" in str(remote_path) else remote_path
                 engine.load_skills_from_dir(str(skill_dir), prefix="GLOBAL:")
-        
+
         engine.build_index()
         return engine
 
@@ -87,13 +86,13 @@ class SovereignEngine:
         HUD.box_bottom()
         sys.exit(0)
 
-    def record_trace(self, query: str, match: Dict[str, Any]) -> None:
+    def record_trace(self, query: str, match: dict[str, Any]) -> None:
         """Persistence for neural interaction traces."""
         tdir = self.base_path / "traces"
         tdir.mkdir(exist_ok=True)
         tid = re.sub(r'\W+', '_', query[:20]) + f"_{match['score']:.2f}"
         trace_file = tdir / f"{tid}.json"
-        
+
         trace_data = {
             "query": query,
             "match": match.get('trigger'),
@@ -102,19 +101,19 @@ class SovereignEngine:
             "persona": HUD.PERSONA,
             "timestamp": self.config.get("version", "unknown")
         }
-        
+
         try:
             with trace_file.open("w", encoding='utf-8') as f:
                 json.dump(trace_data, f, indent=2)
-        except IOError:
+        except OSError:
             pass
 
-    def _render_hud(self, query: str, top: Optional[Dict[str, Any]]) -> None:
+    def _render_hud(self, query: str, top: dict[str, Any] | None) -> None:
         """Renders the standard search results in the HUD."""
         HUD.box_top()
         label = "COMMAND" if HUD.PERSONA == "ODIN" else "Intent"
         HUD.box_row(label, query, HUD.BOLD)
-        
+
         if top:
             color = HUD.GREEN if top['score'] > self.THRESHOLDS["ACCURACY"] else HUD.YELLOW
             match_str = f"{'[G] ' if top['is_global'] else ''}{top['trigger']}"
@@ -122,20 +121,20 @@ class SovereignEngine:
             HUD.box_row("Confidence", f"{HUD.progress_bar(top['score'])} {top['score']:.2f}", color)
         else:
             HUD.box_row("Match", "NONE", HUD.RED)
-        
+
         HUD.box_bottom()
 
-    def _handle_proactive(self, top: Dict[str, Any]) -> None:
+    def _handle_proactive(self, top: dict[str, Any]) -> None:
         """Checks for and executes proactive installation or command runs."""
         if top['score'] <= self.THRESHOLDS["ACCURACY"]:
             return
 
         trigger = top['trigger']
-        
+
         # 1. Global Skill Installation
         if top['is_global'] and top['score'] > self.THRESHOLDS["INSTALL"]:
             self._proactive_install(trigger.replace("GLOBAL:", ""))
-        
+
         # 2. Direct Command Execution
         elif not trigger.startswith("/") and not trigger.startswith("GLOBAL:"):
             self._proactive_execute(trigger)
@@ -176,7 +175,7 @@ class SovereignEngine:
 
         results = engine.search(query)
         top = results[0] if results else None
-        
+
         if record and top:
             self.record_trace(query, top)
 
@@ -211,9 +210,9 @@ def main() -> None:
 
     query = utils.sanitize_query(" ".join(args.query))
     engine.run(
-        query=query, 
-        json_mode=args.json, 
-        record=args.record, 
+        query=query,
+        json_mode=args.json,
+        record=args.record,
         use_cortex=args.cortex
     )
 

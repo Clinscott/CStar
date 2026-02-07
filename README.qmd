@@ -83,6 +83,7 @@ root/
 ## 🏆 The Linscott Standard
 This framework is built on the **Linscott Standard** of software excellence:
 - **Trust, but Verify**: Every interpretation is traced for your review.
+- **Empire TDD Standard**: All new logic must be verified via `.qmd` contracts. Legacy tests are quarantined.
 - **Statistical Proof**: Features must be verified via the **Fishtest Protocol**.
 - **No Regressions**: High-performance local checks ensure system stability.
 

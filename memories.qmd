@@ -76,5 +76,7 @@ deletions: []
     - Baseline Remediation: The framework is hardened to the Linscott Standard. 39 orphaned functions encapsulated, Rank D complexity eliminated (CC < 10), and intent mapping calibrated to 97.8% accuracy.
     - Structural Encapsulation Doctrine: Orphaned functions in audited system scripts are forbidden. All logic must reside within strictly-typed classes (e.g., `CorvusDispatcher`, `DebtAnalyzer`).
     - Standardized Unicode Bridge: Use `errors='replace'` and UTF-8 encoding for all framework-to-shell communications to prevent Windows null-byte/glyph processing crashes.
+    - TacticalRNG Standard: All randomness must be encapsulated in `rng.py` (TacticalRNG) to ensure deterministic testability and easy upgrade paths.
+    - Empire Annexation: No component is exempt from the Empire TDD Protocol. 100% Coverage is the baseline, not the goal.
 deletions: []
 ```
