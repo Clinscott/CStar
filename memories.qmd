@@ -71,7 +71,10 @@ deletions: []
     - Version-Agnostic Signature Check: When verifying type hints in tests, use string-based signature inspection (`inspect.signature`) to accommodate Python 3.9+ `dict` vs `typing.Dict` variants in different runtime environments.
     - Graceful Terminal Shutdown: Wrap main CLI loops in `KeyboardInterrupt` guards. Treat Ctrl+C as a saved "Dormancy" state rather than an exit crash to preserve user progress.
     - Weighted Die Cast (Probabilistic Adjudication): Use the ratio of Warlord Rating vs. Strategy Threshold for tactical success. Clamped between 5% and 95% to ensure perpetual stakes.
-    - Nodal Persistence (Node Locking): Players are locked into campaign nodes until success or retreat. Retreating triggers "Panic Withdrawal" penalties (50% Force loss).
-    - Structural Integrity (Sentinel Mandate): All core engine logic in the Odin Protocol must pass a 0-breach Code Sentinel audit to maintain Phase 9 structural standards.
+    - Empire TDD: Domain-Specific TDD Protocol using `.qmd` contracts. Enforces GIVEN-WHEN-THEN tripartite logic and deterministic stabilization.
+    - Symbolic Shorthand ([token]): Use shorthands (e.g., `[$]`) for complex state setup to enable "Visual Grepping" during verification.
+    - Baseline Remediation: The framework is hardened to the Linscott Standard. 39 orphaned functions encapsulated, Rank D complexity eliminated (CC < 10), and intent mapping calibrated to 97.8% accuracy.
+    - Structural Encapsulation Doctrine: Orphaned functions in audited system scripts are forbidden. All logic must reside within strictly-typed classes (e.g., `CorvusDispatcher`, `DebtAnalyzer`).
+    - Standardized Unicode Bridge: Use `errors='replace'` and UTF-8 encoding for all framework-to-shell communications to prevent Windows null-byte/glyph processing crashes.
 deletions: []
 ```

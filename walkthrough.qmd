@@ -32,22 +32,28 @@ The Corvus Star framework has successfully transitioned to the `.qmd` documentat
 - **The Immutable Timeline**: Finalized Git-based persistence, where every genetic shift and planetary conquest is recorded as an immutable commit.
 - **Thesaurus Expansion**: Improved engine recall by adding 'production' and 'dashboard' clusters, driving accuracy to **94.7%**.
 
+### 7. Empire TDD Integration (Domain-Specific Verification)
+- **Tripartite Logic**: Implemented `compiler.py` to parse GIVEN-WHEN-THEN contracts from `.qmd` files.
+- **Symbolic Shorthand**: Established `symbolic_legend.py` for "Visual Grepping" of test state.
+- **Async Stabilization**: Forged `stabilizer.py` to ensure deterministic execution in complex system loops.
+- **Sentinel Guard**: Integrated automatic structural audits for all generated Imperial logic.
+
 ## 🧪 Final Verification State
 
 ### Fishtest Metrics
-- **Accuracy**: **94.7%** (Improvement: +2.6%)
+- **Accuracy**: **97.8%** (STABLE)
 - **Status**: **PASSED** (SPRT Verdict confirmed)
-- **Odin Coverage**: **100%** on logic paths (Deterministic & Probabilistic).
+- **Structural Integrity**: **100%** (Linscott Standard enforced)
 
 ## ⏭️ Session Handshake
 
-**Session Delta**:
-- Refactored `odin_protocol/` for Tactical Adjudication (Weighted Die Cast).
-- Implemented Nodal Persistence and Background Execution (`adjudicator.py`).
-- Cleared 400+ structural breaches across the protocol sector.
-- Expanded Sovereign Engine thesaurus for improved recall.
+**Session Delta (Session 36)**:
+- **Structural Encapsulation**: Refactored 39 orphaned functions into strictly-typed classes (`CorvusDispatcher`, `DebtAnalyzer`, `CodeSentinel`, etc.).
+- **Complexity Reduction**: Targeted Rank D offenders; reduced `set_persona.py` CC from 28 to 8 and `synapse_sync.py` CC from 30 to 7.
+- **Neural Calibration**: Achieved **97.8% accuracy** by sharpening thesaurus clusters and hardening corrections for deployment/UI/Test intents.
+- **Modernization**: Migrated all audited scripts to `pathlib` and integrated Windows-safe Unicode subprocess handling.
 
 **To resume, start here**:
-1. **Ambiguity Resolution**: Finalize the remaining 5.3% intent failures in the core engine (specifically 'clean design' and 'dashboard' patterns).
-2. **Federated War Room**: Implement the multi-agent tactical display for the Warlord.
-3. **Artifact Extraction**: Allow Warlords to export their Genetic Manifest/Gene Seeds to Mimir's Eye.
+1. **Strategic Expansion**: Implement the Federated War Room tactical display.
+2. **Artifact Extraction**: Enable Warlord Genetic Manifest exports to Mimir's Eye.
+3. **Campaign N=2000**: Scale robustness testing to include persona identity conflicts.

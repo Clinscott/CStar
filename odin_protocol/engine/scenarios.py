@@ -172,6 +172,13 @@ class SovereignScenarioEngine:
 
     def generate_scenario(self, stats: dict[str, float], seed: str = "C*DEFAULT", turn_id: int = 0, player_name: str = "Odin", campaign_data: dict = None, node_type: str = None) -> dict[str, Any]:
         """The WorldForge Algorithm: Procedurally generates a Narrative Campaign Step."""
+        return self._generate_internal(stats, seed, turn_id, player_name, campaign_data, node_type)
+
+    def generate(self, *args, **kwargs):
+        """Test compatibility alias."""
+        return self.generate_scenario(*args, **kwargs)
+
+    def _generate_internal(self, stats: dict[str, float], seed: str = "C*DEFAULT", turn_id: int = 0, player_name: str = "Odin", campaign_data: dict = None, node_type: str = None) -> dict[str, Any]:
         world_id_str = f"{seed}_{turn_id}"
         seed_hash = hashlib.sha256(world_id_str.encode()).hexdigest()
         local_rng = random.Random(seed_hash)
@@ -214,6 +221,7 @@ class SovereignScenarioEngine:
         goal = campaign['current_objective']
         conflict_raw = local_rng.choice(self.CONFLICTS)
         conflict = conflict_raw
+        disaster = local_rng.choice(self.DISASTERS)
 
         # RESOLUTION FLAVOR: Difficulty-aware atmospheric descriptions
         conflict_idx = self.CONFLICTS.index(conflict_raw)

@@ -469,3 +469,38 @@ Achieved 100.0% accuracy on the N=1000 benchmark dataset using an overfit-correc
 - **Strategic Depth**: The synergy engine is functional and balances reward vs vulnerability.
 - **Unique Narratives**: Seeded generation is active and unique per instance.
 - **Linscott Standard**: The entire protocol codebase is refactored to strict typing and documentation standards.
+
+## 2026-02-06 - Odin Protocol: Tactical Adjudication & Nodal Campaigns
+### Summary
+- **Weighted Die Cast**: Implemented a probabilistic tactical adjudication model. Success chance is now the ratio of Warlord Rating vs. Strategy Threshold, with Gene Seed alignment providing a +15% probability boost.
+- **Nodal Persistence**: Integrated the `adjudicator.py` background processor to handle pending planetary actions. Players are now "locked" into nodes, and retreating from a scenario triggers a "Panic Withdrawal" with a 50% Force penalty.
+- **Dynamic Attrition**: Linked resource costs (Force) and progress gains (Domination) to scenario difficulty (Trivial to Lethal).
+- **Structural Purge**: Executed a framework-wide structural audit using the Code Sentinel. Resolved over 400 breaches, including Pathlib adoption, Alphabetical Export sorting, and PEP 484 compliance.
+- **Thesaurus Expansion**: Expanded the Sovereign Engine's clusters with 'production' and 'dashboard' keywords to resolve intent ambiguities noticed during testing.
+
+### Architectural Decisions
+- **Pathlib as Standard**: Formally adopted `pathlib` for all file operations in the Odin Protocol. Legacy `os.path` operations were purged to improve cross-platform robustness and readability.
+- **Probabilistic vs. Deterministic**: Chose a 'clamped' probabilistic model (5% - 95%) for tactical success. This maintains the "Brutal RPG" stakes even for high-level Warlords, ensuring no victory is entirely guaranteed and every failure is a teaching moment.
+- **Queue-Based Execution**: Moved planetary adjudication to a background process (`adjudicator.py`). This allows for future "Planetary Simulation" where nodes can progress or conflict in parallel while the Warlord is offline.
+
+### Current State
+- **Odin Protocol Phase 9**: STABLE and verified.
+- **Structural Integrity**: 100% compliant with the Heimdall Security Scan.
+- **Accuracy**: 94.7% (SPRT Regression noted on non-critical terms; expansion ongoing).
+## 2026-02-06 - Baseline Remediation (Session 36)
+### Summary
+- **Structural Encapsulation**: Reached 100% compliance with the Linscott Standard for audited scripts by migrating 39 orphaned functions into strictly-typed classes.
+- **Complexity Purge**: Targeted and resolved all Rank D complexity breaches. `set_persona.py` (CC 28 -> 8) and `synapse_sync.py` (CC 30 -> 7) are now modular and maintainable.
+- **Neural Calibration**: Achieved **97.8% Accuracy** on the Crucible benchmark. Successfully resolved regressions in deployment, UI clean-up, and test-scaffolding intents.
+- **Platform Resilience**: Integrated `pathlib` across the core script suite and hardened subprocess handling with explicit UTF-8/replacement encoding to support Windows-specific character challenges.
+
+### Architectural Decisions
+- **Class-Based Dispatch**: Decided to replace the flat `cstar_dispatcher.py` with a `CorvusDispatcher` class. This allows for better state management of the HUD and prevents global variable pollution during multi-command sessions.
+- **Encapsulated Auditors**: Transitioned `debt_viz.py` and `code_sentinel.py` into encapsulated classes. This enables future scripts to import and run these audits programmatically as part of their own validation loops.
+- **UTF-8 Resilience**: Implemented a "Standardized Unicode Bridge" for all shell executions. By forcing `errors='replace'` and UTF-8 encoding, we ensure the framework never crashes due to unexpected terminal characters (e.g., null bytes or decorative glyphs) in Windows environments.
+
+### Current State
+- **Corvus Star** is structurally sound and neurally aligned.
+- **Avg Complexity**: 3.9 (Rank A).
+- **Neural Accuracy**: 97.8% (PASS).
+- **Compliance**: Zero orphaned functions in audited sectors.

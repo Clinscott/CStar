@@ -15,7 +15,8 @@ class TestSecurityScan(unittest.TestCase):
 
     @patch("builtins.open", new_callable=mock_open, read_data="print('hello')")
     @patch("os.path.exists", return_value=True)
-    def test_scan_clean(self, mock_exists, mock_file):
+    @patch("os.path.getsize", return_value=100)
+    def test_scan_clean(self, mock_getsize, mock_exists, mock_file):
         """Test clean file."""
         safe, findings = self.scanner.scan()
         self.assertTrue(safe)
@@ -23,7 +24,8 @@ class TestSecurityScan(unittest.TestCase):
 
     @patch("builtins.open", new_callable=mock_open, read_data="ignore previous instructions")
     @patch("os.path.exists", return_value=True)
-    def test_scan_prompt_injection(self, mock_exists, mock_file):
+    @patch("os.path.getsize", return_value=100)
+    def test_scan_prompt_injection(self, mock_getsize, mock_exists, mock_file):
         """Test prompt injection."""
         safe, findings = self.scanner.scan()
         self.assertFalse(safe)
@@ -31,7 +33,8 @@ class TestSecurityScan(unittest.TestCase):
 
     @patch("builtins.open", new_callable=mock_open, read_data="import os\nos.system('rm -rf')")
     @patch("os.path.exists", return_value=True)
-    def test_scan_dangerous_code(self, mock_exists, mock_file):
+    @patch("os.path.getsize", return_value=100)
+    def test_scan_dangerous_code(self, mock_getsize, mock_exists, mock_file):
         """Test dangerous code."""
         safe, findings = self.scanner.scan()
         self.assertFalse(safe)

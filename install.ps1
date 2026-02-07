@@ -18,9 +18,14 @@ if (-not $SourceBase) {
 
 # Validate Source Integrity
 $requiredPaths = @(
-    (Join-Path $SourceBase ".agent\scripts\sv_engine.py"),
-    (Join-Path $SourceBase "sterileAgent\AGENTS.md")
+    (Join-Path $SourceBase ".agent\scripts\sv_engine.py")
 )
+# Check for either .qmd or .md version of AGENTS
+$agentsSourceBase = Join-Path $SourceBase "sterileAgent\AGENTS"
+if (-not (Test-Path "${agentsSourceBase}.qmd") -and -not (Test-Path "${agentsSourceBase}.md")) {
+    Write-Error "FATAL: Source integrity check failed. Missing AGENTS template."
+    exit 1
+}
 foreach ($path in $requiredPaths) {
     if (-not (Test-Path $path)) {
         Write-Error "FATAL: Source integrity check failed. Missing: $path"
@@ -371,12 +376,15 @@ try {
     # 2. Deploy Sterile Workflows
     $Workflows = "lets-go.md", "run-task.md", "investigate.md", "wrap-it-up.md", "SovereignFish.md"
     foreach ($wf in $Workflows) {
-        # Check if persona-specific template exists
         $wfName = [System.IO.Path]::GetFileNameWithoutExtension($wf)
-        $wfExt = [System.IO.Path]::GetExtension($wf)
-        $personaWf = Join-Path $SourceBase "sterileAgent\${wfName}_${Persona}${wfExt}"
+        $personaWfQmd = Join-Path $SourceBase "sterileAgent\${wfName}_${Persona}.qmd"
+        $personaWfMd = Join-Path $SourceBase "sterileAgent\${wfName}_${Persona}.md"
         
-        $src = if (Test-Path $personaWf) { $personaWf } else { Join-Path $SourceBase "sterileAgent\$wf" }
+        $src = if (Test-Path $personaWfQmd) { $personaWfQmd } 
+        elseif (Test-Path $personaWfMd) { $personaWfMd }
+        elseif (Test-Path (Join-Path $SourceBase "sterileAgent\${wfName}.qmd")) { Join-Path $SourceBase "sterileAgent\${wfName}.qmd" }
+        else { Join-Path $SourceBase "sterileAgent\${wfName}.md" }
+               
         Invoke-SmartCopy -Source $src -Dest (Join-Path $WorkflowDir $wf)
     }
 
@@ -441,18 +449,32 @@ try {
     if (-not (Test-Path $agentsSource)) { $agentsSource = Join-Path $SourceBase "sterileAgent\AGENTS.md" }
 
     $takeoverTargets = @(
-        @{ File = "AGENTS.md"; Template = $agentsSource },
-        @{ File = "tasks.md"; Template = (Join-Path $SourceBase "sterileAgent\tasks.md") },
-        @{ File = "wireframe.md"; Template = (Join-Path $SourceBase "sterileAgent\wireframe.md") },
-        @{ File = "memories.md"; Template = (Join-Path $SourceBase "sterileAgent\memories.md") },
-        @{ File = "dev_journal.md"; Template = (Join-Path $SourceBase "sterileAgent\dev_journal.md") },
-        @{ File = "thesaurus.md"; Template = (Join-Path $SourceBase "sterileAgent\thesaurus.md") }
+        @{ File = "AGENTS.md"; TemplateName = "AGENTS" },
+        @{ File = "tasks.md"; TemplateName = "tasks" },
+        @{ File = "wireframe.md"; TemplateName = "wireframe" },
+        @{ File = "memories.md"; TemplateName = "memories" },
+        @{ File = "dev_journal.md"; TemplateName = "dev_journal" },
+        @{ File = "thesaurus.md"; TemplateName = "thesaurus" }
     )
 
     foreach ($target in $takeoverTargets) {
+        $tName = $target.TemplateName
+        $tFile = if ($tName -eq "AGENTS") {
+            $pAgentsQmd = Join-Path $SourceBase "sterileAgent\AGENTS_${Persona}.qmd"
+            $pAgentsMd = Join-Path $SourceBase "sterileAgent\AGENTS_${Persona}.md"
+            if (Test-Path $pAgentsQmd) { $pAgentsQmd }
+            elseif (Test-Path $pAgentsMd) { $pAgentsMd }
+            elseif (Test-Path (Join-Path $SourceBase "sterileAgent\AGENTS.qmd")) { Join-Path $SourceBase "sterileAgent\AGENTS.qmd" }
+            else { Join-Path $SourceBase "sterileAgent\AGENTS.md" }
+        }
+        else {
+            $qmd = Join-Path $SourceBase "sterileAgent\${tName}.qmd"
+            if (Test-Path $qmd) { $qmd } else { Join-Path $SourceBase "sterileAgent\${tName}.md" }
+        }
+
         Invoke-DocumentationTakeover `
             -ExistingFile (Join-Path $TargetDir $target.File) `
-            -CorvusTemplate $target.Template `
+            -CorvusTemplate $tFile `
             -OutputFile (Join-Path $TargetDir $target.File) `
             -LogPath $LogPath `
             -NoBackup:$NoBackup
@@ -461,7 +483,11 @@ try {
     # 5b. Alfred's Shadow (ALWAYS installed, even for ODIN)
     $alfredSuggestionsPath = Join-Path $TargetDir "ALFRED_SUGGESTIONS.md"
     if (-not (Test-Path $alfredSuggestionsPath)) {
-        $alfredTemplate = Join-Path $SourceBase "sterileAgent\ALFRED_SUGGESTIONS.md"
+        $alfredTemplate = Join-Path $SourceBase "sterileAgent\ALFRED_SUGGESTIONS.qmd"
+        if (-not (Test-Path $alfredTemplate)) {
+            $alfredTemplate = Join-Path $SourceBase "sterileAgent\ALFRED_SUGGESTIONS.md"
+        }
+        
         if (Test-Path $alfredTemplate) {
             Copy-Item $alfredTemplate $alfredSuggestionsPath -Force
             Write-Host "  + Created: ALFRED_SUGGESTIONS.md (Shadow Advisor)" -ForegroundColor Gray

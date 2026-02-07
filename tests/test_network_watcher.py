@@ -55,13 +55,14 @@ class TestNetworkWatcher(unittest.TestCase):
         self.assertIn('filename', params)
         self.assertIn('reason', params)
 
+    @patch('os.path.getsize', return_value=100)
     @patch('network_watcher.HUD')
     @patch('shutil.move')
     @patch('shutil.copy2')
     @patch('subprocess.run')
     @patch('os.makedirs')
     @patch('os.path.exists', return_value=True)
-    def test_process_file_merge_fail(self, mock_exists, mock_makedirs, mock_subprocess, mock_copy, mock_move, mock_hud):
+    def test_process_file_merge_fail(self, mock_exists, mock_makedirs, mock_subprocess, mock_copy, mock_move, mock_hud, mock_getsize):
         """Test flow stops on merge failure."""
         mock_subprocess.side_effect = [MagicMock(returncode=1)]  # Merge fails
         

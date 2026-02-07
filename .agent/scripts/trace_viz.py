@@ -88,7 +88,7 @@ class TraceRenderer:
         # Temporarily switch global HUD persona to get theme colors
         self.original_persona = HUD.PERSONA
         HUD.PERSONA = target_persona
-        self.theme = HUD._get_theme()
+        self.theme = HUD.get_theme()
         HUD.PERSONA = self.original_persona # Restore
 
     def box_top(self, title: str) -> None:
@@ -135,7 +135,7 @@ class TraceRenderer:
     def render_analysis(self, query, trigger, score, is_global, engine_instance=None):
         # Set Persona Context
         HUD.PERSONA = self.target_persona
-        theme = HUD._get_theme()
+        theme = HUD.get_theme()
         
         # Header
         print("\n")
@@ -219,7 +219,7 @@ def mode_file(file_path):
     # Get Theme for message (temp switch)
     original = HUD.PERSONA
     HUD.PERSONA = stored_persona
-    theme = HUD._get_theme()
+    theme = HUD.get_theme()
     HUD.PERSONA = original # Restore
     
     print(f"{theme['dim']}>> REPLAYING ARTIFACT: {file_path} [{stored_persona}]{HUD.RESET}")
@@ -238,7 +238,7 @@ def mode_war_room():
     # War Room is ODIN'S DOMAIN
     renderer = TraceRenderer("ODIN")
     HUD.PERSONA = "ODIN" # Enforce globally for direct log calls
-    theme = HUD._get_theme()
+    theme = HUD.get_theme()
     
     print("\n")
     renderer.box_top("⚔️  THE WAR ROOM  ⚔️")
