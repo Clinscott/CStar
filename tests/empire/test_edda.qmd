@@ -1,0 +1,55 @@
+---
+title: Empire Contract - The Edda Protocol
+type: verification
+status: active
+tags: [odin, edda, documentation, preservation]
+---
+
+# The Edda Protocol Verification
+
+> [!CRITICAL]
+> **Goal**: Verify that `edda.py` correctly transmutes `.md` to `.qmd` while strictly preserving workflows and quarantining originals.
+
+## Scenarios
+
+### 1. The Transmutation (Standard Markdown)
+**GIVEN** a legacy markdown file `mock_project/docs/guide.md` containing:
+```markdown
+# Old Guide
+> This is a note.
+```
+**WHEN** `edda.py --target mock_project/docs/guide.md` is executed
+**THEN**:
+1.  `mock_project/docs/guide.qmd` exists.
+2.  `guide.qmd` contains YAML frontmatter:
+    ```yaml
+    ---
+    title: Old Guide
+    ---
+    ```
+3.  `guide.qmd` converts the blockquote to an alert:
+    ```markdown
+    > [!NOTE]
+    > This is a note.
+    ```
+4.  The original `guide.md` is moved to `mock_project/.corvus_quarantine/`.
+
+### 2. The Preservation (Workflows)
+**GIVEN** a workflow file `mock_project/.agent/workflows/plan.md`.
+**WHEN** `edda.py --scan mock_project` is executed.
+**THEN**:
+1.  `plan.md` remains untouched.
+2.  `plan.qmd` is NOT created.
+
+### 3. The Smart Filter (Ignore Tag)
+**GIVEN** a file `mock_project/README.md` containing `<!-- edda:ignore -->`.
+**WHEN** `edda.py --scan mock_project` is executed.
+**THEN**:
+1.  `README.md` remains untouched.
+
+### 4. The API Synthesis (Python Source)
+**GIVEN** a python script `mock_project/src/logic.py` with docstrings.
+**WHEN** `edda.py --synthesize mock_project/src/logic.py` is executed.
+**THEN**:
+1.  `mock_project/docs/reference/logic.qmd` is generated.
+2.  It contains extracted function signatures and docstrings.

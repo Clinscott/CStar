@@ -1,180 +1,221 @@
-import math
+#!/usr/bin/env python3
+"""
+[ODIN] Sovereign Engine Entry Point (sv_engine.py)
+Orchestrates neural search, cortex queries, and proactive skill installation.
+Refined for the Linscott Standard (Typing, Pathlib, Encapsulation).
+"""
+
+import argparse
 import json
 import re
+import subprocess
 import sys
-import os
+from pathlib import Path
+from typing import Any
 
-class SovereignVector:
-    def __init__(self, thesaurus_path=None, corrections_path=None):
-        self.thesaurus = self._load_thesaurus(thesaurus_path) if thesaurus_path else {}
-        self.corrections = self._load_json(corrections_path) if corrections_path else {"phrase_mappings": {}, "synonym_updates": {}}
-        self.skills = {} # {trigger: "full text of skill description"}
-        self.vocab = set()
-        self.idf = {}
-        self.vectors = {} # {trigger: [vector]}
+import personas
+import utils
+from engine import Cortex, DialogueRetriever, SovereignVector
+from ui import HUD
 
-    def _load_json(self, path):
-        if not path or not os.path.exists(path): return {}
+
+class SovereignEngine:
+    """
+    Main orchestrator for the Corvus Star engine operations.
+    """
+
+    THRESHOLDS = {"REC": 0.5, "INSTALL": 0.85, "HANDSHAKE": 0.9, "ACCURACY": 0.8}
+
+    def __init__(self, project_root: Path | None = None):
+        self.script_dir = Path(__file__).parent.absolute()
+        self.project_root = project_root if project_root else self.script_dir.parent.parent
+        self.base_path = self.project_root / ".agent"
+        self.config = utils.load_config(str(self.project_root))
+
+        # Persona & HUD Initialization
+        HUD.PERSONA = (self.config.get("persona") or self.config.get("Persona") or "ALFRED").upper()
+        self.strategy = personas.get_strategy(HUD.PERSONA, str(self.project_root))
+        self._init_hud_dialogue()
+
+    def _init_hud_dialogue(self) -> None:
+        """Initializes the HUD dialogue retriever based on persona voice."""
+        voice = self.strategy.get_voice()
+        # [ALFRED] Staged Path Resolution for dialogue databases
+        qmd = self.project_root / "dialogue_db" / f"{voice}.qmd"
+        md = self.project_root / "dialogue_db" / f"{voice}.md"
+        path = qmd if qmd.exists() else md
+        HUD.DIALOGUE = DialogueRetriever(str(path))
+
+    def _init_vector_engine(self) -> SovereignVector:
+        """Initializes and loads skills into the Sovereign Vector engine."""
+        engine = SovereignVector(
+            str(self.project_root / "thesaurus.qmd"),
+            str(self.base_path / "corrections.json"),
+            str(self.base_path / "scripts" / "stopwords.json")
+        )
+        engine.load_core_skills()
+        engine.load_skills_from_dir(str(self.base_path / "skills"))
+
+        # Load Remote Knowledge Skills
+        remote_path_str = self.config.get("KnowledgeCore") or \
+                         str(Path(self.config.get("FrameworkRoot", "")) / "skills_db")
+        if remote_path_str:
+            remote_path = Path(remote_path_str)
+            if remote_path.exists():
+                skill_dir = remote_path / "skills" if "KnowledgeCores" in str(remote_path) else remote_path
+                engine.load_skills_from_dir(str(skill_dir), prefix="GLOBAL:")
+
+        engine.build_index()
+        return engine
+
+    def handle_cortex_query(self, query: str) -> None:
+        """Execution path for Knowledge Graph (Cortex) queries."""
+        cortex = Cortex(str(self.project_root), str(self.base_path))
+        results = cortex.query(query)
+        HUD.box_top("CORTEX KNOWLEDGE QUERY")
+        HUD.box_row("QUERY", query, HUD.BOLD)
+        HUD.box_separator()
+        if not results:
+            HUD.box_row("RESULT", "NO DATA FOUND", HUD.RED)
+        else:
+            for r in results[:3]:
+                color = HUD.GREEN if r['score'] > self.THRESHOLDS["REC"] else HUD.YELLOW
+                HUD.box_row("SOURCE", r.get('trigger', 'unknown'), HUD.MAGENTA, dim_label=True)
+                HUD.box_row("RELEVANCE", f"{r['score']:.2f}", color, dim_label=True)
+                HUD.box_separator()
+        HUD.box_bottom()
+        sys.exit(0)
+
+    def record_trace(self, query: str, match: dict[str, Any]) -> None:
+        """Persistence for neural interaction traces."""
+        tdir = self.base_path / "traces"
+        tdir.mkdir(exist_ok=True)
+        tid = re.sub(r'\W+', '_', query[:20]) + f"_{match['score']:.2f}"
+        trace_file = tdir / f"{tid}.json"
+
+        trace_data = {
+            "query": query,
+            "match": match.get('trigger'),
+            "score": match.get('score'),
+            "is_global": match.get('is_global', False),
+            "persona": HUD.PERSONA,
+            "timestamp": self.config.get("version", "unknown")
+        }
+
         try:
-            with open(path, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except:
-            return {}
+            with trace_file.open("w", encoding='utf-8') as f:
+                json.dump(trace_data, f, indent=2)
+        except OSError:
+            pass
 
-    def _load_thesaurus(self, path):
-        if not path or not os.path.exists(path): return {}
-        try:
-            with open(path, 'r', encoding='utf-8') as f:
-                content = f.read()
-            
-            mapping = {}
-            items = re.findall(r'- (?:\*\*)?(\w+)(?:\*\*)?: ([\w, ]+)', content)
-            for word, syns in items:
-                syn_list = [s.strip().lower() for s in syns.split(',')]
-                mapping[word.lower()] = syn_list
-            
-            # Apply corrections to thesaurus
-            if hasattr(self, 'corrections'):
-                for word, syns in self.corrections.get("synonym_updates", {}).items():
-                    mapping[word] = list(set(mapping.get(word, []) + syns))
-            
-            return mapping
-        except Exception as e:
-            return {}
+    def _render_hud(self, query: str, top: dict[str, Any] | None) -> None:
+        """Renders the standard search results in the HUD."""
+        HUD.box_top()
+        label = "COMMAND" if HUD.PERSONA == "ODIN" else "Intent"
+        HUD.box_row(label, query, HUD.BOLD)
 
-    def tokenize(self, text):
-        if not text: return []
-        return re.findall(r'\w+', text.lower())
+        if top:
+            color = HUD.GREEN if top['score'] > self.THRESHOLDS["ACCURACY"] else HUD.YELLOW
+            match_str = f"{'[G] ' if top['is_global'] else ''}{top['trigger']}"
+            HUD.box_row("Match", match_str, HUD.DIM)
+            HUD.box_row("Confidence", f"{HUD.progress_bar(top['score'])} {top['score']:.2f}", color)
+        else:
+            HUD.box_row("Match", "NONE", HUD.RED)
 
-    def expand_query(self, query):
-        tokens = self.tokenize(query)
-        expanded = list(tokens)
-        for token in tokens:
-            if token in self.thesaurus:
-                expanded.extend(self.thesaurus[token])
-            if token.endswith('s'):
-                expanded.append(token[:-1])
-        return expanded
+        HUD.box_bottom()
 
-    def add_skill(self, trigger, text):
-        self.skills[trigger] = text
-        self.vocab.update(self.tokenize(text))
+    def _handle_proactive(self, top: dict[str, Any]) -> None:
+        """Checks for and executes proactive installation or command runs."""
+        if top['score'] <= self.THRESHOLDS["ACCURACY"]:
+            return
 
-    def build_index(self):
-        num_docs = len(self.skills)
-        if num_docs == 0: return
-        doc_counts = {word: 0 for word in self.vocab}
-        for text in self.skills.values():
-            words = set(self.tokenize(text))
-            for word in words:
-                doc_counts[word] += 1
-        for word, count in doc_counts.items():
-            self.idf[word] = math.log(num_docs / (1 + count)) + 1
-        for trigger, text in self.skills.items():
-            self.vectors[trigger] = self._vectorize(self.tokenize(text))
+        trigger = top['trigger']
 
-    def _vectorize(self, tokens):
-        counts = {}
-        for t in tokens: 
-            if t in self.vocab: counts[t] = counts.get(t, 0) + 1
-        vector = []
-        for word in sorted(self.vocab):
-            tf = counts.get(word, 0) / (len(tokens) or 1)
-            vector.append(tf * self.idf.get(word, 0))
-        return vector
+        # 1. Global Skill Installation
+        if top['is_global'] and top['score'] > self.THRESHOLDS["INSTALL"]:
+            self._proactive_install(trigger.replace("GLOBAL:", ""))
 
-    def similarity(self, v1, v2):
-        dot = sum(a*b for a, b in zip(v1, v2))
-        mag1 = math.sqrt(sum(a*a for a in v1))
-        mag2 = math.sqrt(sum(b*b for b in v2))
-        if mag1 == 0 or mag2 == 0: return 0
-        return dot / (mag1 * mag2)
+        # 2. Direct Command Execution
+        elif not trigger.startswith("/") and not trigger.startswith("GLOBAL:"):
+            self._proactive_execute(trigger)
 
-    def search(self, query):
-        # 1. Check direct phrase mappings (Corrections)
-        query_norm = query.lower().strip()
-        if query_norm in self.corrections.get("phrase_mappings", {}):
-            trigger = self.corrections["phrase_mappings"][query_norm]
-            return [{"trigger": trigger, "score": 1.1, "note": "Correction mapped", "is_global": False}]
+    def _proactive_install(self, skill_name: str) -> None:
+        """Prompts and installs a missing global skill."""
+        HUD.box_top("PROACTIVE INSTALL")
+        HUD.box_row("SKILL", skill_name, HUD.CYAN)
+        HUD.box_bottom()
+        prompt = f"\n{HUD.CYAN}>> [C*] {HUD._speak('PROACTIVE_INSTALL', 'Install skill?')} [Y/n] {HUD.RESET}"
+        if utils.input_with_timeout(prompt) in ['', 'y', 'yes', 'Y', 'YES']:
+            subprocess.run([sys.executable, str(self.script_dir / "install_skill.py"), skill_name])
 
-        # 2. Vector search
-        expanded = self.expand_query(query)
-        q_vec = self._vectorize(expanded)
-        results = []
-        for trigger, s_vec in self.vectors.items():
-            score = self.similarity(q_vec, s_vec)
-            is_global = trigger.startswith("GLOBAL:")
-            results.append({"trigger": trigger, "score": score, "is_global": is_global})
-        return sorted(results, key=lambda x: x['score'], reverse=True)
+    def _proactive_execute(self, command: str) -> None:
+        """Prompts and executes a direct CLI command."""
+        HUD.box_top("PROACTIVE EXECUTE")
+        HUD.box_row("CMD", command, HUD.YELLOW)
+        HUD.box_bottom()
+        prompt = f"\n{HUD.CYAN}>> [C*] {HUD._speak('PROACTIVE_EXECUTE', 'Run this command?')} [Y/n] {HUD.RESET}"
+        if utils.input_with_timeout(prompt) in ['', 'y', 'yes', 'Y', 'YES']:
+            subprocess.run(command, shell=True, cwd=str(self.project_root))
 
-    def load_skills_from_dir(self, directory, prefix=""):
-        if not os.path.exists(directory): return
-        for skill_folder in os.listdir(directory):
-            folder_path = os.path.join(directory, skill_folder)
-            if os.path.isdir(folder_path):
-                skill_md = os.path.join(folder_path, "SKILL.md")
-                if os.path.exists(skill_md):
-                    with open(skill_md, 'r', encoding='utf-8') as f:
-                        content = f.read()
-                    activation = re.search(r'Activation Words: (.*)', content)
-                    trigger = f"{prefix}{skill_folder}"
-                    skill_text = content
-                    if activation:
-                        skill_text += " " + activation.group(1).replace(',', ' ')
-                    self.add_skill(trigger, skill_text)
+    def run(self, query: str, json_mode: bool = False, record: bool = False, use_cortex: bool = False) -> None:
+        """Orchestrates the main engine search flow."""
+        if use_cortex and query:
+            self.handle_cortex_query(query)
+            return
+
+        if not query and not json_mode:
+            for res in self.strategy.enforce_policy():
+                HUD.persona_log("INFO", res)
+            return
+
+        # Engine Setup & Execution
+        engine = self._init_vector_engine()
+        if not query:
+            return
+
+        results = engine.search(query)
+        top = results[0] if results else None
+
+        if record and top:
+            self.record_trace(query, top)
+
+        if json_mode:
+            print(json.dumps({"query": query, "top_match": top}, indent=2))
+            return
+
+        # Interface Feedback
+        self._render_hud(query, top)
+        if top:
+            self._handle_proactive(top)
+
+
+def main() -> None:
+    """CLI entry point for sv_engine.py."""
+    parser = argparse.ArgumentParser(description="Corvus Star Sovereign Engine")
+    parser.add_argument("query", nargs="*", help="Query phrase or intent")
+    parser.add_argument("--json", action="store_true", help="Output in JSON format")
+    parser.add_argument("--record", action="store_true", help="Record neural trace")
+    parser.add_argument("--benchmark", action="store_true", help="Display diagnostic info")
+    parser.add_argument("--cortex", action="store_true", help="Query the Knowledge Graph")
+    args = parser.parse_args()
+
+    engine = SovereignEngine()
+
+    if args.benchmark:
+        HUD.box_top("DIAGNOSTIC")
+        HUD.box_row("ENGINE", "SovereignVector 2.5 (Iron Cortex)", HUD.CYAN)
+        HUD.box_row("PERSONA", HUD.PERSONA, HUD.MAGENTA)
+        HUD.box_bottom()
+        sys.exit(0)
+
+    query = utils.sanitize_query(" ".join(args.query))
+    engine.run(
+        query=query,
+        json_mode=args.json,
+        record=args.record,
+        use_cortex=args.cortex
+    )
+
 
 if __name__ == "__main__":
-    base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    project_root = os.path.dirname(base_path)
-    
-    # Load Config
-    config = {}
-    config_path = os.path.join(base_path, "config.json")
-    if os.path.exists(config_path):
-        try:
-            with open(config_path, 'r', encoding='utf-8') as f:
-                config = json.load(f)
-        except: pass
-
-    engine = SovereignVector(
-        thesaurus_path=os.path.join(project_root, "thesaurus.md"), 
-        corrections_path=os.path.join(base_path, "corrections.json")
-    )
-    
-    # 1. Load Core & Local Skills
-    engine.add_skill("/lets-go", "start resume begin progress next priority task work")
-    engine.add_skill("/run-task", "create make new build generate implement feature task")
-    engine.add_skill("/investigate", "debug check find analyze investigate verify test audit bug")
-    engine.add_skill("/wrap-it-up", "finish done wrap complete finalize session quit exit")
-    engine.add_skill("SovereignFish", "polish improve clean refine polish aesthetics visual structural")
-    engine.load_skills_from_dir(os.path.join(base_path, "skills"))
-    
-    # Load Global Skills (Registry)
-    framework_root = config.get("FrameworkRoot")
-    if framework_root:
-        global_path = os.path.join(framework_root, "skills_db")
-        if os.path.exists(global_path):
-            engine.load_skills_from_dir(global_path, prefix="GLOBAL:")
-    
-    engine.build_index()
-
-    if len(sys.argv) > 1:
-        query = " ".join(sys.argv[1:])
-        results = engine.search(query)
-        
-        # Tiered Output Integration
-        top_match = results[0] if results else None
-        recommendations = [r for r in results if r['is_global'] and r['score'] > 0.5]
-        
-        propose_install = None
-        if top_match and top_match['is_global'] and top_match['score'] > 0.9:
-            skill_name = top_match['trigger'].replace("GLOBAL:", "")
-            propose_install = f"powershell -Command \"& {{ python .agent/scripts/install_skill.py {skill_name} }}\""
-
-        trace = {
-            "query": query,
-            "top_match": top_match,
-            "propose_immediate_install": propose_install,
-            "recommendation_report": recommendations if not propose_install else []
-        }
-        print(json.dumps(trace, indent=2))
+    main()

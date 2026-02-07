@@ -1,0 +1,8 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.2, pytest-9.0.2, pluggy-1.6.0
+rootdir: C:\Users\Craig\Corvus\CorvusStar
+collected 2 items
+
+tests\empire\test_annex.py ..                                            [100%]
+
+============================== 2 passed in 0.07s ==============================

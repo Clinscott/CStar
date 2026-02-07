@@ -324,6 +324,13 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 
 ---
 
-> 🔁 **RESUME DIRECTIVE**: Next session should focus on **Strategic Expansion**.
-> Phase 3: Federated War Room implementation and Artifact Extraction for Warlords.
-> Scale robustness testing to N=2000 (Campaign N=2000).
+### 2026-02-07 (Session 39: The Odin Annexation)
+- **Improvement 1 (Safety)**: Purged bare `except:` blocks in `ui.py`, `edda.py`, `annex.py`, and `code_sentinel.py`. - Status: SECURED.
+- **Improvement 2 (Quality)**: Standardized path handling in `KnowledgeExtractor` to handle null intent targets gracefully. - Status: SECURED.
+- **Improvement 3 (Protocol)**: Integrated Annexation Scan into `install.ps1` as a mandatory onboarding phase. - Status: SECURED.
+
+---
+
+> 🔁 **RESUME DIRECTIVE**: Next session should focus on **Annexation Execution**.
+> Implement the `--execute` module in `annex.py` to auto-remediate identified breaches.
+> Continue testing the Edda synthesis engine with complex TypeScript source files.

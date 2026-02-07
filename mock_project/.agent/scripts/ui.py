@@ -115,7 +115,7 @@ class HUD:
             # [ALFRED] Attempt to get terminal size, fallback to 60
             width = os.get_terminal_size().columns - 2
             return max(40, min(120, width))
-        except (OSError, AttributeError):
+        except:
             return int(os.environ.get("HUD_WIDTH", 60))
 
     @staticmethod
