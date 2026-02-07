@@ -384,7 +384,25 @@
         "spin up the work": "/lets-go",
         "call it a day": "/wrap-it-up",
         "lie environment deploy": "GLOBAL:deployment-skill",
-        "clean our aeshetics": "SovereignFish"
+        "clean our aeshetics": "SovereignFish",
+        "scffold tests today": "GLOBAL:test-scaffold",
+        "investigate the failure": "/investigate",
+        "call it a day the day": "/wrap-it-up",
+        "i want to call it a day the work": "/wrap-it-up",
+        "failure investigate": "/investigate",
+        "can you deploy the app?": "GLOBAL:deployment-skill",
+        "live environment deploy": "GLOBAL:deployment-skill",
+        "i want to fire up the work": "/lets-go",
+        "please clean our aeshetics now": "SovereignFish",
+        "i want to spin up the work": "/lets-go",
+        "prodction ship": "GLOBAL:deployment-skill",
+        "performance benchmark for me": "GLOBAL:perf-profiler",
+        "can you clean the visuals?": "SovereignFish",
+        "can you ship the site?": "GLOBAL:deployment-skill",
+        "please ship our site now": "GLOBAL:deployment-skill",
+        "launch the live environment": "GLOBAL:deployment-skill",
+        "can you clean the layout?": "SovereignFish",
+        "i want to cal it a day the work": "/wrap-it-up"
     },
     "synonym_updates": {}
 }

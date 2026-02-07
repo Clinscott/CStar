@@ -4,6 +4,13 @@ import statistics
 import os
 import sys
 
+# Add script directory to path for module discovery
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
+
+from report_engine import ReportEngine
+
 def benchmark(n=100):
     cmd = ["python", ".agent/scripts/sv_engine.py", "--benchmark"]
     times = []
@@ -24,20 +31,30 @@ def benchmark(n=100):
     avg_t = statistics.mean(times)
     stdev = statistics.stdev(times)
 
-    print("\n" + "="*40)
-    print("       CORVUS STAR PERFORMANCE REPORT")
-    print("="*40)
-    print(f"Trials:      {n}")
-    print(f"Min Time:    {min_t:.2f} ms")
-    print(f"Max Time:    {max_t:.2f} ms")
-    print(f"Avg Time:    {avg_t:.2f} ms")
-    print(f"Std Dev:     {stdev:.2f} ms")
-    print("="*40)
+    engine = ReportEngine()
     
-    if avg_t < 500:
-        print("RESULT: CLI ARCHITECTURE IS HIGHLY VIABLE.")
+    body = f"""
+| Metric | Result |
+| :--- | :--- |
+| **Trials** | {n} |
+| **Min Time** | {min_t:.2f} ms |
+| **Max Time** | {max_t:.2f} ms |
+| **Avg Time** | {avg_t:.2f} ms |
+| **Std Dev** | {stdev:.2f} ms |
+"""
+    
+    if avg_t < 100:
+        verdict = "HIGHLY VIABLE"
+        detail = "System operating at peak efficiency."
+    elif avg_t < 500:
+        verdict = "VIABLE"
+        detail = "Standard operation."
     else:
-        print("RESULT: PERFORMANCE OPTIMIZATION RECOMMENDED.")
+        verdict = "WARNING"
+        detail = "Performance optimization recommended."
+
+    body += engine.verdict(verdict, detail)
+    print(engine.generate_report("CORVUS STAR PERFORMANCE REPORT", body))
 
 if __name__ == "__main__":
     benchmark()

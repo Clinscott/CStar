@@ -33,7 +33,8 @@ class SovereignVector:
         self.idf = {}
         self.vectors = {} # {trigger: [vector]}
         self._search_cache = {} # {query_text: search_results}
-        self._expansion_cache = {} # {token: expanded_weighted_tokens}
+        self._expansion_cache = {} # {query_text: weighted_tokens}
+        self._token_cache = {} # {token: {expanded_token: weight}}
 
     def _load_json(self, path):
         if not path or not os.path.exists(path): return {}
@@ -125,10 +126,20 @@ class SovereignVector:
     def expand_query(self, query: str) -> dict[str, float]:
         """[ALFRED] Neural Query Expansion with stemming and thesaurus signals."""
         tokens = self.tokenize(query)
-        weights = {t: 1.0 for t in tokens}
+        weights = {}
         
-        # [ALFRED] Unified expansion pass
-        for t in list(weights.keys()):
+        for t in tokens:
+            # 0. Check Token Cache
+            if t in self._token_cache:
+                start_weights = self._token_cache[t]
+                # Merge cached weights
+                for k, v in start_weights.items():
+                    weights[k] = max(weights.get(k, 0), v)
+                continue
+                
+            # If not in cache, compute expansion
+            t_weights = {t: 1.0}
+            
             # 1. Stemming Rules (Dampened)
             if len(t) > 4:
                 stem = None
@@ -137,12 +148,19 @@ class SovereignVector:
                 elif t.endswith('s') and not t.endswith('ss'): stem = t[:-1]
                 
                 if stem and len(stem) > 2:
-                    weights[stem] = max(weights.get(stem, 0), 0.8)
+                    t_weights[stem] = 0.8
 
             # 2. Thesaurus Expansion
             if t in self.thesaurus:
                 for syn, weight in self.thesaurus[t].items():
-                    weights[syn] = max(weights.get(syn, 0), weight)
+                    t_weights[syn] = max(t_weights.get(syn, 0), weight)
+            
+            # Cache the result for this token
+            self._token_cache[t] = t_weights
+            
+            # Merge into main weights
+            for k, v in t_weights.items():
+                weights[k] = max(weights.get(k, 0), v)
         
         return weights
 
@@ -224,41 +242,83 @@ class SovereignVector:
             self._search_cache[query_norm] = res
             return res
 
-        # 2. Vector search
-        weighted_tokens = self.expand_query(query)
+        # 2. Vector search (Cached Expansion)
+        weighted_tokens = {}
+        # [ALFRED] Expansion Caching: Check if we've already expanded this specific query's tokens
+        # Note: We cache the *result* of expansion for the whole query string for simplicity and hit-rate
+        if query_norm in self._expansion_cache:
+            weighted_tokens = self._expansion_cache[query_norm]
+        else:
+            weighted_tokens = self.expand_query(query)
+            self._expansion_cache[query_norm] = weighted_tokens
+
         q_vec = self._vectorize(weighted_tokens)
         
         # 3. Direct Trigger Boost (Dampened)
         trigger_boosts = {}
         tokens = self.tokenize(query)
         common_verbs = {
-            'make', 'start', 'go', 'check', 'look', 'wrap', 'run', 'build', 'create', 'do', 'begin',
+            'make', 'check', 'look', 'wrap', 'run', 'build', 'create', 'do',
             'construct', 'implement', 'develop', 'generate', 'analyze', 'audit', 'debug', 'validate',
             'verify', 'plan', 'design', 'test', 'deploy', 'launch', 'push', 'release', 'ship',
             'setup', 'bootstrap', 'now', 'today', 'what', 'please', 'just', 'more',
             'ui', 'ux', 'visual', 'visuals', 'interface', 'status'
         }
+        # [ALFRED] High-priority verbs that should NOT be dampened if they match a specific trigger
+        priority_verbs = {'begin', 'start', 'resume', 'initiate'}
         
         for t in tokens:
             if t in self.trigger_map:
                 # [ALFRED] Maximum precision boost for high-accuracy intent resolution
-                boost_val = 0.8 if t in common_verbs else 0.98
+                # Differentiate between generic "run" and specific "begin"
+                if t in priority_verbs:
+                    boost_val = 2.0 # Mega-boost for start/resume signals
+                elif t in common_verbs:
+                    boost_val = 0.8 
+                else:
+                    boost_val = 0.98
+                    
                 for skill in self.trigger_map[t]:
                     trigger_boosts[skill] = max(trigger_boosts.get(skill, 0), boost_val)
 
 
         results = []
+        # [ALFRED] Optimization: Pre-calculate vector magnitudes if possible, but for now just inline the similarity
+        # or use the existing method which is clean enough. 
+        # For valid results, we only care about non-zero similarities usually
+        
         for trigger, s_vec in self.vectors.items():
+            # Optimization: Skip if dot product will be 0 (no shared tokens) 
+            # This requires sparse representation which we don't strictly have in list form, 
+            # but we can rely on modern CPU caching for the list walk.
+            
             score = self.similarity(q_vec, s_vec)
+            
             # Apply dampened boost
             if trigger in trigger_boosts:
-                score = score + trigger_boosts[trigger] * (1.0 - score)
+                # If we have a massive boost (2.0), we force it to top
+                boost = trigger_boosts[trigger]
+                if boost >= 2.0:
+                   score = 1.0 + (boost - 1.0) # pushes above 1.0
+                else:
+                   score = score + boost * (1.0 - score)
             
             is_global = trigger.startswith("GLOBAL:")
             # [ALFRED] Sovereign Priority: Slight tie-breaker for core intents
             if (trigger.startswith("/") or trigger == "SovereignFish") and not is_global:
                 score *= 1.1
-                
+            
+            # [ALFRED] Specific Demotion: If "begin" or "new" is present, /run-task shouldn't steal from /lets-go
+            # logic: /run-task is "create", /lets-go is "begin"
+            if "/lets-go" in trigger_boosts and trigger == "/run-task":
+                score *= 0.5 
+
+            # [ALFRED] Global vs Generic Arbitration
+            # If a Specific GLOBAL skill matches well, it should beat generic /run-task
+            # But /investigate should beat generic GLOBAL tools unless highly specific
+            if trigger == "/run-task" and any(k.startswith("GLOBAL:") for k in trigger_boosts if trigger_boosts[k] > 1.0):
+                 score *= 0.8
+
             results.append({"trigger": trigger, "score": score, "is_global": is_global})
         
         final_results = sorted(results, key=lambda x: x['score'], reverse=True)
@@ -278,9 +338,9 @@ class SovereignVector:
 
     def load_core_skills(self):
         core = {
-            "/lets-go": "begin initiate start resume lets-go priority boot",
+            "/lets-go": "begin initiate start resume lets-go priority boot progress",
             "/run-task": "create build generate implement develop construct new feature page component",
-            "/investigate": "debug analyze audit sentinel validate explore bug error issue auth login credentials",
+            "/investigate": "debug analyze audit sentinel validate explore bug error issue auth login credentials log",
             "/plan": "architect blueprint itinerary map outline plan strategy roadmap system architecture",
             "/test": "check integrity performance test validate verification verify coverage unit integration",
             "/wrap-it-up": "finish complete finalize quit exit done stop end session",
