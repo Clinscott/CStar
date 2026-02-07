@@ -2,24 +2,24 @@
 
 ## 🌊 Expanded Intent Clusters
 
-- **aesthetics**: beautify, clean, futuristic, glass, glow, holographic, improve, layout, neon, polish, refine, sci-fi, sovereignfish, ui-sci-fi, visual
+- **aesthetics**: aeshetics, beautify, clean, glow, improve, layout, polish, refine, sovereignfish, visual
 - **agent-health**: health, heartbeat, monitoring, pulse, status
 - **agent-lightning**: benchmark, fast, measure, metrics, optimization, optimize, perf, perf-profiler, performance, profile, quick, reinforcement, rl, speed, timing, velocity
-- **analyze**: audit, bug, check, debug, dig-into, error, find, investigate, issue, linter, look-into, sentinel, track-down, validate, verify
+- **analyze**: audit, bug, check, debug, dig-into, error, failure, find, fix, investigate, issue, linter, look-into, sentinel, track-down, validate, verify
 - **api-docs**: doc-generator, docs, docstring, document, documentation, jsdoc, readme, write-docs, write-documentation
 - **architect**: blueprint, design, itinerary, map, outline, plan, prepare, roadmap, strategy
-- **audit**: analyze, bug, check, debug, dig-into, error, find, investigate, issue, linter, look-into, sentinel, track-down, validate, verify, 审计, 監査
+- **audit**: analyze, bug, check, debug, dig-into, error, failure, find, fix, investigate, issue, latency, linter, look-into, sentinel, track-down, validate, verify, 审计, 監査
 - **automation**: browser-automation, e2e, playwright, playwright-e2e
-- **beautify**: aesthetics, clean, futuristic, glass, glow, holographic, improve, neon, polish, refine, sci-fi, sovereignfish, ui-sci-fi, visual
-- **begin**: boot, fire-up, initiate, kick-off, lets-go, resume, spin-up, start, 开始, スタート
+- **beautify**: aesthetics, clean, eautify, futuristic, glass, glow, holographic, improve, neon, polish, refine, sci-fi, sovereignfish, ui-sci-fi, visual
+- **begin**: begin, boot, c*, cstar, fire-up, initiate, kick-off, lets-go, resume, spin-up, start, store, 开始, スタート
 - **benchmark**: agent-lightning, fast, measure, metrics, optimization, optimize, perf, perf-profiler, performance, profile, quick, reinforcement, rl, speed, timing, velocity
 - **blueprint**: architect, design, itinerary, map, outline, plan, prepare, roadmap, strategy
 - **boot**: begin, fire-up, initiate, kick-off, lets-go, resume, spin-up, start
 - **browser-automation**: automation, e2e, playwright, playwright-e2e
 - **bug**: analyze, audit, check, debug, dig-into, error, find, investigate, issue, linter, look-into, sentinel, track-down, validate, verify
-- **build**: component, construct, create, develop, feature, generate, implement, make, modification, page, run-task, update
+- **build**: component, construct, create, develop, feature, generate, implement, make, modification, page, run-task, scaffold, scffold, tomake, update
 - **check**: analyze, audit, bug, debug, dig-into, error, find, integrity, investigate, issue, linter, look-into, performance, sentinel, test, track-down, validate, validity, verification, verify
-- **clean**: aesthetics, beautify, futuristic, glass, glow, holographic, improve, neon, polish, refine, sci-fi, sovereignfish, ui-sci-fi, visual
+- **clean**: aesthetics, beautify, glow, improve, polish, refine, sovereignfish, visual
 - **checkout**: buy, cart, checkout-component, checkout-feature, order, payment, purchase, 结算, 支付, チェックアウト
 - **close**: complete, done, end, exit, finalize, finish, pack-up, quit, stop, wind-down, wrap, wrap-it-up
 - **commit**: branch, git, git-assistant, github, merge, pull, push, rebase, repo, repository, commit-conflict, 提交, 合并, コミット
@@ -28,8 +28,8 @@
 - **construct**: build, component, create, develop, feature, generate, implement, make, modification, page, run-task, update
 - **create**: build, component, construct, develop, feature, generate, implement, make, modification, page, run-task, update
 - **debug**: analyze, audit, bug, check, dig-into, error, find, investigate, issue, linter, look-into, sentinel, track-down, validate, verify
-- **deploy**: deployment, launch, publish, push, release, ship, 部署, デプロイ
-- **deployment**: deploy, launch, publish, push, release, ship, 部署, デプロイ
+- **deploy**: deployment, launch, production, publish, push, release, ship, 部署, デプロイ
+- **deployment**: deploy, launch, production, publish, push, release, ship, 部署, デプロイ
 - **design**: architect, blueprint, itinerary, map, outline, plan, prepare, roadmap, strategy
 - **develop**: build, component, construct, create, feature, generate, implement, make, modification, page, run-task, update
 - **dig-into**: analyze, audit, bug, check, debug, error, find, investigate, issue, linter, look-into, sentinel, track-down, validate, verify
@@ -82,7 +82,7 @@
 - **merge**: commit, git, git-assistant, github, rebase, repo, repository
 - **metrics**: agent-lightning, benchmark, fast, measure, optimization, optimize, perf, perf-profiler, performance, profile, quick, reinforcement, rl, speed, timing, velocity
 - **modification**: build, component, construct, create, develop, feature, generate, implement, make, page, run-task, update
-- **monitoring**: agent-health, health, heartbeat, pulse, status
+- **monitoring**: agent-health, dashboard, health, heartbeat, overwatch, pulse, status
 - **neon**: aesthetics, beautify, clean, futuristic, glass, glow, holographic, improve, polish, refine, sci-fi, sovereignfish, ui-sci-fi, visual
 - **optimization**: agent-lightning, benchmark, fast, measure, metrics, optimize, perf, perf-profiler, performance, profile, quick, reinforcement, rl, speed, timing, velocity
 - **optimize**: agent-lightning, benchmark, fast, measure, metrics, optimization, perf, perf-profiler, performance, profile, quick, reinforcement, rl, speed, timing, velocity
@@ -141,6 +141,14 @@
 - **where-is**: documentation, find, how-does, hunter, knowledge, knowledge-hunter, research, scour, search
 - **wind-down**: close, complete, done, end, exit, finalize, finish, pack-up, quit, stop, wrap, wrap-it-up
 - **wrap**: close, complete, done, end, exit, finalize, finish, pack-up, quit, stop, wind-down, wrap-it-up
-- **wrap-it-up**: close, complete, done, end, exit, finalize, finish, pack-up, quit, stop, wind-down, wrap
+- **wrap-it-up**: close, complete, day, done, end, exit, finalize, finish, pack-up, quit, stop, wind-down, wrap
 - **write-docs**: api-docs, doc-generator, docs, docstring, document, documentation, jsdoc, readme, write-documentation
 - **write-documentation**: api-docs, doc-generator, docs, docstring, document, documentation, jsdoc, readme, write-docs
+- **store**: begin, lets-go, resume, start
+- **release**: deployment-skill, launch, prod, production, ship, deploy
+- **production**: deployment-skill, launch, prod, release, ship, deploy
+- **catalog**: begin, lets-go, resume, start
+- **eautify**: aesthetics, beautify, polish, refine, sovereignfish
+- **scffold**: build, construct, create, generate, run-task, scaffold
+- **aeshetics**: aesthetics, beautify, clean, polish, refine, sovereignfish
+

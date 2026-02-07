@@ -1,0 +1,10 @@
+#!/bin/bash
+PROJECT_ROOT=$(pwd)
+DISPATCHER="$PROJECT_ROOT/.agent/scripts/cstar_dispatcher.py"
+PYTHON_PATH="$PROJECT_ROOT/.venv/Scripts/python.exe"
+
+if [ ! -f "$PYTHON_PATH" ]; then
+    PYTHON_PATH="python"
+fi
+
+"$PYTHON_PATH" "$DISPATCHER" "$@"

@@ -1,0 +1,8 @@
+{
+  "query": "start the game",
+  "match": "/lets-go",
+  "score": 0.980844428932195,
+  "is_global": false,
+  "persona": "ALFRED",
+  "timestamp": "unknown"
+}

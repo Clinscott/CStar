@@ -1,3 +1,16 @@
-# Neural Trace Report
+# 🧠 C* Neural Trace Report
 
-No traces recorded this session.
+**Session Traces**: 3
+
+**Avg Score**: 1.0603
+
+**Most Active Skill**: `python odin_protocol/main.py`
+
+**Generated**: 2026-02-06 11:32:16
+
+
+| Query | Match | Score | Type |
+| :--- | :--- | :--- | :--- |
+| `play the game` | **python odin_protocol/main.py** | 🟢 1.10 | LOCAL |
+| `start the game` | **/lets-go** | 🟢 0.98 | LOCAL |
+| `start the game` | **python odin_protocol/main.py** | 🟢 1.10 | LOCAL |

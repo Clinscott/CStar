@@ -87,11 +87,11 @@ class TestHUD(unittest.TestCase):
     def test_theme_selection(self):
         """Test theme colors based on Persona."""
         HUD.PERSONA = "ODIN"
-        theme = HUD._get_theme()
+        theme = HUD.get_theme()
         self.assertEqual(theme['title'], "Ω ODIN ENGINE Ω")
         
         HUD.PERSONA = "ALFRED"
-        theme = HUD._get_theme()
+        theme = HUD.get_theme()
         self.assertEqual(theme['title'], "C* BUTLER INTERFACE")
 
 if __name__ == '__main__':

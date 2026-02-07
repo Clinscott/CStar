@@ -1,0 +1,510 @@
+[
+    {
+        "warlord": "Morderith",
+        "planet": "Testia Prime",
+        "choice_id": "H",
+        "choice_text": "Harvest Local Biology",
+        "threshold": 23.0,
+        "effective_stats": {
+            "AESIR_MIGHT": 1.3525,
+            "BERSERKER_RAGE": 6.049999999999999,
+            "VALKYRIE_LUNGE": 1.9500000000000002,
+            "SKADI_GLIDE": 1.0975000000000001,
+            "HUGINN_SIGHT": 1.05,
+            "MUNINN_MEM": 1.05,
+            "LOKI_SHADOW": 0.9,
+            "FAFNIR_SILENCE": 0.9525,
+            "TYR_BARRIER": 1.1500000000000004,
+            "YMIR_STONE": 1.0025,
+            "SURTR_FLAME": 1.05,
+            "HEL_COLD": 1.0500000000000003,
+            "IDUNN_BLOOM": 1.05,
+            "NIDHOGG_DECAY": 2.0500000000000003,
+            "FREYJA_WEAVE": 1.0975000000000004,
+            "GINNUNGAGAP_VOID": 0.9500000000000001,
+            "HEIMDALL_WATCH": 1.05,
+            "JORMUNGANDR_COIL": 1.1025,
+            "BALDR_LIGHT": 0.8975000000000002,
+            "BRAGI_SONG": 1.05,
+            "FENRIR_JAW": 1.3025,
+            "SURTR_ASH": 1.1500000000000004,
+            "MIMIR_WELL": 1.2000000000000002,
+            "ODIN_EYE": 0.9975
+        },
+        "scenario": {
+            "planet_name": "Shattered Hel",
+            "goal": "Reclamation of a Lost Genetic Vault",
+            "conflict": "Gravity storms are crushing all tactical structure.",
+            "disaster": "The world-seed rejects your presence, triggering a tectonic collapse.",
+            "fauna": "Docile Grazers",
+            "flora": "Dead Scrub",
+            "sediment": "Sifting Ash",
+            "civ_type": "Ascended Neural Nets",
+            "world_modifiers": [],
+            "environmental_hazard": "A volatile Gravity field is straining your structure.",
+            "immediate_question": "How shall we achieve our goal on Shattered Hel, Warlord?",
+            "dominance_gain": 3.9,
+            "failure_penalty": 7.7,
+            "potential_item": {
+                "id": "ITEM_BERSERKER_RAGE",
+                "name": "Ancient Berserker Rage Catalyst",
+                "category": "Augment",
+                "buffs": {
+                    "BERSERKER_RAGE": 1.0
+                },
+                "durability": 100
+            },
+            "options": [
+                {
+                    "id": "A",
+                    "text": "Brute Force Objective",
+                    "threshold": 30.0,
+                    "difficulty": "Hard"
+                },
+                {
+                    "id": "B",
+                    "text": "Tactical Exploitation",
+                    "threshold": 26.0,
+                    "difficulty": "Normal"
+                },
+                {
+                    "id": "C",
+                    "text": "Subjugate Civilization",
+                    "threshold": 35.0,
+                    "difficulty": "Gamble"
+                },
+                {
+                    "id": "H",
+                    "text": "Harvest Local Biology",
+                    "threshold": 23.0,
+                    "difficulty": "Easy"
+                }
+            ]
+        },
+        "timestamp": 1770339526.4783065
+    },
+    {
+        "warlord": "Morderith",
+        "planet": "Testia Prime",
+        "choice_id": "H",
+        "choice_text": "Harvest Local Biology",
+        "threshold": 23.0,
+        "effective_stats": {
+            "AESIR_MIGHT": 1.3525,
+            "BERSERKER_RAGE": 6.049999999999999,
+            "VALKYRIE_LUNGE": 1.9500000000000002,
+            "SKADI_GLIDE": 1.0975000000000001,
+            "HUGINN_SIGHT": 1.05,
+            "MUNINN_MEM": 1.05,
+            "LOKI_SHADOW": 0.9,
+            "FAFNIR_SILENCE": 0.9525,
+            "TYR_BARRIER": 1.1500000000000004,
+            "YMIR_STONE": 1.0025,
+            "SURTR_FLAME": 1.05,
+            "HEL_COLD": 1.0500000000000003,
+            "IDUNN_BLOOM": 1.05,
+            "NIDHOGG_DECAY": 2.0500000000000003,
+            "FREYJA_WEAVE": 1.0975000000000004,
+            "GINNUNGAGAP_VOID": 0.9500000000000001,
+            "HEIMDALL_WATCH": 1.05,
+            "JORMUNGANDR_COIL": 1.1025,
+            "BALDR_LIGHT": 0.8975000000000002,
+            "BRAGI_SONG": 1.05,
+            "FENRIR_JAW": 1.3025,
+            "SURTR_ASH": 1.1500000000000004,
+            "MIMIR_WELL": 1.2000000000000002,
+            "ODIN_EYE": 0.9975
+        },
+        "scenario": {
+            "planet_name": "Frozen Vanaheim",
+            "goal": "Extraction of a Primordial Essence",
+            "conflict": "The atmosphere is thick with electromagnetic interference.",
+            "disaster": "A temporal feedback loop erases your tactical gains.",
+            "fauna": "Apex Predators",
+            "flora": "Adaptive Fungi",
+            "sediment": "Sifting Ash",
+            "civ_type": "Ascended Neural Nets",
+            "world_modifiers": [],
+            "environmental_hazard": "A volatile Ancient_Power field is straining your structure.",
+            "immediate_question": "How shall we achieve our goal on Frozen Vanaheim, Warlord?",
+            "dominance_gain": 2.2,
+            "failure_penalty": 11.7,
+            "potential_item": {
+                "id": "ITEM_ODIN_EYE",
+                "name": "Ancient Odin Eye Catalyst",
+                "category": "Augment",
+                "buffs": {
+                    "ODIN_EYE": 1.0
+                },
+                "durability": 100
+            },
+            "options": [
+                {
+                    "id": "A",
+                    "text": "Brute Force Objective",
+                    "threshold": 30.0,
+                    "difficulty": "Hard"
+                },
+                {
+                    "id": "B",
+                    "text": "Tactical Exploitation",
+                    "threshold": 26.0,
+                    "difficulty": "Normal"
+                },
+                {
+                    "id": "C",
+                    "text": "Subjugate Civilization",
+                    "threshold": 35.0,
+                    "difficulty": "Gamble"
+                },
+                {
+                    "id": "H",
+                    "text": "Harvest Local Biology",
+                    "threshold": 23.0,
+                    "difficulty": "Easy"
+                }
+            ]
+        },
+        "timestamp": 1770339725.1129541
+    },
+    {
+        "warlord": "Morderith",
+        "planet": "Testia Prime",
+        "choice_id": "H",
+        "choice_text": "Harvest Local Biology",
+        "threshold": 23.0,
+        "effective_stats": {
+            "AESIR_MIGHT": 1.3525,
+            "BERSERKER_RAGE": 6.049999999999999,
+            "VALKYRIE_LUNGE": 1.9500000000000002,
+            "SKADI_GLIDE": 1.0975000000000001,
+            "HUGINN_SIGHT": 1.05,
+            "MUNINN_MEM": 1.05,
+            "LOKI_SHADOW": 0.9,
+            "FAFNIR_SILENCE": 0.7024999999999999,
+            "TYR_BARRIER": 1.1500000000000004,
+            "YMIR_STONE": 1.0025,
+            "SURTR_FLAME": 1.05,
+            "HEL_COLD": 1.0500000000000003,
+            "IDUNN_BLOOM": 1.05,
+            "NIDHOGG_DECAY": 2.0500000000000003,
+            "FREYJA_WEAVE": 1.0975000000000004,
+            "GINNUNGAGAP_VOID": 0.9500000000000001,
+            "HEIMDALL_WATCH": 1.05,
+            "JORMUNGANDR_COIL": 0.8524999999999999,
+            "BALDR_LIGHT": 0.8975000000000002,
+            "BRAGI_SONG": 1.05,
+            "FENRIR_JAW": 1.3025,
+            "SURTR_ASH": 1.1500000000000004,
+            "MIMIR_WELL": 1.2000000000000002,
+            "ODIN_EYE": 1.2475000000000003
+        },
+        "scenario": {
+            "planet_name": "Void of Niflheim",
+            "goal": "Erosion of Reality in a Primordial Abyss",
+            "conflict": "Deep-crust volatility threatens the landing zone.",
+            "disaster": "The civilizations here launch a desperate, scorched-earth counter-strike.",
+            "fauna": "Apex Predators",
+            "flora": "Dead Scrub",
+            "sediment": "Solid Obsidian",
+            "civ_type": "Industrial Bastions",
+            "world_modifiers": [
+                {
+                    "type": "INVERSION",
+                    "target": "NIDHOGG_DECAY",
+                    "description": "The Bio_Hazard anomalous. NIDHOGG_DECAY interferences act as Synergies."
+                }
+            ],
+            "environmental_hazard": "A volatile Bio_Hazard field is straining your structure.",
+            "immediate_question": "How shall we achieve our goal on Void of Niflheim, Warlord?",
+            "dominance_gain": 2.2,
+            "failure_penalty": 8.9,
+            "potential_item": {
+                "id": "ITEM_NIDHOGG_DECAY",
+                "name": "Ancient Nidhogg Decay Catalyst",
+                "category": "Augment",
+                "buffs": {
+                    "NIDHOGG_DECAY": 1.0
+                },
+                "durability": 100
+            },
+            "options": [
+                {
+                    "id": "A",
+                    "text": "Brute Force Objective",
+                    "threshold": 30.0,
+                    "difficulty": "Hard"
+                },
+                {
+                    "id": "B",
+                    "text": "Tactical Exploitation",
+                    "threshold": 26.0,
+                    "difficulty": "Normal"
+                },
+                {
+                    "id": "C",
+                    "text": "Subjugate Civilization",
+                    "threshold": 35.0,
+                    "difficulty": "Gamble"
+                },
+                {
+                    "id": "H",
+                    "text": "Harvest Local Biology",
+                    "threshold": 23.0,
+                    "difficulty": "Easy"
+                }
+            ]
+        },
+        "timestamp": 1770339729.0649524
+    },
+    {
+        "warlord": "Morderith",
+        "planet": "Testia Prime",
+        "choice_id": "H",
+        "choice_text": "Harvest Local Biology",
+        "threshold": 23.0,
+        "effective_stats": {
+            "AESIR_MIGHT": 1.3525,
+            "BERSERKER_RAGE": 6.049999999999999,
+            "VALKYRIE_LUNGE": 1.9500000000000002,
+            "SKADI_GLIDE": 1.0975000000000001,
+            "HUGINN_SIGHT": 1.05,
+            "MUNINN_MEM": 1.05,
+            "LOKI_SHADOW": 0.9,
+            "FAFNIR_SILENCE": 0.7024999999999999,
+            "TYR_BARRIER": 1.1500000000000004,
+            "YMIR_STONE": 1.0025,
+            "SURTR_FLAME": 1.05,
+            "HEL_COLD": 1.0500000000000003,
+            "IDUNN_BLOOM": 1.05,
+            "NIDHOGG_DECAY": 2.0500000000000003,
+            "FREYJA_WEAVE": 1.0975000000000004,
+            "GINNUNGAGAP_VOID": 0.7,
+            "HEIMDALL_WATCH": 1.3000000000000003,
+            "JORMUNGANDR_COIL": 1.1025,
+            "BALDR_LIGHT": 0.8975000000000002,
+            "BRAGI_SONG": 1.05,
+            "FENRIR_JAW": 1.3025,
+            "SURTR_ASH": 1.1500000000000004,
+            "MIMIR_WELL": 1.2000000000000002,
+            "ODIN_EYE": 0.9975
+        },
+        "scenario": {
+            "planet_name": "Burning Vanaheim",
+            "goal": "Extraction of a Primordial Essence",
+            "conflict": "A temporal anomaly is causing tactical loops.",
+            "disaster": "The civilizations here launch a desperate, scorched-earth counter-strike.",
+            "fauna": "Nomadic Packs",
+            "flora": "Dead Scrub",
+            "sediment": "Solid Obsidian",
+            "civ_type": "Primitive Hives",
+            "world_modifiers": [
+                {
+                    "type": "INVERSION",
+                    "target": "LOKI_SHADOW",
+                    "description": "The Sensor_Resolution anomalous. LOKI_SHADOW interferences act as Synergies."
+                }
+            ],
+            "environmental_hazard": "A volatile Sensor_Resolution field is straining your structure.",
+            "immediate_question": "How shall we achieve our goal on Burning Vanaheim, Warlord?",
+            "dominance_gain": 1.8,
+            "failure_penalty": 11.1,
+            "potential_item": null,
+            "options": [
+                {
+                    "id": "A",
+                    "text": "Brute Force Objective",
+                    "threshold": 30.0,
+                    "difficulty": "Hard"
+                },
+                {
+                    "id": "B",
+                    "text": "Tactical Exploitation",
+                    "threshold": 26.0,
+                    "difficulty": "Normal"
+                },
+                {
+                    "id": "C",
+                    "text": "Subjugate Civilization",
+                    "threshold": 35.0,
+                    "difficulty": "Gamble"
+                },
+                {
+                    "id": "H",
+                    "text": "Harvest Local Biology",
+                    "threshold": 23.0,
+                    "difficulty": "Easy"
+                }
+            ]
+        },
+        "timestamp": 1770339731.8504064
+    },
+    {
+        "warlord": "Morderith",
+        "planet": "Testia Prime",
+        "choice_id": "H",
+        "choice_text": "Harvest Local Biology",
+        "threshold": 23.0,
+        "effective_stats": {
+            "AESIR_MIGHT": 1.3525,
+            "BERSERKER_RAGE": 6.049999999999999,
+            "VALKYRIE_LUNGE": 1.9500000000000002,
+            "SKADI_GLIDE": 1.0975000000000001,
+            "HUGINN_SIGHT": 1.05,
+            "MUNINN_MEM": 1.05,
+            "LOKI_SHADOW": 0.9,
+            "FAFNIR_SILENCE": 0.9525,
+            "TYR_BARRIER": 1.1500000000000004,
+            "YMIR_STONE": 1.0025,
+            "SURTR_FLAME": 1.05,
+            "HEL_COLD": 1.0500000000000003,
+            "IDUNN_BLOOM": 1.05,
+            "NIDHOGG_DECAY": 2.0500000000000003,
+            "FREYJA_WEAVE": 1.0975000000000004,
+            "GINNUNGAGAP_VOID": 0.9500000000000001,
+            "HEIMDALL_WATCH": 1.05,
+            "JORMUNGANDR_COIL": 1.1025,
+            "BALDR_LIGHT": 0.8975000000000002,
+            "BRAGI_SONG": 1.05,
+            "FENRIR_JAW": 1.3025,
+            "SURTR_ASH": 1.1500000000000004,
+            "MIMIR_WELL": 1.2000000000000002,
+            "ODIN_EYE": 0.9975
+        },
+        "scenario": {
+            "planet_name": "Burning Vanaheim",
+            "goal": "Subjugation of an Ascended Hive-Mind",
+            "conflict": "Gravity storms are crushing all tactical structure.",
+            "disaster": "The environment itself inverts, turning your strengths against you.",
+            "fauna": "Nomadic Packs",
+            "flora": "Glow-Forests",
+            "sediment": "Solid Obsidian",
+            "civ_type": "Industrial Bastions",
+            "world_modifiers": [],
+            "environmental_hazard": "A volatile Ancient_Power field is straining your structure.",
+            "immediate_question": "How shall we achieve our goal on Burning Vanaheim, Warlord?",
+            "dominance_gain": 5.7,
+            "failure_penalty": 6.9,
+            "potential_item": {
+                "id": "ITEM_MIMIR_WELL",
+                "name": "Ancient Mimir Well Catalyst",
+                "category": "Augment",
+                "buffs": {
+                    "MIMIR_WELL": 1.0
+                },
+                "durability": 100
+            },
+            "options": [
+                {
+                    "id": "A",
+                    "text": "Brute Force Objective",
+                    "threshold": 30.0,
+                    "difficulty": "Hard"
+                },
+                {
+                    "id": "B",
+                    "text": "Tactical Exploitation",
+                    "threshold": 26.0,
+                    "difficulty": "Normal"
+                },
+                {
+                    "id": "C",
+                    "text": "Subjugate Civilization",
+                    "threshold": 35.0,
+                    "difficulty": "Gamble"
+                },
+                {
+                    "id": "H",
+                    "text": "Harvest Local Biology",
+                    "threshold": 23.0,
+                    "difficulty": "Easy"
+                }
+            ]
+        },
+        "timestamp": 1770339734.4526813
+    },
+    {
+        "warlord": "Morderith",
+        "planet": "Testia Prime",
+        "choice_id": "H",
+        "choice_text": "Harvest Local Biology",
+        "threshold": 23.0,
+        "effective_stats": {
+            "AESIR_MIGHT": 1.3525,
+            "BERSERKER_RAGE": 6.049999999999999,
+            "VALKYRIE_LUNGE": 1.9500000000000002,
+            "SKADI_GLIDE": 1.0975000000000001,
+            "HUGINN_SIGHT": 1.05,
+            "MUNINN_MEM": 1.05,
+            "LOKI_SHADOW": 0.9,
+            "FAFNIR_SILENCE": 0.9525,
+            "TYR_BARRIER": 1.1500000000000004,
+            "YMIR_STONE": 1.0025,
+            "SURTR_FLAME": 1.05,
+            "HEL_COLD": 1.0500000000000003,
+            "IDUNN_BLOOM": 1.05,
+            "NIDHOGG_DECAY": 2.0500000000000003,
+            "FREYJA_WEAVE": 1.0975000000000004,
+            "GINNUNGAGAP_VOID": 0.9500000000000001,
+            "HEIMDALL_WATCH": 1.05,
+            "JORMUNGANDR_COIL": 1.1025,
+            "BALDR_LIGHT": 0.8975000000000002,
+            "BRAGI_SONG": 1.05,
+            "FENRIR_JAW": 1.3025,
+            "SURTR_ASH": 1.1500000000000004,
+            "MIMIR_WELL": 1.2000000000000002,
+            "ODIN_EYE": 0.9975
+        },
+        "scenario": {
+            "planet_name": "Frozen Vanaheim",
+            "goal": "The forced inoculation of the World-Seed with your genetic signature",
+            "conflict": "Raging gravity storms are liquefying your structural supports in real-time.",
+            "disaster": "The environment itself inverts, turning your genetic strengths into lethal flaws.",
+            "fauna": "Docile Grazers",
+            "flora": "Glow-Forests",
+            "sediment": "Explosive Crust",
+            "civ_type": "Ascended Neural Nets",
+            "world_modifiers": [],
+            "environmental_hazard": "A volatile Radiation field is straining your structure.",
+            "immediate_question": "How shall we achieve our goal on Frozen Vanaheim, Warlord Morderith?",
+            "dominance_gain": 5.3,
+            "failure_penalty": 6.5,
+            "potential_item": {
+                "id": "ITEM_TYR_BARRIER",
+                "name": "Ancient Tyr Barrier Catalyst",
+                "category": "Augment",
+                "buffs": {
+                    "TYR_BARRIER": 1.0
+                },
+                "durability": 100
+            },
+            "options": [
+                {
+                    "id": "A",
+                    "text": "Brute Force Objective",
+                    "threshold": 30.0,
+                    "difficulty": "Hard"
+                },
+                {
+                    "id": "B",
+                    "text": "Tactical Exploitation",
+                    "threshold": 26.0,
+                    "difficulty": "Normal"
+                },
+                {
+                    "id": "C",
+                    "text": "Subjugate Civilization",
+                    "threshold": 35.0,
+                    "difficulty": "Gamble"
+                },
+                {
+                    "id": "H",
+                    "text": "Harvest Local Biology",
+                    "threshold": 23.0,
+                    "difficulty": "Easy"
+                }
+            ]
+        },
+        "timestamp": 1770339867.8049438
+    }
+]
