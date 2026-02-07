@@ -28,6 +28,12 @@ class CorvusDispatcher:
         if not self.venv_python.exists():
             self.venv_python = Path("python")
 
+        # [ODIN] Load Persona from Config
+        sys.path.append(str(self.scripts_dir))
+        import utils
+        self.config = utils.load_config(str(self.project_root))
+        HUD.PERSONA = (self.config.get("persona") or self.config.get("Persona") or "ALFRED").upper()
+
         # Command Registry: {cmd_name: (path/name, type)}
         self.registry: Dict[str, Tuple[str, str]] = {
             "persona": (str(self.scripts_dir / "set_persona.py"), "script"),

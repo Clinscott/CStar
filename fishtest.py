@@ -19,6 +19,7 @@ if SCRIPTS_DIR not in sys.path:
 
 try:
     from sv_engine import HUD, SovereignVector
+    from report_engine import ReportEngine
 except ImportError:
     # Dummy HUD for headless or local runs if sv_engine/ui fails
     class HUD:
@@ -175,6 +176,21 @@ class FishtestRunner:
         HUD.box_row("VERDICT", sprt_msg, sprt_color)
         HUD.box_row("LATENCY", f"{(duration/len(cases))*1000:.2f}ms/target", dim_label=True)
         HUD.box_bottom()
+
+        # [ODIN] Persona-driven Final Report
+        report = ReportEngine()
+        body = f"""
+| Metric | Value |
+| :--- | :--- |
+| **Population** | {len(cases)} |
+| **Accuracy** | {accuracy:.1f}% |
+| **Latency** | {(duration/len(cases))*1000:.2f}ms |
+        """
+        verdict_status = "PASS" if accuracy >= 90 else "FAIL"
+        verdict_detail = sprt_msg
+        
+        body += report.verdict(verdict_status, verdict_detail)
+        print(report.generate_report("INTENT RESOLUTION AUDIT", body))
         
         if accuracy < 90:
             sys.exit(1)
