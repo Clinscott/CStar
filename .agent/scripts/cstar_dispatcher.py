@@ -47,6 +47,7 @@ class CorvusDispatcher:
             # Sovereign Fish Automaton
             "daemon": (str(self.project_root / "main_loop.py"), "script"),
             "sentinel": (str(self.project_root / "main_loop.py"), "script"),
+            "sentinal": (str(self.project_root / "main_loop.py"), "script"),
         }
 
     def show_help(self) -> None:
@@ -62,6 +63,52 @@ class CorvusDispatcher:
         HUD.box_separator()
         HUD.box_row("Shortcuts", "-odin, -alfred", HUD.YELLOW)
         HUD.box_bottom()
+
+    def check_sentinel_status(self) -> None:
+        """Checks if the Sentinel (main_loop.py) is running."""
+        HUD.log("INFO", "Checking Sentinel Status...")
+        try:
+            # Use PowerShell to check for main_loop.py
+            ps_cmd = "Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*main_loop.py*' } | Select-Object -ExpandProperty ProcessId"
+            result = subprocess.run(["powershell", "-NoProfile", "-Command", ps_cmd], capture_output=True, text=True)
+            
+            pids = result.stdout.strip().splitlines()
+            if pids:
+                HUD.log("SUCCESS", "Sentinel is RUNNING", f"(PIDs: {', '.join(pids)})")
+            else:
+                HUD.log("WARN", "Sentinel is NOT RUNNING")
+        except Exception as e:
+            HUD.log("FAIL", f"Status Check Failed: {e}")
+
+    def kill_sentinel(self) -> None:
+        """Terminates the Sentinel (main_loop.py) process."""
+        HUD.log("INFO", "Attempting to terminate Sentinel...")
+        try:
+            # Find and kill the process
+            ps_cmd = "Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*main_loop.py*' } | Stop-Process -Force -PassThru"
+            result = subprocess.run(["powershell", "-NoProfile", "-Command", ps_cmd], capture_output=True, text=True)
+            
+            if result.stdout.strip():
+                HUD.log("SUCCESS", "Sentinel Terminated.")
+            else:
+                HUD.log("WARN", "No running Sentinel found to terminate.")
+        except Exception as e:
+            HUD.log("FAIL", f"Termination Failed: {e}")
+
+    def launch_sentinel(self) -> None:
+        """Launches the Sentinel (main_loop.py) in a new detached terminal window."""
+        HUD.log("INFO", "Deploying Sentinel to New Window...")
+        try:
+            target = str(self.project_root / "main_loop.py")
+            cmd_str = f"& '{self.venv_python}' '{target}'"
+            
+            # Use PowerShell Start-Process to spawn a new window with the environment
+            ps_cmd = f"Start-Process powershell -ArgumentList '-NoExit', '-Command', \"{cmd_str}\""
+            
+            subprocess.run(["powershell", "-NoProfile", "-Command", ps_cmd], check=True)
+            HUD.log("SUCCESS", "Sentinel Deployed.")
+        except Exception as e:
+            HUD.log("FAIL", f"Deployment Failed: {e}")
 
     def run(self, args: List[str]) -> None:
         """
@@ -83,6 +130,18 @@ class CorvusDispatcher:
             return
         if cmd == "-alfred":
             subprocess.run([str(self.venv_python), str(self.scripts_dir / "set_persona.py"), "ALFRED"])
+            return
+
+        # Sentinel Management
+        if cmd in ["sentinel", "sentinal"]:
+            if "-status" in cmd_args:
+                self.check_sentinel_status()
+                return
+            if "-end" in cmd_args or "-kill" in cmd_args:
+                self.kill_sentinel()
+                return
+            # Default: Launch new instance
+            self.launch_sentinel()
             return
 
         if cmd in self.registry:
