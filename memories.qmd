@@ -82,5 +82,6 @@ saved_memory:
     - Centralized Persona Architecture: All system voice and persona logic (ODIN/ALFRED) is now centralized in `ui.py` (HUD class) and dynamically reloaded, eliminating hardcoded string checks and enabling hot-swapping.
     - Sentinel CLI: Implemented `c* sentinel [-status|-end]` for daemon management (Start/Stop/Status).
     - Configuration Safety: `.env.local` is strictly ignored and removed from git tracking to prevent secret leakage.
+    - Gemini Model Standard: Use `gemini-flash-latest` for this environment. Explicit 1.5 versions (e.g., `gemini-1.5-flash-001`) are returning 404s for the current API key.
 deletions: []
 ```
