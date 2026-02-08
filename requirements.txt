@@ -1,3 +1,4 @@
 google-generativeai
 colorama
 pytest
+python-dotenv

@@ -15,6 +15,13 @@ from colorama import Fore, Style, init
 # Initialize Colorama
 init(autoreset=True)
 
+# Load Environment Variables from .env (if present)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # python-dotenv not installed, rely on system env
+
 # Configuration
 INTERVAL_SECONDS = 900  # 15 Minutes
 TARGET_REPOS = [

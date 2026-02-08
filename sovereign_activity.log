@@ -4,3 +4,9 @@
 [09:39:54] [INFO] [CorvusStar] [SKIP] Dirty working tree.
 [09:39:54] [WARNING] [KeepOS] [SKIP] Path not found.
 [09:39:54] [WARNING] [The Nexus] [SKIP] Path not found.
+[10:20:42] [ERROR] [c:\Users\Craig\Corvus\CorvusStar] [CRASH] GOOGLE_API_KEY environment variable not set.
+[10:20:42] [WARNING] [KeepOS] [SKIP] Path not found.
+[10:20:42] [WARNING] [The Nexus] [SKIP] Path not found.
+[10:22:50] [INFO] [CorvusStar] [SKIP] Dirty working tree.
+[10:22:50] [WARNING] [KeepOS] [SKIP] Path not found.
+[10:22:50] [WARNING] [The Nexus] [SKIP] Path not found.
