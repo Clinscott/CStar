@@ -66,6 +66,8 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 
 ### 22. Odin Protocol Phase 10: Total Annexation (Coverage)
 - [x] **Structural Remediation**: Pathlib migration for `sv_engine.py` and TacticalRNG for `logic.py`. [x]
+- [x] **Sentinel CLI**: Implemented `c* sentinel [-status|-end]` for daemon management. [x]
+- [x] **Configuration Safety**: Added `.gitignore` and removed `.env.local` from tracking. [x]
 - [x] **Empire Expansion**: Forged 4 new contracts (`Cortex`, `Persistence`, `Network`, `UI`) for 100% coverage. [x]
 - [x] **Verification**: 11/11 New tests passed. System is fully verified. [x]
 
