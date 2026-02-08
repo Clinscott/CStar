@@ -19,6 +19,17 @@ from colorama import Fore, Style, init
 # Initialize Colorama
 init(autoreset=True)
 
+# Load Environment Variables from .env or .env.local
+try:
+    from dotenv import load_dotenv
+    env_local = Path(__file__).parent / ".env.local"
+    if env_local.exists():
+        load_dotenv(dotenv_path=env_local)
+    else:
+        load_dotenv()
+except ImportError:
+    pass
+
 # Add .agent/scripts to path to import annex
 sys.path.append(os.path.join(os.path.dirname(__file__), ".agent", "scripts"))
 
