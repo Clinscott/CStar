@@ -269,7 +269,8 @@ class SovereignFish:
             raise ValueError("GOOGLE_API_KEY environment variable not set.")
             
         genai.configure(api_key=self.api_key)
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
+        # Use specific stable version to avoid 404s
+        self.model = genai.GenerativeModel('gemini-1.5-flash-001')
 
     def run(self) -> bool:
         """
