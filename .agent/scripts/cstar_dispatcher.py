@@ -41,9 +41,12 @@ class CorvusDispatcher:
             "run-task": ("run-task.md", "workflow"),
             "investigate": ("investigate.md", "workflow"),
             "wrap-it-up": ("wrap-it-up.md", "workflow"),
-            "fish": ("SovereignFish.md", "workflow"),
+            "fish": ("SovereignFish.qmd", "workflow"),
             "test": ("test.md", "workflow"),
             "oracle": ("oracle.md", "workflow"),
+            # Sovereign Fish Automaton
+            "daemon": (str(self.project_root / "main_loop.py"), "script"),
+            "sentinel": (str(self.project_root / "main_loop.py"), "script"),
         }
 
     def show_help(self) -> None:
