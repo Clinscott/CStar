@@ -36,3 +36,6 @@ metadata {
 ]
 [11:03:41] [WARNING] [KeepOS] [SKIP] Path not found.
 [11:03:41] [WARNING] [The Nexus] [SKIP] Path not found.
+[14:52:42] [INFO] [CorvusStar] [SKIP] Dirty working tree.
+[14:52:42] [WARNING] [KeepOS] [SKIP] Path not found.
+[14:52:42] [WARNING] [The Nexus] [SKIP] Path not found.
