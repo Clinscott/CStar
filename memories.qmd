@@ -1,7 +1,7 @@
 ```yaml
 saved_memory:
   version: 1
-  updated: 2026-02-03
+  updated: 2026-02-08
   settings:
     enabled: true
     announce_writes: true
@@ -42,9 +42,6 @@ saved_memory:
     - Zero-Copy Discovery: `sv_engine.py` indexes `CorvusKnowledge/skills` directly, bypassing local copy until verified.
     - Skill Forge: New capabilities can be synthesized via `skill_forge.py` using RAG context from `AGENTS.qmd` and `wireframe.qmd`. Staged in `drafts/` for review.
     - Knowledge Extraction: `synapse_sync.py` automatically scrapes high-confidence `phrase_mappings` from `corrections.json` for global contribution.
-deletions: []
-```
-
     - Torvalds Mandate: Code quality is non-negotiable. Strict typing and Google-style docstrings are required for all core utilities.
     - Backbone Verification: Shared libraries (like ui.py) must have their own independent test suites (test_ui.py).
     - Subconscious Architecture: Inactive personas contribute Observation/Reminders (Alfred) or Void Shouts (Odin) to session context.
@@ -81,5 +78,7 @@ deletions: []
     - Voice of the Machine: Use `report_engine.py` to decouple output formatting from logic. This allows the system to speak in the active Persona's voice without hardcoding strings in logic scripts.
     - Negative Boosting: In `vector.py`, generic intents (e.g., `/run-task`) must be explicitly dampened/demoted when a specific Global Skill (e.g., `GLOBAL:perf-profiler`) is present with high confidence.
     - Accuracy Doctrine: For edge cases (typos, specific phrasing), explicit mapping in `corrections.json` is superior to vector tuning. "Real User Wins" means we memorize the user's specific failure rather than generalizing the engine.
+    - Sovereign Fish Automaton (The Sovereign 5): Expanded the Sovereign Fish to include 5 distinct Strategists (Valkyrie, Edda, RuneCaster, Torvalds, Visual) managed by a centralized HUD.
+    - Centralized Persona Architecture: All system voice and persona logic (ODIN/ALFRED) is now centralized in `ui.py` (HUD class) and dynamically reloaded, eliminating hardcoded string checks and enabling hot-swapping.
 deletions: []
 ```
