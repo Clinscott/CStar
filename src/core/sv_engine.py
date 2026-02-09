@@ -11,12 +11,19 @@ import re
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any
 
-import personas
-import utils
-from engine import Cortex, DialogueRetriever, SovereignVector
-from ui import HUD
+# Add project root to path for src imports
+script_dir = Path(__file__).parent.absolute()
+project_root = script_dir.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.append(str(project_root))
+
+from src.core import personas
+from src.core import utils
+from src.core.engine.vector import SovereignVector
+from src.core.engine.cortex import Cortex
+from src.core.engine.dialogue import DialogueRetriever
+from src.core.ui import HUD
 
 
 class SovereignEngine:
@@ -41,20 +48,20 @@ class SovereignEngine:
         """Initializes the HUD dialogue retriever based on persona voice."""
         voice = self.strategy.get_voice()
         # [ALFRED] Staged Path Resolution for dialogue databases
-        qmd = self.project_root / "dialogue_db" / f"{voice}.qmd"
-        md = self.project_root / "dialogue_db" / f"{voice}.md"
+        qmd = self.project_root / "src" / "data" / "dialogue" / f"{voice}.qmd"
+        md = self.project_root / "src" / "data" / "dialogue" / f"{voice}.md"
         path = qmd if qmd.exists() else md
         HUD.DIALOGUE = DialogueRetriever(str(path))
 
     def _init_vector_engine(self) -> SovereignVector:
         """Initializes and loads skills into the Sovereign Vector engine."""
         engine = SovereignVector(
-            str(self.project_root / "thesaurus.qmd"),
+            str(self.project_root / "src" / "data" / "thesaurus.qmd"),
             str(self.base_path / "corrections.json"),
-            str(self.base_path / "scripts" / "stopwords.json")
+            str(self.project_root / "src" / "data" / "stopwords.json")
         )
         engine.load_core_skills()
-        engine.load_skills_from_dir(str(self.base_path / "skills"))
+        engine.load_skills_from_dir(str(self.project_root / "src" / "skills" / "local"))
 
         # Load Remote Knowledge Skills
         remote_path_str = self.config.get("KnowledgeCore") or \
@@ -62,8 +69,17 @@ class SovereignEngine:
         if remote_path_str:
             remote_path = Path(remote_path_str)
             if remote_path.exists():
-                skill_dir = remote_path / "skills" if "KnowledgeCores" in str(remote_path) else remote_path
+
+                # Check for 'skills' subdir explicitly
+                skill_dir = remote_path / "skills"
+                if not skill_dir.exists():
+                     skill_dir = remote_path
                 engine.load_skills_from_dir(str(skill_dir), prefix="GLOBAL:")
+
+        # Force-load local skills_db if present (Project-level Global Skills)
+        local_skills_db = self.project_root / "skills_db"
+        if local_skills_db.exists():
+            engine.load_skills_from_dir(str(local_skills_db), prefix="GLOBAL:")
 
         engine.build_index()
         return engine
@@ -202,9 +218,14 @@ def main() -> None:
     engine = SovereignEngine()
 
     if args.benchmark:
+        ve = engine._init_vector_engine()
         HUD.box_top("DIAGNOSTIC")
         HUD.box_row("ENGINE", "SovereignVector 2.5 (Iron Cortex)", HUD.CYAN)
         HUD.box_row("PERSONA", HUD.PERSONA, HUD.MAGENTA)
+        HUD.box_separator()
+        HUD.box_row("SKILLS", f"{len(ve.skills)}", HUD.GREEN)
+        HUD.box_row("TOKENS", f"{len(ve.vocab)}", HUD.YELLOW)
+        HUD.box_row("VECTORS", f"{len(ve.vectors)}", HUD.CYAN)
         HUD.box_bottom()
         sys.exit(0)
 

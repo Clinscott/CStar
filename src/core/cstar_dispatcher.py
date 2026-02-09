@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-from ui import HUD
+from src.core.ui import HUD
 
 
 class CorvusDispatcher:
@@ -45,9 +45,14 @@ class CorvusDispatcher:
             "test": ("test.md", "workflow"),
             "oracle": ("oracle.md", "workflow"),
             # Sovereign Fish Automaton
-            "daemon": (str(self.project_root / "main_loop.py"), "script"),
-            "sentinel": (str(self.project_root / "main_loop.py"), "script"),
-            "sentinal": (str(self.project_root / "main_loop.py"), "script"),
+            "daemon": (str(self.project_root / "src" / "sentinel" / "main_loop.py"), "script"),
+            "sentinel": (str(self.project_root / "src" / "sentinel" / "main_loop.py"), "script"),
+            "sentinal": (str(self.project_root / "src" / "sentinel" / "main_loop.py"), "script"),
+            # Tools
+            "audit": (str(self.project_root / "src" / "tools" / "code_sentinel.py"), "script"),
+            "trace": (str(self.project_root / "src" / "tools" / "trace_viz.py"), "script"),
+            "synapse": (str(self.project_root / "src" / "synapse" / "synapse_sync.py"), "script"),
+            "network": (str(self.project_root / "src" / "tools" / "network_watcher.py"), "script"),
         }
 
     def show_help(self) -> None:
@@ -119,7 +124,7 @@ class CorvusDispatcher:
         """Launches the Sentinel (main_loop.py) in a new detached terminal window."""
         HUD.log("INFO", "Deploying Sentinel to New Window...")
         try:
-            target = str(self.project_root / "main_loop.py")
+            target = str(self.project_root / "src" / "sentinel" / "main_loop.py")
             cmd_str = f"& '{self.venv_python}' '{target}'"
             
             # Use PowerShell Start-Process to spawn a new window with the environment

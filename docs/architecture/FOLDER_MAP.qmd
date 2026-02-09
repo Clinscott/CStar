@@ -1,0 +1,64 @@
+# Corvus Star: Project Structure Map
+
+> **The World Tree (Yggdrasil)**
+> This document maps the physical structure of the Corvus Star framework.
+
+## Root Directory
+
+- `src/`: Core source code (The Trunk)
+- `tests/`: Unified test suite (The Roots)
+- `docs/`: Documentation (The Leaves)
+- `.agent/`: Agent configuration and memory (The Mind)
+- `.github/`: CI/CD workflows (The Guardians)
+- `pyproject.toml`: Central configuration (The Law)
+
+## Source Tree (`src/`)
+
+### Core (`src/core/`)
+The brain of the operation.
+- `sv_engine.py`: Sovereign Vector Engine (Entry Point)
+- `cstar_dispatcher.py`: CLI Command Dispatcher
+- `personas.py`: Identity management
+- `ui/`: Terminal User Interface (HUD)
+- `engine/`:
+  - `vector.py`: Intent resolution logic
+  - `cortex.py`: Deep thought processing
+  - `dialogue.py`: Speech generation
+
+### Sentinel (`src/sentinel/`)
+The autonomous daemon.
+- `main_loop.py`: The heartbeat loop
+- `sovereign_fish.py`: Autonomy logic
+
+### Tools (`src/tools/`)
+Utility belts and diagnostics.
+- `code_sentinel.py`: Static analysis
+- `debug/`: Diagnostic scripts
+- `data/`: Data manipulation tools
+
+### Synapse (`src/synapse/`)
+Connectivity layer.
+- `synapse_sync.py`: Knowledge synchronization
+- `synapse_auth.py`: Authentication
+
+### Skills (`src/skills/`)
+Capability modules.
+- `local/`: Built-in skills
+- `skill_forge/`: Skill creation tools
+
+### Data (`src/data/`)
+Static assets.
+- `thesaurus.qmd`: Intent mapping
+- `stopwords.json`: NLP filtering
+- `dialogue/`: Persona voice files
+
+## Test Tree (`tests/`)
+
+- `unit/`: Isolated module tests
+- `integration/`: System-wide tests (`fishtest.py`)
+- `contracts/`: Interface enforcement
+- `fixtures/`: Test data
+
+## Documentation (`docs/`)
+
+- `architecture/`: System design docs

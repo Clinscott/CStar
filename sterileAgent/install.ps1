@@ -123,22 +123,11 @@ foreach ($wf in $Workflows) {
     Invoke-SmartCopy -Source (Join-Path $SourceBase "sterileAgent\$wf") -Dest (Join-Path $WorkflowDir $wf)
 }
 
-# 3. Deploy Engine Scripts
-if (Test-Path (Join-Path $SourceBase ".agent\scripts")) {
-    Get-ChildItem (Join-Path $SourceBase ".agent\scripts") -Recurse | Where-Object { -not $_.PSIsContainer } | ForEach-Object {
-        $relative = $_.FullName.Substring((Join-Path $SourceBase ".agent\scripts").Length + 1)
-        $destFile = Join-Path $ScriptDir $relative
-        $destFolder = Split-Path $destFile
-        if (-not (Test-Path $destFolder)) { New-Item -ItemType Directory -Path $destFolder -Force | Out-Null }
-        Invoke-SmartCopy -Source $_.FullName -Dest $destFile
-    }
-}
-
-# 4. Deploy Skills Ecosystem
-if (Test-Path (Join-Path $SourceBase ".agent\skills")) {
-    Get-ChildItem (Join-Path $SourceBase ".agent\skills") -Recurse | Where-Object { -not $_.PSIsContainer } | ForEach-Object {
-        $relative = $_.FullName.Substring((Join-Path $SourceBase ".agent\skills").Length + 1)
-        $destFile = Join-Path $SkillDir $relative
+# 3. Deploy Source Code (Core, Tools, Local Skills)
+if (Test-Path (Join-Path $SourceBase "src")) {
+    Get-ChildItem (Join-Path $SourceBase "src") -Recurse | Where-Object { -not $_.PSIsContainer } | ForEach-Object {
+        $relative = $_.FullName.Substring((Join-Path $SourceBase "src").Length + 1)
+        $destFile = Join-Path $TargetDir "src" $relative
         $destFolder = Split-Path $destFile
         if (-not (Test-Path $destFolder)) { New-Item -ItemType Directory -Path $destFolder -Force | Out-Null }
         Invoke-SmartCopy -Source $_.FullName -Dest $destFile
