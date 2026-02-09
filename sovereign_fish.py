@@ -280,7 +280,11 @@ class SovereignFish:
             raise ValueError("GOOGLE_API_KEY environment variable not set.")
             
         genai.configure(api_key=self.api_key)
-        self.model = genai.GenerativeModel('gemini-1.5-flash')
+        # EMPIRE TDD Configuration
+        # Architect/Builder: Flash (Fast, Creative)
+        self.flash = genai.GenerativeModel('gemini-flash-latest')
+        # Reviewer: Pro (Reasoning, Critical)
+        self.pro = genai.GenerativeModel('gemini-pro-latest')
 
     def run(self) -> bool:
         """
@@ -409,52 +413,158 @@ class SovereignFish:
         return None
 
     def _forge_improvement(self, target: dict) -> bool:
-        """Uses Gemini to generate the fix."""
-        file_path = self.root / target['file']
+        """
+        EMPIRE TDD WORKFLOW:
+        1. Architect (Flash): Write Gherkin Test (.qmd)
+        2. Builder (Flash): Write Implementation & Python Test
+        3. Critic (Pro): Review & Approve
+        """
+        HUD.persona_log("INFO", f"Initiating Empire TDD Protocol for {target['file']}...")
         
-        # Context Loading
         context = ""
+        file_path = self.root / target['file']
         if file_path.exists():
             context = file_path.read_text(encoding='utf-8')
-        
-        # Prompt Engineering
+
+        # --- STEP 1: ARCHITECT (Gherkin) ---
+        gherkin_content = self._architect_gherkin(target, context)
+        if not gherkin_content:
+            return False
+
+        # --- LOOP: BUILD & REVIEW ---
+        max_retries = 2
+        for attempt in range(max_retries + 1):
+            HUD.persona_log("INFO", f"Building Implementation (Attempt {attempt+1}/{max_retries+1})...")
+            
+            # --- STEP 2: BUILDER (Code + Test) ---
+            # We ask Flash to generate the code AND the pytest file based on the Gherkin
+            implementation_data = self._build_implementation(target, context, gherkin_content, attempt)
+            
+            if not implementation_data:
+                continue
+
+            code_content = implementation_data.get('code')
+            test_content = implementation_data.get('test')
+            
+            # --- STEP 3: CRITIC (Review) ---
+            HUD.persona_log("INFO", "Consulting the Council (Gemini Pro)...")
+            review = self._consult_pro(target, gherkin_content, code_content, test_content)
+            
+            if review['status'] == 'APPROVED':
+                HUD.persona_log("SUCCESS", "The Council APPROVES.")
+                
+                # SAVE FILES
+                # 1. Implementation
+                if file_path.exists():
+                     shutil.copy(file_path, f"{file_path}.bak")
+                file_path.parent.mkdir(parents=True, exist_ok=True)
+                file_path.write_text(code_content, encoding='utf-8')
+                
+                # 2. Test File (to tests/empire_tests/)
+                test_name = f"test_{file_path.stem}_empire.py"
+                test_path = self.root / "tests" / "empire_tests" / test_name
+                test_path.parent.mkdir(parents=True, exist_ok=True)
+                test_path.write_text(test_content, encoding='utf-8')
+                
+                # 3. Gherkin Artifact (Optional, to tests/empire_tests/specs/)
+                spec_name = f"{file_path.stem}.qmd"
+                spec_path = self.root / "tests" / "empire_tests" / "specs" / spec_name
+                spec_path.parent.mkdir(parents=True, exist_ok=True)
+                spec_path.write_text(gherkin_content, encoding='utf-8')
+                
+                return True
+            else:
+                reason = review.get('reason', 'Unknown reason')
+                HUD.persona_log("WARN", f"The Council DISAPPROVES: {reason}")
+                # Feedback loop: The 'reason' will be injected into the next Build attempt context if we had a history mechanism, 
+                # but currently we just retry. Ideally we'd pass the rejection reason to _build_implementation.
+                # Since _build_implementation is stateless here, we simply retry, hoping temperature variation fixes it,
+                # OR we should pass the critique. checking logic...
+                # TODO: Pass critique to builder.
+                
+                if attempt == max_retries:
+                    HUD.persona_log("ERROR", "Maximum retries exceeded. The Council has spoken.")
+                    # Log Failure
+                    fail_log = self.root / "tests" / "empire_tests" / "FAILED_WORK.md"
+                    fail_log.parent.mkdir(parents=True, exist_ok=True)
+                    fail_log.write_text(f"# FAILED WORK\n\n## Reason\n{reason}\n\n## Gherkin\n{gherkin_content}\n\n## Code\n```python\n{code_content}\n```", encoding='utf-8')
+                    sys.exit(1) # Shutdown per user request
+                    
+        return False
+
+    def _architect_gherkin(self, target, context):
+        HUD.persona_log("INFO", "Architecting Scenario...")
         prompt = f"""
-        ACT AS: Senior Python Engineer (The Linscott Standard).
-        TASK: {target['action']}
+        ACT AS: Empire TDD Architect.
+        TASK: Create a Gherkin (.qmd) feature verification for: "{target['action']}"
         FILE: {target['file']}
-        
         CONTEXT:
-        ```python
         {context}
-        ```
+        
+        OUTPUT: Only the Gherkin content (Feature, Scenario, Given/When/Then).
+        """
+        try:
+            return self.flash.generate_content(prompt).text.strip().replace("```gherkin", "").replace("```", "")
+        except: return None
+
+    def _build_implementation(self, target, context, gherkin, attempt):
+        prompt = f"""
+        ACT AS: Senior Python Developer.
+        TASK: Implement the solution and the corresponding Pytest.
+        FILE: {target['file']}
+        GHERKIN:
+        {gherkin}
+        STARTING_CODE:
+        {context}
         
         INSTRUCTIONS:
-        1. If creating a new file (e.g., test), provide the FULL file content.
-        2. If modifying, provide the FULL new content of the file.
-        3. STRICTLY follow Python best practices (typing, docstrings).
-        4. If writing a test, use 'pytest' and ensure it passes.
-        5. OUTPUT ONLY THE CODE. No markdown fences, no conversational text.
+        Return a JSON object with two keys: "code" (the full file implementation) and "test" (the full pytest content).
+        The test must explicitly map to the Gherkin steps.
+        Example Output:
+        {{
+          "code": "def foo():...",
+          "test": "def test_foo():..."
+        }}
+        output valid JSON only.
         """
-        
         try:
-            HUD.persona_log("INFO", "Consulting the Oracle (Gemini)...")
-            response = self.model.generate_content(prompt)
-            code = response.text.replace("```python", "").replace("```", "").strip()
-            
-            # Backup
-            if file_path.exists():
-                shutil.copy(file_path, f"{file_path}.bak")
-            
-            # Write
-            file_path.parent.mkdir(parents=True, exist_ok=True)
-            file_path.write_text(code, encoding='utf-8')
-            HUD.persona_log("SUCCESS", f"Implemented fix in {target['file']}")
-            return True
-            
+            txt = self.flash.generate_content(prompt).text.strip()
+            # extract json code block if present
+            if "```json" in txt:
+                txt = txt.split("```json")[1].split("```")[0].strip()
+            return json.loads(txt)
         except Exception as e:
-            HUD.persona_log("ERROR", f"Forge Error: {e}")
-            logging.error(f"[{self.root.name}] [FORGE_ERROR] {e}")
-            return False
+            HUD.persona_log("ERROR", f"Build Error: {e}")
+            return None
+
+    def _consult_pro(self, target, gherkin, code, test):
+        prompt = f"""
+        ACT AS: The Council (Technocratic Review Board).
+        TASK: Approve or Disapprove this implementation based on the Gherkin spec.
+        
+        GHERKIN:
+        {gherkin}
+        
+        CODE:
+        {code}
+        
+        TEST:
+        {test}
+        
+        CRITERIA:
+        1. Does the code fulfill the Gherkin?
+        2. Is the code robust and clean?
+        3. Is the test valid?
+        
+        OUTPUT: JSON with keys: "status" ("APPROVED" or "DISAPPROVED") and "reason" (string).
+        """
+        try:
+            txt = self.pro.generate_content(prompt).text.strip()
+            if "```json" in txt:
+                txt = txt.split("```json")[1].split("```")[0].strip()
+            return json.loads(txt)
+        except:
+             return {"status": "DISAPPROVED", "reason": "Failed to parse Reviewer response."}
 
     def _verify_fix(self, target: dict) -> bool:
         """Runs tests to verify the fix."""
