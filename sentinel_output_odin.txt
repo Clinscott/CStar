@@ -1,0 +1,9 @@
+[35m┌─────────────── [31m[1m[Ω] HEIMDALL SECURITY SCAN[0m[35m ───────────────┐[0m
+[35m│[0m [31mTARGET SECTOR       [0m [36mtemp_sentinel_test[0m                   [35m│[0m
+[35m│[0m [31mANOMALIES           [0m [31m4[0m                                    [35m│[0m
+[35m├──────────────────────────────────────────────────────────┤[0m
+[35m│[0m [35m[!] BREACH ANN201   [0m [33mclean.py:3:5 - Missing return typ...[0m [35m│[0m
+[35m│[0m [35m[!] BREACH ANN201   [0m [33mignored.py:3:5 - Missing return t...[0m [35m│[0m
+[35m│[0m [35m[!] BREACH ANN201   [0m [33morphan.py:3:5 - Missing return ty...[0m [35m│[0m
+[35m│[0m [35m[!] BREACH STRUCT-001[0m [31morphan.py:3:0 - Orphaned Function...[0m [35m│[0m
+[35m└──────────────────────────────────────────────────────────┘[0m
