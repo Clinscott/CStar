@@ -20,11 +20,10 @@ class PersonaManager:
 
     def __init__(self, target_root: Optional[Path] = None):
         self.script_path = Path(__file__).absolute()
-        self.base_dir = self.script_path.parent.parent  # .agent/
-        self.project_root = target_root or self.base_dir.parent
+        self.project_root = target_root or self.script_path.parent.parent.parent
+        self.base_dir = self.project_root / ".agent"
         self.config_paths = [
-            self.base_dir / "config.json",
-            self.project_root / "config.json"
+            self.base_dir / "config.json"
         ]
         self.current_config: Dict[str, Any] = self._load_union_config()
         self.old_persona: str = self._extract_persona(self.current_config)
@@ -166,11 +165,11 @@ class PersonaManager:
     def _apply_policy(self, persona: str) -> None:
         """Integrates with the persona policy engine."""
         try:
-            # Add scripts to path for module discovery
-            scripts_dir = self.base_dir / "scripts"
-            sys.path.append(str(scripts_dir))
+            # Add project root to path for src module discovery
+            if str(self.project_root) not in sys.path:
+                sys.path.append(str(self.project_root))
             
-            import personas  # type: ignore
+            from src.core import personas  # type: ignore
             strategy = personas.get_strategy(persona, str(self.project_root))
             
             # documentation re-theme for ODIN

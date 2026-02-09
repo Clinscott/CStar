@@ -10,24 +10,42 @@ class Cortex:
     def __init__(self, project_root, base_path):
         self.project_root = project_root
         # Initialize a fresh brain for knowledge (separate from skills)
-        self.brain = SovereignVector(stopwords_path=os.path.join(base_path, "scripts", "stopwords.json"))
+        self.brain = SovereignVector(stopwords_path=os.path.join(project_root, "src", "data", "stopwords.json"))
         
-        # Knowledge Sources - [ALFRED] Staged Symbiosis: Support .qmd with .md fallback
-        doc_names = ["AGENTS", "wireframe", "memories", "SovereignFish"]
+        # Knowledge Sources - [ALFRED] Updated for Operation Yggdrasil docs structure
+        doc_targets = {
+            "AGENTS": "src/docs/architecture/AGENTS.qmd",
+            "wireframe": "src/docs/architecture/wireframe.qmd",
+            "memories": "memories.qmd",
+            "SovereignFish": "src/docs/campaigns/SOVEREIGNFISH_LEDGER.qmd"
+        }
+        # Wait, I moved them to docs/ not src/docs/ (except in some mis-types?)
+        # Let's check my mkdir: "mkdir -p src/core src/sentinel ... docs/architecture ..."
+        # So they are in docs/ at the root.
+
+        doc_targets = {
+            "AGENTS": "docs/architecture/AGENTS.qmd",
+            "wireframe": "docs/architecture/wireframe.qmd",
+            "memories": "memories.qmd",
+            "SovereignFish": "docs/campaigns/SOVEREIGNFISH_LEDGER.qmd"
+        }
+
         self.knowledge_map = {}
-        for name in doc_names:
-            qmd_path = os.path.join(project_root, f"{name}.qmd")
-            md_path = os.path.join(project_root, f"{name}.md")
-            if os.path.exists(qmd_path):
-                self.knowledge_map[f"{name}.qmd"] = qmd_path
-            elif os.path.exists(md_path):
-                self.knowledge_map[f"{name}.md"] = md_path
+        for name, rel_path in doc_targets.items():
+            path = os.path.join(project_root, rel_path)
+            if os.path.exists(path):
+                self.knowledge_map[name] = path
+            else:
+                # Fallback to .md if .qmd not found (staged migration)
+                md_path = path.replace(".qmd", ".md")
+                if os.path.exists(md_path):
+                    self.knowledge_map[name] = md_path
         
         self._ingest()
     
     def _ingest(self):
         """[ALFRED] Secure ingestion of project laws into the Cortex."""
-        from ui import HUD # Lazy import to avoid circularity
+        from src.core.ui import HUD # Lazy import to avoid circularity
         
         for name, path in self.knowledge_map.items():
             if not os.path.exists(path): 

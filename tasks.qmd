@@ -78,22 +78,24 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **START-9 Protocol**: Implemented aggressive PS tree-kill for surgical Sentinel termination. [x]
 - [x] **Git Policy**: Resolved "Dirty Working Tree" stall by ignoring dynamic plan artifacts. [x]
 
+### 24. Operation Yggdrasil: The Great Reorganization (Session 42)
+- [x] **Audit & Blueprint**: Completed a comprehensive project-wide file audit and mapping. [x]
+- [x] **Structural Migration**: Migrated all 21 core Python scripts to categorized `src/` subdirectories. [x]
+- [x] **CLI Dispatcher Update**: Updated `cstar.ps1` and `cstar_dispatcher.py` to reflect new paths. [x]
+- [x] **Import Harmonization**: Updated imports in all core modules to use absolute `src.` prefixes. [x]
+- [x] **Local Skill Relocation**: Relocated skills to `src/skills/local/` and updated discovery logic. [x]
+- [x] **Clean Root**: Purged the project root of legacy scripts, backups, and temporary test results. [x]
+
 ## ⏭️ Start Here Next (Execution & Expansion)
 
-### 1. Annexation Execution
+### 1. Yggdrasil Stabilization
+- [ ] **Import Sweep**: Final check of `src/` scripts to ensure all cross-module imports are resolved.
+- [ ] **Test Alignment**: Update `pytest.ini` or equivalent to scan the new `tests/` and `src/` structure.
+- [ ] **Fishtest Verification**: Run the N=1000 benchmark to ensure zero regression in neural accuracy.
+
+### 2. Annexation Execution
 - [ ] **Execution Module**: Implement `--execute` in `annex.py` to auto-remediate breaches.
 - [ ] **Rollback Safety**: Implement a reversal protocol for failed annexation attempts.
 
-### 2. Edda Synthesis Evolution
+### 3. Edda Synthesis Evolution
 - [ ] **Multi-Language Support**: Extend `edda.py` to synthesize API docs for TypeScript and JavaScript.
-- [ ] **Visual Theme**: Create a dedicated Quarto theme for synthesized API documentation.
-
-### 3. Federated War Room
-- [ ] **Conflict Resolution**: Implement the multi-agent tactical display for the Warlord.
-- [ ] **Artifact Extraction**: Export Genetic Manifests to Mimir's Eye.
-
-### Documentation Conversion Protocol
-- [x] **Planning**: Define scope and preservation strategy with User. [x]
-- [x] **Implementation**: Develop `Invoke-DocumentationConversion` logic (`edda.py` & `annex.py`). [x]
-- [x] **Integration**: Bind methodology to `install.ps1` (ODIN option). [x]
-- [x] **Verification**: Test on mock project with `fishtest`. [x]

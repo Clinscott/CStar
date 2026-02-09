@@ -15,7 +15,7 @@ from typing import Optional
 class PersonaVerifier:
     """[ALFRED] Secure persona verification using hashed challenge-response."""
     
-    def __init__(self, config_path: str):
+    def __init__(self, config_path: str) -> None:
         self.config_path = config_path
         self.secret = self._load_secret()
 
@@ -60,6 +60,6 @@ if __name__ == "__main__":
     if authenticate_sync(p):
         print(f"AUTHENTICATED: {p}")
         sys.exit(0)
-    else:
-        print(f"REJECTED: {p}")
-        sys.exit(1)
+    
+    print(f"REJECTED: {p}")
+    sys.exit(1)

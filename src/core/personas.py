@@ -36,26 +36,22 @@ class PersonaStrategy:
         return quarantine_path
 
     def _sync_configs(self, persona):
-        """[ALFRED] Synchronize root config.json and .agent/config.json."""
+        """[ALFRED] Synchronize .agent/config.json."""
         import json
-        configs = [
-            os.path.join(self.root, "config.json"),
-            os.path.join(self.root, ".agent", "config.json")
-        ]
-        for path in configs:
-            if os.path.exists(path):
-                try:
-                    with open(path, 'r', encoding='utf-8') as f:
-                        data = json.load(f)
-                    
-                    # Store both casing for robustness
-                    data["persona"] = persona.upper()
-                    data["Persona"] = persona.upper()
-                    
-                    with open(path, 'w', encoding='utf-8') as f:
-                        json.dump(data, f, indent=4)
-                except Exception:
-                    pass
+        config_path = os.path.join(self.root, ".agent", "config.json")
+        if os.path.exists(config_path):
+            try:
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                
+                # Store both casing for robustness
+                data["persona"] = persona.upper()
+                data["Persona"] = persona.upper()
+                
+                with open(config_path, 'w', encoding='utf-8') as f:
+                    json.dump(data, f, indent=4)
+            except Exception:
+                pass
 
 class OdinStrategy(PersonaStrategy):
     def get_voice(self):
@@ -67,11 +63,15 @@ class OdinStrategy(PersonaStrategy):
         
         # Target: AGENTS.qmd (Primary) or AGENTS.md
         def _res(base_name):
-            names = [f"{base_name}.qmd", f"{base_name}.md"]
+            names = [
+                os.path.join("docs", "architecture", f"{base_name}.qmd"),
+                os.path.join("docs", "architecture", f"{base_name}.md"),
+                f"{base_name}.qmd", f"{base_name}.md"
+            ]
             for name in names:
                 path = os.path.join(self.root, name)
                 if os.path.exists(path): return path
-            return os.path.join(self.root, f"{base_name}.qmd") # Default to QMD
+            return os.path.join(self.root, "docs", "architecture", f"{base_name}.qmd") # Default to QMD
 
         agents_path = _res("AGENTS")
         source_template = _res("sterileAgent/AGENTS_ODIN")
@@ -106,8 +106,8 @@ class OdinStrategy(PersonaStrategy):
         """ODIN Policy: Complete Dominion. Standardize or Perish."""
         results = []
         
-        # 1. Enforce AGENTS.qmd (Main & Sterile)
-        for target in [self.root, os.path.join(self.root, "sterileAgent")]:
+        # 1. Enforce AGENTS.qmd (Main)
+        for target in [os.path.join(self.root, "docs", "architecture"), self.root]:
             qmd = os.path.join(target, "AGENTS.qmd")
             md = os.path.join(target, "AGENTS.md")
             agents_path = qmd if os.path.exists(qmd) else md
@@ -162,9 +162,9 @@ Trigger: debug, verify, check. Deep-dives into code or issues.
 Trigger: finish, done, wrap. Finalizes the session.
 
 ## 📂 KNOWLEDGE ASSETS
-- **AGENTS.qmd**: Core Instructions.
+- **docs/architecture/AGENTS.qmd**: Core Instructions.
 - **tasks.qmd**: Project Checklist.
-- **thesaurus.qmd**: Intent Vocabulary.
+- **src/data/thesaurus.qmd**: Intent Vocabulary.
 
 ## 🐟 SovereignFish Mandate
 > [!IMPORTANT]
@@ -262,9 +262,9 @@ Trigger: debug, verify, check. Deep-dives into code or issues.
 Trigger: finish, done, wrap. Finalizes the session.
 
 ## 📂 KNOWLEDGE ASSETS
-- **AGENTS.qmd**: Core Instructions.
+- **docs/architecture/AGENTS.qmd**: Core Instructions.
 - **tasks.qmd**: Project Checklist.
-- **thesaurus.qmd**: Intent Vocabulary.
+- **src/data/thesaurus.qmd**: Intent Vocabulary.
 
 ## 🐟 SovereignFish Mandate
 > [!IMPORTANT]

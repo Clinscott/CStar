@@ -1,0 +1,46 @@
+# Corvus Star: Project Wireframe
+
+## 🗺️ Navigation
+- **Structure Map**: [docs/architecture/FOLDER_MAP.qmd](docs/architecture/FOLDER_MAP.qmd)
+- **Task List**: [.gemini/brain/.../task.md](task.md)
+
+## 📂 System Architecture
+
+### 🧠 Core Engine (`src/core/`)
+The decision-making brain of Corvus Star.
+- **Sovereign Engine** (`sv_engine.py`):
+    - `run(query)`: Main execution loop for intent resolution.
+    - `_init_vector_engine()`: Loads skills and knowledge.
+- **Vector Engine** (`engine/vector.py`):
+    - `search(query)`: Finds best matching skill/intent.
+    - `score_identity(text)`: Validates persona alignment.
+- **Dispatcher** (`cstar_dispatcher.py`):
+    - `main()`: Routes CLI commands (`c* ...`) to scripts.
+
+### 🛡️ Sentinel (`src/sentinel/`)
+The autonomous daemon ensuring system health.
+- **Sovereign Fish** (`sovereign_fish.py`):
+    - `observe()`: Monitors file changes and system state.
+    - `_proactive_audit()`: Triggers self-correction routines.
+
+### 🛠️ Tools (`src/tools/`)
+Specialized utilities for analysis and repair.
+- **Code Sentinel** (`code_sentinel.py`):
+    - `scan(path)`: Static analysis for syntax and security.
+
+### 🧠 Synapse (`src/synapse/`)
+Connection to the wider network (Knowledge Core).
+- **Synapse Sync** (`synapse_sync.py`):
+    - `push()`: Uploads local skills to global brain.
+    - `pull()`: Updates local cache from global brain.
+
+## 📝 Key Workflows
+
+### 1. Intent Resolution
+`User Input` -> `cstar_dispatcher` -> `sv_engine` -> `vector.py` -> `Skill Execution`
+
+### 2. Autonomous Audit
+`Time Trigger` -> `main_loop.py` -> `sovereign_fish.py` -> `code_sentinel.py` -> `Report`
+
+### 3. Skill Development
+`User Create` -> `src/skills/local/NEW_SKILL` -> `sv_engine.load_skills()` -> `Available`

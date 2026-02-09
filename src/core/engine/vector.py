@@ -5,12 +5,14 @@ import re
 import sys
 
 # Import Shared UI from parent directory
-try:
-    from ui import HUD
-except ImportError:
-    # Fallback if run from engine/ directory locally
-    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    from ui import HUD
+from pathlib import Path
+
+# Add project root to path
+project_root = Path(__file__).parent.parent.parent.parent.absolute()
+if str(project_root) not in sys.path:
+    sys.path.append(str(project_root))
+
+from src.core.ui import HUD
 
 class SovereignVector:
     def __init__(self, thesaurus_path=None, corrections_path=None, stopwords_path=None):
@@ -343,7 +345,7 @@ class SovereignVector:
             "/investigate": "debug analyze audit sentinel validate explore bug error issue auth login credentials log",
             "/plan": "architect blueprint itinerary map outline plan strategy roadmap system architecture",
             "/test": "check integrity performance test validate verification verify coverage unit integration",
-            "/wrap-it-up": "finish complete finalize quit exit done stop end session",
+            "/wrap-it-up": "finish complete finalize quit exit done stop end session wrap close",
             "SovereignFish": "polish improve refine aesthetics style design beautify visual ui ux"
         }
         context = {

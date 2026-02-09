@@ -36,14 +36,13 @@ TARGET_REPOS = [
     r"c:\Users\Craig\Corvus\The Nexus"
 ]
 
-# Ensure we can find the worker
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-import sovereign_fish
+# Add project root to path
+project_root = Path(__file__).parent.parent.parent.absolute()
+if str(project_root) not in sys.path:
+    sys.path.append(str(project_root))
 
-# Import HUD from .agent/scripts/ui.py
-agent_scripts = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".agent", "scripts")
-sys.path.append(agent_scripts)
-from ui import HUD
+from src.sentinel import sovereign_fish
+from src.core.ui import HUD
 
 # Logging handled by sovereign_fish logging config (shared file) or we can init here too
 logging.basicConfig(
@@ -101,17 +100,16 @@ def restore_branch(repo_path, original_branch):
 
 
 def load_persona():
-    """Determines the active persona from config.json."""
+    """Determines the active persona from .agent/config.json."""
     try:
-        # Try local config first, then agent config
-        configs = ["config.json", ".agent/config.json"]
-        for cfg in configs:
-            if os.path.exists(cfg):
-                import json
-                with open(cfg, 'r') as f:
-                    data = json.load(f)
-                    p = data.get("persona") or data.get("Persona")
-                    if p: return p.upper()
+        project_root = Path(__file__).parent.parent.parent.absolute()
+        cfg_path = project_root / ".agent" / "config.json"
+        if cfg_path.exists():
+            import json
+            with open(cfg_path, 'r') as f:
+                data = json.load(f)
+                p = data.get("persona") or data.get("Persona")
+                if p: return p.upper()
     except Exception:
         pass
     return "ODIN" # Default to the All-Father

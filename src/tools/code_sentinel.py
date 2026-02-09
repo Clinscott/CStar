@@ -18,31 +18,13 @@ from typing import Any, Dict, List, Optional
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding='utf-8')
 
-# Add script directory to path to allow imports from common script directory
-current_dir = Path(__file__).parent.absolute()
-if str(current_dir) not in sys.path:
-    sys.path.append(str(current_dir))
+# Add project root to path
+project_root = Path(__file__).parent.parent.parent.absolute()
+if str(project_root) not in sys.path:
+    sys.path.append(str(project_root))
 
-try:
-    from ui import HUD
-except ImportError:
-    # Minimal fallback
-    class HUD:
-        RED = "\033[31m"; GREEN = "\033[32m"; YELLOW = "\033[33m"
-        CYAN = "\033[36m"; RESET = "\033[0m"; BOLD = "\033[1m"
-        PERSONA = "ALFRED"
-        @staticmethod
-        def box_top(t): print(f"--- {t} ---")
-        @staticmethod
-        def box_row(l, v, c=None, dim_label=False): print(f"{l}: {v}")
-        @staticmethod
-        def box_separator(): print("-" * 20)
-        @staticmethod
-        def box_bottom(): print("-" * 20)
-        @staticmethod
-        def _get_theme(): return {"main": "\033[36m", "dim": "\033[90m"}
-        @staticmethod
-        def log(lv, msg, d=""): print(f"[{lv}] {msg} {d}")
+from src.core.ui import HUD
+
 
 
 class CodeSentinel:
@@ -82,7 +64,7 @@ class CodeSentinel:
             HUD.PERSONA = "ODIN"
 
     def _load_config(self) -> dict:
-        config_path = self.scripts_dir.parent / "config.json"
+        config_path = self.project_root / ".agent" / "config.json"
         if config_path.exists():
             try:
                 with open(config_path, encoding='utf-8') as f:

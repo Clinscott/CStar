@@ -32,16 +32,14 @@ try:
 except ImportError:
     pass
 
-# Add .agent/scripts to path to import annex
-sys.path.append(os.path.join(os.path.dirname(__file__), ".agent", "scripts"))
+# Add project root to path
+project_root = Path(__file__).parent.parent.parent.absolute()
+if str(project_root) not in sys.path:
+    sys.path.append(str(project_root))
 
-try:
-    from annex import AnnexStrategist
-    from ui import HUD
-except ImportError:
-    # Fallback if running outside of expected structure
-    print(f"{Fore.RED}[CRITICAL] Could not import AnnexStrategist. Ensure .agent/scripts is accessible.")
-    sys.exit(1)
+from src.core.annex import AnnexStrategist
+from src.core.ui import HUD
+
 
 # Configure Logging
 logging.basicConfig(
@@ -644,8 +642,7 @@ class SovereignFish:
             
             # Run Pytest
             env = os.environ.copy()
-            scripts_path = self.root / ".agent" / "scripts"
-            env["PYTHONPATH"] = f"{self.root}{os.pathsep}{scripts_path}"
+            env["PYTHONPATH"] = str(self.root)
             env["PYTHONIOENCODING"] = "utf-8"
             
             try:

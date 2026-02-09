@@ -5,7 +5,7 @@ description: Intelligent wrapper for Git operations using conventional commits.
 
 # Git Assistant
 
-## Activation Words: commit, git, save, backup, push, version, source, repo
+## Activation Words: commit, git, save, backup, push, version, source, repo, pull, merge, repository, checkout, branch, conflict
 
 ## Instructions
 1. **Analyze Status**: Run `git status` to see what has changed.
