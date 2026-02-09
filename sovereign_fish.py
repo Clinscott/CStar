@@ -13,7 +13,8 @@ import shutil
 import logging
 import subprocess
 import hashlib
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from pathlib import Path
 from colorama import Fore, Style, init
 
@@ -346,16 +347,18 @@ class SovereignFish:
         if not self.api_key:
             raise ValueError("GOOGLE_API_KEY environment variable not set.")
             
-        genai.configure(api_key=self.api_key)
+        # [MIGRATED] google-genai Client
+        self.client = genai.Client(api_key=self.api_key)
+        
         # EMPIRE TDD Configuration (Budget Optimized)
         
         # 1. The Junior Engineer (Architect / Builder / Standard Reviewer)
-        # Cost: Low
-        self.flash = genai.GenerativeModel('gemini-flash-latest')
+        # Cost: Low (Gemini 2.0 Flash)
+        self.flash_model = 'gemini-2.0-flash'
         
         # 2. The Senior Engineer (Escalation / Emergency Fixer)
-        # Cost: High (Use sparingly)
-        self.pro = genai.GenerativeModel('gemini-pro-latest')
+        # Cost: High (Gemini 2.5 Pro)
+        self.pro_model = 'gemini-2.5-pro'
         
         # 3. The Watcher (Anti-Oscillation)
         self.watcher = TheWatcher(self.root)
@@ -619,7 +622,10 @@ class SovereignFish:
         OUTPUT: Only the Gherkin content (Feature, Scenario, Given/When/Then).
         """
         try:
-            response = self.flash.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.flash_model,
+                contents=prompt
+            )
             if not response or not response.text:
                 return None
             return response.text.strip().replace("```gherkin", "").replace("```", "")
@@ -644,10 +650,11 @@ class SovereignFish:
             # ESCALATION PROTOCOL
             # If we are on the final attempt, summon the Senior Engineer (Pro)
             is_emergency = (attempt == max_retries)
-            model = self.pro if is_emergency else self.flash
-            model_name = "Gemini Pro (Senior)" if is_emergency else "Flash (Junior)"
+            # model = self.pro if is_emergency else self.flash
+            model_name = self.pro_model if is_emergency else self.flash_model
+            model_display = "Gemini Pro (Senior)" if is_emergency else "Flash (Junior)"
             
-            HUD.persona_log("INFO", f"Entering The Gauntlet (Attempt {attempt+1}/{max_retries+1}) using {model_name}...")
+            HUD.persona_log("INFO", f"Entering The Gauntlet (Attempt {attempt+1}/{max_retries+1}) using {model_display}...")
             
             prompt = f"""
             ACT AS: Senior Python Developer.
@@ -670,11 +677,18 @@ class SovereignFish:
             """
             
             try:
-                response = model.generate_content(prompt)
+                response = self.client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json"
+                    )
+                )
                 if not response or not response.text:
                     last_error = "AI provided empty response"
                     continue
                 txt = response.text.strip()
+                # With JSON mode, it should be clean, but handle markdown fences locally just in case
                 if "```json" in txt:
                     txt = txt.split("```json")[1].split("```")[0].strip()
                 implementation_data = json.loads(txt)
@@ -735,7 +749,13 @@ class SovereignFish:
         """
         try:
             # Budget Optimization: Use Flash for standard reviews
-            response = self.flash.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.flash_model,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json"
+                )
+            )
             if not response or not response.text:
                 return {"status": "DISAPPROVED", "reason": "Empty response from Council."}
             txt = response.text.strip()

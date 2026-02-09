@@ -1,4 +1,4 @@
-import google.generativeai as genai
+from google import genai
 import os
 from dotenv import load_dotenv
 from pathlib import Path
@@ -15,25 +15,19 @@ if not api_key:
     print("API Key not found")
     exit(1)
 
-genai.configure(api_key=api_key)
+print("Initializing google.genai Client...")
+client = genai.Client(api_key=api_key)
 
-print("Checking available models...")
-try:
-    models = [m.name for m in genai.list_models()]
-    for m in models:
-        print(f"- {m}")
-        
-    print("\nAttempting generation with candidate models:")
-    candidates = ["gemini-1.5-pro", "gemini-pro", "gemini-1.5-pro-latest", "gemini-pro-latest"]
-    
-    for model_name in candidates:
-        print(f"Testing {model_name}...", end=" ")
-        try:
-            model = genai.GenerativeModel(model_name)
-            response = model.generate_content("Hello")
-            print("SUCCESS")
-        except Exception as e:
-            print(f"FAILED ({e})")
-            
-except Exception as e:
-    print(f"Error listing/testing: {e}")
+candidates = ["gemini-2.0-flash", "gemini-2.5-pro", "gemini-2.0-flash-lite-preview-02-05"]
+
+print("\nAttempting generation with candidate models:")
+for model_name in candidates:
+    print(f"Testing {model_name}...", end=" ")
+    try:
+        response = client.models.generate_content(
+            model=model_name,
+            contents="Hello, are you online?"
+        )
+        print("SUCCESS")
+    except Exception as e:
+        print(f"FAILED ({e})")
