@@ -715,8 +715,10 @@ class SovereignFish:
             env["PYTHONPATH"] = str(self.root)
             
             try:
+                # Use sys.executable to ensure we use the same python interpreter
+                cmd = [sys.executable, "-m", "pytest", str(temp_test_path), "-v"]
                 result = subprocess.run(
-                    ["python", "-m", "pytest", str(temp_test_path), "-v"],
+                    cmd,
                     cwd=temp_dir,
                     env=env,
                     capture_output=True,
@@ -733,7 +735,8 @@ class SovereignFish:
                     
                     # Enhanced Logging
                     error_output = (result.stdout + result.stderr)
-                    last_error = error_output.replace("\n", " | ")[-500:] # Keep short for prompt context
+                    # capture the last 1000 chars to ensure we see the failure summary
+                    last_error = error_output.replace("\n", " | ")[-1000:] 
                     
                     # Log full error to file for diagnosis
                     fail_log = self.root / "tests" / "empire_tests" / "gauntlet_failures.log"
