@@ -1,9 +1,10 @@
 import json
 import os
-import sys
-import threading
 import queue
 import re
+import sys
+import threading
+
 
 def load_config(root_path: str) -> dict:
     """[ALFRED] Securely load the C* configuration."""

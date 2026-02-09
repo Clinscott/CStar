@@ -1,6 +1,6 @@
-import unittest
 import os
 import sys
+import unittest
 
 # Add script paths
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -9,6 +9,7 @@ sys.path.append(EMPIRE_DIR)
 
 from compiler import EmpireCompiler
 from symbolic_legend import SymbolicLegend
+
 
 class TestEmpireInfrastructure(unittest.TestCase):
     

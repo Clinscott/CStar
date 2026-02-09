@@ -1,17 +1,18 @@
-import unittest
-import sys
-import os
-import json
-from unittest.mock import patch, MagicMock, mock_open
 import io
+import json
+import os
+import sys
+import unittest
+from unittest.mock import MagicMock, mock_open, patch
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.append(PROJECT_ROOT)
 sys.path.append(os.path.join(PROJECT_ROOT, ".agent", "scripts"))
 
+from odin_protocol.engine.models import Chromosome, UniverseState
 from odin_protocol.engine.persistence import OdinPersistence
-from odin_protocol.engine.models import UniverseState, Chromosome
 from ui import HUD
+
 
 class TestPersistence_contracts(unittest.TestCase):
     def setUp(self):

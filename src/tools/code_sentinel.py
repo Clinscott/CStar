@@ -26,7 +26,6 @@ if str(project_root) not in sys.path:
 from src.core.ui import HUD
 
 
-
 class CodeSentinel:
     """
     Main orchestrator for code integrity scanning.

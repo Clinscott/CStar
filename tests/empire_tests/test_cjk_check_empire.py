@@ -1,9 +1,10 @@
-import pytest
-import sys
-import os
 import json
-from io import StringIO
+import os
+import sys
 from contextlib import redirect_stdout
+from io import StringIO
+
+import pytest
 
 # Add the script's directory to the path
 sys.path.insert(0, '.')
@@ -34,6 +35,7 @@ sys.modules['engine.vector'] = type('engine.vector', (object,), {'SovereignVecto
 
 # Import the script after mocking
 import cjk_check
+
 
 @pytest.fixture
 def mock_sovereign_vector():

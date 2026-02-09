@@ -6,13 +6,13 @@ The Synapse (mnemosyne_sync.py)
 Syncs local Corvus instance with the Mimir's Eye Knowledge Core.
 """
 
-import os
-import sys
-import json
-import shutil
 import argparse
-import subprocess
+import json
+import os
 import py_compile
+import shutil
+import subprocess
+import sys
 from datetime import datetime
 
 # Ensure we can import shared UI

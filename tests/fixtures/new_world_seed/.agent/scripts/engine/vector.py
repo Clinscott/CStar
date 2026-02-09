@@ -1,8 +1,8 @@
-import math
 import json
+import math
+import os
 import re
 import sys
-import os
 
 # Import Shared UI from parent directory
 try:

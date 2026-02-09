@@ -1,12 +1,14 @@
-import os
-import time
 import json
-import sys
 import msvcrt
+import os
 import subprocess
+import sys
+import time
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
+
 from ui import HUD
+
 
 class StatsCollector:
     """[ALFRED] Secure statistics accumulator for federated monitoring."""

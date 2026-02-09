@@ -1,5 +1,5 @@
-import sys
 import os
+import sys
 import time
 
 # Ensure we can import from the same directory

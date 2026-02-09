@@ -1,7 +1,9 @@
-from google import genai
 import os
-from dotenv import load_dotenv
 from pathlib import Path
+
+from dotenv import load_dotenv
+from google import genai
+
 
 def main():
     """

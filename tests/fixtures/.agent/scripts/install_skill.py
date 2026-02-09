@@ -1,10 +1,12 @@
-import os
-import sys
-import shutil
 import json
-import subprocess
+import os
 import re
+import shutil
+import subprocess
+import sys
+
 from sv_engine import HUD
+
 
 def _sanitize_skill_name(name):
     sanitized = name.replace("/", "").replace("\\", "").replace("..", "")

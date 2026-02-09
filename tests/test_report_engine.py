@@ -1,6 +1,6 @@
 # tests/test_report_engine.py
-import sys
 import os
+import sys
 import unittest
 from pathlib import Path
 
@@ -10,6 +10,7 @@ sys.path.append(str(current_dir / ".agent" / "scripts"))
 
 from report_engine import ReportEngine
 from ui import HUD
+
 
 class TestReportEngine(unittest.TestCase):
     def setUp(self):

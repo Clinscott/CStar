@@ -4,12 +4,13 @@ Identity: ODIN
 Purpose: Orchestrate the Sovereign Fish agents across the Corvus Cluster.
 """
 
-import time
-import subprocess
 import logging
-import sys
 import os
+import subprocess
+import sys
+import time
 from pathlib import Path
+
 from colorama import Fore, Style, init
 
 # Initialize Colorama
@@ -41,8 +42,8 @@ project_root = Path(__file__).parent.parent.parent.absolute()
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
-from src.sentinel import sovereign_fish
 from src.core.ui import HUD
+from src.sentinel import sovereign_fish
 
 # Logging handled by sovereign_fish logging config (shared file) or we can init here too
 logging.basicConfig(

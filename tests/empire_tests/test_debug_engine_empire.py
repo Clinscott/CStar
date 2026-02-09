@@ -1,9 +1,10 @@
-import pytest
-import sys
-import os
 import io
+import os
+import sys
 from contextlib import redirect_stdout
 from unittest.mock import patch
+
+import pytest
 
 # Ensure the script's directory is in the Python path
 SCRIPT_DIR = os.path.join(os.getcwd())

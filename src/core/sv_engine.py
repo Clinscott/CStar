@@ -18,11 +18,10 @@ project_root = script_dir.parent.parent
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
-from src.core import personas
-from src.core import utils
-from src.core.engine.vector import SovereignVector
+from src.core import personas, utils
 from src.core.engine.cortex import Cortex
 from src.core.engine.dialogue import DialogueRetriever
+from src.core.engine.vector import SovereignVector
 from src.core.ui import HUD
 
 

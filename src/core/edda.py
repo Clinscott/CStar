@@ -5,14 +5,14 @@ Identity: ODIN
 Purpose: Transmute legacy documentation into the Corvus Star standard (.qmd) and synthesize API references.
 """
 
-import os
-import sys
-import re
-import ast
-import shutil
 import argparse
-from pathlib import Path
+import ast
+import os
+import re
+import shutil
+import sys
 from datetime import datetime
+from pathlib import Path
 
 # ==============================================================================
 # 🛡️ THE WEAVER'S LOGIC

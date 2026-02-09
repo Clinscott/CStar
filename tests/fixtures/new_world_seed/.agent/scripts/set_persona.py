@@ -2,6 +2,7 @@ import json
 import os
 import sys
 
+
 def set_persona():
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) # .agent/
     config_path = os.path.join(base_dir, "config.json")

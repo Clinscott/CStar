@@ -1,6 +1,8 @@
 import os
 import re
+
 from .vector import SovereignVector
+
 
 class Cortex:
     """

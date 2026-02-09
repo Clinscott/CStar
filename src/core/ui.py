@@ -3,12 +3,29 @@ import sys
 from datetime import datetime
 from typing import Any
 
-# [ALFRED] Force UTF-8 for CLI aesthetics on Windows
+# [Ω] PERMANENT UTF-8 ENFORCEMENT (Windows Console Mode)
+# This ensures box-drawing characters (│, ─, ┌, └) render correctly on Windows.
 if sys.platform == "win32":
+    # Set environment variable for any child processes
+    os.environ["PYTHONIOENCODING"] = "utf-8"
+    
+    # Reconfigure stdout/stderr for UTF-8
+    for stream in [sys.stdout, sys.stderr]:
+        if stream and hasattr(stream, "reconfigure"):
+            try:
+                stream.reconfigure(encoding="utf-8", errors="replace")
+            except (OSError, AttributeError):
+                pass
+    
+    # Enable Windows Console Virtual Terminal Processing (ANSI support)
     try:
-        sys.stdout.reconfigure(encoding='utf-8')
-    except (OSError, AttributeError):
+        import ctypes
+        kernel32 = ctypes.windll.kernel32
+        # Enable ANSI escape sequences on Windows 10+
+        kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)  # STD_OUTPUT_HANDLE, ENABLE_VT
+    except (AttributeError, OSError):
         pass
+
 
 class HUD:
     """

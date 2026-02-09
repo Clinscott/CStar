@@ -1,6 +1,7 @@
 import json
 import random
 
+
 def generate_phase2_cases():
     adversarial_cases = []
     ambiguity_cases = []

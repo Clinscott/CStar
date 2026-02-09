@@ -9,7 +9,8 @@ Updates ALFRED_SUGGESTIONS.md with observations from:
 
 import os
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
 
 class AlfredObserver:
     """Quietly observes and records improvement suggestions."""

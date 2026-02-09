@@ -1,5 +1,5 @@
-import sys
 import os
+import sys
 
 # Add relevant paths
 BASE_DIR = os.getcwd()
@@ -8,6 +8,7 @@ sys.path.append(os.path.join(BASE_DIR, ".agent", "scripts", "empire"))
 
 from compiler import EmpireCompiler
 from ui import HUD
+
 
 def demonstrate():
     HUD.PERSONA = "ODIN"

@@ -1,6 +1,7 @@
-import sys
-import os
 import json
+import os
+import sys
+
 sys.path.insert(0, '.agent/scripts')
 
 from engine.vector import SovereignVector

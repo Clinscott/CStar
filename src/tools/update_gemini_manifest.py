@@ -3,6 +3,7 @@ import os
 import subprocess
 from datetime import datetime
 
+
 def get_git_summary():
     try:
         res = subprocess.run(["git", "log", "-n", "5", "--oneline"], capture_output=True, text=True)

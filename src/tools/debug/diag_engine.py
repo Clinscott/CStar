@@ -1,5 +1,5 @@
-import sys
 import os
+import sys
 
 # Add script path for engine import
 sys.path.append(os.path.join('.agent', 'scripts'))

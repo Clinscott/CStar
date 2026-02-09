@@ -6,10 +6,11 @@ Sentinel Perf: Engine Latency Profiler
 Profiles engine search vs. direct regex matching to identify bottlenecks.
 """
 
-import time
+import json
 import os
 import sys
-import json
+import time
+
 from ui import HUD
 
 # Add script path for engine import

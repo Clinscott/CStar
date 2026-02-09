@@ -1,8 +1,9 @@
-import json
-import random
 import argparse
-import sys
+import json
 import os
+import random
+import sys
+
 
 def generate_cases(n=1000, threshold=0.3):
     print(f"Generating {n} synthetic test cases...")

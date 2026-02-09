@@ -1,5 +1,5 @@
-import re
 import json
+import re
 
 path = '.agent/corrections.json'
 with open(path, 'r', encoding='utf-8') as f:

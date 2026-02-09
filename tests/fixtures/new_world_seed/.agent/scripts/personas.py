@@ -1,6 +1,7 @@
 import os
 import shutil
 
+
 class PersonaStrategy:
     def __init__(self, project_root):
         self.root = project_root

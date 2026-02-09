@@ -4,19 +4,20 @@ Identity: ODIN/ALFRED Hybrid
 Purpose: Execute the Sovereign Fish Protocol autonomously.
 """
 
-import os
-import sys
-import json
-import re
-import time
-import shutil
-import logging
-import subprocess
 import hashlib
+import json
+import logging
+import os
+import re
+import shutil
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+from colorama import Fore, Style, init
 from google import genai
 from google.genai import types
-from pathlib import Path
-from colorama import Fore, Style, init
 
 # Initialize Colorama
 init(autoreset=True)
@@ -39,7 +40,6 @@ if str(project_root) not in sys.path:
 
 from src.core.annex import AnnexStrategist
 from src.core.ui import HUD
-
 
 # Configure Logging
 logging.basicConfig(

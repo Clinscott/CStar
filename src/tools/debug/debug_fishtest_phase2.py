@@ -1,10 +1,11 @@
-import sys
-import os
 import json
+import os
+import sys
 
 # Add script path for engine import
 sys.path.append(os.path.join('.agent', 'scripts'))
 from sv_engine import SovereignVector
+
 
 def debug_phase2():
     # Initialize engine

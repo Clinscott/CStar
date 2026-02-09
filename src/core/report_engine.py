@@ -1,6 +1,6 @@
 # report_engine.py
-import sys
 import os
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -11,6 +11,7 @@ if str(current_dir) not in sys.path:
 
 import utils
 from ui import HUD
+
 
 class ReportEngine:
     """

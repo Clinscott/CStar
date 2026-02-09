@@ -1,13 +1,14 @@
-import sys
-import os
 import argparse
 import json
+import os
+import sys
 
 # Add scripts dir to path for imports
 scripts_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(scripts_dir)
 
 import sv_engine
+
 
 def run_audit(text_to_audit):
     # Initialize engine
