@@ -1,6 +1,6 @@
 ---
 title: Annexation Plan
-date: 2026-02-08 19:41:07
+date: 2026-02-08 19:44:14
 status: pending_approval
 ---
 
@@ -203,8 +203,8 @@ Every script must have a companion test. 'Trust, but Verify.'
 Structural integrity mandates. No bare excepts. Strict typing.
 - [ ] **[quality]** `main_loop.py` → Fix bare except at line 167
 - [ ] **[quality]** `main_loop.py` → Fix bare except at line 251
-- [ ] **[quality]** `sovereign_fish.py` → Fix bare except at line 497
-- [ ] **[quality]** `sovereign_fish.py` → Fix bare except at line 555
+- [ ] **[quality]** `sovereign_fish.py` → Fix bare except at line 483
+- [ ] **[quality]** `sovereign_fish.py` → Fix bare except at line 574
 - [ ] **[quality]** `sovereign_fish.py` → Fix bare except at line 179
 - [ ] **[quality]** `sovereign_fish.py` → Fix bare except at line 209
 - [ ] **[quality]** `tests/legacy_quarantine/test_install_persona.py` → Fix bare except at line 24
