@@ -1,10 +1,10 @@
-import sys
-import os
-import json
-import re
-import math
 import argparse
 import glob
+import json
+import math
+import os
+import re
+import sys
 from collections import defaultdict
 
 # Add script directory to path to allow imports
@@ -75,6 +75,7 @@ def get_engine():
 
 
 from typing import Any
+
 
 # --- RENDERER (IDENTITY ISOLATION) ---
 class TraceRenderer:

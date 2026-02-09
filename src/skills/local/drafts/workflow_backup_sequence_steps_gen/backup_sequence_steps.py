@@ -9,6 +9,7 @@ import argparse
 import json
 import sys
 
+
 def main():
     parser = argparse.ArgumentParser(description="backup_sequence_steps workflow")
     parser.add_argument("--input", required=True, help="Input file or directory")

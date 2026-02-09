@@ -12,6 +12,7 @@ import os
 import random
 from typing import Optional
 
+
 class PersonaVerifier:
     """[ALFRED] Secure persona verification using hashed challenge-response."""
     

@@ -1,9 +1,10 @@
-import os
-import json
 import glob
+import json
+import os
 import shutil
 from datetime import datetime
-from typing import List, Dict
+from typing import Dict, List
+
 
 class TraceAnalyzer:
     """[ALFRED] Advanced analytics for neural traces."""

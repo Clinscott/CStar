@@ -1,6 +1,7 @@
-import os
 import json
+import os
 import re
+
 
 def tokenize(text):
     if not text: return []

@@ -1,6 +1,7 @@
 import json
 import random
 
+
 def generate_n1000():
     test_cases = []
     

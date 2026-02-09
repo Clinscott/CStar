@@ -1,8 +1,9 @@
-import pytest
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import MagicMock, call, patch
 
 # Import the refactored script to test its main function
 import check_pro
+import pytest
+
 
 # Define a custom exception to simulate specific API errors during testing
 class MockGoogleAPIError(Exception):

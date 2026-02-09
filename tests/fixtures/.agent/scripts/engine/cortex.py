@@ -1,6 +1,8 @@
 import os
 import re
+
 from .vector import SovereignVector
+
 
 class Cortex:
     """
@@ -27,7 +29,7 @@ class Cortex:
     
     def _ingest(self):
         """[ALFRED] Secure ingestion of project laws into the Cortex."""
-        from ui import HUD # Lazy import to avoid circularity
+        from ui import HUD  # Lazy import to avoid circularity
         
         for name, path in self.knowledge_map.items():
             if not os.path.exists(path): 

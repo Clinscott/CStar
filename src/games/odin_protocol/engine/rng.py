@@ -5,6 +5,7 @@ Encapsulates randomness to allow for deterministic testing and cryptographic rep
 import random
 import secrets
 
+
 class TacticalRNG:
     """
     Wrapper for random number generation.

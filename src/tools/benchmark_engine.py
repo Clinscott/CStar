@@ -1,8 +1,8 @@
-import time
-import subprocess
-import statistics
 import os
+import statistics
+import subprocess
 import sys
+import time
 
 # Add script directory to path for module discovery
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -10,6 +10,7 @@ if current_dir not in sys.path:
     sys.path.append(current_dir)
 
 from report_engine import ReportEngine
+
 
 def benchmark(n=100):
     cmd = ["python", ".agent/scripts/sv_engine.py", "--benchmark"]

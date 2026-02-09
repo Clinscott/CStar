@@ -1,6 +1,7 @@
-import random
 import os
+import random
 import sys
+
 
 class DialogueRetriever:
     def __init__(self, dialogue_path):

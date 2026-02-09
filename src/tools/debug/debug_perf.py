@@ -1,12 +1,13 @@
 
-import time
-import sys
 import os
+import sys
+import time
 
 # Add path to agent scripts
 sys.path.append(os.path.join(os.getcwd(), '.agent', 'scripts'))
 
 from sv_engine import SovereignVector
+
 
 def profile():
     print("Initializing Engine...")

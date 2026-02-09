@@ -7,15 +7,15 @@ Syncs local Corvus instance with the Mimir's Eye Knowledge Core.
 Hardened with [Alfred's Manor Inspection] security protocols.
 """
 
-import os
-import sys
-import json
-import shutil
 import argparse
-import subprocess
+import json
+import os
 import py_compile
-import time
 import re
+import shutil
+import subprocess
+import sys
+import time
 import unicodedata
 from datetime import datetime
 

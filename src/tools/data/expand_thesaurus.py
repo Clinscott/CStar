@@ -1,5 +1,5 @@
-import re
 import os
+import re
 
 path = 'thesaurus.md'
 with open(path, 'r', encoding='utf-8') as f:

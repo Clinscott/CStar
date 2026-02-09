@@ -1,13 +1,14 @@
-import unittest
-import sys
-import os
 import io
+import os
+import sys
+import unittest
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.append(PROJECT_ROOT)
 sys.path.append(os.path.join(PROJECT_ROOT, ".agent", "scripts"))
 
 from ui import HUD
+
 
 class TestUiFull(unittest.TestCase):
     def setUp(self):

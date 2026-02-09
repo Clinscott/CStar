@@ -1,9 +1,10 @@
 
+import json
 import os
 import re
 import sys
-import json
 from collections import Counter
+
 
 class WorkflowAnalyst:
     def __init__(self, root_dir):

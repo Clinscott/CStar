@@ -1,6 +1,7 @@
-import random
 import os
+import random
 import sys
+
 
 class DialogueRetriever:
     """Retrieves persona-specific dialogue phrases from markdown databases."""

@@ -1,15 +1,16 @@
-import unittest
-import sys
+import io
 import os
 import shutil
-from unittest.mock import patch, MagicMock
-import io
+import sys
+import unittest
+from unittest.mock import MagicMock, patch
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.append(PROJECT_ROOT)
 sys.path.append(os.path.join(PROJECT_ROOT, ".agent", "scripts"))
 
-from network_watcher import CruciblePipeline, HUD
+from network_watcher import HUD, CruciblePipeline
+
 
 class TestNetwork_contracts(unittest.TestCase):
     def setUp(self):

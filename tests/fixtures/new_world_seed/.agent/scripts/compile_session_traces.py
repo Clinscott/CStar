@@ -1,6 +1,7 @@
-import os
-import json
 import glob
+import json
+import os
+
 
 def compile_traces(traces_dir=None, report_path=None):
     # Setup Paths

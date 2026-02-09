@@ -1,3 +1,3 @@
-from .vector import SovereignVector
-from .dialogue import DialogueRetriever
 from .cortex import Cortex
+from .dialogue import DialogueRetriever
+from .vector import SovereignVector

@@ -1,5 +1,5 @@
-import sys
 import os
+import sys
 
 # 1. Path Setup: Inject the directory containing the engine module
 # This assumes the script is run from the directory where .agent/ resides.

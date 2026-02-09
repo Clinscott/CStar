@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+
 sys.path.append(os.path.join('.agent', 'scripts'))
 from sv_engine import SovereignVector
 

@@ -7,24 +7,24 @@ RAG-driven skill synthesis from project documentation patterns.
 All generated skills go to drafts/ for review before deployment.
 """
 
-import os
-import sys
-import re
-import py_compile
-import subprocess
 import json
+import os
+import py_compile
+import re
+import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
 
 # Ensure shared UI and Engine can be imported
 try:
-    from ui import HUD
     from engine import Cortex
+    from ui import HUD
 except ImportError:
     # Fallback if cortex/ui not in path
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-    from ui import HUD
     from engine import Cortex
+    from ui import HUD
     # Fallback if cortex/ui not in path
     class HUD:
         RED = "\033[31m"

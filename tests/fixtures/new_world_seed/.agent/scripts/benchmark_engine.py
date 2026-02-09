@@ -1,8 +1,9 @@
-import time
-import subprocess
-import statistics
 import os
+import statistics
+import subprocess
 import sys
+import time
+
 
 def benchmark(n=100):
     cmd = ["python", ".agent/scripts/sv_engine.py", "--benchmark"]

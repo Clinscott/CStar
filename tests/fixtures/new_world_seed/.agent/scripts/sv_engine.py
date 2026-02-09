@@ -1,9 +1,9 @@
-import math
 import json
-import re
-import sys
+import math
 import os
 import random
+import re
+import sys
 
 # Import Persona Logic
 import personas
@@ -23,7 +23,7 @@ except ImportError:
     from ui import HUD
 
 # PROPOSAL 1 & 3: IRON CORTEX
-from engine import SovereignVector, DialogueRetriever, Cortex
+from engine import Cortex, DialogueRetriever, SovereignVector
 
 if __name__ == "__main__":
     import argparse

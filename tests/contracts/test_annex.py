@@ -1,13 +1,15 @@
-import sys
 import shutil
-import pytest
+import sys
 from pathlib import Path
+
+import pytest
 
 # Add .agent/scripts to sys.path to import annex and edda
 scripts_dir = Path(__file__).parents[2] / ".agent" / "scripts"
 sys.path.append(str(scripts_dir))
 
 from annex import AnnexStrategist
+
 
 @pytest.fixture
 def mock_dominion(tmp_path):

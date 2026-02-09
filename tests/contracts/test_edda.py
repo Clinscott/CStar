@@ -1,15 +1,18 @@
 import shutil
-import pytest
-from pathlib import Path
-from unittest.mock import MagicMock
+
 # Import the script to test (assuming it's in the python path or we use subprocess)
 # For this test, we'll import the class directly if possible, or mock the environment
-
 # Add .agent/scripts to sys.path to import edda
 import sys
+from pathlib import Path
+from unittest.mock import MagicMock
+
+import pytest
+
 sys.path.append(str(Path(__file__).parents[2] / ".agent" / "scripts"))
 
 from edda import EddaWeaver
+
 
 @pytest.fixture
 def mock_realm(tmp_path):

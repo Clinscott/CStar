@@ -13,3 +13,4 @@
 - **Path Resolution**: Always use absolute paths derived from `__file__` or `PROJECT_ROOT` to avoid CWD ambiguity.
 - **Skill Loading**: Explicitly check for `skills_db` in `sv_engine.py` to support global skills.
 - **Documentation**: Keep `FOLDER_MAP.qmd` updated; it saves time during navigation.
+- **Terminal Encoding**: Windows requires `chcp 65001` + `[Console]::OutputEncoding = UTF8` in PowerShell profile for proper box-drawing characters. Python needs `-X utf8` flag and `PYTHONIOENCODING=utf-8`.

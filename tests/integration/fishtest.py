@@ -17,16 +17,16 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..
 if PROJECT_ROOT not in sys.path:
     sys.path.append(PROJECT_ROOT)
 try:
+    from src.core import utils
     from src.core.engine.vector import SovereignVector
     from src.core.report_engine import ReportEngine
-    from src.core import utils
 except ImportError as e:
     print(f"CRITICAL ERROR: Failed to import engine modules: {e}")
     sys.path.append(os.path.join(PROJECT_ROOT, "src")) # Fallback
     try:
+        from core import utils
         from core.engine.vector import SovereignVector
         from core.report_engine import ReportEngine
-        from core import utils
     except ImportError:
         print("FATAL: Could not locate engine in src/core. Check installation.")
         sys.exit(1)

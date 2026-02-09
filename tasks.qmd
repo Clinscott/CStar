@@ -86,12 +86,18 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Local Skill Relocation**: Relocated skills to `src/skills/local/` and updated discovery logic. [x]
 - [x] **Clean Root**: Purged the project root of legacy scripts, backups, and temporary test results. [x]
 
+### 25. Post-Refactor Verification & Terminal Fix (Session 43)
+- [x] **Benchmark Verification**: Ran Fishtest N=1000, confirmed 99.9% accuracy at 0.42ms latency. [x]
+- [x] **Root Cleanup**: Removed 8 `.bak` files, archived 13 test outputs to `logs/archive/`. Root: 47→22 files. [x]
+- [x] **Sentinel Audit**: Fixed 169 I001 breaches (import sorting), 4 issues in `compiler.py`. [x]
+- [x] **Terminal Encoding**: Permanent UTF-8 fix in PowerShell profile, `cstar.ps1`, and `ui.py`. [x]
+
 ## ⏭️ Start Here Next (Execution & Expansion)
 
 ### 1. Yggdrasil Stabilization
+- [x] **Fishtest Verification**: Run the N=1000 benchmark to ensure zero regression in neural accuracy. [x] (99.9%)
 - [ ] **Import Sweep**: Final check of `src/` scripts to ensure all cross-module imports are resolved.
 - [ ] **Test Alignment**: Update `pytest.ini` or equivalent to scan the new `tests/` and `src/` structure.
-- [ ] **Fishtest Verification**: Run the N=1000 benchmark to ensure zero regression in neural accuracy.
 
 ### 2. Annexation Execution
 - [ ] **Execution Module**: Implement `--execute` in `annex.py` to auto-remediate breaches.

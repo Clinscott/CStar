@@ -14,6 +14,7 @@ if str(project_root) not in sys.path:
 
 from src.core.ui import HUD
 
+
 class SovereignVector:
     def __init__(self, thesaurus_path=None, corrections_path=None, stopwords_path=None):
         """

@@ -1,9 +1,9 @@
-import sys
-import os
-import time
-import shutil
 import json
+import os
+import shutil
 import subprocess
+import sys
+import time
 from pathlib import Path
 
 # Add script directory to path
@@ -11,9 +11,10 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
 
 from sv_engine import HUD
+
 try:
-    from merge_traces import merge_traces
     from latency_check import measure_startup
+    from merge_traces import merge_traces
 except ImportError:
     # Ensure merge_traces can be imported even if running from root
     pass

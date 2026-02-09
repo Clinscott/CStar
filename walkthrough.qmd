@@ -1,43 +1,37 @@
-# Walkthrough: Operation Yggdrasil Stabilization
+# Walkthrough: Session 43 - Post-Refactor Verification
 
 ## 🎯 Goal
-Restore system stability and intent resolution accuracy after the major refactor.
+Verify system health after refactor, run benchmarks, clean root directory, and fix terminal encoding.
 
 ## 🏆 Results
-- **Intent Accuracy**: 99.9% (Recovered from 50%)
-- **Infrastructure**: Centralized `pyproject.toml`, CI workflows, and pre-commit hooks.
-- **Documentation**: Updated `wireframe.qmd` and created `FOLDER_MAP.qmd`.
+| Metric | Value |
+|:---|:---|
+| **Intent Accuracy** | 99.9% (N=1000) |
+| **Latency** | 0.42ms/target |
+| **Root Files** | 47 → 22 (53% reduction) |
+| **Ruff Fixes** | 169 import sorting, 4 compiler.py |
 
 ## 🛠️ Key Fixes
 
-### 1. Skill Loading Regression
-**Issue**: The engine wasn't loading global skills from `skills_db` or incorrectly parsing them.
-**Fix**:
-- Updated `sv_engine.py` to explicitly load `skills_db` from project root.
-- Patched `vector.py` to handle `GLOBAL:` prefix and `Activation Words` header variations.
-- Updated `SKILL.qmd` files for `git-assistant` and others with missing keywords.
+### 1. Root Directory Cleanup
+- Removed 8 `.bak` files (legacy backups)
+- Archived 13 test output files to `logs/archive/`
 
-### 2. Infrastructure
-**Issue**: Disparate configuration files.
-**Fix**:
-- Created `pyproject.toml` (Unified config).
-- Created `.github/workflows/ci.yml` (CI/CD).
+### 2. Sentinel Audit
+- Fixed 169 I001 breaches (import sorting) via ruff
+- Fixed `compiler.py`: removed unused imports (`json`, `List`), replaced `Dict` with `dict`, fixed implicit `Optional`
 
-### 3. Verification
-**Command**: `python tests/integration/fishtest.py`
-**Outcome**: 1000/1000 tests passed (with 99.9% accuracy).
-
-## 📂 New Structure Map
-See [docs/architecture/FOLDER_MAP.qmd](docs/architecture/FOLDER_MAP.qmd) for the definitive guide.
+### 3. Terminal Encoding (Permanent)
+- Updated PowerShell profile with `chcp 65001` and UTF-8 encoding
+- Updated `cstar.ps1` dispatcher with `-X utf8` flag
+- Enhanced `ui.py` HUD with comprehensive Windows encoding block
 
 ## 🤝 Session Handshake
 **Session Delta**:
-- Restored `fishtest` accuracy (50% -> 99.9%).
-- Implemented `pyproject.toml` & CI/CD.
-- Created `docs/architecture/FOLDER_MAP.qmd`.
+- Verified 99.9% accuracy post-refactor
+- Cleaned root directory (53% file reduction)
+- Fixed terminal encoding permanently
 
 **Resume Directive**:
-To resume, verify system health with:
-`python tests/integration/fishtest.py`
-Then consult `tasks.md` for next priority.
-
+To resume, verify health: `python tests/integration/fishtest.py`
+Then consult `tasks.qmd` → Import Sweep or Annexation Execution.

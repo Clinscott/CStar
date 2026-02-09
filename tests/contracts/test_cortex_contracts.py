@@ -1,8 +1,8 @@
-import unittest
-import sys
-import os
-from unittest.mock import patch, MagicMock
 import io
+import os
+import sys
+import unittest
+from unittest.mock import MagicMock, patch
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.append(PROJECT_ROOT)

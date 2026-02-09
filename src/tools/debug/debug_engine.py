@@ -1,11 +1,12 @@
-import sys
-import os
 import json
+import os
 import re
+import sys
 
 # Add script path for engine import
 sys.path.append(os.path.join(os.getcwd(), ".agent", "scripts"))
-from sv_engine import SovereignVector, HUD
+from sv_engine import HUD, SovereignVector
+
 
 def debug_query(query):
     cur_dir = os.getcwd()

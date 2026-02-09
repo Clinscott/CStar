@@ -1,7 +1,7 @@
 import json
+import math
 import os
 import sys
-import math
 
 # Add script path for engine import
 sys.path.append(os.path.join(os.path.dirname(__file__), ".agent", "scripts"))

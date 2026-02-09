@@ -6,12 +6,12 @@ Purpose: Scan the territory, identify weakness (non-compliance), and propose a b
 Strandards: Linscott (Tests), Torvalds (Quality), Empire (Contracts), Edda (Docs).
 """
 
-import os
-import sys
 import ast
+import os
 import subprocess
-from pathlib import Path
+import sys
 from datetime import datetime
+from pathlib import Path
 
 # ==============================================================================
 # 🛡️ THE STRATEGIST'S LOGIC
@@ -35,7 +35,7 @@ class AnnexStrategist:
             self._audit_code(py_file)
 
         # 2. Scan Documentation (Edda)
-        from edda import EddaWeaver # Assumption: edda.py is in same dir or path
+        from edda import EddaWeaver  # Assumption: edda.py is in same dir or path
         # We can re-use Edda logic or just replicate the scan for speed
         # Replicating for now to keep loose coupling
         for md_file in self.root.rglob("*.md"):

@@ -1,10 +1,10 @@
-import os
-import time
 import json
-import sys
 import msvcrt
+import os
+import sys
+import time
 from datetime import datetime
-from typing import Dict, Tuple, Any, List
+from typing import Any, Dict, List, Tuple
 
 # Import Shared UI
 try:

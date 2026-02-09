@@ -1,7 +1,7 @@
 import os
 import re
-import json
-from typing import Dict, List, Any
+from typing import Any
+
 
 class EmpireCompiler:
     """
@@ -9,7 +9,7 @@ class EmpireCompiler:
     Converts .qmd contracts into executable Internal Representation (IR).
     """
 
-    def __init__(self, legend_path: str = None):
+    def __init__(self, legend_path: str | None = None):
         self.legend_path = legend_path
         self.patterns = {
             "GIVEN": re.compile(r"GIVEN\s+(.*)", re.IGNORECASE),
@@ -17,12 +17,12 @@ class EmpireCompiler:
             "THEN": re.compile(r"THEN\s+(.*)", re.IGNORECASE)
         }
 
-    def compile(self, qmd_path: str) -> Dict[str, Any]:
+    def compile(self, qmd_path: str) -> dict[str, Any]:
         """Parse a .qmd file and extract the tripartite state cycle."""
         if not os.path.exists(qmd_path):
             raise FileNotFoundError(f"Runes missing at {qmd_path}")
 
-        with open(qmd_path, "r", encoding="utf-8") as f:
+        with open(qmd_path, encoding="utf-8") as f:
             content = f.read()
 
         ir = {
@@ -42,13 +42,13 @@ class EmpireCompiler:
 
         return ir
 
-    def generate_boilerplate(self, ir: Dict[str, Any], output_path: str):
+    def generate_boilerplate(self, ir: dict[str, Any], output_path: str):
         """Generate the Python verification script (Linscott Standard)."""
         # [ALFRED's Observation]: "The Master requires deterministic output."
         # [ODIN's Void]: "FORGE THE TEST!"
-        
+
         test_name = os.path.basename(ir['source']).replace(".qmd", "")
-        
+
         code = [
             'import unittest',
             'import sys',
@@ -72,7 +72,7 @@ class EmpireCompiler:
             '        sys.stdout = self.captured_output',
             '        # GIVEN: State Injection'
         ]
-        
+
         # [Ω] State Injection Logic
         for g in ir['given']:
             code.append(f'        # {g}')
@@ -82,7 +82,7 @@ class EmpireCompiler:
                  code.append('        self.engine = create_vector_engine()')
             else:
                  code.append('        pass')
-            
+
         code.append('')
         code.append('    def tearDown(self):')
         code.append('        sys.stdout = sys.__stdout__')
@@ -98,7 +98,7 @@ class EmpireCompiler:
                 code.append('            # TODO: Call actual function here')
             else:
                 code.append('        pass # TODO: Map to driver call')
-            
+
         code.append('')
         code.append('        # THEN: State Projection')
         for t in ir['then']:
@@ -115,7 +115,7 @@ class EmpireCompiler:
 
         with open(output_path, "w", encoding="utf-8") as f:
             f.write("\n".join(code))
-        
+
         # [Ω] SENTINEL AUDIT
         try:
             sentinel_script = os.path.join(os.path.dirname(os.path.dirname(__file__)), "code_sentinel.py")
@@ -143,7 +143,7 @@ if __name__ == "__main__":
             if not basename.startswith("test_"):
                 basename = "test_" + basename
             out_file = os.path.join(dirname, basename)
-            
+
             final_path = compiler.generate_boilerplate(ir, out_file)
             print(f"[Ω] COMPILED: {qmd_file} -> {final_path}")
         except Exception as e:

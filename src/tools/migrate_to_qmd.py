@@ -3,9 +3,9 @@
 QMD Migration Script
 Linscott Standard: Backup → Validate → Migrate → Verify
 """
+import hashlib
 import os
 import subprocess
-import hashlib
 import sys
 from pathlib import Path
 

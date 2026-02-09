@@ -1,7 +1,7 @@
-import sys
+import ast
 import os
 import re
-import ast
+import sys
 
 try:
     from sv_engine import HUD
