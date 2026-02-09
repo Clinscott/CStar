@@ -24,3 +24,5 @@ Thumbs.db
 *.log
 sentinel.lock
 tests/empire_tests/temp_gauntlet/
+
+ANNEXATION_PLAN.qmd
