@@ -1,6 +1,6 @@
 ---
 title: Annexation Plan
-date: 2026-02-08 19:46:53
+date: 2026-02-08 19:58:10
 status: pending_approval
 ---
 
@@ -208,6 +208,7 @@ Structural integrity mandates. No bare excepts. Strict typing.
 - [ ] **[quality]** `main_loop.py` → Fix bare except at line 253
 - [ ] **[quality]** `sovereign_fish.py` → Fix bare except at line 179
 - [ ] **[quality]** `sovereign_fish.py` → Fix bare except at line 209
+- [ ] **[quality]** `sovereign_fish.py` → Fix bare except at line 427
 - [ ] **[quality]** `tests/legacy_quarantine/test_install_persona.py` → Fix bare except at line 24
 - [ ] **[quality]** `sterileAgent/.agent/scripts/sv_engine.py` → Fix bare except at line 57
 - [ ] **[quality]** `sterileAgent/.agent/scripts/sv_engine.py` → Fix bare except at line 173
