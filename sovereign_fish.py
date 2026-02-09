@@ -669,6 +669,9 @@ class SovereignFish:
             1. You MUST generate a valid Pytest in the "test" field.
             2. The test must verify the Gherkin scenario.
             3. The test must be self-contained (imports, setup).
+            4. WINDOWS COMPATIBILITY: Use `sys.executable` for any subprocesses. Force `utf-8` encoding.
+            5. PREFER DIRECT CALLS: If the code has functions, import them and call them instead of using subprocesses.
+            6. MOCKING SAFETY: Do NOT attempt to set `.side_effect` on built-in functions (like `print` or `input`). Use `monkeypatch` for environment/stdout.
             
             PREVIOUS_ERROR (If any):
             {last_error}
