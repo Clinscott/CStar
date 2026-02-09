@@ -1,0 +1,11 @@
+
+Feature: Check Pro Model Availability
+
+  This feature verifies that the script `check_pro.py` successfully checks the availability of Gemini Pro models via the `google.genai` library.  It specifically ensures that the script attempts to generate content using a list of candidate models and reports success or failure for each.
+
+  Scenario: Script executes successfully and checks model availability
+    Given the script "check_pro.py" exists and has a valid Google API key configured
+    When the script "check_pro.py" is executed
+    Then the script initializes the google.genai client
+    And the script attempts to generate content with each model in the candidate list
+    And for each model, the script prints either "SUCCESS" or "FAILED" along with any exception message
