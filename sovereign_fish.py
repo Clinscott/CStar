@@ -269,10 +269,14 @@ class SovereignFish:
             raise ValueError("GOOGLE_API_KEY environment variable not set.")
             
         genai.configure(api_key=self.api_key)
-        # EMPIRE TDD Configuration
-        # Architect/Builder: Flash (Fast, Creative)
-        self.flash = genai.GenerativeModel('gemini-flash-latest')
-        # Reviewer: Pro (Reasoning, Critical)
+        # EMPIRE TDD Configuration (Budget Optimized)
+        
+        # 1. The Junior Engineer (Architect / Builder / Standard Reviewer)
+        # Cost: Low
+        self.flash = genai.GenerativeModel('gemini-1.5-flash')
+        
+        # 2. The Senior Engineer (Escalation / Emergency Fixer)
+        # Cost: High (Use sparingly)
         self.pro = genai.GenerativeModel('gemini-pro-latest')
 
     def run(self) -> bool:
@@ -284,8 +288,12 @@ class SovereignFish:
         if HUD.PERSONA == "ALFRED":
             HUD.persona_log("INFO", f"Swimming in {self.root}...")
         else:
-            HUD.persona_log("INFO", f"The Hunter enters {self.root}...")
+            HUD.persona_log("INFO", f"Inspecting {self.root.name}...")
         
+        # --- LAZY ARCHITECT GATE ---
+        if self._lazy_architect_gate():
+            return False
+            
         # 1. SCAN (The Hunt)
         # A. Check for Breaches (Annex) - FUNCTION (Code) & FORM (Docs/Tests)
         strategist = AnnexStrategist(self.root)
@@ -387,19 +395,52 @@ class SovereignFish:
             logging.warning(f"[{self.root.name}] [ROLLBACK] Fix failed verification.")
             return False
 
-    def _select_breach_target(self, breaches: list) -> dict:
+    def _select_breach_target(self, breaches: list):
         """Prioritizes breaches."""
-        # Priority 1: Linscott (Missing Tests)
-        for b in breaches:
-            if b['type'] == 'LINSCOTT_BREACH':
-                return b
-        
-        # Priority 2: Torvalds (Code Quality)
-        for b in breaches:
-            if b['type'] == 'TORVALDS_BREACH':
-                return b
+        # Simple FIFO or Priority Logic
+        # For now, just take the first one
+        return breaches[0]
+
+    def _lazy_architect_gate(self) -> bool:
+        """
+        Budget Optimization: Prevent The Architect from running on idle code.
+        Rule: If git status is clean AND last_run < 4 hours -> EXIT.
+        """
+        try:
+            # 1. Check Git Status
+            result = subprocess.run(
+                ["git", "status", "--porcelain"],
+                cwd=self.root,
+                capture_output=True,
+                text=True,
+                encoding='utf-8',
+                errors='replace'
+            )
+            is_clean = len(result.stdout.strip()) == 0
+            
+            # 2. Check Time
+            last_run_file = self.root / ".agent" / "sovereign_last_run"
+            last_run_time = 0
+            if last_run_file.exists():
+                try:
+                    last_run_time = float(last_run_file.read_text().strip())
+                except: pass
                 
-        return None
+            now = time.time()
+            hours_since = (now - last_run_time) / 3600
+            
+            if is_clean and hours_since < 4:
+                HUD.persona_log("INFO", f"Lazy Architect: System idle ({hours_since:.1f}h). Saving budget.")
+                return True # EXIT
+            
+            # Update Run Time
+            last_run_file.parent.mkdir(parents=True, exist_ok=True)
+            last_run_file.write_text(str(now))
+            return False # PROCEED
+            
+        except Exception as e:
+            HUD.persona_log("WARN", f"Lazy Architect Glitch: {e}")
+            return False
 
     def _forge_improvement(self, target: dict) -> bool:
         """
@@ -435,8 +476,9 @@ class SovereignFish:
         test_content = impl_data['test']
 
         # --- STEP 3: CRITIC (Review) ---
-        HUD.persona_log("INFO", "Consulting the Council (Gemini Pro)...")
-        review = self._consult_pro(target, gherkin_content, code_content, test_content)
+        # BUDGET OPTIMIZATION: Use Flash by default.
+        HUD.persona_log("INFO", "Consulting The Council (Flash)...")
+        review = self._consult_council(target, gherkin_content, code_content, test_content)
         
         if review['status'] == 'APPROVED':
             HUD.persona_log("SUCCESS", "The Council APPROVES.")
@@ -500,7 +542,14 @@ class SovereignFish:
         last_error = ""
         
         for attempt in range(max_retries + 1):
-            HUD.persona_log("INFO", f"Entering The Gauntlet (Attempt {attempt+1}/{max_retries+1})...")
+            
+            # ESCALATION PROTOCOL
+            # If we are on the final attempt, summon the Senior Engineer (Pro)
+            is_emergency = (attempt == max_retries)
+            model = self.pro if is_emergency else self.flash
+            model_name = "Gemini Pro (Senior)" if is_emergency else "Flash (Junior)"
+            
+            HUD.persona_log("INFO", f"Entering The Gauntlet (Attempt {attempt+1}/{max_retries+1}) using {model_name}...")
             
             prompt = f"""
             ACT AS: Senior Python Developer.
@@ -518,7 +567,7 @@ class SovereignFish:
             """
             
             try:
-                response = self.flash.generate_content(prompt)
+                response = model.generate_content(prompt)
                 if not response or not response.text:
                     last_error = "AI provided empty response"
                     continue
@@ -533,7 +582,7 @@ class SovereignFish:
             
             if not implementation_data:
                  last_error = "JSON Parsing Failed"
-                 continue_content = implementation_data.get('code')
+                 continue
             code_content = implementation_data.get('code')
             test_content = implementation_data.get('test')
             
@@ -572,7 +621,7 @@ class SovereignFish:
         
         return None
 
-    def _consult_pro(self, target, gherkin_content, code, test):
+    def _consult_council(self, target, gherkin_content, code, test):
         prompt = f"""
         ACT AS: The Council.
         GHERKIN: {gherkin_content}
@@ -582,7 +631,8 @@ class SovereignFish:
         OUTPUT: JSON with status (APPROVED/DISAPPROVED) and reason.
         """
         try:
-            response = self.pro.generate_content(prompt)
+            # Budget Optimization: Use Flash for standard reviews
+            response = self.flash.generate_content(prompt)
             if not response or not response.text:
                 return {"status": "DISAPPROVED", "reason": "Empty response from Council."}
             txt = response.text.strip()
