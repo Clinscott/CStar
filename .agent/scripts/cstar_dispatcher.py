@@ -81,19 +81,23 @@ class CorvusDispatcher:
             HUD.log("FAIL", f"Status Check Failed: {e}")
 
     def kill_sentinel(self) -> None:
-        """Terminates the Sentinel (main_loop.py) process."""
-        HUD.log("INFO", "Attempting to terminate Sentinel...")
+        """Terminates the Sentinel (main_loop.py) process with extreme prejudice."""
+        HUD.log("INFO", "Initiating START-9 (Nuclear Termination)...")
         try:
-            # Find and kill the process
-            ps_cmd = "Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*main_loop.py*' } | Stop-Process -Force -PassThru"
-            result = subprocess.run(["powershell", "-NoProfile", "-Command", ps_cmd], capture_output=True, text=True)
+            # Nuclear Option: WMIC Terminate
+            # "sudo sudo" equivalent for Windows
+            cmd = 'wmic process where "CommandLine like \'%main_loop.py%\'" call terminate'
+            result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
             
-            if result.stdout.strip():
-                HUD.log("SUCCESS", "Sentinel Terminated.")
+            if "ReturnValue = 0;" in result.stdout:
+                HUD.log("SUCCESS", "Sentinel neutralized.")
+            elif "No Instance(s) Available" in result.stdout or "No Instance(s) Available" in result.stderr:
+                HUD.log("WARN", "No targets found. The field is clear.")
             else:
-                HUD.log("WARN", "No running Sentinel found to terminate.")
+                HUD.log("INFO", "Nuclear command executed.", f"Result: {result.stdout.strip()}")
+                
         except Exception as e:
-            HUD.log("FAIL", f"Termination Failed: {e}")
+            HUD.log("FAIL", f"Termination Protocol Failed: {e}")
 
     def launch_sentinel(self) -> None:
         """Launches the Sentinel (main_loop.py) in a new detached terminal window."""
