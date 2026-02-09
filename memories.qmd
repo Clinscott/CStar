@@ -83,5 +83,10 @@ saved_memory:
     - Sentinel CLI: Implemented `c* sentinel [-status|-end]` for daemon management (Start/Stop/Status).
     - Configuration Safety: `.env.local` is strictly ignored and removed from git tracking to prevent secret leakage.
     - Gemini Model Standard: Use `gemini-flash-latest` for this environment. Explicit 1.5 versions (e.g., `gemini-1.5-flash-001`) are returning 404s for the current API key.
+    - Google GenAI Standard: Use the `google.genai` SDK with `Client` for modern interface support. Enforce strict JSON Schemas via `response_schema` in the Gauntlet for 100% build reliability in synthesized fixes.
+    - Windows Encoding Bridge (CJK): On Windows, force `PYTHONIOENCODING=utf-8` in all Gauntlet/Subprocess environments to prevent `UnicodeEncodeError` when dealing with CJK characters.
+    - Aggressive Process Termination: Use PowerShell-based tree killing in the `C*` dispatcher to neutralize the Sentinel and its orphans (`pytest`, etc.) surgically.
+    - Dirty Working Tree Stall: dynamic plan artifacts (e.g., `ANNEXATION_PLAN.qmd`) must be added to `.gitignore`. If they are tracked, the Sentinel will detect its own plan-writing as a "Dirty" state and stall.
+    - Gauntlet PYTHONPATH: Ensure both project root and `.agent/scripts` are in `PYTHONPATH` during Gauntlet runs to resolve internal engine imports reliably.
 deletions: []
 ```

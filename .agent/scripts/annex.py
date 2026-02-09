@@ -58,6 +58,12 @@ class AnnexStrategist:
             return True
         if ".corvus_quarantine" in parts:
             return True
+        # [ODIN] Tests do not require tests. Temp gauntlet is ephemeral.
+        if "tests" in parts or "temp_gauntlet" in parts:
+            return True
+        # Ignore hidden files/dirs
+        if any(p.startswith(".") for p in parts):
+            return True
         return False
 
     def _audit_code(self, source: Path):
@@ -66,8 +72,10 @@ class AnnexStrategist:
         
         # A. Linscott Standard: Where is the test?
         test_path = self.root / "tests" / f"test_{source.stem}.py"
-        # Also check tests/empire/ or strict mirror if desired, but flat 'tests/' is standard
-        if not test_path.exists():
+        # [ODIN] Also check Empire TDD path
+        empire_test_path = self.root / "tests" / "empire_tests" / f"test_{source.stem}_empire.py"
+        
+        if not test_path.exists() and not empire_test_path.exists():
             # Try recursive mirror: src/foo.py -> tests/src/test_foo.py
             mirror_test = self.root / "tests" / rel_path.parent / f"test_{source.stem}.py"
             if not mirror_test.exists():

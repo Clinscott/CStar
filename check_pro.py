@@ -1,39 +1,44 @@
-import google.generativeai as genai
+from google import genai
 import os
 from dotenv import load_dotenv
 from pathlib import Path
 
-# Load env from .env.local
-env_local = Path(__file__).parent / ".env.local"
-if env_local.exists():
-    load_dotenv(dotenv_path=env_local)
-else:
-    load_dotenv()
+def main():
+    """
+    Initializes the genai client, iterates through a list of candidate models,
+    and attempts to generate content to check for their availability.
+    """
+    # Load env from .env.local
+    env_local = Path(__file__).parent / ".env.local"
+    if env_local.exists():
+        load_dotenv(dotenv_path=env_local)
+    else:
+        load_dotenv()
 
-api_key = os.getenv("GOOGLE_API_KEY")
-if not api_key:
-    print("API Key not found")
-    exit(1)
+    api_key = os.getenv("GOOGLE_API_KEY")
+    if not api_key:
+        print("API Key not found")
+        return 1 # Return an error code for testability
 
-genai.configure(api_key=api_key)
+    print("Initializing google.genai Client...")
+    client = genai.Client(api_key=api_key)
 
-print("Checking available models...")
-try:
-    models = [m.name for m in genai.list_models()]
-    for m in models:
-        print(f"- {m}")
-        
+    candidates = ["gemini-2.0-flash", "gemini-2.5-pro", "gemini-2.0-flash-lite-preview-02-05"]
+
     print("\nAttempting generation with candidate models:")
-    candidates = ["gemini-1.5-pro", "gemini-pro", "gemini-1.5-pro-latest", "gemini-pro-latest"]
-    
     for model_name in candidates:
         print(f"Testing {model_name}...", end=" ")
         try:
-            model = genai.GenerativeModel(model_name)
-            response = model.generate_content("Hello")
+            # This network call will be mocked during tests
+            response = client.models.generate_content(
+                model=model_name,
+                contents="Hello, are you online?"
+            )
             print("SUCCESS")
         except Exception as e:
             print(f"FAILED ({e})")
-            
-except Exception as e:
-    print(f"Error listing/testing: {e}")
+    
+    return 0 # Return success code
+
+if __name__ == "__main__":
+    main()

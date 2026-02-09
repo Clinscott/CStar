@@ -1,0 +1,18 @@
+
+Feature: CJK Check
+
+  Scenario: Successful CJK Query and Result Display
+    Given the SovereignVector is initialized with 'thesaurus.qmd', '.agent/corrections.json', and '.agent/scripts/stopwords.json'
+    And the SovereignVector has loaded core skills and built the index
+    When I search for the CJK term "部署"
+    Then the search should return results
+    And the output should display the query "部署"
+    And the output should display the score of the top result
+    And the output should display the trigger of the top result
+
+  Scenario: No Results for CJK Query
+    Given the SovereignVector is initialized with 'thesaurus.qmd', '.agent/corrections.json', and '.agent/scripts/stopwords.json'
+    And the SovereignVector has loaded core skills and built the index
+    When I search for a non-existent CJK term "不存在的词语"
+    Then the search should return no results
+    And the output should display "Query: 不存在的词语 -> No results"

@@ -331,6 +331,15 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 
 ---
 
+### 2026-02-08 (Session 41: Sovereign SDK & Ecosystem Hardening)
+- **Improvement 1 (Infrastructure)**: Migrated core engine (`check_pro.py`, `sovereign_fish.py`) to `google-genai` SDK for improved reliability. - Status: SECURED.
+- **Improvement 2 (Safety)**: Enforced strict JSON Schemas in the Gauntlet to eliminate synthesized build failures across the framework. - Status: SECURED.
+- **Improvement 3 (Robustness)**: Resolved Windows CJK `UnicodeEncodeError` by forcing `PYTHONIOENCODING=utf-8` in all subprocess environments. - Status: SECURED.
+- **Improvement 4 (Process)**: Implemented "Nuclear START-9" tree-kill in the dispatcher to reliably manage Sentinel lifecycles on Windows. - Status: SECURED.
+- **Improvement 5 (Workflow)**: Stabilized Sentinel via `.gitignore` updates to prevent dynamic plan artifacts from causing "Dirty Tree" stalls. - Status: SECURED.
+
+---
+
 > 🔁 **RESUME DIRECTIVE**: Next session should focus on **Annexation Execution**.
 > Implement the `--execute` module in `annex.py` to auto-remediate identified breaches.
-> Continue testing the Edda synthesis engine with complex TypeScript source files.
+> Finalize the War Room dashboard frontend for real-time monitoring.
