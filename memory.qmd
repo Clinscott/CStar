@@ -1,0 +1,17 @@
+# Corvus Star Memory
+
+## System Patterns
+- **Intent Resolution**: Is highly sensitive to `GLOBAL:` prefixing and strict `Activation Words` formatting.
+- **Configuration**: `pyproject.toml` is the law. All tools must respect it.
+- **Testing**: `fishtest.py` is the gold standard. Unit tests are supporting evidence.
+- **Identity (Odin Lore)**: Use **Huginn & Muninn** for the daemon loop, **Heimdall** for security/auditing, and **Muninn** for incremental improvements.
+
+## Active Context
+- **Project Structure**: `src/` is the core. `.agent/` is configuration. `tests/` is verification.
+- **Current Phase**: Post-Stabilization (Phase 5 Complete). Ready for new feature development.
+
+## Lessons Learned
+- **Path Resolution**: Always use absolute paths derived from `__file__` or `PROJECT_ROOT` to avoid CWD ambiguity.
+- **Skill Loading**: Explicitly check for `skills_db` in `sv_engine.py` to support global skills.
+- **Documentation**: Keep `FOLDER_MAP.qmd` updated; it saves time during navigation.
+- **Terminal Encoding**: Windows requires `chcp 65001` + `[Console]::OutputEncoding = UTF8` in PowerShell profile for proper box-drawing characters. Python needs `-X utf8` flag and `PYTHONIOENCODING=utf-8`.

@@ -3,6 +3,15 @@
 .env
 .env.local
 
+# Quarantine (deprecated files)
+.corvus_quarantine/
+
+# Test outputs (ephemeral)
+*_output.txt
+*_results*.txt
+detail_fails.txt
+final_verify.txt
+
 # Python
 __pycache__/
 *.py[cod]

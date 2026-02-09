@@ -1,8 +1,9 @@
-import pytest
-import sys
 import os
-import subprocess
 import re
+import subprocess
+import sys
+
+import pytest
 
 # Define the source code for the mock engine necessary for subprocess execution
 MOCK_SOURCE_SUCCESS = """

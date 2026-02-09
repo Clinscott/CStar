@@ -78,22 +78,36 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **START-9 Protocol**: Implemented aggressive PS tree-kill for surgical Sentinel termination. [x]
 - [x] **Git Policy**: Resolved "Dirty Working Tree" stall by ignoring dynamic plan artifacts. [x]
 
-## ⏭️ Start Here Next (Execution & Expansion)
+### 24. Operation Yggdrasil: The Great Reorganization (Session 42)
+- [x] **Audit & Blueprint**: Completed a comprehensive project-wide file audit and mapping. [x]
+- [x] **Structural Migration**: Migrated all 21 core Python scripts to categorized `src/` subdirectories. [x]
+- [x] **CLI Dispatcher Update**: Updated `cstar.ps1` and `cstar_dispatcher.py` to reflect new paths. [x]
+- [x] **Import Harmonization**: Updated imports in all core modules to use absolute `src.` prefixes. [x]
+- [x] **Local Skill Relocation**: Relocated skills to `src/skills/local/` and updated discovery logic. [x]
+- [x] **Clean Root**: Purged the project root of legacy scripts, backups, and temporary test results. [x]
 
-### 1. Annexation Execution
-- [ ] **Execution Module**: Implement `--execute` in `annex.py` to auto-remediate breaches.
-- [ ] **Rollback Safety**: Implement a reversal protocol for failed annexation attempts.
+### 25. Post-Refactor Verification & Terminal Fix (Session 43)
+- [x] **Benchmark Verification**: Ran Fishtest N=1000, confirmed 99.9% accuracy at 0.42ms latency. [x]
+- [x] **Root Cleanup**: Removed 8 `.bak` files, archived 13 test outputs to `logs/archive/`. Root: 47→22 files. [x]
+- [x] **Sentinel Audit**: Fixed 169 I001 breaches (import sorting), 4 issues in `compiler.py`. [x]
+- [x] **Terminal Encoding**: Permanent UTF-8 fix in PowerShell profile, `cstar.ps1`, and `ui.py`. [x]
 
-### 2. Edda Synthesis Evolution
+### 26. The Odin Lore Restoration (Session 44)
+- [x] **Lore Rebranding**: Replaced "Sentinel" and "Sovereign Fish" with **Huginn & Muninn** (Daemon) and **Heimdall** (Auditor). [x]
+- [x] **Dispatcher Sync**: Updated `cstar` dispatcher to handle `ravens`, `huginn`, and `heimdall` commands. [x]
+- [x] **Logic Polishing**: Renamed `SovereignFish` class in `sovereign_fish.py` to `Muninn` for architectural consistency. [x]
+- [x] **Validation**: Verified system integrity with Fishtest N=1000 (99.9% accuracy). [x]
+
+## ⏭️ Start Here Next (Strategic Expansion)
+
+### 1. The Raven's Eye (Enhanced Monitoring)
+- [ ] **Huginn's Report**: Implement a periodic summaries generator that uses `Muninn`'s memory to report daily changes to a `SITREP.qmd`.
+- [ ] **Gjallarhorn Signaling**: Implement a notification system (e.g., webhook or specialized log) for Heimdall when CRITICAL breaches are detected.
+
+### 2. Annexation Execution
+- [ ] **Execution Module**: Implement `--execute` in `annex.py` to auto-remediate breaches identified by Heimdall.
+- [ ] **Rollback Safety**: Finalize the reversal protocol for failed annexation attempts during auto-remediation.
+
+### 3. Edda Synthesis Evolution
 - [ ] **Multi-Language Support**: Extend `edda.py` to synthesize API docs for TypeScript and JavaScript.
-- [ ] **Visual Theme**: Create a dedicated Quarto theme for synthesized API documentation.
 
-### 3. Federated War Room
-- [ ] **Conflict Resolution**: Implement the multi-agent tactical display for the Warlord.
-- [ ] **Artifact Extraction**: Export Genetic Manifests to Mimir's Eye.
-
-### Documentation Conversion Protocol
-- [x] **Planning**: Define scope and preservation strategy with User. [x]
-- [x] **Implementation**: Develop `Invoke-DocumentationConversion` logic (`edda.py` & `annex.py`). [x]
-- [x] **Integration**: Bind methodology to `install.ps1` (ODIN option). [x]
-- [x] **Verification**: Test on mock project with `fishtest`. [x]

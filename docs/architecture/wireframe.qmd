@@ -1,0 +1,174 @@
+# Wireframe Maintenance Instructions
+
+The `wireframe.qmd` file acts as the project's map. It provides future agents and developers with an immediate understanding of the project's structure, component locations, and key logic.
+
+## Goal
+Maintain a searchable, accurate map of the project's UI and service architecture.
+
+## Maintenance Rules
+1. **Document Every New Component**: Whenever you create a new UI component or major service, add its entry to `wireframe.qmd`.
+2. **File Paths**: Use absolute or clear relative paths for every entry so they are easily locatable.
+3. **Prominent Functions**: For each component, explicitly name and describe 2-3 key functions.
+   - *Example*: `handleSubmit()`: Validates registration form and triggers API call.
+4. **Project Directory Structure**: Keep a high-level list of key directories and their purposes.
+5. **No Placeholders**: If a component exists, it must be documented. If it's deleted, remove it from the map.
+
+# Project Map / Wireframe
+
+## 📂 Directory Structure
+- `.agent/scripts`: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts` - SovereignVector Entry point and CLI Utilities.
+- `.agent/scripts/engine`: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/engine` - Modular Brain (Iron Core): `vector.py`, `dialogue.py`, `cortex.py`.
+- `.agent/skills`: `c:/Users/Craig/Corvus/CorvusStar/.agent/skills` - Specialized Agent Skills (SKILL.qmd definitions).
+- `.agent/workflows`: `c:/Users/Craig/Corvus/CorvusStar/.agent/workflows` - Core AgLng Workflows (lets-go, run-task, etc.)
+- `sterileAgent`: `c:/Users/Craig/Corvus/CorvusStar/sterileAgent` - Generic template repository for new project initialization.
+- `skills_db`: `c:/Users/Craig/Corvus/CorvusStar/skills_db` - Global Skill Registry for proactive framework recommendations.
+- `skills`: `c:/Users/Craig/Corvus/CorvusStar/skills` - (Optional) Project-specific custom skills.
+- `CorvusKnowledge`: `c:/Users/Craig/Corvus/CorvusKnowledge` - **Mimir's Eye**. The Central Knowledge Core for all Corvus instances. Stores global skills, dialogue, and memories.
+
+## 🏗️ Core Components
+
+### SovereignVector Engine
+- **Path**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/sv_engine.py` (`SovereignEngine`) & `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/engine/` (Core).
+- **Description**: High-performance local TF-IDF vector matching script. Sub-modules handle mathematics (`vector.py`), persona retrieval (`dialogue.py`), and RAG intelligence (`cortex.py`).
+- **Key Functions**:
+    - `search(query)`: Maps natural language to local and global (proactive) skill triggers.
+    - `expand_query()`: Handles synonyms and stemming via `thesaurus.qmd`.
+    - `propose_immediate_install()`: Generates JIT installation commands for high-confidence global matches (>0.85).
+    - **Proactive Recommendation**: Scours Global Registry if `config.json` provides `FrameworkRoot`.
+    - **Correction Path**: Short-circuits vector search if query matches `c:/Users/Craig/Corvus/CorvusStar/.agent/corrections.json`. Returns score of 1.1.
+    - **Backbone**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/ui.py` is the centralized UI library for all scripts (HUD, Sparklines, Boxes). Hardened with strict typing, Google-style docstrings, and dynamic auto-sensing width (40-120 cols).
+    - **Optimization**: `engine/vector.py` implements an **LRU Neural Cache** for query expansion and vectorization, achieving Rank A search performance (0.065ms). Now supports **Unicode/CJK** scripts for global intent detection.
+
+### Testing Protocol (Empire TDD & Fishtest)
+- **Standard**: **The Empire TDD Framework**. All new logic MUST be verified via `.qmd` contracts enforcing GIVEN-WHEN-THEN tripartite logic.
+    - **ODIN**: Enforces the "Iron Contract" (Strict compilation and Execution).
+    - **ALFRED**: "The Most Helpful One". Provides advisory warnings and implementation guidance for all testing frameworks.
+- **Path**: `c:/Users/Craig/Corvus/CorvusStar/tests/empire/` (Active), `c:/Users/Craig/Corvus/CorvusStar/tests/legacy_quarantine/` (Decommissioned).
+- **Core Components**:
+    - **Compiler**: `compiler.py` - Translates `.qmd` contracts into executable Python unit tests.
+    - **Stabilizer**: `stabilizer.py` - Enforces deterministic execution for async operations.
+    - **Fishtest**: `fishtest.py` - Statistical semantic validator for intent mapping.
+- **Duality Implementation**:
+    - **ODIN (The Crucible)**: Success is Survival. No regressions allowed.
+    - **ALFRED (Integrity Briefing)**: Success is Insight. Suggests improvements and visualizes coverage.
+- **Verification Parameters**:
+    - `min_score`: Minimum confidence threshold (Standard: 0.85).
+    - `expected_mode`: Resolution logic type (`vector` or `correction`).
+    - `is_global`: Context source verification.
+
+### Skill Management
+- **Path**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/install_skill.py`
+- **Description**: Utility to deploy skills from the Global Registry to the local project.
+- **Key Functions**:
+    - `install()`: Copies skill files and registers them.
+    - `scan_skill()`: Checks for security risks.
+- **The Synapse**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/synapse_sync.py` - **Synapse Class**. Bidirectional sync (Push/Pull) between local `skills_db` and `CorvusKnowledge`.
+    - **Key Functions**:
+        - `Synapse.push()`: Uploads local skills/corrections to Mimir's Eye. Supports **Knowledge Extraction** (auto-detects corrections from project data).
+        - `Synapse.pull()`: Downloads global skills/corrections from Mimir's Eye.
+        - **Multi-Remote**: Supports `--remote` alias selection for targeting different Knowledge Cores (e.g., primary, team).
+        - **Security Model**: 
+            - **Authentication**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/synapse_auth.py` - **The Neural Handshake**. Implements SHA-256 challenge-response ZKP for persona verification.
+            - **Rate Limiting**: 10 push attempts/hr with 30-min lockout.
+            - **The Gatekeeper**: Validates Python syntax and structural integrity (`ruff`) before pushing.
+            - **Internal Scanner**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/security_scan.py` - **Heimdall Scanner**. Multi-language (Py/JS/TS/React) threat detection for subprocess injection and XSS patterns.
+            - **The Ledger**: Comprehensive audit logging in `.synapse_audit.log`.
+- **The Skill Forge**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/skill_forge.py` - **Capability Alchemist**. Synthesizes new Python skills using RAG-enriched archetypes.
+    - **Archetypes**: `test`, `workflow`, `scanner`, `utility`.
+    - **Logic**: Queries **Cortex** for documentation context, validates safety, and stages code in `.agent/skills/drafts/`.
+- **Persona Switcher**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/set_persona.py` - **PersonaManager class** to toggle between ODIN and ALFRED modes.
+- **Persona Strategies**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/personas.py`
+    - **ODIN Strategy**: Dominion & Enforcement. Ruthless standardization of headers, AgLng compliance, and testing mandates.
+    - **ALFRED Strategy**: Service & Facilitation. Provisioning of backups, adaptive structural learning, and humble refinement.
+- **Dialogue Database**: `c:/Users/Craig/Corvus/CorvusStar/dialogue_db/` - Markdown corpus for vector-based speech generation (`odin.qmd`, `alfred.qmd`). Implements Lore Alignment (Hávamál & Pennyworth Protocols).
+- **Thematic Naming**:
+    - **ODIN**: *Mimir's Well* (Engine), *Heimdall's Vigil* (Security), *Huginn & Muninn* (Archive).
+    - **ALFRED**: *The Brain* (Engine), *The Perimeter* (Security), *The Archive* (Archive).
+
+### 🌓 The Great Duality (Operational Architecture)
+The framework's soul (The Linscott Standard) manifests through two distinct operational minds:
+1. **Compliance (ODIN)**: Focuses on **Structural Rigidity**. Operates via "Decrees" and "Dominion Audits". Overwrites for Standard.
+2. **Service (ALFRED)**: Focuses on **Adaptive Support**. Operates via "Briefings" and "Manor Polish". Backups for Safety.
+
+### Corvus Star Workflows
+- **Path**: `c:/Users/Craig/Corvus/CorvusStar/.agent/workflows/[name].qmd`
+- **Description**: Markdown execution plans triggered by C*.
+- **Key Files**:
+    - `plan.qmd`: `c:/Users/Craig/Corvus/CorvusStar/.agent/workflows/plan.qmd` - **The Planning Protocol**. Strict "Interrogation" loops and "Subconscious Voice" architecture.
+    - `execute.qmd`: `c:/Users/Craig/Corvus/CorvusStar/.agent/workflows/execute.qmd` - **The Builder**. Turns plans into code + tests.
+    - `test.qmd`: `c:/Users/Craig/Corvus/CorvusStar/.agent/workflows/test.qmd` - **The Auditor**. Verifies code integrity and Fishtest status.
+    - `SOVEREIGNFISH_LEDGER.qmd`: `c:/Users/Craig/Corvus/CorvusStar/SOVEREIGNFISH_LEDGER.qmd` - Protocol of incremental excellence + Session Log. Supports **ODIN: Dominion Audit** (SECURED) and **ALFRED: Manor Polish** (IMPROVED).
+    - `wrap-it-up.qmd`: `c:/Users/Craig/Corvus/CorvusStar/.agent/workflows/wrap-it-up.qmd` - Session finalization and documentation logic.
+
+### Neural Trace Tools (Triple Threat)
+- **Trace Visualizer**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/trace_viz.py`
+    - **Identity Rendering**: Dynamic ASCII/Color shifting (Red for Odin, Cyan for Alfred).
+    - **War Room**: Logic to compare traces and detect "Faction Wars" (Odin vs Alfred conflicts).
+    - **Key Functions**:
+        - `render_trace()`: Displays visual representation of a trace.
+        - `render_neural_path()`: Visualizes the chronological causal chain of activated triggers.
+        - `compare_traces()`: Analyzes differences between traces.
+- **Trace Compiler**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/compile_session_traces.py` - Aggregates JSON traces into `.agent/TRACE_REPORT.qmd`.
+- **Code Sentinel**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/code_sentinel.py` - **CodeSentinel class**. Structural integrity scanner powered by **Ruff**. Supports Persona-themed output and CLI-driven automated repair (`--fix`).
+- **Debt Visualizer**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/debt_viz.py` - **DebtAnalyzer class**. Structural debt scanner powered by **Radon**. Visualizes Cyclomatic Complexity "War Zones" in ASCII HUD.
+- **Global Registry**: `c:/Users/Craig/Corvus/CorvusStar/skills_db/` - Central repository for `git-assistant`, `codestats`, `agent-health`, `noise`, and more.
+    - **Noise Skill**: `c:/Users/Craig/Corvus/CorvusStar/skills_db/noise/SKILL.qmd` - **The Intent Sink**. Provides a target for non-technical adversarial traps (e.g., "coffee", "baby") to prevent false-positive triggers in core workflows.
+
+### Fishtest Scaling & Federation Tools
+- **Test Generator**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/generate_tests.py` - Combinatorial generator for producing N-scale synthetic datasets (`fishtest_N1000.json`).
+- **Trace Ingest**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/merge_traces.py` - Core script for merging external agent traces. Implements "Real User Wins" conflict resolution.
+- **Network Watcher**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/network_watcher.py` - "The Crucible". Autonomously watches `c:/Users/Craig/Corvus/CorvusStar/mock_project/network_share`, ingests traces, runs fishtest, and Commits (Processed) or Purges (Quarantine) based on result. Updated with **Law of Latency** to reject traces causing >5ms regression.
+- **Latency Benchmark**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/latency_check.py` - Optimized utility for measuring engine startup performance.
+- **Precision Profiler**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/sentinel_perf.py` - High-resolution engine profiler (Rank A-F) targeting core search and tokenization bottlenecks.
+- **Neural Overwatch**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/overwatch.py` - Real-time terminal dashboard for monitoring the Federated Network. Features visual **Security Heatmaps** and live **Pulse Logs** of neural trigger events.
+- **N=1000 Robustness (Phase 2)**:
+    - **Phase 2 Generator**: `c:/Users/Craig/Corvus/CorvusStar/generate_fishtest_phase2.py` - Creates adversarial traps and ambiguity clusters for engine stress-testing.
+    - **Phase 2 Debugger**: `c:/Users/Craig/Corvus/CorvusStar/debug_fishtest_phase2.py` - High-fidelity debugging utility for Phase 2 datasets.
+    - **Engine Diagnostics**: `c:/Users/Craig/Corvus/CorvusStar/diag_engine.py` - Investigates thesaurus ingestion and vector distance for specific technical keywords.
+    - **Thesaurus Sanity**: `c:/Users/Craig/Corvus/CorvusStar/sanitize_thesaurus.py` - Rebuilds the `thesaurus.qmd` from a sanitized, high-fidelity cluster set to eliminate cross-contamination.
+- **Ingest Verification**: `c:/Users/Craig/Corvus/CorvusStar/tests/test_merge_traces.py` - Permanent regression suite for ingestion logic.
+- **UI Verification**: `c:/Users/Craig/Corvus/CorvusStar/tests/test_ui.py` - Unit tests for the shared UI library.
+- **Network Share**: `c:/Users/Craig/Corvus/CorvusStar/mock_project/network_share/` - Simulated folder for multi-agent trace exchange.
+- **Crucible Directories**: `c:/Users/Craig/Corvus/CorvusStar/.agent/traces/processed` (Safe Haven), `c:/Users/Craig/Corvus/CorvusStar/.agent/traces/quarantine` (Purged Weakness).
+
+## 🌐 Federated Learning Infrastructure
+The framework supports cross-agent intelligence sharing via the "Federated Network" protocol.
+
+### Real-Time Ingestion (The Crucible)
+- **Watcher**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/network_watcher.py`
+    - Monitors `network_share/` for incoming JSON traces.
+    - Implements an atomic "Trial and Rollback" cycle:
+        1. **Stage**: Moves trace to staging for isolation.
+        2. **Merge**: Ingests into `fishtest_data.json` via `merge_traces.py`.
+        3. **Ordeal**: Executes `fishtest.py` to verify accuracy integrity.
+        4. **Verdict**: If pass, commits data. If fail, rolls back `fishtest_data.json` and purges trace.
+- **Rejection Ledger**: `c:/Users/Craig/Corvus/CorvusStar/.agent/traces/quarantine/REJECTIONS.qmd`
+    - Audit trail of failed ingestion attempts, including persona and reason (e.g., Regression, Format Error, Latency Breach).
+
+### Odin Protocol: Federated Warlords (Game)
+- **Path**: `c:/Users/Craig/Corvus/CorvusStar/odin_protocol/`
+- **Core Loop**: `main.py` - Orchestrates the encounter/mutation cycle. Features **Alfred's Briefing** (detailed tactical analysis with turn-based cooldown).
+- **Engine**:
+    - `models.py`: Defines `Chromosome`, `UniverseState`, and `Encounter`.
+    - `logic.py`: Handles **The Ripple Effect** via a deterministic `SYNERGY_MAP` (+10%/-15% interactions) for all 24 traits. Calculates `calculate_effective_stats` with strict Linscott typing.
+    - `rng.py`: **TacticalRNG**. Encapsulated random number generation for deterministic testing and cryptographic security.
+    - `adjudicator.py`: **The Hive Executioner**. Background queue processor for pending planetary actions. Implements **Nodal Persistence** (node-locking) and handles retreat penalties.
+    - `gm_client.py`: LLM-powered scenario generator. Incorporates **Seeded Uniqueness** based on the Git instance hash.
+    - `scenarios.py`: Rule-based fallback generator for offline play, seeded for deterministic world-building.
+- **Persistence**: `persistence.py` - **The Immutable Timeline**. Automatically commits state changes to Git with descriptive messages and state hashes.
+- **Key Features**:
+    - **Weighted Die Cast**: Probabilistic tactical adjudication. Success is the ratio of Warlord Rating vs. Threshold, modified by Gene Seed alignment.
+    - **Nodal Campaigns**: Players are locked into planetary nodes. Retreating incurrs a 50% Force penalty and progress loss.
+    - **Federated Seeding**: Uses `get_federated_seed()` (Git Hash) to ensure every project instance has a unique, persistent universe.
+    - **Alfred's Briefing**: Infrequent, detailed reports using the Synergy Map to warn of genetic vulnerabilities.
+    - **Mutation Screen**: Interactive CLI UI for upgrading genetic traits using "Mutation Credits" earned from conquest.
+
+### Conflict Resolution
+- **Logic**: Implemented in `merge_traces.py`.
+- **Primary Rule**: **Real User Wins**. External trace data (real-world usage) overrides existing synthetic test cases or older traces.
+- **Persistence**: Successful merges are archived in `c:/Users/Craig/Corvus/CorvusStar/.agent/traces/processed` to prevent re-ingestion loops.
+
+## 🏁 SovereighFish Campaign (N=1000)
+- **Roadmap**: `c:/Users/Craig/Corvus/CorvusStar/.agent/CAMPAIGN_IMPLEMENTATION_PLAN.qmd` - Master roadmap for 1,000 architectural improvements.
+- **Ledger**: `c:/Users/Craig/Corvus/CorvusStar/SOVEREIGNFISH_LEDGER.qmd` - Chronological session logs and progress tracking.
+- **Standard**: Linscott N=1000 Mandate (Accurate, Fast, Secure).

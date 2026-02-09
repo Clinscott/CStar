@@ -1,13 +1,14 @@
-from typing import Dict, Any, List
 import json
 import os
 import sys
+from typing import Any, Dict, List
 
 # [ALFRED] Ensuring the path is correct for imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
-from odin_protocol.engine.models import UniverseState, Chromosome
+from odin_protocol.engine.models import Chromosome, UniverseState
 from odin_protocol.engine.scenarios import SovereignScenarioEngine
+
 
 def create_warlord(tier: str) -> UniverseState:
     """
