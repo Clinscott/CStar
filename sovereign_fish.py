@@ -273,7 +273,7 @@ class SovereignFish:
         
         # 1. The Junior Engineer (Architect / Builder / Standard Reviewer)
         # Cost: Low
-        self.flash = genai.GenerativeModel('gemini-1.5-flash')
+        self.flash = genai.GenerativeModel('gemini-flash-latest')
         
         # 2. The Senior Engineer (Escalation / Emergency Fixer)
         # Cost: High (Use sparingly)
