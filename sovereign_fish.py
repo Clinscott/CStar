@@ -730,7 +730,23 @@ class SovereignFish:
                     return implementation_data
                 else:
                     HUD.persona_log("WARN", "The Gauntlet: FAILED.")
-                    last_error = (result.stdout + result.stderr).replace("\n", " | ")[-500:] 
+                    
+                    # Enhanced Logging
+                    error_output = (result.stdout + result.stderr)
+                    last_error = error_output.replace("\n", " | ")[-500:] # Keep short for prompt context
+                    
+                    # Log full error to file for diagnosis
+                    fail_log = self.root / "tests" / "empire_tests" / "gauntlet_failures.log"
+                    try:
+                        fail_log.parent.mkdir(parents=True, exist_ok=True)
+                        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+                        log_entry = f"\n\n[{timestamp}] [FILE: {target['file']}] [ATTEMPT: {attempt+1}]\n{'-'*40}\n{error_output}\n{'-'*40}\n"
+                        with open(fail_log, "a", encoding="utf-8") as f:
+                            f.write(log_entry)
+                        HUD.persona_log("INFO", f"Error details logged to {fail_log.name}")
+                    except Exception as log_err:
+                        print(f"Failed to write failure log: {log_err}")
+
                     current_code = code_content 
                     continue
             except Exception as e:
