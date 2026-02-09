@@ -21,6 +21,17 @@ from colorama import Fore, Style, init
 # Initialize Colorama
 init(autoreset=True)
 
+# Load Environment Variables from .env or .env.local
+try:
+    from dotenv import load_dotenv
+    env_local = Path(__file__).parent / ".env.local"
+    if env_local.exists():
+        load_dotenv(dotenv_path=env_local)
+    else:
+        load_dotenv()
+except ImportError:
+    pass
+
 # Add .agent/scripts to path to import annex
 sys.path.append(os.path.join(os.path.dirname(__file__), ".agent", "scripts"))
 
@@ -110,16 +121,6 @@ class CampaignStrategist:
             # Strike through the content, keeping the pipes
             # Simpler: Just wrap the whole line content (excluding outer pipes) in ~~
             # Or regex replace content. 
-            # Safe strategy: Replace "| content |" with "| ~~content~~ |"
-            # But naive approach: just wrap the inner text of columns? 
-            # Easiest: Wrap the Description column? 
-            # Standard markdown strikethrough for whole row usually requires striking each cell or the whole line.
-            # Let's strike the Description column to indicate done.
-            
-            # Reconstruct the line with struck description
-            # This is complex with regex. 
-            # Alternative: Prepend `~~` and append `~~` to the Description field.
-            
             parts = line.split("|")
             # Index 0 is empty (before first pipe), 1 is ID, 2 is File, 3 is Target, 4 is Type, 5 is Description
             if len(parts) >= 6:
@@ -129,12 +130,6 @@ class CampaignStrategist:
                    new_line = "|".join(parts)
                    lines[idx] = new_line
                    self.plan_path.write_text("\n".join(lines), encoding='utf-8')
-
-
-
-# ==============================================================================
-# 🛡️ THE LORE STRATEGISTS
-# ==============================================================================
 
 
 # ==============================================================================
@@ -242,7 +237,6 @@ class VisualStrategist:
                 
             content = tsx_file.read_text(encoding='utf-8')
             # Regex for <button ... className="..." ...> that lacks 'hover:'
-            # Simple heuristic
             lines = content.splitlines()
             for i, line in enumerate(lines):
                 if "<button" in line and "className" in line and "hover:" not in line:
@@ -251,13 +245,9 @@ class VisualStrategist:
                         "file": str(tsx_file.relative_to(self.root)),
                         "action": f"Add hover state to button at line {i+1}",
                         "line": i+1,
-                        "severity": "MEDIUM" # Form is important but not Critical
+                        "severity": "MEDIUM"
                     })
                     
-        return targets
-
-
-
         return targets
 
 
@@ -340,24 +330,13 @@ class SovereignFish:
         self.root = Path(target_path).resolve()
         self.api_key = os.getenv("GOOGLE_API_KEY")
         
-        # NOTE: HUD.PERSONA is set by main_loop.py or defaults to ALFRED in ui.py
-        # We assume it's set correctly or we could reload it here if run standalone.
-        # But for "The One Voice" pattern, we rely on the global HUD state.
-        
         if not self.api_key:
             raise ValueError("GOOGLE_API_KEY environment variable not set.")
             
-        # [MIGRATED] google-genai Client
         self.client = genai.Client(api_key=self.api_key)
         
-        # EMPIRE TDD Configuration (Budget Optimized)
-        
-        # 1. The Junior Engineer (Architect / Builder / Standard Reviewer)
-        # Cost: Low (Gemini 2.0 Flash)
+        # EMPIRE TDD Configuration
         self.flash_model = 'gemini-2.0-flash'
-        
-        # 2. The Senior Engineer (Escalation / Emergency Fixer)
-        # Cost: High (Gemini 2.5 Pro)
         self.pro_model = 'gemini-2.5-pro'
         
         # 3. The Watcher (Anti-Oscillation)
@@ -368,34 +347,24 @@ class SovereignFish:
         Executes one cycle of the Sovereign Fish Protocol.
         Returns True if a change was made and verified, False otherwise.
         """
-        # Determine Voice for logging
         if HUD.PERSONA == "ALFRED":
             HUD.persona_log("INFO", f"Swimming in {self.root}...")
         else:
             HUD.persona_log("INFO", f"Inspecting {self.root.name}...")
         
-        # --- LAZY ARCHITECT GATE (DISABLED) ---
-        # if self._lazy_architect_gate():
-        #     return False
-            
         # 1. SCAN (The Hunt)
-        # A. Check for Breaches (Annex) - FUNCTION (Code) & FORM (Docs/Tests)
         strategist = AnnexStrategist(self.root)
         strategist.scan()
         
-        # B. Check for Imperfections - BEAUTY (Visuals)
         beauty_expert = VisualStrategist(self.root)
         beauty_targets = beauty_expert.scan()
         
-        # C. Check for Saga Gaps - EDDA (Docs)
         edda = EddaStrategist(self.root)
         edda_targets = edda.scan()
         
-        # D. Check for Runes - RUNECASTER (Types)
         rune = RuneCasterStrategist(self.root)
         rune_targets = rune.scan()
         
-        # E. Check for Weakness - TORVALDS (Complexity)
         torvalds = TorvaldsStrategist(self.root)
         torvalds_targets = torvalds.scan()
 
@@ -452,8 +421,7 @@ class SovereignFish:
             else:
                 HUD.persona_log("SUCCESS", "The waters are clear. Heimdall sees no threats.")
             return False
-
-            
+ 
         HUD.persona_log("WARN", f"Target: {target['action']} in {target['file']}")
         logging.info(f"[{self.root.name}] [TARGET] {target['action']} ({target['file']})")
 
@@ -462,9 +430,6 @@ class SovereignFish:
             HUD.persona_log("WARN", f"Jurisdiction Denied: {target['file']} is LOCKED (Unstable).")
             return False
 
-        # 3. FORGE (Execute Fix)
-
-        
         # 3. FORGE (Execute Fix)
         if not self._forge_improvement(target):
             return False
@@ -487,51 +452,7 @@ class SovereignFish:
             return False
 
     def _select_breach_target(self, breaches: list):
-        """Prioritizes breaches."""
-        # Simple FIFO or Priority Logic
-        # For now, just take the first one
         return breaches[0]
-
-    def _lazy_architect_gate(self) -> bool:
-        """
-        Budget Optimization: Prevent The Architect from running on idle code.
-        Rule: If git status is clean AND last_run < 4 hours -> EXIT.
-        """
-        try:
-            # 1. Check Git Status
-            result = subprocess.run(
-                ["git", "status", "--porcelain"],
-                cwd=self.root,
-                capture_output=True,
-                text=True,
-                encoding='utf-8',
-                errors='replace'
-            )
-            is_clean = len(result.stdout.strip()) == 0
-            
-            # 2. Check Time
-            last_run_file = self.root / ".agent" / "sovereign_last_run"
-            last_run_time = 0
-            if last_run_file.exists():
-                try:
-                    last_run_time = float(last_run_file.read_text().strip())
-                except: pass
-                
-            now = time.time()
-            hours_since = (now - last_run_time) / 3600
-            
-            if is_clean and hours_since < 4:
-                HUD.persona_log("INFO", f"Lazy Architect: System idle ({hours_since:.1f}h). Saving budget.")
-                return True # EXIT
-            
-            # Update Run Time
-            last_run_file.parent.mkdir(parents=True, exist_ok=True)
-            last_run_file.write_text(str(now))
-            return False # PROCEED
-            
-        except Exception as e:
-            HUD.persona_log("WARN", f"Lazy Architect Glitch: {e}")
-            return False
 
     def _forge_improvement(self, target: dict) -> bool:
         """
@@ -567,14 +488,13 @@ class SovereignFish:
         test_content = impl_data['test']
 
         # --- STEP 3: CRITIC (Review) ---
-        # BUDGET OPTIMIZATION: Use Flash by default.
         HUD.persona_log("INFO", "Consulting The Council (Flash)...")
         review = self._consult_council(target, gherkin_content, code_content, test_content)
         
         if review['status'] == 'APPROVED':
             HUD.persona_log("SUCCESS", "The Council APPROVES.")
             
-            # SAVE FILES (Final Commit)
+            # SAVE FILES
             if file_path.exists():
                  shutil.copy(file_path, f"{file_path}.bak")
             file_path.parent.mkdir(parents=True, exist_ok=True)
@@ -585,11 +505,13 @@ class SovereignFish:
                  self._rollback(target)
                  return False
             
+            # 2. Test File
             test_name = f"test_{file_path.stem}_empire.py"
             test_path = self.root / "tests" / "empire_tests" / test_name
             test_path.parent.mkdir(parents=True, exist_ok=True)
             test_path.write_text(test_content, encoding='utf-8')
             
+            # 3. Gherkin Artifact
             spec_name = f"{file_path.stem}.qmd"
             spec_path = self.root / "tests" / "empire_tests" / "specs" / spec_name
             spec_path.parent.mkdir(parents=True, exist_ok=True)
@@ -648,9 +570,7 @@ class SovereignFish:
         for attempt in range(max_retries + 1):
             
             # ESCALATION PROTOCOL
-            # If we are on the final attempt, summon the Senior Engineer (Pro)
             is_emergency = (attempt == max_retries)
-            # model = self.pro if is_emergency else self.flash
             model_name = self.pro_model if is_emergency else self.flash_model
             model_display = "Gemini Pro (Senior)" if is_emergency else "Flash (Junior)"
             
@@ -680,7 +600,6 @@ class SovereignFish:
             """
             
             try:
-                # Define strict schema for Flash (and Pro) to ensure valid JSON
                 response_schema = {
                     "type": "object",
                     "properties": {
@@ -702,7 +621,6 @@ class SovereignFish:
                     last_error = "AI provided empty response"
                     continue
                 txt = response.text.strip()
-                # With JSON mode, it should be clean, but handle markdown fences locally just in case
                 if "```json" in txt:
                     txt = txt.split("```json")[1].split("```")[0].strip()
                 implementation_data = json.loads(txt)
@@ -727,13 +645,10 @@ class SovereignFish:
             # Run Pytest
             env = os.environ.copy()
             scripts_path = self.root / ".agent" / "scripts"
-            # [ALFRED] Add both root and scripts dir to PYTHONPATH for flexible imports
             env["PYTHONPATH"] = f"{self.root}{os.pathsep}{scripts_path}"
-            # [ALFRED] Force UTF-8 for subprocess/pytest output on Windows to handle CJK
             env["PYTHONIOENCODING"] = "utf-8"
             
             try:
-                # Use sys.executable to ensure we use the same python interpreter
                 cmd = [sys.executable, "-m", "pytest", str(temp_test_path), "-v"]
                 result = subprocess.run(
                     cmd,
@@ -750,13 +665,9 @@ class SovereignFish:
                     return implementation_data
                 else:
                     HUD.persona_log("WARN", "The Gauntlet: FAILED.")
-                    
-                    # Enhanced Logging
                     error_output = (result.stdout + result.stderr)
-                    # capture the last 1000 chars to ensure we see the failure summary
                     last_error = error_output.replace("\n", " | ")[-1000:] 
                     
-                    # Log full error to file for diagnosis
                     fail_log = self.root / "tests" / "empire_tests" / "gauntlet_failures.log"
                     try:
                         fail_log.parent.mkdir(parents=True, exist_ok=True)
@@ -785,7 +696,6 @@ class SovereignFish:
         OUTPUT: JSON with status (APPROVED/DISAPPROVED) and reason.
         """
         try:
-            # Budget Optimization: Use Flash for standard reviews
             response = self.client.models.generate_content(
                 model=self.flash_model,
                 contents=prompt,
@@ -825,8 +735,8 @@ class SovereignFish:
         
         try:
             result = subprocess.run(
-                ["python", "-m", "pytest", str(test_path), "-v"],
-                cwd=self.root, # Run from root
+                [sys.executable, "-m", "pytest", str(test_path), "-v"],
+                cwd=self.root,
                 env=env,
                 capture_output=True,
                 text=True,
@@ -839,8 +749,6 @@ class SovereignFish:
                 return True
             else:
                 HUD.persona_log("WARN", "The Crucible: FAILED.")
-                # Show errors?
-                # HUD.log("FAIL", result.stdout[-200:])
                 self._rollback(target)
                 return False
                 
@@ -857,10 +765,6 @@ class SovereignFish:
         if bak_path.exists():
             HUD.persona_log("WARN", f"Rolling back {target['file']}...")
             shutil.copy(bak_path, file_path)
-            # Optional: Delete the failed test?
-            # test_name = f"test_{file_path.stem}_empire.py"
-            # test_path = self.root / "tests" / "empire_tests" / test_name
-            # if test_path.exists(): test_path.unlink()
         else:
              HUD.persona_log("ERROR", f"Rollback Failed: No backup found for {target['file']}")
 
@@ -876,6 +780,5 @@ def run(target_path: str):
         return False
 
 if __name__ == "__main__":
-    # Test Run
     target = sys.argv[1] if len(sys.argv) > 1 else "."
     run(target)
