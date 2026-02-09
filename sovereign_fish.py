@@ -290,9 +290,9 @@ class SovereignFish:
         else:
             HUD.persona_log("INFO", f"Inspecting {self.root.name}...")
         
-        # --- LAZY ARCHITECT GATE ---
-        if self._lazy_architect_gate():
-            return False
+        # --- LAZY ARCHITECT GATE (DISABLED) ---
+        # if self._lazy_architect_gate():
+        #     return False
             
         # 1. SCAN (The Hunt)
         # A. Check for Breaches (Annex) - FUNCTION (Code) & FORM (Docs/Tests)
