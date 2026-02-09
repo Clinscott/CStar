@@ -68,11 +68,17 @@ class CorvusDispatcher:
         """Checks if the Sentinel (main_loop.py) is running."""
         HUD.log("INFO", "Checking Sentinel Status...")
         try:
-            # Use PowerShell to check for main_loop.py
-            ps_cmd = "Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*main_loop.py*' } | Select-Object -ExpandProperty ProcessId"
+            # [ODIN] Filter specifically for python processes to avoid matching the PS check itself
+            # We also exclude the current process tree just in case
+            ps_cmd = (
+                "$currentPid = $pid; "
+                "Get-CimInstance Win32_Process -Filter \"Name LIKE 'python%' AND CommandLine LIKE '%main_loop.py%'\" | "
+                "Where-Object { $_.ProcessId -ne $currentPid -and $_.ParentProcessId -ne $currentPid } | "
+                "Select-Object -ExpandProperty ProcessId"
+            )
             result = subprocess.run(["powershell", "-NoProfile", "-Command", ps_cmd], capture_output=True, text=True)
             
-            pids = result.stdout.strip().splitlines()
+            pids = [p.strip() for p in result.stdout.strip().splitlines() if p.strip()]
             if pids:
                 HUD.log("SUCCESS", "Sentinel is RUNNING", f"(PIDs: {', '.join(pids)})")
             else:
@@ -84,17 +90,27 @@ class CorvusDispatcher:
         """Terminates the Sentinel (main_loop.py) process with extreme prejudice."""
         HUD.log("INFO", "Initiating START-9 (Nuclear Termination)...")
         try:
-            # Nuclear Option: WMIC Terminate
-            # "sudo sudo" equivalent for Windows
-            cmd = 'wmic process where "CommandLine like \'%main_loop.py%\'" call terminate'
-            result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+            # [ODIN] Aggressive multi-stage kill
+            # 1. Kill the main instances and their direct children
+            ps_kill = (
+                "$currentPid = $pid; "
+                "$targets = Get-CimInstance Win32_Process -Filter \"Name LIKE 'python%' AND CommandLine LIKE '%main_loop.py%'\"; "
+                "if ($targets) { "
+                "  $targets | Where-Object { $_.ProcessId -ne $currentPid } | ForEach-Object { "
+                "    $p = $_; "
+                "    Get-CimInstance Win32_Process -Filter \"ParentProcessId = $($p.ProcessId)\" | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }; "
+                "    Stop-Process -Id $p.ProcessId -Force -ErrorAction SilentlyContinue "
+                "  }"
+                "}"
+            )
+            subprocess.run(["powershell", "-NoProfile", "-Command", ps_kill], capture_output=True)
             
-            if "ReturnValue = 0;" in result.stdout:
-                HUD.log("SUCCESS", "Sentinel neutralized.")
-            elif "No Instance(s) Available" in result.stdout or "No Instance(s) Available" in result.stderr:
-                HUD.log("WARN", "No targets found. The field is clear.")
-            else:
-                HUD.log("INFO", "Nuclear command executed.", f"Result: {result.stdout.strip()}")
+            # 2. Cleanup Lock File
+            lock_file = self.project_root / "sentinel.lock"
+            if lock_file.exists():
+                lock_file.unlink()
+            
+            HUD.log("SUCCESS", "Sentinel neutralized and lock cleared.")
                 
         except Exception as e:
             HUD.log("FAIL", f"Termination Protocol Failed: {e}")

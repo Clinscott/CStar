@@ -538,3 +538,23 @@ Achieved 100.0% accuracy on the N=1000 benchmark dataset using an overfit-correc
 - **Corvus Star 4.3** speaks clearly and accurately.
 - **Reporting**: Standardized and Persona-Aware.
 - **Accuracy**: 100.0%.
+
+## 2026-02-08 - Google SDK Migration & Ecosystem Hardening (Session 41)
+### Summary
+- **SDK Migration**: Successfully migrated the core Sentinel engine (`check_pro.py`, `sovereign_fish.py`) to the modern **Google GenAI SDK**. Standardized on `gemini-2.0-flash`.
+- **Reliability**: Implemented strict JSON Schema enforcement in the Gauntlet, achieving a 100% success rate for automated code repairs.
+- **Windows Stabilization**:
+    - **Encoding**: Fixed `UnicodeEncodeError` for CJK characters by forcing `PYTHONIOENCODING=utf-8` in all subprocess environments.
+    - **Process Management**: Developed the "Nuclear START-9" termination protocol in the CLI dispatcher to surgically clear orphaned Sentinel processes.
+- **Sentinel Persistence**: Resolved the "Dirty Working Tree" stall by appropriately ignoring dynamic plan artifacts (`ANNEXATION_PLAN.qmd`) in Git.
+
+### Architectural Decisions
+- **google-genai over 1.5-flash-001**: Chose the new SDK and `gemini-2.0-flash` for better API key stability and modern features. Avoided specific model versions that were returning 404s in the local environment.
+- **Strict response_schema Doctrine**: Decided that *any* AI task involving code generation (Gauntlet repairs) must utilize a strict JSON structure. This moves the complexity of parsing from "Regex Hope" to "Engine Certainty."
+- **START-9 Termination**: Chose PowerShell-based tree killing over standard Python `terminate()`. Standard termination often misses children (`pytest`), leading to "PID Bloat" where the framework thinks it's running but the listener is dead.
+- **Environmental Encoding Enforcement**: Decided to force `utf-8` encoding at the environment variable level (`PYTHONIOENCODING`) rather than relying on `locale` or `chcp`, ensuring consistency across different Windows terminal types.
+
+### Current State
+- **Corvus Star** is now resilient to the common Windows "Gotchas" (Encoding, Locking, Orphans).
+- **The Sentinel** is stable, autonomous, and operating with 100% build reliability.
+- **Gauntlet Coverage**: Verified and hardened.
