@@ -1,6 +1,7 @@
 import json
 import os
 
+
 class SymbolicLegend:
     """
     [Ω] THE REPOSITORY OF SYMBOLS

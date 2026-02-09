@@ -1,0 +1,30 @@
+# 💎 GEMINI NEURAL MANIFEST
+
+> **Timestamp**: 2026-02-08 23:23:51
+> **Active Mind**: ODIN
+
+## 🧩 Context Anchors
+- **Project Root**: `C:\Users\Craig\Corvus\CorvusStar`
+- **Persona Strategy**: `personas.py -> odin`
+- **Framework Port**: 3000 (Odin Dashboard)
+
+## ⏭️ Priority Directives
+## ⏭️ Start Here Next (Strategic Annexation)
+
+### 1. Annexation Execution
+- [ ] **Execution Module**: Implement `--execute` in `annex.py` to auto-remediate breaches.
+- [ ] **Rollback Safety**: Implement a reversal protocol for failed annexation attempts.
+
+### 2. Edda Synthesis Evolution
+- [ ] **Multi-Language Support**: Extend `edda.py` to synthesize API docs for TypeScript and JavaScript.
+- [ ] **Visual Theme**: Create a dedicated Quarto theme for synthesized API documentation.
+
+## 📜 Recent Continuity (Git)
+```text
+Git history unavailable.
+```
+
+## 🛠️ System Health
+- **Code Sentinel**: PASS
+- **Fishtest Accuracy**: 94.7%
+- **Operational Buffer**: STABLE

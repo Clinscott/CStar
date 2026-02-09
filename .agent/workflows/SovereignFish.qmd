@@ -96,6 +96,11 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 
 *Format: `[Date] - [Category]: [Description]`*
 
+### 2026-02-09
+-   **Lore**: Transitioned "Sentinel" and "Sovereign Fish" to Odin-Lore identities (**Huginn & Muninn** and **Heimdall**).
+-   **Architecture**: Updated `cstar_dispatcher` to embrace the new naming convention.
+-   **Security**: Renamed `CodeSentinel` to `Heimdall`, the All-Seeing Guardian.
+
 ### 2026-02-01
 -   **Docs**: Added clear docstrings to `trace_viz.py` modes for better developer experience (DX).
 -   **Code**: Improved `sv_engine.py` HUD class to support dynamic color overrides (required for persona symmetry).

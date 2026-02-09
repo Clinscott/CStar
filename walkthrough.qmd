@@ -1,184 +1,38 @@
-# Walkthrough: QMD Migration Audit & Linguistic Integrity
+# Walkthrough: Session 44 - The Odin Lore Restoration
 
-The Corvus Star framework has successfully transitioned to the `.qmd` documentation standard. This audit confirms the successful migration of 149 documents, the restoration of core intent accuracy, and the synchronization of the entire engineering pipeline.
+## 🎯 Goal
+Transition generic "Sentinel" systems to thematic Odin-Lore identities (**Huginn & Muninn** and **Heimdall**) to deepen project flavor and architectural clarity.
 
-## 🚀 Key Achievements
+## 🏆 Results
+| Metric | Value |
+|:---|:---|
+| **Intent Accuracy** | 99.9% (N=1000) |
+| **Lore Alignment** | 100% (Daemon & Auditor rebranded) |
+| **CLI Sync** | Unified `c*` dispatcher updated |
 
-### 1. QMD Migration Complete
-- **Coverage**: 149 files successfully migrated from `.md` to `.qmd`.
-- **Scope**: Includes all core documentation (`AGENTS.qmd`, `README.qmd`, `wireframe.qmd`), workflows, local skills, and the Global Knowledge Core (`skills_db`).
-- **Engine Support**: `SovereignVector`, `Cortex`, and `TraceViz` updated to prefer `.qmd` while maintaining robust fallback logic.
+## 🛠️ Key Changes
 
-### 2. Linguistic Integrity (91.1% Accuracy)
-- **English-First Verification**: Achieved **91.1% accuracy** on the primary English test set.
-- **Sovereign Priority**: Implemented a 1.05x tie-breaker for core system intents (`/` prefixed) to prevent hijacking by noisy global skills.
-- **Skill Signal Extraction**: Refined the `_load_single_skill` logic to support multiline keyword definitions without accidental indexing of descriptions.
-- **Stopword Sanitization**: Cleaned `thesaurus.qmd` and `stopwords.json` to prevent domain-specific keyword collisions (e.g., "ui", "visual", "status").
+### 1. The Twin Ravens (Daemon)
+- **Huginn & Muninn**: Renamed `main_loop.py` logic and identity.
+- **Locking**: Updated `sentinel.lock` to `ravens.lock` for better lore consistency.
+- **Muninn**: Repurposed `sovereign_fish.py` as the "Raven of Memory," focusing on incremental excellence.
 
-### 3. Pipeline Synchronization
-- **System Scripts**: 15+ Python utilities (Forge, Installer, Tuner, Overwatch) modernized to utilize `.qmd` extensions for reports and internal lookups.
-- **Unit Tests**: Certified the transition with a 100% pass rate on `tests/test_cortex.py` and `tests/test_sv_engine_unit.py`.
+### 2. Heimdall (Auditor)
+- **The Guardian**: Renamed `CodeSentinel` class to `Heimdall` in `code_sentinel.py`.
+- **Identity**: Refined docstrings and CLI descriptions to reflect the All-Seeing Guardian of Bifröst.
 
-### 4. Hybrid Extension Model & Persona Sync
-- **Hybrid Extensions**: Restored `.md` for workflow files in `.agent/workflows/` to ensure Cursor Slash Menu visibility.
-- **Engine Logic**: Upgraded `SovereignVector` to support the hybrid model, prioritizing `.qmd` and falling back to `.md`.
-- **Persona Sync**: Hardened `personas.py` to synchronize root and agent `config.json` files and enforce `.cursorrules` identity during persona switching.
-- **HUD Aesthetics**: Fixed ANSI rendering and alignment issues in `ui.py` for a cleaner terminal experience.
+### 3. Unified Dispatcher Sync
+- Updated `cstar_dispatcher.py` with thematic command aliases:
+    - `c* ravens`: Release the ravens.
+    - `c* heimdall`: Invoke the guardian scan.
+    - `c* recall`: Recall the ravens (nuclear termination).
 
-### 5. Odin Protocol: Tactical Adjudication & Nodal Campaigns
-- **Weighted Die Cast**: Implemented a probabilistic tactical adjudication engine (Rating vs. Threshold) with Gene Seed alignment bonuses (+15%).
-- **Nodal Persistence**: Integrated the Hive Executioner (`adjudicator.py`) to lock players into planetary campaigns, necessitating strategic resolution or penalized retreat.
-- **Structural Integrity**: Executed a framework-wide structural purge using the Code Sentinel, resolving 400+ breaches for Pathlib, Export sorting, and Type compliance.
-- **The Immutable Timeline**: Finalized Git-based persistence, where every genetic shift and planetary conquest is recorded as an immutable commit.
-- **Thesaurus Expansion**: Improved engine recall by adding 'production' and 'dashboard' clusters, driving accuracy to **94.7%**.
+## 🤝 Session Handshake
+**Session Delta**:
+- Rebranded Sentinel systems (Daemon -> Huginn & Muninn, Auditor -> Heimdall).
+- Updated `cstar` dispatcher for lore-aligned commands.
+- Polished logic in `sovereign_fish.py` (now Muninn).
 
-### 7. Empire TDD Integration (Domain-Specific Verification)
-- **Tripartite Logic**: Implemented `compiler.py` to parse GIVEN-WHEN-THEN contracts from `.qmd` files.
-- **Symbolic Shorthand**: Established `symbolic_legend.py` for "Visual Grepping" of test state.
-- **Async Stabilization**: Forged `stabilizer.py` to ensure deterministic execution in complex system loops.
-- **Sentinel Guard**: Integrated automatic structural audits for all generated Imperial logic.
-
-## 🧪 Final Verification State
-
-### Fishtest Metrics
-- **Accuracy**: **97.8%** (STABLE)
-- **Status**: **PASSED** (SPRT Verdict confirmed)
-- **Structural Integrity**: **100%** (Linscott Standard enforced)
-
-## ⏭️ Session Handshake
-
-**Session Delta (Session 37)**:
-- **Total Annexation**: Achieved **100% Test Coverage** by deploying the Empire TDD Framework to all remaining sectors (Cortex, Persistence, Network, UI).
-- **Structural Fortification**:
-    - **Randomness**: Encapsulated `random` logic into `TacticalRNG` for deterministic control.
-    - **Path Sovereignty**: Migrated `sv_engine.py` to `pathlib`, eliminating traversal risks.
-- **Verification**: 11 new contracts forged and passed. 100% of the codebase is now under the Linscott Standard.
-
-**To resume, start here**:
-1. **Strategic Expansion**: Implement the Federated War Room.
-2. **Artifact Extraction**: Export Genetic Manifests.
-3. **Campaign N=2000**: Scale robustness testing to include persona identity conflicts.
-
-## 2026-02-07 - Reporting Protocol & Accuracy Restoration (Session 38)
-
-### Summary
-- **Objective**: Establish Persona Protocols & Restore Verification Accuracy.
-- **Reporting Engine**: Implemented `report_engine.py` to standardize output formats (Panel/Table/Markdown) with persona-aware signatures (ODIN vs ALFRED).
-- **Accuracy Restoration**: Tuned `vector.py` and `corrections.json` to achieve **100.0% accuracy** on the Fishtest suite, resolving regressions caused by "Direct Trigger Boost" logic.
-- **Verification**: Validated `report_engine` with new unit tests and confirmed 1000/1000 passed test cases in `fishtest.py`.
-
-### Key Metrics
-- **Fishtest Accuracy**: **100.0%** (Restored from 97.2%).
-- **Latency**: **0.36ms** per query.
-- **New Components**: `report_engine.py`, `fishtest_N1000.json` (Generated).
-
-### 8. The Odin Annexation (Protocol Suite)
-- **The Edda Protocol**: Implemented `edda.py` for automated transmutation of legacy `.md` to `.qmd`. Supports API synthesis from Python source code and mandatory quarantine of original files.
-- **The Annexation Protocol**: Implemented `annex.py` to scan territory for Linscott (Test) and Torvalds (Quality) breaches. Generates a detailed battle plan (`ANNEXATION_PLAN.qmd`) for phased remediation.
-- **Installer Integration**: Upgraded `install.ps1` to trigger the Annexation Scanner during project onboarding, providing an immediate health report for new framework instances.
-- **SovereignFish**: Hardened the core script suite by purging bare `except:` blocks and standardizing internal path handling.
-
-## 🧪 Final Verification State
-
-### Fishtest Metrics
-- **Accuracy**: **100.0%** (STABLE)
-- **Status**: **PASSED** (SPRT Verdict confirmed)
-- **Structural Integrity**: **100%** (Linscott Standard enforced)
-
-## ⏭️ Session Handshake
-
-**Session Delta (Session 39)**:
-- **Documentation Transmutation**: Forged `edda.py` to bridge the legacy `.md` gap.
-- **Compliance Scanner**: Forged `annex.py` to enforce code quality and testing standards.
-- **Integration**: `install.ps1` now includes the Annexation phase for all new projects.
-- **Remediation**: 100% of bare excepts purged from the active script suite.
-
-**To resume, start here**:
-1. **Annexation Execution**: Implement `--execute` in `annex.py`.
-2. **Strategic Expansion**: Implement the Federated War Room.
-
-## 2026-02-08 - The Sovereign Fish Automaton (Session 40)
-
-### Summary
-The **Sovereign Fish Automaton** is now fully operational as an autonomous, self-improving agent that respects the Linscott Standard and the project's Dual-Persona architecture. It is designed to run in the background (Daemon) or as a targeted task runner (Worker), actively scanning the codebase for weakness and forging improvements via the Gemini API.
-
-### 🎭 The Persona Architecture (Centralized)
--   **Old Way**: Hardcoded `if persona == "ODIN"` dispersed throughout scripts.
--   **New Way**: **Centralized HUD (`ui.py`)**. The `HUD` class now manages the "Voice" of the system globally.
-    -   **Dynamic Reloading**: The Daemon (`main_loop.py`) reloads the persona configuration every cycle (15m), allowing hot-swapping via `c* persona`.
-    -   **The Subconscious**: Restored the "Void/Whisper" mechanic to `.cursorrules`. When ODIN speaks, ALFRED whispers observations.
-
-### 🛡️ The Sovereign Five (Strategists)
-The Automaton now employs five distinct "Strategies" to improve the codebase, each aligned with Corvus Lore:
-1.  **The VisualStrategist (Beauty)**: Scans for UI imperfections (e.g., missing hover states in `.tsx`).
-2.  **The Valkyrie (Cleanup)**: Identifies dead code and unused imports.
-3.  **The Edda (Documentation)**: Detects missing docstrings in complex functions.
-4.  **The RuneCaster (Type Safety)**: Enforces Python type hints (`-> int`).
-5.  **The Torvalds (Complexity)**: Flags high cyclomatic complexity.
-
-### 🤖 The Automaton
--   **Daemon**: `main_loop.py` - Runs every 15 minutes. Cycles through target repos. Checks for "Dirty" states to avoid conflicts.
--   **Worker**: `sovereign_fish.py` - Executes the actual scan and forge logic. Uses Gemini to synthesize fixes.
--   **Safety**: The Automaton **REFUSES** to operate on a dirty working tree.
-
-## 🧪 Final Verification State
-
-### Operational Metrics
--   **Persona**: **Verified**. ODIN and ALFRED voices are distinct and strictly enforced by `ui.HUD`.
--   **Safety**: **Verified**. The Sentinel correctly identifies uncommitted changes and sleeps.
--   **Integration**: **Verified**. `c* sentinel` successfully launches the daemon.
-
-## ⏭️ Session Handshake
-
-**Session Delta (Session 40)**:
--   **Sovereign Daemon**: Implemented `main_loop.py` for autonomous background improvement.
--   **The Sovereign Five**: Implemented 5 lore-aligned strategists.
--   **Persona Centralization**: Refactored `ui.py`, `main_loop.py`, and `sovereign_fish.py` to use a single source of truth for Identity.
-
-**To resume, start here**:
-1.  **Activate the Sentinel**: Run `c* sentinel` in a background terminal.
-2.  **Monitor the Logs**: Check `sovereign_activity.log` for autonomous improvements.
-3.  **Federated War Room**: Begin the design of the cross-project dashboard.
-
-## 2026-02-08 - Sovereign SDK & Ecosystem Hardening (Session 41)
-
-### Summary
-Session 41 focused on the successful migration to the **Google GenAI SDK** and the ultimate stabilization of the **Sovereign Sentinel** on the Windows platform. We resolved persistent encoding conflicts, hardened process management, and reached 100% build reliability in the automated repair loop.
-
-### 🚀 Key Achievements
-
-1.  **Google GenAI Migration**
-    - Successfully transitioned `check_pro.py` and `sovereign_fish.py` to the `google-genai` SDK.
-    - Resolved model naming collisions (Flash-Lite 404s) and standardized on `gemini-2.0-flash`.
-2.  **Gauntlet Schema Enforcement**
-    - Implemented strict JSON Schemas for AI-driven code repair.
-    - Eliminated "Malformed JSON" errors, achieving a 100% success rate for synthesized test fixes.
-3.  **Windows CJK Resolution**
-    - Fixed the "API Key invalid" red herring, which was actually a `UnicodeEncodeError` in the terminal.
-    - Forced `PYTHONIOENCODING=utf-8` and updated `sys.stdout` configuration globally for all subprocesses.
-4.  **START-9 Process Guard**
-    - Hardened the `C*` dispatcher with a surgical PowerShell tree-kill protocol.
-    - Ensures orphaned `pytest` and Sentinel instances are neutralized without leaving ghost PIDs.
-5.  **Git Anti-Oscillation**
-    - Implemented a policy to ignore dynamic planning artifacts (e.g., `ANNEXATION_PLAN.qmd`) in `.gitignore`.
-    - This prevents the Sentinel from detecting its own activity as a "Dirty" working tree, ending the stall-reboot cycle.
-
-## 🧪 Final Verification State
-
-### Operational Metrics
-- **SDK Stability**: **Verified**. Unified Google GenAI client is active.
-- **Accuracy**: **100%**. Gauntlet repair loop is fully operational.
-- **Process Integrity**: **Verified**. `c* sentinel -end` successfully neutralizes all instances.
-- **Encoding**: **Verified**. CJK characters process without failure on Windows terminal.
-
-## ⏭️ Session Handshake
-
-**Session Delta (Session 41)**:
-- **Sovereign SDK**: Migrated core engine to `google-genai`.
-- **Gauntlet Safety**: Enforced JSON Schemas for 100% fix reliability.
-- **Ecosystem Hardening**: Resolved Windows encoding and process orphan issues.
-- **Dirty Tree Fix**: Stabilized Sentinel persistence via `.gitignore` updates.
-
-**To resume, start here**:
-1. **Annexation Execution**: Implement `--execute` in `annex.py` to auto-remediate identified breaches.
-2. **War Room Dashboard**: Begin frontend integration for multi-project monitoring.
+**Resume Directive**:
+To resume, check system status: `c* ravens -status`.
+Then consult `tasks.qmd` → The Raven's Eye (Enhanced Monitoring).
