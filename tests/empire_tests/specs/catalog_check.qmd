@@ -1,10 +1,14 @@
-Feature: Scaffold test for catalog_check.py execution
+Feature: SC-001 Catalog Readiness Check Execution
+  As an Empire TDD Architect
+  I want to scaffold a test for catalog_check.py
+  So that I can verify the SovereignVector engine initializes and executes a basic search query successfully.
 
-  Scenario: Successful initialization and execution of SovereignVector search query
-    Given the SovereignVector environment is correctly configured with required files (thesaurus.qmd, correction.json, stopwords.json)
-    And `catalog_check.py` is ready for execution
-    When the script `catalog_check.py` is executed
-    Then the exit status should be 0 (Success)
-    And the output should contain "Tokens: ['catalog', 'start']"
-    And the output should contain a debug message starting with "Trigger Map for 'start':"
-    And the output should contain either "Top Result: " or "No results found." indicating the search function completed
+  Scenario: Successful Initialization and Search Validation
+    Given the core SovereignVector dependencies are available
+      And the required input files (thesaurus.qmd, corrections.json, stopwords.json) are present
+      And the 'catalog_check.py' script is accessible
+    When the 'catalog_check.py' script is executed using the Python interpreter
+    Then the execution must exit successfully with an exit code of 0
+      And the standard output must contain the diagnostic "Tokens:"
+      And the standard output must contain the structure "Trigger Map for 'start':"
+      And the standard output must contain the final search result indicator "Top Result:" or "No results found."

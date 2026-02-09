@@ -1,6 +1,6 @@
 ---
 title: Annexation Plan
-date: 2026-02-08 19:44:14
+date: 2026-02-08 19:46:53
 status: pending_approval
 ---
 
@@ -51,6 +51,7 @@ Every script must have a companion test. 'Trust, but Verify.'
 - [ ] **[MISSING TEST]** `tests/empire/test_ui_contracts.py` → Scaffold `Scaffold test for test_ui_contracts.py`
 - [ ] **[MISSING TEST]** `tests/empire/test_ui_full.py` → Scaffold `Scaffold test for test_ui_full.py`
 - [ ] **[MISSING TEST]** `tests/empire/test_warlord_contracts.py` → Scaffold `Scaffold test for test_warlord_contracts.py`
+- [ ] **[MISSING TEST]** `tests/empire_tests/test_catalog_check_empire.py` → Scaffold `Scaffold test for test_catalog_check_empire.py`
 - [ ] **[MISSING TEST]** `tests/legacy_quarantine/chaos_monkey_trace.py` → Scaffold `Scaffold test for chaos_monkey_trace.py`
 - [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_chaos_monkey.py` → Scaffold `Scaffold test for test_chaos_monkey.py`
 - [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_code_sentinel.py` → Scaffold `Scaffold test for test_code_sentinel.py`
@@ -85,6 +86,8 @@ Every script must have a companion test. 'Trust, but Verify.'
 - [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_ui.py` → Scaffold `Scaffold test for test_ui.py`
 - [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_workflow_analyst.py` → Scaffold `Scaffold test for test_workflow_analyst.py`
 - [ ] **[MISSING TEST]** `tests/legacy_quarantine/verify_gatekeeper.py` → Scaffold `Scaffold test for verify_gatekeeper.py`
+- [ ] **[MISSING TEST]** `tests/empire_tests/temp_gauntlet/catalog_check.py` → Scaffold `Scaffold test for catalog_check.py`
+- [ ] **[MISSING TEST]** `tests/empire_tests/temp_gauntlet/test_temp_empire.py` → Scaffold `Scaffold test for test_temp_empire.py`
 - [ ] **[MISSING TEST]** `sterileAgent/.agent/scripts/sv_engine.py` → Scaffold `Scaffold test for sv_engine.py`
 - [ ] **[MISSING TEST]** `odin_protocol/engine/adjudicator.py` → Scaffold `Scaffold test for adjudicator.py`
 - [ ] **[MISSING TEST]** `odin_protocol/engine/gm_client.py` → Scaffold `Scaffold test for gm_client.py`
@@ -201,10 +204,8 @@ Every script must have a companion test. 'Trust, but Verify.'
 
 ## 🐧 Torvalds Protocol (Code Quality)
 Structural integrity mandates. No bare excepts. Strict typing.
-- [ ] **[quality]** `main_loop.py` → Fix bare except at line 167
-- [ ] **[quality]** `main_loop.py` → Fix bare except at line 251
-- [ ] **[quality]** `sovereign_fish.py` → Fix bare except at line 483
-- [ ] **[quality]** `sovereign_fish.py` → Fix bare except at line 574
+- [ ] **[quality]** `main_loop.py` → Fix bare except at line 169
+- [ ] **[quality]** `main_loop.py` → Fix bare except at line 253
 - [ ] **[quality]** `sovereign_fish.py` → Fix bare except at line 179
 - [ ] **[quality]** `sovereign_fish.py` → Fix bare except at line 209
 - [ ] **[quality]** `tests/legacy_quarantine/test_install_persona.py` → Fix bare except at line 24
@@ -274,6 +275,7 @@ Legacy markdown must be transmuted to Quarto. Workflows are preserved.
 - [ ] **[TRANSMUTE]** `mock_project/tasks.md` → `tasks.qmd` (Original Quarantined)
 - [ ] **[TRANSMUTE]** `mock_project/thesaurus.md` → `thesaurus.qmd` (Original Quarantined)
 - [ ] **[TRANSMUTE]** `mock_project/wireframe.md` → `wireframe.qmd` (Original Quarantined)
+- [ ] **[TRANSMUTE]** `tests/empire_tests/temp_gauntlet/.pytest_cache/README.md` → `README.qmd` (Original Quarantined)
 - [ ] **[TRANSMUTE]** `mock_project/docs/ancient_scroll.md` → `ancient_scroll.qmd` (Original Quarantined)
 
 ---
