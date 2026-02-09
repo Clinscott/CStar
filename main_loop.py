@@ -121,6 +121,28 @@ def daemon_loop():
     
     PREFIX = theme["prefix"]
     MAIN_COLOR = theme["main"]
+
+    PREFIX = theme["prefix"]
+    MAIN_COLOR = theme["main"]
+
+    # --- SINGLETON CHECK ---
+    # Use absolute path to ensure lock is found regardless of CWD
+    LOCK_FILE = Path(__file__).parent / "sentinel.lock"
+    
+    if LOCK_FILE.exists():
+        try:
+            old_pid = int(LOCK_FILE.read_text().strip())
+            # Check if process is actually running
+            import psutil
+            if psutil.pid_exists(old_pid):
+                print(f"{Fore.RED}[ERROR] Sentinel is already running (PID: {old_pid}). Exiting.")
+                return
+        except (ValueError, ImportError):
+            # lock file corrupted or psutil missing, ignore verify
+            pass
+            
+    # Create Lock
+    LOCK_FILE.write_text(str(os.getpid()))
     
     # 2. Initialize
     HUD.persona_log("INFO", f"Sovereign Fish Automaton Initialized.")
@@ -128,9 +150,29 @@ def daemon_loop():
     HUD.persona_log("INFO", f"Schedule: Every {INTERVAL_SECONDS}s")
     HUD.persona_log("INFO", f"Targets: {[Path(p).name for p in TARGET_REPOS]}")
 
-    
+    def highlander_check():
+        """THERE CAN BE ONLY ONE. Check if we still hold the mandate."""
+        if not LOCK_FILE.exists():
+            # Lock gone? We are ghost.
+            return False
+            
+        try:
+            owner_pid = int(LOCK_FILE.read_text().strip())
+            if owner_pid != os.getpid():
+                # We are not the owner.
+                import psutil
+                if psutil.pid_exists(owner_pid):
+                    HUD.persona_log("WARNING", f"Highlander Protocol: PID {owner_pid} holds the Mandate. Terminating.")
+                    return False
+        except:
+            pass
+        return True
 
     while True:
+        # Highlander Check: Suicide if not the One
+        if not highlander_check():
+            sys.exit(0)
+
         # Dynamic Persona Reload (Hot-Swapping)
         HUD.PERSONA = load_persona()
         theme = HUD.get_theme()
@@ -198,3 +240,13 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print(f"\n{Fore.RED}Shutdown Requested.")
         sys.exit(0)
+    finally:
+        # Cleanup Lock
+        LOCK_FILE = Path(__file__).parent / "sentinel.lock"
+        if LOCK_FILE.exists():
+            # Only remove if it contains our PID (in case of race/overwrite, though unlikely)
+            try:
+                if LOCK_FILE.read_text().strip() == str(os.getpid()):
+                    LOCK_FILE.unlink()
+            except:
+                pass

@@ -1,0 +1,278 @@
+---
+title: Annexation Plan
+date: 2026-02-08 17:13:27
+status: pending_approval
+---
+
+# ⚔️ The Annexation Plan
+
+> [!IMPORTANT]
+> **The Runes Have Been Cast.**
+> Review the identified weaknesses below. To execute this plan, run: `c* annex --execute`
+
+## 🛡️ Linscott Standard (Test Verification)
+Every script must have a companion test. 'Trust, but Verify.'
+
+- [ ] **[MISSING TEST]** `catalog_check.py` → Scaffold `Scaffold test for catalog_check.py`
+- [ ] **[MISSING TEST]** `cjk_check.py` → Scaffold `Scaffold test for cjk_check.py`
+- [ ] **[MISSING TEST]** `collision_investigator.py` → Scaffold `Scaffold test for collision_investigator.py`
+- [ ] **[MISSING TEST]** `debug_engine.py` → Scaffold `Scaffold test for debug_engine.py`
+- [ ] **[MISSING TEST]** `debug_fishtest.py` → Scaffold `Scaffold test for debug_fishtest.py`
+- [ ] **[MISSING TEST]** `debug_fishtest_phase2.py` → Scaffold `Scaffold test for debug_fishtest_phase2.py`
+- [ ] **[MISSING TEST]** `debug_perf.py` → Scaffold `Scaffold test for debug_perf.py`
+- [ ] **[MISSING TEST]** `dedupe_corrections.py` → Scaffold `Scaffold test for dedupe_corrections.py`
+- [ ] **[MISSING TEST]** `diag_engine.py` → Scaffold `Scaffold test for diag_engine.py`
+- [ ] **[MISSING TEST]** `expand_thesaurus.py` → Scaffold `Scaffold test for expand_thesaurus.py`
+- [ ] **[MISSING TEST]** `fishtest.py` → Scaffold `Scaffold test for fishtest.py`
+- [ ] **[MISSING TEST]** `generate_fishtest_N1000.py` → Scaffold `Scaffold test for generate_fishtest_N1000.py`
+- [ ] **[MISSING TEST]** `generate_fishtest_phase2.py` → Scaffold `Scaffold test for generate_fishtest_phase2.py`
+- [ ] **[MISSING TEST]** `main_loop.py` → Scaffold `Scaffold test for main_loop.py`
+- [ ] **[MISSING TEST]** `overfit_corrections.py` → Scaffold `Scaffold test for overfit_corrections.py`
+- [ ] **[MISSING TEST]** `quick_check.py` → Scaffold `Scaffold test for quick_check.py`
+- [ ] **[MISSING TEST]** `sanitize_thesaurus.py` → Scaffold `Scaffold test for sanitize_thesaurus.py`
+- [ ] **[MISSING TEST]** `sovereign_fish.py` → Scaffold `Scaffold test for sovereign_fish.py`
+- [ ] **[MISSING TEST]** `sovereign_fish_patch.py` → Scaffold `Scaffold test for sovereign_fish_patch.py`
+- [ ] **[MISSING TEST]** `verify_fish.py` → Scaffold `Scaffold test for verify_fish.py`
+- [ ] **[MISSING TEST]** `mock_project/debug_discovery.py` → Scaffold `Scaffold test for debug_discovery.py`
+- [ ] **[MISSING TEST]** `mock_project/test_math.py` → Scaffold `Scaffold test for test_math.py`
+- [ ] **[MISSING TEST]** `odin_protocol/main.py` → Scaffold `Scaffold test for main.py`
+- [ ] **[MISSING TEST]** `tests/test_report_engine.py` → Scaffold `Scaffold test for test_report_engine.py`
+- [ ] **[MISSING TEST]** `tests/empire/demonstrate_proof.py` → Scaffold `Scaffold test for demonstrate_proof.py`
+- [ ] **[MISSING TEST]** `tests/empire/proof_of_concept.py` → Scaffold `Scaffold test for proof_of_concept.py`
+- [ ] **[MISSING TEST]** `tests/empire/test_annex.py` → Scaffold `Scaffold test for test_annex.py`
+- [ ] **[MISSING TEST]** `tests/empire/test_cortex_contracts.py` → Scaffold `Scaffold test for test_cortex_contracts.py`
+- [ ] **[MISSING TEST]** `tests/empire/test_edda.py` → Scaffold `Scaffold test for test_edda.py`
+- [ ] **[MISSING TEST]** `tests/empire/test_empire_infrastructure.py` → Scaffold `Scaffold test for test_empire_infrastructure.py`
+- [ ] **[MISSING TEST]** `tests/empire/test_engine_contracts.py` → Scaffold `Scaffold test for test_engine_contracts.py`
+- [ ] **[MISSING TEST]** `tests/empire/test_generated_contract.py` → Scaffold `Scaffold test for test_generated_contract.py`
+- [ ] **[MISSING TEST]** `tests/empire/test_network_contracts.py` → Scaffold `Scaffold test for test_network_contracts.py`
+- [ ] **[MISSING TEST]** `tests/empire/test_persistence_contracts.py` → Scaffold `Scaffold test for test_persistence_contracts.py`
+- [ ] **[MISSING TEST]** `tests/empire/test_ui_contracts.py` → Scaffold `Scaffold test for test_ui_contracts.py`
+- [ ] **[MISSING TEST]** `tests/empire/test_ui_full.py` → Scaffold `Scaffold test for test_ui_full.py`
+- [ ] **[MISSING TEST]** `tests/empire/test_warlord_contracts.py` → Scaffold `Scaffold test for test_warlord_contracts.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/chaos_monkey_trace.py` → Scaffold `Scaffold test for chaos_monkey_trace.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_chaos_monkey.py` → Scaffold `Scaffold test for test_chaos_monkey.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_code_sentinel.py` → Scaffold `Scaffold test for test_code_sentinel.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_compile_traces.py` → Scaffold `Scaffold test for test_compile_traces.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_cortex.py` → Scaffold `Scaffold test for test_cortex.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_cstar_dispatcher.py` → Scaffold `Scaffold test for test_cstar_dispatcher.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_debt_viz.py` → Scaffold `Scaffold test for test_debt_viz.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_debug_discovery.py` → Scaffold `Scaffold test for test_debug_discovery.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_dominion.py` → Scaffold `Scaffold test for test_dominion.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_fishtest.py` → Scaffold `Scaffold test for test_fishtest.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_game_logic.py` → Scaffold `Scaffold test for test_game_logic.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_game_persistence.py` → Scaffold `Scaffold test for test_game_persistence.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_generate_tests.py` → Scaffold `Scaffold test for test_generate_tests.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_install_persona.py` → Scaffold `Scaffold test for test_install_persona.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_install_scripts.py` → Scaffold `Scaffold test for test_install_scripts.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_install_skill.py` → Scaffold `Scaffold test for test_install_skill.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_knowledge_extractor.py` → Scaffold `Scaffold test for test_knowledge_extractor.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_latency_check.py` → Scaffold `Scaffold test for test_latency_check.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_lightning_rod.py` → Scaffold `Scaffold test for test_lightning_rod.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_merge_traces.py` → Scaffold `Scaffold test for test_merge_traces.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_mock_math.py` → Scaffold `Scaffold test for test_mock_math.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_network_watcher.py` → Scaffold `Scaffold test for test_network_watcher.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_odin_advanced.py` → Scaffold `Scaffold test for test_odin_advanced.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_overwatch.py` → Scaffold `Scaffold test for test_overwatch.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_personas.py` → Scaffold `Scaffold test for test_personas.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_security_scan.py` → Scaffold `Scaffold test for test_security_scan.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_set_persona.py` → Scaffold `Scaffold test for test_set_persona.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_skill_forge.py` → Scaffold `Scaffold test for test_skill_forge.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_sv_engine_unit.py` → Scaffold `Scaffold test for test_sv_engine_unit.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_synapse_multi.py` → Scaffold `Scaffold test for test_synapse_multi.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_trace_viz.py` → Scaffold `Scaffold test for test_trace_viz.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_ui.py` → Scaffold `Scaffold test for test_ui.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/test_workflow_analyst.py` → Scaffold `Scaffold test for test_workflow_analyst.py`
+- [ ] **[MISSING TEST]** `tests/legacy_quarantine/verify_gatekeeper.py` → Scaffold `Scaffold test for verify_gatekeeper.py`
+- [ ] **[MISSING TEST]** `sterileAgent/.agent/scripts/sv_engine.py` → Scaffold `Scaffold test for sv_engine.py`
+- [ ] **[MISSING TEST]** `odin_protocol/engine/adjudicator.py` → Scaffold `Scaffold test for adjudicator.py`
+- [ ] **[MISSING TEST]** `odin_protocol/engine/gm_client.py` → Scaffold `Scaffold test for gm_client.py`
+- [ ] **[MISSING TEST]** `odin_protocol/engine/logic.py` → Scaffold `Scaffold test for logic.py`
+- [ ] **[MISSING TEST]** `odin_protocol/engine/models.py` → Scaffold `Scaffold test for models.py`
+- [ ] **[MISSING TEST]** `odin_protocol/engine/persistence.py` → Scaffold `Scaffold test for persistence.py`
+- [ ] **[MISSING TEST]** `odin_protocol/engine/rng.py` → Scaffold `Scaffold test for rng.py`
+- [ ] **[MISSING TEST]** `odin_protocol/engine/scenarios.py` → Scaffold `Scaffold test for scenarios.py`
+- [ ] **[MISSING TEST]** `odin_protocol/engine/__init__.py` → Scaffold `Scaffold test for __init__.py`
+- [ ] **[MISSING TEST]** `mock_project/new_world_seed/fishtest.py` → Scaffold `Scaffold test for fishtest.py`
+- [ ] **[MISSING TEST]** `mock_project/src/legacy_chaos.py` → Scaffold `Scaffold test for legacy_chaos.py`
+- [ ] **[MISSING TEST]** `mock_project/security_verify/.agent/scripts/install_skill.py` → Scaffold `Scaffold test for install_skill.py`
+- [ ] **[MISSING TEST]** `mock_project/security_verify/.agent/scripts/personas.py` → Scaffold `Scaffold test for personas.py`
+- [ ] **[MISSING TEST]** `mock_project/security_verify/.agent/scripts/set_persona.py` → Scaffold `Scaffold test for set_persona.py`
+- [ ] **[MISSING TEST]** `mock_project/security_verify/.agent/scripts/sv_engine.py` → Scaffold `Scaffold test for sv_engine.py`
+- [ ] **[MISSING TEST]** `mock_project/security_verify/.agent/scripts/synapse_sync.py` → Scaffold `Scaffold test for synapse_sync.py`
+- [ ] **[MISSING TEST]** `mock_project/security_verify/.agent/scripts/ui.py` → Scaffold `Scaffold test for ui.py`
+- [ ] **[MISSING TEST]** `mock_project/security_verify/.agent/skills/workflow-analyst/analyze_workflow.py` → Scaffold `Scaffold test for analyze_workflow.py`
+- [ ] **[MISSING TEST]** `mock_project/security_verify/.agent/scripts/engine/cortex.py` → Scaffold `Scaffold test for cortex.py`
+- [ ] **[MISSING TEST]** `mock_project/security_verify/.agent/scripts/engine/dialogue.py` → Scaffold `Scaffold test for dialogue.py`
+- [ ] **[MISSING TEST]** `mock_project/security_verify/.agent/scripts/engine/vector.py` → Scaffold `Scaffold test for vector.py`
+- [ ] **[MISSING TEST]** `mock_project/security_verify/.agent/scripts/engine/__init__.py` → Scaffold `Scaffold test for __init__.py`
+- [ ] **[MISSING TEST]** `mock_project/new_world_seed/.agent/scripts/audit_dialogue.py` → Scaffold `Scaffold test for audit_dialogue.py`
+- [ ] **[MISSING TEST]** `mock_project/new_world_seed/.agent/scripts/benchmark_engine.py` → Scaffold `Scaffold test for benchmark_engine.py`
+- [ ] **[MISSING TEST]** `mock_project/new_world_seed/.agent/scripts/compile_failure_report.py` → Scaffold `Scaffold test for compile_failure_report.py`
+- [ ] **[MISSING TEST]** `mock_project/new_world_seed/.agent/scripts/compile_session_traces.py` → Scaffold `Scaffold test for compile_session_traces.py`
+- [ ] **[MISSING TEST]** `mock_project/new_world_seed/.agent/scripts/generate_tests.py` → Scaffold `Scaffold test for generate_tests.py`
+- [ ] **[MISSING TEST]** `mock_project/new_world_seed/.agent/scripts/install_skill.py` → Scaffold `Scaffold test for install_skill.py`
+- [ ] **[MISSING TEST]** `mock_project/new_world_seed/.agent/scripts/latency_check.py` → Scaffold `Scaffold test for latency_check.py`
+- [ ] **[MISSING TEST]** `mock_project/new_world_seed/.agent/scripts/lightning_rod.py` → Scaffold `Scaffold test for lightning_rod.py`
+- [ ] **[MISSING TEST]** `mock_project/new_world_seed/.agent/scripts/merge_traces.py` → Scaffold `Scaffold test for merge_traces.py`
+- [ ] **[MISSING TEST]** `mock_project/new_world_seed/.agent/scripts/network_watcher.py` → Scaffold `Scaffold test for network_watcher.py`
+- [ ] **[MISSING TEST]** `mock_project/new_world_seed/.agent/scripts/overwatch.py` → Scaffold `Scaffold test for overwatch.py`
+- [ ] **[MISSING TEST]** `mock_project/new_world_seed/.agent/scripts/personas.py` → Scaffold `Scaffold test for personas.py`
+- [ ] **[MISSING TEST]** `mock_project/new_world_seed/.agent/scripts/security_scan.py` → Scaffold `Scaffold test for security_scan.py`
+- [ ] **[MISSING TEST]** `mock_project/new_world_seed/.agent/scripts/set_persona.py` → Scaffold `Scaffold test for set_persona.py`
+- [ ] **[MISSING TEST]** `mock_project/new_world_seed/.agent/scripts/sv_engine.py` → Scaffold `Scaffold test for sv_engine.py`
+- [ ] **[MISSING TEST]** `mock_project/new_world_seed/.agent/scripts/trace_viz.py` → Scaffold `Scaffold test for trace_viz.py`
+- [ ] **[MISSING TEST]** `mock_project/new_world_seed/.agent/scripts/tune_weights.py` → Scaffold `Scaffold test for tune_weights.py`
+- [ ] **[MISSING TEST]** `mock_project/new_world_seed/.agent/scripts/ui.py` → Scaffold `Scaffold test for ui.py`
+- [ ] **[MISSING TEST]** `mock_project/new_world_seed/.agent/skills/workflow-analyst/analyze_workflow.py` → Scaffold `Scaffold test for analyze_workflow.py`
+- [ ] **[MISSING TEST]** `mock_project/new_world_seed/.agent/scripts/engine/cortex.py` → Scaffold `Scaffold test for cortex.py`
+- [ ] **[MISSING TEST]** `mock_project/new_world_seed/.agent/scripts/engine/dialogue.py` → Scaffold `Scaffold test for dialogue.py`
+- [ ] **[MISSING TEST]** `mock_project/new_world_seed/.agent/scripts/engine/vector.py` → Scaffold `Scaffold test for vector.py`
+- [ ] **[MISSING TEST]** `mock_project/new_world_seed/.agent/scripts/engine/__init__.py` → Scaffold `Scaffold test for __init__.py`
+- [ ] **[MISSING TEST]** `mock_project/expansion_test_new/.agent/scripts/install_skill.py` → Scaffold `Scaffold test for install_skill.py`
+- [ ] **[MISSING TEST]** `mock_project/expansion_test_new/.agent/scripts/personas.py` → Scaffold `Scaffold test for personas.py`
+- [ ] **[MISSING TEST]** `mock_project/expansion_test_new/.agent/scripts/set_persona.py` → Scaffold `Scaffold test for set_persona.py`
+- [ ] **[MISSING TEST]** `mock_project/expansion_test_new/.agent/scripts/sv_engine.py` → Scaffold `Scaffold test for sv_engine.py`
+- [ ] **[MISSING TEST]** `mock_project/expansion_test_new/.agent/scripts/synapse_sync.py` → Scaffold `Scaffold test for synapse_sync.py`
+- [ ] **[MISSING TEST]** `mock_project/expansion_test_new/.agent/scripts/ui.py` → Scaffold `Scaffold test for ui.py`
+- [ ] **[MISSING TEST]** `mock_project/expansion_test_new/.agent/skills/workflow-analyst/analyze_workflow.py` → Scaffold `Scaffold test for analyze_workflow.py`
+- [ ] **[MISSING TEST]** `mock_project/expansion_test_new/.agent/scripts/engine/cortex.py` → Scaffold `Scaffold test for cortex.py`
+- [ ] **[MISSING TEST]** `mock_project/expansion_test_new/.agent/scripts/engine/dialogue.py` → Scaffold `Scaffold test for dialogue.py`
+- [ ] **[MISSING TEST]** `mock_project/expansion_test_new/.agent/scripts/engine/vector.py` → Scaffold `Scaffold test for vector.py`
+- [ ] **[MISSING TEST]** `mock_project/expansion_test_new/.agent/scripts/engine/__init__.py` → Scaffold `Scaffold test for __init__.py`
+- [ ] **[MISSING TEST]** `mock_project/.agent/scripts/annex.py` → Scaffold `Scaffold test for annex.py`
+- [ ] **[MISSING TEST]** `mock_project/.agent/scripts/edda.py` → Scaffold `Scaffold test for edda.py`
+- [ ] **[MISSING TEST]** `mock_project/.agent/scripts/install_skill.py` → Scaffold `Scaffold test for install_skill.py`
+- [ ] **[MISSING TEST]** `mock_project/.agent/scripts/personas.py` → Scaffold `Scaffold test for personas.py`
+- [ ] **[MISSING TEST]** `mock_project/.agent/scripts/set_persona.py` → Scaffold `Scaffold test for set_persona.py`
+- [ ] **[MISSING TEST]** `mock_project/.agent/scripts/sv_engine.py` → Scaffold `Scaffold test for sv_engine.py`
+- [ ] **[MISSING TEST]** `mock_project/.agent/scripts/synapse_sync.py` → Scaffold `Scaffold test for synapse_sync.py`
+- [ ] **[MISSING TEST]** `mock_project/.agent/scripts/ui.py` → Scaffold `Scaffold test for ui.py`
+- [ ] **[MISSING TEST]** `mock_project/.agent/skills/workflow-analyst/analyze_workflow.py` → Scaffold `Scaffold test for analyze_workflow.py`
+- [ ] **[MISSING TEST]** `mock_project/.agent/skills/drafts/workflow_backup_sequence_steps_gen/backup_sequence_steps.py` → Scaffold `Scaffold test for backup_sequence_steps.py`
+- [ ] **[MISSING TEST]** `mock_project/.agent/scripts/engine/alfred_observer.py` → Scaffold `Scaffold test for alfred_observer.py`
+- [ ] **[MISSING TEST]** `mock_project/.agent/scripts/engine/cortex.py` → Scaffold `Scaffold test for cortex.py`
+- [ ] **[MISSING TEST]** `mock_project/.agent/scripts/engine/dialogue.py` → Scaffold `Scaffold test for dialogue.py`
+- [ ] **[MISSING TEST]** `mock_project/.agent/scripts/engine/vector.py` → Scaffold `Scaffold test for vector.py`
+- [ ] **[MISSING TEST]** `mock_project/.agent/scripts/engine/__init__.py` → Scaffold `Scaffold test for __init__.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/annex.py` → Scaffold `Scaffold test for annex.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/audit_dialogue.py` → Scaffold `Scaffold test for audit_dialogue.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/benchmark_engine.py` → Scaffold `Scaffold test for benchmark_engine.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/code_sentinel.py` → Scaffold `Scaffold test for code_sentinel.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/compile_failure_report.py` → Scaffold `Scaffold test for compile_failure_report.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/compile_session_traces.py` → Scaffold `Scaffold test for compile_session_traces.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/cstar_dispatcher.py` → Scaffold `Scaffold test for cstar_dispatcher.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/debt_viz.py` → Scaffold `Scaffold test for debt_viz.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/edda.py` → Scaffold `Scaffold test for edda.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/generate_tests.py` → Scaffold `Scaffold test for generate_tests.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/install_skill.py` → Scaffold `Scaffold test for install_skill.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/latency_check.py` → Scaffold `Scaffold test for latency_check.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/lightning_rod.py` → Scaffold `Scaffold test for lightning_rod.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/merge_traces.py` → Scaffold `Scaffold test for merge_traces.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/migrate_to_qmd.py` → Scaffold `Scaffold test for migrate_to_qmd.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/network_watcher.py` → Scaffold `Scaffold test for network_watcher.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/overwatch.py` → Scaffold `Scaffold test for overwatch.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/personas.py` → Scaffold `Scaffold test for personas.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/security_scan.py` → Scaffold `Scaffold test for security_scan.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/sentinel_perf.py` → Scaffold `Scaffold test for sentinel_perf.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/set_persona.py` → Scaffold `Scaffold test for set_persona.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/skill_forge.py` → Scaffold `Scaffold test for skill_forge.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/sv_engine.py` → Scaffold `Scaffold test for sv_engine.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/synapse_auth.py` → Scaffold `Scaffold test for synapse_auth.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/synapse_sync.py` → Scaffold `Scaffold test for synapse_sync.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/trace_viz.py` → Scaffold `Scaffold test for trace_viz.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/tune_weights.py` → Scaffold `Scaffold test for tune_weights.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/ui.py` → Scaffold `Scaffold test for ui.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/update_gemini_manifest.py` → Scaffold `Scaffold test for update_gemini_manifest.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/utils.py` → Scaffold `Scaffold test for utils.py`
+- [ ] **[MISSING TEST]** `.agent/skills/workflow-analyst/analyze_workflow.py` → Scaffold `Scaffold test for analyze_workflow.py`
+- [ ] **[MISSING TEST]** `.agent/skills/drafts/workflow_backup_sequence_steps_gen/backup_sequence_steps.py` → Scaffold `Scaffold test for backup_sequence_steps.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/empire/compiler.py` → Scaffold `Scaffold test for compiler.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/empire/factories.py` → Scaffold `Scaffold test for factories.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/empire/semantic_probe.py` → Scaffold `Scaffold test for semantic_probe.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/empire/stabilizer.py` → Scaffold `Scaffold test for stabilizer.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/empire/symbolic_legend.py` → Scaffold `Scaffold test for symbolic_legend.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/engine/alfred_observer.py` → Scaffold `Scaffold test for alfred_observer.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/engine/cortex.py` → Scaffold `Scaffold test for cortex.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/engine/dialogue.py` → Scaffold `Scaffold test for dialogue.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/engine/vector.py` → Scaffold `Scaffold test for vector.py`
+- [ ] **[MISSING TEST]** `.agent/scripts/engine/__init__.py` → Scaffold `Scaffold test for __init__.py`
+
+## 🐧 Torvalds Protocol (Code Quality)
+Structural integrity mandates. No bare excepts. Strict typing.
+- [ ] **[quality]** `sovereign_fish.py` → Fix bare except at line 179
+- [ ] **[quality]** `sovereign_fish.py` → Fix bare except at line 209
+- [ ] **[quality]** `tests/legacy_quarantine/test_install_persona.py` → Fix bare except at line 24
+- [ ] **[quality]** `sterileAgent/.agent/scripts/sv_engine.py` → Fix bare except at line 57
+- [ ] **[quality]** `sterileAgent/.agent/scripts/sv_engine.py` → Fix bare except at line 173
+- [ ] **[quality]** `mock_project/src/legacy_chaos.py` → Fix bare except at line 5
+- [ ] **[quality]** `mock_project/security_verify/.agent/scripts/install_skill.py` → Fix bare except at line 22
+- [ ] **[quality]** `mock_project/security_verify/.agent/scripts/install_skill.py` → Fix bare except at line 43
+- [ ] **[quality]** `mock_project/security_verify/.agent/scripts/install_skill.py` → Fix bare except at line 103
+- [ ] **[quality]** `mock_project/security_verify/.agent/scripts/sv_engine.py` → Fix bare except at line 15
+- [ ] **[quality]** `mock_project/security_verify/.agent/scripts/sv_engine.py` → Fix bare except at line 52
+- [ ] **[quality]** `mock_project/security_verify/.agent/scripts/synapse_sync.py` → Fix bare except at line 66
+- [ ] **[quality]** `mock_project/security_verify/.agent/scripts/synapse_sync.py` → Fix bare except at line 104
+- [ ] **[quality]** `mock_project/security_verify/.agent/scripts/synapse_sync.py` → Fix bare except at line 132
+- [ ] **[quality]** `mock_project/security_verify/.agent/scripts/synapse_sync.py` → Fix bare except at line 140
+- [ ] **[quality]** `mock_project/security_verify/.agent/scripts/synapse_sync.py` → Fix bare except at line 150
+- [ ] **[quality]** `mock_project/security_verify/.agent/scripts/synapse_sync.py` → Fix bare except at line 291
+- [ ] **[quality]** `mock_project/security_verify/.agent/scripts/synapse_sync.py` → Fix bare except at line 59
+- [ ] **[quality]** `mock_project/security_verify/.agent/scripts/synapse_sync.py` → Fix bare except at line 251
+- [ ] **[quality]** `mock_project/security_verify/.agent/scripts/engine/vector.py` → Fix bare except at line 74
+- [ ] **[quality]** `mock_project/new_world_seed/.agent/scripts/compile_session_traces.py` → Fix bare except at line 32
+- [ ] **[quality]** `mock_project/new_world_seed/.agent/scripts/compile_session_traces.py` → Fix bare except at line 83
+- [ ] **[quality]** `mock_project/new_world_seed/.agent/scripts/latency_check.py` → Fix bare except at line 39
+- [ ] **[quality]** `mock_project/new_world_seed/.agent/scripts/network_watcher.py` → Fix bare except at line 56
+- [ ] **[quality]** `mock_project/new_world_seed/.agent/scripts/overwatch.py` → Fix bare except at line 114
+- [ ] **[quality]** `mock_project/new_world_seed/.agent/scripts/sv_engine.py` → Fix bare except at line 15
+- [ ] **[quality]** `mock_project/new_world_seed/.agent/scripts/sv_engine.py` → Fix bare except at line 43
+- [ ] **[quality]** `mock_project/new_world_seed/.agent/scripts/trace_viz.py` → Fix bare except at line 26
+- [ ] **[quality]** `mock_project/new_world_seed/.agent/scripts/engine/vector.py` → Fix bare except at line 37
+- [ ] **[quality]** `mock_project/new_world_seed/.agent/scripts/engine/vector.py` → Fix bare except at line 54
+- [ ] **[quality]** `mock_project/new_world_seed/.agent/scripts/engine/vector.py` → Fix bare except at line 74
+- [ ] **[quality]** `mock_project/expansion_test_new/.agent/scripts/sv_engine.py` → Fix bare except at line 15
+- [ ] **[quality]** `mock_project/expansion_test_new/.agent/scripts/sv_engine.py` → Fix bare except at line 52
+- [ ] **[quality]** `mock_project/expansion_test_new/.agent/scripts/synapse_sync.py` → Fix bare except at line 66
+- [ ] **[quality]** `mock_project/expansion_test_new/.agent/scripts/synapse_sync.py` → Fix bare except at line 255
+- [ ] **[quality]** `mock_project/expansion_test_new/.agent/scripts/synapse_sync.py` → Fix bare except at line 226
+- [ ] **[quality]** `mock_project/expansion_test_new/.agent/scripts/engine/vector.py` → Fix bare except at line 74
+- [ ] **[quality]** `mock_project/.agent/scripts/install_skill.py` → Fix bare except at line 17
+- [ ] **[quality]** `mock_project/.agent/scripts/install_skill.py` → Fix bare except at line 43
+- [ ] **[quality]** `mock_project/.agent/scripts/ui.py` → Fix bare except at line 118
+- [ ] **[quality]** `mock_project/.agent/scripts/engine/vector.py` → Fix bare except at line 94
+- [ ] **[quality]** `mock_project/.agent/scripts/engine/vector.py` → Fix bare except at line 89
+- [ ] **[quality]** `.agent/scripts/compile_session_traces.py` → Fix bare except at line 96
+- [ ] **[quality]** `.agent/scripts/install_skill.py` → Fix bare except at line 17
+- [ ] **[quality]** `.agent/scripts/install_skill.py` → Fix bare except at line 43
+- [ ] **[quality]** `.agent/scripts/network_watcher.py` → Fix bare except at line 82
+- [ ] **[quality]** `.agent/scripts/overwatch.py` → Fix bare except at line 31
+- [ ] **[quality]** `.agent/scripts/overwatch.py` → Fix bare except at line 138
+- [ ] **[quality]** `.agent/scripts/overwatch.py` → Fix bare except at line 165
+- [ ] **[quality]** `.agent/scripts/security_scan.py` → Fix bare except at line 37
+- [ ] **[quality]** `.agent/scripts/security_scan.py` → Fix bare except at line 76
+- [ ] **[quality]** `.agent/scripts/skill_forge.py` → Fix bare except at line 397
+- [ ] **[quality]** `.agent/scripts/update_gemini_manifest.py` → Fix bare except at line 10
+- [ ] **[quality]** `.agent/scripts/update_gemini_manifest.py` → Fix bare except at line 22
+- [ ] **[quality]** `.agent/scripts/utils.py` → Fix bare except at line 14
+- [ ] **[quality]** `.agent/scripts/engine/vector.py` → Fix bare except at line 94
+- [ ] **[quality]** `.agent/scripts/engine/vector.py` → Fix bare except at line 89
+
+## 📜 The Edda (Documentation)
+Legacy markdown must be transmuted to Quarto. Workflows are preserved.
+- [ ] **[TRANSMUTE]** `README_SOVEREIGN_FISH.md` → `README_SOVEREIGN_FISH.qmd` (Original Quarantined)
+- [ ] **[TRANSMUTE]** `.pytest_cache/README.md` → `README.qmd` (Original Quarantined)
+- [ ] **[TRANSMUTE]** `mock_project/AGENTS.md` → `AGENTS.qmd` (Original Quarantined)
+- [ ] **[TRANSMUTE]** `mock_project/ALFRED_SUGGESTIONS.md` → `ALFRED_SUGGESTIONS.qmd` (Original Quarantined)
+- [ ] **[TRANSMUTE]** `mock_project/dev_journal.md` → `dev_journal.qmd` (Original Quarantined)
+- [ ] **[TRANSMUTE]** `mock_project/memories.md` → `memories.qmd` (Original Quarantined)
+- [ ] **[TRANSMUTE]** `mock_project/tasks.md` → `tasks.qmd` (Original Quarantined)
+- [ ] **[TRANSMUTE]** `mock_project/thesaurus.md` → `thesaurus.qmd` (Original Quarantined)
+- [ ] **[TRANSMUTE]** `mock_project/wireframe.md` → `wireframe.qmd` (Original Quarantined)
+- [ ] **[TRANSMUTE]** `mock_project/docs/ancient_scroll.md` → `ancient_scroll.qmd` (Original Quarantined)
+
+---
+
+## ⚡ Execution Strategy
+1. **Approve**: Mark items as `[x]` to confirm.
+2. **Execute**: Run the annexation command.

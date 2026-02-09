@@ -21,4 +21,4 @@ env/
 # OS
 .DS_Store
 Thumbs.db
-sovereign_activity.log
+*.log
