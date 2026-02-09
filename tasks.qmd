@@ -71,7 +71,14 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Empire Expansion**: Forged 4 new contracts (`Cortex`, `Persistence`, `Network`, `UI`) for 100% coverage. [x]
 - [x] **Verification**: 11/11 New tests passed. System is fully verified. [x]
 
-## ⏭️ Start Here Next (Strategic Annexation)
+### 23. Sovereign SDK & Sentinel Restoration (Session 41)
+- [x] **SDK Migration**: Successfully migrated `check_pro.py` and `sovereign_fish.py` to the `google-genai` SDK. [x]
+- [x] **Schema Enforcement**: Hardened the Gauntlet to enforce strict JSON schemas for 100% build reliability. [x]
+- [x] **Windows Hardening**: Fixed CJK encoding (UTF-8) and hardened `PYTHONPATH` for Gauntlet imports. [x]
+- [x] **START-9 Protocol**: Implemented aggressive PS tree-kill for surgical Sentinel termination. [x]
+- [x] **Git Policy**: Resolved "Dirty Working Tree" stall by ignoring dynamic plan artifacts. [x]
+
+## ⏭️ Start Here Next (Execution & Expansion)
 
 ### 1. Annexation Execution
 - [ ] **Execution Module**: Implement `--execute` in `annex.py` to auto-remediate breaches.

@@ -61,6 +61,8 @@ def git_cmd(repo_path, args):
             cwd=repo_path,
             capture_output=True,
             text=True,
+            encoding='utf-8',
+            errors='replace',
             check=True
         )
         return result.stdout.strip()
@@ -229,10 +231,22 @@ def daemon_loop():
             restore_branch(repo_path, original_branch)
             
         # Sleep Logic
+        # Sleep Logic with Frequent Highlander Checks
         elapsed = time.time() - cycle_start
         sleep_time = max(0, INTERVAL_SECONDS - elapsed)
         print(f"{Fore.MAGENTA}--- CYCLE END. Sleeping for {int(sleep_time)}s ---")
-        time.sleep(sleep_time)
+        
+        slept = 0
+        chunk = 5
+        while slept < sleep_time:
+            # Check mandate every chunk
+            if not highlander_check():
+                HUD.persona_log("WARNING", "Highlander Mandate Lost during sleep. Terminating.")
+                sys.exit(0)
+                
+            step = min(chunk, sleep_time - slept)
+            time.sleep(step)
+            slept += step
 
 if __name__ == "__main__":
     try:

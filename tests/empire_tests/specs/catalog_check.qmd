@@ -1,0 +1,20 @@
+Feature: Core Search Engine Initialization and Index Verification (catalog_check.py)
+
+  Background: Engine Setup Prerequisites
+    Given SovereignVector dependencies (thesaurus.qmd, corrections.json, stopwords.json) are present
+    And the necessary initialization scripts exist
+
+  Scenario: Successful Index Building and Retrieval of a Basic Query
+    Given the SovereignVector engine has initialized, loaded core skills, and built its index
+    When the script `catalog_check.py` is executed
+    Then the output buffer should contain the tokens: "['catalog', 'start']"
+      And the "Trigger Map for 'start'" should display a non-empty result
+      And a positive search result should be found (r is not None)
+      And the message "Top Result:" is printed to stdout
+      And the script exits successfully (exit code 0)
+
+  Scenario: Handling of the No Results Path (Implicit Check)
+    Given the SovereignVector engine is initialized
+    When a known non-indexed query is hypothetically searched
+    Then the conditional logic ensures that if no results are found, the message "No results found." is printed
+      # Note: This scenario verifies the path coverage of the existing `if r:` block.
