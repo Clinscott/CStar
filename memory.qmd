@@ -4,6 +4,7 @@
 - **Intent Resolution**: Is highly sensitive to `GLOBAL:` prefixing and strict `Activation Words` formatting.
 - **Configuration**: `pyproject.toml` is the law. All tools must respect it.
 - **Testing**: `fishtest.py` is the gold standard. Unit tests are supporting evidence.
+- **Identity (Odin Lore)**: Use **Huginn & Muninn** for the daemon loop, **Heimdall** for security/auditing, and **Muninn** for incremental improvements.
 
 ## Active Context
 - **Project Structure**: `src/` is the core. `.agent/` is configuration. `tests/` is verification.

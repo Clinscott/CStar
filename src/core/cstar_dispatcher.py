@@ -44,11 +44,12 @@ class CorvusDispatcher:
             "fish": ("SovereignFish.qmd", "workflow"),
             "test": ("test.md", "workflow"),
             "oracle": ("oracle.md", "workflow"),
-            # Sovereign Fish Automaton
+            # Huginn & Muninn: The Twin Ravens (Daemon)
             "daemon": (str(self.project_root / "src" / "sentinel" / "main_loop.py"), "script"),
-            "sentinel": (str(self.project_root / "src" / "sentinel" / "main_loop.py"), "script"),
-            "sentinal": (str(self.project_root / "src" / "sentinel" / "main_loop.py"), "script"),
-            # Tools
+            "ravens": (str(self.project_root / "src" / "sentinel" / "main_loop.py"), "script"),
+            "huginn": (str(self.project_root / "src" / "sentinel" / "main_loop.py"), "script"),
+            # Tools - Heimdall (The All-Seeing Guardian)
+            "heimdall": (str(self.project_root / "src" / "tools" / "code_sentinel.py"), "script"),
             "audit": (str(self.project_root / "src" / "tools" / "code_sentinel.py"), "script"),
             "trace": (str(self.project_root / "src" / "tools" / "trace_viz.py"), "script"),
             "synapse": (str(self.project_root / "src" / "synapse" / "synapse_sync.py"), "script"),
@@ -69,9 +70,9 @@ class CorvusDispatcher:
         HUD.box_row("Shortcuts", "-odin, -alfred", HUD.YELLOW)
         HUD.box_bottom()
 
-    def check_sentinel_status(self) -> None:
-        """Checks if the Sentinel (main_loop.py) is running."""
-        HUD.log("INFO", "Checking Sentinel Status...")
+    def check_ravens_status(self) -> None:
+        """Checks if the Ravens (Huginn & Muninn daemon) are in flight."""
+        HUD.log("INFO", "Checking if the Ravens are in flight...")
         try:
             # [ODIN] Filter specifically for python processes to avoid matching the PS check itself
             # We also exclude the current process tree just in case
@@ -85,14 +86,14 @@ class CorvusDispatcher:
             
             pids = [p.strip() for p in result.stdout.strip().splitlines() if p.strip()]
             if pids:
-                HUD.log("SUCCESS", "Sentinel is RUNNING", f"(PIDs: {', '.join(pids)})")
+                HUD.log("SUCCESS", "The Ravens are in flight", f"(PIDs: {', '.join(pids)})")
             else:
-                HUD.log("WARN", "Sentinel is NOT RUNNING")
+                HUD.log("WARN", "The Ravens are grounded")
         except Exception as e:
             HUD.log("FAIL", f"Status Check Failed: {e}")
 
-    def kill_sentinel(self) -> None:
-        """Terminates the Sentinel (main_loop.py) process with extreme prejudice."""
+    def recall_ravens(self) -> None:
+        """Recalls the Ravens (terminates the daemon) with extreme prejudice."""
         HUD.log("INFO", "Initiating START-9 (Nuclear Termination)...")
         try:
             # [ODIN] Aggressive multi-stage kill
@@ -111,18 +112,18 @@ class CorvusDispatcher:
             subprocess.run(["powershell", "-NoProfile", "-Command", ps_kill], capture_output=True)
             
             # 2. Cleanup Lock File
-            lock_file = self.project_root / "sentinel.lock"
+            lock_file = self.project_root / "src" / "sentinel" / "ravens.lock"
             if lock_file.exists():
                 lock_file.unlink()
             
-            HUD.log("SUCCESS", "Sentinel neutralized and lock cleared.")
+            HUD.log("SUCCESS", "Ravens recalled and roost cleared.")
                 
         except Exception as e:
             HUD.log("FAIL", f"Termination Protocol Failed: {e}")
 
-    def launch_sentinel(self) -> None:
-        """Launches the Sentinel (main_loop.py) in a new detached terminal window."""
-        HUD.log("INFO", "Deploying Sentinel to New Window...")
+    def release_ravens(self) -> None:
+        """Releases the Ravens (Huginn & Muninn) to fly across the Nine Realms."""
+        HUD.log("INFO", "Releasing the Ravens...")
         try:
             target = str(self.project_root / "src" / "sentinel" / "main_loop.py")
             cmd_str = f"& '{self.venv_python}' '{target}'"
@@ -131,7 +132,7 @@ class CorvusDispatcher:
             ps_cmd = f"Start-Process powershell -ArgumentList '-NoExit', '-Command', \"{cmd_str}\""
             
             subprocess.run(["powershell", "-NoProfile", "-Command", ps_cmd], check=True)
-            HUD.log("SUCCESS", "Sentinel Deployed.")
+            HUD.log("SUCCESS", "The Ravens take flight.")
         except Exception as e:
             HUD.log("FAIL", f"Deployment Failed: {e}")
 
@@ -157,16 +158,16 @@ class CorvusDispatcher:
             subprocess.run([str(self.venv_python), str(self.scripts_dir / "set_persona.py"), "ALFRED"])
             return
 
-        # Sentinel Management
-        if cmd in ["sentinel", "sentinal"]:
+        # Ravens Management (Huginn & Muninn Daemon)
+        if cmd in ["ravens", "huginn", "daemon"]:
             if "-status" in cmd_args:
-                self.check_sentinel_status()
+                self.check_ravens_status()
                 return
-            if "-end" in cmd_args or "-kill" in cmd_args:
-                self.kill_sentinel()
+            if "-end" in cmd_args or "-kill" in cmd_args or "-recall" in cmd_args:
+                self.recall_ravens()
                 return
-            # Default: Launch new instance
-            self.launch_sentinel()
+            # Default: Release the Ravens
+            self.release_ravens()
             return
 
         if cmd in self.registry:
