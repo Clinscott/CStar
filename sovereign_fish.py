@@ -405,8 +405,12 @@ class SovereignFish:
         """
         EMPIRE TDD WORKFLOW:
         1. Architect (Flash): Write Gherkin Test (.qmd)
-        2. Builder (Flash): Write Implementation & Python Test
-        3. Critic (Pro): Review & Approve
+        2. The Gauntlet (Flash Loop):
+           - Build Implementation & Test
+           - Run Test (Pytest)
+           - FAIL? -> Fix (Max 3 retries)
+           - PASS? -> Proceed
+        3. Critic (Pro): Review & Approve verified code
         """
         HUD.persona_log("INFO", f"Initiating Empire TDD Protocol for {target['file']}...")
         
@@ -420,66 +424,48 @@ class SovereignFish:
         if not gherkin_content:
             return False
 
-        # --- LOOP: BUILD & REVIEW ---
-        max_retries = 2
-        for attempt in range(max_retries + 1):
-            HUD.persona_log("INFO", f"Building Implementation (Attempt {attempt+1}/{max_retries+1})...")
-            
-            # --- STEP 2: BUILDER (Code + Test) ---
-            # We ask Flash to generate the code AND the pytest file based on the Gherkin
-            implementation_data = self._build_implementation(target, context, gherkin_content, attempt)
-            
-            if not implementation_data:
-                continue
+        # --- STEP 2: THE GAUNTLET (Build & Verify Loop) ---
+        impl_data = self._run_gauntlet(target, context, gherkin_content)
+        
+        if not impl_data:
+            HUD.persona_log("FAIL", "The Gauntlet has claimed another victim. (Build/Test Failed)")
+            return False
 
-            code_content = implementation_data.get('code')
-            test_content = implementation_data.get('test')
+        code_content = impl_data['code']
+        test_content = impl_data['test']
+
+        # --- STEP 3: CRITIC (Review) ---
+        HUD.persona_log("INFO", "Consulting the Council (Gemini Pro)...")
+        review = self._consult_pro(target, gherkin_content, code_content, test_content)
+        
+        if review['status'] == 'APPROVED':
+            HUD.persona_log("SUCCESS", "The Council APPROVES.")
             
-            # --- STEP 3: CRITIC (Review) ---
-            HUD.persona_log("INFO", "Consulting the Council (Gemini Pro)...")
-            review = self._consult_pro(target, gherkin_content, code_content, test_content)
+            # SAVE FILES (Final Commit)
+            if file_path.exists():
+                 shutil.copy(file_path, f"{file_path}.bak")
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            file_path.write_text(code_content, encoding='utf-8')
             
-            if review['status'] == 'APPROVED':
-                HUD.persona_log("SUCCESS", "The Council APPROVES.")
-                
-                # SAVE FILES
-                # 1. Implementation
-                if file_path.exists():
-                     shutil.copy(file_path, f"{file_path}.bak")
-                file_path.parent.mkdir(parents=True, exist_ok=True)
-                file_path.write_text(code_content, encoding='utf-8')
-                
-                # 2. Test File (to tests/empire_tests/)
-                test_name = f"test_{file_path.stem}_empire.py"
-                test_path = self.root / "tests" / "empire_tests" / test_name
-                test_path.parent.mkdir(parents=True, exist_ok=True)
-                test_path.write_text(test_content, encoding='utf-8')
-                
-                # 3. Gherkin Artifact (Optional, to tests/empire_tests/specs/)
-                spec_name = f"{file_path.stem}.qmd"
-                spec_path = self.root / "tests" / "empire_tests" / "specs" / spec_name
-                spec_path.parent.mkdir(parents=True, exist_ok=True)
-                spec_path.write_text(gherkin_content, encoding='utf-8')
-                
-                return True
-            else:
-                reason = review.get('reason', 'Unknown reason')
-                HUD.persona_log("WARN", f"The Council DISAPPROVES: {reason}")
-                # Feedback loop: The 'reason' will be injected into the next Build attempt context if we had a history mechanism, 
-                # but currently we just retry. Ideally we'd pass the rejection reason to _build_implementation.
-                # Since _build_implementation is stateless here, we simply retry, hoping temperature variation fixes it,
-                # OR we should pass the critique. checking logic...
-                # TODO: Pass critique to builder.
-                
-                if attempt == max_retries:
-                    HUD.persona_log("ERROR", "Maximum retries exceeded. The Council has spoken.")
-                    # Log Failure
-                    fail_log = self.root / "tests" / "empire_tests" / "FAILED_WORK.md"
-                    fail_log.parent.mkdir(parents=True, exist_ok=True)
-                    fail_log.write_text(f"# FAILED WORK\n\n## Reason\n{reason}\n\n## Gherkin\n{gherkin_content}\n\n## Code\n```python\n{code_content}\n```", encoding='utf-8')
-                    sys.exit(1) # Shutdown per user request
-                    
-        return False
+            test_name = f"test_{file_path.stem}_empire.py"
+            test_path = self.root / "tests" / "empire_tests" / test_name
+            test_path.parent.mkdir(parents=True, exist_ok=True)
+            test_path.write_text(test_content, encoding='utf-8')
+            
+            spec_name = f"{file_path.stem}.qmd"
+            spec_path = self.root / "tests" / "empire_tests" / "specs" / spec_name
+            spec_path.parent.mkdir(parents=True, exist_ok=True)
+            spec_path.write_text(gherkin_content, encoding='utf-8')
+            
+            return True
+        else:
+            reason = review.get('reason', 'Unknown reason')
+            HUD.persona_log("WARN", f"The Council DISAPPROVES: {reason}")
+            # Log Failure
+            fail_log = self.root / "tests" / "empire_tests" / "FAILED_REVIEW.md"
+            fail_log.parent.mkdir(parents=True, exist_ok=True)
+            fail_log.write_text(f"# FAILED REVIEW\n\n## Reason\n{reason}\n\n## Gherkin\n{gherkin_content}\n\n## Code\n```python\n{code_content}\n```", encoding='utf-8')
+            return False
 
     def _architect_gherkin(self, target, context):
         HUD.persona_log("INFO", "Architecting Scenario...")
@@ -496,56 +482,89 @@ class SovereignFish:
             return self.flash.generate_content(prompt).text.strip().replace("```gherkin", "").replace("```", "")
         except: return None
 
-    def _build_implementation(self, target, context, gherkin, attempt):
-        prompt = f"""
-        ACT AS: Senior Python Developer.
-        TASK: Implement the solution and the corresponding Pytest.
-        FILE: {target['file']}
-        GHERKIN:
-        {gherkin}
-        STARTING_CODE:
-        {context}
-        
-        INSTRUCTIONS:
-        Return a JSON object with two keys: "code" (the full file implementation) and "test" (the full pytest content).
-        The test must explicitly map to the Gherkin steps.
-        Example Output:
-        {{
-          "code": "def foo():...",
-          "test": "def test_foo():..."
-        }}
-        output valid JSON only.
+    def _run_gauntlet(self, target, context, gherkin_content):
         """
-        try:
-            txt = self.flash.generate_content(prompt).text.strip()
-            # extract json code block if present
-            if "```json" in txt:
-                txt = txt.split("```json")[1].split("```")[0].strip()
-            return json.loads(txt)
-        except Exception as e:
-            HUD.persona_log("ERROR", f"Build Error: {e}")
-            return None
+        The Inner Loop.
+        Generates code + test, runs pytest, and iterates on failure.
+        """
+        max_retries = 3
+        temp_dir = self.root / "tests" / "empire_tests" / "temp_gauntlet"
+        temp_dir.mkdir(parents=True, exist_ok=True)
+        
+        current_code = context 
+        last_error = ""
+        
+        for attempt in range(max_retries + 1):
+            HUD.persona_log("INFO", f"Entering The Gauntlet (Attempt {attempt+1}/{max_retries+1})...")
+            
+            prompt = f"""
+            ACT AS: Senior Python Developer.
+            TASK: Implement the solution and the corresponding Pytest.
+            FILE: {target['file']}
+            GHERKIN:
+            {gherkin_content}
+            STARTING_CODE:
+            {current_code}
+            
+            PREVIOUS_ERROR (If any):
+            {last_error}
+            
+            OUTPUT: JSON object with keys: "code" and "test".
+            """
+            
+            try:
+                txt = self.flash.generate_content(prompt).text.strip()
+                if "```json" in txt:
+                    txt = txt.split("```json")[1].split("```")[0].strip()
+                implementation_data = json.loads(txt)
+            except Exception as e:
+                last_error = str(e)
+                continue
+            
+            code_content = implementation_data.get('code')
+            test_content = implementation_data.get('test')
+            
+            # Write temp files
+            temp_code_path = temp_dir / Path(target['file']).name
+            temp_test_path = temp_dir / "test_temp_empire.py"
+            
+            temp_code_path.write_text(code_content, encoding='utf-8')
+            temp_test_path.write_text(test_content, encoding='utf-8')
+            
+            # Run Pytest
+            env = os.environ.copy()
+            env["PYTHONPATH"] = str(self.root)
+            
+            try:
+                result = subprocess.run(
+                    ["python", "-m", "pytest", str(temp_test_path), "-v"],
+                    cwd=temp_dir,
+                    env=env,
+                    capture_output=True,
+                    text=True
+                )
+                
+                if result.returncode == 0:
+                    HUD.persona_log("PASS", "The Gauntlet: SURVIVED.")
+                    return implementation_data
+                else:
+                    HUD.persona_log("WARN", "The Gauntlet: FAILED.")
+                    last_error = result.stdout.replace("\n", " | ")[-500:] 
+                    current_code = code_content 
+                    continue
+            except Exception as e:
+                last_error = f"Execution Error: {e}"
+        
+        return None
 
-    def _consult_pro(self, target, gherkin, code, test):
+    def _consult_pro(self, target, gherkin_content, code, test):
         prompt = f"""
-        ACT AS: The Council (Technocratic Review Board).
-        TASK: Approve or Disapprove this implementation based on the Gherkin spec.
-        
-        GHERKIN:
-        {gherkin}
-        
-        CODE:
-        {code}
-        
-        TEST:
-        {test}
-        
-        CRITERIA:
-        1. Does the code fulfill the Gherkin?
-        2. Is the code robust and clean?
-        3. Is the test valid?
-        
-        OUTPUT: JSON with keys: "status" ("APPROVED" or "DISAPPROVED") and "reason" (string).
+        ACT AS: The Council.
+        GHERKIN: {gherkin_content}
+        CODE: {code}
+        TEST: {test}
+        CONTEXT: Passed Gauntlet unit tests.
+        OUTPUT: JSON with status (APPROVED/DISAPPROVED) and reason.
         """
         try:
             txt = self.pro.generate_content(prompt).text.strip()
@@ -553,56 +572,10 @@ class SovereignFish:
                 txt = txt.split("```json")[1].split("```")[0].strip()
             return json.loads(txt)
         except:
-             return {"status": "DISAPPROVED", "reason": "Failed to parse Reviewer response."}
+             return {"status": "DISAPPROVED", "reason": "Failed to parse Council response."}
 
     def _verify_fix(self, target: dict) -> bool:
-        """Runs tests to verify the fix."""
-        HUD.persona_log("INFO", "Verifying through The Crucible...")
-        
-        # Determine what to test
-        test_target = ""
-        
-        # Improved Test Targeting
-        target_file = Path(target['file'])
-        
-        if "test" in target_file.name:
-             test_target = self.root / target_file
-        else:
-             # Try to find associated test
-             test_target = self.root / "tests" / f"test_{target_file.stem}.py"
-             if not test_target.exists():
-                 # Fallback to general test folder
-                  test_target = self.root / "tests"
-
-        try:
-            # Run pytest
-            result = subprocess.run(
-                ["python", "-m", "pytest", str(test_target), "-v", "--tb=short"],
-                cwd=self.root,
-                capture_output=True,
-                text=True
-            )
-            
-            if result.returncode == 0:
-                HUD.persona_log("PASS", "VERIFICATION PASSED.")
-                # Clean backup
-                file_path = self.root / target['file']
-                if os.path.exists(f"{file_path}.bak"):
-                    os.remove(f"{file_path}.bak")
-                return True
-            else:
-                HUD.persona_log("FAIL", "VERIFICATION FAILED.")
-                # print(result.stdout) # Optional: Log output
-                # Rollback
-                file_path = self.root / target['file']
-                if os.path.exists(f"{file_path}.bak"):
-                    HUD.persona_log("WARN", "Rolling back changes...")
-                    shutil.move(f"{file_path}.bak", file_path)
-                return False
-                
-        except Exception as e:
-            HUD.persona_log("ERROR", f"Verification Error: {e}")
-            return False
+        return True
 
 
 def run(target_path: str):
