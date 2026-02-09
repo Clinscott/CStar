@@ -724,6 +724,8 @@ class SovereignFish:
             # Run Pytest
             env = os.environ.copy()
             env["PYTHONPATH"] = str(self.root)
+            # [ALFRED] Force UTF-8 for subprocess/pytest output on Windows to handle CJK
+            env["PYTHONIOENCODING"] = "utf-8"
             
             try:
                 # Use sys.executable to ensure we use the same python interpreter
