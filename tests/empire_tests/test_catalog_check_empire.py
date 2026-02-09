@@ -100,7 +100,7 @@ def test_successful_index_building_and_retrieval(setup_environment):
     )
 
     # And the "Trigger Map for 'start'" should display a non-empty result
-    trigger_map_pattern = r"Trigger Map for 'start': [{'skill': 'catalog', 'weight': 0.9}]"
+    trigger_map_pattern = r"Trigger Map for 'start': \[{'skill': 'catalog', 'weight': 0.9}\]"
     assert_step(
         re.search(trigger_map_pattern, stdout) is not None,
         "Failed Gherkin Step 2: Non-empty trigger map result not found or incorrect format."
