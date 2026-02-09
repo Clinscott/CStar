@@ -92,16 +92,22 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Sentinel Audit**: Fixed 169 I001 breaches (import sorting), 4 issues in `compiler.py`. [x]
 - [x] **Terminal Encoding**: Permanent UTF-8 fix in PowerShell profile, `cstar.ps1`, and `ui.py`. [x]
 
-## ⏭️ Start Here Next (Execution & Expansion)
+### 26. The Odin Lore Restoration (Session 44)
+- [x] **Lore Rebranding**: Replaced "Sentinel" and "Sovereign Fish" with **Huginn & Muninn** (Daemon) and **Heimdall** (Auditor). [x]
+- [x] **Dispatcher Sync**: Updated `cstar` dispatcher to handle `ravens`, `huginn`, and `heimdall` commands. [x]
+- [x] **Logic Polishing**: Renamed `SovereignFish` class in `sovereign_fish.py` to `Muninn` for architectural consistency. [x]
+- [x] **Validation**: Verified system integrity with Fishtest N=1000 (99.9% accuracy). [x]
 
-### 1. Yggdrasil Stabilization
-- [x] **Fishtest Verification**: Run the N=1000 benchmark to ensure zero regression in neural accuracy. [x] (99.9%)
-- [ ] **Import Sweep**: Final check of `src/` scripts to ensure all cross-module imports are resolved.
-- [ ] **Test Alignment**: Update `pytest.ini` or equivalent to scan the new `tests/` and `src/` structure.
+## ⏭️ Start Here Next (Strategic Expansion)
+
+### 1. The Raven's Eye (Enhanced Monitoring)
+- [ ] **Huginn's Report**: Implement a periodic summaries generator that uses `Muninn`'s memory to report daily changes to a `SITREP.qmd`.
+- [ ] **Gjallarhorn Signaling**: Implement a notification system (e.g., webhook or specialized log) for Heimdall when CRITICAL breaches are detected.
 
 ### 2. Annexation Execution
-- [ ] **Execution Module**: Implement `--execute` in `annex.py` to auto-remediate breaches.
-- [ ] **Rollback Safety**: Implement a reversal protocol for failed annexation attempts.
+- [ ] **Execution Module**: Implement `--execute` in `annex.py` to auto-remediate breaches identified by Heimdall.
+- [ ] **Rollback Safety**: Finalize the reversal protocol for failed annexation attempts during auto-remediation.
 
 ### 3. Edda Synthesis Evolution
 - [ ] **Multi-Language Support**: Extend `edda.py` to synthesize API docs for TypeScript and JavaScript.
+

@@ -17,15 +17,17 @@ The decision-making brain of Corvus Star.
 - **Dispatcher** (`cstar_dispatcher.py`):
     - `main()`: Routes CLI commands (`c* ...`) to scripts.
 
-### 🛡️ Sentinel (`src/sentinel/`)
+### 🦅 The Ravens (`src/sentinel/`)
 The autonomous daemon ensuring system health.
-- **Sovereign Fish** (`sovereign_fish.py`):
+- **Huginn & Muninn** (`main_loop.py`):
+    - `daemon_loop()`: Orchestrates the twin ravens (Thought/Memory).
+- **Muninn: The Improver** (`sovereign_fish.py`):
     - `observe()`: Monitors file changes and system state.
     - `_proactive_audit()`: Triggers self-correction routines.
 
 ### 🛠️ Tools (`src/tools/`)
 Specialized utilities for analysis and repair.
-- **Code Sentinel** (`code_sentinel.py`):
+- **Heimdall: The Guardian** (`code_sentinel.py`):
     - `scan(path)`: Static analysis for syntax and security.
 
 ### 🧠 Synapse (`src/synapse/`)
@@ -40,7 +42,7 @@ Connection to the wider network (Knowledge Core).
 `User Input` -> `cstar_dispatcher` -> `sv_engine` -> `vector.py` -> `Skill Execution`
 
 ### 2. Autonomous Audit
-`Time Trigger` -> `main_loop.py` -> `sovereign_fish.py` -> `code_sentinel.py` -> `Report`
+`Time Trigger` -> `Huginn & Muninn` -> `sovereign_fish.py` -> `Heimdall` -> `Report`
 
 ### 3. Skill Development
 `User Create` -> `src/skills/local/NEW_SKILL` -> `sv_engine.load_skills()` -> `Available`

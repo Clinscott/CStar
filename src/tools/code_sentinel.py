@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """
-[ODIN] Code Sentinel - Structural Integrity Scanner.
+[ODIN] Heimdall - The All-Seeing Code Guardian.
 [Ω] HEIMDALL'S VIGIL / [ALFRED] THE PERIMETER
 Refined for the Linscott Standard (Typing, Pathlib, Encapsulation).
+
+Heimdall guards the Bifröst, watching for code violations with eternal vigilance.
+He sees all. He forgets nothing. No breach escapes his gaze.
 """
 
 import argparse
@@ -26,9 +29,10 @@ if str(project_root) not in sys.path:
 from src.core.ui import HUD
 
 
-class CodeSentinel:
+class Heimdall:
     """
-    Main orchestrator for code integrity scanning.
+    The All-Seeing Guardian - Code Integrity Scanner.
+    Named for the vigilant god who watches the Bifröst.
     """
 
     TEXT_MAP = {
@@ -202,14 +206,14 @@ class CodeSentinel:
 
 def main() -> None:
     """CLI entry point."""
-    parser = argparse.ArgumentParser(description="Corvus Star Code Sentinel")
+    parser = argparse.ArgumentParser(description="Heimdall - The All-Seeing Code Guardian")
     parser.add_argument("target", nargs="?", default=".", help="File or directory to scan")
     parser.add_argument("--fix", action="store_true", help="Auto-fix violations")
     parser.add_argument("--persona", choices=["ODIN", "ALFRED"], help="Override persona")
     args = parser.parse_args()
 
-    sentinel = CodeSentinel(target=args.target, fix=args.fix, persona_override=args.persona)
-    success = sentinel.execute_audit()
+    heimdall = Heimdall(target=args.target, fix=args.fix, persona_override=args.persona)
+    success = heimdall.execute_audit()
     
     if not success:
         sys.exit(1)

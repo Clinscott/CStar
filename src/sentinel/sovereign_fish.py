@@ -1,7 +1,7 @@
 """
-Sovereign Fish: The Autonomous Improver
+Muninn: The Raven of Memory & Excellence (Autonomous Improver)
 Identity: ODIN/ALFRED Hybrid
-Purpose: Execute the Sovereign Fish Protocol autonomously.
+Purpose: Execute the SovereignFish Protocol autonomously.
 """
 
 import hashlib
@@ -136,9 +136,9 @@ class CampaignStrategist:
 
 class ValkyrieStrategist:
     """
-    [DEAD CODE PRUNING]
+    [Valkyrie: PRUNING]
     Lore: "Choosers of the Slain."
-    Purpose: Idenitfy unused imports and unreachable code.
+    Purpose: Identify unused imports and unreachable code.
     """
     def __init__(self, root: Path):
         self.root = root
@@ -346,9 +346,9 @@ class SovereignFish:
         Returns True if a change was made and verified, False otherwise.
         """
         if HUD.PERSONA == "ALFRED":
-            HUD.persona_log("INFO", f"Swimming in {self.root}...")
+            HUD.persona_log("INFO", f"The Ravens are scouting {self.root}...")
         else:
-            HUD.persona_log("INFO", f"Inspecting {self.root.name}...")
+            HUD.persona_log("INFO", f"Muninn is scouring {self.root.name}...")
         
         # 1. SCAN (The Hunt)
         strategist = AnnexStrategist(self.root)

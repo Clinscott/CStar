@@ -1,7 +1,10 @@
 """
-Sovereign Fish: The Outer Loop (Daemon)
+Huginn & Muninn: The Twin Ravens (Daemon)
 Identity: ODIN
-Purpose: Orchestrate the Sovereign Fish agents across the Corvus Cluster.
+Purpose: Orchestrate the SovereignFish agents across the Corvus Cluster.
+
+Huginn (Thought) gathers intel. Muninn (Memory) persists it.
+Together they fly across the Nine Realms, reporting all to the All-Father.
 """
 
 import logging
@@ -128,7 +131,7 @@ def daemon_loop():
 
     # --- SINGLETON CHECK ---
     # Use absolute path to ensure lock is found regardless of CWD
-    LOCK_FILE = Path(__file__).parent / "sentinel.lock"
+    LOCK_FILE = Path(__file__).parent / "ravens.lock"
     
     if LOCK_FILE.exists():
         try:
@@ -136,7 +139,7 @@ def daemon_loop():
             # Check if process is actually running
             import psutil
             if psutil.pid_exists(old_pid):
-                print(f"{Fore.RED}[ERROR] Sentinel is already running (PID: {old_pid}). Exiting.")
+                print(f"{Fore.RED}[ERROR] The Ravens are already in flight (PID: {old_pid}). Exiting.")
                 return
         except (ValueError, ImportError):
             # lock file corrupted or psutil missing, ignore verify
@@ -255,7 +258,7 @@ if __name__ == "__main__":
         sys.exit(0)
     finally:
         # Cleanup Lock
-        LOCK_FILE = Path(__file__).parent / "sentinel.lock"
+        LOCK_FILE = Path(__file__).parent / "ravens.lock"
         if LOCK_FILE.exists():
             # Only remove if it contains our PID (in case of race/overwrite, though unlikely)
             try:
