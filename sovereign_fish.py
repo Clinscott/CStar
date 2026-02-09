@@ -12,6 +12,7 @@ import time
 import shutil
 import logging
 import subprocess
+import hashlib
 import google.generativeai as genai
 from pathlib import Path
 from colorama import Fore, Style, init
@@ -164,7 +165,7 @@ class EddaStrategist:
     def scan(self) -> list:
         targets = []
         for py_file in self.root.rglob("*.py"):
-            if "node_modules" in py_file.parts or ".venv" in py_file.parts: continue
+            if "node_modules" in py_file.parts or ".venv" in py_file.parts or "tests" in py_file.parts: continue
             
             try:
                 # Simple check: Does it have a docstring?
@@ -191,7 +192,7 @@ class RuneCasterStrategist:
     def scan(self) -> list:
         targets = []
         for py_file in self.root.rglob("*.py"):
-            if "node_modules" in py_file.parts or ".venv" in py_file.parts: continue
+            if "node_modules" in py_file.parts or ".venv" in py_file.parts or "tests" in py_file.parts: continue
             
             try:
                 # Basic heuristic: 'def foo(x):' vs 'def foo(x: int) -> int:'
@@ -256,6 +257,83 @@ class VisualStrategist:
 
 
 
+        return targets
+
+
+class TheWatcher:
+    """
+    [STABILITY MANAGER]
+    Lore: "The Guardian of the Timeline."
+    Purpose: Prevent oscillation (edit wars) and track file edit fatigue.
+    """
+    def __init__(self, root: Path):
+        self.root = root
+        self.state_file = self.root / ".agent" / "sovereign_state.json"
+        self.state = self._load_state()
+
+    def _load_state(self) -> dict:
+        if not self.state_file.exists():
+            return {}
+        try:
+            return json.loads(self.state_file.read_text(encoding='utf-8'))
+        except:
+            return {}
+
+    def _save_state(self):
+        self.state_file.parent.mkdir(parents=True, exist_ok=True)
+        self.state_file.write_text(json.dumps(self.state, indent=2), encoding='utf-8')
+
+    def is_locked(self, rel_path: str) -> bool:
+        file_state = self.state.get(rel_path, {})
+        return file_state.get("status") == "LOCKED"
+
+    def record_edit(self, rel_path: str, content: str) -> bool:
+        """
+        Records an edit and checks for oscillation or fatigue.
+        Returns True if state is stable, False if oscillation/fatigue detected.
+        """
+        if rel_path not in self.state:
+            self.state[rel_path] = {
+                "last_edited": 0,
+                "edit_count_24h": 0,
+                "content_hashes": [],
+                "status": "ACTIVE"
+            }
+        
+        file_state = self.state[rel_path]
+        now = time.time()
+        
+        # 1. Fatigue Logic (3 edits / 24h)
+        if now - file_state["last_edited"] > 86400: # Reset daily
+            file_state["edit_count_24h"] = 0
+            
+        file_state["edit_count_24h"] += 1
+        file_state["last_edited"] = now
+        
+        # 2. Echo Detection (Hash repetitive states)
+        content_hash = hashlib.md5(content.encode('utf-8')).hexdigest()
+        is_echo = content_hash in file_state["content_hashes"]
+        
+        file_state["content_hashes"].append(content_hash)
+        if len(file_state["content_hashes"]) > 5:
+            file_state["content_hashes"].pop(0)
+
+        if is_echo:
+            file_state["status"] = "LOCKED"
+            self._save_state()
+            HUD.persona_log("FAIL", f"OSCILLATION DETECTED: {rel_path} returning to previous state. LOCKING.")
+            return False
+
+        if file_state["edit_count_24h"] > 3:
+            file_state["status"] = "LOCKED"
+            self._save_state()
+            HUD.persona_log("FAIL", f"FILE FATIGUE: {rel_path} locked after 3 edits.")
+            return True # Still return True for the 3rd edit, but lock future ones
+
+        self._save_state()
+        return True
+
+
 class SovereignFish:
     def __init__(self, target_path: str):
         self.root = Path(target_path).resolve()
@@ -278,6 +356,9 @@ class SovereignFish:
         # 2. The Senior Engineer (Escalation / Emergency Fixer)
         # Cost: High (Use sparingly)
         self.pro = genai.GenerativeModel('gemini-pro-latest')
+        
+        # 3. The Watcher (Anti-Oscillation)
+        self.watcher = TheWatcher(self.root)
 
     def run(self) -> bool:
         """
@@ -372,6 +453,13 @@ class SovereignFish:
             
         HUD.persona_log("WARN", f"Target: {target['action']} in {target['file']}")
         logging.info(f"[{self.root.name}] [TARGET] {target['action']} ({target['file']})")
+
+        # [WATCHER] Anti-Oscillation Check
+        if self.watcher.is_locked(target['file']):
+            HUD.persona_log("WARN", f"Jurisdiction Denied: {target['file']} is LOCKED (Unstable).")
+            return False
+
+        # 3. FORGE (Execute Fix)
 
         
         # 3. FORGE (Execute Fix)
@@ -489,6 +577,11 @@ class SovereignFish:
             file_path.parent.mkdir(parents=True, exist_ok=True)
             file_path.write_text(code_content, encoding='utf-8')
             
+            # [WATCHER] Record and Verify Stability
+            if not self.watcher.record_edit(target['file'], code_content):
+                 self._rollback(target)
+                 return False
+            
             test_name = f"test_{file_path.stem}_empire.py"
             test_path = self.root / "tests" / "empire_tests" / test_name
             test_path.parent.mkdir(parents=True, exist_ok=True)
@@ -517,6 +610,11 @@ class SovereignFish:
         FILE: {target['file']}
         CONTEXT:
         {context}
+        
+        CRITICAL DIRECTIVE: THE LINSCOTT STANDARD
+        1. Code and Verification are a single atomic unit.
+        2. Every change MUST have a corresponding test Scenario.
+        3. Even trivial changes (e.g. "Hello World") require a test.
         
         OUTPUT: Only the Gherkin content (Feature, Scenario, Given/When/Then).
         """
@@ -559,6 +657,11 @@ class SovereignFish:
             {gherkin_content}
             STARTING_CODE:
             {current_code}
+            
+            CRITICAL DIRECTIVE: THE LINSCOTT STANDARD
+            1. You MUST generate a valid Pytest in the "test" field.
+            2. The test must verify the Gherkin scenario.
+            3. The test must be self-contained (imports, setup).
             
             PREVIOUS_ERROR (If any):
             {last_error}
@@ -643,7 +746,66 @@ class SovereignFish:
              return {"status": "DISAPPROVED", "reason": f"Council Error: {e}"}
 
     def _verify_fix(self, target: dict) -> bool:
-        return True
+        """
+        THE CRUCIBLE.
+        Verifies the fix in the final environment (installed tests).
+        If verification fails, REVERTS the changes (Rollback).
+        """
+        HUD.persona_log("INFO", "The Crucible: Verifying installed fix...")
+        
+        # 1. Locate the test
+        test_name = f"test_{Path(target['file']).stem}_empire.py"
+        test_path = self.root / "tests" / "empire_tests" / test_name
+        
+        if not test_path.exists():
+             HUD.persona_log("FAIL", "The Crucible: Verification Failed (Test file missing).")
+             self._rollback(target)
+             return False
+             
+        # 2. Run Pytest
+        env = os.environ.copy()
+        env["PYTHONPATH"] = str(self.root)
+        
+        try:
+            result = subprocess.run(
+                ["python", "-m", "pytest", str(test_path), "-v"],
+                cwd=self.root, # Run from root
+                env=env,
+                capture_output=True,
+                text=True,
+                encoding='utf-8',
+                errors='replace'
+            )
+            
+            if result.returncode == 0:
+                HUD.persona_log("PASS", "The Crucible: VERIFIED.")
+                return True
+            else:
+                HUD.persona_log("WARN", "The Crucible: FAILED.")
+                # Show errors?
+                # HUD.log("FAIL", result.stdout[-200:])
+                self._rollback(target)
+                return False
+                
+        except Exception as e:
+            HUD.persona_log("ERROR", f"The Crucible: Execution Error: {e}")
+            self._rollback(target)
+            return False
+
+    def _rollback(self, target: dict):
+        """Reverts the changes to the file."""
+        file_path = self.root / target['file']
+        bak_path = Path(f"{file_path}.bak")
+        
+        if bak_path.exists():
+            HUD.persona_log("WARN", f"Rolling back {target['file']}...")
+            shutil.copy(bak_path, file_path)
+            # Optional: Delete the failed test?
+            # test_name = f"test_{file_path.stem}_empire.py"
+            # test_path = self.root / "tests" / "empire_tests" / test_name
+            # if test_path.exists(): test_path.unlink()
+        else:
+             HUD.persona_log("ERROR", f"Rollback Failed: No backup found for {target['file']}")
 
 
 def run(target_path: str):
