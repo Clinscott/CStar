@@ -723,7 +723,9 @@ class SovereignFish:
             
             # Run Pytest
             env = os.environ.copy()
-            env["PYTHONPATH"] = str(self.root)
+            scripts_path = self.root / ".agent" / "scripts"
+            # [ALFRED] Add both root and scripts dir to PYTHONPATH for flexible imports
+            env["PYTHONPATH"] = f"{self.root}{os.pathsep}{scripts_path}"
             # [ALFRED] Force UTF-8 for subprocess/pytest output on Windows to handle CJK
             env["PYTHONIOENCODING"] = "utf-8"
             
