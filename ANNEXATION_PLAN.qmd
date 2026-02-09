@@ -1,6 +1,6 @@
 ---
 title: Annexation Plan
-date: 2026-02-08 21:36:57
+date: 2026-02-08 21:42:41
 status: pending_approval
 ---
 
@@ -13,7 +13,6 @@ status: pending_approval
 ## 🛡️ Linscott Standard (Test Verification)
 Every script must have a companion test. 'Trust, but Verify.'
 
-- [ ] **[MISSING TEST]** `check_pro.py` → Scaffold `Scaffold test for check_pro.py`
 - [ ] **[MISSING TEST]** `cjk_check.py` → Scaffold `Scaffold test for cjk_check.py`
 - [ ] **[MISSING TEST]** `collision_investigator.py` → Scaffold `Scaffold test for collision_investigator.py`
 - [ ] **[MISSING TEST]** `debug_engine.py` → Scaffold `Scaffold test for debug_engine.py`
