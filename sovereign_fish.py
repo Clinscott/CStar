@@ -479,8 +479,13 @@ class SovereignFish:
         OUTPUT: Only the Gherkin content (Feature, Scenario, Given/When/Then).
         """
         try:
-            return self.flash.generate_content(prompt).text.strip().replace("```gherkin", "").replace("```", "")
-        except: return None
+            response = self.flash.generate_content(prompt)
+            if not response or not response.text:
+                return None
+            return response.text.strip().replace("```gherkin", "").replace("```", "")
+        except Exception as e:
+            HUD.persona_log("ERROR", f"Architect Error: {e}")
+            return None
 
     def _run_gauntlet(self, target, context, gherkin_content):
         """
@@ -513,14 +518,22 @@ class SovereignFish:
             """
             
             try:
-                txt = self.flash.generate_content(prompt).text.strip()
+                response = self.flash.generate_content(prompt)
+                if not response or not response.text:
+                    last_error = "AI provided empty response"
+                    continue
+                txt = response.text.strip()
                 if "```json" in txt:
                     txt = txt.split("```json")[1].split("```")[0].strip()
                 implementation_data = json.loads(txt)
             except Exception as e:
+                HUD.persona_log("ERROR", f"Build Error: {e}")
                 last_error = str(e)
                 continue
             
+            if not implementation_data:
+                 last_error = "JSON Parsing Failed"
+                 continue_content = implementation_data.get('code')
             code_content = implementation_data.get('code')
             test_content = implementation_data.get('test')
             
@@ -541,7 +554,9 @@ class SovereignFish:
                     cwd=temp_dir,
                     env=env,
                     capture_output=True,
-                    text=True
+                    text=True,
+                    encoding='utf-8',
+                    errors='replace'
                 )
                 
                 if result.returncode == 0:
@@ -549,7 +564,7 @@ class SovereignFish:
                     return implementation_data
                 else:
                     HUD.persona_log("WARN", "The Gauntlet: FAILED.")
-                    last_error = result.stdout.replace("\n", " | ")[-500:] 
+                    last_error = (result.stdout + result.stderr).replace("\n", " | ")[-500:] 
                     current_code = code_content 
                     continue
             except Exception as e:
@@ -567,12 +582,15 @@ class SovereignFish:
         OUTPUT: JSON with status (APPROVED/DISAPPROVED) and reason.
         """
         try:
-            txt = self.pro.generate_content(prompt).text.strip()
+            response = self.pro.generate_content(prompt)
+            if not response or not response.text:
+                return {"status": "DISAPPROVED", "reason": "Empty response from Council."}
+            txt = response.text.strip()
             if "```json" in txt:
                 txt = txt.split("```json")[1].split("```")[0].strip()
             return json.loads(txt)
-        except:
-             return {"status": "DISAPPROVED", "reason": "Failed to parse Council response."}
+        except Exception as e:
+             return {"status": "DISAPPROVED", "reason": f"Council Error: {e}"}
 
     def _verify_fix(self, target: dict) -> bool:
         return True
