@@ -1,0 +1,29 @@
+
+Feature: Debug Engine Functionality
+
+  Scenario: Verify basic query processing and output
+    Given the debug_engine.py script is executed
+    When a sample query is processed
+    Then the thesaurus entries for specific words are printed
+    And the query is tokenized
+    And the top 10 expanded tokens are printed
+    And the top 5 search results are printed with their scores and global status
+
+  Scenario: Check Thesaurus Loading
+    Given the debug_engine.py script is executed
+    When a sample query is processed
+    Then the thesaurus entries for 'begin', 'initiate', 'aesthetics', and 'e2e' are loaded and printed
+    And each printed entry is not None
+
+  Scenario: Verify Tokenization Output
+    Given the debug_engine.py script is executed
+    When the query "please initiate our project now" is processed
+    Then the tokens are printed to the console
+    And the tokens should include "please", "initiate", "project", and "now"
+
+  Scenario: Check Search Results Output
+    Given the debug_engine.py script is executed
+    When a sample query is processed
+    Then the top 5 search results are printed to the console
+    And each result includes a trigger, a score, and a global status
+    And the score is a floating-point number formatted to four decimal places
