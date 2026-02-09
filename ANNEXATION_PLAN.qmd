@@ -1,6 +1,6 @@
 ---
 title: Annexation Plan
-date: 2026-02-08 21:03:05
+date: 2026-02-08 21:23:38
 status: pending_approval
 ---
 
@@ -51,10 +51,10 @@ Every script must have a companion test. 'Trust, but Verify.'
 Structural integrity mandates. No bare excepts. Strict typing.
 - [ ] **[quality]** `main_loop.py` → Fix bare except at line 169
 - [ ] **[quality]** `main_loop.py` → Fix bare except at line 253
-- [ ] **[quality]** `sovereign_fish.py` → Fix bare except at line 279
-- [ ] **[quality]** `sovereign_fish.py` → Fix bare except at line 180
-- [ ] **[quality]** `sovereign_fish.py` → Fix bare except at line 210
-- [ ] **[quality]** `sovereign_fish.py` → Fix bare except at line 515
+- [ ] **[quality]** `sovereign_fish.py` → Fix bare except at line 280
+- [ ] **[quality]** `sovereign_fish.py` → Fix bare except at line 181
+- [ ] **[quality]** `sovereign_fish.py` → Fix bare except at line 211
+- [ ] **[quality]** `sovereign_fish.py` → Fix bare except at line 518
 - [ ] **[quality]** `mock_project/src/legacy_chaos.py` → Fix bare except at line 5
 
 ## 📜 The Edda (Documentation)
