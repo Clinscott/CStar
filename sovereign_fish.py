@@ -677,11 +677,22 @@ class SovereignFish:
             """
             
             try:
+                # Define strict schema for Flash (and Pro) to ensure valid JSON
+                response_schema = {
+                    "type": "object",
+                    "properties": {
+                        "code": {"type": "string"},
+                        "test": {"type": "string"}
+                    },
+                    "required": ["code", "test"]
+                }
+
                 response = self.client.models.generate_content(
                     model=model_name,
                     contents=prompt,
                     config=types.GenerateContentConfig(
-                        response_mime_type="application/json"
+                        response_mime_type="application/json",
+                        response_schema=response_schema
                     )
                 )
                 if not response or not response.text:
