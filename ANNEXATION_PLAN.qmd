@@ -1,6 +1,6 @@
 ---
 title: Annexation Plan
-date: 2026-02-08 17:13:27
+date: 2026-02-08 19:41:07
 status: pending_approval
 ---
 
@@ -14,6 +14,7 @@ status: pending_approval
 Every script must have a companion test. 'Trust, but Verify.'
 
 - [ ] **[MISSING TEST]** `catalog_check.py` → Scaffold `Scaffold test for catalog_check.py`
+- [ ] **[MISSING TEST]** `check_pro.py` → Scaffold `Scaffold test for check_pro.py`
 - [ ] **[MISSING TEST]** `cjk_check.py` → Scaffold `Scaffold test for cjk_check.py`
 - [ ] **[MISSING TEST]** `collision_investigator.py` → Scaffold `Scaffold test for collision_investigator.py`
 - [ ] **[MISSING TEST]** `debug_engine.py` → Scaffold `Scaffold test for debug_engine.py`
@@ -200,6 +201,10 @@ Every script must have a companion test. 'Trust, but Verify.'
 
 ## 🐧 Torvalds Protocol (Code Quality)
 Structural integrity mandates. No bare excepts. Strict typing.
+- [ ] **[quality]** `main_loop.py` → Fix bare except at line 167
+- [ ] **[quality]** `main_loop.py` → Fix bare except at line 251
+- [ ] **[quality]** `sovereign_fish.py` → Fix bare except at line 497
+- [ ] **[quality]** `sovereign_fish.py` → Fix bare except at line 555
 - [ ] **[quality]** `sovereign_fish.py` → Fix bare except at line 179
 - [ ] **[quality]** `sovereign_fish.py` → Fix bare except at line 209
 - [ ] **[quality]** `tests/legacy_quarantine/test_install_persona.py` → Fix bare except at line 24
