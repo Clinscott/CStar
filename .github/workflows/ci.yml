@@ -25,7 +25,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        pip install ruff pytest playwright google-genai colorama vulture radon
+        pip install ruff pytest playwright google-genai colorama vulture radon python-dotenv
         pip install -e .
         playwright install
         
