@@ -15,30 +15,20 @@ import sys
 import time
 from pathlib import Path
 
-from colorama import Fore, Style, init
+from colorama import Fore, init
 from google import genai
 from google.genai import types
+import vulture
+from radon.complexity import cc_visit
+
 
 # Initialize Colorama
 init(autoreset=True)
 
-# Load Environment Variables from .env or .env.local
-try:
-    from dotenv import load_dotenv
-    # [.env.local is in project root, not in this directory]
-    root = Path(__file__).parent.parent.parent
-    env_local = root / ".env.local"
-    if env_local.exists():
-        load_dotenv(dotenv_path=env_local)
-    else:
-        load_dotenv()
-except ImportError:
-    pass
+# Shared Bootstrap (env-loading + sys.path)
+from src.sentinel._bootstrap import bootstrap
 
-# Add project root to path
-project_root = Path(__file__).parent.parent.parent.absolute()
-if str(project_root) not in sys.path:
-    sys.path.append(str(project_root))
+bootstrap()
 
 from src.core.annex import AnnexStrategist
 from src.core.ui import HUD
@@ -68,38 +58,38 @@ class CampaignStrategist:
             return None
 
         lines = self.plan_path.read_text(encoding='utf-8').splitlines()
-        
+
         # Regex for valid table row: | 1-5 | `file.py` | Target | Type | Description |
         # We assume columns: #, File, Target, Type, Description
         row_pattern = r"^\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|"
-        
+
         for i, line in enumerate(lines):
             # Skip header separators or non-table lines
             if "---" in line or not line.strip().startswith("|"):
                 continue
-                
+
             # Skip struck-through lines (completed)
             if "~~" in line:
                 continue
-                
+
             match = re.search(row_pattern, line)
             if match:
                 # Check for header row (e.g., contains "File" or "Target")
                 if "File" in match.group(2) or "Description" in match.group(5):
                     continue
-                    
+
                 # Found an actionable item
                 file_target = match.group(2).strip().replace("`", "")
                 target_name = match.group(3).strip()
                 action_type = match.group(4).strip()
                 description = match.group(5).strip()
-                
+
                 # Check if file exists (relative to root)
                 file_path = self.root / file_target
-                
+
                 # If file doesn't exist AND it's not a "NEW" task, maybe skip or handle?
                 # For now, we return it. The Forge will handle file creation/editing.
-                
+
                 return {
                     "type": "CAMPAIGN_TASK",
                     "file": file_target,
@@ -115,14 +105,13 @@ class CampaignStrategist:
         """
         lines = self.plan_path.read_text(encoding='utf-8').splitlines()
         idx = target['line_index']
-        
+
+
         if idx < len(lines):
             line = lines[idx]
             # Strike through the content, keeping the pipes
-            # Simpler: Just wrap the whole line content (excluding outer pipes) in ~~
-            # Or regex replace content. 
             parts = line.split("|")
-            # Index 0 is empty (before first pipe), 1 is ID, 2 is File, 3 is Target, 4 is Type, 5 is Description
+            # Cols: 0=empty, 1=ID, 2=File, 3=Target, 4=Type, 5=Desc
             if len(parts) >= 6:
                 desc = parts[5]
                 if "~~" not in desc:
@@ -136,18 +125,54 @@ class CampaignStrategist:
 # 🛡️ THE LORE STRATEGISTS
 # ==============================================================================
 
+
 class ValkyrieStrategist:
     """
     [Valkyrie: PRUNING]
     Lore: "Choosers of the Slain."
-    Purpose: Identify unused imports and unreachable code.
+    Purpose: Identify unused imports and unreachable code using Vulture.
     """
     def __init__(self, root: Path):
         self.root = root
-        
+
     def scan(self) -> list:
-        # Placeholder for Vulture integration
-        return []
+        targets = []
+        try:
+            v = vulture.Vulture(verbose=False)
+            # Scavenge all python files
+            py_files = []
+            for p in self.root.rglob("*.py"):
+                skip_targets = ("node_modules", ".venv", "tests", ".agent", ".git")
+                if any(d in p.parts for d in skip_targets):
+                    continue
+                py_files.append(str(p))
+            
+            v.scavenge(py_files)
+            
+            raw_items = v.get_unused_code()
+            
+            for item in raw_items:
+                if item.confidence < 10: # Very low confidence only
+                    continue
+                
+                lineno = getattr(item, "first_lineno", getattr(item, "lineno", 1))
+                
+                try:
+                    rel_path = str(Path(item.filename).resolve().relative_to(self.root.resolve()))
+                except ValueError:
+                    rel_path = str(item.filename)
+
+                targets.append({
+                    "type": "VALKYRIE_BREACH",
+                    "file": rel_path,
+                    "action": f"Prune Dead Code: {item.message} at line {lineno}",
+                    "severity": "LOW",
+                    "line": lineno
+                })
+        except Exception:
+            pass
+        return targets
+
 
 class EddaStrategist:
     """
@@ -161,8 +186,10 @@ class EddaStrategist:
     def scan(self) -> list:
         targets = []
         for py_file in self.root.rglob("*.py"):
-            if "node_modules" in py_file.parts or ".venv" in py_file.parts or "tests" in py_file.parts: continue
-            
+            skip_dirs = ("node_modules", ".venv", "tests")
+            if any(d in py_file.parts for d in skip_dirs):
+                continue
+
             try:
                 # Simple check: Does it have a docstring?
                 content = py_file.read_text(encoding='utf-8')
@@ -173,7 +200,7 @@ class EddaStrategist:
                         "action": f"Weave Saga (Docstring) for {py_file.name}",
                         "severity": "LOW"
                     })
-            except (IOError, OSError, ValueError): pass
+            except (OSError, ValueError): pass
         return targets
 
 class RuneCasterStrategist:
@@ -184,12 +211,12 @@ class RuneCasterStrategist:
     """
     def __init__(self, root: Path):
         self.root = root
-        
+
     def scan(self) -> list:
         targets = []
         for py_file in self.root.rglob("*.py"):
             if "node_modules" in py_file.parts or ".venv" in py_file.parts or "tests" in py_file.parts: continue
-            
+
             try:
                 # Basic heuristic: 'def foo(x):' vs 'def foo(x: int) -> int:'
                 # We look for arguments without colons
@@ -203,21 +230,50 @@ class RuneCasterStrategist:
                             "action": f"Cast Runes (Type Hints) for {py_file.name}:{i+1}",
                             "severity": "LOW"
                         })
-            except (IOError, OSError, ValueError): pass
+            except (OSError, ValueError):
+                pass
         return targets
+
 
 class TorvaldsStrategist:
     """
     [COMPLEXITY]
     Lore: "The Standard of Excellence."
-    Purpose: Identify cyclomatic complexity > 10.
+    Purpose: Identify cyclomatic complexity > 10 using Radon.
     """
     def __init__(self, root: Path):
         self.root = root
-        
+
     def scan(self) -> list:
-        # Placeholder for Radon/McCabe check
-        return []
+        targets = []
+        for py_file in self.root.rglob("*.py"):
+            skip_dirs = ("node_modules", ".venv", "tests")
+            if any(d in py_file.parts for d in skip_dirs):
+                continue
+
+            try:
+                content = py_file.read_text(encoding='utf-8')
+                blocks = cc_visit(content)
+                for block in blocks:
+                    # block is a Function object or Class object with .complexity attribute
+                    if block.complexity > 10:
+                        try:
+                            rel_path = str(py_file.resolve().relative_to(self.root.resolve()))
+                        except ValueError:
+                            rel_path = str(py_file)
+                        
+                        targets.append({
+                            "type": "TORVALDS_BREACH",
+                            "file": rel_path,
+                            "action": f"Simplify Complexity: {block.name} (CC: {block.complexity})",
+                            "severity": "MEDIUM",
+                            "line": block.lineno
+                        })
+            except Exception:
+                pass
+        return targets
+
+
 
 class VisualStrategist:
     """
@@ -234,7 +290,7 @@ class VisualStrategist:
         for tsx_file in self.root.rglob("*.tsx"):
             if "node_modules" in tsx_file.parts:
                 continue
-                
+
             content = tsx_file.read_text(encoding='utf-8')
             # Regex for <button ... className="..." ...> that lacks 'hover:'
             lines = content.splitlines()
@@ -247,7 +303,7 @@ class VisualStrategist:
                         "line": i+1,
                         "severity": "MEDIUM"
                     })
-                    
+
         return targets
 
 
@@ -267,7 +323,7 @@ class TheWatcher:
             return {}
         try:
             return json.loads(self.state_file.read_text(encoding='utf-8'))
-        except (IOError, OSError, json.JSONDecodeError):
+        except (OSError, json.JSONDecodeError):
             return {}
 
     def _save_state(self):
@@ -290,21 +346,21 @@ class TheWatcher:
                 "content_hashes": [],
                 "status": "ACTIVE"
             }
-        
+
         file_state = self.state[rel_path]
         now = time.time()
-        
+
         # 1. Fatigue Logic (3 edits / 24h)
         if now - file_state["last_edited"] > 86400: # Reset daily
             file_state["edit_count_24h"] = 0
-            
+
         file_state["edit_count_24h"] += 1
         file_state["last_edited"] = now
-        
+
         # 2. Echo Detection (Hash repetitive states)
         content_hash = hashlib.md5(content.encode('utf-8')).hexdigest()
         is_echo = content_hash in file_state["content_hashes"]
-        
+
         file_state["content_hashes"].append(content_hash)
         if len(file_state["content_hashes"]) > 5:
             file_state["content_hashes"].pop(0)
@@ -326,36 +382,27 @@ class TheWatcher:
 
 
 class SovereignFish:
-    def __init__(self, target_path: str):
+    def __init__(self, target_path: str, client=None):
         self.root = Path(target_path).resolve()
         self.api_key = os.getenv("GOOGLE_API_KEY")
-        
-        if not self.api_key:
+
+        if not self.api_key and client is None:
             raise ValueError("GOOGLE_API_KEY environment variable not set.")
-            
-        self.client = genai.Client(api_key=self.api_key)
-        
+
+        self.client = client or genai.Client(api_key=self.api_key)
+
         # EMPIRE TDD Configuration
         self.flash_model = 'gemini-2.5-flash'
         self.pro_model = 'gemini-2.5-pro'
-        
+
         # 3. The Watcher (Anti-Oscillation)
         self.watcher = TheWatcher(self.root)
 
         # [ALFRED] Strategist Metrics: Track per-strategist hit rates
         self._strategist_metrics: dict[str, dict[str, int]] = {}
 
-        # [ALFRED] Configurable priority order from config.json
-        config_path = self.root / ".agent" / "config.json"
-        self._strategist_priority = ["ANNEX", "BEAUTY", "EDDA", "RUNE", "TORVALDS", "CAMPAIGN"]
-        if config_path.exists():
-            try:
-                cfg = json.loads(config_path.read_text(encoding='utf-8'))
-                custom_order = cfg.get("strategist_priority")
-                if isinstance(custom_order, list) and custom_order:
-                    self._strategist_priority = custom_order
-            except (json.JSONDecodeError, IOError, OSError):
-                pass
+        # [ALFRED] Metrics: Track per-strategist hit rates
+        self._strategist_metrics: dict[str, dict[str, int]] = {}
 
     def run(self) -> bool:
         """
@@ -366,35 +413,39 @@ class SovereignFish:
             HUD.persona_log("INFO", f"The Ravens are scouting {self.root}...")
         else:
             HUD.persona_log("INFO", f"Muninn is scouring {self.root.name}...")
-        
+
         # 1. SCAN (The Hunt)
         strategist = AnnexStrategist(self.root)
         strategist.scan()
-        
+
         beauty_expert = VisualStrategist(self.root)
         beauty_targets = beauty_expert.scan()
-        
-        edda = EddaStrategist(self.root)
-        edda_targets = edda.scan()
-        
-        rune = RuneCasterStrategist(self.root)
-        rune_targets = rune.scan()
-        
+
+        valkyrie = ValkyrieStrategist(self.root)
+        valkyrie_targets = valkyrie.scan()
+
         torvalds = TorvaldsStrategist(self.root)
         torvalds_targets = torvalds.scan()
+
+        edda = EddaStrategist(self.root)
+        edda_targets = edda.scan()
+
+        rune = RuneCasterStrategist(self.root)
+        rune_targets = rune.scan()
 
         # [ALFRED] Metrics: Record scan results per strategist
         scan_results = {
             "ANNEX": len(strategist.breaches) if hasattr(strategist, 'breaches') else 0,
+            "VALKYRIE": len(valkyrie_targets),
+            "TORVALDS": len(torvalds_targets),
             "BEAUTY": len(beauty_targets),
             "EDDA": len(edda_targets),
             "RUNE": len(rune_targets),
-            "TORVALDS": len(torvalds_targets),
         }
 
         target = None
         selected_strategist = None
-        
+
         # Priority Logic:
         # 1. Critical Code/Test Breaches (Annex)
         if strategist.breaches:
@@ -404,17 +455,36 @@ class SovereignFish:
                 HUD.persona_log("WARN", "Weakness detected. The walls must be reinforced.")
             target = self._select_breach_target(strategist.breaches)
             selected_strategist = "ANNEX"
-            
-        # 2. Beauty Imperfections (VisualStrategist)
+
+        # 2. Dead Code (Valkyrie)
+        if not target and valkyrie_targets:
+            if HUD.PERSONA == "ALFRED":
+                HUD.persona_log("INFO", "Disposing of unused assets.")
+            else:
+                HUD.persona_log("INFO", "The branches are withered. Pruning class.")
+            target = valkyrie_targets[0]
+            selected_strategist = "VALKYRIE"
+
+        # 3. Complexity (Torvalds)
+        if not target and torvalds_targets:
+            if HUD.PERSONA == "ALFRED":
+                HUD.persona_log("INFO", "Refining the logic flow. It's becoming tangled.")
+            else:
+                HUD.persona_log("INFO", "The knots are too tight. Loosening the weave.")
+            target = torvalds_targets[0]
+            selected_strategist = "TORVALDS"
+
+
+        # 4. Beauty Imperfections (VisualStrategist)
         if not target and beauty_targets:
-             if HUD.PERSONA == "ALFRED":
-                 HUD.persona_log("INFO", "The presentation is a bit untidy. polishing.")
-             else:
-                 HUD.persona_log("INFO", "Form is function. The visual runes are misaligned.")
-             target = beauty_targets[0]
-             selected_strategist = "BEAUTY"
-             
-        # 3. Saga Gaps (Edda)
+            if HUD.PERSONA == "ALFRED":
+                HUD.persona_log("INFO", "The presentation is a bit untidy. polishing.")
+            else:
+                HUD.persona_log("INFO", "Form is function. The visual runes are misaligned.")
+            target = beauty_targets[0]
+            selected_strategist = "BEAUTY"
+
+        # 5. Saga Gaps (Edda)
         if not target and edda_targets:
             if HUD.PERSONA == "ALFRED":
                 HUD.persona_log("INFO", "Some records are missing. Updating the Archive.")
@@ -422,8 +492,8 @@ class SovereignFish:
                 HUD.persona_log("INFO", "The Saga is incomplete. Weaving the Edda.")
             target = edda_targets[0]
             selected_strategist = "EDDA"
-            
-        # 4. Rune Gaps (RuneCaster)
+
+        # 6. Rune Gaps (RuneCaster)
         if not target and rune_targets:
              if HUD.PERSONA == "ALFRED":
                  HUD.persona_log("INFO", "Labeling the new inventory items.")
@@ -432,19 +502,19 @@ class SovereignFish:
              target = rune_targets[0]
              selected_strategist = "RUNE"
 
-        # 5. Campaign (Mandate)
+        # 7. Campaign (Mandate)
         if not target:
             if HUD.PERSONA == "ALFRED":
                 HUD.persona_log("INFO", "No immediate concerns. Checking your itinerary...")
             else:
                 HUD.persona_log("INFO", "The realm is secure. Consulting the Great Plan...")
-                
+
             campaign = CampaignStrategist(self.root)
             target = campaign.get_next_target()
             if target:
                 target['source'] = 'CAMPAIGN'
                 selected_strategist = "CAMPAIGN"
-                
+
         if not target:
             if HUD.PERSONA == "ALFRED":
                 HUD.persona_log("SUCCESS", "Everything appears to be in order, sir.")
@@ -452,7 +522,7 @@ class SovereignFish:
                 HUD.persona_log("SUCCESS", "The waters are clear. Heimdall sees no threats.")
             self._emit_metrics_summary(scan_results)
             return False
- 
+
         HUD.persona_log("WARN", f"Target: {target['action']} in {target['file']}")
         logging.info(f"[{self.root.name}] [TARGET] {target['action']} ({target['file']})")
 
@@ -464,11 +534,11 @@ class SovereignFish:
         # 3. FORGE (Execute Fix)
         if not self._forge_improvement(target):
             return False
-            
+
         # 4. CRUCIBLE (Verify)
         if self._verify_fix(target):
             logging.info(f"[{self.root.name}] [SUCCESS] Verified fix for {target['file']}")
-            
+
             # 5. FISHTEST CHAIN: Verify no accuracy regression
             if not self._verify_fishtest(target):
                 self._record_metric(selected_strategist, hit=False)
@@ -481,7 +551,7 @@ class SovereignFish:
                      HUD.persona_log("SUCCESS", "I have crossed that item off your list, sir.")
                 else:
                      HUD.persona_log("SUCCESS", "The Runes are cast. Limit broken.")
-                
+
             self._record_metric(selected_strategist, hit=True)
             return True
         else:
@@ -571,7 +641,7 @@ class SovereignFish:
         3. Critic (Pro): Review & Approve verified code
         """
         HUD.persona_log("INFO", f"Initiating Empire TDD Protocol for {target['file']}...")
-        
+
         context = ""
         file_path = self.root / target['file']
         if file_path.exists():
@@ -584,7 +654,7 @@ class SovereignFish:
 
         # --- STEP 2: THE GAUNTLET (Build & Verify Loop) ---
         impl_data = self._run_gauntlet(target, context, gherkin_content)
-        
+
         if not impl_data:
             HUD.persona_log("FAIL", "The Gauntlet has claimed another victim. (Build/Test Failed)")
             return False
@@ -595,33 +665,33 @@ class SovereignFish:
         # --- STEP 3: CRITIC (Review) ---
         HUD.persona_log("INFO", "Consulting The Council (Flash)...")
         review = self._consult_council(target, gherkin_content, code_content, test_content)
-        
+
         if review['status'] == 'APPROVED':
             HUD.persona_log("SUCCESS", "The Council APPROVES.")
-            
+
             # SAVE FILES
             if file_path.exists():
                  shutil.copy(file_path, f"{file_path}.bak")
             file_path.parent.mkdir(parents=True, exist_ok=True)
             file_path.write_text(code_content, encoding='utf-8')
-            
+
             # [WATCHER] Record and Verify Stability
             if not self.watcher.record_edit(target['file'], code_content):
                  self._rollback(target)
                  return False
-            
+
             # 2. Test File
             test_name = f"test_{file_path.stem}_empire.py"
             test_path = self.root / "tests" / "empire_tests" / test_name
             test_path.parent.mkdir(parents=True, exist_ok=True)
             test_path.write_text(test_content, encoding='utf-8')
-            
+
             # 3. Gherkin Artifact
             spec_name = f"{file_path.stem}.qmd"
             spec_path = self.root / "tests" / "empire_tests" / "specs" / spec_name
             spec_path.parent.mkdir(parents=True, exist_ok=True)
             spec_path.write_text(gherkin_content, encoding='utf-8')
-            
+
             return True
         else:
             reason = review.get('reason', 'Unknown reason')
@@ -668,19 +738,19 @@ class SovereignFish:
         max_retries = 3
         temp_dir = self.root / "tests" / "empire_tests" / "temp_gauntlet"
         temp_dir.mkdir(parents=True, exist_ok=True)
-        
-        current_code = context 
+
+        current_code = context
         last_error = ""
-        
+
         for attempt in range(max_retries + 1):
-            
+
             # ESCALATION PROTOCOL
             is_emergency = (attempt == max_retries)
             model_name = self.pro_model if is_emergency else self.flash_model
             model_display = "Gemini Pro (Senior)" if is_emergency else "Flash (Junior)"
-            
+
             HUD.persona_log("INFO", f"Entering The Gauntlet (Attempt {attempt+1}/{max_retries+1}) using {model_display}...")
-            
+
             prompt = f"""
             ACT AS: Senior Python Developer.
             TASK: Implement the solution and the corresponding Pytest.
@@ -703,7 +773,7 @@ class SovereignFish:
             
             OUTPUT: JSON object with keys: "code" and "test".
             """
-            
+
             try:
                 response_schema = {
                     "type": "object",
@@ -733,25 +803,25 @@ class SovereignFish:
                 HUD.persona_log("ERROR", f"Build Error: {e}")
                 last_error = str(e)
                 continue
-            
+
             if not implementation_data:
                  last_error = "JSON Parsing Failed"
                  continue
             code_content = implementation_data.get('code')
             test_content = implementation_data.get('test')
-            
+
             # Write temp files
             temp_code_path = temp_dir / Path(target['file']).name
             temp_test_path = temp_dir / "test_temp_empire.py"
-            
+
             temp_code_path.write_text(code_content, encoding='utf-8')
             temp_test_path.write_text(test_content, encoding='utf-8')
-            
+
             # Run Pytest
             env = os.environ.copy()
             env["PYTHONPATH"] = str(self.root)
             env["PYTHONIOENCODING"] = "utf-8"
-            
+
             try:
                 cmd = [sys.executable, "-m", "pytest", str(temp_test_path), "-v"]
                 result = subprocess.run(
@@ -761,17 +831,18 @@ class SovereignFish:
                     capture_output=True,
                     text=True,
                     encoding='utf-8',
-                    errors='replace'
+                    errors='replace',
+                    timeout=120
                 )
-                
+
                 if result.returncode == 0:
                     HUD.persona_log("PASS", "The Gauntlet: SURVIVED.")
                     return implementation_data
                 else:
                     HUD.persona_log("WARN", "The Gauntlet: FAILED.")
                     error_output = (result.stdout + result.stderr)
-                    last_error = error_output.replace("\n", " | ")[-1000:] 
-                    
+                    last_error = error_output.replace("\n", " | ")[-1000:]
+
                     fail_log = self.root / "tests" / "empire_tests" / "gauntlet_failures.log"
                     try:
                         fail_log.parent.mkdir(parents=True, exist_ok=True)
@@ -783,11 +854,11 @@ class SovereignFish:
                     except Exception as log_err:
                         print(f"Failed to write failure log: {log_err}")
 
-                    current_code = code_content 
+                    current_code = code_content
                     continue
             except Exception as e:
                 last_error = f"Execution Error: {e}"
-        
+
         return None
 
     def _consult_council(self, target, gherkin_content, code, test):
@@ -823,20 +894,20 @@ class SovereignFish:
         If verification fails, REVERTS the changes (Rollback).
         """
         HUD.persona_log("INFO", "The Crucible: Verifying installed fix...")
-        
+
         # 1. Locate the test
         test_name = f"test_{Path(target['file']).stem}_empire.py"
         test_path = self.root / "tests" / "empire_tests" / test_name
-        
+
         if not test_path.exists():
              HUD.persona_log("FAIL", "The Crucible: Verification Failed (Test file missing).")
              self._rollback(target)
              return False
-             
+
         # 2. Run Pytest
         env = os.environ.copy()
         env["PYTHONPATH"] = str(self.root)
-        
+
         try:
             result = subprocess.run(
                 [sys.executable, "-m", "pytest", str(test_path), "-v"],
@@ -847,7 +918,7 @@ class SovereignFish:
                 encoding='utf-8',
                 errors='replace'
             )
-            
+
             if result.returncode == 0:
                 HUD.persona_log("PASS", "The Crucible: VERIFIED.")
                 return True
@@ -855,7 +926,7 @@ class SovereignFish:
                 HUD.persona_log("WARN", "The Crucible: FAILED.")
                 self._rollback(target)
                 return False
-                
+
         except Exception as e:
             HUD.persona_log("ERROR", f"The Crucible: Execution Error: {e}")
             self._rollback(target)
@@ -865,7 +936,7 @@ class SovereignFish:
         """Reverts the changes to the file."""
         file_path = self.root / target['file']
         bak_path = Path(f"{file_path}.bak")
-        
+
         if bak_path.exists():
             HUD.persona_log("WARN", f"Rolling back {target['file']}...")
             shutil.copy(bak_path, file_path)
