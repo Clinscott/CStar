@@ -63,7 +63,7 @@ select = [
     "E", "W", "F", "B", "C4", "UP", "SIM", "I", "N", "ANN", "S", "PTH", "RUF"
 ]
 ignore = [
-    "ANN101", "ANN102", "ANN204"
+    "ANN204"
 ]
 
 [tool.ruff.lint.per-file-ignores]
