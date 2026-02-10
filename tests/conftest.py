@@ -1,8 +1,31 @@
 """Shared fixtures for sentinel tests."""
 import os
+import sys
 import pytest
 from pathlib import Path
 from unittest.mock import MagicMock
+
+# ---------------------------------------------------------------------------
+# Centralised sys.path setup — ensures every bare import used by tests
+# (annex, edda, ui, report_engine, network_watcher, odin_protocol, factories,
+#  check_pro, cjk_check, debug_engine, sv_engine) resolves correctly.
+# ---------------------------------------------------------------------------
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+_paths_to_add = [
+    PROJECT_ROOT,                                        # src.* imports
+    PROJECT_ROOT / "src" / "core",                       # annex, edda, ui, report_engine, sv_engine
+    PROJECT_ROOT / "src" / "core" / "engine",            # vector (SovereignVector)
+    PROJECT_ROOT / "src" / "tools",                      # network_watcher
+    PROJECT_ROOT / "src" / "tools" / "debug",            # check_pro, cjk_check, debug_engine
+    PROJECT_ROOT / "src" / "games",                      # odin_protocol.*
+    PROJECT_ROOT / ".agent" / "scripts" / "empire",      # factories
+]
+
+for p in _paths_to_add:
+    _p = str(p)
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
 
 @pytest.fixture
