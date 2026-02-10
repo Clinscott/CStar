@@ -168,7 +168,7 @@ def daemon_loop():
                 if psutil.pid_exists(owner_pid):
                     HUD.persona_log("WARNING", f"Highlander Protocol: PID {owner_pid} holds the Mandate. Terminating.")
                     return False
-        except:
+        except (IOError, OSError):
             pass
         return True
 
@@ -264,5 +264,5 @@ if __name__ == "__main__":
             try:
                 if LOCK_FILE.read_text().strip() == str(os.getpid()):
                     LOCK_FILE.unlink()
-            except:
+            except Exception:
                 pass

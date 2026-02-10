@@ -16,19 +16,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 # Import Shared UI
 sys.path.append(str(Path(__file__).parent.parent))
-try:
-    from scripts.ui import HUD
-except ImportError:
-    class HUD:
-        RED = "\033[31m"; RESET = "\033[0m"; CYAN = "\033[36m"
-        @staticmethod
-        def box_top(t): print(f"--- {t} ---")
-        @staticmethod
-        def box_row(l, v, c=""): print(f"{l}: {v}")
-        @staticmethod
-        def box_bottom(): print("-" * 20)
-        @staticmethod
-        def log(lv, m, d=""): print(f"[{lv}] {m} {d}")
+from core.ui import HUD
 
 
 class ConfigurationError(Exception):

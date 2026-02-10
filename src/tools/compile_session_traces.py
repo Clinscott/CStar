@@ -94,7 +94,7 @@ def compile_traces(tdir: str = None, rpath: str = None):
     for f in files:
         try:
             with open(f, 'r') as j: raw_traces.append(json.load(j))
-        except: pass
+        except (json.JSONDecodeError, IOError, OSError): pass
     
     analyzer = TraceAnalyzer(raw_traces)
     stats = analyzer.get_summary()

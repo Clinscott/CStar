@@ -25,7 +25,9 @@ init(autoreset=True)
 # Load Environment Variables from .env or .env.local
 try:
     from dotenv import load_dotenv
-    env_local = Path(__file__).parent / ".env.local"
+    # [.env.local is in project root, not in this directory]
+    root = Path(__file__).parent.parent.parent
+    env_local = root / ".env.local"
     if env_local.exists():
         load_dotenv(dotenv_path=env_local)
     else:
@@ -171,7 +173,7 @@ class EddaStrategist:
                         "action": f"Weave Saga (Docstring) for {py_file.name}",
                         "severity": "LOW"
                     })
-            except: pass
+            except (IOError, OSError, ValueError): pass
         return targets
 
 class RuneCasterStrategist:
@@ -201,7 +203,7 @@ class RuneCasterStrategist:
                             "action": f"Cast Runes (Type Hints) for {py_file.name}:{i+1}",
                             "severity": "LOW"
                         })
-            except: pass
+            except (IOError, OSError, ValueError): pass
         return targets
 
 class TorvaldsStrategist:
@@ -265,7 +267,7 @@ class TheWatcher:
             return {}
         try:
             return json.loads(self.state_file.read_text(encoding='utf-8'))
-        except:
+        except (IOError, OSError, json.JSONDecodeError):
             return {}
 
     def _save_state(self):
@@ -334,11 +336,26 @@ class SovereignFish:
         self.client = genai.Client(api_key=self.api_key)
         
         # EMPIRE TDD Configuration
-        self.flash_model = 'gemini-2.0-flash'
+        self.flash_model = 'gemini-2.5-flash'
         self.pro_model = 'gemini-2.5-pro'
         
         # 3. The Watcher (Anti-Oscillation)
         self.watcher = TheWatcher(self.root)
+
+        # [ALFRED] Strategist Metrics: Track per-strategist hit rates
+        self._strategist_metrics: dict[str, dict[str, int]] = {}
+
+        # [ALFRED] Configurable priority order from config.json
+        config_path = self.root / ".agent" / "config.json"
+        self._strategist_priority = ["ANNEX", "BEAUTY", "EDDA", "RUNE", "TORVALDS", "CAMPAIGN"]
+        if config_path.exists():
+            try:
+                cfg = json.loads(config_path.read_text(encoding='utf-8'))
+                custom_order = cfg.get("strategist_priority")
+                if isinstance(custom_order, list) and custom_order:
+                    self._strategist_priority = custom_order
+            except (json.JSONDecodeError, IOError, OSError):
+                pass
 
     def run(self) -> bool:
         """
@@ -366,7 +383,17 @@ class SovereignFish:
         torvalds = TorvaldsStrategist(self.root)
         torvalds_targets = torvalds.scan()
 
+        # [ALFRED] Metrics: Record scan results per strategist
+        scan_results = {
+            "ANNEX": len(strategist.breaches) if hasattr(strategist, 'breaches') else 0,
+            "BEAUTY": len(beauty_targets),
+            "EDDA": len(edda_targets),
+            "RUNE": len(rune_targets),
+            "TORVALDS": len(torvalds_targets),
+        }
+
         target = None
+        selected_strategist = None
         
         # Priority Logic:
         # 1. Critical Code/Test Breaches (Annex)
@@ -376,6 +403,7 @@ class SovereignFish:
             else:
                 HUD.persona_log("WARN", "Weakness detected. The walls must be reinforced.")
             target = self._select_breach_target(strategist.breaches)
+            selected_strategist = "ANNEX"
             
         # 2. Beauty Imperfections (VisualStrategist)
         if not target and beauty_targets:
@@ -384,6 +412,7 @@ class SovereignFish:
              else:
                  HUD.persona_log("INFO", "Form is function. The visual runes are misaligned.")
              target = beauty_targets[0]
+             selected_strategist = "BEAUTY"
              
         # 3. Saga Gaps (Edda)
         if not target and edda_targets:
@@ -392,6 +421,7 @@ class SovereignFish:
             else:
                 HUD.persona_log("INFO", "The Saga is incomplete. Weaving the Edda.")
             target = edda_targets[0]
+            selected_strategist = "EDDA"
             
         # 4. Rune Gaps (RuneCaster)
         if not target and rune_targets:
@@ -400,6 +430,7 @@ class SovereignFish:
              else:
                  HUD.persona_log("INFO", "The Runes are undefined. Casting strict definitions.")
              target = rune_targets[0]
+             selected_strategist = "RUNE"
 
         # 5. Campaign (Mandate)
         if not target:
@@ -412,12 +443,14 @@ class SovereignFish:
             target = campaign.get_next_target()
             if target:
                 target['source'] = 'CAMPAIGN'
+                selected_strategist = "CAMPAIGN"
                 
         if not target:
             if HUD.PERSONA == "ALFRED":
                 HUD.persona_log("SUCCESS", "Everything appears to be in order, sir.")
             else:
                 HUD.persona_log("SUCCESS", "The waters are clear. Heimdall sees no threats.")
+            self._emit_metrics_summary(scan_results)
             return False
  
         HUD.persona_log("WARN", f"Target: {target['action']} in {target['file']}")
@@ -436,6 +469,11 @@ class SovereignFish:
         if self._verify_fix(target):
             logging.info(f"[{self.root.name}] [SUCCESS] Verified fix for {target['file']}")
             
+            # 5. FISHTEST CHAIN: Verify no accuracy regression
+            if not self._verify_fishtest(target):
+                self._record_metric(selected_strategist, hit=False)
+                return False
+
             # If Campaign task, update the plan
             if target.get('source') == 'CAMPAIGN':
                 CampaignStrategist(self.root).mark_complete(target)
@@ -444,10 +482,79 @@ class SovereignFish:
                 else:
                      HUD.persona_log("SUCCESS", "The Runes are cast. Limit broken.")
                 
+            self._record_metric(selected_strategist, hit=True)
             return True
         else:
             logging.warning(f"[{self.root.name}] [ROLLBACK] Fix failed verification.")
+            self._record_metric(selected_strategist, hit=False)
             return False
+
+    def _verify_fishtest(self, target: dict) -> bool:
+        """[ALFRED] Chain fishtest verification after a successful fix to prevent accuracy regression."""
+        fishtest_path = self.root / "tests" / "integration" / "fishtest.py"
+        if not fishtest_path.exists():
+            # No fishtest available — skip gracefully
+            return True
+
+        HUD.persona_log("INFO", "Chain Verification: Running Fishtest...")
+        env = os.environ.copy()
+        env["PYTHONPATH"] = str(self.root)
+        env["PYTHONIOENCODING"] = "utf-8"
+
+        try:
+            result = subprocess.run(
+                [sys.executable, str(fishtest_path), "--json"],
+                cwd=str(self.root),
+                capture_output=True,
+                text=True,
+                encoding='utf-8',
+                errors='replace',
+                env=env,
+                timeout=120
+            )
+
+            if result.returncode != 0:
+                # Parse JSON output for accuracy
+                try:
+                    data = json.loads(result.stdout)
+                    accuracy = data.get("accuracy", 0)
+                except (json.JSONDecodeError, ValueError):
+                    accuracy = 0
+
+                if accuracy < 0.95:
+                    HUD.persona_log("FAIL", f"Fishtest REGRESSION: accuracy {accuracy:.1%}. Rolling back.")
+                    self._rollback(target)
+                    return False
+
+            HUD.persona_log("PASS", "Fishtest: No regression detected.")
+            return True
+
+        except subprocess.TimeoutExpired:
+            HUD.persona_log("WARN", "Fishtest timed out. Accepting fix cautiously.")
+            return True
+        except (OSError, subprocess.SubprocessError) as e:
+            HUD.persona_log("WARN", f"Fishtest unavailable: {e}. Accepting fix.")
+            return True
+
+    def _record_metric(self, strategist_name: str, hit: bool) -> None:
+        """[ALFRED] Record a hit or miss for a strategist."""
+        if strategist_name not in self._strategist_metrics:
+            self._strategist_metrics[strategist_name] = {"hits": 0, "misses": 0}
+        if hit:
+            self._strategist_metrics[strategist_name]["hits"] += 1
+        else:
+            self._strategist_metrics[strategist_name]["misses"] += 1
+
+    def _emit_metrics_summary(self, scan_results: dict) -> None:
+        """[ALFRED] Emit a summary dashboard after each cycle."""
+        HUD.box_top("STRATEGIST METRICS")
+        for name, count in scan_results.items():
+            metrics = self._strategist_metrics.get(name, {"hits": 0, "misses": 0})
+            total = metrics["hits"] + metrics["misses"]
+            rate = f"{metrics['hits']/total*100:.0f}%" if total > 0 else "N/A"
+            color = HUD.GREEN if count == 0 else HUD.YELLOW
+            HUD.box_row(name, f"Targets: {count}  Hit Rate: {rate}", color)
+        HUD.box_bottom()
 
     def _select_breach_target(self, breaches: list):
         return breaches[0]

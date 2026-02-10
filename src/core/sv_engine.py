@@ -11,6 +11,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any, ClassVar
 
 # Add project root to path for src imports
 script_dir = Path(__file__).parent.absolute()
@@ -18,11 +19,11 @@ project_root = script_dir.parent.parent
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
-from src.core import personas, utils
-from src.core.engine.cortex import Cortex
-from src.core.engine.dialogue import DialogueRetriever
-from src.core.engine.vector import SovereignVector
-from src.core.ui import HUD
+from src.core import personas, utils  # noqa: E402
+from src.core.engine.cortex import Cortex  # noqa: E402
+from src.core.engine.dialogue import DialogueRetriever  # noqa: E402
+from src.core.engine.vector import SovereignVector  # noqa: E402
+from src.core.ui import HUD  # noqa: E402
 
 
 class SovereignEngine:
@@ -30,13 +31,21 @@ class SovereignEngine:
     Main orchestrator for the Corvus Star engine operations.
     """
 
-    THRESHOLDS = {"REC": 0.5, "INSTALL": 0.85, "HANDSHAKE": 0.9, "ACCURACY": 0.8}
+    _DEFAULT_THRESHOLDS: ClassVar[dict[str, float]] = {
+        "REC": 0.5, "INSTALL": 0.85, "HANDSHAKE": 0.9, "ACCURACY": 0.8
+    }
 
     def __init__(self, project_root: Path | None = None):
         self.script_dir = Path(__file__).parent.absolute()
         self.project_root = project_root if project_root else self.script_dir.parent.parent
         self.base_path = self.project_root / ".agent"
         self.config = utils.load_config(str(self.project_root))
+
+        # [ALFRED] Externalized thresholds: config.json overrides defaults
+        self.THRESHOLDS = {
+            k: self.config.get("thresholds", {}).get(k, v)
+            for k, v in self._DEFAULT_THRESHOLDS.items()
+        }
 
         # Persona & HUD Initialization
         HUD.PERSONA = (self.config.get("persona") or self.config.get("Persona") or "ALFRED").upper()
@@ -159,20 +168,30 @@ class SovereignEngine:
         HUD.box_top("PROACTIVE INSTALL")
         HUD.box_row("SKILL", skill_name, HUD.CYAN)
         HUD.box_bottom()
-        prompt = f"\n{HUD.CYAN}>> [C*] {HUD._speak('PROACTIVE_INSTALL', 'Install skill?')} [Y/n] {HUD.RESET}"
+        speak = HUD._speak('PROACTIVE_INSTALL', 'Install skill?')
+        prompt = f"\n{HUD.CYAN}>> [C*] {speak} [Y/n] {HUD.RESET}"
         if utils.input_with_timeout(prompt) in ['', 'y', 'yes', 'Y', 'YES']:
-            subprocess.run([sys.executable, str(self.script_dir / "install_skill.py"), skill_name])
+            subprocess.run(  # noqa: S603
+                [sys.executable, str(self.script_dir / "install_skill.py"), skill_name]
+            )
 
     def _proactive_execute(self, command: str) -> None:
         """Prompts and executes a direct CLI command."""
         HUD.box_top("PROACTIVE EXECUTE")
         HUD.box_row("CMD", command, HUD.YELLOW)
         HUD.box_bottom()
-        prompt = f"\n{HUD.CYAN}>> [C*] {HUD._speak('PROACTIVE_EXECUTE', 'Run this command?')} [Y/n] {HUD.RESET}"
+        speak = HUD._speak('PROACTIVE_EXECUTE', 'Run this command?')
+        prompt = f"\n{HUD.CYAN}>> [C*] {speak} [Y/n] {HUD.RESET}"
         if utils.input_with_timeout(prompt) in ['', 'y', 'yes', 'Y', 'YES']:
-            subprocess.run(command, shell=True, cwd=str(self.project_root))
+            subprocess.run(command, shell=True, cwd=str(self.project_root))  # noqa: S602
 
-    def run(self, query: str, json_mode: bool = False, record: bool = False, use_cortex: bool = False) -> None:
+    def run(
+        self,
+        query: str,
+        json_mode: bool = False,
+        record: bool = False,
+        use_cortex: bool = False,
+    ) -> None:
         """Orchestrates the main engine search flow."""
         if use_cortex and query:
             self.handle_cortex_query(query)

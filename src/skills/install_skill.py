@@ -5,7 +5,10 @@ import shutil
 import subprocess
 import sys
 
-from sv_engine import HUD
+# Resolve shared UI from src/core/
+_core_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "core")
+sys.path.insert(0, _core_dir)
+from ui import HUD
 
 
 def _sanitize_skill_name(name):
@@ -16,7 +19,7 @@ def _validate_path(base, target):
     try:
         b, t = os.path.realpath(base), os.path.realpath(target)
         return os.path.commonpath([b, t]) == b
-    except: return False
+    except (ValueError, OSError): return False
 
 def _get_config(base_path):
     path = os.path.join(base_path, "config.json")
@@ -42,7 +45,7 @@ def _run_security_scan(quarantine_zone):
                 res = subprocess.run([sys.executable, scanner, os.path.join(root, f)], capture_output=True, timeout=15)
                 threat = max(threat, res.returncode)
                 if res.stdout: print(res.stdout.decode('utf-8', errors='ignore'))
-            except: threat = max(threat, 1)
+            except (subprocess.SubprocessError, OSError): threat = max(threat, 1)
     return threat, None
 
 def _promote_skill(quarantine, dest):

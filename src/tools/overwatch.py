@@ -7,6 +7,8 @@ import time
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 
+# Resolve shared UI from src/core/
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "core"))
 from ui import HUD
 
 
@@ -30,7 +32,7 @@ class StatsCollector:
             if os.path.exists(self.rej_path):
                 with open(self.rej_path, 'r', encoding='utf-8') as f:
                     stats["rejections"] = max(0, len(f.readlines()) - 3)
-        except: pass
+        except (json.JSONDecodeError, IOError, OSError): pass
         return stats
 
 class OverwatchRenderer:
@@ -137,7 +139,7 @@ class Overwatch:
         res = subprocess.run([sys.executable, l_script, "3"], capture_output=True, text=True)
         if res.returncode == 0:
             try: self.renderer.update_latency(float(res.stdout.strip()))
-            except: pass
+            except (ValueError, TypeError): pass
 
     def _update_heatmap(self) -> List[float]:
         """[ODIN] Scan core scripts for vulnerabilities to populate matrix."""
@@ -164,7 +166,7 @@ class Overwatch:
                 with open(os.path.join(trace_dir, f), 'r', encoding='utf-8') as tf:
                     data = json.load(tf)
                     if "trigger" in data: triggers.append(data["trigger"])
-            except: pass
+            except (json.JSONDecodeError, IOError, OSError): pass
         return triggers
 
 def get_stats() -> Dict[str, int]:

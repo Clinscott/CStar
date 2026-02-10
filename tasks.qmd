@@ -98,6 +98,24 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Logic Polishing**: Renamed `SovereignFish` class in `sovereign_fish.py` to `Muninn` for architectural consistency. [x]
 - [x] **Validation**: Verified system integrity with Fishtest N=1000 (99.9% accuracy). [x]
 
+### 27. Six-Pillar Improvement Campaign (Session 45)
+- [x] **Vector Strategy**: Implemented `SimilarityStrategy` protocol (Cosine/Jaccard) in `vector.py`. [x]
+- [x] **Incremental Indexing**: Added `add_skill_incremental()` for partial index updates. [x]
+- [x] **Configurable Thresholds**: Externalized `THRESHOLDS` to `config.json` for `sv_engine.py`. [x]
+- [x] **Strategist Metrics**: Added hit/miss tracking to `SovereignFish` strategists. [x]
+- [x] **Fishtest Rollback**: Implemented automatic rollback if accuracy drops below 95% after a fix. [x]
+- [x] **Persona Registry**: Refactored `personas.py` to use a scalable registry pattern. [x]
+- [x] **Theme Registry**: Refactored `HUD.get_theme()` to use `_THEME_REGISTRY`. [x]
+- [x] **Transition Ceremony**: Implemented 3-phase ANSI animation for Persona switching in `ui.py`. [x]
+- [x] **Manual Improvements**: Excluded `__init__.py` from Annex scan and typed `cortex.py` (Rune). [x]
+
+## ⏭️ Start Here Next
+### Phase 3: Deep Verification & Expansion
+1. **Full Suite Run**: Execute `pytest` across all modules to ensure no regression from recent refactors.
+2. **Coverage Analysis**: Run `coverage.py` to identify untested logic paths in the new strategists.
+3. **Documentation Sync**: Ensure `cortex.py` can ingest the new `.qmd` artifacts correctly.
+4. **Strategist Expansion**: Implement the `Valkyrie` strategist for dead code removal (using `vulture`).
+
 ## ⏭️ Start Here Next (Strategic Expansion)
 
 ### 1. The Raven's Eye (Enhanced Monitoring)
