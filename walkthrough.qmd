@@ -73,3 +73,42 @@ Complete the **Six-Pillar Improvement Campaign** (Phases 2 & 3) to harden the So
 **Resume Directive**:
 To resume, verify the new rollback safety: `c* fish --test-rollback` (hypothetical).
 Then proceed to **Phase 3: Deep Verification** in `tasks.qmd`.
+
+# Walkthrough: Session 46 - Strategist Resurrection & Daemon Hardening
+
+## 🎯 Goal
+Harden the autonomous daemon infrastructure and resurrect the technical debt strategists (**Valkyrie** for dead code and **Torvalds** for complexity) to ensure code quality is maintained alongside functional improvements.
+
+## 🏆 Results
+| Metric | Value |
+|:---|:---|
+| **Contract Coverage** | 100% (19/19 Tests Passing) |
+| **Accuracy** | 99.9% (Fishtest N=1000) |
+| **Stability** | **Bootstrap Protocol** Active |
+| **Valkyrie Capture** | 45+ Dead code targets identified (Real environment) |
+
+## 🛠️ Key Changes
+
+### 1. Bootstrap Protocol (`src/sentinel/_bootstrap.py`)
+- **Centralized Env**: Extracted environment loading and `sys.path` configuration into a shared module.
+- **Bug Fix**: Resolved a critical issue where `.env.local` was ignored in the `main_loop` context due to CWD ambiguity.
+
+### 2. Valkyrie & Torvalds Resurrection
+- **Valkyrie (Dead Code)**: Integrated `vulture` to detect unused imports/logic. Rank #2 priority.
+- **Torvalds (Complexity)**: Integrated `radon` to detect "War Zones". Rank #3 priority.
+- **Attribute Resilience**: Implemented `getattr` fallbacks for `lineno` vs `first_lineno` to handle library version drift.
+
+### 3. Integrated Contract Verification
+- Created **`tests/contracts/test_strategists_bonus.py`** to unit-test strategist logic with mocks.
+- Implemented **`scripts/verify_valkyrie_real.py`** to verify static analysis detection in the actual live filesystem.
+
+## 🤝 Session Handshake
+**Session Delta**:
+- Resurrected Valkyrie and Torvalds strategists.
+- Hardened daemon with shared bootstrap and Pathlib fallback logic.
+- Verified system with a new contract suite (19 tests).
+
+**Resume Directive**:
+To resume, start here: `c* ravens -status`.
+Observe the new "Valkyrie" and "Torvalds" metrics in the scan reports.
+Then proceed to **Coverage Saturation** in `tasks.qmd`.

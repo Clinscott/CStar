@@ -34,7 +34,6 @@ except ImportError:
 try:
     from radon.complexity import cc_rank, cc_visit
     from radon.visitors import Class as RadonClass
-    from radon.visitors import Function as RadonFunction
 except ImportError:
     HUD.log("FAIL", "Radon library not found.", "Run 'pip install radon'")
     sys.exit(1)

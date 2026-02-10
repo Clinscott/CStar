@@ -1,0 +1,58 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.2, pytest-9.0.2, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Craig\Corvus\CorvusStar
+configfile: pyproject.toml
+plugins: anyio-4.12.1
+collecting ... collected 3 items
+
+tests/contracts/test_strategists_bonus.py::TestValkyrieStrategist::test_finds_unused_function DEBUG: Scavenging 1 files: ['C:\\Users\\Craig\\AppData\\Local\\Temp\\pytest-of-Craig\\pytest-63\\test_finds_unused_function0\\src\\deadness.py']
+FAILED
+tests/contracts/test_strategists_bonus.py::TestTorvaldsStrategist::test_finds_complex_function PASSED
+tests/contracts/test_strategists_bonus.py::TestStrategistPriority::test_valkyrie_precedes_beauty PASSED
+
+================================== FAILURES ===================================
+______________ TestValkyrieStrategist.test_finds_unused_function ______________
+
+self = <tests.contracts.test_strategists_bonus.TestValkyrieStrategist object at 0x000001C5AF4D16D0>
+tmp_path = WindowsPath('C:/Users/Craig/AppData/Local/Temp/pytest-of-Craig/pytest-63/test_finds_unused_function0')
+
+    def test_finds_unused_function(self, tmp_path):
+        src = tmp_path / "src"
+        src.mkdir()
+        # Create a file with an unused function
+        target = src / "deadness.py"
+        target.write_text(textwrap.dedent("""
+            import os
+    
+            def unused_function():
+                return "I am never called"
+    
+            def used_function():
+                return "I am public"
+    
+            # To suppress 'used_function' being marked as unused, we simulate usage via __all__ or similar logic
+            # but Vulture is smart enough to see top-level definitions.
+            # However, Vulture often marks everything as unused in a single file if not called.
+            """), encoding="utf-8")
+    
+        valkyrie = ValkyrieStrategist(tmp_path)
+        targets = valkyrie.scan()
+    
+        # Should find at least one breach (unused_function)
+        # Note: Vulture might find 'used_function' too if it's not called,
+        # but we just want to ensure it finds *something*.
+>       assert len(targets) > 0
+E       assert 0 > 0
+E        +  where 0 = len([])
+
+tests\contracts\test_strategists_bonus.py:50: AssertionError
+============================== warnings summary ===============================
+..\..\AppData\Roaming\Python\Python314\site-packages\google\genai\types.py:43
+  C:\Users\Craig\AppData\Roaming\Python\Python314\site-packages\google\genai\types.py:43: DeprecationWarning: '_UnionGenericAlias' is deprecated and slated for removal in Python 3.17
+    VersionedUnionType = Union[builtin_types.UnionType, _UnionGenericAlias]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/contracts/test_strategists_bonus.py::TestValkyrieStrategist::test_finds_unused_function
+=================== 1 failed, 2 passed, 1 warning in 1.58s ====================

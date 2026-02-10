@@ -19,11 +19,12 @@ The decision-making brain of Corvus Star.
 
 ### 🦅 The Ravens (`src/sentinel/`)
 The autonomous daemon ensuring system health.
+- **Bootstrap** (`_bootstrap.py`): Shared environment and Pathlib configuration.
 - **Huginn & Muninn** (`main_loop.py`):
     - `daemon_loop()`: Orchestrates the twin ravens (Thought/Memory).
 - **Muninn: The Improver** (`sovereign_fish.py`):
-    - `observe()`: Monitors file changes and system state.
-    - `_proactive_audit()`: Triggers self-correction routines.
+    - `run()`: Executes the self-improvement protocol.
+    - `Valkyrie, Torvalds, Annex`: Specialized improvement strategists.
 
 ### 🛠️ Tools (`src/tools/`)
 Specialized utilities for analysis and repair.
