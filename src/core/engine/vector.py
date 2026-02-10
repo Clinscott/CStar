@@ -15,6 +15,33 @@ if str(project_root) not in sys.path:
 from src.core.ui import HUD
 
 
+class SimilarityStrategy:
+    """[ALFRED] Abstract interface for pluggable similarity functions."""
+    def compute(self, v1: list[float], v2: list[float]) -> float:
+        raise NotImplementedError
+
+
+class CosineSimilarity(SimilarityStrategy):
+    """[ALFRED] Standard cosine similarity — the default strategy."""
+    def compute(self, v1: list[float], v2: list[float]) -> float:
+        dot = sum(a * b for a, b in zip(v1, v2))
+        mag1 = math.sqrt(sum(a * a for a in v1))
+        mag2 = math.sqrt(sum(b * b for b in v2))
+        if mag1 == 0 or mag2 == 0:
+            return 0
+        return dot / (mag1 * mag2)
+
+
+class JaccardSimilarity(SimilarityStrategy):
+    """[ODIN] Jaccard-style similarity operating on non-zero vector dimensions."""
+    def compute(self, v1: list[float], v2: list[float]) -> float:
+        s1 = {i for i, v in enumerate(v1) if v > 0}
+        s2 = {i for i, v in enumerate(v2) if v > 0}
+        if not s1 and not s2:
+            return 0
+        return len(s1 & s2) / len(s1 | s2)
+
+
 class SovereignVector:
     def __init__(self, thesaurus_path=None, corrections_path=None, stopwords_path=None):
         """
@@ -38,6 +65,7 @@ class SovereignVector:
         self._search_cache = {} # {query_text: search_results}
         self._expansion_cache = {} # {query_text: weighted_tokens}
         self._token_cache = {} # {token: {expanded_token: weight}}
+        self._similarity_strategy: SimilarityStrategy = CosineSimilarity()
 
     def _load_json(self, path):
         if not path or not os.path.exists(path): return {}
@@ -89,12 +117,12 @@ class SovereignVector:
                     if not s: continue
                     name, weight = (s.split(':') + ["1.0"])[:2]
                     try: weight = max(0.1, min(2.0, float(weight)))
-                    except: weight = 1.0
+                    except (ValueError, TypeError): weight = 1.0
                     syn_dict[name.strip()] = weight
                 mapping[word.lower()] = syn_dict
             self._apply_thesaurus_corrections(mapping)
             return mapping
-        except: return {}
+        except (json.JSONDecodeError, IOError, OSError): return {}
 
     def _apply_thesaurus_corrections(self, mapping):
         """Apply dynamic corrections to the static thesaurus."""
@@ -178,6 +206,26 @@ class SovereignVector:
         self.skills[trigger] = text
         self.vocab.update(self.tokenize(text))
 
+    def add_skill_incremental(self, trigger: str, text: str) -> None:
+        """[ALFRED] Register a skill and update the index without a full rebuild."""
+        self.add_skill(trigger, text)
+        # Rebuild IDF only for the new doc tokens
+        num_docs = len(self.skills)
+        if num_docs == 0:
+            return
+        tokens_set = set(self.tokenize(text))
+        for word in tokens_set:
+            # Recalculate IDF with updated doc count
+            old_count = sum(1 for t in self.skills.values() if word in set(self.tokenize(t)))
+            self.idf[word] = math.log(num_docs / (1 + old_count)) + 1
+        # Refresh sorted vocab cache and vectorize the new skill
+        self.sorted_vocab = sorted(list(self.vocab))
+        counts = {t: self.tokenize(text).count(t) for t in tokens_set}
+        self.vectors[trigger] = self._vectorize(counts)
+        # Invalidate search and expansion caches
+        self._search_cache.clear()
+        self._expansion_cache.clear()
+
     def build_index(self) -> None:
         """[ALFRED] Build TF-IDF index with cached sorted vocabulary for rapid search."""
         num_docs = len(self.skills)
@@ -225,11 +273,12 @@ class SovereignVector:
         ]
 
     def similarity(self, v1: list[float], v2: list[float]) -> float:
-        dot = sum(a*b for a, b in zip(v1, v2))
-        mag1 = math.sqrt(sum(a*a for a in v1))
-        mag2 = math.sqrt(sum(b*b for b in v2))
-        if mag1 == 0 or mag2 == 0: return 0
-        return dot / (mag1 * mag2)
+        return self._similarity_strategy.compute(v1, v2)
+
+    def set_similarity_strategy(self, strategy: SimilarityStrategy) -> None:
+        """[ALFRED] Swap the similarity function at runtime. Clears search cache."""
+        self._similarity_strategy = strategy
+        self._search_cache.clear()
 
     def search(self, query: str) -> list[dict]:
         # 0. Check Search Cache

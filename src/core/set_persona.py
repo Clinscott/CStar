@@ -157,6 +157,16 @@ class PersonaManager:
 
         # Update and Apply
         self._save_persona(new_persona)
+
+        # [ALFRED] Fire the HUD transition ceremony
+        try:
+            if str(self.project_root) not in sys.path:
+                sys.path.append(str(self.project_root))
+            from src.core.ui import HUD
+            HUD.transition_ceremony(self.old_persona, new_persona)
+        except Exception:
+            pass  # Graceful fallback if HUD import fails
+
         print(f"\n✅ Persona set to: {new_persona}")
         print("Applying operational policy...")
         

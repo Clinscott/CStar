@@ -34,7 +34,7 @@ class SecurityScanner:
                 self.findings.append("[DoS] File too large")
                 return False, self.findings
             with open(self.path, 'r', encoding='utf-8') as f: self.content = f.read()
-        except: return False, ["Read error"]
+        except (IOError, OSError, PermissionError): return False, ["Read error"]
 
         self._regex_scan()
         if self.path.endswith(".py"): self._analyze_ast()
@@ -73,7 +73,7 @@ class SecurityScanner:
         except SyntaxError as e:
             self.threat_score += 15
             self.findings.append(f"[MALFORMED] Syntax: {str(e)}")
-        except: pass
+        except (SyntaxError, ValueError): pass
 
     def _scan_imports(self, node):
         net, dang = {"requests", "urllib", "socket", "http"}, {"ctypes", "pickle", "base64"}
