@@ -5,13 +5,9 @@ from pathlib import Path
 
 import pytest
 
-# Add the necessary path to import the SovereignVector engine
-# This assumes tests are run from the project's root directory
-sys.path.insert(0, os.path.abspath('.agent/scripts'))
-
 # Conditional import for test environments
 try:
-    from engine.vector import SovereignVector
+    from src.core.engine.vector import SovereignVector
 except ImportError:
     SovereignVector = None
 
