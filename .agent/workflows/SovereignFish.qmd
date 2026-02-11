@@ -96,6 +96,10 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 
 *Format: `[Date] - [Category]: [Description]`*
 
+### 2026-02-10 (Session 49)
+-   **Lore**: Expanded `thesaurus.qmd` with Odin-Lore synonyms (Ravens, Heimdall, etc.) to harden intent resolution.
+-   **DX**: Created `.agent/skills/_template.py` to streamline the creation of new dynamic CLI commands.
+
 ### 2026-02-10
 -   **Docs**: Updated `wireframe.qmd` to remove legacy `sentinel` module references and target `muninn.py` directly.
 -   **DX**: Refreshed `README_SOVEREIGN_FISH.md` with current `c* ravens` CLI commands.

@@ -193,3 +193,42 @@ Stabilize the integration pipeline and complete the session handshake protocol t
 **Resume Directive**:
 To resume, check system status: `c* ravens -status`.
 Then consult `tasks.qmd` → **The Raven's Eye (Enhanced Monitoring)**.
+# Walkthrough: Session 49 - Dynamic CLI & Dynamic Discovery
+
+## 🎯 Goal
+Decouple the CLI from hardcoded definitions and implement a file-system based command discovery engine to enable frictionless extensibility and lore alignment.
+
+## 🏆 Results
+| Metric | Value |
+|:---|:---|
+| **Discovery Logic** | **100% Dynamic** (Zero registry) |
+| **Command Count** | **20+ Discovered** (Scripts + Workflows) |
+| **Lore Alignment** | **100% (Proxy Shims Implemented)** |
+
+## 🛠️ Key Changes
+
+### 1. Dynamic Discovery Engine (`cstar_dispatcher.py`)
+- **Frictionless Extensibility**: Entirely removed the hardcoded command registry. The CLI now dynamically scans `.agent/skills/`, `src/tools/`, and `src/skills/local/` for scripts, and `.agent/workflows/` for workflows.
+- **Dynamic Help**: The `c*` help interface now automatically lists all discovered commands from the filesystem, grouped by type (Script vs. Workflow).
+
+### 2. Proxy Skill Architecture (`.agent/skills/`)
+- **Legacy Preservation**: Created proxy scripts for all legacy commands (`ravens`, `trace`, `synapse`, `heimdall`, `persona`, `network`) to maintain backward compatibility while allowing the core modules to live in `src/`.
+- **Lore Shims**: Implemented lore-specific command aliases (`huginn`, `muninn`, `daemon`, `audit`) as thin wrappers around the core logic.
+
+### 3. Workflow Aliasing
+- **SovereignFish Alias**: Created `fish.qmd` as a workflow alias to `SovereignFish.qmd`, enabling both long-form and short-form command access.
+
+### 4. DX Template
+- Created **`.agent/skills/_template.py`** to provide developers with a standard boilerplate for creating new lore-aware CLI skills.
+
+## 🤝 Session Handshake
+**Session Delta**:
+- Decoupled `c*` dispatcher from hardcoded command maps.
+- Implemented filesystem-based command discovery (Scripts & Workflows).
+- Created proxy skills for 10+ legacy and lore commands.
+- Updated `thesaurus.qmd` to support new lore aliases.
+
+**Resume Directive**:
+- To resume: run `c*` to see the new dynamic help.
+- Try `c* ravens -status` or `c* fish` to verify proxy/workflow resolution.
+- Consult `tasks.qmd` → **The Raven's Eye (Enhanced Monitoring)**.

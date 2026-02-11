@@ -76,3 +76,15 @@
 ### Architectural Decisions
 - **Manual Protocol**: Reaffirmed the decision to decouple `SovereignFish` execution from the script, relying on Agent intelligence for high-level documentation auditing.
 - **Explicit Versioning**: Adopted explicit version tags in CI workflows (e.g., `@v4`, `@v5`) to prevent future resolution ambiguities.
+## 2026-02-10: Session 49 - Dynamic CLI & Dynamic Discovery
+
+### Achievements
+- **Dynamic Command Dispatch**: Engineered a filesystem-based discovery engine in `cstar_dispatcher.py` that auto-resolves any `.py` script or `.md`/`.qmd` workflow as a first-class command.
+- **Legacy Preservation**: Created 10 proxy scripts in `.agent/skills/` to bridge the gap between legacy CLI commands and the new `src/` modularity while adding thematic aliases (Ravens, Huginn, Heimdall).
+- **Infinite Extensibility**: Eliminated the need for code changes when adding new tools; adding a script to the skills folder handles discovery and registration automatically.
+- **Lore Integration**: Updated `thesaurus.qmd` with Odin-Lore synonyms, ensuring that the intent engine understands thematic requests (e.g., "release the ravens") as equivalent to functional commands.
+
+### Architectural Decisions
+- **Proxy Pattern**: Used thin proxy scripts instead of symbolic links or complex mapping tables to preserve legacy command compatibility. This ensures that `c* synapse` continues to work even though the script moved to `src/synapse/`.
+- **Discovery Precedence**: Implemented a search order for commands: `.agent/skills/` -> `src/tools/` -> `src/skills/local/`. This allows project-specific "Skills" to override or supplement generic "Tools".
+- **Dynamic Help Resolution**: Refactored `show_help()` to perform a runtime sweep of the filesystem. This makes the help output reflective of the actual installed plugins.

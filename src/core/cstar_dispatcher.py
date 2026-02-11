@@ -7,8 +7,9 @@ Refined for the Linscott Standard (Pathlib).
 
 import subprocess
 import sys
+import os
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 # [ODIN] Bootstrap: Add project root to sys.path to allow absolute imports
 PROJECT_ROOT = Path(__file__).parent.parent.parent.absolute()
@@ -40,111 +41,54 @@ class CorvusDispatcher:
         self.config = utils.load_config(str(self.project_root))
         HUD.PERSONA = (self.config.get("persona") or self.config.get("Persona") or "ALFRED").upper()
 
-        # Command Registry: {cmd_name: (path/name, type)}
-        self.registry: Dict[str, Tuple[str, str]] = {
-            "persona": (str(self.scripts_dir / "set_persona.py"), "script"),
-            "lets-go": ("lets-go.md", "workflow"),
-            "run-task": ("run-task.md", "workflow"),
-            "investigate": ("investigate.md", "workflow"),
-            "wrap-it-up": ("wrap-it-up.md", "workflow"),
-            "fish": ("SovereignFish.qmd", "workflow"),
-            "test": ("test.md", "workflow"),
-            "oracle": ("oracle.md", "workflow"),
-            # Huginn & Muninn: The Twin Ravens (Daemon)
-            "daemon": (str(self.project_root / "src" / "sentinel" / "main_loop.py"), "script"),
-            "ravens": (str(self.project_root / "src" / "sentinel" / "main_loop.py"), "script"),
-            "huginn": (str(self.project_root / "src" / "sentinel" / "main_loop.py"), "script"),
-            # Tools - Heimdall (The All-Seeing Guardian)
-            "heimdall": (str(self.project_root / "src" / "tools" / "code_sentinel.py"), "script"),
-            "audit": (str(self.project_root / "src" / "tools" / "code_sentinel.py"), "script"),
-            "trace": (str(self.project_root / "src" / "tools" / "trace_viz.py"), "script"),
-            "synapse": (str(self.project_root / "src" / "synapse" / "synapse_sync.py"), "script"),
-            "network": (str(self.project_root / "src" / "tools" / "network_watcher.py"), "script"),
-        }
+    def _discover_commands(self) -> Dict[str, str]:
+        """Scans all dynamic locations for available commands."""
+        commands = {}
+
+        # Scripts (.py)
+        script_dirs = [
+            self.project_root / ".agent" / "skills",
+            self.project_root / "src" / "tools",
+            self.project_root / "src" / "skills" / "local",
+        ]
+        for d in script_dirs:
+            if d.exists():
+                for f in d.glob("*.py"):
+                    if f.stem not in ["__init__", "_bootstrap"]:
+                        commands.setdefault(f.stem, "script")
+
+        # Workflows (.md / .qmd)
+        workflow_dir = self.project_root / ".agent" / "workflows"
+        if workflow_dir.exists():
+            for f in workflow_dir.iterdir():
+                if f.suffix in [".md", ".qmd"]:
+                    commands.setdefault(f.stem.lower(), "workflow")
+
+        return commands
 
     def show_help(self) -> None:
-        """Displays the C* command interface."""
+        """Displays the C* command interface with dynamically discovered commands."""
         HUD.box_top("🔱 CORVUS STAR CLI (c*)")
         HUD.box_row("Usage", "c* <command> [args...]", dim_label=True)
         HUD.box_separator()
-        
-        HUD.box_row("Commands", "Description", HUD.CYAN)
-        for cmd in sorted(self.registry.keys()):
-            HUD.box_row(cmd, f"Trigger /{cmd}", dim_label=True)
-        
+
+        commands = self._discover_commands()
+        scripts = sorted(c for c, t in commands.items() if t == "script")
+        workflows = sorted(c for c, t in commands.items() if t == "workflow")
+
+        if scripts:
+            HUD.box_row("Scripts", ", ".join(scripts), HUD.GREEN, dim_label=True)
+        if workflows:
+            HUD.box_separator()
+            HUD.box_row("Workflows", ", ".join(workflows), HUD.MAGENTA, dim_label=True)
+
         HUD.box_separator()
         HUD.box_row("Shortcuts", "-odin, -alfred", HUD.YELLOW)
         HUD.box_bottom()
 
-    def check_ravens_status(self) -> None:
-        """Checks if the Ravens (Huginn & Muninn daemon) are in flight."""
-        HUD.log("INFO", "Checking if the Ravens are in flight...")
-        try:
-            # [ODIN] Filter specifically for python processes to avoid matching the PS check itself
-            # We also exclude the current process tree just in case
-            ps_cmd = (
-                "$currentPid = $pid; "
-                "Get-CimInstance Win32_Process -Filter \"Name LIKE 'python%' AND (CommandLine LIKE '%main_loop.py%' OR CommandLine LIKE '%src.sentinel.main_loop%')\" | "
-                "Where-Object { $_.ProcessId -ne $currentPid -and $_.ParentProcessId -ne $currentPid } | "
-                "Select-Object -ExpandProperty ProcessId"
-            )
-            result = subprocess.run(["powershell", "-NoProfile", "-Command", ps_cmd], capture_output=True, text=True)
-            
-            pids = [p.strip() for p in result.stdout.strip().splitlines() if p.strip()]
-            if pids:
-                HUD.log("SUCCESS", "The Ravens are in flight", f"(PIDs: {', '.join(pids)})")
-            else:
-                HUD.log("WARN", "The Ravens are grounded")
-        except Exception as e:
-            HUD.log("FAIL", f"Status Check Failed: {e}")
-
-    def recall_ravens(self) -> None:
-        """Recalls the Ravens (terminates the daemon) with extreme prejudice."""
-        HUD.log("INFO", "Initiating START-9 (Nuclear Termination)...")
-        try:
-            # [ODIN] Aggressive multi-stage kill
-            # 1. Kill the main instances and their direct children
-            ps_kill = (
-                "$currentPid = $pid; "
-                "$targets = Get-CimInstance Win32_Process -Filter \"Name LIKE 'python%' AND (CommandLine LIKE '%main_loop.py%' OR CommandLine LIKE '%src.sentinel.main_loop%')\"; "
-                "if ($targets) { "
-                "  $targets | Where-Object { $_.ProcessId -ne $currentPid } | ForEach-Object { "
-                "    $p = $_; "
-                "    Get-CimInstance Win32_Process -Filter \"ParentProcessId = $($p.ProcessId)\" | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }; "
-                "    Stop-Process -Id $p.ProcessId -Force -ErrorAction SilentlyContinue "
-                "  }"
-                "}"
-            )
-            subprocess.run(["powershell", "-NoProfile", "-Command", ps_kill], capture_output=True)
-            
-            # 2. Cleanup Lock File
-            lock_file = self.project_root / "src" / "sentinel" / "ravens.lock"
-            if lock_file.exists():
-                lock_file.unlink()
-            
-            HUD.log("SUCCESS", "Ravens recalled and roost cleared.")
-                
-        except Exception as e:
-            HUD.log("FAIL", f"Termination Protocol Failed: {e}")
-
-    def release_ravens(self) -> None:
-        """Releases the Ravens (Huginn & Muninn) to fly across the Nine Realms."""
-        HUD.log("INFO", "Releasing the Ravens...")
-        try:
-            project_dir = str(self.project_root)
-            cmd_str = f"Set-Location '{project_dir}'; & '{self.venv_python}' -m src.sentinel.main_loop"
-            
-            # Use PowerShell Start-Process to spawn a new window with the environment
-            ps_cmd = f"Start-Process powershell -ArgumentList '-NoExit', '-Command', \"{cmd_str}\""
-            
-            subprocess.run(["powershell", "-NoProfile", "-Command", ps_cmd], check=True)
-            HUD.log("SUCCESS", "The Ravens take flight.")
-        except Exception as e:
-            HUD.log("FAIL", f"Deployment Failed: {e}")
-
     def run(self, args: List[str]) -> None:
         """
-        Parses and dispatches the command.
+        Parses and dispatches the command dynamically.
         
         Args:
             args: Command line arguments (excluding script name).
@@ -158,39 +102,67 @@ class CorvusDispatcher:
 
         # Persona Shortcuts
         if cmd == "-odin":
-            subprocess.run([str(self.venv_python), str(self.scripts_dir / "set_persona.py"), "ODIN"])
+            # Use dynamic resolution for persona script via direct call
+            subprocess.run([str(self.venv_python), str(self.project_root / "scripts" / "set_persona.py"), "ODIN"])
             return
         if cmd == "-alfred":
-            subprocess.run([str(self.venv_python), str(self.scripts_dir / "set_persona.py"), "ALFRED"])
+            subprocess.run([str(self.venv_python), str(self.project_root / "scripts" / "set_persona.py"), "ALFRED"])
             return
 
-        # Ravens Management (Huginn & Muninn Daemon)
-        if cmd in ["ravens", "huginn", "daemon"]:
-            if "-status" in cmd_args:
-                self.check_ravens_status()
-                return
-            if "-end" in cmd_args or "-kill" in cmd_args or "-recall" in cmd_args:
-                self.recall_ravens()
-                return
-            # Default: Release the Ravens
-            self.release_ravens()
-            return
+        # 1. Dynamic Script Discovery
+        dynamic_script = self._resolve_dynamic_script(cmd)
+        if dynamic_script:
+             # HUD.log("INFO", f"Dynamic Dispatch: {cmd}", f"({dynamic_script.name})")
+             env = os.environ.copy()
+             env["PYTHONPATH"] = str(self.project_root)
+             subprocess.run([str(self.venv_python), str(dynamic_script)] + cmd_args, env=env)
+             return
 
-        if cmd in self.registry:
-            target, target_type = self.registry[cmd]
-            if target_type == "script":
-                subprocess.run([str(self.venv_python), target] + cmd_args)
-            elif target_type == "workflow":
-                HUD.log("INFO", f"Dispatching workflow: /{cmd}", f"({target})")
-                HUD.box_top(f"WORKFLOW: {cmd.upper()}")
-                HUD.box_row("Trigger", f"/{cmd}", HUD.CYAN)
-                HUD.box_row("File", target, HUD.DIM)
-                HUD.box_separator()
-                HUD.box_row("Note", "External agents handle /slash commands.", HUD.YELLOW)
-                HUD.box_bottom()
-        else:
-            HUD.log("FAIL", f"Unknown command: {cmd}")
-            self.show_help()
+        # 2. Dynamic Workflow Discovery
+        dynamic_workflow = self._resolve_workflow(cmd)
+        if dynamic_workflow:
+             HUD.log("INFO", f"Dispatching workflow: /{cmd}", f"({dynamic_workflow.name})")
+             HUD.box_top(f"WORKFLOW: {cmd.upper()}")
+             HUD.box_row("Trigger", f"/{cmd}", HUD.CYAN)
+             HUD.box_row("File", dynamic_workflow.name, HUD.DIM)
+             HUD.box_separator()
+             HUD.box_row("Note", "External agents handle /slash commands.", HUD.YELLOW)
+             HUD.box_bottom()
+             return
+
+        HUD.log("FAIL", f"Unknown command: {cmd}")
+        self.show_help()
+
+    def _resolve_dynamic_script(self, cmd: str) -> Path:
+        """Searches specific directories for a matching python script."""
+        search_paths = [
+            self.project_root / ".agent" / "skills",
+            self.project_root / "src" / "tools",
+            self.project_root / "src" / "skills" / "local"
+        ]
+        
+        for path in search_paths:
+            if not path.exists():
+                continue
+            
+            # Check for <cmd>.py
+            script_candidate = path / f"{cmd}.py"
+            if script_candidate.exists():
+                return script_candidate
+        return None
+
+    def _resolve_workflow(self, cmd: str) -> Path:
+        """Searches for a matching workflow file (.md or .qmd)."""
+        workflow_dir = self.project_root / ".agent" / "workflows"
+        if not workflow_dir.exists():
+            return None
+
+        # Case-insensitive search
+        for f in workflow_dir.iterdir():
+            if f.is_file() and f.suffix in [".md", ".qmd"]:
+                if f.stem.lower() == cmd:
+                    return f
+        return None
 
 
 def main() -> None:
