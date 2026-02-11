@@ -17,28 +17,13 @@ from datetime import datetime
 from pathlib import Path
 
 # Ensure shared UI and Engine can be imported
-try:
-    from engine import Cortex
-    from ui import HUD
-except ImportError:
-    # Fallback if cortex/ui not in path
-    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-    from engine import Cortex
-    from ui import HUD
-    # Fallback if cortex/ui not in path
-    class HUD:
-        RED = "\033[31m"
-        GREEN = "\033[32m"
-        YELLOW = "\033[33m"
-        CYAN = "\033[36m"
-        RESET = "\033[0m"
-        BOLD = "\033[1m"
-        @staticmethod
-        def box_top(t): print(f"--- {t} ---")
-        @staticmethod
-        def box_row(l, v, c=None): print(f"{l}: {v}")
-        @staticmethod
-        def box_bottom(): print("-" * 20)
+_core_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "core")
+_engine_dir = os.path.join(_core_dir, "engine")
+sys.path.insert(0, _core_dir)
+sys.path.insert(0, _engine_dir)
+
+from cortex import Cortex
+from ui import HUD
 
 class SkillForge:
     """
@@ -394,7 +379,7 @@ if __name__ == "__main__":
         try:
             with open(temp_path, 'w', encoding='utf-8') as f: f.write(code)
             subprocess.run([sys.executable, "-m", "ruff", "check", "--select=E,F", temp_path], capture_output=True, text=True, timeout=10)
-        except: pass
+        except (subprocess.SubprocessError, OSError): pass
         finally:
             if os.path.exists(temp_path): os.remove(temp_path)
         

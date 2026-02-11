@@ -7,11 +7,14 @@ import re
 import sys
 from collections import defaultdict
 
-# Add script directory to path to allow imports
+# Add core directories to path for shared imports
 current_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(current_dir)
+_core_dir = os.path.join(os.path.dirname(current_dir), "core")
+_engine_dir = os.path.join(_core_dir, "engine")
+sys.path.insert(0, _core_dir)
+sys.path.insert(0, _engine_dir)
 
-from sv_engine import SovereignVector
+from vector import SovereignVector
 from ui import HUD
 
 # --- CONFIGURATION (SYMMETRY MANDATE) ---

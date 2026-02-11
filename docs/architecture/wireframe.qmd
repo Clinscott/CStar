@@ -36,8 +36,8 @@ Maintain a searchable, accurate map of the project's UI and service architecture
     - `propose_immediate_install()`: Generates JIT installation commands for high-confidence global matches (>0.85).
     - **Proactive Recommendation**: Scours Global Registry if `config.json` provides `FrameworkRoot`.
     - **Correction Path**: Short-circuits vector search if query matches `c:/Users/Craig/Corvus/CorvusStar/.agent/corrections.json`. Returns score of 1.1.
-    - **Backbone**: `c:/Users/Craig/Corvus/CorvusStar/.agent/scripts/ui.py` is the centralized UI library for all scripts (HUD, Sparklines, Boxes). Hardened with strict typing, Google-style docstrings, and dynamic auto-sensing width (40-120 cols).
-    - **Optimization**: `engine/vector.py` implements an **LRU Neural Cache** for query expansion and vectorization, achieving Rank A search performance (0.065ms). Now supports **Unicode/CJK** scripts for global intent detection.
+    - **Backbone**: `c:/Users/Craig/Corvus/CorvusStar/src/core/ui.py` is the centralized UI library. Hardened with strict typing. Features `HUD.transition_ceremony()` for Persona switching animations.
+    - **Optimization**: `engine/vector.py` implements `SimilarityStrategy` (Cosine/Jaccard) and **LRU Neural Cache** for query expansion, achieving Rank A search performance (0.065ms). Now supports **Unicode/CJK** scripts.
 
 ### Testing Protocol (Empire TDD & Fishtest)
 - **Standard**: **The Empire TDD Framework**. All new logic MUST be verified via `.qmd` contracts enforcing GIVEN-WHEN-THEN tripartite logic.
@@ -141,7 +141,7 @@ The framework supports cross-agent intelligence sharing via the "Federated Netwo
         1. **Stage**: Moves trace to staging for isolation.
         2. **Merge**: Ingests into `fishtest_data.json` via `merge_traces.py`.
         3. **Ordeal**: Executes `fishtest.py` to verify accuracy integrity.
-        4. **Verdict**: If pass, commits data. If fail, rolls back `fishtest_data.json` and purges trace.
+        4. **Verdict**: If pass, commits data. If fail (accuracy < 95%), **Fishtest Rollback** automatically reverts changes and purges trace.
 - **Rejection Ledger**: `c:/Users/Craig/Corvus/CorvusStar/.agent/traces/quarantine/REJECTIONS.qmd`
     - Audit trail of failed ingestion attempts, including persona and reason (e.g., Regression, Format Error, Latency Breach).
 

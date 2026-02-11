@@ -12,7 +12,7 @@ def load_config(root_path: str) -> dict:
     if not os.path.exists(path): return {}
     try:
         with open(path, 'r', encoding='utf-8') as f: return json.load(f)
-    except: return {}
+    except (json.JSONDecodeError, IOError, OSError): return {}
 
 def sanitize_query(text: str) -> str:
     """[ALFRED] Purify user input of shell hazards and noise."""

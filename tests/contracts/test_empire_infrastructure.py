@@ -16,7 +16,7 @@ class TestEmpireInfrastructure(unittest.TestCase):
     def setUp(self):
         self.compiler = EmpireCompiler()
         self.legend = SymbolicLegend()
-        self.contract_path = os.path.join(BASE_DIR, "tests", "empire", "contract_example.qmd")
+        self.contract_path = os.path.join(BASE_DIR, "tests", "contracts", "contract_example.qmd")
 
     def test_compilation_to_ir(self):
         """Verify .qmd to IR transformation."""
@@ -38,16 +38,19 @@ class TestEmpireInfrastructure(unittest.TestCase):
     def test_boilerplate_generation(self):
         """Verify generated code structure."""
         ir = self.compiler.compile(self.contract_path)
-        output_path = os.path.join(BASE_DIR, "tests", "empire", "test_generated_contract.py")
-        
-        self.compiler.generate_boilerplate(ir, output_path)
-        
-        self.assertTrue(os.path.exists(output_path))
-        
-        with open(output_path, "r", encoding="utf-8") as f:
-            content = f.read()
-            self.assertIn("class TestContract_example(unittest.TestCase):", content)
-            self.assertIn("# User is Premium [$]", content)
+        # Use a temp file to avoid depending on tests/empire/ directory existing
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_path = os.path.join(tmpdir, "test_generated_contract.py")
+
+            self.compiler.generate_boilerplate(ir, output_path)
+
+            self.assertTrue(os.path.exists(output_path))
+
+            with open(output_path, "r", encoding="utf-8") as f:
+                content = f.read()
+                self.assertIn("class TestContract_example(unittest.TestCase):", content)
+                self.assertIn("# User is Premium [$]", content)
 
 if __name__ == '__main__':
     unittest.main()

@@ -38,3 +38,30 @@
 - **Lock File Naming**: Replaced `sentinel.lock` with `ravens.lock` to extend the lore immersion to the file system level.
 - **Class Naming**: Replaced generic `CodeSentinel` with `Heimdall`, creating a more cohesive identity for security-related tools.
 - **Command Aliases**: Retained `audit` and `daemon` as aliases but promoted `ravens` and `heimdall` as the primary lore-first commands.
+
+## 2026-02-09: Session 45 - The Six-Pillar Refinement
+
+### Achievements
+- **Campaign Completion**: Finalized all 18 tasks in the Six-Pillar Improvement Campaign (Phases 2 & 3).
+- **Safety**: Implemented automatic **Fishtest Rollback** logic in the Crucible to prevent accuracy regression (<95%).
+- **Immersion**: Added a dramatic **Transition Ceremony** to `ui.py` with ANSI animation for Persona switching.
+- **Model Upgrade**: Updated the Ravens (Muninn) to use the cutting-edge **gemini-2.5-flash** model.
+
+### Architectural Decisions
+- **Strategy Pattern**: Fully adopted `SimilarityStrategy` in `vector.py` to allow dynamic switching between Cosine/Jaccard similarity.
+- **Registry Pattern**: Refactored `personas.py` and `ui.py` to use dictionary registries (`_PERSONA_REGISTRY`, `_THEME_REGISTRY`) instead of hardcoded if/else blocks, improving modularity.
+- **Manual Intervention**: Interrupted daemon loop to manually patch `annex.py` (exclude `__init__.py`) and `cortex.py` (type hints), proving the value of human-in-the-loop oversight for tricky structural logic.
+
+## 2026-02-09: Session 46 - Strategist Resurrection & Daemon Hardening
+
+### Achievements
+- **Extracted Bootstrap Protocol**: Refactored `sovereign_fish.py` and `main_loop.py` to use a shared `_bootstrap.py` module, fixing the `.env.local` loading bug.
+- **Valkyrie Resurrection**: Re-implemented `Valkyrie` using `vulture` for dead code detection.
+- **Torvalds Resurrection**: Re-implemented `Torvalds` using `radon` for complexity analysis.
+- **Contract Coverage**: Added `test_strategists_bonus.py` with 100% mocked/real coverage.
+- **Verification**: Confirmed 100% pass on all 19 contract tests. Found and fixed the "lineno vs first_lineno" cross-version bug.
+
+### Architectural Decisions
+- **Attribute Resilience**: Adopted `getattr(item, 'first_lineno', ...)` pattern for static analysis tools to ensure cross-version compatibility.
+- **Priority Re-order**: Placed Valkyrie (Dead Code) and Torvalds (Complexity) at Ranks 2 and 3, ensuring cleanup happens BEFORE visual polish (Beauty).
+- **Mock-Real Duality**: Maintained fast mocked unit tests in `pytest` while verifying real-world detectability with a dedicated `scripts/verify_valkyrie_real.py` utility.

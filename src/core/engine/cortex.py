@@ -1,5 +1,7 @@
 import os
 import re
+from pathlib import Path
+from typing import Any, Dict, List
 
 from .vector import SovereignVector
 
@@ -9,30 +11,20 @@ class Cortex:
     The Cortex: A Retrieval Augmented Generation (RAG) module for Corvus Star.
     It ingests the project's own documentation to answer questions about its laws.
     """
-    def __init__(self, project_root, base_path):
+    def __init__(self, project_root: str, base_path: str):
         self.project_root = project_root
         # Initialize a fresh brain for knowledge (separate from skills)
         self.brain = SovereignVector(stopwords_path=os.path.join(project_root, "src", "data", "stopwords.json"))
         
         # Knowledge Sources - [ALFRED] Updated for Operation Yggdrasil docs structure
-        doc_targets = {
-            "AGENTS": "src/docs/architecture/AGENTS.qmd",
-            "wireframe": "src/docs/architecture/wireframe.qmd",
-            "memories": "memories.qmd",
-            "SovereignFish": "src/docs/campaigns/SOVEREIGNFISH_LEDGER.qmd"
-        }
-        # Wait, I moved them to docs/ not src/docs/ (except in some mis-types?)
-        # Let's check my mkdir: "mkdir -p src/core src/sentinel ... docs/architecture ..."
-        # So they are in docs/ at the root.
-
-        doc_targets = {
+        doc_targets: Dict[str, str] = {
             "AGENTS": "docs/architecture/AGENTS.qmd",
             "wireframe": "docs/architecture/wireframe.qmd",
             "memories": "memories.qmd",
             "SovereignFish": "docs/campaigns/SOVEREIGNFISH_LEDGER.qmd"
         }
 
-        self.knowledge_map = {}
+        self.knowledge_map: Dict[str, str] = {}
         for name, rel_path in doc_targets.items():
             path = os.path.join(project_root, rel_path)
             if os.path.exists(path):
@@ -45,7 +37,7 @@ class Cortex:
         
         self._ingest()
     
-    def _ingest(self):
+    def _ingest(self) -> None:
         """[ALFRED] Secure ingestion of project laws into the Cortex."""
         from src.core.ui import HUD  # Lazy import to avoid circularity
         
@@ -87,5 +79,5 @@ class Cortex:
         
         self.brain.build_index()
 
-    def query(self, text):
+    def query(self, text: str) -> List[Any]:
         return self.brain.search(text)

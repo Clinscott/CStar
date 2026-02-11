@@ -4,7 +4,9 @@ import sys
 from typing import Any, Dict, List
 
 # [ALFRED] Ensuring the path is correct for imports
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
+_project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
+sys.path.append(_project_root)
+sys.path.append(os.path.join(_project_root, "src", "games"))
 
 from odin_protocol.engine.models import Chromosome, UniverseState
 from odin_protocol.engine.scenarios import SovereignScenarioEngine

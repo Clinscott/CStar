@@ -24,6 +24,9 @@ cstar = "src.core.cstar_dispatcher:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
 [tool.ruff]
 line-length = 100
 exclude = [
@@ -63,7 +66,7 @@ select = [
     "E", "W", "F", "B", "C4", "UP", "SIM", "I", "N", "ANN", "S", "PTH", "RUF"
 ]
 ignore = [
-    "ANN101", "ANN102", "ANN204"
+    "ANN204"
 ]
 
 [tool.ruff.lint.per-file-ignores]

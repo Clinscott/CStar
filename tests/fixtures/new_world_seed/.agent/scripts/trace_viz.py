@@ -5,6 +5,7 @@ import math
 import os
 import re
 import sys
+from typing import Any
 from collections import defaultdict
 
 # Add script directory to path to allow imports
@@ -60,6 +61,7 @@ def get_engine():
 
 # --- RENDERER (IDENTITY ISOLATION) ---
 
+class TraceRenderer:
     """
     Decoupled renderer that enforces a specific theme, regardless of the
     Host Agent's current persona. This allows ODIN to view ALFRED traces

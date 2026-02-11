@@ -280,7 +280,16 @@ Here is a space for your agent instructions. I am here to help you build your vi
         with open(path, 'w', encoding='utf-8') as f:
             f.write(content)
 
-def get_strategy(name, root):
-    if name.upper() == "GOD" or name.upper() == "ODIN":
-        return OdinStrategy(root)
-    return AlfredStrategy(root)
+
+# [ALFRED] Persona Registry: Add new personas by registering their strategy class here.
+_PERSONA_REGISTRY: dict[str, type[PersonaStrategy]] = {
+    "ODIN": OdinStrategy,
+    "GOD": OdinStrategy,
+    "ALFRED": AlfredStrategy,
+}
+
+
+def get_strategy(name: str, root: str) -> PersonaStrategy:
+    """[ALFRED] Look up the persona strategy from the registry, defaulting to ALFRED."""
+    strategy_cls = _PERSONA_REGISTRY.get(name.upper(), AlfredStrategy)
+    return strategy_cls(root)

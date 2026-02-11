@@ -1,0 +1,63 @@
+---
+title: Main Loop Contracts
+scope: src/sentinel/main_loop.py
+---
+
+# Main Loop (Huginn & Muninn) — Behavioral Contracts
+
+## process_repo
+
+### Skip Dirty Repos
+```
+Feature: Dirty Repo Safety
+  Scenario: Dirty working tree is skipped
+    Given a repository with uncommitted changes
+    When process_repo() is called
+    Then it returns False
+    And sovereign_fish.run() is never invoked
+```
+
+### Commit on Change
+```
+Feature: Auto-Commit on Success
+  Scenario: Changes detected → git add -A + commit
+    Given a clean repository
+    And sovereign_fish.run() returns True
+    When process_repo() completes
+    Then git add -A is called (not git add .)
+    And git commit is called with a timestamped message
+    And the function returns True
+```
+
+### No Commit on No Change
+```
+Feature: No-Op Commit Safety
+  Scenario: No changes → no git operations
+    Given a clean repository
+    And sovereign_fish.run() returns False
+    When process_repo() completes
+    Then git commit is NOT called
+    And the function returns False
+```
+
+## load_persona
+
+### Default Persona
+```
+Feature: Persona Fallback
+  Scenario: Missing config → defaults to ODIN
+    Given no .agent/config.json exists
+    When load_persona() is called
+    Then it returns "ODIN"
+```
+
+## load_target_repos
+
+### Default Repos
+```
+Feature: Target Repo Loading
+  Scenario: No config override → returns hardcoded defaults
+    Given config.json has no "target_repos" key
+    When load_target_repos() is called
+    Then it returns a non-empty list of default repo paths
+```

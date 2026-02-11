@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 from datetime import datetime
 from typing import Any
 
@@ -58,37 +59,32 @@ class HUD:
             return HUD.DIALOGUE.get(intent) or fallback
         return fallback
 
-    @staticmethod
-    def get_theme() -> dict[str, str]:
-        """Returns the comprehensive color palette for the active Persona."""
-        p = HUD.PERSONA.upper()
-
-        if p in ["GOD", "ODIN"]:
-            return {
-                "main": HUD.RED,
-                "dim": HUD.MAGENTA,
-                "accent": HUD.YELLOW,
-                "success": HUD.GREEN,
-                "warning": HUD.YELLOW,
-                "error": HUD.RED,
-                "title": "Ω ODIN ENGINE Ω",
-                "prefix": "[ODIN]",
-                "war_title": "THE WAR ROOM (CONFLICT RADAR)",
-                "trace_label": "TRACE (LIES)",
-                "truth_label": "TRUTH (LAW)",
-                "greeting": "Speak, wanderer. The Hooded One listens.",
-                "success_msg": "It is done. The rune is carved in stone.",
-                "error_msg": "The thread snaps. Fate denies this path.",
-                "warning_msg": "Gjallarhorn sounds low. Heed this omen."
-            }
-        # Default / Alfred
-        return {
-            "main": HUD.CYAN,
-            "dim": HUD.CYAN_DIM,
-            "accent": HUD.GREEN,
-            "success": HUD.GREEN,
-            "warning": HUD.YELLOW,
-            "error": HUD.RED,
+    # [ALFRED] Theme Registry: Add new persona themes by adding an entry here.
+    _THEME_REGISTRY: dict[str, dict[str, str]] = {
+        "ODIN": {
+            "main": "\033[31m",   # RED
+            "dim": "\033[35m",    # MAGENTA
+            "accent": "\033[33m", # YELLOW
+            "success": "\033[32m",
+            "warning": "\033[33m",
+            "error": "\033[31m",
+            "title": "Ω ODIN ENGINE Ω",
+            "prefix": "[ODIN]",
+            "war_title": "THE WAR ROOM (CONFLICT RADAR)",
+            "trace_label": "TRACE (LIES)",
+            "truth_label": "TRUTH (LAW)",
+            "greeting": "Speak, wanderer. The Hooded One listens.",
+            "success_msg": "It is done. The rune is carved in stone.",
+            "error_msg": "The thread snaps. Fate denies this path.",
+            "warning_msg": "Gjallarhorn sounds low. Heed this omen."
+        },
+        "ALFRED": {
+            "main": "\033[36m",   # CYAN
+            "dim": "\033[2;36m",  # CYAN_DIM
+            "accent": "\033[32m", # GREEN
+            "success": "\033[32m",
+            "warning": "\033[33m",
+            "error": "\033[31m",
             "title": "C* BUTLER INTERFACE",
             "prefix": "[ALFRED]",
             "war_title": "THE BATCAVE (ANOMALY DETECTOR)",
@@ -98,7 +94,58 @@ class HUD:
             "success_msg": "The task is complete, sir. Everything is in order.",
             "error_msg": "I'm afraid we've encountered a difficulty, sir.",
             "warning_msg": "A word of caution, sir, if I may."
-        }
+        },
+    }
+
+    @staticmethod
+    def get_theme() -> dict[str, str]:
+        """Returns the comprehensive color palette for the active Persona."""
+        p = HUD.PERSONA.upper()
+        # GOD is an alias for ODIN
+        if p == "GOD":
+            p = "ODIN"
+        return HUD._THEME_REGISTRY.get(p, HUD._THEME_REGISTRY["ALFRED"])
+
+    @classmethod
+    def transition_ceremony(cls, old_persona: str, new_persona: str) -> None:
+        """[ALFRED] Render a dramatic visual ceremony on persona switch."""
+        theme = cls._THEME_REGISTRY.get(new_persona.upper(), cls._THEME_REGISTRY["ALFRED"])
+        main = theme["main"]
+        dim = theme["dim"]
+        accent = theme["accent"]
+        rst = cls.RESET
+        bold = cls.BOLD
+
+        width = 60
+        bar = "─" * width
+
+        # Phase 1: Fade-out old persona
+        print(f"\n{cls.DIM}{bar}{rst}")
+        print(f"{cls.DIM}  ◈  {old_persona.upper()} releasing control...{rst}")
+        sys.stdout.flush()
+        time.sleep(0.3)
+
+        # Phase 2: Transition flash
+        for char in "⟡ ⟡ ⟡ ⟡ ⟡":
+            print(f"\r  {accent}{char}{rst}", end="", flush=True)
+            time.sleep(0.08)
+        print()
+
+        # Phase 3: New persona entrance
+        title = theme.get("title", new_persona.upper())
+        greeting = theme.get("greeting", "")
+        t_len = len(title)
+        pad = max(0, (width - t_len - 4) // 2)
+
+        print(f"{main}┌{'─'*pad} {bold}{title}{rst}{main} {'─'*pad}┐{rst}")
+        print(f"{main}│{' '*(width-2)}│{rst}")
+        if greeting:
+            g_pad = max(0, width - 4 - len(greeting))
+            print(f"{main}│{rst}  {dim}{greeting}{' '*g_pad}{main}│{rst}")
+        print(f"{main}│{' '*(width-2)}│{rst}")
+        print(f"{main}└{'─'*(width-2)}┘{rst}")
+        print(f"{cls.DIM}{bar}{rst}\n")
+        sys.stdout.flush()
 
     @staticmethod
     def persona_log(level: str, msg: str) -> None:
