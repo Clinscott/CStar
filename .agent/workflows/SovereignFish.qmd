@@ -96,6 +96,10 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 
 *Format: `[Date] - [Category]: [Description]`*
 
+### 2026-02-10
+-   **Docs**: Updated `wireframe.qmd` to remove legacy `sentinel` module references and target `muninn.py` directly.
+-   **DX**: Refreshed `README_SOVEREIGN_FISH.md` with current `c* ravens` CLI commands.
+
 ### 2026-02-09
 -   **Lore**: Transitioned "Sentinel" and "Sovereign Fish" to Odin-Lore identities (**Huginn & Muninn** and **Heimdall**).
 -   **Architecture**: Updated `cstar_dispatcher` to embrace the new naming convention.

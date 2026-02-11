@@ -26,7 +26,7 @@ from src.sentinel._bootstrap import PROJECT_ROOT, bootstrap
 bootstrap()
 
 from src.core.ui import HUD
-from src.sentinel import sovereign_fish
+from src.sentinel.muninn import Muninn
 
 # Configuration
 INTERVAL_SECONDS = 900  # 15 Minutes
@@ -141,7 +141,8 @@ def process_repo(repo_path: Path, persona: str) -> bool:
 
     try:
         # 3. Execution
-        changed = sovereign_fish.run(str(repo_path))
+        raven = Muninn(str(repo_path))
+        changed = raven.run()
 
         # 4. Commit (If changed)
         if changed:

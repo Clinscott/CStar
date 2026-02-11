@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-The Annexation Protocol (The Strategist)
+The Annexation Protocol (Heimdall's Watch)
 Identity: ODIN
 Purpose: Scan the territory, identify weakness (non-compliance), and propose a battle plan (ANNEXATION_PLAN.qmd).
-Strandards: Linscott (Tests), Torvalds (Quality), Empire (Contracts), Edda (Docs).
+Wardens: Linscott (Tests), Mimir (Quality), Empire (Contracts), Edda (Docs).
 """
 
 import ast
@@ -17,7 +17,7 @@ from pathlib import Path
 # 🛡️ THE STRATEGIST'S LOGIC
 # ==============================================================================
 
-class AnnexStrategist:
+class HeimdallWarden:
     def __init__(self, root_dir: Path):
         self.root = root_dir.resolve()
         self.plan_path = self.root / "ANNEXATION_PLAN.qmd"
@@ -98,7 +98,7 @@ class AnnexStrategist:
                 # Check for bare except
                 if isinstance(node, ast.ExceptHandler) and node.type is None:
                      self.breaches.append({
-                        "type": "TORVALDS_BREACH",
+                        "type": "MIMIR_BREACH",
                         "file": rel_path.as_posix(),
                         "action": f"Fix bare except at line {node.lineno}",
                         "severity": "HIGH"
@@ -140,9 +140,9 @@ class AnnexStrategist:
         plan.append("## 🐧 Torvalds Protocol (Code Quality)")
         plan.append("Structural integrity mandates. No bare excepts. Strict typing.")
         
-        torvalds_breaches = [b for b in self.breaches if b["type"] == "TORVALDS_BREACH"]
-        if torvalds_breaches:
-            for b in torvalds_breaches:
+        mimir_breaches = [b for b in self.breaches if b["type"] == "MIMIR_BREACH"]
+        if mimir_breaches:
+            for b in mimir_breaches:
                 plan.append(f"- [ ] **[quality]** `{b['file']}` → {b['action']}")
         else:
             plan.append("*(No breaches detected. Code is clean.)*")
@@ -167,7 +167,7 @@ class AnnexStrategist:
         
         self.plan_path.write_text("\n".join(plan), encoding="utf-8")
         print(f"[ANNEX] Plan generated: {self.plan_path}")
-        print(f"[ANNEX] Breaches found: Linscott={len(linscott_breaches)}, Torvalds={len(torvalds_breaches)}, Edda={len(self.edda_tasks)}")
+        print(f"[ANNEX] Breaches found: Linscott={len(linscott_breaches)}, Mimir={len(mimir_breaches)}, Edda={len(self.edda_tasks)}")
 
 # ==============================================================================
 # 🚀 ENTRY POINT
@@ -181,7 +181,7 @@ def main():
     cmd = sys.argv[1]
     if cmd == "--scan":
         root = Path(sys.argv[2]) if len(sys.argv) > 2 else Path.cwd()
-        strategist = AnnexStrategist(root)
+        strategist = HeimdallWarden(root)
         strategist.scan()
     elif cmd == "--execute":
         print("[ANNEX] Execution module not yet linked. Review ANNEXATION_PLAN.qmd first.")

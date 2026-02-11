@@ -1,6 +1,6 @@
 # 💎 GEMINI NEURAL MANIFEST
 
-> **Timestamp**: 2026-02-09 21:22:27
+> **Timestamp**: 2026-02-10 21:38:09
 > **Active Mind**: ALFRED
 
 ## 🧩 Context Anchors
@@ -9,24 +9,24 @@
 - **Framework Port**: 3000 (Odin Dashboard)
 
 ## ⏭️ Priority Directives
-## ⏭️ Start Here Next
-### Phase 3: Deep Verification & Expansion
-1. **Full Suite Run**: Execute `pytest` across all modules to ensure no regression from recent refactors.
-2. **Coverage Analysis**: Run `coverage.py` to identify untested logic paths in the new strategists.
-3. **Documentation Sync**: Ensure `cortex.py` can ingest the new `.qmd` artifacts correctly.
-4. **Strategist Expansion**: Implement the `Valkyrie` strategist for dead code removal (using `vulture`).
+## ⏭️ Start Here Next (Strategic Growth)
 
-## ⏭️ Start Here Next (Strategic Expansion)
+### 30. Sovereign Identity Separation (Session 47)
+- [x] **Raven Rename**: Renamed `sovereign_fish.py` to `muninn.py` to resolve identity conflict with System Protocol. [x]
+- [x] **Protocol Decoupling**: Updated `/wrap-it-up` to use Manual Agent Action instead of script execution. [x]
+- [x] **Dispatcher Fix**: Patched `cstar_dispatcher.py` to allow execution from any directory (`sys.path` fix). [x]
+- [x] **Daemon Update**: Updated `main_loop.py` to import from `muninn` and stripped arg parsing from daemon logic. [x]
 
 ### 1. The Raven's Eye (Enhanced Monitoring)
+- [ ] **Huginn's Report**: Implement a periodic summaries generator that uses `Muninn`'s memory to report daily changes to a `SITREP.qmd`.
 
 ## 📜 Recent Continuity (Git)
 ```text
-b3e77ef [ODIN] Session 45: The Six-Pillar Refinement & Raven Upgrade
-a963b08 [ODIN] The Six-Pillar Refinement (Complete)
-abc8119 [ALFRED/ODIN] The Odin Lore Restoration
-2cda019 [ODIN] Session 43: Post-Refactor Verification & Terminal Fix
-498d4fe [ODIN] Operation Yggdrasil: Stabilization & Infrastructure
+f5ad8c4 fix: gitignore ravens.lock (was sentinel.lock)
+0581ded fix: ravens status/recall detect module-style invocation
+deffee1 fix: ravens launch via python -m module invocation
+3605309 Merge pull request #15 from Clinscott/refactor
+3e8d360 pytest FAIL
 ```
 
 ## 🛠️ System Health

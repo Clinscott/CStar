@@ -2,6 +2,14 @@
 Muninn: The Raven of Memory & Excellence (Autonomous Improver)
 Identity: ODIN/ALFRED Hybrid
 Purpose: Execute the SovereignFish Protocol autonomously.
+
+Wardens of Asgard:
+  Valkyrie  — Prunes dead code (Choosers of the Slain)
+  Mimir     — Tames complexity (The Wise Counselor)
+  Edda      — Weaves documentation (The Saga Keeper)
+  RuneCaster — Casts type definitions (The Rune Inscriber)
+  Freya     — Polishes visual form (Goddess of Beauty)
+  Norn      — Reads the campaign plan (Weavers of Fate)
 """
 
 import hashlib
@@ -30,8 +38,17 @@ from src.sentinel._bootstrap import bootstrap
 
 bootstrap()
 
-from src.core.annex import AnnexStrategist
+from src.core.annex import HeimdallWarden
 from src.core.ui import HUD
+from src.sentinel.code_sanitizer import (
+    classify_error,
+    extract_error_summary,
+    repair_imports,
+    sanitize_code,
+    sanitize_test,
+    validate_imports,
+    validate_syntax,
+)
 
 # Configure Logging
 logging.basicConfig(
@@ -42,9 +59,11 @@ logging.basicConfig(
 )
 
 
-class CampaignStrategist:
+class NornWarden:
     """
-    Parses CAMPAIGN_IMPLEMENTATION_PLAN.qmd to find the next actionable task.
+    [Norn: CAMPAIGN FATE]
+    Lore: "The Weavers of Destiny."
+    Purpose: Parse CAMPAIGN_IMPLEMENTATION_PLAN.qmd to find the next actionable task.
     """
     def __init__(self, root: Path):
         self.root = root
@@ -126,7 +145,7 @@ class CampaignStrategist:
 # ==============================================================================
 
 
-class ValkyrieStrategist:
+class ValkyrieWarden:
     """
     [Valkyrie: PRUNING]
     Lore: "Choosers of the Slain."
@@ -174,7 +193,7 @@ class ValkyrieStrategist:
         return targets
 
 
-class EddaStrategist:
+class EddaWarden:
     """
     [DOCUMENTATION]
     Lore: "The Saga of the Code."
@@ -203,7 +222,7 @@ class EddaStrategist:
             except (OSError, ValueError): pass
         return targets
 
-class RuneCasterStrategist:
+class RuneCasterWarden:
     """
     [TYPE SAFETY]
     Lore: "Casting the Runes of Definition."
@@ -235,10 +254,10 @@ class RuneCasterStrategist:
         return targets
 
 
-class TorvaldsStrategist:
+class MimirWarden:
     """
     [COMPLEXITY]
-    Lore: "The Standard of Excellence."
+    Lore: "The Wise Counselor sees through tangled threads."
     Purpose: Identify cyclomatic complexity > 10 using Radon.
     """
     def __init__(self, root: Path):
@@ -263,7 +282,7 @@ class TorvaldsStrategist:
                             rel_path = str(py_file)
                         
                         targets.append({
-                            "type": "TORVALDS_BREACH",
+                            "type": "MIMIR_BREACH",
                             "file": rel_path,
                             "action": f"Simplify Complexity: {block.name} (CC: {block.complexity})",
                             "severity": "MEDIUM",
@@ -275,10 +294,11 @@ class TorvaldsStrategist:
 
 
 
-class VisualStrategist:
+class FreyaWarden:
     """
-    Hunts for "Beauty" improvements (Form).
-    Target: Buttons without hover states, inconsistent spacing, etc.
+    [BEAUTY]
+    Lore: "The Goddess of Beauty sees all imperfections."
+    Purpose: Hunt for visual improvements — hover states, spacing, polish.
     """
     def __init__(self, root: Path):
         self.root = root
@@ -381,7 +401,7 @@ class TheWatcher:
         return True
 
 
-class SovereignFish:
+class Muninn:
     def __init__(self, target_path: str, client=None):
         self.root = Path(target_path).resolve()
         self.api_key = os.getenv("GOOGLE_API_KEY")
@@ -392,16 +412,13 @@ class SovereignFish:
         self.client = client or genai.Client(api_key=self.api_key)
 
         # EMPIRE TDD Configuration
-        self.flash_model = 'gemini-2.5-flash'
-        self.pro_model = 'gemini-2.5-pro'
+        self.flash_model = "gemini-2.0-flash"
+        self.pro_model = "gemini-2.0-pro-exp-02-05"
 
         # 3. The Watcher (Anti-Oscillation)
         self.watcher = TheWatcher(self.root)
 
-        # [ALFRED] Strategist Metrics: Track per-strategist hit rates
-        self._strategist_metrics: dict[str, dict[str, int]] = {}
-
-        # [ALFRED] Metrics: Track per-strategist hit rates
+        # [ALFRED] Warden Metrics: Track per-warden hit rates
         self._strategist_metrics: dict[str, dict[str, int]] = {}
 
     def run(self) -> bool:
@@ -415,29 +432,29 @@ class SovereignFish:
             HUD.persona_log("INFO", f"Muninn is scouring {self.root.name}...")
 
         # 1. SCAN (The Hunt)
-        strategist = AnnexStrategist(self.root)
+        strategist = HeimdallWarden(self.root)
         strategist.scan()
 
-        beauty_expert = VisualStrategist(self.root)
+        beauty_expert = FreyaWarden(self.root)
         beauty_targets = beauty_expert.scan()
 
-        valkyrie = ValkyrieStrategist(self.root)
+        valkyrie = ValkyrieWarden(self.root)
         valkyrie_targets = valkyrie.scan()
 
-        torvalds = TorvaldsStrategist(self.root)
-        torvalds_targets = torvalds.scan()
+        mimir = MimirWarden(self.root)
+        mimir_targets = mimir.scan()
 
-        edda = EddaStrategist(self.root)
+        edda = EddaWarden(self.root)
         edda_targets = edda.scan()
 
-        rune = RuneCasterStrategist(self.root)
+        rune = RuneCasterWarden(self.root)
         rune_targets = rune.scan()
 
         # [ALFRED] Metrics: Record scan results per strategist
         scan_results = {
             "ANNEX": len(strategist.breaches) if hasattr(strategist, 'breaches') else 0,
             "VALKYRIE": len(valkyrie_targets),
-            "TORVALDS": len(torvalds_targets),
+            "MIMIR": len(mimir_targets),
             "BEAUTY": len(beauty_targets),
             "EDDA": len(edda_targets),
             "RUNE": len(rune_targets),
@@ -465,17 +482,17 @@ class SovereignFish:
             target = valkyrie_targets[0]
             selected_strategist = "VALKYRIE"
 
-        # 3. Complexity (Torvalds)
-        if not target and torvalds_targets:
+        # 3. Complexity (Mimir)
+        if not target and mimir_targets:
             if HUD.PERSONA == "ALFRED":
                 HUD.persona_log("INFO", "Refining the logic flow. It's becoming tangled.")
             else:
                 HUD.persona_log("INFO", "The knots are too tight. Loosening the weave.")
-            target = torvalds_targets[0]
-            selected_strategist = "TORVALDS"
+            target = mimir_targets[0]
+            selected_strategist = "MIMIR"
 
 
-        # 4. Beauty Imperfections (VisualStrategist)
+        # 4. Beauty Imperfections (FreyaWarden)
         if not target and beauty_targets:
             if HUD.PERSONA == "ALFRED":
                 HUD.persona_log("INFO", "The presentation is a bit untidy. polishing.")
@@ -509,7 +526,7 @@ class SovereignFish:
             else:
                 HUD.persona_log("INFO", "The realm is secure. Consulting the Great Plan...")
 
-            campaign = CampaignStrategist(self.root)
+            campaign = NornWarden(self.root)
             target = campaign.get_next_target()
             if target:
                 target['source'] = 'CAMPAIGN'
@@ -546,7 +563,7 @@ class SovereignFish:
 
             # If Campaign task, update the plan
             if target.get('source') == 'CAMPAIGN':
-                CampaignStrategist(self.root).mark_complete(target)
+                NornWarden(self.root).mark_complete(target)
                 if HUD.PERSONA == "ALFRED":
                      HUD.persona_log("SUCCESS", "I have crossed that item off your list, sir.")
                 else:
@@ -810,7 +827,39 @@ class SovereignFish:
             code_content = implementation_data.get('code')
             test_content = implementation_data.get('test')
 
-            # Write temp files
+            # ==========================================================
+            # 🌈 BIFROST GATE: Sanitize & Validate before execution
+            # ==========================================================
+            code_content = sanitize_code(code_content)
+            test_content = sanitize_test(test_content, target['file'], self.root)
+
+            # Validate code syntax
+            code_ok, code_err = validate_syntax(code_content)
+            if not code_ok:
+                error_class = classify_error(code_err)
+                HUD.persona_log("WARN", f"Bifrost REJECTED code: [{error_class}] {code_err}")
+                last_error = f"BIFROST_CODE_REJECT [{error_class}]: {code_err}"
+                continue
+
+            # Validate test syntax
+            test_ok, test_err = validate_syntax(test_content)
+            if not test_ok:
+                error_class = classify_error(test_err)
+                HUD.persona_log("WARN", f"Bifrost REJECTED test: [{error_class}] {test_err}")
+                last_error = f"BIFROST_TEST_REJECT [{error_class}]: {test_err}"
+                continue
+
+            # Validate test imports — attempt repair if bad
+            bad_imports = validate_imports(test_content, self.root)
+            if bad_imports:
+                HUD.persona_log("WARN", f"Bifrost: Repairing bad imports: {bad_imports[:2]}")
+                test_content = repair_imports(test_content, self.root)
+                remaining = validate_imports(test_content, self.root)
+                if remaining:
+                    last_error = f"BIFROST_IMPORT_REJECT: {'; '.join(remaining[:3])}"
+                    continue
+
+            # Write temp files (only after Bifrost approval)
             temp_code_path = temp_dir / Path(target['file']).name
             temp_test_path = temp_dir / "test_temp_empire.py"
 
@@ -839,15 +888,17 @@ class SovereignFish:
                     HUD.persona_log("PASS", "The Gauntlet: SURVIVED.")
                     return implementation_data
                 else:
-                    HUD.persona_log("WARN", "The Gauntlet: FAILED.")
                     error_output = (result.stdout + result.stderr)
-                    last_error = error_output.replace("\n", " | ")[-1000:]
+                    error_class = classify_error(error_output)
+                    error_summary = extract_error_summary(error_output)
+                    HUD.persona_log("WARN", f"Gauntlet FAILED [{error_class}]: {error_summary[:100]}")
+                    last_error = f"GAUNTLET [{error_class}]: {error_summary}"
 
                     fail_log = self.root / "tests" / "empire_tests" / "gauntlet_failures.log"
                     try:
                         fail_log.parent.mkdir(parents=True, exist_ok=True)
                         timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-                        log_entry = f"\n\n[{timestamp}] [FILE: {target['file']}] [ATTEMPT: {attempt+1}]\n{'-'*40}\n{error_output}\n{'-'*40}\n"
+                        log_entry = f"\n\n[{timestamp}] [FILE: {target['file']}] [ATTEMPT: {attempt+1}] [CLASS: {error_class}]\n{'-'*40}\n{error_output}\n{'-'*40}\n"
                         with open(fail_log, "a", encoding="utf-8") as f:
                             f.write(log_entry)
                         HUD.persona_log("INFO", f"Error details logged to {fail_log.name}")
@@ -954,6 +1005,3 @@ def run(target_path: str):
         logging.error(f"[{target_path}] [CRASH] {e}")
         return False
 
-if __name__ == "__main__":
-    target = sys.argv[1] if len(sys.argv) > 1 else "."
-    run(target)

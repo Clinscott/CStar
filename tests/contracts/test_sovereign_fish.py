@@ -1,6 +1,6 @@
 """
 Sovereign Fish Contract Tests
-Verifies: SovereignFish protocol, TheWatcher, CampaignStrategist, EddaStrategist, rollback.
+Verifies: SovereignFish protocol, TheWatcher, NornWarden, EddaWarden, rollback.
 All tests use mock AI client — zero network calls.
 """
 import json
@@ -18,8 +18,8 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 from src.sentinel.sovereign_fish import (
-    CampaignStrategist,
-    EddaStrategist,
+    NornWarden,
+    EddaWarden,
     SovereignFish,
     TheWatcher,
 )
@@ -71,11 +71,11 @@ class TestWatcherFatigueLock:
 
 
 # ==============================================================================
-# CampaignStrategist Tests
+# NornWarden Tests
 # ==============================================================================
 
 
-class TestCampaignStrategist:
+class TestNornWarden:
     """Parses markdown tables and strikes completed items."""
 
     PLAN_CONTENT = """\
@@ -93,7 +93,7 @@ class TestCampaignStrategist:
         plan_path = tmp_path / ".agent" / "CAMPAIGN_IMPLEMENTATION_PLAN.qmd"
         plan_path.write_text(self.PLAN_CONTENT, encoding="utf-8")
 
-        cs = CampaignStrategist(tmp_path)
+        cs = NornWarden(tmp_path)
         target = cs.get_next_target()
 
         assert target is not None
@@ -112,7 +112,7 @@ class TestCampaignStrategist:
         plan_path = tmp_path / ".agent" / "CAMPAIGN_IMPLEMENTATION_PLAN.qmd"
         plan_path.write_text(struck_plan, encoding="utf-8")
 
-        cs = CampaignStrategist(tmp_path)
+        cs = NornWarden(tmp_path)
         assert cs.get_next_target() is None
 
     def test_mark_complete_strikes_description(self, tmp_path):
@@ -120,7 +120,7 @@ class TestCampaignStrategist:
         plan_path = tmp_path / ".agent" / "CAMPAIGN_IMPLEMENTATION_PLAN.qmd"
         plan_path.write_text(self.PLAN_CONTENT, encoding="utf-8")
 
-        cs = CampaignStrategist(tmp_path)
+        cs = NornWarden(tmp_path)
         target = cs.get_next_target()
         cs.mark_complete(target)
 
@@ -131,16 +131,16 @@ class TestCampaignStrategist:
         assert "~~" in target_line
 
     def test_returns_none_when_no_plan(self, tmp_path):
-        cs = CampaignStrategist(tmp_path)
+        cs = NornWarden(tmp_path)
         assert cs.get_next_target() is None
 
 
 # ==============================================================================
-# EddaStrategist Tests
+# EddaWarden Tests
 # ==============================================================================
 
 
-class TestEddaStrategist:
+class TestEddaWarden:
     """Detects Python files missing docstrings."""
 
     def test_detects_missing_docstrings(self, tmp_path):
@@ -153,7 +153,7 @@ class TestEddaStrategist:
         has_doc = src_dir / "documented.py"
         has_doc.write_text('def solid():\n    """I have docs."""\n    pass\n', encoding="utf-8")
 
-        edda = EddaStrategist(tmp_path)
+        edda = EddaWarden(tmp_path)
         targets = edda.scan()
 
         # Should flag the undocumented file
@@ -171,9 +171,9 @@ class TestEddaStrategist:
 class TestSovereignFishScanCycle:
     """run() returns False when no breaches are found (clean codebase)."""
 
-    @patch("src.sentinel.sovereign_fish.AnnexStrategist")
+    @patch("src.sentinel.sovereign_fish.HeimdallWarden")
     def test_no_breaches_returns_false(self, mock_annex_cls, tmp_path, mock_genai_client):
-        # Setup: AnnexStrategist reports no breaches
+        # Setup: HeimdallWarden reports no breaches
         mock_annex = MagicMock()
         mock_annex.breaches = []
         mock_annex_cls.return_value = mock_annex
