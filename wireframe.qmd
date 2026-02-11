@@ -20,11 +20,19 @@ The decision-making brain of Corvus Star.
 ### 🦅 The Ravens (`src/sentinel/`)
 The autonomous daemon ensuring system health.
 - **Bootstrap** (`_bootstrap.py`): Shared environment and Pathlib configuration.
+- **Code Sanitizer: Bifrost Gate** (`code_sanitizer.py`):
+    - `sanitize_code()`: Auto-repairs indentation, syntax, and markdown fences.
+    - `repair_imports()`: Stubs fabricated imports with MagicMocks.
 - **Huginn & Muninn** (`main_loop.py`):
     - `daemon_loop()`: Orchestrates the twin ravens (Thought/Memory).
-- **Muninn: The Improver** (`sovereign_fish.py`):
+- **Muninn: The Improver** (`src/sentinel/muninn.py`):
     - `run()`: Executes the self-improvement protocol.
-    - `Valkyrie, Torvalds, Annex`: Specialized improvement strategists.
+    - `Wardens`: specialized improvement strategists (Valkyrie, Mimir, Heimdall, etc.).
+
+### 📂 Test Infrastructure (`tests/`)
+Verification and hardening tools.
+- **Ravens Harness** (`ravens_harness.py`): 100-iteration synthetic/mock gauntlet tester.
+- **Response Harvester** (`src/sentinel/harvest_responses.py`): Records live AI data for offline harness.
 
 ### 🛠️ Tools (`src/tools/`)
 Specialized utilities for analysis and repair.

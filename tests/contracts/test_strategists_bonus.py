@@ -1,6 +1,6 @@
 """
-Bonus Strategist Tests
-Verifies: Valkyrie (Dead Code), Torvalds (Complexity), and Priority Integration.
+Bonus Warden Tests
+Verifies: Valkyrie (Dead Code), Mimir (Complexity), and Priority Integration.
 Uses mocking to avoid external tool dependencies (Vulture/Radon) where possible.
 """
 import pytest
@@ -14,12 +14,12 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 from src.sentinel.sovereign_fish import (
-    ValkyrieStrategist,
-    TorvaldsStrategist,
+    ValkyrieWarden,
+    MimirWarden,
     SovereignFish
 )
 
-class TestValkyrieStrategist:
+class TestValkyrieWarden:
     """Detects dead code using Vulture (Mocked)."""
 
     @patch('src.sentinel.sovereign_fish.vulture')
@@ -37,8 +37,8 @@ class TestValkyrieStrategist:
         
         mock_v.get_unused_code.return_value = [mock_item]
 
-        # Init Strategist
-        valkyrie = ValkyrieStrategist(tmp_path)
+        # Init Warden
+        valkyrie = ValkyrieWarden(tmp_path)
         
         # Run Scan
         targets = valkyrie.scan()
@@ -65,13 +65,13 @@ class TestValkyrieStrategist:
         
         mock_v.get_unused_code.return_value = [mock_item]
 
-        valkyrie = ValkyrieStrategist(tmp_path)
+        valkyrie = ValkyrieWarden(tmp_path)
         targets = valkyrie.scan()
 
         assert len(targets) == 0
 
 
-class TestTorvaldsStrategist:
+class TestMimirWarden:
     """Detects high complexity using Radon."""
 
     def test_finds_complex_function(self, tmp_path):
@@ -97,22 +97,22 @@ def nightmare(x):
     else: pass
 """, encoding="utf-8")
 
-        torvalds = TorvaldsStrategist(tmp_path)
-        targets = torvalds.scan()
+        mimir = MimirWarden(tmp_path)
+        targets = mimir.scan()
 
         assert len(targets) > 0
-        assert targets[0]["type"] == "TORVALDS_BREACH"
+        assert targets[0]["type"] == "MIMIR_BREACH"
         assert "complex_mess.py" in targets[0]["file"]
 
 
-class TestStrategistPriority:
+class TestWardenPriority:
     """Verifies integration order in SovereignFish.run()."""
     
-    @patch('src.sentinel.sovereign_fish.AnnexStrategist')
-    @patch('src.sentinel.sovereign_fish.ValkyrieStrategist')
-    @patch('src.sentinel.sovereign_fish.TorvaldsStrategist')
-    @patch('src.sentinel.sovereign_fish.VisualStrategist')
-    def test_valkyrie_precedes_beauty(self, mock_visual, mock_torvalds, mock_valkyrie, mock_annex, tmp_path, mock_genai_client):
+    @patch('src.sentinel.sovereign_fish.HeimdallWarden')
+    @patch('src.sentinel.sovereign_fish.ValkyrieWarden')
+    @patch('src.sentinel.sovereign_fish.MimirWarden')
+    @patch('src.sentinel.sovereign_fish.FreyaWarden')
+    def test_valkyrie_precedes_beauty(self, mock_visual, mock_mimir, mock_valkyrie, mock_annex, tmp_path, mock_genai_client):
         # Setup: All strategists find targets
         mock_annex_inst = MagicMock()
         mock_annex_inst.scan.return_value = [] # No critical breaches
@@ -123,9 +123,9 @@ class TestStrategistPriority:
         mock_valkyrie_inst.scan.return_value = [{"file": "dead.py", "action": "Prune"}]
         mock_valkyrie.return_value = mock_valkyrie_inst
 
-        mock_torvalds_inst = MagicMock()
-        mock_torvalds_inst.scan.return_value = [{"file": "complex.py", "action": "Simplify"}]
-        mock_torvalds.return_value = mock_torvalds_inst
+        mock_mimir_inst = MagicMock()
+        mock_mimir_inst.scan.return_value = [{"file": "complex.py", "action": "Simplify"}]
+        mock_mimir.return_value = mock_mimir_inst
 
         mock_visual_inst = MagicMock()
         mock_visual_inst.scan.return_value = [{"file": "ugly.py", "action": "Beautify"}]

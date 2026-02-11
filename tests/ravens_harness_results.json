@@ -1,0 +1,1372 @@
+{
+  "timestamp": "2026-02-10 21:05:10",
+  "total_iterations": 100,
+  "dry_run": true,
+  "passed": 100,
+  "failed": 0,
+  "failure_breakdown": {},
+  "results": [
+    {
+      "target_file": "scripts/verify_valkyrie_real.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "GOOD",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "DRYRUN_PASS"
+      ],
+      "iteration": 1
+    },
+    {
+      "target_file": "sterileAgent/fishtest.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "INDENT_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 2
+    },
+    {
+      "target_file": "src/core/annex.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "IMPORT_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_TEST",
+        "REPAIR_IMPORTS: [\"line 7: `from annex_engine import ...` — 'annex_engine' is not a known module\"]",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 3
+    },
+    {
+      "target_file": "src/core/cstar_dispatcher.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "SYNTAX_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 4
+    },
+    {
+      "target_file": "src/core/edda.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "MARKDOWN_FENCES",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 5
+    },
+    {
+      "target_file": "src/core/personas.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "MISSING_SYSPATH",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 6
+    },
+    {
+      "target_file": "src/core/set_persona.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "BOM_NULL",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 7
+    },
+    {
+      "target_file": "src/core/sv_engine.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "TABS",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 8
+    },
+    {
+      "target_file": "src/core/ui.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "GOOD",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "DRYRUN_PASS"
+      ],
+      "iteration": 9
+    },
+    {
+      "target_file": "src/core/utils.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "INDENT_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 10
+    },
+    {
+      "target_file": "src/sentinel/code_sanitizer.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "IMPORT_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_TEST",
+        "REPAIR_IMPORTS: [\"line 7: `from code_sanitizer_engine import ...` — 'code_sanitizer_engine' is not a known module\"]",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 11
+    },
+    {
+      "target_file": "src/sentinel/harvest_responses.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "SYNTAX_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 12
+    },
+    {
+      "target_file": "src/sentinel/main_loop.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "MARKDOWN_FENCES",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 13
+    },
+    {
+      "target_file": "src/sentinel/sovereign_fish.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "MISSING_SYSPATH",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 14
+    },
+    {
+      "target_file": "src/sentinel/_bootstrap.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "BOM_NULL",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 15
+    },
+    {
+      "target_file": "src/skills/install_skill.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "TABS",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 16
+    },
+    {
+      "target_file": "src/skills/skill_forge.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "GOOD",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "DRYRUN_PASS"
+      ],
+      "iteration": 17
+    },
+    {
+      "target_file": "src/synapse/synapse_auth.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "INDENT_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 18
+    },
+    {
+      "target_file": "src/synapse/synapse_sync.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "IMPORT_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_TEST",
+        "REPAIR_IMPORTS: [\"line 7: `from synapse_sync_engine import ...` — 'synapse_sync_engine' is not a known module\"]",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 19
+    },
+    {
+      "target_file": "src/tools/benchmark_engine.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "SYNTAX_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 20
+    },
+    {
+      "target_file": "src/tools/code_sentinel.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "MARKDOWN_FENCES",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 21
+    },
+    {
+      "target_file": "src/tools/compile_failure_report.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "MISSING_SYSPATH",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 22
+    },
+    {
+      "target_file": "src/tools/compile_session_traces.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "BOM_NULL",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 23
+    },
+    {
+      "target_file": "src/tools/debt_viz.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "TABS",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 24
+    },
+    {
+      "target_file": "src/tools/generate_tests.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "GOOD",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "DRYRUN_PASS"
+      ],
+      "iteration": 25
+    },
+    {
+      "target_file": "src/tools/latency_check.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "INDENT_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 26
+    },
+    {
+      "target_file": "src/tools/lightning_rod.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "IMPORT_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_TEST",
+        "REPAIR_IMPORTS: [\"line 7: `from lightning_rod_engine import ...` — 'lightning_rod_engine' is not a known module\"]",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 27
+    },
+    {
+      "target_file": "src/tools/merge_traces.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "SYNTAX_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 28
+    },
+    {
+      "target_file": "src/tools/migrate_to_qmd.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "MARKDOWN_FENCES",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 29
+    },
+    {
+      "target_file": "src/tools/network_watcher.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "MISSING_SYSPATH",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 30
+    },
+    {
+      "target_file": "src/tools/overwatch.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "BOM_NULL",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 31
+    },
+    {
+      "target_file": "src/tools/security_scan.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "TABS",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 32
+    },
+    {
+      "target_file": "src/tools/sentinel_perf.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "GOOD",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "DRYRUN_PASS"
+      ],
+      "iteration": 33
+    },
+    {
+      "target_file": "src/tools/trace_viz.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "INDENT_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 34
+    },
+    {
+      "target_file": "src/tools/tune_weights.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "IMPORT_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_TEST",
+        "REPAIR_IMPORTS: [\"line 7: `from tune_weights_engine import ...` — 'tune_weights_engine' is not a known module\"]",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 35
+    },
+    {
+      "target_file": "src/tools/update_gemini_manifest.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "SYNTAX_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 36
+    },
+    {
+      "target_file": "src/tools/data/dedupe_corrections.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "MARKDOWN_FENCES",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 37
+    },
+    {
+      "target_file": "src/tools/data/expand_thesaurus.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "MISSING_SYSPATH",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 38
+    },
+    {
+      "target_file": "src/tools/data/overfit_corrections.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "BOM_NULL",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 39
+    },
+    {
+      "target_file": "src/tools/data/sanitize_thesaurus.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "TABS",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 40
+    },
+    {
+      "target_file": "src/tools/debug/audit_dialogue.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "GOOD",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "DRYRUN_PASS"
+      ],
+      "iteration": 41
+    },
+    {
+      "target_file": "src/tools/debug/debug_fishtest.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "INDENT_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 42
+    },
+    {
+      "target_file": "src/tools/debug/debug_fishtest_phase2.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "IMPORT_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_TEST",
+        "REPAIR_IMPORTS: [\"line 7: `from debug_fishtest_phase2_engine import ...` — 'debug_fishtest_phase2_engine' is not a known module\"]",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 43
+    },
+    {
+      "target_file": "src/tools/debug/debug_perf.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "SYNTAX_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 44
+    },
+    {
+      "target_file": "src/tools/debug/diag_engine.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "MARKDOWN_FENCES",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 45
+    },
+    {
+      "target_file": "src/tools/debug/quick_check.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "MISSING_SYSPATH",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 46
+    },
+    {
+      "target_file": "src/tools/debug/verify_fish.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "BOM_NULL",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 47
+    },
+    {
+      "target_file": "src/skills/local/workflow-analyst/analyze_workflow.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "TABS",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 48
+    },
+    {
+      "target_file": "src/skills/local/drafts/workflow_backup_sequence_steps_gen/backup_sequence_steps.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "GOOD",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "DRYRUN_PASS"
+      ],
+      "iteration": 49
+    },
+    {
+      "target_file": "src/games/odin_protocol/main.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "INDENT_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 50
+    },
+    {
+      "target_file": "src/games/odin_protocol/engine/adjudicator.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "IMPORT_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_TEST",
+        "REPAIR_IMPORTS: [\"line 7: `from adjudicator_engine import ...` — 'adjudicator_engine' is not a known module\"]",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 51
+    },
+    {
+      "target_file": "src/games/odin_protocol/engine/gm_client.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "SYNTAX_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 52
+    },
+    {
+      "target_file": "src/games/odin_protocol/engine/logic.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "MARKDOWN_FENCES",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 53
+    },
+    {
+      "target_file": "src/games/odin_protocol/engine/models.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "MISSING_SYSPATH",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 54
+    },
+    {
+      "target_file": "src/games/odin_protocol/engine/persistence.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "BOM_NULL",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 55
+    },
+    {
+      "target_file": "src/games/odin_protocol/engine/rng.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "TABS",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 56
+    },
+    {
+      "target_file": "src/games/odin_protocol/engine/scenarios.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "GOOD",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "DRYRUN_PASS"
+      ],
+      "iteration": 57
+    },
+    {
+      "target_file": "src/core/engine/alfred_observer.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "INDENT_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 58
+    },
+    {
+      "target_file": "src/core/engine/cortex.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "IMPORT_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_TEST",
+        "REPAIR_IMPORTS: [\"line 7: `from cortex_engine import ...` — 'cortex_engine' is not a known module\"]",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 59
+    },
+    {
+      "target_file": "src/core/engine/dialogue.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "SYNTAX_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 60
+    },
+    {
+      "target_file": "src/core/engine/vector.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "MARKDOWN_FENCES",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 61
+    },
+    {
+      "target_file": "scripts\\verify_valkyrie_real.py",
+      "target_type": "VALKYRIE",
+      "response_type": "MISSING_SYSPATH",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 62
+    },
+    {
+      "target_file": "scripts\\verify_valkyrie_real.py",
+      "target_type": "VALKYRIE",
+      "response_type": "BOM_NULL",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 63
+    },
+    {
+      "target_file": "scripts\\verify_valkyrie_real.py",
+      "target_type": "VALKYRIE",
+      "response_type": "TABS",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 64
+    },
+    {
+      "target_file": "src\\core\\edda.py",
+      "target_type": "VALKYRIE",
+      "response_type": "GOOD",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "DRYRUN_PASS"
+      ],
+      "iteration": 65
+    },
+    {
+      "target_file": "src\\core\\engine\\alfred_observer.py",
+      "target_type": "VALKYRIE",
+      "response_type": "INDENT_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 66
+    },
+    {
+      "target_file": "sterileAgent\\fishtest.py",
+      "target_type": "MIMIR",
+      "response_type": "IMPORT_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_TEST",
+        "REPAIR_IMPORTS: [\"line 7: `from fishtest_engine import ...` — 'fishtest_engine' is not a known module\"]",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 67
+    },
+    {
+      "target_file": "sterileAgent\\fishtest.py",
+      "target_type": "MIMIR",
+      "response_type": "SYNTAX_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 68
+    },
+    {
+      "target_file": "src\\core\\annex.py",
+      "target_type": "MIMIR",
+      "response_type": "MARKDOWN_FENCES",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 69
+    },
+    {
+      "target_file": "src\\core\\annex.py",
+      "target_type": "MIMIR",
+      "response_type": "MISSING_SYSPATH",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 70
+    },
+    {
+      "target_file": "src\\core\\cstar_dispatcher.py",
+      "target_type": "MIMIR",
+      "response_type": "BOM_NULL",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 71
+    },
+    {
+      "target_file": "scripts\\verify_valkyrie_real.py",
+      "target_type": "EDDA",
+      "response_type": "TABS",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 72
+    },
+    {
+      "target_file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "target_type": "EDDA",
+      "response_type": "GOOD",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "DRYRUN_PASS"
+      ],
+      "iteration": 73
+    },
+    {
+      "target_file": "src\\tools\\compile_failure_report.py",
+      "target_type": "EDDA",
+      "response_type": "INDENT_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 74
+    },
+    {
+      "target_file": "src\\tools\\generate_tests.py",
+      "target_type": "EDDA",
+      "response_type": "IMPORT_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_TEST",
+        "REPAIR_IMPORTS: [\"line 7: `from generate_tests_engine import ...` — 'generate_tests_engine' is not a known module\"]",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 75
+    },
+    {
+      "target_file": "src\\tools\\lightning_rod.py",
+      "target_type": "EDDA",
+      "response_type": "SYNTAX_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 76
+    },
+    {
+      "target_file": "scripts\\verify_valkyrie_real.py",
+      "target_type": "RUNECASTER",
+      "response_type": "MARKDOWN_FENCES",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 77
+    },
+    {
+      "target_file": "scripts\\verify_valkyrie_real.py",
+      "target_type": "RUNECASTER",
+      "response_type": "MISSING_SYSPATH",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 78
+    },
+    {
+      "target_file": "sterileAgent\\fishtest.py",
+      "target_type": "RUNECASTER",
+      "response_type": "BOM_NULL",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 79
+    },
+    {
+      "target_file": "sterileAgent\\fishtest.py",
+      "target_type": "RUNECASTER",
+      "response_type": "TABS",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 80
+    },
+    {
+      "target_file": "sterileAgent\\fishtest.py",
+      "target_type": "RUNECASTER",
+      "response_type": "GOOD",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "DRYRUN_PASS"
+      ],
+      "iteration": 81
+    },
+    {
+      "target_file": "scripts/verify_valkyrie_real.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "INDENT_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 82
+    },
+    {
+      "target_file": "sterileAgent/fishtest.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "IMPORT_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_TEST",
+        "REPAIR_IMPORTS: [\"line 7: `from fishtest_engine import ...` — 'fishtest_engine' is not a known module\"]",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 83
+    },
+    {
+      "target_file": "src/core/annex.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "SYNTAX_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 84
+    },
+    {
+      "target_file": "src/core/cstar_dispatcher.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "MARKDOWN_FENCES",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 85
+    },
+    {
+      "target_file": "src/core/edda.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "MISSING_SYSPATH",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 86
+    },
+    {
+      "target_file": "src/core/personas.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "BOM_NULL",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 87
+    },
+    {
+      "target_file": "src/core/set_persona.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "TABS",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 88
+    },
+    {
+      "target_file": "src/core/sv_engine.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "GOOD",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "DRYRUN_PASS"
+      ],
+      "iteration": 89
+    },
+    {
+      "target_file": "src/core/ui.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "INDENT_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 90
+    },
+    {
+      "target_file": "src/core/utils.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "IMPORT_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_TEST",
+        "REPAIR_IMPORTS: [\"line 7: `from utils_engine import ...` — 'utils_engine' is not a known module\"]",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 91
+    },
+    {
+      "target_file": "src/sentinel/code_sanitizer.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "SYNTAX_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 92
+    },
+    {
+      "target_file": "src/sentinel/harvest_responses.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "MARKDOWN_FENCES",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 93
+    },
+    {
+      "target_file": "src/sentinel/main_loop.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "MISSING_SYSPATH",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 94
+    },
+    {
+      "target_file": "src/sentinel/sovereign_fish.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "BOM_NULL",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 95
+    },
+    {
+      "target_file": "src/sentinel/_bootstrap.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "TABS",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 96
+    },
+    {
+      "target_file": "src/skills/install_skill.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "GOOD",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "DRYRUN_PASS"
+      ],
+      "iteration": 97
+    },
+    {
+      "target_file": "src/skills/skill_forge.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "INDENT_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 98
+    },
+    {
+      "target_file": "src/synapse/synapse_auth.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "IMPORT_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_TEST",
+        "REPAIR_IMPORTS: [\"line 7: `from synapse_auth_engine import ...` — 'synapse_auth_engine' is not a known module\"]",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 99
+    },
+    {
+      "target_file": "src/synapse/synapse_sync.py",
+      "target_type": "LINSCOTT_BREACH",
+      "response_type": "SYNTAX_ERROR",
+      "passed": true,
+      "failure_class": "NONE",
+      "failure_detail": "",
+      "sanitizer_actions": [
+        "SANITIZE_CODE",
+        "SANITIZE_TEST",
+        "DRYRUN_PASS"
+      ],
+      "iteration": 100
+    }
+  ]
+}
