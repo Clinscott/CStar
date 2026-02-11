@@ -15,7 +15,9 @@ The decision-making brain of Corvus Star.
     - `search(query)`: Finds best matching skill/intent.
     - `score_identity(text)`: Validates persona alignment.
 - **Dispatcher** (`cstar_dispatcher.py`):
-    - `main()`: Routes CLI commands (`c* ...`) to scripts.
+    - `main()`: Routes CLI commands (`c* ...`) dynamically to scripts or workflows.
+- **Proxy Skills** (`.agent/skills/`):
+    - `ravens.py`, `trace.py`, `heimdall.py`, etc. (Dynamic CLI Entry Points).
 
 ### 🦅 The Ravens (`src/sentinel/`)
 The autonomous daemon ensuring system health.
@@ -51,7 +53,7 @@ Connection to the wider network (Knowledge Core).
 `User Input` -> `cstar_dispatcher` -> `sv_engine` -> `vector.py` -> `Skill Execution`
 
 ### 2. Autonomous Audit
-`Time Trigger` -> `Huginn & Muninn` -> `sovereign_fish.py` -> `Heimdall` -> `Report`
+`Time Trigger` -> `Huginn & Muninn` -> `muninn.py` -> `Heimdall` -> `Report`
 
 ### 3. Skill Development
-`User Create` -> `src/skills/local/NEW_SKILL` -> `sv_engine.load_skills()` -> `Available`
+`User Create` -> `.agent/skills/NEW_SKILL.py` -> `c* NEW_SKILL` -> `Available`

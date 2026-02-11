@@ -144,6 +144,10 @@
 - **wrap-it-up**: close, complete, day, done, end, exit, finalize, finish, pack-up, quit, stop, wind-down, wrap
 - **write-docs**: api-docs, doc-generator, docs, docstring, document, documentation, jsdoc, readme, write-documentation
 - **write-documentation**: api-docs, doc-generator, docs, docstring, document, documentation, jsdoc, readme, write-docs
+- **ravens**: daemon, huginn, main_loop, muninn, sentinel
+- **heimdall**: audit, check, code_sentinel, scanner, security
+- **huginn**: daemon, ravens, thought
+- **muninn**: daemon, memory, ravens, sovereignfish
 - **store**: begin, lets-go, resume, start
 - **release**: deployment-skill, launch, prod, production, ship, deploy
 - **production**: deployment-skill, launch, prod, release, ship, deploy
