@@ -23,7 +23,7 @@ class TestCortex_contracts(unittest.TestCase):
         # GIVEN Context is initialized [CTX]
         # In this unit test, we test the logic that would be inside handle_cortex_query
         # but since that triggers sys.exit, we might need to test the component directly.
-        from engine import Cortex
+        from src.core.engine.cortex import Cortex
         
         cortex = Cortex(PROJECT_ROOT, os.path.join(PROJECT_ROOT, ".agent"))
         

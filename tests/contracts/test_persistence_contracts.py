@@ -54,17 +54,18 @@ class TestPersistence_contracts(unittest.TestCase):
         # >>> CONTRACT 2: LOAD CORRUPT <<<
         # GIVEN Save file is corrupt
         # WHEN Load is requested
-        with patch("builtins.open", mock_open(read_data="{ CORRUPT JSON ")):
-            with patch("json.load", side_effect=json.JSONDecodeError("Expecting value", "", 0)):
-                with patch("logging.error") as mock_log: # persistence uses logging, NOT HUD
-                    state = self.persistence.load_state()
-                    
-                    # THEN Fallback State is loaded (None returned on failure)
-                    self.assertIsNone(state)
-                    
-                    # THEN Warning is logged [HUD] (Actually logging.error)
-                    mock_log.assert_called()
-                    self.assertIn("Could not load state", mock_log.call_args[0][0])
+        with patch("os.path.exists", return_value=True):
+            with patch("builtins.open", mock_open(read_data="{ CORRUPT JSON ")):
+                with patch("json.load", side_effect=json.JSONDecodeError("Expecting value", "", 0)):
+                    with patch("logging.error") as mock_log:
+                        state = self.persistence.load_state()
+
+                        # THEN Fallback State is loaded (None returned on failure)
+                        self.assertIsNone(state)
+
+                        # THEN Warning is logged
+                        mock_log.assert_called()
+                        self.assertIn("Could not load state", mock_log.call_args[0][0])
 
 if __name__ == '__main__':
     unittest.main()
