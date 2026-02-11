@@ -8,7 +8,7 @@ from pathlib import Path
 try:
     from ui import HUD
 except ImportError:
-    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "core"))
     from ui import HUD
 
 def _load_dataset(target_path):

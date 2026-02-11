@@ -1,0 +1,98 @@
+---
+title: Sovereign Fish Contracts
+scope: src/sentinel/sovereign_fish.py
+---
+
+# Sovereign Fish Protocol — Behavioral Contracts
+
+## TheWatcher
+
+### Oscillation Lock
+```
+Feature: Anti-Oscillation Protection
+  Scenario: File returning to previous state gets locked
+    Given a file "src/sample.py" is edited with content A
+    And the file is edited with content B
+    When the file is edited with content A again
+    Then TheWatcher detects hash echo
+    And the file status is set to LOCKED
+```
+
+### Fatigue Lock
+```
+Feature: Edit Fatigue Protection
+  Scenario: File edited too many times in 24h gets locked
+    Given a file "src/fatigue_test.py" is edited 3 times with unique content
+    When the file is edited a 4th time
+    Then the 4th edit succeeds
+    And the file status is set to LOCKED for future edits
+```
+
+## CampaignStrategist
+
+### Parse Next Target
+```
+Feature: Campaign Plan Parsing
+  Scenario: First actionable table row is selected
+    Given a CAMPAIGN_IMPLEMENTATION_PLAN.qmd with 3 rows
+    And row 2 is struck through
+    When get_next_target() is called
+    Then it returns row 1 (first non-struck actionable item)
+    And the target file is "src/foo.py"
+```
+
+### Mark Complete
+```
+Feature: Campaign Completion Tracking
+  Scenario: Completed item is struck through
+    Given a target returned by get_next_target()
+    When mark_complete(target) is called
+    Then the description column of that row contains "~~"
+```
+
+## EddaStrategist
+
+### Detect Missing Docstrings
+```
+Feature: Documentation Gap Detection
+  Scenario: Python file without docstrings is flagged
+    Given a file "src/no_docs.py" containing `def naked(): pass`
+    And a file "src/documented.py" containing `def solid(): """docs"""`
+    When EddaStrategist.scan() runs
+    Then "no_docs.py" is flagged as EDDA_BREACH
+    And "documented.py" is NOT flagged
+```
+
+## SovereignFish
+
+### Clean Scan Returns False
+```
+Feature: No-Op on Clean Codebase
+  Scenario: No breaches found → no changes made
+    Given a mock AI client (no network)
+    And AnnexStrategist reports zero breaches
+    When SovereignFish.run() executes
+    Then it returns False
+```
+
+### Rollback Restores Backup
+```
+Feature: Safe Rollback on Failure
+  Scenario: .bak file is restored when fix fails
+    Given a file "src/target.py" with backup "src/target.py.bak"
+    And the file has been overwritten with bad content
+    When _rollback(target) is called
+    Then the file content matches the original backup
+```
+
+### Gauntlet Escalation
+```
+Feature: Model Escalation Protocol
+  Scenario: Flash fails 3 times → Pro is used on 4th attempt
+    Given a target requiring implementation
+    And pytest always fails
+    When _run_gauntlet() runs through 4 attempts
+    Then attempts 1-3 use "gemini-2.5-flash"
+    And attempt 4 uses "gemini-2.5-pro"
+    And the result is None (all attempts failed)
+```

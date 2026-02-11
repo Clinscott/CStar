@@ -8,7 +8,7 @@ def get_git_summary():
     try:
         res = subprocess.run(["git", "log", "-n", "5", "--oneline"], capture_output=True, text=True)
         return res.stdout.strip()
-    except:
+    except (subprocess.SubprocessError, OSError):
         return "Git history unavailable."
 
 def get_task_status():
@@ -20,7 +20,7 @@ def get_task_status():
             for i, line in enumerate(lines):
                 if "## ⏭️ Start Here Next" in line:
                     return "".join(lines[i:i+10]).strip()
-    except:
+    except (IOError, OSError):
         pass
     return "Could not parse next tasks."
 

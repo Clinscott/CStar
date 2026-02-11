@@ -11,10 +11,13 @@ import os
 import sys
 import time
 
+# Resolve shared UI and engine from src/core/
+_core_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "core")
+sys.path.insert(0, _core_dir)
+sys.path.insert(0, os.path.join(_core_dir, "engine"))
+
 from ui import HUD
 
-# Add script path for engine import
-sys.path.append(os.path.join(os.path.dirname(__file__), "engine"))
 try:
     from vector import SovereignVector
 except ImportError:

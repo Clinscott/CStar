@@ -78,12 +78,12 @@ class TestEngine_contracts(unittest.TestCase):
         self.assertIn("PROACTIVE INSTALL", output)
         self.assertIn("\033[36m", output)
         
-        # THEN Output contains "Install skill?" [HUD]
+        # THEN Output contains proactive install prompt [HUD]
         # Since input_with_timeout is mocked, we verify the prompt it was called with
-        # [ALFRED] The butler speaks with his own voice.
+        # [ALFRED] The butler speaks with his own voice — prompt text varies by persona dialogue.
+        mock_input.assert_called()
         args, _ = mock_input.call_args
-        sys.__stderr__.write(f"DEBUG PROMPT: {args[0]}\n") # DEBUG to stderr
-        self.assertTrue("Install skill?" in args[0] or "Shall I arrange it?" in args[0])
+        self.assertIn("[Y/n]", args[0])
         
         # Clear output
         self.captured_output.truncate(0)

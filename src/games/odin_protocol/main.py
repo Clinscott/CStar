@@ -1,7 +1,10 @@
-import json
 import os
 import sys
+import json
 import time
+import random
+import subprocess
+from pathlib import Path
 
 # Add project root to path for local imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -19,27 +22,9 @@ from odin_protocol.engine import (
 )
 
 # [ALFRED] Importing the Corvus Star UI Backbone
-try:
-    # Need to add .agent/scripts to path for ui.py
-    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".agent", "scripts")))
-    from ui import HUD
-except ImportError:
-    # Fallback if UI is missing
-    class HUD:
-        PERSONA = "ALFRED"
-        CYAN, RED, RESET, BOLD, DIM, GREEN, YELLOW = "", "", "", "", "", "", ""
-        @staticmethod
-        def box_top(t="") -> None: print(f"--- {t} ---")
-        @staticmethod
-        def box_row(l, v, c="", dim_label=False) -> None: print(f"{l}: {v}")
-        @staticmethod
-        def box_separator() -> None: print("-" * 20)
-        @staticmethod
-        def box_bottom() -> None: print("-" * 20)
-        @staticmethod
-        def progress_bar(v) -> str: return "[#]"
-        @staticmethod
-        def divider(l="") -> None: print(f"=== {l} ===")
+_core_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "core")
+sys.path.insert(0, _core_dir)
+from ui import HUD
 
 class OdinAdventure:
     """The central coordinator for the Odin Protocol Game Loop."""

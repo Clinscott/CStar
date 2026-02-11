@@ -6,6 +6,8 @@ import sys
 import time
 from pathlib import Path
 
+# Resolve shared UI from src/core/
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "core"))
 from ui import HUD
 
 # --- CRUCIBLE CONFIGURATION (THEMES) ---
@@ -80,7 +82,7 @@ class NetworkWatcher:
                     self.pipeline.process(os.path.join(self.share, f))
                 time.sleep(3)
             except KeyboardInterrupt: break
-            except: time.sleep(5)
+            except (IOError, OSError): time.sleep(5)
 
 if __name__ == "__main__":
     script_dir = os.path.dirname(os.path.abspath(__file__))

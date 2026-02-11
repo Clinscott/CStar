@@ -15,3 +15,5 @@
 - **Skill Loading**: Explicitly check for `skills_db` in `sv_engine.py` to support global skills.
 - **Documentation**: Keep `FOLDER_MAP.qmd` updated; it saves time during navigation.
 - **Terminal Encoding**: Windows requires `chcp 65001` + `[Console]::OutputEncoding = UTF8` in PowerShell profile for proper box-drawing characters. Python needs `-X utf8` flag and `PYTHONIOENCODING=utf-8`.
+- **Attribute Resilience**: Static analysis tools (like Vulture) change item attributes across versions (e.g., `lineno` vs `first_lineno`). Always use `getattr()` safely with fallbacks.
+- **Mock-Real Testing**: When integrating external static analysis tools, use mocking for fast, deterministic unit tests, but maintain a "Resilience Test" script (e.g., `verify_valkyrie_real.py`) that runs against the actual filesystem to detect environment-specific breakage.

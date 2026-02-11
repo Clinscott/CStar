@@ -1,0 +1,11 @@
+
+Feature: Verify __init__.py scaffolding
+
+  As a developer, I want to ensure that the `__init__.py` file is properly scaffolded
+  so that Python recognizes the directory as a package.
+
+  Scenario: Ensure __init__.py exists and is importable
+
+    Given the file "src/__init__.py" exists
+    When I import the "src" package
+    Then the import should succeed
