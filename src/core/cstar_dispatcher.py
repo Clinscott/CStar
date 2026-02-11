@@ -125,8 +125,8 @@ class CorvusDispatcher:
         """Releases the Ravens (Huginn & Muninn) to fly across the Nine Realms."""
         HUD.log("INFO", "Releasing the Ravens...")
         try:
-            target = str(self.project_root / "src" / "sentinel" / "main_loop.py")
-            cmd_str = f"& '{self.venv_python}' '{target}'"
+            project_dir = str(self.project_root)
+            cmd_str = f"Set-Location '{project_dir}'; & '{self.venv_python}' -m src.sentinel.main_loop"
             
             # Use PowerShell Start-Process to spawn a new window with the environment
             ps_cmd = f"Start-Process powershell -ArgumentList '-NoExit', '-Command', \"{cmd_str}\""
