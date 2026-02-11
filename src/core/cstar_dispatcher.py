@@ -78,7 +78,7 @@ class CorvusDispatcher:
             # We also exclude the current process tree just in case
             ps_cmd = (
                 "$currentPid = $pid; "
-                "Get-CimInstance Win32_Process -Filter \"Name LIKE 'python%' AND CommandLine LIKE '%main_loop.py%'\" | "
+                "Get-CimInstance Win32_Process -Filter \"Name LIKE 'python%' AND (CommandLine LIKE '%main_loop.py%' OR CommandLine LIKE '%src.sentinel.main_loop%')\" | "
                 "Where-Object { $_.ProcessId -ne $currentPid -and $_.ParentProcessId -ne $currentPid } | "
                 "Select-Object -ExpandProperty ProcessId"
             )
@@ -100,7 +100,7 @@ class CorvusDispatcher:
             # 1. Kill the main instances and their direct children
             ps_kill = (
                 "$currentPid = $pid; "
-                "$targets = Get-CimInstance Win32_Process -Filter \"Name LIKE 'python%' AND CommandLine LIKE '%main_loop.py%'\"; "
+                "$targets = Get-CimInstance Win32_Process -Filter \"Name LIKE 'python%' AND (CommandLine LIKE '%main_loop.py%' OR CommandLine LIKE '%src.sentinel.main_loop%')\"; "
                 "if ($targets) { "
                 "  $targets | Where-Object { $_.ProcessId -ne $currentPid } | ForEach-Object { "
                 "    $p = $_; "
