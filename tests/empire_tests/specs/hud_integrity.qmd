@@ -1,0 +1,9 @@
+Feature: HUD UI Integrity
+
+  Scenario: Box Rendering
+    Given the HUD class is initialized
+    When HUD.box_top("Test Title") is called
+    And HUD.box_row("Label", "Value") is called
+    And HUD.box_bottom() is called
+    Then it should render a complete ANSI-colored box
+    And no "duplicate method" warnings should be present in the source

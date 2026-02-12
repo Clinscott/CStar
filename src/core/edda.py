@@ -14,6 +14,8 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+from src.core.ui import HUD
+
 # ==============================================================================
 # 🛡️ THE WEAVER'S LOGIC
 # ==============================================================================
@@ -103,19 +105,28 @@ class EddaWeaver:
 
     def _convert_syntax(self, content: str) -> str:
         """Converts standard blockquotes to GitHub/Quarto Alerts."""
-        # Convert strict "> Note" pattern to "> [!NOTE]"
-        # This is a heuristic; deeper logic could use AST parsing for markdown
-        
         def replace_alert(match):
-            block = match.group(1)
-            # Detect type
-            if "note" in block.lower(): return f"> [!NOTE] {block}"
-            if "warning" in block.lower(): return f"> [!WARNING] {block}"
-            if "important" in block.lower(): return f"> [!IMPORTANT] {block}"
-            return f"> [!NOTE]\n> {block}" # Default to Note for generic blockquotes
+            body = match.group(1).strip()
+            
+            # Detect explicit header types
+            header_match = re.match(r"^(Note|Warning|Important|Tip|Caution):\s*(.*)", body, re.IGNORECASE)
+            if header_match:
+                tag = header_match.group(1).upper()
+                rest = header_match.group(2)
+                return f"> [!{tag}]\n> {rest}"
 
-        # Simple replacement for now - can be expanded
-        return content
+            # General detection
+            if "note" in body.lower():
+                clean_body = re.sub(r"note:\s*", "", body, flags=re.IGNORECASE).strip()
+                return f"> [!NOTE]\n> {clean_body}"
+            if "warning" in body.lower():
+                clean_body = re.sub(r"warning:\s*", "", body, flags=re.IGNORECASE).strip()
+                return f"> [!WARNING]\n> {clean_body}"
+            
+            return f"> [!NOTE]\n> {body}"
+
+        # Match lines starting with "> "
+        return re.sub(r"^>\s*(.+)$", replace_alert, content, flags=re.MULTILINE)
 
     def _quarantine_file(self, source: Path):
         """Moves the original file to the quarantine vault."""

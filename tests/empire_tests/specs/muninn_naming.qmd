@@ -1,0 +1,7 @@
+Feature: Muninn Module Naming Consistency
+
+  Scenario: Instantiating the Muninn agent via the run function
+    Given the Muninn class is defined in src/sentinel/muninn.py
+    When the run function is called
+    Then it should instantiate the Muninn class correctly
+    And it should not fail with a NameError for SovereignFish

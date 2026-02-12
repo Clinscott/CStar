@@ -1,0 +1,14 @@
+Feature: Daemon Singleton Protocol (Highlander)
+
+  Scenario: Prevent multiple instances of the Ravens daemon
+    Given the Ravens daemon is not running
+    When the main_loop script is executed
+    Then it should create a ravens.lock file with its PID
+    And it should proceed with the processing loop
+
+  Scenario: Detect existing instance via psutil
+    Given a ravens.lock file exists with a valid PID of a running process
+    When a second main_loop script is executed
+    Then it should detect the existing process using psutil
+    And it should exit with an error message
+    And it should not overwrite the existing lock
