@@ -24,3 +24,5 @@
 - **Protocol Integrity**: For complex state management tasks (like re-branding or documentation audits), execution via **Manual Agent Protocol** is superior to automation scripts due to better contextual awareness.
 - **Dynamic CLI Discovery**: Hardcoding registries is a technical debt magnet. Moving to a filesystem-based discovery engine (`.agent/skills/` -> `src/tools/`) ensures the CLI scales automatically as new tools are developed.
 - **Lore-Forward UX**: In thematic projects, using thin shims or proxies to map "functional" names (e.g., `audit`) to "thematic" names (e.g., `heimdall`) enhances immersion without sacrificing utility.
+- **Verification**: Learning loops require multi-cycle stability checks.
+- **Edit Stability**: Avoid large-block `replace_file_content` calls on complex markdown artifacts if the target content contains dynamic or sensitive formatting. Prefer `write_to_file` for total document state synchronization to ensure "Iron Clad" integrity and avoid malformed partial edits.

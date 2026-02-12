@@ -143,17 +143,22 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Proxy Skills**: Built 10 proxy scripts to preserve legacy commands (`ravens`, `trace`, `synapse`) and lore aliases. [x]
 - [x] **Dynamic Help**: Refactored `c*` help to list all discovered commands from the filesystem automatically. [x]
 
+### 33. Autonomous Learning & Foundation Hardening (Session 50)
+- [x] **Dispatcher Stabilization**: Fixed `CorvusDispatcher` initialization to use absolute project paths, resolving cross-directory execution bugs. [x]
+- [x] **Autonomous Learning (N=x)**: Implemented the `manual_learn.py` multi-cycle loop for Ravens, enabling fully hands-off code correction. [x]
+- [x] **SPRT Verification**: Anchored the learning loop with statistical stability testing (Sequential Probability Ratio Test). [x]
+- [x] **Elite Benchmarking**: Integrated performance regression testing into the Crucible; auto-rollback for >10% slowdowns. [x]
+- [x] **Beauty Standards**: Created `color_theory.json` (60-30-10 rule) and updated `FreyaWarden` for architectural aesthetic audits. [x]
+- [x] **Knowledge Synthesis**: Wired `Muninn` to periodically distill architectural lessons directly into `memory.qmd`. [x]
+- [x] **Batch 1 Baseline**: Achieved a 64/74 green pass rate for the Empire Test Suite, establishing a stable foundation for Phase 34. [x]
+
 ## ⏭️ Start Here Next (Strategic Growth)
 
-### 33. The Raven's Eye (Enhanced Monitoring)
-- [ ] **Huginn's Report**: Implement a periodic summaries generator that uses `Muninn`'s memory to report daily changes to a `SITREP.qmd`.
-- [ ] **Gjallarhorn Signaling**: Implement a notification system (e.g., webhook or specialized log) for Heimdall when CRITICAL breaches are detected.
+### 34. Batch 1 Saturation & Annexation
+- [ ] **Zero-Failure Sprint**: Resolve the final 10 test failures in `tests/empire_tests` to achieve 100% green coverage.
+- [ ] **Annexation Execution**: Activate the `execution` mode for `annex.py` to auto-remediate Documentation/Linguistic breaches.
+- [ ] **Heimdall Persistence**: Hardened the security monitor to run in background mode with a persistent log rotation.
 
-### 34. Annexation Execution
-- [ ] **Execution Module**: Implement `--execute` in `annex.py` to auto-remediate breaches identified by Heimdall.
-- [ ] **Rollback Safety**: Finalize the reversal protocol for failed annexation attempts during auto-remediation.
-
-### 35. Coverage Saturation
-- [ ] **Prompt Hardening**: Use the Ravens Harness results to refine the `Muninn` system prompt in `sovereign_fish.py` (now `muninn.py`).
-- [ ] **Harness Scaling**: Run the 100-iteration harness against **harvested** responses (needs API key to populate bank).
-
+### 35. Advanced Beauty & UX
+- [ ] **Freya Logic Expansion**: Implement deep CSS analysis in `FreyaWarden` to detect inconsistent spacing/rounding across components.
+- [ ] **Transition Polishing**: Refine the HUD animation timings for smoother context switching.

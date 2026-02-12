@@ -180,7 +180,12 @@ class HUD:
             width = os.get_terminal_size().columns - 2
             return max(40, min(120, width))
         except (OSError, AttributeError):
-            return int(os.environ.get("HUD_WIDTH", 60))
+            # [ALFRED] Robust environment parsing
+            val = os.environ.get("HUD_WIDTH", "60")
+            try:
+                return max(10, int(val))
+            except (ValueError, TypeError):
+                return 60
 
     @staticmethod
     def box_top(title: str = "", color: str | None = None, width: int | None = None) -> None:

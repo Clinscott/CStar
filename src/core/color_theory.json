@@ -1,0 +1,56 @@
+{
+    "theory": {
+        "60_30_10_rule": {
+            "primary": 0.60,
+            "secondary": 0.30,
+            "accent": 0.10,
+            "description": "60% dominant color (background/main), 30% secondary (subheadings), 10% accent (CTAs)."
+        },
+        "harmonies": [
+            "Monochromatic",
+            "Analogous",
+            "Complementary",
+            "Split-Complementary",
+            "Triadic",
+            "Tetradic"
+        ],
+        "accessibility": {
+            "min_contrast_ratio": 4.5,
+            "preferred_contrast_ratio": 7.0
+        }
+    },
+    "palettes": {
+        "midnight_cyber": {
+            "background": "#0F172A",
+            "surface": "#1E293B",
+            "primary": "#38BDF8",
+            "secondary": "#818CF8",
+            "accent": "#F472B6",
+            "text": "#F8FAFC"
+        },
+        "ruby_dominion": {
+            "background": "#1A0000",
+            "surface": "#330000",
+            "primary": "#990000",
+            "secondary": "#CC0000",
+            "accent": "#FF0000",
+            "text": "#FFFFFF"
+        },
+        "serene_glacier": {
+            "background": "#F0F9FF",
+            "surface": "#E0F2FE",
+            "primary": "#0369A1",
+            "secondary": "#0EA5E9",
+            "accent": "#F59E0B",
+            "text": "#0C4A6E"
+        },
+        "sunny_dopamine": {
+            "background": "#FFFBEB",
+            "surface": "#FEF3C7",
+            "primary": "#F59E0B",
+            "secondary": "#D97706",
+            "accent": "#EF4444",
+            "text": "#451A03"
+        }
+    }
+}

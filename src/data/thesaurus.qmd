@@ -147,12 +147,8 @@
 - **ravens**: daemon, huginn, main_loop, muninn, sentinel
 - **heimdall**: audit, check, code_sentinel, scanner, security
 - **huginn**: daemon, ravens, thought
-- **muninn**: daemon, memory, ravens, sovereignfish
-- **store**: begin, lets-go, resume, start
-- **release**: deployment-skill, launch, prod, production, ship, deploy
-- **production**: deployment-skill, launch, prod, release, ship, deploy
-- **catalog**: begin, lets-go, resume, start
-- **eautify**: aesthetics, beautify, polish, refine, sovereignfish
-- **scffold**: build, construct, create, generate, run-task, scaffold
 - **aeshetics**: aesthetics, beautify, clean, polish, refine, sovereignfish
+- **wardens**: annex, heimdall, mimir, muninn, sentinel, valkyrie
+- **crucible**: gauntlet, ingest, ordeal, process, verify
+- **gauntlet**: build, crucible, fix, implementation, repair, test, verify
 

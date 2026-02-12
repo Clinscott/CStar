@@ -14,7 +14,8 @@ from typing import List
 
 class LatencyProfiler:
     """
-    Handles performance measurement for the Sovereign Engine.
+    [ODIN] Handles performance measurement for the Sovereign Engine.
+    Focuses on cold-start latency and search execution timing.
     """
 
     def __init__(self, iterations: int = 5):
@@ -55,6 +56,33 @@ class LatencyProfiler:
             
         return sum(latencies) / len(latencies)
 
+    def measure_search(self, query: str = "check logs") -> float:
+        """
+        Measures the raw search latency of the engine.
+        
+        Returns:
+            Average search latency in milliseconds.
+        """
+        cmd = [sys.executable, self.engine_path, "--json", query]
+        latencies: List[float] = []
+        
+        for _ in range(self.iterations):
+            try:
+                start = time.perf_counter()
+                subprocess.run(
+                    cmd, 
+                    capture_output=True, 
+                    cwd=self.project_root, 
+                    timeout=5,
+                    check=False
+                )
+                end = time.perf_counter()
+                latencies.append((end - start) * 1000)
+            except (subprocess.SubprocessError, subprocess.TimeoutExpired):
+                latencies.append(5000.0)
+                
+        return sum(latencies) / len(latencies) if latencies else 5000.0
+
 
 def main() -> None:
     """Entry point for command line profiling."""
@@ -66,8 +94,11 @@ def main() -> None:
             pass
             
     profiler = LatencyProfiler(iterations=iterations)
-    avg_latency = profiler.measure_startup()
-    print(f"{avg_latency:.2f}")
+    avg_startup = profiler.measure_startup()
+    avg_search = profiler.measure_search()
+    
+    # [ALFRED] Return as CSV: Startup,Search
+    print(f"{avg_startup:.2f},{avg_search:.2f}")
 
 
 if __name__ == "__main__":

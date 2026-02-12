@@ -281,6 +281,16 @@ class SovereignVector:
         self._search_cache.clear()
 
     def search(self, query: str) -> list[dict]:
+        """
+        [ALFRED] Performs high-performance vector search with intent calibration.
+        
+        Args:
+            query: The raw user input string.
+            
+        Returns:
+            A list of result dictionaries containing 'trigger', 'score', and 'is_global'.
+            The list is sorted by descending confidence and includes direct phrase mappings.
+        """
         # 0. Check Search Cache
         query_norm = query.lower().strip()
         if query_norm in self._search_cache:
@@ -317,7 +327,7 @@ class SovereignVector:
             'ui', 'ux', 'visual', 'visuals', 'interface', 'status'
         }
         # [ALFRED] High-priority verbs that should NOT be dampened if they match a specific trigger
-        priority_verbs = {'begin', 'start', 'resume', 'initiate'}
+        priority_verbs = {'begin', 'start', 'resume', 'initiate', 'fix'}
         
         for t in tokens:
             if t in self.trigger_map:
@@ -334,17 +344,23 @@ class SovereignVector:
                     trigger_boosts[skill] = max(trigger_boosts.get(skill, 0), boost_val)
 
 
-        results = []
-        # [ALFRED] Optimization: Pre-calculate vector magnitudes if possible, but for now just inline the similarity
-        # or use the existing method which is clean enough. 
-        # For valid results, we only care about non-zero similarities usually
+        # [ALFRED] Optimization: Pre-calculate vector magnitudes for faster similarity
+        q_mag = sum(a * a for a in q_vec) ** 0.5
         
         for trigger, s_vec in self.vectors.items():
             # Optimization: Skip if dot product will be 0 (no shared tokens) 
-            # This requires sparse representation which we don't strictly have in list form, 
-            # but we can rely on modern CPU caching for the list walk.
-            
-            score = self.similarity(q_vec, s_vec)
+            # or if query magnitude is zero (empty signal)
+            if not q_mag:
+                results.append({"trigger": trigger, "score": 0.0, "is_global": trigger.startswith("GLOBAL:")})
+                continue
+
+            dot = sum(a * b for a, b in zip(q_vec, s_vec))
+            if not dot:
+                 results.append({"trigger": trigger, "score": 0.0, "is_global": trigger.startswith("GLOBAL:")})
+                 continue
+
+            s_mag = sum(a * a for a in s_vec) ** 0.5
+            score = dot / (q_mag * s_mag) if s_mag else 0.0
             
             # Apply dampened boost
             if trigger in trigger_boosts:
@@ -389,6 +405,10 @@ class SovereignVector:
 
 
     def load_core_skills(self):
+        """
+        [ALFRED] Populates the engine with the standard Sovereign Command set.
+        Includes built-in intents for /lets-go, /run-task, /investigate, etc.
+        """
         core = {
             "/lets-go": "begin initiate start resume lets-go priority boot progress",
             "/run-task": "create build generate implement develop construct new feature page component",
@@ -424,7 +444,13 @@ class SovereignVector:
             self.add_skill(trigger, (words + " ") * 3)
 
     def load_skills_from_dir(self, directory, prefix=""):
-        """[ALFRED] Batch load skills with high-value signal extraction."""
+        """
+        [ALFRED] Dynamically discovers and indexes skills from a physical directory.
+        
+        Args:
+            directory: The path to the folder containing skill subdirectories.
+            prefix: An optional string prefix for the trigger names (e.g., 'GLOBAL:').
+        """
         if not os.path.exists(directory): return
         for folder in os.listdir(directory):
             path = os.path.join(directory, folder)

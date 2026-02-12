@@ -24,7 +24,10 @@ except ImportError:
     pass
 
 class SentinelPerf:
-    """Profiles the performance of core engine components."""
+    """
+    [ALFRED] Profiles the performance of core engine components.
+    Identifies bottlenecks in tokenization, search, and vector synthesis.
+    """
     
     def __init__(self, project_root: str):
         self.root = project_root

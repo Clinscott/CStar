@@ -8,6 +8,8 @@ To deploy the Corvus Star protocols into a new project, run the following comman
 
 ```powershell
 .\install.ps1 -TargetDir "C:\path\to\your\new\project"
+# To start the learning loop (Adjudication)
+c* ravens -learn N=10
 ```
 
 **What it does:**

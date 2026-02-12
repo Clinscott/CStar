@@ -1,0 +1,82 @@
+tests/empire_tests/temp_gauntlet/test_annex_empire.py::TestAnnexEmpire::test_should_ignore_logic
+tests/empire_tests/temp_gauntlet/test_annex_empire.py::TestAnnexEmpire::test_audit_code_linscott_breach
+tests/empire_tests/temp_gauntlet/test_annex_empire.py::TestAnnexEmpire::test_audit_code_mimir_breach
+tests/empire_tests/temp_gauntlet/test_annex_empire.py::TestAnnexEmpire::test_scan_generates_plan
+tests/empire_tests/temp_gauntlet/test_dispatcher_empire.py::TestDispatcherEmpire::test_run_unknown_command
+tests/empire_tests/temp_gauntlet/test_dispatcher_empire.py::TestDispatcherEmpire::test_dispatch_script_found
+tests/empire_tests/temp_gauntlet/test_edda_empire.py::TestEddaEmpire::test_transmute_file_basic
+tests/empire_tests/temp_gauntlet/test_edda_empire.py::TestEddaEmpire::test_synthesize_api_logic
+tests/empire_tests/temp_gauntlet/test_engine_empire.py::TestEngineEmpire::test_engine_init
+tests/empire_tests/temp_gauntlet/test_engine_empire.py::TestEngineEmpire::test_record_trace
+tests/empire_tests/temp_gauntlet/test_engine_empire.py::TestEngineEmpire::test_init_vector_engine
+tests/empire_tests/temp_gauntlet/test_engine_empire.py::TestEngineEmpire::test_render_hud
+tests/empire_tests/temp_gauntlet/test_fishtest_empire.py::TestFishtestEmpire::test_sprt_evaluate_pass
+tests/empire_tests/temp_gauntlet/test_fishtest_empire.py::TestFishtestEmpire::test_sprt_evaluate_fail
+tests/empire_tests/temp_gauntlet/test_fishtest_empire.py::TestFishtestEmpire::test_sprt_evaluate_inconclusive
+tests/empire_tests/temp_gauntlet/test_fishtest_empire.py::TestFishtestEmpire::test_runner_initialization
+tests/empire_tests/temp_gauntlet/test_fishtest_empire.py::TestFishtestEmpire::test_run_case_success
+tests/empire_tests/temp_gauntlet/test_fishtest_empire.py::TestFishtestEmpire::test_run_case_failure_score
+tests/empire_tests/temp_gauntlet/test_fishtest_empire.py::TestFishtestEmpire::test_non_ascii_skip
+tests/empire_tests/temp_gauntlet/test_harvest_empire.py::TestHarvestEmpire::test_recorder_call
+tests/empire_tests/temp_gauntlet/test_harvest_empire.py::TestHarvestEmpire::test_recorder_save
+tests/empire_tests/temp_gauntlet/test_harvest_empire.py::TestHarvestEmpire::test_harvest_loop
+tests/empire_tests/temp_gauntlet/test_install_skill_empire.py::TestInstallSkillEmpire::test_sanitize_skill_name
+tests/empire_tests/temp_gauntlet/test_install_skill_empire.py::TestInstallSkillEmpire::test_install_skill_not_found
+tests/empire_tests/temp_gauntlet/test_install_skill_empire.py::TestInstallSkillEmpire::test_install_skill_security_block
+tests/empire_tests/temp_gauntlet/test_main_loop_empire.py::TestMainLoopEmpire::test_daemon_cycle_basic
+tests/empire_tests/temp_gauntlet/test_main_loop_empire.py::TestMainLoopEmpire::test_daemon_lock_management
+tests/empire_tests/temp_gauntlet/test_personas_empire.py::TestPersonasEmpire::test_get_strategy_default
+tests/empire_tests/temp_gauntlet/test_personas_empire.py::TestPersonasEmpire::test_odin_get_voice
+tests/empire_tests/temp_gauntlet/test_personas_empire.py::TestPersonasEmpire::test_alfred_get_voice
+tests/empire_tests/temp_gauntlet/test_personas_empire.py::TestPersonasEmpire::test_persona_quarantine_logic
+tests/empire_tests/temp_gauntlet/test_personas_empire.py::TestPersonasEmpire::test_odin_enforce_policy_compliance
+tests/empire_tests/temp_gauntlet/test_sanitizer_empire.py::TestSanitizerEmpire::test_validate_syntax
+tests/empire_tests/temp_gauntlet/test_sanitizer_empire.py::TestSanitizerEmpire::test_repair_syntax_colon
+tests/empire_tests/temp_gauntlet/test_sanitizer_empire.py::TestSanitizerEmpire::test_repair_syntax_parens
+tests/empire_tests/temp_gauntlet/test_sanitizer_empire.py::TestSanitizerEmpire::test_validate_imports
+tests/empire_tests/temp_gauntlet/test_sanitizer_empire.py::TestSanitizerEmpire::test_repair_imports
+tests/empire_tests/temp_gauntlet/test_sanitizer_empire.py::TestSanitizerEmpire::test_sanitize_code_fences
+tests/empire_tests/temp_gauntlet/test_sanitizer_empire.py::TestSanitizerEmpire::test_classify_error
+tests/empire_tests/temp_gauntlet/test_set_persona_empire.py::TestSetPersonaEmpire::test_set_persona_basic
+tests/empire_tests/temp_gauntlet/test_set_persona_empire.py::TestSetPersonaEmpire::test_set_persona_config_sync
+tests/empire_tests/temp_gauntlet/test_skill_forge_empire.py::TestSkillForgeEmpire::test_extract_subject_basic
+tests/empire_tests/temp_gauntlet/test_skill_forge_empire.py::TestSkillForgeEmpire::test_select_archetype_triggers
+tests/empire_tests/temp_gauntlet/test_skill_forge_empire.py::TestSkillForgeEmpire::test_validate_skill_dangerous_pattern
+tests/empire_tests/temp_gauntlet/test_skill_forge_empire.py::TestSkillForgeEmpire::test_validate_skill_syntax_error
+tests/empire_tests/temp_gauntlet/test_sv_engine_empire.py::TestSVEngineEmpire::test_engine_initialization
+tests/empire_tests/temp_gauntlet/test_sv_engine_empire.py::TestSVEngineEmpire::test_engine_search_interface
+tests/empire_tests/temp_gauntlet/test_temp_empire.py::TestValkyrieStrategistAndTorvaldsStrategistResilience::test_valkyrie_identifies_dead_code
+tests/empire_tests/temp_gauntlet/test_temp_empire.py::TestValkyrieStrategistAndTorvaldsStrategistResilience::test_torvalds_identifies_complex_code
+tests/empire_tests/temp_gauntlet/test_temp_empire.py::TestValkyrieStrategistAndTorvaldsStrategistResilience::test_valkyrie_and_torvalds_handle_file_creation_and_deletion
+tests/empire_tests/temp_gauntlet/test_temp_empire.py::TestValkyrieStrategistAndTorvaldsStrategistResilience::test_script_handles_exceptions_gracefully
+tests/empire_tests/temp_gauntlet/test_ui_empire.py::TestUIEmpire::test_get_theme_odin
+tests/empire_tests/temp_gauntlet/test_ui_empire.py::TestUIEmpire::test_get_theme_alfred
+tests/empire_tests/temp_gauntlet/test_ui_empire.py::TestUIEmpire::test_progress_bar
+tests/empire_tests/temp_gauntlet/test_ui_empire.py::TestUIEmpire::test_sparkline
+tests/empire_tests/temp_gauntlet/test_ui_empire.py::TestUIEmpire::test_transition_ceremony
+tests/empire_tests/temp_gauntlet/test_ui_empire.py::TestUIEmpire::test_log_output
+tests/empire_tests/temp_gauntlet/test_utils_empire.py::TestUtilsEmpire::test_load_config_missing
+tests/empire_tests/temp_gauntlet/test_utils_empire.py::TestUtilsEmpire::test_load_config_valid
+tests/empire_tests/temp_gauntlet/test_utils_empire.py::TestUtilsEmpire::test_sanitize_query
+tests/empire_tests/test___init___empire.py::test_src_is_importable_as_a_package
+tests/empire_tests/test_catalog_check_empire.py::test_successful_index_building_and_retrieval
+tests/empire_tests/test_catalog_check_empire.py::test_handling_of_no_results_path_implicit_check
+tests/empire_tests/test_check_pro_empire.py::test_script_checks_model_availability
+tests/empire_tests/test_check_pro_empire.py::test_script_exits_when_no_api_key
+tests/empire_tests/test_cjk_check_empire.py::test_successful_cjk_query
+tests/empire_tests/test_cjk_check_empire.py::test_no_results_for_cjk_query
+tests/empire_tests/test_collision_investigator_empire.py::test_search_queries[please wrap up our project now]
+tests/empire_tests/test_collision_investigator_empire.py::test_search_queries[visuals refine]
+tests/empire_tests/test_collision_investigator_empire.py::test_search_queries[please implement our ui now]
+tests/empire_tests/test_debug_engine_empire.py::test_basic_query_processing
+tests/empire_tests/test_debug_engine_empire.py::test_thesaurus_loading
+tests/empire_tests/test_debug_engine_empire.py::test_tokenization_output
+tests/empire_tests/test_debug_engine_empire.py::test_search_results_output
+
+============================== warnings summary ===============================
+..\..\AppData\Roaming\Python\Python314\site-packages\google\genai\types.py:43
+  C:\Users\Craig\AppData\Roaming\Python\Python314\site-packages\google\genai\types.py:43: DeprecationWarning: '_UnionGenericAlias' is deprecated and slated for removal in Python 3.17
+    VersionedUnionType = Union[builtin_types.UnionType, _UnionGenericAlias]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+74 tests collected in 1.05s
