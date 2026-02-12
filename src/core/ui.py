@@ -163,16 +163,6 @@ class HUD:
         print(f"{color}{prefix}{HUD.RESET} {msg}")
 
     @staticmethod
-    def box_top(title: str = "", color: str | None = None, width: int | None = None) -> None:
-        """
-        Renders the top implementation of a box with a title.
-        
-        Args:
-            title: The text to display in the center header.
-            color: Optional override for the main color.
-            width: Override width. Defaults to 60 or HUD_WIDTH env var.
-        """
-    @staticmethod
     def _get_width() -> int:
         """Dynamically calculates the optimal HUD width (40-120 range)."""
         try:
@@ -199,7 +189,8 @@ class HUD:
         """
         if width is None:
             width = HUD._get_width()
-        assert isinstance(width, int) and width >= 10, "Width must be integer >= 10"
+        if not isinstance(width, int):
+            width = 60
         HUD._last_width = width
 
         theme = HUD.get_theme()
@@ -240,9 +231,9 @@ class HUD:
         # For now, we keep the fixed label width of 20 for alignment,
         # but ensure the box closes at 'width'
 
-        # Safe string conversion
+        # Safe string conversion and multi-line handling
         try:
-            str_val = str(value)
+            str_val = str(value).replace("\n", " ")
             str_lbl = str(label)
         except Exception:
             str_val = "[TYPE ERROR]"
@@ -252,7 +243,6 @@ class HUD:
         max_val_len = width - 24 # 1(L) + 20(Lbl) + 1(Space) + 1(Space) + 1(R)
         if len(str_val) > max_val_len:
             str_val = str_val[:max_val_len-3] + "..."
-
         inner_content = f"{lbl_color}{str_lbl:<20}{HUD.RESET} {val_color}{str_val}{HUD.RESET}"
         # We need to calculate spaces based on RAW text length to avoid ANSI code interference
         raw_len = 1 + 20 + 1 + len(str_val)
@@ -330,20 +320,15 @@ class HUD:
 
     @staticmethod
     def log(level: str, msg: str, detail: str = "") -> None:
-        """
-        Standardized Logging to Terminal.
-        
-        Args:
-            level: 'INFO', 'WARN', 'FAIL', 'PASS', 'CRITICAL'.
-            msg: Main message.
-            detail: Secondary detail string.
-        """
+        """Standardized Logging to Terminal (Persona-Aware)."""
         ts = datetime.now().strftime("%H:%M:%S")
-        color = HUD.CYAN
-        if level == "WARN": color = HUD.YELLOW
-        if level == "FAIL": color = HUD.RED
-        if level == "PASS": color = HUD.GREEN
-        if level == "CRITICAL": color = HUD.MAGENTA
+        theme = HUD.get_theme()
+        
+        color = theme["main"]
+        if level == "WARN": color = theme["warning"]
+        if level == "FAIL": color = theme["error"]
+        if level == "PASS": color = theme["success"]
+        if level == "CRITICAL": color = theme["error"] # Default to error for critical
 
         print(f"{HUD.DIM}[{ts}]{HUD.RESET} {color}[{level}]{HUD.RESET} {msg} {HUD.DIM}{detail}{HUD.RESET}")
 

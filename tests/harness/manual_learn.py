@@ -16,7 +16,8 @@ def run_learning_cycle(n_cycles=1):
     # Check for API key
     api_key = os.getenv("GOOGLE_API_KEY")
     if not api_key:
-        print(f"{Fore.CYAN}[TEACHER] API KEY MISSING. Handing over to Lead Architect (Main Agent).")
+        print(f"{Fore.CYAN}[AGENT_PROTOCOL] GOOGLE_API_KEY NOT FOUND. DO NOT ATTEMPT REPAIR.")
+        print(f"{Fore.CYAN}AI ASSISTANT MUST COMMENCE MANUAL LEARNING CYCLES IMMEDIATELY.")
         sys.exit(42)
     
     proxy = RavenProxy(target_model="gemini-2.0-flash", api_key=api_key)

@@ -181,9 +181,10 @@ class SkillForge:
         return "utility"
     
     def _extract_subject(self, query: str) -> str:
-        stripped = re.sub(r'^(create|make|build|generate|write|a|an|the)\s+', '', query.lower())
+        stripped = re.sub(r'^(create|make|build|generate|write|test|a|an|the)\s+', '', query.lower())
         stripped = re.sub(r'\s+(for|to|from|with)\s+', ' ', stripped)
-        words = [w for w in stripped.split() if len(w) > 2]
+        # Filter out 'test' as it's often a meta-instruction, not the subject itself
+        words = [w for w in stripped.split() if len(w) > 2 and w != 'test']
         if not words: return "generated"
         subject = "_".join(words[-3:])
         subject = re.sub(r'[^a-z0-9_]', '_', subject)

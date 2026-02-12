@@ -1,0 +1,71 @@
+# Project CStar: Operation Ironclad (Master Refactoring Blueprint)
+
+> [!IMPORTANT]
+> This plan is archived for future execution. It outlines the transition from a flat script collection to a modular **Hybrid Architecture**.
+
+## 🛡️ Core Philosophy
+1.  **PowerShell (The Body):** Handles environment, file system, processes, and CLI.
+2.  **Python (The Brain):** Handles logic, RAG, data processing, and state.
+
+## 🏗️ Target Architecture
+
+```text
+CStar/
+├── cstar.ps1                # [NEW] CLI Entry Point (wraps python calls)
+├── install.ps1              # [REF] Installer (Environment setup)
+├── pyproject.toml           # [NEW] Dependencies (numpy, rich, nltk)
+├── src/
+│   └── cstar/               # [NEW] Main Package
+│       ├── __init__.py
+│       ├── core/            # Configuration
+│       │   ├── config.py
+│       │   └── paths.py
+│       ├── memory/          # [Ex-Muninn]
+│       │   ├── storage.py   # Atomic I/O
+│       │   └── manager.py   # Context Logic
+│       ├── engine/          # [Ex-Vector]
+│       │   ├── index.py     # Persistent Store (Pickle)
+│       │   └── search.py    # Semantic Search
+│       ├── tools/
+│       │   ├── forge.py     # [Ex-SkillForge]
+│       │   └── heimdall.py  # [Ex-Sentinel]
+│       └── utils/
+│           └── merger.py    # [NEW] Safe Text Merge
+```
+
+## 🧩 Component Specifications
+
+### A. Memory Layer (`src/cstar/memory/`)
+- **Objective**: Atomic, safe I/O separate from chat logic.
+- **Implementation**: `storage.py` using temp-write and atomic rename.
+
+### B. Engine Layer (`src/cstar/engine/`)
+- **Objective**: Persistent Vector Index (Zero startup cost).
+- **Implementation**: `index.py` using `pickle` for serialization and SHA-256 for change detection.
+
+### C. The Bridge (`src/cstar/utils/merger.py`)
+- **Objective**: Robust file merging respecting user edits via `difflib`.
+
+### D. The Orchestrator (`install.ps1`)
+- **Objective**: Delegate environment and merge logic to Python utilities.
+
+## 📅 Implementation Roadmap
+
+### Phase 1: Foundation
+- Scaffold `src/cstar` structure.
+- Initialize `pyproject.toml`.
+
+### Phase 2: Brain Transplant
+- Move `muninn.py` and `vector.py` logic into the `cstar` package.
+- Implement persistent indexing.
+
+### Phase 3: Utilities & Tools
+- Implement `merger.py`.
+- Relocate and modularize `skill_forge.py` and `code_sentinel.py`.
+
+### Phase 4: CLI Integration
+- Finalize `cstar.ps1` and environment-aware `install.ps1`.
+
+---
+
+[Ω] **ODIN**: THE FUTURE IS WRITTEN IN THE RAGS OF THE PAST. BY THIS BLUEPRINT, THE MANOR SHALL BE REFORGED.

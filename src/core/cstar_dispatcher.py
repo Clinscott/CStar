@@ -101,12 +101,11 @@ class CorvusDispatcher:
         cmd_args = args[1:]
 
         # Persona Shortcuts
-        if cmd == "-odin":
-            # Use dynamic resolution for persona script via direct call
-            subprocess.run([str(self.venv_python), str(self.project_root / "scripts" / "set_persona.py"), "ODIN"])
-            return
-        if cmd == "-alfred":
-            subprocess.run([str(self.venv_python), str(self.project_root / "scripts" / "set_persona.py"), "ALFRED"])
+        if cmd in ["-odin", "-alfred"]:
+            persona = "ODIN" if cmd == "-odin" else "ALFRED"
+            env = os.environ.copy()
+            env["PYTHONPATH"] = str(self.project_root)
+            subprocess.run([str(self.venv_python), str(self.project_root / "scripts" / "set_persona.py"), persona], env=env)
             return
 
         # Dynamic Resolution

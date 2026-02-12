@@ -1161,7 +1161,7 @@ class Muninn:
 def run(target_path: str):
     """Entry point for the daemon."""
     try:
-        fish = SovereignFish(target_path)
+        fish = Muninn(target_path)
         return fish.run()
     except Exception as e:
         print(f"{Fore.RED}[ERROR] Agent Crash: {e}")

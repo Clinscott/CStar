@@ -15,7 +15,9 @@ dependencies = [
     "requests",
     "playwright",
     "pytest",
-    "ruff"
+    "ruff",
+    "psutil",
+    "python-dotenv"
 ]
 
 [project.scripts]

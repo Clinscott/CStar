@@ -17,9 +17,8 @@ if str(PROJECT_ROOT) not in sys.path:
 # Imports (Now valid)
 from src.core.ui import HUD
 
-def check_status():
-    """Checks if the Ravens are in flight."""
-    HUD.log("INFO", "Checking if the Ravens are in flight...")
+def _get_running_pids():
+    """Returns a list of PIDs for running Ravens processes."""
     try:
         ps_cmd = (
             "$currentPid = $pid; "
@@ -28,14 +27,18 @@ def check_status():
             "Select-Object -ExpandProperty ProcessId"
         )
         result = subprocess.run(["powershell", "-NoProfile", "-Command", ps_cmd], capture_output=True, text=True)
-        
-        pids = [p.strip() for p in result.stdout.strip().splitlines() if p.strip()]
-        if pids:
-            HUD.log("SUCCESS", "The Ravens are in flight", f"(PIDs: {', '.join(pids)})")
-        else:
-            HUD.log("WARN", "The Ravens are grounded")
-    except Exception as e:
-        HUD.log("FAIL", f"Status Check Failed: {e}")
+        return [p.strip() for p in result.stdout.strip().splitlines() if p.strip()]
+    except Exception:
+        return []
+
+def check_status():
+    """Checks if the Ravens are in flight."""
+    HUD.log("INFO", "Checking if the Ravens are in flight...")
+    pids = _get_running_pids()
+    if pids:
+        HUD.log("SUCCESS", "The Ravens are in flight", f"(PIDs: {', '.join(pids)})")
+    else:
+        HUD.log("WARN", "The Ravens are grounded")
 
 def recall_ravens():
     """Recalls the Ravens (terminates the daemon)."""
@@ -66,6 +69,12 @@ def recall_ravens():
 
 def release_ravens():
     """Releases the Ravens in a new window."""
+    # Check if already running
+    pids = _get_running_pids()
+    if pids:
+        HUD.log("WARN", "The Ravens are already in flight.", f"(PIDs: {', '.join(pids)})")
+        return
+
     HUD.log("INFO", "Releasing the Ravens...")
     try:
         project_dir = str(PROJECT_ROOT)

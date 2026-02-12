@@ -14,6 +14,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+import psutil
 
 from colorama import Fore, init
 
@@ -29,25 +30,29 @@ from src.core.ui import HUD
 from src.sentinel.muninn import Muninn
 
 # Configuration
-INTERVAL_SECONDS = 900  # 15 Minutes
-
-
-def load_target_repos() -> list[str]:
-    """Load target repos from config, with hardcoded defaults."""
+def load_config() -> dict:
+    """Load configuration from .agent/config.json."""
     config_path = PROJECT_ROOT / ".agent" / "config.json"
     if config_path.exists():
         try:
-            cfg = json.loads(config_path.read_text(encoding='utf-8'))
-            repos = cfg.get("target_repos")
-            if isinstance(repos, list) and repos:
-                return repos
+            return json.loads(config_path.read_text(encoding='utf-8'))
         except (json.JSONDecodeError, OSError):
             pass
-    return [
-        r"c:\Users\Craig\Corvus\CorvusStar",
-        r"c:\Users\Craig\Corvus\KeepOS",
-        r"c:\Users\Craig\Corvus\The Nexus",
-    ]
+    return {}
+
+def load_target_repos() -> list[str]:
+    """Load target repos from config."""
+    cfg = load_config()
+    repos = cfg.get("target_repos")
+    if isinstance(repos, list) and repos:
+        return repos
+    # We return the current project root as a safe default instead of hardcoded paths
+    return [str(PROJECT_ROOT)]
+
+def get_interval() -> int:
+    """Get cycle interval from config."""
+    cfg = load_config()
+    return cfg.get("interval_seconds", 900)
 
 # Logging handled by sovereign_fish logging config (shared file) or we can init here too
 logging.basicConfig(
@@ -170,7 +175,25 @@ def process_repo(repo_path: Path, persona: str) -> bool:
         restore_branch(repo_path, original_branch)
 
 
-def daemon_loop():
+def highlander_check(lock_file: Path) -> bool:
+    """THERE CAN BE ONLY ONE. Check if we still hold the mandate."""
+    if not lock_file.exists():
+        # Lock gone? We are ghost.
+        return False
+
+    try:
+        owner_pid = int(lock_file.read_text().strip())
+        if owner_pid != os.getpid():
+            # We are not the owner.
+            if psutil.pid_exists(owner_pid):
+                HUD.persona_log("WARNING", f"Highlander Protocol: PID {owner_pid} holds the Mandate. Terminating.")
+                return False
+    except OSError:
+        pass
+    return True
+
+
+def daemon_loop(lock_file_path: Path | None = None):
     """Main daemon loop orchestrating SovereignFish across the Corvus Cluster."""
     # 1. Load Persona
     HUD.PERSONA = load_persona()
@@ -180,13 +203,12 @@ def daemon_loop():
 
     # --- SINGLETON CHECK ---
     # Use absolute path to ensure lock is found regardless of CWD
-    LOCK_FILE = Path(__file__).parent / "ravens.lock"
+    LOCK_FILE = lock_file_path or (Path(__file__).parent / "ravens.lock")
 
     if LOCK_FILE.exists():
         try:
             old_pid = int(LOCK_FILE.read_text().strip())
             # Check if process is actually running
-            import psutil
             if psutil.pid_exists(old_pid):
                 print(f"{Fore.RED}[ERROR] The Ravens are already in flight (PID: {old_pid}). Exiting.")
                 return
@@ -200,32 +222,16 @@ def daemon_loop():
     # 2. Initialize
     HUD.persona_log("INFO", "Sovereign Fish Automaton Initialized.")
     HUD.persona_log("INFO", f"Identity: {theme.get('greeting', 'Unknown')}")
-    HUD.persona_log("INFO", f"Schedule: Every {INTERVAL_SECONDS}s")
+    interval = get_interval()
+    HUD.persona_log("INFO", f"Schedule: Every {interval}s")
 
     TARGET_REPOS = load_target_repos()
     HUD.persona_log("INFO", f"Targets: {[Path(p).name for p in TARGET_REPOS]}")
 
-    def highlander_check():
-        """THERE CAN BE ONLY ONE. Check if we still hold the mandate."""
-        if not LOCK_FILE.exists():
-            # Lock gone? We are ghost.
-            return False
-
-        try:
-            owner_pid = int(LOCK_FILE.read_text().strip())
-            if owner_pid != os.getpid():
-                # We are not the owner.
-                import psutil
-                if psutil.pid_exists(owner_pid):
-                    HUD.persona_log("WARNING", f"Highlander Protocol: PID {owner_pid} holds the Mandate. Terminating.")
-                    return False
-        except OSError:
-            pass
-        return True
 
     while True:
         # Highlander Check: Suicide if not the One
-        if not highlander_check():
+        if not highlander_check(LOCK_FILE):
             sys.exit(0)
 
         # Dynamic Persona Reload (Hot-Swapping)
@@ -242,14 +248,14 @@ def daemon_loop():
 
         # Sleep Logic with Frequent Highlander Checks
         elapsed = time.time() - cycle_start
-        sleep_time = max(0, INTERVAL_SECONDS - elapsed)
+        sleep_time = max(0, interval - elapsed)
         print(f"{Fore.MAGENTA}--- CYCLE END. Sleeping for {int(sleep_time)}s ---")
 
         slept = 0
         chunk = 5
         while slept < sleep_time:
             # Check mandate every chunk
-            if not highlander_check():
+            if not highlander_check(LOCK_FILE):
                 HUD.persona_log("WARNING", "Highlander Mandate Lost during sleep. Terminating.")
                 sys.exit(0)
 
@@ -258,18 +264,17 @@ def daemon_loop():
             slept += step
 
 if __name__ == "__main__":
+    _LOCK_PATH = Path(__file__).parent / "ravens.lock"
     try:
-        daemon_loop()
+        daemon_loop(_LOCK_PATH)
     except KeyboardInterrupt:
         print(f"\n{Fore.RED}Shutdown Requested.")
         sys.exit(0)
     finally:
         # Cleanup Lock
-        LOCK_FILE = Path(__file__).parent / "ravens.lock"
-        if LOCK_FILE.exists():
-            # Only remove if it contains our PID (in case of race/overwrite, though unlikely)
+        if _LOCK_PATH.exists():
             try:
-                if LOCK_FILE.read_text().strip() == str(os.getpid()):
-                    LOCK_FILE.unlink()
+                if _LOCK_PATH.read_text().strip() == str(os.getpid()):
+                    _LOCK_PATH.unlink()
             except Exception:
                 pass

@@ -28,7 +28,7 @@ class PersonaStrategy:
         os.makedirs(quarantine_dir, exist_ok=True)
         
         from datetime import datetime
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
         basename = os.path.basename(file_path)
         quarantine_path = os.path.join(quarantine_dir, f"{timestamp}_{basename}")
         
@@ -93,6 +93,7 @@ class OdinStrategy(PersonaStrategy):
             with open(source_template, 'r', encoding='utf-8') as f:
                 template = f.read()
             
+            os.makedirs(os.path.dirname(agents_path), exist_ok=True)
             with open(agents_path, 'w', encoding='utf-8') as f:
                 f.write(template + "\n\n" + legacy_content)
                 
@@ -117,7 +118,9 @@ class OdinStrategy(PersonaStrategy):
                         content = f.read()
                     
                     # Check for absolute requirements: ODIN or ALFRED identity, Symmetry, SovereignFish
-                    if "ODIN" not in content and "ALFRED" not in content:
+                    import re
+                    # Check for standardized identity pattern: IDENTITY: [NAME]
+                    if not re.search(r"IDENTITY:\s+[A-Z]+", content):
                         self._create_standard_agents(agents_path)
                         results.append(f"REWRITTEN: {os.path.relpath(agents_path, self.root)} (Compliance Enforced)")
                     else:

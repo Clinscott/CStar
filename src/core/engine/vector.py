@@ -293,6 +293,7 @@ class SovereignVector:
         """
         # 0. Check Search Cache
         query_norm = query.lower().strip()
+        results = []
         if query_norm in self._search_cache:
             return self._search_cache[query_norm]
 

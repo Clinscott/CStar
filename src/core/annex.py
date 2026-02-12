@@ -107,8 +107,20 @@ class HeimdallWarden:
             pass # Parser error already a breach implicitly
 
     def _generate_plan(self):
-        """Weaves the findings into a QMD battle plan."""
+        """Weaves the findings into a QMD battle plan, preserving existing checkmarks."""
         
+        # 1. Capture existing checkmarks
+        checked_files = set()
+        if self.plan_path.exists():
+            try:
+                import re
+                existing_content = self.plan_path.read_text(encoding="utf-8")
+                # Find checked items: - [x] **[...]** `file/path`
+                checked_matches = re.findall(r"- \[x\] \*\*\[.*?\]\*\* `(.*?)`", existing_content)
+                checked_files = set(checked_matches)
+            except Exception:
+                pass
+
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
         plan = [
@@ -132,7 +144,8 @@ class HeimdallWarden:
         linscott_breaches = [b for b in self.breaches if b["type"] == "LINSCOTT_BREACH"]
         if linscott_breaches:
             for b in linscott_breaches:
-                plan.append(f"- [ ] **[MISSING TEST]** `{b['file']}` → Scaffold `{b['action']}`")
+                status = "x" if b['file'] in checked_files else " "
+                plan.append(f"- [{status}] **[MISSING TEST]** `{b['file']}` → Scaffold `{b['action']}`")
         else:
             plan.append("*(No breaches detected. The defense is solid.)*")
 
@@ -143,7 +156,10 @@ class HeimdallWarden:
         mimir_breaches = [b for b in self.breaches if b["type"] == "MIMIR_BREACH"]
         if mimir_breaches:
             for b in mimir_breaches:
-                plan.append(f"- [ ] **[quality]** `{b['file']}` → {b['action']}")
+                # For Mimir, we check if filename is in checked_files. 
+                # Better: use a composite key if needed, but filename works for basic state.
+                status = "x" if b['file'] in checked_files else " "
+                plan.append(f"- [{status}] **[quality]** `{b['file']}` → {b['action']}")
         else:
             plan.append("*(No breaches detected. Code is clean.)*")
             
@@ -153,8 +169,9 @@ class HeimdallWarden:
         
         if self.edda_tasks:
             for doc in self.edda_tasks:
-                rel = doc.relative_to(self.root)
-                plan.append(f"- [ ] **[TRANSMUTE]** `{rel.as_posix()}` → `{doc.stem}.qmd` (Original Quarantined)")
+                rel = doc.relative_to(self.root).as_posix()
+                status = "x" if rel in checked_files else " "
+                plan.append(f"- [{status}] **[TRANSMUTE]** `{rel}` → `{doc.stem}.qmd` (Original Quarantined)")
         else:
             plan.append("*(No legacy scrolls found.)*")
 

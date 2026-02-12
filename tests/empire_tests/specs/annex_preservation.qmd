@@ -1,0 +1,8 @@
+Feature: Annexation Plan State Preservation
+
+  Scenario: Preserve user checkmarks across scans
+    Given an ANNEXATION_PLAN.qmd exists with checked and unchecked items
+    When the annex --scan command is executed
+    Then it should identify new and existing breaches
+    And it should preserve the "[x]" status for items that are still detected
+    And it should not lose user progress in the plan file

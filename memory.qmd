@@ -26,3 +26,11 @@
 - **Lore-Forward UX**: In thematic projects, using thin shims or proxies to map "functional" names (e.g., `audit`) to "thematic" names (e.g., `heimdall`) enhances immersion without sacrificing utility.
 - **Verification**: Learning loops require multi-cycle stability checks.
 - **Edit Stability**: Avoid large-block `replace_file_content` calls on complex markdown artifacts if the target content contains dynamic or sensitive formatting. Prefer `write_to_file` for total document state synchronization to ensure "Iron Clad" integrity and avoid malformed partial edits.
+- **Naming Consistency**: Ensure consistent naming between class definitions and instantiation calls after re-branding or refactoring to avoid `NameError` in critical paths.
+- **Dependency Hardening**: System-level utilities (e.g., `psutil`) must be declared in `pyproject.toml`. Expose internal orchestration logic (like singleton checks) as module-level functions to allow for robust unit testing and mocking.
+- **Idempotent Artifacts**: Documentation and planning generators should parse and merge existing user state (e.g., checkmarks in `ANNEXATION_PLAN.qmd`) before overwriting to prevent data loss across re-scans.
+- **Regex Heuristics**: When implementing documentation transmuters (e.g., `EddaWeaver`), use multi-line regex with anchoring (`^`) and case-insensitive matching to reliably capture and convert legacy patterns into modern standards (like Quarto alerts).
+- **Clean Interface Definitions**: Avoid "Clashing Shadows" by ensuring classes do not contain duplicate method definitions. Re-declaration of methods, even with docstrings only, creates technical debt and confuses static analysis tools.
+
+## Strategic Blueprints
+- **Operation Ironclad**: Master Blueprint for Hybrid Architecture (PowerShell/Python modularization) stored in [IRONCLAD_PLAN.qmd](file:///c:/Users/Craig/Corvus/CorvusStar/docs/architecture/IRONCLAD_PLAN.qmd).
