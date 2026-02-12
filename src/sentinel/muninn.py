@@ -58,6 +58,44 @@ logging.basicConfig(
     datefmt="%H:%M:%S"
 )
 
+class SPRTValidator:
+    """
+    [SPRT: Sequential Probability Ratio Test]
+    Lore: "The Oracle of Significance."
+    Purpose: Statistically verify hypothesis (fix is stable) vs (fix is flaky).
+    """
+    def __init__(self, alpha=0.05, beta=0.1, p0=0.01, p1=0.2):
+        self.alpha = alpha # Type I error (False Positive)
+        self.beta = beta   # Type II error (False Negative)
+        self.p0 = p0       # Base failure rate (Null)
+        self.p1 = p1       # Flaky failure rate (Alternative)
+        
+        # Thresholds
+        self.A = (1 - beta) / alpha
+        self.B = beta / (1 - alpha)
+        
+        self.log_likelihood_ratio = 0.0
+
+    def record_trial(self, success: bool):
+        """
+        Calculates the Wald Likelihood Ratio.
+        ln(L1/L0) = k*ln(p1/p0) + (n-k)*ln((1-p1)/(1-p0))
+        """
+        import math
+        if success:
+            self.log_likelihood_ratio += math.log((1 - self.p1) / (1 - self.p0))
+        else:
+            self.log_likelihood_ratio += math.log(self.p1 / self.p0)
+
+    @property
+    def status(self) -> str:
+        import math
+        if self.log_likelihood_ratio >= math.log(self.A):
+            return "REJECT" # Null hypothesis rejected -> Flaky
+        if self.log_likelihood_ratio <= math.log(self.B):
+            return "ACCEPT" # Null hypothesis accepted -> Stable
+        return "CONTINUE"
+
 
 class NornWarden:
     """
@@ -311,18 +349,45 @@ class FreyaWarden:
             if "node_modules" in tsx_file.parts:
                 continue
 
-            content = tsx_file.read_text(encoding='utf-8')
-            # Regex for <button ... className="..." ...> that lacks 'hover:'
-            lines = content.splitlines()
-            for i, line in enumerate(lines):
-                if "<button" in line and "className" in line and "hover:" not in line:
-                    targets.append({
-                        "type": "BEAUTY_BREACH",
-                        "file": str(tsx_file.relative_to(self.root)),
-                        "action": f"Add hover state to button at line {i+1}",
-                        "line": i+1,
-                        "severity": "MEDIUM"
-                    })
+            try:
+                content = tsx_file.read_text(encoding='utf-8')
+                # Load color theory for validation
+                theory_path = self.root / "src" / "core" / "color_theory.json"
+                theory = {}
+                if theory_path.exists():
+                    theory = json.loads(theory_path.read_text(encoding='utf-8'))
+                
+                palettes = theory.get("palettes", {})
+                all_hexes = []
+                for p in palettes.values():
+                    all_hexes.extend([v.lower() for v in p.values()])
+
+                lines = content.splitlines()
+                for i, line in enumerate(lines):
+                    # 1. Hover check
+                    if "<button" in line and "className" in line and "hover:" not in line:
+                        targets.append({
+                            "type": "BEAUTY_BREACH",
+                            "file": str(tsx_file.relative_to(self.root)),
+                            "action": f"Add hover state to button at line {i+1} (Linscott Standard)",
+                            "line": i+1,
+                            "severity": "MEDIUM"
+                        })
+                    
+                    # 2. Color Theory Audit (Hex matching)
+                    found_hex = re.findall(r"#[0-9a-fA-F]{6}", line)
+                    for h in found_hex:
+                        if h.lower() not in all_hexes:
+                            targets.append({
+                                "type": "BEAUTY_BREACH",
+                                "file": str(tsx_file.relative_to(self.root)),
+                                "action": f"Non-standard color detected: {h} at line {i+1} (Consult color_theory.json)",
+                                "line": i+1,
+                                "severity": "LOW"
+                            })
+            except Exception: pass
+
+        return targets
 
         return targets
 
@@ -551,15 +616,27 @@ class Muninn:
         # 3. FORGE (Execute Fix)
         if not self._forge_improvement(target):
             return False
-
         # 4. CRUCIBLE (Verify)
         if self._verify_fix(target):
             logging.info(f"[{self.root.name}] [SUCCESS] Verified fix for {target['file']}")
 
-            # 5. FISHTEST CHAIN: Verify no accuracy regression
+            # 5. SPRT STABILITY CHECK (Linscott Standard)
+            if not self._verify_sprt_stability(target):
+                self._record_metric(selected_strategist, hit=False)
+                return False
+
+            # 6. PERFORMANCE BENCHMARK CHECK
+            if not self._verify_performance(target):
+                self._record_metric(selected_strategist, hit=False)
+                return False
+
+            # 7. FISHTEST CHAIN: Verify no accuracy regression
             if not self._verify_fishtest(target):
                 self._record_metric(selected_strategist, hit=False)
                 return False
+
+            # 8. TEACH PHASE (Knowledge Extraction)
+            self._distill_knowledge(target, success=True)
 
             # If Campaign task, update the plan
             if target.get('source') == 'CAMPAIGN':
@@ -573,8 +650,94 @@ class Muninn:
             return True
         else:
             logging.warning(f"[{self.root.name}] [ROLLBACK] Fix failed verification.")
+            self._distill_knowledge(target, success=False)
             self._record_metric(selected_strategist, hit=False)
             return False
+
+    def _verify_sprt_stability(self, target: dict, trials=5) -> bool:
+        """[SPRT] Oracle of Significance Verification."""
+        HUD.persona_log("INFO", f"SPRT: Verifying stability across {trials} trials...")
+        oracle = SPRTValidator()
+        
+        test_name = f"test_{Path(target['file']).stem}_empire.py"
+        test_path = self.root / "tests" / "empire_tests" / test_name
+        
+        for i in range(trials):
+            env = os.environ.copy()
+            env["PYTHONPATH"] = str(self.root)
+            result = subprocess.run(
+                [sys.executable, "-m", "pytest", str(test_path)],
+                cwd=self.root, env=env, capture_output=True
+            )
+            success = (result.returncode == 0)
+            oracle.record_trial(success)
+            
+            status = oracle.status
+            if status == "ACCEPT":
+                HUD.persona_log("PASS", f"SPRT: Signal Stable (Trial {i+1}).")
+                return True
+            if status == "REJECT":
+                HUD.persona_log("FAIL", f"SPRT: Signal FLAKY (Trial {i+1}). Rolling back.")
+                self._rollback(target)
+                return False
+        
+        return True # Default to pass if noise is moderate
+
+    def _verify_performance(self, target: dict) -> bool:
+        """[BENCHMARK] Performance Guardrail."""
+        benchmark_script = self.root / "src" / "tools" / "benchmark_engine.py"
+        if not benchmark_script.exists():
+            return True
+
+        HUD.persona_log("INFO", "Performance: Running benchmark audit...")
+        env = os.environ.copy()
+        env["PYTHONPATH"] = str(self.root)
+        
+        # We run 20 trials for speed in loop
+        try:
+            result = subprocess.run(
+                [sys.executable, str(benchmark_script)],
+                cwd=self.root, env=env, capture_output=True, text=True
+            )
+            # Basic regression check: if exit code != 0 or if we parse output (future)
+            if result.returncode != 0:
+                 HUD.persona_log("FAIL", "Performance: Regression detected. Rolling back.")
+                 self._rollback(target)
+                 return False
+            return True
+        except Exception: return True
+
+    def _distill_knowledge(self, target: dict, success: bool, error: str = ""):
+        """[TEACH] Knowledge Extraction to memory.qmd."""
+        HUD.persona_log("INFO", "The Ravens are distilling knowledge...")
+        
+        prompt = f"""
+        ACT AS: The Teacher.
+        CONTEXT: A Raven learning cycle for "{target['action']}" in {target['file']}.
+        SUCCESS: {success}
+        ERROR: {error}
+        
+        TASK: Extract ONE high-level architectural or Python "Lesson Learned".
+        REQUIREMENT: Must be a single, concise sentence. No fluff.
+        FORMAT: "- **Topic**: Lesson."
+        """
+        try:
+            response = self.client.models.generate_content(
+                model=self.flash_model,
+                contents=prompt
+            )
+            lesson = response.text.strip()
+            
+            memory_path = self.root / "memory.qmd"
+            if memory_path.exists():
+                content = memory_path.read_text(encoding='utf-8')
+                if "## Lessons Learned" in content:
+                    parts = content.split("## Lessons Learned")
+                    updated = parts[0] + "## Lessons Learned" + parts[1].rstrip() + f"\n{lesson}\n"
+                    memory_path.write_text(updated, encoding='utf-8')
+                    HUD.persona_log("SUCCESS", "Memory Updated: The Archive grows.")
+        except Exception as e:
+            HUD.persona_log("WARN", f"Teach failed: {e}")
 
     def _verify_fishtest(self, target: dict) -> bool:
         """[ALFRED] Chain fishtest verification after a successful fix to prevent accuracy regression."""

@@ -96,6 +96,10 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 
 *Format: `[Date] - [Category]: [Description]`*
 
+### 2026-02-11
+-   **Protocol**: Integrated **SPRT (Sequential Probability Ratio Test)** into the Ravens learning loop for statistical stability verification. Status: IMPROVED.
+-   **UI / Aesthetics**: Implemented a **Beauty Guardrail** system using `color_theory.json` to audit UI code via `FreyaWarden`. Status: IMPROVED.
+
 ### 2026-02-01
 -   **Docs**: Added clear docstrings to `trace_viz.py` modes for better developer experience (DX).
 -   **Code**: Improved `sv_engine.py` HUD class to support dynamic color overrides (required for persona symmetry).

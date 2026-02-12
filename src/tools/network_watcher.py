@@ -69,7 +69,10 @@ class CruciblePipeline:
         HUD.box_bottom()
 
 class NetworkWatcher:
-    """[ALFRED] Persistent monitor for the federated network share."""
+    """
+    [ALFRED] Persistent monitor for the federated network share.
+    Auto-detects incoming JSON traces and routes them to the CruciblePipeline.
+    """
     def __init__(self, share_path: str, pipeline: CruciblePipeline):
         self.share = share_path
         self.pipeline = pipeline

@@ -26,10 +26,10 @@ class CorvusDispatcher:
     Encapsulates command registration and execution logic.
     """
 
-    def __init__(self):
+    def __init__(self, root: Path | str | None = None, base: Path | str | None = None):
         self.script_path = Path(__file__).parent.absolute()
-        self.project_root = self.script_path.parent.parent
-        self.scripts_dir = self.script_path
+        self.project_root = Path(root) if root else self.script_path.parent.parent
+        self.scripts_dir = Path(base) if base else self.script_path
         self.venv_python = self.project_root / ".venv" / "Scripts" / "python.exe"
         
         if not self.venv_python.exists():
@@ -41,8 +41,8 @@ class CorvusDispatcher:
         self.config = utils.load_config(str(self.project_root))
         HUD.PERSONA = (self.config.get("persona") or self.config.get("Persona") or "ALFRED").upper()
 
-    def _discover_commands(self) -> Dict[str, str]:
-        """Scans all dynamic locations for available commands."""
+    def _discover_all(self) -> Dict[str, str]:
+        """Scans all dynamic locations for available commands, returning {name: path}."""
         commands = {}
 
         # Scripts (.py)
@@ -55,14 +55,14 @@ class CorvusDispatcher:
             if d.exists():
                 for f in d.glob("*.py"):
                     if f.stem not in ["__init__", "_bootstrap"]:
-                        commands.setdefault(f.stem, "script")
+                        commands.setdefault(f.stem, str(f))
 
         # Workflows (.md / .qmd)
         workflow_dir = self.project_root / ".agent" / "workflows"
         if workflow_dir.exists():
             for f in workflow_dir.iterdir():
                 if f.suffix in [".md", ".qmd"]:
-                    commands.setdefault(f.stem.lower(), "workflow")
+                    commands.setdefault(f.stem.lower(), str(f))
 
         return commands
 
@@ -72,7 +72,7 @@ class CorvusDispatcher:
         HUD.box_row("Usage", "c* <command> [args...]", dim_label=True)
         HUD.box_separator()
 
-        commands = self._discover_commands()
+        commands = self._discover_all()
         scripts = sorted(c for c, t in commands.items() if t == "script")
         workflows = sorted(c for c, t in commands.items() if t == "workflow")
 
@@ -109,26 +109,19 @@ class CorvusDispatcher:
             subprocess.run([str(self.venv_python), str(self.project_root / "scripts" / "set_persona.py"), "ALFRED"])
             return
 
-        # 1. Dynamic Script Discovery
-        dynamic_script = self._resolve_dynamic_script(cmd)
-        if dynamic_script:
-             # HUD.log("INFO", f"Dynamic Dispatch: {cmd}", f"({dynamic_script.name})")
-             env = os.environ.copy()
-             env["PYTHONPATH"] = str(self.project_root)
-             subprocess.run([str(self.venv_python), str(dynamic_script)] + cmd_args, env=env)
-             return
-
-        # 2. Dynamic Workflow Discovery
-        dynamic_workflow = self._resolve_workflow(cmd)
-        if dynamic_workflow:
-             HUD.log("INFO", f"Dispatching workflow: /{cmd}", f"({dynamic_workflow.name})")
-             HUD.box_top(f"WORKFLOW: {cmd.upper()}")
-             HUD.box_row("Trigger", f"/{cmd}", HUD.CYAN)
-             HUD.box_row("File", dynamic_workflow.name, HUD.DIM)
-             HUD.box_separator()
-             HUD.box_row("Note", "External agents handle /slash commands.", HUD.YELLOW)
-             HUD.box_bottom()
-             return
+        # Dynamic Resolution
+        all_cmds = self._discover_all()
+        if cmd in all_cmds:
+            cmd_path = all_cmds[cmd]
+            if cmd_path.endswith(".py"):
+                env = os.environ.copy()
+                env["PYTHONPATH"] = str(self.project_root)
+                subprocess.run([str(self.venv_python), cmd_path] + cmd_args, env=env)
+                return
+            else: # Workflow
+                HUD.log("INFO", f"Dispatching workflow: /{cmd}", f"({os.path.basename(cmd_path)})")
+                HUD.box_top(f"WORKFLOW: {cmd.upper()}")
+                return
 
         HUD.log("FAIL", f"Unknown command: {cmd}")
         self.show_help()

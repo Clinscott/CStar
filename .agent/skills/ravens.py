@@ -83,12 +83,35 @@ def release_ravens():
     except Exception as e:
         HUD.log("FAIL", f"Deployment Failed: {e}")
 
+def learn(n_cycles=1):
+    """Starts the Sovereign Test Harness Cycle."""
+    HUD.log("INFO", f"Initiating {n_cycles} Cycle(s) of Manual Learning...")
+    try:
+        test_script = PROJECT_ROOT / "tests" / "harness" / "manual_learn.py"
+        if not test_script.exists():
+            HUD.log("FAIL", "Manual learn script not found at tests/harness/manual_learn.py")
+            return
+
+        # Run via sys.executable
+        subprocess.run([sys.executable, str(test_script), f"N={n_cycles}"], check=False)
+    except Exception as e:
+        HUD.log("FAIL", f"Failed to start manual learn: {e}")
+
 def main():
     args = sys.argv[1:]
     if "-status" in args:
         check_status()
     elif any(x in args for x in ["-end", "-kill", "-recall"]):
         recall_ravens()
+    elif "-learn" in args:
+        n_cycles = 5
+        for arg in args:
+            if arg.startswith("N=") or arg.startswith("n="):
+                try:
+                    n_cycles = int(arg.split("=")[1])
+                except (ValueError, IndexError):
+                    HUD.log("WARN", f"Invalid N value: {arg}. Defaulting to 5.")
+        learn(n_cycles)
     else:
         release_ravens()
 

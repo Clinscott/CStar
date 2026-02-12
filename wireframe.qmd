@@ -30,6 +30,7 @@ The autonomous daemon ensuring system health.
 - **Muninn: The Improver** (`src/sentinel/muninn.py`):
     - `run()`: Executes the self-improvement protocol.
     - `Wardens`: specialized improvement strategists (Valkyrie, Mimir, Heimdall, etc.).
+    - `NornWarden`: Executes the Campaign Implementation Plan (N1000).
 
 ### 📂 Test Infrastructure (`tests/`)
 Verification and hardening tools.

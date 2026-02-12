@@ -20,7 +20,7 @@ from unittest.mock import MagicMock
 from src.sentinel._bootstrap import bootstrap
 bootstrap()
 
-from src.sentinel.sovereign_fish import SovereignFish
+from src.sentinel.muninn import Muninn as SovereignFish
 from src.core.annex import HeimdallWarden
 from src.core.ui import HUD
 
@@ -71,13 +71,21 @@ class ResponseRecorder:
         """Save all recordings to JSON."""
         path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, "w", encoding="utf-8") as f:
-            json.dump(self.recordings, f, indent=2, ensure_ascii=False)
+            # Use default=str to handle MagicMock objects
+            json.dump(self.recordings, f, indent=2, ensure_ascii=False, default=str)
         print(f"[HARVEST] Saved {len(self.recordings)} recordings to {path}")
 
 
 def harvest(cycles: int = 5):
     """
-    Run N cycles of SovereignFish against CorvusStar with recording.
+    [ODIN] Run N cycles of SovereignFish against CorvusStar with recording.
+    Captures prompt/response pairs for offline verification and hardening.
+    
+    Args:
+        cycles: Number of autonomous learning cycles to trigger.
+        
+    Returns:
+        A list of captured response dictionaries.
     """
     project_root = Path(__file__).parent.parent.parent.resolve()
     output_path = FIXTURES_DIR / "mock_responses.json"

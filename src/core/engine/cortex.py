@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 from typing import Any, Dict, List
 
-from .vector import SovereignVector
+from src.core.engine.vector import SovereignVector
 
 
 class Cortex:
