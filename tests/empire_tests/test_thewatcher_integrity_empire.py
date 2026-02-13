@@ -11,10 +11,12 @@ class TestTheWatcher:
 
     def test_record_edit_fatigue(self, watcher):
         rel_path = "logic.py"
-        # 3 edits should be OK (record_edit returns True), but after 3rd edit is_locked should be True
-        assert watcher.record_edit(rel_path, "v1") is True
-        assert watcher.record_edit(rel_path, "v2") is True
-        assert watcher.record_edit(rel_path, "v3") is True # 3rd edit trigger lock
+        # 10 edits trigger lock
+        for i in range(9):
+            assert watcher.record_edit(rel_path, f"v{i}") is True
+        
+        # 10th edit triggers lock
+        assert watcher.record_edit(rel_path, "v10") is False
         assert watcher.is_locked(rel_path) is True
 
     def test_record_edit_oscillation(self, watcher):

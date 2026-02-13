@@ -19,5 +19,5 @@ def test_update_manifest_simple():
                     # Verify write calls
                     handle = m()
                     written = "".join(call[0][0] for call in handle.write.call_args_list)
-                    assert "Active Mind: ODIN" in written
+                    assert "**Active Mind**: ODIN" in written
                     assert "Tasks OK" in written
