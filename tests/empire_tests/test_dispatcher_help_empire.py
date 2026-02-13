@@ -29,5 +29,5 @@ class TestCorvusDispatcher:
         dispatcher.show_help()
         # Verify box_row was called with Scripts and Workflows
         calls = [call.args[0] for call in mock_box_row.call_args_list]
-        assert "Scripts" in calls
-        assert "Workflows" in calls
+        assert "SCRIPTS" in calls
+        assert "WORKFLOWS" in calls

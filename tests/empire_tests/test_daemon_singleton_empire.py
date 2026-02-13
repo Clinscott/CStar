@@ -24,9 +24,8 @@ def test_daemon_singleton_lock_creation(tmp_path):
          patch("src.sentinel.main_loop.psutil"), \
          patch("src.sentinel.main_loop.highlander_check", return_value=False): # Exit loop immediately
         
-        # Run the loop with our temp lock file (expect exit via mock)
-        with pytest.raises(SystemExit):
-            daemon_loop(lock_file)
+        # Run the loop with our temp lock file (expect break via mock highlander_check)
+        daemon_loop(lock_file)
         
         # Verify lock file exists and has correct PID
         assert lock_file.exists()
