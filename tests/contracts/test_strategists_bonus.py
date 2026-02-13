@@ -13,16 +13,16 @@ project_root = Path(__file__).parent.parent.parent.absolute()
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from src.sentinel.sovereign_fish import (
+from src.sentinel.muninn import (
     ValkyrieWarden,
     MimirWarden,
-    SovereignFish
+    Muninn
 )
 
 class TestValkyrieWarden:
     """Detects dead code using Vulture (Mocked)."""
 
-    @patch('src.sentinel.sovereign_fish.vulture')
+    @patch('src.sentinel.muninn.vulture')
     def test_finds_unused_function(self, mock_vulture_module, tmp_path):
         # Setup Mock Vulture
         mock_v = MagicMock()
@@ -52,7 +52,7 @@ class TestValkyrieWarden:
         # Verify Vulture was called correctly
         mock_v.scavenge.assert_called()
 
-    @patch('src.sentinel.sovereign_fish.vulture')
+    @patch('src.sentinel.muninn.vulture')
     def test_filters_low_confidence(self, mock_vulture_module, tmp_path):
         # Setup Mock Vulture
         mock_v = MagicMock()
@@ -106,12 +106,12 @@ def nightmare(x):
 
 
 class TestWardenPriority:
-    """Verifies integration order in SovereignFish.run()."""
+    """Verifies integration order in Muninn.run()."""
     
-    @patch('src.sentinel.sovereign_fish.HeimdallWarden')
-    @patch('src.sentinel.sovereign_fish.ValkyrieWarden')
-    @patch('src.sentinel.sovereign_fish.MimirWarden')
-    @patch('src.sentinel.sovereign_fish.FreyaWarden')
+    @patch('src.sentinel.muninn.HeimdallWarden')
+    @patch('src.sentinel.muninn.ValkyrieWarden')
+    @patch('src.sentinel.muninn.MimirWarden')
+    @patch('src.sentinel.muninn.FreyaWarden')
     def test_valkyrie_precedes_beauty(self, mock_visual, mock_mimir, mock_valkyrie, mock_annex, tmp_path, mock_genai_client):
         # Setup: All strategists find targets
         mock_annex_inst = MagicMock()
@@ -132,14 +132,14 @@ class TestWardenPriority:
         mock_visual.return_value = mock_visual_inst
 
         os.environ["GOOGLE_API_KEY"] = "TEST"
-        fish = SovereignFish(str(tmp_path), client=mock_genai_client)
+        fish = Muninn(str(tmp_path), client=mock_genai_client)
         
         fish._emit_metrics_summary = MagicMock()
         fish._save_state = MagicMock()
         # Mock _forge_improvement to avoid execution phase
         fish._forge_improvement = MagicMock(return_value=None)
         
-        with patch('src.sentinel.sovereign_fish.HUD') as mock_hud:
+        with patch('src.sentinel.muninn.HUD') as mock_hud:
             mock_hud.PERSONA = "ODIN"
             
             fish.run()
