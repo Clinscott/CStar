@@ -221,6 +221,8 @@ class HUD:
         """
         if width is None:
             width = getattr(HUD, "_last_width", 60)
+        if not isinstance(width, int):
+            width = 60
         theme = HUD.get_theme()
         val_color = color if color else theme['main']
         lbl_color = theme['dim'] if dim_label else theme['main']
@@ -255,6 +257,8 @@ class HUD:
         """Renders a middle separator line."""
         if width is None:
             width = getattr(HUD, "_last_width", 60)
+        if not isinstance(width, int):
+            width = 60
         theme = HUD.get_theme()
         dim_color = color if color else theme['dim']
         inner_width = width - 2
@@ -265,6 +269,8 @@ class HUD:
         """Renders the bottom closure of a box."""
         if width is None:
             width = getattr(HUD, "_last_width", 60)
+        if not isinstance(width, int):
+            width = 60
         theme = HUD.get_theme()
         dim_color = color if color else theme['dim']
         inner_width = width - 2
