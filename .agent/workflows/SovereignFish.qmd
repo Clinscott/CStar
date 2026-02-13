@@ -96,6 +96,10 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 
 *Format: `[Date] - [Category]: [Description]`*
 
+### 2026-02-12 (Session 50)
+-   **Security**: Hardened `HUD` box methods against non-integer width pollution, ensuring UI stability during stubbed/mocked testing cycles. - Status: SECURED.
+-   **Logic**: Expanded `thesaurus.qmd` with "stabilization" and "regression" clusters to harden Raven intent resolution during post-hardening phases. - Status: SECURED.
+
 ### 2026-02-10 (Session 49)
 -   **Lore**: Expanded `thesaurus.qmd` with Odin-Lore synonyms (Ravens, Heimdall, etc.) to harden intent resolution.
 -   **DX**: Created `.agent/skills/_template.py` to streamline the creation of new dynamic CLI commands.

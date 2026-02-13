@@ -30,6 +30,11 @@
 - **Dependency Hardening**: System-level utilities (e.g., `psutil`) must be declared in `pyproject.toml`. Expose internal orchestration logic (like singleton checks) as module-level functions to allow for robust unit testing and mocking.
 - **Idempotent Artifacts**: Documentation and planning generators should parse and merge existing user state (e.g., checkmarks in `ANNEXATION_PLAN.qmd`) before overwriting to prevent data loss across re-scans.
 - **Regex Heuristics**: When implementing documentation transmuters (e.g., `EddaWeaver`), use multi-line regex with anchoring (`^`) and case-insensitive matching to reliably capture and convert legacy patterns into modern standards (like Quarto alerts).
+- **Assertion Resilience**: Hardening UI components (like `HUD`) against mock-specific behavior (e.g., `MagicMock` width objects) ensures that the system is stable during high-velocity development where dependencies are frequently stubbed.
+- **Dynamic Lock Management**: Daemon processes should accept an optional `lock_file_path` at runtime. This allows test suites to isolate lock-checks in temporary directories, preventing collisions with active system processes and enabling parallel test execution.
+- **Patch Precision**: When using aliased imports (e.g., `from ... import Muninn as SovereignFish`), always verify the patch target. Patching the original module path fails if the caller uses the alias; patch the *calling module's* reference to the alias to ensure interception.
+- **Subject Extraction Meta-Filters**: Content generation tools (like `SkillForge`) must differentiate between the *topic* and the *intent*. Filtering out meta-words like "test" from the subject prevented naming collisions and ensured a clean file registry.
+- **Cycle Hardening**: The true test of an architecture is not the first deploy, but the regression suite after 20 manual learning cycles. Robustness is an emergent property of multiple failure-recovery loops.
 - **Clean Interface Definitions**: Avoid "Clashing Shadows" by ensuring classes do not contain duplicate method definitions. Re-declaration of methods, even with docstrings only, creates technical debt and confuses static analysis tools.
 
 ## Strategic Blueprints

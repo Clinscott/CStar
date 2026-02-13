@@ -149,6 +149,8 @@ Eliminate the "Gauntlet Crash" cycle by implementing a proactive code sanitizati
 ## 🤝 Session Handshake
 **Session Delta**:
 - Implemented Bifrost Gate sanitizer with auto-repair (Syntax/Indent/Import).
+- [x] Hybrid Calibration: Restored .md for workflows; verified Persona sync and HUD aesthetics. [x]
+- [x] SPRT Calibration: Adjusted integrity threshold to 90% and hardened adversarial testing. [x]
 - Created 100-iteration Ravens Harness for reliable regression testing.
 - Rebranded all Strategists to Norse Wardens.
 - Achieved 100% pass rate on 100-iteration stress test.

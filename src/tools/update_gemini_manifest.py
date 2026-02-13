@@ -7,7 +7,9 @@ from datetime import datetime
 def get_git_summary():
     try:
         res = subprocess.run(["git", "log", "-n", "5", "--oneline"], capture_output=True, text=True)
-        return res.stdout.strip()
+        if res and res.stdout:
+            return res.stdout.strip()
+        return "No git log entries found."
     except (subprocess.SubprocessError, OSError):
         return "Git history unavailable."
 

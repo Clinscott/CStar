@@ -151,4 +151,5 @@
 - **wardens**: annex, heimdall, mimir, muninn, sentinel, valkyrie
 - **crucible**: gauntlet, ingest, ordeal, process, verify
 - **gauntlet**: build, crucible, fix, implementation, repair, test, verify
-
+- **stabilization**: fix, hardening, pass, regression, resolve, stable, stabilization
+- **regression**: break, fail, fix, hardening, pass, regression, resolve, stable, stabilization, verify
