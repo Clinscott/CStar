@@ -1,5 +1,15 @@
 # Corvus Star Memory
 
+## 2026-02-13: The Gungnir Calculus (Neural Alignment)
+- **Pattern**: Localized neural alignment is superior to generic LLM advice for project-specific "lore" maintenance.
+- **Atomic Cortex**: Using byte-level tokenization and a scalar transformer allows for dependency-free code analysis without API costs.
+- **GPHS Utility**: A single Global Health Score provides a definitive "Go/No-Go" gauge for autonomous mutations, removing ambiguity from the Gauntlet.
+- **Alfred's Guidance**: Persistent guidance files (.agent/ALFRED_SUGGESTIONS.md) prevent "hallucination loops" where the agent tries the same failed fix repeatedly.
+
+---
+
+# Corvus Star Memory
+
 ## System Patterns
 - **Intent Resolution**: Is highly sensitive to `GLOBAL:` prefixing and strict `Activation Words` formatting.
 - **Configuration**: `pyproject.toml` is the law. All tools must respect it.
