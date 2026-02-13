@@ -17,10 +17,10 @@ project_root = Path(__file__).parent.parent.parent.absolute()
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from src.sentinel.sovereign_fish import (
+from src.sentinel.muninn import (
     NornWarden,
     EddaWarden,
-    SovereignFish,
+    Muninn,
     TheWatcher,
 )
 
@@ -59,14 +59,14 @@ class TestWatcherFatigueLock:
         watcher = TheWatcher(tmp_path)
         rel = "src/fatigue_test.py"
 
-        # Edits 1-3: unique content, all OK
-        for i in range(3):
+        # Edits 1-9: unique content, all OK
+        for i in range(9):
             result = watcher.record_edit(rel, f"version_{i}")
             assert result is True
 
-        # Edit 4: should still succeed but lock future edits
-        result = watcher.record_edit(rel, "version_3")
-        assert result is True  # 4th edit succeeds but triggers lock
+        # Edit 10: should trigger lock and return False
+        result = watcher.record_edit(rel, "version_9")
+        assert result is False  # 10th edit triggers lock
         assert watcher.is_locked(rel) is True
 
 
@@ -164,14 +164,14 @@ class TestEddaWarden:
 
 
 # ==============================================================================
-# SovereignFish Tests (with Mock AI Client)
+# Muninn Tests (with Mock AI Client)
 # ==============================================================================
 
 
-class TestSovereignFishScanCycle:
+class TestMuninnScanCycle:
     """run() returns False when no breaches are found (clean codebase)."""
 
-    @patch("src.sentinel.sovereign_fish.HeimdallWarden")
+    @patch("src.sentinel.muninn.HeimdallWarden")
     def test_no_breaches_returns_false(self, mock_annex_cls, tmp_path, mock_genai_client):
         # Setup: HeimdallWarden reports no breaches
         mock_annex = MagicMock()
@@ -180,7 +180,7 @@ class TestSovereignFishScanCycle:
 
         os.environ["GOOGLE_API_KEY"] = "TEST_KEY"
         try:
-            fish = SovereignFish(str(tmp_path), client=mock_genai_client)
+            fish = Muninn(str(tmp_path), client=mock_genai_client)
             result = fish.run()
             assert result is False
         finally:
@@ -206,7 +206,7 @@ class TestRollback:
 
         os.environ["GOOGLE_API_KEY"] = "TEST_KEY"
         try:
-            fish = SovereignFish(str(tmp_path), client=mock_genai_client)
+            fish = Muninn(str(tmp_path), client=mock_genai_client)
             target = {"file": "src/target.py"}
             fish._rollback(target)
 
@@ -245,7 +245,7 @@ class TestGauntletEscalation:
 
         os.environ["GOOGLE_API_KEY"] = "TEST_KEY"
         try:
-            fish = SovereignFish(str(tmp_path), client=mock_genai_client)
+            fish = Muninn(str(tmp_path), client=mock_genai_client)
             target = {"file": "src/sample.py", "action": "Test action"}
 
             # Make pytest always fail so we exhaust all retries
@@ -263,10 +263,10 @@ class TestGauntletEscalation:
             # Should have called 4 times (3 Flash + 1 Pro)
             assert len(models_called) == 4
             # Last call should use Pro model
-            assert models_called[-1] == "gemini-2.5-pro"
+            assert models_called[-1] == "gemini-2.0-pro-exp-02-05"
             # First 3 should use Flash
             for m in models_called[:3]:
-                assert m == "gemini-2.5-flash"
+                assert m == "gemini-2.0-flash"
             # Result should be None (all failed)
             assert result is None
         finally:
