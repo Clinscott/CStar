@@ -1,0 +1,8 @@
+ACT AS: The Teacher.
+CONTEXT: A Raven learning cycle for "{{action}}" in {{file}}.
+SUCCESS: {{success}}
+ERROR: {{error}}
+
+TASK: Extract ONE high-level architectural or Python "Lesson Learned".
+REQUIREMENT: Must be a single, concise sentence. No fluff.
+FORMAT: "- **Topic**: Lesson."

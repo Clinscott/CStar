@@ -32,13 +32,32 @@ def _get_running_pids():
         return []
 
 def check_status():
-    """Checks if the Ravens are in flight."""
-    HUD.log("INFO", "Checking if the Ravens are in flight...")
+    """Checks the status of the Gungnir Spear."""
+    HUD.log("INFO", "Scanning the Roost...")
     pids = _get_running_pids()
+    
+    # Check for Gungnir Calculus Infrastructure
+    weights_path = PROJECT_ROOT / "src" / "core" / "weights.json"
+    calc_path = PROJECT_ROOT / "src" / "core" / "metrics.py"
+    has_calc = weights_path.exists() and calc_path.exists()
+    
     if pids:
-        HUD.log("SUCCESS", "The Ravens are in flight", f"(PIDs: {', '.join(pids)})")
+        HUD.log("SUCCESS", "THE RAVENS ARE IN FLIGHT", f"(PIDs: {', '.join(pids)})")
+        HUD.log("INFO", "Alfred is active and providing Overwatch for the swarm.")
+    elif has_calc:
+        HUD.log("WARN", "THE RAVENS ARE GROUNDED (IDLE)")
+        HUD.log("SUCCESS", "ALFRED IS WATCHING", "(Gungnir Calculus is Armed and Initialized)")
+        
+        # Check for recent observations
+        suggestions_path = PROJECT_ROOT / ".agent" / "ALFRED_SUGGESTIONS.md"
+        if suggestions_path.exists():
+            import os
+            mtime = os.path.getmtime(suggestions_path)
+            last_obs = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(mtime))
+            HUD.log("INFO", f"Last Alfred Observation: {last_obs}")
     else:
-        HUD.log("WARN", "The Ravens are grounded")
+        HUD.log("WARN", "THE RAVENS ARE GROUNDED")
+        HUD.log("FAIL", "THE REALM IS UNPROTECTED", "(Gungnir Calculus not found)")
 
 def recall_ravens():
     """Recalls the Ravens (terminates the daemon)."""

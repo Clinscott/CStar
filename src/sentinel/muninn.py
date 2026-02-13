@@ -51,6 +51,11 @@ from src.sentinel.code_sanitizer import (
     validate_syntax,
 )
 
+# Core Gungnir Engine Imports
+from src.core.metrics import ProjectMetricsEngine
+from src.core.engine.alfred_observer import AlfredOverwatch
+from tests.integration.project_fishtest import GungnirSPRT
+
 # Configure Logging
 logging.basicConfig(
     filename="sovereign_activity.log",
@@ -59,10 +64,10 @@ logging.basicConfig(
     datefmt="%H:%M:%S"
 )
 
-class SPRTValidator:
+class GungnirValidator:
     """
-    [SPRT: Sequential Probability Ratio Test]
-    Lore: "The Oracle of Significance."
+    [THE GUNGNIR CALCULUS]
+    Lore: "The Infallible Strike."
     Purpose: Statistically verify hypothesis (fix is stable) vs (fix is flaky).
     """
     def __init__(self, alpha=0.05, beta=0.1, p0=0.01, p1=0.2):
@@ -561,6 +566,28 @@ class Muninn:
 
         # [ALFRED] Warden Metrics: Track per-warden hit rates
         self._strategist_metrics: dict[str, dict[str, int]] = {}
+        
+        # [ALFRED] New Gungnir Engines
+        self.metrics_engine = ProjectMetricsEngine()
+        self.observer = AlfredOverwatch()
+        self.sprt = GungnirSPRT()
+
+    def _load_prompt(self, name: str, variables: dict) -> str:
+        """Loads a .prompty file and replaces variables."""
+        prompt_path = self.root / ".agent" / "prompts" / f"{name}.prompty"
+        if not prompt_path.exists():
+            return ""
+        content = prompt_path.read_text(encoding='utf-8')
+        for k, v in variables.items():
+            content = content.replace(f"{{{{{k}}}}}", str(v))
+        return content
+
+    def _get_alfred_suggestions(self) -> str:
+        """Reads suggestions from .agent/ALFRED_SUGGESTIONS.md."""
+        suggestions_path = self.root / ".agent" / "ALFRED_SUGGESTIONS.md"
+        if not suggestions_path.exists():
+            return ""
+        return f"\nALFRED SUGGESTIONS:\n{suggestions_path.read_text(encoding='utf-8')}\n"
 
     def run(self) -> bool:
         """
@@ -571,6 +598,10 @@ class Muninn:
             HUD.persona_log("INFO", f"The Ravens are scouting {self.root}...")
         else:
             HUD.persona_log("INFO", f"Muninn is scouring {self.root.name}...")
+
+        # [GPHS] Initial Metrics Sweep
+        pre_gphs = self.metrics_engine.compute(str(self.root))
+        HUD.persona_log("INFO", f"Global Project Health Score (Pre): {pre_gphs:.2f}")
 
         # 1. SCAN (The Hunt)
         strategist = HeimdallWarden(self.root)
@@ -719,9 +750,31 @@ class Muninn:
                 if not self._verify_performance(target):
                      return False
 
+                # 6b. [GPHS] Post-Mutation Delta Analysis
+                post_gphs = self.metrics_engine.compute(str(self.root))
+                HUD.persona_log("INFO", f"Global Project Health Score (Post): {post_gphs:.2f}")
+                
+                sprt_result = self.sprt.evaluate_delta(pre_gphs, post_gphs)
+                if sprt_result == 'FAIL':
+                    HUD.persona_log("FAIL", f"GPHS REGRESSION DETECTED (Delta: {post_gphs - pre_gphs:.4f}). Rolling back.")
+                    self.observer.write_suggestion(
+                        self.observer.analyze_failure(target['file'], "GPHS Regression Detected"),
+                        str(self.root / ".agent" / "ALFRED_SUGGESTIONS.md")
+                    )
+                    self._rollback(target)
+                    self._record_metric(selected_strategist, hit=False)
+                    return False
+
+                HUD.persona_log("PASS", f"GPHS DELTA SECURED: {post_gphs - pre_gphs:+.4f}")
+
                 self._record_metric(selected_strategist, hit=True)
                 return True
             else:
+                # [ALFRED] Analyze failure on Crucible Fail
+                self.observer.write_suggestion(
+                    self.observer.analyze_failure(target['file'], "Crucible Verification Failed"),
+                    str(self.root / ".agent" / "ALFRED_SUGGESTIONS.md")
+                )
                 self._record_metric(selected_strategist, hit=False)
                 return False
         except (KeyboardInterrupt, SystemExit):
@@ -757,9 +810,9 @@ class Muninn:
             return False
 
     def _verify_sprt_stability(self, target: dict, trials=5) -> bool:
-        """[SPRT] Oracle of Significance Verification."""
-        HUD.persona_log("INFO", f"SPRT: Verifying stability across {trials} trials...")
-        oracle = SPRTValidator()
+        """[GUNGNIR] Gungnir Calculus Stability Verification."""
+        HUD.persona_log("INFO", f"Gungnir: Verifying stability across {trials} trials...")
+        oracle = GungnirValidator()
         
         test_name = f"test_{Path(target['file']).stem}_empire.py"
         test_path = self.root / "tests" / "empire_tests" / test_name
@@ -816,17 +869,14 @@ class Muninn:
         """
         HUD.persona_log("INFO", "The Ravens are distilling knowledge...")
         
-        prompt = f"""
-        ACT AS: The Teacher.
-        CONTEXT: A Raven learning cycle for "{target['action']}" in {target['file']}.
-        SUCCESS: {success}
-        ERROR: {error}
-        
-        TASK: Extract ONE high-level architectural or Python "Lesson Learned".
-        REQUIREMENT: Must be a single, concise sentence. No fluff.
-        FORMAT: "- **Topic**: Lesson."
-        """
         try:
+            prompt = self._load_prompt("knowledge", {
+                "action": target['action'],
+                "file": target['file'],
+                "success": success,
+                "error": error
+            })
+            
             response = self.client.models.generate_content(
                 model=self.flash_model,
                 contents=prompt
@@ -998,20 +1048,11 @@ class Muninn:
 
     def _architect_gherkin(self, target, context):
         HUD.persona_log("INFO", "Architecting Scenario...")
-        prompt = f"""
-        ACT AS: Empire TDD Architect.
-        TASK: Create a Gherkin (.qmd) feature verification for: "{target['action']}"
-        FILE: {target['file']}
-        CONTEXT:
-        {context}
-        
-        CRITICAL DIRECTIVE: THE LINSCOTT STANDARD
-        1. Code and Verification are a single atomic unit.
-        2. Every change MUST have a corresponding test Scenario.
-        3. Even trivial changes (e.g. "Hello World") require a test.
-        
-        OUTPUT: Only the Gherkin content (Feature, Scenario, Given/When/Then).
-        """
+        prompt = self._load_prompt("architect", {
+            "action": target['action'],
+            "file": target['file'],
+            "context": context
+        })
         try:
             response = self.client.models.generate_content(
                 model=self.flash_model,
@@ -1072,28 +1113,13 @@ class Muninn:
 
     def _generate_implementation(self, target, current_code, gherkin_content, last_error, model_name):
         """Generates implementation and test using the specified model."""
-        prompt = f"""
-        ACT AS: Senior Python Developer.
-        TASK: Implement the solution and the corresponding Pytest.
-        FILE: {target['file']}
-        GHERKIN:
-        {gherkin_content}
-        STARTING_CODE:
-        {current_code}
-        
-        CRITICAL DIRECTIVE: THE LINSCOTT STANDARD
-        1. You MUST generate a valid Pytest in the "test" field.
-        2. The test must verify the Gherkin scenario.
-        3. The test must be self-contained (imports, setup).
-        4. WINDOWS COMPATIBILITY: Use `sys.executable` for any subprocesses. Force `utf-8` encoding.
-        5. PREFER DIRECT CALLS: If the code has functions, import them and call them instead of using subprocesses.
-        6. MOCKING SAFETY: Do NOT attempt to set `.side_effect` on built-in functions (like `print` or `input`). Use `monkeypatch` for environment/stdout.
-        
-        PREVIOUS_ERROR (If any):
-        {last_error}
-        
-        OUTPUT: JSON object with keys: "code" and "test".
-        """
+        prompt = self._load_prompt("implementation", {
+            "file": target['file'],
+            "gherkin_content": gherkin_content,
+            "current_code": current_code,
+            "last_error": last_error,
+            "alfred_guidance": self._get_alfred_suggestions()
+        })
         try:
             response_schema = {
                 "type": "object",
@@ -1203,14 +1229,11 @@ class Muninn:
             return False, f"Execution Error: {e}"
 
     def _consult_council(self, target, gherkin_content, code, test):
-        prompt = f"""
-        ACT AS: The Council.
-        GHERKIN: {gherkin_content}
-        CODE: {code}
-        TEST: {test}
-        CONTEXT: Passed Gauntlet unit tests.
-        OUTPUT: JSON with status (APPROVED/DISAPPROVED) and reason.
-        """
+        prompt = self._load_prompt("council", {
+            "gherkin_content": gherkin_content,
+            "code": code,
+            "test": test
+        })
         try:
             response = self.client.models.generate_content(
                 model=self.flash_model,
