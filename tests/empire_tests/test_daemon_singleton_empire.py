@@ -17,19 +17,23 @@ def test_daemon_singleton_lock_creation(tmp_path):
     """
     lock_file = tmp_path / "ravens.lock"
     
-    # Mock other dependencies to exit loop early
+    # Mock Path.unlink and other dependencies
     with patch("src.sentinel.main_loop.load_config", return_value={"persona": "ODIN"}), \
          patch("src.sentinel.main_loop.HUD"), \
          patch("src.sentinel.main_loop.load_target_repos", return_value=[]), \
          patch("src.sentinel.main_loop.psutil"), \
-         patch("src.sentinel.main_loop.highlander_check", return_value=False): # Exit loop immediately
+         patch("src.sentinel.main_loop.highlander_check", return_value=False), \
+         patch("src.sentinel.main_loop.Path.unlink") as mock_unlink: 
         
-        # Run the loop with our temp lock file (expect break via mock highlander_check)
+        # Run the loop with our temp lock file
         daemon_loop(lock_file)
         
-        # Verify lock file exists and has correct PID
+        # Verify lock file was written
         assert lock_file.exists()
         assert lock_file.read_text().strip() == str(os.getpid())
+        
+        # Verify it was unlinked at the end (the mock was called)
+        assert mock_unlink.called
 
 def test_daemon_detects_existing_lock(tmp_path):
     """
