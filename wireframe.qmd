@@ -15,16 +15,33 @@ The decision-making brain of Corvus Star.
     - `search(query)`: Finds best matching skill/intent.
     - `score_identity(text)`: Validates persona alignment.
 - **Dispatcher** (`cstar_dispatcher.py`):
-    - `main()`: Routes CLI commands (`c* ...`) to scripts.
+    - `run()`: Routes CLI commands dynamically to scripts or workflows.
+- **HUD Interface** (`ui.py`):
+    - `box_top()`, `box_row()`, `persona_log()`: ANSI-themed visual primitives.
+    - `_ensure_persona()`: Automatic lazy-loading of persona configuration.
+- **Annexation Protocol** (`annex.py`):
+    - `HeimdallWarden.scan()`: Audits territory for standard compliance (Linscott/Torvalds).
+- **Proxy Skills** (`.agent/skills/`):
+    - `ravens.py`, `trace.py`, `heimdall.py`, etc. (Dynamic CLI Entry Points).
 
 ### 🦅 The Ravens (`src/sentinel/`)
 The autonomous daemon ensuring system health.
 - **Bootstrap** (`_bootstrap.py`): Shared environment and Pathlib configuration.
+- **Code Sanitizer: Bifrost Gate** (`code_sanitizer.py`):
+    - `sanitize_code()`: Auto-repairs indentation, syntax, and markdown fences.
+    - `repair_imports()`: Stubs fabricated imports with MagicMocks.
 - **Huginn & Muninn** (`main_loop.py`):
     - `daemon_loop()`: Orchestrates the twin ravens (Thought/Memory).
-- **Muninn: The Improver** (`sovereign_fish.py`):
+- **Muninn: The Improver** (`src/sentinel/muninn.py`):
     - `run()`: Executes the self-improvement protocol.
-    - `Valkyrie, Torvalds, Annex`: Specialized improvement strategists.
+    - `Wardens`: specialized improvement strategists (Valkyrie, Mimir, Heimdall, etc.).
+    - `NornWarden`: Executes the Campaign Implementation Plan (N1000).
+
+### 📂 Test Infrastructure (`tests/`)
+Verification and hardening tools.
+- **Ravens Harness** (`ravens_harness.py`): 100-iteration synthetic/mock gauntlet tester.
+- **Empire Test Suite** (`tests/empire_tests/`): 40+ companion tests for core/extension tools (Linscott Standard).
+- **Response Harvester** (`src/sentinel/harvest_responses.py`): Records live AI data for offline harness.
 
 ### 🛠️ Tools (`src/tools/`)
 Specialized utilities for analysis and repair.
@@ -43,7 +60,7 @@ Connection to the wider network (Knowledge Core).
 `User Input` -> `cstar_dispatcher` -> `sv_engine` -> `vector.py` -> `Skill Execution`
 
 ### 2. Autonomous Audit
-`Time Trigger` -> `Huginn & Muninn` -> `sovereign_fish.py` -> `Heimdall` -> `Report`
+`Time Trigger` -> `Huginn & Muninn` -> `muninn.py` -> `Heimdall` -> `Report`
 
 ### 3. Skill Development
-`User Create` -> `src/skills/local/NEW_SKILL` -> `sv_engine.load_skills()` -> `Available`
+`User Create` -> `.agent/skills/NEW_SKILL.py` -> `c* NEW_SKILL` -> `Available`

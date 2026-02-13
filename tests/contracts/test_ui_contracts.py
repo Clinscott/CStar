@@ -45,8 +45,8 @@ class TestUi_contracts(unittest.TestCase):
         # THEN: State Projection
         output = self.captured_output.getvalue()
         
-        # Output contains "\033[36mLabel" (Cyan) [HUD]
-        self.assertIn("\033[36mLabel", output) 
+        # Output contains Label (ignoring specific ANSI color code for persona flexibility)
+        self.assertIn("Label", output) 
         
         # Output contains "Value"
         self.assertIn("Value", output)

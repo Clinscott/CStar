@@ -1,6 +1,6 @@
 # 💎 GEMINI NEURAL MANIFEST
 
-> **Timestamp**: 2026-02-09 21:22:27
+> **Timestamp**: 2026-02-13 11:53:13
 > **Active Mind**: ALFRED
 
 ## 🧩 Context Anchors
@@ -9,24 +9,20 @@
 - **Framework Port**: 3000 (Odin Dashboard)
 
 ## ⏭️ Priority Directives
-## ⏭️ Start Here Next
-### Phase 3: Deep Verification & Expansion
-1. **Full Suite Run**: Execute `pytest` across all modules to ensure no regression from recent refactors.
-2. **Coverage Analysis**: Run `coverage.py` to identify untested logic paths in the new strategists.
-3. **Documentation Sync**: Ensure `cortex.py` can ingest the new `.qmd` artifacts correctly.
-4. **Strategist Expansion**: Implement the `Valkyrie` strategist for dead code removal (using `vulture`).
+## ⏭️ Start Here Next (Phase 34 & 35)
 
-## ⏭️ Start Here Next (Strategic Expansion)
+### 34. Annexation & Background Vigil
+- [ ] **Annexation Execution**: Activate the `execution` mode for `annex.py` to auto-remediate Documentation/Linguistic breaches project-wide.
+- [ ] **Heimdall Persistence**: Hardened the security monitor to run in background mode with a persistent log rotation.
+- [ ] **Gauntlet Hardening**: Integrate the SPRT learning loop as the default repair mechanism for the `gauntlet` workflow.
 
-### 1. The Raven's Eye (Enhanced Monitoring)
+## 🏁 Execution Plan
+1. **Forge Annex Execution**: Link `HeimdallWarden` to the script/doc transmutation engine in `src/core/annex.py`.
+2. **Background Heimdall**: Implement a simple daemon for `heimdall --monitor` with log-scoping.
 
 ## 📜 Recent Continuity (Git)
 ```text
-b3e77ef [ODIN] Session 45: The Six-Pillar Refinement & Raven Upgrade
-a963b08 [ODIN] The Six-Pillar Refinement (Complete)
-abc8119 [ALFRED/ODIN] The Odin Lore Restoration
-2cda019 [ODIN] Session 43: Post-Refactor Verification & Terminal Fix
-498d4fe [ODIN] Operation Yggdrasil: Stabilization & Infrastructure
+No git log entries found.
 ```
 
 ## 🛠️ System Health

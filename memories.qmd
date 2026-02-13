@@ -88,5 +88,7 @@ saved_memory:
     - Aggressive Process Termination: Use PowerShell-based tree killing in the `C*` dispatcher to neutralize the Sentinel and its orphans (`pytest`, etc.) surgically.
     - Dirty Working Tree Stall: dynamic plan artifacts (e.g., `ANNEXATION_PLAN.qmd`) must be added to `.gitignore`. If they are tracked, the Sentinel will detect its own plan-writing as a "Dirty" state and stall.
     - Gauntlet PYTHONPATH: Ensure both project root and `.agent/scripts` are in `PYTHONPATH` during Gauntlet runs to resolve internal engine imports reliably.
+    - Encoding Sensitivity: Force UTF-8 encoding in all `open()` and `read_text()` calls to prevent `UnicodeDecodeError` on non-English environments.
+    - MagicMock Serialization: When recording traces, convert `MagicMock` objects to strings or dictionaries before JSON serialization to avoid TypeErrors.
 deletions: []
 ```

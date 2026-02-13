@@ -7,7 +7,9 @@ from datetime import datetime
 def get_git_summary():
     try:
         res = subprocess.run(["git", "log", "-n", "5", "--oneline"], capture_output=True, text=True)
-        return res.stdout.strip()
+        if res and res.stdout:
+            return res.stdout.strip()
+        return "No git log entries found."
     except (subprocess.SubprocessError, OSError):
         return "Git history unavailable."
 
@@ -25,7 +27,14 @@ def get_task_status():
     return "Could not parse next tasks."
 
 def update_manifest():
-    root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    # Robust root resolution: walk up until config.json or .git is found
+    current = os.path.dirname(os.path.abspath(__file__))
+    root = current
+    while root != os.path.dirname(root):
+        if os.path.exists(os.path.join(root, "config.json")) or os.path.exists(os.path.join(root, ".git")):
+            break
+        root = os.path.dirname(root)
+    
     cpath = os.path.join(root, "config.json")
     mpath = os.path.join(root, "GEMINI.qmd")
     

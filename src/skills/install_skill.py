@@ -12,8 +12,10 @@ from ui import HUD
 
 
 def _sanitize_skill_name(name):
-    sanitized = name.replace("/", "").replace("\\", "").replace("..", "")
-    return sanitized if re.match(r'^[a-zA-Z0-9_-]+$', sanitized) else None
+    """Rejects names with illegal characters or path traversal attempts."""
+    if not re.match(r'^[a-zA-Z0-9_-]+$', name):
+        return None
+    return name
 
 def _validate_path(base, target):
     try:
@@ -59,7 +61,20 @@ def _promote_skill(quarantine, dest):
         return False
 
 def install_skill(skill_name, target_root=None):
-    """[ALFRED] Refactored skill installer with isolated sub-phases and path validation."""
+    """
+    [ALFRED] Refactored skill installer with isolated sub-phases and path validation.
+    
+    Args:
+        skill_name: The slug of the skill to install from the global registry.
+        target_root: Optional override for the project root.
+        
+    Phases:
+        1. Pre-install: Sanitize name and verify config.
+        2. Quarantine: Copy skill to temporary zone for audit.
+        3. Integrity: Verify presence of SKILL metadata.
+        4. Security: Run AST-based security scan.
+        5. Promotion: Move verified skill to final destination.
+    """
     name = _sanitize_skill_name(skill_name)
     base = target_root or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     config, err = _get_config(base)

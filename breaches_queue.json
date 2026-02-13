@@ -1,0 +1,3696 @@
+{
+  "ANNEX": [
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "scripts/fix_muninn.py",
+      "action": "Scaffold test for fix_muninn.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "scripts/scout_targets.py",
+      "action": "Scaffold test for scout_targets.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "sterileAgent/fishtest.py",
+      "action": "Scaffold test for fishtest.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/core/annex.py",
+      "action": "Scaffold test for annex.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/core/cstar_dispatcher.py",
+      "action": "Scaffold test for cstar_dispatcher.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/core/edda.py",
+      "action": "Scaffold test for edda.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/core/personas.py",
+      "action": "Scaffold test for personas.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/core/set_persona.py",
+      "action": "Scaffold test for set_persona.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/core/sv_engine.py",
+      "action": "Scaffold test for sv_engine.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/core/ui.py",
+      "action": "Scaffold test for ui.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/core/utils.py",
+      "action": "Scaffold test for utils.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/sentinel/code_sanitizer.py",
+      "action": "Scaffold test for code_sanitizer.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/sentinel/harvest_responses.py",
+      "action": "Scaffold test for harvest_responses.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/sentinel/main_loop.py",
+      "action": "Scaffold test for main_loop.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/sentinel/muninn.py",
+      "action": "Scaffold test for muninn.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/sentinel/_bootstrap.py",
+      "action": "Scaffold test for _bootstrap.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/skills/install_skill.py",
+      "action": "Scaffold test for install_skill.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/skills/skill_forge.py",
+      "action": "Scaffold test for skill_forge.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/synapse/synapse_auth.py",
+      "action": "Scaffold test for synapse_auth.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/synapse/synapse_sync.py",
+      "action": "Scaffold test for synapse_sync.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/tools/benchmark_engine.py",
+      "action": "Scaffold test for benchmark_engine.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/tools/code_sentinel.py",
+      "action": "Scaffold test for code_sentinel.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/tools/compile_failure_report.py",
+      "action": "Scaffold test for compile_failure_report.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/tools/compile_session_traces.py",
+      "action": "Scaffold test for compile_session_traces.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/tools/debt_viz.py",
+      "action": "Scaffold test for debt_viz.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/tools/generate_tests.py",
+      "action": "Scaffold test for generate_tests.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/tools/latency_check.py",
+      "action": "Scaffold test for latency_check.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/tools/lightning_rod.py",
+      "action": "Scaffold test for lightning_rod.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/tools/merge_traces.py",
+      "action": "Scaffold test for merge_traces.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/tools/migrate_to_qmd.py",
+      "action": "Scaffold test for migrate_to_qmd.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/tools/network_watcher.py",
+      "action": "Scaffold test for network_watcher.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/tools/overwatch.py",
+      "action": "Scaffold test for overwatch.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/tools/security_scan.py",
+      "action": "Scaffold test for security_scan.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/tools/sentinel_perf.py",
+      "action": "Scaffold test for sentinel_perf.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/tools/trace_viz.py",
+      "action": "Scaffold test for trace_viz.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/tools/tune_weights.py",
+      "action": "Scaffold test for tune_weights.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/tools/update_gemini_manifest.py",
+      "action": "Scaffold test for update_gemini_manifest.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/tools/data/dedupe_corrections.py",
+      "action": "Scaffold test for dedupe_corrections.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/tools/data/expand_thesaurus.py",
+      "action": "Scaffold test for expand_thesaurus.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/tools/data/overfit_corrections.py",
+      "action": "Scaffold test for overfit_corrections.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/tools/data/sanitize_thesaurus.py",
+      "action": "Scaffold test for sanitize_thesaurus.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/tools/debug/audit_dialogue.py",
+      "action": "Scaffold test for audit_dialogue.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/tools/debug/debug_fishtest.py",
+      "action": "Scaffold test for debug_fishtest.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/tools/debug/debug_fishtest_phase2.py",
+      "action": "Scaffold test for debug_fishtest_phase2.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/tools/debug/debug_perf.py",
+      "action": "Scaffold test for debug_perf.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/tools/debug/diag_engine.py",
+      "action": "Scaffold test for diag_engine.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/tools/debug/quick_check.py",
+      "action": "Scaffold test for quick_check.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/tools/debug/verify_fish.py",
+      "action": "Scaffold test for verify_fish.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/skills/local/workflow-analyst/analyze_workflow.py",
+      "action": "Scaffold test for analyze_workflow.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/skills/local/drafts/workflow_backup_sequence_steps_gen/backup_sequence_steps.py",
+      "action": "Scaffold test for backup_sequence_steps.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/games/odin_protocol/main.py",
+      "action": "Scaffold test for main.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/games/odin_protocol/engine/adjudicator.py",
+      "action": "Scaffold test for adjudicator.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/games/odin_protocol/engine/gm_client.py",
+      "action": "Scaffold test for gm_client.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/games/odin_protocol/engine/logic.py",
+      "action": "Scaffold test for logic.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/games/odin_protocol/engine/models.py",
+      "action": "Scaffold test for models.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/games/odin_protocol/engine/persistence.py",
+      "action": "Scaffold test for persistence.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/games/odin_protocol/engine/rng.py",
+      "action": "Scaffold test for rng.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/games/odin_protocol/engine/scenarios.py",
+      "action": "Scaffold test for scenarios.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/core/engine/alfred_observer.py",
+      "action": "Scaffold test for alfred_observer.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/core/engine/cortex.py",
+      "action": "Scaffold test for cortex.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/core/engine/dialogue.py",
+      "action": "Scaffold test for dialogue.py",
+      "severity": "CRITICAL"
+    },
+    {
+      "type": "LINSCOTT_BREACH",
+      "file": "src/core/engine/vector.py",
+      "action": "Scaffold test for vector.py",
+      "severity": "CRITICAL"
+    }
+  ],
+  "VALKYRIE": [],
+  "MIMIR": [
+    {
+      "type": "MIMIR_BREACH",
+      "file": "scripts\\scout_targets.py",
+      "action": "Simplify Complexity: scout (CC: 12)",
+      "severity": "MEDIUM",
+      "line": 15
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "sterileAgent\\fishtest.py",
+      "action": "Simplify Complexity: run_case (CC: 16)",
+      "severity": "MEDIUM",
+      "line": 116
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "sterileAgent\\fishtest.py",
+      "action": "Simplify Complexity: execute_suite (CC: 14)",
+      "severity": "MEDIUM",
+      "line": 148
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\core\\annex.py",
+      "action": "Simplify Complexity: HeimdallWarden (CC: 11)",
+      "severity": "MEDIUM",
+      "line": 20
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\core\\annex.py",
+      "action": "Simplify Complexity: _should_ignore (CC: 12)",
+      "severity": "MEDIUM",
+      "line": 52
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\core\\annex.py",
+      "action": "Simplify Complexity: _audit_code (CC: 16)",
+      "severity": "MEDIUM",
+      "line": 72
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\core\\annex.py",
+      "action": "Simplify Complexity: _generate_plan (CC: 16)",
+      "severity": "MEDIUM",
+      "line": 126
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\core\\set_persona.py",
+      "action": "Simplify Complexity: switch (CC: 12)",
+      "severity": "MEDIUM",
+      "line": 125
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\core\\sv_engine.py",
+      "action": "Simplify Complexity: run (CC: 12)",
+      "severity": "MEDIUM",
+      "line": 189
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\sentinel\\code_sanitizer.py",
+      "action": "Simplify Complexity: validate_imports (CC: 18)",
+      "severity": "MEDIUM",
+      "line": 33
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\sentinel\\code_sanitizer.py",
+      "action": "Simplify Complexity: repair_syntax (CC: 13)",
+      "severity": "MEDIUM",
+      "line": 102
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\sentinel\\code_sanitizer.py",
+      "action": "Simplify Complexity: repair_imports (CC: 23)",
+      "severity": "MEDIUM",
+      "line": 159
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\sentinel\\code_sanitizer.py",
+      "action": "Simplify Complexity: classify_error (CC: 13)",
+      "severity": "MEDIUM",
+      "line": 454
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\sentinel\\code_sanitizer.py",
+      "action": "Simplify Complexity: extract_error_summary (CC: 14)",
+      "severity": "MEDIUM",
+      "line": 482
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\sentinel\\main_loop.py",
+      "action": "Simplify Complexity: daemon_loop (CC: 16)",
+      "severity": "MEDIUM",
+      "line": 186
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Simplify Complexity: scan (CC: 12)",
+      "severity": "MEDIUM",
+      "line": 280
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Simplify Complexity: scan (CC: 16)",
+      "severity": "MEDIUM",
+      "line": 402
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Simplify Complexity: run (CC: 39)",
+      "severity": "MEDIUM",
+      "line": 559
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\skills\\install_skill.py",
+      "action": "Simplify Complexity: install_skill (CC: 19)",
+      "severity": "MEDIUM",
+      "line": 63
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\tools\\code_sentinel.py",
+      "action": "Simplify Complexity: run_ruff (CC: 13)",
+      "severity": "MEDIUM",
+      "line": 122
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\tools\\compile_failure_report.py",
+      "action": "Simplify Complexity: compile_report (CC: 12)",
+      "severity": "MEDIUM",
+      "line": 11
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\tools\\compile_session_traces.py",
+      "action": "Simplify Complexity: render (CC: 13)",
+      "severity": "MEDIUM",
+      "line": 45
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\tools\\debt_viz.py",
+      "action": "Simplify Complexity: analyze (CC: 13)",
+      "severity": "MEDIUM",
+      "line": 66
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\tools\\trace_viz.py",
+      "action": "Simplify Complexity: mode_war_room (CC: 11)",
+      "severity": "MEDIUM",
+      "line": 250
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\skills\\local\\workflow-analyst\\analyze_workflow.py",
+      "action": "Simplify Complexity: analyze (CC: 12)",
+      "severity": "MEDIUM",
+      "line": 15
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\games\\odin_protocol\\main.py",
+      "action": "Simplify Complexity: render_manifest (CC: 18)",
+      "severity": "MEDIUM",
+      "line": 105
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\games\\odin_protocol\\main.py",
+      "action": "Simplify Complexity: briefing (CC: 13)",
+      "severity": "MEDIUM",
+      "line": 170
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\games\\odin_protocol\\main.py",
+      "action": "Simplify Complexity: play_turn (CC: 27)",
+      "severity": "MEDIUM",
+      "line": 337
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\games\\odin_protocol\\engine\\logic.py",
+      "action": "Simplify Complexity: calculate_effective_stats (CC: 17)",
+      "severity": "MEDIUM",
+      "line": 128
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\games\\odin_protocol\\engine\\scenarios.py",
+      "action": "Simplify Complexity: _generate_internal (CC: 20)",
+      "severity": "MEDIUM",
+      "line": 181
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\games\\odin_protocol\\engine\\scenarios.py",
+      "action": "Simplify Complexity: _get_or_create_campaign (CC: 28)",
+      "severity": "MEDIUM",
+      "line": 341
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\core\\engine\\cortex.py",
+      "action": "Simplify Complexity: _ingest (CC: 11)",
+      "severity": "MEDIUM",
+      "line": 41
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\core\\engine\\vector.py",
+      "action": "Simplify Complexity: _load_thesaurus (CC: 12)",
+      "severity": "MEDIUM",
+      "line": 90
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\core\\engine\\vector.py",
+      "action": "Simplify Complexity: expand_query (CC: 15)",
+      "severity": "MEDIUM",
+      "line": 148
+    },
+    {
+      "type": "MIMIR_BREACH",
+      "file": "src\\core\\engine\\vector.py",
+      "action": "Simplify Complexity: search (CC: 32)",
+      "severity": "MEDIUM",
+      "line": 250
+    }
+  ],
+  "EDDA": [
+    {
+      "type": "EDDA_BREACH",
+      "file": "scripts\\fix_muninn.py",
+      "action": "Weave Saga (Docstring) for standardize_muninn in fix_muninn.py",
+      "severity": "LOW",
+      "line": 4
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "scripts\\scout_targets.py",
+      "action": "Weave Saga (Docstring) for scout in scout_targets.py",
+      "severity": "LOW",
+      "line": 15
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "scripts\\verify_valkyrie_real.py",
+      "action": "Weave Saga (Docstring) for hello in verify_valkyrie_real.py",
+      "severity": "LOW",
+      "line": 1
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "sterileAgent\\fishtest.py",
+      "action": "Weave Saga (Docstring) for __init__ in fishtest.py",
+      "severity": "LOW",
+      "line": 59
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "sterileAgent\\fishtest.py",
+      "action": "Weave Saga (Docstring) for __init__ in fishtest.py",
+      "severity": "LOW",
+      "line": 83
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "sterileAgent\\fishtest.py",
+      "action": "Weave Saga (Docstring) for HUD in fishtest.py",
+      "severity": "LOW",
+      "line": 38
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "sterileAgent\\fishtest.py",
+      "action": "Weave Saga (Docstring) for box_top in fishtest.py",
+      "severity": "LOW",
+      "line": 43
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "sterileAgent\\fishtest.py",
+      "action": "Weave Saga (Docstring) for box_row in fishtest.py",
+      "severity": "LOW",
+      "line": 45
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "sterileAgent\\fishtest.py",
+      "action": "Weave Saga (Docstring) for box_separator in fishtest.py",
+      "severity": "LOW",
+      "line": 47
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "sterileAgent\\fishtest.py",
+      "action": "Weave Saga (Docstring) for box_bottom in fishtest.py",
+      "severity": "LOW",
+      "line": 49
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "sterileAgent\\fishtest.py",
+      "action": "Weave Saga (Docstring) for log in fishtest.py",
+      "severity": "LOW",
+      "line": 51
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "sterileAgent\\fishtest.py",
+      "action": "Weave Saga (Docstring) for progress_bar in fishtest.py",
+      "severity": "LOW",
+      "line": 53
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Weave Saga (Docstring) for HUD in sv_engine.py",
+      "severity": "LOW",
+      "line": 8
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Weave Saga (Docstring) for SovereignVector in sv_engine.py",
+      "severity": "LOW",
+      "line": 43
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Weave Saga (Docstring) for box_top in sv_engine.py",
+      "severity": "LOW",
+      "line": 18
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Weave Saga (Docstring) for box_row in sv_engine.py",
+      "severity": "LOW",
+      "line": 25
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Weave Saga (Docstring) for box_separator in sv_engine.py",
+      "severity": "LOW",
+      "line": 29
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Weave Saga (Docstring) for box_bottom in sv_engine.py",
+      "severity": "LOW",
+      "line": 33
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Weave Saga (Docstring) for progress_bar in sv_engine.py",
+      "severity": "LOW",
+      "line": 37
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Weave Saga (Docstring) for __init__ in sv_engine.py",
+      "severity": "LOW",
+      "line": 44
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Weave Saga (Docstring) for _load_json in sv_engine.py",
+      "severity": "LOW",
+      "line": 52
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Weave Saga (Docstring) for _load_thesaurus in sv_engine.py",
+      "severity": "LOW",
+      "line": 60
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Weave Saga (Docstring) for tokenize in sv_engine.py",
+      "severity": "LOW",
+      "line": 81
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Weave Saga (Docstring) for expand_query in sv_engine.py",
+      "severity": "LOW",
+      "line": 85
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Weave Saga (Docstring) for add_skill in sv_engine.py",
+      "severity": "LOW",
+      "line": 95
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Weave Saga (Docstring) for build_index in sv_engine.py",
+      "severity": "LOW",
+      "line": 99
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Weave Saga (Docstring) for _vectorize in sv_engine.py",
+      "severity": "LOW",
+      "line": 112
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Weave Saga (Docstring) for similarity in sv_engine.py",
+      "severity": "LOW",
+      "line": 122
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Weave Saga (Docstring) for search in sv_engine.py",
+      "severity": "LOW",
+      "line": 129
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Weave Saga (Docstring) for load_skills_from_dir in sv_engine.py",
+      "severity": "LOW",
+      "line": 146
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\core\\annex.py",
+      "action": "Weave Saga (Docstring) for HeimdallWarden in annex.py",
+      "severity": "LOW",
+      "line": 20
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\core\\annex.py",
+      "action": "Weave Saga (Docstring) for __init__ in annex.py",
+      "severity": "LOW",
+      "line": 21
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\core\\cstar_dispatcher.py",
+      "action": "Weave Saga (Docstring) for __init__ in cstar_dispatcher.py",
+      "severity": "LOW",
+      "line": 29
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\core\\edda.py",
+      "action": "Weave Saga (Docstring) for EddaWeaver in edda.py",
+      "severity": "LOW",
+      "line": 23
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\core\\edda.py",
+      "action": "Weave Saga (Docstring) for __init__ in edda.py",
+      "severity": "LOW",
+      "line": 24
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\core\\edda.py",
+      "action": "Weave Saga (Docstring) for replace_alert in edda.py",
+      "severity": "LOW",
+      "line": 108
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\core\\personas.py",
+      "action": "Weave Saga (Docstring) for __init__ in personas.py",
+      "severity": "LOW",
+      "line": 13
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\core\\personas.py",
+      "action": "Weave Saga (Docstring) for get_voice in personas.py",
+      "severity": "LOW",
+      "line": 61
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\core\\personas.py",
+      "action": "Weave Saga (Docstring) for _create_cursor_rules in personas.py",
+      "severity": "LOW",
+      "line": 146
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\core\\personas.py",
+      "action": "Weave Saga (Docstring) for _create_standard_agents in personas.py",
+      "severity": "LOW",
+      "line": 176
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\core\\personas.py",
+      "action": "Weave Saga (Docstring) for get_voice in personas.py",
+      "severity": "LOW",
+      "line": 198
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\core\\personas.py",
+      "action": "Weave Saga (Docstring) for _create_cursor_rules in personas.py",
+      "severity": "LOW",
+      "line": 236
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\core\\personas.py",
+      "action": "Weave Saga (Docstring) for _create_minimal_agents in personas.py",
+      "severity": "LOW",
+      "line": 266
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\core\\personas.py",
+      "action": "Weave Saga (Docstring) for _res in personas.py",
+      "severity": "LOW",
+      "line": 68
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\core\\report_engine.py",
+      "action": "Weave Saga (Docstring) for __init__ in report_engine.py",
+      "severity": "LOW",
+      "line": 23
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\core\\set_persona.py",
+      "action": "Weave Saga (Docstring) for __init__ in set_persona.py",
+      "severity": "LOW",
+      "line": 25
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\core\\sv_engine.py",
+      "action": "Weave Saga (Docstring) for __init__ in sv_engine.py",
+      "severity": "LOW",
+      "line": 38
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\sentinel\\harvest_responses.py",
+      "action": "Weave Saga (Docstring) for __init__ in harvest_responses.py",
+      "severity": "LOW",
+      "line": 36
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\sentinel\\main_loop.py",
+      "action": "Weave Saga (Docstring) for __init__ in main_loop.py",
+      "severity": "LOW",
+      "line": 37
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\sentinel\\main_loop.py",
+      "action": "Weave Saga (Docstring) for shutdown in main_loop.py",
+      "severity": "LOW",
+      "line": 42
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Weave Saga (Docstring) for Muninn in muninn.py",
+      "severity": "LOW",
+      "line": 539
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Weave Saga (Docstring) for __init__ in muninn.py",
+      "severity": "LOW",
+      "line": 67
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Weave Saga (Docstring) for status in muninn.py",
+      "severity": "LOW",
+      "line": 91
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Weave Saga (Docstring) for __init__ in muninn.py",
+      "severity": "LOW",
+      "line": 106
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Weave Saga (Docstring) for __init__ in muninn.py",
+      "severity": "LOW",
+      "line": 194
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Weave Saga (Docstring) for scan in muninn.py",
+      "severity": "LOW",
+      "line": 197
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Weave Saga (Docstring) for __init__ in muninn.py",
+      "severity": "LOW",
+      "line": 243
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Weave Saga (Docstring) for scan in muninn.py",
+      "severity": "LOW",
+      "line": 246
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Weave Saga (Docstring) for __init__ in muninn.py",
+      "severity": "LOW",
+      "line": 277
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Weave Saga (Docstring) for scan in muninn.py",
+      "severity": "LOW",
+      "line": 280
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Weave Saga (Docstring) for __init__ in muninn.py",
+      "severity": "LOW",
+      "line": 311
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Weave Saga (Docstring) for scan in muninn.py",
+      "severity": "LOW",
+      "line": 315
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Weave Saga (Docstring) for __init__ in muninn.py",
+      "severity": "LOW",
+      "line": 359
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Weave Saga (Docstring) for scan in muninn.py",
+      "severity": "LOW",
+      "line": 362
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Weave Saga (Docstring) for __init__ in muninn.py",
+      "severity": "LOW",
+      "line": 399
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Weave Saga (Docstring) for scan in muninn.py",
+      "severity": "LOW",
+      "line": 402
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Weave Saga (Docstring) for __init__ in muninn.py",
+      "severity": "LOW",
+      "line": 462
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Weave Saga (Docstring) for _load_state in muninn.py",
+      "severity": "LOW",
+      "line": 467
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Weave Saga (Docstring) for _save_state in muninn.py",
+      "severity": "LOW",
+      "line": 475
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Weave Saga (Docstring) for is_locked in muninn.py",
+      "severity": "LOW",
+      "line": 479
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Weave Saga (Docstring) for __init__ in muninn.py",
+      "severity": "LOW",
+      "line": 540
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Weave Saga (Docstring) for _select_breach_target in muninn.py",
+      "severity": "LOW",
+      "line": 917
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Weave Saga (Docstring) for _architect_gherkin in muninn.py",
+      "severity": "LOW",
+      "line": 993
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Weave Saga (Docstring) for _consult_council in muninn.py",
+      "severity": "LOW",
+      "line": 1199
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\skills\\install_skill.py",
+      "action": "Weave Saga (Docstring) for _validate_path in install_skill.py",
+      "severity": "LOW",
+      "line": 20
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\skills\\install_skill.py",
+      "action": "Weave Saga (Docstring) for _get_config in install_skill.py",
+      "severity": "LOW",
+      "line": 26
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\skills\\install_skill.py",
+      "action": "Weave Saga (Docstring) for _verify_integrity in install_skill.py",
+      "severity": "LOW",
+      "line": 32
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\skills\\install_skill.py",
+      "action": "Weave Saga (Docstring) for _run_security_scan in install_skill.py",
+      "severity": "LOW",
+      "line": 39
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\skills\\skill_forge.py",
+      "action": "Weave Saga (Docstring) for main in skill_forge.py",
+      "severity": "LOW",
+      "line": 426
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\skills\\skill_forge.py",
+      "action": "Weave Saga (Docstring) for __init__ in skill_forge.py",
+      "severity": "LOW",
+      "line": 72
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\skills\\skill_forge.py",
+      "action": "Weave Saga (Docstring) for analyze_pattern in skill_forge.py",
+      "severity": "LOW",
+      "line": 154
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\skills\\skill_forge.py",
+      "action": "Weave Saga (Docstring) for select_archetype in skill_forge.py",
+      "severity": "LOW",
+      "line": 172
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\skills\\skill_forge.py",
+      "action": "Weave Saga (Docstring) for _extract_subject in skill_forge.py",
+      "severity": "LOW",
+      "line": 183
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\skills\\skill_forge.py",
+      "action": "Weave Saga (Docstring) for _generate_workflow_steps in skill_forge.py",
+      "severity": "LOW",
+      "line": 195
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\skills\\skill_forge.py",
+      "action": "Weave Saga (Docstring) for _generate_workflow_template in skill_forge.py",
+      "severity": "LOW",
+      "line": 203
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\skills\\skill_forge.py",
+      "action": "Weave Saga (Docstring) for _generate_test_template in skill_forge.py",
+      "severity": "LOW",
+      "line": 235
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\skills\\skill_forge.py",
+      "action": "Weave Saga (Docstring) for _generate_scanner_template in skill_forge.py",
+      "severity": "LOW",
+      "line": 265
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\skills\\skill_forge.py",
+      "action": "Weave Saga (Docstring) for _generate_utility_template in skill_forge.py",
+      "severity": "LOW",
+      "line": 305
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\skills\\skill_forge.py",
+      "action": "Weave Saga (Docstring) for _generate_scraper_template in skill_forge.py",
+      "severity": "LOW",
+      "line": 335
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\skills\\skill_forge.py",
+      "action": "Weave Saga (Docstring) for synthesize_skill in skill_forge.py",
+      "severity": "LOW",
+      "line": 366
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\skills\\skill_forge.py",
+      "action": "Weave Saga (Docstring) for validate_skill in skill_forge.py",
+      "severity": "LOW",
+      "line": 379
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\skills\\skill_forge.py",
+      "action": "Weave Saga (Docstring) for _save_draft in skill_forge.py",
+      "severity": "LOW",
+      "line": 400
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\synapse\\synapse_auth.py",
+      "action": "Weave Saga (Docstring) for __init__ in synapse_auth.py",
+      "severity": "LOW",
+      "line": 19
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\synapse\\synapse_auth.py",
+      "action": "Weave Saga (Docstring) for _load_secret in synapse_auth.py",
+      "severity": "LOW",
+      "line": 23
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\synapse\\synapse_sync.py",
+      "action": "Weave Saga (Docstring) for __init__ in synapse_sync.py",
+      "severity": "LOW",
+      "line": 30
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\synapse\\synapse_sync.py",
+      "action": "Weave Saga (Docstring) for _get_host in synapse_sync.py",
+      "severity": "LOW",
+      "line": 35
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\synapse\\synapse_sync.py",
+      "action": "Weave Saga (Docstring) for _load in synapse_sync.py",
+      "severity": "LOW",
+      "line": 42
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\synapse\\synapse_sync.py",
+      "action": "Weave Saga (Docstring) for _save in synapse_sync.py",
+      "severity": "LOW",
+      "line": 51
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\synapse\\synapse_sync.py",
+      "action": "Weave Saga (Docstring) for check in synapse_sync.py",
+      "severity": "LOW",
+      "line": 61
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\synapse\\synapse_sync.py",
+      "action": "Weave Saga (Docstring) for record in synapse_sync.py",
+      "severity": "LOW",
+      "line": 76
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\synapse\\synapse_sync.py",
+      "action": "Weave Saga (Docstring) for __init__ in synapse_sync.py",
+      "severity": "LOW",
+      "line": 88
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\synapse\\synapse_sync.py",
+      "action": "Weave Saga (Docstring) for run in synapse_sync.py",
+      "severity": "LOW",
+      "line": 91
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\synapse\\synapse_sync.py",
+      "action": "Weave Saga (Docstring) for check_permissions in synapse_sync.py",
+      "severity": "LOW",
+      "line": 106
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\synapse\\synapse_sync.py",
+      "action": "Weave Saga (Docstring) for __init__ in synapse_sync.py",
+      "severity": "LOW",
+      "line": 126
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\synapse\\synapse_sync.py",
+      "action": "Weave Saga (Docstring) for _extract_corrections in synapse_sync.py",
+      "severity": "LOW",
+      "line": 136
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\synapse\\synapse_sync.py",
+      "action": "Weave Saga (Docstring) for _extract_patterns in synapse_sync.py",
+      "severity": "LOW",
+      "line": 156
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\synapse\\synapse_sync.py",
+      "action": "Weave Saga (Docstring) for __init__ in synapse_sync.py",
+      "severity": "LOW",
+      "line": 181
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\synapse\\synapse_sync.py",
+      "action": "Weave Saga (Docstring) for _load_config in synapse_sync.py",
+      "severity": "LOW",
+      "line": 198
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\synapse\\synapse_sync.py",
+      "action": "Weave Saga (Docstring) for _resolve_core in synapse_sync.py",
+      "severity": "LOW",
+      "line": 208
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\synapse\\synapse_sync.py",
+      "action": "Weave Saga (Docstring) for _sync_skills in synapse_sync.py",
+      "severity": "LOW",
+      "line": 238
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\synapse\\synapse_sync.py",
+      "action": "Weave Saga (Docstring) for _sync_corrections in synapse_sync.py",
+      "severity": "LOW",
+      "line": 256
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\code_sentinel.py",
+      "action": "Weave Saga (Docstring) for __init__ in code_sentinel.py",
+      "severity": "LOW",
+      "line": 59
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\code_sentinel.py",
+      "action": "Weave Saga (Docstring) for _load_config in code_sentinel.py",
+      "severity": "LOW",
+      "line": 69
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\compile_failure_report.py",
+      "action": "Weave Saga (Docstring) for compile_report in compile_failure_report.py",
+      "severity": "LOW",
+      "line": 11
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\compile_session_traces.py",
+      "action": "Weave Saga (Docstring) for __init__ in compile_session_traces.py",
+      "severity": "LOW",
+      "line": 11
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\compile_session_traces.py",
+      "action": "Weave Saga (Docstring) for get_summary in compile_session_traces.py",
+      "severity": "LOW",
+      "line": 14
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\compile_session_traces.py",
+      "action": "Weave Saga (Docstring) for _group_by_persona in compile_session_traces.py",
+      "severity": "LOW",
+      "line": 25
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\compile_session_traces.py",
+      "action": "Weave Saga (Docstring) for _get_top_performer in compile_session_traces.py",
+      "severity": "LOW",
+      "line": 33
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\compile_session_traces.py",
+      "action": "Weave Saga (Docstring) for __init__ in compile_session_traces.py",
+      "severity": "LOW",
+      "line": 42
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\compile_session_traces.py",
+      "action": "Weave Saga (Docstring) for render in compile_session_traces.py",
+      "severity": "LOW",
+      "line": 45
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\debt_viz.py",
+      "action": "Weave Saga (Docstring) for __init__ in debt_viz.py",
+      "severity": "LOW",
+      "line": 50
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\debt_viz.py",
+      "action": "Weave Saga (Docstring) for HUD in debt_viz.py",
+      "severity": "LOW",
+      "line": 20
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\debt_viz.py",
+      "action": "Weave Saga (Docstring) for box_top in debt_viz.py",
+      "severity": "LOW",
+      "line": 24
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\debt_viz.py",
+      "action": "Weave Saga (Docstring) for box_row in debt_viz.py",
+      "severity": "LOW",
+      "line": 26
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\debt_viz.py",
+      "action": "Weave Saga (Docstring) for box_separator in debt_viz.py",
+      "severity": "LOW",
+      "line": 28
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\debt_viz.py",
+      "action": "Weave Saga (Docstring) for box_bottom in debt_viz.py",
+      "severity": "LOW",
+      "line": 30
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\debt_viz.py",
+      "action": "Weave Saga (Docstring) for log in debt_viz.py",
+      "severity": "LOW",
+      "line": 32
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\generate_tests.py",
+      "action": "Weave Saga (Docstring) for generate_cases in generate_tests.py",
+      "severity": "LOW",
+      "line": 8
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\latency_check.py",
+      "action": "Weave Saga (Docstring) for __init__ in latency_check.py",
+      "severity": "LOW",
+      "line": 21
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\lightning_rod.py",
+      "action": "Weave Saga (Docstring) for optimize_file in lightning_rod.py",
+      "severity": "LOW",
+      "line": 26
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\lightning_rod.py",
+      "action": "Weave Saga (Docstring) for HUD in lightning_rod.py",
+      "severity": "LOW",
+      "line": 12
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\lightning_rod.py",
+      "action": "Weave Saga (Docstring) for box_top in lightning_rod.py",
+      "severity": "LOW",
+      "line": 20
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\lightning_rod.py",
+      "action": "Weave Saga (Docstring) for box_row in lightning_rod.py",
+      "severity": "LOW",
+      "line": 22
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\lightning_rod.py",
+      "action": "Weave Saga (Docstring) for box_bottom in lightning_rod.py",
+      "severity": "LOW",
+      "line": 24
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\migrate_to_qmd.py",
+      "action": "Weave Saga (Docstring) for main in migrate_to_qmd.py",
+      "severity": "LOW",
+      "line": 50
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\network_watcher.py",
+      "action": "Weave Saga (Docstring) for __init__ in network_watcher.py",
+      "severity": "LOW",
+      "line": 36
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\network_watcher.py",
+      "action": "Weave Saga (Docstring) for process in network_watcher.py",
+      "severity": "LOW",
+      "line": 43
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\network_watcher.py",
+      "action": "Weave Saga (Docstring) for __init__ in network_watcher.py",
+      "severity": "LOW",
+      "line": 76
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\network_watcher.py",
+      "action": "Weave Saga (Docstring) for watch in network_watcher.py",
+      "severity": "LOW",
+      "line": 80
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\overwatch.py",
+      "action": "Weave Saga (Docstring) for Overwatch in overwatch.py",
+      "severity": "LOW",
+      "line": 83
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\overwatch.py",
+      "action": "Weave Saga (Docstring) for __init__ in overwatch.py",
+      "severity": "LOW",
+      "line": 17
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\overwatch.py",
+      "action": "Weave Saga (Docstring) for collect in overwatch.py",
+      "severity": "LOW",
+      "line": 23
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\overwatch.py",
+      "action": "Weave Saga (Docstring) for __init__ in overwatch.py",
+      "severity": "LOW",
+      "line": 40
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\overwatch.py",
+      "action": "Weave Saga (Docstring) for render_header in overwatch.py",
+      "severity": "LOW",
+      "line": 43
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\overwatch.py",
+      "action": "Weave Saga (Docstring) for _color_cell in overwatch.py",
+      "severity": "LOW",
+      "line": 57
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\overwatch.py",
+      "action": "Weave Saga (Docstring) for update_latency in overwatch.py",
+      "severity": "LOW",
+      "line": 69
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\overwatch.py",
+      "action": "Weave Saga (Docstring) for poll in overwatch.py",
+      "severity": "LOW",
+      "line": 78
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\overwatch.py",
+      "action": "Weave Saga (Docstring) for __init__ in overwatch.py",
+      "severity": "LOW",
+      "line": 84
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\overwatch.py",
+      "action": "Weave Saga (Docstring) for run in overwatch.py",
+      "severity": "LOW",
+      "line": 92
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\overwatch.py",
+      "action": "Weave Saga (Docstring) for _handle_input in overwatch.py",
+      "severity": "LOW",
+      "line": 115
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\overwatch.py",
+      "action": "Weave Saga (Docstring) for _check_delta in overwatch.py",
+      "severity": "LOW",
+      "line": 127
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\overwatch.py",
+      "action": "Weave Saga (Docstring) for _measure_latency in overwatch.py",
+      "severity": "LOW",
+      "line": 137
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\security_scan.py",
+      "action": "Weave Saga (Docstring) for SecurityScanner in security_scan.py",
+      "severity": "LOW",
+      "line": 18
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\security_scan.py",
+      "action": "Weave Saga (Docstring) for __init__ in security_scan.py",
+      "severity": "LOW",
+      "line": 25
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\security_scan.py",
+      "action": "Weave Saga (Docstring) for _regex_scan in security_scan.py",
+      "severity": "LOW",
+      "line": 58
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\security_scan.py",
+      "action": "Weave Saga (Docstring) for _analyze_ast in security_scan.py",
+      "severity": "LOW",
+      "line": 67
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\security_scan.py",
+      "action": "Weave Saga (Docstring) for _scan_imports in security_scan.py",
+      "severity": "LOW",
+      "line": 78
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\security_scan.py",
+      "action": "Weave Saga (Docstring) for _scan_constants in security_scan.py",
+      "severity": "LOW",
+      "line": 89
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\security_scan.py",
+      "action": "Weave Saga (Docstring) for report in security_scan.py",
+      "severity": "LOW",
+      "line": 98
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\security_scan.py",
+      "action": "Weave Saga (Docstring) for HUD in security_scan.py",
+      "severity": "LOW",
+      "line": 9
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\security_scan.py",
+      "action": "Weave Saga (Docstring) for box_top in security_scan.py",
+      "severity": "LOW",
+      "line": 12
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\security_scan.py",
+      "action": "Weave Saga (Docstring) for box_row in security_scan.py",
+      "severity": "LOW",
+      "line": 14
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\security_scan.py",
+      "action": "Weave Saga (Docstring) for box_bottom in security_scan.py",
+      "severity": "LOW",
+      "line": 16
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\sentinel_perf.py",
+      "action": "Weave Saga (Docstring) for __init__ in sentinel_perf.py",
+      "severity": "LOW",
+      "line": 32
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\sentinel_perf.py",
+      "action": "Weave Saga (Docstring) for run_suite in sentinel_perf.py",
+      "severity": "LOW",
+      "line": 64
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\sentinel_perf.py",
+      "action": "Weave Saga (Docstring) for _res in sentinel_perf.py",
+      "severity": "LOW",
+      "line": 35
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\trace_viz.py",
+      "action": "Weave Saga (Docstring) for get_engine in trace_viz.py",
+      "severity": "LOW",
+      "line": 41
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\trace_viz.py",
+      "action": "Weave Saga (Docstring) for mode_live in trace_viz.py",
+      "severity": "LOW",
+      "line": 205
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\trace_viz.py",
+      "action": "Weave Saga (Docstring) for mode_file in trace_viz.py",
+      "severity": "LOW",
+      "line": 221
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\trace_viz.py",
+      "action": "Weave Saga (Docstring) for mode_war_room in trace_viz.py",
+      "severity": "LOW",
+      "line": 250
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\trace_viz.py",
+      "action": "Weave Saga (Docstring) for _res in trace_viz.py",
+      "severity": "LOW",
+      "line": 50
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\trace_viz.py",
+      "action": "Weave Saga (Docstring) for render_analysis in trace_viz.py",
+      "severity": "LOW",
+      "line": 148
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\tune_weights.py",
+      "action": "Weave Saga (Docstring) for __init__ in tune_weights.py",
+      "severity": "LOW",
+      "line": 11
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\tune_weights.py",
+      "action": "Weave Saga (Docstring) for _res in tune_weights.py",
+      "severity": "LOW",
+      "line": 49
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\update_gemini_manifest.py",
+      "action": "Weave Saga (Docstring) for get_git_summary in update_gemini_manifest.py",
+      "severity": "LOW",
+      "line": 7
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\update_gemini_manifest.py",
+      "action": "Weave Saga (Docstring) for get_task_status in update_gemini_manifest.py",
+      "severity": "LOW",
+      "line": 16
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\update_gemini_manifest.py",
+      "action": "Weave Saga (Docstring) for update_manifest in update_gemini_manifest.py",
+      "severity": "LOW",
+      "line": 29
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\data\\overfit_corrections.py",
+      "action": "Weave Saga (Docstring) for overfit in overfit_corrections.py",
+      "severity": "LOW",
+      "line": 10
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\debug\\audit_dialogue.py",
+      "action": "Weave Saga (Docstring) for __init__ in audit_dialogue.py",
+      "severity": "LOW",
+      "line": 27
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\debug\\audit_dialogue.py",
+      "action": "Weave Saga (Docstring) for _load_config in audit_dialogue.py",
+      "severity": "LOW",
+      "line": 34
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\debug\\audit_dialogue.py",
+      "action": "Weave Saga (Docstring) for _resolve in audit_dialogue.py",
+      "severity": "LOW",
+      "line": 41
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\debug\\audit_dialogue.py",
+      "action": "Weave Saga (Docstring) for _init_engine in audit_dialogue.py",
+      "severity": "LOW",
+      "line": 47
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\debug\\cjk_check.py",
+      "action": "Weave Saga (Docstring) for search_and_print in cjk_check.py",
+      "severity": "LOW",
+      "line": 17
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\debug\\debug_engine.py",
+      "action": "Weave Saga (Docstring) for debug_query in debug_engine.py",
+      "severity": "LOW",
+      "line": 11
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\debug\\debug_fishtest_phase2.py",
+      "action": "Weave Saga (Docstring) for debug_phase2 in debug_fishtest_phase2.py",
+      "severity": "LOW",
+      "line": 10
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\tools\\debug\\debug_perf.py",
+      "action": "Weave Saga (Docstring) for profile in debug_perf.py",
+      "severity": "LOW",
+      "line": 12
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\skills\\local\\workflow-analyst\\analyze_workflow.py",
+      "action": "Weave Saga (Docstring) for WorkflowAnalyst in analyze_workflow.py",
+      "severity": "LOW",
+      "line": 9
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\skills\\local\\workflow-analyst\\analyze_workflow.py",
+      "action": "Weave Saga (Docstring) for main in analyze_workflow.py",
+      "severity": "LOW",
+      "line": 62
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\skills\\local\\workflow-analyst\\analyze_workflow.py",
+      "action": "Weave Saga (Docstring) for __init__ in analyze_workflow.py",
+      "severity": "LOW",
+      "line": 10
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\skills\\local\\workflow-analyst\\analyze_workflow.py",
+      "action": "Weave Saga (Docstring) for analyze in analyze_workflow.py",
+      "severity": "LOW",
+      "line": 15
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\skills\\local\\drafts\\workflow_backup_sequence_steps_gen\\backup_sequence_steps.py",
+      "action": "Weave Saga (Docstring) for main in backup_sequence_steps.py",
+      "severity": "LOW",
+      "line": 13
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\games\\odin_protocol\\main.py",
+      "action": "Weave Saga (Docstring) for main in main.py",
+      "severity": "LOW",
+      "line": 555
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\games\\odin_protocol\\main.py",
+      "action": "Weave Saga (Docstring) for __init__ in main.py",
+      "severity": "LOW",
+      "line": 32
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\games\\odin_protocol\\engine\\adjudicator.py",
+      "action": "Weave Saga (Docstring) for process_queue in adjudicator.py",
+      "severity": "LOW",
+      "line": 14
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\games\\odin_protocol\\engine\\models.py",
+      "action": "Weave Saga (Docstring) for to_dict in models.py",
+      "severity": "LOW",
+      "line": 27
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\games\\odin_protocol\\engine\\models.py",
+      "action": "Weave Saga (Docstring) for to_dict in models.py",
+      "severity": "LOW",
+      "line": 47
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\games\\odin_protocol\\engine\\models.py",
+      "action": "Weave Saga (Docstring) for to_dict in models.py",
+      "severity": "LOW",
+      "line": 95
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\games\\odin_protocol\\engine\\scenarios.py",
+      "action": "Weave Saga (Docstring) for _generate_internal in scenarios.py",
+      "severity": "LOW",
+      "line": 181
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\games\\odin_protocol\\engine\\scenarios.py",
+      "action": "Weave Saga (Docstring) for _generate_item in scenarios.py",
+      "severity": "LOW",
+      "line": 409
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\games\\odin_protocol\\engine\\scenarios.py",
+      "action": "Weave Saga (Docstring) for get_scientist_query in scenarios.py",
+      "severity": "LOW",
+      "line": 424
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\games\\odin_protocol\\engine\\scenarios.py",
+      "action": "Weave Saga (Docstring) for get_world_att in scenarios.py",
+      "severity": "LOW",
+      "line": 379
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\games\\odin_protocol\\engine\\scenarios.py",
+      "action": "Weave Saga (Docstring) for get_world_att in scenarios.py",
+      "severity": "LOW",
+      "line": 346
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\core\\engine\\alfred_observer.py",
+      "action": "Weave Saga (Docstring) for __init__ in alfred_observer.py",
+      "severity": "LOW",
+      "line": 18
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\core\\engine\\cortex.py",
+      "action": "Weave Saga (Docstring) for __init__ in cortex.py",
+      "severity": "LOW",
+      "line": 14
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\core\\engine\\cortex.py",
+      "action": "Weave Saga (Docstring) for query in cortex.py",
+      "severity": "LOW",
+      "line": 82
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\core\\engine\\dialogue.py",
+      "action": "Weave Saga (Docstring) for __init__ in dialogue.py",
+      "severity": "LOW",
+      "line": 6
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\core\\engine\\dialogue.py",
+      "action": "Weave Saga (Docstring) for __repr__ in dialogue.py",
+      "severity": "LOW",
+      "line": 41
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\core\\engine\\vector.py",
+      "action": "Weave Saga (Docstring) for SovereignVector in vector.py",
+      "severity": "LOW",
+      "line": 38
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\core\\engine\\vector.py",
+      "action": "Weave Saga (Docstring) for compute in vector.py",
+      "severity": "LOW",
+      "line": 20
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\core\\engine\\vector.py",
+      "action": "Weave Saga (Docstring) for compute in vector.py",
+      "severity": "LOW",
+      "line": 26
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\core\\engine\\vector.py",
+      "action": "Weave Saga (Docstring) for _load_json in vector.py",
+      "severity": "LOW",
+      "line": 63
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": "src\\core\\engine\\vector.py",
+      "action": "Weave Saga (Docstring) for _load_stopwords in vector.py",
+      "severity": "LOW",
+      "line": 72
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": ".agent\\skills\\banana.py",
+      "action": "Weave Saga (Docstring) for main in banana.py",
+      "severity": "LOW",
+      "line": 9
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": ".agent\\skills\\ravens.py",
+      "action": "Weave Saga (Docstring) for main in ravens.py",
+      "severity": "LOW",
+      "line": 109
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": ".agent\\scripts\\empire\\compiler.py",
+      "action": "Weave Saga (Docstring) for __init__ in compiler.py",
+      "severity": "LOW",
+      "line": 13
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": ".agent\\scripts\\empire\\semantic_probe.py",
+      "action": "Weave Saga (Docstring) for __init__ in semantic_probe.py",
+      "severity": "LOW",
+      "line": 18
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": ".agent\\scripts\\empire\\stabilizer.py",
+      "action": "Weave Saga (Docstring) for __init__ in stabilizer.py",
+      "severity": "LOW",
+      "line": 11
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": ".agent\\scripts\\empire\\symbolic_legend.py",
+      "action": "Weave Saga (Docstring) for __init__ in symbolic_legend.py",
+      "severity": "LOW",
+      "line": 11
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": ".agent\\scripts\\empire\\symbolic_legend.py",
+      "action": "Weave Saga (Docstring) for _load in symbolic_legend.py",
+      "severity": "LOW",
+      "line": 15
+    },
+    {
+      "type": "EDDA_BREACH",
+      "file": ".agent\\scripts\\empire\\symbolic_legend.py",
+      "action": "Weave Saga (Docstring) for save in symbolic_legend.py",
+      "severity": "LOW",
+      "line": 28
+    }
+  ],
+  "RUNE": [
+    {
+      "type": "RUNE_BREACH",
+      "file": "scripts\\fix_muninn.py",
+      "action": "Cast Runes (Type Hints) for standardize_muninn in fix_muninn.py",
+      "severity": "LOW",
+      "line": 4
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "scripts\\scout_targets.py",
+      "action": "Cast Runes (Type Hints) for scout in scout_targets.py",
+      "severity": "LOW",
+      "line": 15
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "scripts\\verify_valkyrie_real.py",
+      "action": "Cast Runes (Type Hints) for hello in verify_valkyrie_real.py",
+      "severity": "LOW",
+      "line": 1
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "sterileAgent\\fishtest.py",
+      "action": "Cast Runes (Type Hints) for __init__ in fishtest.py",
+      "severity": "LOW",
+      "line": 59
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "sterileAgent\\fishtest.py",
+      "action": "Cast Runes (Type Hints) for __init__ in fishtest.py",
+      "severity": "LOW",
+      "line": 83
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "sterileAgent\\fishtest.py",
+      "action": "Cast Runes (Type Hints) for box_top in fishtest.py",
+      "severity": "LOW",
+      "line": 43
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "sterileAgent\\fishtest.py",
+      "action": "Cast Runes (Type Hints) for box_row in fishtest.py",
+      "severity": "LOW",
+      "line": 45
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "sterileAgent\\fishtest.py",
+      "action": "Cast Runes (Type Hints) for box_separator in fishtest.py",
+      "severity": "LOW",
+      "line": 47
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "sterileAgent\\fishtest.py",
+      "action": "Cast Runes (Type Hints) for box_bottom in fishtest.py",
+      "severity": "LOW",
+      "line": 49
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "sterileAgent\\fishtest.py",
+      "action": "Cast Runes (Type Hints) for log in fishtest.py",
+      "severity": "LOW",
+      "line": 51
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "sterileAgent\\fishtest.py",
+      "action": "Cast Runes (Type Hints) for progress_bar in fishtest.py",
+      "severity": "LOW",
+      "line": 53
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Cast Runes (Type Hints) for box_top in sv_engine.py",
+      "severity": "LOW",
+      "line": 18
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Cast Runes (Type Hints) for box_row in sv_engine.py",
+      "severity": "LOW",
+      "line": 25
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Cast Runes (Type Hints) for box_separator in sv_engine.py",
+      "severity": "LOW",
+      "line": 29
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Cast Runes (Type Hints) for box_bottom in sv_engine.py",
+      "severity": "LOW",
+      "line": 33
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Cast Runes (Type Hints) for progress_bar in sv_engine.py",
+      "severity": "LOW",
+      "line": 37
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Cast Runes (Type Hints) for __init__ in sv_engine.py",
+      "severity": "LOW",
+      "line": 44
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Cast Runes (Type Hints) for _load_json in sv_engine.py",
+      "severity": "LOW",
+      "line": 52
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Cast Runes (Type Hints) for _load_thesaurus in sv_engine.py",
+      "severity": "LOW",
+      "line": 60
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Cast Runes (Type Hints) for tokenize in sv_engine.py",
+      "severity": "LOW",
+      "line": 81
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Cast Runes (Type Hints) for expand_query in sv_engine.py",
+      "severity": "LOW",
+      "line": 85
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Cast Runes (Type Hints) for add_skill in sv_engine.py",
+      "severity": "LOW",
+      "line": 95
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Cast Runes (Type Hints) for build_index in sv_engine.py",
+      "severity": "LOW",
+      "line": 99
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Cast Runes (Type Hints) for _vectorize in sv_engine.py",
+      "severity": "LOW",
+      "line": 112
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Cast Runes (Type Hints) for similarity in sv_engine.py",
+      "severity": "LOW",
+      "line": 122
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Cast Runes (Type Hints) for search in sv_engine.py",
+      "severity": "LOW",
+      "line": 129
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "sterileAgent\\.agent\\scripts\\sv_engine.py",
+      "action": "Cast Runes (Type Hints) for load_skills_from_dir in sv_engine.py",
+      "severity": "LOW",
+      "line": 146
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\core\\annex.py",
+      "action": "Cast Runes (Type Hints) for main in annex.py",
+      "severity": "LOW",
+      "line": 210
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\core\\annex.py",
+      "action": "Cast Runes (Type Hints) for __init__ in annex.py",
+      "severity": "LOW",
+      "line": 21
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\core\\annex.py",
+      "action": "Cast Runes (Type Hints) for scan in annex.py",
+      "severity": "LOW",
+      "line": 27
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\core\\annex.py",
+      "action": "Cast Runes (Type Hints) for _audit_code in annex.py",
+      "severity": "LOW",
+      "line": 72
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\core\\annex.py",
+      "action": "Cast Runes (Type Hints) for _generate_plan in annex.py",
+      "severity": "LOW",
+      "line": 126
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\core\\cstar_dispatcher.py",
+      "action": "Cast Runes (Type Hints) for __init__ in cstar_dispatcher.py",
+      "severity": "LOW",
+      "line": 29
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\core\\edda.py",
+      "action": "Cast Runes (Type Hints) for main in edda.py",
+      "severity": "LOW",
+      "line": 174
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\core\\edda.py",
+      "action": "Cast Runes (Type Hints) for __init__ in edda.py",
+      "severity": "LOW",
+      "line": 24
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\core\\edda.py",
+      "action": "Cast Runes (Type Hints) for replace_alert in edda.py",
+      "severity": "LOW",
+      "line": 108
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\core\\personas.py",
+      "action": "Cast Runes (Type Hints) for __init__ in personas.py",
+      "severity": "LOW",
+      "line": 13
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\core\\personas.py",
+      "action": "Cast Runes (Type Hints) for enforce_policy in personas.py",
+      "severity": "LOW",
+      "line": 103
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\core\\personas.py",
+      "action": "Cast Runes (Type Hints) for _create_cursor_rules in personas.py",
+      "severity": "LOW",
+      "line": 146
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\core\\personas.py",
+      "action": "Cast Runes (Type Hints) for _create_standard_agents in personas.py",
+      "severity": "LOW",
+      "line": 176
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\core\\personas.py",
+      "action": "Cast Runes (Type Hints) for _create_cursor_rules in personas.py",
+      "severity": "LOW",
+      "line": 236
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\core\\personas.py",
+      "action": "Cast Runes (Type Hints) for _create_minimal_agents in personas.py",
+      "severity": "LOW",
+      "line": 266
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\core\\report_engine.py",
+      "action": "Cast Runes (Type Hints) for __init__ in report_engine.py",
+      "severity": "LOW",
+      "line": 23
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\core\\set_persona.py",
+      "action": "Cast Runes (Type Hints) for __init__ in set_persona.py",
+      "severity": "LOW",
+      "line": 25
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\core\\sv_engine.py",
+      "action": "Cast Runes (Type Hints) for __init__ in sv_engine.py",
+      "severity": "LOW",
+      "line": 38
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\harvest_responses.py",
+      "action": "Cast Runes (Type Hints) for harvest in harvest_responses.py",
+      "severity": "LOW",
+      "line": 79
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\harvest_responses.py",
+      "action": "Cast Runes (Type Hints) for __init__ in harvest_responses.py",
+      "severity": "LOW",
+      "line": 36
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\harvest_responses.py",
+      "action": "Cast Runes (Type Hints) for record_call in harvest_responses.py",
+      "severity": "LOW",
+      "line": 40
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\harvest_responses.py",
+      "action": "Cast Runes (Type Hints) for save in harvest_responses.py",
+      "severity": "LOW",
+      "line": 70
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\main_loop.py",
+      "action": "Cast Runes (Type Hints) for daemon_loop in main_loop.py",
+      "severity": "LOW",
+      "line": 186
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\main_loop.py",
+      "action": "Cast Runes (Type Hints) for __init__ in main_loop.py",
+      "severity": "LOW",
+      "line": 37
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\main_loop.py",
+      "action": "Cast Runes (Type Hints) for shutdown in main_loop.py",
+      "severity": "LOW",
+      "line": 42
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Cast Runes (Type Hints) for run in muninn.py",
+      "severity": "LOW",
+      "line": 1282
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Cast Runes (Type Hints) for __init__ in muninn.py",
+      "severity": "LOW",
+      "line": 67
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Cast Runes (Type Hints) for record_trial in muninn.py",
+      "severity": "LOW",
+      "line": 79
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Cast Runes (Type Hints) for __init__ in muninn.py",
+      "severity": "LOW",
+      "line": 106
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Cast Runes (Type Hints) for mark_complete in muninn.py",
+      "severity": "LOW",
+      "line": 159
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Cast Runes (Type Hints) for __init__ in muninn.py",
+      "severity": "LOW",
+      "line": 194
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Cast Runes (Type Hints) for __init__ in muninn.py",
+      "severity": "LOW",
+      "line": 243
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Cast Runes (Type Hints) for __init__ in muninn.py",
+      "severity": "LOW",
+      "line": 277
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Cast Runes (Type Hints) for __init__ in muninn.py",
+      "severity": "LOW",
+      "line": 311
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Cast Runes (Type Hints) for __init__ in muninn.py",
+      "severity": "LOW",
+      "line": 359
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Cast Runes (Type Hints) for __init__ in muninn.py",
+      "severity": "LOW",
+      "line": 399
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Cast Runes (Type Hints) for __init__ in muninn.py",
+      "severity": "LOW",
+      "line": 462
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Cast Runes (Type Hints) for _save_state in muninn.py",
+      "severity": "LOW",
+      "line": 475
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Cast Runes (Type Hints) for __init__ in muninn.py",
+      "severity": "LOW",
+      "line": 540
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Cast Runes (Type Hints) for _verify_sprt_stability in muninn.py",
+      "severity": "LOW",
+      "line": 753
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Cast Runes (Type Hints) for _distill_knowledge in muninn.py",
+      "severity": "LOW",
+      "line": 806
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Cast Runes (Type Hints) for _select_breach_target in muninn.py",
+      "severity": "LOW",
+      "line": 917
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Cast Runes (Type Hints) for _architect_gherkin in muninn.py",
+      "severity": "LOW",
+      "line": 993
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Cast Runes (Type Hints) for _run_gauntlet in muninn.py",
+      "severity": "LOW",
+      "line": 1021
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Cast Runes (Type Hints) for _generate_implementation in muninn.py",
+      "severity": "LOW",
+      "line": 1067
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Cast Runes (Type Hints) for _sanitize_gauntlet_output in muninn.py",
+      "severity": "LOW",
+      "line": 1119
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Cast Runes (Type Hints) for _validate_gauntlet_output in muninn.py",
+      "severity": "LOW",
+      "line": 1125
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Cast Runes (Type Hints) for _execute_gauntlet_tests in muninn.py",
+      "severity": "LOW",
+      "line": 1150
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Cast Runes (Type Hints) for _consult_council in muninn.py",
+      "severity": "LOW",
+      "line": 1199
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\sentinel\\muninn.py",
+      "action": "Cast Runes (Type Hints) for _rollback in muninn.py",
+      "severity": "LOW",
+      "line": 1270
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\skills\\install_skill.py",
+      "action": "Cast Runes (Type Hints) for _sanitize_skill_name in install_skill.py",
+      "severity": "LOW",
+      "line": 14
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\skills\\install_skill.py",
+      "action": "Cast Runes (Type Hints) for _validate_path in install_skill.py",
+      "severity": "LOW",
+      "line": 20
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\skills\\install_skill.py",
+      "action": "Cast Runes (Type Hints) for _get_config in install_skill.py",
+      "severity": "LOW",
+      "line": 26
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\skills\\install_skill.py",
+      "action": "Cast Runes (Type Hints) for _verify_integrity in install_skill.py",
+      "severity": "LOW",
+      "line": 32
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\skills\\install_skill.py",
+      "action": "Cast Runes (Type Hints) for _run_security_scan in install_skill.py",
+      "severity": "LOW",
+      "line": 39
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\skills\\install_skill.py",
+      "action": "Cast Runes (Type Hints) for _promote_skill in install_skill.py",
+      "severity": "LOW",
+      "line": 53
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\skills\\install_skill.py",
+      "action": "Cast Runes (Type Hints) for install_skill in install_skill.py",
+      "severity": "LOW",
+      "line": 63
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\skills\\skill_forge.py",
+      "action": "Cast Runes (Type Hints) for main in skill_forge.py",
+      "severity": "LOW",
+      "line": 426
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\skills\\skill_forge.py",
+      "action": "Cast Runes (Type Hints) for __init__ in skill_forge.py",
+      "severity": "LOW",
+      "line": 72
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\synapse\\synapse_sync.py",
+      "action": "Cast Runes (Type Hints) for __init__ in synapse_sync.py",
+      "severity": "LOW",
+      "line": 30
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\synapse\\synapse_sync.py",
+      "action": "Cast Runes (Type Hints) for __init__ in synapse_sync.py",
+      "severity": "LOW",
+      "line": 88
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\synapse\\synapse_sync.py",
+      "action": "Cast Runes (Type Hints) for __init__ in synapse_sync.py",
+      "severity": "LOW",
+      "line": 126
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\synapse\\synapse_sync.py",
+      "action": "Cast Runes (Type Hints) for __init__ in synapse_sync.py",
+      "severity": "LOW",
+      "line": 181
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\benchmark_engine.py",
+      "action": "Cast Runes (Type Hints) for benchmark in benchmark_engine.py",
+      "severity": "LOW",
+      "line": 15
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\code_sentinel.py",
+      "action": "Cast Runes (Type Hints) for __init__ in code_sentinel.py",
+      "severity": "LOW",
+      "line": 59
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\compile_failure_report.py",
+      "action": "Cast Runes (Type Hints) for compile_report in compile_failure_report.py",
+      "severity": "LOW",
+      "line": 11
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\compile_session_traces.py",
+      "action": "Cast Runes (Type Hints) for compile_traces in compile_session_traces.py",
+      "severity": "LOW",
+      "line": 83
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\compile_session_traces.py",
+      "action": "Cast Runes (Type Hints) for __init__ in compile_session_traces.py",
+      "severity": "LOW",
+      "line": 11
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\compile_session_traces.py",
+      "action": "Cast Runes (Type Hints) for __init__ in compile_session_traces.py",
+      "severity": "LOW",
+      "line": 42
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\compile_session_traces.py",
+      "action": "Cast Runes (Type Hints) for render in compile_session_traces.py",
+      "severity": "LOW",
+      "line": 45
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\debt_viz.py",
+      "action": "Cast Runes (Type Hints) for __init__ in debt_viz.py",
+      "severity": "LOW",
+      "line": 50
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\debt_viz.py",
+      "action": "Cast Runes (Type Hints) for box_top in debt_viz.py",
+      "severity": "LOW",
+      "line": 24
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\debt_viz.py",
+      "action": "Cast Runes (Type Hints) for box_row in debt_viz.py",
+      "severity": "LOW",
+      "line": 26
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\debt_viz.py",
+      "action": "Cast Runes (Type Hints) for box_separator in debt_viz.py",
+      "severity": "LOW",
+      "line": 28
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\debt_viz.py",
+      "action": "Cast Runes (Type Hints) for box_bottom in debt_viz.py",
+      "severity": "LOW",
+      "line": 30
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\debt_viz.py",
+      "action": "Cast Runes (Type Hints) for log in debt_viz.py",
+      "severity": "LOW",
+      "line": 32
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\generate_tests.py",
+      "action": "Cast Runes (Type Hints) for generate_cases in generate_tests.py",
+      "severity": "LOW",
+      "line": 8
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\latency_check.py",
+      "action": "Cast Runes (Type Hints) for __init__ in latency_check.py",
+      "severity": "LOW",
+      "line": 21
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\lightning_rod.py",
+      "action": "Cast Runes (Type Hints) for optimize_file in lightning_rod.py",
+      "severity": "LOW",
+      "line": 26
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\lightning_rod.py",
+      "action": "Cast Runes (Type Hints) for box_top in lightning_rod.py",
+      "severity": "LOW",
+      "line": 20
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\lightning_rod.py",
+      "action": "Cast Runes (Type Hints) for box_row in lightning_rod.py",
+      "severity": "LOW",
+      "line": 22
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\lightning_rod.py",
+      "action": "Cast Runes (Type Hints) for box_bottom in lightning_rod.py",
+      "severity": "LOW",
+      "line": 24
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\merge_traces.py",
+      "action": "Cast Runes (Type Hints) for _load_dataset in merge_traces.py",
+      "severity": "LOW",
+      "line": 14
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\merge_traces.py",
+      "action": "Cast Runes (Type Hints) for _save_dataset in merge_traces.py",
+      "severity": "LOW",
+      "line": 25
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\merge_traces.py",
+      "action": "Cast Runes (Type Hints) for _process_single_trace in merge_traces.py",
+      "severity": "LOW",
+      "line": 38
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\merge_traces.py",
+      "action": "Cast Runes (Type Hints) for _process_trace_file in merge_traces.py",
+      "severity": "LOW",
+      "line": 62
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\merge_traces.py",
+      "action": "Cast Runes (Type Hints) for merge_traces in merge_traces.py",
+      "severity": "LOW",
+      "line": 80
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\migrate_to_qmd.py",
+      "action": "Cast Runes (Type Hints) for migrate_file in migrate_to_qmd.py",
+      "severity": "LOW",
+      "line": 24
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\migrate_to_qmd.py",
+      "action": "Cast Runes (Type Hints) for main in migrate_to_qmd.py",
+      "severity": "LOW",
+      "line": 50
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\network_watcher.py",
+      "action": "Cast Runes (Type Hints) for get_theme in network_watcher.py",
+      "severity": "LOW",
+      "line": 19
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\network_watcher.py",
+      "action": "Cast Runes (Type Hints) for log_rejection in network_watcher.py",
+      "severity": "LOW",
+      "line": 23
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\network_watcher.py",
+      "action": "Cast Runes (Type Hints) for process_file in network_watcher.py",
+      "severity": "LOW",
+      "line": 27
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\network_watcher.py",
+      "action": "Cast Runes (Type Hints) for __init__ in network_watcher.py",
+      "severity": "LOW",
+      "line": 36
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\network_watcher.py",
+      "action": "Cast Runes (Type Hints) for process in network_watcher.py",
+      "severity": "LOW",
+      "line": 43
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\network_watcher.py",
+      "action": "Cast Runes (Type Hints) for __init__ in network_watcher.py",
+      "severity": "LOW",
+      "line": 76
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\network_watcher.py",
+      "action": "Cast Runes (Type Hints) for watch in network_watcher.py",
+      "severity": "LOW",
+      "line": 80
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\overwatch.py",
+      "action": "Cast Runes (Type Hints) for __init__ in overwatch.py",
+      "severity": "LOW",
+      "line": 17
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\overwatch.py",
+      "action": "Cast Runes (Type Hints) for __init__ in overwatch.py",
+      "severity": "LOW",
+      "line": 40
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\overwatch.py",
+      "action": "Cast Runes (Type Hints) for render_header in overwatch.py",
+      "severity": "LOW",
+      "line": 43
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\overwatch.py",
+      "action": "Cast Runes (Type Hints) for render_heatmap in overwatch.py",
+      "severity": "LOW",
+      "line": 48
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\overwatch.py",
+      "action": "Cast Runes (Type Hints) for render_pulse_logs in overwatch.py",
+      "severity": "LOW",
+      "line": 62
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\overwatch.py",
+      "action": "Cast Runes (Type Hints) for update_latency in overwatch.py",
+      "severity": "LOW",
+      "line": 69
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\overwatch.py",
+      "action": "Cast Runes (Type Hints) for __init__ in overwatch.py",
+      "severity": "LOW",
+      "line": 84
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\overwatch.py",
+      "action": "Cast Runes (Type Hints) for run in overwatch.py",
+      "severity": "LOW",
+      "line": 92
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\overwatch.py",
+      "action": "Cast Runes (Type Hints) for _handle_input in overwatch.py",
+      "severity": "LOW",
+      "line": 115
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\overwatch.py",
+      "action": "Cast Runes (Type Hints) for _check_delta in overwatch.py",
+      "severity": "LOW",
+      "line": 127
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\overwatch.py",
+      "action": "Cast Runes (Type Hints) for _measure_latency in overwatch.py",
+      "severity": "LOW",
+      "line": 137
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\security_scan.py",
+      "action": "Cast Runes (Type Hints) for __init__ in security_scan.py",
+      "severity": "LOW",
+      "line": 25
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\security_scan.py",
+      "action": "Cast Runes (Type Hints) for scan in security_scan.py",
+      "severity": "LOW",
+      "line": 28
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\security_scan.py",
+      "action": "Cast Runes (Type Hints) for _analyze_web_script in security_scan.py",
+      "severity": "LOW",
+      "line": 44
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\security_scan.py",
+      "action": "Cast Runes (Type Hints) for _regex_scan in security_scan.py",
+      "severity": "LOW",
+      "line": 58
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\security_scan.py",
+      "action": "Cast Runes (Type Hints) for _analyze_ast in security_scan.py",
+      "severity": "LOW",
+      "line": 67
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\security_scan.py",
+      "action": "Cast Runes (Type Hints) for _scan_imports in security_scan.py",
+      "severity": "LOW",
+      "line": 78
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\security_scan.py",
+      "action": "Cast Runes (Type Hints) for _scan_constants in security_scan.py",
+      "severity": "LOW",
+      "line": 89
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\security_scan.py",
+      "action": "Cast Runes (Type Hints) for report in security_scan.py",
+      "severity": "LOW",
+      "line": 98
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\security_scan.py",
+      "action": "Cast Runes (Type Hints) for box_top in security_scan.py",
+      "severity": "LOW",
+      "line": 12
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\security_scan.py",
+      "action": "Cast Runes (Type Hints) for box_row in security_scan.py",
+      "severity": "LOW",
+      "line": 14
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\security_scan.py",
+      "action": "Cast Runes (Type Hints) for box_bottom in security_scan.py",
+      "severity": "LOW",
+      "line": 16
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\sentinel_perf.py",
+      "action": "Cast Runes (Type Hints) for __init__ in sentinel_perf.py",
+      "severity": "LOW",
+      "line": 32
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\sentinel_perf.py",
+      "action": "Cast Runes (Type Hints) for run_suite in sentinel_perf.py",
+      "severity": "LOW",
+      "line": 64
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\sentinel_perf.py",
+      "action": "Cast Runes (Type Hints) for _res in sentinel_perf.py",
+      "severity": "LOW",
+      "line": 35
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\trace_viz.py",
+      "action": "Cast Runes (Type Hints) for load_json in trace_viz.py",
+      "severity": "LOW",
+      "line": 25
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\trace_viz.py",
+      "action": "Cast Runes (Type Hints) for get_engine in trace_viz.py",
+      "severity": "LOW",
+      "line": 41
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\trace_viz.py",
+      "action": "Cast Runes (Type Hints) for mode_live in trace_viz.py",
+      "severity": "LOW",
+      "line": 205
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\trace_viz.py",
+      "action": "Cast Runes (Type Hints) for mode_file in trace_viz.py",
+      "severity": "LOW",
+      "line": 221
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\trace_viz.py",
+      "action": "Cast Runes (Type Hints) for mode_war_room in trace_viz.py",
+      "severity": "LOW",
+      "line": 250
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\trace_viz.py",
+      "action": "Cast Runes (Type Hints) for _res in trace_viz.py",
+      "severity": "LOW",
+      "line": 50
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\trace_viz.py",
+      "action": "Cast Runes (Type Hints) for __init__ in trace_viz.py",
+      "severity": "LOW",
+      "line": 89
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\trace_viz.py",
+      "action": "Cast Runes (Type Hints) for box_separator in trace_viz.py",
+      "severity": "LOW",
+      "line": 113
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\trace_viz.py",
+      "action": "Cast Runes (Type Hints) for box_bottom in trace_viz.py",
+      "severity": "LOW",
+      "line": 118
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\trace_viz.py",
+      "action": "Cast Runes (Type Hints) for render_neural_path in trace_viz.py",
+      "severity": "LOW",
+      "line": 124
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\trace_viz.py",
+      "action": "Cast Runes (Type Hints) for render_analysis in trace_viz.py",
+      "severity": "LOW",
+      "line": 148
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\tune_weights.py",
+      "action": "Cast Runes (Type Hints) for tune_weights in tune_weights.py",
+      "severity": "LOW",
+      "line": 43
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\tune_weights.py",
+      "action": "Cast Runes (Type Hints) for __init__ in tune_weights.py",
+      "severity": "LOW",
+      "line": 11
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\tune_weights.py",
+      "action": "Cast Runes (Type Hints) for analyze_failure in tune_weights.py",
+      "severity": "LOW",
+      "line": 16
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\tune_weights.py",
+      "action": "Cast Runes (Type Hints) for report in tune_weights.py",
+      "severity": "LOW",
+      "line": 31
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\tune_weights.py",
+      "action": "Cast Runes (Type Hints) for _res in tune_weights.py",
+      "severity": "LOW",
+      "line": 49
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\update_gemini_manifest.py",
+      "action": "Cast Runes (Type Hints) for get_git_summary in update_gemini_manifest.py",
+      "severity": "LOW",
+      "line": 7
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\update_gemini_manifest.py",
+      "action": "Cast Runes (Type Hints) for get_task_status in update_gemini_manifest.py",
+      "severity": "LOW",
+      "line": 16
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\update_gemini_manifest.py",
+      "action": "Cast Runes (Type Hints) for update_manifest in update_gemini_manifest.py",
+      "severity": "LOW",
+      "line": 29
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\data\\overfit_corrections.py",
+      "action": "Cast Runes (Type Hints) for overfit in overfit_corrections.py",
+      "severity": "LOW",
+      "line": 10
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\debug\\audit_dialogue.py",
+      "action": "Cast Runes (Type Hints) for __init__ in audit_dialogue.py",
+      "severity": "LOW",
+      "line": 27
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\debug\\check_pro.py",
+      "action": "Cast Runes (Type Hints) for main in check_pro.py",
+      "severity": "LOW",
+      "line": 8
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\debug\\cjk_check.py",
+      "action": "Cast Runes (Type Hints) for search_and_print in cjk_check.py",
+      "severity": "LOW",
+      "line": 17
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\debug\\collision_investigator.py",
+      "action": "Cast Runes (Type Hints) for run_collision_investigation in collision_investigator.py",
+      "severity": "LOW",
+      "line": 10
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\debug\\debug_engine.py",
+      "action": "Cast Runes (Type Hints) for debug_query in debug_engine.py",
+      "severity": "LOW",
+      "line": 11
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\debug\\debug_fishtest_phase2.py",
+      "action": "Cast Runes (Type Hints) for debug_phase2 in debug_fishtest_phase2.py",
+      "severity": "LOW",
+      "line": 10
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\tools\\debug\\debug_perf.py",
+      "action": "Cast Runes (Type Hints) for profile in debug_perf.py",
+      "severity": "LOW",
+      "line": 12
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\skills\\local\\workflow-analyst\\analyze_workflow.py",
+      "action": "Cast Runes (Type Hints) for main in analyze_workflow.py",
+      "severity": "LOW",
+      "line": 62
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\skills\\local\\workflow-analyst\\analyze_workflow.py",
+      "action": "Cast Runes (Type Hints) for __init__ in analyze_workflow.py",
+      "severity": "LOW",
+      "line": 10
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\skills\\local\\workflow-analyst\\analyze_workflow.py",
+      "action": "Cast Runes (Type Hints) for analyze in analyze_workflow.py",
+      "severity": "LOW",
+      "line": 15
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\skills\\local\\drafts\\workflow_backup_sequence_steps_gen\\backup_sequence_steps.py",
+      "action": "Cast Runes (Type Hints) for main in backup_sequence_steps.py",
+      "severity": "LOW",
+      "line": 13
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\games\\odin_protocol\\main.py",
+      "action": "Cast Runes (Type Hints) for __init__ in main.py",
+      "severity": "LOW",
+      "line": 32
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\games\\odin_protocol\\engine\\gm_client.py",
+      "action": "Cast Runes (Type Hints) for __init__ in gm_client.py",
+      "severity": "LOW",
+      "line": 22
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\games\\odin_protocol\\engine\\models.py",
+      "action": "Cast Runes (Type Hints) for to_dict in models.py",
+      "severity": "LOW",
+      "line": 27
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\games\\odin_protocol\\engine\\models.py",
+      "action": "Cast Runes (Type Hints) for to_dict in models.py",
+      "severity": "LOW",
+      "line": 47
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\games\\odin_protocol\\engine\\models.py",
+      "action": "Cast Runes (Type Hints) for to_dict in models.py",
+      "severity": "LOW",
+      "line": 95
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\games\\odin_protocol\\engine\\persistence.py",
+      "action": "Cast Runes (Type Hints) for __init__ in persistence.py",
+      "severity": "LOW",
+      "line": 15
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\games\\odin_protocol\\engine\\rng.py",
+      "action": "Cast Runes (Type Hints) for choice in rng.py",
+      "severity": "LOW",
+      "line": 24
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\games\\odin_protocol\\engine\\rng.py",
+      "action": "Cast Runes (Type Hints) for secure_choice in rng.py",
+      "severity": "LOW",
+      "line": 34
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\games\\odin_protocol\\engine\\scenarios.py",
+      "action": "Cast Runes (Type Hints) for generate in scenarios.py",
+      "severity": "LOW",
+      "line": 177
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\games\\odin_protocol\\engine\\scenarios.py",
+      "action": "Cast Runes (Type Hints) for get_world_att in scenarios.py",
+      "severity": "LOW",
+      "line": 379
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\games\\odin_protocol\\engine\\scenarios.py",
+      "action": "Cast Runes (Type Hints) for get_world_att in scenarios.py",
+      "severity": "LOW",
+      "line": 346
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\core\\engine\\alfred_observer.py",
+      "action": "Cast Runes (Type Hints) for __init__ in alfred_observer.py",
+      "severity": "LOW",
+      "line": 18
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\core\\engine\\cortex.py",
+      "action": "Cast Runes (Type Hints) for __init__ in cortex.py",
+      "severity": "LOW",
+      "line": 14
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\core\\engine\\dialogue.py",
+      "action": "Cast Runes (Type Hints) for __init__ in dialogue.py",
+      "severity": "LOW",
+      "line": 6
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\core\\engine\\dialogue.py",
+      "action": "Cast Runes (Type Hints) for __repr__ in dialogue.py",
+      "severity": "LOW",
+      "line": 41
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\core\\engine\\vector.py",
+      "action": "Cast Runes (Type Hints) for __init__ in vector.py",
+      "severity": "LOW",
+      "line": 39
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\core\\engine\\vector.py",
+      "action": "Cast Runes (Type Hints) for _apply_thesaurus_corrections in vector.py",
+      "severity": "LOW",
+      "line": 118
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\core\\engine\\vector.py",
+      "action": "Cast Runes (Type Hints) for load_core_skills in vector.py",
+      "severity": "LOW",
+      "line": 375
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\core\\engine\\vector.py",
+      "action": "Cast Runes (Type Hints) for load_skills_from_dir in vector.py",
+      "severity": "LOW",
+      "line": 414
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\core\\engine\\vector.py",
+      "action": "Cast Runes (Type Hints) for _load_single_skill in vector.py",
+      "severity": "LOW",
+      "line": 435
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": "src\\core\\engine\\vector.py",
+      "action": "Cast Runes (Type Hints) for _populate_trigger_map in vector.py",
+      "severity": "LOW",
+      "line": 461
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": ".agent\\skills\\banana.py",
+      "action": "Cast Runes (Type Hints) for main in banana.py",
+      "severity": "LOW",
+      "line": 9
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": ".agent\\skills\\ravens.py",
+      "action": "Cast Runes (Type Hints) for _get_running_pids in ravens.py",
+      "severity": "LOW",
+      "line": 20
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": ".agent\\skills\\ravens.py",
+      "action": "Cast Runes (Type Hints) for check_status in ravens.py",
+      "severity": "LOW",
+      "line": 34
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": ".agent\\skills\\ravens.py",
+      "action": "Cast Runes (Type Hints) for recall_ravens in ravens.py",
+      "severity": "LOW",
+      "line": 43
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": ".agent\\skills\\ravens.py",
+      "action": "Cast Runes (Type Hints) for release_ravens in ravens.py",
+      "severity": "LOW",
+      "line": 70
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": ".agent\\skills\\ravens.py",
+      "action": "Cast Runes (Type Hints) for learn in ravens.py",
+      "severity": "LOW",
+      "line": 95
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": ".agent\\skills\\ravens.py",
+      "action": "Cast Runes (Type Hints) for main in ravens.py",
+      "severity": "LOW",
+      "line": 109
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": ".agent\\skills\\_template.py",
+      "action": "Cast Runes (Type Hints) for main in _template.py",
+      "severity": "LOW",
+      "line": 18
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": ".agent\\scripts\\empire\\compiler.py",
+      "action": "Cast Runes (Type Hints) for __init__ in compiler.py",
+      "severity": "LOW",
+      "line": 13
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": ".agent\\scripts\\empire\\compiler.py",
+      "action": "Cast Runes (Type Hints) for generate_boilerplate in compiler.py",
+      "severity": "LOW",
+      "line": 46
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": ".agent\\scripts\\empire\\factories.py",
+      "action": "Cast Runes (Type Hints) for create_vector_engine in factories.py",
+      "severity": "LOW",
+      "line": 50
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": ".agent\\scripts\\empire\\semantic_probe.py",
+      "action": "Cast Runes (Type Hints) for __init__ in semantic_probe.py",
+      "severity": "LOW",
+      "line": 18
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": ".agent\\scripts\\empire\\stabilizer.py",
+      "action": "Cast Runes (Type Hints) for __init__ in stabilizer.py",
+      "severity": "LOW",
+      "line": 11
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": ".agent\\scripts\\empire\\stabilizer.py",
+      "action": "Cast Runes (Type Hints) for wait_for_idle in stabilizer.py",
+      "severity": "LOW",
+      "line": 14
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": ".agent\\scripts\\empire\\symbolic_legend.py",
+      "action": "Cast Runes (Type Hints) for __init__ in symbolic_legend.py",
+      "severity": "LOW",
+      "line": 11
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": ".agent\\scripts\\empire\\symbolic_legend.py",
+      "action": "Cast Runes (Type Hints) for _load in symbolic_legend.py",
+      "severity": "LOW",
+      "line": 15
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": ".agent\\scripts\\empire\\symbolic_legend.py",
+      "action": "Cast Runes (Type Hints) for resolve in symbolic_legend.py",
+      "severity": "LOW",
+      "line": 24
+    },
+    {
+      "type": "RUNE_BREACH",
+      "file": ".agent\\scripts\\empire\\symbolic_legend.py",
+      "action": "Cast Runes (Type Hints) for save in symbolic_legend.py",
+      "severity": "LOW",
+      "line": 28
+    }
+  ],
+  "BEAUTY": [],
+  "HUGINN": []
+}

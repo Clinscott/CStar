@@ -83,11 +83,16 @@ from typing import Any
 # --- RENDERER (IDENTITY ISOLATION) ---
 class TraceRenderer:
     """
-    Decoupled renderer that enforces a specific theme, regardless of the
-    Host Agent's current persona. This allows ODIN to view ALFRED traces
-    in their native Cyan, without polluted by Odin's Red.
+    [ALFRED] Decoupled renderer that enforces a specific theme for neural replay.
+    Ensures ODIN can view ALFRED'S traces in their native Cyan without persona leakage.
     """
     def __init__(self, target_persona: str):
+        """
+        Initializes the renderer with a target persona theme.
+        
+        Args:
+            target_persona: The name of the persona to use for styling (e.g., 'ALFRED', 'ODIN').
+        """
         self.target_persona = target_persona
         # Temporarily switch global HUD persona to get theme colors
         self.original_persona = HUD.PERSONA
@@ -96,18 +101,22 @@ class TraceRenderer:
         HUD.PERSONA = self.original_persona # Restore
 
     def box_top(self, title: str) -> None:
+        """Renders the top bar of a themed log box."""
         HUD.PERSONA = self.target_persona
         HUD.box_top(title)
 
     def box_row(self, label: str, value: Any, value_color: str = None, dim_label: bool = False) -> None:
+        """Renders a labeled data row in the current theme."""
         HUD.PERSONA = self.target_persona
         HUD.box_row(label, value, value_color, dim_label)
 
     def box_separator(self):
+        """Renders a horizontal separator line within the log box."""
         HUD.PERSONA = self.target_persona
         HUD.box_separator()
 
     def box_bottom(self):
+        """Closes the current log box and restores character context."""
         HUD.PERSONA = self.target_persona
         HUD.box_bottom()
         HUD.PERSONA = self.original_persona

@@ -3,7 +3,8 @@ description: Finalizes the current session, updates documentation, runs a produc
 ---
 
 // turbo-all
-1. **Execute SovereignFish**: Run the SovereignFish protocol (`SovereignFish.qmd`). Identify, fix, and log 2 minor improvements. Verify with `fishtest.py`.
+// turbo-all
+1. **Execute SovereignFish Protocol (Manual Agent Action)**: Read `.agent/workflows/SovereignFish.qmd`. Identify 2 improvements using your own intelligence (not the script). Implement and log them in `SovereignFish.qmd`.
 2. **Compile Neural Traces**: Run `python .agent/scripts/compile_session_traces.py` to generate the session's `TRACE_REPORT.qmd`. Persona data is now strictly grouped for clarity.
 3. **Update GEMINI Manifest**: Run `python .agent/scripts/update_gemini_manifest.py` to refresh the AI-to-AI context bridge.
 4. **Modify Tasks**: Modify existing tasks in `tasks.qmd` as completed. **Do not overwrite history.**

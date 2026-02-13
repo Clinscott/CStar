@@ -1,0 +1,13 @@
+Feature: Documentation Syntax Conversion (Edda)
+
+  Scenario Outline: Convert legacy blockquotes to Quarto alerts
+    Given a markdown blockquote with content <legacy>
+    When the Edda Weaver transmutes the file
+    Then the resulting .qmd should contain the Quarto alert <quarto>
+
+    Examples:
+      | legacy           | quarto               |
+      | "> Note: This"  | "> [!NOTE] This"     |
+      | "> Warning: Careful" | "> [!WARNING] Careful" |
+      | "> Important: Key" | "> [!IMPORTANT] Key" |
+      | "> Just text"    | "> [!NOTE] Just text" |
