@@ -1,64 +1,26 @@
-"""
-Alfred's Observer - Shadow Advisor Integration.
-
-Updates ALFRED_SUGGESTIONS.md with observations from:
-- Fishtest results
-- Code Sentinel output
-- Trace visualizer analysis
-"""
-
 import os
-from datetime import datetime
-from typing import Any, Dict, List
+import time
 
-
-class AlfredObserver:
-    """Quietly observes and records improvement suggestions."""
-    
-    def __init__(self, project_root: str):
-        self.root = project_root
-        self.suggestions_path = os.path.join(project_root, "ALFRED_SUGGESTIONS.md")
-    
-    def observe_fishtest(self, results: Dict[str, Any]) -> None:
-        """Analyze Fishtest results for improvement opportunities."""
-        suggestions = []
-        
-        if results.get("regressions"):
-            for reg in results["regressions"]:
-                suggestions.append(f"- **Regression Detected**: `{reg['test']}` "
-                                   f"(Score: {reg['score']:.2f} < {reg['min_score']:.2f})")
-        
-        if results.get("slow_tests"):
-            for slow in results["slow_tests"]:
-                suggestions.append(f"- **Performance Concern**: `{slow['test']}` "
-                                   f"took {slow['time_ms']:.1f}ms")
-        
-        if suggestions:
-            self._append_observation("Fishtest Analysis", suggestions)
-    
-    def observe_sentinel(self, violations: List[Dict[str, Any]]) -> None:
-        """Analyze Code Sentinel output."""
-        if not violations:
-            return
+class AlfredOverwatch:
+    def analyze_failure(self, target_file: str, error_trace: str) -> str:
+        """Reads a Gauntlet or Gungnir error and generates plain-text guidance."""
+        # Standard library logic for failure analysis
+        if "SyntaxError" in error_trace:
+            return f"ALFRED: It appears there is a syntax error in {target_file}. Please check your braces and indentation."
+        if "ImportError" in error_trace or "ModuleNotFoundError" in error_trace:
+            return f"ALFRED: A module dependency is missing in {target_file}. Verify the PYTHONPATH and internal imports."
+        if "AssertionError" in error_trace:
+            return f"ALFRED: The implementation in {target_file} fails its contract. The logic does not match the expected state."
+        if "KeyboardInterrupt" in error_trace:
+            return f"ALFRED: The operation for {target_file} was terminated by the user. Scaling back the computational workload."
+        if "Timeout" in error_trace:
+            return f"ALFRED: The operation for {target_file} timed out. Logic may be inefficient or deadlocked."
             
-        suggestions = []
-        for v in violations[:5]:  # Top 5
-            suggestions.append(f"- `{v['file']}:{v['line']}`: {v['message']}")
+        return f"ALFRED: An unexpected error occurred in {target_file}. Trace analysis suggests careful review of recent permutations."
         
-        if suggestions:
-            self._append_observation("Code Sentinel Report", suggestions)
-    
-    def _append_observation(self, category: str, items: List[str]) -> None:
-        """Append observations to the suggestions file."""
-        if not os.path.exists(self.suggestions_path):
-            return # Shadow advisor not present or file removed
-            
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
-        
-        entry = f"\n### {category} ({timestamp})\n\n" + "\n".join(items) + "\n"
-        
-        try:
-            with open(self.suggestions_path, "a", encoding="utf-8") as f:
-                f.write(entry)
-        except (IOError, PermissionError):
-            pass  # [ALFRED] Quietly fail if background process has lock
+    def write_suggestion(self, suggestion: str, file_path: str = ".agent/ALFRED_SUGGESTIONS.md"):
+        """Writes the guidance so the agent can read it on the next loop."""
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        with open(file_path, "a", encoding="utf-8") as f:
+            f.write(f"\n## {timestamp}\n{suggestion}\n")

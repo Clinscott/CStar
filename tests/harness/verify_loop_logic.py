@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 project_root = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(project_root))
 
-from src.sentinel.muninn import Muninn, SPRTValidator
+from src.sentinel.muninn import Muninn, GungnirValidator
 
 def test_autonomous_loop_logic():
     print("--- STARTING SYNTHETIC VERIFICATION ---")
