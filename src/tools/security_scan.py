@@ -17,8 +17,8 @@ except ImportError:
 
 class SecurityScanner:
     RISK_VECTORS = {
-        "PROMPT_INJECTION": [(r"ignore previous instructions", 10), (r"system override", 10)],
-        "DANGEROUS_CODE": [(r"os\.system\(", 10), (r"subprocess\.call\(", 8), (r"shutil\.rmtree\(", 10), (r"eval\(", 10), (r"exec\(", 10)]
+        "PROMPT_INJECTION": [(r"\bignore previous instructions\b", 10), (r"\bsystem override\b", 10)],
+        "DANGEROUS_CODE": [(r"\bos\.system\(", 10), (r"\bsubprocess\.call\(", 8), (r"\bshutil\.rmtree\(", 10), (r"\beval\(", 10), (r"\bexec\(", 10)]
     }
     MAX_FILE_SIZE_MB = 10
 

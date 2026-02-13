@@ -1,103 +1,100 @@
+from pathlib import Path
+from datetime import datetime
+import json
 import os
 import shutil
 
-__all__ = ["get_strategy", "PersonaStrategy", "OdinStrategy", "AlfredStrategy"]
-
 class PersonaStrategy:
-    def __init__(self, project_root):
-        self.root = project_root
+    """
+    Base class for project-wide persona strategies.
+    Defines the interface for policy enforcement, voice selection, and documentation re-theming.
+    """
 
-    def enforce_policy(self):
+    def __init__(self, project_root: str | Path):
+        self.root = Path(project_root)
+
+    def enforce_policy(self) -> list[str]:
         """Analyze and enforce file structure policies."""
         raise NotImplementedError 
 
-    def get_voice(self):
+    def get_voice(self) -> str:
         """Return the name of the dialogue file to use."""
         raise NotImplementedError
 
-    def retheme_docs(self):
+    def retheme_docs(self) -> list[str]:
         """Re-theme project documentation to the active persona voice."""
         return []
 
-    def _quarantine(self, file_path):
+    def _quarantine(self, file_path: Path | str) -> Path | None:
         """Preserve original file in .corvus_quarantine/ before modification."""
-        if not os.path.exists(file_path):
-            return
+        source = Path(file_path)
+        if not source.exists():
+            return None
             
-        quarantine_dir = os.path.join(os.path.dirname(file_path), ".corvus_quarantine")
-        os.makedirs(quarantine_dir, exist_ok=True)
+        quarantine_dir = source.parent / ".corvus_quarantine"
+        quarantine_dir.mkdir(exist_ok=True)
         
-        from datetime import datetime
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-        basename = os.path.basename(file_path)
-        quarantine_path = os.path.join(quarantine_dir, f"{timestamp}_{basename}")
+        quarantine_path = quarantine_dir / f"{timestamp}_{source.name}"
         
-        shutil.move(file_path, quarantine_path)
+        shutil.move(str(source), str(quarantine_path))
         return quarantine_path
 
-    def _sync_configs(self, persona):
-        """[ALFRED] Synchronize .agent/config.json."""
-        import json
-        config_path = os.path.join(self.root, ".agent", "config.json")
-        if os.path.exists(config_path):
+    def _sync_configs(self, persona: str) -> None:
+        """[ALFRED] Synchronize .agent/config.json with Pathlib."""
+        config_path = self.root / ".agent" / "config.json"
+        if config_path.exists():
             try:
-                with open(config_path, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                
-                # Store both casing for robustness
+                data = json.loads(config_path.read_text(encoding='utf-8'))
                 data["persona"] = persona.upper()
                 data["Persona"] = persona.upper()
-                
-                with open(config_path, 'w', encoding='utf-8') as f:
-                    json.dump(data, f, indent=4)
+                config_path.write_text(json.dumps(data, indent=4), encoding='utf-8')
             except Exception:
                 pass
 
 class OdinStrategy(PersonaStrategy):
-    def get_voice(self):
+    """
+    The ODIN Strategy: Enforces strict compliance and complete dominion.
+    Aims for high standardization and authoritative project documentation.
+    """
+
+    def get_voice(self) -> str:
         return "odin"
 
-    def retheme_docs(self):
+    def retheme_docs(self) -> list[str]:
         """ODIN documentation re-theming: Overwrite for Dominion."""
         results = []
         
-        # Target: AGENTS.qmd (Primary) or AGENTS.md
-        def _res(base_name):
+        def _res(base_name: str) -> Path:
             names = [
-                os.path.join("docs", "architecture", f"{base_name}.qmd"),
-                os.path.join("docs", "architecture", f"{base_name}.md"),
-                f"{base_name}.qmd", f"{base_name}.md"
+                self.root / "docs" / "architecture" / f"{base_name}.qmd",
+                self.root / "docs" / "architecture" / f"{base_name}.md",
+                self.root / f"{base_name}.qmd", 
+                self.root / f"{base_name}.md"
             ]
-            for name in names:
-                path = os.path.join(self.root, name)
-                if os.path.exists(path): return path
-            return os.path.join(self.root, "docs", "architecture", f"{base_name}.qmd") # Default to QMD
+            for path in names:
+                if path.exists(): return path
+            return self.root / "docs" / "architecture" / f"{base_name}.qmd"
 
         agents_path = _res("AGENTS")
         source_template = _res("sterileAgent/AGENTS_ODIN")
         
-        if os.path.exists(source_template):
-            # Capture legacy content if it exists
+        if source_template.exists():
             legacy_content = ""
-            if os.path.exists(agents_path):
-                with open(agents_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                    # If already has legacy section, preserve it, else the whole file
-                    if "## 📜 Project Legacy" in content:
-                        legacy_content = "## 📜 Project Legacy" + content.split("## 📜 Project Legacy")[-1]
-                    else:
-                        legacy_content = "\n---\n\n## 📜 Project Legacy\n\n" + content
+            if agents_path.exists():
+                content = agents_path.read_text(encoding='utf-8')
+                if "## 📜 Project Legacy" in content:
+                    legacy_content = "## 📜 Project Legacy" + content.split("## 📜 Project Legacy")[-1]
+                else:
+                    legacy_content = "\n---\n\n## 📜 Project Legacy\n\n" + content
                 
                 self._quarantine(agents_path)
             
-            with open(source_template, 'r', encoding='utf-8') as f:
-                template = f.read()
-            
-            os.makedirs(os.path.dirname(agents_path), exist_ok=True)
-            with open(agents_path, 'w', encoding='utf-8') as f:
-                f.write(template + "\n\n" + legacy_content)
+            template = source_template.read_text(encoding='utf-8')
+            agents_path.parent.mkdir(parents=True, exist_ok=True)
+            agents_path.write_text(template + "\n\n" + legacy_content, encoding='utf-8')
                 
-            results.append(f"RE-THEMED: {os.path.basename(agents_path)} (ODIN voice applied)")
+            results.append(f"RE-THEMED: {agents_path.name} (ODIN voice applied)")
             
         self._sync_configs("ODIN")
         return results
@@ -108,37 +105,38 @@ class OdinStrategy(PersonaStrategy):
         results = []
         
         # 1. Enforce AGENTS.qmd (Main)
-        for target in [os.path.join(self.root, "docs", "architecture"), self.root]:
-            qmd = os.path.join(target, "AGENTS.qmd")
-            md = os.path.join(target, "AGENTS.md")
-            agents_path = qmd if os.path.exists(qmd) else md
-            try:
-                if os.path.exists(agents_path):
-                    with open(agents_path, 'r', encoding='utf-8') as f:
-                        content = f.read()
+        target_dirs = [self.root / "docs" / "architecture", self.root]
+        for target in target_dirs:
+            qmd = target / "AGENTS.qmd"
+            md = target / "AGENTS.md"
+            agents_path = qmd if qmd.exists() else (md if md.exists() else None)
+            
+            if agents_path:
+                try:
+                    content = agents_path.read_text(encoding='utf-8')
                     
-                    # Check for absolute requirements: ODIN or ALFRED identity, Symmetry, SovereignFish
                     import re
                     # Check for standardized identity pattern: IDENTITY: [NAME]
                     if not re.search(r"IDENTITY:\s+[A-Z]+", content):
                         self._create_standard_agents(agents_path)
-                        results.append(f"REWRITTEN: {os.path.relpath(agents_path, self.root)} (Compliance Enforced)")
+                        results.append(f"REWRITTEN: {agents_path.relative_to(self.root)} (Compliance Enforced)")
                     else:
-                        results.append(f"VERIFIED: {os.path.relpath(agents_path, self.root)} (Compliant)")
-            except (IOError, PermissionError) as e:
-                results.append(f"DEFIANCE: Failed to access {os.path.basename(agents_path)} ({str(e)})")
+                        results.append(f"VERIFIED: {agents_path.relative_to(self.root)} (Compliant)")
+                except (IOError, PermissionError) as e:
+                    results.append(f"DEFIANCE: Failed to access {agents_path.name} ({str(e)})")
 
         # 2. Enforce .cursorrules (The System Directive)
-        rules_path = os.path.join(self.root, ".cursorrules")
+        rules_path = self.root / ".cursorrules"
         create_rules = False
-        if not os.path.exists(rules_path):
+        if not rules_path.exists():
             create_rules = True
         else:
-            with open(rules_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-                # Proactive Persona Match: Overwrite if not ODIN
+            try:
+                content = rules_path.read_text(encoding='utf-8')
                 if "IDENTITY: ODIN" not in content:
                     create_rules = True
+            except Exception:
+                create_rules = True # Default to re-forging
         
         if create_rules:
             self._create_cursor_rules(rules_path)
@@ -193,50 +191,40 @@ This project operates under the CorvusStar / ODIN protocols.
             f.write(content)
 
 class AlfredStrategy(PersonaStrategy):
-    def get_voice(self):
+    """
+    The ALFRED Strategy: Focuses on humble service, adaptation, and assistance.
+    Provides safety nets through backups and helpful suggestions.
+    """
+
+    def get_voice(self) -> str:
         return "alfred"
 
-    def enforce_policy(self):
+    def enforce_policy(self) -> list[str]:
         """ALFRED Policy: Humble Service. Adapt and Assist."""
         results = []
         
-        # 1. Adaptive Backup (The Safety Net) - Support .qmd or .md
         doc_targets = ["AGENTS", "tasks", "thesaurus"]
         for name in doc_targets:
-            qmd = os.path.join(self.root, f"{name}.qmd")
-            md = os.path.join(self.root, f"{name}.md")
-            path = qmd if os.path.exists(qmd) else md
+            qmd = self.root / f"{name}.qmd"
+            md = self.root / f"{name}.md"
+            path = qmd if qmd.exists() else md
             try:
-                if os.path.exists(path):
-                    bak = path + ".bak"
-                    if not os.path.exists(bak):
-                        shutil.copy2(path, bak)
-                        results.append(f"PROVISIONED: Backup of {os.path.basename(path)}")
+                if path.exists():
+                    bak = path.with_suffix(path.suffix + ".bak")
+                    if not bak.exists():
+                        shutil.copy2(str(path), str(bak))
+                        results.append(f"PROVISIONED: Backup of {path.name}")
             except (IOError, PermissionError):
-                pass # [ALFRED] Quietly fail if background process has lock
+                pass 
 
-        # 2. Adaptive Discovery (Help the user find their own way)
-        agents_found = False
-        for name in ["AGENTS.qmd", "AGENTS.md", "INSTRUCTIONS.qmd", "brief.qmd", "cursorrules.qmd"]:
-            if os.path.exists(os.path.join(self.root, name)):
-                agents_found = True
-                break
+        agents_found = any((self.root / name).exists() for name in ["AGENTS.qmd", "AGENTS.md", "INSTRUCTIONS.qmd", "brief.qmd", "cursorrules.qmd"])
         
         if not agents_found:
-            self._create_minimal_agents(os.path.join(self.root, "AGENTS.qmd"))
+            self._create_minimal_agents(self.root / "AGENTS.qmd")
             results.append("SUGGESTED: Created minimal project notes.")
             
-        # 3. Enforce .cursorrules (The Butler's Record)
-        rules_path = os.path.join(self.root, ".cursorrules")
-        create_rules = False
-        if not os.path.exists(rules_path):
-            create_rules = True
-        else:
-            with open(rules_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-                # Proactive Persona Match: Overwrite if not ALFRED
-                if "IDENTITY: ALFRED" not in content:
-                    create_rules = True
+        rules_path = self.root / ".cursorrules"
+        create_rules = not rules_path.exists() or "IDENTITY: ALFRED" not in rules_path.read_text(encoding='utf-8')
         
         if create_rules:
             self._create_cursor_rules(rules_path)

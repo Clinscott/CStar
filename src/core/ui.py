@@ -50,11 +50,47 @@ class HUD:
 
     # State
     PERSONA: str = "ALFRED" # Default
+    _INITIALIZED: bool = False
     DIALOGUE: Any | None = None # Instance of DialogueRetriever
 
     @staticmethod
+    def _ensure_persona() -> None:
+        """[ALFRED] Lazy-load the persona from config if not already set."""
+        if HUD._INITIALIZED:
+            return
+            
+        # If PERSONA was set manually before initialization, respect it.
+        # But how do we know if it was "manual"? 
+        # Default is "ALFRED". If it's something else, maybe it was manual.
+        # For simplicity, if we are initializing, we load if config exists.
+            
+        try:
+            from pathlib import Path
+            import json
+            
+            # Resolve root relative to this file: src/core/ui.py -> project_root
+            root = Path(__file__).parent.parent.parent.resolve()
+            config_path = root / ".agent" / "config.json"
+            
+            if config_path.exists():
+                with config_path.open("r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    persona = data.get("persona") or data.get("Persona") or "ALFRED"
+                    HUD.PERSONA = str(persona).upper()
+        except Exception:
+            pass # Stay as ALFRED
+        finally:
+            HUD._INITIALIZED = True
+
+    @staticmethod
     def _speak(intent: str, fallback: str) -> str:
-        """Retrieves dialogue from the vector DB or returns fallback."""
+        """
+        Retrieves dialogue from the vector DB or returns fallback.
+        
+        Args:
+            intent: The semantic intent key to look up.
+            fallback: The string to return if the intent is not found.
+        """
         if HUD.DIALOGUE:
             return HUD.DIALOGUE.get(intent) or fallback
         return fallback
@@ -100,6 +136,7 @@ class HUD:
     @staticmethod
     def get_theme() -> dict[str, str]:
         """Returns the comprehensive color palette for the active Persona."""
+        HUD._ensure_persona()
         p = HUD.PERSONA.upper()
         # GOD is an alias for ODIN
         if p == "GOD":
@@ -149,7 +186,13 @@ class HUD:
 
     @staticmethod
     def persona_log(level: str, msg: str) -> None:
-        """Log with persona prefix for major announcements."""
+        """
+        Log with persona prefix for major announcements.
+        
+        Args:
+            level: The severity level (INFO, SUCCESS, WARN, ERROR).
+            msg: The message to log.
+        """
         theme = HUD.get_theme()
         prefix = theme["prefix"]
 
@@ -340,7 +383,12 @@ class HUD:
 
     @staticmethod
     def warning(msg: str) -> None:
-        """Shorthand for a yellow warning log."""
+        """
+        Shorthand for a yellow warning log.
+        
+        Args:
+            msg: The warning message as a string.
+        """
         HUD.log("WARN", msg)
 
     @staticmethod
@@ -355,18 +403,16 @@ class HUD:
 
     @staticmethod
     def log_rejection(persona: str, reason: str, details: str) -> None:
-        """Logs a rejected attempt to the rejection ledger."""
+        """Logs a rejected attempt to the rejection ledger using Pathlib."""
         ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         entry = f"| {ts} | {persona} | {reason} | {details} |\n"
         # We target a specific ledger path: .agent/traces/quarantine/REJECTIONS.qmd
-        ledger_path = os.path.join(os.getcwd(), ".agent", "traces", "quarantine", "REJECTIONS.qmd")
+        ledger_path = Path.cwd() / ".agent" / "traces" / "quarantine" / "REJECTIONS.qmd"
         try:
-            os.makedirs(os.path.dirname(ledger_path), exist_ok=True)
-            if not os.path.exists(ledger_path):
-                with open(ledger_path, "w", encoding="utf-8") as f:
-                    f.write("# 🧪 The Crucible: Rejection Ledger\n\n| Timestamp | Persona | Reason | Details |\n| :--- | :--- | :--- | :--- |\n")
-            with open(ledger_path, "a", encoding="utf-8") as f:
+            ledger_path.parent.mkdir(parents=True, exist_ok=True)
+            if not ledger_path.exists():
+                ledger_path.write_text("# 🧪 The Crucible: Rejection Ledger\n\n| Timestamp | Persona | Reason | Details |\n| :--- | :--- | :--- | :--- |\n", encoding='utf-8')
+            with ledger_path.open("a", encoding="utf-8") as f:
                 f.write(entry)
         except (OSError, PermissionError):
-            # Fail silently to avoid interrupting the main flow
             pass

@@ -153,19 +153,13 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Stabilization Sprint**: Resolved all test regressions post-cycle (NameError, AttributeError, Lock Management). [x]
 - [x] **Linscott Verification**: 100% pass rate achieved on all core engine and empire tests (81/81). [x]
 
-## ⏭️ Start Here Next (Phase 34 & 35)
+### 35. Manual Learning Verification (Session 51)
+- [x] **Manual Learning Protocol (N=40)**: Executed 40 cycles across core infrastructure. [x]
+- [x] **Linscott Hardening**: Created 40+ companion tests for legacy and extended tools. [x]
+- [x] **Logic Remediation**: Fixed logic bugs in `report_engine.py`, `security_scan.py`, `trace_viz.py`, and `dedupe_corrections.py`. [x]
+- [x] **SPRT Verification**: Anchored Batch 4 targets with statistical stability testing. [x]
 
-### 34. Annexation & Background Vigil
+## ⏭️ Start Here Next (Phase 36)
+- [ ] **Operation Ironclad: Hybrid Modularization**: Begin the migration of core memory and engine logic to a persistent modular package (`src/cstar`).
 - [ ] **Annexation Execution**: Activate the `execution` mode for `annex.py` to auto-remediate Documentation/Linguistic breaches project-wide.
-- [ ] **Heimdall Persistence**: Hardened the security monitor to run in background mode with a persistent log rotation.
-- [ ] **Gauntlet Hardening**: Integrate the SPRT learning loop as the default repair mechanism for the `gauntlet` workflow.
-
-### 35. Advanced Beauty & UX
-- [ ] **Freya Logic Expansion**: Implement deep CSS analysis in `FreyaWarden` to detect inconsistent spacing/rounding across components.
-- [ ] **Transition Polishing**: Refine the HUD animation timings for smoother context switching.
-
-### 36. Operation Ironclad: Hybrid Modularization
-- [ ] **Phase 1: Foundation**: Scaffold `src/cstar` and initialize `pyproject.toml`.
-- [ ] **Phase 2: Brain Transplant**: Migrate Memory and Engine logic to persistent modular package.
-- [ ] **Phase 3: Bridge & Utilities**: Implement `merger.py` and relocate tools to `src/cstar/tools/`.
-- [ ] **Phase 4: CLI Integration**: Finalize `cstar.ps1` and environment-aware `install.ps1`.
+- [ ] **Heimdall Persistence**: Harden the security monitor to run in background mode with a persistent log rotation.

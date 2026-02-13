@@ -1,6 +1,6 @@
 # 💎 GEMINI NEURAL MANIFEST
 
-> **Timestamp**: 2026-02-12 18:19:04
+> **Timestamp**: 2026-02-13 11:53:13
 > **Active Mind**: ALFRED
 
 ## 🧩 Context Anchors
@@ -9,16 +9,16 @@
 - **Framework Port**: 3000 (Odin Dashboard)
 
 ## ⏭️ Priority Directives
-## ⏭️ Start Here Next (Strategic Growth)
+## ⏭️ Start Here Next (Phase 34 & 35)
 
-### 34. Batch 1 Saturation & Annexation
-- [ ] **Zero-Failure Sprint**: Resolve the final 10 test failures in `tests/empire_tests` to achieve 100% green coverage.
-- [ ] **Annexation Execution**: Activate the `execution` mode for `annex.py` to auto-remediate Documentation/Linguistic breaches.
+### 34. Annexation & Background Vigil
+- [ ] **Annexation Execution**: Activate the `execution` mode for `annex.py` to auto-remediate Documentation/Linguistic breaches project-wide.
 - [ ] **Heimdall Persistence**: Hardened the security monitor to run in background mode with a persistent log rotation.
+- [ ] **Gauntlet Hardening**: Integrate the SPRT learning loop as the default repair mechanism for the `gauntlet` workflow.
 
-### 35. Advanced Beauty & UX
-- [ ] **Freya Logic Expansion**: Implement deep CSS analysis in `FreyaWarden` to detect inconsistent spacing/rounding across components.
-- [ ] **Transition Polishing**: Refine the HUD animation timings for smoother context switching.
+## 🏁 Execution Plan
+1. **Forge Annex Execution**: Link `HeimdallWarden` to the script/doc transmutation engine in `src/core/annex.py`.
+2. **Background Heimdall**: Implement a simple daemon for `heimdall --monitor` with log-scoping.
 
 ## 📜 Recent Continuity (Git)
 ```text

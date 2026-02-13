@@ -15,7 +15,12 @@ The decision-making brain of Corvus Star.
     - `search(query)`: Finds best matching skill/intent.
     - `score_identity(text)`: Validates persona alignment.
 - **Dispatcher** (`cstar_dispatcher.py`):
-    - `main()`: Routes CLI commands (`c* ...`) dynamically to scripts or workflows.
+    - `run()`: Routes CLI commands dynamically to scripts or workflows.
+- **HUD Interface** (`ui.py`):
+    - `box_top()`, `box_row()`, `persona_log()`: ANSI-themed visual primitives.
+    - `_ensure_persona()`: Automatic lazy-loading of persona configuration.
+- **Annexation Protocol** (`annex.py`):
+    - `HeimdallWarden.scan()`: Audits territory for standard compliance (Linscott/Torvalds).
 - **Proxy Skills** (`.agent/skills/`):
     - `ravens.py`, `trace.py`, `heimdall.py`, etc. (Dynamic CLI Entry Points).
 
@@ -35,6 +40,7 @@ The autonomous daemon ensuring system health.
 ### 📂 Test Infrastructure (`tests/`)
 Verification and hardening tools.
 - **Ravens Harness** (`ravens_harness.py`): 100-iteration synthetic/mock gauntlet tester.
+- **Empire Test Suite** (`tests/empire_tests/`): 40+ companion tests for core/extension tools (Linscott Standard).
 - **Response Harvester** (`src/sentinel/harvest_responses.py`): Records live AI data for offline harness.
 
 ### 🛠️ Tools (`src/tools/`)

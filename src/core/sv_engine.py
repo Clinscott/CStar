@@ -214,6 +214,11 @@ class SovereignEngine:
         if record and top:
             self.record_trace(query, top)
 
+        self._render_hud(query, top)
+
+        if top:
+            self._handle_proactive(top)
+
         if json_mode:
             print(json.dumps({"query": query, "top_match": top}, indent=2))
             return

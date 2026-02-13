@@ -7,9 +7,9 @@ from unittest.mock import MagicMock, patch
 # Add project root and empire scripts to path
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.append(PROJECT_ROOT)
-sys.path.append(os.path.join(PROJECT_ROOT, ".agent", "scripts"))
-sys.path.append(os.path.join(PROJECT_ROOT, ".agent", "scripts", "empire"))
+sys.path.append(os.path.join(PROJECT_ROOT, "src", "core"))
 
+from sv_engine import SovereignEngine
 from factories import create_scenario, create_vector_engine, create_warlord
 from ui import HUD
 

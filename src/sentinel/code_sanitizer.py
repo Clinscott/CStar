@@ -383,58 +383,67 @@ def _fix_indentation(code: str) -> str:
 def _deep_fix_indentation(code: str) -> str:
     """
     Last-resort indentation repair.
-    Uses textwrap.dedent and then re-indents based on context.
+    Attempts simple dedent, then line-by-line normalization.
     """
-    # Try simple dedent first
+    # 1. Try simple dedent
     dedented = textwrap.dedent(code)
-    try:
-        ast.parse(dedented)
+    if _is_syntax_valid(dedented):
         return dedented
-    except (IndentationError, SyntaxError):
-        pass
 
-    # Try line-by-line: detect the minimum non-zero indent and strip it
+    # 2. Try line-by-line normalization
     lines = code.split("\n")
     non_empty = [l for l in lines if l.strip()]
     if not non_empty:
         return code
 
-    # Find minimum leading whitespace (excluding zero-indent lines like 'def' or 'class')
+    min_indent = _find_min_indent(non_empty)
+    if min_indent == 0:
+        return dedented # Fallback
+
+    result = _apply_indent_correction(lines, min_indent)
+    
+    if _is_syntax_valid(result):
+        return result
+        
+    return dedented
+
+def _is_syntax_valid(code: str) -> bool:
+    """Helper to check if code segment parses."""
+    try:
+        ast.parse(code)
+        return True
+    except (IndentationError, SyntaxError):
+        return False
+
+def _find_min_indent(lines: list[str]) -> int:
+    """Finds the minimum non-zero indentation level."""
     indents = []
-    for line in non_empty:
+    for line in lines:
         stripped = line.lstrip()
         indent = len(line) - len(stripped)
         if indent > 0:
             indents.append(indent)
+    return min(indents) if indents else 0
 
-    if not indents:
-        return code
-
-    min_indent = min(indents)
-
-    # Strip the common indent
+def _apply_indent_correction(lines: list[str], min_indent: int) -> str:
+    """Strips common indent and rounds to 4-space multiples."""
     fixed_lines = []
     for line in lines:
-        if line.strip() == "":
+        if not line.strip():
             fixed_lines.append("")
-        else:
-            stripped = line.lstrip()
-            current_indent = len(line) - len(stripped)
-            new_indent = max(0, current_indent - min_indent)
-            # Round to nearest 4-space multiple
-            rounded_indent = (new_indent // 4) * 4
-            # But preserve relative differences
-            if current_indent > min_indent:
-                rounded_indent = max(4, rounded_indent)
-            fixed_lines.append(" " * rounded_indent + stripped)
-
-    result = "\n".join(fixed_lines)
-    try:
-        ast.parse(result)
-        return result
-    except (IndentationError, SyntaxError):
-        # If all else fails, return the original dedented attempt
-        return dedented
+            continue
+            
+        stripped = line.lstrip()
+        current_indent = len(line) - len(stripped)
+        new_indent = max(0, current_indent - min_indent)
+        
+        # Round to nearest 4-space multiple and preserve structure
+        rounded_indent = (new_indent // 4) * 4
+        if current_indent > min_indent:
+            rounded_indent = max(4, rounded_indent)
+            
+        fixed_lines.append(" " * rounded_indent + stripped)
+    return "\n".join(fixed_lines)
 
 
 # ==============================================================================

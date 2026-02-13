@@ -1,10 +1,3 @@
-#!/usr/bin/env python3
-"""
-The Edda Protocol (The Weaver of Tales)
-Identity: ODIN
-Purpose: Transmute legacy documentation into the Corvus Star standard (.qmd) and synthesize API references.
-"""
-
 import argparse
 import ast
 import os
@@ -13,6 +6,7 @@ import shutil
 import sys
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
 from src.core.ui import HUD
 
@@ -33,9 +27,9 @@ class EddaWeaver:
             r"\.venv"
         ]
 
-    def scan_and_transmute(self, dry_run: bool = False):
+    def scan_and_transmute(self, dry_run: bool = False) -> None:
         """Recursively scans for .md files and converts them to .qmd."""
-        print(f"[EDDA] Scanning realm: {self.root}")
+        HUD.persona_log("INFO", f"Scanning realm for documentation: {self.root}")
         
         candidates = []
         for path in self.root.rglob("*.md"):
@@ -43,7 +37,7 @@ class EddaWeaver:
                 continue
             candidates.append(path)
 
-        print(f"[EDDA] Found {len(candidates)} candidates for transmutation.")
+        HUD.persona_log("INFO", f"Found {len(candidates)} candidates for transmutation.")
 
         if dry_run:
             for c in candidates:
@@ -55,8 +49,11 @@ class EddaWeaver:
 
     def _should_ignore(self, path: Path) -> bool:
         """Determines if a file should be spared from transmutation."""
-        rel_path = str(path.relative_to(self.root))
-        
+        try:
+            rel_path = str(path.relative_to(self.root))
+        except ValueError:
+            return True
+            
         # Pattern Check
         for pattern in self.ignore_patterns:
             if re.search(pattern, rel_path):
@@ -67,12 +64,12 @@ class EddaWeaver:
             content = path.read_text(encoding="utf-8", errors="ignore")
             if "<!-- edda:ignore -->" in content:
                 return True
-        except Exception:
-            return True  # Binary or unreadable
+        except (OSError, PermissionError):
+            return True
 
         return False
 
-    def _transmute(self, source: Path):
+    def _transmute(self, source: Path) -> None:
         """Converts a single .md file to .qmd, preserving the original."""
         try:
             content = source.read_text(encoding="utf-8")
@@ -93,15 +90,15 @@ class EddaWeaver:
             # 5. Write New Scroll
             new_path = source.with_suffix(".qmd")
             new_path.write_text(final_content, encoding="utf-8")
-            print(f"  [WEAVED] {source.name} -> {new_path.name}")
+            HUD.persona_log("SUCCESS", f"Weaved {source.name} -> {new_path.name}")
 
         except Exception as e:
-            print(f"  [ERROR] Failed to weave {source.name}: {e}")
+            HUD.persona_log("ERROR", f"Failed to weave {source.name}: {e}")
 
-    def _extract_title(self, content: str) -> str:
+    def _extract_title(self, content: str) -> Optional[str]:
         """Extracts the first H1 header as title."""
         match = re.search(r"^#\s+(.+)$", content, re.MULTILINE)
-        return match.group(1) if match else None
+        return match.group(1).strip() if match else None
 
     def _convert_syntax(self, content: str) -> str:
         """Converts standard blockquotes to GitHub/Quarto Alerts."""
@@ -128,15 +125,17 @@ class EddaWeaver:
         # Match lines starting with "> "
         return re.sub(r"^>\s*(.+)$", replace_alert, content, flags=re.MULTILINE)
 
-    def _quarantine_file(self, source: Path):
+    def _quarantine_file(self, source: Path) -> None:
         """Moves the original file to the quarantine vault."""
-        rel_path = source.relative_to(self.root)
-        dest = self.quarantine / rel_path
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        shutil.move(str(source), str(dest))
-        print(f"  [SAFE] Preserved in quarantine: {rel_path}")
+        try:
+            rel_path = source.relative_to(self.root)
+            dest = self.quarantine / rel_path
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(source), str(dest))
+        except (OSError, ValueError):
+            pass
 
-    def synthesize_api(self, source_file: Path):
+    def synthesize_api(self, source_file: Path) -> None:
         """Generates API documentation from a Python source file."""
         try:
             tree = ast.parse(source_file.read_text(encoding="utf-8"))
@@ -157,17 +156,14 @@ class EddaWeaver:
                 out_dir.mkdir(parents=True, exist_ok=True)
                 out_path = out_dir / f"{source_file.stem}.qmd"
                 out_path.write_text("\n".join(docs), encoding="utf-8")
-                print(f"  [SYNTH] API Docs generated: {out_path.name}")
+                HUD.persona_log("SUCCESS", f"API Docs synthesized: {out_path.name}")
 
         except Exception as e:
-            print(f"  [ERROR] Failed to synthesize {source_file.name}: {e}")
+            HUD.persona_log("ERROR", f"Failed to synthesize {source_file.name}: {e}")
 
-# ==============================================================================
-# 🚀 ENTRY POINT
-# ==============================================================================
-
-def main():
-    parser = argparse.ArgumentParser(description="The Edda Protocol (Documentation Converter)")
+def main() -> None:
+    """Command-line interface for the Edda Protocol."""
+    parser = argparse.ArgumentParser(description="The Edda Protocol")
     parser.add_argument("--target", help="Specific file to convert")
     parser.add_argument("--scan", help="Root directory to scan")
     parser.add_argument("--quarantine", help="Quarantine directory", default=".corvus_quarantine")
@@ -176,24 +172,21 @@ def main():
     args = parser.parse_args()
     
     if args.scan:
-        root = Path(args.scan)
+        root = Path(args.scan).resolve()
         q_dir = root / args.quarantine
-        weaver = EddaWeaver(root, q_dir)
-        weaver.scan_and_transmute()
+        EddaWeaver(root, q_dir).scan_and_transmute()
         
     elif args.target:
-        target = Path(args.target)
+        target = Path(args.target).resolve()
         root = target.parent
         q_dir = root / args.quarantine
-        weaver = EddaWeaver(root, q_dir)
-        weaver._transmute(target)
+        EddaWeaver(root, q_dir)._transmute(target)
 
     elif args.synthesize:
-        target = Path(args.synthesize)
-        root = target.parent.parent # Assessment
+        target = Path(args.synthesize).resolve()
+        root = target.parent.parent
         q_dir = root / args.quarantine
-        weaver = EddaWeaver(root, q_dir)
-        weaver.synthesize_api(target)
+        EddaWeaver(root, q_dir).synthesize_api(target)
 
 if __name__ == "__main__":
     main()
