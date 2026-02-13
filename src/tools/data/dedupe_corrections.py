@@ -1,30 +1,29 @@
 import json
-import re
+import os
 
 path = '.agent/corrections.json'
+if not os.path.exists(path):
+    print(f"File not found: {path}")
+    exit(0)
+
 with open(path, 'r', encoding='utf-8') as f:
-    content = f.read()
+    try:
+        data = json.load(f)
+    except json.JSONDecodeError:
+        print(f"Invalid JSON: {path}")
+        exit(1)
 
-# Pattern to find all mapping entries
-# Matches "key": "value", or "key": "value"
-pattern = r'\"(.*?)\":\s*\"(.*?)\"'
-all_matches = re.findall(pattern, content)
-
-# The first match is usually "phrase_mappings", the rest are the actual mappings
-# We want to skip the high level keys like phrase_mappings and synonym_updates if they match the pattern
-skip_keys = ["phrase_mappings", "synonym_updates"]
-
-deduped = {}
-for k, v in all_matches:
-    if k not in skip_keys:
-        deduped[k] = v
+# Ensure the structure is correct
+phrase_mappings = data.get("phrase_mappings", {})
+# Python's json.load already handles duplicate keys by taking the last one.
+# If we wanted to merge multiple levels, we'd do it here.
 
 new_content = {
-    "phrase_mappings": deduped,
-    "synonym_updates": {}
+    "phrase_mappings": phrase_mappings,
+    "synonym_updates": data.get("synonym_updates", {})
 }
 
 with open(path, 'w', encoding='utf-8') as f:
     json.dump(new_content, f, indent=4, ensure_ascii=False)
 
-print(f"Deduplicated {len(all_matches)} entries into {len(deduped)} unique mappings.")
+print(f"Deduplicated mappings in {path}.")

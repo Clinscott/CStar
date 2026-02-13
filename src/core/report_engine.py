@@ -20,10 +20,10 @@ class ReportEngine:
     injecting the correct voice and signature.
     """
     
-    def __init__(self, project_root=None):
-        self.root = project_root or Path(os.getcwd())
+    def __init__(self, project_root: str | Path | None = None):
+        self.root = Path(project_root) if project_root else Path.cwd()
         # Load fresh config to ensure we catch dynamic switches
-        self.config = utils.load_config(str(self.root))
+        self.config = utils.load_config(self.root)
         self.persona = (self.config.get("persona") or self.config.get("Persona") or "ALFRED").upper()
         
         # Ensure HUD is synced
@@ -60,7 +60,7 @@ class ReportEngine:
             return f"\n**JUDGMENT**: {icon} {status.upper()} — *{detail}*"
         else:
             icon = "Isolating..." if status == "FAIL" else "Verified."
-            return f"\n**Observation**: {status} — {detail}"
+            return f"\n**Observation**: {icon} {status} — {detail}"
 
     def signature(self) -> str:
         """

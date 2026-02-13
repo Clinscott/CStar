@@ -13,6 +13,12 @@ from report_engine import ReportEngine
 
 
 def benchmark(n=100):
+    """
+    Executes a performance trial of the sv_engine.py startup latency.
+    
+    Args:
+        n: The number of trials to execute for statistical significance.
+    """
     cmd = ["python", ".agent/scripts/sv_engine.py", "--benchmark"]
     times = []
     

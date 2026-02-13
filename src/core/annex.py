@@ -26,7 +26,8 @@ class HeimdallWarden:
 
     def scan(self):
         """Conducts a full comprehensive audit of the territory."""
-        print(f"[ANNEX] Scanning realm: {self.root}")
+        from src.core.ui import HUD
+        HUD.persona_log("INFO", f"Scanning realm: {self.root}")
         
         # 1. Scan Code (Linscott & Torvalds)
         for py_file in self.root.rglob("*.py"):
@@ -70,7 +71,12 @@ class HeimdallWarden:
         return False
 
     def _audit_code(self, source: Path):
-        """Checks for Linscott (Test) and Torvalds (Quality) compliance."""
+        """
+        Checks for Linscott (Test) and Torvalds (Quality) compliance.
+        
+        This method verifies the existence of companion tests and performs
+        basic static analysis for common code quality issues like bare excepts.
+        """
         rel_path = source.relative_to(self.root)
         
         # A. Linscott Standard: Where is the test?
@@ -103,6 +109,18 @@ class HeimdallWarden:
                         "action": f"Fix bare except at line {node.lineno}",
                         "severity": "HIGH"
                     })
+                
+                # Check for potential hardcoded secrets (Basic heuristic)
+                if isinstance(node, ast.Assign):
+                    for target in node.targets:
+                        if isinstance(target, ast.Name) and any(s in target.id.lower() for s in ("key", "secret", "token", "password")):
+                            if isinstance(node.value, ast.Constant) and isinstance(node.value.value, str) and len(node.value.value) > 10:
+                                self.breaches.append({
+                                    "type": "HEIMDALL_BREACH",
+                                    "file": rel_path.as_posix(),
+                                    "action": f"Potential secret exposed: {target.id} at line {node.lineno}",
+                                    "severity": "CRITICAL"
+                                })
         except Exception:
             pass # Parser error already a breach implicitly
 
@@ -182,26 +200,28 @@ class HeimdallWarden:
         plan.append("1. **Approve**: Mark items as `[x]` to confirm.")
         plan.append("2. **Execute**: Run the annexation command.")
         
+        from src.core.ui import HUD
         self.plan_path.write_text("\n".join(plan), encoding="utf-8")
-        print(f"[ANNEX] Plan generated: {self.plan_path}")
-        print(f"[ANNEX] Breaches found: Linscott={len(linscott_breaches)}, Mimir={len(mimir_breaches)}, Edda={len(self.edda_tasks)}")
+        HUD.persona_log("SUCCESS", f"Plan generated: {self.plan_path}")
+        HUD.persona_log("INFO", f"Breaches found: Linscott={len(linscott_breaches)}, Mimir={len(mimir_breaches)}, Edda={len(self.edda_tasks)}")
 
 # ==============================================================================
 # 🚀 ENTRY POINT
 # ==============================================================================
 
 def main():
+    """Command-line entry point for the Annexation Protocol."""
+    from src.core.ui import HUD
     if len(sys.argv) < 2:
-        print("Usage: annex.py --scan [ROOT]")
+        HUD.log("WARN", "Usage: annex.py --scan [ROOT]")
         sys.exit(1)
         
     cmd = sys.argv[1]
     if cmd == "--scan":
         root = Path(sys.argv[2]) if len(sys.argv) > 2 else Path.cwd()
-        strategist = HeimdallWarden(root)
-        strategist.scan()
+        HeimdallWarden(root).scan()
     elif cmd == "--execute":
-        print("[ANNEX] Execution module not yet linked. Review ANNEXATION_PLAN.qmd first.")
+        HUD.log("WARN", "Execution module not yet linked. Review ANNEXATION_PLAN.qmd first.")
 
 if __name__ == "__main__":
     main()

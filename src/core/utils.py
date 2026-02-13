@@ -1,18 +1,23 @@
 import json
-import os
-import queue
 import re
 import sys
 import threading
+import queue
+from pathlib import Path
 
+def load_config(root_path: str | Path) -> dict:
+    """[ALFRED] Securely load the C* configuration using Pathlib."""
+    path = Path(root_path) / ".agent" / "config.json"
+    return _read_json_file(path)
 
-def load_config(root_path: str) -> dict:
-    """[ALFRED] Securely load the C* configuration."""
-    path = os.path.join(root_path, ".agent", "config.json")
-    if not os.path.exists(path): return {}
+def _read_json_file(path: Path) -> dict:
+    """Internal helper to read and parse JSON safely."""
+    if not path.exists():
+        return {}
     try:
-        with open(path, 'r', encoding='utf-8') as f: return json.load(f)
-    except (json.JSONDecodeError, IOError, OSError): return {}
+        return json.loads(path.read_text(encoding='utf-8'))
+    except (json.JSONDecodeError, IOError, OSError):
+        return {}
 
 def sanitize_query(text: str) -> str:
     """[ALFRED] Purify user input of shell hazards and noise."""
@@ -25,7 +30,8 @@ def input_with_timeout(prompt: str, timeout: int = 30) -> str:
     print(prompt, end="", flush=True)
     q = queue.Queue()
     
-    def _read():
+    def _read() -> None:
+        """Reads one line from sys.stdin and puts it into the queue."""
         try: q.put(sys.stdin.readline().strip().lower())
         except EOFError: q.put(None)
 

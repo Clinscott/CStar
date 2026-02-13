@@ -32,14 +32,7 @@ class CosineSimilarity(SimilarityStrategy):
         return dot / (mag1 * mag2)
 
 
-class JaccardSimilarity(SimilarityStrategy):
-    """[ODIN] Jaccard-style similarity operating on non-zero vector dimensions."""
-    def compute(self, v1: list[float], v2: list[float]) -> float:
-        s1 = {i for i, v in enumerate(v1) if v > 0}
-        s2 = {i for i, v in enumerate(v2) if v > 0}
-        if not s1 and not s2:
-            return 0
-        return len(s1 & s2) / len(s1 | s2)
+
 
 
 class SovereignVector:
@@ -67,15 +60,16 @@ class SovereignVector:
         self._token_cache = {} # {token: {expanded_token: weight}}
         self._similarity_strategy: SimilarityStrategy = CosineSimilarity()
 
-    def _load_json(self, path):
-        if not path or not os.path.exists(path): return {}
+    def _load_json(self, path: str | Path | None) -> dict:
+        if not path: return {}
+        p = Path(path)
+        if not p.exists(): return {}
         try:
-            with open(path, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
+            return json.loads(p.read_text(encoding='utf-8'))
+        except (json.JSONDecodeError, IOError, OSError):
             return {}
 
-    def _load_stopwords(self, path):
+    def _load_stopwords(self, path: str | Path | None) -> set[str]:
         defaults = {
             'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 
             'is', 'are', 'was', 'were', 'be', 'been', 'it', 'this', 'that', 'these', 'those', 
@@ -84,31 +78,28 @@ class SovereignVector:
             'some', 'any', 'no', 'not', 'do', 'does', 'did', 'done', 'will', 'would', 'shall', 'should',
             'can', 'could', 'may', 'might', 'must', 'have', 'has', 'had', 'go', 'get', 'make', 'do'
         }
-        if not path or not os.path.exists(path): return defaults
+        if not path: return defaults
+        p = Path(path)
+        if not p.exists(): return defaults
         try:
-            with open(path, 'r', encoding='utf-8') as f:
-                loaded = set(json.load(f))
-                return loaded if loaded else defaults
-        except (FileNotFoundError, json.JSONDecodeError, TypeError):
+            loaded = set(json.loads(p.read_text(encoding='utf-8')))
+            return loaded if loaded else defaults
+        except (json.JSONDecodeError, IOError, OSError, TypeError):
             return defaults
 
-    def _load_thesaurus(self, path):
+    def _load_thesaurus(self, path: str | Path | None) -> dict[str, dict[str, float]]:
         """[ALFRED] Secure thesaurus loader with weight clamping and correction merging."""
-        # [ALFRED] Staged Symbiosis: Support .qmd with .md fallback
         if not path: return {}
         
-        actual_path = path
-        if not os.path.exists(actual_path):
-            if actual_path.endswith('.md'):
-                qmd = actual_path.replace('.md', '.qmd')
-                if os.path.exists(qmd): actual_path = qmd
-            elif actual_path.endswith('.qmd'):
-                md = actual_path.replace('.qmd', '.md')
-                if os.path.exists(md): actual_path = md
+        p = Path(path)
+        if not p.exists():
+            # [ALFRED] Staged Symbiosis: Support .qmd with .md fallback
+            alt = p.with_suffix('.qmd') if p.suffix == '.md' else p.with_suffix('.md')
+            if alt.exists(): p = alt
         
-        if not os.path.exists(actual_path) or os.path.getsize(actual_path) > 2*10**6: return {}
+        if not p.exists() or p.stat().st_size > 2*10**6: return {}
         try:
-            with open(actual_path, 'r', encoding='utf-8') as f: content = f.read()
+            content = p.read_text(encoding='utf-8')
             mapping = {}
             for word, syns in re.findall(r'- (?:\*\*)?([\w\d\-\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff]+)(?:\*\*)?: ([\w\d,\.: \-\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff]+)', content):
                 syn_dict = {}
@@ -122,7 +113,7 @@ class SovereignVector:
                 mapping[word.lower()] = syn_dict
             self._apply_thesaurus_corrections(mapping)
             return mapping
-        except (json.JSONDecodeError, IOError, OSError): return {}
+        except (IOError, OSError): return {}
 
     def _apply_thesaurus_corrections(self, mapping):
         """Apply dynamic corrections to the static thesaurus."""
@@ -206,25 +197,7 @@ class SovereignVector:
         self.skills[trigger] = text
         self.vocab.update(self.tokenize(text))
 
-    def add_skill_incremental(self, trigger: str, text: str) -> None:
-        """[ALFRED] Register a skill and update the index without a full rebuild."""
-        self.add_skill(trigger, text)
-        # Rebuild IDF only for the new doc tokens
-        num_docs = len(self.skills)
-        if num_docs == 0:
-            return
-        tokens_set = set(self.tokenize(text))
-        for word in tokens_set:
-            # Recalculate IDF with updated doc count
-            old_count = sum(1 for t in self.skills.values() if word in set(self.tokenize(t)))
-            self.idf[word] = math.log(num_docs / (1 + old_count)) + 1
-        # Refresh sorted vocab cache and vectorize the new skill
-        self.sorted_vocab = sorted(list(self.vocab))
-        counts = {t: self.tokenize(text).count(t) for t in tokens_set}
-        self.vectors[trigger] = self._vectorize(counts)
-        # Invalidate search and expansion caches
-        self._search_cache.clear()
-        self._expansion_cache.clear()
+
 
     def build_index(self) -> None:
         """[ALFRED] Build TF-IDF index with cached sorted vocabulary for rapid search."""
@@ -272,13 +245,7 @@ class SovereignVector:
             for word in vocab
         ]
 
-    def similarity(self, v1: list[float], v2: list[float]) -> float:
-        return self._similarity_strategy.compute(v1, v2)
 
-    def set_similarity_strategy(self, strategy: SimilarityStrategy) -> None:
-        """[ALFRED] Swap the similarity function at runtime. Clears search cache."""
-        self._similarity_strategy = strategy
-        self._search_cache.clear()
 
     def search(self, query: str) -> list[dict]:
         """

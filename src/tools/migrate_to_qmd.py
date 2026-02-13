@@ -13,9 +13,11 @@ PROJECT_ROOT = Path("c:/Users/Craig/Corvus/CorvusStar")
 
 def get_checksum(path: Path) -> str:
     """SHA-256 checksum for integrity verification."""
-    if path.stat().st_size == 0:
-        return "EMPTY_FILE"
     try:
+        if not path.exists():
+            return "ERROR"
+        if path.stat().st_size == 0:
+            return "EMPTY_FILE"
         with open(path, 'rb') as f:
             return hashlib.sha256(f.read()).hexdigest()
     except Exception:

@@ -14,7 +14,24 @@ Preserve the "why" behind technical decisions and provide a narrative history of
 
 # Developer Journal
 
-## 2026-01-30 - Intelligent Handshake & Skill Proactivity
+## 2026-02-13 - Manual Learning Protocol & Empire Hardening (Session 51)
+### Summary
+- **Protocol Verification**: Successfully completed the N=40 Manual Learning Protocol, verifying all core infrastructure and extended tool files.
+- **Empire Test Suite**: Developed and verified 40+ companion tests in `tests/empire_tests/` to meet the Linscott Standard.
+- **Logic Remediation**: Identified and resolved logic bugs in `report_engine.py` (verdict icons), `security_scan.py` (regex boundaries), `trace_viz.py` (persona isolation), and `dedupe_corrections.py` (JSON robustness).
+- **SovereignFish Improvements**: Hardened `update_gemini_manifest.py` path resolution and `security_scan.py` intent matching.
+
+### Architectural Decisions
+- **Isolation over Global State**: Decided to isolate persona state in `TraceRenderer` by targeting module-internal `HUD` instances, preventing state leakage during multi-persona analysis.
+- **Robust JSON Strategy**: Refactored regex-based data scripts into proper `json.load` logic. While regex is faster for simple files, the project's increasing structural complexity requires the robustness of a full parser.
+- **Empire Testing as Doctrine**: Established the `empire_tests` directory as the permanent home for "Infrastructure-as-Code" verification, keeping core engine unit tests separate from tool-specific hardened contracts.
+
+### Current State
+- **Corvus Star 5.1** is the most stable and verified version to date.
+- **Coverage**: 100% of the 40 targeted files have companion tests.
+- **Accuracy**: 100.0% verified via SPRT.
+
+## 2026-02-12 - Session 50 - Dominion Expanded
 ### Summary
 - Enhanced `install.ps1` with "Intelligent Handshake": Non-destructive installation with interactive conflict resolution (Skip, Overwrite, Merge, Diff).
 - Implemented **Global Skill Registry** (`skills_db/`) for framework-wide skill sharing.

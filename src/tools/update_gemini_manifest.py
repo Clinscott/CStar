@@ -27,7 +27,14 @@ def get_task_status():
     return "Could not parse next tasks."
 
 def update_manifest():
-    root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    # Robust root resolution: walk up until config.json or .git is found
+    current = os.path.dirname(os.path.abspath(__file__))
+    root = current
+    while root != os.path.dirname(root):
+        if os.path.exists(os.path.join(root, "config.json")) or os.path.exists(os.path.join(root, ".git")):
+            break
+        root = os.path.dirname(root)
+    
     cpath = os.path.join(root, "config.json")
     mpath = os.path.join(root, "GEMINI.qmd")
     

@@ -107,6 +107,7 @@
 - **Knowledge Distillation**: Decoupled "Learning" from "Doc Updates" by having `Muninn` distill lessons into a persistent `memory.qmd` stream after every cycle.
 
 ## 2026-02-12: Session 50 - The Hardening Ceremony
+
 ### Achievements
 - **20-Cycle Autonomous Sprint**: Successfully navigated 20 manual learning cycles, resolving 10+ regressions in the process.
 - **100% Test Stability**: Achieved a flawless 81/81 green pass rate for all core and empire tests.
@@ -117,3 +118,17 @@
 - **Localized Lock Management**: Standardized the use of `tmp_path` for lock files in tests to ensure total isolation from the system daemon.
 - **Thesaurus Clustering**: Implemented "stabilization" and "regression" intent clusters to help future agents navigate post-hardening maintenance phases.
 - **Script Robustness**: Hardened global tools (`update_gemini_manifest.py`) against terminal encoding errors and empty subprocess outputs.
+
+## 2026-02-12: Session 51 - Persona Synchronization & Core Hardening
+
+### Achievements
+- **Lazy Persona Synchronization**: Implemented `_ensure_persona` in `HUD` to unify identity theaming across all entry points, including sub-processes.
+- **Graceful Termination**: Hardened the Raven Daemon (`main_loop.py`) with SIGINT/SIGTERM handlers for atomic state preservation.
+- **Pathlib Standardization**: Completed the project-wide migration to Pathlib for all core modules (`annex.py`, `personas.py`, `utils.py`).
+- **HUD-ified Annexation Warden**: Refactored the `Heimdall` audit output to utilize themed `HUD` boxes, aligning security reports with the active persona.
+- **Utility Restoration**: Fixed missing standard library imports and standardized the `utils.py` module for robust path resolution.
+
+### Architectural Decisions
+- **Lazy-Initialization Pattern**: Adopted the `_ensure_persona` pattern in the UI layer to avoid race conditions or config mismatches between parent and child processes.
+- **Signal-to-State Mapping**: Mapped system signals to a clean termination method to ensure `ravens.lock` and other orphans are consistently purged.
+- **Pathlib Sovereignty**: Mandated Pathlib for all `src/core` modules to eliminate platform-specific pathing bugs.
