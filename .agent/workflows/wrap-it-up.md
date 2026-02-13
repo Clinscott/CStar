@@ -26,7 +26,9 @@ description: Finalizes the current session, updates documentation, runs a produc
     - Update `walkthrough.qmd` with a "Session Handshake" section.
     - State: "To resume, start here."
 14. **Knowledge Extraction**: Run `python .agent/scripts/synapse_sync.py --push --dry-run` then `--push` if valid.
-15. **Generate Commit Description**: Include a ready-to-copy markdown block for the git commit message. Format:
+15. **Background Neural Training**: Trigger the `AtomicCortex` training loop to evolve project alignment.
+    `python src/core/engine/atomic_gpt.py --train 500`
+16. **Generate Commit Description**: Include a ready-to-copy markdown block for the git commit message. Format:
    ```
    [ALFRED/ODIN] [Short summary of main feature]
    

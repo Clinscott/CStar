@@ -1,6 +1,6 @@
 # 💎 GEMINI NEURAL MANIFEST
 
-> **Timestamp**: 2026-02-13 11:53:13
+> **Timestamp**: 2026-02-13 18:32:45
 > **Active Mind**: ALFRED
 
 ## 🧩 Context Anchors
@@ -9,16 +9,10 @@
 - **Framework Port**: 3000 (Odin Dashboard)
 
 ## ⏭️ Priority Directives
-## ⏭️ Start Here Next (Phase 34 & 35)
-
-### 34. Annexation & Background Vigil
+## ⏭️ Start Here Next (Phase 36)
+- [ ] **Operation Ironclad: Hybrid Modularization**: Begin the migration of core memory and engine logic to a persistent modular package (`src/cstar`).
 - [ ] **Annexation Execution**: Activate the `execution` mode for `annex.py` to auto-remediate Documentation/Linguistic breaches project-wide.
-- [ ] **Heimdall Persistence**: Hardened the security monitor to run in background mode with a persistent log rotation.
-- [ ] **Gauntlet Hardening**: Integrate the SPRT learning loop as the default repair mechanism for the `gauntlet` workflow.
-
-## 🏁 Execution Plan
-1. **Forge Annex Execution**: Link `HeimdallWarden` to the script/doc transmutation engine in `src/core/annex.py`.
-2. **Background Heimdall**: Implement a simple daemon for `heimdall --monitor` with log-scoping.
+- [ ] **Heimdall Persistence**: Harden the security monitor to run in background mode with a persistent log rotation.
 
 ## 📜 Recent Continuity (Git)
 ```text
