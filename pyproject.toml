@@ -60,7 +60,8 @@ exclude = [
     "venv",
     "mock_project",
     "sterileAgent",
-    ".corvus_quarantine"
+    ".corvus_quarantine",
+    "tests/empire_tests/src/error_real.py"
 ]
 
 [tool.ruff.lint]
