@@ -51,6 +51,7 @@ class SovereignEngine:
         HUD.PERSONA = (self.config.get("persona") or self.config.get("Persona") or "ALFRED").upper()
         self.strategy = personas.get_strategy(HUD.PERSONA, str(self.project_root))
         self._init_hud_dialogue()
+        self.engine = self._init_vector_engine()
 
     def _init_hud_dialogue(self) -> None:
         """Initializes the HUD dialogue retriever based on persona voice."""
@@ -213,14 +214,18 @@ class SovereignEngine:
         if record and top:
             self.record_trace(query, top)
 
+        self._render_hud(query, top)
+
+        if top:
+            self._handle_proactive(top)
+
         if json_mode:
             print(json.dumps({"query": query, "top_match": top}, indent=2))
             return
 
-        # Interface Feedback
-        self._render_hud(query, top)
-        if top:
-            self._handle_proactive(top)
+    def search(self, query: str) -> list[dict[str, Any]]:
+        """Proxy for the underlying vector engine search."""
+        return self.engine.search(query)
 
 
 def main() -> None:

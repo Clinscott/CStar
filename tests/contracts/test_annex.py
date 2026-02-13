@@ -8,7 +8,7 @@ import pytest
 scripts_dir = Path(__file__).parents[2] / ".agent" / "scripts"
 sys.path.append(str(scripts_dir))
 
-from annex import AnnexStrategist
+from annex import HeimdallWarden
 
 
 @pytest.fixture
@@ -38,9 +38,9 @@ def mock_dominion(tmp_path):
     return root
 
 def test_annex_scan(mock_dominion):
-    """Verifies the Strategist's scan capabilities."""
+    """Verifies Heimdall's scan capabilities."""
     root = mock_dominion
-    strategist = AnnexStrategist(root)
+    strategist = HeimdallWarden(root)
     
     # Execute Scan
     strategist.scan()

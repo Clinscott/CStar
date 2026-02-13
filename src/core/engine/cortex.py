@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 from typing import Any, Dict, List
 
-from .vector import SovereignVector
+from src.core.engine.vector import SovereignVector
 
 
 class Cortex:
@@ -11,10 +11,11 @@ class Cortex:
     The Cortex: A Retrieval Augmented Generation (RAG) module for Corvus Star.
     It ingests the project's own documentation to answer questions about its laws.
     """
-    def __init__(self, project_root: str, base_path: str):
-        self.project_root = project_root
+    def __init__(self, project_root: str | Path, base_path: str | Path):
+        self.project_root = Path(project_root)
+        self.base_path = Path(base_path)
         # Initialize a fresh brain for knowledge (separate from skills)
-        self.brain = SovereignVector(stopwords_path=os.path.join(project_root, "src", "data", "stopwords.json"))
+        self.brain = SovereignVector(stopwords_path=self.project_root / "src" / "data" / "stopwords.json")
         
         # Knowledge Sources - [ALFRED] Updated for Operation Yggdrasil docs structure
         doc_targets: Dict[str, str] = {
@@ -24,15 +25,15 @@ class Cortex:
             "SovereignFish": "docs/campaigns/SOVEREIGNFISH_LEDGER.qmd"
         }
 
-        self.knowledge_map: Dict[str, str] = {}
+        self.knowledge_map: Dict[str, Path] = {}
         for name, rel_path in doc_targets.items():
-            path = os.path.join(project_root, rel_path)
-            if os.path.exists(path):
+            path = self.project_root / rel_path
+            if path.exists():
                 self.knowledge_map[name] = path
             else:
                 # Fallback to .md if .qmd not found (staged migration)
-                md_path = path.replace(".qmd", ".md")
-                if os.path.exists(md_path):
+                md_path = path.with_suffix(".md")
+                if md_path.exists():
                     self.knowledge_map[name] = md_path
         
         self._ingest()
@@ -42,16 +43,15 @@ class Cortex:
         from src.core.ui import HUD  # Lazy import to avoid circularity
         
         for name, path in self.knowledge_map.items():
-            if not os.path.exists(path): 
+            if not path.exists(): 
                 continue
             try:
                 # [ALFRED] Size guard for the Cortex
-                if os.path.getsize(path) > 1 * 1024 * 1024: # 1MB limit for docs
+                if path.stat().st_size > 1 * 1024 * 1024: # 1MB limit for docs
                     HUD.log("WARN", "Cortex Security", f"Doc too large: {name}")
                     continue
 
-                with open(path, 'r', encoding='utf-8') as f:
-                    content = f.read()
+                content = path.read_text(encoding='utf-8')
                 
                 # Chunk by Headers (Markdown)
                 # Split capturing the delimiter

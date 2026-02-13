@@ -31,7 +31,7 @@ You can launch the background process using the Corvus Star CLI:
 c* daemon
 
 # ODIN Persona Alias (Preferred)
-c* sentinel
+c* ravens
 ```
 
 Or run directly via Python:

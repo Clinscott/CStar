@@ -15,7 +15,9 @@ dependencies = [
     "requests",
     "playwright",
     "pytest",
-    "ruff"
+    "ruff",
+    "psutil",
+    "python-dotenv"
 ]
 
 [project.scripts]
@@ -58,7 +60,8 @@ exclude = [
     "venv",
     "mock_project",
     "sterileAgent",
-    ".corvus_quarantine"
+    ".corvus_quarantine",
+    "tests/empire_tests/src/error_real.py"
 ]
 
 [tool.ruff.lint]

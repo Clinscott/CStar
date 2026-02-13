@@ -1,5 +1,8 @@
 import json
-import msvcrt
+try:
+    import msvcrt
+except ImportError:
+    msvcrt = None
 import os
 import subprocess
 import sys
@@ -76,7 +79,7 @@ class InputManager:
     """[ALFRED] Non-blocking input handler for interactive controls."""
     @staticmethod
     def poll() -> Optional[str]:
-        if os.name == 'nt' and msvcrt.kbhit():
+        if os.name == 'nt' and msvcrt and msvcrt.kbhit():
             return msvcrt.getch().decode('utf-8').lower()
         return None
 

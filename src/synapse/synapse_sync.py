@@ -173,7 +173,10 @@ class KnowledgeExtractor:
 
 
 class Synapse:
-    """[ODIN] Main orchestrator for knowledge synchronization."""
+    """
+    [ODIN] Main orchestrator for knowledge synchronization.
+    Management of the bidirectional flow between Local Project activity and the Knowledge Core.
+    """
 
     def __init__(self, remote_alias: str = "primary"):
         self.script_path = Path(__file__).absolute()
@@ -215,7 +218,10 @@ class Synapse:
         return Path(alias), "Explicit"
 
     def pull(self) -> None:
-        """Pulls global knowledge from the Core to the Local project."""
+        """
+        [ALFRED] Pulls global knowledge from the Core to the Local project.
+        Updates git state, synchronizes skills_db, and merges remote corrections.
+        """
         HUD.box_top(f"SYNAPSE: PULL [{self.core_name}]")
         
         # Git updates
@@ -274,7 +280,13 @@ class Synapse:
             HUD.log("WARN", "Corrections sync failed (JSON Error)")
 
     def push(self, dry_run: bool = False) -> None:
-        """Pushes local knowledge increments to the Knowledge Core."""
+        """
+        [ALFRED] Pushes local knowledge increments to the Knowledge Core.
+        Includes authentication handshake, rate limiting, and Git-based export.
+        
+        Args:
+            dry_run: If True, simulates the harvest without performing the push.
+        """
         HUD.box_top(f"SYNAPSE: PUSH [{self.core_name}]")
         
         # Authenticate

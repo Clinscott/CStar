@@ -11,6 +11,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+from src.core import personas
+from src.core.ui import HUD
+
 
 class PersonaManager:
     """
@@ -160,9 +163,6 @@ class PersonaManager:
 
         # [ALFRED] Fire the HUD transition ceremony
         try:
-            if str(self.project_root) not in sys.path:
-                sys.path.append(str(self.project_root))
-            from src.core.ui import HUD
             HUD.transition_ceremony(self.old_persona, new_persona)
         except Exception:
             pass  # Graceful fallback if HUD import fails
@@ -176,11 +176,6 @@ class PersonaManager:
     def _apply_policy(self, persona: str) -> None:
         """Integrates with the persona policy engine."""
         try:
-            # Add project root to path for src module discovery
-            if str(self.project_root) not in sys.path:
-                sys.path.append(str(self.project_root))
-            
-            from src.core import personas  # type: ignore
             strategy = personas.get_strategy(persona, str(self.project_root))
             
             # documentation re-theme for ODIN
@@ -197,6 +192,11 @@ class PersonaManager:
                 
         except Exception as e:
             print(f"⚠️ Policy enforcement warning: {e}")
+
+def set_persona(persona: str, root: Optional[str] = None) -> None:
+    """Convenience function for external callers (e.g. tests, ravens)."""
+    manager = PersonaManager(target_root=Path(root) if root else None)
+    manager.switch(persona)
 
 def main() -> None:
     """Entry point for the persona switcher."""

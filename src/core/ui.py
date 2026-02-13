@@ -2,6 +2,7 @@ import os
 import sys
 import time
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 # [Ω] PERMANENT UTF-8 ENFORCEMENT (Windows Console Mode)
@@ -50,11 +51,47 @@ class HUD:
 
     # State
     PERSONA: str = "ALFRED" # Default
+    _INITIALIZED: bool = False
     DIALOGUE: Any | None = None # Instance of DialogueRetriever
 
     @staticmethod
+    def _ensure_persona() -> None:
+        """[ALFRED] Lazy-load the persona from config if not already set."""
+        if HUD._INITIALIZED:
+            return
+            
+        # If PERSONA was set manually before initialization, respect it.
+        # But how do we know if it was "manual"? 
+        # Default is "ALFRED". If it's something else, maybe it was manual.
+        # For simplicity, if we are initializing, we load if config exists.
+            
+        try:
+            from pathlib import Path
+            import json
+            
+            # Resolve root relative to this file: src/core/ui.py -> project_root
+            root = Path(__file__).parent.parent.parent.resolve()
+            config_path = root / ".agent" / "config.json"
+            
+            if config_path.exists():
+                with config_path.open("r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    persona = data.get("persona") or data.get("Persona") or "ALFRED"
+                    HUD.PERSONA = str(persona).upper()
+        except Exception:
+            pass # Stay as ALFRED
+        finally:
+            HUD._INITIALIZED = True
+
+    @staticmethod
     def _speak(intent: str, fallback: str) -> str:
-        """Retrieves dialogue from the vector DB or returns fallback."""
+        """
+        Retrieves dialogue from the vector DB or returns fallback.
+        
+        Args:
+            intent: The semantic intent key to look up.
+            fallback: The string to return if the intent is not found.
+        """
         if HUD.DIALOGUE:
             return HUD.DIALOGUE.get(intent) or fallback
         return fallback
@@ -100,6 +137,7 @@ class HUD:
     @staticmethod
     def get_theme() -> dict[str, str]:
         """Returns the comprehensive color palette for the active Persona."""
+        HUD._ensure_persona()
         p = HUD.PERSONA.upper()
         # GOD is an alias for ODIN
         if p == "GOD":
@@ -149,7 +187,13 @@ class HUD:
 
     @staticmethod
     def persona_log(level: str, msg: str) -> None:
-        """Log with persona prefix for major announcements."""
+        """
+        Log with persona prefix for major announcements.
+        
+        Args:
+            level: The severity level (INFO, SUCCESS, WARN, ERROR).
+            msg: The message to log.
+        """
         theme = HUD.get_theme()
         prefix = theme["prefix"]
 
@@ -163,16 +207,6 @@ class HUD:
         print(f"{color}{prefix}{HUD.RESET} {msg}")
 
     @staticmethod
-    def box_top(title: str = "", color: str | None = None, width: int | None = None) -> None:
-        """
-        Renders the top implementation of a box with a title.
-        
-        Args:
-            title: The text to display in the center header.
-            color: Optional override for the main color.
-            width: Override width. Defaults to 60 or HUD_WIDTH env var.
-        """
-    @staticmethod
     def _get_width() -> int:
         """Dynamically calculates the optimal HUD width (40-120 range)."""
         try:
@@ -180,7 +214,12 @@ class HUD:
             width = os.get_terminal_size().columns - 2
             return max(40, min(120, width))
         except (OSError, AttributeError):
-            return int(os.environ.get("HUD_WIDTH", 60))
+            # [ALFRED] Robust environment parsing
+            val = os.environ.get("HUD_WIDTH", "60")
+            try:
+                return max(10, int(val))
+            except (ValueError, TypeError):
+                return 60
 
     @staticmethod
     def box_top(title: str = "", color: str | None = None, width: int | None = None) -> None:
@@ -194,7 +233,8 @@ class HUD:
         """
         if width is None:
             width = HUD._get_width()
-        assert isinstance(width, int) and width >= 10, "Width must be integer >= 10"
+        if not isinstance(width, int):
+            width = 60
         HUD._last_width = width
 
         theme = HUD.get_theme()
@@ -225,6 +265,8 @@ class HUD:
         """
         if width is None:
             width = getattr(HUD, "_last_width", 60)
+        if not isinstance(width, int):
+            width = 60
         theme = HUD.get_theme()
         val_color = color if color else theme['main']
         lbl_color = theme['dim'] if dim_label else theme['main']
@@ -235,9 +277,9 @@ class HUD:
         # For now, we keep the fixed label width of 20 for alignment,
         # but ensure the box closes at 'width'
 
-        # Safe string conversion
+        # Safe string conversion and multi-line handling
         try:
-            str_val = str(value)
+            str_val = str(value).replace("\n", " ")
             str_lbl = str(label)
         except Exception:
             str_val = "[TYPE ERROR]"
@@ -247,7 +289,6 @@ class HUD:
         max_val_len = width - 24 # 1(L) + 20(Lbl) + 1(Space) + 1(Space) + 1(R)
         if len(str_val) > max_val_len:
             str_val = str_val[:max_val_len-3] + "..."
-
         inner_content = f"{lbl_color}{str_lbl:<20}{HUD.RESET} {val_color}{str_val}{HUD.RESET}"
         # We need to calculate spaces based on RAW text length to avoid ANSI code interference
         raw_len = 1 + 20 + 1 + len(str_val)
@@ -260,6 +301,8 @@ class HUD:
         """Renders a middle separator line."""
         if width is None:
             width = getattr(HUD, "_last_width", 60)
+        if not isinstance(width, int):
+            width = 60
         theme = HUD.get_theme()
         dim_color = color if color else theme['dim']
         inner_width = width - 2
@@ -270,6 +313,8 @@ class HUD:
         """Renders the bottom closure of a box."""
         if width is None:
             width = getattr(HUD, "_last_width", 60)
+        if not isinstance(width, int):
+            width = 60
         theme = HUD.get_theme()
         dim_color = color if color else theme['dim']
         inner_width = width - 2
@@ -325,26 +370,26 @@ class HUD:
 
     @staticmethod
     def log(level: str, msg: str, detail: str = "") -> None:
-        """
-        Standardized Logging to Terminal.
-        
-        Args:
-            level: 'INFO', 'WARN', 'FAIL', 'PASS', 'CRITICAL'.
-            msg: Main message.
-            detail: Secondary detail string.
-        """
+        """Standardized Logging to Terminal (Persona-Aware)."""
         ts = datetime.now().strftime("%H:%M:%S")
-        color = HUD.CYAN
-        if level == "WARN": color = HUD.YELLOW
-        if level == "FAIL": color = HUD.RED
-        if level == "PASS": color = HUD.GREEN
-        if level == "CRITICAL": color = HUD.MAGENTA
+        theme = HUD.get_theme()
+        
+        color = theme["main"]
+        if level == "WARN": color = theme["warning"]
+        if level == "FAIL": color = theme["error"]
+        if level == "PASS": color = theme["success"]
+        if level == "CRITICAL": color = theme["error"] # Default to error for critical
 
         print(f"{HUD.DIM}[{ts}]{HUD.RESET} {color}[{level}]{HUD.RESET} {msg} {HUD.DIM}{detail}{HUD.RESET}")
 
     @staticmethod
     def warning(msg: str) -> None:
-        """Shorthand for a yellow warning log."""
+        """
+        Shorthand for a yellow warning log.
+        
+        Args:
+            msg: The warning message as a string.
+        """
         HUD.log("WARN", msg)
 
     @staticmethod
@@ -359,18 +404,16 @@ class HUD:
 
     @staticmethod
     def log_rejection(persona: str, reason: str, details: str) -> None:
-        """Logs a rejected attempt to the rejection ledger."""
+        """Logs a rejected attempt to the rejection ledger using Pathlib."""
         ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         entry = f"| {ts} | {persona} | {reason} | {details} |\n"
         # We target a specific ledger path: .agent/traces/quarantine/REJECTIONS.qmd
-        ledger_path = os.path.join(os.getcwd(), ".agent", "traces", "quarantine", "REJECTIONS.qmd")
+        ledger_path = Path.cwd() / ".agent" / "traces" / "quarantine" / "REJECTIONS.qmd"
         try:
-            os.makedirs(os.path.dirname(ledger_path), exist_ok=True)
-            if not os.path.exists(ledger_path):
-                with open(ledger_path, "w", encoding="utf-8") as f:
-                    f.write("# 🧪 The Crucible: Rejection Ledger\n\n| Timestamp | Persona | Reason | Details |\n| :--- | :--- | :--- | :--- |\n")
-            with open(ledger_path, "a", encoding="utf-8") as f:
+            ledger_path.parent.mkdir(parents=True, exist_ok=True)
+            if not ledger_path.exists():
+                ledger_path.write_text("# 🧪 The Crucible: Rejection Ledger\n\n| Timestamp | Persona | Reason | Details |\n| :--- | :--- | :--- | :--- |\n", encoding='utf-8')
+            with ledger_path.open("a", encoding="utf-8") as f:
                 f.write(entry)
         except (OSError, PermissionError):
-            # Fail silently to avoid interrupting the main flow
             pass

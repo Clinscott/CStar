@@ -27,7 +27,8 @@ from ui import HUD
 
 class SkillForge:
     """
-    Synthesizes Python skill templates from documentation analysis.
+    [ALFRED] Synthesizes Python skill templates from documentation analysis.
+    Uses RAG (Cortex) to identify patterns and map them to standard archetypes.
     """
     
     ARCHETYPES = {
@@ -80,6 +81,16 @@ class SkillForge:
         Path(self.drafts_dir).mkdir(parents=True, exist_ok=True)
     
     def forge(self, query: str, dry_run: bool = False) -> dict:
+        """
+        [ALFRED] Orchestrates the multi-phase skill creation protocol.
+        
+        Args:
+            query: The user's natural language request (e.g., 'create a log parser').
+            dry_run: If True, provides a preview of the generated code without saving.
+            
+        Returns:
+            A dictionary containing 'success', 'code', 'archetype', and 'path'.
+        """
         HUD.box_top("SKILL FORGE: IGNITION")
         
         if not query or not query.strip():
@@ -170,9 +181,10 @@ class SkillForge:
         return "utility"
     
     def _extract_subject(self, query: str) -> str:
-        stripped = re.sub(r'^(create|make|build|generate|write|a|an|the)\s+', '', query.lower())
+        stripped = re.sub(r'^(create|make|build|generate|write|test|a|an|the)\s+', '', query.lower())
         stripped = re.sub(r'\s+(for|to|from|with)\s+', ' ', stripped)
-        words = [w for w in stripped.split() if len(w) > 2]
+        # Filter out 'test' as it's often a meta-instruction, not the subject itself
+        words = [w for w in stripped.split() if len(w) > 2 and w != 'test']
         if not words: return "generated"
         subject = "_".join(words[-3:])
         subject = re.sub(r'[^a-z0-9_]', '_', subject)
