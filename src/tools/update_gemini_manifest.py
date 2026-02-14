@@ -1,3 +1,13 @@
+import sys
+try:
+    # Force safe encoding for Windows subprocess readers - MUST BE CP1252 compatible
+    if sys.stdout and hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='cp1252', errors='replace')
+    if sys.stderr and hasattr(sys.stderr, 'reconfigure'):
+        sys.stderr.reconfigure(encoding='cp1252', errors='replace')
+except Exception:
+    pass
+
 import json
 import os
 import subprocess
@@ -6,23 +16,30 @@ from datetime import datetime
 
 def get_git_summary():
     try:
-        res = subprocess.run(["git", "log", "-n", "5", "--oneline"], capture_output=True, text=True)
+        # Force UTF-8 decoding for git log to handle emojis in commits
+        res = subprocess.run(
+            ["git", "log", "-n", "5", "--oneline"], 
+            capture_output=True, 
+            encoding='utf-8', 
+            errors='replace', 
+            text=True
+        )
         if res and res.stdout:
             return res.stdout.strip()
         return "No git log entries found."
-    except (subprocess.SubprocessError, OSError):
+    except Exception:
         return "Git history unavailable."
 
 def get_task_status():
     tpath = "tasks.qmd"
     if not os.path.exists(tpath): return "tasks.qmd not found."
     try:
-        with open(tpath, "r", encoding="utf-8") as f:
+        with open(tpath, "r", encoding="utf-8", errors='replace') as f:
             lines = f.readlines()
             for i, line in enumerate(lines):
                 if "## ⏭️ Start Here Next" in line:
                     return "".join(lines[i:i+10]).strip()
-    except (IOError, OSError):
+    except Exception:
         pass
     return "Could not parse next tasks."
 
@@ -69,4 +86,9 @@ def update_manifest():
     print(f"Manifest updated: {mpath}")
 
 if __name__ == "__main__":
-    update_manifest()
+    try:
+        update_manifest()
+    except Exception as e:
+        # Print clean error to avoid unicode traceback issues in Windows runners
+        print(f"Error updating manifest: {e}")
+        sys.exit(1)

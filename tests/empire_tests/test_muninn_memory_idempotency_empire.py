@@ -10,10 +10,12 @@ sys.path.append(str(PROJECT_ROOT))
 
 from src.sentinel.muninn import Muninn
 
+import json
+
 class TestMuninnMemoryIdempotency:
     @pytest.fixture
     def mock_muninn(self, tmp_path):
-        # Setup mock memory.qmd
+        # Setup mock memory.qmd (legacy but fine)
         memory_file = tmp_path / "memory.qmd"
         memory_file.write_text("## Lessons Learned\n- **Existing**: This exists.\n", encoding='utf-8')
         
@@ -24,29 +26,35 @@ class TestMuninnMemoryIdempotency:
         muninn = Muninn(str(tmp_path), client=mock_client)
         return muninn, memory_file, mock_client
 
-    def test_distill_knowledge_idempotency(self, mock_muninn):
-        muninn, memory_file, mock_client = mock_muninn
+    def test_distill_knowledge_creates_directives(self, mock_muninn, tmp_path):
+        muninn, _, _ = mock_muninn
         
-        # Scenario: AI provides a lesson that already exists (normalized)
-        mock_client.models.generate_content.return_value.text = "- **EXISTING**: This exists!"
+        # Setup mock ledger
+        ledger_dir = tmp_path / ".agent"
+        ledger_dir.mkdir(exist_ok=True)
+        ledger_path = ledger_dir / "ledger.json"
         
-        target = {"action": "test", "file": "test.py"}
-        muninn._distill_knowledge(target, success=True)
-        
-        # Verify content hasn't changed (no duplicate appended)
-        content = memory_file.read_text(encoding='utf-8')
-        assert content.count("Existing") == 1
-        assert content.count("EXISTING") == 0 # Normalized check prevents append
+        ledger_data = {
+            "global_project_health_score": 95.5,
+            "flight_history": [
+                {"target": "cursed.py", "decision": "Reject", "timestamp": "2023-01-01"},
+                {"target": "cursed.py", "decision": "Reject", "timestamp": "2023-01-02"},
+                {"target": "cursed.py", "decision": "Reject", "timestamp": "2023-01-03"}, # 3 rejects = 100% fail rate
+                {"target": "blessed.py", "decision": "Accept", "alignment_score": 99, "timestamp": "2023-01-04"},
+                {"target": "ok.py", "decision": "Accept", "alignment_score": 80, "timestamp": "2023-01-05"}
+            ]
+        }
+        ledger_path.write_text(json.dumps(ledger_data), encoding='utf-8')
 
-    def test_distill_knowledge_new_lesson(self, mock_muninn):
-        muninn, memory_file, mock_client = mock_muninn
+        # Run distillation
+        muninn._distill_knowledge()
         
-        # Scenario: AI provides a new lesson
-        mock_client.models.generate_content.return_value.text = "- **New**: Something fresh."
+        # Verify output
+        directives_path = ledger_dir / "cortex_directives.md"
+        assert directives_path.exists()
+        content = directives_path.read_text(encoding='utf-8')
         
-        target = {"action": "test", "file": "test.py"}
-        muninn._distill_knowledge(target, success=True)
-        
-        # Verify content updated
-        content = memory_file.read_text(encoding='utf-8')
-        assert "- **New**: Something fresh." in content
+        assert "Global Project Health Score: 95.50" in content
+        assert "cursed.py" in content
+        assert "blessed.py" in content
+

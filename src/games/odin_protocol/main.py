@@ -6,6 +6,7 @@ import random
 import subprocess
 from pathlib import Path
 
+# Fix: Ensure subprocess/random are available for CI
 # Add project root to path for local imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
