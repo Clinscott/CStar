@@ -1,0 +1,483 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.2, pytest-9.0.2, pluggy-1.6.0
+rootdir: C:\Users\Craig\Corvus\CorvusStar
+configfile: pyproject.toml
+plugins: anyio-4.12.1
+collected 210 items
+
+tests\empire_tests\temp_gauntlet\test_annex_empire.py ....               [  1%]
+tests\empire_tests\temp_gauntlet\test_dispatcher_empire.py ..            [  2%]
+tests\empire_tests\temp_gauntlet\test_edda_empire.py ..                  [  3%]
+tests\empire_tests\temp_gauntlet\test_engine_empire.py ....              [  5%]
+tests\empire_tests\temp_gauntlet\test_fishtest_empire.py .......         [  9%]
+tests\empire_tests\temp_gauntlet\test_harvest_empire.py ..F              [ 10%]
+tests\empire_tests\temp_gauntlet\test_install_skill_empire.py ...        [ 11%]
+tests\empire_tests\temp_gauntlet\test_main_loop_empire.py ..             [ 12%]
+tests\empire_tests\temp_gauntlet\test_personas_empire.py .....           [ 15%]
+tests\empire_tests\temp_gauntlet\test_sanitizer_empire.py .......        [ 18%]
+tests\empire_tests\temp_gauntlet\test_set_persona_empire.py ..           [ 19%]
+tests\empire_tests\temp_gauntlet\test_skill_forge_empire.py ....         [ 21%]
+tests\empire_tests\temp_gauntlet\test_sv_engine_empire.py ..             [ 22%]
+tests\empire_tests\temp_gauntlet\test_temp_empire.py .                   [ 22%]
+tests\empire_tests\temp_gauntlet\test_ui_empire.py ......                [ 25%]
+tests\empire_tests\temp_gauntlet\test_utils_empire.py ...                [ 27%]
+tests\empire_tests\test___init___empire.py .                             [ 27%]
+tests\empire_tests\test_annex_empire.py .                                [ 28%]
+tests\empire_tests\test_annex_preservation_empire.py .                   [ 28%]
+tests\empire_tests\test_audit_dialogue_empire.py FF                      [ 29%]
+tests\empire_tests\test_benchmark_engine_empire.py .                     [ 30%]
+tests\empire_tests\test_bootstrap_empire.py FF                           [ 30%]
+tests\empire_tests\test_catalog_check_empire.py ..                       [ 31%]
+tests\empire_tests\test_check_pro_empire.py ..                           [ 32%]
+tests\empire_tests\test_cjk_check_empire.py ..                           [ 33%]
+tests\empire_tests\test_code_sanitizer_empire.py ....                    [ 35%]
+tests\empire_tests\test_code_sentinel_empire.py ..                       [ 36%]
+tests\empire_tests\test_collision_investigator_empire.py ...             [ 38%]
+tests\empire_tests\test_compile_failure_report_empire.py .               [ 38%]
+tests\empire_tests\test_compile_session_traces_empire.py ..              [ 39%]
+tests\empire_tests\test_contextual_persona.py ...                        [ 40%]
+tests\empire_tests\test_core_engine_empire.py .                          [ 41%]
+tests\empire_tests\test_cstar_dispatcher_empire.py .                     [ 41%]
+tests\empire_tests\test_daemon_singleton_empire.py ..                    [ 42%]
+tests\empire_tests\test_debt_viz_empire.py ..                            [ 43%]
+tests\empire_tests\test_debug_engine_empire.py ....                      [ 45%]
+tests\empire_tests\test_dedupe_corrections_empire.py ..                  [ 46%]
+tests\empire_tests\test_dispatcher_help_empire.py ..                     [ 47%]
+tests\empire_tests\test_edda_audit_empire.py ...                         [ 49%]
+tests\empire_tests\test_edda_empire.py .                                 [ 49%]
+tests\empire_tests\test_edda_syntax_empire.py ..                         [ 50%]
+tests\empire_tests\test_expand_thesaurus_empire.py ..                    [ 51%]
+tests\empire_tests\test_fishtest_empire.py ..                            [ 52%]
+tests\empire_tests\test_fix_muninn_empire.py .                           [ 52%]
+tests\empire_tests\test_freya_aesthetics_empire.py ..                    [ 53%]
+tests\empire_tests\test_generate_tests_empire.py .                       [ 54%]
+tests\empire_tests\test_harvest_responses_empire.py ..                   [ 55%]
+tests\empire_tests\test_hud_box_empire.py .                              [ 55%]
+tests\empire_tests\test_install_skill_empire.py ..                       [ 56%]
+tests\empire_tests\test_latency_check_empire.py ...                      [ 58%]
+tests\empire_tests\test_lightning_rod_empire.py ..                       [ 59%]
+tests\empire_tests\test_main_loop_empire.py ..                           [ 60%]
+tests\empire_tests\test_merge_traces_empire.py ...                       [ 61%]
+tests\empire_tests\test_metrics_empire.py ..                             [ 62%]
+tests\empire_tests\test_migrate_to_qmd_empire.py ...                     [ 63%]
+tests\empire_tests\test_muninn_empire.py .....                           [ 66%]
+tests\empire_tests\test_muninn_memory_idempotency_empire.py .            [ 66%]
+tests\empire_tests\test_muninn_naming_empire.py ..                       [ 67%]
+tests\empire_tests\test_muninn_real_empire.py ...                        [ 69%]
+tests\empire_tests\test_network_watcher_empire.py ..                     [ 70%]
+tests\empire_tests\test_norn_campaign_empire.py ..                       [ 70%]
+tests\empire_tests\test_overfit_corrections_empire.py .                  [ 71%]
+tests\empire_tests\test_overwatch_empire.py ..                           [ 72%]
+tests\empire_tests\test_persona_logic_empire.py .                        [ 72%]
+tests\empire_tests\test_personas_empire.py .....                         [ 75%]
+tests\empire_tests\test_personas_retheme_empire.py .                     [ 75%]
+tests\empire_tests\test_prompt_linter_empire.py .....                    [ 78%]
+tests\empire_tests\test_report_engine_empire.py ..                       [ 79%]
+tests\empire_tests\test_runecaster_audit_empire.py ....                  [ 80%]
+tests\empire_tests\test_scout_targets_empire.py .                        [ 81%]
+tests\empire_tests\test_security_scan_empire.py ...                      [ 82%]
+tests\empire_tests\test_sentinel_perf_empire.py ..                       [ 83%]
+tests\empire_tests\test_set_persona_empire.py ....                       [ 85%]
+tests\empire_tests\test_skill_forge_empire.py ...                        [ 87%]
+tests\empire_tests\test_sv_engine_empire.py ...                          [ 88%]
+tests\empire_tests\test_synapse_auth_empire.py ...                       [ 90%]
+tests\empire_tests\test_synapse_sync_empire.py ..                        [ 90%]
+tests\empire_tests\test_thewatcher_integrity_empire.py ...               [ 92%]
+tests\empire_tests\test_trace_viz_empire.py ..                           [ 93%]
+tests\empire_tests\test_tune_weights_empire.py ..                        [ 94%]
+tests\empire_tests\test_ui_empire.py ....F                               [ 96%]
+tests\empire_tests\test_update_gemini_manifest_empire.py .               [ 97%]
+tests\empire_tests\test_utils_empire.py ...                              [ 98%]
+tests\empire_tests\test_valkyrie_audit_empire.py ..                      [ 99%]
+tests\empire_tests\test_verify_valkyrie_real_empire.py .                 [100%]
+
+================================== FAILURES ===================================
+_____________________ TestHarvestEmpire.test_harvest_loop _____________________
+
+self = <temp_gauntlet.test_harvest_empire.TestHarvestEmpire object at 0x0000013860C6A780>
+mock_client = <MagicMock name='Client' id='1341684545392'>
+mock_env = <MagicMock name='get' id='1341684545728'>
+mock_sovereign_fish = <MagicMock name='SovereignFish' id='1341684546064'>
+tmp_path = WindowsPath('C:/Users/Craig/AppData/Local/Temp/pytest-of-Craig/pytest-256/test_harvest_loop0')
+
+    @patch('src.sentinel.harvest_responses.SovereignFish')
+    @patch('os.environ.get', return_value="fake_key")
+    @patch('google.genai.Client')
+    def test_harvest_loop(self, mock_client, mock_env, mock_sovereign_fish, tmp_path):
+        # Setup mocks
+        mock_sovereign_fish_instance = mock_sovereign_fish.return_value
+    
+        # We need to mock FIXTURES_DIR and PROJECT_ROOT for isolation
+        with patch('src.sentinel.harvest_responses.FIXTURES_DIR', tmp_path), \
+             patch('src.sentinel.harvest_responses.Path') as mock_path_class:
+    
+            # Setup Path("/...") call inside harvest to return tmp_path
+            mock_path_class.return_value.resolve.return_value = tmp_path
+    
+            with patch('src.core.ui.HUD'):
+>               harvest(cycles=2)
+
+tests\empire_tests\temp_gauntlet\test_harvest_empire.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\sentinel\harvest_responses.py:101: in harvest
+    real_client = genai.Client(api_key=api_key)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Roaming\Python\Python314\site-packages\google\genai\client.py:426: in __init__
+    self._api_client = self._get_api_client(
+..\..\AppData\Roaming\Python\Python314\site-packages\google\genai\client.py:474: in _get_api_client
+    return BaseApiClient(
+..\..\AppData\Roaming\Python\Python314\site-packages\google\genai\_api_client.py:712: in __init__
+    client_args, async_client_args = self._ensure_httpx_ssl_ctx(
+..\..\AppData\Roaming\Python\Python314\site-packages\google\genai\_api_client.py:823: in _ensure_httpx_ssl_ctx
+    ctx = ssl.create_default_context(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+purpose = <Purpose.SERVER_AUTH: _ASN1Object(nid=129, shortname='serverAuth', longname='TLS Web Server Authentication', oid='1.3.6.1.5.5.7.3.1')>
+
+    def create_default_context(purpose=Purpose.SERVER_AUTH, *, cafile=None,
+                               capath=None, cadata=None):
+        """Create a SSLContext object with default settings.
+    
+        NOTE: The protocol and settings may change anytime without prior
+              deprecation. The values represent a fair balance between maximum
+              compatibility and security.
+        """
+        if not isinstance(purpose, _ASN1Object):
+            raise TypeError(purpose)
+    
+        # SSLContext sets OP_NO_SSLv2, OP_NO_SSLv3, OP_NO_COMPRESSION,
+        # OP_CIPHER_SERVER_PREFERENCE, OP_SINGLE_DH_USE and OP_SINGLE_ECDH_USE
+        # by default.
+        if purpose == Purpose.SERVER_AUTH:
+            # verify certs and host name in client mode
+            context = SSLContext(PROTOCOL_TLS_CLIENT)
+            context.verify_mode = CERT_REQUIRED
+            context.check_hostname = True
+        elif purpose == Purpose.CLIENT_AUTH:
+            context = SSLContext(PROTOCOL_TLS_SERVER)
+        else:
+            raise ValueError(purpose)
+    
+        # `VERIFY_X509_PARTIAL_CHAIN` makes OpenSSL's chain building behave more
+        # like RFC 3280 and 5280, which specify that chain building stops with the
+        # first trust anchor, even if that anchor is not self-signed.
+        #
+        # `VERIFY_X509_STRICT` makes OpenSSL more conservative about the
+        # certificates it accepts, including "disabling workarounds for
+        # some broken certificates."
+        context.verify_flags |= (_ssl.VERIFY_X509_PARTIAL_CHAIN |
+                                 _ssl.VERIFY_X509_STRICT)
+    
+        if cafile or capath or cadata:
+>           context.load_verify_locations(cafile, capath, cadata)
+E           FileNotFoundError: [Errno 2] No such file or directory
+
+C:\Python314\Lib\ssl.py:717: FileNotFoundError
+------------------------------ Captured log call ------------------------------
+WARNING  google_genai._api_client:_api_client.py:105 Both GOOGLE_API_KEY and GEMINI_API_KEY are set. Using GOOGLE_API_KEY.
+___________________ TestAuditDialogueEmpire.test_audit_flow ___________________
+
+self = <test_audit_dialogue_empire.TestAuditDialogueEmpire object at 0x0000013862592AD0>
+mock_hud = <MagicMock name='HUD' id='1341685921648'>
+mock_sv_cls = <MagicMock name='SovereignVector' id='1341685921984'>
+mock_file = <MagicMock name='open' id='1341685922320'>
+mock_exists = <MagicMock name='exists' id='1341686941744'>
+
+    @patch("src.tools.debug.audit_dialogue.Path.exists", return_value=True)
+    @patch("src.tools.debug.audit_dialogue.Path.open", new_callable=mock_open, read_data='{"Persona": "GOD"}')
+    @patch("src.tools.debug.audit_dialogue.sv_engine.SovereignVector")
+    @patch("src.tools.debug.audit_dialogue.sv_engine.HUD")
+    def test_audit_flow(self, mock_hud, mock_sv_cls, mock_file, mock_exists):
+        auditor = audit_dialogue.DialogueAuditor()
+    
+        # Verify init
+        assert auditor.persona == "GOD"
+        mock_sv_cls.assert_called()
+    
+        # Mock score
+        mock_engine = mock_sv_cls.return_value
+        mock_engine.score_identity.return_value = 0.9
+    
+>       auditor.audit("I am the All-Father.")
+
+tests\empire_tests\test_audit_dialogue_empire.py:32: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.tools.debug.audit_dialogue.DialogueAuditor object at 0x0000013862C60980>
+text = 'I am the All-Father.'
+
+    def audit(self, text: str) -> None:
+        """Calculates and displays soul alignment score."""
+        # Initialize HUD Dialogue
+        voice_file = ("odin" if self.persona in ["GOD", "ODIN"] else "alfred") + ".qmd"
+        dialogue_path = self._resolve(self.project_root, voice_file, "dialogue_db")
+>       sv_engine.HUD.DIALOGUE = sv_engine.DialogueRetriever(str(dialogue_path))
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'sv_engine' has no attribute 'DialogueRetriever'
+
+src\tools\debug\audit_dialogue.py:59: AttributeError
+_________________ TestAuditDialogueEmpire.test_audit_deviance _________________
+
+self = <test_audit_dialogue_empire.TestAuditDialogueEmpire object at 0x0000013862592C10>
+mock_hud = <MagicMock name='HUD' id='1341686943760'>
+mock_sv_cls = <MagicMock name='SovereignVector' id='1341686944096'>
+mock_file = <MagicMock name='open' id='1341686944432'>
+mock_exists = <MagicMock name='exists' id='1341686947792'>
+
+    @patch("src.tools.debug.audit_dialogue.Path.exists", return_value=True)
+    @patch("src.tools.debug.audit_dialogue.Path.open", new_callable=mock_open, read_data='{"Persona": "ALFRED"}')
+    @patch("src.tools.debug.audit_dialogue.sv_engine.SovereignVector")
+    @patch("src.tools.debug.audit_dialogue.sv_engine.HUD")
+    def test_audit_deviance(self, mock_hud, mock_sv_cls, mock_file, mock_exists):
+        auditor = audit_dialogue.DialogueAuditor()
+    
+        # Mock score < 0.4
+        mock_engine = mock_sv_cls.return_value
+        mock_engine.score_identity.return_value = 0.3
+    
+>       auditor.audit("Sup dude.")
+
+tests\empire_tests\test_audit_dialogue_empire.py:53: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.tools.debug.audit_dialogue.DialogueAuditor object at 0x000001386282DD10>
+text = 'Sup dude.'
+
+    def audit(self, text: str) -> None:
+        """Calculates and displays soul alignment score."""
+        # Initialize HUD Dialogue
+        voice_file = ("odin" if self.persona in ["GOD", "ODIN"] else "alfred") + ".qmd"
+        dialogue_path = self._resolve(self.project_root, voice_file, "dialogue_db")
+>       sv_engine.HUD.DIALOGUE = sv_engine.DialogueRetriever(str(dialogue_path))
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'sv_engine' has no attribute 'DialogueRetriever'
+
+src\tools\debug\audit_dialogue.py:59: AttributeError
+___________________ TestBootstrapEmpire.test_bootstrap_flow ___________________
+
+args = (<test_bootstrap_empire.TestBootstrapEmpire object at 0x0000013862698190>,)
+keywargs = {}
+
+    @wraps(func)
+    def patched(*args, **keywargs):
+>       with self.decoration_helper(patched,
+                                    args,
+                                    keywargs) as (newargs, newkeywargs):
+
+C:\Python314\Lib\unittest\mock.py:1429: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Python314\Lib\contextlib.py:141: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+C:\Python314\Lib\unittest\mock.py:1411: in decoration_helper
+    arg = exit_stack.enter_context(patching)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Python314\Lib\contextlib.py:530: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+C:\Python314\Lib\unittest\mock.py:1487: in __enter__
+    self.target = self.getter()
+                  ^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'src.sentinel._bootstrap.utils'
+
+    def resolve_name(name):
+        """
+        Resolve a name to an object.
+    
+        It is expected that `name` will be a string in one of the following
+        formats, where W is shorthand for a valid Python identifier and dot stands
+        for a literal period in these pseudo-regexes:
+    
+        W(.W)*
+        W(.W)*:(W(.W)*)?
+    
+        The first form is intended for backward compatibility only. It assumes that
+        some part of the dotted name is a package, and the rest is an object
+        somewhere within that package, possibly nested inside other objects.
+        Because the place where the package stops and the object hierarchy starts
+        can't be inferred by inspection, repeated attempts to import must be done
+        with this form.
+    
+        In the second form, the caller makes the division point clear through the
+        provision of a single colon: the dotted name to the left of the colon is a
+        package to be imported, and the dotted name to the right is the object
+        hierarchy within that package. Only one import is needed in this form. If
+        it ends with the colon, then a module object is returned.
+    
+        The function will return an object (which might be a module), or raise one
+        of the following exceptions:
+    
+        ValueError - if `name` isn't in a recognised format
+        ImportError - if an import failed when it shouldn't have
+        AttributeError - if a failure occurred when traversing the object hierarchy
+                         within the imported package to get to the desired object.
+        """
+        global _NAME_PATTERN
+        if _NAME_PATTERN is None:
+            # Lazy import to speedup Python startup time
+            import re
+            dotted_words = r'(?!\d)(\w+)(\.(?!\d)(\w+))*'
+            _NAME_PATTERN = re.compile(f'^(?P<pkg>{dotted_words})'
+                                       f'(?P<cln>:(?P<obj>{dotted_words})?)?$',
+                                       re.UNICODE)
+    
+        m = _NAME_PATTERN.match(name)
+        if not m:
+            raise ValueError(f'invalid format: {name!r}')
+        gd = m.groupdict()
+        if gd.get('cln'):
+            # there is a colon - a one-step import is all that's needed
+            mod = importlib.import_module(gd['pkg'])
+            parts = gd.get('obj')
+            parts = parts.split('.') if parts else []
+        else:
+            # no colon - have to iterate to find the package boundary
+            parts = name.split('.')
+            modname = parts.pop(0)
+            # first part *must* be a module/package.
+            mod = importlib.import_module(modname)
+            while parts:
+                p = parts[0]
+                s = f'{modname}.{p}'
+                try:
+                    mod = importlib.import_module(s)
+                    parts.pop(0)
+                    modname = s
+                except ImportError:
+                    break
+        # if we reach this point, mod is the module, already imported, and
+        # parts is the list of parts in the object hierarchy to be traversed, or
+        # an empty list if just the module is wanted.
+        result = mod
+        for p in parts:
+>           result = getattr(result, p)
+                     ^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'src.sentinel._bootstrap' has no attribute 'utils'
+
+C:\Python314\Lib\pkgutil.py:473: AttributeError
+_______________ TestBootstrapEmpire.test_bootstrap_no_env_file ________________
+
+args = (<test_bootstrap_empire.TestBootstrapEmpire object at 0x00000138626982D0>,)
+keywargs = {}
+
+    @wraps(func)
+    def patched(*args, **keywargs):
+>       with self.decoration_helper(patched,
+                                    args,
+                                    keywargs) as (newargs, newkeywargs):
+
+C:\Python314\Lib\unittest\mock.py:1429: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Python314\Lib\contextlib.py:141: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+C:\Python314\Lib\unittest\mock.py:1411: in decoration_helper
+    arg = exit_stack.enter_context(patching)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Python314\Lib\contextlib.py:530: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+C:\Python314\Lib\unittest\mock.py:1503: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <unittest.mock._patch object at 0x0000013862622CF0>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'src.sentinel._bootstrap' from 'C:\\Users\\Craig\\Corvus\\CorvusStar\\src\\sentinel\\_bootstrap.py'> does not have the attribute 'load_dotenv'
+
+C:\Python314\Lib\unittest\mock.py:1473: AttributeError
+_______________________ TestUIEmpire.test_log_rejection _______________________
+
+self = <test_ui_empire.TestUIEmpire object at 0x0000013862707770>
+mock_file = <MagicMock name='open' id='1341714964432'>
+mock_cwd = <MagicMock name='cwd' id='1341714967792'>
+
+    @patch("src.core.ui.Path.cwd")
+    @patch("src.core.ui.open", new_callable=mock_open)
+    def test_log_rejection(self, mock_file, mock_cwd):
+        # setup deep path mock for ledger
+        mock_path = MagicMock()
+        mock_cwd.return_value = mock_path
+    
+        # HUD.log_rejection uses Path.cwd() / ".agent" / "audit" / "ledger.json"
+        HUD.log_rejection("TEST_PERSONA", "Reason", "Details")
+    
+        # Verify it attempted to open a file
+>       mock_file.assert_called()
+
+tests\empire_tests\test_ui_empire.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <MagicMock name='open' id='1341714964432'>
+
+    def assert_called(self):
+        """assert that the mock was called at least once
+        """
+        if self.call_count == 0:
+            msg = ("Expected '%s' to have been called." %
+                   (self._mock_name or 'mock'))
+>           raise AssertionError(msg)
+E           AssertionError: Expected 'open' to have been called.
+
+C:\Python314\Lib\unittest\mock.py:954: AssertionError
+============================== warnings summary ===============================
+..\..\AppData\Roaming\Python\Python314\site-packages\google\genai\types.py:43
+  C:\Users\Craig\AppData\Roaming\Python\Python314\site-packages\google\genai\types.py:43: DeprecationWarning: '_UnionGenericAlias' is deprecated and slated for removal in Python 3.17
+    VersionedUnionType = Union[builtin_types.UnionType, _UnionGenericAlias]
+
+tests/empire_tests/test_sv_engine_empire.py::TestSovereignEngineEmpire::test_run_basic_flow
+  C:\Users\Craig\AppData\Roaming\Python\Python314\site-packages\_pytest\threadexception.py:58: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-21 (_read)
+  
+  Traceback (most recent call last):
+    File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+      self._context.run(self.run)
+      ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+    File "C:\Python314\Lib\threading.py", line 1024, in run
+      self._target(*self._args, **self._kwargs)
+      ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\Users\Craig\Corvus\CorvusStar\src\core\utils.py", line 54, in _read
+      try: q.put(sys.stdin.readline().strip().lower())
+                 ~~~~~~~~~~~~~~~~~~^^
+    File "C:\Users\Craig\AppData\Roaming\Python\Python314\site-packages\_pytest\capture.py", line 229, in read
+      raise OSError(
+          "pytest: reading from stdin while output is captured!  Consider using `-s`."
+      )
+  OSError: pytest: reading from stdin while output is captured!  Consider using `-s`.
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/empire_tests/temp_gauntlet/test_harvest_empire.py::TestHarvestEmpire::test_harvest_loop
+FAILED tests/empire_tests/test_audit_dialogue_empire.py::TestAuditDialogueEmpire::test_audit_flow
+FAILED tests/empire_tests/test_audit_dialogue_empire.py::TestAuditDialogueEmpire::test_audit_deviance
+FAILED tests/empire_tests/test_bootstrap_empire.py::TestBootstrapEmpire::test_bootstrap_flow
+FAILED tests/empire_tests/test_bootstrap_empire.py::TestBootstrapEmpire::test_bootstrap_no_env_file
+FAILED tests/empire_tests/test_ui_empire.py::TestUIEmpire::test_log_rejection
+================= 6 failed, 204 passed, 2 warnings in 38.27s ==================

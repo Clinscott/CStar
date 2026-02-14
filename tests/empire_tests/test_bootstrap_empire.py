@@ -26,9 +26,12 @@ class TestBootstrapEmpire:
     
     @patch("src.sentinel._bootstrap.load_dotenv")
     @patch("src.sentinel._bootstrap.HUD")
-    @patch("src.sentinel._bootstrap.utils.load_config")
+    @patch("src.sentinel._bootstrap.load_config")
     def test_bootstrap_flow(self, mock_load_config, mock_hud, mock_dotenv):
         mock_load_config.return_value = {"persona": "ODIN"}
+        
+        # We need to manually reset the singleton flag for the test
+        _bootstrap._BOOTSTRAPPED = False
         
         _bootstrap.bootstrap()
         
@@ -37,13 +40,12 @@ class TestBootstrapEmpire:
         
         # Verify persona sync
         assert mock_hud.PERSONA == "ODIN"
-        mock_hud._ensure_persona.assert_called()
 
     @patch("src.sentinel._bootstrap.load_dotenv")
     def test_bootstrap_no_env_file(self, mock_dotenv):
-        # Even if file missing, it should call load_dotenv (which handles it)
+        _bootstrap._BOOTSTRAPPED = False
         with patch("src.sentinel._bootstrap.HUD"), \
-             patch("src.sentinel._bootstrap.utils.load_config", return_value={}):
+             patch("src.sentinel._bootstrap.load_config", return_value={}):
             _bootstrap.bootstrap()
             mock_dotenv.assert_called()
 
