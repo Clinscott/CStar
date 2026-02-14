@@ -3,8 +3,8 @@
 chcp 65001 | Out-Null
 [Console]::InputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $env:PYTHONIOENCODING = "utf-8"
-
 $ProjectRoot = Get-Location
+$env:PYTHONPATH = $ProjectRoot
 $Dispatcher = Join-Path $ProjectRoot "src/core/cstar_dispatcher.py"
 $PythonPath = Join-Path $ProjectRoot ".venv/Scripts/python.exe"
 
