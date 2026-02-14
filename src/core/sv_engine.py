@@ -248,7 +248,7 @@ class SovereignEngine:
         self._render_hud(query, top)
 
         # [BIFRÖST] Raven's Eye: Proactive Lexicon Expansion
-        if top and top['score'] < 0.65:
+        if top and (top['score'] < 0.65 or top.get('trigger') == 'WEB_FALLBACK'):
             self._proactive_lexicon_lift(query, engine)
 
         if top:

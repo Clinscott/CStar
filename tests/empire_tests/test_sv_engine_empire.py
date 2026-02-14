@@ -50,7 +50,7 @@ class TestSovereignEngineEmpire:
         mock_v_instance.search.return_value = [{"trigger": "none", "score": 0.5, "is_global": False}]
         
         mock_brave_inst = mock_brave.return_value
-        mock_brave_inst.search.return_value = [{"description": "Something not working."}]
+        mock_brave_inst.search.return_value = [{"description": "Something not working.", "title": "Fixing things", "url": "http://example.com"}]
         
         # Use a query where 'broken' is the clear unknown
         engine.run("the flux_capacitor is broken")
