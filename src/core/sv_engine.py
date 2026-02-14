@@ -21,9 +21,10 @@ if str(project_root) not in sys.path:
 
 from src.core import personas, utils  # noqa: E402
 from src.core.engine.cortex import Cortex  # noqa: E402
-from src.core.engine.dialogue import DialogueRetriever  # noqa: E402
+from src.core.engine.dialogue import DialogueEngine  # noqa: E402
 from src.core.engine.vector import SovereignVector  # noqa: E402
 from src.core.ui import HUD  # noqa: E402
+from src.tools.brave_search import BraveSearch  # noqa: E402
 
 
 class SovereignEngine:
@@ -60,7 +61,7 @@ class SovereignEngine:
         qmd = self.project_root / "src" / "data" / "dialogue" / f"{voice}.qmd"
         md = self.project_root / "src" / "data" / "dialogue" / f"{voice}.md"
         path = qmd if qmd.exists() else md
-        HUD.DIALOGUE = DialogueRetriever(str(path))
+        HUD.DIALOGUE = DialogueEngine(str(path))
 
     def _init_vector_engine(self) -> SovereignVector:
         """Initializes and loads skills into the Sovereign Vector engine."""
@@ -216,6 +217,10 @@ class SovereignEngine:
 
         self._render_hud(query, top)
 
+        # [BIFRÖST] Raven's Eye: Proactive Lexicon Expansion
+        if top and top['score'] < 0.65:
+            self._proactive_lexicon_lift(query, engine)
+
         if top:
             self._handle_proactive(top)
 
@@ -226,6 +231,41 @@ class SovereignEngine:
     def search(self, query: str) -> list[dict[str, Any]]:
         """Proxy for the underlying vector engine search."""
         return self.engine.search(query)
+
+    def _proactive_lexicon_lift(self, query: str, engine: SovereignVector) -> None:
+        """
+        Identify unknown terms and trigger a web search to expand the session lexicon.
+        Injects definitions into the active Cortex session.
+        """
+        # 1. Identify words not in vocab
+        words = re.findall(r'\b[a-zA-Z]{4,}\b', query.lower())
+        unknown_terms = [w for w in words if w not in engine.vocab and w not in engine.stopwords]
+
+        if not unknown_terms:
+            return
+
+        term = unknown_terms[0]
+        HUD.persona_log("INFO", f"Raven's Eye: Unknown term detected '{term}'. Seeking definition...")
+
+        # 2. Trigger Brave Search
+        searcher = BraveSearch()
+        results = searcher.search(f"Technical definition and synonyms for {term}")
+
+        if not results:
+            return
+
+        # 3. Synthesize definition (take first valid snippet)
+        definition = results[0].get('description', '')
+        if not definition:
+            return
+
+        HUD.persona_log("INFO", f"Raven's Eye: Ingesting intelligence for '{term}'.")
+
+        # 4. Inject into Cortex (Session-local)
+        cortex = Cortex(str(self.project_root), str(self.base_path))
+        cortex.add_node(f"LEXICON:{term}", {"definition": definition, "source": "BraveSearch", "query": term})
+        
+        # [ALFRED] Note: This improves session-level intent mapping for subsequent queries
 
 
 def main() -> None:
