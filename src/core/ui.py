@@ -93,7 +93,7 @@ class HUD:
             fallback: The string to return if the intent is not found.
         """
         if HUD.DIALOGUE:
-            return HUD.DIALOGUE.get(intent) or fallback
+            return HUD.DIALOGUE.get(HUD.PERSONA, intent) or fallback
         return fallback
 
     # [ALFRED] Theme Registry: Add new persona themes by adding an entry here.
