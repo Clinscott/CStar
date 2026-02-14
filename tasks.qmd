@@ -182,8 +182,14 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Warden Upgrades**: Enhanced logic for all Wardens (Neural Audit, AST checks, Vulture integration). [x]
 - [x] **Verification**: Verified Muninn integrity with manual script and retained 100% test pass rate. [x]
 
-## ⏭️ Start Here Next (Phase 38)
+### 38. Strengthening Wrap-Up & Knowledge Distillation (Session 54)
+- [x] **Strengthen Wrap-Up**: Add `ruff` and `pytest` to `wrap-it-up.md` to prevent CI failures. [x]
+- [x] **Knowledge Distillation**: Implement `Muninn._distill_knowledge` to record lessons in `memory.qmd`. [x]
+- [x] **Gungnir's Calculus**: Trigger background neural training loop via `atomic_gpt.py`. [x]
+- [x] **Subconscious Integration**: Implemented `Get-CortexDirectives.ps1` and `Invoke-CStarAgentLoop.ps1`. [x]
+
+## ⏭️ Start Here Next (Phase 39)
 - [ ] **Operation Ironclad: Hybrid Modularization**: Begin the migration of core memory and engine logic to a persistent modular package (`src/cstar`).
-- [ ] **Annexation Execution**: Activate the `execution` mode for `annex.py` to auto-remediate Documentation/Linguistic breaches project-wide.
+- [ ] **Annexation Execution**: Activate the `execution` mode for `annex.py` to auto-remediate Documentation/Linguistic breaches project-wide. 
 - [ ] **Heimdall Persistence**: Harden the security monitor to run in background mode with a persistent log rotation.
 - [ ] **Atomic Expansion**: Increase the `AtomicCortex` embedding dimension and vocabulary to support broader linguistic patterns.

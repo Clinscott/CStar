@@ -9,8 +9,8 @@ description: Finalizes the current session, updates documentation, runs a produc
    - Run `python -m ruff check . --select E9,F63,F7,F82` to ensure no syntax errors or undefined names.
    - Run `python -m pytest` to ensure all tests pass.
    - **CRITICAL**: If either fails, FIX THEM before proceeding. Do not wrap up a broken session.
-3. **Compile Neural Traces**: Run `python .agent/scripts/compile_session_traces.py` to generate the session's `TRACE_REPORT.qmd`. Persona data is now strictly grouped for clarity.
-4. **Update GEMINI Manifest**: Run `python .agent/scripts/update_gemini_manifest.py` to refresh the AI-to-AI context bridge.
+3. **Compile Neural Traces**: Run `python src/tools/compile_session_traces.py` to generate the session's `TRACE_REPORT.qmd`. Persona data is now strictly grouped for clarity.
+4. **Update GEMINI Manifest**: Run `python src/tools/update_gemini_manifest.py` to refresh the AI-to-AI context bridge.
 5. **Modify Tasks**: Modify existing tasks in `tasks.qmd` as completed. **Do not overwrite history.**
 6. **Review & Update Wireframe**: Check `wireframe.qmd` against your changes. If you added new pages, components, or services, YOU MUST update `wireframe.qmd` to match the codebase.
 7. **Next Priority**: Add a `## ⏭️ Start Here Next` section at the bottom of `tasks.qmd` with a detailed, step-by-step plan for the next priority.

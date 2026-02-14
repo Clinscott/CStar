@@ -1,6 +1,11 @@
 # Corvus Star Memory
 
 ## 2026-02-13: Muninn's Awakening (Session 54)
+- **Neural Subconscious**: The "Subconscious" is best implemented as a static digest (Markdown) generated from dynamic data (JSON). This allows the LLM to consume it as a system prompt without complex runtime querying.
+- **Gradient Clipping**: When implementing custom autograd engines (`AtomicCortex`), gradient clipping is essential to prevent `OverflowError` during training on unnormalized inputs.
+- **Idempotency**: Test idempotency by mocking the underlying storage (ledger/memory file) rather than the complex logic itself. Normalized checks (uppercase/lowercase) prevent duplicate entries.
+
+## 2026-02-13: Muninn's Awakening (Session 54)
 -   **Architecture**: Modularizing a "God Object" into distinct Wardens (Strategy Pattern) significantly improves testability and allows for parallel execution.
 -   **Performance**: `ThreadPoolExecutor` is effective for I/O-bound audit tasks (scanning thousands of files) but requires thread-safe logging (handled via `HUD` queue or atomic writes).
 -   **Stability**: Separating "Stability Logic" (SPRT, Anti-Oscillation) from "Execution Logic" (Wardens) prevents circular dependencies and allows stability rules to evolve independently.
