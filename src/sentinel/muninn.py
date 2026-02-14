@@ -341,7 +341,7 @@ class Muninn:
                 contents=prompt
             )
             raw_test = response.text
-            clean_test = sanitize_test(raw_test, target['file'])
+            clean_test = sanitize_test(raw_test, target['file'], self.root)
             
             test_file = self.root / "tests" / "gauntlet" / f"test_{int(time.time())}.py"
             test_file.parent.mkdir(parents=True, exist_ok=True)
