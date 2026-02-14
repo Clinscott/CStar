@@ -3,6 +3,9 @@ import sys
 import re
 from typing import Any
 
+# Fix: Ensure sys is available for CI execution
+
+
 
 class EmpireCompiler:
     """

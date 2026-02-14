@@ -6,6 +6,8 @@ import random
 import time
 import math
 import subprocess
+# Fix: Ensure subprocess is available for CI
+
 from collections import defaultdict
 from pathlib import Path
 
