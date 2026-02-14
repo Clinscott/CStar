@@ -6,19 +6,9 @@ import sys
 import json
 
 # Add project root to sys.path
-PROJECT_ROOT = Path(__file__).parents[3]
+PROJECT_ROOT = Path(__file__).parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
-
-# Mock sv_engine before import
-if "sv_engine" in sys.modules:
-    del sys.modules["sv_engine"]
-sys.modules["sv_engine"] = MagicMock()
-
-def teardown_module():
-    if "sv_engine" in sys.modules:
-        del sys.modules["sv_engine"]
-
 
 from src.tools.debug import audit_dialogue
 
