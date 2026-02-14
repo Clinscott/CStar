@@ -1,0 +1,22 @@
+Feature: Contextual Persona Dialogue Integration
+  As a developer using Corvus Star
+  I want my AI agents to react to the system state
+  So that failure and recovery feel immersive and technically accurate
+
+  Scenario: Odin reacts to system defiance
+    Given the file ".agent/sovereign_state.json" contains "status": "DEFIANCE"
+    When OdinStrategy enforces policy
+    Then the dialogue context should contain "compliance_breach": true
+    And the returned phrase should contain either "shatters" or "Hel"
+
+  Scenario: Alfred provides specific recovery guidance
+    Given AlfredObserver analyzes a failure with "error_type": "SyntaxError"
+    When AlfredStrategy triggers "ERROR_RECOVERY"
+    Then the dialogue context should contain "error_type": "SyntaxError"
+    And the returned phrase should contain "setback" or "syntax"
+
+  Scenario: Dialogue Fallback Mechanism
+    Given an intent of "TASK_FAILED"
+    And a context with no matching keywords
+    When the dialogue engine is queried
+    Then it should return a random phrase from the default "TASK_FAILED" pool

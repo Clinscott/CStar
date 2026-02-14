@@ -160,6 +160,13 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Muninn Integration**: Wired GPHS/SPRT into the autopilot cycle with auto-rollback. [x]
 - [x] **Verification**: 100% pass on Gungnir unit tests and training loop. [x]
 
+### 35. Context-Aware Persona Refactor (Session 53)
+- [x] **YAML Migration**: Migrated phrase banks from .qmd to centralized `phrases.yaml`. [x]
+- [x] **Dialogue Engine**: Implemented tag-based scoring and Short-Term Memory (STM) in `DialogueEngine`. [x]
+- [x] **State Caching**: Added TTL-based caching and Windows-safe file locks to `OdinStrategy`. [x]
+- [x] **Analytical Failures**: Refactored `AlfredOverwatch` to return structured error context. [x]
+- [x] **Verification**: 100% pass on contextual routing integration tests. [x]
+
 ## ⏭️ Start Here Next (Phase 36)
 - [ ] **Operation Ironclad: Hybrid Modularization**: Begin the migration of core memory and engine logic to a persistent modular package (`src/cstar`).
 - [ ] **Annexation Execution**: Activate the `execution` mode for `annex.py` to auto-remediate Documentation/Linguistic breaches project-wide.
