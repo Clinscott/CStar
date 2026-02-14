@@ -22,7 +22,7 @@ from src.sentinel.muninn import (
 class TestValkyrieWarden:
     """Detects dead code using Vulture (Mocked)."""
 
-    @patch('src.sentinel.muninn.vulture')
+    @patch('src.sentinel.wardens.valkyrie.vulture')
     def test_finds_unused_function(self, mock_vulture_module, tmp_path):
         # Setup Mock Vulture
         mock_v = MagicMock()
@@ -52,7 +52,7 @@ class TestValkyrieWarden:
         # Verify Vulture was called correctly
         mock_v.scavenge.assert_called()
 
-    @patch('src.sentinel.muninn.vulture')
+    @patch('src.sentinel.wardens.valkyrie.vulture')
     def test_filters_low_confidence(self, mock_vulture_module, tmp_path):
         # Setup Mock Vulture
         mock_v = MagicMock()
@@ -101,7 +101,7 @@ def nightmare(x):
         targets = mimir.scan()
 
         assert len(targets) > 0
-        assert targets[0]["type"] == "MIMIR_BREACH"
+        assert targets[0]["type"] == "MIMIR_COMPLEXITY"
         assert "complex_mess.py" in targets[0]["file"]
 
 
@@ -120,15 +120,15 @@ class TestWardenPriority:
         mock_annex.return_value = mock_annex_inst
 
         mock_valkyrie_inst = MagicMock()
-        mock_valkyrie_inst.scan.return_value = [{"file": "dead.py", "action": "Prune"}]
+        mock_valkyrie_inst.scan.return_value = [{"file": "dead.py", "action": "Prune", "severity": "HIGH"}]
         mock_valkyrie.return_value = mock_valkyrie_inst
 
         mock_mimir_inst = MagicMock()
-        mock_mimir_inst.scan.return_value = [{"file": "complex.py", "action": "Simplify"}]
+        mock_mimir_inst.scan.return_value = [{"file": "complex.py", "action": "Simplify", "severity": "MEDIUM"}]
         mock_mimir.return_value = mock_mimir_inst
 
         mock_visual_inst = MagicMock()
-        mock_visual_inst.scan.return_value = [{"file": "ugly.py", "action": "Beautify"}]
+        mock_visual_inst.scan.return_value = [{"file": "ugly.py", "action": "Beautify", "severity": "LOW"}]
         mock_visual.return_value = mock_visual_inst
 
         os.environ["GOOGLE_API_KEY"] = "TEST"
