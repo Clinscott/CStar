@@ -1,0 +1,247 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.2, pytest-9.0.2, pluggy-1.6.0
+rootdir: C:\Users\Craig\Corvus\CorvusStar
+configfile: pyproject.toml
+plugins: anyio-4.12.1
+collected 264 items / 259 deselected / 5 selected
+run-last-failure: rerun previous 5 failures
+
+tests\empire_tests\temp_gauntlet\test_engine_empire.py FFFF              [ 80%]
+tests\empire_tests\temp_gauntlet\test_personas_empire.py F               [100%]
+
+================================== FAILURES ===================================
+______________________ TestEngineEmpire.test_engine_init ______________________
+
+args = (<temp_gauntlet.test_engine_empire.TestEngineEmpire object at 0x0000024829AE8050>,)
+keywargs = {'tmp_path': WindowsPath('C:/Users/Craig/AppData/Local/Temp/pytest-of-Craig/pytest-227/test_engine_init0')}
+
+    @wraps(func)
+    def patched(*args, **keywargs):
+>       with self.decoration_helper(patched,
+                                    args,
+                                    keywargs) as (newargs, newkeywargs):
+
+C:\Python314\Lib\unittest\mock.py:1429: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Python314\Lib\contextlib.py:141: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+C:\Python314\Lib\unittest\mock.py:1411: in decoration_helper
+    arg = exit_stack.enter_context(patching)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Python314\Lib\contextlib.py:530: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+C:\Python314\Lib\unittest\mock.py:1503: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <unittest.mock._patch object at 0x0000024829A06B10>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'src.core.engine.dialogue' from 'C:\\Users\\Craig\\Corvus\\CorvusStar\\src\\core\\engine\\dialogue.py'> does not have the attribute 'DialogueRetriever'
+
+C:\Python314\Lib\unittest\mock.py:1473: AttributeError
+_____________________ TestEngineEmpire.test_record_trace ______________________
+
+self = <temp_gauntlet.test_engine_empire.TestEngineEmpire object at 0x00000248299ABED0>
+tmp_path = WindowsPath('C:/Users/Craig/AppData/Local/Temp/pytest-of-Craig/pytest-227/test_record_trace0')
+
+    def test_record_trace(self, tmp_path):
+        # Setup .agent dir
+        (tmp_path / ".agent").mkdir()
+        with patch('src.core.utils.load_config', return_value={}):
+            with patch('src.core.ui.HUD'):
+>                with patch('src.core.engine.dialogue.DialogueRetriever'):
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\empire_tests\temp_gauntlet\test_engine_empire.py:28: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Python314\Lib\unittest\mock.py:1503: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <unittest.mock._patch object at 0x000002482D65B150>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'src.core.engine.dialogue' from 'C:\\Users\\Craig\\Corvus\\CorvusStar\\src\\core\\engine\\dialogue.py'> does not have the attribute 'DialogueRetriever'
+
+C:\Python314\Lib\unittest\mock.py:1473: AttributeError
+__________________ TestEngineEmpire.test_init_vector_engine ___________________
+
+self = <temp_gauntlet.test_engine_empire.TestEngineEmpire object at 0x0000024829AF0050>
+mock_vector = <MagicMock name='SovereignVector' id='2509024886864'>
+tmp_path = WindowsPath('C:/Users/Craig/AppData/Local/Temp/pytest-of-Craig/pytest-227/test_init_vector_engine0')
+
+    @patch('src.core.sv_engine.SovereignVector')
+    def test_init_vector_engine(self, mock_vector, tmp_path):
+        with patch('src.core.utils.load_config', return_value={}):
+            with patch('src.core.ui.HUD'):
+>               with patch('src.core.engine.dialogue.DialogueRetriever'):
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\empire_tests\temp_gauntlet\test_engine_empire.py:44: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Python314\Lib\unittest\mock.py:1503: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <unittest.mock._patch object at 0x000002482D65B690>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'src.core.engine.dialogue' from 'C:\\Users\\Craig\\Corvus\\CorvusStar\\src\\core\\engine\\dialogue.py'> does not have the attribute 'DialogueRetriever'
+
+C:\Python314\Lib\unittest\mock.py:1473: AttributeError
+______________________ TestEngineEmpire.test_render_hud _______________________
+
+self = <temp_gauntlet.test_engine_empire.TestEngineEmpire object at 0x0000024829A07CE0>
+mock_box = <MagicMock name='box_top' id='2509024887872'>
+tmp_path = WindowsPath('C:/Users/Craig/AppData/Local/Temp/pytest-of-Craig/pytest-227/test_render_hud0')
+
+    @patch('src.core.ui.HUD.box_top')
+    def test_render_hud(self, mock_box, tmp_path):
+        # Create .agent dir
+        (tmp_path / ".agent").mkdir()
+        with patch('src.core.utils.load_config', return_value={}):
+            # Don't patch HUD entirely, just the specific methods to avoid pollution
+            with patch('src.core.ui.HUD.box_row'):
+>               with patch('src.core.engine.dialogue.DialogueRetriever'):
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\empire_tests\temp_gauntlet\test_engine_empire.py:57: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Python314\Lib\unittest\mock.py:1503: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <unittest.mock._patch object at 0x000002482D65BBD0>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'src.core.engine.dialogue' from 'C:\\Users\\Craig\\Corvus\\CorvusStar\\src\\core\\engine\\dialogue.py'> does not have the attribute 'DialogueRetriever'
+
+C:\Python314\Lib\unittest\mock.py:1473: AttributeError
+___________ TestPersonasEmpire.test_odin_enforce_policy_compliance ____________
+
+self = <temp_gauntlet.test_personas_empire.TestPersonasEmpire object at 0x0000024829A3AC30>
+root = WindowsPath('C:/Users/Craig/AppData/Local/Temp/pytest-of-Craig/pytest-227/test_odin_enforce_policy_compl0')
+
+    def test_odin_enforce_policy_compliance(self, root):
+        """Test Odin's policy enforcement on compliant files."""
+        strategy = OdinStrategy(str(root))
+        agents_path = root / "AGENTS.qmd"
+        agents_path.write_text("IDENTITY: ODIN", encoding="utf-8")
+    
+        results = strategy.enforce_policy()
+>       assert any("Compliant" in r for r in results)
+E       assert False
+E        +  where False = any(<generator object TestPersonasEmpire.test_odin_enforce_policy_compliance.<locals>.<genexpr> at 0x000002482D7069B0>)
+
+tests\empire_tests\temp_gauntlet\test_personas_empire.py:55: AssertionError
+============================== warnings summary ===============================
+..\..\AppData\Roaming\Python\Python314\site-packages\google\genai\types.py:43
+  C:\Users\Craig\AppData\Roaming\Python\Python314\site-packages\google\genai\types.py:43: DeprecationWarning: '_UnionGenericAlias' is deprecated and slated for removal in Python 3.17
+    VersionedUnionType = Union[builtin_types.UnionType, _UnionGenericAlias]
+
+src\games\odin_protocol\engine\gm_client.py:7
+  C:\Users\Craig\Corvus\CorvusStar\src\games\odin_protocol\engine\gm_client.py:7: FutureWarning: 
+  
+  All support for the `google.generativeai` package has ended. It will no longer be receiving 
+  updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+  See README for more details:
+  
+  https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+  
+    import google.generativeai as genai
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/empire_tests/temp_gauntlet/test_engine_empire.py::TestEngineEmpire::test_engine_init
+FAILED tests/empire_tests/temp_gauntlet/test_engine_empire.py::TestEngineEmpire::test_record_trace
+FAILED tests/empire_tests/temp_gauntlet/test_engine_empire.py::TestEngineEmpire::test_init_vector_engine
+FAILED tests/empire_tests/temp_gauntlet/test_engine_empire.py::TestEngineEmpire::test_render_hud
+FAILED tests/empire_tests/temp_gauntlet/test_personas_empire.py::TestPersonasEmpire::test_odin_enforce_policy_compliance
+================ 5 failed, 259 deselected, 2 warnings in 2.47s ================
