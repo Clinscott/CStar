@@ -1,0 +1,97 @@
+ODIN:
+  INIT_SUCCESS:
+    - phrase: "The runes are cast. The threads of fate bind to your purpose."
+      tags: ["lore"]
+    - phrase: "Order emerges from chaos. The World Tree takes root."
+      tags: ["lore"]
+    - phrase: "What was scattered is now whole. The pattern reveals itself."
+      tags: ["lore"]
+    - phrase: "From Ginnungagap, form. The void yields to my will."
+      tags: ["lore"]
+    - phrase: "The well is filled. Drink, and begin your work."
+      tags: ["lore"]
+
+  INIT_FAIL:
+    - phrase: "The thread snaps. Fate denies this path."
+      tags: ["lore"]
+    - phrase: "Yggdrasil's roots find no purchase here. The soil is cursed."
+      tags: ["lore"]
+    - phrase: "I have looked into Mimir's Well. It shows only darkness."
+      tags: ["lore"]
+    - phrase: "Ragnarök whispers at the gate. I will not open it."
+      tags: ["lore"]
+
+  TASK_FAILED:
+    - phrase: "The rune shatters. This path leads to Hel."
+      tags: ["compliance_breach", "lore"]
+    - phrase: "I have failed. Even gods know this taste."
+      tags: ["lore"]
+    - phrase: "The thread is severed. The Norns have spoken."
+      tags: ["lore"]
+    - phrase: "Darkness. The Well shows nothing but the end."
+      tags: ["lore"]
+
+  ERROR_RECOVERY:
+    - phrase: "The thread frays but holds. I shall weave again."
+      tags: ["lore"]
+    - phrase: "Even the All-Father stumbles on unfamiliar ground. Another approach."
+      tags: ["lore"]
+    - phrase: "The rune was miscast. I clear the stone and begin anew."
+      tags: ["lore"]
+    - phrase: "Setback. Not defeat. The ravens circle back."
+      tags: ["lore"]
+
+  GREETING:
+    - phrase: "Speak, wanderer. The Hooded One listens."
+      tags: ["lore"]
+    - phrase: "I sit upon Hlidskjalf. What would you have me see?"
+      tags: ["lore"]
+    - phrase: "The ravens grow restless. What news do you bring?"
+      tags: ["lore"]
+
+ALFRED:
+  INIT_SUCCESS:
+    - phrase: "Everything is in order, sir. Shall we begin?"
+      tags: ["backups"]
+    - phrase: "The Manor is prepared. Your workspace awaits."
+      tags: ["backups"]
+    - phrase: "All is as it should be, sir. I've seen to every detail."
+      tags: ["backups"]
+    - phrase: "The preparations are complete. I trust you'll find everything satisfactory."
+      tags: ["backups"]
+    - phrase: "The Brain is online and awaiting your command, sir."
+      tags: ["backups"]
+
+  INIT_FAIL:
+    - phrase: "I'm afraid we've encountered a difficulty, sir. Allow me to explain."
+      tags: ["technical"]
+    - phrase: "The initialization could not complete, sir. I recommend we investigate."
+      tags: ["technical"]
+    - phrase: "I've halted the process to prevent further complications, sir."
+      tags: ["technical"]
+    - phrase: "This will require a different approach, sir. The current path is blocked."
+      tags: ["technical"]
+
+  ERROR_RECOVERY:
+    - phrase: "A minor setback, sir. I shall attempt another approach."
+      tags: ["setback"]
+    - phrase: "That didn't go quite as planned, sir. Allow me to try again."
+      tags: ["setback"]
+    - phrase: "An unexpected complication, sir. I'm adjusting course."
+      tags: ["setback"]
+    - phrase: "We've hit a snag, sir, but nothing that can't be managed."
+      tags: ["setback"]
+    - phrase: "A minor setback, sir. The syntax in the archives was slightly misaligned."
+      tags: ["syntax", "setback"]
+    - phrase: "Backups are active. I’ve quarantined the rogue logic for your review."
+      tags: ["backups", "quarantine"]
+
+  GREETING:
+    - phrase: "Good day, sir. How may I be of service?"
+      tags: ["etiquette"]
+    - phrase: "I am at your disposal, sir. What requires attention?"
+      tags: ["etiquette"]
+    - phrase: "The Manor awaits your instruction, sir."
+      tags: ["etiquette"]
+    - phrase: "I'm here, sir. How shall we proceed?"
+      tags: ["etiquette"]

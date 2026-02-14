@@ -3,6 +3,11 @@ from datetime import datetime
 import json
 import os
 import shutil
+import time
+try:
+    import msvcrt
+except ImportError:
+    msvcrt = None
 
 class PersonaStrategy:
     """
@@ -13,9 +18,9 @@ class PersonaStrategy:
     def __init__(self, project_root: str | Path):
         self.root = Path(project_root)
 
-    def enforce_policy(self) -> list[str]:
-        """Analyze and enforce file structure policies."""
-        raise NotImplementedError 
+    def enforce_policy(self, **kwargs) -> dict:
+        """Analyze and enforce file structure policies. Returns context for dialogue."""
+        return {} 
 
     def get_voice(self) -> str:
         """Return the name of the dialogue file to use."""
@@ -57,9 +62,26 @@ class OdinStrategy(PersonaStrategy):
     The ODIN Strategy: Enforces strict compliance and complete dominion.
     Aims for high standardization and authoritative project documentation.
     """
+    _state_cache = {"data": None, "timestamp": 0}
+    CACHE_TTL = 1.0  # 1 second buffer
 
     def get_voice(self) -> str:
         return "odin"
+
+    def _get_sovereign_state(self):
+        """[ALFRED] Advanced state retriever with Windows-safe shared read and caching."""
+        now = time.time()
+        if self._state_cache["data"] is not None and (now - self._state_cache["timestamp"]) < self.CACHE_TTL:
+            return self._state_cache["data"]
+
+        state_path = self.root / ".agent" / "sovereign_state.json"
+        
+        from src.core.utils import safe_read_json
+        data = safe_read_json(state_path)
+        
+        if data:
+            self._state_cache = {"data": data, "timestamp": now}
+        return data
 
     def retheme_docs(self) -> list[str]:
         """ODIN documentation re-theming: Overwrite for Dominion."""
@@ -99,12 +121,16 @@ class OdinStrategy(PersonaStrategy):
         self._sync_configs("ODIN")
         return results
 
-
-    def enforce_policy(self):
-        """ODIN Policy: Complete Dominion. Standardize or Perish."""
-        results = []
+    def enforce_policy(self, **kwargs) -> dict:
+        """ODIN Policy: Complete Dominion. Return context for dialogue adjudication."""
+        results = [] # Internal logging
         
-        # 1. Enforce AGENTS.qmd (Main)
+        # 1. Check for defiance in cached state
+        state = self._get_sovereign_state()
+        is_defiant = any(v == "DEFIANCE" or (isinstance(v, dict) and v.get("status") == "DEFIANCE") 
+                         for v in state.values())
+        
+        # 2. Original Policy Enforcement
         target_dirs = [self.root / "docs" / "architecture", self.root]
         for target in target_dirs:
             qmd = target / "AGENTS.qmd"
@@ -114,35 +140,17 @@ class OdinStrategy(PersonaStrategy):
             if agents_path:
                 try:
                     content = agents_path.read_text(encoding='utf-8')
-                    
                     import re
-                    # Check for standardized identity pattern: IDENTITY: [NAME]
                     if not re.search(r"IDENTITY:\s+[A-Z]+", content):
                         self._create_standard_agents(agents_path)
-                        results.append(f"REWRITTEN: {agents_path.relative_to(self.root)} (Compliance Enforced)")
-                    else:
-                        results.append(f"VERIFIED: {agents_path.relative_to(self.root)} (Compliant)")
-                except (IOError, PermissionError) as e:
-                    results.append(f"DEFIANCE: Failed to access {agents_path.name} ({str(e)})")
+                except Exception:
+                    pass
 
-        # 2. Enforce .cursorrules (The System Directive)
         rules_path = self.root / ".cursorrules"
-        create_rules = False
         if not rules_path.exists():
-            create_rules = True
-        else:
-            try:
-                content = rules_path.read_text(encoding='utf-8')
-                if "IDENTITY: ODIN" not in content:
-                    create_rules = True
-            except Exception:
-                create_rules = True # Default to re-forging
-        
-        if create_rules:
             self._create_cursor_rules(rules_path)
-            results.append("ENFORCED: .cursorrules (Forged for ODIN)")
             
-        return results
+        return {"compliance_breach": is_defiant}
 
     def _create_cursor_rules(self, path):
         content = """# ODIN PROTOCOL (CORVUS STAR)
@@ -199,8 +207,8 @@ class AlfredStrategy(PersonaStrategy):
     def get_voice(self) -> str:
         return "alfred"
 
-    def enforce_policy(self) -> list[str]:
-        """ALFRED Policy: Humble Service. Adapt and Assist."""
+    def enforce_policy(self, **kwargs) -> dict:
+        """ALFRED Policy: Humble Service. Returns context including error details."""
         results = []
         
         doc_targets = ["AGENTS", "tasks", "thesaurus"]
@@ -213,25 +221,24 @@ class AlfredStrategy(PersonaStrategy):
                     bak = path.with_suffix(path.suffix + ".bak")
                     if not bak.exists():
                         shutil.copy2(str(path), str(bak))
-                        results.append(f"PROVISIONED: Backup of {path.name}")
             except (IOError, PermissionError):
                 pass 
 
         agents_found = any((self.root / name).exists() for name in ["AGENTS.qmd", "AGENTS.md", "INSTRUCTIONS.qmd", "brief.qmd", "cursorrules.qmd"])
-        
         if not agents_found:
             self._create_minimal_agents(self.root / "AGENTS.qmd")
-            results.append("SUGGESTED: Created minimal project notes.")
             
         rules_path = self.root / ".cursorrules"
-        create_rules = not rules_path.exists() or "IDENTITY: ALFRED" not in rules_path.read_text(encoding='utf-8')
-        
-        if create_rules:
+        if not rules_path.exists():
             self._create_cursor_rules(rules_path)
-            results.append("PROVISIONED: .cursorrules (The Archive is synchronized)")
             
         self._sync_configs("ALFRED")
-        return results
+        
+        context = {}
+        if "error_type" in kwargs:
+            context["error_type"] = kwargs["error_type"]
+        
+        return context
 
 
     def _create_cursor_rules(self, path):

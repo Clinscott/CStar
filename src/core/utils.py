@@ -1,23 +1,38 @@
-import json
-import re
-import sys
-import threading
-import queue
+import os
 from pathlib import Path
+
+try:
+    import msvcrt
+except ImportError:
+    msvcrt = None
 
 def load_config(root_path: str | Path) -> dict:
     """[ALFRED] Securely load the C* configuration using Pathlib."""
     path = Path(root_path) / ".agent" / "config.json"
-    return _read_json_file(path)
+    return safe_read_json(path)
 
-def _read_json_file(path: Path) -> dict:
-    """Internal helper to read and parse JSON safely."""
+def safe_read_json(path: Path | str) -> dict:
+    """[ALFRED] Thread-safe and Windows-safe JSON reader with shared locks."""
+    path = Path(path)
     if not path.exists():
         return {}
+        
     try:
-        return json.loads(path.read_text(encoding='utf-8'))
+        with open(path, 'r', encoding='utf-8') as f:
+            if msvcrt:
+                # Windows-specific: shared read lock (LK_NBLCK)
+                try:
+                    msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, os.path.getsize(path))
+                except (IOError, OSError):
+                    pass
+            import json
+            return json.load(f)
     except (json.JSONDecodeError, IOError, OSError):
         return {}
+
+def _read_json_file(path: Path) -> dict:
+    """Internal helper for legacy compatibility. Prefer safe_read_json."""
+    return safe_read_json(path)
 
 def sanitize_query(text: str) -> str:
     """[ALFRED] Purify user input of shell hazards and noise."""

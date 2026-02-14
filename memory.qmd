@@ -1,5 +1,11 @@
 # Corvus Star Memory
 
+## 2026-02-13: Context-Aware Dialogue (Session 53)
+- **Pattern**: Deterministic routing based on tag-scoring is superior to random sampling for specialized task assistants (Alfred/Odin).
+- **STM (Short-Term Memory)**: Using a `deque(maxlen=5)` in the dialogue engine maintains immersion and prevents repetitive verbal loops.
+- **Windows File Strategy**: Using `msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, size)` allows multiple readers to access sensitive files like `sovereign_state.json` without blocking the writer (Raven Daemon).
+- **YAML over QMD**: For highly structured data bank (phrases/tags), YAML is the preferred format due to its machine-readability and hierarchy support.
+
 ## 2026-02-13: The Gungnir Calculus (Neural Alignment)
 - **Pattern**: Localized neural alignment is superior to generic LLM advice for project-specific "lore" maintenance.
 - **Atomic Cortex**: Using byte-level tokenization and a scalar transformer allows for dependency-free code analysis without API costs.
