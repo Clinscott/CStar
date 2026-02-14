@@ -39,6 +39,9 @@ The Corvus Star framework has successfully transitioned to the `.qmd` documentat
 - **Undefined Name Resolution**: Fixed 5 `F821` errors in `src/core/utils.py` by restoring missing imports (`re`, `sys`, `threading`, `queue`).
 - **Standardization**: Moved `json` import to top-level for consistent error handling.
 
+### 8. CI Dependency: PyYAML Injection (Session 54)
+- **Dependency Resolution**: Added `PyYAML` to `pyproject.toml` to resolving `ModuleNotFoundError: No module named 'yaml'` in CI.
+
 ## 🧪 Final Verification State
 
 ### Operational Metrics

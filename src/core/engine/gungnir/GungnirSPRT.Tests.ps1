@@ -2,10 +2,16 @@
 # Feature: Sequential Probability Ratio Test (SPRT)
 # Lore: "The Gungnir Calculus"
 
-$currDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-if (!$currDir) { $currDir = $PSScriptRoot }
-if (!$currDir) { $currDir = "." }
-. "$currDir\Invoke-GungnirSPRT.ps1"
+$ScriptPath = $PSScriptRoot
+if (-not $ScriptPath) {
+    $ScriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
+}
+
+if (-not $ScriptPath) {
+    $ScriptPath = Get-Location
+}
+
+. "$ScriptPath\Invoke-GungnirSPRT.ps1"
 
 Describe "The Gungnir Calculus (SPRT Math Engine)" {
     
