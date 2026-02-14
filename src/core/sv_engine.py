@@ -50,6 +50,7 @@ class SovereignEngine:
 
         # Persona & HUD Initialization
         HUD.PERSONA = (self.config.get("persona") or self.config.get("Persona") or "ALFRED").upper()
+        HUD._INITIALIZED = True
         self.strategy = personas.get_strategy(HUD.PERSONA, str(self.project_root))
         self._init_hud_dialogue()
         self.engine = self._init_vector_engine()
