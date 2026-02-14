@@ -11,6 +11,7 @@ from src.sentinel.wardens.base import BaseWarden
 
 class NornWarden(BaseWarden):
     def __init__(self, root: Path):
+        # Initialize BaseWarden with project root
         super().__init__(root)
         self.plan_path = root / ".agent" / "CAMPAIGN_IMPLEMENTATION_PLAN.qmd"
 
