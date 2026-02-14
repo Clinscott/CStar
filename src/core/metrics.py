@@ -6,7 +6,11 @@ from src.core.prompt_linter import PromptLinter
 from src.core.engine.atomic_gpt import AtomicCortex
 
 class ProjectMetricsEngine:
-    def __init__(self, weights_path: str = "src/core/weights.json"):
+    """
+    Calculates the Global Project Health Score (GPHS) based on
+    functional health, code complexity, prompt integrity, and neural alignment.
+    """
+    def __init__(self, weights_path: str = "src/core/weights.json") -> None:
         # Resolve path relative to project root
         self.root = os.getcwd()
         full_weights_path = os.path.join(self.root, weights_path)

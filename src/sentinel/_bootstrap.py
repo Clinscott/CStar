@@ -7,11 +7,16 @@ import sys
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from src.core.ui import HUD
-from src.core.utils import load_config
 
 # Absolute project root resolution
 PROJECT_ROOT = Path(__file__).parent.parent.parent.resolve()
+
+# [ALFRED] Architecture Note:
+# We import HUD and load_config at the top level to ensure that
+# pytest patch decorators can reliably target them. Local imports
+# inside functions would bypass module-level patches.
+from src.core.ui import HUD
+from src.core.utils import load_config
 
 _BOOTSTRAPPED = False
 
