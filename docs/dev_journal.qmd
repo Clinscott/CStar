@@ -14,6 +14,24 @@ Preserve the "why" behind technical decisions and provide a narrative history of
 
 # Developer Journal
 
+## 2026-02-13 - Operation Bifröst: The Web-Aware Reforge (Session 54)
+### Summary
+- **Brave Search Integration**: Successfully implemented `src/tools/brave_search.py` with 1,000/mo quota management and monthly reset logic.
+- **HeimdallGuard Security**: Integrated regex-based prompt injection neutralization in `src/sentinel/code_sanitizer.py`.
+- **Raven's Eye Activation**: Modified `sv_engine.py` to perform proactive lexicon expansion for unknown technical terms.
+- **Forge Augmentor**: Upgraded `skill_forge.py` with Web-RAG for real-world syntax synthesis.
+- **SovereignFish Improvements**: Refactored `stopwords.json` and synchronized `DialogueEngine` naming convention.
+
+### Architectural Decisions
+- **Proactive Search vs Fallback**: Shifted search from a "failure fallback" to a proactive layer. Identifying unknown terms *before* the vector search prevents "forced matches" to incorrect skill clusters.
+- **Sanitization first**: Established a "Guilty until Proven Innocent" policy for web snippets. By running `heimdall_guard` before any logic processing, we eliminate prompt injection risks from external data.
+- **Transparent Quota**: Chose to log quota errors immediately to the HUD via `persona_log`. This ensures the user (Warlord) is aware when tactical scouting is blinded by limits.
+
+### Current State
+- **Corvus Star 5.4** is the first web-aware instance.
+- **Search Capability**: Proactive and secure.
+- **Stability**: 100% verified via `augmented_intel` test suite.
+
 ## 2026-02-13 - Manual Learning Protocol & Empire Hardening (Session 51)
 ### Summary
 - **Protocol Verification**: Successfully completed the N=40 Manual Learning Protocol, verifying all core infrastructure and extended tool files.

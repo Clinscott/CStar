@@ -1,5 +1,10 @@
 # Corvus Star Memory
 
+## 2026-02-13: Operation Bifröst (Session 54)
+- **Pattern**: Proactive intelligence expansion (Raven's Eye) is superior to error-driven fallback. Identifying unknown technical terms *before* search prevents vector drift.
+- **External Data Policy**: Treat all web-sourced snippets as hostile. Implement `HeimdallGuard` regex neutralization before any internal processing.
+- **Quota Persistence**: Use a simple JSON ledger (`brave_quota.json`) with `YYYY-MM` keys for lightweight, atomic rate limiting without a full DB.
+
 ## 2026-02-13: Context-Aware Dialogue (Session 53)
 - **Pattern**: Deterministic routing based on tag-scoring is superior to random sampling for specialized task assistants (Alfred/Odin).
 - **STM (Short-Term Memory)**: Using a `deque(maxlen=5)` in the dialogue engine maintains immersion and prevents repetitive verbal loops.

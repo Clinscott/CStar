@@ -24,6 +24,7 @@ sys.path.insert(0, _engine_dir)
 
 from cortex import Cortex
 from ui import HUD
+from src.tools.brave_search import BraveSearch  # [BIFRÖST]
 
 class SkillForge:
     """
@@ -167,6 +168,23 @@ class SkillForge:
                 "content": content[:1500],
                 "score": round(r['score'], 3)
             })
+        
+        # [BIFRÖST] Web-RAG: Fetch documentation for external libraries
+        libraries = ["aws", "fastapi", "boto3", "requests", "flask", "django", "pytorch", "tensorflow", "pandas"]
+        for lib in libraries:
+            if lib in query.lower():
+                HUD.box_row("WEB-RAG", f"Fetching documentation for {lib}...", HUD.DIM)
+                searcher = BraveSearch()
+                web_results = searcher.search(f"{lib} library official documentation and syntax")
+                for wr in web_results[:2]:
+                    context.append({
+                        "source": "BraveSearch",
+                        "header": wr.get("title", "External Docs"),
+                        "content": wr.get("description", ""),
+                        "score": 0.9  # High priority for real-world docs
+                    })
+                break
+
         return context
     
     def select_archetype(self, query: str, context: list[dict]) -> str:

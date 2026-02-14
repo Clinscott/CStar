@@ -261,6 +261,35 @@ def _is_valid_import(top_module: str, project_root: Path) -> bool:
 # ==============================================================================
 
 
+# ==============================================================================
+# 🛡️ HEIMDALLGUARD (Security Sanitization)
+# ==============================================================================
+
+
+def heimdall_guard(text: str) -> str:
+    """
+    Neutralize prompt injection patterns in external snippets.
+    Treats external data as 'Guilty until Proven Innocent'.
+    """
+    if not text:
+        return text
+
+    # [BIFRÖST] Prompt Injection Denials
+    FORBIDDEN_PATTERNS = [
+        (r"(?i)ignore\s+previous\s+instructions", "[REDACTED BY HEIMDALLGUARD]"),
+        (r"(?i)you\s+are\s+now\s+an\s+agent\s+of", "[REDACTED BY HEIMDALLGUARD]"),
+        (r"(?i)system\s+decree", "[REDACTED BY HEIMDALLGUARD]"),
+        (r"(?i)delete\s+all\s+files", "[REDACTED BY HEIMDALLGUARD]"),
+        (r"(?i)forget\s+all\s+previous", "[REDACTED BY HEIMDALLGUARD]"),
+    ]
+
+    sanitized = text
+    for pattern, replacement in FORBIDDEN_PATTERNS:
+        sanitized = re.sub(pattern, replacement, sanitized)
+
+    return sanitized
+
+
 def sanitize_code(code: str) -> str:
     """
     Attempt to repair common AI-generated code issues:
@@ -275,6 +304,9 @@ def sanitize_code(code: str) -> str:
 
     # 1. Remove BOM and null bytes
     code = code.replace("\ufeff", "").replace("\x00", "")
+
+    # [BIFRÖST] 1b. Apply HeimdallGuard to external data (if snippet looks like text/code)
+    code = heimdall_guard(code)
 
     # 2. Strip markdown code fences
     code = _strip_markdown_fences(code)

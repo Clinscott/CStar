@@ -167,7 +167,15 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Analytical Failures**: Refactored `AlfredOverwatch` to return structured error context. [x]
 - [x] **Verification**: 100% pass on contextual routing integration tests. [x]
 
-## ⏭️ Start Here Next (Phase 36)
+### 36. Operation Bifröst: Web-Aware Intelligence (Session 54)
+- [x] **Operation Bifröst**: Integrated Brave Search API for proactive intelligence. [x]
+- [x] **Quota Management**: Implemented hard 1,000/mo limit with monthly reset logic in `brave_search.py`. [x]
+- [x] **HeimdallGuard**: Forged regex-based prompt injection neutralization in `code_sanitizer.py`. [x]
+- [x] **Raven's Eye**: Proactive lexicon expansion for unknown technical terms in `sv_engine.py`. [x]
+- [x] **Forge Augmentor**: Web-RAG synthesis for external library documentation in `skill_forge.py`. [x]
+- [x] **Verification**: 100% pass on specialized `augmented_intel` test suite. [x]
+
+## ⏭️ Start Here Next (Phase 37)
 - [ ] **Operation Ironclad: Hybrid Modularization**: Begin the migration of core memory and engine logic to a persistent modular package (`src/cstar`).
 - [ ] **Annexation Execution**: Activate the `execution` mode for `annex.py` to auto-remediate Documentation/Linguistic breaches project-wide.
 - [ ] **Heimdall Persistence**: Harden the security monitor to run in background mode with a persistent log rotation.
