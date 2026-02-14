@@ -21,6 +21,10 @@ if str(PROJECT_ROOT) not in sys.path:
 # Mock sv_engine module BEFORE import
 sys.modules["sv_engine"] = MagicMock()
 
+def teardown_module():
+    if "sv_engine" in sys.modules:
+        del sys.modules["sv_engine"]
+
 # Import the module
 # It executes top-level code (imports), so we need to be careful.
 # It does sys.path.append.

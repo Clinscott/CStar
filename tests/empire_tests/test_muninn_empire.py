@@ -1,6 +1,6 @@
 
 import pytest
-from unittest.mock import MagicMock, patch, mock_open, call
+from unittest.mock import MagicMock, patch, mock_open
 from pathlib import Path
 import sys
 import os
@@ -10,23 +10,19 @@ PROJECT_ROOT = Path(__file__).parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-# Mock modules to avoid side effects
-sys.modules["google.genai"] = MagicMock()
-sys.modules["src.core.annex"] = MagicMock()
-sys.modules["src.core.ui"] = MagicMock()
-sys.modules["src.sentinel.code_sanitizer"] = MagicMock()
-sys.modules["src.core.metrics"] = MagicMock()
-sys.modules["src.core.engine.alfred_observer"] = MagicMock()
-sys.modules["tests.integration.project_fishtest"] = MagicMock()
-sys.modules["src.sentinel.stability"] = MagicMock()
-# Mock Wardens
-sys.modules["src.sentinel.wardens.norn"] = MagicMock()
-sys.modules["src.sentinel.wardens.valkyrie"] = MagicMock()
-sys.modules["src.sentinel.wardens.edda"] = MagicMock()
-sys.modules["src.sentinel.wardens.runecaster"] = MagicMock()
-sys.modules["src.sentinel.wardens.huginn"] = MagicMock()
-sys.modules["src.sentinel.wardens.mimir"] = MagicMock()
-sys.modules["src.sentinel.wardens.freya"] = MagicMock()
+# Mock only external/heavy libraries that might be missing
+MOCK_EXTERNALS = [
+    "google.genai",
+    "google.genai.types",
+    "colorama"
+]
+for mod in MOCK_EXTERNALS:
+    sys.modules[mod] = MagicMock()
+
+def teardown_module():
+    for mod in MOCK_EXTERNALS:
+        if mod in sys.modules:
+            del sys.modules[mod]
 
 from src.sentinel.muninn import Muninn
 
@@ -35,13 +31,20 @@ class TestMuninnEmpire:
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key"})
     @patch("src.sentinel.muninn.genai.Client")
     def test_init(self, mock_client):
-        muninn = Muninn("dummy_root")
-        assert muninn.api_key == "fake_key"
-        mock_client.assert_called()
+        # We need to patch the constructor dependencies of Muninn
+        with patch("src.sentinel.muninn.TheWatcher"), \
+             patch("src.sentinel.muninn.ProjectMetricsEngine"), \
+             patch("src.sentinel.muninn.AlfredOverwatch"), \
+             patch("src.sentinel.muninn.GungnirSPRT"):
+            
+            muninn = Muninn("dummy_root")
+            assert muninn.api_key == "fake_key"
+            mock_client.assert_called()
 
     @patch("src.sentinel.muninn.genai.Client")
     def test_init_no_key(self, mock_client):
         with patch.dict(os.environ, {}, clear=True):
+            # The bootstrap call might set it? No.
             with pytest.raises(ValueError, match="GOOGLE_API_KEY"):
                 Muninn("dummy_root")
 
@@ -49,15 +52,18 @@ class TestMuninnEmpire:
     @patch("src.sentinel.muninn.HUD")
     @patch("src.sentinel.muninn.ThreadPoolExecutor")
     @patch("src.sentinel.muninn.HeimdallWarden")
-    def test_run_scan_no_breaches(self, mock_heimdall, mock_executor, mock_hud):
+    @patch("src.sentinel.muninn.ProjectMetricsEngine")
+    @patch("src.sentinel.muninn.TheWatcher")
+    @patch("src.sentinel.muninn.GungnirSPRT")
+    def test_run_scan_no_breaches(self, mock_sprt, mock_watcher, mock_metrics, mock_heimdall, mock_executor, mock_hud):
         muninn = Muninn("dummy_root")
         
-        # Mock metrics engine
-        muninn.metrics_engine.compute.return_value = 80.0
+        # Mock metrics engine instance
+        mock_metrics_inst = mock_metrics.return_value
+        mock_metrics_inst.compute.return_value = 80.0
         
         # Mock Heimdall (synch scan)
         mock_annex = mock_heimdall.return_value
-        mock_annex.scan.return_value = None # It sets .breaches
         mock_annex.breaches = []
         
         # Mock context manager for executor
@@ -67,19 +73,22 @@ class TestMuninnEmpire:
         result = muninn.run()
         
         assert result is False
-        # Should log success
         mock_hud.persona_log.assert_any_call("SUCCESS", "The waters are clear. Heimdall sees no threats.")
 
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key"})
     @patch("src.sentinel.muninn.HUD")
     @patch("src.sentinel.muninn.ThreadPoolExecutor")
     @patch("src.sentinel.muninn.HeimdallWarden")
+    @patch("src.sentinel.muninn.ProjectMetricsEngine")
+    @patch("src.sentinel.muninn.TheWatcher")
+    @patch("src.sentinel.muninn.GungnirSPRT")
     @patch("src.sentinel.muninn.subprocess.run")
-    def test_run_with_breach_success(self, mock_sub, mock_heimdall, mock_executor, mock_hud):
+    def test_run_with_breach_success(self, mock_sub, mock_sprt, mock_watcher, mock_metrics, mock_heimdall, mock_executor, mock_hud):
         muninn = Muninn("dummy_root")
         
         # Mock metrics
-        muninn.metrics_engine.compute.side_effect = [80.0, 85.0] # Pre, Post
+        mock_metrics_inst = mock_metrics.return_value
+        mock_metrics_inst.compute.side_effect = [80.0, 85.0] # Pre, Post
         
         # Mock Breach
         mock_annex = mock_heimdall.return_value
@@ -91,37 +100,42 @@ class TestMuninnEmpire:
         }]
         
         # Mock Watcher
-        muninn.watcher.is_locked.return_value = False
-        muninn.watcher.record_edit.return_value = True
+        mock_watcher_inst = mock_watcher.return_value
+        mock_watcher_inst.is_locked.return_value = False
+        mock_watcher_inst.record_edit.return_value = True
         
         # Mock Forge/Gauntlet/Impl
-        with patch.object(muninn, "_run_gauntlet", return_value=Path("tests/gauntlet/test_fix.py")):
-            with patch.object(muninn, "_generate_implementation", return_value="fixed code"):
-                 # Mock Verify
-                 mock_sub.return_value.returncode = 0 # pytest success
+        with patch.object(muninn, "_run_gauntlet", return_value=Path("tests/gauntlet/test_fix.py")), \
+             patch.object(muninn, "_generate_implementation", return_value="fixed code"), \
+             patch("src.sentinel.muninn.Path.exists", return_value=True), \
+             patch("src.sentinel.muninn.Path.read_text", return_value="old code"), \
+             patch("src.sentinel.muninn.Path.write_text"), \
+             patch("src.sentinel.muninn.shutil.copy"):
                  
                  # Mock SPRT
-                 muninn.sprt.evaluate_delta.return_value = 'PASS'
+                 mock_sprt_inst = mock_sprt.return_value
+                 mock_sprt_inst.evaluate_delta.return_value = 'PASS'
                  
-                 # Mock File IO
-                 with patch("src.sentinel.muninn.Path.exists", return_value=True):
-                     with patch("src.sentinel.muninn.Path.read_text", return_value="old code"):
-                        with patch("src.sentinel.muninn.Path.write_text"):
-                            with patch("src.sentinel.muninn.shutil.copy"):
+                 # Mock Verify (Crucible)
+                 mock_sub.return_value.returncode = 0 # pytest success
                                  
-                                result = muninn.run()
-                                assert result is True
+                 result = muninn.run()
+                 assert result is True
                                 
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key"})
     def test_forge_improvement_failure(self):
-         muninn = Muninn("dummy_root")
-         
-         target = {"file": "bad.py", "action": "Fix me"}
-         
-         # Mock _run_gauntlet returning None
-         with patch.object(muninn, "_run_gauntlet", return_value=None):
-             with patch("src.sentinel.muninn.Path.exists", return_value=True):
-                  with patch("src.sentinel.muninn.Path.read_text", return_value="content"):
+         with patch("src.sentinel.muninn.TheWatcher"), \
+              patch("src.sentinel.muninn.ProjectMetricsEngine"), \
+              patch("src.sentinel.muninn.AlfredOverwatch"), \
+              patch("src.sentinel.muninn.GungnirSPRT"):
+             
+             muninn = Muninn("dummy_root")
+             
+             target = {"file": "bad.py", "action": "Fix me"}
+             
+             with patch.object(muninn, "_run_gauntlet", return_value=None), \
+                  patch("src.sentinel.muninn.Path.exists", return_value=True), \
+                  patch("src.sentinel.muninn.Path.read_text", return_value="content"):
                       assert muninn._forge_improvement(target) is False
 
 if __name__ == "__main__":

@@ -18,9 +18,10 @@ from src.core.ui import HUD
 class TestUIEmpire:
     
     def setup_method(self):
-        # Reset HUD state
+        # Reset HUD state manually in case it was mocked or initialized
         HUD._INITIALIZED = False
         HUD.PERSONA = "ALFRED"
+        HUD.DIALOGUE = None
 
     @patch("src.core.ui.Path.exists", return_value=True)
     @patch("src.core.ui.Path.open", new_callable=mock_open, read_data='{"persona": "ODIN"}')
