@@ -18,7 +18,7 @@ class TraceAnalyzer:
             "total": len(self.traces),
             "avg_score": sum(scores) / len(scores),
             "top_performer": self._get_top_performer(),
-            "critical_fails": [t for t in self.traces if t.get('score', 0) < 0.85],
+            "critical_fails": [t for t in self.traces if t.get('score', 0) < 0.6],
             "by_persona": self._group_by_persona()
         }
 
