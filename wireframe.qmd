@@ -48,8 +48,9 @@ The autonomous daemon ensuring system health.
 - **Huginn & Muninn** (`main_loop.py`):
     - `daemon_loop()`: Orchestrates the twin ravens (Thought/Memory).
 - **Muninn: The Improver** (`src/sentinel/muninn.py`):
-    - `run()`: Executes the self-improvement protocol.
-    - `Wardens`: specialized improvement strategists (Valkyrie, Mimir, Heimdall, etc.).
+    - `run()`: orchestrates parallel scans via `ThreadPoolExecutor`.
+    - `Wardens`: Modular logic in `src/sentinel/wardens/` (Norn, Valkyrie, Edda, etc.).
+    - `Stability`: `src/sentinel/stability.py` (GungnirValidator, TheWatcher).
     - `NornWarden`: Executes the Campaign Implementation Plan (N1000).
 
 ### 📂 Test Infrastructure (`tests/`)
