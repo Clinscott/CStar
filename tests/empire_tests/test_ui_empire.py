@@ -51,7 +51,7 @@ class TestUIEmpire:
         assert "VALUE" in captured.out
 
     @patch("src.core.ui.Path.cwd")
-    @patch("src.core.ui.open", new_callable=mock_open)
+    @patch("src.core.ui.Path.open", new_callable=mock_open)
     def test_log_rejection(self, mock_file, mock_cwd):
         # setup deep path mock for ledger
         mock_path = MagicMock()
