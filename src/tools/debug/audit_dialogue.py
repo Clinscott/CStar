@@ -56,7 +56,7 @@ class DialogueAuditor:
         # Initialize HUD Dialogue
         voice_file = ("odin" if self.persona in ["GOD", "ODIN"] else "alfred") + ".qmd"
         dialogue_path = self._resolve(self.project_root, voice_file, "dialogue_db")
-        sv_engine.HUD.DIALOGUE = sv_engine.DialogueRetriever(str(dialogue_path))
+        sv_engine.HUD.DIALOGUE = sv_engine.DialogueEngine(str(dialogue_path)) # [ALFRED] Use DialogueEngine for context-aware audit
         sv_engine.HUD.PERSONA = self.persona
 
         # Calculate purity
