@@ -5,9 +5,19 @@ from pathlib import Path
 import sys
 
 # Mock dependencies primarily for the HUD import part
-sys.modules["src.core.ui"] = MagicMock()
-sys.modules["src.core.utils"] = MagicMock()
-sys.modules["dotenv"] = MagicMock()
+MOCK_MODULES = [
+    "src.core.ui",
+    "src.core.utils",
+    "dotenv"
+]
+
+for mod in MOCK_MODULES:
+    sys.modules[mod] = MagicMock()
+
+def teardown_module():
+    for mod in MOCK_MODULES:
+        if mod in sys.modules:
+            del sys.modules[mod]
 
 # Import the module under test
 # We need to act on the module itself or the function.

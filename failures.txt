@@ -1,0 +1,604 @@
+______________________ TestEngineEmpire.test_engine_init ______________________
+
+self = <temp_gauntlet.test_engine_empire.TestEngineEmpire object at 0x0000016BC7CD9310>
+mock_dialogue = <MagicMock name='DialogueEngine' id='1562456211536'>
+mock_hud = <MagicMock name='HUD' id='1562456211872'>
+mock_load = <MagicMock name='load_config' id='1562456212208'>
+tmp_path = WindowsPath('C:/Users/Craig/AppData/Local/Temp/pytest-of-Craig/pytest-253/test_engine_init0')
+
+    @patch('src.core.utils.load_config', return_value={"thresholds": {"REC": 0.9}})
+    @patch('src.core.ui.HUD')
+    @patch('src.core.engine.dialogue.DialogueEngine')
+    def test_engine_init(self, mock_dialogue, mock_hud, mock_load, tmp_path):
+        engine = SovereignEngine(project_root=tmp_path)
+>       assert engine.THRESHOLDS["REC"] == 0.9
+E       assert 0.5 == 0.9
+
+tests\empire_tests\temp_gauntlet\test_engine_empire.py:20: AssertionError
+---------------------------- Captured stdout call -----------------------------
+[2;36m???????????????????????????????????????? [36m[1mENGINE INITIALIZED[0m[2;36m ????????????????????????????????????????[0m
+[2;36m?[0m [36mSTATUS              [0m [32mONLINE[0m                                                                       [2;36m?[0m
+[2;36m????????????????????????????????????????????????????????????????????????????????????????????????????[0m
+______________________ TestEngineEmpire.test_render_hud _______________________
+
+self = <temp_gauntlet.test_engine_empire.TestEngineEmpire object at 0x0000016BC7D12060>
+mock_box = <MagicMock name='box_top' id='1562456220944'>
+tmp_path = WindowsPath('C:/Users/Craig/AppData/Local/Temp/pytest-of-Craig/pytest-253/test_render_hud0')
+
+    @patch('src.core.ui.HUD.box_top')
+    def test_render_hud(self, mock_box, tmp_path):
+        # Create .agent dir
+        (tmp_path / ".agent").mkdir()
+        with patch('src.core.utils.load_config', return_value={}):
+            # Don't patch HUD entirely, just the specific methods to avoid pollution
+            with patch('src.core.ui.HUD.box_row'):
+                with patch('src.core.engine.dialogue.DialogueEngine'):
+                    engine = SovereignEngine(project_root=tmp_path)
+                    engine._render_hud("query", {"trigger": "match", "score": 1.0, "is_global": False})
+>                   mock_box.assert_called()
+
+tests\empire_tests\temp_gauntlet\test_engine_empire.py:60: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <MagicMock name='box_top' id='1562456220944'>
+
+    def assert_called(self):
+        """assert that the mock was called at least once
+        """
+        if self.call_count == 0:
+            msg = ("Expected '%s' to have been called." %
+                   (self._mock_name or 'mock'))
+>           raise AssertionError(msg)
+E           AssertionError: Expected 'box_top' to have been called.
+
+C:\Python314\Lib\unittest\mock.py:954: AssertionError
+---------------------------- Captured stdout call -----------------------------
+[2;36m???????????????????????????????????????? [36m[1mENGINE INITIALIZED[0m[2;36m ????????????????????????????????????????[0m
+[2;36m?[0m [36mSTATUS              [0m [32mONLINE[0m                                                                       [2;36m?[0m
+[2;36m????????????????????????????????????????????????????????????????????????????????????????????????????[0m
+[2;36m??????????????????????????????????????? [36m[1mC* BUTLER INTERFACE[0m[2;36m ????????????????????????????????????????[0m
+[2;36m?[0m [36mIntent              [0m [1mquery[0m                                                                        [2;36m?[0m
+[2;36m?[0m [36mMatch               [0m [2mmatch[0m                                                                        [2;36m?[0m
+[2;36m?[0m [36mConfidence          [0m [32m[32m??????????[2;32m[0m 1.00[0m                                              [2;36m?[0m
+[2;36m????????????????????????????????????????????????????????????????????????????????????????????????????[0m
+_____________________ TestHarvestEmpire.test_harvest_loop _____________________
+
+self = <temp_gauntlet.test_harvest_empire.TestHarvestEmpire object at 0x0000016BC7D129E0>
+mock_client = <MagicMock name='Client' id='1562457826912'>
+mock_env = <MagicMock name='get' id='1562457827248'>
+mock_sovereign_fish = <MagicMock name='SovereignFish' id='1562457827584'>
+tmp_path = WindowsPath('C:/Users/Craig/AppData/Local/Temp/pytest-of-Craig/pytest-253/test_harvest_loop0')
+
+    @patch('src.sentinel.harvest_responses.SovereignFish')
+    @patch('os.environ.get', return_value="fake_key")
+    @patch('google.genai.Client')
+    def test_harvest_loop(self, mock_client, mock_env, mock_sovereign_fish, tmp_path):
+        # Setup mocks
+        mock_sovereign_fish_instance = mock_sovereign_fish.return_value
+    
+        # We need to mock FIXTURES_DIR and PROJECT_ROOT for isolation
+        with patch('src.sentinel.harvest_responses.FIXTURES_DIR', tmp_path), \
+             patch('src.sentinel.harvest_responses.Path') as mock_path_class:
+    
+            # Setup Path("/...") call inside harvest to return tmp_path
+            mock_path_class.return_value.resolve.return_value = tmp_path
+    
+            with patch('src.core.ui.HUD'):
+>               harvest(cycles=2)
+
+tests\empire_tests\temp_gauntlet\test_harvest_empire.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\sentinel\harvest_responses.py:101: in harvest
+    real_client = genai.Client(api_key=api_key)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\AppData\Roaming\Python\Python314\site-packages\google\genai\client.py:426: in __init__
+    self._api_client = self._get_api_client(
+..\..\AppData\Roaming\Python\Python314\site-packages\google\genai\client.py:474: in _get_api_client
+    return BaseApiClient(
+..\..\AppData\Roaming\Python\Python314\site-packages\google\genai\_api_client.py:712: in __init__
+    client_args, async_client_args = self._ensure_httpx_ssl_ctx(
+..\..\AppData\Roaming\Python\Python314\site-packages\google\genai\_api_client.py:823: in _ensure_httpx_ssl_ctx
+    ctx = ssl.create_default_context(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+purpose = <Purpose.SERVER_AUTH: _ASN1Object(nid=129, shortname='serverAuth', longname='TLS Web Server Authentication', oid='1.3.6.1.5.5.7.3.1')>
+
+    def create_default_context(purpose=Purpose.SERVER_AUTH, *, cafile=None,
+                               capath=None, cadata=None):
+        """Create a SSLContext object with default settings.
+    
+        NOTE: The protocol and settings may change anytime without prior
+              deprecation. The values represent a fair balance between maximum
+              compatibility and security.
+        """
+        if not isinstance(purpose, _ASN1Object):
+            raise TypeError(purpose)
+    
+        # SSLContext sets OP_NO_SSLv2, OP_NO_SSLv3, OP_NO_COMPRESSION,
+        # OP_CIPHER_SERVER_PREFERENCE, OP_SINGLE_DH_USE and OP_SINGLE_ECDH_USE
+        # by default.
+        if purpose == Purpose.SERVER_AUTH:
+            # verify certs and host name in client mode
+            context = SSLContext(PROTOCOL_TLS_CLIENT)
+            context.verify_mode = CERT_REQUIRED
+            context.check_hostname = True
+        elif purpose == Purpose.CLIENT_AUTH:
+            context = SSLContext(PROTOCOL_TLS_SERVER)
+        else:
+            raise ValueError(purpose)
+    
+        # `VERIFY_X509_PARTIAL_CHAIN` makes OpenSSL's chain building behave more
+        # like RFC 3280 and 5280, which specify that chain building stops with the
+        # first trust anchor, even if that anchor is not self-signed.
+        #
+        # `VERIFY_X509_STRICT` makes OpenSSL more conservative about the
+        # certificates it accepts, including "disabling workarounds for
+        # some broken certificates."
+        context.verify_flags |= (_ssl.VERIFY_X509_PARTIAL_CHAIN |
+                                 _ssl.VERIFY_X509_STRICT)
+    
+        if cafile or capath or cadata:
+>           context.load_verify_locations(cafile, capath, cadata)
+E           FileNotFoundError: [Errno 2] No such file or directory
+
+C:\Python314\Lib\ssl.py:717: FileNotFoundError
+------------------------------ Captured log call ------------------------------
+WARNING  google_genai._api_client:_api_client.py:105 Both GOOGLE_API_KEY and GEMINI_API_KEY are set. Using GOOGLE_API_KEY.
+________________________ test_odin_reacts_to_defiance _________________________
+
+dialogue_engine = <DialogueEngine: 2 personas loaded>
+
+    def test_odin_reacts_to_defiance(dialogue_engine):
+        """Scenario: Odin reacts to system defiance with specific vocabulary."""
+        # Simulate sovereign_state.json with DEFIANCE
+        mock_state = json.dumps({"check_pro.py": "DEFIANCE"})
+    
+        with patch("builtins.open", mock_open(read_data=mock_state)):
+            with patch("os.path.exists", return_value=True):
+                # We need to pass the root to OdinStrategy
+                odin = OdinStrategy(".")
+                context = odin.enforce_policy() # Should set compliance_breach=True
+    
+>               assert context.get("compliance_breach") is True
+E               AssertionError: assert False is True
+E                +  where False = <built-in method get of dict object at 0x0000016BC9B925C0>('compliance_breach')
+E                +    where <built-in method get of dict object at 0x0000016BC9B925C0> = {'compliance_breach': False}.get
+
+tests\empire_tests\test_contextual_persona.py:48: AssertionError
+______________________________ test_hud_logging _______________________________
+
+capsys = <_pytest.capture.CaptureFixture object at 0x0000016BC991B610>
+
+    def test_hud_logging(capsys):
+        HUD.PERSONA = "ALFRED"
+        HUD.log("INFO", "Test message")
+        captured = capsys.readouterr()
+>       assert "ALFRED" in captured.out or "[INFO]" in captured.out or "Test message" in captured.out
+E       AssertionError: assert ('ALFRED' in '' or '[INFO]' in '' or 'Test message' in '')
+E        +  where '' = CaptureResult(out='', err='').out
+E        +  and   '' = CaptureResult(out='', err='').out
+E        +  and   '' = CaptureResult(out='', err='').out
+
+tests\empire_tests\test_core_engine_empire.py:8: AssertionError
+_____________ TestCorvusDispatcher.test_show_help_categorization ______________
+
+self = <test_dispatcher_help_empire.TestCorvusDispatcher object at 0x0000016BC970D310>
+mock_box_row = <MagicMock name='box_row' id='1562478985632'>
+dispatcher = <src.core.cstar_dispatcher.CorvusDispatcher object at 0x0000016BC9CE0C30>
+
+    @patch('src.core.ui.HUD.box_row')
+    def test_show_help_categorization(self, mock_box_row, dispatcher):
+        dispatcher.show_help()
+        # Verify box_row was called with Scripts and Workflows
+        calls = [call.args[0] for call in mock_box_row.call_args_list]
+>       assert "SCRIPTS" in calls
+E       AssertionError: assert 'SCRIPTS' in []
+
+tests\empire_tests\test_dispatcher_help_empire.py:32: AssertionError
+---------------------------- Captured stdout call -----------------------------
+[35m?????????????????????????????????????? [31m[1m? CORVUS STAR CLI (c*)[0m[35m ??????????????????????????????????????[0m
+[35m?[0m [35mROOT                [0m [31mC:\Users\Craig\AppData\Local\Temp\pytest-of-Craig\pytest-253\test_show_he...[0m [35m?[0m
+[35m????????????????????????????????????????????????????????????????????????????????????????????????????[0m
+[35m?[0m [35mSCRIPTS             [0m [32mtest_cmd[0m                                                                     [35m?[0m
+[35m????????????????????????????????????????????????????????????????????????????????????????????????????[0m
+[35m?[0m [35mWORKFLOWS           [0m [35mtest_wf[0m                                                                      [35m?[0m
+[35m????????????????????????????????????????????????????????????????????????????????????????????????????[0m
+[35m?[0m [31mSHORTCUTS           [0m [33m-odin, -alfred[0m                                                               [35m?[0m
+[35m????????????????????????????????????????????????????????????????????????????????????????????????????[0m
+_________________ TestProjectMetricsEngine.test_compute_score _________________
+
+self = <test_metrics_empire.TestProjectMetricsEngine testMethod=test_compute_score>
+mock_open = <MagicMock name='open' id='1562478999072'>
+mock_exists = <MagicMock name='exists' id='1562479000416'>
+mock_run = <MagicMock name='run' id='1562479509584'>
+
+    @patch("src.core.metrics.subprocess.run")
+    @patch("src.core.metrics.os.path.exists")
+    @patch("src.core.metrics.open")
+    def test_compute_score(self, mock_open, mock_exists, mock_run):
+        # Mock file existence: weights.json -> False (use defaults), others -> True
+        def exists_side_effect(path):
+            if "weights.json" in str(path):
+                return False
+            return True
+        mock_exists.side_effect = exists_side_effect
+    
+        # Mock file read: return dummy content for muninn.py
+        mock_open.return_value.__enter__.return_value.read.return_value = "dependency-free content"
+    
+        # Mock Subprocess (Radon)
+        mock_process = MagicMock()
+        mock_process.returncode = 0
+        mock_process.stdout = "Average complexity: A"
+        mock_run.return_value = mock_process
+    
+        # Initialize Engine (will use default weights)
+        engine = ProjectMetricsEngine()
+    
+        # Compute
+        # Prompt=100 (15)
+        # Alignment=50 (loss=0.5 -> 1-0.5=0.5 -> 50) (15) -> 7.5
+        # Function=80 (default) (35) -> 28
+        # Form=90 (A) (25) -> 22.5
+        # Lore=50 (default) (10) -> 5
+        # Total = 15 + 7.5 + 28 + 22.5 + 5 = 78.0
+    
+        score = engine.compute(".")
+    
+>       self.assertAlmostEqual(score, 78.0, places=1)
+E       AssertionError: 70.5 != 78.0 within 1 places (7.5 difference)
+
+tests\empire_tests\test_metrics_empire.py:68: AssertionError
+_________________ TestProjectMetricsEngine.test_radon_failure _________________
+
+self = <test_metrics_empire.TestProjectMetricsEngine testMethod=test_radon_failure>
+mock_run = <MagicMock name='run' id='1562478991008'>
+
+    @patch("src.core.metrics.subprocess.run")
+    def test_radon_failure(self, mock_run):
+        # Radon fails or returns non-A
+        mock_process = MagicMock()
+        mock_process.returncode = 1
+        mock_run.return_value = mock_process
+    
+        engine = ProjectMetricsEngine()
+        # Force other mocks
+        self.MockLinter.return_value.calculate_integrity_score.return_value = 0.0
+        self.MockCortex.return_value.calculate_project_loss.return_value = 1.0 # alignment 0
+    
+        # Function=80, Form=70 (exception/default), Prompt=0, Alignment=0, Lore=50
+        # (80*35) + (70*25) + (0) + (0) + (50*10)
+        # 2800 + 1750 + 500 = 5050 / 100 = 50.5
+    
+        score = engine.compute(".")
+>       self.assertAlmostEqual(score, 50.5, places=1)
+E       AssertionError: 70.5 != 50.5 within 1 places (20.0 difference)
+
+tests\empire_tests\test_metrics_empire.py:87: AssertionError
+_________________ TestMuninnEmpire.test_run_scan_no_breaches __________________
+
+self = <test_muninn_empire.TestMuninnEmpire object at 0x0000016BC96D2520>
+mock_heimdall = <MagicMock name='HeimdallWarden' id='1562478996384'>
+mock_executor = <MagicMock name='ThreadPoolExecutor' id='1562478997728'>
+mock_hud = <MagicMock name='HUD' id='1562478998064'>
+
+    @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key"})
+    @patch("src.sentinel.muninn.HUD")
+    @patch("src.sentinel.muninn.ThreadPoolExecutor")
+    @patch("src.sentinel.muninn.HeimdallWarden")
+    def test_run_scan_no_breaches(self, mock_heimdall, mock_executor, mock_hud):
+        muninn = Muninn("dummy_root")
+    
+        # Mock metrics engine
+>       muninn.metrics_engine.compute.return_value = 80.0
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'method' object has no attribute 'return_value' and no __dict__ for setting new attributes
+
+tests\empire_tests\test_muninn_empire.py:56: AttributeError
+________________ TestMuninnEmpire.test_run_with_breach_success ________________
+
+self = <test_muninn_empire.TestMuninnEmpire object at 0x0000016BC96D3100>
+mock_sub = <MagicMock name='run' id='1562458590240'>
+mock_heimdall = <MagicMock name='HeimdallWarden' id='1562458588896'>
+mock_executor = <MagicMock name='ThreadPoolExecutor' id='1562458588560'>
+mock_hud = <MagicMock name='HUD' id='1562458587888'>
+
+    @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key"})
+    @patch("src.sentinel.muninn.HUD")
+    @patch("src.sentinel.muninn.ThreadPoolExecutor")
+    @patch("src.sentinel.muninn.HeimdallWarden")
+    @patch("src.sentinel.muninn.subprocess.run")
+    def test_run_with_breach_success(self, mock_sub, mock_heimdall, mock_executor, mock_hud):
+        muninn = Muninn("dummy_root")
+    
+        # Mock metrics
+>       muninn.metrics_engine.compute.side_effect = [80.0, 85.0] # Pre, Post
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'method' object has no attribute 'side_effect' and no __dict__ for setting new attributes
+
+tests\empire_tests\test_muninn_empire.py:82: AttributeError
+_________________________ test_scout_generates_queue __________________________
+
+tmp_path = WindowsPath('C:/Users/Craig/AppData/Local/Temp/pytest-of-Craig/pytest-253/test_scout_generates_queue0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000016BD0ED9A50>
+
+    def test_scout_generates_queue(tmp_path, monkeypatch):
+        # Mock PROJECT_ROOT
+        monkeypatch.setattr("scripts.scout_targets.PROJECT_ROOT", tmp_path)
+    
+        # Create a mock source file
+        src_dir = tmp_path / "src" / "core"
+        src_dir.mkdir(parents=True)
+        (src_dir / "test_file.py").write_text("print('hello')", encoding='utf-8')
+    
+        # Run scout (it might fail on actual scans if dependencies aren't mocked,
+        # but we check if it produces the output file)
+        try:
+            scout()
+        except Exception:
+            pass
+    
+        queue_path = tmp_path / "breaches_queue.json"
+>       assert queue_path.exists()
+E       AssertionError: assert False
+E        +  where False = exists()
+E        +    where exists = WindowsPath('C:/Users/Craig/AppData/Local/Temp/pytest-of-Craig/pytest-253/test_scout_generates_queue0/breaches_queue.json').exists
+
+tests\empire_tests\test_scout_targets_empire.py:23: AssertionError
+_____________________ TestSovereignEngineEmpire.test_init _____________________
+
+self = <test_sv_engine_empire.TestSovereignEngineEmpire object at 0x0000016BC970F750>
+mock_vector = <MagicMock name='SovereignVector' id='1562456213888'>
+mock_strat = <MagicMock name='get_strategy' id='1562456225984'>
+mock_config = <MagicMock name='load_config' id='1562456227328'>
+
+    @patch("src.core.utils.load_config", return_value={"persona": "ALFRED"})
+    @patch("src.core.personas.get_strategy")
+    @patch("src.core.sv_engine.SovereignVector") # The imported class
+    def test_init(self, mock_vector, mock_strat, mock_config):
+        engine = SovereignEngine(project_root=Path("dummy_root"))
+    
+>       mock_config.assert_called()
+
+tests\empire_tests\test_sv_engine_empire.py:29: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <MagicMock name='load_config' id='1562456227328'>
+
+    def assert_called(self):
+        """assert that the mock was called at least once
+        """
+        if self.call_count == 0:
+            msg = ("Expected '%s' to have been called." %
+                   (self._mock_name or 'mock'))
+>           raise AssertionError(msg)
+E           AssertionError: Expected 'load_config' to have been called.
+
+C:\Python314\Lib\unittest\mock.py:954: AssertionError
+____________ TestSovereignEngineEmpire.test_proactive_lexicon_lift ____________
+
+self = <test_sv_engine_empire.TestSovereignEngineEmpire object at 0x0000016BC987C180>
+mock_hud = <MagicMock name='HUD' id='1562454943328'>
+mock_cortex = <MagicMock name='Cortex' id='1562454940304'>
+mock_brave = <MagicMock name='BraveSearch' id='1562454945344'>
+mock_vector = <MagicMock name='SovereignVector' id='1562454940640'>
+mock_strat = <MagicMock name='get_strategy' id='1562454947696'>
+mock_config = <MagicMock name='load_config' id='1562554318928'>
+
+    @patch("src.core.utils.load_config", return_value={"persona": "ALFRED"})
+    @patch("src.core.personas.get_strategy")
+    @patch("src.core.sv_engine.SovereignVector")
+    @patch("src.core.sv_engine.BraveSearch")
+    @patch("src.core.sv_engine.Cortex")
+    @patch("src.core.sv_engine.HUD")
+    def test_proactive_lexicon_lift(self, mock_hud, mock_cortex, mock_brave, mock_vector, mock_strat, mock_config):
+        engine = SovereignEngine(project_root=Path("dummy_root"))
+    
+        # Query with unknown term "flux_capacitor"
+        # Mock vector engine vocab/stopwords
+        mock_v_instance = mock_vector.return_value
+        mock_v_instance.vocab = {"known"}
+        mock_v_instance.stopwords = {"the"}
+    
+        # Mock search result with low score to trigger Bifrost
+        mock_v_instance.search.return_value = [{"trigger": "none", "score": 0.5, "is_global": False}]
+    
+        # Mock Brave Search
+        mock_brave_inst = mock_brave.return_value
+        mock_brave_inst.search.return_value = [{"description": "A time travel device."}]
+    
+        engine.run("the flux_capacitor is broken")
+    
+        # Should trigger Brave Search
+        mock_brave_inst.search.assert_called()
+        args = mock_brave_inst.search.call_args[0][0]
+>       assert "flux_capacitor" in args
+E       AssertionError: assert 'flux_capacitor' in 'Technical definition and synonyms for broken'
+
+tests\empire_tests\test_sv_engine_empire.py:86: AssertionError
+______________________ TestUIEmpire.test_ensure_persona _______________________
+
+self = <test_ui_empire.TestUIEmpire object at 0x0000016BC970FB10>
+mock_file = <MagicMock name='open' id='1562554334720'>
+mock_exists = <MagicMock name='exists' id='1562554331360'>
+
+    @patch("src.core.ui.Path.exists", return_value=True)
+    @patch("src.core.ui.Path.open", new_callable=mock_open, read_data='{"persona": "ODIN"}')
+    def test_ensure_persona(self, mock_file, mock_exists):
+        HUD._ensure_persona()
+>       assert HUD.PERSONA == "ODIN"
+E       AssertionError: assert 'ALFRED' == 'ODIN'
+E         
+E         - ODIN
+E         + ALFRED
+
+tests\empire_tests\test_ui_empire.py:29: AssertionError
+_______________________ TestUIEmpire.test_progress_bar ________________________
+
+self = <test_ui_empire.TestUIEmpire object at 0x0000016BC970FED0>
+
+    def test_progress_bar(self):
+        bar = HUD.progress_bar(0.5, width=10)
+        # Should have 5 full blocks
+>       assert bar.count("█") == 5
+E       AssertionError: assert <MagicMock name='mock.HUD.progress_bar().count()' id='1562554813472'> == 5
+E        +  where <MagicMock name='mock.HUD.progress_bar().count()' id='1562554813472'> = <MagicMock name='mock.HUD.progress_bar().count' id='1562554813136'>('█')
+E        +    where <MagicMock name='mock.HUD.progress_bar().count' id='1562554813136'> = <MagicMock name='mock.HUD.progress_bar()' id='1562554812800'>.count
+
+tests\empire_tests\test_ui_empire.py:34: AssertionError
+_________________________ TestUIEmpire.test_sparkline _________________________
+
+self = <test_ui_empire.TestUIEmpire object at 0x0000016BC987CB00>
+
+    def test_sparkline(self):
+        data = [0, 10]
+        spark = HUD.render_sparkline(data)
+        # Should satisfy regex or specific chars
+        # 0 -> ' ' (lowest), 10 -> '█' (highest)
+        # The chars are " ▂▃▄▅▆▇█"
+>       assert spark[0] == " "
+E       AssertionError: assert <MagicMock name='mock.HUD.render_sparkline().__getitem__()' id='1562554815152'> == ' '
+
+tests\empire_tests\test_ui_empire.py:49: AssertionError
+_______________________ TestUIEmpire.test_box_rendering _______________________
+
+self = <test_ui_empire.TestUIEmpire object at 0x0000016BC987D6E0>
+capsys = <_pytest.capture.CaptureFixture object at 0x0000016BCF874770>
+
+    def test_box_rendering(self, capsys):
+        HUD.box_top("TEST TITLE", width=40)
+        captured = capsys.readouterr()
+>       assert "TEST TITLE" in captured.out
+E       AssertionError: assert 'TEST TITLE' in ''
+E        +  where '' = CaptureResult(out='', err='').out
+
+tests\empire_tests\test_ui_empire.py:55: AssertionError
+_______________________ TestUIEmpire.test_log_rejection _______________________
+
+self = <test_ui_empire.TestUIEmpire object at 0x0000016BC97BF0B0>
+mock_cwd = <MagicMock name='cwd' id='1562554816832'>
+
+    @patch("src.core.ui.Path.cwd")
+    def test_log_rejection(self, mock_cwd):
+        mock_path = MagicMock()
+        mock_cwd.return_value = mock_path
+        mock_ledger = MagicMock()
+        mock_path.__truediv__.return_value.__truediv__.return_value.__truediv__.return_value.__truediv__.return_value = mock_ledger
+    
+        mock_ledger.exists.return_value = True
+    
+        # We need to mock open on the ledger path object
+        mock_handle = mock_open()
+        mock_ledger.open = mock_handle
+    
+        HUD.log_rejection("TEST_PERSONA", "Reason", "Details")
+    
+>       mock_handle.assert_called()
+
+tests\empire_tests\test_ui_empire.py:83: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <MagicMock name='open' id='1562554820528'>
+
+    def assert_called(self):
+        """assert that the mock was called at least once
+        """
+        if self.call_count == 0:
+            msg = ("Expected '%s' to have been called." %
+                   (self._mock_name or 'mock'))
+>           raise AssertionError(msg)
+E           AssertionError: Expected 'open' to have been called.
+
+C:\Python314\Lib\unittest\mock.py:954: AssertionError
+__________________________ test_load_config_missing ___________________________
+
+tmp_path = WindowsPath('C:/Users/Craig/AppData/Local/Temp/pytest-of-Craig/pytest-253/test_load_config_missing1')
+
+    def test_load_config_missing(tmp_path):
+        # Should return empty dict if .agent/config.json missing
+>       assert load_config(tmp_path) == {}
+E       AssertionError: assert {'persona': 'ODIN'} == {}
+E         
+E         Left contains 1 more item:
+E         {'persona': 'ODIN'}
+E         Use -v to get more diff
+
+tests\empire_tests\test_utils_empire.py:7: AssertionError
+___________________________ test_load_config_valid ____________________________
+
+tmp_path = WindowsPath('C:/Users/Craig/AppData/Local/Temp/pytest-of-Craig/pytest-253/test_load_config_valid1')
+
+    def test_load_config_valid(tmp_path):
+        agent_dir = tmp_path / ".agent"
+        agent_dir.mkdir()
+        (agent_dir / "config.json").write_text(json.dumps({"test": "ok"}), encoding='utf-8')
+>       assert load_config(tmp_path) == {"test": "ok"}
+E       AssertionError: assert {'persona': 'ODIN'} == {'test': 'ok'}
+E         
+E         Left contains 1 more item:
+E         {'persona': 'ODIN'}
+E         Right contains 1 more item:
+E         {'test': 'ok'}
+E         Use -v to get more diff
+
+tests\empire_tests\test_utils_empire.py:13: AssertionError
+_____________________________ test_sanitize_query _____________________________
+
+    def test_sanitize_query():
+>       assert sanitize_query("hello; world") == "hello world"
+E       AssertionError: assert <MagicMock name='mock.sanitize_query()' id='1562554825904'> == 'hello world'
+E        +  where <MagicMock name='mock.sanitize_query()' id='1562554825904'> = sanitize_query('hello; world')
+
+tests\empire_tests\test_utils_empire.py:16: AssertionError
+============================== warnings summary ===============================
+..\..\AppData\Roaming\Python\Python314\site-packages\google\genai\types.py:43
+  C:\Users\Craig\AppData\Roaming\Python\Python314\site-packages\google\genai\types.py:43: DeprecationWarning: '_UnionGenericAlias' is deprecated and slated for removal in Python 3.17
+    VersionedUnionType = Union[builtin_types.UnionType, _UnionGenericAlias]
+
+tests/empire_tests/test_sv_engine_empire.py::TestSovereignEngineEmpire::test_run_basic_flow
+  C:\Users\Craig\AppData\Roaming\Python\Python314\site-packages\_pytest\threadexception.py:58: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-33 (_read)
+  
+  Traceback (most recent call last):
+    File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+      self._context.run(self.run)
+      ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+    File "C:\Python314\Lib\threading.py", line 1024, in run
+      self._target(*self._args, **self._kwargs)
+      ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\Users\Craig\Corvus\CorvusStar\src\core\utils.py", line 54, in _read
+      try: q.put(sys.stdin.readline().strip().lower())
+                 ~~~~~~~~~~~~~~~~~~^^
+    File "C:\Users\Craig\AppData\Roaming\Python\Python314\site-packages\_pytest\capture.py", line 229, in read
+      raise OSError(
+          "pytest: reading from stdin while output is captured!  Consider using `-s`."
+      )
+  OSError: pytest: reading from stdin while output is captured!  Consider using `-s`.
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/empire_tests/temp_gauntlet/test_engine_empire.py::TestEngineEmpire::test_engine_init
+FAILED tests/empire_tests/temp_gauntlet/test_engine_empire.py::TestEngineEmpire::test_render_hud
+FAILED tests/empire_tests/temp_gauntlet/test_harvest_empire.py::TestHarvestEmpire::test_harvest_loop
+FAILED tests/empire_tests/test_contextual_persona.py::test_odin_reacts_to_defiance
+FAILED tests/empire_tests/test_core_engine_empire.py::test_hud_logging - Asse...
+FAILED tests/empire_tests/test_dispatcher_help_empire.py::TestCorvusDispatcher::test_show_help_categorization
+FAILED tests/empire_tests/test_metrics_empire.py::TestProjectMetricsEngine::test_compute_score
+FAILED tests/empire_tests/test_metrics_empire.py::TestProjectMetricsEngine::test_radon_failure
+FAILED tests/empire_tests/test_muninn_empire.py::TestMuninnEmpire::test_run_scan_no_breaches
+FAILED tests/empire_tests/test_muninn_empire.py::TestMuninnEmpire::test_run_with_breach_success
+FAILED tests/empire_tests/test_scout_targets_empire.py::test_scout_generates_queue
+FAILED tests/empire_tests/test_sv_engine_empire.py::TestSovereignEngineEmpire::test_init
+FAILED tests/empire_tests/test_sv_engine_empire.py::TestSovereignEngineEmpire::test_proactive_lexicon_lift
+FAILED tests/empire_tests/test_ui_empire.py::TestUIEmpire::test_ensure_persona
+FAILED tests/empire_tests/test_ui_empire.py::TestUIEmpire::test_progress_bar
+FAILED tests/empire_tests/test_ui_empire.py::TestUIEmpire::test_sparkline - A...
+FAILED tests/empire_tests/test_ui_empire.py::TestUIEmpire::test_box_rendering
+FAILED tests/empire_tests/test_ui_empire.py::TestUIEmpire::test_log_rejection
+FAILED tests/empire_tests/test_utils_empire.py::test_load_config_missing - As...
+FAILED tests/empire_tests/test_utils_empire.py::test_load_config_valid - Asse...
+FAILED tests/empire_tests/test_utils_empire.py::test_sanitize_query - Asserti...
+================= 21 failed, 190 passed, 2 warnings in 48.71s =================

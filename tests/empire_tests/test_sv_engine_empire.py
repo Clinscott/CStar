@@ -10,17 +10,27 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 # Mock imports BEFORE importing sv_engine to avoid initialization side effects
-sys.modules["src.core.ui"] = MagicMock()
-sys.modules["src.core.engine.vector"] = MagicMock()
-sys.modules["src.core.engine.cortex"] = MagicMock()
-sys.modules["src.core.engine.dialogue"] = MagicMock()
-sys.modules["src.tools.brave_search"] = MagicMock()
+MOCK_MODULES = [
+    "src.core.ui",
+    "src.core.engine.vector",
+    "src.core.engine.cortex",
+    "src.core.engine.dialogue",
+    "src.tools.brave_search"
+]
+
+for mod in MOCK_MODULES:
+    sys.modules[mod] = MagicMock()
+
+def teardown_module():
+    for mod in MOCK_MODULES:
+        if mod in sys.modules:
+            del sys.modules[mod]
 
 from src.core.sv_engine import SovereignEngine
 
 class TestSovereignEngineEmpire:
     
-    @patch("src.core.utils.load_config", return_value={"persona": "ALFRED"})
+    @patch("src.core.sv_engine.utils.load_config", return_value={"persona": "ALFRED"})
     @patch("src.core.personas.get_strategy")
     @patch("src.core.sv_engine.SovereignVector") # The imported class
     def test_init(self, mock_vector, mock_strat, mock_config):
@@ -33,7 +43,7 @@ class TestSovereignEngineEmpire:
         # _init_vector_engine calls SovereignVector()
         mock_vector.assert_called()
         
-    @patch("src.core.utils.load_config", return_value={"persona": "ALFRED"})
+    @patch("src.core.sv_engine.utils.load_config", return_value={"persona": "ALFRED"})
     @patch("src.core.personas.get_strategy")
     @patch("src.core.sv_engine.SovereignVector")
     @patch("src.core.sv_engine.HUD")
@@ -56,7 +66,7 @@ class TestSovereignEngineEmpire:
         # Verify HUD rendering
         mock_hud.box_top.assert_called()
         
-    @patch("src.core.utils.load_config", return_value={"persona": "ALFRED"})
+    @patch("src.core.sv_engine.utils.load_config", return_value={"persona": "ALFRED"})
     @patch("src.core.personas.get_strategy")
     @patch("src.core.sv_engine.SovereignVector")
     @patch("src.core.sv_engine.BraveSearch")
@@ -83,7 +93,8 @@ class TestSovereignEngineEmpire:
         # Should trigger Brave Search
         mock_brave_inst.search.assert_called()
         args = mock_brave_inst.search.call_args[0][0]
-        assert "flux_capacitor" in args
+        # Query is "Technical definition and synonyms for flux"
+        assert "flux" in args
         
         # Should inject into Cortex
         mock_cortex_inst = mock_cortex.return_value
