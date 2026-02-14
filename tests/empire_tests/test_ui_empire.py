@@ -3,13 +3,13 @@ import pytest
 from unittest.mock import MagicMock, patch, mock_open
 from pathlib import Path
 import sys
+import json
 
 # Add project root to sys.path
 PROJECT_ROOT = Path(__file__).parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-# No sys.modules manipulation here for internal components
 from src.core.ui import HUD
 
 class TestUIEmpire:
@@ -20,24 +20,26 @@ class TestUIEmpire:
         HUD.PERSONA = "ALFRED"
         HUD.DIALOGUE = None
 
-    @patch("src.core.ui.Path.exists", return_value=True)
-    @patch("src.core.ui.Path.open", new_callable=mock_open, read_data='{"persona": "ODIN"}')
-    def test_ensure_persona(self, mock_file, mock_exists):
-        HUD._ensure_persona()
-        assert HUD.PERSONA == "ODIN"
-        assert HUD._INITIALIZED is True
+    def test_ensure_persona(self, tmp_path):
+        # Instead of mocking Path.open, we use a real temp file
+        agent_dir = tmp_path / ".agent"
+        agent_dir.mkdir()
+        config_file = agent_dir / "config.json"
+        config_file.write_text('{"persona": "ODIN"}', encoding='utf-8')
+        
+        with patch("src.core.ui.Path.cwd", return_value=tmp_path):
+            HUD._ensure_persona()
+            assert HUD.PERSONA == "ODIN"
+            assert HUD._INITIALIZED is True
 
     def test_progress_bar(self):
         bar = HUD.progress_bar(0.5, width=10)
-        # Should have 5 full blocks (█)
         assert bar.count("█") == 5
 
     def test_sparkline(self):
         data = [0, 5, 10]
         spark = HUD.render_sparkline(data)
         assert len(spark) == 3
-        # Lowest should be first char of sparkline chars (space or small bar)
-        # We just check it returns a string and contains at least one of the spark chars
         assert isinstance(spark, str)
         assert any(c in " ▂▃▄▅▆▇█" for c in spark)
 
@@ -50,18 +52,16 @@ class TestUIEmpire:
         assert "KEY" in captured.out
         assert "VALUE" in captured.out
 
-    @patch("src.core.ui.Path.cwd")
-    @patch("src.core.ui.Path.open", new_callable=mock_open)
-    def test_log_rejection(self, mock_file, mock_cwd):
-        # setup deep path mock for ledger
-        mock_path = MagicMock()
-        mock_cwd.return_value = mock_path
-        
-        # HUD.log_rejection uses Path.cwd() / ".agent" / "audit" / "ledger.json"
-        HUD.log_rejection("TEST_PERSONA", "Reason", "Details")
-        
-        # Verify it attempted to open a file
-        mock_file.assert_called()
+    def test_log_rejection(self, tmp_path):
+        with patch("src.core.ui.Path.cwd", return_value=tmp_path):
+            HUD.log_rejection("TEST_PERSONA", "Reason", "Details")
+            
+            # Check file exists in tmp_path
+            ledger = tmp_path / ".agent" / "traces" / "quarantine" / "REJECTIONS.qmd"
+            assert ledger.exists()
+            content = ledger.read_text(encoding='utf-8')
+            assert "TEST_PERSONA" in content
+            assert "Reason" in content
 
 if __name__ == "__main__":
     pytest.main([__file__])
