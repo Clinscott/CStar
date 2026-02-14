@@ -7,6 +7,7 @@
 - **Infallible Strike**: Integrated GungnirSPRT into the Muninn autopilot loop, enabling statistical regression guards.
 - **Overwatch**: Deployed Alfred Overwatch for automated failure analysis and cross-session guidance.
 - **Decision**: Transitioned from generic "SPRT Engine" to "The Gungnir Calculus" for lore alignment and psychological anchoring of "infallibility."
+- **Infrastructure**: Refactored `install.ps1` to achieve 100% Linscott Standard compliance, modularizing monolithic logic and adding full Comment-Based Help.
 - **Refactoring**: Extracted all hardcoded prompts into external `.prompty` files, improving maintainability.
 
 ---
