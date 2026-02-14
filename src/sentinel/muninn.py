@@ -455,10 +455,82 @@ class Muninn:
 
     def _distill_knowledge(self, target: dict = None, success: bool = False):
         """
-        Extracts learnings from the session and updates memory.
+        Extracts learnings from the ledger and generates cortex_directives.md.
+        Acts as the subconscious of the framework.
         """
-        # Placeholder for knowledge extraction logic
-        pass
+        ledger_path = self.root / ".agent" / "ledger.json"
+        if not ledger_path.exists():
+            return
+
+        try:
+            with open(ledger_path, 'r') as f:
+                data = json.load(f)
+        except Exception:
+            return
+
+        history = data.get("flight_history", [])
+        if not history:
+            return
+
+        # 1. Identify Cursed Files (High Risk)
+        # > 2 evaluations AND >= 50% Reject rate
+        file_stats = {}
+        for entry in history:
+            t_file = entry.get("target")
+            if not t_file:
+                continue
+            if t_file not in file_stats:
+                file_stats[t_file] = {"total": 0, "rejects": 0}
+            
+            file_stats[t_file]["total"] += 1
+            if entry.get("decision") == "Reject":
+                file_stats[t_file]["rejects"] += 1
+
+        cursed_files = []
+        for fname, stats in file_stats.items():
+            if stats["total"] > 2:
+                failure_rate = stats["rejects"] / stats["total"]
+                if failure_rate >= 0.5:
+                    cursed_files.append(f"{fname} (Failure Rate: {failure_rate:.0%})")
+
+        # 2. Identify Blessed Precedents (High Success)
+        # Top 3 most recent "Accept" decisions
+        accepted = [h for h in history if h.get("decision") == "Accept"]
+        # Sort by timestamp descending
+        accepted.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+        
+        blessed_precedents = []
+        for entry in accepted[:3]:
+            tgt = entry.get("target", "Unknown")
+            score = entry.get("alignment_score", 0)
+            blessed_precedents.append(f"{tgt} (Score: {score})")
+
+        # 3. Generate Cortex Directives
+        gphs = data.get("global_project_health_score", 0.0)
+        
+        directives_path = self.root / ".agent" / "cortex_directives.md"
+        
+        md_content = f"""# Global Project Health Score: {gphs:.2f}
+
+## ☠️ Cursed Files (High Risk)
+"""
+        if cursed_files:
+            for c in cursed_files:
+                md_content += f"- {c}\n"
+        else:
+            md_content += "- None detected.\n"
+
+        md_content += "\n## 🛡️ Blessed Precedents (Mimic Pattern)\n"
+        
+        if blessed_precedents:
+            for b in blessed_precedents:
+                md_content += f"- {b}\n"
+        else:
+            md_content += "- None available.\n"
+
+        directives_path.write_text(md_content, encoding='utf-8')
+
+        print(f"ODIN: 'The ledger has been read. The Runes of Wisdom are carved at {directives_path}.'")
 
     def _select_breach_target(self, breaches: list) -> dict:
         """Legacy helper if needed, but new logic sorts list."""
