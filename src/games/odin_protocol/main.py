@@ -30,7 +30,7 @@ from ui import HUD
 class OdinAdventure:
     """The central coordinator for the Odin Protocol Game Loop."""
 
-    def __init__(self, project_root: str):
+    def __init__(self, project_root: str) -> None:
         self.project_root = project_root
         self.persistence = OdinPersistence(project_root)
         self.gm = OdinGM()

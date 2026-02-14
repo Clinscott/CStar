@@ -29,7 +29,7 @@ class SentinelPerf:
     Identifies bottlenecks in tokenization, search, and vector synthesis.
     """
     
-    def __init__(self, project_root: str):
+    def __init__(self, project_root: str) -> None:
         self.root = project_root
         self.base = os.path.join(project_root, ".agent")
         def _res(fname):

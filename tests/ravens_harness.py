@@ -33,14 +33,12 @@ from src.sentinel.code_sanitizer import (
     validate_syntax,
 )
 from src.core.annex import HeimdallWarden
-from src.sentinel.sovereign_fish import (
-    SovereignFish,
-    ValkyrieWarden,
-    MimirWarden,
-    EddaWarden,
-    RuneCasterWarden,
-    FreyaWarden,
-)
+from src.sentinel.muninn import Muninn
+from src.sentinel.wardens.valkyrie import ValkyrieWarden
+from src.sentinel.wardens.mimir import MimirWarden
+from src.sentinel.wardens.edda import EddaWarden
+from src.sentinel.wardens.runecaster import RuneCasterWarden
+from src.sentinel.wardens.freya import FreyaWarden
 
 
 FIXTURES_DIR = PROJECT_ROOT / "tests" / "fixtures" / "ravens_responses"
@@ -163,7 +161,7 @@ def generate_synthetic_responses(target_file: str) -> list[dict]:
 class RavensHarness:
     """Runs N iterations of the Gauntlet pipeline with mock/synthetic responses."""
 
-    def __init__(self, iterations: int, dry_run: bool = False):
+    def __init__(self, iterations: int, dry_run: bool = False) -> None:
         self.iterations = iterations
         self.dry_run = dry_run
         self.results = []

@@ -1,5 +1,13 @@
 # Corvus Star Memory
 
+## 2026-02-14: SovereignFish (Session 59)
+- **Silent Failures**: wrapping critical logic in broad `try/except` blocks (like the `muninn.py` neural hook) can mask fundamental bugs (`NameError`). Use specific exception handling or allow critical failures to surface during dev cycles.
+- **Type Hints**: Adding `list[dict[str, str]]` is infinitely better than `list[dict]` for tool return values, as it documents the *shape* of the data for future agents.
+
+## 2026-02-14: Session 55
+- **Automated Docstrings**: Inserting docstrings via simple string manipulation is prone to indentation errors in Python. Use AST-based insertion or manual patches for complex files.
+- **Legacy File Ghosts**: `git checkout .` can restore files deleted by a script. Verification logic must account for "zombie" files reappearing if a revert is triggered.
+
 ## 2026-02-13: Muninn's Awakening (Session 54)
 - **Neural Subconscious**: The "Subconscious" is best implemented as a static digest (Markdown) generated from dynamic data (JSON). This allows the LLM to consume it as a system prompt without complex runtime querying.
 - **Gradient Clipping**: When implementing custom autograd engines (`AtomicCortex`), gradient clipping is essential to prevent `OverflowError` during training on unnormalized inputs.

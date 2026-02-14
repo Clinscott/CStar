@@ -3,6 +3,9 @@ import re
 from pathlib import Path
 
 def standardize_muninn(filepath: Path):
+    """
+    Standardizes the Muninn warden implementation by injecting the RuneCasterWarden v2 logic.
+    """
     if not filepath.exists():
         return
         

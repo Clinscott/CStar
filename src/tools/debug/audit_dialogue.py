@@ -27,7 +27,7 @@ class DialogueAuditor:
     Analyzes dialogue deviance against established Persona protocols.
     """
 
-    def __init__(self, persona: str = "GOD"):
+    def __init__(self, persona: str = "GOD") -> None:
         self.persona = persona
         self.project_root = PROJECT_ROOT
         self.base_path = self.project_root / ".agent"

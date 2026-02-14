@@ -1,3 +1,169 @@
+# Walkthrough: Session 59 - KnowledgeHunter Upgrade
+
+## 🎯 Goal
+Upgrade the `KnowledgeHunter` skill from a static placeholder to an active Web-Research Python script that utilizes Brave Search and the Gemini API to compile research reports.
+
+## 🏆 Results
+| Metric | Value |
+|:---|:---|
+| **Skill Status** | **Active** (`hunter.py`) |
+| **Search Engine** | **Brave Search** (Integrated) |
+| **Synthesis** | **Gemini 2.0 Flash** (Report Generation) |
+| **Verification** | **Manual Test** (Quantum Computing Report) |
+
+## 🛠️ Key Changes
+
+### 1. KnowledgeHunter (`src/skills/local/KnowledgeHunter/hunter.py`)
+- **Web Research**: Implemented a script that accepts a topic, searches the web using `BraveSearch`, and captures snippets.
+- **AI Synthesis**: Uses `google.genai` to synthesize the scattered snippets into a cohesive Markdown research report.
+- **Artifact Generation**: Automatically saves findings to `RESEARCH_{slug}.md`.
+
+## 🤝 Session Handshake
+**Session Delta**:
+- Created `src/skills/local/KnowledgeHunter/hunter.py`.
+- Verified end-to-end flow with a live test.
+- Confirmed report quality and cleanup.
+
+**Resume Directive**:
+To use, run: `python src/skills/local/KnowledgeHunter/hunter.py "Topic Name"`.
+Then proceed to next tasks.
+
+# Walkthrough: Session 58 - Live Documentation Injection
+
+## 🎯 Goal
+Inject live web documentation into the Code Sanitizer to prevent hallucinations when repairing code with unknown imports.
+
+## 🏆 Results
+| Metric | Value |
+|:---|:---|
+| **Docs Injection** | **Active** (Code Sanitizer + Muninn) |
+| **Search Engine** | **Brave Search** (1000/mo Quota) |
+| **Verification** | **100% Pass** (`tests/sentinel/test_web_enrichment.py`) |
+
+## 🛠️ Key Changes
+
+### 1. Code Sanitizer (`src/sentinel/code_sanitizer.py`)
+- **Import Enrichment**: Implemented `scan_and_enrich_imports` to detect unknown modules and fetch their latest documentation via Brave Search.
+- **Quota Safety**: Respects the shared 1,000/mo quota managed by `BraveSearch`.
+
+### 2. Muninn Integration (`src/sentinel/muninn.py`)
+- **Prompt Augmentation**: The `_generate_implementation` method now appends live documentation snippets to the code context sent to the LLM.
+
+## 🤝 Session Handshake
+**Session Delta**:
+- Integrated Brave Search into Code Sanitizer.
+- Updated Muninn to use live docs for repair.
+- Verified with new test suite.
+
+**Resume Directive**:
+To resume, verify the new test: `python -m pytest tests/sentinel/test_web_enrichment.py`.
+Then proceed to next tasks.
+
+# Walkthrough: Session 57 - Web-Aware CLI
+
+## 🎯 Goal
+Expose the internal `BraveSearch` tool to the interactive CLI to allow for manual, ad-hoc web queries using the agent's credentials and quota.
+
+## 🏆 Results
+| Metric | Value |
+|:---|:---|
+| **CLI Access** | **Active** (`src.tools.brave_search`) |
+| **Env Safety** | **Bootstrapped** (Auto-load .env) |
+| **UX** | **HUD Integrated** (Themed Output) |
+
+## 🛠️ Key Changes
+
+### 1. CLI Exposure (`src/tools/brave_search.py`)
+- **Main Block**: Added `if __name__ == "__main__":` logic to parse `sys.argv` and execute searches.
+- **Bootstrap**: Integrated `src.sentinel._bootstrap` to ensure `BRAVE_API_KEY` is loaded from `.env.local`.
+- **HUD Output**: Formatted results using `HUD.box_top` and color-coded entries for readability.
+
+## 🤝 Session Handshake
+**Session Delta**:
+- Exposed `BraveSearch` to CLI.
+- Verified manual query capability.
+- Documented environment bootstrap pattern.
+- Implemented Zero-Hit Web Fallback for low-confidence queries.
+
+**Resume Directive**:
+To test, run: `python -m src.tools.brave_search "Corvus Star"`.
+Then proceed to next tasks.
+
+# Walkthrough: Session 55 - Dominion Expanded (Batch Remediation)
+
+## 🎯 Goal
+Execute a mass remediation campaign to clear ~1500 accumulated `RUNE` (Missing Type Hints) and `EDDA` (Legacy Documentation/Format) breaches from the `breaches_queue.json`, enforcing the Linscott Standard across the codebase.
+
+## 🏆 Results
+| Metric | Value |
+|:---|:---|
+| **Breaches Fixed** | **~1500** (RUNE/EDDA) |
+| **Legacy Files** | **0** (.md -> .qmd conversion complete) |
+| **Type Safety** | **__init__ -> None** (Strict Rune enforcement) |
+| **Verification** | **100% Pass** (Empire Tests Restored) |
+
+## 🛠️ Key Changes
+
+### 1. Batch Remediation (`fix_breaches.py`)
+- **Automated Fixes**: Created and executed a script to:
+    - Rename legacy `.md` fixtures to `.qmd` (or delete if redundant).
+    - Inject `-> None` return type hints into all `__init__` methods.
+- **Cleanup**: Script was verified and then deleted to leave no trace.
+
+### 2. Manual Intervention (`scripts/fix_muninn.py`)
+- **Docstring Patch**: Manually added missing docstrings to `standardize_muninn` after automated tools failed to handle the complex indentation.
+- **Test Repair**: Fixed indentation errors in `test_freya_empire.py` and `test_huginn_empire.py` caused by earlier automated attempts.
+
+## 🤝 Session Handshake
+**Session Delta**:
+- Cleared ~1500 static analysis breaches.
+- Standardized all documentation to `.qmd`.
+- Enforced strict `__init__` typing.
+- Validated system integrity with `scout` and `pytest`.
+
+**Resume Directive**:
+To resume, verify the clean state: `c* scout -status`.
+Then proceed to **Phase 42: Operation Ironclad** in `tasks.qmd`.
+
+# Walkthrough: Session 56 - The Closed Loop (Architectural Finalization)
+
+## 🎯 Goal
+Resolve architectural dead-ends to close autonomous learning loops, enabling the agent to persist neural weights, correct its own traces, and augment its context via web search.
+
+## 🏆 Results
+| Metric | Value |
+|:---|:---|
+| **Neural Persistence** | **Active** (Saved/Loaded via Pickle) |
+| **Feedback Loop** | **Closed** (`tune_weights` writes to Thesaurus) |
+| **Web Intel** | **Optimized** (1 Search/Run via Brave) |
+| **Auto-Correction** | **Active** (Traces -> `corrections.json`) |
+
+## 🛠️ Key Changes
+
+### 1. Neural Persistence (`src/core/engine/atomic_gpt.py`)
+- **Serialization**: Implemented `save_weights`/`load_weights` using standard `pickle`, allowing the `AtomicCortex` to retain training across sessions.
+
+### 2. Weight Tuning Loop (`src/tools/tune_weights.py`)
+- **Feedback Closure**: The script now writes learned weight adjustments directly back to `thesaurus.qmd`, closing the loop between execution and knowledge retention.
+
+### 3. Web-Aware Muninn (`src/sentinel/muninn.py`)
+- **Context Augmentation**: Integrated `BraveSearch` to query for context on critical errors.
+- **Optimization**: Restricted search to the single selected target to prevent quota abuse (O(1) vs O(N)).
+
+### 4. Trace Auto-Correction (`src/tools/compile_session_traces.py`)
+- **Self-Healing**: Critical failures in session traces now automatically generate entries in `.agent/corrections.json`, preventing repeat failures for the same query.
+
+## 🤝 Session Handshake
+**Session Delta**:
+- Enabled neural persistence and weight tuning.
+- Integrated optimized web search for error context.
+- Implemented trace auto-correction.
+- Verified all systems with `c* muninn`.
+
+**Resume Directive**:
+- To resume, check the neural state: `c* tune_weights`.
+- Then proceed to **Phase 42: Operation Ironclad** in `tasks.qmd`.
+
 # Walkthrough: Session 54 - Muninn's Awakening (Refactor)
 
 ## 🎯 Goal

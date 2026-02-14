@@ -153,3 +153,16 @@
 - **gauntlet**: build, crucible, fix, implementation, repair, test, verify
 - **stabilization**: fix, hardening, pass, regression, resolve, stable, stabilization
 - **regression**: break, fail, fix, hardening, pass, regression, resolve, stable, stabilization, verify
+- start: start:0.90
+- session: session:0.90
+- style: style:0.90
+- aesthetics: aesthetics:0.90
+- create: create:0.90
+- plan: plan:0.90
+- check: check:0.90
+- generate: generate:0.90
+- environment: environment:0.90
+- test: test:0.90
+- ui: ui:0.90
+- performance: performance:0.90
+- wrap: wrap:0.90

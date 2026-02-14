@@ -18,7 +18,7 @@ from google import genai
 init(autoreset=True)
 
 class SovereignStressTest:
-    def __init__(self, max_retries=5):
+    def __init__(self, max_retries=5) -> None:
         self.max_retries = max_retries
         if not self.api_key:
             print(f"{Fore.CYAN}[TEACHER] API KEY MISSING. Handing over to Lead Architect (Main Agent).")

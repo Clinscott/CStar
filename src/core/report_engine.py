@@ -20,7 +20,7 @@ class ReportEngine:
     injecting the correct voice and signature.
     """
     
-    def __init__(self, project_root: str | Path | None = None):
+    def __init__(self, project_root: str | Path | None = None) -> None:
         self.root = Path(project_root) if project_root else Path.cwd()
         # Load fresh config to ensure we catch dynamic switches
         self.config = utils.load_config(self.root)

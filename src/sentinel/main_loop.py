@@ -34,7 +34,7 @@ from src.sentinel.muninn import Muninn
 # --- GRACEFUL SHUTDOWN ---
 class ShutdownHandler:
     """Handles OS signals for graceful termination."""
-    def __init__(self):
+    def __init__(self) -> None:
         self.active = True
         signal.signal(signal.SIGINT, self.shutdown)
         signal.signal(signal.SIGTERM, self.shutdown)

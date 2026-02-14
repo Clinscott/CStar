@@ -12,6 +12,24 @@ import re
 import sys
 import textwrap
 from pathlib import Path
+from src.tools.brave_search import BraveSearch
+
+# ==============================================================================
+# 📚 KNOWLEDGE BASE
+# ==============================================================================
+
+_KNOWN_THIRD_PARTY = {
+    "pytest", "unittest", "mock", "colorama", "google", "vulture",
+    "radon", "psutil", "dotenv", "requests", "json", "os", "sys",
+    "pathlib", "subprocess", "shutil", "time", "hashlib", "re",
+    "ast", "io", "textwrap", "contextlib", "importlib", "logging",
+    "collections", "functools", "itertools", "typing", "dataclasses",
+    "tempfile", "copy", "math", "random", "datetime", "abc",
+    "enum", "struct", "socket", "http", "urllib", "base64",
+    "inspect", "traceback", "pprint", "string", "operator",
+    "warnings", "types", "glob", "fnmatch", "stat",
+    "_pytest",  # pytest internals
+}
 
 
 # ==============================================================================
@@ -54,24 +72,14 @@ def validate_imports(code: str, project_root: Path) -> list[str]:
     project_modules.add("src")
 
     # Known stdlib/third-party top-level modules we allow
-    ALLOWED_THIRD_PARTY = {
-        "pytest", "unittest", "mock", "colorama", "google", "vulture",
-        "radon", "psutil", "dotenv", "requests", "json", "os", "sys",
-        "pathlib", "subprocess", "shutil", "time", "hashlib", "re",
-        "ast", "io", "textwrap", "contextlib", "importlib", "logging",
-        "collections", "functools", "itertools", "typing", "dataclasses",
-        "tempfile", "copy", "math", "random", "datetime", "abc",
-        "enum", "struct", "socket", "http", "urllib", "base64",
-        "inspect", "traceback", "pprint", "string", "operator",
-        "warnings", "types", "glob", "fnmatch", "stat",
-        "_pytest",  # pytest internals
-    }
+    # Use shared constant
+    pass
 
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
                 top = alias.name.split(".")[0]
-                if top not in ALLOWED_THIRD_PARTY and top not in project_modules:
+                if top not in _KNOWN_THIRD_PARTY and top not in project_modules:
                     # Try to actually import it
                     if not _can_import(top):
                         bad_imports.append(
@@ -81,7 +89,7 @@ def validate_imports(code: str, project_root: Path) -> list[str]:
         elif isinstance(node, ast.ImportFrom):
             if node.module:
                 top = node.module.split(".")[0]
-                if top not in ALLOWED_THIRD_PARTY and top not in project_modules:
+                if top not in _KNOWN_THIRD_PARTY and top not in project_modules:
                     if not _can_import(top):
                         bad_imports.append(
                             f"line {node.lineno}: `from {node.module} import ...` — "
@@ -228,20 +236,7 @@ def repair_imports(code: str, project_root: Path) -> str:
 
 def _is_valid_import(top_module: str, project_root: Path) -> bool:
     """Check if a top-level module name is valid (stdlib, third-party, or project)."""
-    ALLOWED = {
-        "pytest", "unittest", "mock", "colorama", "google", "vulture",
-        "radon", "psutil", "dotenv", "requests", "json", "os", "sys",
-        "pathlib", "subprocess", "shutil", "time", "hashlib", "re",
-        "ast", "io", "textwrap", "contextlib", "importlib", "logging",
-        "collections", "functools", "itertools", "typing", "dataclasses",
-        "tempfile", "copy", "math", "random", "datetime", "abc",
-        "enum", "struct", "socket", "http", "urllib", "base64",
-        "inspect", "traceback", "pprint", "string", "operator",
-        "warnings", "types", "glob", "fnmatch", "stat",
-        "_pytest", "src",
-    }
-
-    if top_module in ALLOWED:
+    if top_module in _KNOWN_THIRD_PARTY:
         return True
 
     # Check project modules
@@ -259,6 +254,72 @@ def _is_valid_import(top_module: str, project_root: Path) -> bool:
 # ==============================================================================
 # 🔨 SANITIZATION (Auto-Repair)
 # ==============================================================================
+
+
+# ==============================================================================
+# 🧠 KNOWLEDGE INJECTION
+# ==============================================================================
+
+
+def scan_and_enrich_imports(code: str, project_root: Path) -> str:
+    """
+    Scans for invalid imports and fetches live documentation via BraveSearch.
+    Returns a documentation string to be injected into the LLM context.
+    """
+    try:
+        tree = ast.parse(code)
+    except SyntaxError:
+        return ""
+
+    bad_modules = set()
+    
+    # Simple check reusing _is_valid_import logic
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                top = alias.name.split(".")[0]
+                if not _is_valid_import(top, project_root):
+                    bad_modules.add(top)
+        elif isinstance(node, ast.ImportFrom):
+            if node.module:
+                top = node.module.split(".")[0]
+                if not _is_valid_import(top, project_root):
+                    bad_modules.add(top)
+
+    if not bad_modules:
+        return ""
+
+    # Search for docs
+    searcher = BraveSearch()
+    if not searcher.is_quota_available():
+        return ""
+
+    from src.core.ui import HUD
+    
+    context_snippets = []
+    processed = set()
+    
+    for module in bad_modules:
+        if module in processed: continue
+        processed.add(module)
+        
+        query = f"{module} latest documentation python"
+        HUD.persona_log("INFO", f"Injecting live docs for unknown module: {module}")
+        
+        results = searcher.search(query)
+        if results:
+            # Take top 2 results
+            snippets = []
+            for res in results[:2]:
+                snippets.append(f"- {res.get('title')}: {res.get('description')} ({res.get('url')})")
+            
+            if snippets:
+                context_snippets.append(f"Documentation for `{module}`:\n" + "\n".join(snippets))
+
+    if not context_snippets:
+        return ""
+
+    return "\n\n[LIVE WEB DOCUMENTATION INJECTED]\n" + "\n\n".join(context_snippets)
 
 
 # ==============================================================================

@@ -36,7 +36,7 @@ class CosineSimilarity(SimilarityStrategy):
 
 
 class SovereignVector:
-    def __init__(self, thesaurus_path=None, corrections_path=None, stopwords_path=None):
+    def __init__(self, thesaurus_path=None, corrections_path=None, stopwords_path=None) -> None:
         """
         [ALFRED] Initializes the Sovereign Vector Engine.
         Loads the thesaurus, corrections, and stopwords to build the project's intent vocabulary.

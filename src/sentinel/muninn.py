@@ -42,11 +42,14 @@ from src.sentinel.code_sanitizer import (
     sanitize_test,
     validate_imports,
     validate_syntax,
+    scan_and_enrich_imports,
 )
 
 # Gungnir Engine Imports
 from src.core.metrics import ProjectMetricsEngine
 from src.core.engine.alfred_observer import AlfredOverwatch
+from src.core.engine.atomic_gpt import AtomicCortex
+from src.tools.brave_search import BraveSearch
 from tests.integration.project_fishtest import GungnirSPRT
 
 # Stability Modules
@@ -70,7 +73,7 @@ logging.basicConfig(
 )
 
 class Muninn:
-    def __init__(self, target_path: str, client=None):
+    def __init__(self, target_path: str, client=None) -> None:
         self.root = Path(target_path).resolve()
         self.api_key = os.getenv("GOOGLE_API_KEY")
 
@@ -175,7 +178,9 @@ class Muninn:
                     all_breaches.extend(results)
                 except Exception as e:
                     HUD.persona_log("WARN", f"{name} Warden Failed: {e}")
+                    HUD.persona_log("WARN", f"{name} Warden Failed: {e}")
                     scan_results[name] = 0
+
 
         # 2. SELECT TARGET (Prioritization)
         # Sort by severity: CRITICAL > HUGINN_xxx (High) > HIGH > MEDIUM > LOW
@@ -209,6 +214,19 @@ class Muninn:
 
         HUD.persona_log("WARN", f"Target: {target['action']} in {target['file']}")
         logging.info(f"[{self.root.name}] [TARGET] {target['action']} ({target['file']})")
+
+        # [INTEGRATION] Web Search for Context (Targeted Optimization)
+        # Only search for the ONE item we are actually going to fix.
+        searcher = BraveSearch()
+        if searcher.is_quota_available():
+            # Heuristic: Critical errors with generic descriptions
+            if target.get('severity') == 'CRITICAL' or 'error' in target.get('action', '').lower():
+                query = f"python {target.get('action')} {target.get('file', '')}"
+                HUD.persona_log("INFO", f"Searching Brave for context: {query}")
+                results = searcher.search(query)
+                if results:
+                    top = results[0]
+                    target['action'] += f"\n[Ragnarok Context]: {top.get('title')} - {top.get('description')} ({top.get('url')})"
 
         # [WATCHER] Anti-Oscillation Check
         if self.watcher.is_locked(target['file']):
@@ -256,6 +274,23 @@ class Muninn:
                     NornWarden(self.root).mark_complete(target)
                     if HUD.PERSONA == "ALFRED":
                          HUD.persona_log("SUCCESS", "I have crossed that item off your list, sir.")
+
+                # [INTEGRATION] Neural Training Hook
+                # "Trigger a cortex.train_step() using the new code string"
+                try:
+                    cortex_path = self.root / ".agent" / "cortex.pkl"
+                    cortex = AtomicCortex()
+                    if cortex_path.exists():
+                        cortex.load_weights(str(cortex_path))
+                    
+                    target_file = self.root / target['file']
+                    if target_file.exists():
+                        code = target_file.read_text(encoding='utf-8')
+                        loss = cortex.train_step(code)
+                        cortex.save_weights(str(cortex_path))
+                        HUD.persona_log("INFO", f"AtomicCortex evolved. New Loss: {loss:.4f}")
+                except Exception as e:
+                    HUD.persona_log("WARN", f"Neural evolution failed: {e}")
 
                 return True
             else:
@@ -352,21 +387,31 @@ class Muninn:
             HUD.persona_log("ERROR", f"Gauntlet creation failed: {e}")
             return None
 
+
+
     def _generate_implementation(self, target: dict, original_code: str, test_path: Path) -> Optional[str]:
         """Generates the code fix ensuring it passes the test."""
         # Read the test we just made
         test_content = test_path.read_text(encoding='utf-8')
+
+        # [Ragnarok] Live Knowledge Injection
+        live_docs = scan_and_enrich_imports(original_code, self.root)
+        if live_docs:
+             HUD.persona_log("INFO", "Augmenting Forge prompt with live documentation.")
         
+        # We append docs to the code so it appears in the context
+        augmented_code = original_code + live_docs
+
         prompt = self._load_prompt("forge_implementation", {
              "ACTION": target['action'],
              "FILE": target['file'],
-             "CODE": original_code,
+             "CODE": augmented_code,
              "TEST": test_content,
              "ALFRED_SUGGESTIONS": self._get_alfred_suggestions()
         })
         
         if not prompt:
-            prompt = f"Fix the issue: {target['action']}.\nFile: {target['file']}\nCode:\n{original_code}\nTest:\n{test_content}"
+            prompt = f"Fix the issue: {target['action']}.\nFile: {target['file']}\nCode:\n{augmented_code}\nTest:\n{test_content}"
 
         try:
             response = self.client.models.generate_content(
@@ -536,3 +581,11 @@ class Muninn:
         """Legacy helper if needed, but new logic sorts list."""
         if not breaches: return None
         return breaches[0]
+
+if __name__ == "__main__":
+    try:
+        # Auto-detect project root
+        root = Path(__file__).parent.parent.parent.resolve()
+        Muninn(str(root)).run()
+    except Exception as e:
+        HUD.persona_log("CRITICAL", f"Muninn Terminated: {e}")

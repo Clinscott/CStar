@@ -1,7 +1,7 @@
 import math
 
 class GungnirSPRT:
-    def __init__(self, alpha=0.05, beta=0.05):
+    def __init__(self, alpha=0.05, beta=0.05) -> None:
         """
         [THE GUNGNIR CALCULUS]
         Calculates whether a change is statistically significant.

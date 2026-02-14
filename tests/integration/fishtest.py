@@ -56,7 +56,7 @@ except ImportError:
 class SPRT:
     """Sequential Probability Ratio Test for automated verification."""
 
-    def __init__(self, alpha: float = 0.05, beta: float = 0.05, p0: float = 0.95, p1: float = 0.99):
+    def __init__(self, alpha: float = 0.05, beta: float = 0.05, p0: float = 0.95, p1: float = 0.99) -> None:
         self.la = math.log(beta / (1 - alpha))
         self.lb = math.log((1 - beta) / alpha)
         self.p0, self.p1 = p0, p1
@@ -80,7 +80,7 @@ class FishtestRunner:
     Orchestrates the execution of intent resolution test cases.
     """
 
-    def __init__(self, data_file: str = "fishtest_data.json"):
+    def __init__(self, data_file: str = "fishtest_data.json") -> None:
         self.data_file = data_file
         self.current_dir = os.path.dirname(os.path.abspath(__file__))
         self.base_path = os.path.join(PROJECT_ROOT, ".agent")

@@ -20,7 +20,7 @@ class GungnirValidator:
     Lore: "The Infallible Strike."
     Purpose: Statistically verify hypothesis (fix is stable) vs (fix is flaky).
     """
-    def __init__(self, alpha=0.05, beta=0.1, p0=0.01, p1=0.2):
+    def __init__(self, alpha=0.05, beta=0.1, p0=0.01, p1=0.2) -> None:
         self.alpha = alpha # Type I error (False Positive)
         self.beta = beta   # Type II error (False Negative)
         self.p0 = p0       # Base failure rate (Null)
@@ -57,7 +57,7 @@ class TheWatcher:
     Lore: "The Guardian of the Timeline."
     Purpose: Prevent oscillation (edit wars) and track file edit fatigue.
     """
-    def __init__(self, root: Path):
+    def __init__(self, root: Path) -> None:
         self.root = root
         self.state_file = self.root / ".agent" / "sovereign_state.json"
         self.state: Dict[str, Any] = self._load_state()

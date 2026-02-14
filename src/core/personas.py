@@ -15,7 +15,7 @@ class PersonaStrategy:
     Defines the interface for policy enforcement, voice selection, and documentation re-theming.
     """
 
-    def __init__(self, project_root: str | Path):
+    def __init__(self, project_root: str | Path) -> None:
         self.root = Path(project_root)
 
     def enforce_policy(self, **kwargs) -> dict:

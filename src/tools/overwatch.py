@@ -17,7 +17,7 @@ from ui import HUD
 
 class StatsCollector:
     """[ALFRED] Secure statistics accumulator for federated monitoring."""
-    def __init__(self, project_root: str, base_dir: str):
+    def __init__(self, project_root: str, base_dir: str) -> None:
         self.root = project_root
         self.base = base_dir
         self.db_path = os.path.join(project_root, "fishtest_data.json")
@@ -40,7 +40,7 @@ class StatsCollector:
 
 class OverwatchRenderer:
     """[ALFRED] Dashboard renderer for the Neural Overwatch TUI."""
-    def __init__(self):
+    def __init__(self) -> None:
         self.latency_trend: List[float] = []
 
     def render_header(self):
@@ -84,7 +84,7 @@ class InputManager:
         return None
 
 class Overwatch:
-    def __init__(self):
+    def __init__(self) -> None:
         self.base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.root = os.path.dirname(self.base)
         self.collector = StatsCollector(self.root, self.base)

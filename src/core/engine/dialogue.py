@@ -8,7 +8,7 @@ from collections import deque
 
 class DialogueEngine:
     """[ALFRED] Advanced dialogue engine with tag-aware filtering and short-term memory."""
-    def __init__(self, phrases_path: str | Path | None):
+    def __init__(self, phrases_path: str | Path | None) -> None:
         self.phrase_data: dict = {}
         self.history = deque(maxlen=5)  # Avoid repeating the last 5 phrases
         if phrases_path:

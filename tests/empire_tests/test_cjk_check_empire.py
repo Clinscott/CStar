@@ -12,7 +12,7 @@ sys.path.insert(0, '.agent/scripts')
 
 # Mock the SovereignVector class and its methods
 class MockSovereignVector:
-    def __init__(self, thesaurus_path, corrections_path, stopwords_path):
+    def __init__(self, thesaurus_path, corrections_path, stopwords_path) -> None:
         pass
 
     def load_core_skills(self):
