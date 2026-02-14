@@ -21,7 +21,12 @@ The decision-making brain of Corvus Star.
     - `_ensure_persona()`: Automatic lazy-loading of persona configuration.
 - **Annexation Protocol** (`annex.py`):
     - `HeimdallWarden.scan()`: Audits territory for standard compliance (Linscott/Torvalds).
-- **The Gungnir Calculus** (`src/core/`):
+- **The Gungnir Calculus** (`src/core/engine/gungnir/`):
+    - `Invoke-GungnirSPRT.ps1`: Core Bernoulli SPRT math engine.
+    - `Invoke-RavensGungnirStrike.ps1`: Orchestrator for alignment and test strikes.
+    - `muninn.py`: Memory ledger and GPHS recalculation engine.
+    - `GungnirSPRT.Tests.ps1`: Pester 5 validation suite for SPRT logic.
+- **The Gungnir Calculus (Legacy/Global)** (`src/core/`):
     - `metrics.py`: Computes GPHS (Global Project Health Score).
     - `prompt_linter.py`: AST-based validation of .prompty files.
     - `weights.json`: The GPHS weight ledger.

@@ -1,6 +1,6 @@
 # 💎 GEMINI NEURAL MANIFEST
 
-> **Timestamp**: 2026-02-13 18:32:45
+> **Timestamp**: 2026-02-13 19:12:18
 > **Active Mind**: ALFRED
 
 ## 🧩 Context Anchors
@@ -13,6 +13,7 @@
 - [ ] **Operation Ironclad: Hybrid Modularization**: Begin the migration of core memory and engine logic to a persistent modular package (`src/cstar`).
 - [ ] **Annexation Execution**: Activate the `execution` mode for `annex.py` to auto-remediate Documentation/Linguistic breaches project-wide.
 - [ ] **Heimdall Persistence**: Harden the security monitor to run in background mode with a persistent log rotation.
+- [ ] **Atomic Expansion**: Increase the `AtomicCortex` embedding dimension and vocabulary to support broader linguistic patterns.
 
 ## 📜 Recent Continuity (Git)
 ```text
