@@ -4,7 +4,8 @@ import os
 from typing import Any
 
 try:
-    import google.generativeai as genai
+    from google import genai
+    from google.genai import types
     HAS_GENAI = True
 except ImportError:
     HAS_GENAI = False
@@ -20,7 +21,7 @@ class OdinGM:
     """
 
     def __init__(
-        self, api_key: str | None = None, model_name: str = "gemini-1.5-flash"
+        self, api_key: str | None = None, model_name: str = "gemini-2.0-flash"
     ):
         """Initializes the GM client.
 
@@ -30,13 +31,12 @@ class OdinGM:
         """
         self.model_name = model_name
         self.api_key = api_key or os.environ.get("GOOGLE_API_KEY")
-        self.model = None
+        self.client = None
         self.agent_engine = SovereignScenarioEngine()
 
         if HAS_GENAI and self.api_key:
             try:
-                genai.configure(api_key=self.api_key)
-                self.model = genai.GenerativeModel(model_name)
+                self.client = genai.Client(api_key=self.api_key)
             except Exception as e:
                 logging.error(f"Gemini Init Failed: {e}. Falling back to offline mode.")
         else:
@@ -62,7 +62,7 @@ class OdinGM:
         Returns:
             Dictionary containing scenario details.
         """
-        if not self.model:
+        if not self.client:
             return self.agent_engine.generate_scenario(
                 stats,
                 seed=seed,
@@ -136,9 +136,10 @@ class OdinGM:
         """
 
         try:
-            response = self.model.generate_content(
-                prompt,
-                generation_config=genai.types.GenerationConfig(response_mime_type="application/json")
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+                config=types.GenerateContentConfig(response_mime_type="application/json")
             )
             data = json.loads(response.text)
             return data
@@ -164,7 +165,7 @@ class OdinGM:
         Returns:
             The narrated outcome string.
         """
-        if not self.model:
+        if not self.client:
             return self.agent_engine.get_outcome(player_name, choice_id, success)
 
         prompt = f"""
@@ -183,7 +184,10 @@ class OdinGM:
         Keep it to 2-3 atmospheric sentences.
         """
         try:
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt
+            )
             return response.text.strip()
         except Exception:
             return f"The songs shall speak of this day, Warlord {player_name}."
@@ -194,7 +198,7 @@ class OdinGM:
         Returns:
             Dictionary with speaker and message.
         """
-        if not self.model:
+        if not self.client:
             return self.agent_engine.get_scientist_query()
 
         prompt = (
@@ -202,7 +206,10 @@ class OdinGM:
             "asking if Odin wants to modify his genes after a conquest."
         )
         try:
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt
+            )
             return {"speaker": "GENETICIST", "message": response.text.strip()}
         except Exception:
             return {"speaker": "ENGINEER", "message": "Mutation readiness at 100%. Proceed?"}

@@ -164,7 +164,9 @@ class AtomicCortex:
     def train_step(self, text_corpus: str, learning_rate: float = 0.01):
         """Perform one training step."""
         tokens = [b for b in text_corpus.encode('utf-8')]
-        if len(tokens) > 64: tokens = tokens[:64]
+        if len(tokens) > 64:
+            start = random.randint(0, len(tokens) - 65)
+            tokens = tokens[start:start+64]
         if len(tokens) < 2: return
         
         logits_list = self.forward(tokens[:-1])
@@ -180,6 +182,9 @@ class AtomicCortex:
         loss.backward()
         
         for p in self.parameters():
+            # Gradient clipping to prevent explosion
+            if p.grad > 1: p.grad = 1
+            if p.grad < -1: p.grad = -1
             p.data -= learning_rate * p.grad
         
         return loss.data

@@ -48,4 +48,4 @@ title: Campaign
         
         content = plan_file.read_text(encoding='utf-8')
         assert "~~Fix the thing~~" in content
-        assert "| `src/foo.py` |" in content # Ensure file path is NOT struck
+        assert "~~`src/foo.py`~~" in content # Strike through everything
