@@ -116,20 +116,18 @@ class NornWarden(BaseWarden):
              idx = target['raw_target'].get('line_index', -1)
 
         if idx >= 0 and idx < len(lines):
-                # Simple heuristic: wrap the description in ~~ if not already
-                if "~~" not in line:
-                    # Strike through the description text by wrapping non-empty parts in ~~
+            line = lines[idx]
 
-                parts = line.split("|")
-                # We can try to guess the description column again or pass it.
-                # Let's assume standard format for modification to be safe, or just strike the whole line?
-                # Striking the whole line is safer for visual confirmation.
-                # Reconstruct line with ~~ around the content parts
-                new_parts = []
-                for p in parts:
-                    if p.strip() and "~~" not in p:
-                         new_parts.append(f" ~~{p.strip()}~~ ")
-                    else:
-                        new_parts.append(p)
-                lines[idx] = "|".join(new_parts)
-                self.plan_path.write_text("\n".join(lines), encoding='utf-8')
+            parts = line.split("|")
+            # We can try to guess the description column again or pass it.
+            # Let's assume standard format for modification to be safe, or just strike the whole line?
+            # Striking the whole line is safer for visual confirmation.
+            # Reconstruct line with ~~ around the content parts
+            new_parts = []
+            for p in parts:
+                if p.strip() and "~~" not in p:
+                        new_parts.append(f" ~~{p.strip()}~~ ")
+                else:
+                    new_parts.append(p)
+            lines[idx] = "|".join(new_parts)
+            self.plan_path.write_text("\n".join(lines), encoding='utf-8')
