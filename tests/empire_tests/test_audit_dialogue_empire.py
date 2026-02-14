@@ -1,9 +1,8 @@
 
 import pytest
-from unittest.mock import MagicMock, patch, mock_open
+from unittest.mock import MagicMock, patch
 from pathlib import Path
 import sys
-import json
 
 # Add project root to sys.path
 PROJECT_ROOT = Path(__file__).parents[2]
@@ -14,9 +13,9 @@ from src.tools.debug import audit_dialogue
 
 class TestAuditDialogueEmpire:
     
-    @patch("src.tools.debug.audit_dialogue.sv_engine.SovereignEngine")
-    @patch("src.tools.debug.audit_dialogue.sv_engine.HUD")
-    @patch("src.tools.debug.audit_dialogue.sv_engine.DialogueEngine")
+    @patch("src.tools.debug.audit_dialogue.SovereignEngine")
+    @patch("src.tools.debug.audit_dialogue.HUD")
+    @patch("src.tools.debug.audit_dialogue.DialogueEngine")
     def test_audit_flow(self, mock_dialogue, mock_hud, mock_sv_cls):
         mock_engine = mock_sv_cls.return_value
         mock_engine.score_identity.return_value = 0.9
@@ -31,9 +30,9 @@ class TestAuditDialogueEmpire:
         # Verify persona setup
         assert mock_hud.PERSONA == "GOD"
 
-    @patch("src.tools.debug.audit_dialogue.sv_engine.SovereignEngine")
-    @patch("src.tools.debug.audit_dialogue.sv_engine.HUD")
-    @patch("src.tools.debug.audit_dialogue.sv_engine.DialogueEngine")
+    @patch("src.tools.debug.audit_dialogue.SovereignEngine")
+    @patch("src.tools.debug.audit_dialogue.HUD")
+    @patch("src.tools.debug.audit_dialogue.DialogueEngine")
     def test_audit_deviance(self, mock_dialogue, mock_hud, mock_sv_cls):
         mock_engine = mock_sv_cls.return_value
         mock_engine.score_identity.return_value = 0.3

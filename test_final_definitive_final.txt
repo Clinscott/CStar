@@ -1,0 +1,345 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.2, pytest-9.0.2, pluggy-1.6.0
+rootdir: C:\Users\Craig\Corvus\CorvusStar
+configfile: pyproject.toml
+plugins: anyio-4.12.1
+collected 208 items
+
+tests\empire_tests\temp_gauntlet\test_annex_empire.py ....               [  1%]
+tests\empire_tests\temp_gauntlet\test_dispatcher_empire.py ..            [  2%]
+tests\empire_tests\temp_gauntlet\test_edda_empire.py ..                  [  3%]
+tests\empire_tests\temp_gauntlet\test_engine_empire.py ....              [  5%]
+tests\empire_tests\temp_gauntlet\test_fishtest_empire.py .......         [  9%]
+tests\empire_tests\temp_gauntlet\test_harvest_empire.py .                [  9%]
+tests\empire_tests\temp_gauntlet\test_install_skill_empire.py ...        [ 11%]
+tests\empire_tests\temp_gauntlet\test_main_loop_empire.py ..             [ 12%]
+tests\empire_tests\temp_gauntlet\test_personas_empire.py .....           [ 14%]
+tests\empire_tests\temp_gauntlet\test_sanitizer_empire.py .......        [ 17%]
+tests\empire_tests\temp_gauntlet\test_set_persona_empire.py ..           [ 18%]
+tests\empire_tests\temp_gauntlet\test_skill_forge_empire.py ....         [ 20%]
+tests\empire_tests\temp_gauntlet\test_sv_engine_empire.py ..             [ 21%]
+tests\empire_tests\temp_gauntlet\test_temp_empire.py .                   [ 22%]
+tests\empire_tests\temp_gauntlet\test_ui_empire.py ......                [ 25%]
+tests\empire_tests\temp_gauntlet\test_utils_empire.py ...                [ 26%]
+tests\empire_tests\test___init___empire.py .                             [ 26%]
+tests\empire_tests\test_annex_empire.py .                                [ 27%]
+tests\empire_tests\test_annex_preservation_empire.py .                   [ 27%]
+tests\empire_tests\test_audit_dialogue_empire.py FF                      [ 28%]
+tests\empire_tests\test_benchmark_engine_empire.py .                     [ 29%]
+tests\empire_tests\test_bootstrap_empire.py FF                           [ 30%]
+tests\empire_tests\test_catalog_check_empire.py ..                       [ 31%]
+tests\empire_tests\test_check_pro_empire.py ..                           [ 32%]
+tests\empire_tests\test_cjk_check_empire.py ..                           [ 33%]
+tests\empire_tests\test_code_sanitizer_empire.py ....                    [ 35%]
+tests\empire_tests\test_code_sentinel_empire.py ..                       [ 36%]
+tests\empire_tests\test_collision_investigator_empire.py ...             [ 37%]
+tests\empire_tests\test_compile_failure_report_empire.py .               [ 37%]
+tests\empire_tests\test_compile_session_traces_empire.py ..              [ 38%]
+tests\empire_tests\test_contextual_persona.py ...                        [ 40%]
+tests\empire_tests\test_core_engine_empire.py .                          [ 40%]
+tests\empire_tests\test_cstar_dispatcher_empire.py .                     [ 41%]
+tests\empire_tests\test_daemon_singleton_empire.py ..                    [ 42%]
+tests\empire_tests\test_debt_viz_empire.py ..                            [ 43%]
+tests\empire_tests\test_debug_engine_empire.py ....                      [ 45%]
+tests\empire_tests\test_dedupe_corrections_empire.py ..                  [ 46%]
+tests\empire_tests\test_dispatcher_help_empire.py ..                     [ 47%]
+tests\empire_tests\test_edda_audit_empire.py ...                         [ 48%]
+tests\empire_tests\test_edda_empire.py .                                 [ 49%]
+tests\empire_tests\test_edda_syntax_empire.py ..                         [ 50%]
+tests\empire_tests\test_expand_thesaurus_empire.py ..                    [ 50%]
+tests\empire_tests\test_fishtest_empire.py ..                            [ 51%]
+tests\empire_tests\test_fix_muninn_empire.py .                           [ 52%]
+tests\empire_tests\test_freya_aesthetics_empire.py ..                    [ 53%]
+tests\empire_tests\test_generate_tests_empire.py .                       [ 53%]
+tests\empire_tests\test_harvest_responses_empire.py ..                   [ 54%]
+tests\empire_tests\test_hud_box_empire.py .                              [ 55%]
+tests\empire_tests\test_install_skill_empire.py ..                       [ 56%]
+tests\empire_tests\test_latency_check_empire.py ...                      [ 57%]
+tests\empire_tests\test_lightning_rod_empire.py ..                       [ 58%]
+tests\empire_tests\test_main_loop_empire.py ..                           [ 59%]
+tests\empire_tests\test_merge_traces_empire.py ...                       [ 61%]
+tests\empire_tests\test_metrics_empire.py ..                             [ 62%]
+tests\empire_tests\test_migrate_to_qmd_empire.py ...                     [ 63%]
+tests\empire_tests\test_muninn_empire.py .....                           [ 65%]
+tests\empire_tests\test_muninn_memory_idempotency_empire.py .            [ 66%]
+tests\empire_tests\test_muninn_naming_empire.py ..                       [ 67%]
+tests\empire_tests\test_muninn_real_empire.py ...                        [ 68%]
+tests\empire_tests\test_network_watcher_empire.py ..                     [ 69%]
+tests\empire_tests\test_norn_campaign_empire.py ..                       [ 70%]
+tests\empire_tests\test_overfit_corrections_empire.py .                  [ 71%]
+tests\empire_tests\test_overwatch_empire.py ..                           [ 72%]
+tests\empire_tests\test_persona_logic_empire.py .                        [ 72%]
+tests\empire_tests\test_personas_empire.py .....                         [ 75%]
+tests\empire_tests\test_personas_retheme_empire.py .                     [ 75%]
+tests\empire_tests\test_prompt_linter_empire.py .....                    [ 77%]
+tests\empire_tests\test_report_engine_empire.py ..                       [ 78%]
+tests\empire_tests\test_runecaster_audit_empire.py ....                  [ 80%]
+tests\empire_tests\test_scout_targets_empire.py .                        [ 81%]
+tests\empire_tests\test_security_scan_empire.py ...                      [ 82%]
+tests\empire_tests\test_sentinel_perf_empire.py ..                       [ 83%]
+tests\empire_tests\test_set_persona_empire.py ....                       [ 85%]
+tests\empire_tests\test_skill_forge_empire.py ...                        [ 87%]
+tests\empire_tests\test_sv_engine_empire.py ...                          [ 88%]
+tests\empire_tests\test_synapse_auth_empire.py ...                       [ 89%]
+tests\empire_tests\test_synapse_sync_empire.py ..                        [ 90%]
+tests\empire_tests\test_thewatcher_integrity_empire.py ...               [ 92%]
+tests\empire_tests\test_trace_viz_empire.py ..                           [ 93%]
+tests\empire_tests\test_tune_weights_empire.py ..                        [ 94%]
+tests\empire_tests\test_ui_empire.py .....                               [ 96%]
+tests\empire_tests\test_update_gemini_manifest_empire.py .               [ 97%]
+tests\empire_tests\test_utils_empire.py ...                              [ 98%]
+tests\empire_tests\test_valkyrie_audit_empire.py ..                      [ 99%]
+tests\empire_tests\test_verify_valkyrie_real_empire.py .                 [100%]
+
+================================== FAILURES ===================================
+___________________ TestAuditDialogueEmpire.test_audit_flow ___________________
+
+self = <test_audit_dialogue_empire.TestAuditDialogueEmpire object at 0x000001FEAA2D3C50>
+mock_dialogue = <MagicMock name='DialogueEngine' id='2193292793504'>
+mock_hud = <MagicMock name='HUD' id='2193292793840'>
+mock_sv_cls = <MagicMock name='SovereignEngine' id='2193292794176'>
+
+    @patch("src.tools.debug.audit_dialogue.sv_engine.SovereignEngine")
+    @patch("src.tools.debug.audit_dialogue.sv_engine.HUD")
+    @patch("src.tools.debug.audit_dialogue.sv_engine.DialogueEngine")
+    def test_audit_flow(self, mock_dialogue, mock_hud, mock_sv_cls):
+        mock_engine = mock_sv_cls.return_value
+        mock_engine.score_identity.return_value = 0.9
+    
+        auditor = audit_dialogue.DialogueAuditor()
+>       auditor.audit("test dialogue")
+
+tests\empire_tests\test_audit_dialogue_empire.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\tools\debug\audit_dialogue.py:63: in audit
+    score = self.engine.score_identity(text, self.persona)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.core.engine.vector.SovereignVector object at 0x000001FEAA40FCE0>
+text = 'test dialogue', persona_name = 'ALFRED'
+
+    def score_identity(self, text: str, persona_name: str) -> float:
+        """
+        Calculates a 'Purity Score' (0-1) by comparing input text
+        to the vector space of the chosen persona's dialogue.
+        """
+        # 1. Expand query for text
+        weighted_tokens = self.expand_query(text)
+        text_vec = self._vectorize(weighted_tokens)
+    
+        # 2. Re-index temporarily on dialogue
+        # We need a mini-engine for this or just simulate similarity
+        # Let's use the current engine's vocab but check against dialogue data
+        # If the text has tokens that appear frequently in the persona's DB, it's a match.
+    
+        # Actually, if we have HUD.DIALOGUE loaded, we can compare directly.
+        # Simple heuristic for now: token overlap with dialogue registry
+        tokens = set(self.tokenize(text))
+        persona_tokens = set()
+    
+        # Defensive check for HUD.DIALOGUE
+        if HUD.DIALOGUE:
+>           for phrases in HUD.DIALOGUE.intents.values():
+                           ^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: 'DialogueEngine' object has no attribute 'intents'
+
+src\core\engine\vector.py:491: AttributeError
+---------------------------- Captured stdout call -----------------------------
+[2;36m???????????????????????????????????????? [36m[1mENGINE INITIALIZED[0m[2;36m ????????????????????????????????????????[0m
+[2;36m?[0m [36mSTATUS              [0m [32mONLINE[0m                                                                       [2;36m?[0m
+[2;36m????????????????????????????????????????????????????????????????????????????????????????????????????[0m
+_________________ TestAuditDialogueEmpire.test_audit_deviance _________________
+
+self = <test_audit_dialogue_empire.TestAuditDialogueEmpire object at 0x000001FEAA2D3D90>
+mock_dialogue = <MagicMock name='DialogueEngine' id='2193292796528'>
+mock_hud = <MagicMock name='HUD' id='2193292798208'>
+mock_sv_cls = <MagicMock name='SovereignEngine' id='2193292798880'>
+
+    @patch("src.tools.debug.audit_dialogue.sv_engine.SovereignEngine")
+    @patch("src.tools.debug.audit_dialogue.sv_engine.HUD")
+    @patch("src.tools.debug.audit_dialogue.sv_engine.DialogueEngine")
+    def test_audit_deviance(self, mock_dialogue, mock_hud, mock_sv_cls):
+        mock_engine = mock_sv_cls.return_value
+        mock_engine.score_identity.return_value = 0.3
+    
+        auditor = audit_dialogue.DialogueAuditor()
+>       auditor.audit("deviant dialogue")
+
+tests\empire_tests\test_audit_dialogue_empire.py:42: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\tools\debug\audit_dialogue.py:63: in audit
+    score = self.engine.score_identity(text, self.persona)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <src.core.engine.vector.SovereignVector object at 0x000001FEAA740510>
+text = 'deviant dialogue', persona_name = 'ALFRED'
+
+    def score_identity(self, text: str, persona_name: str) -> float:
+        """
+        Calculates a 'Purity Score' (0-1) by comparing input text
+        to the vector space of the chosen persona's dialogue.
+        """
+        # 1. Expand query for text
+        weighted_tokens = self.expand_query(text)
+        text_vec = self._vectorize(weighted_tokens)
+    
+        # 2. Re-index temporarily on dialogue
+        # We need a mini-engine for this or just simulate similarity
+        # Let's use the current engine's vocab but check against dialogue data
+        # If the text has tokens that appear frequently in the persona's DB, it's a match.
+    
+        # Actually, if we have HUD.DIALOGUE loaded, we can compare directly.
+        # Simple heuristic for now: token overlap with dialogue registry
+        tokens = set(self.tokenize(text))
+        persona_tokens = set()
+    
+        # Defensive check for HUD.DIALOGUE
+        if HUD.DIALOGUE:
+>           for phrases in HUD.DIALOGUE.intents.values():
+                           ^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: 'DialogueEngine' object has no attribute 'intents'
+
+src\core\engine\vector.py:491: AttributeError
+---------------------------- Captured stdout call -----------------------------
+[2;36m???????????????????????????????????????? [36m[1mENGINE INITIALIZED[0m[2;36m ????????????????????????????????????????[0m
+[2;36m?[0m [36mSTATUS              [0m [32mONLINE[0m                                                                       [2;36m?[0m
+[2;36m????????????????????????????????????????????????????????????????????????????????????????????????????[0m
+___________________ TestBootstrapEmpire.test_bootstrap_flow ___________________
+
+args = (<test_bootstrap_empire.TestBootstrapEmpire object at 0x000001FEAA425310>,)
+keywargs = {}
+
+    @wraps(func)
+    def patched(*args, **keywargs):
+>       with self.decoration_helper(patched,
+                                    args,
+                                    keywargs) as (newargs, newkeywargs):
+
+C:\Python314\Lib\unittest\mock.py:1429: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Python314\Lib\contextlib.py:141: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+C:\Python314\Lib\unittest\mock.py:1411: in decoration_helper
+    arg = exit_stack.enter_context(patching)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Python314\Lib\contextlib.py:530: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+C:\Python314\Lib\unittest\mock.py:1503: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <unittest.mock._patch object at 0x000001FEAA357070>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'src.sentinel._bootstrap' from 'C:\\Users\\Craig\\Corvus\\CorvusStar\\src\\sentinel\\_bootstrap.py'> does not have the attribute 'HUD'
+
+C:\Python314\Lib\unittest\mock.py:1473: AttributeError
+_______________ TestBootstrapEmpire.test_bootstrap_no_env_file ________________
+
+args = (<test_bootstrap_empire.TestBootstrapEmpire object at 0x000001FEAA424550>,)
+keywargs = {}
+
+    @wraps(func)
+    def patched(*args, **keywargs):
+>       with self.decoration_helper(patched,
+                                    args,
+                                    keywargs) as (newargs, newkeywargs):
+
+C:\Python314\Lib\unittest\mock.py:1429: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Python314\Lib\contextlib.py:141: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+C:\Python314\Lib\unittest\mock.py:1411: in decoration_helper
+    arg = exit_stack.enter_context(patching)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Python314\Lib\contextlib.py:530: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+C:\Python314\Lib\unittest\mock.py:1503: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <unittest.mock._patch object at 0x000001FEAA357150>
+
+    def get_original(self):
+        target = self.getter()
+        name = self.attribute
+    
+        original = DEFAULT
+        local = False
+    
+        try:
+            original = target.__dict__[name]
+        except (AttributeError, KeyError):
+            original = getattr(target, name, DEFAULT)
+        else:
+            local = True
+    
+        if name in _builtins and isinstance(target, ModuleType):
+            self.create = True
+    
+        if not self.create and original is DEFAULT:
+>           raise AttributeError(
+                "%s does not have the attribute %r" % (target, name)
+            )
+E           AttributeError: <module 'src.sentinel._bootstrap' from 'C:\\Users\\Craig\\Corvus\\CorvusStar\\src\\sentinel\\_bootstrap.py'> does not have the attribute 'HUD'
+
+C:\Python314\Lib\unittest\mock.py:1473: AttributeError
+============================== warnings summary ===============================
+tests/empire_tests/test_sv_engine_empire.py::TestSovereignEngineEmpire::test_run_basic_flow
+  C:\Users\Craig\AppData\Roaming\Python\Python314\site-packages\_pytest\threadexception.py:58: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-21 (_read)
+  
+  Traceback (most recent call last):
+    File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+      self._context.run(self.run)
+      ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+    File "C:\Python314\Lib\threading.py", line 1024, in run
+      self._target(*self._args, **self._kwargs)
+      ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\Users\Craig\Corvus\CorvusStar\src\core\utils.py", line 54, in _read
+      try: q.put(sys.stdin.readline().strip().lower())
+                 ~~~~~~~~~~~~~~~~~~^^
+    File "C:\Users\Craig\AppData\Roaming\Python\Python314\site-packages\_pytest\capture.py", line 229, in read
+      raise OSError(
+          "pytest: reading from stdin while output is captured!  Consider using `-s`."
+      )
+  OSError: pytest: reading from stdin while output is captured!  Consider using `-s`.
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/empire_tests/test_audit_dialogue_empire.py::TestAuditDialogueEmpire::test_audit_flow
+FAILED tests/empire_tests/test_audit_dialogue_empire.py::TestAuditDialogueEmpire::test_audit_deviance
+FAILED tests/empire_tests/test_bootstrap_empire.py::TestBootstrapEmpire::test_bootstrap_flow
+FAILED tests/empire_tests/test_bootstrap_empire.py::TestBootstrapEmpire::test_bootstrap_no_env_file
+================== 4 failed, 204 passed, 1 warning in 34.08s ==================
