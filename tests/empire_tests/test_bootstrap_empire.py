@@ -10,6 +10,8 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 # Mock ONLY external/missing dependencies
+# Use patch.dict for sys.modules to avoid permanent pollution if possible,
+# but here it's module level so we'll just be careful.
 if "dotenv" not in sys.modules:
     sys.modules["dotenv"] = MagicMock()
 
@@ -24,9 +26,9 @@ from src.sentinel import _bootstrap
 
 class TestBootstrapEmpire:
     
-    @patch("src.sentinel._bootstrap.load_dotenv")
+    @patch("src.sentinel._bootstrap.load_dotenv", create=True)
     @patch("src.sentinel._bootstrap.HUD")
-    @patch("src.sentinel._bootstrap.load_config")
+    @patch("src.sentinel._bootstrap.load_config", create=True)
     def test_bootstrap_flow(self, mock_load_config, mock_hud, mock_dotenv):
         mock_load_config.return_value = {"persona": "ODIN"}
         
@@ -41,11 +43,11 @@ class TestBootstrapEmpire:
         # Verify persona sync
         assert mock_hud.PERSONA == "ODIN"
 
-    @patch("src.sentinel._bootstrap.load_dotenv")
+    @patch("src.sentinel._bootstrap.load_dotenv", create=True)
     def test_bootstrap_no_env_file(self, mock_dotenv):
         _bootstrap._BOOTSTRAPPED = False
         with patch("src.sentinel._bootstrap.HUD"), \
-             patch("src.sentinel._bootstrap.load_config", return_value={}):
+             patch("src.sentinel._bootstrap.load_config", return_value={}, create=True):
             _bootstrap.bootstrap()
             mock_dotenv.assert_called()
 
