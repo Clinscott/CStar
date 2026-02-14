@@ -51,11 +51,12 @@ class TestMuninnEmpire:
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key"})
     @patch("src.sentinel.muninn.HUD")
     @patch("src.sentinel.muninn.ThreadPoolExecutor")
+    @patch("src.sentinel.muninn.as_completed")
     @patch("src.sentinel.muninn.HeimdallWarden")
     @patch("src.sentinel.muninn.ProjectMetricsEngine")
     @patch("src.sentinel.muninn.TheWatcher")
     @patch("src.sentinel.muninn.GungnirSPRT")
-    def test_run_scan_no_breaches(self, mock_sprt, mock_watcher, mock_metrics, mock_heimdall, mock_executor, mock_hud):
+    def test_run_scan_no_breaches(self, mock_sprt, mock_watcher, mock_metrics, mock_heimdall, mock_as_completed, mock_executor, mock_hud):
         muninn = Muninn("dummy_root")
         
         # Mock metrics engine instance
@@ -65,6 +66,9 @@ class TestMuninnEmpire:
         # Mock Heimdall (synch scan)
         mock_annex = mock_heimdall.return_value
         mock_annex.breaches = []
+        
+        # Mock as_completed to avoid hanging on MagicMocks
+        mock_as_completed.side_effect = lambda x: x
         
         # Mock context manager for executor
         mock_executor.return_value.__enter__.return_value = MagicMock()
@@ -78,17 +82,21 @@ class TestMuninnEmpire:
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key"})
     @patch("src.sentinel.muninn.HUD")
     @patch("src.sentinel.muninn.ThreadPoolExecutor")
+    @patch("src.sentinel.muninn.as_completed")
     @patch("src.sentinel.muninn.HeimdallWarden")
     @patch("src.sentinel.muninn.ProjectMetricsEngine")
     @patch("src.sentinel.muninn.TheWatcher")
     @patch("src.sentinel.muninn.GungnirSPRT")
     @patch("src.sentinel.muninn.subprocess.run")
-    def test_run_with_breach_success(self, mock_sub, mock_sprt, mock_watcher, mock_metrics, mock_heimdall, mock_executor, mock_hud):
+    def test_run_with_breach_success(self, mock_sub, mock_sprt, mock_watcher, mock_metrics, mock_heimdall, mock_as_completed, mock_executor, mock_hud):
         muninn = Muninn("dummy_root")
         
         # Mock metrics
         mock_metrics_inst = mock_metrics.return_value
         mock_metrics_inst.compute.side_effect = [80.0, 85.0] # Pre, Post
+        
+        # Mock as_completed
+        mock_as_completed.side_effect = lambda x: x
         
         # Mock Breach
         mock_annex = mock_heimdall.return_value
