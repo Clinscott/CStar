@@ -1,4 +1,9 @@
 import os
+import re
+import sys
+import threading
+import queue
+import json
 from pathlib import Path
 
 try:
@@ -25,7 +30,6 @@ def safe_read_json(path: Path | str) -> dict:
                     msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, os.path.getsize(path))
                 except (IOError, OSError):
                     pass
-            import json
             return json.load(f)
     except (json.JSONDecodeError, IOError, OSError):
         return {}
