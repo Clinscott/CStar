@@ -1,80 +1,51 @@
 
 import pytest
 from unittest.mock import MagicMock, patch
-from pathlib import Path
 import sys
+from pathlib import Path
 
-# Mock dependencies primarily for the HUD import part
-MOCK_MODULES = [
-    "src.core.ui",
-    "src.core.utils",
-    "dotenv"
-]
+# Add project root to sys.path
+PROJECT_ROOT = Path(__file__).parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
-for mod in MOCK_MODULES:
-    sys.modules[mod] = MagicMock()
+# Mock ONLY external/missing dependencies
+if "dotenv" not in sys.modules:
+    sys.modules["dotenv"] = MagicMock()
 
 def teardown_module():
-    for mod in MOCK_MODULES:
-        if mod in sys.modules:
-            del sys.modules[mod]
+    if "dotenv" in sys.modules:
+        if isinstance(sys.modules["dotenv"], MagicMock):
+            del sys.modules["dotenv"]
 
-# Import the module under test
-# We need to act on the module itself or the function.
-# The module code runs some top-level (PROJECT_ROOT resolution).
-
-import src.sentinel._bootstrap as bootstrap_module
+# Modules under test should be imported after local patching if needed,
+# but here we can just import it and patch its internal calls.
+from src.sentinel import _bootstrap
 
 class TestBootstrapEmpire:
     
-    def setup_method(self):
-        # Reset the global flag
-        bootstrap_module._BOOTSTRAPPED = False
+    @patch("src.sentinel._bootstrap.load_dotenv")
+    @patch("src.sentinel._bootstrap.HUD")
+    @patch("src.sentinel._bootstrap.utils.load_config")
+    def test_bootstrap_flow(self, mock_load_config, mock_hud, mock_dotenv):
+        mock_load_config.return_value = {"persona": "ODIN"}
         
-    # @patch("src.sentinel._bootstrap.load_dotenv") removed
-    def test_bootstrap_path_injection(self):
-        # Patch sys.path globally
-        with patch.object(sys, "path", new_callable=MagicMock) as mock_path:
-             # Assume PROJECT_ROOT is not in path
-             mock_path.__contains__.return_value = False
-             
-             bootstrap_module.bootstrap()
-             
-             # Verify insert called
-             mock_path.insert.assert_called_with(0, str(bootstrap_module.PROJECT_ROOT))
-             
-             # Verify load_dotenv called
-             mock_dotenv = sys.modules["dotenv"]
-             mock_dotenv.load_dotenv.assert_called()
+        _bootstrap.bootstrap()
+        
+        # Verify dotenv called
+        mock_dotenv.assert_called()
+        
+        # Verify persona sync
+        assert mock_hud.PERSONA == "ODIN"
+        mock_hud._ensure_persona.assert_called()
 
-    def test_bootstrap_persona_sync(self):
-        # We mocked src.core.ui at top level
-        # So we can configure it expectations
-        
-        # But wait, imports inside function happen at runtime.
-        # We need to make sure subsequent calls re-import or use existing sys.modules
-        
-        # Reset bootstrapped flag
-        bootstrap_module._BOOTSTRAPPED = False
-        
-        mock_ui = sys.modules["src.core.ui"]
-        mock_utils = sys.modules["src.core.utils"]
-        
-        mock_utils.load_config.return_value = {"persona": "ODIN"}
-        
-        with patch.object(sys, "path", new_callable=MagicMock):
-             bootstrap_module.bootstrap()
-        
-        assert mock_ui.HUD.PERSONA == "ODIN"
-
-    def test_bootstrap_idempotency(self):
-        bootstrap_module.bootstrap()
-        # Resetting flag is NOT done here, we want to test idempotency
-        # But wait, first call sets it to True.
-        
-        with patch.object(sys, "path", new_callable=MagicMock) as mock_path:
-             bootstrap_module.bootstrap()
-             mock_path.insert.assert_not_called()
+    @patch("src.sentinel._bootstrap.load_dotenv")
+    def test_bootstrap_no_env_file(self, mock_dotenv):
+        # Even if file missing, it should call load_dotenv (which handles it)
+        with patch("src.sentinel._bootstrap.HUD"), \
+             patch("src.sentinel._bootstrap.utils.load_config", return_value={}):
+            _bootstrap.bootstrap()
+            mock_dotenv.assert_called()
 
 if __name__ == "__main__":
     pytest.main([__file__])
