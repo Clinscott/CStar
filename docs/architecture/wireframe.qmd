@@ -58,6 +58,13 @@ Maintain a searchable, accurate map of the project's UI and service architecture
     - `compiler.py`: Translates `.qmd` contracts into unit tests.
     - `benchmark_engine.py`: Performance regression monitor integrated into `Muninn`.
 
+### Intelligence & Web Integration (Bifröst)
+- **Path**: `c:/Users/Craig/Corvus/CorvusStar/src/tools/brave_search.py`
+- **Description**: Secure Brave Search API client with 1,000/mo quota enforcement.
+- **Key Functions**:
+    - `search(query)`: Fetches web snippets with automated monthly reset logic.
+    - `is_quota_available()`: Checks hard limit against local ledger.
+
 ### Skill Management (The Synapse)
 - **Path**: `c:/Users/Craig/Corvus/CorvusStar/src/synapse/synapse_sync.py`
 - **Description**: Bidirectional sync between local and global Knowledge Cores (Mimir's Eye).
