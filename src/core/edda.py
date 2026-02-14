@@ -15,7 +15,7 @@ from src.core.ui import HUD
 # ==============================================================================
 
 class EddaWeaver:
-    def __init__(self, root_dir: Path, quarantine_dir: Path):
+    def __init__(self, root_dir: Path, quarantine_dir: Path) -> None:
         self.root = root_dir.resolve()
         self.quarantine = quarantine_dir.resolve()
         self.ignore_patterns = [

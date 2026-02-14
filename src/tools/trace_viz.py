@@ -86,7 +86,7 @@ class TraceRenderer:
     [ALFRED] Decoupled renderer that enforces a specific theme for neural replay.
     Ensures ODIN can view ALFRED'S traces in their native Cyan without persona leakage.
     """
-    def __init__(self, target_persona: str):
+    def __init__(self, target_persona: str) -> None:
         """
         Initializes the renderer with a target persona theme.
         

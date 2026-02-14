@@ -56,7 +56,7 @@ class Heimdall:
         }
     }
 
-    def __init__(self, target: str = ".", fix: bool = False, persona_override: Optional[str] = None):
+    def __init__(self, target: str = ".", fix: bool = False, persona_override: Optional[str] = None) -> None:
         self.target = Path(target)
         self.fix = fix
         self.scripts_dir = Path(__file__).parent.absolute()

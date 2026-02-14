@@ -33,7 +33,7 @@ class ResponseRecorder:
     Wraps a real genai client and records every generate_content call.
     """
 
-    def __init__(self, real_client):
+    def __init__(self, real_client) -> None:
         self.real_client = real_client
         self.recordings = []
 

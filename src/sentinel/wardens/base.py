@@ -18,7 +18,7 @@ class BaseWarden(ABC):
     Provides centralized config loading, path filtering, and research capabilities.
     """
 
-    def __init__(self, root: Path):
+    def __init__(self, root: Path) -> None:
         self.root = root
         self.config = self._load_config()
         self.brave = BraveSearch()

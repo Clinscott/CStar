@@ -173,6 +173,7 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **HeimdallGuard**: Forged regex-based prompt injection neutralization in `code_sanitizer.py`. [x]
 - [x] **Raven's Eye**: Proactive lexicon expansion for unknown technical terms in `sv_engine.py`. [x]
 - [x] **Forge Augmentor**: Web-RAG synthesis for external library documentation in `skill_forge.py`. [x]
+- [x] **KnowledgeHunter Upgrade**: Upgraded `KnowledgeHunter` skill to be an active Web-Research Python script using Brave Search and Gemini. [x]
 - [x] **Verification**: 100% pass on specialized `augmented_intel` test suite. [x]
 
 ### 37. Muninn's Awakening (Session 54)
@@ -188,8 +189,38 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Gungnir's Calculus**: Trigger background neural training loop via `atomic_gpt.py`. [x]
 - [x] **Subconscious Integration**: Implemented `Get-CortexDirectives.ps1` and `Invoke-CStarAgentLoop.ps1`. [x]
 
-## ⏭️ Start Here Next (Phase 39)
+### 39. Maintenance & Batch Fixes (Session 55)
+- [x] **Batch Remediation**: Automated fix for ~1500 RUNE/EDDA breaches (Legacy format & Missing types). [x]
+- [x] **Manual Repair**: Fixed persistent EDDA breach in `scripts/fix_muninn.py` (Missing docstring). [x]
+- [x] **Test Restoration**: Repaired indentation in `test_freya_empire` and `test_huginn_empire` verification failure. [x]
+
+### 41. The Closed Loop (Session 56)
+- [x] **Daemon Discovery**: Patched `cstar_dispatcher.py` to recursively discover `src/sentinel` scripts. [x]
+- [x] **Neural Persistence**: Implemented `save_weights/load_weights` (pickle) in `AtomicCortex`. [x]
+- [x] **Weight Tuning**: Closed the feedback loop in `tune_weights.py` to persist learned weight adjustments to `thesaurus.qmd`. [x]
+- [x] **Web Integration**: Integrated `BraveSearch` into `Muninn` for context augmentation, optimized to 1 search/run. [x]
+- [x] **Trace Corrections**: Enabled `compile_session_traces.py` to auto-write `critical_fails` to `.agent/corrections.json`. [x]
+
+### 42. Web-Aware CLI Tools (Session 57)
+- [x] **Brave CLI**: Exposed `src/tools/brave_search.py` to the CLI for manual ad-hoc queries (`python -m src.tools.brave_search`). [x]
+- [x] **Environment Bootstrap**: Patched `brave_search.py` to use `src.sentinel._bootstrap` for robust `.env` loading in script mode. [x]
+- [x] **Verification**: Verified live search functionality with HUD integration. [x]
+- [x] **Zero-Hit Fallback**: Implemented automatic Brave Search fallback in `sv_engine.py` for low-confidence (<0.6) queries. [x]
+
+### 43. Live Documentation Injection (Session 58)
+- [x] **Import Enrichment**: Implemented `scan_and_enrich_imports` in `code_sanitizer.py` to fetch live docs for unknown modules. [x]
+- [x] **Muninn Integration**: Updated `Muninn` to inject web search results into the request prompt for context-aware fixes. [x]
+- [x] **Verification**: Verified with `tests/sentinel/test_web_enrichment.py` (100% Pass). [x]
+
+### 44. SovereignFish Refinement (Session 59)
+- [x] **Critical Fix**: Patched `NameError` in `muninn.py` neural training hook to enable AtomicCortex evolution. [x]
+- [x] **DX Enhancement**: Added strict type hints and docstrings to `brave_search.py` for better developer experience. [x]
+- [x] **Verification**: Verified with `ruff` and `pytest`. [x]
+
+## ⏭️ Start Here Next (Phase 42)
 - [ ] **Operation Ironclad: Hybrid Modularization**: Begin the migration of core memory and engine logic to a persistent modular package (`src/cstar`).
-- [ ] **Annexation Execution**: Activate the `execution` mode for `annex.py` to auto-remediate Documentation/Linguistic breaches project-wide. 
+    - Move `memory.qmd`, `tasks.qmd`, `thesaurus.qmd` to `src/cstar/memory/`.
+    - Create `src/cstar/engine/` for `sv_engine.py` and `vector.py`.
+- [ ] **Annexation Execution**: Activate the `execution` mode for `annex.py` to auto-remediate Documentation/Linguistic breaches project-wide.
 - [ ] **Heimdall Persistence**: Harden the security monitor to run in background mode with a persistent log rotation.
 - [ ] **Atomic Expansion**: Increase the `AtomicCortex` embedding dimension and vocabulary to support broader linguistic patterns.

@@ -18,7 +18,7 @@ class LatencyProfiler:
     Focuses on cold-start latency and search execution timing.
     """
 
-    def __init__(self, iterations: int = 5):
+    def __init__(self, iterations: int = 5) -> None:
         self.iterations = iterations
         self.scripts_dir = os.path.dirname(os.path.abspath(__file__))
         self.agent_dir = os.path.dirname(self.scripts_dir)

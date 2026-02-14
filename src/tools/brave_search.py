@@ -15,7 +15,7 @@ class BraveSearch:
     QUOTA_FILE = Path(".agent/brave_quota.json")
     MAX_QUOTA = 1000
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.api_key = os.getenv("BRAVE_API_KEY")
         self._ensure_quota_ledger()
 
@@ -54,9 +54,19 @@ class BraveSearch:
         data = self._read_ledger()
         return data["count"] < self.MAX_QUOTA
 
-    def search(self, query: str) -> list[dict]:
+    def search(self, query: str) -> list[dict[str, str]]:
         """
-        Executes a Brave Search. Returns snippets.
+        Executes a Brave Search. Returns a list of result dictionaries.
+        
+        Args:
+            query (str): The search query.
+            
+        Returns:
+            list[dict]: A list of dictionaries, each containing:
+                - title (str): The page title.
+                - description (str): The snippet or description.
+                - url (str): The direct URL.
+        
         Enforces the 1,000 search/month limit.
         """
         if not self.api_key:
@@ -94,9 +104,46 @@ class BraveSearch:
             return []
 
 if __name__ == "__main__":
+    import sys
+    
+    # [ALFRED] Ensure environment is loaded (e.g. .env.local)
+    try:
+        from src.sentinel._bootstrap import bootstrap
+        bootstrap()
+    except ImportError:
+        pass # Fallback or already loaded if integrated
+
+    # Simple CLI dispatch
+    # Usage: python src/tools/brave_search.py "search query"
+    
     searcher = BraveSearch()
-    if searcher.is_quota_available():
-        test_results = searcher.search("Corvus Star AI Framework")
-        print(json.dumps(test_results, indent=2))
+    
+    if len(sys.argv) > 1:
+        query = " ".join(sys.argv[1:]) # Handle multi-word queries without quotes if needed, or just take the rest
+        
+        HUD.persona_log("INFO", f"Executing Brave Search for: {query}")
+        
+        results = searcher.search(query)
+        
+        if results:
+            HUD.box_top(f"SEARCH RESULTS: {query}")
+            
+            for i, res in enumerate(results):
+                title = res.get('title', 'N/A')
+                url = res.get('url', 'N/A')
+                desc = res.get('description', 'N/A')
+                
+                # Truncate description if too long for clean display
+                if len(desc) > 80:
+                    desc = desc[:77] + "..."
+                    
+                print(f"\n{HUD.CYAN}[{i+1}] {HUD.BOLD}{title}{HUD.RESET}")
+                print(f"    {HUD.DIM}{url}{HUD.RESET}")
+                print(f"    {desc}")
+                
+            print(f"\n{HUD.DIM}Found {len(results)} results.{HUD.RESET}")
+        else:
+            HUD.persona_log("WARN", "No results returned.")
+            
     else:
-        print("Quota Exhausted")
+        HUD.persona_log("WARN", "Usage: python -m src.tools.brave_search <query>")

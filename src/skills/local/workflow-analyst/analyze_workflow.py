@@ -7,7 +7,7 @@ from collections import Counter
 
 
 class WorkflowAnalyst:
-    def __init__(self, root_dir):
+    def __init__(self, root_dir) -> None:
         self.root = root_dir
         self.tasks_path = os.path.join(root_dir, "tasks.md")
         self.journal_path = os.path.join(root_dir, "dev_journal.md")

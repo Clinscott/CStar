@@ -33,7 +33,7 @@ def process_file(file_path: str):
 
 class CruciblePipeline:
     """[ALFRED] Secure ingestion pipeline for the Federated Crucible."""
-    def __init__(self, root: str, base: str):
+    def __init__(self, root: str, base: str) -> None:
         self.root, self.base = root, base
         self.stage = os.path.join(base, "traces", "staging")
         self.proc = os.path.join(base, "traces", "processed")
@@ -73,7 +73,7 @@ class NetworkWatcher:
     [ALFRED] Persistent monitor for the federated network share.
     Auto-detects incoming JSON traces and routes them to the CruciblePipeline.
     """
-    def __init__(self, share_path: str, pipeline: CruciblePipeline):
+    def __init__(self, share_path: str, pipeline: CruciblePipeline) -> None:
         self.share = share_path
         self.pipeline = pipeline
 

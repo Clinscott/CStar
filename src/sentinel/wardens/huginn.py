@@ -14,7 +14,7 @@ from google.genai import types
 from src.sentinel.wardens.base import BaseWarden
 
 class HuginnWarden(BaseWarden):
-    def __init__(self, root: Path):
+    def __init__(self, root: Path) -> None:
         super().__init__(root)
         self.trace_dir = root / ".agent" / "traces"
         self.api_key = os.getenv("GOOGLE_API_KEY")

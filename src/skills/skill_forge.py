@@ -70,7 +70,7 @@ class SkillForge:
         r'pickle\.loads?\s*\(',
     ]
     
-    def __init__(self, project_root: str):
+    def __init__(self, project_root: str) -> None:
         self.project_root = project_root
         self.base_dir = os.path.join(project_root, ".agent")
         self.drafts_dir = os.path.join(self.base_dir, "skills", "drafts")

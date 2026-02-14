@@ -36,7 +36,7 @@ class SovereignEngine:
         "REC": 0.5, "INSTALL": 0.85, "HANDSHAKE": 0.9, "ACCURACY": 0.8
     }
 
-    def __init__(self, project_root: Path | None = None):
+    def __init__(self, project_root: Path | None = None) -> None:
         self.script_dir = Path(__file__).parent.absolute()
         self.project_root = project_root if project_root else self.script_dir.parent.parent
         self.base_path = self.project_root / ".agent"
@@ -146,6 +146,14 @@ class SovereignEngine:
             match_str = f"{'[G] ' if top['is_global'] else ''}{top['trigger']}"
             HUD.box_row("Match", match_str, HUD.DIM)
             HUD.box_row("Confidence", f"{HUD.progress_bar(top['score'])} {top['score']:.2f}", color)
+            
+            if top['trigger'] == 'WEB_FALLBACK':
+                 HUD.box_separator()
+                 HUD.box_row("WEB RESULTS", "", HUD.CYAN)
+                 for i, r in enumerate(top['web_results'][:3]): # Show top 3
+                     HUD.box_row(f"[{i+1}]", r['title'], HUD.BOLD)
+                     HUD.box_row("   ", r['url'], HUD.DIM)
+
         else:
             HUD.box_row("Match", "NONE", HUD.RED)
 
@@ -153,7 +161,10 @@ class SovereignEngine:
 
     def _handle_proactive(self, top: dict[str, Any]) -> None:
         """Checks for and executes proactive installation or command runs."""
-        if top['score'] <= self.THRESHOLDS["ACCURACY"]:
+        if top['score'] <= self.THRESHOLDS["ACCURACY"] and top['trigger'] != 'WEB_FALLBACK':
+            return
+        
+        if top['trigger'] == 'WEB_FALLBACK':
             return
 
         trigger = top['trigger']
@@ -212,6 +223,24 @@ class SovereignEngine:
 
         results = engine.search(query)
         top = results[0] if results else None
+
+        if not top or top['score'] < 0.6:
+            # Zero-Hit Fallback: Brave Web Search
+            HUD.persona_log("INFO", "SovereignEngine: Low confidence match. Creating Web Fallback...") 
+            searcher = BraveSearch()
+            web_results = searcher.search(query)
+            
+            if web_results:
+                formatted_results = "\n".join(
+                    [f"- {r['title']} ({r['url']})\n  {r['description']}" for r in web_results[:3]]
+                )
+                top = {
+                    "trigger": "WEB_FALLBACK",
+                    "score": 1.0,
+                    "data": formatted_results,
+                    "is_global": False,
+                    "web_results": web_results 
+                }
 
         if record and top:
             self.record_trace(query, top)

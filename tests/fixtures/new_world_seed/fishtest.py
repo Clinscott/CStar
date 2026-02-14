@@ -13,7 +13,7 @@ except ImportError:
 
 class SPRT:
     """Sequential Probability Ratio Test for automated verification."""
-    def __init__(self, alpha=0.05, beta=0.05, elo_diff=10):
+    def __init__(self, alpha=0.05, beta=0.05, elo_diff=10) -> None:
         self.alpha = alpha
         self.beta = beta
         self.elo_diff = elo_diff

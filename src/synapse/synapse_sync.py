@@ -27,7 +27,7 @@ class ConfigurationError(Exception):
 class PushRateLimiter:
     """[ALFRED] Prevents rapid-fire pushes to the Knowledge Core."""
 
-    def __init__(self, core_path: Path):
+    def __init__(self, core_path: Path) -> None:
         self.path = core_path / ".synapse_rate_limit.json"
         self.client_id = self._get_host()
         self.data = self._load()
@@ -85,7 +85,7 @@ class PushRateLimiter:
 class GitHelper:
     """[ALFRED] Secure wrapper for Git repository operations."""
 
-    def __init__(self, repo_path: Path):
+    def __init__(self, repo_path: Path) -> None:
         self.path = repo_path
 
     def run(self, args: List[str]) -> Tuple[bool, str]:
@@ -123,7 +123,7 @@ class GitHelper:
 class KnowledgeExtractor:
     """[ALFRED] Harvests wisdom from local project activity for the Core."""
 
-    def __init__(self, project_root: Path, agent_dir: Path):
+    def __init__(self, project_root: Path, agent_dir: Path) -> None:
         self.root = project_root
         self.agent = agent_dir
         self.corrections_path = agent_dir / "corrections.json"
@@ -178,7 +178,7 @@ class Synapse:
     Management of the bidirectional flow between Local Project activity and the Knowledge Core.
     """
 
-    def __init__(self, remote_alias: str = "primary"):
+    def __init__(self, remote_alias: str = "primary") -> None:
         self.script_path = Path(__file__).absolute()
         self.agent_dir = self.script_path.parent.parent
         self.project_root = self.agent_dir.parent

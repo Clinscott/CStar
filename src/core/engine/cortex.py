@@ -11,7 +11,7 @@ class Cortex:
     The Cortex: A Retrieval Augmented Generation (RAG) module for Corvus Star.
     It ingests the project's own documentation to answer questions about its laws.
     """
-    def __init__(self, project_root: str | Path, base_path: str | Path):
+    def __init__(self, project_root: str | Path, base_path: str | Path) -> None:
         self.project_root = Path(project_root)
         self.base_path = Path(base_path)
         # Initialize a fresh brain for knowledge (separate from skills)

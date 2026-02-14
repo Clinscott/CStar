@@ -18,7 +18,7 @@ from pathlib import Path
 # ==============================================================================
 
 class HeimdallWarden:
-    def __init__(self, root_dir: Path):
+    def __init__(self, root_dir: Path) -> None:
         self.root = root_dir.resolve()
         self.plan_path = self.root / "ANNEXATION_PLAN.qmd"
         self.breaches = []

@@ -34,8 +34,9 @@ class TestEngine_contracts(unittest.TestCase):
     @patch('src.core.utils.input_with_timeout')
     @patch('src.core.utils.load_config')
     @patch('subprocess.run')
+    @patch('src.core.sv_engine.BraveSearch')
     @patch('src.core.ui.HUD._speak')
-    def test_transition(self, mock_speak, mock_subprocess, mock_config, mock_input, mock_init_vector):
+    def test_transition(self, mock_speak, mock_brave_search, mock_subprocess, mock_config, mock_input, mock_init_vector):
         # Setup Mocks
         mock_config.return_value = {"persona": "ALFRED"} # Force Cyan Theme
         mock_speak.return_value = "Install skill?" # Force deterministic dialogue
@@ -90,11 +91,14 @@ class TestEngine_contracts(unittest.TestCase):
         # >>> EXECUTING CONTRACT 3: SINK <<<
         # WHEN Query "coffee" is executed (Intent Sink)
         mock_vector.search.return_value = [] # No match
+        mock_brave_search.return_value.search.return_value = [] # No web results either
         engine.run("coffee")
         
         # THEN Output matches "NO DATA FOUND" or Sink Response [HUD]
         output = self.captured_output.getvalue()
         # The HUD renders "Match: NONE" in Red
+        if "NONE" not in output:
+             sys.__stdout__.write(f"\nDEBUG OUTPUT: {output}\n")
         self.assertIn("NONE", output)
         self.assertIn("\033[31m", output) # Red
 

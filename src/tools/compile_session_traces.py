@@ -8,7 +8,7 @@ from typing import Dict, List
 
 class TraceAnalyzer:
     """[ALFRED] Advanced analytics for neural traces."""
-    def __init__(self, traces: List[dict]):
+    def __init__(self, traces: List[dict]) -> None:
         self.traces = traces
 
     def get_summary(self) -> Dict:
@@ -18,7 +18,7 @@ class TraceAnalyzer:
             "total": len(self.traces),
             "avg_score": sum(scores) / len(scores),
             "top_performer": self._get_top_performer(),
-            "critical_fails": [t for t in self.traces if t.get('score', 0) < 0.6],
+            "critical_fails": [t for t in self.traces if t.get('score', 0) < 0.85],
             "by_persona": self._group_by_persona()
         }
 
@@ -39,7 +39,7 @@ class TraceAnalyzer:
 
 class ReportRenderer:
     """[ALFRED] Markdown report generation with thematic elements."""
-    def __init__(self, report_path: str):
+    def __init__(self, report_path: str) -> None:
         self.path = report_path
 
     def render(self, traces: List[dict], stats: Dict):
@@ -100,6 +100,31 @@ def compile_traces(tdir: str = None, rpath: str = None):
     stats = analyzer.get_summary()
     ReportRenderer(rpath).render(raw_traces, stats)
     
+    # Auto-Corrections
+    if stats.get('critical_fails'):
+        corrections_path = os.path.join(base, ".agent", "corrections.json")
+        try:
+            data = {}
+            if os.path.exists(corrections_path):
+                with open(corrections_path, 'r') as f: data = json.load(f)
+            
+            mappings = data.get("phrase_mappings", {})
+            for fail in stats['critical_fails']:
+                # Auto-map query to expected trigger if available
+                # In traces, we might not have 'expected' unless it was a test case.
+                # But if we have a match that was weak, maybe we confirm it?
+                # The user requirement says: "finding critical_fails ... write these failed query -> expected pairs"
+                # If the trace doesn't have 'expected', we can't map it.
+                # Assuming traces might come from fishtest or have 'expected' field.
+                if 'expected' in fail and 'query' in fail:
+                    mappings[fail['query']] = fail['expected']
+            
+            data["phrase_mappings"] = mappings
+            with open(corrections_path, 'w') as f: json.dump(data, f, indent=2)
+            print(f"Applied {len(stats['critical_fails'])} corrections to {corrections_path}")
+        except Exception as e:
+            print(f"Failed to apply corrections: {e}")
+
     # Archival
     archive = os.path.join(tdir, "archive")
     os.makedirs(archive, exist_ok=True)

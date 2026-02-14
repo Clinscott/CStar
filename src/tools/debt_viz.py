@@ -47,7 +47,7 @@ class DebtAnalyzer:
     IGNORE_DIRS = {".venv", ".git", "__pycache__", "mock_project", "node_modules"}
     HUD_WIDTH = 80
 
-    def __init__(self, root_path: str = "."):
+    def __init__(self, root_path: str = ".") -> None:
         self.root_path = Path(root_path).absolute()
         self.files: List[Path] = []
         self.blocks: List[Dict[str, Any]] = []

@@ -22,7 +22,7 @@ class PersonaManager:
 
     ALLOWED_PERSONAS = ["ODIN", "ALFRED"]
 
-    def __init__(self, target_root: Optional[Path] = None):
+    def __init__(self, target_root: Optional[Path] = None) -> None:
         self.script_path = Path(__file__).absolute()
         self.project_root = target_root or self.script_path.parent.parent.parent
         self.base_dir = self.project_root / ".agent"

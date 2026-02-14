@@ -22,7 +22,7 @@ class SecurityScanner:
     }
     MAX_FILE_SIZE_MB = 10
 
-    def __init__(self, file_path):
+    def __init__(self, file_path) -> None:
         self.path, self.content, self.threat_score, self.findings = file_path, "", 0, []
 
     def scan(self):

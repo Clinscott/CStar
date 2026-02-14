@@ -10,7 +10,7 @@ class RavenProxy:
     RavenProxy mimics the google.genai.Client to intercept, log, and augment
     API calls from the Muninn agent.
     """
-    def __init__(self, target_model="gemini-2.0-flash", api_key=None):
+    def __init__(self, target_model="gemini-2.0-flash", api_key=None) -> None:
         self.target_model = target_model
         # Use provided key or fall back to environment (Main Agent's Key)
         self.api_key = api_key or os.getenv("GOOGLE_API_KEY")

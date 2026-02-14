@@ -12,7 +12,7 @@ class OdinPersistence:
     is recorded in a deterministic and immutable fashion using Git.
     """
 
-    def __init__(self, project_root: str):
+    def __init__(self, project_root: str) -> None:
         """Initializes the persistence engine.
 
         Args:

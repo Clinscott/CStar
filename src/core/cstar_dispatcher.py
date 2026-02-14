@@ -15,7 +15,7 @@ class CorvusDispatcher:
     """
     Main CLI Dispatcher for the Corvus Star framework.
     """
-    def __init__(self, root: Optional[Path] = None):
+    def __init__(self, root: Optional[Path] = None) -> None:
         self.project_root = root or PROJECT_ROOT
         self.venv_python = self.project_root / ".venv" / "Scripts" / "python.exe"
         if not self.venv_python.exists():
@@ -35,6 +35,7 @@ class CorvusDispatcher:
             self.project_root / ".agent" / "skills",
             self.project_root / "src" / "tools",
             self.project_root / "src" / "skills" / "local",
+            self.project_root / "src" / "sentinel",
             self.project_root / "scripts",
         ]
         for d in script_dirs:
@@ -104,7 +105,11 @@ class CorvusDispatcher:
                 return
             else: # Workflow
                 HUD.persona_log("INFO", f"Dispatching workflow: /{cmd}")
-                # Future: Link to workflow executor
+                try:
+                    # Execute Quarto workflow
+                    subprocess.run(["quarto", "render", cmd_path], check=True)
+                except Exception as e:
+                    HUD.persona_log("FAIL", f"Workflow execution failed: {e}")
                 return
 
         HUD.persona_log("FAIL", f"Unknown command: {cmd}")

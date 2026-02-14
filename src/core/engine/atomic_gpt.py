@@ -1,9 +1,11 @@
 import math
 import random
+import pickle
+
 
 class Value:
     """Autograd engine for local backpropagation. Inspired by micrograd."""
-    def __init__(self, data, _children=(), _op=''):
+    def __init__(self, data, _children=(), _op='') -> None:
         self.data = data
         self.grad = 0
         self._backward = lambda: None
@@ -74,7 +76,7 @@ class Module:
         return []
 
 class Neuron(Module):
-    def __init__(self, nin, nonlin=True):
+    def __init__(self, nin, nonlin=True) -> None:
         self.w = [Value(random.uniform(-1, 1)) for _ in range(nin)]
         self.b = Value(0)
         self.nonlin = nonlin
@@ -85,7 +87,7 @@ class Neuron(Module):
         return self.w + [self.b]
 
 class Layer(Module):
-    def __init__(self, nin, nout, **kwargs):
+    def __init__(self, nin, nout, **kwargs) -> None:
         self.neurons = [Neuron(nin, **kwargs) for _ in range(nout)]
     def __call__(self, x):
         out = [n(x) for n in self.neurons]
@@ -94,7 +96,7 @@ class Layer(Module):
         return [p for n in self.neurons for p in n.parameters()]
 
 class MLP(Module):
-    def __init__(self, nin, nouts):
+    def __init__(self, nin, nouts) -> None:
         sz = [nin] + nouts
         self.layers = [Layer(sz[i], sz[i+1], nonlin=i!=len(nouts)-1) for i in range(len(nouts))]
     def __call__(self, x):
@@ -110,7 +112,7 @@ class AtomicCortex:
     Lore: "Memory of the Spear."
     Purpose: A simplified, dependency-free Transformer-like architecture for code analysis.
     """
-    def __init__(self, vocab_size: int = 256, embed_dim: int = 16, n_layers: int = 1):
+    def __init__(self, vocab_size: int = 256, embed_dim: int = 16, n_layers: int = 1) -> None:
         self.vocab_size = vocab_size
         self.embed_dim = embed_dim
         # Token embeddings
@@ -160,6 +162,45 @@ class AtomicCortex:
 
     def parameters(self):
         return [p for row in self.wte for p in row] + self.mlp.parameters()
+
+    def save_weights(self, filepath: str):
+        """Persists the neural weights to disk."""
+        data = {
+            'wte': [[p.data for p in row] for row in self.wte],
+            'mlp': [[p.data for p in n.w] + [n.b.data] for layer in self.mlp.layers for n in layer.neurons]
+        }
+        with open(filepath, 'wb') as f:
+            pickle.dump(data, f)
+
+    def load_weights(self, filepath: str):
+        """Loads neural weights from disk."""
+        try:
+            with open(filepath, 'rb') as f:
+                data = pickle.load(f)
+            
+            # Load Embeddings
+            for i, row in enumerate(data.get('wte', [])):
+                if i < len(self.wte):
+                    for j, val in enumerate(row):
+                        if j < len(self.wte[i]):
+                            self.wte[i][j].data = val
+            
+            # Load MLP (Simplified structure matching)
+            # This assumes architecture hasn't changed. 
+            # For a robust implementation, we'd traverse the structure more carefully.
+            flat_params = []
+            for layer in self.mlp.layers:
+                for n in layer.neurons:
+                    flat_params.extend(n.w)
+                    flat_params.append(n.b)
+            
+            saved_params = [p for n_list in data.get('mlp', []) for p in n_list]
+            
+            for p, val in zip(flat_params, saved_params):
+                p.data = val
+                
+        except (FileNotFoundError, pickle.UnpicklingError):
+            pass # Start fresh if load fails
 
     def train_step(self, text_corpus: str, learning_rate: float = 0.01):
         """Perform one training step."""

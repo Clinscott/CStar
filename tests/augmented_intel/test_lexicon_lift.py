@@ -21,7 +21,7 @@ class TestLexiconLift:
         # Mock Cortex to check if add_node is called
         added_nodes = []
         class MockCortex:
-            def __init__(self, *args, **kwargs): pass
+            def __init__(self, *args, **kwargs) -> None: pass
             def add_node(self, term, data):
                 added_nodes.append((term, data))
         
@@ -32,7 +32,7 @@ class TestLexiconLift:
         
         # Create a mock vector engine that sees 'quasibartle' as unknown
         class MockVector(SovereignVector):
-            def __init__(self, *args, **kwargs):
+            def __init__(self, *args, **kwargs) -> None:
                 self.vocab = {"tell", "me", "about"}
                 self.stopwords = {"the", "and"}
             def search(self, query):
