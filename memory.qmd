@@ -1,6 +1,13 @@
 # Corvus Star Memory
 
+## 2026-02-16: Session 61 (High Seat Secured)
+- **Textual CSS Regressions**: Nested CSS variables (e.g., `--app-accent`) declared inside class blocks (e.g., `.theme-odin { --v: red; }`) can fail significantly in older/specific versions of Textual. Prefer explicit descendant selectors (`.theme-odin Widget { background: red; }`) for theme definitions to maximize compatibility.
+- **Log Widget Versioning**: The `Log` widget in some Textual versions does *not* accept `markup=True` in its constructor, triggering a `TypeError`. Use `log.write(markup_string)` instead, or ensure the environment matches the dev specs exactly.
+- **Modal Non-Blocking**: `self.push_screen(ModalScreen)` in Textual allows background workers to continue. If multiple UI updates must be suspended during an animation (e.g., persona transition), use a state flag (e.g., `self.is_transitioning`) to gate polling workers.
+- **App Instantiation Testing**: Testing a Textual `App` subclass without calling `run()` requires moving instance-level configuration (like `self.title`) to class-level constants (e.g., `TITLE = "..."`) to ensure it's accessible during a simple constructor call in unit tests.
+
 ## 2026-02-15: Session 60 (System Ignition)
+
 - **Structural Dead Code**: When refactoring large methods, ensuring that new method definitions are placed *outside* the current method's body is critical. Python's indentation rules can silently terminate a method if a sibling `def` is inserted, leaving the tail of the original method as unreachable code.
 - **Strict Booleans**: Integration tests for orchestration methods (`run() -> bool`) must assert `result is False` rather than `not result`. A method that falls off the edge returns `None` (falsy), which passes `assert not result` but represents a catastrophic logic error.
 - **Hybrid Identity**: The "Oracle" daemon requires both a technical name (`daemon.py`) for stability and a thematic name (Oracle/Hlidskjalf) for user immersion. `verify_system.py` bridges this gap by validating the technical process while reporting the thematic status.

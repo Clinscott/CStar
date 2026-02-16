@@ -223,14 +223,14 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Documentation**: Updated `README.qmd` with new `c*` command reference and Oracle branding. [x]
 - [x] **Verification**: 100% pass on `test_muninn_empire.py` after syntax repairs. [x]
 
-### 46. The Sovereign HUD & Agentic Loop (Session 60)
-- [x] **Agentic Loop**: Implemented `src/tools/loop.py` for autonomous observation and action. Verified via simulation. [x]
-- [x] **Sovereign HUD**: Created `src/cstar/core/tui.py` with 4-zone layout (Header, Sidebar, Console, Input) using `Textual`. [x]
-- [x] **Dumb Client**: Enforced RPC-only communication between TUI and Daemon via `src/cstar/core/rpc.py`. [x]
-- [x] **Launcher**: Updated `cstar` dispatcher to auto-launch TUI on empty arguments. [x]
-- [x] **Verification**: 100% pass on TUI instantiation and Daemon polling. [x]
+### 47. TUI Cinematic Refactor & Empire Verification (Session 61)
+- [x] **Cinematic Transitions**: Implemented `TransitionScreen` with ASCII frames (Gungnir/Bat-Signal) and async non-blocking animation. [x]
+- [x] **Dynamic Theming**: Refactored CSS to use descendant selectors for robust theme switching across HUD zones. [x]
+- [x] **Empire Test Suite**: Created `tests/empire_tests/test_tui_empire.py` for verification of HUD stability. [x]
+- [x] **Linscott Compliance**: Standardized TUI module with strict typing, docstrings, and graceful connection handling. [x]
 
-## ⏭️ Start Here Next (Phase 47)
+## ⏭️ Start Here Next (Phase 48)
 - [ ] **Operation Ironclad**: Security hardening and API Key management.
-- [ ] **TUI Expansion**: Add `Forge` visualization to the TUI.
+- [ ] **TUI Expansion**: Add `Forge` visualization to the TUI sidebar or a new screen.
+- [ ] **Daemon Vitals**: Map CPU usage and I/O status to the TUI Header.
 

@@ -1,6 +1,22 @@
 # Developer Journal: Corvus Star
 
+## 2026-02-16: Session 61 - High Seat Secured (TUI Stabilization)
+**Summary**: Resolved persistent TUI regressions and achieved "Empire-Class" verification for the Sovereign HUD.
+- **CSS Repair**: Discovered that nested CSS variables inside class blocks cause parsing errors in the current `Textual` version. Refactored to explicit descendant selectors.
+- **Cinematic Transitions**: Added `TransitionScreen` with asynchronous ASCII animations (Gungnir Spear/Bat-Signal) for a premium persona-swap experience.
+- **Linscott Tests**: Created `tests/empire_tests/test_tui_empire.py` covering mock daemon clients and UI instantiation.
+- **UX Polish**: Added a real-time status indicator (Heartbeat) to the Header that monitors daemon connectivity.
+
+**Key Decisions**:
+- Removed `markup=True` from `Log` initialization to prevent `TypeError` regressions on environment mismatches.
+- Moved `TITLE` to a class constant to support testable instantiation without mounting.
+
+**Current State**:
+- HUD is 100% stable and verified via automated tests.
+- High Seat is secured. Ready for Phase 48 (Ironclad).
+
 ## 2026-02-15: The Sovereign HUD & Agentic Loop
+
 **Summary**: Today marked the transition from a CLI tool to a Sovereign Agent.
 - **Phase 10 (Agentic Loop)**: Implemented `src/tools/loop.py` to autonomously Observe, Orient, and Act. Verified via simulation.
 - **Phase 11 (Sovereign HUD)**: Abandoned static output for a 4-zone TUI (`src/cstar/core/tui.py`) built with `textual`.

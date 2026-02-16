@@ -18,7 +18,8 @@ dependencies = [
     "ruff",
     "psutil",
     "python-dotenv",
-    "PyYAML"
+    "PyYAML",
+    "textual"
 ]
 
 [project.scripts]

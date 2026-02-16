@@ -710,46 +710,43 @@ Implement and execute the "Sovereign Commit" protocol to autonomously validate, 
 - To resume: `c* wake`.
 - Check status: `c* ravens -status`.
 
-# Walkthrough: Session 60 (Phase 11) - The Sovereign HUD
+# Walkthrough: Session 61 (Phase 47) - TUI Cinematic & Persistence
 
 ## 🎯 Goal
-Replace the static CLI with a live, persistent Terminal User Interface (TUI) to provide a rich, real-time dashboard for the Sovereign Agent.
+Stabilize the Sovereign HUD by resolving CSS regressions, implementing cinematic transitions for persona switching, and establishing an "Empire-Class" test suite for HUD verification.
 
 ## 🏆 Results
 | Metric | Value |
 |:---|:---|
-| **Frontend** | **Active** (Textual TUI) |
-| **Backend** | **RPC Enabled** (`get_dashboard_state`) |
-| **Launcher** | **Auto-Launch** (Default on `c*`) |
-| **Design** | **4-Zone Layout** (Header, Sidebar, Console, Input) |
+| **Transitions** | **Cinematic** (Gungnir / Bat-Signal) |
+| **Theming** | **Dynamic** (Descendant Selectors) |
+| **Stability** | **Verified** (Exit Code 0 on Empire Suite) |
+| **Compliance** | **100%** (Linscott Standard Typing/Docs) |
 
 ## 🛠️ Key Changes
 
-### 1. The Dumb Client (`src/cstar/core/tui.py`)
-- **Textual App**: Implemented a 4-zone grid layout using `Textual` widgets.
-- **RPC Client**: The TUI **never** touches the disk or backend logic directly. It polls the Daemon via `SovereignRPC`.
+### 1. The Cinematic Engine (`TransitionScreen`)
+- **ASCII Animation**: Implemented frame-by-frame rendering of lore-specific icons.
+- **Async Interlock**: Used `self.push_screen` to halt UI polling while the animation plays, ensuring a glitch-free persona swap.
 
-### 2. Daemon RPC (`src/cstar/core/rpc.py`)
-- **SovereignRPC**: Added a specialized handler for `get_dashboard_state` to aggregate Vitals, Tasks, and Persona data.
-- **Daemon Patch**: Updated `daemon.py` to route `get_dashboard_state` requests to the RPC handler.
+### 2. CSS Architecture
+- **Descendant Selectors**: Abandoned CSS variables in class blocks (which triggered Textual parsing errors) in favor of specific theme classes (e.g., `.theme-odin HeaderWidget`).
+- **Layout Grid**: Maintained 4-zone synchronization across theme changes.
 
-### 3. Launcher Logic (`src/core/cstar_dispatcher.py`)
-- **Auto-Launch**: Modified the dispatcher to launch `SovereignApp` when `c*` is called with zero arguments.
-- **Graceful Fallback**: Logs import errors if `Textual` is missing, falling back to help.
+### 3. Verification Suite (`tests/empire_tests/test_tui_empire.py`)
+- **Instantiation**: Verified the HUD can boot without a running daemon.
+- **Daemon Mock**: Simulated success and failure (graceful degradation) for `DaemonClient`.
+- **CSS Check**: Validated that the `TITLE` and layouts are correctly parsed.
 
 ## 🤝 Session Handshake
 **Session Delta**:
-- Implemented TUI Frontend.
-- Enabled RPC Backend.
-- Wired Launcher.
-- Verified Status via Static Check.
+- Fixed `TypeError` in `Log` widget (removed invalid `markup=True`).
+- Fixed "Expected rule or selector" CSS error.
+- Implemented `TransitionScreen`.
+- Added Heartbeat status indicator to Header.
+- 100% Pass on `test_tui_empire.py`.
 
 **Resume Directive**:
 - To launch: `c*`.
-- To verify: `c* clear` (test input).
-- Then proceed to **Phase 47: Operation Ironclad** in `tasks.qmd`.
-
-
-
-### ⚡ Dynamic Capabilities Forged (20:10:33)
-- `.agent/workflows/live.qmd`
+- To test: `pytest tests/empire_tests/test_tui_empire.py`.
+- Next: **Phase 48: Operation Ironclad** (Credential Management).

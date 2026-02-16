@@ -1,94 +1,235 @@
+"""
+Sovereign HUD (TUI) Module.
+
+This module implements the Textual-based Terminal User Interface for Corvus Star.
+It acts as a "dumb" client that renders state provided by the Daemon via RPC.
+
+Linscott Standard Compliance:
+- Strict Type Hints
+- Docstrings for all classes/methods
+- Error Resiliency (Graceful Degradation)
+"""
 
 import asyncio
 import json
-import psutil
 import os
-from datetime import datetime
 from pathlib import Path
+from typing import Dict, Any, List
 
 from textual.app import App, ComposeResult
-from textual.containers import Container, Horizontal, Vertical
-from textual.widgets import Header, Footer, Static, Input, Log, Label
+from textual.containers import Horizontal, Vertical
+from textual.widgets import Static, Input, Log, Label
+from textual.screen import ModalScreen
 from textual import work
-from rich.text import Text
 
 # Project Root
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
-# Mock Uplink for TUI (or import if safe)
-# Better to use the dumb client approach: socket only.
-# But we reused AntigravityUplink in Daemon.
-# We need a simple socket client here that doesn't import the heavy engine.
-# Let's write a lightweight client class.
-
+# Daemon Connection
 HOST = 'localhost'
-PORT = int(os.getenv("CSTAR_DAEMON_PORT", 50051))
+PORT = int(os.getenv("CSTAR_DAEMON_PORT", "50051"))
+
+# --- ASCII ASSETS & DICTIONARY ---
+
+BAT_SYMBOL = """
+[cyan]
+       /\\                 /\\
+      / \\'._   (\\_/)   _.'/ \\
+     /_.''._'--('.')--'_.''._\\
+     | \\_ / `;=/ " \\=;` \\_ / |
+      \\/ `\\__|`\\___/`|__/`  \\/
+[/cyan]
+"""
+
+GUNGNIR_SPEAR = """
+[red]
+                     /
+                   /
+ [bold white]------========>[/bold white]
+               /
+             /
+[/red]
+"""
+
+DICTIONARY = {
+    "ODIN": {
+        "sidebar_title": "TRACE (LIES)",
+        "header_title": "THE WAR ROOM (CONFLICT RADAR)",
+        "theme_class": "theme-odin",
+        "sys_prompt": "C* Ω>"
+    },
+    "ALFRED": {
+        "sidebar_title": "EVENT LOG",
+        "header_title": "THE BATCAVE (ANOMALY DETECTOR)",
+        "theme_class": "theme-alfred",
+        "sys_prompt": "C* >"
+    }
+}
+
+# --- CLIENT ---
 
 class DaemonClient:
-    """Lightweight sync/async client for TUI."""
+    """Lightweight async client for TUI to communicate with Daemon."""
+
+    async def send_command(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Sends a JSON command to the daemon and returns the response.
+
+        Args:
+            payload: Dictionary containing the command and arguments.
+
+        Returns:
+            Dictionary response from the daemon or error state.
+        """
+        try:
+            # Force 127.0.0.1 and use timeout to prevent UI freeze
+            reader, writer = await asyncio.wait_for(asyncio.open_connection("127.0.0.1", PORT), timeout=2.0)
+            writer.write(json.dumps(payload).encode('utf-8'))
+            await writer.drain()
+            
+            data = await reader.read(8192)
+            response = json.loads(data.decode('utf-8'))
+            
+            writer.close()
+            await writer.wait_closed()
+            return response
+        except Exception:
+            # Graceful degradation if daemon drops
+            return {"persona": "ALFRED", "status": "disconnected", "error": True}
+
+# --- UI COMPONENTS ---
+
+class TransitionScreen(ModalScreen):
+    """
+    Modal screen that renders the cinematic ASCII transition sequence.
+    Blocks input during the transition.
+    """
     
-    async def send_command(self, payload: dict) -> dict:
-        reader, writer = await asyncio.open_connection(HOST, PORT)
-        writer.write(json.dumps(payload).encode('utf-8'))
-        await writer.drain()
+    CSS = """
+    TransitionScreen {
+        align: center middle;
+        background: $surface 90%;
+    }
+    #anim_box {
+        content-align: center middle;
+        text-style: bold;
+    }
+    """
+
+    def __init__(self, new_persona: str) -> None:
+        """Initialize with target persona."""
+        super().__init__()
+        self.new_persona = new_persona
+
+    def compose(self) -> ComposeResult:
+        """Yields the animation container."""
+        yield Static("", id="anim_box")
+
+    async def on_mount(self) -> None:
+        """Starts the animation on mount."""
+        self.run_worker(self.animate_transition())
         
-        data = await reader.read(8192) # Adjust buffer if needed
-        response = json.loads(data.decode('utf-8'))
+    async def animate_transition(self) -> None:
+        """Orchestrates the frame-by-frame ASCII animation."""
+        box = self.query_one("#anim_box", Static)
         
-        writer.close()
-        await writer.wait_closed()
-        return response
+        if self.new_persona == "ALFRED":
+            # Bat-Signal Flash Sequence
+            for _ in range(3):
+                box.update(BAT_SYMBOL)
+                await asyncio.sleep(0.15)
+                box.update("")
+                await asyncio.sleep(0.1)
+            box.update(BAT_SYMBOL)
+        else:
+            # Gungnir Spear Slicing Effect
+            frames = [
+                "\n\n\n[red]  --==>[/red]",
+                "\n\n\n[red]        ------=====>[/red]",
+                GUNGNIR_SPEAR,
+                "\n\n\n[red]                         --==>[/red]"
+            ]
+            for f in frames:
+                box.update(f)
+                await asyncio.sleep(0.15)
+                
+        await asyncio.sleep(0.6)
+        self.dismiss()
 
 class HeaderWidget(Static):
-    """zone 1: Header"""
+    """Top bar displaying project info and status."""
+    
     def compose(self) -> ComposeResult:
         with Horizontal():
             yield Label(f" PROJECT: {PROJECT_ROOT.name} ", id="header_project")
-            yield Label(" BRANCH: ... ", id="header_branch")
+            yield Label(" THE BATCAVE ", id="header_title")
+            yield Label(" ● ", id="header_status")
             yield Label(" RAM: ... ", id="header_ram")
-            yield Label(" STATUS: ... ", id="header_status")
 
-    def update_stats(self, data: dict):
-        self.query_one("#header_project", Label).update(f" PROJECT: {PROJECT_ROOT.name} ")
+    def update_stats(self, data: Dict[str, Any], dict_ref: Dict[str, str]) -> None:
+        """Updates header text based on daemon state."""
+        self.query_one("#header_title", Label).update(f" {dict_ref['header_title']} ")
         if "vitals" in data:
             v = data["vitals"]
-            self.query_one("#header_branch", Label).update(f" BRANCH: {v.get('branch')} ")
-            self.query_one("#header_ram", Label).update(f" RAM: {v.get('ram')}MB ")
-            self.query_one("#header_status", Label).update(f" STATUS: {v.get('status')} ")
+            # Safely access ram, defaulting to '?' if missing
+            ram = v.get('ram', '?') if isinstance(v, dict) else '?'
+            self.query_one("#header_ram", Label).update(f" RAM: {ram}MB ")
+        
+        # Update connection status
+        status_label = self.query_one("#header_status", Label)
+        if data.get("error"):
+            status_label.update("[red] ● [/]")
+        else:
+            status_label.update("[green] ● [/]")
 
 class SidebarWidget(Static):
-    """zone 2: Sidebar (Mission Log)"""
-    def compose(self) -> ComposeResult:
-        yield Label("[u]MISSION LOG[/u]", id="sidebar_title")
-        yield Static("Loading...", id="sidebar_content")
+    """Left sidebar displaying tasks/logs."""
 
-    def update_tasks(self, tasks: list):
+    def compose(self) -> ComposeResult:
+        yield Label("[u]EVENT LOG[/u]", id="sidebar_title")
+        yield Static("Awaiting Intel...", id="sidebar_content")
+
+    def update_tasks(self, tasks: List[str], dict_ref: Dict[str, str]) -> None:
+        """Updates tasks list."""
+        self.query_one("#sidebar_title", Label).update(f"[u]{dict_ref['sidebar_title']}[/u]")
         content = ""
         for i, t in enumerate(tasks):
-            content += f"[bold cyan]{i+1}.[/] {t}\n\n"
+            content += f"{i+1}. {t}\n\n"
         self.query_one("#sidebar_content", Static).update(content)
 
 class InputWidget(Input):
-    """zone 4: Input Bar"""
-    def on_mount(self):
+    """Command input field."""
+    
+    def on_mount(self) -> None:
         self.placeholder = "Command (Active)..."
 
+# --- MAIN APP ---
+
 class SovereignApp(App):
-    """The Sovereign HUD Application."""
+    """
+    The Sovereign HUD Application.
+    
+    Features:
+    - 4-Zone Grid Layout
+    - Dynamic Theming via Descendant Selectors
+    - RPC-driven State
+    """
+    TITLE = "C* SOVEREIGN HUD"
     
     CSS = """
+    /* Layout */
     Screen {
         layout: grid;
         grid-size: 2;
         grid-columns: 25% 75%;
         grid-rows: 3fr 1fr;
+        background: $surface;
     }
-    
+
     HeaderWidget {
         column-span: 2;
         height: 3;
         dock: top;
-        background: $surface-darken-1;
         content-align: center middle;
         text-style: bold;
     }
@@ -98,8 +239,6 @@ class SovereignApp(App):
         dock: left;
         width: 100%;
         height: 100%;
-        background: $panel;
-        border-right: vkey $accent;
         padding: 1;
     }
 
@@ -107,19 +246,58 @@ class SovereignApp(App):
         column-span: 1;
         row-span: 1;
         height: 100%;
-        border: solid $accent;
-        background: $surface;
+        border: solid $secondary;
     }
 
     InputWidget {
         column-span: 1;
         dock: bottom;
         height: 3;
-        border: solid $accent;
     }
-    
-    #header_project { color: $accent; }
-    #header_status { color: $success; }
+
+    /* ODIN THEME */
+    .theme-odin HeaderWidget {
+        background: #1a0000;
+        border-bottom: solid #8b0000;
+        color: #ffaa00;
+    }
+    .theme-odin SidebarWidget {
+        background: #1a0000;
+        border-right: solid #8b0000;
+        color: #ffaa00;
+    }
+    .theme-odin Log {
+        background: $surface;
+        border: solid #8b0000;
+        color: #ffaa00; 
+    }
+    .theme-odin InputWidget {
+        background: #1a0000;
+        border: solid #8b0000;
+        color: #ffaa00;
+    }
+
+    /* ALFRED THEME */
+    .theme-alfred HeaderWidget {
+        background: #001a1a;
+        border-bottom: solid #008b8b;
+        color: #00ff00;
+    }
+    .theme-alfred SidebarWidget {
+        background: #001a1a;
+        border-right: solid #008b8b;
+        color: #00ff00;
+    }
+    .theme-alfred Log {
+        background: $surface;
+        border: solid #008b8b;
+        color: #00ff00;
+    }
+    .theme-alfred InputWidget {
+        background: #001a1a;
+        border: solid #008b8b;
+        color: #00ff00;
+    }
     """
 
     def compose(self) -> ComposeResult:
@@ -127,73 +305,103 @@ class SovereignApp(App):
         with Horizontal():
             yield SidebarWidget()
             with Vertical():
-                yield Log(id="console", markup=True)
+                # FIX: Removed markup=True to prevent TypeError on older Textual versions
+                yield Log(id="console")
                 yield InputWidget(id="input")
-        yield Footer()
 
-    def on_mount(self):
+    def on_mount(self) -> None:
+        """Lifecycle hook: App startup."""
         self.client = DaemonClient()
-        self.title = "C* SOVEREIGN HUD"
+        
+        # Initial State
+        self.active_persona = "ALFRED" 
+        self.app.add_class(DICTIONARY[self.active_persona]["theme_class"])
+        self.is_transitioning = False
+        
         # Start Polling
         self.set_interval(5, self.poll_dashboard)
-        self.poll_dashboard() # drift
+        self.poll_dashboard()
+
+    async def execute_transition(self, new_persona: str) -> None:
+        """
+        Halts the UI, fires the cinematic, rewrites the DOM.
+        
+        Args:
+            new_persona: The target persona key (ODIN/ALFRED).
+        """
+        self.is_transitioning = True
+        
+        # Fire Cinematic Overlay
+        await self.push_screen(TransitionScreen(new_persona))
+        
+        # Rewrite the underlying DOM theme classes
+        self.app.remove_class(DICTIONARY[self.active_persona]["theme_class"])
+        self.active_persona = new_persona
+        self.app.add_class(DICTIONARY[self.active_persona]["theme_class"])
+        
+        self.is_transitioning = False
 
     @work(exclusive=True)
-    async def poll_dashboard(self):
-        try:
-            state = await self.client.send_command({"command": "get_dashboard_state"})
-            
-            # Update Header
-            self.query_one(HeaderWidget).update_stats(state)
-            
-            # Update Sidebar
-            self.query_one(SidebarWidget).update_tasks(state.get("tasks", []))
-            
-        except Exception as e:
-            self.query_one(Log).write(Text(f"[ERROR] Daemon Connection Failed: {e}", style="bold red"))
+    async def poll_dashboard(self) -> None:
+        """Polls the daemon for state updates and handles drift."""
+        if self.is_transitioning:
+            return # Do not interrupt a transition
 
-    async def on_input_submitted(self, message: Input.Submitted):
+        state = await self.client.send_command({"command": "get_dashboard_state"})
+        
+        # Always update UI Components with active dictionary
+        ref = DICTIONARY[self.active_persona]
+        self.query_one(HeaderWidget).update_stats(state, ref)
+
+        if state.get("error"):
+            # Suppress log spam
+            return
+
+        # 1. State Sync: Check Persona Drift
+        daemon_persona = state.get("persona", self.active_persona).upper()
+        if daemon_persona != self.active_persona and daemon_persona in DICTIONARY:
+            await self.execute_transition(daemon_persona)
+
+        # 2. Update Sidebar
+        self.query_one(SidebarWidget).update_tasks(state.get("tasks", []), ref)
+
+    async def on_input_submitted(self, message: Input.Submitted) -> None:
+        """Handles command submission."""
         cmd = message.value
         self.query_one(Input).value = ""
         
-        if cmd.strip():
-            self.query_one(Log).write(Text(f"C*> {cmd}", style="bold white"))
-            # Send to Daemon
-            # For now, simplistic command handling via same client
-            # In Phase 11 plan, we agreed: handle_input sends {"command": cmd}
-            # Wait, daemon expects {"command": "forge", ...}
-            # We need to map TUI input to Daemon command structure
-            # For this MVP, we treat the input as the 'command' string key or raw input?
-            # Daemon.handle_request parse: command = request.get('command')
-            # Daemon.process_command(input_str...)
-            # So we pass {"command": cmd_parts[0], "args": cmd_parts[1:]}
+        if not cmd.strip(): 
+            return
             
+        ref = DICTIONARY[self.active_persona]
+        log_widget = self.query_one(Log)
+        
+        if cmd.lower() == "clear":
+            log_widget.clear()
+            return
+
+        # Echo user input
+        log_widget.write(f"{ref['sys_prompt']} {cmd}")
+
+        try:
             parts = cmd.split()
-            c = parts[0].lower()
-            a = parts[1:]
+            resp = await self.client.send_command({"command": parts[0].lower(), "args": parts[1:]})
             
-            if c == "clear":
-                self.query_one(Log).clear()
+            if resp.get("error"):
+                log_widget.write("[SYSTEM OFFLINE] The Daemon is currently unreachable.")
                 return
 
-            try:
-                # If forge, strictly map args? "forge task target" -> forge --task ...
-                # Or simplistic: just pass raw string and let daemon handle?
-                # Daemon.handle_request expects JSON.
+            if resp.get("status") == "success":
+                msg = resp.get("message", "Task accomplished.")
+                log_widget.write(f"[{self.active_persona}] {msg}")
+            elif resp.get("status") == "error":
+                msg = resp.get("message", "Execution failed.")
+                log_widget.write(f"[{self.active_persona}] {msg}")
+            else:
+                log_widget.write(str(resp))
                 
-                resp = await self.client.send_command({"command": c, "args": a})
-                
-                # Render Response
-                log = self.query_one(Log)
-                if resp.get("status") == "success":
-                   log.write(Text(f"[ALFRED] {resp}", style="cyan"))
-                elif resp.get("status") == "error":
-                   log.write(Text(f"[HEIMDALL] {resp.get('message')}", style="bold red"))
-                else:
-                   log.write(str(resp))
-                   
-            except Exception as e:
-                 self.query_one(Log).write(Text(f"[ERROR] Command Failed: {e}", style="bold red"))
+        except Exception as e:
+             log_widget.write(f"[CRITICAL FAILURE] {e}")
 
 if __name__ == "__main__":
     app = SovereignApp()
