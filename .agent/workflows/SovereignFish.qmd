@@ -149,4 +149,7 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 
 ### 2026-02-14 (Session 59 - Dominion Expanded)
 -   **Critical Repair**: Fixed `NameError` in `muninn.py` neural training hook, ensuring the Atomic Cortex can evolve. - Status: SECURED.
--   **DX**: Enhanced `brave_search.py` with strict type hints and structured docstrings for better developer experience. - Status: SECURED.
+
+### 2026-02-15 (Session 60 - Operations Expanded)
+-   **Robustness**: Made Oracle Daemon port configurable via `CSTAR_DAEMON_PORT` env var, preventing conflicts in containerized environments. - Status: SECURED.
+-   **DX**: Implemented `__repr__` for `Forge` class to improve debugging and traceback clarity during Agentic Loop failures. - Status: SECURED.

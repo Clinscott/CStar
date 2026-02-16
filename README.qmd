@@ -27,6 +27,34 @@ c* ravens -learn N=10
 - **Shielded Operations**: Comprehensive path traversal and shell injection protection.
 - **Lore-Accurate Versioning**: Stamped installation metadata in `config.json`.
 
+## 🕹️ Operations (The C* Command)
+
+The `c*` command is your primary interface.
+
+### Core Commands
+
+| Command | Protocol | Description |
+| :--- | :--- | :--- |
+| `c* wake` | **Uplink** | Starts The Oracle (Daemon) and connects to Antigravity. |
+| `c* sleep` | **Gungnir** | Runs validation, consolidating memory, and Muninn Audit. Safe shutdown. |
+| `c* forge` | **Sovereign** | **AGENTIC LOOP**. Fixes code, refactors, or builds features autonomously. |
+| `c* status` | **System** | Checks Oracle health, memory usage, and uplink status. |
+
+### Legacy / Utility
+
+| Command | Description |
+| :--- | :--- |
+| `c* clean` | Wipes temporary artifacts (`__pycache__`, `.pytest_cache`). |
+| `c* install` | Installs the PowerShell module globally. |
+
+## 🏗️ Architecture (Hybrid Model)
+
+**Corvus Star** uses a hybrid architecture to balance speed and intelligence:
+
+1.  **Vanguard (PowerShell)**: Sub-10ms response time for CLI routing.
+2.  **The Oracle (Python Daemon)**: Local "Brain" hosted at Port 50051. Manages context.
+3.  **Uplink (Cloud)**: Connects to the Antigravity Agent for heavy lifting.
+
 **Note:** The installer is now **fully portable** - you can clone this repo anywhere and run the script from its location.
 
 ---

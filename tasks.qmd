@@ -217,7 +217,13 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **DX Enhancement**: Added strict type hints and docstrings to `brave_search.py` for better developer experience. [x]
 - [x] **Verification**: Verified with `ruff` and `pytest`. [x]
 
-## ⏭️ Start Here Next (Phase 42)
+### 45. System Ignition & Muninn Repair (Session 60)
+- [x] **System Verification**: Created `verify_system.py` to validate Daemon (Oracle), Port 50051, and Filesystem. [x]
+- [x] **Muninn Repair**: Fixed critical structural bug in `muninn.py` where `run()` method was truncated, restoring full audit logic. [x]
+- [x] **Documentation**: Updated `README.qmd` with new `c*` command reference and Oracle branding. [x]
+- [x] **Verification**: 100% pass on `test_muninn_empire.py` after syntax repairs. [x]
+
+## ⏭️ Start Here Next (Phase 46)
 - [ ] **Operation Ironclad: Hybrid Modularization**: Begin the migration of core memory and engine logic to a persistent modular package (`src/cstar`).
     - Move `memory.qmd`, `tasks.qmd`, `thesaurus.qmd` to `src/cstar/memory/`.
     - Create `src/cstar/engine/` for `sv_engine.py` and `vector.py`.

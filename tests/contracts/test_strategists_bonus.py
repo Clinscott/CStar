@@ -105,31 +105,31 @@ def nightmare(x):
         assert "complex_mess.py" in targets[0]["file"]
 
 
-class TestWardenPriority:
-    """Verifies integration order in Muninn.run()."""
-    
     @patch('src.sentinel.muninn.HeimdallWarden')
     @patch('src.sentinel.muninn.ValkyrieWarden')
     @patch('src.sentinel.muninn.MimirWarden')
     @patch('src.sentinel.muninn.FreyaWarden')
     def test_valkyrie_precedes_beauty(self, mock_visual, mock_mimir, mock_valkyrie, mock_annex, tmp_path, mock_genai_client):
         # Setup: All strategists find targets
-        mock_annex_inst = MagicMock()
+        mock_annex_inst = mock_annex.return_value
+        del mock_annex_inst.scan_async
         mock_annex_inst.scan.return_value = [] # No critical breaches
         mock_annex_inst.breaches = []
-        mock_annex.return_value = mock_annex_inst
 
-        mock_valkyrie_inst = MagicMock()
-        mock_valkyrie_inst.scan.return_value = [{"file": "dead.py", "action": "Prune", "severity": "HIGH"}]
-        mock_valkyrie.return_value = mock_valkyrie_inst
+        mock_valkyrie_inst = mock_valkyrie.return_value
+        del mock_valkyrie_inst.scan_async
+        breaches_valk = [{"file": "dead.py", "action": "Prune", "severity": "HIGH"}]
+        mock_valkyrie_inst.scan.return_value = breaches_valk
 
-        mock_mimir_inst = MagicMock()
-        mock_mimir_inst.scan.return_value = [{"file": "complex.py", "action": "Simplify", "severity": "MEDIUM"}]
-        mock_mimir.return_value = mock_mimir_inst
+        mock_mimir_inst = mock_mimir.return_value
+        del mock_mimir_inst.scan_async
+        breaches_mimir = [{"file": "complex.py", "action": "Simplify", "severity": "MEDIUM"}]
+        mock_mimir_inst.scan.return_value = breaches_mimir
 
-        mock_visual_inst = MagicMock()
-        mock_visual_inst.scan.return_value = [{"file": "ugly.py", "action": "Beautify", "severity": "LOW"}]
-        mock_visual.return_value = mock_visual_inst
+        mock_visual_inst = mock_visual.return_value
+        del mock_visual_inst.scan_async
+        breaches_visual = [{"file": "ugly.py", "action": "Beautify", "severity": "LOW"}]
+        mock_visual_inst.scan.return_value = breaches_visual
 
         os.environ["GOOGLE_API_KEY"] = "TEST"
         fish = Muninn(str(tmp_path), client=mock_genai_client)

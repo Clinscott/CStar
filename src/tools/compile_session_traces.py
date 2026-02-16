@@ -86,9 +86,9 @@ def compile_traces(tdir: str = None, rpath: str = None):
     tdir = tdir or os.path.join(base, "traces")
     rpath = rpath or os.path.join(base, "TRACE_REPORT.qmd")
 
-    if not os.path.exists(tdir): return
+    if not os.path.exists(tdir): return [], {}
     files = glob.glob(os.path.join(tdir, "*.json"))
-    if not files: return
+    if not files: return [], {}
 
     raw_traces = []
     for f in files:
@@ -130,5 +130,8 @@ def compile_traces(tdir: str = None, rpath: str = None):
     os.makedirs(archive, exist_ok=True)
     for f in files: shutil.move(f, os.path.join(archive, os.path.basename(f)))
     print(f"Report generated: {rpath}")
+    
+    return raw_traces, stats
 
-if __name__ == "__main__": compile_traces()
+if __name__ == "__main__": 
+    compile_traces()

@@ -79,3 +79,28 @@ class BaseWarden(ABC):
             - line: int (optional)
         """
         pass
+
+    async def scan_async(self) -> List[Dict[str, Any]]:
+        """
+        Asynchronous wrapper for scan().
+        Executes the blocking scan in a separate thread to prevent loop blocking.
+        """
+        import asyncio
+        return await asyncio.to_thread(self.scan)
+
+    async def propose_evolution(self, issue: str) -> Dict[str, Any]:
+        """
+        Proposes a self-evolution update to the Warden itself.
+        Returns a Critical Breach targeting this Warden's source file.
+        """
+        # introspect to find my own file path
+        import inspect
+        warden_file = Path(inspect.getfile(self.__class__)).relative_to(self.root)
+        
+        return {
+            "type": "WARDEN_EVOLUTION",
+            "file": str(warden_file),
+            "action": f"EVOLVE: {issue}",
+            "severity": "CRITICAL", # Forced Critical to prioritize evolution
+            "context": "Self-Reflection caused by recurring unhandled edge case."
+        }

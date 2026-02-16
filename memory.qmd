@@ -1,5 +1,10 @@
 # Corvus Star Memory
 
+## 2026-02-15: Session 60 (System Ignition)
+- **Structural Dead Code**: When refactoring large methods, ensuring that new method definitions are placed *outside* the current method's body is critical. Python's indentation rules can silently terminate a method if a sibling `def` is inserted, leaving the tail of the original method as unreachable code.
+- **Strict Booleans**: Integration tests for orchestration methods (`run() -> bool`) must assert `result is False` rather than `not result`. A method that falls off the edge returns `None` (falsy), which passes `assert not result` but represents a catastrophic logic error.
+- **Hybrid Identity**: The "Oracle" daemon requires both a technical name (`daemon.py`) for stability and a thematic name (Oracle/Hlidskjalf) for user immersion. `verify_system.py` bridges this gap by validating the technical process while reporting the thematic status.
+
 ## 2026-02-14: SovereignFish (Session 59)
 - **Silent Failures**: wrapping critical logic in broad `try/except` blocks (like the `muninn.py` neural hook) can mask fundamental bugs (`NameError`). Use specific exception handling or allow critical failures to surface during dev cycles.
 - **Type Hints**: Adding `list[dict[str, str]]` is infinitely better than `list[dict]` for tool return values, as it documents the *shape* of the data for future agents.

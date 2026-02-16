@@ -12,6 +12,7 @@ import json
 import logging
 import os
 import re
+import asyncio
 import shutil
 import subprocess
 import sys
@@ -83,8 +84,8 @@ class Muninn:
         self.client = client or genai.Client(api_key=self.api_key)
 
         # EMPIRE TDD Configuration
-        self.flash_model = "gemini-2.0-flash"
-        self.pro_model = "gemini-2.0-pro-exp-02-05"
+        self.flash_model = "gemini-2.0-flash" 
+        self.pro_model = "gemini-2.5-pro"
 
         # Stability Manager
         self.watcher = TheWatcher(self.root)
@@ -96,6 +97,13 @@ class Muninn:
         
         # Metric Tracking
         self._strategist_metrics: Dict[str, Dict[str, int]] = {}
+
+    def _check_agent_active(self) -> bool:
+        """Checks if the Antigravity Agent is currently active."""
+        if os.getenv("CSTAR_AGENT_ACTIVE"):
+            HUD.persona_log("INFO", "Active Agent Detected. Deferring execution to allowed entity.")
+            return True
+        return False
 
     def _load_prompt(self, name: str, variables: dict) -> str:
         """Loads a .prompty file and replaces variables."""
@@ -128,58 +136,16 @@ class Muninn:
         HUD.persona_log("INFO", f"Global Project Health Score (Pre): {pre_gphs:.2f}")
 
         # 1. THE HUNT (Parallel Scan)
-        wardens = {
-            "ANNEX": HeimdallWarden(self.root), # Core Annex
-            "NORN": NornWarden(self.root),
-            "VALKYRIE": ValkyrieWarden(self.root),
-            "EDDA": EddaWarden(self.root),
-            "RUNE": RuneCasterWarden(self.root),
-            "MIMIR": MimirWarden(self.root),
-            "HUGINN": HuginnWarden(self.root),
-            "FREYA": FreyaWarden(self.root)
-        }
-
-        all_breaches = []
-        scan_results = {}
-
-        with ThreadPoolExecutor() as executor:
-            # HeimdallWarden might not match the BaseWarden interface exactly (it has .breaches attr vs .scan() returning list)
-            # Let's check HeimdallWarden behavior.
-            # Original code: strategist.scan(); breaches = strategist.breaches
-            # So we wrap it or handle it separately.
-            # For uniformity, let's run others in parallel and run Heimdall synchronously or wrap it.
-            # Let's handle Heimdall separate since it's critical/core.
-            
-            # Run Heimdall (ANNEX)
-            try:
-                annex = wardens["ANNEX"]
-                annex.scan()
-                for b in annex.breaches:
-                     # Adapt Annex breach to standard format if needed
-                     # Annex breaches are usually: {'file': ..., 'action': ..., 'severity': ...}
-                     b['type'] = 'ANNEX_BREACH'
-                     b['severity'] = 'CRITICAL' # Force critical for Annex
-                     all_breaches.append(b)
-                scan_results["ANNEX"] = len(annex.breaches)
-            except Exception as e:
-                HUD.persona_log("WARN", f"Heimdall Scan Failed: {e}")
-
-            # Run others in parallel
-            future_to_name = {}
-            for name, w in wardens.items():
-                if name == "ANNEX": continue
-                future_to_name[executor.submit(w.scan)] = name
-
-            for future in as_completed(future_to_name):
-                name = future_to_name[future]
-                try:
-                    results = future.result()
-                    scan_results[name] = len(results)
-                    all_breaches.extend(results)
-                except Exception as e:
-                    HUD.persona_log("WARN", f"{name} Warden Failed: {e}")
-                    HUD.persona_log("WARN", f"{name} Warden Failed: {e}")
-                    scan_results[name] = 0
+        # Refactored to use Asyncio (Phase 8: Muninn Integration)
+        
+        try:
+            # We run the async cycle
+            found_breaches, scan_stats = asyncio.run(self._execute_hunt_async())
+            all_breaches = found_breaches
+            scan_results = scan_stats
+        except Exception as e:
+            HUD.persona_log("CRITICAL", f"Async Hunt Failed: {e}")
+            return False
 
 
         # 2. SELECT TARGET (Prioritization)
@@ -226,7 +192,7 @@ class Muninn:
                 results = searcher.search(query)
                 if results:
                     top = results[0]
-                    target['action'] += f"\n[Ragnarok Context]: {top.get('title')} - {top.get('description')} ({top.get('url')})"
+                    target['action'] += f" [Context]: {top.get('title')} ({top.get('url')})"
 
         # [WATCHER] Anti-Oscillation Check
         if self.watcher.is_locked(target['file']):
@@ -235,6 +201,11 @@ class Muninn:
 
         try:
             # 3. FORGE (Execute Fix)
+            # [INTEGRATION] Agent Takeover Check
+            if self._check_agent_active():
+                 HUD.persona_log("WARN", "Operation C*CLI: Agent is Active. Skipping Auto-Forge.")
+                 return False
+
             if not self._forge_improvement(target):
                 return False
             
@@ -273,10 +244,9 @@ class Muninn:
                 if target.get('type') == 'CAMPAIGN_TASK':
                     NornWarden(self.root).mark_complete(target)
                     if HUD.PERSONA == "ALFRED":
-                         HUD.persona_log("SUCCESS", "I have crossed that item off your list, sir.")
+                        HUD.persona_log("SUCCESS", "I have crossed that item off your list, sir.")
 
                 # [INTEGRATION] Neural Training Hook
-                # "Trigger a cortex.train_step() using the new code string"
                 try:
                     cortex_path = self.root / ".agent" / "cortex.pkl"
                     cortex = AtomicCortex()
@@ -309,6 +279,63 @@ class Muninn:
         except Exception as e:
             HUD.persona_log("ERROR", f"Core Execution Failure: {e}")
             return False
+
+    async def _execute_hunt_async(self):
+        """
+        Executes the Warden Scan in parallel using Asyncio.
+        """
+        wardens = {
+            "ANNEX": HeimdallWarden(self.root), 
+            "NORN": NornWarden(self.root),
+            "VALKYRIE": ValkyrieWarden(self.root),
+            "EDDA": EddaWarden(self.root),
+            "RUNE": RuneCasterWarden(self.root),
+            "MIMIR": MimirWarden(self.root),
+            "HUGINN": HuginnWarden(self.root),
+            "FREYA": FreyaWarden(self.root)
+        }
+
+        all_breaches = []
+        scan_results = {}
+        
+        # Heimdall / Annex is special
+        try:
+            wardens["ANNEX"].scan()
+            annex_breaches = []
+            for b in wardens["ANNEX"].breaches:
+                 b['type'] = 'ANNEX_BREACH'
+                 b['severity'] = 'CRITICAL'
+                 annex_breaches.append(b)
+            scan_results["ANNEX"] = len(annex_breaches)
+            all_breaches.extend(annex_breaches)
+        except Exception as e:
+            HUD.persona_log("WARN", f"Heimdall Scan Failed: {e}")
+
+        # Async Wardens
+        tasks = []
+        names = []
+        
+        for name, w in wardens.items():
+            if name == "ANNEX": continue
+            if hasattr(w, 'scan_async'):
+                tasks.append(w.scan_async())
+                names.append(name)
+            else:
+                tasks.append(asyncio.to_thread(w.scan))
+                names.append(name)
+
+        if tasks:
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            
+            for name, res in zip(names, results):
+                if isinstance(res, Exception):
+                    HUD.persona_log("WARN", f"{name} Failed: {res}")
+                    scan_results[name] = 0
+                else:
+                    scan_results[name] = len(res)
+                    all_breaches.extend(res)
+        
+        return all_breaches, scan_results
 
     # ==============================================================================
     # 🔨 THE FORGE (Execution Engine)
