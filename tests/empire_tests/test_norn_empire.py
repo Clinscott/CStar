@@ -15,9 +15,7 @@ class TestNornEmpire:
     
     @pytest.fixture
     def mock_root(self, tmp_path):
-        """Creates a mock project root with .agent directory."""
-        agent_dir = tmp_path / ".agent"
-        agent_dir.mkdir()
+        """Creates a mock project root with tasks.qmd."""
         return tmp_path
 
     def test_scan_no_plan(self, mock_root):
@@ -28,11 +26,12 @@ class TestNornEmpire:
 
     def test_scan_valid_task(self, mock_root):
         """Test finding a valid task."""
-        plan_path = mock_root / ".agent" / "CAMPAIGN_IMPLEMENTATION_PLAN.qmd"
+        plan_path = mock_root / "tasks.qmd"
         content = """
-| File | Description | Target | Type |
-|---|---|---|---|
-| src/foo.py | Fix bug | Foo | BUG |
+# Task List
+- [x] Done thing
+- [ ] Fix bug
+- [ ] Feature X
 """
         plan_path.write_text(content, encoding='utf-8')
         
@@ -42,34 +41,31 @@ class TestNornEmpire:
         assert len(results) == 1
         breach = results[0]
         assert breach["type"] == "CAMPAIGN_TASK"
-        assert breach["file"] == "src/foo.py"
-        assert "[BUG] Fix bug" in breach["action"]
+        assert breach["file"] == "tasks.qmd"
+        assert "Fix bug" in breach["action"]
+        # Should be the first unchecked one
+        assert breach["line"] == 4
 
     def test_scan_completed_task(self, mock_root):
-        """Test ignoring struck-through tasks."""
-        plan_path = mock_root / ".agent" / "CAMPAIGN_IMPLEMENTATION_PLAN.qmd"
+        """Test ignoring completed tasks."""
+        plan_path = mock_root / "tasks.qmd"
         content = """
-| File | Description | Target | Type |
-|---|---|---|---|
-| ~~src/foo.py~~ | ~~Fix bug~~ | ~~Foo~~ | ~~BUG~~ |
-| src/bar.py | New feature | Bar | FEAT |
+- [x] Done thing
+- [x] Also done
 """
         plan_path.write_text(content, encoding='utf-8')
         
         warden = NornWarden(mock_root)
         results = warden.scan()
         
-        assert len(results) == 1
-        breach = results[0]
-        assert breach["file"] == "src/bar.py"
+        assert results == []
 
     def test_mark_complete(self, mock_root):
-        """Test striking through a task."""
-        plan_path = mock_root / ".agent" / "CAMPAIGN_IMPLEMENTATION_PLAN.qmd"
+        """Test marking a task complete."""
+        plan_path = mock_root / "tasks.qmd"
         content = """
-| File | Description | Target | Type |
-|---|---|---|---|
-| src/foo.py | Fix bug | Foo | BUG |
+# List
+- [ ] Todo item
 """
         plan_path.write_text(content.strip(), encoding='utf-8')
         
@@ -78,11 +74,11 @@ class TestNornEmpire:
         assert len(targets) == 1
         
         # Mark it complete
-        warden.mark_complete(targets[0])
+        warden.mark_complete(targets[0]['raw_target'])
         
         # Verify file content
         new_content = plan_path.read_text(encoding='utf-8')
-        assert "~~src/foo.py~~" in new_content
+        assert "- [x] Todo item" in new_content
         
         # Verify scan returns nothing now
         results = warden.scan()

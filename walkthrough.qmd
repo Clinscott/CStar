@@ -675,3 +675,81 @@ Then consult `tasks.qmd` → **Phase 34: Annexation Execution Plan**.
 ### ⚡ Dynamic Capabilities Forged (19:21:36)
 - `.agent/workflows/forge.qmd`
 - `.agent/workflows/wrap-it-up.qmd`
+
+# Walkthrough: Session 60 (Phase 9.5) - The Sovereign Commit
+
+## 🎯 Goal
+Implement and execute the "Sovereign Commit" protocol to autonomously validate, synchronize, and push the session's work, ensuring the "Linscott Standard" of verification before every commit.
+
+## 🏆 Results
+| Metric | Value |
+|:---|:---|
+| **Gungnir Gate** | **Active** (Ruff + Pytest blocked bad commits) |
+| **Vector Index** | **Rebuilt** (SovereignVector sync) |
+| **Commit** | **Autonomous** (Git Push Successful) |
+| **Documentation** | **Dynamic** (New capabilities auto-logged) |
+
+## 🛠️ Key Changes
+
+### 1. The Sovereign Wrapper (`src/tools/wrap_it_up.py`)
+- **Gungnir Gate**: Enforces `ruff` (E9, F63, F7, F82) and `pytest` before allowing a commit.
+- **Trace Compilation**: Integrated `compile_session_traces.py` to aggregate session metrics.
+- **Dynamic Sync**: Automatically detects new skills/workflows and logs them to `walkthrough.qmd`.
+- **Vector Re-Indexing**: Triggers `SovereignEngine` to rebuild the index on commit.
+
+### 2. Workflow Refactor (`.agent/workflows/wrap-it-up.qmd`)
+- **Protocol Update**: Shifted from manual steps to a single command execution (`python src/tools/wrap_it_up.py`).
+
+## 🤝 Session Handshake
+**Session Delta**:
+- Implemented and verified the "Sovereign Commit" script.
+- Fixed logic errors in `verify_system.py` and `test_strategists_bonus.py`.
+- Successfully executed the first Autonomous Sovereign Commit.
+
+**Resume Directive**:
+- To resume: `c* wake`.
+- Check status: `c* ravens -status`.
+
+# Walkthrough: Session 60 (Phase 11) - The Sovereign HUD
+
+## 🎯 Goal
+Replace the static CLI with a live, persistent Terminal User Interface (TUI) to provide a rich, real-time dashboard for the Sovereign Agent.
+
+## 🏆 Results
+| Metric | Value |
+|:---|:---|
+| **Frontend** | **Active** (Textual TUI) |
+| **Backend** | **RPC Enabled** (`get_dashboard_state`) |
+| **Launcher** | **Auto-Launch** (Default on `c*`) |
+| **Design** | **4-Zone Layout** (Header, Sidebar, Console, Input) |
+
+## 🛠️ Key Changes
+
+### 1. The Dumb Client (`src/cstar/core/tui.py`)
+- **Textual App**: Implemented a 4-zone grid layout using `Textual` widgets.
+- **RPC Client**: The TUI **never** touches the disk or backend logic directly. It polls the Daemon via `SovereignRPC`.
+
+### 2. Daemon RPC (`src/cstar/core/rpc.py`)
+- **SovereignRPC**: Added a specialized handler for `get_dashboard_state` to aggregate Vitals, Tasks, and Persona data.
+- **Daemon Patch**: Updated `daemon.py` to route `get_dashboard_state` requests to the RPC handler.
+
+### 3. Launcher Logic (`src/core/cstar_dispatcher.py`)
+- **Auto-Launch**: Modified the dispatcher to launch `SovereignApp` when `c*` is called with zero arguments.
+- **Graceful Fallback**: Logs import errors if `Textual` is missing, falling back to help.
+
+## 🤝 Session Handshake
+**Session Delta**:
+- Implemented TUI Frontend.
+- Enabled RPC Backend.
+- Wired Launcher.
+- Verified Status via Static Check.
+
+**Resume Directive**:
+- To launch: `c*`.
+- To verify: `c* clear` (test input).
+- Then proceed to **Phase 47: Operation Ironclad** in `tasks.qmd`.
+
+
+
+### ⚡ Dynamic Capabilities Forged (20:10:33)
+- `.agent/workflows/live.qmd`

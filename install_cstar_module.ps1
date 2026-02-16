@@ -12,9 +12,19 @@ Write-Host "Starting Corvus Star Vanguard Installation..." -ForegroundColor Cyan
 
 # 1. Define Module Path
 $moduleName = "CorvusStar"
-$userModulePath = [System.IO.Path]::Combine([System.Environment]::GetFolderPath("MyDocuments"), "WindowsPowerShell", "Modules", $moduleName)
-if ($PSVersionTable.PSVersion.Major -ge 6) {
-    # PowerShell Core uses a different path
+# Find the first path in PSModulePath that looks like a user path (Documents)
+$validPaths = $env:PSModulePath -split ';'
+$userModulePath = $null
+
+foreach ($path in $validPaths) {
+    if ($path -like "*Documents*PowerShell*Modules*") {
+        $userModulePath = Join-Path $path $moduleName
+        break
+    }
+}
+
+# Fallback if specific Documents path not found (rare)
+if (-not $userModulePath) {
     $userModulePath = [System.IO.Path]::Combine([System.Environment]::GetFolderPath("MyDocuments"), "PowerShell", "Modules", $moduleName)
 }
 

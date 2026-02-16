@@ -1,0 +1,24 @@
+SYSTEM DIRECTIVE: [Action or Phase Name]
+
+**Objective:** [1-2 sentences strictly defining the goal of the prompt. No fluff.]
+
+**Architecture Requirements:**
+1. [Requirement 1: Specific framework or file to modify]
+2. [Requirement 2: Data flow or state management rule]
+3. [Requirement 3: UI/UX or Logging constraint]
+
+**Edge Cases to Handle:**
+- [Failure State 1]: [How the AI should gracefully recover or block the error]
+- [Failure State 2]: [How the AI should handle bad data or missing files]
+
+**Code Examples for Agent Reference:**
+[BAD CODE - Do not do this]
+# [Example of the lazy, bloated, or dangerous way to do it]
+bad_implementation()
+
+[GOOD CODE - Do this]
+# [Example adhering to the Linscott Standard: clean, safe, atomic]
+def excellent_implementation():
+    pass
+
+[Final Instruction: e.g., "Acknowledge these constraints and provide the implementation..."]

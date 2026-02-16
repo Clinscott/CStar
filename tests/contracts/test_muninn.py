@@ -75,64 +75,51 @@ class TestWatcherFatigueLock:
 # ==============================================================================
 
 
+
 class TestNornWarden:
-    """Parses markdown tables and strikes completed items."""
+    """Parses tasks.qmd and checks completed items."""
 
     PLAN_CONTENT = """\
-# Campaign Plan
-
-| # | File | Target | Type | Description |
-|---|------|--------|------|-------------|
-| 1 | `src/foo.py` | FooClass | REFACTOR | Simplify constructor |
-| 2 | ~~`src/bar.py`~~ | ~~BarFunc~~ | ~~FIX~~ | ~~Already done~~ |
-| 3 | `src/baz.py` | BazUtil | NEW | Add utility function |
+# Task List
+- [ ] Fix the thing
+- [x] Already done
 """
 
     def test_get_next_target_finds_first_actionable(self, tmp_path):
-        (tmp_path / ".agent").mkdir()
-        plan_path = tmp_path / ".agent" / "CAMPAIGN_IMPLEMENTATION_PLAN.qmd"
-        plan_path.write_text(self.PLAN_CONTENT, encoding="utf-8")
+        (tmp_path / "tasks.qmd").write_text(self.PLAN_CONTENT, encoding="utf-8")
 
         cs = NornWarden(tmp_path)
         target = cs.get_next_target()
 
         assert target is not None
-        assert target["file"] == "src/foo.py"
-        assert "REFACTOR" in target["action"]
-        assert "Simplify constructor" in target["action"]
+        assert target["file"] == "tasks.qmd"
+        assert "CAMPAIGN_TASK" == target["type"]
+        assert "Fix the thing" in target["action"]
 
-    def test_get_next_target_skips_struck_items(self, tmp_path):
-        (tmp_path / ".agent").mkdir()
-        # All items struck through
-        struck_plan = """\
-| # | File | Target | Type | Description |
-|---|------|--------|------|-------------|
-| 1 | ~~`src/foo.py`~~ | ~~Foo~~ | ~~FIX~~ | ~~Done~~ |
+    def test_get_next_target_skips_completed_items(self, tmp_path):
+        content = """\
+- [x] Done
+- [x] Also done
 """
-        plan_path = tmp_path / ".agent" / "CAMPAIGN_IMPLEMENTATION_PLAN.qmd"
-        plan_path.write_text(struck_plan, encoding="utf-8")
+        (tmp_path / "tasks.qmd").write_text(content, encoding="utf-8")
 
         cs = NornWarden(tmp_path)
         assert cs.get_next_target() is None
 
-    def test_mark_complete_strikes_description(self, tmp_path):
-        (tmp_path / ".agent").mkdir()
-        plan_path = tmp_path / ".agent" / "CAMPAIGN_IMPLEMENTATION_PLAN.qmd"
-        plan_path.write_text(self.PLAN_CONTENT, encoding="utf-8")
+    def test_mark_complete_checks_box(self, tmp_path):
+        (tmp_path / "tasks.qmd").write_text(self.PLAN_CONTENT, encoding="utf-8")
 
         cs = NornWarden(tmp_path)
         target = cs.get_next_target()
-        cs.mark_complete(target)
+        cs.mark_complete(target["raw_target"] if "raw_target" in target else target)
 
-        updated = plan_path.read_text(encoding="utf-8")
-        lines = updated.splitlines()
-        # The line for item 1 should now have ~~ in the description
-        target_line = lines[target["line_index"]]
-        assert "~~" in target_line
+        updated = (tmp_path / "tasks.qmd").read_text(encoding="utf-8")
+        assert "- [x] Fix the thing" in updated
 
     def test_returns_none_when_no_plan(self, tmp_path):
         cs = NornWarden(tmp_path)
         assert cs.get_next_target() is None
+
 
 
 # ==============================================================================

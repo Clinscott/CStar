@@ -19,7 +19,8 @@ if str(project_root) not in sys.path:
 
 from src.core.engine.vector import SovereignVector
 from src.cstar.core.uplink import AntigravityUplink
-from src.cstar.core.forge import Forge  # [PLAN B] Import Forge
+from src.cstar.core.forge import Forge
+from src.cstar.core.rpc import SovereignRPC # [Phase 11] RPC Handler
 
 # Constants
 HOST = 'localhost'
@@ -33,14 +34,18 @@ AMBIGUITY_THRESHOLD = 0.1
 ENGINE = None
 COMMAND_REGISTRY = {}
 UPLINK = AntigravityUplink()
+RPC = None # Initialized in start_daemon
 SESSION_TRACES = [] 
 
 def load_engine():
-    global ENGINE, COMMAND_REGISTRY
+    global ENGINE, COMMAND_REGISTRY, RPC
     thesaurus_path = project_root / "src" / "data" / "thesaurus.qmd"
     corrections_path = project_root / ".agent" / "corrections.json"
     stopwords_path = project_root / "src" / "data" / "stopwords.json"
     
+    # [Phase 11] RPC Init
+    RPC = SovereignRPC(project_root)
+
     ENGINE = SovereignVector(str(thesaurus_path), str(corrections_path), str(stopwords_path))
     ENGINE.load_core_skills()
     ENGINE.load_skills_from_dir(str(project_root / "src" / "skills" / "local"))
@@ -51,18 +56,19 @@ def load_engine():
     count = 0 
     for d in dirs:
         if d.exists():
-            for f in list(d.glob("*.qmd")) + list(d.glob("*.md")):
-                try:
-                    content = f.read_text(encoding='utf-8')
-                    match = re.search(r"^name:\s*['\"]?([\w-]+)['\"]?", content, re.MULTILINE)
-                    if match:
-                        cmd_name = match.group(1)
-                    else:
-                        cmd_name = f.stem
-                    COMMAND_REGISTRY[cmd_name] = str(f)
-                    count += 1
-                except Exception:
-                    pass
+            for f in list(d.glob("*.qmd")) + list(d.glob("*.md")) + list(d.glob("*.py")):
+                 # Simple name extraction
+                 cmd_name = f.stem
+                 if f.suffix in ['.md', '.qmd']:
+                    # Try to parse name from yaml
+                    try:
+                        content = f.read_text(encoding='utf-8')
+                        match = re.search(r"^name:\s*['\"]?([\w-]+)['\"]?", content, re.MULTILINE)
+                        if match: cmd_name = match.group(1)
+                    except: pass
+                 COMMAND_REGISTRY[cmd_name] = str(f)
+                 count += 1
+    
     print(f"[DAEMON] Registry loaded with {count} commands.")
 
 def get_memory_usage_mb():
@@ -94,6 +100,12 @@ def handle_request(conn):
         args = request.get('args', [])
         cwd = request.get('cwd', os.getcwd())
         
+        # [Phase 11] TUI Dashboard Polling
+        if command == "get_dashboard_state":
+            response = RPC.get_dashboard_state()
+            conn.sendall(json.dumps(response).encode('utf-8'))
+            return
+
         # [PLAN B] Stream handling for Forge
         if command == "forge":
             asyncio.run(process_forge_stream(conn, args, cwd))

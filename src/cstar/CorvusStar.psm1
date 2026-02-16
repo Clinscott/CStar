@@ -69,8 +69,8 @@ function Invoke-Corvus {
     }
 
     # 3. Dispatch to Client (The Synapse)
-    # We use the python client to talk to the daemon
-    python -m src.cstar.core.client @Args
+    # We use the central dispatcher to handle TUI launching
+    python -m src.core.cstar_dispatcher @Args
 }
 
 # -------------------------------------------------------------------------

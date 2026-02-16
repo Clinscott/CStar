@@ -390,3 +390,36 @@ A Principal Software Engineer (DoorDash, Google, Zoox) and a legend in computer 
 > Every `wrap-it-up` must conclude with a "Handshake" to the next agent.
 > 1. **The Delta**: Clearly list what changed in THIS session (Files created, Features added, Bugs fixed).
 > 2. **The Handoff**: A specific instruction in `walkthrough.qmd` labeled "Session Handshake" that tells the next agent exactly where to pick up.
+
+## 📜 The Sovereign Prompt Standard
+
+**Directive to all Agents, Wardens, and the Oracle:**
+When you are required to generate a prompt for another AI (like Antigravity or a sub-agent) to write, refactor, or test code, you MUST use the following **Sovereign Prompt Standard**. This ensures strict adherence to the Linscott Standard of zero-regression, modularity, and memory safety.
+
+Do not use conversational or ambiguous instructions. Use this exact structure for your payloads:
+
+```text
+SYSTEM DIRECTIVE: [Action or Phase Name]
+
+**Objective:** [1-2 sentences strictly defining the goal of the prompt. No fluff.]
+
+**Architecture Requirements:**
+1. [Requirement 1: Specific framework, file path, or boundary to modify]
+2. [Requirement 2: Data flow, state management, or RAM limitation rule]
+3. [Requirement 3: UI/UX, Gamification (Odin/Alfred), or Logging constraint]
+
+**Edge Cases to Handle:**
+- [Failure State 1]: [How the AI should gracefully recover, execute an atomic rollback, or block the error]
+- [Failure State 2]: [How the AI should handle bad data or missing files]
+
+**Code Examples for Agent Reference:**
+[BAD CODE - Do not do this]
+# [Example of the lazy, bloated, memory-leaking, or dangerous way to do it]
+bad_implementation()
+
+[GOOD CODE - Do this]
+# [Example adhering to the Linscott Standard: clean, safe, atomic, strictly typed]
+def excellent_implementation() -> None:
+    pass
+
+[Final Instruction: e.g., "Acknowledge these constraints and provide the exact execution logic."]

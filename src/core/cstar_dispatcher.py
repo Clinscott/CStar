@@ -76,8 +76,20 @@ class CorvusDispatcher:
     def run(self, args: List[str]) -> None:
         """Parses and dispatches the command dynamically."""
         if not args:
-            self.show_help()
-            return
+            # [Phase 11] Launch Sovereign HUD (TUI)
+            try:
+                from src.cstar.core.tui import SovereignApp
+                SovereignApp().run()
+                return
+            except ImportError as e:
+                # Fallback if Textual not installed
+                HUD.persona_log("FAIL", f"Sovereign HUD failed to load (Missing Dependency): {e}")
+                self.show_help()
+                return
+            except Exception as e:
+                HUD.persona_log("FAIL", f"Sovereign HUD failed to launch: {e}")
+                self.show_help()
+                return
 
         cmd = args[0].lower()
         cmd_args = args[1:]
@@ -105,11 +117,17 @@ class CorvusDispatcher:
                 return
             else: # Workflow
                 HUD.persona_log("INFO", f"Dispatching workflow: /{cmd}")
-                try:
-                    # Execute Quarto workflow
-                    subprocess.run(["quarto", "render", cmd_path], check=True)
-                except Exception as e:
-                    HUD.persona_log("FAIL", f"Workflow execution failed: {e}")
+                import shutil
+                if shutil.which("quarto"):
+                    try:
+                        subprocess.run(["quarto", "render", cmd_path], check=True)
+                    except Exception as e:
+                         HUD.persona_log("FAIL", f"Workflow execution failed: {e}")
+                else:
+                    HUD.persona_log("WARN", "Quarto not found. Displaying raw workflow:")
+                    HUD.box_top(f"WORKFLOW: {cmd}")
+                    print(Path(cmd_path).read_text(encoding='utf-8')[:1000] + "\n... (truncated)")
+                    HUD.box_bottom()
                 return
 
         HUD.persona_log("FAIL", f"Unknown command: {cmd}")

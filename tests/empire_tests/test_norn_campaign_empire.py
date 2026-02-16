@@ -13,17 +13,13 @@ from src.sentinel.muninn import NornWarden
 class TestNornWarden:
     @pytest.fixture
     def plan_file(self, tmp_path):
-        plan_dir = tmp_path / ".agent"
-        plan_dir.mkdir(parents=True)
-        plan_path = plan_dir / "CAMPAIGN_IMPLEMENTATION_PLAN.qmd"
+        plan_path = tmp_path / "tasks.qmd"
         content = """---
-title: Campaign
+title: Tasks
 ---
 
-| ID | File | Target | Type | Description |
-|---|---|---|---|---|
-| 1 | `src/foo.py` | Foo | FIX | Fix the thing |
-| 2 | `src/bar.py` | Bar | NEW | Create the bar |
+- [ ] Fix the thing
+- [x] Create the bar
 """
         plan_path.write_text(content, encoding='utf-8')
         return plan_path
@@ -33,19 +29,19 @@ title: Campaign
         target = warden.get_next_target()
         
         assert target is not None
-        assert target['file'] == "src/foo.py"
+        assert target['file'] == "tasks.qmd"
         assert "Fix the thing" in target['action']
-        assert target['line_index'] == 6 # 0-indexed line with the first task
+        assert target['line_index'] == 4 
 
     def test_mark_complete(self, tmp_path, plan_file):
         warden = NornWarden(tmp_path)
         target = {
-            'file': 'src/foo.py',
-            'action': '[FIX] Fix the thing',
-            'line_index': 6
+            'file': 'tasks.qmd',
+            'action': 'Fix the thing',
+            'line_index': 4
         }
         warden.mark_complete(target)
         
         content = plan_file.read_text(encoding='utf-8')
-        assert "~~Fix the thing~~" in content
-        assert "~~`src/foo.py`~~" in content # Strike through everything
+        assert "- [x] Fix the thing" in content
+

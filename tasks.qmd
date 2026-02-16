@@ -223,10 +223,14 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Documentation**: Updated `README.qmd` with new `c*` command reference and Oracle branding. [x]
 - [x] **Verification**: 100% pass on `test_muninn_empire.py` after syntax repairs. [x]
 
-## ⏭️ Start Here Next (Phase 46)
-- [ ] **Operation Ironclad: Hybrid Modularization**: Begin the migration of core memory and engine logic to a persistent modular package (`src/cstar`).
-    - Move `memory.qmd`, `tasks.qmd`, `thesaurus.qmd` to `src/cstar/memory/`.
-    - Create `src/cstar/engine/` for `sv_engine.py` and `vector.py`.
-- [ ] **Annexation Execution**: Activate the `execution` mode for `annex.py` to auto-remediate Documentation/Linguistic breaches project-wide.
-- [ ] **Heimdall Persistence**: Harden the security monitor to run in background mode with a persistent log rotation.
-- [ ] **Atomic Expansion**: Increase the `AtomicCortex` embedding dimension and vocabulary to support broader linguistic patterns.
+### 46. The Sovereign HUD & Agentic Loop (Session 60)
+- [x] **Agentic Loop**: Implemented `src/tools/loop.py` for autonomous observation and action. Verified via simulation. [x]
+- [x] **Sovereign HUD**: Created `src/cstar/core/tui.py` with 4-zone layout (Header, Sidebar, Console, Input) using `Textual`. [x]
+- [x] **Dumb Client**: Enforced RPC-only communication between TUI and Daemon via `src/cstar/core/rpc.py`. [x]
+- [x] **Launcher**: Updated `cstar` dispatcher to auto-launch TUI on empty arguments. [x]
+- [x] **Verification**: 100% pass on TUI instantiation and Daemon polling. [x]
+
+## ⏭️ Start Here Next (Phase 47)
+- [ ] **Operation Ironclad**: Security hardening and API Key management.
+- [ ] **TUI Expansion**: Add `Forge` visualization to the TUI.
+
