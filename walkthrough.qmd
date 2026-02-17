@@ -1,4 +1,54 @@
-# Walkthrough: Session 60 - System Ignition & Muninn Repair
+# Walkthrough: Session 62 - Operation Ragnarök: DOOM Aesthetic & WAR ROOM
+
+## 🎯 Goal
+Overhaul the Sovereign HUD's ODIN theme to achieve an aggressive DOOM/Quake-inspired aesthetic, redesign the WAR ROOM sidebar as a battle briefing panel, fix a command input crash, and resolve a keybinding conflict with the IDE.
+
+## 🏆 Results
+| Metric | Value |
+|:---|:---|
+| **Aesthetic** | **DOOM Chrome** (Heavy red borders, amber text) |
+| **WAR ROOM** | **3 Sections** (Objectives, Forge, Intel) |
+| **Stability** | **Crash Fixed** (NoMatches resolved) |
+| **Verification** | **291/291 Pass** (Full suite clean) |
+
+## 🛠️ Key Changes
+
+### 1. DOOM Chrome Overhaul (`src/cstar/core/tui.py`)
+- **Borders**: Upgraded from thin `double #8b0000` to `heavy #cc2200` across all panels.
+- **Header**: Thick red bottom border, `#2a0000` background, `#ff4400` title text.
+- **Footer**: Bright `#cc2200` red key backgrounds instead of dark maroon.
+- **Scrollbars**: `#cc2200` themed for aggressive look.
+
+### 2. WAR ROOM Redesign (`SidebarWidget`)
+- **3 Battle Sections**: Restructured into ACTIVE OBJECTIVES (target count + task list), FORGE STATUS (armory readiness), and INTEL FEED (trace signals).
+- **Removed Duplicate**: Border-title now handles "WAR ROOM" — removed internal label.
+- **Dynamic Forge**: Added `update_forge_status()` for real-time build state (READY/FORGING/FAILED).
+
+### 3. Crash Fix (`on_input_submitted`)
+- **Root Cause**: `self.query_one(Input)` searched the App's default screen instead of the active screen.
+- **Fix**: Used `message.input.value` directly (the widget that fired the event).
+
+### 4. Quit Keybinding Fix
+- **Problem**: Textual's default `Ctrl+Q` quit conflicted with Antigravity IDE.
+- **Fix**: Added explicit `BINDINGS` with `Escape` for quit. Also added `exit`/`quit` as typed commands.
+
+### 5. ALFRED CSS Fix
+- **Selectors**: Updated from generic types (`Log`) to panel IDs (`#console`, `#gphs_bar`) with `border-title-color`.
+
+## 🤝 Session Handshake
+**Session Delta**:
+- Overhauled ODIN DOOM aesthetic with heavy red chrome.
+- Redesigned WAR ROOM as a 3-section battle briefing.
+- Fixed command input crash and quit keybinding conflict.
+- Added dynamic forge status method.
+- 291/291 tests passing, lint clean.
+
+**Resume Directive**:
+- To launch: `c*`.
+- To test: `pytest tests/`.
+- Next: **Phase 49** in `tasks.qmd` (Operation Ironclad or TUI Content Polish).
+
+# Walkthrough: Session 61 - TUI Cinematic & Persistence
 
 ## 🎯 Goal
 Finalize the CLI installation, verify system integrity (Daemon/Port/Filesystem), and fix a critical structural regression in `muninn.py` to ensure the "Oracle" is fully operational.

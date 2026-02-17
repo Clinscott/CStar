@@ -1,5 +1,12 @@
 # Corvus Star Memory
 
+## 2026-02-17: Session 62 (Operation Ragnarök)
+- **Textual Aesthetic Power**: The DOOM feel in Textual comes from Rich markup *inside* `Static` widgets (block chars, ASCII art, bold colored text), not from border styles alone. `heavy` borders + bright `#cc2200` red + `bold` text-style creates the chrome; Rich content creates the soul.
+- **Widget Query Scope**: `self.query_one(Widget)` on an `App` searches the *default screen*, not the active one. For `Input.Submitted` handlers, use `message.input` (the event's widget reference) to avoid `NoMatches` when screens are stacked.
+- **Keybinding Conflicts**: Textual's default `Ctrl+Q` quit conflicts with many IDEs. Always define explicit `BINDINGS` on the `App` class to control quit behavior. `Escape` is a safer universal quit key for TUI applications.
+- **Duplicate Labels**: When using Textual's `border-title` CSS property on containers, remove any internal `Label` widgets that show the same title — the border-title handles it more cleanly.
+- **CSS Panel ID Selectors**: Theme CSS should target specific panel IDs (`#console`, `#gphs_bar`, `#sidebar_container`) instead of generic widget types (`Log`, `Static`) to avoid styling unintended widgets on other screens.
+
 ## 2026-02-16: Session 61 (High Seat Secured)
 - **Textual CSS Regressions**: Nested CSS variables (e.g., `--app-accent`) declared inside class blocks (e.g., `.theme-odin { --v: red; }`) can fail significantly in older/specific versions of Textual. Prefer explicit descendant selectors (`.theme-odin Widget { background: red; }`) for theme definitions to maximize compatibility.
 - **Log Widget Versioning**: The `Log` widget in some Textual versions does *not* accept `markup=True` in its constructor, triggering a `TypeError`. Use `log.write(markup_string)` instead, or ensure the environment matches the dev specs exactly.

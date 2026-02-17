@@ -1,5 +1,23 @@
 # Developer Journal: Corvus Star
 
+## 2026-02-17: Session 62 - Operation Ragnarök (DOOM Aesthetic & WAR ROOM)
+**Summary**: Overhauled the ODIN TUI aesthetic from corporate terminal to DOOM-inspired war room. Fixed a command input crash and IDE keybinding conflict.
+- **DOOM Chrome**: Replaced all `double #8b0000` borders with `heavy #cc2200` — chunky, aggressive red chrome. Header, sidebar, console, footer all shifted to brighter reds and amber.
+- **WAR ROOM**: Redesigned `SidebarWidget` into 3 battle briefing sections: Active Objectives, Forge Status, and Intel Feed. Each section has bold headers with rune separators.
+- **Crash Fix**: `self.query_one(Input)` was searching the wrong screen. Fixed by using `message.input` directly from the event.
+- **Quit Conflict**: Textual's default `Ctrl+Q` was intercepted by Antigravity IDE. Added explicit `BINDINGS` with `Escape` for quit + `exit`/`quit` typed commands.
+- **Dynamic Forge**: Added `update_forge_status()` method to SidebarWidget for live build state updates.
+
+**Key Decisions**:
+- **Textual is the right framework** — the DOOM feel comes from Rich content *inside* the panels, not from the border chrome alone. Block characters, ASCII art, and Rich markup in `Static` widgets provide the remaining visual punch.
+- **`Escape` over `Ctrl+Q`**: More intuitive for a TUI app and avoids all IDE conflicts.
+- **Panel border-titles over internal labels**: Textual's `border-title` CSS property is cleaner and avoids duplicate headers.
+
+**Current State**:
+- 291/291 tests passing, lint clean.
+- ODIN theme is aggressive red chrome. ALFRED theme updated with proper panel ID selectors.
+- Ready for Phase 49 (Ironclad or TUI Content Polish).
+
 ## 2026-02-16: Session 61 - High Seat Secured (TUI Stabilization)
 **Summary**: Resolved persistent TUI regressions and achieved "Empire-Class" verification for the Sovereign HUD.
 - **CSS Repair**: Discovered that nested CSS variables inside class blocks cause parsing errors in the current `Textual` version. Refactored to explicit descendant selectors.

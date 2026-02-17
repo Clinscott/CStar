@@ -229,8 +229,19 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Empire Test Suite**: Created `tests/empire_tests/test_tui_empire.py` for verification of HUD stability. [x]
 - [x] **Linscott Compliance**: Standardized TUI module with strict typing, docstrings, and graceful connection handling. [x]
 
-## ⏭️ Start Here Next (Phase 48)
+### 48. Operation Ragnarök: DOOM Aesthetic & WAR ROOM (Session 62)
+- [x] **DOOM Chrome**: Overhauled ODIN CSS with `heavy #cc2200` borders, bright amber text, and aggressive red header bar. [x]
+- [x] **WAR ROOM Redesign**: Restructured sidebar into 3 battle briefing sections (Active Objectives, Forge Status, Intel Feed). [x]
+- [x] **Crash Fix**: Resolved `NoMatches: No nodes match 'Input'` by using `message.input` instead of `self.query_one(Input)`. [x]
+- [x] **Quit Fix**: Replaced default `Ctrl+Q` quit (which conflicted with IDE) with `Escape` keybinding + `exit`/`quit` typed commands. [x]
+- [x] **ALFRED CSS**: Updated theme selectors from generic types to panel IDs (`#console`, `#gphs_bar`). [x]
+- [x] **Dynamic Forge**: Added `update_forge_status()` method to SidebarWidget for real-time build state. [x]
+- [x] **Lore Panels**: Implemented persona-aware border-titles (WAR ROOM, THE WELL OF MIMIR, ODIN'S EYE) via `_apply_panel_lore()`. [x]
+- [x] **Verification**: 25/25 TUI tests passing, lint clean. [x]
+
+## ⏭️ Start Here Next (Phase 49)
 - [ ] **Operation Ironclad**: Security hardening and API Key management.
-- [ ] **TUI Expansion**: Add `Forge` visualization to the TUI sidebar or a new screen.
+- [ ] **TUI Content Polish**: Add Rich-formatted content inside panels (ASCII art skulls, block-character bars, rune separators) to push DOOM aesthetic further.
+- [ ] **Forge Integration**: Wire ForgeScreen events to `update_forge_status()` in the sidebar.
 - [ ] **Daemon Vitals**: Map CPU usage and I/O status to the TUI Header.
 
