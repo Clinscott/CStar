@@ -1,0 +1,2 @@
+[console_scripts]
+cstar = src.core.cstar_dispatcher:main

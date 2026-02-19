@@ -154,3 +154,7 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 -   **TUI**: Implemented a "Heartbeat" status indicator (dot) in the HeaderWidget that updates during every poll. - Status: SECURED.
 -   **TUI**: Standardized all HUD components to use descendant-based CSS selectors, bypassing variable-parsing regressions. - Status: SECURED.
 -   **Verification**: Created the first "Empire-Class" test suite for the TUI (`test_tui_empire.py`), verifying instantiation, CSS validity, and client resilience. - Status: SECURED.
+
+### 2026-02-17 (Session 65 - Dominion Expanded)
+-   **Stability**: Increased `daemon` memory limit (256MB) to support V5 streaming payloads. - Status: SECURED.
+-   **TUI**: Enhanced `ForgeScreen` with double-border styling to match the dashboard aesthetic. - Status: SECURED.

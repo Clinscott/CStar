@@ -293,3 +293,19 @@ The "SovereignFish" protocol is now fully agentic. It doesn't just execute; it r
 - **Lazy-Initialization Pattern**: Adopted the `_ensure_persona` pattern in the UI layer to avoid race conditions or config mismatches between parent and child processes.
 - **Signal-to-State Mapping**: Mapped system signals to a clean termination method to ensure `ravens.lock` and other orphans are consistently purged.
 - **Pathlib Sovereignty**: Mandated Pathlib for all `src/core` modules to eliminate platform-specific pathing bugs.
+
+## 2026-02-17: Session 65 - TUI Async Streaming
+**Summary**: Upgraded the TUI to support the V5 Forge's asynchronous streaming protocol, enabling real-time code generation feedback without blocking the UI.
+- **Async Streaming**: Implemented `stream_command` in `DaemonClient` to consume line-delimited JSON events.
+- **Live Forge**: Refactored `_handle_forge_command` to switch to `ForgeScreen` and display events as they arrive, including the final Gungnir LLR verdict.
+- **Visuals**: Aligned `ForgeScreen` aesthetic with the Dashboard (double borders).
+- **Stability**: Bumped Daemon memory limit to 256MB.
+
+**Key Decisions**:
+- **Generator Pattern**: Used an async generator for the client to decouple network reading from UI updates, keeping the `Textual` event loop responsive.
+- **Memory Boost**: Pre-emptively increased memory limits to handle larger V5 contexts.
+
+**Current State**:
+- TUI is fully async-capable.
+- Ready for Phase 50 (Ironclad).
+

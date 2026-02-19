@@ -292,6 +292,37 @@ class DaemonClient:
         # Graceful degradation
         return {"persona": "ALFRED", "status": "disconnected", "error": True}
 
+    async def stream_command(self, payload: dict[str, Any]):
+        """
+        Send a JSON command and yield streaming responses (Line-Delimited JSON).
+        Keeps the socket open until EOF.
+        """
+        try:
+            reader, writer = await asyncio.wait_for(
+                asyncio.open_connection("127.0.0.1", PORT),
+                timeout=self.TIMEOUT,
+            )
+            writer.write(json.dumps(payload).encode("utf-8"))
+            await writer.drain()
+
+            while True:
+                line = await reader.readline()
+                if not line:
+                    break
+                try:
+                    event = json.loads(line.decode("utf-8").strip())
+                    yield event
+                except json.JSONDecodeError:
+                    continue
+        except Exception as e:
+            yield {"type": "result", "status": "error", "message": f"Stream severed: {str(e)}"}
+        finally:
+            try:
+                writer.close()
+                await writer.wait_closed()
+            except Exception:
+                pass
+
 
 # ---------------------------------------------------------------------------
 # Transition Screen  —  Expanded Cinematic
@@ -653,11 +684,14 @@ class ForgeScreen(Screen):
 
     #forge_log {
         height: 1fr;
+        border: double $accent;
+        padding: 0 1;
     }
 
     #forge_status {
-        height: 1;
+        height: 3;
         padding: 0 1;
+        border: heavy $accent;
     }
     """
 
@@ -1386,37 +1420,48 @@ class SovereignApp(App):
     async def _handle_forge_command(
         self, cmd: str, log_widget: Log, lore: dict[str, str]
     ) -> None:
-        """
-        Handle forge commands with streaming output.
+        """Handle forge commands by switching to the Forge Screen and streaming output."""
+        
+        # 1. Switch to the dedicated Forge Screen
+        self.action_show_forge()
+        forge_log = self.screen.query_one("#forge_log", Log)
+        forge_status = self.screen.query_one("#forge_status", Static)
+        
+        forge_log.clear()
+        forge_log.write(f"[{self.active_persona}] {lore['forge_start']}")
+        forge_status.update(f"[{self.active_persona}] {lore['forge_progress']}")
 
-        Args:
-            cmd: Full forge command string.
-            log_widget: Console Log widget to write to.
-            lore: Active persona lore dictionary.
-        """
-        log_widget.write(f"[{self.active_persona}] {lore['forge_start']}")
+        # 2. Package the payload
+        # Drop the word "forge" and send the rest as args. The daemon's new router will parse it.
+        parts = cmd.split()[1:] 
+        payload = {"command": "forge", "args": parts}
 
+        # 3. Consume the Stream
         try:
-            # Parse simple --task/--target args
-            parts = cmd.split()
-            task_str = ""
-            target_str = ""
-            for i, p in enumerate(parts):
-                if p == "--task" and i + 1 < len(parts):
-                    task_str = parts[i + 1]
-                elif p == "--target" and i + 1 < len(parts):
-                    target_str = parts[i + 1]
-
-            resp = await self.client.send_command(
-                {"command": "forge", "args": ["--task", task_str, "--target", target_str]}
-            )
-
-            if resp.get("error"):
-                log_widget.write(f"[{self.active_persona}] {lore['forge_fail']}")
-            else:
-                log_widget.write(f"[{self.active_persona}] {lore['forge_done']}")
+            async for event in self.client.stream_command(payload):
+                event_type = event.get("type")
+                persona = event.get("persona", "SYSTEM")
+                msg = event.get("msg", "")
+                
+                if event_type == "ui":
+                    forge_log.write(f"[{persona}] {msg}")
+                
+                elif event_type == "result":
+                    status = event.get("status")
+                    if status == "success":
+                        forge_log.write(f"[{self.active_persona}] {lore['forge_done']}")
+                        llr = event.get("llr")
+                        if llr:
+                            forge_log.write(f"[GUNGNIR] Final Verdict LLR: {llr}")
+                        forge_status.update("[green]Forge Complete. Zero Regression.[/green]")
+                    else:
+                        forge_log.write(f"[{self.active_persona}] {lore['forge_fail']}")
+                        forge_log.write(f"[ERROR] {event.get('message')}")
+                        forge_status.update("[red]Forge Failed. Logic Breach.[/red]")
+                        
         except Exception as e:
-            log_widget.write(f"[FORGE ERROR] {e}")
+            forge_log.write(f"[CRITICAL] {e}")
+            forge_status.update("[red]Stream Disconnected.[/red]")
 
 
 # ---------------------------------------------------------------------------

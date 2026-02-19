@@ -55,6 +55,10 @@
 - **GPHS Utility**: A single Global Health Score provides a definitive "Go/No-Go" gauge for autonomous mutations, removing ambiguity from the Gauntlet.
 - **Alfred's Guidance**: Persistent guidance files (.agent/ALFRED_SUGGESTIONS.md) prevent "hallucination loops" where the agent tries the same failed fix repeatedly.
 
+## 2026-02-17: Session 65 (Async TUI)
+- **Async Generators**: For long-running TUI tasks (like Forge streaming), always use `async for` generators over `await`. This keeps the event loop alive and allows intermediate UI updates.
+- **Memory Bounds**: Set explicit memory limits (e.g., 256MB) in the Daemon to prevent OOM kills on low-resource environments when processing large context windows.
+
 ---
 
 # Corvus Star Memory

@@ -1,0 +1,16 @@
+Metadata-Version: 2.4
+Name: corvus-star
+Version: 0.1.0
+Summary: Sovereign AI Framework
+Author-email: Craig <craig@example.com>
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: requests
+Requires-Dist: playwright
+Requires-Dist: pytest
+Requires-Dist: ruff
+Requires-Dist: psutil
+Requires-Dist: python-dotenv
+Requires-Dist: PyYAML
+Requires-Dist: textual
+Requires-Dist: pytest-asyncio

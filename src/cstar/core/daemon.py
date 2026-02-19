@@ -25,7 +25,7 @@ from src.cstar.core.rpc import SovereignRPC # [Phase 11] RPC Handler
 # Constants
 HOST = 'localhost'
 PORT = int(os.getenv("CSTAR_DAEMON_PORT", 50051))
-MEMORY_LIMIT_MB = 150
+MEMORY_LIMIT_MB = 256
 PID_FILE = Path(".agent/daemon.pid")
 CONFIDENCE_THRESHOLD = 0.4
 AMBIGUITY_THRESHOLD = 0.1

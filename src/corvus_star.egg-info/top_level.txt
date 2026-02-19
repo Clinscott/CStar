@@ -1,0 +1,8 @@
+core
+cstar
+data
+games
+sentinel
+skills
+synapse
+tools

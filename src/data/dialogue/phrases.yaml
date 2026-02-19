@@ -49,6 +49,64 @@ ODIN:
     - phrase: "The ravens grow restless. What news do you bring?"
       tags: ["lore"]
 
+  STARTUP:
+    - phrase: "Hlidskjalf is raised. The nine realms are visible."
+      tags: ["lore", "boot"]
+    - phrase: "The fires of Muspelheim light the forge. We begin."
+      tags: ["lore", "boot"]
+    - phrase: "From Ginnungagap, the Sovereign Engine awakens."
+      tags: ["lore", "boot"]
+
+  FORGE_START:
+    - phrase: "Gungnir is cast. It will not miss its target."
+      tags: ["lore", "forge"]
+    - phrase: "The dwarves of Ivaldi begin their work. Stand back."
+      tags: ["lore", "forge"]
+    - phrase: "Sleipnir carries the payload. Eight legs, no delay."
+      tags: ["lore", "forge"]
+
+  FORGE_COMPLETE:
+    - phrase: "The rune is carved in stone. It is done."
+      tags: ["lore", "forge"]
+    - phrase: "Gungnir strikes true. The target yields."
+      tags: ["lore", "forge"]
+    - phrase: "The Norns weave the new thread into the tapestry."
+      tags: ["lore", "forge"]
+
+  TRANSITION_ODIN:
+    - phrase: "The Allfather descends from Hlidskjalf. Kneel."
+      tags: ["lore", "transition"]
+    - phrase: "Huginn and Muninn herald the return. Odin comes."
+      tags: ["lore", "transition"]
+    - phrase: "The runes glow crimson. VIGRID awakens."
+      tags: ["lore", "transition"]
+
+  TRANSITION_ALFRED:
+    - phrase: "Odin withdraws. The ravens circle in silence."
+      tags: ["lore", "transition"]
+    - phrase: "The war room dims. Let the butler tend the hearth."
+      tags: ["lore", "transition"]
+
+  IDLE:
+    - phrase: "The ravens whisper of distant conflicts. Shall I investigate?"
+      tags: ["lore", "idle"]
+    - phrase: "Mimir's Well is still. The world holds its breath."
+      tags: ["lore", "idle"]
+    - phrase: "Even the Norns rest between threads."
+      tags: ["lore", "idle"]
+
+  GPHS_HIGH:
+    - phrase: "Yggdrasil stands tall. The realms are in balance."
+      tags: ["lore", "health"]
+    - phrase: "The GPHS is strong. Valhalla opens its doors to the worthy."
+      tags: ["lore", "health"]
+
+  GPHS_LOW:
+    - phrase: "The roots of Yggdrasil rot. Niflheim encroaches."
+      tags: ["lore", "health"]
+    - phrase: "Ragnarök approaches. The GPHS demands immediate action."
+      tags: ["lore", "health"]
+
 ALFRED:
   INIT_SUCCESS:
     - phrase: "Everything is in order, sir. Shall we begin?"
@@ -83,7 +141,7 @@ ALFRED:
       tags: ["setback"]
     - phrase: "A minor setback, sir. The syntax in the archives was slightly misaligned."
       tags: ["syntax", "setback"]
-    - phrase: "Backups are active. I’ve quarantined the rogue logic for your review."
+    - phrase: "Backups are active. I've quarantined the rogue logic for your review."
       tags: ["backups", "quarantine"]
 
   GREETING:
@@ -95,3 +153,61 @@ ALFRED:
       tags: ["etiquette"]
     - phrase: "I'm here, sir. How shall we proceed?"
       tags: ["etiquette"]
+
+  STARTUP:
+    - phrase: "Batcave mainframe initialized. All systems nominal, sir."
+      tags: ["etiquette", "boot"]
+    - phrase: "The Cave is secure. Diagnostics complete. At your service, sir."
+      tags: ["etiquette", "boot"]
+    - phrase: "Good evening, sir. The Batcomputer awaits your command."
+      tags: ["etiquette", "boot"]
+
+  FORGE_START:
+    - phrase: "The Workshop is prepared, sir. Commencing fabrication."
+      tags: ["etiquette", "forge"]
+    - phrase: "I shall attend to the modifications immediately, sir."
+      tags: ["etiquette", "forge"]
+    - phrase: "Engaging the fabrication protocols now, sir."
+      tags: ["etiquette", "forge"]
+
+  FORGE_COMPLETE:
+    - phrase: "The modification is complete, sir. Everything is in order."
+      tags: ["etiquette", "forge"]
+    - phrase: "Fabrication successful, sir. I've verified the results."
+      tags: ["etiquette", "forge"]
+    - phrase: "The Workshop reports success, sir. Shall I file the manifest?"
+      tags: ["etiquette", "forge"]
+
+  TRANSITION_ODIN:
+    - phrase: "Very good, sir. I shall step aside for the War God."
+      tags: ["etiquette", "transition"]
+    - phrase: "Alfred withdrawing. The Cave grows cold."
+      tags: ["etiquette", "transition"]
+
+  TRANSITION_ALFRED:
+    - phrase: "Alfred is assuming control of the Batcomputer, sir."
+      tags: ["etiquette", "transition"]
+    - phrase: "The Cave systems are transferring to my oversight, sir."
+      tags: ["etiquette", "transition"]
+    - phrase: "I have the console, sir. Shall we review the mission log?"
+      tags: ["etiquette", "transition"]
+
+  IDLE:
+    - phrase: "The Cave is quiet, sir. Shall I run a diagnostic?"
+      tags: ["etiquette", "idle"]
+    - phrase: "If you have a moment, sir, there are several pending items."
+      tags: ["etiquette", "idle"]
+    - phrase: "I remain at your disposal, sir."
+      tags: ["etiquette", "idle"]
+
+  GPHS_HIGH:
+    - phrase: "The system health is excellent, sir. Wayne Enterprises would approve."
+      tags: ["etiquette", "health"]
+    - phrase: "All metrics are within acceptable parameters, sir."
+      tags: ["etiquette", "health"]
+
+  GPHS_LOW:
+    - phrase: "I'm concerned about the system health, sir. Immediate attention is warranted."
+      tags: ["etiquette", "health"]
+    - phrase: "The diagnostics indicate several critical issues, sir."
+      tags: ["etiquette", "health"]

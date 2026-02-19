@@ -51,12 +51,18 @@ async def test_daemon_client_success() -> None:
     """Verify DaemonClient returns parsed JSON on successful connection."""
     mock_reader = AsyncMock()
     mock_reader.read.return_value = json.dumps({"status": "ok"}).encode("utf-8")
-    mock_writer = AsyncMock()
+    
+    # StreamWriter.write is sync, StreamWriter.drain and wait_closed are async.
+    mock_writer = MagicMock()
+    mock_writer.write = MagicMock() # Ensure it's not an AsyncMock
+    mock_writer.drain = AsyncMock()
+    mock_writer.wait_closed = AsyncMock()
 
     with patch("asyncio.open_connection", return_value=(mock_reader, mock_writer)):
         client = DaemonClient()
         response = await client.send_command({"cmd": "test"})
         assert response == {"status": "ok"}
+        mock_writer.write.assert_called()
 
 
 @pytest.mark.asyncio

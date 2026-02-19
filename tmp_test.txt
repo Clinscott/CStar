@@ -1,0 +1,50 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.2, pytest-9.0.2, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Craig\Corvus\CorvusStar
+configfile: pyproject.toml
+plugins: anyio-4.12.1, asyncio-1.3.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 25 items
+
+tests/empire_tests/test_tui_empire.py::test_daemon_client_success PASSED [  4%]
+tests/empire_tests/test_tui_empire.py::test_daemon_client_failure_graceful_degradation PASSED [  8%]
+tests/empire_tests/test_tui_empire.py::test_daemon_client_retry_count PASSED [ 12%]
+tests/empire_tests/test_tui_empire.py::test_sovereign_app_instantiation PASSED [ 16%]
+tests/empire_tests/test_tui_empire.py::test_sovereign_app_has_css PASSED [ 20%]
+tests/empire_tests/test_tui_empire.py::test_sovereign_app_has_screens PASSED [ 24%]
+tests/empire_tests/test_tui_empire.py::test_odin_lore_completeness PASSED [ 28%]
+tests/empire_tests/test_tui_empire.py::test_alfred_lore_completeness PASSED [ 32%]
+tests/empire_tests/test_tui_empire.py::test_lore_personas_present PASSED [ 36%]
+tests/empire_tests/test_tui_empire.py::test_odin_theme_class_value PASSED [ 40%]
+tests/empire_tests/test_tui_empire.py::test_alfred_theme_class_value PASSED [ 44%]
+tests/empire_tests/test_tui_empire.py::test_transition_screen_odin PASSED [ 48%]
+tests/empire_tests/test_tui_empire.py::test_transition_screen_alfred PASSED [ 52%]
+tests/empire_tests/test_tui_empire.py::test_keybindings_registered PASSED [ 56%]
+tests/empire_tests/test_tui_empire.py::test_project_root_resolution PASSED [ 60%]
+tests/empire_tests/test_tui_empire.py::test_load_greeting_odin PASSED    [ 64%]
+tests/empire_tests/test_tui_empire.py::test_load_greeting_alfred PASSED  [ 68%]
+tests/empire_tests/test_tui_empire.py::test_load_greeting_fallback PASSED [ 72%]
+tests/empire_tests/test_tui_empire.py::test_gphs_gauge_instantiation PASSED [ 76%]
+tests/empire_tests/test_tui_empire.py::test_known_commands_list PASSED   [ 80%]
+tests/empire_tests/test_tui_empire.py::test_dashboard_screen_has_css PASSED [ 84%]
+tests/empire_tests/test_tui_empire.py::test_forge_screen_has_css PASSED  [ 88%]
+tests/empire_tests/test_tui_empire.py::test_trace_screen_has_css PASSED  [ 92%]
+tests/empire_tests/test_tui_empire.py::test_help_screen_accepts_persona PASSED [ 96%]
+tests/empire_tests/test_tui_empire.py::test_vitals_header_instantiation PASSED [100%]
+
+============================== warnings summary ===============================
+tests/empire_tests/test_tui_empire.py::test_daemon_client_success
+  C:\Users\Craig\Corvus\CorvusStar\src\cstar\core\tui.py:274: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+    writer.write(json.dumps(payload).encode("utf-8"))
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/empire_tests/test_tui_empire.py::test_daemon_client_success
+  C:\Users\Craig\Corvus\CorvusStar\src\cstar\core\tui.py:280: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+    writer.close()
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 25 passed, 2 warnings in 2.22s ========================

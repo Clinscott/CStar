@@ -49,15 +49,23 @@ class TestMuninnEmpire:
                 Muninn("dummy_root")
 
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key"})
+    @patch("src.sentinel.muninn.AtomicCortex")
+    @patch("src.sentinel.muninn.Muninn._execute_hunt_async", new_callable=MagicMock)
     @patch("src.sentinel.muninn.HUD")
     @patch("src.sentinel.muninn.asyncio.run")
     @patch("src.sentinel.muninn.ProjectMetricsEngine")
     @patch("src.sentinel.muninn.TheWatcher")
     @patch("src.sentinel.muninn.GungnirSPRT")
-    def test_run_scan_no_breaches(self, mock_sprt, mock_watcher, mock_metrics, mock_asyncio_run, mock_hud):
+    def test_run_scan_no_breaches(self, mock_sprt, mock_watcher, mock_metrics, mock_asyncio_run, mock_hud, mock_hunt, mock_cortex):
         muninn = Muninn("dummy_root")
         
-        # Mock metrics engine instance
+        # Mock hunt to return value directly (not a coroutine)
+        mock_hunt.return_value = ([], {"ANNEX": 0})
+        
+        # Mock asyncio.run to return same
+        mock_asyncio_run.return_value = ([], {"ANNEX": 0})
+
+
         mock_metrics_inst = mock_metrics.return_value
         mock_metrics_inst.compute.return_value = 80.0
         
@@ -77,16 +85,27 @@ class TestMuninnEmpire:
         assert args[0] == "SUCCESS"
 
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key"})
+    @patch("src.sentinel.muninn.AtomicCortex")
+    @patch("src.sentinel.muninn.Muninn._execute_hunt_async", new_callable=MagicMock)
     @patch("src.sentinel.muninn.HUD")
     @patch("src.sentinel.muninn.asyncio.run")
     @patch("src.sentinel.muninn.ProjectMetricsEngine")
     @patch("src.sentinel.muninn.TheWatcher")
     @patch("src.sentinel.muninn.GungnirSPRT")
     @patch("src.sentinel.muninn.subprocess.run")
-    def test_run_with_breach_success(self, mock_sub, mock_sprt, mock_watcher, mock_metrics, mock_asyncio_run, mock_hud):
+    def test_run_with_breach_success(self, mock_sub, mock_sprt, mock_watcher, mock_metrics, mock_asyncio_run, mock_hud, mock_hunt, mock_cortex):
         muninn = Muninn("dummy_root")
         
-        # Mock metrics
+        # Mock hunt
+        breach = {
+            "file": "bad.py",
+            "action": "Fix syntax",
+            "severity": "CRITICAL",
+            "type": "ANNEX_BREACH"
+        }
+        mock_hunt.return_value = ([breach], {"ANNEX": 1})
+        mock_asyncio_run.return_value = ([breach], {"ANNEX": 1})
+
         mock_metrics_inst = mock_metrics.return_value
         mock_metrics_inst.compute.side_effect = [80.0, 85.0] # Pre, Post
         

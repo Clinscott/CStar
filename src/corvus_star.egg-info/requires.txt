@@ -1,0 +1,9 @@
+requests
+playwright
+pytest
+ruff
+psutil
+python-dotenv
+PyYAML
+textual
+pytest-asyncio

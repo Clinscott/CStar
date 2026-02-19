@@ -19,7 +19,8 @@ dependencies = [
     "psutil",
     "python-dotenv",
     "PyYAML",
-    "textual"
+    "textual",
+    "pytest-asyncio"
 ]
 
 [project.scripts]
@@ -30,6 +31,7 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+asyncio_mode = "auto"
 
 [tool.ruff]
 line-length = 100
