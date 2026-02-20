@@ -68,8 +68,22 @@ export async function executeGenesisSequence(platform = process.platform, execFu
         }
 
         // Step 3: The Global Link
-        console.log(chalk.cyan(`ALFRED: 'Binding Gungnir Control Plane (npm link)...'`));
-        await execFunction('npm', ['link'], { cwd: PROJECT_ROOT, stdio: ['ignore', 'inherit', 'inherit'] });
+        if (process.env.CI) {
+            console.log(chalk.yellow(`ALFRED: 'CI Environment Detected. Skipping global npm link.'`));
+        } else if (process.env.CSTAR_SKIP_LINK) {
+            console.log(chalk.yellow(`ALFRED: 'Recursion guard active. Skipping nested npm link.'`));
+        } else {
+            console.log(chalk.cyan(`ALFRED: 'Binding Gungnir Control Plane (npm link)...'`));
+            try {
+                await execFunction('npm', ['link'], {
+                    cwd: PROJECT_ROOT,
+                    stdio: ['ignore', 'inherit', 'inherit'],
+                    env: { ...process.env, CSTAR_SKIP_LINK: '1' }
+                });
+            } catch (linkErr) {
+                console.log(chalk.yellow(`ALFRED: 'Warning - npm link failed. You may need to link manually: npm link'`));
+            }
+        }
 
         // Step 4: Completion
         console.log(chalk.green(`ALFRED: 'Genesis sequence complete. System is armed.'`));
