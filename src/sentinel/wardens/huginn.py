@@ -17,7 +17,7 @@ class HuginnWarden(BaseWarden):
     def __init__(self, root: Path) -> None:
         super().__init__(root)
         self.trace_dir = root / ".agent" / "traces"
-        self.api_key = os.getenv("GOOGLE_API_KEY")
+        self.api_key = os.getenv("MUNINN_API_KEY") or os.getenv("GOOGLE_API_KEY")
         self.client = genai.Client(api_key=self.api_key) if self.api_key else None
 
     def scan(self) -> List[Dict[str, Any]]:
@@ -99,7 +99,7 @@ class HuginnWarden(BaseWarden):
             """
 
             response = self.client.models.generate_content(
-                model="gemini-2.0-flash",
+                model="gemini-3-flash-preview",
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json",

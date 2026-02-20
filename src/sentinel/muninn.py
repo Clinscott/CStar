@@ -35,6 +35,7 @@ bootstrap()
 # Core Imports
 from src.core.annex import HeimdallWarden
 from src.core.ui import HUD
+from src.cstar.core.uplink import AntigravityUplink
 from src.sentinel.code_sanitizer import (
     classify_error,
     extract_error_summary,
@@ -74,25 +75,29 @@ logging.basicConfig(
 )
 
 class Muninn:
-    def __init__(self, target_path: str, client=None) -> None:
-        self.root = Path(target_path).resolve()
+    def __init__(self, target_path: str = None):
+        # Auto-detect root if not provided
+        if target_path is None:
+            script_dir = Path(__file__).parent.absolute()
+            self.root = script_dir.parent.parent.resolve()
+        else:
+            self.root = Path(target_path).resolve()
         
-        # API Quota Isolation
+        # 1. Prioritize the isolated Muninn key
         self.api_key = os.getenv("MUNINN_API_KEY")
         if self.api_key:
-            HUD.persona_log("INFO", "Muninn operating on isolated API quota.")
+            HUD.persona_log("INFO", "Muninn operating on isolated MUNINN_API_KEY.")
         else:
             self.api_key = os.getenv("GOOGLE_API_KEY")
-
-        if not self.api_key and client is None:
-            raise ValueError("GOOGLE_API_KEY environment variable not set.")
-
-        self.client = client or genai.Client(api_key=self.api_key)
+            HUD.persona_log("WARN", "MUNINN_API_KEY missing. Falling back to shared GOOGLE_API_KEY.")
+            
+        # 2. Inject the key into the uplink instance
+        self.uplink = AntigravityUplink(api_key=self.api_key)
 
         # EMPIRE TDD Configuration
-        self.flash_model = "gemini-2.0-flash" 
-        self.pro_model = "gemini-2.5-pro"
-
+        self.flash_model = "gemini-3-flash-preview" 
+        self.pro_model = "gemini-3.1-pro-preview"
+        
         # Stability Manager
         self.watcher = TheWatcher(self.root)
 
@@ -101,8 +106,19 @@ class Muninn:
         self.observer = AlfredOverwatch()
         self.sprt = GungnirSPRT()
         
+        # PID File management
+        self.pid_file = self.root / ".agent" / "muninn.pid"
+        
         # Metric Tracking
         self._strategist_metrics: Dict[str, Dict[str, int]] = {}
+
+    def _write_pid(self):
+        self.pid_file.parent.mkdir(parents=True, exist_ok=True)
+        self.pid_file.write_text(str(os.getpid()))
+
+    def _clear_pid(self):
+        if self.pid_file.exists():
+            self.pid_file.unlink()
 
     def _check_agent_active(self) -> bool:
         """Checks if the Antigravity Agent is currently active."""
@@ -144,6 +160,7 @@ class Muninn:
         # 1. THE HUNT (Parallel Scan)
         # Refactored to use Asyncio (Phase 8: Muninn Integration)
         
+        self._write_pid()
         try:
             # We run the async cycle
             found_breaches, scan_stats = asyncio.run(self._execute_hunt_async())
@@ -152,6 +169,8 @@ class Muninn:
         except Exception as e:
             HUD.persona_log("CRITICAL", f"Async Hunt Failed: {e}")
             return False
+        finally:
+            self._clear_pid()
 
 
         # 2. SELECT TARGET (Prioritization)
@@ -628,9 +647,12 @@ class Muninn:
         return breaches[0]
 
 if __name__ == "__main__":
+    import argparse
+    p = argparse.ArgumentParser()
+    p.add_argument("--audit", action="store_true")
+    args = p.parse_args()
     try:
-        # Auto-detect project root
-        root = Path(__file__).parent.parent.parent.resolve()
-        Muninn(str(root)).run()
+        m = Muninn()
+        m.run()
     except Exception as e:
         HUD.persona_log("CRITICAL", f"Muninn Terminated: {e}")

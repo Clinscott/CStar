@@ -45,10 +45,10 @@ class SovereignVector:
         self.corrections = self._load_json(corrections_path) if corrections_path else {"phrase_mappings": {}, "synonym_updates": {}}
         self.stopwords = self._load_stopwords(stopwords_path)
         
-        # SovereignFish: Boot Log
-        HUD.box_top("ENGINE INITIALIZED")
-        HUD.box_row("STATUS", "ONLINE", HUD.GREEN)
-        HUD.box_bottom()
+        # SovereignFish: Boot Log (Suppressed for Daemon speed)
+        # HUD.box_top("ENGINE INITIALIZED")
+        # HUD.box_row("STATUS", "ONLINE", HUD.GREEN)
+        # HUD.box_bottom()
 
         self.skills = {} # {trigger: "full text of skill description"}
         self.trigger_map = {} # {keyword: [triggers]}

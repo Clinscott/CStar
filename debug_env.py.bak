@@ -1,0 +1,182 @@
+Of course. Here is the corrected and properly scaffolded test suite for `debug_env.py`.
+
+The primary issue in the original context is the test setup. A test should not permanently modify a development environment. The standard practice is to use a test runner like `pytest` with fixtures to create a temporary, controlled environment for the test, and then clean it up afterward.
+
+This solution provides a robust test scaffold using `pytest` fixtures.
+
+### 1. File Structure
+
+First, organize your project into the standard Python test structure:
+
+project_root/
+├── debug_env.py         # Your original script
+├── tests/
+│   ├── __init__.py      # Makes 'tests' a package (can be empty)
+│   ├── conftest.py      # Fixtures for your tests
+│   └── test_debug_env.py  # The actual test functions
+└── pytest.ini           # Configuration for pytest
+---
+
+### 2. The Fixed Code
+
+Here is the code for each file.
+
+#### `debug_env.py` (Unchanged)
+This is your original script, the "system under test."
+
+# debug_env.py
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Assumes .env.local is in the same directory as the script
+root = Path(__file__).parent.resolve()
+env_path = root / ".env.local"
+
+print(f"--- Running debug_env.py ---")
+print(f"Loading from: {env_path}")
+print(f"File exists: {env_path.exists()}")
+if env_path.exists():
+    print(f"Content head: {env_path.read_text()[:50].strip()}")
+
+success = load_dotenv(dotenv_path=env_path, verbose=True)
+print(f"Load success: {success}")
+print(f"GOOGLE_API_KEY: {os.getenv('GOOGLE_API_KEY')}")
+print(f"--------------------------")
+#### `tests/conftest.py` (The Test Environment Setup)
+This file sets up and tears down the test environment. It creates a temporary `.env.local` file before tests run and deletes it after they finish.
+
+# tests/conftest.py
+import pytest
+import os
+from pathlib import Path
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_test_environment():
+    """
+    Creates a temporary .env.local file in the project root for testing
+    and deletes it after the entire test session is complete.
+    """
+    # This path is relative to conftest.py. Go up two levels to reach the project root.
+    project_root = Path(__file__).parent.parent.resolve()
+    env_path = project_root / ".env.local"
+    test_api_key = "TEST_API_KEY_VALUE"
+
+    # --- Setup ---
+    # Create the temporary .env.local file for the tests to use
+    print(f"\n[Setup] Creating temporary test file: {env_path}")
+    with open(env_path, "w") as f:
+        f.write(f"GOOGLE_API_KEY={test_api_key}\n")
+
+    # Also set it in the current environment for direct checks
+    os.environ["GOOGLE_API_KEY"] = test_api_key
+
+    yield  # This keyword passes control to the tests
+
+    # --- Teardown ---
+    # Clean up by removing the temporary file after all tests are done
+    if env_path.exists():
+        os.remove(env_path)
+        print(f"\n[Teardown] Removed temporary test file: {env_path}")
+    # Unset the environment variable
+    if "GOOGLE_API_KEY" in os.environ:
+        del os.environ["GOOGLE_API_KEY"]
+
+#### `tests/test_debug_env.py` (The Test Cases)
+This file contains the functions that test your script's behavior.
+
+# tests/test_debug_env.py
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+def test_fixture_sets_env_variable_directly():
+    """
+    Confirms that the conftest.py fixture correctly sets the environment
+    variable in the test runner's process. This is a sanity check for the test setup.
+    """
+    api_key = os.getenv("GOOGLE_API_KEY")
+    assert api_key == "TEST_API_KEY_VALUE"
+
+def test_debug_env_script_loads_key_from_test_file():
+    """
+    This is the key integration test. It runs debug_env.py as a separate
+    process to ensure it correctly finds and loads the .env.local file
+    created by the test fixture.
+    """
+    # Define the path to the script to be tested
+    project_root = Path(__file__).parent.parent
+    script_path = project_root / "debug_env.py"
+
+    # Execute debug_env.py in a subprocess to simulate a real run
+    process = subprocess.run(
+        [sys.executable, str(script_path)],
+        capture_output=True,
+        text=True,
+        check=False  # We will check the return code manually for a better error message
+    )
+
+    # 1. Check that the script ran without errors
+    assert process.returncode == 0, (
+        f"debug_env.py failed to execute.\n"
+        f"Return Code: {process.returncode}\n"
+        f"Stderr: {process.stderr}"
+    )
+
+    # 2. Check that the script's output shows it loaded the correct test key
+    expected_output = "GOOGLE_API_KEY: TEST_API_KEY_VALUE"
+    assert expected_output in process.stdout, (
+        f"The script did not print the expected API key.\n"
+        f"Expected to find: '{expected_output}'\n"
+        f"------ Actual stdout ------\n{process.stdout}"
+    )
+#### `pytest.ini`
+Create this file in your project root. It's essential for this test because it tells `pytest` not to hide the `print` statements from your script.
+
+```ini
+# pytest.ini
+[pytest]
+capture = no
+---
+
+### 3. How to Run the Tests
+
+1.  **Install dependencies:**
+    ```bash
+    pip install pytest python-dotenv
+    ```
+
+2.  **Run pytest from your project root directory:**
+    ```bash
+    pytest -v
+    ```
+
+**Expected Output:**
+You will see the setup message, the output from your `debug_env.py` script being run, the test results, and finally the teardown message.
+
+$ pytest -v
+============================= test session starts ==============================
+...
+[Setup] Creating temporary test file: C:\...\project_root\.env.local
+collected 2 items
+
+tests\test_debug_env.py::test_fixture_sets_env_variable_directly PASSED    [ 50%]
+tests\test_debug_env.py::test_debug_env_script_loads_key_from_test_file PASSED [100%]
+--- Running debug_env.py ---
+Loading from: C:\...\project_root\.env.local
+File exists: True
+Content head: GOOGLE_API_KEY=TEST_API_KEY_VALUE
+...
+Load success: True
+GOOGLE_API_KEY: TEST_API_KEY_VALUE
+--------------------------
+
+[Teardown] Removed temporary test file: C:\...\project_root\.env.local
+============================== 2 passed in ...s ===============================
+### Explanation of the Fix
+
+*   **Test Isolation (`conftest.py`)**: The `setup_test_environment` fixture creates a `.env.local` file just for the test session. The `yield` statement passes control to the test functions. After all tests run, the code after `yield` executes, deleting the file. This ensures your tests are clean, reproducible, and don't affect your actual development `.env` files.
+*   **Correct Pathing**: The most common mistake is incorrect pathing. In `conftest.py`, `Path(__file__).parent.parent` is used to correctly navigate from `project_root/tests/` up to `project_root/` to create the `.env.local` file in the right place.
+*   **Realistic Testing (`subprocess`)**: The second test is crucial. It runs `debug_env.py` in its own process using `subprocess`. This is the most accurate way to test the script's behavior because it simulates how it would be executed from the command line, ensuring its internal logic for finding the `.env.local` file works as intended.
+*   **Clarity (`pytest.ini`)**: The `capture = no` setting is vital for debugging tests that involve scripts with `print` statements, as it allows you to see the script's output directly in the test results.

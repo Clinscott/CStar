@@ -21,9 +21,13 @@ from src.core.engine.vector import SovereignVector
 from src.cstar.core.uplink import AntigravityUplink
 from src.cstar.core.forge import Forge
 from src.cstar.core.rpc import SovereignRPC # [Phase 11] RPC Handler
+from src.sentinel._bootstrap import bootstrap
+
+# Initialize Environment
+bootstrap()
 
 # Constants
-HOST = 'localhost'
+HOST = '127.0.0.1'
 PORT = int(os.getenv("CSTAR_DAEMON_PORT", 50051))
 MEMORY_LIMIT_MB = 256
 PID_FILE = Path(".agent/daemon.pid")
@@ -33,7 +37,7 @@ AMBIGUITY_THRESHOLD = 0.1
 # Global State
 ENGINE = None
 COMMAND_REGISTRY = {}
-UPLINK = AntigravityUplink()
+UPLINK = AntigravityUplink(api_key=os.getenv("GOOGLE_API_DAEMON_KEY") or os.getenv("GOOGLE_API_KEY"))
 RPC = None # Initialized in start_daemon
 SESSION_TRACES = [] 
 
@@ -105,6 +109,7 @@ def handle_request(conn):
             response = RPC.get_dashboard_state()
             conn.sendall(json.dumps(response).encode('utf-8'))
             return
+
 
         # [PLAN B] Stream handling for Forge
         if command == "forge":

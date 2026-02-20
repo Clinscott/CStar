@@ -15,9 +15,9 @@ if str(project_root) not in sys.path:
 from src.sentinel.code_sanitizer import sanitize_code
 
 # Constants
-HOST = 'localhost'
+HOST = '127.0.0.1'
 PORT = 50052
-MODEL_NAME = "gemini-2.0-flash"
+MODEL_NAME = "gemini-3-flash-preview"
 
 # Configure Logging
 logging.basicConfig(
@@ -70,7 +70,8 @@ async def handle_client(reader, writer):
         logging.info(f"Received Query: {query[:50]}...")
         
         # PROCESS REQUEST
-        response_data = await process_request(query, context)
+        api_key = payload.get("api_key")
+        response_data = await process_request(query, context, api_key=api_key)
         
         # SEND RESPONSE
         writer.write(json.dumps(response_data).encode('utf-8'))
@@ -84,7 +85,7 @@ async def handle_client(reader, writer):
     finally:
         writer.close()
 
-async def process_request(query: str, context: dict) -> dict:
+async def process_request(query: str, context: dict, api_key: str = None) -> dict:
     """
     Assembles the prompt and calls the LLM.
     """
@@ -109,14 +110,27 @@ async def process_request(query: str, context: dict) -> dict:
         full_prompt += f"\n\n[TARGET INTERFACE TO TEST]\n{target_interface}\n"
 
     # 2. Simulation Mode (Fallback)
-    if not CLIENT:
-        logging.warning("No LLM Client. Returning Simulation Response.")
+    # If no key in payload AND no global CLIENT, use Simulation
+    active_client = CLIENT
+    
+    if api_key:
+        try:
+            from google import genai
+            logging.info(f"Initializing temporary client for requested API key (persona: {persona})...")
+            active_client = genai.Client(api_key=api_key)
+        except Exception as e:
+            logging.error(f"Failed to initialize temporary client: {e}")
+            # Fallback to global client if it exists, otherwise simulation
+            pass
+
+    if not active_client:
+        logging.warning("No LLM Client available. Returning Simulation Response.")
         await asyncio.sleep(1) # Simulate think time
         return generate_simulation(query, context)
 
     # 3. Live Inference
     try:
-        logging.info(f"Sending to {MODEL_NAME}...")
+        logging.info(f"Sending to {MODEL_NAME} (persona: {persona})...")
         
         # Detect if we need structured JSON (ALFRED)
         if "JSON" in query or persona == "ALFRED":
@@ -124,7 +138,8 @@ async def process_request(query: str, context: dict) -> dict:
             # For simplicity with new SDK, we'll prompt-engineer JSON
             pass
             
-        response = CLIENT.models.generate_content(
+        # [ALFRED] Use active_client (possibly local to this request)
+        response = active_client.models.generate_content(
             model=MODEL_NAME, 
             contents=full_prompt
         )

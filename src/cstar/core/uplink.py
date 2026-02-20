@@ -1,3 +1,4 @@
+import os
 import asyncio
 import json
 import socket
@@ -14,7 +15,7 @@ if str(project_root) not in sys.path:
 from src.core.ui import HUD
 
 # Constants
-ANTIGRAVITY_HOST = 'localhost'
+ANTIGRAVITY_HOST = '127.0.0.1'
 ANTIGRAVITY_PORT = 50052 # Distinct from Daemon port
 TIMEOUT_SECONDS = 30
 
@@ -24,9 +25,27 @@ class AntigravityUplink:
     Handles offloading complex queries to the external Antigravity system.
     """
     
-    def __init__(self):
+    def __init__(self, api_key: str = None):
+        """
+        Initializes the AntigravityUplink.
+        
+        Args:
+            api_key (str, optional): The Google GenAI API key. 
+                                     Prioritizes injected key over GOOGLE_API_KEY env var.
+        """
         self.host = ANTIGRAVITY_HOST
         self.port = ANTIGRAVITY_PORT
+        
+        # 1. Accept injected key, fallback to standard TUI key
+        self.api_key = api_key or os.getenv("GOOGLE_API_KEY")
+        
+        if not self.api_key:
+            raise ValueError("CRITICAL: No API key found for AntigravityUplink.")
+        
+        if not self.api_key:
+            # We don't raise here yet to allow Simulation mode in bridge, 
+            # but we log it.
+            pass
         
     async def send_payload(self, query: str, context: dict = None) -> dict:
         """
@@ -39,7 +58,8 @@ class AntigravityUplink:
             "query": query,
             "context": context,
             "timestamp": time.time(),
-            "source": "cstar_cli"
+            "source": "cstar_cli",
+            "api_key": self.api_key
         }
         
         # Determine Spinner Message based on Persona

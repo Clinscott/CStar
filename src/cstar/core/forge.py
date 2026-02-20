@@ -17,6 +17,10 @@ if str(project_root) not in sys.path:
 
 from src.cstar.core.uplink import AntigravityUplink
 from src.cstar.core.sprt import evaluate_candidate
+from src.sentinel._bootstrap import bootstrap
+
+# Initialize Environment
+bootstrap()
 
 class Forge:
     """
@@ -24,7 +28,11 @@ class Forge:
     V5: Thread-Safe TDD Engine using Gungnir SPRT Calculus.
     """
     def __init__(self):
-        self.uplink = AntigravityUplink()
+        # 1. Pull the heavy-workload Daemon Key
+        daemon_key = os.getenv("GOOGLE_API_DAEMON_KEY") or os.getenv("GOOGLE_API_KEY")
+        
+        # 2. Inject it into the uplink
+        self.uplink = AntigravityUplink(api_key=daemon_key)
         self.max_retries = 3
         self.project_root = project_root
 

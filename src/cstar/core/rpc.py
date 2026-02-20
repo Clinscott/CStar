@@ -20,6 +20,12 @@ class SovereignRPC:
     Acts as the interface between the Dumb Client and the Daemon Backend.
     """
     def __init__(self, root: Path):
+        """
+        Initializes the SovereignRPC.
+        
+        Args:
+            root (Path): The project root directory.
+        """
         self.root = root
         self.norn = NornWarden(root)
 
@@ -84,6 +90,7 @@ class SovereignRPC:
             "tasks": tasks,
             "persona": HUD.PERSONA
         }
+
 
     def handle_command(self, cmd: str) -> Dict[str, Any]:
         """

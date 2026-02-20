@@ -248,9 +248,16 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **The Genesis Bootstrapper**: Created `src/node/setup.js` for zero-touch cross-platform installation via `npm install`. [x]
 - [x] **The Final Purge**: Eradicated all 9 remaining `.ps1` files. C* is 100% Node/Python. [x]
 
-## ⏭️ Start Here Next (Phase 50)
-- [ ] **Operation Ironclad**: Security hardening and API Key management.
-- [ ] **TUI Content Polish**: Add Rich-formatted content inside panels (ASCII art skulls, block-character bars, rune separators) to push DOOM aesthetic further.
-- [ ] **Forge Integration**: Wire ForgeScreen events to `update_forge_status()` in the sidebar.
-- [ ] **Daemon Vitals**: Map CPU usage and I/O status to the TUI Header.
+### 50. Quota Isolation & Ravens Control Plane (Session 65)
+- [x] **Quota Isolation**: Implemented isolated API key routing for Daemon (ODIN) and Muninn (Raven) via `AntigravityUplink`. [x]
+- [x] **Model Harmonization**: Updated all systems to `gemini-3-flash-preview` and `gemini-3.1-pro-preview`. [x]
+- [x] **Network Standard**: Harmonized all internal communication to `127.0.0.1` and port 50052. [x]
+- [x] **Deterministic Status**: Refactored `ravens --status` into a local, daemon-independent Node.js command in `bin/cstar.js`. [x]
+- [x] **PID Heartbeat**: Implemented `.agent/muninn.pid` for high-fidelity health tracking in `muninn.py` and the CLI. [x]
+- [x] **Boot Optimization**: Suppressed engine boot logs in `vector.py` to ensure instant CLI connectivity. [x]
 
+## ⏭️ Start Here Next (Phase 51)
+- [ ] **Operation Ironclad**: Security hardening of `.env.local` and regular API key rotation logic.
+- [ ] **TUI Content Polish**: Add high-fidelity ASCII art and RUNE separators to the WAR ROOM sections for maximum immersion.
+- [ ] **Forge-TUI Integration**: Establish a real-time event sink from `Forge` to the TUI sidebar status widget.
+- [ ] **Heimdall Vigil**: Expand security scanning to audit newly added Node.js deployment logic.

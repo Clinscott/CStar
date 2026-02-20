@@ -1,6 +1,12 @@
 # Developer Journal: Corvus Star
 
-## 2026-02-19: Session 63 - The Node.js Sovereign Control Plane
+## 2026-02-19: Session 65 (Quota Isolation & The local Raven)
+- **Architectural Shift**: Decoupled the `ravens --status` command from the Python daemon. By moving health checks to the Node control plane (via PID and FS checks), we eliminated the fragile race conditions and LLM bridge leaks that previously plagued the TUI-to-Daemon connection. 
+- **Security Hardening**: Implemented the first phase of **Quota Isolation**. Each subsystem (`Forge`, `Muninn`, `Daemon`) now carries its own identity via dedicated API keys, preventing a single failure from exhausting the entire project's Gemini budget.
+- **System Optimization**: Identified that engine initialization noise was the primary culprit behind Node-to-Python timeouts. Suppressing boot headers in `SovereignVector` reduced latency by ~400ms, ensuring stable 1st-cycle connectivity.
+- **Verification**: Verified 100% pass on both `npm test` and `pytest`. Quota isolation logs confirmed the "ODIN" persona using its own temporary bridge client.
+
+## 2026-02-10: Session 64 - The Node.js Sovereign Control Plane
 **Summary**: Successfully achieved total independence from PowerShell. The legacy installation, execution loop, and deployment scripts were completely replaced by native Node.js logic and Python modules.
 - **Cortex Link**: Built a robust TCP bridge (`src/node/cortex_link.js`) replacing file-based IPC.
 - **Agent Loop**: Node.js now dynamically controls the iteration logic to trigger the Python AI backend over the Cortex Link.

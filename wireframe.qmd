@@ -18,13 +18,14 @@ The decision-making brain of Corvus Star.
     - `get(persona, intent, context)`: Context-aware phrase retrieval with tag-based scoring and STM.
 - **Dispatcher** (`bin/cstar.js`):
     - Node.js CLI entry point. Routes commands via `commander`.
+    - **Local Ravens Status**: Performs deterministic health checks without daemon dependency.
 - **Cortex Link** (`src/node/cortex_link.js`):
-    - TCP bridge between Node.js and the Python Daemon.
+    - TCP bridge between Node.js and the Python Daemon. Standardized on `127.0.0.1`.
 - **Agent Loop** (`src/node/agent_loop.js`):
     - Orchestrator for the Gungnir flight cycle.
 - **The Gungnir Calculus** (`src/cstar/core/sprt.py`):
     - Native Python Bernoulli SPRT math engine.
-    - `muninn.py`: Memory ledger and GPHS recalculation engine.
+    - **Muninn** (`src/sentinel/muninn.py`): Memory ledger with HEARTBEAT tracking (`.agent/muninn.pid`).
 - **Genesis Bootstrapper** (`src/node/setup.js`):
     - Zero-touch cross-platform installation.
 - **The Gungnir Calculus (Legacy/Global)** (`src/core/`):

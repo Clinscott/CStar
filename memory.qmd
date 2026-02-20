@@ -1,5 +1,11 @@
 # Corvus Star Memory
 
+## 2026-02-19: Session 65 (Quota Isolation & Deterministic Health)
+- **Quota Isolation**: Decoupling API keys by subsystem (Forge vs. Muninn vs. Daemon) is the only reliable way to prevent shared quota exhaustion. The Bridge should support "Temporary Clients" that spin up per-request if an API key is provided in the payload.
+- **Deterministic Status**: `c*` commands that report health should be deterministic (reading PIDs or scanning the filesystem) rather than the query-driven. Relying on the Daemon for its own health check creates race conditions and timeouts during boot.
+- **Boot Optimization**: UI/CLI bridges (Node <-> Python) are highly sensitive to stdout noise. Suppressing "boot log boxes" in core engines (e.g., `SovereignVector`) can reduce latency by hundreds of milliseconds, preventing connection timeouts in the orchestrator.
+- **Host Harmonization**: Standardizing on `127.0.0.1` consistently (avoiding `localhost` resolution ambiguity) ensures reliable 1st-cycle TCP handshakes across hybrid environments.
+
 ## 2026-02-19: Session 63 (The Node.js Sovereign Control Plane)
 - **Node:Test Mocking**: The native `node:test` + `node:assert` framework is extraordinarily powerful for deep environment mocking, especially `mock.method(fs, 'readFile')` or mocking custom class methods (`CortexLink.sendCommand`). It allows rapid TDD without hitting disk or spawning real sockets.
 - **Subprocess Extinction**: Passing payloads to a CLI tool via `asyncio.create_subprocess_exec` is notoriously brittle and slow compared to invoking native module functions. Replacing the `pwsh` call with `sprt.py` highlights that mathematical logic should live in the memory space of the orchestrator.
