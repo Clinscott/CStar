@@ -15,6 +15,7 @@ if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
 from src.cstar.core.uplink import AntigravityUplink
+from src.cstar.core.sprt import evaluate_candidate
 
 class Forge:
     """
@@ -195,23 +196,8 @@ class Forge:
                 observations = json.loads(gungnir_path.read_text())
                 gungnir_path.unlink() # Immediate cleanup
                 
-                obs_str = ",".join(map(str, observations))
-                ps_script = self.project_root / "src/core/engine/gungnir/Invoke-GungnirSPRT.ps1"
-                
-                # OS-Agnostic Execution
-                ps_exec = "powershell" if os.name == "nt" else "pwsh"
-                ps_command = f"& {{ . '{str(ps_script)}'; Invoke-GungnirSPRT -Observations {obs_str} | ConvertTo-Json -Compress }}"
-                
-                proc = await asyncio.create_subprocess_exec(
-                    ps_exec, "-NoProfile", "-Command", ps_command,
-                    stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
-                )
-                stdout, stderr = await proc.communicate()
-                
-                if proc.returncode != 0:
-                    raise RuntimeError(f"Gungnir Engine Fault: {stderr.decode()}")
-
-                sprt = json.loads(stdout.decode())
+                # Native Gungnir Math
+                sprt = evaluate_candidate(observations)
                 decision = sprt.get("Decision", "Error")
                 llr = float(sprt.get("FinalLLR", 0.0))
 

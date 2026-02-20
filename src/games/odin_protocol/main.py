@@ -555,6 +555,16 @@ class OdinAdventure:
 
 def main() -> None:
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    
+    # Graceful Disconnect Check (Gungnir Calculus)
+    try:
+        from client import ping_daemon
+        ping_daemon(timeout=1.0)
+    except Exception:
+        print(f"\n{HUD.RED}[SYSTEM FAILURE] Cortex Daemon Offline.{HUD.RESET}")
+        print(f"{HUD.DIM}The Sovereign Engine must be running to engage the Odin Protocol.{HUD.RESET}")
+        sys.exit(1)
+
     game = OdinAdventure(project_root)
 
     # Startup Sequence

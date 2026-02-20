@@ -239,7 +239,16 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Lore Panels**: Implemented persona-aware border-titles (WAR ROOM, THE WELL OF MIMIR, ODIN'S EYE) via `_apply_panel_lore()`. [x]
 - [x] **Verification**: 25/25 TUI tests passing, lint clean. [x]
 
-## ⏭️ Start Here Next (Phase 49)
+### 49. The Node.js Control Plane & Final Purge (Session 63)
+- [x] **CLI Bootstrap**: Initialized `bin/cstar.js` as the new Node.js entry point. [x]
+- [x] **Cortex Link**: Established TCP bridge between Node and Python daemon. [x]
+- [x] **Agent Loop**: Migrated the 7-step Gungnir flight cycle to `src/node/agent_loop.js`. [x]
+- [x] **Deployment Engine**: Implemented `src/node/deployment.js` for automated git staging. [x]
+- [x] **Native SPRT**: Ported legacy SPRT math strictly into Python (`src/cstar/core/sprt.py`). [x]
+- [x] **The Genesis Bootstrapper**: Created `src/node/setup.js` for zero-touch cross-platform installation via `npm install`. [x]
+- [x] **The Final Purge**: Eradicated all 9 remaining `.ps1` files. C* is 100% Node/Python. [x]
+
+## ⏭️ Start Here Next (Phase 50)
 - [ ] **Operation Ironclad**: Security hardening and API Key management.
 - [ ] **TUI Content Polish**: Add Rich-formatted content inside panels (ASCII art skulls, block-character bars, rune separators) to push DOOM aesthetic further.
 - [ ] **Forge Integration**: Wire ForgeScreen events to `update_forge_status()` in the sidebar.

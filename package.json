@@ -1,0 +1,41 @@
+{
+  "name": "corvusstar",
+  "version": "1.0.0",
+  "description": "c, c+, c++, c#, c*",
+  "keywords": [
+    "sprt",
+    "gungnir",
+    "calculus"
+  ],
+  "homepage": "https://github.com/Clinscott/CStar#readme",
+  "bugs": {
+    "url": "https://github.com/Clinscott/CStar/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Clinscott/CStar.git"
+  },
+  "license": "ISC",
+  "author": "Craig Linscott",
+  "type": "module",
+  "bin": {
+    "cstar": "./bin/cstar.js"
+  },
+  "main": "cstar.ts",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "npm run test:node && npm run test:python",
+    "test:python": "python -m pytest",
+    "test:node": "node --test \"tests/node/*.test.js\"",
+    "setup": "node src/node/setup.js",
+    "postinstall": "npm run setup"
+  },
+  "dependencies": {
+    "chalk": "^5.6.2",
+    "commander": "^14.0.3",
+    "execa": "^9.6.1"
+  }
+}

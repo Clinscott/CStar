@@ -126,7 +126,8 @@ class EmpireCompiler:
             if os.path.exists(sentinel_script):
                 import subprocess
                 subprocess.run([sys.executable, sentinel_script, output_path], capture_output=True)
-        except Exception:
+        except Exception as e:
+            print(f"[!] SENTINEL AUDIT FAILED (Non-blocking): {e}")
             pass # Non-blocking audit
 
         return output_path

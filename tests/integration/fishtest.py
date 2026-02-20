@@ -198,6 +198,7 @@ class FishtestRunner:
 | Metric | Value |
 | :--- | :--- |
 | **Population** | {len(cases)} |
+| **Skipped** | {skipped} |
 | **Accuracy** | {accuracy:.1f}% |
 | **Latency** | {(duration/len(cases))*1000:.2f}ms |
         """

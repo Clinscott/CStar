@@ -1,5 +1,12 @@
 # Corvus Star Memory
 
+## 2026-02-19: Session 63 (The Node.js Sovereign Control Plane)
+- **Node:Test Mocking**: The native `node:test` + `node:assert` framework is extraordinarily powerful for deep environment mocking, especially `mock.method(fs, 'readFile')` or mocking custom class methods (`CortexLink.sendCommand`). It allows rapid TDD without hitting disk or spawning real sockets.
+- **Subprocess Extinction**: Passing payloads to a CLI tool via `asyncio.create_subprocess_exec` is notoriously brittle and slow compared to invoking native module functions. Replacing the `pwsh` call with `sprt.py` highlights that mathematical logic should live in the memory space of the orchestrator.
+- **OS Path Testing**: Extracting path generation into pure functions (`getVenvBinaryPath` isolating `process.platform`) allows immediate Unix vs. Windows path testing inside a standard Node test harness without requiring cross-OS CI runners.
+- **TCP Buffering**: JSON payloads over raw TCP sockets fragment heavily on larger contents. An explicit string accumulation buffer combined with a `\n` delimiter loop (or tracking brackets) is mandatory for stable Node <-> Python IPC.
+- **Dumb Client UI**: Building Terminal User Interfaces (TUIs) strictly as thin clients connecting to a robust background daemon separates purely visual concerns from core orchestration logic and improves overall system resilience.
+
 ## 2026-02-17: Session 62 (Operation Ragnarök)
 - **Textual Aesthetic Power**: The DOOM feel in Textual comes from Rich markup *inside* `Static` widgets (block chars, ASCII art, bold colored text), not from border styles alone. `heavy` borders + bright `#cc2200` red + `bold` text-style creates the chrome; Rich content creates the soul.
 - **Widget Query Scope**: `self.query_one(Widget)` on an `App` searches the *default screen*, not the active one. For `Input.Submitted` handlers, use `message.input` (the event's widget reference) to avoid `NoMatches` when screens are stacked.

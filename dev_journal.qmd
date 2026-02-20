@@ -1,5 +1,26 @@
 # Developer Journal: Corvus Star
 
+## 2026-02-19: Session 63 - The Node.js Sovereign Control Plane
+**Summary**: Successfully achieved total independence from PowerShell. The legacy installation, execution loop, and deployment scripts were completely replaced by native Node.js logic and Python modules.
+- **Cortex Link**: Built a robust TCP bridge (`src/node/cortex_link.js`) replacing file-based IPC.
+- **Agent Loop**: Node.js now dynamically controls the iteration logic to trigger the Python AI backend over the Cortex Link.
+- **Native SPRT**: The final linchpin, the SPRT Calculus, was ported precisely to `sprt.py`, speeding up the loop exponentially by avoiding child `pwsh` subprocesses.
+- **Genesis Bootstrapper**: Wrote `src/node/setup.js` for true one-click bootstrapping, leveraging Node's async tools for cross-platform OS paths and VENV creation.
+
+- **TUI Client Audit**: Aligned TUIs (`src/cstar/core/tui.py` and `src/games/odin_protocol/main.py`) to function purely as clients to the Python daemon.
+- **Graceful Disconnects**: Wrapped TUI connection attempts in try/except blocks to catch `ConnectionRefusedError` for user-friendly error messages without panicking.
+- **Wrap-Up Execution**: Ran the SovereignFish protocol. Added `Skipped` metric to `fishtest.py` markdown report and fixed swallowed exception in `compiler.py` sentinel audit block.
+
+**Key Decisions**:
+- **Node:Test**: Relied entirely on the native Node 20 `node:test` framework to mock filesystem and network paths. Achieved extensive unit-test scaffolding with zero dependencies.
+- **Native Math over Shell**: Calling python internally (`sprt.py`) directly from `forge.py` creates instantaneous feedback loops compared to the overhead of spawning PowerShell runspaces.
+- **Dumb Client Rule**: Enforcing the rule that TUIs only connect to the daemon and do not start subprocesses helps ensure stability and clean state management.
+
+**Current State**:
+- All 9 legacy Powershell scripts destroyed.
+- TDD suites (JS/Python) both completely clean.
+- TUIs firmly established as thin clients of the Sovereign daemon.
+
 ## 2026-02-17: Session 62 - Operation Ragnarök (DOOM Aesthetic & WAR ROOM)
 **Summary**: Overhauled the ODIN TUI aesthetic from corporate terminal to DOOM-inspired war room. Fixed a command input crash and IDE keybinding conflict.
 - **DOOM Chrome**: Replaced all `double #8b0000` borders with `heavy #cc2200` — chunky, aggressive red chrome. Header, sidebar, console, footer all shifted to brighter reds and amber.

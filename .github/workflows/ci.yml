@@ -8,34 +8,42 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        os: [ubuntu-latest, windows-latest]
         python-version: ["3.10", "3.11", "3.12"]
 
     steps:
     - uses: actions/checkout@v4
     
+    - name: Set up Node.js 20
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
         
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        pip install ruff pytest playwright google-genai colorama vulture radon python-dotenv
-        pip install -e .
-        playwright install
+    - name: Execute Genesis Sequence (Install & Bootstrap)
+      run: npm install
+        
+    - name: Add Virtual Environment to Path (Unix)
+      if: runner.os != 'Windows'
+      run: echo "$PWD/.venv/bin" >> $GITHUB_PATH
+
+    - name: Add Virtual Environment to Path (Windows)
+      if: runner.os == 'Windows'
+      run: echo "$PWD\.venv\Scripts" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
         
     - name: Lint with Ruff
       run: |
         # stop the build if there are Python syntax errors or undefined names
-        ruff check . --select E9,F63,F7,F82 --statistics
+        python -m ruff check . --select E9,F63,F7,F82 --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        ruff check . --exit-zero --statistics
+        python -m ruff check . --exit-zero --statistics
         
-    - name: Test with pytest
-      run: |
-        pytest
+    - name: Test Unified Suite (Node & Python)
+      run: npm test

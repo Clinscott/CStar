@@ -1469,5 +1469,14 @@ class SovereignApp(App):
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
+    import sys
+    try:
+        from client import ping_daemon
+        ping_daemon(timeout=1.0)
+    except Exception:
+        print("\n\033[91m[SYSTEM FAILURE]\033[0m Cortex Daemon Offline.")
+        print("Please ensure the background daemon is running before launching the Textual UI.")
+        sys.exit(1)
+
     app = SovereignApp()
     app.run()

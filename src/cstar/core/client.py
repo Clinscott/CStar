@@ -15,6 +15,14 @@ if str(project_root) not in sys.path:
 HOST = 'localhost'
 PORT = 50051
 
+def ping_daemon(host=HOST, port=PORT, timeout=1.0):
+    """
+    Pre-flight check to verify the Cortex Daemon is online.
+    Raises ConnectionRefusedError or TimeoutError if the daemon is unreachable.
+    """
+    with socket.create_connection((host, port), timeout=timeout):
+        pass
+
 def send_command(command, args=None, cwd=None):
     if args is None:
         args = []

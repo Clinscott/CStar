@@ -1,3 +1,46 @@
+# Walkthrough: Session 63 - The Node.js Sovereign Control Plane & PowerShell Purge
+
+## 🎯 Goal
+Eradicate all remaining PowerShell dependencies by bootstrapping a native Node.js control plane (`cstar.js`), bridging it with the Python daemon (Cortex Link), and porting the Gungnir calculus natively into Python, finalizing with a zero-touch Genesis Bootstrapper.
+
+## 🏆 Results
+| Metric | Value |
+|:---|:---|
+| **Eradication** | **9 Files Deleted** (100% PS Purged) |
+| **Control Plane** | **Node.js Active** (`cstar.js`) |
+| **Math Engine** | **Python Native** (`sprt.py`) |
+| **Verification** | **Mocked TDD Suites** (100% Pass) |
+
+## 🛠️ Key Changes
+
+### 1. Node.js Control Plane (`bin/cstar.js`)
+- **CLI Router**: Bootstrapped using `commander` and `chalk`.
+- **Cortex Link**: Created `src/node/cortex_link.js` for resilient TCP communication with the Python Daemon.
+- **Agent Loop**: Ported the Gungnir Flight cycle (read, ask, verify, deploy) natively into `src/node/agent_loop.js`.
+
+### 2. The Native Gungnir Port (`src/cstar/core/sprt.py`)
+- **Python SPRT**: Moved the Bernoulli boundary testing into instantaneous Python logic, removing brittle subprocess shell execution.
+- **Parity Verified**: Mathematical bounds matched precisely with legacy Powershell tests.
+
+### 3. The Genesis Bootstrapper (`src/node/setup.js`)
+- **Zero-Touch Install**: Autonomously detects OS, creates `.venv`, installs pip `requirements.txt`, and establishes `npm link`.
+- **NPM Integration**: Hooked into `package.json` `postinstall`.
+
+### 4. TUI Client Audit
+- **Graceful Client UI**: Aligned `tui.py` and `odin_protocol/main.py` to be pure clients, implementing graceful handling of missing daemon states.
+- **Test Integrity**: Created mocked unit tests to verify `ConnectionRefusedError` logic for the ALFRED and ODIN personas.
+- **Sovereign Improvements**: Added the `Skipped` metric to `fishtest.py` reports, and logged swallowed exceptions in the `compiler.py` sentinel phase.
+
+## 🤝 Session Handshake
+**Session Delta**:
+- Destroyed `deploy_refactor.ps1`, `dominion.ps1`, `odinprotocol.ps1`, `install.ps1`, and all remaining legacy scripts.
+- Fully wired Node.js dispatcher to the Python engine.
+- Ensured zero network/disk side-effects in TDD verification.
+- Enforced Dumb Client Rule for all TUI endpoints.
+
+**Resume Directive**:
+- To launch new framework: `npm install` then `cstar --help`.
+
 # Walkthrough: Session 62 - Operation Ragnarök: DOOM Aesthetic & WAR ROOM
 
 ## 🎯 Goal

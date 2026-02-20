@@ -16,18 +16,17 @@ The decision-making brain of Corvus Star.
     - `score_identity(text)`: Validates persona alignment.
 - **Dialogue Engine** (`engine/dialogue.py`):
     - `get(persona, intent, context)`: Context-aware phrase retrieval with tag-based scoring and STM.
-- **Dispatcher** (`cstar_dispatcher.py`):
-    - `run()`: Routes CLI commands dynamically to scripts or workflows.
-- **HUD Interface** (`ui.py`):
-    - `box_top()`, `box_row()`, `persona_log()`: ANSI-themed visual primitives.
-    - `_ensure_persona()`: Automatic lazy-loading of persona configuration.
-- **Annexation Protocol** (`annex.py`):
-    - `HeimdallWarden.scan()`: Audits territory for standard compliance (Linscott/Torvalds).
-- **The Gungnir Calculus** (`src/core/engine/gungnir/`):
-    - `Invoke-GungnirSPRT.ps1`: Core Bernoulli SPRT math engine.
-    - `Invoke-RavensGungnirStrike.ps1`: Orchestrator for alignment and test strikes.
+- **Dispatcher** (`bin/cstar.js`):
+    - Node.js CLI entry point. Routes commands via `commander`.
+- **Cortex Link** (`src/node/cortex_link.js`):
+    - TCP bridge between Node.js and the Python Daemon.
+- **Agent Loop** (`src/node/agent_loop.js`):
+    - Orchestrator for the Gungnir flight cycle.
+- **The Gungnir Calculus** (`src/cstar/core/sprt.py`):
+    - Native Python Bernoulli SPRT math engine.
     - `muninn.py`: Memory ledger and GPHS recalculation engine.
-    - `GungnirSPRT.Tests.ps1`: Pester 5 validation suite for SPRT logic.
+- **Genesis Bootstrapper** (`src/node/setup.js`):
+    - Zero-touch cross-platform installation.
 - **The Gungnir Calculus (Legacy/Global)** (`src/core/`):
     - `metrics.py`: Computes GPHS (Global Project Health Score).
     - `prompt_linter.py`: AST-based validation of .prompty files.
