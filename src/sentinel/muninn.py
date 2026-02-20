@@ -76,7 +76,13 @@ logging.basicConfig(
 class Muninn:
     def __init__(self, target_path: str, client=None) -> None:
         self.root = Path(target_path).resolve()
-        self.api_key = os.getenv("GOOGLE_API_KEY")
+        
+        # API Quota Isolation
+        self.api_key = os.getenv("MUNINN_API_KEY")
+        if self.api_key:
+            HUD.persona_log("INFO", "Muninn operating on isolated API quota.")
+        else:
+            self.api_key = os.getenv("GOOGLE_API_KEY")
 
         if not self.api_key and client is None:
             raise ValueError("GOOGLE_API_KEY environment variable not set.")
@@ -185,9 +191,21 @@ class Muninn:
         # Only search for the ONE item we are actually going to fix.
         searcher = BraveSearch()
         if searcher.is_quota_available():
-            # Heuristic: Critical errors with generic descriptions
-            if target.get('severity') == 'CRITICAL' or 'error' in target.get('action', '').lower():
-                query = f"python {target.get('action')} {target.get('file', '')}"
+            target_severity = target.get('severity', '')
+            target_type = target.get('type', '')
+            target_action = target.get('action', '').lower()
+            
+            is_aesthetic = target_type in ('FREYA_BIRKHOFF_BREACH', 'FREYA_GOLDEN_RATIO_BREACH')
+            is_structural = any(k in target_type for k in ('STRUCTURAL_BREACH', 'EDDA_', 'MIMIR_'))
+            
+            if target_severity in ('CRITICAL', 'HIGH') or 'error' in target_action or is_aesthetic or is_structural:
+                if is_aesthetic:
+                    query = "UI/UX design best practices reduce complexity increase order harmony Tailwind Golden Ratio"
+                elif is_structural:
+                    query = "Python AST clean code best practices cyclomatic complexity balanced ratios"
+                else:
+                    query = f"python {target.get('action')} {target.get('file', '')}"
+                    
                 HUD.persona_log("INFO", f"Searching Brave for context: {query}")
                 results = searcher.search(query)
                 if results:

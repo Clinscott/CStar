@@ -32,8 +32,57 @@ class FreyaWarden(BaseWarden):
 
             try:
                 content = tsx_file.read_text(encoding='utf-8')
-                lines = content.splitlines()
                 
+                # --- [GUNGNIR CALCULUS: BIRKHOFF MEASURE] ---
+                # 1. Calculate Complexity (C)
+                elements = re.findall(r'<[a-zA-Z0-9]+', content)
+                total_elements = len(elements)
+                
+                class_matches = re.findall(r'className=["\']([^"\']+)["\']', content)
+                all_classes = []
+                for match in class_matches:
+                    all_classes.extend(match.split())
+                    
+                unique_classes = len(set(all_classes))
+                complexity_C = total_elements + unique_classes
+                if complexity_C == 0: complexity_C = 1 # Safety
+                
+                # 2. Calculate Order (O)
+                symmetric_operators = {'flex', 'grid', 'justify-center', 'items-center', 'mx-auto', 'text-center'}
+                order_O = 0
+                
+                class_counts = {cls: all_classes.count(cls) for cls in set(all_classes)}
+                for cls, count in class_counts.items():
+                    if count > 2:  # Reward repetition/harmony
+                        order_O += count
+                    if cls in symmetric_operators:
+                        order_O += 5  # Reward symmetric layout
+                        
+                # 3. Calculate M (Birkhoff's Measure)
+                measure_M = order_O / complexity_C
+                
+                if measure_M < 0.3 and total_elements > 5:
+                    targets.append({
+                        "type": "FREYA_BIRKHOFF_BREACH",
+                        "file": str(tsx_file.relative_to(self.root)),
+                        "action": f"Aesthetic Calculus failure. Birkhoff Measure (M={measure_M:.2f}) indicates high complexity ({complexity_C}) without sufficient order ({order_O}). Refactor for symmetry.",
+                        "line": 1,
+                        "severity": "HIGH"
+                    })
+                
+                # 4. Golden Ratio check (Arbitrary Pixels)
+                arbitrary_classes = re.findall(r'-\[[0-9]+px\]', content)
+                if len(arbitrary_classes) > 3:
+                    targets.append({
+                        "type": "FREYA_GOLDEN_RATIO_BREACH",
+                        "file": str(tsx_file.relative_to(self.root)),
+                        "action": "Golden Ratio alignment missing. Excessive arbitrary pixel values detected. Utilize native Tailwind Fibonacci scales for proportional harmony.",
+                        "line": 1,
+                        "severity": "HIGH"
+                    })
+
+                # --- Original Warden Checks ---
+                lines = content.splitlines()
                 for i, line in enumerate(lines):
                     # 1. Hover check
                     if "<button" in line and "className" in line and "hover:" not in line:
@@ -45,18 +94,7 @@ class FreyaWarden(BaseWarden):
                             "severity": "MEDIUM"
                         })
                     
-                    # 2. Accessibility Check (aria-label for icon buttons)
-                    # Heuristic: If button has no text content (just spans/svgs), it needs aria-label.
-                    # This is hard to perfect with regex, but we can look for "aria-label" absence on icon-like buttons.
-                    if "<button" in line and "aria-label" not in line:
-                         # Check if it looks empty of text? Or just flag it as a warning to check?
-                         # User requirement: "accessibility breaches like missing aria-label on icon buttons"
-                         # We'll assume if it has "icon" in class or name, or is short, it might be an icon button.
-                         pass # Skip for now to avoid noise, or implement smarter check later.
-                         # Actually let's just check for arbitrary values first as requested.
-
-                    # 3. Tailwind Arbitrary Values (e.g., w-[123px])
-                    # Regex for `-[...]`
+                    # 3. Tailwind Arbitrary Values (Individual lines)
                     arbitrary = re.search(r"-\[.*?\]", line)
                     if arbitrary:
                         targets.append({

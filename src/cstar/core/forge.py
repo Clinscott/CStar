@@ -6,6 +6,7 @@ import ast
 import shutil
 import asyncio
 import gc
+import re
 from pathlib import Path
 
 # Add project root to path
@@ -57,14 +58,17 @@ class Forge:
             session_id = str(uuid.uuid4())
             yield {"type": "ui", "persona": "ODIN", "msg": f"Attempt {attempt}/{self.max_retries}: [SID: {session_id[:8]}] Communing with the void..."}
             
-            # 1. ODIN Uplink (Generate Component)
-            response = await self.uplink.send_payload(f"FORGE: {task}", context)
+            # 1. ODIN Uplink (Generate Component with Gungnir Calculus)
+            response = await self._generate_with_calculus(task, context, target_path.suffix)
             
             if response.get("status") == "error":
                 yield {"type": "ui", "persona": "ALFRED", "msg": f"Uplink severed: {response.get('message')}"}
                 yield {"type": "result", "status": "error", "message": "Uplink Failed"}
                 return
                 
+            if "warnings" in response:
+                yield {"type": "ui", "persona": "ODIN", "msg": "Gungnir Calculus detected dissonance. Self-correction applied."}
+
             new_code = response.get("data", {}).get("code")
             if not new_code:
                 yield {"type": "ui", "persona": "ODIN", "msg": "The void returned silence. Retrying..."}
@@ -222,5 +226,95 @@ class Forge:
                 context["previous_attempt"] = new_code
                 gc.collect()
 
-        yield {"type": "ui", "persona": "ODIN", "msg": "Maximum retries exhausted. The Forge sleeps."}
-        yield {"type": "result", "status": "failure", "message": "Max Retries Exceeded"}
+    def _verify_gungnir_calculus(self, code_string: str, file_ext: str) -> list[str]:
+        """Runs the mathematical aesthetic checks on generated code before outputting."""
+        breaches = []
+        
+        # 1. UI/UX Frontend Checks (.tsx / .jsx)
+        if file_ext in ('.tsx', '.jsx'):
+            elements = len(re.findall(r'<[a-zA-Z0-9]+', code_string))
+            classes = re.findall(r'className=["\']([^"\']+)["\']', code_string)
+            all_cls = [c for match in classes for c in match.split()]
+            unique_cls = len(set(all_cls))
+            
+            C = elements + unique_cls if (elements + unique_cls) > 0 else 1
+            
+            # Order calculation
+            class_counts = {c: all_cls.count(c) for c in set(all_cls)}
+            O = sum(count for count in class_counts.values() if count > 2)
+            
+            symmetric_ops = {'flex', 'grid', 'justify-center', 'items-center', 'mx-auto', 'text-center'}
+            O += sum(5 for c in all_cls if c in symmetric_ops)
+            
+            if elements > 5 and (O / C) < 0.3:
+                breaches.append(f"GUNGNIR_UI_BREACH: Birkhoff Measure M={(O/C):.2f} is too low. Increase symmetry (O) and reduce raw classes (C).")
+                
+            if len(re.findall(r'-\[[0-9]+px\]', code_string)) > 3:
+                breaches.append("GUNGNIR_UI_BREACH: Too many arbitrary pixel sizes. Use native Tailwind Fibonacci scales.")
+
+        # 2. Backend Structural Checks (.py)
+        elif file_ext == '.py':
+            # Whitespace Rhythm Enforcement
+            lines = code_string.split('\n')
+            consecutive = 0
+            for line in lines:
+                if line.strip() and not line.strip().startswith('#'):
+                    consecutive += 1
+                    if consecutive > 12:
+                        breaches.append("GUNGNIR_BACKEND_BREACH: Claustrophobic code block (>12 lines). Inject vertical whitespace.")
+                        break
+                else:
+                    consecutive = 0
+            
+            # Ratio Check (Setup vs Execution)
+            try:
+                tree = ast.parse(code_string)
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.FunctionDef):
+                        setup = sum(1 for child in node.body if isinstance(child, (ast.Assign, ast.AnnAssign, ast.Assert)))
+                        exec_nodes = sum(1 for child in node.body if isinstance(child, (ast.For, ast.While, ast.Return, ast.Expr, ast.If)))
+                        if exec_nodes > 0 and (setup / exec_nodes) > 1.7:
+                            breaches.append(f"GUNGNIR_BACKEND_BREACH: Function '{node.name}' is top-heavy setup (Ratio: {setup/exec_nodes:.2f}). Extract helper functions.")
+            except (SyntaxError, Exception):
+                pass # Defer to standard linters/validators
+
+        return breaches
+
+    def _extract_code_blocks(self, text: str) -> str:
+        """Helper to extract code content from markdown triple backticks."""
+        pattern = r"```(?:\w+)?\n(.*?)\n```"
+        matches = re.findall(pattern, text, re.DOTALL)
+        if matches:
+            return matches[0].strip()
+        return text.strip()
+
+    async def _generate_with_calculus(self, task: str, context: dict, file_ext: str):
+        """Internal generator wrapper with Gungnir Calculus retry logic."""
+        current_task_prompt = f"FORGE: {task}"
+        
+        for attempt in range(2): # max_retries = 1 (total 2 attempts) as suggested
+            response = await self.uplink.send_payload(current_task_prompt, context)
+            if response.get("status") == "error":
+                return response
+            
+            raw_data = response.get("data", {})
+            if isinstance(raw_data, str):
+                new_code = self._extract_code_blocks(raw_data)
+            else:
+                new_code = raw_data.get("code")
+            
+            if not new_code:
+                return {"status": "error", "message": "No code received from ODIN."}
+            
+            breaches = self._verify_gungnir_calculus(new_code, file_ext)
+            if not breaches:
+                return {"status": "success", "data": {"code": new_code}}
+            
+            # Log breach internally for UI
+            # (Note: This is a bit tricky inside this helper, but we'll return it)
+            context["error"] = "\n\nSYSTEM WARNING: Your previous generation failed the Gungnir Aesthetic Calculus. Fix the following constraints:\n" + "\n".join(breaches)
+            context["previous_attempt"] = new_code
+            current_task_prompt = f"REPAIR FORGE: {task}. Resolve aesthetic breaches."
+
+        # Return whatever we have on final attempt if still breaches
+        return {"status": "success", "data": {"code": new_code}, "warnings": breaches}

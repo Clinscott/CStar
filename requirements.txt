@@ -1,3 +1,12 @@
 google-generativeai
 colorama
 pytest
+ruff
+radon
+requests
+playwright
+psutil
+python-dotenv
+PyYAML
+textual
+pytest-asyncio
