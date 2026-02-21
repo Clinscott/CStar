@@ -49,3 +49,16 @@ def temp_project(tmp_path):
     sample = tmp_path / "src" / "sample.py"
     sample.write_text("def hello():\n    print('hi')\n", encoding="utf-8")
     return tmp_path
+
+
+@pytest.fixture(autouse=True)
+def prevent_api_key_leak(monkeypatch):
+    """
+    Ensure real API keys from .env.local are never available to tests,
+    preventing leaks in assertion diffs.
+    """
+    monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
+    monkeypatch.delenv("MUNINN_API_KEY", raising=False)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("BRAVE_API_KEY", raising=False)
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)

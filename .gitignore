@@ -9,6 +9,7 @@
 # Test outputs (ephemeral)
 *_output.txt
 *_results*.txt
+pytest_*.txt
 detail_fails.txt
 final_verify.txt
 
