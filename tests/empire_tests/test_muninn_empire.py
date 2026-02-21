@@ -129,6 +129,7 @@ class TestMuninnEmpire:
              patch("src.sentinel.muninn.Path.exists", return_value=True), \
              patch("src.sentinel.muninn.Path.read_text", return_value="old code"), \
              patch("src.sentinel.muninn.Path.write_text"), \
+             patch("src.sentinel.muninn.Path.unlink"), \
              patch("src.sentinel.muninn.shutil.copy"):
                  
                  # Mock SPRT

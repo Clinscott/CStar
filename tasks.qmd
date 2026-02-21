@@ -262,8 +262,20 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Loop Harmonization**: Fixed async event loop collisions in `Muninn`. [x]
 - [x] **Harness Verification**: 100% pass on Ragnarök bridge and memory harnesses. [x]
 
-## ⏭️ Start Here Next (Phase 52)
+### 52. Fixing Sentinel Weaknesses (Session 67)
+- [x] **Dynamic Models**: Refactored `muninn.py` to use `_get_optimal_model` from Antigravity Bridge for dynamic routing. [x]
+- [x] **Search Protocol**: Added exponential backoff and timeouts to `BraveSearch` in `brave_search.py`. [x]
+- [x] **Loop Convergence**: Optimized `_sync_send` in `muninn.py` to use `asyncio.run` directly. [x]
+- [x] **Contract Verification**: Patched and verified tests in `test_muninn.py` and `test_main_loop.py`. [x]
+
+### 53. CI/CD Hardening & ALFRED Artifact Fix (Session 68)
+- [x] **Pipeline Resolution**: Fixed 648 syntax errors in GitHub Actions CI caused by ALFRED-generated dynamic test artifacts. [x]
+- [x] **Gauntlet Exclusion**: Added `tests/gauntlet/` to `tool.ruff.exclude` in `pyproject.toml` to prevent future generated code from failing the linter. [x]
+- [x] **Index Cleanup**: Removed broken `test_1771558340.py` and `test_1771558472.py` from git tracking. [x]
+
+## ⏭️ Start Here Next (Phase 54)
 - [ ] **Operation Ironclad**: Security hardening of `.env.local` and regular API key rotation logic.
 - [ ] **TUI Content Polish**: Add high-fidelity ASCII art and RUNE separators to the WAR ROOM sections for maximum immersion.
 - [ ] **Forge-TUI Integration**: Establish a real-time event sink from `Forge` to the TUI sidebar status widget.
 - [ ] **Heimdall Vigil**: Expand security scanning to audit newly added Node.js deployment logic.
+```

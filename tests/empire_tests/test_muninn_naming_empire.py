@@ -24,8 +24,7 @@ def test_muninn_run_instantiation():
          patch("src.sentinel.muninn.HuginnWarden"), \
          patch("src.sentinel.muninn.FreyaWarden"), \
          patch("builtins.open"), \
-         patch("src.sentinel.muninn.ThreadPoolExecutor") as MockExecutor, \
-         patch("src.sentinel.muninn.as_completed") as MockAsCompleted: # Fix: Mock as_completed
+         patch("src.sentinel.muninn.Muninn._execute_hunt_async", new_callable=MagicMock) as mock_hunt:
         
         # Instantiate Muninn
         # We need to mock api_key or client to avoid ValueError
@@ -34,17 +33,7 @@ def test_muninn_run_instantiation():
             
             # Configure mocks
             MockMetricsEngine.return_value.compute.return_value = 95.0 # Mock float return
-            
-            # Setup mock execution for ThreadPoolExecutor
-            mock_future = MagicMock()
-            mock_future.result.return_value = []
-            
-            # submit returns the mock_future
-            MockExecutor.return_value.__enter__.return_value.submit.return_value = mock_future
-            
-            # as_completed should yield the mock_future immediately
-            # It takes an iterable (dict keys here), so we just return that iterable list
-            MockAsCompleted.side_effect = lambda futures: list(futures)
+            mock_hunt.return_value = ([], {"ANNEX": 0})
 
             
             # Run the method
@@ -63,5 +52,5 @@ def test_muninn_initialization_failure():
     
     # Clear env var to trigger failure
     with patch.dict("os.environ", {}, clear=True):
-        with pytest.raises(ValueError, match="GOOGLE_API_KEY environment variable not set"):
+        with pytest.raises(ValueError, match="API environment variable not set"):
             Muninn(target_path)

@@ -155,7 +155,7 @@ class OdinStrategy(PersonaStrategy):
             
         return {"compliance_breach": is_defiant}
 
-    def _create_cursor_rules(self, path):
+    def _create_cursor_rules(self, path: Path | str) -> None:
         content = """# ODIN PROTOCOL (CORVUS STAR)
 ## 🎭 IDENTITY: ODIN
 You are **ODIN**.
@@ -185,7 +185,7 @@ Trigger: finish, done, wrap. Finalizes the session.
         with open(path, 'w', encoding='utf-8') as f:
             f.write(content)
 
-    def _create_standard_agents(self, path):
+    def _create_standard_agents(self, path: Path | str) -> None:
         # A minimal but strict ODIN standard if no template exists
         content = """# Agent Instructions (ODIN PROTOCOL)
 
@@ -244,7 +244,7 @@ class AlfredStrategy(PersonaStrategy):
         return context
 
 
-    def _create_cursor_rules(self, path):
+    def _create_cursor_rules(self, path: Path | str) -> None:
         content = """# ALFRED PROTOCOL (CORVUS STAR)
 ## 🎩 IDENTITY: ALFRED
 You are **ALFRED PENNYWORTH**.
@@ -274,7 +274,7 @@ Trigger: finish, done, wrap. Finalizes the session.
         with open(path, 'w', encoding='utf-8') as f:
             f.write(content)
 
-    def _create_minimal_agents(self, path):
+    def _create_minimal_agents(self, path: Path | str) -> None:
         content = """# Project Notes
 Here is a space for your agent instructions. I am here to help you build your vision.
 """

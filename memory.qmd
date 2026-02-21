@@ -1,5 +1,17 @@
 # Corvus Star Memory
 
+## 2026-02-21: Session 69 (Structural Configuration Modernization)
+- **Configuration Sovereignty**: Flat dictionaries with mixed casing (e.g. `FrameworkRoot` next to `persona`) create downstream brittleness as systems scale. Refactoring `config.json` into strict, snake_case nested domains (`system`, `knowledge`, `security`, `learning`) forces developers to acknowledge the architectural boundary of the setting they are importing.
+- **Root Document Prominence**: Core architectural documents (like `AGENTS.qmd`) benefit from living in the project root rather than nested subdirectories (like `docs/architecture/`). Root placement increases visibility for autonomous agents and external tooling establishing context boundaries.
+- **Legacy Test Decay**: Obsolete mocks (like outdated `ThreadPoolExecutor` patches from prior refactors) and stale regex matching strings in tests are hidden time bombs. When major structural changes occur, tests that pass by bypassing execution paths via aggressive mocking must be rigorously audited for structural obsolescence.
+
+## 2026-02-21: Session 68 (CI/CD Hardening & ALFRED Artifact Fix)
+- **Dynamic Artifact Exclusion**: When building autonomous testing agents (like ALFRED) that generate "broken" python files to test self-repair, those target directories (e.g., `tests/gauntlet/`) must be explicitly excluded from static analysis tools (like `ruff` in `pyproject.toml`) and added to `.gitignore`. Failing to do so will cause the CI pipeline to crash as it attempts to lint intentionally malformed AI-generated code.
+## 2026-02-21: Session 67 (Fixing Sentinel Weaknesses)
+- **Dynamic Model Verification Tests**: When migrating code to use dynamic SDK features like `client.models.list()`, tests must explicitly mock these SDK calls to return structured MagicMocks containing expected attributes (e.g., `model.name`), rather than just validating string returns.
+- **Async Execution Wrappers**: Direct usage of `asyncio.run()` is preferred over manually maintaining event loops in bridged sync-to-async methods (like `_sync_send`), provided the calling thread is guaranteed not to have a running loop.
+- **Resilient Third-Party Integrations**: Adding exponential backoff directly into the tool wrapper (e.g., `BraveSearch`) rather than the orchestrator (`Muninn`) creates a stronger boundary and prevents the primary agent loop from inheriting network brittleness.
+
 ## 2026-02-20: Session 66 (Ghost Protocol & Dynamic Selection)
 - **Ghost Protocol**: Resilient backoff logic should live as close to the I/O layer as possible. In the Bridge, wrapping `generate_content` in an `asyncio.sleep` retry loop prevents cascading failures to the TUI and Node control plane.
 - **Model Agnosticism**: Hardcoding model names (e.g., "gemini-3.1-pro") is technical debt. Runtime model discovery (`client.models.list()`) combined with "Workload Personas" (ODIN=Pro, ALFRED=Flash) creates a self-healing identity system.
