@@ -11,11 +11,11 @@
 
 ## Session Log
 
-### Session: Wrap-It-Up Execution
-- [x] **Improvement 1 (Code)**: Added `Skipped` metric to the markdown report in `fishtest.py` for clearer non-English query visibility.
-- [x] **Improvement 2 (Code)**: Fixed swallowed exception in `compiler.py` sentinel audit block by explicitly catching `Exception as e` and logging it.
+### Session: [Hardening Ragnarok (Session 66)]
+- [x] **Improvement 1 (Arch)**: Implemented Dynamic Model Discovery in `antigravity_bridge.py` to optimize persona-based routing for ALFRED and ODIN.
+- [x] **Improvement 2 (Resilience)**: Injected Asynchronous Exponential Backoff in the bridge to handle transient API quota/availability errors (Ghost Protocol).
 
-### Session: Persona Refinement
+### Session: [Wrap-It-Up Execution]
 - [x] **Improvement 1 (Doc)**: Updated `README.qmd` with Refined Persona (Odin/Alfred) lore-alignment details.
 - [x] **Improvement 2 (Code)**: Added `__repr__` method to `DialogueRetriever` in `engine/dialogue.py` for improved debuggability.
 

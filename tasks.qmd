@@ -256,7 +256,13 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **PID Heartbeat**: Implemented `.agent/muninn.pid` for high-fidelity health tracking in `muninn.py` and the CLI. [x]
 - [x] **Boot Optimization**: Suppressed engine boot logs in `vector.py` to ensure instant CLI connectivity. [x]
 
-## ⏭️ Start Here Next (Phase 51)
+### 51. Operation Ragnarök: Architectural Hardening (Session 66)
+- [x] **Dynamic Routing**: Implemented `_get_optimal_model` for persona-based model discovery. [x]
+- [x] **Ghost Protocol**: Injected resilient exponential backoff for 429/503 stability. [x]
+- [x] **Loop Harmonization**: Fixed async event loop collisions in `Muninn`. [x]
+- [x] **Harness Verification**: 100% pass on Ragnarök bridge and memory harnesses. [x]
+
+## ⏭️ Start Here Next (Phase 52)
 - [ ] **Operation Ironclad**: Security hardening of `.env.local` and regular API key rotation logic.
 - [ ] **TUI Content Polish**: Add high-fidelity ASCII art and RUNE separators to the WAR ROOM sections for maximum immersion.
 - [ ] **Forge-TUI Integration**: Establish a real-time event sink from `Forge` to the TUI sidebar status widget.

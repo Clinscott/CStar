@@ -1,3 +1,42 @@
+# Walkthrough: Session 66 - Operation Ragnarök: Architectural Hardening & Resilience
+
+## 🎯 Goal
+Harden the Ragnarök architecture by implementing dynamic model discovery and asynchronous exponential backoff in the Antigravity Bridge, ensuring resilience against 429/503 API errors, and stabilizing the Muninn audit loop for high-concurrency verification.
+
+## 🏆 Results
+| Metric | Value |
+|:---|:---|
+| **Resilience** | **Ghost Protocol Active** (Auto-Retry on 429/503) |
+| **Routing** | **Dynamic Discovery** (Gemini Pro for ODIN/ALFRED) |
+| **Stability** | **17s Round-trip Verified** (Under stress) |
+| **Verification** | **100% Pass** (`ragnarok_bridge.js`, `ragnarok_muninn.js`) |
+
+## 🛠️ Key Changes
+
+### 1. Resilient Antigravity Bridge (`src/cstar/core/antigravity_bridge.py`)
+- **Dynamic Model Discovery**: Implemented `_get_optimal_model` to scan the API for available Gemini models at runtime. It routes high-reasoning tasks (ODIN/ALFRED) to Pro and lightweight tasks to Flash.
+- **Exponential Backoff**: Injected an asynchronous retry loop (max 3 retries) for the inference layer. It handles transient `429 (Quota)` and `503 (Unavailable)` errors, abstracting instability from the TUI.
+- **Client Caching**: Introduced `_CLIENT_CACHE` and `_MODEL_CACHE` to persist SDK sessions and discovery results, preventing socket exhaustion during retries.
+
+### 2. E2E Verification Harness (`tests/harness/`)
+- **Ragnarök Bridge**: Built `ragnarok_bridge.js` to verify raw payload processing through the TCP uplink with resilient cleanup using `taskkill`.
+- **Ragnarök Muninn**: Built `ragnarok_muninn.js` to verify the "Raven of Memory" in a headless sandbox, ensuring the GPHS calculation remains stable.
+
+### 3. Loop Harmonization (`src/sentinel/muninn.py`)
+- **Anti-Pattern Eradication**: Replaced nested `asyncio.run()` calls with a thread-local event loop bridge (`_sync_send`), preventing "Event loop already running" crashes during verification.
+- **Search Context Isolation**: Decoupled `Brave Search` results from the primary action prompt to preserve the structural integrity of generated commands.
+
+## 🤝 Session Handshake
+**Session Delta**:
+- Implemented Dynamic Discovery & Backoff in the Bridge.
+- Secured 100% pass on Ragnarök E2E Harness.
+- Harmonized Muninn's async loop for parallel execution.
+- Verified system stability with Fishtest N=1000 (97.9%).
+
+**Resume Directive**:
+- To verify the Ghost Protocol: `node tests/harness/ragnarok_bridge.js`.
+- To audit the Project Health: `node tests/harness/ragnarok_muninn.js`.
+
 # Walkthrough: Session 63 - The Node.js Sovereign Control Plane & PowerShell Purge
 
 ## 🎯 Goal

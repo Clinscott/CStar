@@ -25,7 +25,10 @@ The decision-making brain of Corvus Star.
     - Orchestrator for the Gungnir flight cycle.
 - **The Gungnir Calculus** (`src/cstar/core/sprt.py`):
     - Native Python Bernoulli SPRT math engine.
-    - **Muninn** (`src/sentinel/muninn.py`): Memory ledger with HEARTBEAT tracking (`.agent/muninn.pid`).
+- **Antigravity Bridge** (`src/cstar/core/antigravity_bridge.py`):
+    - **Dynamic Discovery**: Auto-routes workloads to optimal Gemini models.
+    - **Ghost Protocol**: Resilient exponential backoff for API stability.
+- **Muninn** (`src/sentinel/muninn.py`): Memory ledger with HEARTBEAT tracking (`.agent/muninn.pid`).
 - **Genesis Bootstrapper** (`src/node/setup.js`):
     - Zero-touch cross-platform installation.
 - **The Gungnir Calculus (Legacy/Global)** (`src/core/`):

@@ -75,7 +75,7 @@ logging.basicConfig(
 )
 
 class Muninn:
-    def __init__(self, target_path: str = None):
+    def __init__(self, target_path: str = None, client=None, use_bridge=False):
         # Auto-detect root if not provided
         if target_path is None:
             script_dir = Path(__file__).parent.absolute()
@@ -83,16 +83,24 @@ class Muninn:
         else:
             self.root = Path(target_path).resolve()
         
+        self.use_bridge = use_bridge
+        
         # 1. Prioritize the isolated Muninn key
         self.api_key = os.getenv("MUNINN_API_KEY")
         if self.api_key:
-            HUD.persona_log("INFO", "Muninn operating on isolated MUNINN_API_KEY.")
+            HUD.persona_log("INFO", f"Muninn operating on isolated API quota. (Bridge: {self.use_bridge})")
         else:
             self.api_key = os.getenv("GOOGLE_API_KEY")
             HUD.persona_log("WARN", "MUNINN_API_KEY missing. Falling back to shared GOOGLE_API_KEY.")
             
-        # 2. Inject the key into the uplink instance
-        self.uplink = AntigravityUplink(api_key=self.api_key)
+        if self.use_bridge:
+            self.uplink = AntigravityUplink(api_key=self.api_key)
+        else:
+            if not self.api_key and client is None:
+                raise ValueError("API environment variable not set.")
+            self.client = client or genai.Client(api_key=self.api_key)
+            # 2. Inject the key into the uplink instance (for reference/other use)
+            self.uplink = AntigravityUplink(api_key=self.api_key)
 
         # EMPIRE TDD Configuration
         self.flash_model = "gemini-3-flash-preview" 
@@ -136,6 +144,15 @@ class Muninn:
         for k, v in variables.items():
             content = content.replace(f"{{{{{k}}}}}", str(v))
         return content
+
+    def _sync_send(self, prompt: str, context: dict):
+        """Safely executes the async uplink payload from a synchronous flow."""
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            return loop.run_until_complete(self.uplink.send_payload(prompt, context))
+        finally:
+            loop.close()
 
     def _get_alfred_suggestions(self) -> str:
         """Reads suggestions from .agent/ALFRED_SUGGESTIONS.md."""
@@ -229,7 +246,8 @@ class Muninn:
                 results = searcher.search(query)
                 if results:
                     top = results[0]
-                    target['action'] += f" [Context]: {top.get('title')} ({top.get('url')})"
+                    # Create dedicated context to preserve verb-noun action structure
+                    target['search_context'] = f"Context: {top.get('title')} ({top.get('url')})"
 
         # [WATCHER] Anti-Oscillation Check
         if self.watcher.is_locked(target['file']):
@@ -428,18 +446,27 @@ class Muninn:
         prompt = self._load_prompt("gauntlet_generator", {
             "ACTION": target['action'],
             "FILE": target['file'],
-            "CODE": code_context
+            "CODE": code_context,
+            "SEARCH_CONTEXT": target.get('search_context', '')
         })
         
         if not prompt: # Fallback
-             prompt = f"Create a pytest reproduction script for: {target['action']} in {target['file']}.\nContext:\n{code_context}"
+             search_str = f"\n[Context from Web]: {target['search_context']}" if target.get('search_context') else ""
+             prompt = f"Create a pytest reproduction script for: {target['action']} in {target['file']}.{search_str}\nContext:\n{code_context}"
 
         try:
-            response = self.client.models.generate_content(
-                model=self.flash_model,
-                contents=prompt
-            )
-            raw_test = response.text
+            if self.use_bridge:
+                # Route safely through Node.js Bridge
+                response = self._sync_send(prompt, {"persona": "ODIN"})
+                raw_data = response.get("data", {})
+                raw_test = raw_data.get("code", "") if isinstance(raw_data, dict) else raw_data
+            else:
+                # Direct Native API Call
+                response = self.client.models.generate_content(
+                    model=self.flash_model,
+                    contents=prompt
+                )
+                raw_test = response.text
             clean_test = sanitize_test(raw_test, target['file'], self.root)
             
             test_file = self.root / "tests" / "gauntlet" / f"test_{int(time.time())}.py"
@@ -471,18 +498,27 @@ class Muninn:
              "FILE": target['file'],
              "CODE": augmented_code,
              "TEST": test_content,
-             "ALFRED_SUGGESTIONS": self._get_alfred_suggestions()
+             "ALFRED_SUGGESTIONS": self._get_alfred_suggestions(),
+             "SEARCH_CONTEXT": target.get('search_context', '')
         })
         
         if not prompt:
-            prompt = f"Fix the issue: {target['action']}.\nFile: {target['file']}\nCode:\n{augmented_code}\nTest:\n{test_content}"
+            search_str = f"\n[Context from Web]: {target['search_context']}" if target.get('search_context') else ""
+            prompt = f"Fix the issue: {target['action']}.{search_str}\nFile: {target['file']}\nCode:\n{augmented_code}\nTest:\n{test_content}"
 
         try:
-            response = self.client.models.generate_content(
-                model=self.pro_model, # Use Pro for coding
-                contents=prompt
-            )
-            raw_code = response.text
+            if self.use_bridge:
+                # Route safely through Node.js Bridge
+                response = self._sync_send(prompt, {"persona": "ODIN"})
+                raw_data = response.get("data", {})
+                raw_code = raw_data.get("code", "") if isinstance(raw_data, dict) else raw_data
+            else:
+                # Direct Native API Call
+                response = self.client.models.generate_content(
+                    model=self.pro_model, # Use Pro for coding
+                    contents=prompt
+                )
+                raw_code = response.text
             return sanitize_code(raw_code)
         except Exception as e:
             HUD.persona_log("ERROR", f"Implementation generation failed: {e}")

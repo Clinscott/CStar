@@ -1,5 +1,11 @@
 # Corvus Star Memory
 
+## 2026-02-20: Session 66 (Ghost Protocol & Dynamic Selection)
+- **Ghost Protocol**: Resilient backoff logic should live as close to the I/O layer as possible. In the Bridge, wrapping `generate_content` in an `asyncio.sleep` retry loop prevents cascading failures to the TUI and Node control plane.
+- **Model Agnosticism**: Hardcoding model names (e.g., "gemini-3.1-pro") is technical debt. Runtime model discovery (`client.models.list()`) combined with "Workload Personas" (ODIN=Pro, ALFRED=Flash) creates a self-healing identity system.
+- **Async Collisions**: `asyncio.run()` should NEVER be called from within a thread that might already be managed by an event loop. Using `asyncio.new_event_loop()` or a dedicated `_sync_send` bridge is mandatory for hybrid Warden architectures.
+- **TCP EOF Signaling**: Reliable TCP termination requires an explicit `writer.write_eof()` call. Without it, the Bridge's `read(-1)` might hang indefinitely waiting for a stream end that never arrives.
+
 ## 2026-02-19: Session 65 (Quota Isolation & Deterministic Health)
 - **Quota Isolation**: Decoupling API keys by subsystem (Forge vs. Muninn vs. Daemon) is the only reliable way to prevent shared quota exhaustion. The Bridge should support "Temporary Clients" that spin up per-request if an API key is provided in the payload.
 - **Deterministic Status**: `c*` commands that report health should be deterministic (reading PIDs or scanning the filesystem) rather than the query-driven. Relying on the Daemon for its own health check creates race conditions and timeouts during boot.

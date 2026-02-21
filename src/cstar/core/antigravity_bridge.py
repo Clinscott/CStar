@@ -26,8 +26,46 @@ logging.basicConfig(
     datefmt="%H:%M:%S"
 )
 
-# Global Client
+# Global Client Pool
 CLIENT = None
+_CLIENT_CACHE = {}
+_MODEL_CACHE = {} # Stores available models per API key
+
+def _get_optimal_model(client, api_key: str, persona: str) -> str:
+    """Discovers available models and routes based on workload."""
+    global _MODEL_CACHE
+    
+    # Fallback default if routing fails
+    safe_default = "gemini-3.1-pro-preview" 
+
+    # 1. Fetch and cache available models for this key
+    if api_key not in _MODEL_CACHE:
+        try:
+            models = [m.name for m in client.models.list()]
+            _MODEL_CACHE[api_key] = [m for m in models if "gemini" in m]
+            logging.info(f"Discovered {len(_MODEL_CACHE[api_key])} Gemini models for current key.")
+        except Exception as e:
+            logging.warning(f"Model discovery failed: {e}. Falling back to default.")
+            return safe_default
+
+    available = _MODEL_CACHE[api_key]
+
+    # 2. Workload Routing Logic
+    # ALFRED (Adversarial Tests) and ODIN (Code Generation) require deep reasoning
+    if persona in ["ALFRED", "ODIN"]:
+        preferred = ["gemini-3.1-pro-preview", "gemini-2.5-pro", "gemini-pro"]
+    # Quick tasks (hunting, summarization) use fast, low-latency models
+    else:
+        preferred = ["gemini-3-flash-preview", "gemini-2.5-flash", "gemini-flash"]
+
+    # 3. Select the best available match
+    for p in preferred:
+        # Match against strings like 'models/gemini-2.5-pro'
+        if any(p in m for m in available):
+            return p
+
+    # If preferred are missing, return the first valid Gemini model
+    return available[0] if available else safe_default
 
 def init_client():
     """Initializes the google.genai client exclusively using the Daemon key."""
@@ -109,44 +147,71 @@ async def process_request(query: str, context: dict, api_key: str = None) -> dic
     if target_interface:
         full_prompt += f"\n\n[TARGET INTERFACE TO TEST]\n{target_interface}\n"
 
-    # 2. Simulation Mode (Fallback)
-    # If no key in payload AND no global CLIENT, use Simulation
+    # 2. Simulation Mode & Caching
     active_client = CLIENT
     
     if api_key:
-        try:
-            from google import genai
-            logging.info(f"Initializing temporary client for requested API key (persona: {persona})...")
-            active_client = genai.Client(api_key=api_key)
-        except Exception as e:
-            logging.error(f"Failed to initialize temporary client: {e}")
-            # Fallback to global client if it exists, otherwise simulation
-            pass
-
-    if not active_client:
-        logging.warning("No LLM Client available. Returning Simulation Response.")
-        await asyncio.sleep(1) # Simulate think time
-        return generate_simulation(query, context)
-
-    # 3. Live Inference
-    try:
-        logging.info(f"Sending to {MODEL_NAME} (persona: {persona})...")
+        if api_key not in _CLIENT_CACHE:
+            try:
+                from google import genai
+                logging.info(f"Initializing cached client for requested API key (persona: {persona})...")
+                _CLIENT_CACHE[api_key] = genai.Client(api_key=api_key)
+            except Exception as e:
+                logging.error(f"Failed to initialize temporary client: {e}")
         
-        # Detect if we need structured JSON (ALFRED)
-        if "JSON" in query or persona == "ALFRED":
-            # Just ask for text and sanitize manually, or use JSON mode if supported
-            # For simplicity with new SDK, we'll prompt-engineer JSON
-            pass
+        # Retrieve from cache, fallback to Daemon client if key initialization failed
+        active_client = _CLIENT_CACHE.get(api_key, CLIENT)
+
+    # Detect if we need structured JSON (ALFRED)
+    if "JSON" in query or persona == "ALFRED":
+        # Just ask for text and sanitize manually, or use JSON mode if supported
+        # For simplicity with new SDK, we'll prompt-engineer JSON
+        pass
             
-        # [ALFRED] Use active_client (possibly local to this request)
-        response = active_client.models.generate_content(
-            model=MODEL_NAME, 
-            contents=full_prompt
-        )
+    # 3. Live Inference with Exponential Backoff
+    max_retries = 3
+    raw_text = None
+    
+    for attempt in range(max_retries):
+        try:
+            # Dynamically determine the best model for this run
+            target_model = _get_optimal_model(active_client, api_key or "default", persona)
+            logging.info(f"Attempt {attempt + 1}: Routing {persona} workload to {target_model}...")
+            
+            response = active_client.models.generate_content(
+                model=target_model, 
+                contents=full_prompt
+            )
+            raw_text = response.text
+            break # Success, exit retry loop
+            
+        except Exception as e:
+            error_msg = str(e).lower()
+            # Catch transient errors (Too Many Requests, Service Unavailable)
+            if "429" in error_msg or "503" in error_msg or "quota" in error_msg:
+                if attempt < max_retries - 1:
+                    wait_time = 3 ** attempt # Exponential: 1s, 3s, 9s
+                    logging.warning(f"API throttled or unavailable ({e}). Waiting {wait_time}s to ping again...")
+                    
+                    # Force model re-discovery on next attempt in case models dropped offline
+                    if api_key in _MODEL_CACHE:
+                        del _MODEL_CACHE[api_key] 
+                        
+                    await asyncio.sleep(wait_time)
+                else:
+                    logging.error("Max retries exhausted. Inference failed.")
+                    return {"status": "error", "message": f"API Exhausted: {e}"}
+            else:
+                # Non-transient error (e.g., bad syntax), fail immediately
+                logging.error(f"Fatal Inference Error: {e}")
+                return {"status": "error", "message": str(e)}
         
-        raw_text = response.text
-        
-        # 4. Payload Normalization
+    # If raw_text is still None after retries, it means all attempts failed
+    if raw_text is None:
+        return {"status": "error", "message": "Inference failed after multiple retries."}
+
+    # 4. Payload Normalization
+    try:
         if persona == "ODIN":
             # Clean Markdown
             cleaned_code = sanitize_code(raw_text)
@@ -158,9 +223,9 @@ async def process_request(query: str, context: dict, api_key: str = None) -> dic
         
         elif persona == "ALFRED":
             # ALFRED returns JSON directly
-            # We try to extract JSON block if wrapped in markdown
+            # We try to extract JSON block regardless of tags or carriage returns
             import re
-            json_match = re.search(r"```json\n(.*?)\n```", raw_text, re.DOTALL)
+            json_match = re.search(r"```(?:json)?\s+(.*?)\s+```", raw_text, re.DOTALL | re.IGNORECASE)
             if json_match:
                 json_str = json_match.group(1)
             else:
@@ -182,8 +247,9 @@ async def process_request(query: str, context: dict, api_key: str = None) -> dic
         return {"status": "success", "data": {"raw": raw_text}}
 
     except Exception as e:
-        logging.error(f"Inference Failed: {e}")
-        return {"status": "error", "message": f"Bridge Inference Error: {e}"}
+        logging.error(f"Normalization Failed: {e}")
+        return {"status": "error", "message": f"Bridge Normalization Error: {e}"}
+
 
 def generate_simulation(query, context):
     """Deterministic responses for testing without credentials."""
@@ -193,7 +259,7 @@ def generate_simulation(query, context):
         return {
             "status": "success", 
             "data": {
-                "code": "def simulated_function():\n    return 'This is a simulation because no credentials were found.'"
+                "code": "def simulated_function():\n    return 'BRIDGE_ACTIVE: This is a simulation because no credentials were found.'"
             }
         }
     elif persona == "ALFRED":

@@ -40,7 +40,8 @@ class AntigravityUplink:
         self.api_key = api_key or os.getenv("GOOGLE_API_KEY")
         
         if not self.api_key:
-            raise ValueError("CRITICAL: No API key found for AntigravityUplink.")
+            HUD.persona_log("WARN", "No API key found for AntigravityUplink. Simulation mode only.")
+
         
         if not self.api_key:
             # We don't raise here yet to allow Simulation mode in bridge, 
@@ -86,6 +87,7 @@ class AntigravityUplink:
             # Send
             writer.write(json.dumps(payload).encode('utf-8'))
             await writer.drain()
+            writer.write_eof() # Explicit EOF to unblock server read
             
             # Receive (with timeout)
             data = await asyncio.wait_for(reader.read(8192), timeout=TIMEOUT_SECONDS)
