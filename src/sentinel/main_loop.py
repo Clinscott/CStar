@@ -12,7 +12,6 @@ import logging
 import os
 import signal
 import subprocess
-import sys
 import time
 from pathlib import Path
 from typing import Any
@@ -30,6 +29,7 @@ bootstrap()
 
 from src.core.ui import HUD
 from src.sentinel.muninn import Muninn
+
 
 # --- GRACEFUL SHUTDOWN ---
 class ShutdownHandler:
@@ -148,8 +148,8 @@ def process_repo(repo_path: Path, persona: str) -> bool:
         if changed:
             ts = time.strftime("%Y-%m-%d %H:%M")
             commit_msg = (
-                f"🧹 Alfred: Tying up loose ends [{ts}]" 
-                if persona == "ALFRED" 
+                f"🧹 Alfred: Tying up loose ends [{ts}]"
+                if persona == "ALFRED"
                 else f"🐟 Sovereign Fish: Auto-improvement [{ts}]"
             )
 
@@ -202,7 +202,7 @@ def daemon_loop(lock_file_path: Path | None = None):
     HUD.PERSONA = load_persona()
     HUD.persona_log("INFO", "Sovereign Fish Automaton Initialized.")
     HUD.persona_log("INFO", f"Identity: {HUD.PERSONA}")
-    
+
     interval = get_interval()
     TARGET_REPOS = load_target_repos()
 
@@ -214,7 +214,7 @@ def daemon_loop(lock_file_path: Path | None = None):
             # Hot-Swap Persona
             prev_persona = HUD.PERSONA
             HUD.PERSONA = load_persona()
-            if HUD.PERSONA != prev_persona:
+            if prev_persona != HUD.PERSONA:
                 HUD.persona_log("INFO", f"Persona Shift Detected: {prev_persona} -> {HUD.PERSONA}")
 
             cycle_start = time.time()

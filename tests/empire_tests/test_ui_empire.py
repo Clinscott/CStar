@@ -25,7 +25,7 @@ class TestUIEmpire:
         agent_dir = tmp_path / ".agent"
         agent_dir.mkdir()
         config_file = agent_dir / "config.json"
-        config_file.write_text('{"persona": "ODIN"}', encoding='utf-8')
+        config_file.write_text('{"system": {"persona": "ODIN"}}', encoding='utf-8')
         
         with patch("src.core.ui.Path.cwd", return_value=tmp_path):
             HUD._ensure_persona()

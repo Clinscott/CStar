@@ -4,8 +4,8 @@ Shared bootstrap for Sentinel modules.
 Centralizes environment loading and sys.path configuration.
 """
 import sys
-import os
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 # Absolute project root resolution
@@ -28,15 +28,15 @@ def bootstrap() -> None:
 
     if str(PROJECT_ROOT) not in sys.path:
         sys.path.insert(0, str(PROJECT_ROOT))
-    
+
     env_local = PROJECT_ROOT / ".env.local"
     if env_local.exists():
         load_dotenv(dotenv_path=env_local)
     else:
         load_dotenv()
-    
+
     _BOOTSTRAPPED = True
-    
+
     # [ALFRED] Persona Synchronization
     try:
         config = load_config(str(PROJECT_ROOT))

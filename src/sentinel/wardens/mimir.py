@@ -4,14 +4,16 @@ Lore: "The Wise Counselor sees through tangled threads."
 Purpose: Identify cyclomatic complexity and maintainability issues.
 """
 
-from pathlib import Path
-from typing import List, Dict, Any
+from typing import Any
+
 from radon.complexity import cc_visit
 from radon.metrics import mi_visit
+
 from src.sentinel.wardens.base import BaseWarden
 
+
 class MimirWarden(BaseWarden):
-    def scan(self) -> List[Dict[str, Any]]:
+    def scan(self) -> list[dict[str, Any]]:
         targets = []
         cc_threshold = self.config.get("MIMIR_CC_THRESHOLD", 10)
         mi_threshold = self.config.get("MIMIR_MI_THRESHOLD", 40) # < 40 is usually bad
@@ -57,7 +59,7 @@ class MimirWarden(BaseWarden):
                                     setup_nodes += 1
                                 elif isinstance(child, (ast.For, ast.While, ast.Return, ast.Expr, ast.If)):
                                     exec_nodes += 1
-                            
+
                             if exec_nodes > 0:
                                 ratio = setup_nodes / exec_nodes
                                 if ratio > 1.7: # Exceeds ~1.618 limit

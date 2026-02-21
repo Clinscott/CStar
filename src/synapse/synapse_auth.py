@@ -24,7 +24,8 @@ class PersonaVerifier:
         if os.path.exists(self.config_path):
             with open(self.config_path, 'r') as f:
                 config = json.load(f)
-                return config.get("NeuralSecret", "CORVUS_DEFAULT_SIGNAL")
+                secret = config.get("security", {}).get("neural_secret")
+                return secret or config.get("NeuralSecret", "CORVUS_DEFAULT_SIGNAL")
         return "CORVUS_DEFAULT_SIGNAL"
 
     def generate_challenge(self) -> str:

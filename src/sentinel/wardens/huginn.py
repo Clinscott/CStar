@@ -8,10 +8,13 @@ Now upgraded with Neural Auditing capabilities.
 import os
 import re
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Any
+
 from google import genai
 from google.genai import types
+
 from src.sentinel.wardens.base import BaseWarden
+
 
 class HuginnWarden(BaseWarden):
     def __init__(self, root: Path) -> None:
@@ -20,7 +23,7 @@ class HuginnWarden(BaseWarden):
         self.api_key = os.getenv("MUNINN_API_KEY") or os.getenv("GOOGLE_API_KEY")
         self.client = genai.Client(api_key=self.api_key) if self.api_key else None
 
-    def scan(self) -> List[Dict[str, Any]]:
+    def scan(self) -> list[dict[str, Any]]:
         targets = []
         if not self.trace_dir.exists():
             return targets
@@ -30,16 +33,16 @@ class HuginnWarden(BaseWarden):
 
         # 2. Neural Audit (Slow, but deep)
         # Only audit the most recent trace to save tokens/time
-        # Or audit traces that look suspicious from regex? 
+        # Or audit traces that look suspicious from regex?
         # Requirement says: "Use a 'Junior' LLM (Gemini 2.0 Flash) to analyze .agent/traces"
-        
+
         # Taking the most recent trace file
         traces = list(self.trace_dir.glob("*.md"))
         if not traces:
             return targets
-            
+
         latest_trace = max(traces, key=os.path.getmtime)
-        
+
         # Only run neural audit if regex found nothing? Or typically run it?
         # Let's run it on the latest trace always, but maybe limit frequency?
         # For now, simplistic implementation: Always audit latest.
@@ -48,7 +51,7 @@ class HuginnWarden(BaseWarden):
 
         return targets
 
-    def _scan_regex(self) -> List[Dict[str, Any]]:
+    def _scan_regex(self) -> list[dict[str, Any]]:
         targets = []
         patterns = {
             "HALLUCINATION_REPEATED_HEADER": (r"(#+ .*?\n)\1{2,}", "Repeated markdown headers detected"),
@@ -75,7 +78,7 @@ class HuginnWarden(BaseWarden):
             except Exception: pass
         return targets
 
-    def _scan_neural(self, trace_file: Path) -> List[Dict[str, Any]]:
+    def _scan_neural(self, trace_file: Path) -> list[dict[str, Any]]:
         targets = []
         try:
             content = trace_file.read_text(encoding='utf-8')
@@ -106,7 +109,7 @@ class HuginnWarden(BaseWarden):
                     temperature=0.1
                 )
             )
-            
+
             if response.text:
                 import json
                 analysis = json.loads(response.text)

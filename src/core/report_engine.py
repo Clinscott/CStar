@@ -24,7 +24,8 @@ class ReportEngine:
         self.root = Path(project_root) if project_root else Path.cwd()
         # Load fresh config to ensure we catch dynamic switches
         self.config = utils.load_config(self.root)
-        self.persona = (self.config.get("persona") or self.config.get("Persona") or "ALFRED").upper()
+        legacy = self.config.get("persona") or self.config.get("Persona") or "ALFRED"
+        self.persona = str(self.config.get("system", {}).get("persona", legacy)).upper()
         
         # Ensure HUD is synced
         HUD.PERSONA = self.persona

@@ -87,23 +87,35 @@ class BraveSearch:
         }
         params = {"q": query}
 
-        try:
-            response = requests.get(endpoint, headers=headers, params=params, timeout=10)
-            response.raise_for_status()
-            self._increment_quota()
-            
-            data = response.json()
-            results = []
-            for result in data.get("web", {}).get("results", []):
-                results.append({
-                    "title": result.get("title"),
-                    "description": result.get("description"),
-                    "url": result.get("url")
-                })
-            return results
-        except Exception as e:
-            HUD.persona_log("ERROR", f"Brave Search Request Failed: {str(e)}")
-            return []
+        import time
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = requests.get(endpoint, headers=headers, params=params, timeout=10)
+                response.raise_for_status()
+                self._increment_quota()
+                
+                data = response.json()
+                results = []
+                for result in data.get("web", {}).get("results", []):
+                    results.append({
+                        "title": result.get("title"),
+                        "description": result.get("description"),
+                        "url": result.get("url")
+                    })
+                return results
+            except requests.exceptions.RequestException as e:
+                HUD.persona_log("WARN", f"Brave Search Request Failed (Attempt {attempt+1}/{max_retries}): {str(e)}")
+                if attempt < max_retries - 1:
+                    time.sleep(2 ** attempt)
+                else:
+                    HUD.persona_log("ERROR", f"Brave Search Exhausted: {str(e)}")
+                    return []
+            except Exception as e:
+                HUD.persona_log("ERROR", f"Brave Search Error: {str(e)}")
+                return []
+        
+        return []
 
 if __name__ == "__main__":
     import sys

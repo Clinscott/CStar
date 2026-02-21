@@ -5,15 +5,16 @@ Purpose: Identify missing type hints using AST.
 """
 
 import ast
-from pathlib import Path
-from typing import List, Dict, Any
+from typing import Any
+
 from src.sentinel.wardens.base import BaseWarden
 
+
 class RuneCasterWarden(BaseWarden):
-    def scan(self) -> List[Dict[str, Any]]:
+    def scan(self) -> list[dict[str, Any]]:
         targets = []
         for py_file in self.root.rglob("*.py"):
-            if self._should_ignore(py_file): 
+            if self._should_ignore(py_file):
                 continue
 
             try:
@@ -24,7 +25,7 @@ class RuneCasterWarden(BaseWarden):
                         # Check 1: Missing Argument Hints
                         missing_arg = any(arg.annotation is None for arg in node.args.args if arg.arg not in ('self', 'cls'))
                         missing_ret = node.returns is None
-                        
+
                         if missing_arg or missing_ret:
                             # Special Check: __init__ must return None
                             if node.name == "__init__" and missing_ret:

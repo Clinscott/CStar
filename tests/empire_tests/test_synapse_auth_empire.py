@@ -28,7 +28,7 @@ def test_persona_verifier_handshake():
 
 def test_persona_verifier_secret(tmp_path):
     config_file = tmp_path / "config.json"
-    config_file.write_text(json.dumps({"NeuralSecret": "TOP_SECRET"}), encoding='utf-8')
+    config_file.write_text(json.dumps({"security": {"neural_secret": "TOP_SECRET"}}), encoding='utf-8')
     
     verifier = PersonaVerifier(str(config_file))
     assert verifier.secret == "TOP_SECRET"

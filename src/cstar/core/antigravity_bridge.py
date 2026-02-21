@@ -17,7 +17,7 @@ from src.sentinel.code_sanitizer import sanitize_code
 # Constants
 HOST = '127.0.0.1'
 PORT = 50052
-MODEL_NAME = "gemini-3-flash-preview"
+MODEL_NAME = "gemini-2.5-flash"
 
 # Configure Logging
 logging.basicConfig(
@@ -36,7 +36,7 @@ def _get_optimal_model(client, api_key: str, persona: str) -> str:
     global _MODEL_CACHE
     
     # Fallback default if routing fails
-    safe_default = "gemini-3.1-pro-preview" 
+    safe_default = "gemini-2.5-pro" 
 
     # 1. Fetch and cache available models for this key
     if api_key not in _MODEL_CACHE:
@@ -53,10 +53,10 @@ def _get_optimal_model(client, api_key: str, persona: str) -> str:
     # 2. Workload Routing Logic
     # ALFRED (Adversarial Tests) and ODIN (Code Generation) require deep reasoning
     if persona in ["ALFRED", "ODIN"]:
-        preferred = ["gemini-3.1-pro-preview", "gemini-2.5-pro", "gemini-pro"]
+        preferred = ["gemini-2.5-pro", "gemini-pro"]
     # Quick tasks (hunting, summarization) use fast, low-latency models
     else:
-        preferred = ["gemini-3-flash-preview", "gemini-2.5-flash", "gemini-flash"]
+        preferred = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-flash"]
 
     # 3. Select the best available match
     for p in preferred:

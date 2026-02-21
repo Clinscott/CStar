@@ -5,20 +5,21 @@ Purpose: Identify functions missing docstrings and legacy markdown files.
 """
 
 import ast
-from pathlib import Path
-from typing import List, Dict, Any
+from typing import Any
+
 from src.sentinel.wardens.base import BaseWarden
 
+
 class EddaWarden(BaseWarden):
-    def scan(self) -> List[Dict[str, Any]]:
+    def scan(self) -> list[dict[str, Any]]:
         targets = []
-        
+
         # 1. Legacy Markdown Detection (.md -> .qmd)
         # We ignore README.md as it's standard.
         for md_file in self.root.rglob("*.md"):
             if self._should_ignore(md_file):
                 continue
-            
+
             if md_file.name.upper() == "README.MD":
                 continue
 
@@ -40,7 +41,7 @@ class EddaWarden(BaseWarden):
             try:
                 content = py_file.read_text(encoding='utf-8')
                 tree = ast.parse(content)
-                
+
                 for node in ast.walk(tree):
                     if isinstance(node, (ast.FunctionDef, ast.ClassDef, ast.AsyncFunctionDef)):
                         docstring = ast.get_docstring(node)
@@ -68,5 +69,5 @@ class EddaWarden(BaseWarden):
                                     })
 
             except Exception: pass
-            
+
         return targets

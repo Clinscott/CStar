@@ -18,12 +18,10 @@ from unittest.mock import MagicMock
 
 # Bootstrap
 from src.sentinel._bootstrap import bootstrap
+
 bootstrap()
 
 from src.sentinel.muninn import Muninn as SovereignFish
-from src.core.annex import HeimdallWarden
-from src.core.ui import HUD
-
 
 FIXTURES_DIR = Path(__file__).parent.parent.parent / "tests" / "fixtures" / "ravens_responses"
 

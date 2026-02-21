@@ -6,14 +6,15 @@ Purpose: Hunt for visual improvements — hover states, spacing, polish, and Tai
 
 import json
 import re
-from pathlib import Path
-from typing import List, Dict, Any
+from typing import Any
+
 from src.sentinel.wardens.base import BaseWarden
 
+
 class FreyaWarden(BaseWarden):
-    def scan(self) -> List[Dict[str, Any]]:
+    def scan(self) -> list[dict[str, Any]]:
         targets = []
-        
+
         # Load color theory for validation
         theory_path = self.root / "src" / "core" / "color_theory.json"
         theory = {}
@@ -32,35 +33,35 @@ class FreyaWarden(BaseWarden):
 
             try:
                 content = tsx_file.read_text(encoding='utf-8')
-                
+
                 # --- [GUNGNIR CALCULUS: BIRKHOFF MEASURE] ---
                 # 1. Calculate Complexity (C)
                 elements = re.findall(r'<[a-zA-Z0-9]+', content)
                 total_elements = len(elements)
-                
+
                 class_matches = re.findall(r'className=["\']([^"\']+)["\']', content)
                 all_classes = []
                 for match in class_matches:
                     all_classes.extend(match.split())
-                    
+
                 unique_classes = len(set(all_classes))
                 complexity_C = total_elements + unique_classes
                 if complexity_C == 0: complexity_C = 1 # Safety
-                
+
                 # 2. Calculate Order (O)
                 symmetric_operators = {'flex', 'grid', 'justify-center', 'items-center', 'mx-auto', 'text-center'}
                 order_O = 0
-                
+
                 class_counts = {cls: all_classes.count(cls) for cls in set(all_classes)}
                 for cls, count in class_counts.items():
                     if count > 2:  # Reward repetition/harmony
                         order_O += count
                     if cls in symmetric_operators:
                         order_O += 5  # Reward symmetric layout
-                        
+
                 # 3. Calculate M (Birkhoff's Measure)
                 measure_M = order_O / complexity_C
-                
+
                 if measure_M < 0.3 and total_elements > 5:
                     targets.append({
                         "type": "FREYA_BIRKHOFF_BREACH",
@@ -69,7 +70,7 @@ class FreyaWarden(BaseWarden):
                         "line": 1,
                         "severity": "HIGH"
                     })
-                
+
                 # 4. Golden Ratio check (Arbitrary Pixels)
                 arbitrary_classes = re.findall(r'-\[[0-9]+px\]', content)
                 if len(arbitrary_classes) > 3:
@@ -89,11 +90,11 @@ class FreyaWarden(BaseWarden):
                         targets.append({
                             "type": "FREYA_HOVER_MISSING",
                             "file": str(tsx_file.relative_to(self.root)),
-                            "action": f"Add hover state to button (Linscott Standard)",
+                            "action": "Add hover state to button (Linscott Standard)",
                             "line": i+1,
                             "severity": "MEDIUM"
                         })
-                    
+
                     # 3. Tailwind Arbitrary Values (Individual lines)
                     arbitrary = re.search(r"-\[.*?\]", line)
                     if arbitrary:

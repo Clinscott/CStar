@@ -76,7 +76,8 @@ class HUD:
             if config_path.exists():
                 with config_path.open("r", encoding="utf-8") as f:
                     data = json.load(f)
-                    persona = data.get("persona") or data.get("Persona") or "ALFRED"
+                    legacy_persona = data.get("persona") or data.get("Persona") or "ALFRED"
+                    persona = data.get("system", {}).get("persona", legacy_persona)
                     HUD.PERSONA = str(persona).upper()
         except Exception:
             pass # Stay as ALFRED

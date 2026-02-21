@@ -233,6 +233,14 @@ class TestGauntletEscalation:
         os.environ["GOOGLE_API_KEY"] = "TEST_KEY"
         try:
             fish = Muninn(str(tmp_path), client=mock_genai_client)
+            
+            # Mock the models list to support dynamic model capability
+            mock_flash = MagicMock()
+            mock_flash.name = "gemini-2.0-flash"
+            mock_pro = MagicMock()
+            mock_pro.name = "gemini-2.5-pro"
+            mock_genai_client.models.list.return_value = [mock_flash, mock_pro]
+
             target = {"file": "src/sample.py", "action": "Test action"}
 
             # Make pytest always fail so we exhaust all retries

@@ -7,64 +7,54 @@ Wardens of Asgard (Modular):
   Valkyrie, Mimir, Edda, RuneCaster, Freya, Norn, Huginn
 """
 
-import hashlib
+import asyncio
 import json
 import logging
 import os
-import re
-import asyncio
 import shutil
 import subprocess
-import sys
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import Any, Dict, List, Optional
 
-from colorama import Fore, init
+from colorama import init
 from google import genai
-from google.genai import types
 
 # Initialize Colorama
 init(autoreset=True)
 
 # Shared Bootstrap
 from src.sentinel._bootstrap import bootstrap
+
 bootstrap()
 
 # Core Imports
 from src.core.annex import HeimdallWarden
-from src.core.ui import HUD
-from src.cstar.core.uplink import AntigravityUplink
-from src.sentinel.code_sanitizer import (
-    classify_error,
-    extract_error_summary,
-    repair_imports,
-    sanitize_code,
-    sanitize_test,
-    validate_imports,
-    validate_syntax,
-    scan_and_enrich_imports,
-)
+from src.core.engine.alfred_observer import AlfredOverwatch
+from src.core.engine.atomic_gpt import AtomicCortex
 
 # Gungnir Engine Imports
 from src.core.metrics import ProjectMetricsEngine
-from src.core.engine.alfred_observer import AlfredOverwatch
-from src.core.engine.atomic_gpt import AtomicCortex
-from src.tools.brave_search import BraveSearch
-from tests.integration.project_fishtest import GungnirSPRT
+from src.core.ui import HUD
+from src.cstar.core.uplink import AntigravityUplink
+from src.sentinel.code_sanitizer import (
+    sanitize_code,
+    sanitize_test,
+    scan_and_enrich_imports,
+)
 
 # Stability Modules
 from src.sentinel.stability import GungnirValidator, TheWatcher
+from src.sentinel.wardens.edda import EddaWarden
+from src.sentinel.wardens.freya import FreyaWarden
+from src.sentinel.wardens.huginn import HuginnWarden
+from src.sentinel.wardens.mimir import MimirWarden
 
 # Warden Modules
 from src.sentinel.wardens.norn import NornWarden
-from src.sentinel.wardens.valkyrie import ValkyrieWarden
-from src.sentinel.wardens.edda import EddaWarden
 from src.sentinel.wardens.runecaster import RuneCasterWarden
-from src.sentinel.wardens.huginn import HuginnWarden
-from src.sentinel.wardens.mimir import MimirWarden
-from src.sentinel.wardens.freya import FreyaWarden
+from src.sentinel.wardens.valkyrie import ValkyrieWarden
+from src.tools.brave_search import BraveSearch
+from tests.integration.project_fishtest import GungnirSPRT
 
 # Configure Logging
 logging.basicConfig(
@@ -82,9 +72,9 @@ class Muninn:
             self.root = script_dir.parent.parent.resolve()
         else:
             self.root = Path(target_path).resolve()
-        
+
         self.use_bridge = use_bridge
-        
+
         # 1. Prioritize the isolated Muninn key
         self.api_key = os.getenv("MUNINN_API_KEY")
         if self.api_key:
@@ -92,7 +82,7 @@ class Muninn:
         else:
             self.api_key = os.getenv("GOOGLE_API_KEY")
             HUD.persona_log("WARN", "MUNINN_API_KEY missing. Falling back to shared GOOGLE_API_KEY.")
-            
+
         if self.use_bridge:
             self.uplink = AntigravityUplink(api_key=self.api_key)
         else:
@@ -102,10 +92,7 @@ class Muninn:
             # 2. Inject the key into the uplink instance (for reference/other use)
             self.uplink = AntigravityUplink(api_key=self.api_key)
 
-        # EMPIRE TDD Configuration
-        self.flash_model = "gemini-3-flash-preview" 
-        self.pro_model = "gemini-3.1-pro-preview"
-        
+        # Model configuration will be resolved dynamically via the bridge's fallback logic.
         # Stability Manager
         self.watcher = TheWatcher(self.root)
 
@@ -113,12 +100,12 @@ class Muninn:
         self.metrics_engine = ProjectMetricsEngine()
         self.observer = AlfredOverwatch()
         self.sprt = GungnirSPRT()
-        
+
         # PID File management
         self.pid_file = self.root / ".agent" / "muninn.pid"
-        
+
         # Metric Tracking
-        self._strategist_metrics: Dict[str, Dict[str, int]] = {}
+        self._strategist_metrics: dict[str, dict[str, int]] = {}
 
     def _write_pid(self):
         self.pid_file.parent.mkdir(parents=True, exist_ok=True)
@@ -135,6 +122,16 @@ class Muninn:
             return True
         return False
 
+    def _get_model(self, persona: str) -> str:
+        """Resolves the most appropriate fallback model dynamically."""
+        try:
+            from src.cstar.core.antigravity_bridge import _get_optimal_model
+            # Use api_key or 'default' to key the model cache
+            return _get_optimal_model(self.client, self.api_key or "default", persona)
+        except Exception as e:
+            HUD.persona_log("WARN", f"Model resolution failed: {e}")
+            return "gemini-2.5-pro" if persona in ["ODIN", "ALFRED"] else "gemini-2.0-flash"
+
     def _load_prompt(self, name: str, variables: dict) -> str:
         """Loads a .prompty file and replaces variables."""
         prompt_path = self.root / ".agent" / "prompts" / f"{name}.prompty"
@@ -147,12 +144,7 @@ class Muninn:
 
     def _sync_send(self, prompt: str, context: dict):
         """Safely executes the async uplink payload from a synchronous flow."""
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            return loop.run_until_complete(self.uplink.send_payload(prompt, context))
-        finally:
-            loop.close()
+        return asyncio.run(self.uplink.send_payload(prompt, context))
 
     def _get_alfred_suggestions(self) -> str:
         """Reads suggestions from .agent/ALFRED_SUGGESTIONS.md."""
@@ -176,7 +168,7 @@ class Muninn:
 
         # 1. THE HUNT (Parallel Scan)
         # Refactored to use Asyncio (Phase 8: Muninn Integration)
-        
+
         self._write_pid()
         try:
             # We run the async cycle
@@ -198,7 +190,7 @@ class Muninn:
             "MEDIUM": 50,
             "LOW": 20
         }
-        
+
         # Helper to get score
         def get_score(b):
             # Special case: Huginn breaches are effectively HIGH/CRITICAL
@@ -230,10 +222,10 @@ class Muninn:
             target_severity = target.get('severity', '')
             target_type = target.get('type', '')
             target_action = target.get('action', '').lower()
-            
+
             is_aesthetic = target_type in ('FREYA_BIRKHOFF_BREACH', 'FREYA_GOLDEN_RATIO_BREACH')
             is_structural = any(k in target_type for k in ('STRUCTURAL_BREACH', 'EDDA_', 'MIMIR_'))
-            
+
             if target_severity in ('CRITICAL', 'HIGH') or 'error' in target_action or is_aesthetic or is_structural:
                 if is_aesthetic:
                     query = "UI/UX design best practices reduce complexity increase order harmony Tailwind Golden Ratio"
@@ -241,7 +233,7 @@ class Muninn:
                     query = "Python AST clean code best practices cyclomatic complexity balanced ratios"
                 else:
                     query = f"python {target.get('action')} {target.get('file', '')}"
-                    
+
                 HUD.persona_log("INFO", f"Searching Brave for context: {query}")
                 results = searcher.search(query)
                 if results:
@@ -263,11 +255,11 @@ class Muninn:
 
             if not self._forge_improvement(target):
                 return False
-            
+
             # 4. CRUCIBLE (Verify)
             if self._verify_fix(target):
                 logging.info(f"[{self.root.name}] [SUCCESS] Verified fix for {target['file']}")
-                
+
                 # 5. SPRT STABILITY CHECK
                 if not self._verify_sprt_stability(target):
                     self._record_metric(selected_strategist, hit=False)
@@ -280,7 +272,7 @@ class Muninn:
                 # 6b. [GPHS] Post-Mutation Delta Analysis
                 post_gphs = self.metrics_engine.compute(str(self.root))
                 HUD.persona_log("INFO", f"Global Project Health Score (Post): {post_gphs:.2f}")
-                
+
                 sprt_result = self.sprt.evaluate_delta(pre_gphs, post_gphs)
                 if sprt_result == 'FAIL':
                     HUD.persona_log("FAIL", f"GPHS REGRESSION DETECTED (Delta: {post_gphs - pre_gphs:.4f}). Rolling back.")
@@ -294,7 +286,7 @@ class Muninn:
 
                 HUD.persona_log("PASS", f"GPHS DELTA SECURED: {post_gphs - pre_gphs:+.4f}")
                 self._record_metric(selected_strategist, hit=True)
-                
+
                 # If Campaign task, update the plan
                 if target.get('type') == 'CAMPAIGN_TASK':
                     NornWarden(self.root).mark_complete(target)
@@ -307,7 +299,7 @@ class Muninn:
                     cortex = AtomicCortex()
                     if cortex_path.exists():
                         cortex.load_weights(str(cortex_path))
-                    
+
                     target_file = self.root / target['file']
                     if target_file.exists():
                         code = target_file.read_text(encoding='utf-8')
@@ -340,7 +332,7 @@ class Muninn:
         Executes the Warden Scan in parallel using Asyncio.
         """
         wardens = {
-            "ANNEX": HeimdallWarden(self.root), 
+            "ANNEX": HeimdallWarden(self.root),
             "NORN": NornWarden(self.root),
             "VALKYRIE": ValkyrieWarden(self.root),
             "EDDA": EddaWarden(self.root),
@@ -352,7 +344,7 @@ class Muninn:
 
         all_breaches = []
         scan_results = {}
-        
+
         # Heimdall / Annex is special
         try:
             wardens["ANNEX"].scan()
@@ -369,7 +361,7 @@ class Muninn:
         # Async Wardens
         tasks = []
         names = []
-        
+
         for name, w in wardens.items():
             if name == "ANNEX": continue
             if hasattr(w, 'scan_async'):
@@ -381,7 +373,7 @@ class Muninn:
 
         if tasks:
             results = await asyncio.gather(*tasks, return_exceptions=True)
-            
+
             for name, res in zip(names, results):
                 if isinstance(res, Exception):
                     HUD.persona_log("WARN", f"{name} Failed: {res}")
@@ -389,17 +381,17 @@ class Muninn:
                 else:
                     scan_results[name] = len(res)
                     all_breaches.extend(res)
-        
+
         return all_breaches, scan_results
 
     # ==============================================================================
     # 🔨 THE FORGE (Execution Engine)
     # ==============================================================================
-    
+
     def _forge_improvement(self, target: dict) -> bool:
         """Generates and applies the fix using TDD (Test-Driven Development)."""
         file_path = self.root / target['file']
-        
+
         # Reading File Content
         if file_path.exists():
             original_content = file_path.read_text(encoding='utf-8')
@@ -423,11 +415,11 @@ class Muninn:
             # Backup
             if file_path.exists():
                 shutil.copy(file_path, str(file_path) + ".bak")
-            
+
             # Write
             file_path.parent.mkdir(parents=True, exist_ok=True)
             file_path.write_text(new_content, encoding='utf-8')
-            
+
             # Watcher Record
             if not self.watcher.record_edit(target['file'], new_content):
                 # Rollback if watcher says NO
@@ -438,10 +430,10 @@ class Muninn:
         except Exception as e:
             HUD.persona_log("ERROR", f"Forge failed to write: {e}")
             return False
-            
+
         return True
 
-    def _run_gauntlet(self, target: dict, code_context: str) -> Optional[Path]:
+    def _run_gauntlet(self, target: dict, code_context: str) -> Path | None:
         """Generates a dedicated reproduction test case."""
         prompt = self._load_prompt("gauntlet_generator", {
             "ACTION": target['action'],
@@ -449,7 +441,7 @@ class Muninn:
             "CODE": code_context,
             "SEARCH_CONTEXT": target.get('search_context', '')
         })
-        
+
         if not prompt: # Fallback
              search_str = f"\n[Context from Web]: {target['search_context']}" if target.get('search_context') else ""
              prompt = f"Create a pytest reproduction script for: {target['action']} in {target['file']}.{search_str}\nContext:\n{code_context}"
@@ -462,17 +454,18 @@ class Muninn:
                 raw_test = raw_data.get("code", "") if isinstance(raw_data, dict) else raw_data
             else:
                 # Direct Native API Call
+                model_name = self._get_model("TESTER") # Use flash
                 response = self.client.models.generate_content(
-                    model=self.flash_model,
+                    model=model_name,
                     contents=prompt
                 )
                 raw_test = response.text
             clean_test = sanitize_test(raw_test, target['file'], self.root)
-            
+
             test_file = self.root / "tests" / "gauntlet" / f"test_{int(time.time())}.py"
             test_file.parent.mkdir(parents=True, exist_ok=True)
             test_file.write_text(clean_test, encoding='utf-8')
-            
+
             return test_file
         except Exception as e:
             HUD.persona_log("ERROR", f"Gauntlet creation failed: {e}")
@@ -480,7 +473,7 @@ class Muninn:
 
 
 
-    def _generate_implementation(self, target: dict, original_code: str, test_path: Path) -> Optional[str]:
+    def _generate_implementation(self, target: dict, original_code: str, test_path: Path) -> str | None:
         """Generates the code fix ensuring it passes the test."""
         # Read the test we just made
         test_content = test_path.read_text(encoding='utf-8')
@@ -489,7 +482,7 @@ class Muninn:
         live_docs = scan_and_enrich_imports(original_code, self.root)
         if live_docs:
              HUD.persona_log("INFO", "Augmenting Forge prompt with live documentation.")
-        
+
         # We append docs to the code so it appears in the context
         augmented_code = original_code + live_docs
 
@@ -501,7 +494,7 @@ class Muninn:
              "ALFRED_SUGGESTIONS": self._get_alfred_suggestions(),
              "SEARCH_CONTEXT": target.get('search_context', '')
         })
-        
+
         if not prompt:
             search_str = f"\n[Context from Web]: {target['search_context']}" if target.get('search_context') else ""
             prompt = f"Fix the issue: {target['action']}.{search_str}\nFile: {target['file']}\nCode:\n{augmented_code}\nTest:\n{test_content}"
@@ -514,8 +507,9 @@ class Muninn:
                 raw_code = raw_data.get("code", "") if isinstance(raw_data, dict) else raw_data
             else:
                 # Direct Native API Call
+                model_name = self._get_model("ODIN") # Use pro
                 response = self.client.models.generate_content(
-                    model=self.pro_model, # Use Pro for coding
+                    model=model_name,
                     contents=prompt
                 )
                 raw_code = response.text
@@ -531,11 +525,11 @@ class Muninn:
     def _verify_fix(self, target: dict) -> bool:
         """Runs the test suite to verify the fix."""
         HUD.persona_log("INFO", "Entering the Crucible (Verification)...")
-        
+
         # 1. Run the specific gauntlet test
         cmd = ["pytest", str(self.root / "tests" / "gauntlet"), "-v"]
         result = subprocess.run(cmd, capture_output=True, text=True)
-        
+
         if result.returncode != 0:
             HUD.persona_log("FAIL", "Gauntlet Verification Failed.")
             return False
@@ -545,30 +539,30 @@ class Muninn:
         cmd_reg = ["pytest", "tests/unit", "-k", Path(target['file']).stem]
         subprocess.run(cmd_reg, capture_output=True, text=True)
         # We don't strictly fail on regression here yet, but we could.
-        
+
         return True
 
     def _verify_sprt_stability(self, target: dict) -> bool:
         """Runs Gungnir SPRT to statistically verify stability."""
         HUD.persona_log("INFO", "Running Gungnir SPRT verification...")
-        
+
         # Use a quick 3-run check for now
         # Ideally we run the test N times
         validator = GungnirValidator()
-        
+
         for i in range(3):
             cmd = ["pytest", str(self.root / "tests" / "gauntlet"), "-q"]
             res = subprocess.run(cmd, capture_output=True)
             success = (res.returncode == 0)
             validator.record_trial(success)
-            
+
             if validator.status == "REJECT":
                  HUD.persona_log("FAIL", "Gungnir: Fix is statistically FLAKY.")
                  return False
             if validator.status == "ACCEPT":
                  HUD.persona_log("PASS", "Gungnir: Fix is statistically STABLE.")
                  return True
-                 
+
         return True # Default pass if inclusive
 
     def _verify_performance(self, target: dict) -> bool:
@@ -588,7 +582,7 @@ class Muninn:
         """Records success/fail rate for each warden."""
         if strategist not in self._strategist_metrics:
             self._strategist_metrics[strategist] = {"attempts": 0, "success": 0}
-        
+
         self._strategist_metrics[strategist]["attempts"] += 1
         if hit:
             self._strategist_metrics[strategist]["success"] += 1
@@ -608,7 +602,7 @@ class Muninn:
             return
 
         try:
-            with open(ledger_path, 'r') as f:
+            with open(ledger_path) as f:
                 data = json.load(f)
         except Exception:
             return
@@ -626,7 +620,7 @@ class Muninn:
                 continue
             if t_file not in file_stats:
                 file_stats[t_file] = {"total": 0, "rejects": 0}
-            
+
             file_stats[t_file]["total"] += 1
             if entry.get("decision") == "Reject":
                 file_stats[t_file]["rejects"] += 1
@@ -643,7 +637,7 @@ class Muninn:
         accepted = [h for h in history if h.get("decision") == "Accept"]
         # Sort by timestamp descending
         accepted.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
-        
+
         blessed_precedents = []
         for entry in accepted[:3]:
             tgt = entry.get("target", "Unknown")
@@ -652,9 +646,9 @@ class Muninn:
 
         # 3. Generate Cortex Directives
         gphs = data.get("global_project_health_score", 0.0)
-        
+
         directives_path = self.root / ".agent" / "cortex_directives.md"
-        
+
         md_content = f"""# Global Project Health Score: {gphs:.2f}
 
 ## ☠️ Cursed Files (High Risk)
@@ -666,7 +660,7 @@ class Muninn:
             md_content += "- None detected.\n"
 
         md_content += "\n## 🛡️ Blessed Precedents (Mimic Pattern)\n"
-        
+
         if blessed_precedents:
             for b in blessed_precedents:
                 md_content += f"- {b}\n"

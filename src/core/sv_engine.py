@@ -49,7 +49,8 @@ class SovereignEngine:
         }
 
         # Persona & HUD Initialization
-        HUD.PERSONA = (self.config.get("persona") or self.config.get("Persona") or "ALFRED").upper()
+        legacy_persona = self.config.get("persona") or self.config.get("Persona") or "ALFRED"
+        HUD.PERSONA = str(self.config.get("system", {}).get("persona", legacy_persona)).upper()
         HUD._INITIALIZED = True
         self.strategy = personas.get_strategy(HUD.PERSONA, str(self.project_root))
         self._init_hud_dialogue()
@@ -75,8 +76,11 @@ class SovereignEngine:
         engine.load_skills_from_dir(str(self.project_root / "src" / "skills" / "local"))
 
         # Load Remote Knowledge Skills
-        remote_path_str = self.config.get("KnowledgeCore") or \
-                         str(Path(self.config.get("FrameworkRoot", "")) / "skills_db")
+        k_config = self.config.get("knowledge", {})
+        active = k_config.get("active_core", "primary")
+        remote_path_str = k_config.get("cores", {}).get(active) or \
+                          self.config.get("KnowledgeCore") or \
+                          str(Path(self.config.get("system", {}).get("framework_root", "")) / "skills_db")
         if remote_path_str:
             remote_path = Path(remote_path_str)
             if remote_path.exists():

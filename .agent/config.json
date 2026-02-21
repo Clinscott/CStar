@@ -1,13 +1,20 @@
 {
-    "FrameworkRoot": "C:\\Users\\Craig\\Corvus\\CorvusStar",
-    "KnowledgeCore": "C:\\Users\\Craig\\Corvus\\CorvusKnowledge",
-    "KnowledgeCores": {
-        "primary": "C:\\Users\\Craig\\Corvus\\CorvusKnowledge",
-        "secondary": "C:\\Users\\Craig\\Corvus\\MimirVault",
-        "archive": "C:\\Users\\Craig\\Corvus\\KnowledgeArchive"
+    "system": {
+        "framework_root": "C:\\Users\\Craig\\Corvus\\CorvusStar",
+        "persona": "ODIN"
     },
-    "NeuralSecret": "VIGRID_SIGNAL_99",
-    "LearningConfig": {
+    "knowledge": {
+        "active_core": "primary",
+        "cores": {
+            "primary": "C:\\Users\\Craig\\Corvus\\CorvusKnowledge",
+            "secondary": "C:\\Users\\Craig\\Corvus\\MimirVault",
+            "archive": "C:\\Users\\Craig\\Corvus\\KnowledgeArchive"
+        }
+    },
+    "security": {
+        "neural_secret": "VIGRID_SIGNAL_99"
+    },
+    "learning": {
         "auto_extract": true,
         "min_confidence_for_push": 0.9,
         "extract_on_session_end": true,
@@ -16,7 +23,5 @@
             "patterns",
             "thesaurus"
         ]
-    },
-    "persona": "ODIN",
-    "Persona": "ODIN"
+    }
 }

@@ -34,6 +34,7 @@ class TestReportEngine(unittest.TestCase):
 
     def test_header_generation(self):
         """Verify header contains title."""
+        self.engine.persona = "ODIN"
         title = "TEST REPORT"
         header = self.engine.header(title)
         self.assertIn(title, header)

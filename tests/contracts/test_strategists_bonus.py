@@ -89,6 +89,7 @@ def nightmare(x):
     elif x == 4: pass
     elif x == 5: pass
     elif x == 6: pass
+    
     elif x == 7: pass
     elif x == 8: pass
     elif x == 9: pass

@@ -184,7 +184,8 @@ class Synapse:
         self.project_root = self.agent_dir.parent
         
         self.config = self._load_config()
-        self.persona = self.config.get("persona") or self.config.get("Persona") or "ALFRED"
+        legacy_persona = self.config.get("persona") or self.config.get("Persona") or "ALFRED"
+        self.persona = self.config.get("system", {}).get("persona", legacy_persona)
         
         self.core_path, self.core_name = self._resolve_core(remote_alias)
         if not self.core_path or not self.core_path.exists():
@@ -206,7 +207,10 @@ class Synapse:
         return {}
 
     def _resolve_core(self, alias: str) -> Tuple[Optional[Path], str]:
-        cores = self.config.get("KnowledgeCores", {})
+        cores = self.config.get("knowledge", {}).get("cores", {})
+        if not cores:
+            cores = self.config.get("KnowledgeCores", {})
+            
         for name, path_str in cores.items():
             if name.lower() == alias.lower():
                 return Path(path_str), name

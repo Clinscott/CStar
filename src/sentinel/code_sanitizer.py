@@ -9,9 +9,9 @@ No code passes through Bifrost without being worthy.
 import ast
 import importlib
 import re
-import sys
 import textwrap
 from pathlib import Path
+
 from src.tools.brave_search import BraveSearch
 
 # ==============================================================================
@@ -272,7 +272,7 @@ def scan_and_enrich_imports(code: str, project_root: Path) -> str:
         return ""
 
     bad_modules = set()
-    
+
     # Simple check reusing _is_valid_import logic
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
@@ -295,24 +295,24 @@ def scan_and_enrich_imports(code: str, project_root: Path) -> str:
         return ""
 
     from src.core.ui import HUD
-    
+
     context_snippets = []
     processed = set()
-    
+
     for module in bad_modules:
         if module in processed: continue
         processed.add(module)
-        
+
         query = f"{module} latest documentation python"
         HUD.persona_log("INFO", f"Injecting live docs for unknown module: {module}")
-        
+
         results = searcher.search(query)
         if results:
             # Take top 2 results
             snippets = []
             for res in results[:2]:
                 snippets.append(f"- {res.get('title')}: {res.get('description')} ({res.get('url')})")
-            
+
             if snippets:
                 context_snippets.append(f"Documentation for `{module}`:\n" + "\n".join(snippets))
 
@@ -494,10 +494,10 @@ def _deep_fix_indentation(code: str) -> str:
         return dedented # Fallback
 
     result = _apply_indent_correction(lines, min_indent)
-    
+
     if _is_syntax_valid(result):
         return result
-        
+
     return dedented
 
 def _is_syntax_valid(code: str) -> bool:
@@ -525,16 +525,16 @@ def _apply_indent_correction(lines: list[str], min_indent: int) -> str:
         if not line.strip():
             fixed_lines.append("")
             continue
-            
+
         stripped = line.lstrip()
         current_indent = len(line) - len(stripped)
         new_indent = max(0, current_indent - min_indent)
-        
+
         # Round to nearest 4-space multiple and preserve structure
         rounded_indent = (new_indent // 4) * 4
         if current_indent > min_indent:
             rounded_indent = max(4, rounded_indent)
-            
+
         fixed_lines.append(" " * rounded_indent + stripped)
     return "\n".join(fixed_lines)
 

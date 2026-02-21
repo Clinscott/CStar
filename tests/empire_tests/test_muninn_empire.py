@@ -28,7 +28,7 @@ from src.sentinel.muninn import Muninn
 
 class TestMuninnEmpire:
     
-    @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key"})
+    @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key", "MUNINN_API_KEY": ""})
     @patch("src.sentinel.muninn.genai.Client")
     def test_init(self, mock_client):
         # We need to patch the constructor dependencies of Muninn
@@ -45,10 +45,10 @@ class TestMuninnEmpire:
     def test_init_no_key(self, mock_client):
         with patch.dict(os.environ, {}, clear=True):
             # The bootstrap call might set it? No.
-            with pytest.raises(ValueError, match="GOOGLE_API_KEY"):
+            with pytest.raises(ValueError, match="API environment variable not set."):
                 Muninn("dummy_root")
 
-    @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key"})
+    @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key", "MUNINN_API_KEY": ""})
     @patch("src.sentinel.muninn.AtomicCortex")
     @patch("src.sentinel.muninn.Muninn._execute_hunt_async", new_callable=MagicMock)
     @patch("src.sentinel.muninn.HUD")
@@ -84,7 +84,7 @@ class TestMuninnEmpire:
         args, _ = mock_hud.persona_log.call_args
         assert args[0] == "SUCCESS"
 
-    @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key"})
+    @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key", "MUNINN_API_KEY": ""})
     @patch("src.sentinel.muninn.AtomicCortex")
     @patch("src.sentinel.muninn.Muninn._execute_hunt_async", new_callable=MagicMock)
     @patch("src.sentinel.muninn.HUD")
@@ -141,7 +141,7 @@ class TestMuninnEmpire:
                  result = muninn.run()
                  assert result is True
                                 
-    @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key"})
+    @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key", "MUNINN_API_KEY": ""})
     def test_forge_improvement_failure(self):
          with patch("src.sentinel.muninn.TheWatcher"), \
               patch("src.sentinel.muninn.ProjectMetricsEngine"), \

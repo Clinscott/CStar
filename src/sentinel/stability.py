@@ -6,13 +6,15 @@ Contains:
 2. TheWatcher - Anti-Oscillation & Fatigue Management
 """
 
-import json
-import time
-import math
 import hashlib
+import json
+import math
+import time
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
+
 from src.core.ui import HUD
+
 
 class GungnirValidator:
     """
@@ -25,11 +27,11 @@ class GungnirValidator:
         self.beta = beta   # Type II error (False Negative)
         self.p0 = p0       # Base failure rate (Null)
         self.p1 = p1       # Flaky failure rate (Alternative)
-        
+
         # Thresholds
         self.A = (1 - beta) / alpha
         self.B = beta / (1 - alpha)
-        
+
         self.log_likelihood_ratio = 0.0
 
     def record_trial(self, success: bool):
@@ -60,9 +62,9 @@ class TheWatcher:
     def __init__(self, root: Path) -> None:
         self.root = root
         self.state_file = self.root / ".agent" / "sovereign_state.json"
-        self.state: Dict[str, Any] = self._load_state()
+        self.state: dict[str, Any] = self._load_state()
 
-    def _load_state(self) -> Dict[str, Any]:
+    def _load_state(self) -> dict[str, Any]:
         if not self.state_file.exists():
             return {}
         try:
@@ -132,7 +134,7 @@ class TheWatcher:
             file_state["status"] = "LOCKED"
             self._save_state()
             HUD.persona_log("FAIL", f"FILE FATIGUE: {rel_path} locked after 10 edits.")
-            return False 
+            return False
 
         self._save_state()
         return True

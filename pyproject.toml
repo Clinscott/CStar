@@ -65,7 +65,8 @@ exclude = [
     "mock_project",
     "sterileAgent",
     ".corvus_quarantine",
-    "tests/empire_tests/src/error_real.py"
+    "tests/empire_tests/src/error_real.py",
+    "tests/gauntlet"
 ]
 
 [tool.ruff.lint]

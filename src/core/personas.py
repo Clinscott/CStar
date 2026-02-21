@@ -51,8 +51,11 @@ class PersonaStrategy:
         if config_path.exists():
             try:
                 data = json.loads(config_path.read_text(encoding='utf-8'))
-                data["persona"] = persona.upper()
-                data["Persona"] = persona.upper()
+                if "system" not in data:
+                    data["system"] = {}
+                data["system"]["persona"] = persona.upper()
+                data.pop("persona", None)
+                data.pop("Persona", None)
                 config_path.write_text(json.dumps(data, indent=4), encoding='utf-8')
             except Exception:
                 pass
@@ -89,14 +92,14 @@ class OdinStrategy(PersonaStrategy):
         
         def _res(base_name: str) -> Path:
             names = [
-                self.root / "docs" / "architecture" / f"{base_name}.qmd",
-                self.root / "docs" / "architecture" / f"{base_name}.md",
                 self.root / f"{base_name}.qmd", 
-                self.root / f"{base_name}.md"
+                self.root / f"{base_name}.md",
+                self.root / "docs" / "architecture" / f"{base_name}.qmd",
+                self.root / "docs" / "architecture" / f"{base_name}.md"
             ]
             for path in names:
                 if path.exists(): return path
-            return self.root / "docs" / "architecture" / f"{base_name}.qmd"
+            return self.root / f"{base_name}.qmd"
 
         agents_path = _res("AGENTS")
         source_template = _res("sterileAgent/AGENTS_ODIN")
@@ -131,7 +134,7 @@ class OdinStrategy(PersonaStrategy):
                          for v in state.values())
         
         # 2. Original Policy Enforcement
-        target_dirs = [self.root / "docs" / "architecture", self.root]
+        target_dirs = [self.root, self.root / "docs" / "architecture"]
         for target in target_dirs:
             qmd = target / "AGENTS.qmd"
             md = target / "AGENTS.md"
@@ -171,7 +174,7 @@ Trigger: debug, verify, check. Deep-dives into code or issues.
 Trigger: finish, done, wrap. Finalizes the session.
 
 ## 📂 KNOWLEDGE ASSETS
-- **docs/architecture/AGENTS.qmd**: Core Instructions.
+- **AGENTS.qmd**: Core Instructions.
 - **tasks.qmd**: Project Checklist.
 - **src/data/thesaurus.qmd**: Intent Vocabulary.
 
@@ -260,7 +263,7 @@ Trigger: debug, verify, check. Deep-dives into code or issues.
 Trigger: finish, done, wrap. Finalizes the session.
 
 ## 📂 KNOWLEDGE ASSETS
-- **docs/architecture/AGENTS.qmd**: Core Instructions.
+- **AGENTS.qmd**: Core Instructions.
 - **tasks.qmd**: Project Checklist.
 - **src/data/thesaurus.qmd**: Intent Vocabulary.
 

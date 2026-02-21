@@ -19,7 +19,7 @@ class Cortex:
         
         # Knowledge Sources - [ALFRED] Updated for Operation Yggdrasil docs structure
         doc_targets: Dict[str, str] = {
-            "AGENTS": "docs/architecture/AGENTS.qmd",
+            "AGENTS": "AGENTS.qmd",
             "wireframe": "docs/architecture/wireframe.qmd",
             "memories": "memories.qmd",
             "SovereignFish": "docs/campaigns/SOVEREIGNFISH_LEDGER.qmd"

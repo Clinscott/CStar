@@ -46,7 +46,9 @@ class PersonaManager:
 
     def _extract_persona(self, config: Dict[str, Any]) -> str:
         """Extracts the persona name from config, defaulting to ALFRED."""
-        val = config.get("persona") or config.get("Persona") or "ALFRED"
+        val = config.get("system", {}).get("persona", "ALFRED")
+        if not val and ("persona" in config or "Persona" in config):
+            val = config.get("persona") or config.get("Persona") or "ALFRED"
         return str(val).upper()
 
     def _save_persona(self, persona: str) -> None:
@@ -56,8 +58,11 @@ class PersonaManager:
                 try:
                     with path.open("r", encoding="utf-8") as f:
                         data = json.load(f)
-                    data["persona"] = persona
-                    data["Persona"] = persona
+                    if "system" not in data:
+                        data["system"] = {}
+                    data["system"]["persona"] = persona
+                    data.pop("persona", None)
+                    data.pop("Persona", None)
                     with path.open("w", encoding="utf-8") as f:
                         json.dump(data, f, indent=4)
                 except (json.JSONDecodeError, IOError):
