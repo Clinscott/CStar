@@ -28,71 +28,15 @@ from src.cstar.core.tui import (
     LORE,
     PROJECT_ROOT,
     CommandInput,
-    DaemonClient,
     DashboardScreen,
     ForgeScreen,
     GPHSGauge,
     HelpScreen,
     SovereignApp,
     TraceScreen,
-    TransitionScreen,
     VitalsHeader,
     _load_greeting,
 )
-
-
-# ═══════════════════════════════════════════════════════════════════════════
-# 1. DaemonClient
-# ═══════════════════════════════════════════════════════════════════════════
-
-
-@pytest.mark.asyncio
-async def test_daemon_client_success() -> None:
-    """Verify DaemonClient returns parsed JSON on successful connection."""
-    mock_reader = AsyncMock()
-    mock_reader.read.return_value = json.dumps({"status": "ok"}).encode("utf-8")
-    
-    # StreamWriter.write is sync, StreamWriter.drain and wait_closed are async.
-    mock_writer = MagicMock()
-    mock_writer.write = MagicMock() # Ensure it's not an AsyncMock
-    mock_writer.drain = AsyncMock()
-    mock_writer.wait_closed = AsyncMock()
-
-    with patch("asyncio.open_connection", return_value=(mock_reader, mock_writer)):
-        client = DaemonClient()
-        response = await client.send_command({"cmd": "test"})
-        assert response == {"status": "ok"}
-        mock_writer.write.assert_called()
-
-
-@pytest.mark.asyncio
-async def test_daemon_client_failure_graceful_degradation() -> None:
-    """Verify graceful degradation (ALFRED fallback) after all retries fail."""
-    with patch("asyncio.open_connection", side_effect=ConnectionRefusedError):
-        client = DaemonClient()
-        response = await client.send_command({"cmd": "test"})
-
-        assert response["persona"] == "ALFRED"
-        assert response["status"] == "disconnected"
-        assert response["error"] is True
-
-
-@pytest.mark.asyncio
-async def test_daemon_client_retry_count() -> None:
-    """Verify DaemonClient retries MAX_RETRIES times before giving up."""
-    call_count = 0
-    original_side_effect = ConnectionRefusedError
-
-    async def counting_connect(*args, **kwargs):
-        nonlocal call_count
-        call_count += 1
-        raise original_side_effect()
-
-    with patch("asyncio.open_connection", side_effect=counting_connect):
-        client = DaemonClient()
-        client.MAX_RETRIES = 3
-        await client.send_command({"cmd": "test"})
-        assert call_count == 3
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -164,25 +108,6 @@ def test_alfred_theme_class_value() -> None:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 4. TransitionScreen Logic
-# ═══════════════════════════════════════════════════════════════════════════
-
-
-@pytest.mark.asyncio
-async def test_transition_screen_odin() -> None:
-    """Verify TransitionScreen initializes correctly for ODIN."""
-    screen = TransitionScreen(new_persona="ODIN")
-    assert screen.new_persona == "ODIN"
-
-
-@pytest.mark.asyncio
-async def test_transition_screen_alfred() -> None:
-    """Verify TransitionScreen initializes correctly for ALFRED."""
-    screen = TransitionScreen(new_persona="ALFRED")
-    assert screen.new_persona == "ALFRED"
-
-
-# ═══════════════════════════════════════════════════════════════════════════
 # 5. Keybindings
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -190,7 +115,7 @@ async def test_transition_screen_alfred() -> None:
 def test_keybindings_registered() -> None:
     """Verify all expected keybindings are registered on SovereignApp."""
     binding_keys = [b.key for b in SovereignApp.BINDINGS]
-    expected = ["f1", "f2", "f3", "f4", "ctrl+t", "ctrl+s", "escape"]
+    expected = ["f1", "f2", "f3", "f4", "ctrl+s", "escape"]
     for key in expected:
         assert key in binding_keys, f"Missing keybinding: {key}"
 

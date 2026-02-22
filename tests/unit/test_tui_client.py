@@ -7,26 +7,28 @@ from cstar.core.client import ping_daemon
 
 class TestTUIClientAlignment(unittest.TestCase):
 
-    @patch('socket.create_connection')
-    def test_ping_daemon_raises_refusal(self, mock_create_connection):
+    @patch('cstar.core.client.connect')
+    def test_ping_daemon_raises_refusal(self, mock_connect):
         """Verify ping_daemon correctly raises ConnectionRefusedError when the daemon is offline."""
-        mock_create_connection.side_effect = ConnectionRefusedError("Connection refused")
+        mock_connect.side_effect = ConnectionRefusedError("Connection refused")
         
         with self.assertRaises(ConnectionRefusedError):
             ping_daemon(timeout=1.0)
             
-    @patch('socket.create_connection')
-    def test_ping_daemon_raises_timeout(self, mock_create_connection):
+    @patch('cstar.core.client.connect')
+    def test_ping_daemon_raises_timeout(self, mock_connect):
         """Verify ping_daemon correctly raises TimeoutError if the socket hangs."""
-        mock_create_connection.side_effect = TimeoutError("Socket timeout")
+        import websockets
+        mock_connect.side_effect = websockets.exceptions.WebSocketException("Timeout")
         
-        with self.assertRaises(TimeoutError):
+        with self.assertRaises(ConnectionRefusedError):
             ping_daemon(timeout=0.5)
 
-    @patch('socket.create_connection')
-    def test_ping_daemon_success(self, mock_create_connection):
+    @patch('cstar.core.client.connect')
+    def test_ping_daemon_success(self, mock_connect):
         """Verify ping_daemon passes implicitly when connection is successful."""
-        mock_create_connection.return_value = MagicMock()
+        mock_ws = MagicMock()
+        mock_connect.return_value.__enter__.return_value = mock_ws
         try:
             ping_daemon(timeout=1.0)
         except Exception as e:

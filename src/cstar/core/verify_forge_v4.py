@@ -12,6 +12,7 @@ if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
 from src.cstar.core.forge import Forge
+from src.core.payload import IntentPayload
 
 async def main():
     print("=== Verifying Forge V4 Pipeline ===")
@@ -75,7 +76,14 @@ if __name__ == "__main__":
     
     # Execute
     print("\n--- Starting Forge Execution ---")
-    async for event in forge.execute("Implement Addition", str(target_file)):
+    payload = IntentPayload(
+        system_meta={"confidence": 1.0, "source": "verification"},
+        intent_raw="Implement Addition",
+        intent_normalized="implement addition",
+        target_workflow="FORGE_DIRECT",
+        extracted_entities={}
+    )
+    async for event in forge.execute(payload, str(target_file)):
         print(f"[{event['type'].upper()}]: {event.get('msg') or event.get('message')}")
         if event['type'] == 'result':
             print(f"RESULT: {event}")

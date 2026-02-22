@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -25,6 +26,13 @@ class CorvusDispatcher:
         from src.core.utils import load_config
         self.config = load_config(str(self.project_root))
         HUD.PERSONA = (self.config.get("persona") or "ALFRED").upper()
+
+        # [THE CANARY] Initialize AnomalyWarden
+        try:
+            from src.core.engine.atomic_gpt import AnomalyWarden
+            self.warden = AnomalyWarden()
+        except Exception:
+            self.warden = None
 
     def _discover_all(self) -> Dict[str, str]:
         """Scans all dynamic locations for available commands."""
@@ -118,20 +126,49 @@ class CorvusDispatcher:
             else: # Workflow
                 HUD.persona_log("INFO", f"Dispatching workflow: /{cmd}")
                 import shutil
+                start_time = time.time()
+                error_status = 0.0
+                
                 if shutil.which("quarto"):
                     try:
                         subprocess.run(["quarto", "render", cmd_path], check=True)
                     except Exception as e:
                          HUD.persona_log("FAIL", f"Workflow execution failed: {e}")
+                         error_status = 1.0
                 else:
                     HUD.persona_log("WARN", "Quarto not found. Displaying raw workflow:")
                     HUD.box_top(f"WORKFLOW: {cmd}")
                     print(Path(cmd_path).read_text(encoding='utf-8')[:1000] + "\n... (truncated)")
                     HUD.box_bottom()
+
+                # [CANARY] Record Heartbeat
+                latency = (time.time() - start_time) * 1000
+                self._record_heartbeat(latency, len(args), 1.0, error_status)
                 return
 
         HUD.persona_log("FAIL", f"Unknown command: {cmd}")
         self.show_help()
+
+    def _record_heartbeat(self, latency: float, tokens: int, loops: float, error: float):
+        """Feeding the Warden."""
+        if not self.warden:
+            return
+
+        features = [latency, float(tokens), loops, error]
+        
+        # Inference
+        anomaly_prob = self.warden.forward(features)
+        
+        # Training (Self-Supervised on success)
+        # In Burn-In, we assume Healthy (0.0). Post Burn-In, we only train on successes.
+        if self.warden.burn_in_cycles > 0:
+            self.warden.train_step(features, 0.0)
+        elif error == 0.0:
+            self.warden.train_step(features, 0.0)
+
+        # Alerting
+        if self.warden.burn_in_cycles == 0 and anomaly_prob > 0.8:
+            HUD.persona_log("CRITICAL", f"Anomaly Detected: {anomaly_prob:.2f} (Heartbeat: {features})")
 
 def main() -> None:
     """Entry point for the dispatcher."""

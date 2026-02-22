@@ -10,3 +10,4 @@ python-dotenv
 PyYAML
 textual
 pytest-asyncio
+chromadb

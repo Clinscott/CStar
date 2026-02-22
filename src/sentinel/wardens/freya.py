@@ -4,6 +4,7 @@ Lore: "The Goddess of Beauty sees all imperfections."
 Purpose: Hunt for visual improvements — hover states, spacing, polish, and Tailwind best practices.
 """
 
+import contextlib
 import json
 import re
 from typing import Any
@@ -20,18 +21,17 @@ class FreyaWarden(BaseWarden):
         theory = {}
         all_hexes = []
         if theory_path.exists():
-            try:
+            with contextlib.suppress(Exception):
                 theory = json.loads(theory_path.read_text(encoding='utf-8'))
                 palettes = theory.get("palettes", {})
                 for p in palettes.values():
                     all_hexes.extend([v.lower() for v in p.values()])
-            except: pass
 
         for tsx_file in self.root.rglob("*.tsx"):
             if self._should_ignore(tsx_file):
                 continue
 
-            try:
+            with contextlib.suppress(Exception):
                 content = tsx_file.read_text(encoding='utf-8')
 
                 # --- [GUNGNIR CALCULUS: BIRKHOFF MEASURE] ---
@@ -57,7 +57,7 @@ class FreyaWarden(BaseWarden):
                     if count > 2:  # Reward repetition/harmony
                         order_O += count
                     if cls in symmetric_operators:
-                        order_O += 5  # Reward symmetric layout
+                        order_O += 5 * count  # Reward symmetric layout per instance
 
                 # 3. Calculate M (Birkhoff's Measure)
                 measure_M = order_O / complexity_C
@@ -107,17 +107,18 @@ class FreyaWarden(BaseWarden):
                         })
 
                     # 4. Color Theory Audit (Hex matching)
-                    found_hex = re.findall(r"#[0-9a-fA-F]{6}", line)
-                    for h in found_hex:
-                        if h.lower() not in all_hexes:
-                            targets.append({
-                                "type": "FREYA_COLOR_DEVIANCE",
-                                "file": str(tsx_file.relative_to(self.root)),
-                                "action": f"Non-standard color detected: {h} (Consult color_theory.json)",
-                                "line": i+1,
-                                "severity": "LOW"
-                            })
+                    if all_hexes:
+                        found_hex = re.findall(r"#[0-9a-fA-F]{6}", line)
+                        for h in found_hex:
+                            if h.lower() not in all_hexes:
+                                targets.append({
+                                    "type": "FREYA_COLOR_DEVIANCE",
+                                    "file": str(tsx_file.relative_to(self.root)),
+                                    "action": f"Non-standard color detected: {h} (Consult color_theory.json)",
+                                    "line": i+1,
+                                    "severity": "LOW"
+                                })
 
-            except Exception: pass
+
 
         return targets

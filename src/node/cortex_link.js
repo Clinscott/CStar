@@ -87,7 +87,7 @@ export class CortexLink {
             client.setTimeout(3000);
 
             client.connect(this.port, this.host, () => {
-                client.write(JSON.stringify(payload));
+                client.write(JSON.stringify(payload) + '\n');
             });
 
             client.on('data', (chunk) => {

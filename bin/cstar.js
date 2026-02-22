@@ -123,7 +123,7 @@ program
                     envContent = fs.readFileSync(envPath, 'utf-8');
                 }
 
-                const isSet = (key) => (process.env[key] || envContent.includes(key)) ? chalk.green('SECURED') : chalk.red('FALLBACK');
+                const isSet = (key) => (process.env[key] || new RegExp('^\\s*' + key + '\\s*=', 'm').test(envContent)) ? chalk.green('SECURED') : chalk.red('FALLBACK');
 
                 console.log(chalk.cyan('\n ◤ QUOTA ISOLATION ◢ '));
                 console.log(` MUNINN_KEY:     ${isSet('MUNINN_API_KEY')}`);

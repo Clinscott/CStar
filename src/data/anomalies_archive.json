@@ -1,0 +1,19 @@
+[
+  {
+    "timestamp": "2026-02-21T20:00:00.000000",
+    "metadata_vector": [
+      1200.5,
+      350,
+      4,
+      1.0
+    ],
+    "anomaly_probability": 0.94,
+    "mean_baseline": [
+      300.0,
+      50,
+      1.0,
+      0.0
+    ],
+    "status": "reviewed"
+  }
+]

@@ -36,7 +36,15 @@ class AntigravityUplink:
         self.host = ANTIGRAVITY_HOST
         self.port = ANTIGRAVITY_PORT
         
-        # 1. Accept injected key, fallback to standard TUI key
+        # 1. Load Environment variables from .env.local
+        try:
+            from dotenv import load_dotenv
+            env_path = project_root / ".env.local"
+            load_dotenv(env_path)
+        except ImportError:
+            pass # Graceful fallback if dotenv is missing
+            
+        # 2. Accept injected key, fallback to standard TUI key
         self.api_key = api_key or os.getenv("GOOGLE_API_KEY")
         
         if not self.api_key:
@@ -131,6 +139,11 @@ class AntigravityUplink:
         finally:
             # Show Cursor
             sys.stdout.write("\033[?25h")
+
+async def query_bridge(query: str, context: dict = None) -> dict:
+    """Convenience wrapper for the AntigravityUplink."""
+    uplink = AntigravityUplink()
+    return await uplink.send_payload(query, context)
 
 # Quick Test
 if __name__ == "__main__":

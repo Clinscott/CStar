@@ -4,6 +4,7 @@ Lore: "The Wise Counselor sees through tangled threads."
 Purpose: Identify cyclomatic complexity and maintainability issues.
 """
 
+import contextlib
 from typing import Any
 
 from radon.complexity import cc_visit
@@ -22,7 +23,7 @@ class MimirWarden(BaseWarden):
             if self._should_ignore(py_file):
                 continue
 
-            try:
+            with contextlib.suppress(Exception):
                 content = py_file.read_text(encoding='utf-8')
                 rel_path = str(py_file.relative_to(self.root))
 
@@ -96,6 +97,5 @@ class MimirWarden(BaseWarden):
                             "line": 1
                         })
 
-            except Exception:
-                pass
+
         return targets

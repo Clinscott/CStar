@@ -528,16 +528,24 @@ class Muninn:
 
         # 1. Run the specific gauntlet test
         cmd = ["pytest", str(self.root / "tests" / "gauntlet"), "-v"]
-        result = subprocess.run(cmd, capture_output=True, text=True)
-
-        if result.returncode != 0:
-            HUD.persona_log("FAIL", "Gauntlet Verification Failed.")
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            if result.returncode != 0:
+                HUD.persona_log("FAIL", "Gauntlet Verification Failed.")
+                return False
+        except Exception as e:
+            HUD.persona_log("FAIL", f"Gauntlet Verification execution failed: {e}")
             return False
 
         # 2. Run relevant unit tests (Regression Check)
         # Scan for related tests
         cmd_reg = ["pytest", "tests/unit", "-k", Path(target['file']).stem]
-        subprocess.run(cmd_reg, capture_output=True, text=True)
+        try:
+            reg_result = subprocess.run(cmd_reg, capture_output=True, text=True)
+            if reg_result.returncode != 0:
+                HUD.persona_log("WARN", f"Regression test flagged: {Path(target['file']).stem}")
+        except Exception as e:
+            HUD.persona_log("WARN", f"Regression Verification execution failed: {e}")
         # We don't strictly fail on regression here yet, but we could.
 
         return True
@@ -552,8 +560,12 @@ class Muninn:
 
         for i in range(3):
             cmd = ["pytest", str(self.root / "tests" / "gauntlet"), "-q"]
-            res = subprocess.run(cmd, capture_output=True)
-            success = (res.returncode == 0)
+            try:
+                res = subprocess.run(cmd, capture_output=True, text=True)
+                success = (res.returncode == 0)
+            except Exception as e:
+                HUD.persona_log("FAIL", f"SPRT test execution failed: {e}")
+                success = False
             validator.record_trial(success)
 
             if validator.status == "REJECT":

@@ -23,6 +23,7 @@ from src.core import personas, utils  # noqa: E402
 from src.core.engine.cortex import Cortex  # noqa: E402
 from src.core.engine.dialogue import DialogueEngine  # noqa: E402
 from src.core.engine.vector import SovereignVector  # noqa: E402
+from src.core.payload import IntentPayload  # noqa: E402
 from src.core.ui import HUD  # noqa: E402
 from src.tools.brave_search import BraveSearch  # noqa: E402
 
@@ -117,18 +118,18 @@ class SovereignEngine:
         HUD.box_bottom()
         sys.exit(0)
 
-    def record_trace(self, query: str, match: dict[str, Any]) -> None:
+    def record_trace(self, payload: IntentPayload) -> None:
         """Persistence for neural interaction traces."""
         tdir = self.base_path / "traces"
         tdir.mkdir(exist_ok=True)
-        tid = re.sub(r'\W+', '_', query[:20]) + f"_{match['score']:.2f}"
+        tid = re.sub(r'\W+', '_', payload.intent_raw[:20]) + f"_{payload.system_meta['confidence']:.2f}"
         trace_file = tdir / f"{tid}.json"
 
         trace_data = {
-            "query": query,
-            "match": match.get('trigger'),
-            "score": match.get('score'),
-            "is_global": match.get('is_global', False),
+            "query": payload.intent_raw,
+            "match": payload.target_workflow,
+            "score": payload.system_meta['confidence'],
+            "is_global": payload.system_meta.get('is_global', False),
             "persona": HUD.PERSONA,
             "timestamp": self.config.get("version", "unknown")
         }
@@ -139,22 +140,24 @@ class SovereignEngine:
         except OSError:
             pass
 
-    def _render_hud(self, query: str, top: dict[str, Any] | None) -> None:
+    def _render_hud(self, payload: IntentPayload | None, query: str = "") -> None:
         """Renders the standard search results in the HUD."""
         HUD.box_top()
         label = "COMMAND" if HUD.PERSONA == "ODIN" else "Intent"
-        HUD.box_row(label, query, HUD.BOLD)
+        HUD.box_row(label, payload.intent_raw if payload else query, HUD.BOLD)
 
-        if top:
-            color = HUD.GREEN if top['score'] > self.THRESHOLDS["ACCURACY"] else HUD.YELLOW
-            match_str = f"{'[G] ' if top['is_global'] else ''}{top['trigger']}"
+        if payload:
+            confidence = payload.system_meta['confidence']
+            color = HUD.GREEN if confidence > self.THRESHOLDS["ACCURACY"] else HUD.YELLOW
+            is_global = payload.system_meta.get('is_global', False)
+            match_str = f"{'[G] ' if is_global else ''}{payload.target_workflow}"
             HUD.box_row("Match", match_str, HUD.DIM)
-            HUD.box_row("Confidence", f"{HUD.progress_bar(top['score'])} {top['score']:.2f}", color)
+            HUD.box_row("Confidence", f"{HUD.progress_bar(confidence)} {confidence:.2f}", color)
             
-            if top['trigger'] == 'WEB_FALLBACK':
+            if payload.target_workflow == 'WEB_FALLBACK':
                  HUD.box_separator()
                  HUD.box_row("WEB RESULTS", "", HUD.CYAN)
-                 for i, r in enumerate(top['web_results'][:3]): # Show top 3
+                 for i, r in enumerate(payload.extracted_entities.get('web_results', [])[:3]): # Show top 3
                      HUD.box_row(f"[{i+1}]", r['title'], HUD.BOLD)
                      HUD.box_row("   ", r['url'], HUD.DIM)
 
@@ -163,18 +166,20 @@ class SovereignEngine:
 
         HUD.box_bottom()
 
-    def _handle_proactive(self, top: dict[str, Any]) -> None:
+    def _handle_proactive(self, payload: IntentPayload) -> None:
         """Checks for and executes proactive installation or command runs."""
-        if top['score'] <= self.THRESHOLDS["ACCURACY"] and top['trigger'] != 'WEB_FALLBACK':
+        confidence = payload.system_meta['confidence']
+        trigger = payload.target_workflow
+        is_global = payload.system_meta.get('is_global', False)
+
+        if confidence <= self.THRESHOLDS["ACCURACY"] and trigger != 'WEB_FALLBACK':
             return
         
-        if top['trigger'] == 'WEB_FALLBACK':
+        if trigger == 'WEB_FALLBACK':
             return
 
-        trigger = top['trigger']
-
         # 1. Global Skill Installation
-        if top['is_global'] and top['score'] > self.THRESHOLDS["INSTALL"]:
+        if is_global and confidence > self.THRESHOLDS["INSTALL"]:
             self._proactive_install(trigger.replace("GLOBAL:", ""))
 
         # 2. Direct Command Execution
@@ -246,17 +251,27 @@ class SovereignEngine:
                     "web_results": web_results 
                 }
 
-        if record and top:
-            self.record_trace(query, top)
+        payload = None
+        if top:
+            payload = IntentPayload(
+                system_meta={"confidence": top['score'], "timestamp": self.config.get("version", "unknown"), "is_global": top.get("is_global", False)},
+                intent_raw=query,
+                intent_normalized=engine.normalize(query),
+                target_workflow=top['trigger'],
+                extracted_entities={"web_results": top.get("web_results", [])} if "web_results" in top else {}
+            )
 
-        self._render_hud(query, top)
+        if record and payload:
+            self.record_trace(payload)
+
+        self._render_hud(payload, query)
 
         # [BIFRÖST] Raven's Eye: Proactive Lexicon Expansion
-        if top and (top['score'] < 0.65 or top.get('trigger') == 'WEB_FALLBACK'):
+        if payload and (payload.system_meta['confidence'] < 0.65 or payload.target_workflow == 'WEB_FALLBACK'):
             self._proactive_lexicon_lift(query, engine)
 
-        if top:
-            self._handle_proactive(top)
+        if payload:
+            self._handle_proactive(payload)
 
         if json_mode:
             print(json.dumps({"query": query, "top_match": top}, indent=2))

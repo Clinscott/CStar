@@ -9,7 +9,9 @@ import time
 import re
 import asyncio
 import subprocess
+import secrets
 from pathlib import Path
+import websockets
 
 # Add project root to path for src imports
 script_dir = Path(__file__).parent.absolute()
@@ -18,9 +20,10 @@ if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
 from src.core.engine.vector import SovereignVector
+from src.core.payload import IntentPayload
 from src.cstar.core.uplink import AntigravityUplink
 from src.cstar.core.forge import Forge
-from src.cstar.core.rpc import SovereignRPC # [Phase 11] RPC Handler
+from src.cstar.core.rpc import SovereignRPC
 from src.sentinel._bootstrap import bootstrap
 
 # Initialize Environment
@@ -30,7 +33,9 @@ bootstrap()
 HOST = '127.0.0.1'
 PORT = int(os.getenv("CSTAR_DAEMON_PORT", 50051))
 MEMORY_LIMIT_MB = 256
-PID_FILE = Path(".agent/daemon.pid")
+PID_FILE = project_root / ".agent" / "daemon.pid"
+KEY_FILE = project_root / ".agent" / "daemon.key"
+
 CONFIDENCE_THRESHOLD = 0.4
 AMBIGUITY_THRESHOLD = 0.1
 
@@ -38,8 +43,25 @@ AMBIGUITY_THRESHOLD = 0.1
 ENGINE = None
 COMMAND_REGISTRY = {}
 UPLINK = AntigravityUplink(api_key=os.getenv("GOOGLE_API_DAEMON_KEY") or os.getenv("GOOGLE_API_KEY"))
-RPC = None # Initialized in start_daemon
+RPC = None
+WARDEN = None
 SESSION_TRACES = [] 
+
+# WebSockets Pub/Sub State
+CONNECTED_CLIENTS = set()
+SYSTEM_LOCKED = False
+CURRENT_SESSION_CONTEXT = []
+GLOBAL_STATE = "STATE_ODIN"
+AUTH_KEY = ""
+
+def generate_or_load_key():
+    global AUTH_KEY
+    if KEY_FILE.exists():
+        AUTH_KEY = KEY_FILE.read_text().strip()
+    else:
+        KEY_FILE.parent.mkdir(parents=True, exist_ok=True)
+        AUTH_KEY = secrets.token_hex(32)
+        KEY_FILE.write_text(AUTH_KEY)
 
 def load_engine():
     global ENGINE, COMMAND_REGISTRY, RPC
@@ -47,7 +69,6 @@ def load_engine():
     corrections_path = project_root / ".agent" / "corrections.json"
     stopwords_path = project_root / "src" / "data" / "stopwords.json"
     
-    # [Phase 11] RPC Init
     RPC = SovereignRPC(project_root)
 
     ENGINE = SovereignVector(str(thesaurus_path), str(corrections_path), str(stopwords_path))
@@ -55,16 +76,22 @@ def load_engine():
     ENGINE.load_skills_from_dir(str(project_root / "src" / "skills" / "local"))
     ENGINE.build_index()
     
+    # Initialize Warden
+    global WARDEN
+    try:
+        from src.core.engine.atomic_gpt import AnomalyWarden
+        WARDEN = AnomalyWarden()
+    except Exception:
+        pass
+    
     dirs = [project_root / ".agent" / "workflows", project_root / ".agent" / "skills"]
     print("[DAEMON] Building Command Registry...")
     count = 0 
     for d in dirs:
         if d.exists():
             for f in list(d.glob("*.qmd")) + list(d.glob("*.md")) + list(d.glob("*.py")):
-                 # Simple name extraction
                  cmd_name = f.stem
                  if f.suffix in ['.md', '.qmd']:
-                    # Try to parse name from yaml
                     try:
                         content = f.read_text(encoding='utf-8')
                         match = re.search(r"^name:\s*['\"]?([\w-]+)['\"]?", content, re.MULTILINE)
@@ -89,58 +116,168 @@ def check_memory_and_restart():
         except Exception:
             sys.exit(1)
 
-def handle_request(conn):
-    """
-    Handles incoming requests. Supports both synchronous JSON response 
-    and Asynchronous Streaming (for Forge).
-    """
+async def broadcast_state(event_type: str, payload: dict = None):
+    if payload is None: payload = {}
+    message = json.dumps({"type": "broadcast", "event": event_type, "data": payload})
+    if CONNECTED_CLIENTS:
+        websockets.broadcast(CONNECTED_CLIENTS, message)
+
+async def handle_client(websocket):
+    global SYSTEM_LOCKED, CURRENT_SESSION_CONTEXT, GLOBAL_STATE, AUTH_KEY
     try:
-        data = conn.recv(4096)
-        if not data:
+        # Require Authentication Handshake
+        try:
+            auth_msg = await asyncio.wait_for(websocket.recv(), timeout=5.0)
+            auth_data = json.loads(auth_msg)
+            if auth_data.get("auth_key") != AUTH_KEY:
+                await websocket.close(1008, "Invalid Auth Key")
+                return
+        except Exception:
+            await websocket.close(1008, "Auth missing or invalid")
             return
             
-        request = json.loads(data.decode('utf-8'))
-        command = request.get('command')
-        args = request.get('args', [])
-        cwd = request.get('cwd', os.getcwd())
-        
-        # [Phase 11] TUI Dashboard Polling
-        if command == "get_dashboard_state":
-            response = RPC.get_dashboard_state()
-            conn.sendall(json.dumps(response).encode('utf-8'))
-            return
+        CONNECTED_CLIENTS.add(websocket)
+        # Send SYNC_STATE upon connect
+        await websocket.send(json.dumps({
+            "type": "broadcast", 
+            "event": "SYNC_STATE", 
+            "data": {"state": GLOBAL_STATE, "locked": SYSTEM_LOCKED}
+        }))
 
+        async for message in websocket:
+            try:
+                data = json.loads(message)
+                command = data.get("command")
+                args = data.get("args", [])
+                cwd = data.get("cwd", os.getcwd())
+                
+                if command == "get_dashboard_state":
+                    # Run RPC synchronously in background thread to avoid event loop blocking
+                    response = await asyncio.to_thread(RPC.get_dashboard_state)
+                    await websocket.send(json.dumps({"type": "result", "data": response}))
+                    continue
+                
+                if command == "telemetry":
+                    # [CANARY] TUI sensory hook
+                    global WARDEN
+                    if WARDEN:
+                        latency = data.get("latency", 0.0)
+                        error = data.get("error", 0.0)
+                        features = [float(latency), 200.0, 1.0, float(error)]
+                        WARDEN.train_step(features, 0.0) # Self-supervised as 'healthy' unless TUI reports error
+                    continue
+                    
+                if command == "forge":
+                    # Background task to stream forge
+                    asyncio.create_task(process_forge_stream(websocket, args, cwd))
+                    continue
 
-        # [PLAN B] Stream handling for Forge
-        if command == "forge":
-            asyncio.run(process_forge_stream(conn, args, cwd))
-        else:
-            # Standard Request
-            response = asyncio.run(process_command(command, args, cwd))
-            conn.sendall(json.dumps(response).encode('utf-8'))
-        
-    except Exception as e:
-        error_response = {"status": "error", "message": str(e)}
-        try:
-            conn.sendall(json.dumps(error_response).encode('utf-8'))
-        except:
-            pass
+                if SYSTEM_LOCKED:
+                    await websocket.send(json.dumps({"type": "broadcast", "event": "STATE_SYSTEM_LOCKED"}))
+                    continue
+
+                SYSTEM_LOCKED = True
+                await broadcast_state("STATE_SYSTEM_LOCKED", {"locked": True})
+
+                # Check dismissal logic when ALFRED is active
+                input_str = command
+                full_query = f"{input_str} {' '.join(args)}".strip().lower()
+                dismissal = False
+                
+                if GLOBAL_STATE == "STATE_ALFRED_REPORT":
+                    if full_query in ["thanks alfred", "dismiss", "resume vanguard", "continue"]:
+                        CURRENT_SESSION_CONTEXT.clear()
+                        GLOBAL_STATE = "STATE_ODIN"
+                        await broadcast_state("STATE_ODIN")
+                        SYSTEM_LOCKED = False
+                        await broadcast_state("STATE_SYSTEM_LOCKED", {"locked": False})
+                        await websocket.send(json.dumps({"type": "result", "status": "success", "message": "Very good, sir. Securing the channel."}))
+                        continue
+                        
+                try:
+                    # Process generic commands
+                    response = await process_command(input_str, args, cwd)
+                    
+                    if response.get("type") == "uplink" or response.get("status") == "uplink_success":
+                        # Cognitive Task -> ALFRED
+                        GLOBAL_STATE = "STATE_ALFRED_REPORT"
+                        CURRENT_SESSION_CONTEXT.append({"query": full_query, "response": response})
+                        await broadcast_state("PAYLOAD_READY", {"persona": "ALFRED"})
+                    else:
+                        # Vanguard Task -> ODIN
+                        if GLOBAL_STATE == "STATE_ALFRED_REPORT":
+                            CURRENT_SESSION_CONTEXT.clear()
+                            GLOBAL_STATE = "STATE_ODIN"
+                            await broadcast_state("STATE_ODIN")
+
+                    await websocket.send(json.dumps({"type": "result", "data": response}))
+                except Exception as e:
+                    # Graceful degraded routing to ALFRED
+                    GLOBAL_STATE = "STATE_ALFRED_REPORT"
+                    await broadcast_state("PAYLOAD_READY", {"persona": "ALFRED", "error": True})
+                    await websocket.send(json.dumps({"type": "result", "status": "error", "message": f"Diagnostics: {str(e)}"}))
+                finally:
+                    SYSTEM_LOCKED = False
+                    await broadcast_state("STATE_SYSTEM_LOCKED", {"locked": False})
+                    check_memory_and_restart()
+
+            except json.JSONDecodeError:
+                continue
+
+    except websockets.exceptions.ConnectionClosed:
+        pass
     finally:
-        conn.close()
-        check_memory_and_restart()
+        if websocket in CONNECTED_CLIENTS:
+            CONNECTED_CLIENTS.remove(websocket)
 
-async def process_forge_stream(conn, args_list, cwd):
-    """
-    Executes Forge logic and streams events to the client.
-    """
-    global SESSION_TRACES
+def engine_search_sync(query):
+    # Synchronous vector search offloaded to thread
+    results = ENGINE.search(query)
+    top = results[0] if results else None
+    score = top['score'] if top else 0.0
     
-    # Parse args manually since we don't use argparse here easily
-    # Expecting: --task "..." --target "..."
+    # Vanguard routing if it's deterministic
+    parts = query.split()
+    cmd = parts[0] if parts else ""
+    if cmd in COMMAND_REGISTRY:
+        return {"status": "success", "type": "deterministic", "target": COMMAND_REGISTRY[cmd], "args": parts[1:]}, top, score
+    
+    return None, top, score
+
+async def process_command(input_str, args, cwd):
+    global COMMAND_REGISTRY, UPLINK, SESSION_TRACES, CURRENT_SESSION_CONTEXT
+    
+    if not input_str: return {"status": "error"}
+    
+    if input_str == "sleep":
+        return await execute_sleep_protocol()
+
+    SESSION_TRACES.append({"cmd": input_str, "args": args, "ts": time.time()})
+
+    query = f"{input_str} {' '.join(args)}".strip()
+    
+    deterministic_resp, top, score = await asyncio.to_thread(engine_search_sync, query)
+    if deterministic_resp:
+        return deterministic_resp
+    
+    if score < CONFIDENCE_THRESHOLD or input_str in ["ask", "brain", "uplink", "analyze", "summarize"]:
+        await broadcast_state("STATE_ALFRED_THINKING")
+        context = {
+            "cwd": cwd, 
+            "persona": "ALFRED", 
+            "traces": SESSION_TRACES[-5:],
+            "session_context": CURRENT_SESSION_CONTEXT
+        }
+        # Await natively without threading, uplink maintains its own async bounds
+        uplink_response = await UPLINK.send_payload(query, context)
+        return {"status": "uplink_success", "type": "uplink", "data": uplink_response}
+    
+    return {"status": "success", "type": "probabilistic", "target": top['trigger'], "score": score}
+
+async def process_forge_stream(websocket, args_list, cwd):
+    global SESSION_TRACES
     task = ""
     target = ""
-    
-    # Simple parser
     try:
         if "--task" in args_list:
             task = args_list[args_list.index("--task") + 1]
@@ -150,53 +287,30 @@ async def process_forge_stream(conn, args_list, cwd):
         pass
         
     if not task or not target:
-        conn.sendall(json.dumps({"type": "result", "status": "error", "message": "Missing arguments"}).encode('utf-8'))
+        await websocket.send(json.dumps({"type": "result", "status": "error", "message": "Missing arguments"}))
         return
 
     forge = Forge()
-    
-    # Log Start
     SESSION_TRACES.append({"cmd": "forge", "task": task, "target": target, "ts": time.time(), "status": "started"})
     
-    # Iterate Generator
-    async for event in forge.execute(task, target):
-        # Stream JSON line
-        payload = json.dumps(event) + "\n"
-        conn.sendall(payload.encode('utf-8'))
+    # [ODIN] Wrap task in IntentPayload for structural rigidity
+    payload = IntentPayload(
+        system_meta={"confidence": 1.0, "source": "daemon_direct"},
+        intent_raw=task,
+        intent_normalized=ENGINE.normalize(task) if ENGINE else task,
+        target_workflow="FORGE_DIRECT",
+        extracted_entities={}
+    )
+
+    async for event in forge.execute(payload, target):
+        payload_event = json.dumps(event)
+        await websocket.send(payload_event)
         
-        # Log Result if present
         if event.get("type") == "result":
              SESSION_TRACES.append({"cmd": "forge_result", "task": task, "result": event, "ts": time.time()})
 
-async def process_command(input_str, args, cwd):
-    global ENGINE, COMMAND_REGISTRY, UPLINK, SESSION_TRACES, project_root
-    
-    if not input_str: return {"status": "error"}
-    
-    if input_str == "sleep":
-        return await execute_sleep_protocol()
-
-    SESSION_TRACES.append({"cmd": input_str, "args": args, "ts": time.time()})
-
-    if input_str in COMMAND_REGISTRY:
-        return {"status": "success", "type": "deterministic", "target": COMMAND_REGISTRY[input_str], "args": args}
-    
-    query = f"{input_str} {' '.join(args)}".strip()
-    results = ENGINE.search(query)
-    top = results[0] if results else None
-    score = top['score'] if top else 0.0
-    
-    if score < CONFIDENCE_THRESHOLD or input_str in ["ask", "brain", "uplink"]:
-        uplink_response = await UPLINK.send_payload(query, {"cwd": cwd, "persona": "ODIN", "traces": SESSION_TRACES[-5:]})
-        return {"status": "uplink_success", "type": "uplink", "data": uplink_response}
-    
-    return {"status": "success", "type": "probabilistic", "target": top['trigger'], "score": score}
-
 async def execute_sleep_protocol():
     global SESSION_TRACES
-    # ... (Keep existing implementation)
-    # Simulating Pass
-    
     proj_mem = project_root / ".agent" / "memory" / f"session_{int(time.time())}.json"
     proj_mem.parent.mkdir(parents=True, exist_ok=True)
     proj_mem.write_text(json.dumps(SESSION_TRACES, indent=2))
@@ -207,30 +321,36 @@ async def execute_sleep_protocol():
         pass
         
     SESSION_TRACES = []
+    # Clear session context on sleep
+    global CURRENT_SESSION_CONTEXT
+    CURRENT_SESSION_CONTEXT.clear()
+    
     return {"status": "success", "message": "Session consolidated.", "gungnir": "PASS"}
 
-def start_daemon():
+async def async_start_daemon():
     load_engine()
+    generate_or_load_key()
+    
     if PID_FILE.exists():
         try:
-            if psutil.pid_exists(int(PID_FILE.read_text())): return
+           if psutil.pid_exists(int(PID_FILE.read_text())): return
         except: pass
     PID_FILE.parent.mkdir(parents=True, exist_ok=True)
     PID_FILE.write_text(str(os.getpid()))
-    print(f"[DAEMON] Started PID: {os.getpid()} PORT: {PORT}")
     
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        try:
-            s.bind((HOST, PORT))
-            s.listen()
-            while True:
-                conn, addr = s.accept()
-                handle_request(conn)
-        except OSError:
-            sys.exit(1)
-        finally:
-            if PID_FILE.exists(): PID_FILE.unlink()
+    print(f"[DAEMON] Started PID: {os.getpid()} PORT: {PORT}")
+    print(f"[DAEMON] Auth Key generated at {KEY_FILE}")
+    
+    try:
+        async with websockets.serve(handle_client, HOST, PORT):
+            await asyncio.Future()  # run forever
+    except OSError:
+        sys.exit(1)
+    finally:
+        if PID_FILE.exists(): PID_FILE.unlink()
+
+def start_daemon():
+    asyncio.run(async_start_daemon())
 
 if __name__ == "__main__":
     start_daemon()

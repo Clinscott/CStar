@@ -17,8 +17,6 @@ class BraveSearch:
 
     def __init__(self) -> None:
         self.api_key = os.getenv("BRAVE_API_KEY")
-        if not self.api_key:
-            raise ValueError("BRAVE_API_KEY is not set in the environment.")
         self._ensure_quota_ledger()
 
     def _ensure_quota_ledger(self):

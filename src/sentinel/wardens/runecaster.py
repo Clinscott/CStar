@@ -26,9 +26,17 @@ class RuneCasterWarden(BaseWarden):
                         missing_arg = any(arg.annotation is None for arg in node.args.args if arg.arg not in ('self', 'cls'))
                         missing_ret = node.returns is None
 
-                        if missing_arg or missing_ret:
-                            # Special Check: __init__ must return None
-                            if node.name == "__init__" and missing_ret:
+                        if missing_arg:
+                            targets.append({
+                                "type": "RUNE_MISSING_ARGS",
+                                "file": str(py_file.relative_to(self.root)),
+                                "action": f"Cast Runes (Argument Type Hints) for {node.name}",
+                                "severity": "LOW",
+                                "line": node.lineno
+                            })
+                            
+                        if missing_ret:
+                            if node.name == "__init__":
                                 targets.append({
                                     "type": "RUNE_STRICT_INIT",
                                     "file": str(py_file.relative_to(self.root)),
@@ -36,11 +44,11 @@ class RuneCasterWarden(BaseWarden):
                                     "severity": "LOW",
                                     "line": node.lineno
                                 })
-                            elif node.name != "__init__": # Regular check
+                            else:
                                 targets.append({
-                                    "type": "RUNE_MISSING",
+                                    "type": "RUNE_MISSING_RET",
                                     "file": str(py_file.relative_to(self.root)),
-                                    "action": f"Cast Runes (Type Hints) for {node.name}",
+                                    "action": f"Cast Runes (Return Type Hint) for {node.name}",
                                     "severity": "LOW",
                                     "line": node.lineno
                                 })

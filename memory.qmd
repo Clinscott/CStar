@@ -1,5 +1,39 @@
 # Corvus Star Memory
 
+## 2026-02-22: Session 75 (The Active Sentinel)
+- **Circuit Breaker Safety**: Mid-loop safety holds are essential for autonomous agents. Hard-halting on critical drift via `WardenCircuitBreaker` prevents garbage generation and cascading infrastructure failure.
+- **Metric Correlation**: Telemetry is only as good as its anchor point. Tracking latency from user input submission (TUI) to terminal event arrival (Daemon) provides the most honest training signal for performance-aware Wardens.
+- **Queue Eviction**: Technical debt shouldn't linger. The "Queue to Archive" pattern in `wrap_it_up.py` ensures that system anomalies are either addressed or recorded without cluttering the active monitoring pipeline.
+
+## 2026-02-21: Session 74 (Persona Architecture Refactor)
+- **Async Event Loop Safeguards**: When building Pure WebSockets engines (`daemon.py`), any blocking CPU/Network tasks (like LLM synthesis) must be explicitly marshalled to a separate background thread via `asyncio.to_thread` to prevent the standard event loop from pausing, which would sever live websocket ping-pongs and trigger massive client disconnects.
+- **Reactive UI Threads**: When decoupling Textual user interfaces to connect to Websocket servers, all state mutation originating from the network stream must use `call_from_thread` or the UI will crash due to cross-thread DOM manipulations.
+- **Node to Daemon Breakage**: Modifying the Python Daemon to ingest pure `websockets` signals breaks raw TCP socket legacy bridges (`cortex_link.js`). System architectures spanning Node and Python should coordinate protocol boundaries before upgrading.
+
+## 2026-02-21: Session 73 (Linscott Fortification)
+- **Subprocess Vulnerability Isolation**: Subprocess executions embedded deep within autonomous background agents (e.g. `Muninn` Verification Crucible loops) must have localized `try/except Exception` handlers trapping invocation failures (`FileNotFoundError`, etc.). Subprocess wrappers blindly awaiting a return code can catastrophicly crash the daemon if the target binary is missing or OS paths fail.
+- **Node.js Catch Suppression**: Avoid ES-version `catch {}` blocks within setup bootstrapper scripts (`setup.js`). Always explicitly bind the error parameter `catch (err)` to log tracebacks; swallowing initialization I/O errors makes cross-platform bootstrapping impossible to debug.
+- **Standardized AST Exceptions**: Using `try/except: pass` when dealing with AST parsing algorithms (`ast.parse`) is considered an anti-pattern. Migrating the suppression logic to `with contextlib.suppress(Exception):` enforces developer intent over "lazy catching," aligning with Torvalds/Linscott QA principles and satisfying Ruff linting.
+## 2026-02-21: Session 73 (Architectural Remediation & Resilience)
+- **Resilient AI Inference (Model Rotation)**: When dealing with rate limits (429) or backend server exhaustion (503), naive exponential backoff against the same endpoint is inefficient. Maintain an internal `set` of `attempted_models` and route retries to unused fallback models to guarantee payload completion during transient outages.
+- **Regex Environment Anchoring**: Naive string matching on `.env` files is a security risk. Validation must always use anchored regex (e.g., `^\s*KEY_NAME\s*=`) to ensure commented or trailing variables do not artificially validate environment health checks.
+- **Defensive JSON Extraction**: Do not trust LLMs to consistently wrap output in markdown "```json" blocks. Implement fallback regex parsing (e.g., extracting everything between the absolute first `{` and last `}`) to salvage otherwise well-formed JSON payloads wrapped in unexpected conversational chatter.
+
+## 2026-02-21: Session 72 (UI Client Logic & Warden Hardening)
+- **TCP Payload Accumulation**: Node's `net.Socket` and Python's raw `socket.recv()` are unreliable for large structured data (like JSON) without clear delimiters. Always enforce specific end-of-payload chunks (like a newline delimiter `\n`) and recursively iterate streams until identified to prevent silent truncation.
+- **Linscott Standards for Exception Suppression**: Catching and skipping errors via `except Exception: pass` creates Ruff lint breaches and structural debt. Always prefer `import contextlib` followed by `with contextlib.suppress(Exception):` for intentional omission handles.
+- **Symmetrical Reward Scaling**: When constructing heuristic architectural scanners (e.g. measuring UI aesthetic harmony), rewards for symmetrical operators in loops must be scaled explicitly by token prevalence count—otherwise, large files lose accurate Birkhoff ratio calculations due to unbounded denominator growth.
+
+## 2026-02-21: Session 71 (Codebase Bug Hunt)
+- **Cascade Initialization Failures**: When building agentic architectures with multiple modular plugins or Wardens, do not perform aggressive environmental checks (e.g., raising `ValueError` for missing API keys) in the `__init__` constructor if the class is eagerly instantiated by a base class. This cascades into total system failure during offline test execution. Deferred validation (checking during the active `search()` call) is required for system overall resilience.
+- **AST Logic Shadowing**: `ast` parsing for code audits requires strict separation of concerns. Grouping argument validation (`missing_arg`) and return validation (`missing_ret`) into a single `if/elif` block to handle edge cases (like `__init__` requiring `-> None`) can accidentally mask missing arguments entirely. Independent `if` blocks for distinct types of validation prevent these logic trace shadowings.
+- **Graceful Defaults for Audits**: Structural audits that depend on external JSON configurations (e.g., `color_theory.json`) must skip gracefully when the configuration is missing or empty. Blindly applying exclusion rules without validating the rule list (e.g., checking `if all_hexes:`) creates 100% false-positive rates.
+
+## 2026-02-21: Session 70 (The Batcomputer & Bridge Hardening)
+- **API Simulation Modes**: When designing local tools meant to simulate APIs (like the Antigravity Uplink), it's essential to ensure environment variable contexts load appropriately (e.g. `python-dotenv`). An API wrapper falling back to simulation is a "silent failure" that breaks production integration without throwing an exception.
+- **Model Rotation on Backoff**: Retrying the same LLM endpoint continuously on a `503 Service Unavailable` is a common anti-pattern. Stateful logic should record the failing model string and cycle to the *next* available tier (e.g., dropping `gemini-pro` for `gemini-flash`) on subsequent attempts to ensure payload delivery under localized load spikes.
+- **Observer Effect Tracking**: Heavy metric utilities like `psutil.virtual_memory()` or deep polling block execution flows. Using decorators (`track_execution`) that purely calculate `perf_counter` ensures the observer effect is minimized when profiling millisecond-scale latency systems.
+
 ## 2026-02-21: Session 69 (Structural Configuration Modernization)
 - **Configuration Sovereignty**: Flat dictionaries with mixed casing (e.g. `FrameworkRoot` next to `persona`) create downstream brittleness as systems scale. Refactoring `config.json` into strict, snake_case nested domains (`system`, `knowledge`, `security`, `learning`) forces developers to acknowledge the architectural boundary of the setting they are importing.
 - **Root Document Prominence**: Core architectural documents (like `AGENTS.qmd`) benefit from living in the project root rather than nested subdirectories (like `docs/architecture/`). Root placement increases visibility for autonomous agents and external tooling establishing context boundaries.

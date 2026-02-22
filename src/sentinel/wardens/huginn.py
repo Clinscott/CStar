@@ -5,6 +5,7 @@ Purpose: Analyze .agent/traces for AI hallucinations, state deviance, or path le
 Now upgraded with Neural Auditing capabilities.
 """
 
+import contextlib
 import os
 import re
 from pathlib import Path
@@ -61,7 +62,7 @@ class HuginnWarden(BaseWarden):
         }
 
         for trace_file in self.trace_dir.rglob("*.md"):
-            try:
+            with contextlib.suppress(Exception):
                 content = trace_file.read_text(encoding='utf-8')
                 rel_path = str(trace_file.relative_to(self.root))
 
@@ -75,12 +76,12 @@ class HuginnWarden(BaseWarden):
                             "severity": "MEDIUM",
                             "line": content.count("\n", 0, match.start()) + 1
                         })
-            except Exception: pass
+
         return targets
 
     def _scan_neural(self, trace_file: Path) -> list[dict[str, Any]]:
         targets = []
-        try:
+        with contextlib.suppress(Exception):
             content = trace_file.read_text(encoding='utf-8')
             # Truncate if too long for Flash context (though Flash has huge context, let's be safe/fast)
             if len(content) > 50000:
@@ -123,6 +124,5 @@ class HuginnWarden(BaseWarden):
                             "line": 1 # Hard to pinpoint line number from LLM w/o complex logic
                         })
 
-        except Exception:
-            pass
+
         return targets

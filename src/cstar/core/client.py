@@ -1,10 +1,11 @@
-import socket
 import json
 import sys
 import os
 import argparse
 import time
 from pathlib import Path
+from websockets.sync.client import connect
+import websockets
 
 # Add project root to path
 script_dir = Path(__file__).parent.absolute()
@@ -12,16 +13,22 @@ project_root = script_dir.parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
-HOST = 'localhost'
-PORT = 50051
+HOST = '127.0.0.1'
+PORT = int(os.getenv("CSTAR_DAEMON_PORT", 50051))
+KEY_FILE = project_root / ".agent" / "daemon.key"
 
 def ping_daemon(host=HOST, port=PORT, timeout=1.0):
     """
-    Pre-flight check to verify the Cortex Daemon is online.
-    Raises ConnectionRefusedError or TimeoutError if the daemon is unreachable.
+    Pre-flight check to verify the Cortex Daemon is online via websockets.
+    Raises ConnectionError or TimeoutError if the daemon is unreachable.
     """
-    with socket.create_connection((host, port), timeout=timeout):
-        pass
+    uri = f"ws://{host}:{port}"
+    try:
+        # Just testing connection
+        with connect(uri, open_timeout=timeout) as ws:
+            pass
+    except (websockets.exceptions.WebSocketException, ConnectionRefusedError):
+        raise ConnectionRefusedError("Connection refused")
 
 def send_command(command, args=None, cwd=None):
     if args is None:
@@ -35,41 +42,36 @@ def send_command(command, args=None, cwd=None):
         "cwd": cwd
     }
     
+    uri = f"ws://{HOST}:{PORT}"
     try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect((HOST, PORT))
-            s.sendall(json.dumps(payload).encode('utf-8'))
+        auth_key = KEY_FILE.read_text().strip() if KEY_FILE.exists() else ""
+        with connect(uri, open_timeout=2.0) as ws:
+            # Send Auth
+            ws.send(json.dumps({"type": "auth", "auth_key": auth_key}))
             
-            # [PLAN B] Streaming Response Handling
-            # Verify if command is forge (or other streaming commands)
-            # Actually, simply reading until close allows supporting both Sync and Async if structured right.
-            # However, for simplicity, we read line by line or chunk by chunk.
-            
-            # Use a file-like object for cleaner line reading
-            f = s.makefile('rb') 
+            # Send Command
+            ws.send(json.dumps(payload))
             
             last_result = None
-            
-            for line in f:
-                if not line: break
+            for msg in ws:
                 try:
-                    event = json.loads(line.decode('utf-8'))
-                    
+                    event = json.loads(msg)
                     if event.get("type") == "ui":
-                        # Render UI Event
                         persona = event.get("persona", "SYSTEM")
-                        msg = event.get("msg", "")
-                        # Simple Color/Prefix Logic
-                        prefix = f"[{persona}]"
-                        print(f"{prefix} {msg}")
-                    
+                        ui_msg = event.get("msg", "")
+                        print(f"[{persona}] {ui_msg}")
+                        
                     elif event.get("type") == "result":
-                        last_result = event
+                        last_result = event.get("data") if "data" in event else event
+                        if command != "forge":
+                           break # simple sync commands break after first result
                     
-                    # If it's a standard response (no type), treat as result
                     elif "status" in event and "type" not in event:
                          last_result = event
-
+                         break
+                         
+                    elif event.get("type") == "broadcast" and command != "forge":
+                         continue
                 except json.JSONDecodeError:
                     pass
             
@@ -77,6 +79,8 @@ def send_command(command, args=None, cwd=None):
             
     except ConnectionRefusedError:
         return {"status": "error", "message": "Daemon not running."}
+    except OSError:
+        return {"status": "error", "message": "Daemon connection failed."}
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
@@ -88,12 +92,7 @@ if __name__ == "__main__":
     cmd = sys.argv[1]
     cmd_args = sys.argv[2:]
     
-    # [PLAN B] Everything goes through Daemon
     result = send_command(cmd, cmd_args)
-    
-    # Only print result if not already handled by UI stream or if it's a simple command
-    # If result has 'type': 'result', we might want to suppress it if UI was shown, or show summary?
-    # For standard commands, we print JSON. For forge, UI handles it.
     
     if result and cmd != "forge":
          print(json.dumps(result, indent=2))

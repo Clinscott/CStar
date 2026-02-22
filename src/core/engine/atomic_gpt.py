@@ -1,265 +1,165 @@
-import math
-import random
+import numpy as np
 import pickle
+import json
+from datetime import datetime
+from pathlib import Path
 
+class WardenCircuitBreaker(Exception):
+    """Raised when the AnomalyWarden detects a critical system drift."""
+    pass
 
-class Value:
-    """Autograd engine for local backpropagation. Inspired by micrograd."""
-    def __init__(self, data, _children=(), _op='') -> None:
-        self.data = data
-        self.grad = 0
-        self._backward = lambda: None
-        self._prev = set(_children)
-        self._op = _op
-
-    def __repr__(self):
-        return f"Value(data={self.data}, grad={self.grad})"
-
-    def __add__(self, other):
-        other = other if isinstance(other, Value) else Value(other)
-        out = Value(self.data + other.data, (self, other), '+')
-        def _backward():
-            self.grad += out.grad
-            other.grad += out.grad
-        out._backward = _backward
-        return out
-
-    def __mul__(self, other):
-        other = other if isinstance(other, Value) else Value(other)
-        out = Value(self.data * other.data, (self, other), '*')
-        def _backward():
-            self.grad += other.data * out.grad
-            other.grad += self.data * out.grad
-        out._backward = _backward
-        return out
-
-    def __pow__(self, other):
-        assert isinstance(other, (int, float))
-        out = Value(self.data**other, (self,), f'**{other}')
-        def _backward():
-            self.grad += (other * self.data**(other-1)) * out.grad
-        out._backward = _backward
-        return out
-
-    def relu(self):
-        out = Value(0 if self.data < 0 else self.data, (self,), 'ReLU')
-        def _backward():
-            self.grad += (out.data > 0) * out.grad
-        out._backward = _backward
-        return out
-
-    def backward(self):
-        topo = []
-        visited = set()
-        def build_topo(v):
-            if v not in visited:
-                visited.add(v)
-                for child in v._prev:
-                    build_topo(child)
-                topo.append(v)
-        build_topo(self)
-        self.grad = 1
-        for v in reversed(topo):
-            v._backward()
-
-    def __neg__(self): return self * -1
-    def __sub__(self, other): return self + (-other)
-    def __radd__(self, other): return self + other
-    def __rmul__(self, other): return self * other
-    def __truediv__(self, other): return self * other**-1
-
-class Module:
-    def zero_grad(self):
-        for p in self.parameters():
-            p.grad = 0
-    def parameters(self):
-        return []
-
-class Neuron(Module):
-    def __init__(self, nin, nonlin=True) -> None:
-        self.w = [Value(random.uniform(-1, 1)) for _ in range(nin)]
-        self.b = Value(0)
-        self.nonlin = nonlin
-    def __call__(self, x):
-        act = sum((wi*xi for wi, xi in zip(self.w, x)), self.b)
-        return act.relu() if self.nonlin else act
-    def parameters(self):
-        return self.w + [self.b]
-
-class Layer(Module):
-    def __init__(self, nin, nout, **kwargs) -> None:
-        self.neurons = [Neuron(nin, **kwargs) for _ in range(nout)]
-    def __call__(self, x):
-        out = [n(x) for n in self.neurons]
-        return out[0] if len(out) == 1 else out
-    def parameters(self):
-        return [p for n in self.neurons for p in n.parameters()]
-
-class MLP(Module):
-    def __init__(self, nin, nouts) -> None:
-        sz = [nin] + nouts
-        self.layers = [Layer(sz[i], sz[i+1], nonlin=i!=len(nouts)-1) for i in range(len(nouts))]
-    def __call__(self, x):
-        for layer in self.layers:
-            x = layer(x)
-        return x
-    def parameters(self):
-        return [p for layer in self.layers for p in layer.parameters()]
-
-class AtomicCortex:
+class AnomalyWarden:
     """
-    [THE ATOMIC CORTEX]
-    Lore: "Memory of the Spear."
-    Purpose: A simplified, dependency-free Transformer-like architecture for code analysis.
+    [THE SYSTEM CANARY]
+    A lightweight NumPy MLP for Metadata Anomaly Detection.
+    Monitors: [latency_ms, token_count, loop_iterations, error_rate]
     """
-    def __init__(self, vocab_size: int = 256, embed_dim: int = 16, n_layers: int = 1) -> None:
-        self.vocab_size = vocab_size
-        self.embed_dim = embed_dim
-        # Token embeddings
-        self.wte = [[Value(random.uniform(-1, 1)) for _ in range(embed_dim)] for _ in range(vocab_size)]
-        # Simple MLP to process embeddings (replacing full transformer blocks for standard library constraints)
-        self.mlp = MLP(embed_dim, [16, vocab_size])
+    def __init__(self, model_path=None, ledger_path=None):
+        self.model_path = Path(model_path) if model_path else Path(".agent/warden.pkl")
+        self.ledger_path = Path(ledger_path) if ledger_path else Path("src/data/anomalies_queue.json")
         
-    def forward(self, input_tokens: list[int]) -> list[list[Value]]:
-        """Forward pass generating logits for each token."""
-        all_logits = []
-        for token in input_tokens:
-            emb = self.wte[token % self.vocab_size]
-            logits = self.mlp(emb)
-            all_logits.append(logits)
-        return all_logits
+        # Hyperparameters
+        self.input_dim = 4
+        self.hidden_dim = 16
+        self.output_dim = 1
         
-    def backward(self, loss: Value):
-        """Trigger backpropagation."""
-        loss.backward()
+        # State: Weights & Biases
+        self.W1 = np.random.randn(self.input_dim, self.hidden_dim) * 0.01
+        self.b1 = np.zeros((1, self.hidden_dim))
+        self.W2 = np.random.randn(self.hidden_dim, self.output_dim) * 0.01
+        self.b2 = np.zeros((1, self.output_dim))
         
-    def calculate_project_loss(self, text_corpus: str) -> float:
-        """
-        Calculates mathematical loss over the provided text.
-        Returns the average cross-entropy loss.
-        """
-        if not text_corpus:
-            return 100.0
-            
-        # Convert text to tokens (bytes for simplicity)
-        tokens = [b for b in text_corpus.encode('utf-8')]
-        if len(tokens) > 128: # Limit for performance
-            tokens = tokens[:128]
-            
-        logits_list = self.forward(tokens[:-1])
-        targets = tokens[1:]
+        # Z-Score Running Stats: [mean, variance, count]
+        self.running_mean = np.zeros(self.input_dim)
+        self.running_var = np.ones(self.input_dim)
+        self.count = 0
         
-        total_loss = Value(0)
-        for logits, target in zip(logits_list, targets):
-            # Simplified Softmax + Cross Entropy
-            # loss = -log(exp(logits[target]) / sum(exp(logits)))
-            # For AtomicCortex, we'll use a squared error on the target logit for simplicity
-            # in a standard library implementation to avoid overflow/underflow issues.
-            target_idx = target % self.vocab_size
-            total_loss += (logits[target_idx] - 1.0)**2
-            
-        return total_loss.data / len(targets) if targets else 0.0
+        # Burn-In Protocol
+        self.burn_in_cycles = 100
+        
+        self.load()
 
-    def parameters(self):
-        return [p for row in self.wte for p in row] + self.mlp.parameters()
+    def _update_stats(self, x):
+        """Update running mean and variance using Welford's algorithm."""
+        self.count += 1
+        delta = x - self.running_mean
+        self.running_mean += delta / self.count
+        delta2 = x - self.running_mean
+        self.running_var = (self.running_var * (self.count - 1) + delta * delta2) / self.count
 
-    def save_weights(self, filepath: str):
-        """Persists the neural weights to disk."""
-        data = {
-            'wte': [[p.data for p in row] for row in self.wte],
-            'mlp': [[p.data for p in n.w] + [n.b.data] for layer in self.mlp.layers for n in layer.neurons]
+    def _normalize(self, x):
+        """Perform Z-Score standardization."""
+        std = np.sqrt(self.running_var + 1e-8)
+        return (x - self.running_mean) / std
+
+    def sigmoid(self, x):
+        return 1 / (1 + np.exp(-np.clip(x, -500, 500)))
+
+    def relu(self, x):
+        return np.maximum(0, x)
+
+    def forward(self, x):
+        """
+        Inference pass.
+        Returns anomaly probability (0.0 to 1.0).
+        """
+        x_raw = np.array(x, dtype=float).reshape(1, -1)
+        x_norm = self._normalize(x_raw)
+        
+        self.h = self.relu(x_norm @ self.W1 + self.b1)
+        self.out = self.sigmoid(self.h @ self.W2 + self.b2)
+        
+        return float(self.out[0, 0])
+
+    def train_step(self, x, y, lr=0.01):
+        """Vectorized backpropagation step."""
+        x_raw = np.array(x, dtype=float).reshape(1, -1)
+        y_true = np.array(y, dtype=float).reshape(1, -1)
+        
+        # Update normalization stats
+        self._update_stats(x_raw.flatten())
+        x_norm = self._normalize(x_raw)
+        
+        # Forward pass (cached in self.h, self.out)
+        prob = self.forward(x)
+        
+        # Backprop (MSE Loss)
+        d_out = (prob - y_true) * (prob * (1 - prob)) # Sigmoid derivative
+        d_W2 = self.h.T @ d_out
+        d_b2 = np.sum(d_out, axis=0, keepdims=True)
+        
+        d_h = (d_out @ self.W2.T) * (self.h > 0) # ReLU derivative
+        d_W1 = x_norm.T @ d_h
+        d_b1 = np.sum(d_h, axis=0, keepdims=True)
+        
+        # Update weights
+        self.W1 -= lr * d_W1
+        self.b1 -= lr * d_b1
+        self.W2 -= lr * d_W2
+        self.b2 -= lr * d_b2
+        
+        if self.burn_in_cycles > 0:
+            self.burn_in_cycles -= 1
+        
+        # High-probability anomaly logging
+        if prob > 0.85:
+            self.log_anomaly(x, prob)
+            
+        self.save()
+
+    def log_anomaly(self, metadata, prob):
+        """Append an AnomalyDossier to the ledger."""
+        self.ledger_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        dossier = {
+            "timestamp": datetime.now().isoformat(),
+            "metadata_vector": metadata.tolist() if hasattr(metadata, "tolist") else list(metadata),
+            "anomaly_probability": prob,
+            "mean_baseline": self.running_mean.tolist(),
+            "status": "pending"
         }
-        with open(filepath, 'wb') as f:
-            pickle.dump(data, f)
-
-    def load_weights(self, filepath: str):
-        """Loads neural weights from disk."""
+        
         try:
-            with open(filepath, 'rb') as f:
-                data = pickle.load(f)
+            if self.ledger_path.exists():
+                with open(self.ledger_path, "r", encoding="utf-8") as f:
+                    queue = json.load(f)
+            else:
+                queue = []
             
-            # Load Embeddings
-            for i, row in enumerate(data.get('wte', [])):
-                if i < len(self.wte):
-                    for j, val in enumerate(row):
-                        if j < len(self.wte[i]):
-                            self.wte[i][j].data = val
+            queue.append(dossier)
             
-            # Load MLP (Simplified structure matching)
-            # This assumes architecture hasn't changed. 
-            # For a robust implementation, we'd traverse the structure more carefully.
-            flat_params = []
-            for layer in self.mlp.layers:
-                for n in layer.neurons:
-                    flat_params.extend(n.w)
-                    flat_params.append(n.b)
-            
-            saved_params = [p for n_list in data.get('mlp', []) for p in n_list]
-            
-            for p, val in zip(flat_params, saved_params):
-                p.data = val
-                
-        except (FileNotFoundError, pickle.UnpicklingError):
-            pass # Start fresh if load fails
+            with open(self.ledger_path, "w", encoding="utf-8") as f:
+                json.dump(queue, f, indent=2)
+        except Exception:
+            pass # Silent failure to avoid blocking daemon
 
-    def train_step(self, text_corpus: str, learning_rate: float = 0.01):
-        """Perform one training step."""
-        tokens = [b for b in text_corpus.encode('utf-8')]
-        if len(tokens) > 64:
-            start = random.randint(0, len(tokens) - 65)
-            tokens = tokens[start:start+64]
-        if len(tokens) < 2: return
-        
-        logits_list = self.forward(tokens[:-1])
-        targets = tokens[1:]
-        
-        loss = Value(0)
-        for logits, target in zip(logits_list, targets):
-            target_idx = target % self.vocab_size
-            loss += (logits[target_idx] - 1.0)**2
-            
-        for p in self.parameters():
-            p.grad = 0
-        loss.backward()
-        
-        for p in self.parameters():
-            # Gradient clipping to prevent explosion
-            if p.grad > 1: p.grad = 1
-            if p.grad < -1: p.grad = -1
-            p.data -= learning_rate * p.grad
-        
-        return loss.data
+    def save(self):
+        """Persist weights and stats to disk."""
+        self.model_path.parent.mkdir(parents=True, exist_ok=True)
+        state = {
+            "W1": self.W1, "b1": self.b1,
+            "W2": self.W2, "b2": self.b2,
+            "running_mean": self.running_mean,
+            "running_var": self.running_var,
+            "count": self.count,
+            "burn_in_cycles": self.burn_in_cycles
+        }
+        with open(self.model_path, "wb") as f:
+            pickle.dump(state, f)
 
-if __name__ == "__main__":
-    import sys
-    import os
-    
-    # Simple CLI for training
-    if len(sys.argv) > 1 and sys.argv[1] == "--train":
-        steps = 500
-        if len(sys.argv) > 2:
-            steps = int(sys.argv[2])
-            
-        print(f"ALFRED: Initiating AtomicCortex training loop ({steps} steps)...")
-        cortex = AtomicCortex()
-        
-        # Collect codebase text
-        corpus = ""
-        for root, dirs, files in os.walk("src"):
-            for file in files:
-                if file.endswith(".py"):
-                    try:
-                        with open(os.path.join(root, file), 'r', encoding='utf-8') as f:
-                            corpus += f.read() + "\n"
-                    except Exception: pass
-        
-        if not corpus:
-            print("ALFRED: Training corpus is empty. Aborting.")
-            sys.exit(0)
-            
-        for i in range(steps):
-            loss = cortex.train_step(corpus)
-            if i % 50 == 0:
-                print(f"Step {i}: Loss {loss:.4f}")
-                
-        print("ALFRED: Training complete. Neural weights evolved.")
+    def load(self):
+        """Load weights and stats from disk."""
+        if self.model_path.exists():
+            try:
+                with open(self.model_path, "rb") as f:
+                    state = pickle.load(f)
+                self.W1 = state["W1"]
+                self.b1 = state["b1"]
+                self.W2 = state["W2"]
+                self.b2 = state["b2"]
+                self.running_mean = state["running_mean"]
+                self.running_var = state["running_var"]
+                self.count = max(1, state["count"])
+                self.burn_in_cycles = state["burn_in_cycles"]
+            except Exception:
+                pass # Fallback to random init

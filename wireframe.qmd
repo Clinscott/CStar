@@ -21,6 +21,10 @@ The decision-making brain of Corvus Star.
     - **Local Ravens Status**: Performs deterministic health checks without daemon dependency.
 - **Cortex Link** (`src/node/cortex_link.js`):
     - TCP bridge between Node.js and the Python Daemon. Standardized on `127.0.0.1`.
+- **The Sovereign Daemon** (`src/cstar/core/daemon.py`):
+    - Pure WebSockets server acting as a high-speed Pub/Sub message broker.
+- **Sovereign HUD** (`src/cstar/core/tui.py`):
+    - Reactive Textual UI driven by Daemon broadcasts (`STATE_ODIN`, `STATE_ALFRED_REPORT`).
 - **Agent Loop** (`src/node/agent_loop.js`):
     - Orchestrator for the Gungnir flight cycle.
 - **The Gungnir Calculus** (`src/cstar/core/sprt.py`):
@@ -36,6 +40,8 @@ The decision-making brain of Corvus Star.
     - `prompt_linter.py`: AST-based validation of .prompty files.
     - `weights.json`: The GPHS weight ledger.
     - **Atomic Cortex** (`src/core/engine/atomic_gpt.py`): Localized Transformer for code analysis.
+    - **Warden Circuit Breaker**: Custom exception in `atomic_gpt.py` to halt forge loops.
+    - **Anomaly Ledger** (`src/data/anomalies_queue.json`): Persistent JSON queue for system drift tracking.
     - **Alfred Overwatch** (`src/core/engine/alfred_observer.py`): Failure pattern guidance daemon.
 - **SPRT Verification** (`tests/integration/project_fishtest.py`):
     - `GungnirSPRT`: Statistical significance testing for GPHS deltas.
@@ -52,6 +58,7 @@ The autonomous daemon ensuring system health.
     - `daemon_loop()`: Orchestrates the twin ravens (Thought/Memory).
 - **Muninn: The Improver** (`src/sentinel/muninn.py`):
     - `run()`: orchestrates parallel scans via `ThreadPoolExecutor`.
+    - **Debt Slasher**: Review and eviction logic for the anomaly ledger in `wrap_it_up.py`.
     - `Wardens`: Modular logic in `src/sentinel/wardens/` (Norn, Valkyrie, Edda, etc.).
     - `Stability`: `src/sentinel/stability.py` (GungnirValidator, TheWatcher).
     - `NornWarden`: Executes the Campaign Implementation Plan (N1000).

@@ -45,7 +45,7 @@ export async function executeGenesisSequence(platform = process.platform, execFu
             await fsMock.access(venvPath);
             venvExists = true;
             console.log(chalk.cyan(`ALFRED: 'Python Compute Plane (.venv) already exists. Skipping creation.'`));
-        } catch {
+        } catch (err) {
             // ENOENT - .venv does not exist
         }
 

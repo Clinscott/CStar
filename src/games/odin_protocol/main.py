@@ -554,14 +554,16 @@ class OdinAdventure:
         input(f"\n{HUD.CYAN}Press Enter to leave this world's memory...{HUD.RESET}")
 
 def main() -> None:
-    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+    if project_root not in sys.path:
+        sys.path.append(project_root)
+        
     # Graceful Disconnect Check (Gungnir Calculus)
     try:
-        from client import ping_daemon
+        from src.cstar.core.client import ping_daemon
         ping_daemon(timeout=1.0)
-    except Exception:
-        print(f"\n{HUD.RED}[SYSTEM FAILURE] Cortex Daemon Offline.{HUD.RESET}")
+    except Exception as e:
+        print(f"\n{HUD.RED}[SYSTEM FAILURE] Cortex Daemon Offline. ({e}){HUD.RESET}")
         print(f"{HUD.DIM}The Sovereign Engine must be running to engage the Odin Protocol.{HUD.RESET}")
         sys.exit(1)
 

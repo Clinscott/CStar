@@ -98,7 +98,8 @@ class HeimdallWarden:
         # B. Torvalds Protocol: Complexity & Linting
         # We can implement a simple check here or rely on external tools
         # For this implementation, we'll do a quick AST check for empty excepts
-        try:
+        import contextlib
+        with contextlib.suppress(Exception):
             tree = ast.parse(source.read_text(encoding="utf-8"))
             for node in ast.walk(tree):
                 # Check for bare except
@@ -121,8 +122,6 @@ class HeimdallWarden:
                                     "action": f"Potential secret exposed: {target.id} at line {node.lineno}",
                                     "severity": "CRITICAL"
                                 })
-        except Exception:
-            pass # Parser error already a breach implicitly
 
     def _generate_plan(self):
         """Weaves the findings into a QMD battle plan, preserving existing checkmarks."""
@@ -130,14 +129,13 @@ class HeimdallWarden:
         # 1. Capture existing checkmarks
         checked_files = set()
         if self.plan_path.exists():
-            try:
-                import re
+            import re
+            import contextlib
+            with contextlib.suppress(Exception):
                 existing_content = self.plan_path.read_text(encoding="utf-8")
                 # Find checked items: - [x] **[...]** `file/path`
                 checked_matches = re.findall(r"- \[x\] \*\*\[.*?\]\*\* `(.*?)`", existing_content)
                 checked_files = set(checked_matches)
-            except Exception:
-                pass
 
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         

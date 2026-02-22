@@ -11,6 +11,7 @@ Orchestrates the final wrap-up sequence:
 import sys
 import subprocess
 import shutil
+import json
 from pathlib import Path
 from datetime import datetime
 
@@ -132,6 +133,58 @@ class SovereignWrapper:
         except Exception as e:
             HUD.persona_log("EDDA", f"Warning: Auto-documentation failed. {e}")
 
+    def review_technical_debt(self):
+        """Reviews the AnomalyWarden ledger and proposes optimizations."""
+        queue_path = self.root / "src" / "data" / "anomalies_queue.json"
+        archive_path = self.root / "src" / "data" / "anomalies_archive.json"
+        
+        if not queue_path.exists():
+            return
+            
+        HUD.box_top("TECHNICAL DEBT REVIEW")
+        try:
+            with open(queue_path, "r", encoding="utf-8") as f:
+                queue = json.load(f)
+            
+            if not queue:
+                HUD.box_row("STATUS", "No pending anomalies.", HUD.GREEN)
+                HUD.box_bottom()
+                return
+
+            HUD.box_row("PENDING", str(len(queue)), HUD.YELLOW)
+            HUD.box_separator()
+
+            # Eviction Protocol: Process and move to archive
+            if archive_path.exists():
+                with open(archive_path, "r", encoding="utf-8") as f:
+                    archive = json.load(f)
+            else:
+                archive = []
+
+            for entry in queue:
+                ts = entry.get("timestamp", "Unknown")
+                prob = entry.get("anomaly_probability", 0.0)
+                HUD.box_row("ANOMALY", f"Prob: {prob:.2f} | {ts[:19]}")
+                
+                # ODIN Logic: Propose optimization (Simulated for this phase)
+                # In future versions, this would trigger a background Forge task
+                entry["status"] = "reviewed"
+                archive.append(entry)
+
+            # Atomic Swap: Clear queue, Update archive
+            with open(archive_path, "w", encoding="utf-8") as f:
+                json.dump(archive, f, indent=2)
+            
+            with open(queue_path, "w", encoding="utf-8") as f:
+                json.dump([], f, indent=2)
+
+            HUD.box_row("STATUS", "Ledger Synchronized. Archive Updated.", HUD.CYAN)
+            HUD.box_bottom()
+
+        except Exception as e:
+            HUD.persona_log("ODIN", f"Error during Debt Review: {e}")
+            HUD.box_bottom()
+
     def sovereign_commit(self, stats):
         """Generates commit message and pushes."""
         HUD.persona_log("ODIN", "Initiating Sovereign Commit Protocol...")
@@ -190,7 +243,10 @@ def main():
         # 2. Sync State (Index, Docs, Traces)
         stats = wrapper.synchronize_state()
         
-        # 3. Commit
+        # 3. Review Technical Debt
+        wrapper.review_technical_debt()
+        
+        # 4. Commit
         wrapper.sovereign_commit(stats)
         
     except KeyboardInterrupt:

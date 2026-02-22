@@ -26,12 +26,12 @@
 - **complete**: close, done, end, exit, finalize, finish, pack-up, quit, stop, wind-down, wrap, wrap-it-up
 - **component**: build, construct, create, develop, feature, generate, implement, make, modification, page, run-task, update
 - **construct**: build, component, create, develop, feature, generate, implement, make, modification, page, run-task, update
-- **create**: build, component, construct, develop, feature, generate, implement, make, modification, page, run-task, update
+- **create**: build, component, construct, develop, feature, generate, implement, make, modification, new, page, run-task, update
 - **debug**: analyze, audit, bug, check, dig-into, error, find, investigate, issue, linter, look-into, sentinel, track-down, validate, verify
 - **deploy**: deployment, launch, production, publish, push, release, ship, 部署, デプロイ
 - **deployment**: deploy, launch, production, publish, push, release, ship, 部署, デプロイ
 - **design**: architect, blueprint, itinerary, map, outline, plan, prepare, roadmap, strategy
-- **develop**: build, component, construct, create, feature, generate, implement, make, modification, page, run-task, update
+- **develop**: build, component, construct, create, feature, generate, implement, make, modification, new, page, run-task, update
 - **dig-into**: analyze, audit, bug, check, debug, error, find, investigate, issue, linter, look-into, sentinel, track-down, validate, verify
 - **doc-generator**: api-docs, docs, docstring, document, documentation, jsdoc, readme, write-docs, write-documentation
 - **docs**: api-docs, doc-generator, docstring, document, documentation, jsdoc, readme, write-docs, write-documentation
@@ -73,13 +73,15 @@
 - **knowledge**: documentation, find, how-does, hunter, knowledge-hunter, research, scour, search, where-is
 - **knowledge-hunter**: documentation, find, how-does, hunter, knowledge, research, scour, search, where-is
 - **launch**: deploy, deployment, publish, push, release, ship
-- **lets-go**: begin, boot, fire-up, initiate, kick-off, resume, spin-up, start
+- **lets-go**: begin, boot, fire-up, initiate, kick-off, progress, resume, spin-up, start
 - **linter**: analyze, audit, bug, check, debug, dig-into, error, find, investigate, issue, look-into, sentinel, track-down, validate, verify
 - **look-into**: analyze, audit, bug, check, debug, dig-into, error, find, investigate, issue, linter, sentinel, track-down, validate, verify
+- **logic**: build, component, construct, create, develop, feature, generate, implement, make, modification, new, page, run-task, update
 - **make**: build, component, construct, create, develop, feature, generate, implement, modification, page, run-task, update
 - **map**: architect, blueprint, design, itinerary, outline, plan, prepare, roadmap, strategy
 - **measure**: agent-lightning, benchmark, fast, metrics, optimization, optimize, perf, perf-profiler, performance, profile, quick, reinforcement, rl, speed, timing, velocity
 - **merge**: commit, git, git-assistant, github, rebase, repo, repository
+- **new**: build, component, construct, create, develop, feature, generate, implement, make, modification, page, run-task, update
 - **metrics**: agent-lightning, benchmark, fast, measure, optimization, optimize, perf, perf-profiler, performance, profile, quick, reinforcement, rl, speed, timing, velocity
 - **modification**: build, component, construct, create, develop, feature, generate, implement, make, page, run-task, update
 - **monitoring**: agent-health, dashboard, health, heartbeat, overwatch, pulse, status
@@ -101,7 +103,9 @@
 - **publish**: deploy, deployment, launch, push, release, ship
 - **pulse**: agent-health, health, heartbeat, monitoring, status
 - **push**: deploy, deployment, launch, publish, release, ship
+- **progress**: begin, boot, fire-up, initiate, kick-off, lets-go, resume, spin-up, start
 - **quick**: agent-lightning, benchmark, fast, measure, metrics, optimization, optimize, perf, perf-profiler, performance, profile, reinforcement, rl, speed, timing, velocity
+- **project**: build, construct, create, develop, feature, generate, implement, make, modification, new, page, run-task, update
 - **quit**: close, complete, done, end, exit, finalize, finish, pack-up, stop, wind-down, wrap, wrap-it-up
 - **readme**: api-docs, doc-generator, docs, docstring, document, documentation, jsdoc, write-docs, write-documentation
 - **rebase**: commit, git, git-assistant, github, merge, repo, repository
@@ -122,6 +126,7 @@
 - **ship**: deploy, deployment, launch, publish, push, release
 - **sovereignfish**: aesthetics, beautify, clean, futuristic, glass, glow, holographic, improve, neon, polish, refine, sci-fi, ui-sci-fi, visual
 - **speed**: agent-lightning, benchmark, fast, measure, metrics, optimization, optimize, perf, perf-profiler, performance, profile, quick, reinforcement, rl, timing, velocity
+- **system**: begin, boot, fire-up, initiate, kick-off, lets-go, resume, spin-up, start
 - **spin-up**: begin, boot, fire-up, initiate, kick-off, lets-go, resume, start
 - **start**: begin, boot, fire-up, initiate, kick-off, lets-go, resume, spin-up
 - **status**: agent-health, health, heartbeat, monitoring, pulse

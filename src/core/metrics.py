@@ -2,8 +2,85 @@ import json
 import os
 import subprocess
 import sys
+import time
+from pathlib import Path
+from typing import Any, Callable, Optional
 from src.core.prompt_linter import PromptLinter
 from src.core.engine.atomic_gpt import AtomicCortex
+
+try:
+    import psutil
+    HAS_PSUTIL = True
+except ImportError:
+    HAS_PSUTIL = False
+
+class ExecutionTracker:
+    """
+    Decoupled Metrics Tracker.
+    Tracks pure latency using perf_counter. 
+    Memory profiling (psutil) is only sampled at explicit start/end bounds 
+    to prevent Observer Effect latency inflation.
+    """
+    def __init__(self, name: str):
+        self.name = name
+        self.start_time: float = 0.0
+        self.end_time: float = 0.0
+        self.start_mem: float = 0.0
+        self.end_mem: float = 0.0
+
+    def __enter__(self):
+        if HAS_PSUTIL:
+            process = psutil.Process(os.getpid())
+            self.start_mem = process.memory_info().rss / (1024 * 1024) # MB
+        self.start_time = time.perf_counter()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.end_time = time.perf_counter()
+        if HAS_PSUTIL:
+            process = psutil.Process(os.getpid())
+            self.end_mem = process.memory_info().rss / (1024 * 1024) # MB
+
+    @property
+    def latency_ms(self) -> float:
+        return (self.end_time - self.start_time) * 1000
+
+    @property
+    def mem_delta_mb(self) -> float:
+        return self.end_mem - self.start_mem
+        
+    def report(self) -> dict[str, Any]:
+        return {
+            "operation": self.name,
+            "latency_ms": round(self.latency_ms, 2),
+            "memory_start_mb": round(self.start_mem, 2),
+            "memory_end_mb": round(self.end_mem, 2),
+            "memory_delta_mb": round(self.mem_delta_mb, 2)
+        }
+
+def track_execution(name: Optional[str] = None):
+    """
+    Decorator to easily track execution metrics for a function without polluting its logic.
+    """
+    def decorator(func: Callable):
+        def wrapper(*args, **kwargs):
+            op_name = name or func.__name__
+            with ExecutionTracker(op_name) as tracker:
+                result = func(*args, **kwargs)
+                
+            # Log or store the metrics
+            try:
+                from src.core.ui import HUD
+                # Only log if it's a significant operation (>50ms) to avoid spam
+                if tracker.latency_ms > 50:
+                    delta_str = f"+{tracker.mem_delta_mb}MB" if tracker.mem_delta_mb >= 0 else f"{tracker.mem_delta_mb}MB"
+                    HUD.persona_log("INFO", f"[{op_name}] Latency: {tracker.latency_ms:.2f}ms | Mem: {delta_str}")
+            except Exception:
+                pass
+                
+            return result
+        return wrapper
+    return decorator
 
 class ProjectMetricsEngine:
     """

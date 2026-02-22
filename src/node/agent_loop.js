@@ -57,9 +57,9 @@ export async function executeCycle(targetFile, ledgerDirectory, taskDescription,
         throw new Error(`Verification failed: Cortex Daemon rejected the candidate. Details: ${JSON.stringify(verifyPayload)}`);
     }
 
-    // 8. Deploy to Mainline
+    // 7. Deploy to Mainline
     await deployExec(targetFile, candidatePath, "C* Auto-Refactor: " + taskDescription);
 
-    // 9. Complete
+    // 8. Complete
     console.log(chalk.green("ALFRED: 'Cycle complete. The stars await...'"));
 }

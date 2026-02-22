@@ -1,10 +1,9 @@
-import pytest
 import math
 from src.cstar.core.sprt import evaluate_candidate
 
 def test_sprt_acceptance_baseline_hypothesis():
     """
-    Given an observation array of [0,0,0,0,0,0,0,0,0,0], When the SPRT is invoked, 
+    Given an observation array of [0,0,0,0,0,0,0,0,0,0], When the SPRT is invoked,
     Then the Decision must be 'Accept' (From legacy GungnirSPRT.Tests.ps1)
     """
     observations = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
