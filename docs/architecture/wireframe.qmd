@@ -51,12 +51,17 @@ Maintain a searchable, accurate map of the project's UI and service architecture
     - **Valkyrie**: Dead code detection via `vulture`.
     - **Torvalds**: Complexity analysis via `radon`.
 
-### Testing Protocol (Empire TDD)
-- **Path**: `c:/Users/Craig/Corvus/CorvusStar/tests/empire/`
+### Testing Protocol (Empire TDD & Gungnir Matrix)
+- **Path**: `c:/Users/Craig/Corvus/CorvusStar/tests/`
 - **Standard**: GIVEN-WHEN-THEN contracts enforcing deterministic execution.
-- **Key Files**:
+- **Gungnir Matrix (Suite 1-3)**:
+    - `tests/unit/test_intent.py`: Intent Immutability & Lexical Anchor Precision.
+    - `tests/unit/test_warden.py`: Z-Score Drift & Circuit Breaker Rollback.
+    - `tests/unit/test_crucible.py`: AST Jailing & Docker Zombie Purge.
+- **Key Modules**:
     - `compiler.py`: Translates `.qmd` contracts into unit tests.
     - `benchmark_engine.py`: Performance regression monitor integrated into `Muninn`.
+    - `fishtest.py`: N=1000 ground-truth accuracy benchmark (SPRT).
 
 ### Intelligence & Web Integration (Bifröst)
 - **Path**: `c:/Users/Craig/Corvus/CorvusStar/src/tools/brave_search.py`

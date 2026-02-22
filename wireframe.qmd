@@ -59,7 +59,10 @@ The autonomous daemon ensuring system health.
 - **Muninn: The Improver** (`src/sentinel/muninn.py`):
     - `run()`: orchestrates parallel scans via `ThreadPoolExecutor`.
     - **Debt Slasher**: Review and eviction logic for the anomaly ledger in `wrap_it_up.py`.
-    - `Wardens`: Modular logic in `src/sentinel/wardens/` (Norn, Valkyrie, Edda, etc.).
+- **Sandbox Warden** (`src/sentinel/sandbox_warden.py`):
+    - `run_in_sandbox(path, args)`: Executes Python scripts within isolated, resource-capped Docker containers.
+    - **Zero-Trust Jailing**: Routes all commands targeting `skills_db/` through containerization.
+    - `Wardens**: Modular logic in `src/sentinel/wardens/` (Norn, Valkyrie, Edda, etc.).
     - `Stability`: `src/sentinel/stability.py` (GungnirValidator, TheWatcher).
     - `NornWarden`: Executes the Campaign Implementation Plan (N1000).
 
@@ -85,7 +88,8 @@ Connection to the wider network (Knowledge Core).
 ## 📝 Key Workflows
 
 ### 1. Intent Resolution
-`User Input` -> `cstar_dispatcher` -> `sv_engine` -> `vector.py` -> `Skill Execution`
+`User Input` -> `cstar_dispatcher` -> `sv_engine` -> `vector.py` -> `[Sandbox Routing?]` -> `Skill Execution`
+- **Sandbox Gate**: If skill is in `skills_db/`, execution is diverted to `SandboxWarden`.
 
 ### 2. Autonomous Audit
 `Time Trigger` -> `Huginn & Muninn` -> `muninn.py` -> `Heimdall` -> `Report`

@@ -5,6 +5,11 @@ import time
 from pathlib import Path
 from typing import Dict, List, Optional
 
+# Add project root to sys.path
+project_root = Path(__file__).resolve().parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
 # Bootstrap
 from src.sentinel._bootstrap import PROJECT_ROOT, bootstrap
 
@@ -43,14 +48,23 @@ class CorvusDispatcher:
             self.project_root / ".agent" / "skills",
             self.project_root / "src" / "tools",
             self.project_root / "src" / "skills" / "local",
+            self.project_root / "skills_db",
             self.project_root / "src" / "sentinel",
             self.project_root / "scripts",
         ]
         for d in script_dirs:
             if d.exists():
+                # Direct file discovery
                 for f in d.glob("*.py"):
                     if f.stem not in ["__init__", "_bootstrap", "cstar_dispatcher"]:
                         commands.setdefault(f.stem, str(f.resolve()))
+                
+                # Directory-based skill discovery (e.g., skills_db/name/name.py)
+                for sub in d.iterdir():
+                    if sub.is_dir():
+                        main_script = sub / f"{sub.name}.py"
+                        if main_script.exists():
+                            commands.setdefault(sub.name, str(main_script.resolve()))
 
         # Workflows (.md / .qmd)
         workflow_dir = self.project_root / ".agent" / "workflows"
@@ -119,6 +133,19 @@ class CorvusDispatcher:
         if cmd in all_cmds:
             cmd_path = all_cmds[cmd]
             if cmd_path.endswith(".py"):
+                # Permanent Execution Jailing: Detect if command is in skills_db
+                if "skills_db" in cmd_path:
+                    from src.sentinel.sandbox_warden import SandboxWarden
+                    warden = SandboxWarden()
+                    report = warden.run_in_sandbox(Path(cmd_path), args=cmd_args)
+                    
+                    if report["stdout"]: print(report["stdout"])
+                    if report["stderr"]: print(report["stderr"], file=sys.stderr)
+                    if report["timed_out"]:
+                        HUD.persona_log("FAIL", "Sandbox Execution Timed Out.")
+                    return
+                
+                # Native Execution for core framework skills
                 env = os.environ.copy()
                 env["PYTHONPATH"] = str(self.project_root)
                 subprocess.run([str(self.venv_python), cmd_path] + cmd_args, env=env)

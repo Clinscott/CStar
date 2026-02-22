@@ -71,8 +71,8 @@ class SovereignVector:
         except (json.JSONDecodeError, IOError, OSError, TypeError):
             return defaults
 
-    def _load_thesaurus(self, path: str | Path | None) -> dict[str, list[str]]:
-        """Parses the .qmd thesaurus into a lookup dictionary."""
+    def _load_thesaurus(self, path: str | Path | None) -> dict[str, set[str]]:
+        """[ALFRED] Parses the .qmd thesaurus bullet points into a bi-directional lookup."""
         if not path: return {}
         p = Path(path)
         if not p.exists(): return {}
@@ -80,14 +80,22 @@ class SovereignVector:
         mapping = {}
         try:
             content = p.read_text(encoding='utf-8')
-            # Extract bullet points like: - **key**: val1, val2
+            # [ODIN] Support for Bullet points like: - **key**: val1, val2
             matches = re.findall(r'^- \*\*([^*]+)\*\*:\s*(.*)$', content, re.MULTILINE)
-            for key, val_str in matches:
-                # Clean up synonyms
-                syns = [s.strip().lower() for s in val_str.split(',')]
-                mapping[key.lower().strip()] = syns
+            for cluster_raw, syn_str in matches:
+                header = cluster_raw.strip().lower()
+                synonyms = [s.strip().lower() for s in syn_str.split(',')]
+                
+                full_cluster = set([header] + synonyms)
+                # Every word in the cluster points to the whole set
+                for word in full_cluster:
+                    if word not in mapping:
+                        mapping[word] = set()
+                    mapping[word].update(full_cluster)
+            
             return mapping
-        except Exception:
+        except Exception as e:
+            HUD.persona_log("FAIL", f"Thesaurus breach: {e}")
             return {}
 
     def normalize(self, text: str) -> str:
@@ -125,8 +133,8 @@ class SovereignVector:
             self._search_cache[query_norm] = res
             return res
 
-        # 2. Semantic Search (Fetch top 15 candidates for wider hybrid recall)
-        results = self.memory_db.search_intent(query, n_results=15)
+        # 2. Semantic Search (Fetch top 30 candidates for wider hybrid recall)
+        results = self.memory_db.search_intent(query, n_results=30)
         
         final_results = []
         original_tokens = set(query_norm.split())
@@ -146,7 +154,7 @@ class SovereignVector:
             is_global = intent_id.startswith("GLOBAL:")
             
             # [ALFRED] Identity Mapping
-            intent_tokens = set(intent_id.replace('-', ' ').replace('_', ' ').lower().split())
+            intent_tokens = set(intent_id.replace('/', ' ').replace('-', ' ').replace('_', ' ').lower().split())
             
             # Query Coverage: How many distinct words in the user's query point to this intent?
             matched_query_words = 0
@@ -176,11 +184,13 @@ class SovereignVector:
                 # [ALFRED] Sovereign Anchors: High-density lexical insurance
                 if matched_query_words >= 2 and lexical_evidence >= 0.7:
                     # Multi-keyword hit -> Definite Intent
-                    score = max(score, 1.30 + (lexical_evidence * 0.1))
-                    
-                elif matched_query_words == 1 and lexical_evidence >= 0.5:
-                    # Single-keyword hit -> Moderate boost
-                    score = max(score, 0.50 + (lexical_evidence * 0.1))
+                    score = max(score, 1.40 + (lexical_evidence * 0.1))
+                elif lexical_evidence >= 0.8:
+                    # Very strong single-cluster hit -> High Confidence
+                    score = max(score, 0.75 + (lexical_evidence * 0.2))
+                else:
+                    # At least one keyword hit -> Moderate boost
+                    score = max(score, 0.55 + (lexical_evidence * 0.15))
                     
                 # Extra weight for multi-word intents that are fully satisfied
                 if matched_query_words >= 2 and q_coverage >= 0.8:
@@ -193,7 +203,7 @@ class SovereignVector:
             
             # Sovereign Priority (Tie-breaker)
             if (trigger.startswith("/") or trigger == "SovereignFish") and not is_global:
-                score *= 1.1
+                score *= 1.2 # Stronger priority for primary system intents
 
             final_results.append({
                 "trigger": trigger,
@@ -210,8 +220,67 @@ class SovereignVector:
         return final_results
 
     # [ALFRED] Stubs for backward compatibility during transition
-    def load_core_skills(self): pass
-    def load_skills_from_dir(self, directory, prefix=""): pass
-    def build_index(self): pass
-    def add_skill(self, trigger, text):
+    def load_core_skills(self):
+        """[ODIN] Registers foundational system intents into the semantic brain."""
+        core_skills = {
+            "SovereignFish": "Automated code aesthetics, UI polish, design refinement, and SovereignFish protocol execution.",
+            "lets-go": "Resume the current development session, identify priorities, and start the agent loop.",
+            "run-task": "Execute a specific task, build a feature, or implement a logic change.",
+            "investigate": "Deeply analyze the codebase, debug failures, and audit structural integrity.",
+            "plan": "Architect the system, create blueprints, and design implementation roadmaps.",
+            "test": "Verify code integrity, run regression suites, and validate performance metrics.",
+            "wrap-it-up": "Finalize the session, update documentation, and execute the handshake protocol.",
+            "oracle": "Consult the Corvus Star oracle for tactical guidance and system state analysis."
+        }
+        for trigger, text in core_skills.items():
+            self.add_skill(trigger, text)
+
+    def load_skills_from_dir(self, directory: str | Path, prefix: str = ""):
+        """[ALFRED] Recursively discovers and ingests skills from .qmd or .json files."""
+        dir_path = Path(directory)
+        if not dir_path.exists():
+            return
+
+        for path in dir_path.rglob("*"):
+            if path.suffix in [".qmd", ".md"]:
+                # Parse .qmd skill (Heuristic: Look for 'Activation Words' and 'Instructions')
+                try:
+                    content = path.read_text(encoding='utf-8')
+                    # Skill ID is the directory name or filename
+                    skill_id = path.parent.name if path.name.lower() == "skill.qmd" else path.stem
+                    if prefix:
+                        trigger = f"{prefix}:{skill_id}"
+                    else:
+                        trigger = skill_id
+                    
+                    self.add_skill(trigger, content)
+                except Exception as e:
+                    HUD.persona_log("WARN", f"Failed to ingest .qmd skill {path.name}: {e}")
+            elif path.suffix == ".json":
+                try:
+                    data = json.loads(path.read_text(encoding='utf-8'))
+                    if isinstance(data, list):
+                        for item in data:
+                            trigger = item.get("trigger")
+                            text = item.get("description") or item.get("text")
+                            if trigger and text:
+                                if prefix:
+                                    trigger = f"{prefix}:{trigger}"
+                                self.add_skill(trigger, text)
+                    elif isinstance(data, dict):
+                        trigger = data.get("trigger")
+                        text = data.get("description") or data.get("text")
+                        if trigger and text:
+                            if prefix:
+                                trigger = f"{prefix}:{trigger}"
+                            self.add_skill(trigger, text)
+                except Exception as e:
+                    HUD.persona_log("WARN", f"Failed to ingest .json skill {path.name}: {e}")
+
+    def build_index(self):
+        """[ALFRED] Finalizes the semantic index. (ChromaDB handles this automatically per upsert)."""
+        HUD.persona_log("HEIMDALL", "Semantic Indexing Synchronized.")
+
+    def add_skill(self, trigger: str, text: str):
+        """[ALFRED] Bridges to MemoryDB for intent persistence."""
         self.memory_db.upsert_skill(trigger, text)

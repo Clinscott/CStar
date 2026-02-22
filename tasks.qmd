@@ -325,7 +325,27 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Intra-Loop Pulse**: Wired the Forge to pulse the Warden after every generation with telemetry features. [x]
 
 ## ⏭️ Start Here Next (Phase 62)
-- [ ] **Node.js CortexLink Alignment**: Update `cortex_link.js` and `ragnarok_bridge.js` to speak the new `ws://` WebSocket protocol instead of raw TCP.
+- [x] **Node.js CortexLink Alignment**: Update `cortex_link.js` and `ragnarok_bridge.js` to speak the new `ws://` WebSocket protocol instead of raw TCP. [x]
+- [ ] **Operation Ironclad**: Security hardening of `.env.local` and regular API key rotation logic.
+- [ ] **TUI Content Polish**: Add high-fidelity ASCII art and RUNE separators to the WAR ROOM sections.
+
+### 62. The Sovereign Crucible & Zero-Trust Jailing (Session 76)
+- [x] **Secure Acquisition**: Hardened Brave Search integration for intent-based code retrieval. [x]
+- [x] **Deep AST Sanitization**: Upgraded `code_sanitizer.py` to block MRO crawling (`__class__`, `__base__`, `__subclasses__`) and indirect `importlib` bypasses. [x]
+- [x] **Zero-Trust Jailing**: Implemented `skills_db/` segregation to ensure all acquired code is physically isolated from the core. [x]
+- [x] **Sandbox Warden**: Created `sandbox_warden.py` to execute acquired skills within resource-capped Docker containers. [x]
+- [x] **Execution Intercept**: Modified `cstar_dispatcher.py` and `sv_engine.py` to automatically route `skills_db/` calls through the sandbox. [x]
+- [x] **Quarto Lockdown**: Implemented `neuter_qmd_document` to inject `execute: false` into all `.qmd` and `.md` files during installation, preventing ACE. [x]
+- [x] **Verification**: 100% pass on security gauntlet; confirmed argument passing to sandboxed processes. [x]
+
+### 63. The Gungnir Matrix & Fishtest Restoration (Session 77)
+- [x] **Thesaurus Restoration**: Fixed bullet-point parsing in `vector.py` and implemented bi-directional synonym clusters. [x]
+- [x] **Config Alignment**: Patched `fishtest.py` to correctly ingestion `GLOBAL:` skills from the nested `config.json` schema. [x]
+- [x] **Hybrid Recalibration**: Optimized search recall (N=30) and Sovereign Priority (1.2x) to ensure intent authoritative routing. [x]
+- [x] **Master Test Suite**: Implemented 3-Pillar verification (Intent Rigidity, Heartbeat Monitor, Crucible Lockdown). [x]
+- [x] **SPRT PASS**: Achieved **91.8% accuracy** on the 1000-case matrix, satisfying the Sequential Probability Ratio Test. [x]
+
+## ⏭️ Start Here Next (Phase 64)
 - [ ] **Operation Ironclad**: Security hardening of `.env.local` and regular API key rotation logic.
 - [ ] **TUI Content Polish**: Add high-fidelity ASCII art and RUNE separators to the WAR ROOM sections.
 ```

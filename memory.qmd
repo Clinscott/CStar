@@ -1,5 +1,17 @@
 # Corvus Star Memory
 
+## 2026-02-22: Session 77 (The Gungnir Matrix & Fishtest Restoration)
+- **Parser Robustness over Markdown Aesthetics**: Reverting the thesaurus to a simple bullet-point format proved that parsing logic stability is more critical than Markdown table aesthetics. Complex regexes for table cells are fragile against variable whitespace; bullet points are harder for LLMs to corrupt during automated updates.
+- **Config Schema Entrenchment**: Test runners (`fishtest.py`) must be intentionally synchronized with core code when configuration schemas change (e.g., nesting under `system`). Failure to do so isolates the testing environment from the production engine's skill-loading logic.
+- **Hybrid Scoring Floors**: In N=1000 benchmark scenarios, a higher lexical evidence floor (e.g., 1.2x boost for Sovereign triggers) is mandatory to prevent non-deterministic semantic candidates from "stealing" the intent from mathematically identical lexical anchors.
+- **Zero-Trust Recovery**: The success of the "Gungnir Matrix" shows that provable immutability (via `MappingProxyType`) combined with AST-level lockdown is the only way to guarantee stability in auto-evolving architectures.
+
+## 2026-02-22: Session 76 (The Sovereign Crucible: Zero-Trust Jailing)
+- **Physical Segregation is Absolute**: Directory-based routing (`skills_db/`) is more reliable than metadata-based routing for security. If a file exists in a jailed directory, it *must* go through the Warden, regardless of its contents.
+- **Recursive AST Sanitization**: Blocking `import` is insufficient. Sanitizers must recursively check all `ast.Attribute` and `ast.Call` nodes for reflection-based breakouts like `[].__class__.__base__.__subclasses__()`.
+- **Infrastructure Neuter Protocols**: For formats with embedded execution (like Quarto or Jupyter), sanitization must occur *before* the file hits the disk in a reachable state. Injecting security-policy frontmatter (`execute: false`) is a non-destructive way to preserve content while killing ACE.
+- **Sandbox Argument Transparency**: Sandboxed tools often fail because they lose access to their `IntentPayload`. The Docker CLI wrapper must explicitly append `sys.argv[1:]` to the `docker run` command to maintain capability parity with native execution.
+
 ## 2026-02-22: Session 75 (The Active Sentinel)
 - **Circuit Breaker Safety**: Mid-loop safety holds are essential for autonomous agents. Hard-halting on critical drift via `WardenCircuitBreaker` prevents garbage generation and cascading infrastructure failure.
 - **Metric Correlation**: Telemetry is only as good as its anchor point. Tracking latency from user input submission (TUI) to terminal event arrival (Daemon) provides the most honest training signal for performance-aware Wardens.

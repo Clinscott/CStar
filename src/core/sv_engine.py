@@ -199,14 +199,39 @@ class SovereignEngine:
             )
 
     def _proactive_execute(self, command: str) -> None:
-        """Prompts and executes a direct CLI command."""
+        """Prompts and executes a direct CLI command, jailing if it targets skills_db."""
         HUD.box_top("PROACTIVE EXECUTE")
         HUD.box_row("CMD", command, HUD.YELLOW)
         HUD.box_bottom()
+        
+        # Determine if this command targets a jail-restricted skill
+        cmd_parts = command.split()
+        is_jailed = False
+        target_path = None
+        
+        if cmd_parts:
+            # Check if it's a direct path or a resolved command in skills_db
+            potential_path = self.project_root / "skills_db" / f"{cmd_parts[0]}.py"
+            if potential_path.exists():
+                is_jailed = True
+                target_path = potential_path
+            elif Path(cmd_parts[0]).exists() and "skills_db" in str(Path(cmd_parts[0]).resolve()):
+                is_jailed = True
+                target_path = Path(cmd_parts[0]).resolve()
+
         speak = HUD._speak('PROACTIVE_EXECUTE', 'Run this command?')
         prompt = f"\n{HUD.CYAN}>> [C*] {speak} [Y/n] {HUD.RESET}"
+        
         if utils.input_with_timeout(prompt) in ['', 'y', 'yes', 'Y', 'YES']:
-            subprocess.run(command, shell=True, cwd=str(self.project_root))  # noqa: S602
+            if is_jailed and target_path:
+                from src.sentinel.sandbox_warden import SandboxWarden
+                warden = SandboxWarden()
+                # Run in sandbox with remaining parts as args
+                report = warden.run_in_sandbox(target_path, args=cmd_parts[1:])
+                if report["stdout"]: print(report["stdout"])
+                if report["stderr"]: print(report["stderr"], file=sys.stderr)
+            else:
+                subprocess.run(command, shell=True, cwd=str(self.project_root))  # noqa: S602
 
     def run(
         self,

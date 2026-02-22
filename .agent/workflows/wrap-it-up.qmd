@@ -10,7 +10,7 @@ description: The Sovereign Commit & Dynamic Sync. Finalizes session, syncs state
    - Update `memory.qmd` (Lessons learned).
 3. **Execute The Sovereign Commit**:
    - **Action**: run the following command.
-   - **Details**: This script will Run Gungnir Gate (Lint/Test), Compile Traces, Rebuild Index, and **Git Push**.
+   - **Details**: This script will Run Gungnir Gate (Lint/Matrix/Test), Compile Traces, Rebuild Index, and **Git Push**.
    `python src/tools/wrap_it_up.py`
 4. **Post-Commit Training**:
    `python src/core/engine/atomic_gpt.py --train 500`

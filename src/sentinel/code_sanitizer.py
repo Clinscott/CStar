@@ -12,6 +12,10 @@ import re
 import textwrap
 from pathlib import Path
 
+class QuarantineFailure(Exception):
+    """Raised when a code snippet fails security sanitization."""
+    pass
+
 from src.tools.brave_search import BraveSearch
 
 # ==============================================================================
@@ -95,6 +99,16 @@ def validate_imports(code: str, project_root: Path) -> list[str]:
                             f"line {node.lineno}: `from {node.module} import ...` — "
                             f"'{top}' is not a known module"
                         )
+        # Refinement: Detect Dynamic Import Bypass
+        elif isinstance(node, ast.Call):
+            # Check for __import__(...)
+            if isinstance(node.func, ast.Name) and node.func.id == "__import__":
+                bad_imports.append(f"line {node.lineno}: Forbidden dynamic import `__import__` detected.")
+            # Check for importlib.import_module(...)
+            elif isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name):
+                if node.func.value.id == "importlib":
+                    bad_imports.append(f"line {node.lineno}: Forbidden dynamic import `importlib` detected.")
+
     return bad_imports
 
 
@@ -273,7 +287,6 @@ def scan_and_enrich_imports(code: str, project_root: Path) -> str:
 
     bad_modules = set()
 
-    # Simple check reusing _is_valid_import logic
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
@@ -289,13 +302,11 @@ def scan_and_enrich_imports(code: str, project_root: Path) -> str:
     if not bad_modules:
         return ""
 
-    # Search for docs
     searcher = BraveSearch()
     if not searcher.is_quota_available():
         return ""
 
     from src.core.ui import HUD
-
     context_snippets = []
     processed = set()
 
@@ -308,11 +319,9 @@ def scan_and_enrich_imports(code: str, project_root: Path) -> str:
 
         results = searcher.search(query)
         if results:
-            # Take top 2 results
             snippets = []
             for res in results[:2]:
                 snippets.append(f"- {res.get('title')}: {res.get('description')} ({res.get('url')})")
-
             if snippets:
                 context_snippets.append(f"Documentation for `{module}`:\n" + "\n".join(snippets))
 
@@ -320,6 +329,82 @@ def scan_and_enrich_imports(code: str, project_root: Path) -> str:
         return ""
 
     return "\n\n[LIVE WEB DOCUMENTATION INJECTED]\n" + "\n\n".join(context_snippets)
+
+def perform_quarantine_scan(code: str, whitelist: list[str] | None = None) -> tuple[bool, str]:
+    """
+    Strict AST analysis for new skills. 
+    Blocks restricted modules and dynamic import attempts.
+    """
+    FORBIDDEN_MODULES = {"os", "subprocess", "sys", "socket", "requests", "urllib", "builtins", "importlib"}
+    if whitelist:
+         FORBIDDEN_MODULES -= set(whitelist)
+
+    try:
+        tree = ast.parse(code)
+    except SyntaxError as e:
+        return False, f"Syntax Error: {str(e)}"
+
+    for node in ast.walk(tree):
+        # Check standard imports
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name.split('.')[0] in FORBIDDEN_MODULES:
+                    return False, f"Forbidden import: {alias.name}"
+        elif isinstance(node, ast.ImportFrom):
+            if node.module and node.module.split('.')[0] in FORBIDDEN_MODULES:
+                return False, f"Forbidden import-from: {node.module}"
+        
+        # Check dynamic import calls and built-in manipulation
+        elif isinstance(node, ast.Call):
+            # __import__
+            if isinstance(node.func, ast.Name) and node.func.id == "__import__":
+                return False, "Forbidden dynamic call: __import__"
+            # importlib
+            if isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name):
+                if node.func.value.id == "importlib":
+                    return False, "Forbidden dynamic access: importlib"
+            
+            # eval, exec, compile, globals, locals, etc.
+            if isinstance(node.func, ast.Name):
+                if node.func.id in {"eval", "exec", "compile", "globals", "locals", "getattr", "setattr", "open"}:
+                    return False, f"Forbidden dangerous call: {node.func.id}"
+
+        # Check Name nodes for builtins access
+        elif isinstance(node, ast.Name):
+            if node.id in {"__builtins__"}:
+                return False, f"Forbidden built-in access: {node.id}"
+
+        # Check Attribute nodes for MRO traversal
+        elif isinstance(node, ast.Attribute):
+            if node.attr in {"__class__", "__base__", "__subclasses__"}:
+                return False, f"Forbidden attribute access: {node.attr}"
+
+    return True, "Passed quarantine scan."
+
+def neuter_qmd_document(file_path: Path):
+    """
+    Prevents Arbitrary Code Execution (ACE) in Quarto files by forcing execute: false.
+    """
+    if not file_path.exists():
+        return
+
+    content = file_path.read_text(encoding='utf-8')
+    
+    # Check for existing YAML frontmatter
+    yaml_match = re.search(r'^---\s*\n(.*?)\n---\s*\n', content, re.DOTALL)
+    
+    if yaml_match:
+        yaml_block = yaml_match.group(1)
+        # Check if execute: false is already there
+        if "execute: false" not in yaml_block:
+            # Inject execute: false into existing YAML
+            new_yaml = yaml_block.rstrip() + "\nexecute: false\n"
+            content = content.replace(yaml_block, new_yaml)
+            file_path.write_text(content, encoding='utf-8')
+    else:
+        # Prepend new YAML block
+        new_content = "---\nexecute: false\n---\n" + content
+        file_path.write_text(new_content, encoding='utf-8')
 
 
 # ==============================================================================

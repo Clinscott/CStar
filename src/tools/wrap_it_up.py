@@ -56,8 +56,29 @@ class SovereignWrapper:
 
         HUD.box_separator()
 
-        # 2. Pytest (Logic)
-        HUD.box_row("STEP 2", "Pytest Suite", HUD.CYAN)
+        # 2. Gungnir Matrix (Master Test Suite)
+        HUD.box_row("STEP 2", "Gungnir Matrix", HUD.CYAN)
+        try:
+            matrix_tests = [
+                "tests/unit/test_intent.py",
+                "tests/unit/test_warden.py",
+                "tests/unit/test_crucible.py"
+            ]
+            subprocess.run(
+                [sys.executable, "-m", "pytest"] + matrix_tests, 
+                cwd=str(self.root), 
+                check=True
+            )
+            HUD.box_row("STATUS", "PASS", HUD.GREEN)
+        except subprocess.CalledProcessError:
+            HUD.box_row("STATUS", "FAIL", HUD.RED)
+            HUD.persona_log("HEIMDALL", "BREACH: Gungnir Matrix failure. Security integrity compromised.")
+            sys.exit(1)
+
+        HUD.box_separator()
+
+        # 3. Pytest (Full Suite)
+        HUD.box_row("STEP 3", "Full Pytest Suite", HUD.CYAN)
         try:
             subprocess.run(
                 [sys.executable, "-m", "pytest"], 
@@ -233,6 +254,62 @@ class SovereignWrapper:
             HUD.persona_log("HEIMDALL", f"BREACH: Git Protocol Failed. {e}")
             sys.exit(1)
 
+    def run_integrity_check(self):
+        """
+        Executes the 3-Pillar Integrity Failsafe.
+        Pillar 1: Structural (Read/Lock)
+        Pillar 2: Semantic Sanity (Baseline match)
+        Pillar 3: Orphan Mapping (File existence)
+        """
+        HUD.box_top("INTEGRITY FAILSAFE")
+        
+        try:
+            engine = SovereignEngine(project_root=self.root)
+            vector_engine = engine.engine # SovereignVector instance
+            
+            # Pillar 1: Structural Sanity
+            HUD.box_row("PILLAR 1", "Structural Check", HUD.CYAN)
+            if not vector_engine.skills and len(vector_engine.vocab) == 0:
+                raise RuntimeError("Vector DB appears empty or structuraly corrupted.")
+            HUD.box_row("STATUS", "PASS", HUD.GREEN)
+
+            # Pillar 2: Semantic Sanity
+            HUD.box_row("PILLAR 2", "Semantic Baseline", HUD.CYAN)
+            baseline_query = "Deploy the system to live"
+            results = vector_engine.search(baseline_query)
+            if not results or results[0]['trigger'] != 'workflow_deployment':
+                 HUD.persona_log("WARNING", f"Semantic drift detected. Top match for baseline: {results[0]['trigger'] if results else 'NONE'}")
+                 raise RuntimeError("Semantic space poisoning detected. Baseline skill overridden.")
+            HUD.box_row("STATUS", "PASS", HUD.GREEN)
+
+            # Pillar 3: Orphan Mapping
+            HUD.box_row("PILLAR 3", "Orphan Mapping", HUD.CYAN)
+            # Sample last 5 skills from the engine
+            all_skills = list(vector_engine.skills.keys())
+            last_skills = all_skills[-5:] if len(all_skills) >= 5 else all_skills
+            
+            for skill in last_skills:
+                # Skill names are usually file-based in this framework
+                skill_path = self.root / "src" / "skills" / "local" / f"{skill}.py"
+                global_path = self.root / "skills_db" / f"{skill}.py"
+                if not skill_path.exists() and not global_path.exists():
+                    # Handle GLOBAL: prefix if present
+                    if skill.startswith("GLOBAL:"):
+                        clean_name = skill.replace("GLOBAL:", "")
+                        if not (self.root / "skills_db" / f"{clean_name}.py").exists():
+                             raise RuntimeError(f"Orphaned skill detected: {skill}. Physical file missing.")
+                    else:
+                        raise RuntimeError(f"Orphaned skill detected: {skill}. Physical file missing.")
+            HUD.box_row("STATUS", "PASS", HUD.GREEN)
+
+        except Exception as e:
+            HUD.box_row("STATUS", "FAIL", HUD.RED)
+            HUD.persona_log("HEIMDALL", f"CRITICAL: Integrity Check Failed. {str(e)}")
+            HUD.persona_log("ODIN", "Manual Rollback Recommended. Drop current collection and restore from snapshot.")
+            sys.exit(1)
+            
+        HUD.box_bottom()
+
 def main():
     try:
         wrapper = SovereignWrapper()
@@ -242,6 +319,9 @@ def main():
         
         # 2. Sync State (Index, Docs, Traces)
         stats = wrapper.synchronize_state()
+        
+        # 2b. Integrity Failsafe [BIFRÖST]
+        wrapper.run_integrity_check()
         
         # 3. Review Technical Debt
         wrapper.review_technical_debt()

@@ -4,11 +4,13 @@ import re
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 # Resolve shared UI from src/core/
 _core_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "core")
 sys.path.insert(0, _core_dir)
 from ui import HUD
+from sentinel.code_sanitizer import neuter_qmd_document, perform_quarantine_scan
 
 
 def _sanitize_skill_name(name):
@@ -83,7 +85,8 @@ def install_skill(skill_name, target_root=None):
 
     src = os.path.join(config["FrameworkRoot"], "skills_db", name)
     qua = os.path.join(base, "quarantine", name)
-    dst = os.path.join(base, "skills", name)
+    # Permanent Execution Jailing: Skills land in skills_db/, never src/skills/
+    dst = os.path.join(base, "skills_db", name)
 
     if not all(_validate_path(base if "db" not in p[0] else config["FrameworkRoot"], p[1]) for p in [(src, src), (base, qua), (base, dst)]):
         HUD.log("CRITICAL", "Path Violation"); return
@@ -106,7 +109,13 @@ def install_skill(skill_name, target_root=None):
             if input(f"{HUD.CYAN}>> Proceed with Warning? [y/N]: {HUD.RESET}").lower() != 'y':
                 shutil.rmtree(qua); return
 
-        if _promote_skill(qua, dst): HUD.log("PASS", f"Skill '{name}' deployed.")
+        # QMD Lockdown: Neuter any .qmd or .md files before promotion
+        for root, _, files in os.walk(qua):
+            for f in files:
+                if f.endswith((".qmd", ".md")):
+                    neuter_qmd_document(Path(os.path.join(root, f)))
+
+        if _promote_skill(qua, dst): HUD.log("PASS", f"Skill '{name}' deployed to skills_db (SANDBOXED).")
     except Exception as e:
         HUD.log("FAIL", f"Install Crash: {str(e)[:40]}")
         if os.path.exists(qua): shutil.rmtree(qua)

@@ -1,0 +1,6 @@
+---
+name: Rot13 Encoder
+description: Autonomously acquired skill for: Write a Python script that takes a single string argument from the CLI, encodes it using the ROT13 cipher, and prints the result.
+---
+# rot13_encoder
+Acquired via Hunt & Forge Protocol.

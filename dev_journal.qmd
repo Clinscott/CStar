@@ -1,5 +1,22 @@
 # Developer Journal: Corvus Star
 
+## 2026-02-22: Session 77 (The Gungnir Matrix & Fishtest Restoration)
+- **Fishtest Recovery Achievement**: Restored the `SovereignVector` intent engine to **91.8% accuracy (SPRT PASS)**, recovering from a severe 81.2% regression caused by thesaurus parsing logic failures.
+- **Thesaurus Restoration**: Re-implemented the bullet-point parser in `vector.py` and enriched core intent clusters (auth, aesthetics, ui) to ensure bi-directional semantic recall.
+- **Config Schema Alignment**: Patched `fishtest.py` to correctly ingestion `GLOBAL:` skills from the nested `config.json` schema, ensuring system-level intents are prioritized.
+- **Gungnir Matrix Deployment**: Engineered a 3-Pillar verification layer:
+    - **Suite 1 (Intent Rigidity)**: Provable `IntentPayload` immutability and lexical anchor precision.
+    - **Suite 2 (Heartbeat Monitor)**: Z-Score anomaly pulse detection and zero-trust circuit-breakers.
+    - **Suite 3 (Crucible Lockdown)**: Deep AST sanitization and automated Docker zombie-container purging.
+- **Hybrid Scoring Optimization**: Increased semantic candidate recall to 30 and tuned the Sovereign Priority boost to 1.2x to resolve conflicts between core and global auxiliary intents.
+
+## 2026-02-22: Session 76 (The Sovereign Crucible: Zero-Trust Jailing)
+- **Zero-Trust Finalization**: Completed the Secure Skill Acquisition Pipeline by enforcing absolute physical segregation in `skills_db/`.
+- **Docker Jailing**: Deployed `SandboxWarden.py` to handle untrusted code execution. Standardized on `3.14-alpine` for ultra-lightweight, isolated sandboxing.
+- **AST Perimeter Hardening**: Extended the Bifrost Gate to block MRO-based reflection attacks (`__subclasses__`) and `importlib` proxies.
+- **Quarto Neutralization**: Solved the ACE vulnerability in `.qmd` artifacts by force-injecting `execute: false` during the installation handshake.
+- **Transparent Routing**: Patched the `CorvusDispatcher` and `CorvusEngine` to recognize jailed paths and divert them to the Warden without changing user-facing command syntax.
+
 ## 2026-02-22: Session 75 (The Active Sentinel: AnomalyWarden & Circuit Breakers)
 - **Active Sentinel Transition**: Promoted the AnomalyWarden from a passive monitor to an active guardian by integrating `WardenCircuitBreaker` holds directly into the `Forge` loop.
 - **Persistent Anomaly Ledger**: Implemented `anomalies_queue.json` for persistent system drift tracking, ensuring high-probability anomalies survive daemon restarts.

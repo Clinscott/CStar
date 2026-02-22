@@ -115,6 +115,15 @@ class BraveSearch:
         
         return []
 
+    def search_knowledge(self, intent: str) -> list[dict[str, str]]:
+        """
+        Specialized search for Python skill acquisition.
+        Wraps user intent in semantic hints to pull documentation and code.
+        """
+        knowledge_query = f"Python implementation example for {intent} with documentation"
+        HUD.persona_log("ALFRED", f"Transmuting intent into knowledge query: {knowledge_query}")
+        return self.search(knowledge_query)
+
 if __name__ == "__main__":
     import sys
     
