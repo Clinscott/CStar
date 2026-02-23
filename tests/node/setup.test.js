@@ -28,8 +28,16 @@ describe('Genesis Bootstrapper (Native Installation)', () => {
     describe('Execution Engine', () => {
         let mockExecFunction;
         let mockFs;
+        let originalCi;
+        let originalSkipLink;
 
         beforeEach(() => {
+            // Unset CI and recursion guard to ensure tests behave non-CI (where npm link is called)
+            originalCi = process.env.CI;
+            originalSkipLink = process.env.CSTAR_SKIP_LINK;
+            delete process.env.CI;
+            delete process.env.CSTAR_SKIP_LINK;
+
             // Default: All execa calls pass
             mockExecFunction = mock.fn(async () => {
                 return { stdout: 'Mock Output' };
@@ -42,6 +50,12 @@ describe('Genesis Bootstrapper (Native Installation)', () => {
                     return true; // requirements.txt exists
                 })
             };
+        });
+
+        test.afterEach(() => {
+            // Restore environment
+            if (originalCi !== undefined) process.env.CI = originalCi;
+            if (originalSkipLink !== undefined) process.env.CSTAR_SKIP_LINK = originalSkipLink;
         });
 
         test('Standard Unix Bootstrapping (Creates venv)', async () => {
