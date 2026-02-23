@@ -26,3 +26,8 @@
 ### Session: [PLAN_INIT]
 - [x] **Improvement 1 (Doc/Arch)**: Extended "Subconscious Architecture" (Whisper/Void) to `AGENTS.qmd` and `investigate.qmd` ensuring consistent persona duality.
 - [x] **Improvement 2 (Visual)**: Standardized header formatting for `run-task.qmd` to match the new `plan.qmd` style.
+
+### Session: [Suite 6: Sovereign HUD]
+- [x] **Improvement 1 (Code)**: Augmented `HUD` class with an asynchronous rendering pipeline (`asyncio.Queue`) to enable thread-safe daemon broadcasts.
+- [x] **Improvement 2 (Visual)**: Implemented "Interruption Protocol" in `stream_text` to ensure cursor restoration and clean terminal state after task cancellation.
+

@@ -1,3 +1,4 @@
+import asyncio
 import os
 import sys
 import time
@@ -10,7 +11,7 @@ from typing import Any
 if sys.platform == "win32":
     # Set environment variable for any child processes
     os.environ["PYTHONIOENCODING"] = "utf-8"
-    
+
     # Reconfigure stdout/stderr for UTF-8
     for stream in [sys.stdout, sys.stderr]:
         if stream and hasattr(stream, "reconfigure"):
@@ -18,7 +19,7 @@ if sys.platform == "win32":
                 stream.reconfigure(encoding="utf-8", errors="replace")
             except (OSError, AttributeError):
                 pass
-    
+
     # Enable Windows Console Virtual Terminal Processing (ANSI support)
     try:
         import ctypes
@@ -59,20 +60,20 @@ class HUD:
         """[ALFRED] Lazy-load the persona from config if not already set."""
         if HUD._INITIALIZED:
             return
-            
+
         # If PERSONA was set manually before initialization, respect it.
-        # But how do we know if it was "manual"? 
+        # But how do we know if it was "manual"?
         # Default is "ALFRED". If it's something else, maybe it was manual.
         # For simplicity, if we are initializing, we load if config exists.
-            
+
         try:
-            from pathlib import Path
             import json
-            
+            from pathlib import Path
+
             # Resolve root relative to this file: src/core/ui.py -> project_root
             root = Path(__file__).parent.parent.parent.resolve()
             config_path = root / ".agent" / "config.json"
-            
+
             if config_path.exists():
                 with config_path.open("r", encoding="utf-8") as f:
                     data = json.load(f)
@@ -374,7 +375,7 @@ class HUD:
         """Standardized Logging to Terminal (Persona-Aware)."""
         ts = datetime.now().strftime("%H:%M:%S")
         theme = HUD.get_theme()
-        
+
         color = theme["main"]
         if level == "WARN": color = theme["warning"]
         if level == "FAIL": color = theme["error"]
@@ -418,3 +419,79 @@ class HUD:
                 f.write(entry)
         except (OSError, PermissionError):
             pass
+
+    # ──────────────────────────────────────────────────────────────────────
+    # [Ω] ASYNC RENDERING LAYER — Suite 6: Sovereign HUD
+    # Provides an async message queue for multi-daemon broadcasts and a
+    # typewriter stream with cancellation-safe cursor restoration.
+    # ──────────────────────────────────────────────────────────────────────
+
+    # Class-level async primitives (lazily initialized)
+    _render_queue: asyncio.Queue | None = None
+    _render_lock: asyncio.Lock | None = None
+
+    # ANSI cursor control sequences
+    CURSOR_HIDE: str = "\033[?25l"
+    CURSOR_SHOW: str = "\033[?25h"
+
+    @classmethod
+    def get_render_queue(cls) -> asyncio.Queue:
+        """Lazily initialize and return the singleton render queue."""
+        if cls._render_queue is None:
+            cls._render_queue = asyncio.Queue()
+        return cls._render_queue
+
+    @classmethod
+    def get_render_lock(cls) -> asyncio.Lock:
+        """Lazily initialize and return the singleton render lock."""
+        if cls._render_lock is None:
+            cls._render_lock = asyncio.Lock()
+        return cls._render_lock
+
+    @classmethod
+    async def broadcast(cls, source: str, message: str) -> None:
+        """Enqueue a message from any daemon source for sequential rendering."""
+        queue = cls.get_render_queue()
+        await queue.put({"source": source, "message": message, "ts": time.time()})
+
+    @classmethod
+    async def render_loop(cls, output_stream: Any = None) -> None:
+        """Drain the render queue sequentially under lock. Safe for concurrent producers."""
+        queue = cls.get_render_queue()
+        lock = cls.get_render_lock()
+        out = output_stream or sys.stdout
+
+        while True:
+            item = await queue.get()
+            if item is None:  # Poison pill — graceful shutdown
+                queue.task_done()
+                break
+            async with lock:
+                line = f"[{item['source']}] {item['message']}"
+                out.write(line + "\n")
+                out.flush()
+            queue.task_done()
+
+    @classmethod
+    async def stream_text(cls, text: str, delay: float = 0.02, output_stream: Any = None) -> None:
+        """Typewriter-style streaming with cancellation-safe cursor restoration."""
+        out = output_stream or sys.stdout
+        interrupted = True
+        out.write(cls.CURSOR_HIDE)
+        out.flush()
+        try:
+            for char in text:
+                out.write(char)
+                out.flush()
+                await asyncio.sleep(delay)
+            interrupted = False
+            out.write("\n")
+            out.flush()
+        finally:
+            # [ODIN] ALWAYS restore cursor. If interrupted mid-stream,
+            # inject a newline first so the terminal prompt lands on a clean line.
+            if interrupted:
+                out.write("\n")
+            out.write(cls.CURSOR_SHOW)
+            out.flush()
+

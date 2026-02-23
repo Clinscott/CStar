@@ -23,8 +23,10 @@ The decision-making brain of Corvus Star.
     - TCP bridge between Node.js and the Python Daemon. Standardized on `127.0.0.1`.
 - **The Sovereign Daemon** (`src/cstar/core/daemon.py`):
     - Pure WebSockets server acting as a high-speed Pub/Sub message broker.
-- **Sovereign HUD** (`src/cstar/core/tui.py`):
+- **Sovereign HUD** (`src/cstar/core/tui.py` & `src/core/ui.py`):
     - Reactive Textual UI driven by Daemon broadcasts (`STATE_ODIN`, `STATE_ALFRED_REPORT`).
+    - **Async Layer** (`ui.py`): Implements `render_loop`, `broadcast`, and `stream_text` with queue-based serialization.
+
 - **Agent Loop** (`src/node/agent_loop.js`):
     - Orchestrator for the Gungnir flight cycle.
 - **The Gungnir Calculus** (`src/cstar/core/sprt.py`):

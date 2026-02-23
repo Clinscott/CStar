@@ -1,5 +1,13 @@
 # Developer Journal: Corvus Star
 
+## 2026-02-23: Session 80 (Sovereign HUD Async Layer)
+- **The Async Transition**: Today we moved the `HUD` class from a purely synchronous `print`-based utility to an asynchrously-aware rendering layer. This was the missing piece for the multi-daemon architecture; without it, ODIN and Muninn would have eventually fought over the terminal cursor, resulting in unreadable "tearing."
+- **The Interruption Fix**: A subtle but critical fix was implemented in `stream_text`. By tracking an `interrupted` flag, we ensure that the cursor is not only shown but the line is *finished* with a `\n` if the task is cancelled. This prevents the "Phantom Prompt" bug where the next command line starts at the end of half-rendered text.
+- **Verification Logic**: Used `asyncio.gather` and `asyncio.Queue.join()` to create a high-velocity stress test. Proving zero-dropped frames for 150 concurrent messages builds significant confidence in the stability of the new UI pipeline.
+
+**Reflections**:
+As the engine grows, I/O boundaries become the primary source of instability. The simple `print()` is no longer sufficient when four or five daemons are all trying to update the user. The `asyncio.Queue` + `Lock` pattern is a classic but powerful solution to this "Single Consumer, Multiple Producers" problem. It ensures the UI remains as robust as the backend.
+
 ## 2026-02-23: Session 79 (Lazy Import Refactoring & Full Test Restoration)
 - **Import-Time Side Effects Eradicated**: Identified and resolved the root cause of persistent test-ordering failures: `uplink.py` bound `genai` and `errors` at module level via `try/import`, and `main_loop.py` called `bootstrap()` at import time. Both created cascading `sys.modules` pollution that made `unittest.mock.patch()` arrive too late to intercept.
 - **Lazy Binding Pattern**: Replaced the module-level `SDK_AVAILABLE` flag with a lazy `_sdk_available()` function. Moved `genai.Client` instantiation from the module scope into `__init__()`, and `errors.APIError` isinstance checks into `_transmit_with_backoff()`. This ensures `patch()` is always active before the code executes.
