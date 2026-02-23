@@ -1,6 +1,8 @@
 # Corvus Star Memory
 
-## 2026-02-22: Session 77 (The Gungnir Matrix & Fishtest Restoration)
+## 2026-02-22: Session 78 (AtomicCortex Tech Debt & Test Restoration)
+- **Precision Injection over Sledgehammer Mocking**: When a module contains both missing dependencies (like `AtomicCortex`) and functional production components (like `AnomalyWarden`), avoid replacing the entire module in `sys.modules`. Instead, import the real module and selectively inject the stub/mock. This prevents "blind spots" in integration tests where mocks might accidentally replace functional code you intended to test.
+- **Production Purity over Triage Convenience**: Stubs added to production code to bypass environment issues should be tracked and purged as soon as possible. Refined mocking strategies in the test suite are the superior long-term solution for handling missing optional dependencies without polluting the core engine.
 - **Parser Robustness over Markdown Aesthetics**: Reverting the thesaurus to a simple bullet-point format proved that parsing logic stability is more critical than Markdown table aesthetics. Complex regexes for table cells are fragile against variable whitespace; bullet points are harder for LLMs to corrupt during automated updates.
 - **Config Schema Entrenchment**: Test runners (`fishtest.py`) must be intentionally synchronized with core code when configuration schemas change (e.g., nesting under `system`). Failure to do so isolates the testing environment from the production engine's skill-loading logic.
 - **Hybrid Scoring Floors**: In N=1000 benchmark scenarios, a higher lexical evidence floor (e.g., 1.2x boost for Sovereign triggers) is mandatory to prevent non-deterministic semantic candidates from "stealing" the intent from mathematically identical lexical anchors.

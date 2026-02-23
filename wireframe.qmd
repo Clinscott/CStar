@@ -39,7 +39,7 @@ The decision-making brain of Corvus Star.
     - `metrics.py`: Computes GPHS (Global Project Health Score).
     - `prompt_linter.py`: AST-based validation of .prompty files.
     - `weights.json`: The GPHS weight ledger.
-    - **Atomic Cortex** (`src/core/engine/atomic_gpt.py`): Localized Transformer for code analysis.
+    - **Atomic Cortex** (`src/core/engine/atomic_gpt.py`): Localized Transformer for code analysis (Stub-free; Precision-mocked in tests).
     - **Warden Circuit Breaker**: Custom exception in `atomic_gpt.py` to halt forge loops.
     - **Anomaly Ledger** (`src/data/anomalies_queue.json`): Persistent JSON queue for system drift tracking.
     - **Alfred Overwatch** (`src/core/engine/alfred_observer.py`): Failure pattern guidance daemon.

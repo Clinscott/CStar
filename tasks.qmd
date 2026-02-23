@@ -345,7 +345,14 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Master Test Suite**: Implemented 3-Pillar verification (Intent Rigidity, Heartbeat Monitor, Crucible Lockdown). [x]
 - [x] **SPRT PASS**: Achieved **91.8% accuracy** on the 1000-case matrix, satisfying the Sequential Probability Ratio Test. [x]
 
-## ⏭️ Start Here Next (Phase 64)
+### 64. AtomicCortex Tech Debt & Test Restoration (Session 78)
+- [x] **Stub Purgatory**: Physically purged the temporary `AtomicCortex` stub from `atomic_gpt.py` to restore production purity. [x]
+- [x] **Precision Mocking**: Replaced broad module-level mocks with targeted `sys.modules` injection for 100% integration safety. [x]
+- [x] **Warden Exposure**: Verified that `AnomalyWarden` and other critical components remain functional during testing. [x]
+- [x] **Harness Stabilization**: Updated `manual_learn.py` to support the new precision isolation strategy. [x]
+- [x] **Verification**: 100% pass rate achieved on `test_muninn.py` and the learning harness. [x]
+
+## ⏭️ Start Here Next (Phase 65)
 - [ ] **Operation Ironclad**: Security hardening of `.env.local` and regular API key rotation logic.
 - [ ] **TUI Content Polish**: Add high-fidelity ASCII art and RUNE separators to the WAR ROOM sections.
 ```

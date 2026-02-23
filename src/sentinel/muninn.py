@@ -316,6 +316,7 @@ class Muninn:
                     self.observer.analyze_failure(target['file'], "Crucible Verification Failed"),
                     str(self.root / ".agent" / "ALFRED_SUGGESTIONS.md")
                 )
+                self._rollback(target) # Zero-Trust Rollback
                 self._record_metric(selected_strategist, hit=False)
                 return False
 
