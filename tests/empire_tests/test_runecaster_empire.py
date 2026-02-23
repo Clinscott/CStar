@@ -33,7 +33,7 @@ class TestRuneCasterEmpire:
         warden = RuneCasterWarden(mock_root)
         results = warden.scan()
         
-        breach = next((b for b in results if b["type"] == "RUNE_MISSING"), None)
+        breach = next((b for b in results if b["type"] == "RUNE_MISSING_ARGS"), None)
         assert breach is not None
         assert "Cast Runes" in breach["action"]
 
@@ -45,7 +45,7 @@ class TestRuneCasterEmpire:
         warden = RuneCasterWarden(mock_root)
         results = warden.scan()
         
-        breach = next((b for b in results if b["type"] == "RUNE_MISSING"), None)
+        breach = next((b for b in results if b["type"] == "RUNE_MISSING_RET"), None)
         assert breach is not None
 
     def test_scan_strict_init(self, mock_root):

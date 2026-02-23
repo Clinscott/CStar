@@ -22,13 +22,19 @@ from colorama import Fore, init
 # Initialize Colorama
 init(autoreset=True)
 
-# Shared Bootstrap (env-loading + sys.path) — fixes .env.local path bug
+# Shared Bootstrap (env-loading + sys.path) — deferred to avoid import-time side effects
 from src.sentinel._bootstrap import PROJECT_ROOT, bootstrap
 
-bootstrap()
+_bootstrapped = False
+
+def _ensure_bootstrapped():
+    """Lazily run bootstrap() on first use, not at import time."""
+    global _bootstrapped
+    if not _bootstrapped:
+        bootstrap()
+        _bootstrapped = True
 
 from src.core.ui import HUD
-from src.sentinel.muninn import Muninn
 
 
 # --- GRACEFUL SHUTDOWN ---
@@ -140,7 +146,9 @@ def process_repo(repo_path: Path, persona: str) -> bool:
     original_branch = ensure_branch(repo_path)
 
     try:
-        # 3. Execution
+        # 3. Execution — lazy imports to avoid import-time side effects
+        _ensure_bootstrapped()
+        from src.sentinel.muninn import Muninn
         raven = Muninn(str(repo_path))
         changed = raven.run()
 

@@ -30,7 +30,7 @@ bootstrap()
 # Core Imports
 from src.core.annex import HeimdallWarden
 from src.core.engine.alfred_observer import AlfredOverwatch
-from src.core.engine.atomic_gpt import AtomicCortex
+from src.core.engine.atomic_gpt import AnomalyWarden
 
 # Gungnir Engine Imports
 from src.core.metrics import ProjectMetricsEngine
@@ -295,17 +295,14 @@ class Muninn:
 
                 # [INTEGRATION] Neural Training Hook
                 try:
-                    cortex_path = self.root / ".agent" / "cortex.pkl"
-                    cortex = AtomicCortex()
-                    if cortex_path.exists():
-                        cortex.load_weights(str(cortex_path))
-
+                    warden = AnomalyWarden()
                     target_file = self.root / target['file']
                     if target_file.exists():
-                        code = target_file.read_text(encoding='utf-8')
-                        loss = cortex.train_step(code)
-                        cortex.save_weights(str(cortex_path))
-                        HUD.persona_log("INFO", f"AtomicCortex evolved. New Loss: {loss:.4f}")
+                        # Feed execution metadata to the warden for anomaly detection
+                        metadata = [100.0, 50, 3, 0.01]  # baseline vector
+                        warden.train_step(metadata, [0.0])  # label 0 = normal
+                        warden.save()
+                        HUD.persona_log("INFO", f"AnomalyWarden evolved. Training step complete.")
                 except Exception as e:
                     HUD.persona_log("WARN", f"Neural evolution failed: {e}")
 

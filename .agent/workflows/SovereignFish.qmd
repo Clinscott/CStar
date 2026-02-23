@@ -96,6 +96,10 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 
 *Format: `[Date] - [Category]: [Description]`*
 
+### 2026-02-23 (Session 79 - Dominion Expanded)
+-   **Architecture**: Added `logging.warning()` to `_bootstrap.py` silent persona sync exception, preventing invisible failures in the shared bootstrap pipeline. - Status: SECURED.
+-   **Code**: Imported `contextlib` in `prompt_linter.py` for future Linscott Standard compliance. - Status: SECURED.
+
 ### 2026-02-13 (Session 54 - Dominion Expanded)
 -   **Docs**: Enhanced `BaseWarden` docstrings (ignored dirs explicit). - Status: SECURED.
 -   **Code**: Refactored `NornWarden` (removed thinking comments). - Status: SECURED.

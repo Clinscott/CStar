@@ -1,3 +1,45 @@
+# Walkthrough: Session 79 - Lazy Import Refactoring & Test Restoration
+
+## 🎯 Goal
+Eliminate import-time side effects across `uplink.py` and `main_loop.py` that caused test-ordering failures through `sys.modules` poisoning. Achieve a fully green test suite (324/324) with proper lazy binding and dependency injection.
+
+## 🏆 Results
+| Metric | Value |
+|:---|:---|
+| **Pytest** | **324/324 Pass** ✅ |
+| **Node.js** | **20/20 Pass** ✅ |
+| **Ruff** | **Clean** (0 errors) ✅ |
+| **Architecture** | **Lazy Imports** (No module-level SDK binding) |
+
+## 🛠️ Key Changes
+
+### 1. Lazy SDK Binding (`src/cstar/core/uplink.py`)
+- **`_sdk_available()`**: Replaced module-level `try/import/except` with a lazy function that checks SDK availability at call time.
+- **Deferred `genai.Client`**: Moved `from google import genai` inside `__init__()` and `from google.genai import errors` inside `_transmit_with_backoff()`.
+- **Dependency Injection**: Added `client=` parameter to `__init__()` for direct test injection.
+
+### 2. Deferred Bootstrap (`src/sentinel/main_loop.py`)
+- **`_ensure_bootstrapped()`**: Replaced the module-level `bootstrap()` call with a lazy guard.
+- **Lazy Muninn**: Moved `from src.sentinel.muninn import Muninn` from module level into `process_repo()`.
+
+### 3. Test Mock Modernization
+- **`test_uplink.py`**: Complete rewrite using `monkeypatch` for `_sdk_available()` scoping.
+- **`test_muninn.py`**: Replaced `genai.Client` assertion with `mock_uplink` assertion (responsibility boundary testing).
+- **`test_main_loop.py`**: Updated mock targets from `src.sentinel.main_loop.Muninn` to `src.sentinel.muninn.Muninn`.
+
+### 4. Workflow Enhancement (`wrap-it-up.qmd`)
+- Added dynamic dev server shutdown (matches processes by CWD).
+- Added cache purge step (pytest, pycache, warden state, node_modules).
+
+## 🤝 Session Handshake
+**Session Delta**:
+- Eradicated all import-time side effects in uplink and main_loop.
+- Modernized test mocks to test responsibility boundaries, not implementation details.
+- Enhanced wrap-it-up workflow with cache purge and server shutdown.
+
+**Resume Directive**:
+- Proceed to Phase 66 in `tasks.qmd`.
+
 # Walkthrough: Session 78 - AtomicCortex Tech Debt & Test Restoration
 
 ## 🎯 Goal

@@ -42,5 +42,6 @@ def bootstrap() -> None:
         config = load_config(str(PROJECT_ROOT))
         persona = config.get("persona") or config.get("Persona") or "ALFRED"
         HUD.PERSONA = str(persona).upper()
-    except Exception:
-        pass
+    except Exception as e:
+        import logging
+        logging.warning(f"Bootstrap persona sync failed: {e}")

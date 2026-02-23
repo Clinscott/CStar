@@ -7,11 +7,6 @@ from colorama import Fore, init
 project_root = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(project_root))
 
-# Intercept missing AtomicCortex before importing Muninn
-from unittest.mock import MagicMock
-import src.core.engine.atomic_gpt
-src.core.engine.atomic_gpt.AtomicCortex = MagicMock
-
 from src.sentinel.muninn import Muninn
 from tests.harness.raven_proxy import RavenProxy
 

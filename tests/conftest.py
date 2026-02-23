@@ -62,3 +62,29 @@ def prevent_api_key_leak(monkeypatch):
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     monkeypatch.delenv("BRAVE_API_KEY", raising=False)
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+
+
+@pytest.fixture(autouse=True)
+def isolate_warden_state():
+    """
+    Prevent AnomalyWarden state files from leaking between tests.
+    Removes .agent/warden.pkl (and variants) before and after each test
+    so no test inherits stale weights from a previous one.
+    """
+    warden_files = [
+        Path(".agent/warden.pkl"),
+        Path(".agent/warden_test.pkl"),
+    ]
+
+    def _cleanup():
+        for f in warden_files:
+            if f.exists():
+                try:
+                    f.unlink()
+                except OSError:
+                    pass
+
+    _cleanup()
+    yield
+    _cleanup()
+

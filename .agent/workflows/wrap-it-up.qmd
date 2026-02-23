@@ -8,9 +8,35 @@ description: The Sovereign Commit & Dynamic Sync. Finalizes session, syncs state
    - Update `walkthrough.qmd` (Session accomplishments).
    - Update `dev_journal.qmd` (Reflections).
    - Update `memory.qmd` (Lessons learned).
-3. **Execute The Sovereign Commit**:
+3. **Shutdown Dev Servers**: Kill any dev servers running from the current project directory.
+   ```powershell
+   # Find and stop node/python processes whose working directory is under this project
+   $projectRoot = (Get-Location).Path
+   Get-Process -Name node, python -ErrorAction SilentlyContinue |
+     Where-Object { try { (Get-Process -Id $_.Id).Path -and $_.MainModule.FileName } catch { $false } } |
+     ForEach-Object {
+       $cmdLine = (Get-CimInstance Win32_Process -Filter "ProcessId=$($_.Id)").CommandLine
+       if ($cmdLine -match [regex]::Escape($projectRoot)) {
+         Write-Host "Stopping $($_.ProcessName) (PID: $($_.Id))"
+         Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue
+       }
+     }
+   ```
+4. **Purge Caches**: Clear all cached state so the next session starts clean.
+   ```powershell
+   # Pytest cache
+   Remove-Item -Recurse -Force .pytest_cache -ErrorAction SilentlyContinue
+   # Python bytecode caches
+   Get-ChildItem -Recurse -Directory -Filter __pycache__ | Remove-Item -Recurse -Force
+   # Warden state files (prevent cross-session pollution)
+   Remove-Item -Force .agent/warden.pkl, .agent/warden_test.pkl -ErrorAction SilentlyContinue
+   # Node modules cache
+   Remove-Item -Recurse -Force node_modules/.cache -ErrorAction SilentlyContinue
+   ```
+5. **Execute The Sovereign Commit**:
    - **Action**: run the following command.
    - **Details**: This script will Run Gungnir Gate (Lint/Matrix/Test), Compile Traces, Rebuild Index, and **Git Push**.
    `python src/tools/wrap_it_up.py`
-4. **Post-Commit Training**:
+6. **Post-Commit Training**:
    `python src/core/engine/atomic_gpt.py --train 500`
+

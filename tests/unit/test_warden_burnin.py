@@ -8,14 +8,13 @@ sys.path.append(str(PROJECT_ROOT))
 
 from src.core.engine.atomic_gpt import AnomalyWarden
 
-def test_burn_in():
+def test_burn_in(tmp_path):
     print("┌──────────────────────────────────────────────────────────────────────────────┐")
     print("│  🔱 ANOMALY WARDEN BURN-IN VERIFICATION                                       │")
     print("└──────────────────────────────────────────────────────────────────────────────┘")
     
-    # Force a fresh start
-    model_path = Path(".agent/warden_test.pkl")
-    if model_path.exists(): model_path.unlink()
+    # Force a fresh start with isolated tmp_path
+    model_path = tmp_path / "warden_test.pkl"
     
     warden = AnomalyWarden(model_path=model_path)
     initial_cycles = warden.burn_in_cycles
@@ -49,9 +48,6 @@ def test_burn_in():
     
     print(f"| Normal Probability: {normal_prob:.4f}")
     print(f"| Anomaly Probability (Outlier): {anomaly_prob:.4f}")
-    
-    # Cleanup
-    if model_path.exists(): model_path.unlink()
     
     print("└──────────────────────────────────────────────────────────────────────────────┘")
     print("✅ PASS: Burn-In protocol verified.")

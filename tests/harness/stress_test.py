@@ -20,6 +20,7 @@ init(autoreset=True)
 class SovereignStressTest:
     def __init__(self, max_retries=5) -> None:
         self.max_retries = max_retries
+        self.api_key = os.getenv("GOOGLE_API_KEY")
         if not self.api_key:
             print(f"{Fore.CYAN}[TEACHER] API KEY MISSING. Handing over to Lead Architect (Main Agent).")
             print(f"{Fore.CYAN}[TEACHER] Please analyze the current state and perform manual adjudication.")

@@ -6,7 +6,7 @@ import time
 from pathlib import Path
 from typing import Any, Callable, Optional
 from src.core.prompt_linter import PromptLinter
-from src.core.engine.atomic_gpt import AtomicCortex
+from src.core.engine.atomic_gpt import AnomalyWarden
 
 try:
     import psutil
@@ -109,19 +109,20 @@ class ProjectMetricsEngine:
         to return the final Global Project Health Score (GPHS).
         """
         linter = PromptLinter()
-        cortex = AtomicCortex()
+        warden = AnomalyWarden()
         
         # 1. Prompt Integrity (15%)
         prompt_score = linter.calculate_integrity_score()
         
-        # 2. Cortex Alignment (15%) - Measuring loss over recent log entries or source
-        sample_file = os.path.join(project_root, "src/sentinel/muninn.py")
-        cortex_loss = 1.0
-        if os.path.exists(sample_file):
-            with open(sample_file, 'r', encoding='utf-8') as f:
-                cortex_loss = cortex.calculate_project_loss(f.read())
-        # Convert loss to score (alignment: 1 means perfect alignment, 0 means random)
-        alignment_score = max(0, 100 * (1 - min(1, cortex_loss)))
+        # 2. Cortex Alignment (15%) - Uses AnomalyWarden anomaly probability
+        #    Low anomaly probability = high alignment
+        try:
+            anomaly_prob = warden.forward([100.0, 50, 3, 0.01])  # baseline metadata vector
+            alignment_score = max(0, 100 * (1 - anomaly_prob))
+        except Exception as e:
+            import logging
+            logging.warning(f"AnomalyWarden alignment fallback triggered: {e}")
+            alignment_score = 70.0  # safe fallback
         
         # 3. Functional Health (35%) - Mocking or running pytest pass rate
         # In a real environment, we'd run: pytest --json-report

@@ -49,7 +49,7 @@ class TestMuninnEmpire:
                 Muninn("dummy_root")
 
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key", "MUNINN_API_KEY": ""})
-    @patch("src.sentinel.muninn.AtomicCortex")
+    @patch("src.sentinel.muninn.AnomalyWarden")
     @patch("src.sentinel.muninn.Muninn._execute_hunt_async", new_callable=MagicMock)
     @patch("src.sentinel.muninn.HUD")
     @patch("src.sentinel.muninn.asyncio.run")
@@ -85,7 +85,7 @@ class TestMuninnEmpire:
         assert args[0] == "SUCCESS"
 
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key", "MUNINN_API_KEY": ""})
-    @patch("src.sentinel.muninn.AtomicCortex")
+    @patch("src.sentinel.muninn.AnomalyWarden")
     @patch("src.sentinel.muninn.Muninn._execute_hunt_async", new_callable=MagicMock)
     @patch("src.sentinel.muninn.HUD")
     @patch("src.sentinel.muninn.asyncio.run")

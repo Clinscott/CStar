@@ -352,7 +352,18 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Harness Stabilization**: Updated `manual_learn.py` to support the new precision isolation strategy. [x]
 - [x] **Verification**: 100% pass rate achieved on `test_muninn.py` and the learning harness. [x]
 
-## ⏭️ Start Here Next (Phase 65)
+### 65. Lazy Import Refactoring & Full Test Restoration (Session 79)
+- [x] **Import-Time Side Effects**: Refactored `uplink.py` to eliminate module-level `genai`/`errors` binding, replacing with lazy `_sdk_available()` function and deferred imports inside `__init__` and `_transmit_with_backoff`. [x]
+- [x] **Dependency Injection**: Added `client=` parameter to `AntigravityUplink.__init__()` for testability. [x]
+- [x] **Deferred Bootstrap**: Moved `bootstrap()` from module level to `_ensure_bootstrapped()` guard in `main_loop.py`, preventing cascading import chains during test collection. [x]
+- [x] **Lazy Muninn Import**: Moved `from src.sentinel.muninn import Muninn` from module level to inside `process_repo()` to eliminate import-time side effects. [x]
+- [x] **Test Mock Modernization**: Updated `test_uplink.py` (monkeypatch scoping), `test_muninn.py` (responsibility-boundary assertions), and `test_main_loop.py` (lazy import mock targets). [x]
+- [x] **Workflow Enhancement**: Added dynamic dev server shutdown and cache purge steps to `/wrap-it-up` workflow. [x]
+- [x] **SovereignFish**: Added logging to `_bootstrap.py` silent exception; imported `contextlib` in `prompt_linter.py`. [x]
+- [x] **Verification**: 324/324 pytest, 20/20 node, ruff clean. [x]
+
+## ⏭️ Start Here Next (Phase 66)
 - [ ] **Operation Ironclad**: Security hardening of `.env.local` and regular API key rotation logic.
 - [ ] **TUI Content Polish**: Add high-fidelity ASCII art and RUNE separators to the WAR ROOM sections.
-```
+- [ ] **Bare Exception Campaign**: Replace remaining `except Exception: pass` blocks across `src/` with `contextlib.suppress` or logging (38+ instances identified).
+

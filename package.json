@@ -29,7 +29,7 @@
   "scripts": {
     "test": "npm run test:node && npm run test:python",
     "test:python": "python -m pytest",
-    "test:node": "node --test \"tests/node/*.test.js\"",
+    "test:node": "node --test",
     "setup": "node src/node/setup.js",
     "postinstall": "npm run setup"
   },

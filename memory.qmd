@@ -1,5 +1,11 @@
 # Corvus Star Memory
 
+## 2026-02-23: Session 79 (Lazy Import Refactoring)
+- **Never Bind External SDKs at Module Level**: Module-level `try: from google import genai; SDK_AVAILABLE = True` creates a one-shot binding that persists in `sys.modules`. Tests that later `patch("google.genai.Client")` intercept the mock, but the already-imported module holds a stale reference. Use lazy functions like `_sdk_available()` and defer `from google import genai` to inside methods.
+- **Responsibility Boundary Testing**: When mocking class A which constructs class B, assert on A's mock (the direct dependency), not B's mock (an implementation detail). `mock_uplink.assert_called_with(api_key=...)` tests Muninn's responsibility. `mock_client.assert_called_with(...)` tests Uplink's internal implementation — which is the wrong layer for a Muninn unit test.
+- **Deferred Bootstrap Pattern**: Module-level `bootstrap()` calls cause cascading import chains during test collection (bootstrap → Muninn → AnomalyWarden → BraveSearch). Use a `_ensure_bootstrapped()` guard with a `_bootstrapped` flag to defer initialization to runtime.
+- **Lazy Import Mock Targets**: When a function does `from module import Class` lazily inside its body, `patch("module.Class")` must target the *source module*, not the *consumer module*. The lazy import re-imports from source each time, bypassing any mock set on the consumer.
+
 ## 2026-02-22: Session 78 (AtomicCortex Tech Debt & Test Restoration)
 - **Precision Injection over Sledgehammer Mocking**: When a module contains both missing dependencies (like `AtomicCortex`) and functional production components (like `AnomalyWarden`), avoid replacing the entire module in `sys.modules`. Instead, import the real module and selectively inject the stub/mock. This prevents "blind spots" in integration tests where mocks might accidentally replace functional code you intended to test.
 - **Production Purity over Triage Convenience**: Stubs added to production code to bypass environment issues should be tracked and purged as soon as possible. Refined mocking strategies in the test suite are the superior long-term solution for handling missing optional dependencies without polluting the core engine.

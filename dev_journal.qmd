@@ -1,5 +1,16 @@
 # Developer Journal: Corvus Star
 
+## 2026-02-23: Session 79 (Lazy Import Refactoring & Full Test Restoration)
+- **Import-Time Side Effects Eradicated**: Identified and resolved the root cause of persistent test-ordering failures: `uplink.py` bound `genai` and `errors` at module level via `try/import`, and `main_loop.py` called `bootstrap()` at import time. Both created cascading `sys.modules` pollution that made `unittest.mock.patch()` arrive too late to intercept.
+- **Lazy Binding Pattern**: Replaced the module-level `SDK_AVAILABLE` flag with a lazy `_sdk_available()` function. Moved `genai.Client` instantiation from the module scope into `__init__()`, and `errors.APIError` isinstance checks into `_transmit_with_backoff()`. This ensures `patch()` is always active before the code executes.
+- **Dependency Injection**: Added `client=` parameter to `AntigravityUplink.__init__()`, enabling direct test injection and eliminating the need for complex mock chains.
+- **Deferred Bootstrap**: Replaced the module-level `bootstrap()` call in `main_loop.py` with a `_ensure_bootstrapped()` guard, and moved the `Muninn` import from module level into `process_repo()`.
+- **Responsibility Boundary Testing**: Refined `test_muninn_api_key_priority` to assert on `mock_uplink` (Muninn's direct dependency) instead of `genai.Client` (an implementation detail of the Uplink). This prevents over-testing and eliminates brittle cross-module mock chains.
+- **Workflow Enhancement**: Added dynamic dev server shutdown (matches processes by CWD) and cache purge (pytest, pycache, warden state, node_modules) to the `/wrap-it-up` workflow.
+
+**Reflections**:
+The "Import-Time Side Effect" problem is Python's most insidious test killer. Module-level `try/except ImportError` blocks create a one-shot binding at first import — once `SDK_AVAILABLE = True` is set, it persists in `sys.modules` forever. Tests that later `patch("google.genai.Client")` think they're mocking the real thing, but the module already has a stale reference. Lazy imports solve this by deferring the binding to call time, where patches are guaranteed to be active. The lesson: **never bind external SDKs at module level in code that needs to be testable**.
+
 ## 2026-02-22: Session 78 (AtomicCortex Tech Debt & Test Restoration)
 - **Production Purity Restoration**: Purged the `AtomicCortex` stub from `src/core/engine/atomic_gpt.py`. This restores the file to its original, dependency-free state and removes temporary tech debt added during earlier triage.
 - **Precision Injection Strategy**: Implemented a surgical `sys.modules` injection in `test_muninn.py` and `manual_learn.py`. Instead of replacing the entire `atomic_gpt` module, we now inject only the missing `AtomicCortex` class. This ensures that `AnomalyWarden` and other critical production components are functional and correctly exercised during tests.

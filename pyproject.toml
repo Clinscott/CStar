@@ -65,6 +65,7 @@ exclude = [
     "mock_project",
     "sterileAgent",
     ".corvus_quarantine",
+    ".agent/chroma_db",
     "tests/empire_tests/src/error_real.py",
     "tests/gauntlet"
 ]

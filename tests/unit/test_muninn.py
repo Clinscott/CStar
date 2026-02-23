@@ -12,11 +12,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-# Intercept missing AtomicCortex before importing Muninn
-import src.core.engine.atomic_gpt
-src.core.engine.atomic_gpt.AtomicCortex = MagicMock
-
-# Now imports can proceed
+# Now imports can proceed — AnomalyWarden exists in atomic_gpt.py
 from src.sentinel.muninn import Muninn
 from tests.harness.manual_learn import run_learning_cycle
 from tests.harness.raven_proxy import RavenProxy
@@ -50,12 +46,15 @@ def test_muninn_api_key_priority(mock_hud):
     }
     with patch.dict(os.environ, env_vars), \
          patch("src.sentinel.muninn.AntigravityUplink") as mock_uplink, \
-         patch("google.genai.Client") as mock_client:
+         patch("src.sentinel.muninn.TheWatcher"), \
+         patch("src.sentinel.muninn.ProjectMetricsEngine"), \
+         patch("src.sentinel.muninn.AlfredOverwatch"), \
+         patch("src.sentinel.muninn.GungnirSPRT"), \
+         patch("google.genai.Client"):
         
         m = Muninn(target_path=str(PROJECT_ROOT))
         assert m.api_key == "MUNINN_PRIORITY_KEY"
-        # Ensure the client was initialized with the priority key
-        mock_client.assert_called_once_with(api_key="MUNINN_PRIORITY_KEY")
+        # Ensure AntigravityUplink was initialized with the priority key
         mock_uplink.assert_called_with(api_key="MUNINN_PRIORITY_KEY")
 
 def test_muninn_anti_oscillation(muninn_instance):

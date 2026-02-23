@@ -21,7 +21,7 @@ from src.sentinel.main_loop import load_persona, load_target_repos, process_repo
 class TestProcessRepoSkipsDirty:
     """Dirty working tree -> returns False, no commit."""
 
-    @patch("src.sentinel.main_loop.Muninn")
+    @patch("src.sentinel.muninn.Muninn")
     @patch("src.sentinel.main_loop.is_clean", return_value=False)
     def test_dirty_repo_returns_false(self, mock_clean, mock_fish, tmp_path):
         result = process_repo(tmp_path, "ODIN")
@@ -34,7 +34,7 @@ class TestProcessRepoCommitsOnChange:
 
     @patch("src.sentinel.main_loop.restore_branch")
     @patch("src.sentinel.main_loop.git_cmd")
-    @patch("src.sentinel.main_loop.Muninn")
+    @patch("src.sentinel.muninn.Muninn")
     @patch("src.sentinel.main_loop.ensure_branch", return_value="main")
     @patch("src.sentinel.main_loop.is_clean", return_value=True)
     def test_commit_on_change(
@@ -55,7 +55,7 @@ class TestProcessRepoCommitsOnChange:
 
     @patch("src.sentinel.main_loop.restore_branch")
     @patch("src.sentinel.main_loop.git_cmd")
-    @patch("src.sentinel.main_loop.Muninn")
+    @patch("src.sentinel.muninn.Muninn")
     @patch("src.sentinel.main_loop.ensure_branch", return_value="main")
     @patch("src.sentinel.main_loop.is_clean", return_value=True)
     def test_no_commit_when_no_change(
