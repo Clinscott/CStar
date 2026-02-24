@@ -23,6 +23,8 @@ The decision-making brain of Corvus Star.
     - TCP bridge between Node.js and the Python Daemon. Standardized on `127.0.0.1`.
 - **The Sovereign Daemon** (`src/cstar/core/daemon.py`):
     - Pure WebSockets server acting as a high-speed Pub/Sub message broker.
+- **Universal Event Router** (`src/node/core/EventManager.ts` & `src/node/gateway/routes/ws/events.ts`):
+    - Multi-tenant WebSocket gateway with singleton-based broadcast routing and ghost-key garbage collection.
 - **Sovereign HUD** (`src/cstar/core/tui.py` & `src/core/ui.py`):
     - Reactive Textual UI driven by Daemon broadcasts (`STATE_ODIN`, `STATE_ALFRED_REPORT`).
     - **Async Layer** (`ui.py`): Implements `render_loop`, `broadcast`, and `stream_text` with queue-based serialization.
@@ -78,6 +80,8 @@ Verification and hardening tools.
 Specialized utilities for analysis and repair.
 - **Heimdall: The Guardian** (`code_sentinel.py`):
     - `scan(path)`: Static analysis for syntax and security.
+- **MemoryDB** (`src/core/engine/MemoryDB.py`):
+    - Vector-based memory engine with `app_id` partitioning and composite ID namespacing (`app_id::intent_id`).
 - **Voice Check: Logic Diagnostic** (`src/tools/voice_check.py`):
     - `main()`: Manual verification of persona dialogue routing and scoring.
 

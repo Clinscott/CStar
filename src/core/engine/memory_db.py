@@ -10,8 +10,7 @@ from typing import Any, List, Dict
 class MemoryDB:
     """
     [ODIN] The Semantic Brain of Corvus Star.
-    Wraps ChromaDB with ONNX-powered local embeddings for intent resolution.
-    Falls back to SimulatedMemoryDB if chromadb is missing.
+    Wraps ChromaDB with strict Multi-Tenant partitioning.
     """
     def __init__(self, project_root: str):
         self.root = Path(project_root)
@@ -20,104 +19,104 @@ class MemoryDB:
         
         if not self.simulated:
             try:
-                # Initialize Persistent Client
                 self.client = chromadb.PersistentClient(path=str(self.db_path))
-                
-                # [ALFRED] Ensure we use Cosine space for 0.0-1.0 confidence mapping
                 self.collection = self.client.get_or_create_collection(
                     name="cstar_skills",
                     metadata={"hnsw:space": "cosine"}
                 )
             except Exception:
                 from src.core.ui import HUD
-                HUD.persona_log("WARN", "ChromaDB failed to initialize. Falling back to Simulation.")
+                HUD.persona_log("WARN", "ChromaDB failed. Falling back to Simulation.")
                 self.simulated = True
                 self.collection = None
         else:
             self.collection = None
-            # Initialize in-memory mock storage
-            self._mock_records = [] # List of {ids, docs, metadatas}
-            # Pre-load some baseline skills for Pillar 2 assertion
+            self._mock_records = [] 
+            # Pre-load baseline
             self._mock_records.append({
-                "id": "/workflow_deployment",
+                "id": "system::/workflow_deployment",
                 "doc": "Deploy the system to live production environment",
-                "metadata": {}
+                "metadata": {"app_id": "system"}
             })
 
-    def upsert_skill(self, intent_id: str, description: str, metadata: Dict[str, Any] = None):
-        """Adds or updates a skill in the semantic database."""
+    def upsert_skill(self, app_id: str, intent_id: str, description: str, metadata: Dict[str, Any] = None):
+        """
+        [PHASE 2] Composite ID Namespacing.
+        Ensures no cross-tenant collisions (app_id::intent_id).
+        """
+        composite_id = f"{app_id}::{intent_id}"
+        safe_metadata = metadata or {}
+        safe_metadata["app_id"] = app_id
+
         if not self.simulated and self.collection:
-            # [ALFRED] ChromaDB requires non-empty metadata in some versions
-            safe_metadata = metadata or {"source": "SovereignEngine"}
             self.collection.upsert(
                 documents=[description],
                 metadatas=[safe_metadata],
-                ids=[intent_id]
+                ids=[composite_id]
             )
         else:
             # Update mock
-            # Remove existing ID if present
-            self._mock_records = [r for r in self._mock_records if r["id"] != intent_id]
+            self._mock_records = [r for r in self._mock_records if r["id"] != composite_id]
             self._mock_records.append({
-                "id": intent_id,
+                "id": composite_id,
                 "doc": description,
-                "metadata": metadata or {}
+                "metadata": safe_metadata
             })
 
-    def search_intent(self, query: str, n_results: int = 1) -> List[Dict[str, Any]]:
+    def search_intent(self, app_id: str, query: str, n_results: int = 1) -> List[Dict[str, Any]]:
         """
-        Performs raw semantic search.
-        In Cosine space: 0.0 = identical, 1.0 = orthogonal.
-        Returns mapped results with 'confidence' score (1.0 - distance).
+        [PHASE 2] Zero-Trust Isolation.
+        Filters by app_id in metadata and strips prefix on exit.
         """
         if not self.simulated and self.collection:
             try:
                 results = self.collection.query(
                     query_texts=[query],
-                    n_results=n_results
+                    n_results=n_results,
+                    where={"app_id": app_id} # Strict partitioning
                 )
                 
-                formatted_results = []
                 if not results['ids'] or not results['ids'][0]:
                     return []
 
+                formatted_results = []
                 for i in range(len(results['ids'][0])):
-                    intent_id = results['ids'][0][i]
-                    distance = results['distances'][0][i]
-                    doc = results['documents'][0][i]
+                    composite_id = results['ids'][0][i]
+                    intent_id = composite_id.replace(f"{app_id}::", "", 1)
                     
-                    # Mapping Cosine distance to confidence score
+                    distance = results['distances'][0][i]
                     confidence = max(0.0, 1.0 - float(distance))
                     
                     formatted_results.append({
                         "trigger": intent_id,
                         "score": confidence,
                         "metadata": results['metadatas'][0][i],
-                        "description": doc
+                        "description": results['documents'][0][i]
                     })
-                    
                 return formatted_results
             except Exception:
-                pass # Fallback to simulation if query fails
+                pass
 
-        # Simulated Search (Lexical matching)
+        # Simulated Sandbox
         query = query.lower()
         processed = []
-        for r in self._mock_records:
+        # Filter mock records by app_id FIRST
+        sandbox = [r for r in self._mock_records if r["metadata"].get("app_id") == app_id]
+
+        for r in sandbox:
+            intent_id = r["id"].replace(f"{app_id}::", "", 1)
             doc = r["doc"].lower()
-            # Simple word overlap for score
             q_words = set(query.split())
             d_words = set(doc.split())
             overlap = len(q_words & d_words)
             score = (overlap / len(q_words)) if q_words else 0.0
             
-            # Boost if ID matches
-            if query in r["id"].lower():
+            if query in intent_id.lower():
                 score = max(score, 0.95)
             
             if score > 0:
                 processed.append({
-                    "trigger": r["id"],
+                    "trigger": intent_id,
                     "score": score,
                     "metadata": r["metadata"],
                     "description": r["doc"]

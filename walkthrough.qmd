@@ -1,3 +1,38 @@
+# Walkthrough: Session 81 - The Spoke Routing Layer
+
+## 🎯 Goal
+Implement Phase 2 (Multi-Tenant Memory) and Phase 3 (Universal Event Router) to support isolated agent states and a high-performance WebSocket Pub/Sub gateway.
+
+## 🏆 Results
+| Metric | Value |
+|:---|:---|
+| **Memory Isolation** | **Strict app_id Partitioning** |
+| **Event Router** | **Multi-Tenant WebSocket** |
+| **Stability** | **30s Heartbeat Enforcement** |
+| **Verification** | **100% Pass** (Empire TDD) |
+
+## 🛠️ Key Changes
+
+### 1. Multi-Tenant Memory (`MemoryDB.py`)
+- **Composite IDs**: Standardized on `app_id::intent_id` for document tracking.
+- **Partitioning**: Enforced mandatory `where` filters on all ChromaDB queries to prevent cross-tenant exposure.
+
+### 2. Universal Event Router (`EventManager.ts` & `events.ts`)
+- **Pub/Sub Gateway**: Implemented a singleton-based message broker with heartbeat monitoring.
+- **Garbage Collection**: Automated map-key eviction to prevent memory leaks from abandoned subscriptions.
+
+### 3. Verification Suite
+- **Empire TDD**: Created `test_ws_pubsub_empire.ts` to prove end-to-end pub/sub reliability and tenant isolation.
+
+## 🤝 Session Handshake
+**Session Delta**:
+- Secured technical debt in partition logic.
+- Implemented high-fidelity WebSocket gateway.
+- Accomplished 100% TDD verification for Phase 3.
+
+**Resume Directive**:
+- Proceed to Phase 4 in `tasks.qmd` (Intent-Driven Hub Overlays).
+
 # Walkthrough: Session 80 - Sovereign HUD Async Layer
 
 ## 🎯 Goal

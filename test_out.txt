@@ -1,0 +1,9 @@
+C:\Users\Craig\Corvus\CorvusStar\src\core\__init__.py:17: UserWarning: Core Pydantic V1 functionality isn't compatible with Python 3.14 or greater.
+  import pydantic.v1.fields as fields
+C:\Users\Craig\AppData\Roaming\Python\Python314\site-packages\backoff\_decorator.py:201: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+  if asyncio.iscoroutinefunction(target):
+..
+----------------------------------------------------------------------
+Ran 2 tests in 2.136s
+
+OK

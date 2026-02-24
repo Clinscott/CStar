@@ -14,6 +14,8 @@ def apply_pydantic_v1_patch():
         try:
             # Check if pydantic.v1 is available
             try:
+                import warnings
+                warnings.filterwarnings("ignore", category=UserWarning, message=".*Pydantic V1 functionality.*")
                 import pydantic.v1.fields as fields
             except ImportError:
                 import pydantic.fields as fields

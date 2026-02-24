@@ -1,5 +1,10 @@
 # Corvus Star Memory
 
+## 2026-02-23: Session 81 (The Spoke Routing Layer)
+- **Multi-Tenant Partitioning**: Always use `app_id` as the primary partition key for vector and pub/sub state to ensure strict isolation between agents.
+- **WebSocket Garbage Collection**: Explicitly delete keys from subscription maps when the number of subscribers drops to zero to prevent "ghost key" memory leaks.
+- **Heartbeat Enforcement**: Use 30s server-initiated intervals for WebSocket termination to clear dead connections on high-latency networks.
+
 ## 2026-02-23: Session 80 (Sovereign HUD Async Layer)
 - **Centralized Async Rendering**: When multiple asynchronous producers (daemons) must share a single synchronous output (terminal), use an `asyncio.Queue` to buffer messages and an `asyncio.Lock` to serialize the final write. This creates a "funnel" that eliminates character tearing and race conditions.
 - **Cancellation-Safety in UI**: Typewriter effects or progress bars that hide the cursor MUST use a `finally` block to restore it (`\033[?25h`). If interrupted mid-line, the block should also inject a newline (`\n`) to prevent the next terminal prompt from colliding with aborted text.

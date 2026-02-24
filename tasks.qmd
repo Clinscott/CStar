@@ -362,13 +362,14 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **SovereignFish**: Added logging to `_bootstrap.py` silent exception; imported `contextlib` in `prompt_linter.py`. [x]
 - [x] **Verification**: 324/324 pytest, 20/20 node, ruff clean. [x]
 
-### 66. Sovereign HUD Async Layer (Session 80)
-- [x] **Async Rendering Funnel**: Implemented `asyncio.Queue` + `Lock` in `HUD` class to serialize multi-daemon broadcasts and prevent terminal tearing. [x]
-- [x] **Interruption Protocol**: Hardened `stream_text` with cancellation-safe cursor restoration and clean-line newline injection. [x]
-- [x] **Verification Suite**: Created `tests/unit/test_ui.py` proving zero-dropped frames under 150-message high-velocity flood. [x]
+### 67. The Spoke Routing Layer (Session 81)
+- [x] **Multi-Tenant Memory**: Implemented `app_id` partitioning in `MemoryDB.py`. [x]
+- [x] **Universal Event Router**: Launched WebSocket gateway with Pub/Sub isolation. [x]
+- [x] **Verification**: 100% pass on Empire TDD (`test_ws_pubsub_empire.ts`). [x]
+- [x] **HUD Fortification**: Hardened async layer and Pydantic warning suppression. [x]
 
-## ⏭️ Start Here Next (Phase 67)
-- [ ] **Operation Ironclad**: Security hardening of `.env.local` and regular API key rotation logic.
-- [ ] **TUI Content Polish**: Add high-fidelity ASCII art and RUNE separators to the WAR ROOM sections.
-- [ ] **Bare Exception Campaign**: Replace remaining `except Exception: pass` blocks across `src/` with `contextlib.suppress` or logging (38+ instances identified).
+## ⏭️ Start Here Next (Phase 68)
+- [ ] **Phase 4: Intent-Driven Hub Overlays**: Implement dynamic dashboard tiles.
+- [ ] **Operation Ironclad**: Secure regular API key rotation logic in `bin/cstar.js`.
+- [ ] **TUI Content Polish**: Add high-fidelity ASCII art to WAR ROOM.
 
