@@ -36,3 +36,6 @@ ravens.lock
 tests/empire_tests/temp_gauntlet/
 
 ANNEXATION_PLAN.qmd
+
+# Node.js
+node_modules/
