@@ -4,7 +4,7 @@
 *Identity: ODIN/ALFRED*
 
 ## Overview
-The Sovereign Fish Daemon (`main_loop.py`) is a background process that continuously monitors your repositories, identifies structural or quality issues, and autonomously fixes them using the Gemini API.
+The Sovereign Fish Daemon (`main_loop.py`) is a background process that continuously monitors your repositories, identifies structural or quality issues, and autonomously fixes them using the Gemini API. The core logic is implemented in the `Muninn` agent (`muninn.py`).
 
 ## 🎯 Features
 - **Auto-Discovery (Annex)**: Uses `annex.py` logic to find missing tests and code quality issues.
@@ -17,7 +17,7 @@ The Sovereign Fish Daemon (`main_loop.py`) is a background process that continuo
 ## 🚀 Usage
 
 ### 1. Prerequisites
-- **API Key**: Ensure `GOOGLE_API_KEY` is set in your environment variables.
+- **API Key**: Ensure `GOOGLE_API_KEY` or `MUNINN_API_KEY` is set in your environment variables.
 - **Dependencies**:
   ```bash
   pip install -r requirements.txt
@@ -36,7 +36,7 @@ c* ravens
 
 Or run directly via Python:
 ```bash
-python main_loop.py
+python -m src.sentinel.main_loop
 ```
 *(The loop runs every 15 minutes. Use `Ctrl+C` to stop)*
 
@@ -51,12 +51,10 @@ python main_loop.py
    ```
 
 ## 📂 Configuration
-The target repositories are defined in `main_loop.py`:
+The target repositories are defined in `.agent/config.json`:
 - `Corvus Star`
 - `KeepOS`
 - `The Nexus`
-
-To add more, edit the `TARGET_REPOS` list in the script.
 
 ## 📝 Logs
 Activity is logged to `sovereign_activity.log` in the `CorvusStar` directory.

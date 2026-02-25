@@ -1,5 +1,10 @@
 # Corvus Star Memory
 
+## 2026-02-24: Session 82 (File Corruption & Arch Remapping)
+- **Silent File Corruption**: If a Python file triggers `IndentationError` on lines that appear visually perfect, suspect null-byte corruption or interleaved characters. The most resilient fix is to regenerate the file content from scratch using `write_to_file` to ensure a clean byte stream.
+- **Architectural Naming Convergence**: Legacy naming (`sovereign_fish`) should be aggressively purged from both code and documentation once a successor (`Muninn`) is established. Maintaining dual-naming in tests leads to "Split-Brain" collection errors and search drift.
+- **Dependency Drift in Wardens**: Wardens that wrap CLI tools (Radon, Vulture) must have their underlying libraries explicitly declared in `pyproject.toml`. Without this, test collection will fail in sterile environments, even if the wrapper code is syntactically perfect.
+
 ## 2026-02-23: Session 81 (The Spoke Routing Layer)
 - **Multi-Tenant Partitioning**: Always use `app_id` as the primary partition key for vector and pub/sub state to ensure strict isolation between agents.
 - **WebSocket Garbage Collection**: Explicitly delete keys from subscription maps when the number of subscribers drops to zero to prevent "ghost key" memory leaks.

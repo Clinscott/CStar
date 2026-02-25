@@ -479,18 +479,18 @@ class Muninn:
         # [Ragnarok] Live Knowledge Injection
         live_docs = scan_and_enrich_imports(original_code, self.root)
         if live_docs:
-             HUD.persona_log("INFO", "Augmenting Forge prompt with live documentation.")
+            HUD.persona_log("INFO", "Augmenting Forge prompt with live documentation.")
 
         # We append docs to the code so it appears in the context
         augmented_code = original_code + live_docs
 
         prompt = self._load_prompt("forge_implementation", {
-             "ACTION": target['action'],
-             "FILE": target['file'],
-             "CODE": augmented_code,
-             "TEST": test_content,
-             "ALFRED_SUGGESTIONS": self._get_alfred_suggestions(),
-             "SEARCH_CONTEXT": target.get('search_context', '')
+            "ACTION": target['action'],
+            "FILE": target['file'],
+            "CODE": augmented_code,
+            "TEST": test_content,
+            "ALFRED_SUGGESTIONS": self._get_alfred_suggestions(),
+            "SEARCH_CONTEXT": target.get('search_context', '')
         })
 
         if not prompt:

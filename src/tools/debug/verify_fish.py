@@ -16,20 +16,20 @@ google.generativeai = generativeai
 # Add current dir to path
 sys.path.append(os.getcwd())
 
-print("--- VERIFYING SOVEREIGN FISH ---")
+print("--- VERIFYING MUNINN ---")
 try:
-    import sovereign_fish
-    print("SUCCESS: sovereign_fish imported.")
+    from src.sentinel.muninn import Muninn
+    print("SUCCESS: Muninn imported.")
     
     # Mock API key
     os.environ["GOOGLE_API_KEY"] = "TEST"
     
     # Init
-    fish = sovereign_fish.SovereignFish(".")
-    print("SUCCESS: SovereignFish initialized.")
+    fish = Muninn(".")
+    print("SUCCESS: Muninn initialized.")
     
 except ImportError as e:
-    print(f"FAILURE: ImportError in sovereign_fish: {e}")
+    print(f"FAILURE: ImportError in Muninn: {e}")
 except Exception as e:
     print(f"FAILURE: Exception in sovereign_fish: {e}")
 

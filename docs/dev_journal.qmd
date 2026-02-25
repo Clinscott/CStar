@@ -16,8 +16,9 @@ Preserve the "why" behind technical decisions and provide a narrative history of
 
 ## 2026-02-23 - Session 81: The Spoke Routing Layer
 - **Accomplishments**: Implemented Phase 2 (Multi-Tenant Memory) and Phase 3 (Universal Event Router).
+- **Git State**: Cleaned up `node_modules` from tracking and secured `.gitignore`.
 - **Decisions**: Standardized on `app_id` partitioning.
-- **Current State**: Phase 3 verified with Empire TDD.
+- **Current State**: Phase 3 verified; Build clean.
 
 ## 2026-02-13 - Operation Bifröst: The Web-Aware Reforge (Session 54)
 ### Summary

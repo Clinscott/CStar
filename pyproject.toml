@@ -20,7 +20,12 @@ dependencies = [
     "python-dotenv",
     "PyYAML",
     "textual",
-    "pytest-asyncio"
+    "pytest-asyncio",
+    "google-genai",
+    "google-generativeai",
+    "colorama",
+    "radon",
+    "chromadb"
 ]
 
 [project.scripts]

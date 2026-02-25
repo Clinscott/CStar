@@ -11,9 +11,9 @@
 
 ## Session Log
 
-### Session: [Hardening Ragnarok (Session 66)]
-- [x] **Improvement 1 (Arch)**: Implemented Dynamic Model Discovery in `antigravity_bridge.py` to optimize persona-based routing for ALFRED and ODIN.
-- [x] **Improvement 2 (Resilience)**: Injected Asynchronous Exponential Backoff in the bridge to handle transient API quota/availability errors (Ghost Protocol).
+### Session: [Hardening & Collection Fix]
+- [x] **Improvement 1 (Arch)**: Purged legacy `sovereign_fish` architectural debt, remapping the entire test suite to modern `Muninn` centers and ensuring 100% test collection (328 tests).
+- [x] **Improvement 2 (Resilience)**: Stabilized dependency management in `pyproject.toml` and hardened `BraveSearch` / `Muninn` to handle missing environment variables gracefully during collection.
 
 ### Session: [Wrap-It-Up Execution]
 - [x] **Improvement 1 (Doc)**: Updated `README.qmd` with Refined Persona (Odin/Alfred) lore-alignment details.

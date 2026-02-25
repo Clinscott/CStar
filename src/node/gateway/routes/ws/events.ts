@@ -6,7 +6,7 @@ import { EventManager } from '../../../core/EventManager.js';
  * [Ω] The Universal Event Router WebSocket Endpoint
  * Handles tenant-aware subscriptions and mobile-edge stability.
  */
-const wsRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
+const wsRoutes: FastifyPluginAsync = async (fastify: any) => {
     fastify.get('/connect', { websocket: true }, (connection: any, req: any) => {
         // 1. Mandatory app_id Extraction
         const appId = (req.query as any)?.app_id;

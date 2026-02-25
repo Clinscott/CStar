@@ -21,7 +21,7 @@ from src.sentinel._bootstrap import bootstrap
 
 bootstrap()
 
-from src.sentinel.muninn import Muninn as SovereignFish
+from src.sentinel.muninn import Muninn
 
 FIXTURES_DIR = Path(__file__).parent.parent.parent / "tests" / "fixtures" / "ravens_responses"
 
@@ -114,7 +114,7 @@ def harvest(cycles: int = 5):
         print(f"{'='*60}")
 
         try:
-            fish = SovereignFish(str(project_root), client=proxy_client)
+            fish = Muninn(str(project_root), client=proxy_client)
             fish.run()
         except Exception as e:
             print(f"[HARVEST] Cycle {cycle + 1} crashed: {e}")

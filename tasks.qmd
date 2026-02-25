@@ -368,8 +368,15 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Verification**: 100% pass on Empire TDD (`test_ws_pubsub_empire.ts`). [x]
 - [x] **HUD Fortification**: Hardened async layer and Pydantic warning suppression. [x]
 
-## ⏭️ Start Here Next (Phase 68)
-- [ ] **Phase 4: Intent-Driven Hub Overlays**: Implement dynamic dashboard tiles.
+### 68. Test Collection Resolution & Arch Remapping (Session 82)
+- [x] **Collection Resolution**: Resolved 18 test collection errors by purging legacy `sovereign_fish` references and restoring corrupted test files. [x]
+- [x] **Code Hygiene**: Restored `test_strategists_bonus.py` from scratch, eliminating phantom `IndentationError` caused by null-byte corruption. [x]
+- [x] **Arch Alignment**: Updated `harvest_responses.py`, `verify_fish.py`, and `README_SOVEREIGN_FISH.qmd` to point to `Muninn` logic centers. [x]
+- [x] **Dependency Hardening**: Reconciled `pyproject.toml` with mission-critical dependencies (`google-genai`, `colorama`, `radon`, `chromadb`). [x]
+- [x] **Verification**: 100% test collection pass (328 tests) achieved. [x]
+
+## ⏭️ Start Here Next (Phase 69)
 - [ ] **Operation Ironclad**: Secure regular API key rotation logic in `bin/cstar.js`.
-- [ ] **TUI Content Polish**: Add high-fidelity ASCII art to WAR ROOM.
+- [ ] **TUI Content Polish**: Add high-fidelity ASCII art and RUNE separators to the WAR ROOM sections.
+- [ ] **Intent-Driven Hub Overlays**: Implement dynamic dashboard tiles.
 

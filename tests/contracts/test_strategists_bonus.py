@@ -75,8 +75,6 @@ class TestMimirWarden:
     """Detects high complexity using Radon."""
 
     def test_finds_complex_function(self, tmp_path):
-        # We can keep this real since it was passing, or mock it too.
-        # Let's keep it real for now as Radon seems stable.
         src = tmp_path / "src"
         src.mkdir()
         target = src / "complex_mess.py"
@@ -110,44 +108,38 @@ def nightmare(x):
     @patch('src.sentinel.muninn.ValkyrieWarden')
     @patch('src.sentinel.muninn.MimirWarden')
     @patch('src.sentinel.muninn.FreyaWarden')
-    def test_valkyrie_precedes_beauty(self, mock_visual, mock_mimir, mock_valkyrie, mock_annex, tmp_path, mock_genai_client):
+    def test_valkyrie_precedes_beauty(self, mock_visual, mock_mimir, mock_valkyrie, mock_annex, tmp_path):
         # Setup: All strategists find targets
         mock_annex_inst = mock_annex.return_value
-        del mock_annex_inst.scan_async
         mock_annex_inst.scan.return_value = [] # No critical breaches
-        mock_annex_inst.breaches = []
-
+        
         mock_valkyrie_inst = mock_valkyrie.return_value
-        del mock_valkyrie_inst.scan_async
         breaches_valk = [{"file": "dead.py", "action": "Prune", "severity": "HIGH"}]
         mock_valkyrie_inst.scan.return_value = breaches_valk
 
         mock_mimir_inst = mock_mimir.return_value
-        del mock_mimir_inst.scan_async
         breaches_mimir = [{"file": "complex.py", "action": "Simplify", "severity": "MEDIUM"}]
         mock_mimir_inst.scan.return_value = breaches_mimir
 
         mock_visual_inst = mock_visual.return_value
-        del mock_visual_inst.scan_async
         breaches_visual = [{"file": "ugly.py", "action": "Beautify", "severity": "LOW"}]
         mock_visual_inst.scan.return_value = breaches_visual
 
-        os.environ["GOOGLE_API_KEY"] = "TEST"
-        fish = Muninn(str(tmp_path), client=mock_genai_client)
-        
-        fish._emit_metrics_summary = MagicMock()
-        fish._save_state = MagicMock()
-        # Mock _forge_improvement to avoid execution phase
-        fish._forge_improvement = MagicMock(return_value=None)
-        
-        with patch('src.sentinel.muninn.HUD') as mock_hud:
-            mock_hud.PERSONA = "ODIN"
-            
-            fish.run()
-            
-            log_calls = [str(c) for c in mock_hud.persona_log.call_args_list]
-            target_logs = [l for l in log_calls if "Target:" in l]
-            
-            assert len(target_logs) > 0
-            # Should choose Valkyrie (Prune)
-            assert "Prune" in target_logs[0]
+        with patch.dict(os.environ, {"GOOGLE_API_KEY": "TEST"}):
+            with patch("google.genai.Client"):
+                fish = Muninn(str(tmp_path))
+                
+                fish._emit_metrics_summary = MagicMock()
+                fish._save_state = MagicMock()
+                fish._forge_improvement = MagicMock(return_value=None)
+                
+                with patch('src.sentinel.muninn.HUD') as mock_hud:
+                    mock_hud.PERSONA = "ODIN"
+                    fish.run()
+                    
+                    log_calls = [str(c) for c in mock_hud.persona_log.call_args_list]
+                    target_logs = [l for l in log_calls if "Target:" in l]
+                    
+                    assert len(target_logs) > 0
+                    # Should choose Valkyrie (Prune)
+                    assert "Prune" in target_logs[0]

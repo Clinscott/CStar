@@ -1,0 +1,1 @@
+{"root":["./src/node/core/corvusprocess.ts","./src/node/core/eventmanager.ts","./src/node/gateway/server.ts","./src/node/gateway/plugins/corvus.ts","./src/node/gateway/routes/api/intent.ts","./src/node/gateway/routes/streams/telemetry.ts","./src/node/gateway/routes/ws/events.ts"],"version":"5.9.3"}

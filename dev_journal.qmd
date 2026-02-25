@@ -1,5 +1,13 @@
 # Developer Journal: Corvus Star
 
+## 2026-02-24: Session 82 (Test Collection Resolution & Arch Remapping)
+- **The Phantam Indentation Bug**: Encountered a bizarre `IndentationError` in `test_strategists_bonus.py` that appeared even on empty lines. Investigation suggested null-byte corruption or interleaved text from a failed write. The solution was a total rewrite from scratch—restoring the logic while stripping the invisible debt.
+- **The Sovereign Purge**: Today marks the final erasure of `sovereign_fish` as a naming convention. By remapping the remaining contract tests to `Muninn`, we've unified the lore and the code. This prevents the "Split-Brain" confusion where the agent searches for a file that only exists in legacy documentation.
+- **Dependency Reconcilliation**: Found that several core Wardens (Valkyrie, Torvalds) were failing collection because their underlying engines (`radon`, `vulture`, `chromadb`) weren't in the `pyproject.toml`. This is a reminder that the environment must be as strictly versioned as the code.
+
+**Reflections**:
+File corruption is the "Ghost in the Machine" of autonomous coding. When an LLM fails to correctly close a file handle or crashes mid-edit, it leaves behind artifacts that no amount of refactoring can fix—you simply have to burn the file and build it anew. The lesson: **If ruff says a line is indented incorrectly but your eyes say it's perfect, trust the linter and assume corruption.**
+
 ## 2026-02-23: Session 80 (Sovereign HUD Async Layer)
 - **The Async Transition**: Today we moved the `HUD` class from a purely synchronous `print`-based utility to an asynchrously-aware rendering layer. This was the missing piece for the multi-daemon architecture; without it, ODIN and Muninn would have eventually fought over the terminal cursor, resulting in unreadable "tearing."
 - **The Interruption Fix**: A subtle but critical fix was implemented in `stream_text`. By tracking an `interrupted` flag, we ensure that the cursor is not only shown but the line is *finished* with a `\n` if the task is cancelled. This prevents the "Phantom Prompt" bug where the next command line starts at the end of half-rendered text.

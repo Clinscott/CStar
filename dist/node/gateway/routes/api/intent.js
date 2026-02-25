@@ -14,7 +14,6 @@ export default async function (fastify) {
     fastify.post('/intent', {
         schema: {
             body: IntentSchema,
-            description: 'Inject intent payload into Corvus core',
             response: {
                 202: Type.Object({ status: Type.String(), message: Type.String() }),
                 503: Type.Object({ error: Type.String() })
