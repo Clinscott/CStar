@@ -31,3 +31,7 @@
 - [x] **Improvement 1 (Code)**: Augmented `HUD` class with an asynchronous rendering pipeline (`asyncio.Queue`) to enable thread-safe daemon broadcasts.
 - [x] **Improvement 2 (Visual)**: Implemented "Interruption Protocol" in `stream_text` to ensure cursor restoration and clean terminal state after task cancellation.
 
+### Session: [Cognitive Routing & HUD Patch]
+- [x] **Improvement 1 (Code/Arch)**: Implemented the `CognitiveRouter.ts` in the Gateway, enabling tiered routing between local Ollama (Edge) and the Gungnir Matrix (Core).
+- [x] **Improvement 2 (Visual/HUD)**: Upgraded the Sovereign HUD (`tui.py`) with real-time telemetry intercepts and dynamic "EDGE" health monitoring to visualize the routing decisions.
+

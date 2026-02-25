@@ -16,6 +16,7 @@ dependencies = [
     "playwright",
     "pytest",
     "ruff",
+    "vulture",
     "psutil",
     "python-dotenv",
     "PyYAML",

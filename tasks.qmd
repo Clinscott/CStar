@@ -375,8 +375,14 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Dependency Hardening**: Reconciled `pyproject.toml` with mission-critical dependencies (`google-genai`, `colorama`, `radon`, `chromadb`). [x]
 - [x] **Verification**: 100% test collection pass (328 tests) achieved. [x]
 
-## ⏭️ Start Here Next (Phase 69)
+### 69. Cognitive Hub & Sovereign HUD Patch (Session 83)
+- [x] **Cognitive Router**: Implemented `CognitiveRouter.ts` for tiered AI traffic control (Ollama vs. Core). [x]
+- [x] **Gateway Integration**: Wired `/api/intent` to the Cognitive Router for zero-cost edge processing. [x]
+- [x] **HUD Telemetry**: Upgraded `tui.py` with real-time routing intercepts and "EDGE" health monitoring. [x]
+- [x] **Verification**: Validated tiered routing with `verify_router.ts` and passing Node.js test suite. [x]
+
+## ⏭️ Start Here Next (Phase 70)
+- [ ] **Three.js Smart Objects**: Embed intent-dispatchers into the isometric Astrologer UI.
+- [ ] **KeepOS State Logic**: Implement persistence and mutation handling for routed intents.
 - [ ] **Operation Ironclad**: Secure regular API key rotation logic in `bin/cstar.js`.
-- [ ] **TUI Content Polish**: Add high-fidelity ASCII art and RUNE separators to the WAR ROOM sections.
-- [ ] **Intent-Driven Hub Overlays**: Implement dynamic dashboard tiles.
 

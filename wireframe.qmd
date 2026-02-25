@@ -25,8 +25,11 @@ The decision-making brain of Corvus Star.
     - Pure WebSockets server acting as a high-speed Pub/Sub message broker.
 - **Universal Event Router** (`src/node/core/EventManager.ts` & `src/node/gateway/routes/ws/events.ts`):
     - Multi-tenant WebSocket gateway with singleton-based broadcast routing and ghost-key garbage collection.
+- **Cognitive Router** (`src/node/core/CognitiveRouter.ts`):
+    - `route(intent)`: Bifurcates traffic between Edge (Ollama) and Core (Gungnir Matrix) based on `requires_core` payload flags.
 - **Sovereign HUD** (`src/cstar/core/tui.py` & `src/core/ui.py`):
     - Reactive Textual UI driven by Daemon broadcasts (`STATE_ODIN`, `STATE_ALFRED_REPORT`).
+    - **Telemetry Intercepts**: Real-time visualization of `EDGE_ROUTER` and `CognitiveRouter` activity.
     - **Async Layer** (`ui.py`): Implements `render_loop`, `broadcast`, and `stream_text` with queue-based serialization.
 
 - **Agent Loop** (`src/node/agent_loop.js`):

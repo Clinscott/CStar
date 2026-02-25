@@ -1,5 +1,13 @@
 # Developer Journal: Corvus Star
 
+## 2026-02-25: Session 83 (Cognitive Hub & Sovereign HUD Patch)
+- **The Zero-Cost Edge**: Today's major breakthrough was the Cognitive Router. By offloading trivial intents to local Ollama instances, we've achieved "zero-cost" high-speed inference for common UI tasks. This preserves our Gemini quota for the heavy lifting required by Muninn and Odin.
+- **Telemetry Intercepts**: The new intercept logic in `tui.py` makes the "Edge" visible. Seeing `[EDGE_ROUTER]` logs in the console confirms that the tiering logic is actually working in real-time. It transforms the TUI from a passive display into a live monitoring station for the entire spoke network.
+- **Architectural Cleanup**: While implementing the router, I noticed the HUD needed more visual distinction for edge telemetry. The "EDGE UP/DOWN" status in the header provides that immediate psychological reassurance that the local worker is ready.
+
+**Reflections**:
+Local-first AI is the future of resilient agentic systems. A cluster of spikes should not go dark just because an API quota is reached. The Cognitive Router is the first step toward a "Self-Healing Edge" where Corvus Star remains operational even in disconnected or throttled states. The lesson: **Always build a low-fidelity, local fallback for high-frequency intents.**
+
 ## 2026-02-24: Session 82 (Test Collection Resolution & Arch Remapping)
 - **The Phantam Indentation Bug**: Encountered a bizarre `IndentationError` in `test_strategists_bonus.py` that appeared even on empty lines. Investigation suggested null-byte corruption or interleaved text from a failed write. The solution was a total rewrite from scratch—restoring the logic while stripping the invisible debt.
 - **The Sovereign Purge**: Today marks the final erasure of `sovereign_fish` as a naming convention. By remapping the remaining contract tests to `Muninn`, we've unified the lore and the code. This prevents the "Split-Brain" confusion where the agent searches for a file that only exists in legacy documentation.

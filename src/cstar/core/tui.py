@@ -101,6 +101,8 @@ class VitalsHeader(Static):
             yield Label(" │ ", id="h_sep2")
             yield Label("[green]●[/] ONLINE", id="h_status")
             yield Label(" │ ", id="h_sep3")
+            yield Label("EDGE --", id="h_edge")
+            yield Label(" │ ", id="h_sep_edge")
             yield Label("CPU --%", id="h_cpu")
             yield Label("  RAM --MB", id="h_ram")
             yield Label(" │ ", id="h_sep4")
@@ -116,6 +118,14 @@ class VitalsHeader(Static):
         
         vitals = state.get("vitals", {})
         if isinstance(vitals, dict):
+            # Update Edge Status
+            edge_lbl = self.query_one("#h_edge", Label)
+            edge_status = vitals.get("edge_status", "UNKNOWN")
+            if edge_status == "ONLINE":
+                edge_lbl.update("[green]EDGE UP[/]")
+            else:
+                edge_lbl.update("[dim]EDGE DOWN[/dim]")
+
             cpu = vitals.get("cpu", "--")
             ram = vitals.get("ram", "--")
             branch = vitals.get("branch", "main")
@@ -380,13 +390,29 @@ class SovereignApp(App):
         msg_type = data.get("type")
         event = data.get("event")
         payload = data.get("data", {})
-        
-        # [CANARY] Correlation logic: Stop the clock on terminal events
-        terminal_event = False
-        error_status = 0.0
-        
+
         try:
             console = self.screen.query_one("#console", Log)
+
+            # -----------------------------------------------------------------------
+            # [UPGRADE] Cognitive Router Intercepts (Phase 4 Telemetry)
+            # -----------------------------------------------------------------------
+            if msg_type == "INFERENCE_RESULT" and data.get("source") == "ollama":
+                intent = data.get("intent", "UNKNOWN")
+                console.write(f"[dim][EDGE_ROUTER] Zero-cost inference executed: {intent}[/dim]")
+                return
+
+            if msg_type == "TELEMETRY" and data.get("source") == "CognitiveRouter":
+                status = data.get("status", "INFO")
+                msg = data.get("message", "")
+                if status == "ERROR":
+                    console.write(f"[red][ROUTER_FAULT] {msg}[/red]")
+                else:
+                    console.write(f"[cyan][ROUTER] {msg}[/cyan]")
+                return
+            # -----------------------------------------------------------------------
+            
+            # [CANARY] Correlation logic: Stop the clock on terminal events
             
             if msg_type == "broadcast":
                 if event == "SYNC_STATE":

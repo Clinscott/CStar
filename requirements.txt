@@ -1,4 +1,6 @@
 google-generativeai
+google-genai
+vulture
 colorama
 pytest
 ruff
