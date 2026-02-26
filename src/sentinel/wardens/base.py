@@ -1,6 +1,7 @@
 """
-Base Warden Architecture
-Defines the standard interface and shared utilities for all Wardens.
+[WARDEN] Base Architecture
+Lore: "The foundations of the watchtowers."
+Purpose: Defines the standard interface and shared utilities for all Wardens.
 """
 
 import json
@@ -19,12 +20,23 @@ class BaseWarden(ABC):
     """
 
     def __init__(self, root: Path) -> None:
+        """
+        Initializes the warden with the project root.
+        
+        Args:
+            root: Path to the project root directory.
+        """
         self.root = root
-        self.config = self._load_config()
-        self.brave = BraveSearch()
+        self.config: dict[str, Any] = self._load_config()
+        self.brave: BraveSearch = BraveSearch()
 
     def _load_config(self) -> dict[str, Any]:
-        """Loads configuration from .agent/config.json."""
+        """
+        Loads configuration from .agent/config.json.
+        
+        Returns:
+            A dictionary containing the configuration data.
+        """
         config_path = self.root / ".agent" / "config.json"
         if config_path.exists():
             try:
@@ -37,28 +49,30 @@ class BaseWarden(ABC):
         """
         Centralized logic for ignoring directories.
         Default ignores: .git, .venv, node_modules, __pycache__, .agent, .pytest_cache, dist, build.
+        
+        Args:
+            path: Path to the file or directory being checked.
+            
+        Returns:
+            True if the path should be ignored, False otherwise.
         """
-        # Common ignored directories
         ignored_dirs = {".git", ".venv", "node_modules", "__pycache__", ".agent", ".pytest_cache", "dist", "build"}
 
-        # Check if any part of the path is in the ignored list
         for part in path.parts:
             if part in ignored_dirs:
                 return True
 
-        # Also ignore dotfiles generally (except .github, etc. if needed, but for now safe to ignore hidden)
-        # Actually .agent is relevant for some wardens (Huginn), so specific wardens might override or check specifically.
-        # But for general code scanning, we usually ignore .agent.
-        # Wait, Huginn needs .agent/traces.
-        # So we should make this overridable or context specific?
-        # For now, let's keep it strict for code scanners and let Huginn handle its specific path targeting manually
-        # since it targets a specific directory, not a walk of the root.
-
         return False
 
-    def research_topic(self, topic: str) -> list[dict]:
+    def research_topic(self, topic: str) -> list[dict[str, str]]:
         """
         Utilizes Brave Search to find info on a topic.
+        
+        Args:
+            topic: The search query or topic to research.
+            
+        Returns:
+            A list of search results.
         """
         if self.brave.is_quota_available():
             SovereignHUD.persona_log("INFO", f"Researching: {topic}...")
@@ -71,12 +85,9 @@ class BaseWarden(ABC):
     def scan(self) -> list[dict[str, Any]]:
         """
         Scans the codebase for breaches.
-        Returns a list of dictionaries with keys:
-            - type: str
-            - file: str (relative path)
-            - action: str
-            - severity: str (LOW, MEDIUM, HIGH, CRITICAL)
-            - line: int (optional)
+        
+        Returns:
+            A list of breach dictionaries with keys: type, file, action, severity, line.
         """
         pass
 
@@ -84,6 +95,9 @@ class BaseWarden(ABC):
         """
         Asynchronous wrapper for scan().
         Executes the blocking scan in a separate thread to prevent loop blocking.
+        
+        Returns:
+            A list of breach dictionaries.
         """
         import asyncio
         return await asyncio.to_thread(self.scan)
@@ -92,15 +106,25 @@ class BaseWarden(ABC):
         """
         Proposes a self-evolution update to the Warden itself.
         Returns a Critical Breach targeting this Warden's source file.
+        
+        Args:
+            issue: Description of the edge case or issue requiring evolution.
+            
+        Returns:
+            A breach dictionary representing the evolution proposal.
         """
-        # introspect to find my own file path
         import inspect
-        warden_file = Path(inspect.getfile(self.__class__)).relative_to(self.root)
+        try:
+            # Safely resolve own file path
+            warden_file = Path(inspect.getfile(self.__class__)).relative_to(self.root)
+        except (ValueError, TypeError):
+            # Fallback if path resolution fails
+            warden_file = Path("src/sentinel/wardens/base.py")
 
         return {
             "type": "WARDEN_EVOLUTION",
             "file": str(warden_file),
             "action": f"EVOLVE: {issue}",
-            "severity": "CRITICAL", # Forced Critical to prioritize evolution
+            "severity": "CRITICAL",
             "context": "Self-Reflection caused by recurring unhandled edge case."
         }

@@ -1,5 +1,4 @@
 # report_engine.py
-import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -10,6 +9,7 @@ if str(current_dir) not in sys.path:
     sys.path.append(str(current_dir))
 
 import utils
+
 from src.core.sovereign_hud import SovereignHUD
 
 
@@ -19,14 +19,14 @@ class ReportEngine:
     Prevents "generic engineer" hallucinations by algorithmically 
     injecting the correct voice and signature.
     """
-    
+
     def __init__(self, project_root: str | Path | None = None) -> None:
         self.root = Path(project_root) if project_root else Path.cwd()
         # Load fresh config to ensure we catch dynamic switches
         self.config = utils.load_config(self.root)
         legacy = self.config.get("persona") or self.config.get("Persona") or "ALFRED"
         self.persona = str(self.config.get("system", {}).get("persona", legacy)).upper()
-        
+
         # Ensure SovereignHUD is synced
         SovereignHUD.PERSONA = self.persona
 
@@ -76,7 +76,7 @@ class ReportEngine:
     def generate_report(self, title: str, body: str, status: str = "INFO") -> str:
         """Combines all elements into a final markdown string."""
         return (
-            self.header(title) + 
-            "\n" + body + 
+            self.header(title) +
+            "\n" + body +
             "\n" + self.signature()
         )

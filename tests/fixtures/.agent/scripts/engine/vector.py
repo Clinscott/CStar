@@ -21,7 +21,7 @@ class SovereignVector:
         self.thesaurus = self._load_thesaurus(thesaurus_path) if thesaurus_path else {}
         self.corrections = self._load_json(corrections_path) if corrections_path else {"phrase_mappings": {}, "synonym_updates": {}}
         self.stopwords = self._load_stopwords(stopwords_path)
-        
+
         # SovereignFish: Boot Log
         SovereignHUD.box_top("ENGINE INITIALIZED")
         SovereignHUD.box_row("STATUS", "ONLINE", SovereignHUD.GREEN)
@@ -39,23 +39,23 @@ class SovereignVector:
     def _load_json(self, path):
         if not path or not os.path.exists(path): return {}
         try:
-            with open(path, 'r', encoding='utf-8') as f:
+            with open(path, encoding='utf-8') as f:
                 return json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
             return {}
 
     def _load_stopwords(self, path):
         defaults = {
-            'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 
-            'is', 'are', 'was', 'were', 'be', 'been', 'it', 'this', 'that', 'these', 'those', 
+            'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by',
+            'is', 'are', 'was', 'were', 'be', 'been', 'it', 'this', 'that', 'these', 'those',
             'i', 'you', 'he', 'she', 'we', 'they', 'me', 'him', 'her', 'us', 'them',
             'what', 'which', 'who', 'whom', 'whose', 'where', 'when', 'why', 'how',
             'some', 'any', 'no', 'not', 'do', 'does', 'did', 'done', 'will', 'would', 'shall', 'should',
-            'can', 'could', 'may', 'might', 'must', 'have', 'has', 'had', 'go', 'get', 'make', 'do'
+            'can', 'could', 'may', 'might', 'must', 'have', 'has', 'had', 'go', 'get', 'make'
         }
         if not path or not os.path.exists(path): return defaults
         try:
-            with open(path, 'r', encoding='utf-8') as f:
+            with open(path, encoding='utf-8') as f:
                 loaded = set(json.load(f))
                 return loaded if loaded else defaults
         except (FileNotFoundError, json.JSONDecodeError, TypeError):
@@ -65,7 +65,7 @@ class SovereignVector:
         """[ALFRED] Secure thesaurus loader with weight clamping and correction merging."""
         # [ALFRED] Staged Symbiosis: Support .qmd with .md fallback
         if not path: return {}
-        
+
         actual_path = path
         if not os.path.exists(actual_path):
             if actual_path.endswith('.md'):
@@ -74,10 +74,10 @@ class SovereignVector:
             elif actual_path.endswith('.qmd'):
                 md = actual_path.replace('.qmd', '.md')
                 if os.path.exists(md): actual_path = md
-        
+
         if not os.path.exists(actual_path) or os.path.getsize(actual_path) > 2*10**6: return {}
         try:
-            with open(actual_path, 'r', encoding='utf-8') as f: content = f.read()
+            with open(actual_path, encoding='utf-8') as f: content = f.read()
             mapping = {}
             for word, syns in re.findall(r'- (?:\*\*)?([\w\d\-\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff]+)(?:\*\*)?: ([\w\d,\.: \-\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff]+)', content):
                 syn_dict = {}
@@ -119,7 +119,7 @@ class SovereignVector:
         tokens = []
         for match in re.finditer(r'[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff]|[\w\d\/\-]+', text):
             tokens.append(match.group())
-        
+
         # Filter stopwords UNLESS the token is a known trigger
         return [t for t in tokens if t not in self.stopwords or t in self.trigger_map] or tokens
 
@@ -127,7 +127,7 @@ class SovereignVector:
         """[ALFRED] Neural Query Expansion with stemming and thesaurus signals."""
         tokens = self.tokenize(query)
         weights = {}
-        
+
         for t in tokens:
             # 0. Check Token Cache
             if t in self._token_cache:
@@ -136,17 +136,17 @@ class SovereignVector:
                 for k, v in start_weights.items():
                     weights[k] = max(weights.get(k, 0), v)
                 continue
-                
+
             # If not in cache, compute expansion
             t_weights = {t: 1.0}
-            
+
             # 1. Stemming Rules (Dampened)
             if len(t) > 4:
                 stem = None
                 if t.endswith('ing'): stem = t[:-3]
                 elif t.endswith('ed') or t.endswith('es'): stem = t[:-2]
                 elif t.endswith('s') and not t.endswith('ss'): stem = t[:-1]
-                
+
                 if stem and len(stem) > 2:
                     t_weights[stem] = 0.8
 
@@ -154,14 +154,14 @@ class SovereignVector:
             if t in self.thesaurus:
                 for syn, weight in self.thesaurus[t].items():
                     t_weights[syn] = max(t_weights.get(syn, 0), weight)
-            
+
             # Cache the result for this token
             self._token_cache[t] = t_weights
-            
+
             # Merge into main weights
             for k, v in t_weights.items():
                 weights[k] = max(weights.get(k, 0), v)
-        
+
         return weights
 
     def add_skill(self, trigger: str, text: str) -> None:
@@ -179,21 +179,21 @@ class SovereignVector:
         """[ALFRED] Build TF-IDF index with cached sorted vocabulary for rapid search."""
         num_docs = len(self.skills)
         if num_docs == 0: return
-        
+
         # [ALFRED] Cache sorted vocab to avoid redundant sorts in search loop
         self.sorted_vocab = sorted(list(self.vocab))
-        
+
         doc_counts = {}
         for text in self.skills.values():
             words = set(self.tokenize(text))
             for word in words:
                 doc_counts[word] = doc_counts.get(word, 0) + 1
                 if word not in self.vocab: self.vocab.add(word) # Dynamic update
-        
+
         # Calculate IDF
         for word, count in doc_counts.items():
             self.idf[word] = math.log(num_docs / (1 + count)) + 1
-            
+
         for trigger, text in self.skills.items():
             # Build initial vector from doc tokens (Use Term Frequency)
             tokens = self.tokenize(text)
@@ -212,10 +212,10 @@ class SovereignVector:
         """
         # token_weights is a dict of {token: weight}
         total_weight = sum(token_weights.values()) or 1
-        
+
         # [ALFRED] Use cached vocabulary and list comprehension for speed optimization
         vocab = getattr(self, 'sorted_vocab', sorted(list(self.vocab)))
-        
+
         return [
             (token_weights.get(word, 0) / total_weight) * self.idf.get(word, 0)
             for word in vocab
@@ -253,7 +253,7 @@ class SovereignVector:
             self._expansion_cache[query_norm] = weighted_tokens
 
         q_vec = self._vectorize(weighted_tokens)
-        
+
         # 3. Direct Trigger Boost (Dampened)
         trigger_boosts = {}
         tokens = self.tokenize(query)
@@ -266,7 +266,7 @@ class SovereignVector:
         }
         # [ALFRED] High-priority verbs that should NOT be dampened if they match a specific trigger
         priority_verbs = {'begin', 'start', 'resume', 'initiate'}
-        
+
         for t in tokens:
             if t in self.trigger_map:
                 # [ALFRED] Maximum precision boost for high-accuracy intent resolution
@@ -274,26 +274,26 @@ class SovereignVector:
                 if t in priority_verbs:
                     boost_val = 2.0 # Mega-boost for start/resume signals
                 elif t in common_verbs:
-                    boost_val = 0.8 
+                    boost_val = 0.8
                 else:
                     boost_val = 0.98
-                    
+
                 for skill in self.trigger_map[t]:
                     trigger_boosts[skill] = max(trigger_boosts.get(skill, 0), boost_val)
 
 
         results = []
         # [ALFRED] Optimization: Pre-calculate vector magnitudes if possible, but for now just inline the similarity
-        # or use the existing method which is clean enough. 
+        # or use the existing method which is clean enough.
         # For valid results, we only care about non-zero similarities usually
-        
+
         for trigger, s_vec in self.vectors.items():
-            # Optimization: Skip if dot product will be 0 (no shared tokens) 
-            # This requires sparse representation which we don't strictly have in list form, 
+            # Optimization: Skip if dot product will be 0 (no shared tokens)
+            # This requires sparse representation which we don't strictly have in list form,
             # but we can rely on modern CPU caching for the list walk.
-            
+
             score = self.similarity(q_vec, s_vec)
-            
+
             # Apply dampened boost
             if trigger in trigger_boosts:
                 # If we have a massive boost (2.0), we force it to top
@@ -302,16 +302,16 @@ class SovereignVector:
                    score = 1.0 + (boost - 1.0) # pushes above 1.0
                 else:
                    score = score + boost * (1.0 - score)
-            
+
             is_global = trigger.startswith("GLOBAL:")
             # [ALFRED] Sovereign Priority: Slight tie-breaker for core intents
             if (trigger.startswith("/") or trigger == "SovereignFish") and not is_global:
                 score *= 1.1
-            
+
             # [ALFRED] Specific Demotion: If "begin" or "new" is present, /run-task shouldn't steal from /lets-go
             # logic: /run-task is "create", /lets-go is "begin"
             if "/lets-go" in trigger_boosts and trigger == "/run-task":
-                score *= 0.5 
+                score *= 0.5
 
             # [ALFRED] Global vs Generic Arbitration
             # If a Specific GLOBAL skill matches well, it should beat generic /run-task
@@ -320,7 +320,7 @@ class SovereignVector:
                  score *= 0.8
 
             results.append({"trigger": trigger, "score": score, "is_global": is_global})
-        
+
         final_results = sorted(results, key=lambda x: x['score'], reverse=True)
         # Apply Confidence Floor (The 85% Bar - Dampened for Vector Search)
         # [ALFRED] Ensure we don't return low-confidence noise.
@@ -331,7 +331,7 @@ class SovereignVector:
                 if r['trigger'] == 'GLOBAL:noise':
                     r['trigger'] = None
                 confident_results.append(r)
-        
+
         self._search_cache[query_norm] = confident_results
         return confident_results
 
@@ -362,7 +362,7 @@ class SovereignVector:
                 clean = w.lower().strip()
                 if clean not in self.trigger_map: self.trigger_map[clean] = []
                 self.trigger_map[clean].append(trigger)
-            
+
             # [ALFRED] Hardened Trigger: Index the trigger itself for 1:1 matching
             if trigger not in self.trigger_map: self.trigger_map[trigger] = [trigger]
             elif trigger not in self.trigger_map[trigger]: self.trigger_map[trigger].append(trigger)
@@ -377,7 +377,7 @@ class SovereignVector:
         for folder in os.listdir(directory):
             path = os.path.join(directory, folder)
             if not os.path.isdir(path): continue
-            
+
             # [ALFRED] Hybrid Discovery: Support SKILL.qmd (Primary) or SKILL.md (Fallback)
             qmd_path = os.path.join(path, "SKILL.qmd")
             md_path = os.path.join(path, "SKILL.md")
@@ -389,8 +389,8 @@ class SovereignVector:
     def _load_single_skill(self, folder, md_path, prefix):
         """Extract metadata and activation signals from a single SKILL.md."""
         trigger = f"{prefix}{folder}"
-        with open(md_path, 'r', encoding='utf-8') as f: lines = f.readlines()
-        
+        with open(md_path, encoding='utf-8') as f: lines = f.readlines()
+
         signal, in_fm, expect_keywords = [], False, False
         for line in lines:
             line = line.strip()
@@ -409,7 +409,7 @@ class SovereignVector:
                 self._populate_trigger_map(trigger, line)
                 signal.append(line)
                 expect_keywords = False
-        
+
         self.add_skill(trigger, f"{folder} {' '.join(signal)}")
 
     def _populate_trigger_map(self, trigger, words_str):
@@ -429,24 +429,24 @@ class SovereignVector:
         # 1. Expand query for text
         weighted_tokens = self.expand_query(text)
         text_vec = self._vectorize(weighted_tokens)
-        
+
         # 2. Re-index temporarily on dialogue
         # We need a mini-engine for this or just simulate similarity
         # Let's use the current engine's vocab but check against dialogue data
         # If the text has tokens that appear frequently in the persona's DB, it's a match.
-        
+
         # Actually, if we have SovereignHUD.DIALOGUE loaded, we can compare directly.
         # Simple heuristic for now: token overlap with dialogue registry
         tokens = set(self.tokenize(text))
         persona_tokens = set()
-        
+
         # Defensive check for SovereignHUD.DIALOGUE
         if SovereignHUD.DIALOGUE:
             for phrases in SovereignHUD.DIALOGUE.intents.values():
                 for p in phrases:
                     persona_tokens.update(self.tokenize(p))
-        
+
         if not persona_tokens or not tokens: return 0.0
-        
+
         match = len(tokens.intersection(persona_tokens)) / len(tokens)
         return match

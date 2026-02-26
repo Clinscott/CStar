@@ -16,7 +16,7 @@ for text in skills.values():
 print(f"Vocab: {vocab}")
 
 num_docs = len(skills)
-doc_counts = {word: 0 for word in vocab}
+doc_counts = dict.fromkeys(vocab, 0)
 for text in skills.values():
     words = set(tokenize(text))
     for word in words:
@@ -28,7 +28,7 @@ for word, count in doc_counts.items():
 
 def vectorize(tokens):
     counts = {}
-    for t in tokens: 
+    for t in tokens:
         if t in vocab: counts[t] = counts.get(t, 0) + 1
     vector = []
     for word in sorted(vocab):

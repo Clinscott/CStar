@@ -1,4 +1,3 @@
-import json
 import os
 import subprocess
 import sys
@@ -21,13 +20,13 @@ def measure_startup(iterations: int = 10) -> float:
     """
     cmd = ["python", os.path.join(scripts_dir, "sv_engine.py"), "--json", "ping"]
     times = []
-    
+
     for _ in range(iterations):
         start = time.perf_counter()
         subprocess.run(cmd, capture_output=True, cwd=project_root)
         end = time.perf_counter()
         times.append((end - start) * 1000) # ms
-        
+
     avg = sum(times) / len(times)
     return avg
 
@@ -37,6 +36,6 @@ if __name__ == "__main__":
         try:
             iterations = int(sys.argv[1])
         except: pass
-        
+
     avg_latency = measure_startup(iterations)
     print(f"{avg_latency:.2f}")

@@ -16,13 +16,13 @@ import os
 import sys
 import time
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).parent.parent.resolve()
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.core.annex import HeimdallWarden
 from src.sentinel.code_sanitizer import (
     classify_error,
     extract_error_summary,
@@ -32,14 +32,10 @@ from src.sentinel.code_sanitizer import (
     validate_imports,
     validate_syntax,
 )
-from src.core.annex import HeimdallWarden
-from src.sentinel.muninn import Muninn
-from src.sentinel.wardens.valkyrie import ValkyrieWarden
-from src.sentinel.wardens.mimir import MimirWarden
 from src.sentinel.wardens.edda import EddaWarden
+from src.sentinel.wardens.mimir import MimirWarden
 from src.sentinel.wardens.runecaster import RuneCasterWarden
-from src.sentinel.wardens.freya import FreyaWarden
-
+from src.sentinel.wardens.valkyrie import ValkyrieWarden
 
 FIXTURES_DIR = PROJECT_ROOT / "tests" / "fixtures" / "ravens_responses"
 RESULTS_FILE = PROJECT_ROOT / "tests" / "ravens_harness_results.json"
@@ -54,7 +50,7 @@ def load_mock_responses() -> list[dict]:
     """Load harvested AI responses from the fixtures dir."""
     mock_file = FIXTURES_DIR / "mock_responses.json"
     if mock_file.exists():
-        with open(mock_file, "r", encoding="utf-8") as f:
+        with open(mock_file, encoding="utf-8") as f:
             return json.load(f)
     return []
 
@@ -340,8 +336,8 @@ class RavensHarness:
             return result
 
         # 6. Write to temp and run pytest
-        import tempfile
         import subprocess
+        import tempfile
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             tmp_path = Path(tmp_dir)
@@ -415,7 +411,7 @@ class RavensHarness:
         total = len(self.results)
 
         print(f"\n{'='*60}")
-        print(f"  RAVENS HARNESS REPORT")
+        print("  RAVENS HARNESS REPORT")
         print(f"{'='*60}")
         print(f"  Total:  {total}")
         print(f"  Passed: {passed} ({100*passed//total if total else 0}%)")

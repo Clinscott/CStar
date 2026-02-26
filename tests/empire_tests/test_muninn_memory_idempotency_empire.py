@@ -1,16 +1,18 @@
-import pytest
 import os
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 # Ensure project root is in path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(PROJECT_ROOT))
 
+import json
+
 from src.sentinel.muninn import Muninn
 
-import json
 
 class TestMuninnMemoryIdempotency:
     @pytest.fixture
@@ -18,10 +20,10 @@ class TestMuninnMemoryIdempotency:
         # Setup mock memory.qmd (legacy but fine)
         memory_file = tmp_path / "memory.qmd"
         memory_file.write_text("## Lessons Learned\n- **Existing**: This exists.\n", encoding='utf-8')
-        
+
         # Mock client
         mock_client = MagicMock()
-        
+
         with patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key", "MUNINN_API_KEY": ""}):
             # Initialize Muninn with tmp path
             muninn = Muninn(str(tmp_path), client=mock_client)
@@ -29,12 +31,12 @@ class TestMuninnMemoryIdempotency:
 
     def test_distill_knowledge_creates_directives(self, mock_muninn, tmp_path):
         muninn, _, _ = mock_muninn
-        
+
         # Setup mock ledger
         ledger_dir = tmp_path / ".agent"
         ledger_dir.mkdir(exist_ok=True)
         ledger_path = ledger_dir / "ledger.json"
-        
+
         ledger_data = {
             "global_project_health_score": 95.5,
             "flight_history": [
@@ -49,12 +51,12 @@ class TestMuninnMemoryIdempotency:
 
         # Run distillation
         muninn._distill_knowledge()
-        
+
         # Verify output
         directives_path = ledger_dir / "cortex_directives.md"
         assert directives_path.exists()
         content = directives_path.read_text(encoding='utf-8')
-        
+
         assert "Global Project Health Score: 95.50" in content
         assert "cursed.py" in content
         assert "blessed.py" in content

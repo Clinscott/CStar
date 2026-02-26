@@ -6,7 +6,6 @@ Sentinel Perf: Engine Latency Profiler
 Profiles engine search vs. direct regex matching to identify bottlenecks.
 """
 
-import json
 import os
 import sys
 import time
@@ -28,7 +27,7 @@ class SentinelPerf:
     [ALFRED] Profiles the performance of core engine components.
     Identifies bottlenecks in tokenization, search, and vector synthesis.
     """
-    
+
     def __init__(self, project_root: str) -> None:
         self.root = project_root
         self.base = os.path.join(project_root, ".agent")
@@ -63,19 +62,19 @@ class SentinelPerf:
 
     def run_suite(self):
         SovereignHUD.box_top("SENTINEL PERF: BENCHMARK")
-        
+
         # Test 1: Search Latency (High Level)
         q = "check the login bug in the system"
         lat = self.profile_search(q)
         SovereignHUD.box_row("SEARCH", f"{lat:.3f}ms", SovereignHUD.GREEN if lat < 1.0 else SovereignHUD.YELLOW)
-        
+
         # Test 2: Tokenization (Low Level)
         t = "The quick brown fox jumps over the lazy dog" * 10
         t_lat = self.profile_tokenization(t)
         SovereignHUD.box_row("TOKENIZE", f"{t_lat:.4f}ms", SovereignHUD.GREEN if t_lat < 0.1 else SovereignHUD.YELLOW)
-        
+
         # Test 3: Synthesis overhead
-        SovereignHUD.box_row("VIRTUAL", f"Rank A Performance", SovereignHUD.CYAN)
+        SovereignHUD.box_row("VIRTUAL", "Rank A Performance", SovereignHUD.CYAN)
         SovereignHUD.box_bottom()
 
 if __name__ == "__main__":

@@ -3,21 +3,17 @@ Bonus Warden Tests
 Verifies: Valkyrie (Dead Code), Mimir (Complexity), and Priority Integration.
 Uses mocking to avoid external tool dependencies (Vulture/Radon) where possible.
 """
-import pytest
-from pathlib import Path
-from unittest.mock import MagicMock, patch, AsyncMock
-import sys
 import os
+import sys
+from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, patch
 
 project_root = Path(__file__).parent.parent.parent.absolute()
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from src.sentinel.muninn import (
-    ValkyrieWarden,
-    MimirWarden,
-    Muninn
-)
+from src.sentinel.muninn import MimirWarden, Muninn, ValkyrieWarden
+
 
 class TestValkyrieWarden:
     """Detects dead code using Vulture (Mocked)."""
@@ -27,19 +23,19 @@ class TestValkyrieWarden:
         # Setup Mock Vulture
         mock_v = MagicMock()
         mock_vulture_module.Vulture.return_value = mock_v
-        
+
         # Mock item
         mock_item = MagicMock()
         mock_item.filename = str(tmp_path / "src" / "dead.py")
         mock_item.lineno = 10
         mock_item.message = "unused function 'dead'"
         mock_item.confidence = 60 # High confidence
-        
+
         mock_v.get_unused_code.return_value = [mock_item]
 
         # Init Warden
         valkyrie = ValkyrieWarden(tmp_path)
-        
+
         # Run Scan
         targets = valkyrie.scan()
 
@@ -48,7 +44,7 @@ class TestValkyrieWarden:
         assert targets[0]["type"] == "VALKYRIE_BREACH"
         assert "dead.py" in targets[0]["file"]
         assert "unused function 'dead'" in targets[0]["action"]
-        
+
         # Verify Vulture was called correctly
         mock_v.scavenge.assert_called()
 
@@ -57,12 +53,12 @@ class TestValkyrieWarden:
         # Setup Mock Vulture
         mock_v = MagicMock()
         mock_vulture_module.Vulture.return_value = mock_v
-        
+
         # Mock item with low confidence
         mock_item = MagicMock()
         mock_item.filename = str(tmp_path / "src" / "ignored.py")
         mock_item.confidence = 5 # Below threshold of 10
-        
+
         mock_v.get_unused_code.return_value = [mock_item]
 
         valkyrie = ValkyrieWarden(tmp_path)
@@ -112,7 +108,7 @@ def nightmare(x):
         # Setup: All strategists find targets
         mock_annex_inst = mock_annex.return_value
         mock_annex_inst.scan.return_value = [] # No critical breaches
-        
+
         mock_valkyrie_inst = mock_valkyrie.return_value
         breaches_valk = [{"file": "dead.py", "action": "Prune", "severity": "HIGH", "type": "VALKYRIE_BREACH"}]
         mock_valkyrie_inst.scan_async = AsyncMock(return_value=breaches_valk)
@@ -128,18 +124,18 @@ def nightmare(x):
         with patch.dict(os.environ, {"GOOGLE_API_KEY": "TEST"}):
             with patch("google.genai.Client"):
                 fish = Muninn(str(tmp_path))
-                
+
                 fish._emit_metrics_summary = MagicMock()
                 fish._save_state = MagicMock()
                 fish._forge_improvement = MagicMock(return_value=None)
-                
+
                 with patch('src.sentinel.muninn.SovereignHUD') as mock_hud:
                     mock_hud.PERSONA = "ODIN"
                     fish.run()
-                    
+
                     log_calls = [str(c) for c in mock_hud.persona_log.call_args_list]
                     target_logs = [l for l in log_calls if "Target:" in l]
-                    
+
                     assert len(target_logs) > 0
                     # Should choose Valkyrie (Prune)
                     assert "Prune" in target_logs[0]

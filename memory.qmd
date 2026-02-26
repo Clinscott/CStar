@@ -1,5 +1,11 @@
 # Corvus Star Memory
 
+## 2026-02-25: Session 87 (Scaffold Campaign & Linscott Sovereignty)
+- **High-Fidelity Tool Mocking**: When testing tools that interact with core engines (Vector, Dialogue, Muninn), create localized mock classes within the test file that mirror the engine's interface. This avoids the latency and complexity of initializing real vector databases or loading YAML banks while allowing for precise logic verification.
+- **Import Sovereignty (`src.`)**: Never use relative imports in game logic or tools that might be executed as standalone scripts. Always use absolute imports with the `src.` prefix. This ensures the `PYTHONPATH` (set by `_bootstrap.py` or the Node control plane) always resolves the core framework.
+- **State Hydration Patterns**: Implement `from_dict` class methods for all game and state models (`UniverseState`, `Chromosome`). This enables reliable state restoration from Git-persistent JSON logs, which is foundational for the temporal mechanics of the Odin Protocol.
+- **Docstring Precedence**: The EddaWarden enforces that all public methods, including abstract base class methods, must have docstrings. This is not just for documentation; it's a structural requirement for AI-assisted navigation of the codebase.
+
 ## 2026-02-25: Session 85 (V4 Hardening & Concurrency Safety)
 - **JSONL for Concurrency**: On Windows, frequent read-modify-write cycles on JSON files trigger `PermissionError` during high-latency daemon loops. Use append-only **JSON Lines (.jsonl)** combined with an atomic-like append helper (`atomic_jsonl_append`) to ensure thread-safety and lock resilience.
 - **Bottleneck Neural Regularization**: For longitudinal meta-learning (like `SessionWarden`), use a extreme bottleneck (e.g., 4 hidden neurons) to force the network to learn low-dimensional session health features instead of wide-field trace memorization.

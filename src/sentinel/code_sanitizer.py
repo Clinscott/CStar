@@ -12,6 +12,7 @@ import re
 import textwrap
 from pathlib import Path
 
+
 class QuarantineFailure(Exception):
     """Raised when a code snippet fails security sanitization."""
     pass
@@ -52,6 +53,18 @@ def validate_syntax(code: str) -> tuple[bool, str]:
         return False, f"SyntaxError at line {e.lineno}: {e.msg}"
 
 
+def _get_project_modules(project_root: Path) -> set[str]:
+    """Build set of importable top-level modules from project."""
+    project_modules = {"src"}
+    src_dir = project_root / "src"
+    if src_dir.exists():
+        for p in src_dir.iterdir():
+            if p.is_dir() and (p / "__init__.py").exists():
+                project_modules.add(p.name)
+            elif p.suffix == ".py":
+                project_modules.add(p.stem)
+    return project_modules
+
 def validate_imports(code: str, project_root: Path) -> list[str]:
     """
     AST-walk import statements and flag any that cannot resolve.
@@ -63,48 +76,24 @@ def validate_imports(code: str, project_root: Path) -> list[str]:
     except SyntaxError:
         return ["Code has syntax errors — cannot validate imports"]
 
-    # Build set of importable top-level modules from project
-    project_modules = set()
-    src_dir = project_root / "src"
-    if src_dir.exists():
-        for p in src_dir.iterdir():
-            if p.is_dir() and (p / "__init__.py").exists():
-                project_modules.add(p.name)
-            elif p.suffix == ".py":
-                project_modules.add(p.stem)
-    # Add 'src' itself as a valid top-level
-    project_modules.add("src")
-
-    # Known stdlib/third-party top-level modules we allow
-    # Use shared constant
-    pass
+    project_modules = _get_project_modules(project_root)
 
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
                 top = alias.name.split(".")[0]
                 if top not in _KNOWN_THIRD_PARTY and top not in project_modules:
-                    # Try to actually import it
                     if not _can_import(top):
-                        bad_imports.append(
-                            f"line {node.lineno}: `import {alias.name}` — "
-                            f"'{top}' is not a known module"
-                        )
+                        bad_imports.append(f"line {node.lineno}: `import {alias.name}` — '{top}' is not a known module")
         elif isinstance(node, ast.ImportFrom):
             if node.module:
                 top = node.module.split(".")[0]
                 if top not in _KNOWN_THIRD_PARTY and top not in project_modules:
                     if not _can_import(top):
-                        bad_imports.append(
-                            f"line {node.lineno}: `from {node.module} import ...` — "
-                            f"'{top}' is not a known module"
-                        )
-        # Refinement: Detect Dynamic Import Bypass
+                        bad_imports.append(f"line {node.lineno}: `from {node.module} import ...` — '{top}' is not a known module")
         elif isinstance(node, ast.Call):
-            # Check for __import__(...)
             if isinstance(node.func, ast.Name) and node.func.id == "__import__":
                 bad_imports.append(f"line {node.lineno}: Forbidden dynamic import `__import__` detected.")
-            # Check for importlib.import_module(...)
             elif isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name):
                 if node.func.value.id == "importlib":
                     bad_imports.append(f"line {node.lineno}: Forbidden dynamic import `importlib` detected.")
@@ -178,6 +167,51 @@ def repair_syntax(code: str) -> str:
     return "\n".join(repaired_lines)
 
 
+def _find_bad_imports(tree: ast.AST, project_root: Path) -> dict[int, list[str]]:
+    """Helper to identify invalid imports via AST."""
+    bad_imports: dict[int, list[str]] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                top = alias.name.split(".")[0]
+                if not _is_valid_import(top, project_root):
+                    name = alias.asname or alias.name.split(".")[-1]
+                    bad_imports.setdefault(node.lineno, []).append(name)
+        elif isinstance(node, ast.ImportFrom):
+            if node.module:
+                top = node.module.split(".")[0]
+                if not _is_valid_import(top, project_root):
+                    names = [alias.asname or alias.name for alias in node.names]
+                    bad_imports.setdefault(node.lineno, []).extend(names)
+    return bad_imports
+
+def _apply_mock_stubs(lines: list[str], bad_imports: dict[int, list[str]], code: str) -> list[str]:
+    """Helper to comment out bad imports and inject MagicMock stubs."""
+    all_stub_names = []
+    for line_no, names in sorted(bad_imports.items()):
+        idx = line_no - 1
+        if 0 <= idx < len(lines):
+            lines[idx] = f"# [BIFROST REMOVED] {lines[idx]}"
+            all_stub_names.extend(names)
+
+    if not all_stub_names:
+        return lines
+
+    stubs = []
+    if "MagicMock" not in code and "unittest.mock" not in code:
+        stubs.append("from unittest.mock import MagicMock")
+    for name in all_stub_names:
+        stubs.append(f"{name} = MagicMock(name='{name}')  # [BIFROST STUB]")
+
+    insert_idx = 0
+    for i, line in enumerate(lines):
+        if line.strip().startswith(("import ", "from ", "# [BIFROST")):
+            insert_idx = i + 1
+
+    for j, stub in enumerate(stubs):
+        lines.insert(insert_idx + j, stub)
+    return lines
+
 def repair_imports(code: str, project_root: Path) -> str:
     """
     Strip bad imports and replace imported names with MagicMock stubs.
@@ -186,65 +220,14 @@ def repair_imports(code: str, project_root: Path) -> str:
     try:
         tree = ast.parse(code)
     except SyntaxError:
-        return code  # Can't fix imports if code won't parse
-
-    # Find bad imports
-    bad_import_lines: dict[int, list[str]] = {}  # line_no → list of names imported
-
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Import):
-            for alias in node.names:
-                top = alias.name.split(".")[0]
-                if not _is_valid_import(top, project_root):
-                    name = alias.asname or alias.name.split(".")[-1]
-                    bad_import_lines.setdefault(node.lineno, []).append(name)
-
-        elif isinstance(node, ast.ImportFrom):
-            if node.module:
-                top = node.module.split(".")[0]
-                if not _is_valid_import(top, project_root):
-                    names = [
-                        alias.asname or alias.name
-                        for alias in node.names
-                    ]
-                    bad_import_lines.setdefault(node.lineno, []).extend(names)
-
-    if not bad_import_lines:
         return code
 
-    # Rebuild code: comment out bad imports, add MagicMock stubs
+    bad_imports = _find_bad_imports(tree, project_root)
+    if not bad_imports:
+        return code
+
     lines = code.split("\n")
-    all_stub_names: list[str] = []
-    needs_mock_import = True
-
-    for line_no, names in sorted(bad_import_lines.items()):
-        idx = line_no - 1  # 0-indexed
-        if 0 <= idx < len(lines):
-            lines[idx] = f"# [BIFROST REMOVED] {lines[idx]}"
-            all_stub_names.extend(names)
-
-    if all_stub_names:
-        # Check if MagicMock is already imported
-        if "MagicMock" in code or "unittest.mock" in code:
-            needs_mock_import = False
-
-        # Create stub lines
-        stubs = []
-        if needs_mock_import:
-            stubs.append("from unittest.mock import MagicMock")
-        for name in all_stub_names:
-            stubs.append(f"{name} = MagicMock(name='{name}')  # [BIFROST STUB]")
-
-        # Insert stubs after the last import line (or at top)
-        insert_idx = 0
-        for i, line in enumerate(lines):
-            stripped = line.strip()
-            if stripped.startswith(("import ", "from ", "# [BIFROST")):
-                insert_idx = i + 1
-
-        for j, stub in enumerate(stubs):
-            lines.insert(insert_idx + j, stub)
-
+    lines = _apply_mock_stubs(lines, bad_imports, code)
     return "\n".join(lines)
 
 
@@ -342,7 +325,7 @@ def perform_quarantine_scan(code: str, whitelist: list[str] | None = None) -> tu
     try:
         tree = ast.parse(code)
     except SyntaxError as e:
-        return False, f"Syntax Error: {str(e)}"
+        return False, f"Syntax Error: {e!s}"
 
     for node in ast.walk(tree):
         # Check standard imports
@@ -353,7 +336,7 @@ def perform_quarantine_scan(code: str, whitelist: list[str] | None = None) -> tu
         elif isinstance(node, ast.ImportFrom):
             if node.module and node.module.split('.')[0] in FORBIDDEN_MODULES:
                 return False, f"Forbidden import-from: {node.module}"
-        
+
         # Check dynamic import calls and built-in manipulation
         elif isinstance(node, ast.Call):
             # __import__
@@ -363,7 +346,7 @@ def perform_quarantine_scan(code: str, whitelist: list[str] | None = None) -> tu
             if isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name):
                 if node.func.value.id == "importlib":
                     return False, "Forbidden dynamic access: importlib"
-            
+
             # eval, exec, compile, globals, locals, etc.
             if isinstance(node.func, ast.Name):
                 if node.func.id in {"eval", "exec", "compile", "globals", "locals", "getattr", "setattr", "open"}:
@@ -389,10 +372,10 @@ def neuter_qmd_document(file_path: Path):
         return
 
     content = file_path.read_text(encoding='utf-8')
-    
+
     # Check for existing YAML frontmatter
     yaml_match = re.search(r'^---\s*\n(.*?)\n---\s*\n', content, re.DOTALL)
-    
+
     if yaml_match:
         yaml_block = yaml_match.group(1)
         # Check if execute: false is already there

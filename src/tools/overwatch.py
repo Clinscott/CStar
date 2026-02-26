@@ -1,4 +1,5 @@
 import json
+
 try:
     import msvcrt
 except ImportError:
@@ -7,8 +8,6 @@ import os
 import subprocess
 import sys
 import time
-from datetime import datetime
-from typing import Dict, List, Optional, Tuple
 
 # Resolve shared UI from src/core/
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "core"))
@@ -23,32 +22,32 @@ class StatsCollector:
         self.db_path = os.path.join(project_root, "fishtest_data.json")
         self.rej_path = os.path.join(base_dir, "traces", "quarantine", "REJECTIONS.qmd")
 
-    def collect(self) -> Dict[str, int]:
+    def collect(self) -> dict[str, int]:
         stats = {"cases": 0, "rejections": 0, "war_zones": 0}
         try:
             if os.path.exists(self.db_path):
-                with open(self.db_path, 'r', encoding='utf-8') as f:
+                with open(self.db_path, encoding='utf-8') as f:
                     cases = json.load(f).get("test_cases", [])
                     stats["cases"] = len(cases)
                     stats["war_zones"] = sum(1 for c in cases if all(p in c.get("tags", []) for p in ["ODIN", "ALFRED"]))
-            
+
             if os.path.exists(self.rej_path):
-                with open(self.rej_path, 'r', encoding='utf-8') as f:
+                with open(self.rej_path, encoding='utf-8') as f:
                     stats["rejections"] = max(0, len(f.readlines()) - 3)
-        except (json.JSONDecodeError, IOError, OSError): pass
+        except (json.JSONDecodeError, OSError): pass
         return stats
 
 class OverwatchRenderer:
     """[ALFRED] Dashboard renderer for the Neural Overwatch TUI."""
     def __init__(self) -> None:
-        self.latency_trend: List[float] = []
+        self.latency_trend: list[float] = []
 
     def render_header(self):
         print(f"\n{SovereignHUD.RED}{SovereignHUD.BOLD}Ω NEURAL OVERWATCH Ω{SovereignHUD.RESET}")
         print(f"{SovereignHUD.DIM}Monitoring Federated Network...{SovereignHUD.RESET}\n")
         SovereignHUD.log("INFO", "System Online", "Listening on mock_project/network_share")
 
-    def render_heatmap(self, threat_matrix: List[float]):
+    def render_heatmap(self, threat_matrix: list[float]):
         """Render a 5x5 sc-fi security heatmap."""
         print(f"\n{SovereignHUD.BOLD}SECURITY HEATMAP [HEIMDALL SCAN]{SovereignHUD.RESET}")
         for i in range(0, 25, 5):
@@ -62,7 +61,7 @@ class OverwatchRenderer:
         if val > 0.4: return f"{SovereignHUD.YELLOW}■{SovereignHUD.RESET}"
         return f"{SovereignHUD.GREEN}■{SovereignHUD.RESET}"
 
-    def render_pulse_logs(self, logs: List[str]):
+    def render_pulse_logs(self, logs: list[str]):
         """Render the 5 most recent neural pulse events."""
         print(f"\n{SovereignHUD.BOLD}NEURAL PULSE LOGS [LATEST INTENTS]{SovereignHUD.RESET}")
         for log in logs[-5:]:
@@ -78,7 +77,7 @@ class OverwatchRenderer:
 class InputManager:
     """[ALFRED] Non-blocking input handler for interactive controls."""
     @staticmethod
-    def poll() -> Optional[str]:
+    def poll() -> str | None:
         if os.name == 'nt' and msvcrt and msvcrt.kbhit():
             return msvcrt.getch().decode('utf-8').lower()
         return None
@@ -100,10 +99,10 @@ class Overwatch:
         while True:
             try:
                 self._handle_input()
-                if self.pulse % 20 == 0: 
+                if self.pulse % 20 == 0:
                     self._check_delta()
                     pulse_logs = self._get_latest_pulses()
-                if self.pulse % 50 == 0: 
+                if self.pulse % 50 == 0:
                     threats = self._update_heatmap()
                     self.renderer.render_heatmap(threats)
                     self.renderer.render_pulse_logs(pulse_logs)
@@ -132,7 +131,7 @@ class Overwatch:
         if curr["cases"] > self.last_stats["cases"]:
             SovereignHUD.log("PASS", f"Ingested {curr['cases'] - self.last_stats['cases']} new traces", f"(Total: {curr['cases']})")
         if curr["rejections"] > self.last_stats["rejections"]:
-            SovereignHUD.log("WARN", f"New Trace Rejected", f"(Total: {curr['rejections']})")
+            SovereignHUD.log("WARN", "New Trace Rejected", f"(Total: {curr['rejections']})")
         if curr["war_zones"] > self.last_stats["war_zones"]:
             SovereignHUD.log("CRITICAL", "New War Zone Detected")
         self.last_stats = curr
@@ -144,12 +143,12 @@ class Overwatch:
             try: self.renderer.update_latency(float(res.stdout.strip()))
             except (ValueError, TypeError): pass
 
-    def _update_heatmap(self) -> List[float]:
+    def _update_heatmap(self) -> list[float]:
         """[ODIN] Scan core scripts for vulnerabilities to populate matrix."""
         from security_scan import SecurityScanner
         scripts_dir = os.path.join(self.base, "scripts")
         files = [f for f in os.listdir(scripts_dir) if f.endswith(".py")][:25]
-        
+
         matrix = [0.0] * 25
         for i, f in enumerate(files):
             scanner = SecurityScanner(os.path.join(scripts_dir, f))
@@ -157,22 +156,22 @@ class Overwatch:
             matrix[i] = scanner.threat_score / 10.0 # Normalize 0-1
         return matrix
 
-    def _get_latest_pulses(self) -> List[str]:
+    def _get_latest_pulses(self) -> list[str]:
         """[ALFRED] Extract most recent triggers from trace artifacts."""
         trace_dir = os.path.join(self.base, "traces")
         if not os.path.exists(trace_dir): return []
-        
+
         files = sorted([f for f in os.listdir(trace_dir) if f.endswith(".json")], key=lambda x: os.path.getmtime(os.path.join(trace_dir, x)))
         triggers = []
         for f in files[-10:]: # Look at last 10 files
             try:
-                with open(os.path.join(trace_dir, f), 'r', encoding='utf-8') as tf:
+                with open(os.path.join(trace_dir, f), encoding='utf-8') as tf:
                     data = json.load(tf)
                     if "trigger" in data: triggers.append(data["trigger"])
-            except (json.JSONDecodeError, IOError, OSError): pass
+            except (json.JSONDecodeError, OSError): pass
         return triggers
 
-def get_stats() -> Dict[str, int]:
+def get_stats() -> dict[str, int]:
     """[ALFRED] Compatibility wrapper for the test suite."""
     base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     root = os.path.dirname(base)

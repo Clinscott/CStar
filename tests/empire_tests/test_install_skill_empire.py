@@ -1,7 +1,7 @@
-import pytest
 import json
-import os
-from src.skills.install_skill import _sanitize_skill_name, _get_config
+
+from src.skills.install_skill import _get_config, _sanitize_skill_name
+
 
 def test_sanitize_skill_name():
     assert _sanitize_skill_name("valid-skill_123") == "valid-skill_123"
@@ -15,7 +15,7 @@ def test_get_config(tmp_path):
     config, err = _get_config(str(tmp_path))
     assert config["FrameworkRoot"] == "/test"
     assert err is None
-    
+
     # Missing config
     config, err = _get_config(str(tmp_path / "missing"))
     assert config is None

@@ -1,6 +1,7 @@
-import pytest
 import unittest.mock as mock
+
 from src.tools.tune_weights import MetaLearner
+
 
 def test_meta_learner_logic():
     # Mock SovereingVector
@@ -14,21 +15,21 @@ def test_meta_learner_logic():
     }
     # Mock thesaurus
     mock_engine.thesaurus = {"goal": {"goal": 1.0}, "wrong": {"wrong": 1.0}}
-    
+
     learner = MetaLearner(mock_engine)
-    
+
     # Query: "goal wrong" -> matches rival (wrong) but expected target (objective)
     actual = {"trigger": "rival", "score": 0.9}
     learner.analyze_failure("goal wrong", "target", actual)
-    
+
     # "wrong" is in rivalry, not in target -> should be Down-weighted
     assert "wrong" in learner.updates
     assert learner.updates["wrong"] < 1.0
-    
-    # "objective" is in target, not in rival -> should be Up-weighted? 
+
+    # "objective" is in target, not in rival -> should be Up-weighted?
     # Wait, tokenize("goal wrong") gives ["goal", "wrong"]. "objective" is NOT in the query.
     # So updates["objective"] won't be set.
-    
+
     # Test "objective" in query
     learner.analyze_failure("goal objective", "target", {"trigger": "rival", "score": 0.5})
     # "objective" is in query, in target, NOT in rival -> Up-weighted

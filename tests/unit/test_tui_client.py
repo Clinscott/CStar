@@ -1,9 +1,11 @@
-import unittest
-import sys
 import os
-from unittest.mock import patch, MagicMock
+import sys
+import unittest
+from unittest.mock import MagicMock, patch
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src')))
 from cstar.core.client import ping_daemon
+
 
 class TestTUIClientAlignment(unittest.TestCase):
 
@@ -11,16 +13,16 @@ class TestTUIClientAlignment(unittest.TestCase):
     def test_ping_daemon_raises_refusal(self, mock_connect):
         """Verify ping_daemon correctly raises ConnectionRefusedError when the daemon is offline."""
         mock_connect.side_effect = ConnectionRefusedError("Connection refused")
-        
+
         with self.assertRaises(ConnectionRefusedError):
             ping_daemon(timeout=1.0)
-            
+
     @patch('cstar.core.client.connect')
     def test_ping_daemon_raises_timeout(self, mock_connect):
         """Verify ping_daemon correctly raises TimeoutError if the socket hangs."""
         import websockets
         mock_connect.side_effect = websockets.exceptions.WebSocketException("Timeout")
-        
+
         with self.assertRaises(ConnectionRefusedError):
             ping_daemon(timeout=0.5)
 

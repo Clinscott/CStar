@@ -1,7 +1,5 @@
 import json
-import math
 import os
-import random
 import re
 import sys
 
@@ -28,27 +26,27 @@ from engine import Cortex, DialogueRetriever, SovereignVector
 if __name__ == "__main__":
     import argparse
     import time
-    
+
     # Calculate Paths
     base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     project_root = os.path.dirname(base_path)
-    
+
     # Load Config
     config = {}
     config_path = os.path.join(base_path, "config.json")
     if os.path.exists(config_path):
         try:
-            with open(config_path, 'r', encoding='utf-8') as f:
+            with open(config_path, encoding='utf-8') as f:
                 config = json.load(f)
         except: pass
-    
+
     # Apply Persona Configuration
     persona_name = config.get("Persona", "ALFRED")
     SovereignHUD.PERSONA = persona_name.upper()
 
     # Initialize Strategies
     strategy = personas.get_strategy(persona_name, project_root)
-    
+
     # Initialize Dialogue
     voice_file = strategy.get_voice() + ".md"
     dialogue_path = os.path.join(project_root, "dialogue_db", voice_file)
@@ -62,9 +60,9 @@ if __name__ == "__main__":
     parser.add_argument("--benchmark", action="store_true", help="Health Check & performance report")
     # PROPOSAL 3: CORTEX
     parser.add_argument("--cortex", action="store_true", help="Query the Cortex (Knowledge Graph) instead of Skills")
-    
+
     args = parser.parse_args()
-    
+
     if args.benchmark:
         SovereignHUD.box_top("DIAGNOSTIC")
         SovereignHUD.box_row("ENGINE", "SovereignVector 2.5 (Iron Cortex)", SovereignHUD.CYAN)
@@ -79,11 +77,11 @@ if __name__ == "__main__":
     if args.cortex and query_text:
         cortex = Cortex(project_root, base_path)
         results = cortex.query(query_text)
-        
+
         SovereignHUD.box_top("CORTEX KNOWLEDGE QUERY")
         SovereignHUD.box_row("QUERY", query_text, SovereignHUD.BOLD)
         SovereignHUD.box_separator()
-        
+
         if not results:
              SovereignHUD.box_row("RESULT", "NO DATA FOUND", SovereignHUD.RED)
         else:
@@ -95,7 +93,7 @@ if __name__ == "__main__":
                 SovereignHUD.box_row("SOURCE", r['trigger'], SovereignHUD.MAGENTA, dim_label=True)
                 SovereignHUD.box_row("RELEVANCE", f"{score:.2f}", color, dim_label=True)
                 SovereignHUD.box_separator()
-        
+
         SovereignHUD.box_bottom()
         sys.exit(0)
 
@@ -107,31 +105,31 @@ if __name__ == "__main__":
 
     # Initialize Engine (Normal Mode)
     engine = SovereignVector(
-        thesaurus_path=os.path.join(project_root, "thesaurus.md"), 
+        thesaurus_path=os.path.join(project_root, "thesaurus.md"),
         corrections_path=os.path.join(base_path, "corrections.json"),
         stopwords_path=os.path.join(base_path, "scripts", "stopwords.json")
     )
-    
+
     # 1. Load Core & Local Skills
     engine.load_core_skills()
     engine.load_skills_from_dir(os.path.join(base_path, "skills"))
-    
+
     # Load Global Skills (Registry)
     framework_root = config.get("FrameworkRoot")
     if framework_root:
         global_path = os.path.join(framework_root, "skills_db")
         if os.path.exists(global_path):
             engine.load_skills_from_dir(global_path, prefix="GLOBAL:")
-    
+
     engine.build_index()
 
     if query_text:
         results = engine.search(query_text)
-        
+
         # Tiered Output Integration
         top_match = results[0] if results else None
         recommendations = [r for r in results if r['is_global'] and r['score'] > 0.5]
-        
+
         propose_install = None
         if top_match and top_match['is_global'] and top_match['score'] > 0.85:
             skill_name = top_match['trigger'].replace("GLOBAL:", "")
@@ -142,10 +140,10 @@ if __name__ == "__main__":
         if args.record and top_match:
             traces_dir = os.path.join(base_path, "traces")
             if not os.path.exists(traces_dir): os.makedirs(traces_dir)
-            
+
             trace_id = re.sub(r'\W+', '_', query_text[:20]) + f"_{top_match['score']:.2f}"
             trace_path = os.path.join(traces_dir, f"{trace_id}.json")
-            
+
             trace_data = {
                 "query": query_text,
                 "match": top_match['trigger'],
@@ -163,14 +161,14 @@ if __name__ == "__main__":
             "propose_immediate_install": propose_install,
             "recommendation_report": recommendations if not propose_install else []
         }
-        
+
         # JSON Output (Pure Data)
         if args.json:
             print(json.dumps(trace, indent=2))
             sys.exit(0)
 
         # --- SCI-FI TERMINAL UI ---
-        
+
         # Neural Handshake Animation
         if top_match and top_match['score'] > 0.9:
             theme = SovereignHUD._get_theme()
@@ -178,25 +176,25 @@ if __name__ == "__main__":
             time.sleep(0.3)
             print(f"{theme['main']}>> LINK ESTABLISHED           {SovereignHUD.RESET}")
 
-        SovereignHUD.box_top() 
-        
+        SovereignHUD.box_top()
+
         intent_label = "COMMAND" if SovereignHUD.PERSONA == "GOD" else "User Intent"
         SovereignHUD.box_row(intent_label, query_text, SovereignHUD.BOLD)
-        
+
         if top_match:
             score = top_match['score']
             score_color = SovereignHUD.GREEN if score > 0.8 else SovereignHUD.YELLOW
             if SovereignHUD.PERSONA == "GOD": score_color = SovereignHUD.RED if score > 0.8 else SovereignHUD.YELLOW
-            
+
             is_global = f"{SovereignHUD.MAGENTA}[GLOBAL]{SovereignHUD.RESET} " if top_match['is_global'] else ""
-            
+
             bar = SovereignHUD.progress_bar(score)
             match_label = "ENTITY DETECTED" if SovereignHUD.PERSONA == "GOD" else "Match"
             conf_label = "PROBABILITY" if SovereignHUD.PERSONA == "GOD" else "Confidence"
-            
+
             SovereignHUD.box_row(match_label, f"{is_global}{top_match['trigger']}", dim_label=True)
             SovereignHUD.box_row(conf_label, f"{bar} {score:.2f}", score_color, dim_label=True)
-        
+
         if propose_install:
             SovereignHUD.box_separator()
             skill_short = skill_name if 'skill_name' in locals() else ""
@@ -206,7 +204,7 @@ if __name__ == "__main__":
             else:
                 SovereignHUD.box_row("⚠️  PROACTIVE", SovereignHUD._speak("SEARCH_SUCCESS", "Handshake Detected"), SovereignHUD.YELLOW)
                 SovereignHUD.box_row("Suggestion", f"Install {skill_short}", SovereignHUD.GREEN)
-            
+
             SovereignHUD.box_bottom()
             try:
                 sys.stdout.flush()
@@ -215,15 +213,15 @@ if __name__ == "__main__":
                     prompt = f"\n{SovereignHUD.RED}>> [Ω] {SovereignHUD._speak('PROACTIVE_INSTALL', 'AUTHORIZE DEPLOYMENT?')} [Y/n] {SovereignHUD.RESET}"
                 else:
                     prompt = f"\n{SovereignHUD.CYAN}>> [C*] {SovereignHUD._speak('PROACTIVE_INSTALL', 'Would you like to install this?')} [Y/n] {SovereignHUD.RESET}"
-                
+
                 choice = input(prompt).strip().lower()
-                
+
                 if choice in ['', 'y', 'yes']:
                     if SovereignHUD.PERSONA == "GOD" or SovereignHUD.PERSONA == "ODIN":
                         print(f"\n{SovereignHUD.RED}>> COMMAND ACCEPTED.{SovereignHUD.RESET} ENFORCING...")
                     else:
                         print(f"\n{SovereignHUD.GREEN}>> ACCEL{SovereignHUD.RESET} Initiating deployment sequence...")
-                    
+
                     import subprocess
                     subprocess.run(["powershell", "-Command", f"& {{ python .agent/scripts/install_skill.py {skill_short} }}"], check=False)
                 else:
@@ -232,12 +230,12 @@ if __name__ == "__main__":
                     print(f"\n{color}>> {msg}.{SovereignHUD.RESET}")
             except (EOFError, KeyboardInterrupt):
                 pass
-            
+
             sys.exit(0)
         elif recommendations:
             SovereignHUD.box_separator()
             rec_label = "ALTERNATE REALITIES" if SovereignHUD.PERSONA == "GOD" else "Discovery"
             for rec in recommendations[:2]:
                SovereignHUD.box_row(rec_label, f"{rec['trigger']} ({rec['score']:.2f})", SovereignHUD.MAGENTA)
-        
+
         SovereignHUD.box_bottom()

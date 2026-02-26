@@ -3,9 +3,9 @@ try:
 except ImportError:
     chromadb = None
 
-import json
 from pathlib import Path
-from typing import Any, List, Dict
+from typing import Any
+
 
 class MemoryDB:
     """
@@ -16,7 +16,7 @@ class MemoryDB:
         self.root = Path(project_root)
         self.db_path = self.root / ".agent" / "chroma_db"
         self.simulated = chromadb is None
-        
+
         if not self.simulated:
             try:
                 self.client = chromadb.PersistentClient(path=str(self.db_path))
@@ -31,7 +31,7 @@ class MemoryDB:
                 self.collection = None
         else:
             self.collection = None
-            self._mock_records = [] 
+            self._mock_records = []
             # Pre-load baseline
             self._mock_records.append({
                 "id": "system::/workflow_deployment",
@@ -39,7 +39,7 @@ class MemoryDB:
                 "metadata": {"app_id": "system"}
             })
 
-    def upsert_skill(self, app_id: str, intent_id: str, description: str, metadata: Dict[str, Any] = None):
+    def upsert_skill(self, app_id: str, intent_id: str, description: str, metadata: dict[str, Any] = None):
         """
         [PHASE 2] Composite ID Namespacing.
         Ensures no cross-tenant collisions (app_id::intent_id).
@@ -63,7 +63,7 @@ class MemoryDB:
                 "metadata": safe_metadata
             })
 
-    def search_intent(self, app_id: str, query: str, n_results: int = 1) -> List[Dict[str, Any]]:
+    def search_intent(self, app_id: str, query: str, n_results: int = 1) -> list[dict[str, Any]]:
         """
         [PHASE 2] Zero-Trust Isolation.
         Filters by app_id in metadata and strips prefix on exit.
@@ -75,7 +75,7 @@ class MemoryDB:
                     n_results=n_results,
                     where={"app_id": app_id} # Strict partitioning
                 )
-                
+
                 if not results['ids'] or not results['ids'][0]:
                     return []
 
@@ -83,10 +83,10 @@ class MemoryDB:
                 for i in range(len(results['ids'][0])):
                     composite_id = results['ids'][0][i]
                     intent_id = composite_id.replace(f"{app_id}::", "", 1)
-                    
+
                     distance = results['distances'][0][i]
                     confidence = max(0.0, 1.0 - float(distance))
-                    
+
                     formatted_results.append({
                         "trigger": intent_id,
                         "score": confidence,
@@ -110,10 +110,10 @@ class MemoryDB:
             d_words = set(doc.split())
             overlap = len(q_words & d_words)
             score = (overlap / len(q_words)) if q_words else 0.0
-            
+
             if query in intent_id.lower():
                 score = max(score, 0.95)
-            
+
             if score > 0:
                 processed.append({
                     "trigger": intent_id,
@@ -121,6 +121,6 @@ class MemoryDB:
                     "metadata": r["metadata"],
                     "description": r["doc"]
                 })
-        
+
         processed.sort(key=lambda x: x["score"], reverse=True)
         return processed[:n_results]

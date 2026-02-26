@@ -1,9 +1,10 @@
 
-import pytest
-import numpy as np
-from pathlib import Path
 import sys
+from pathlib import Path
 from unittest.mock import MagicMock
+
+import numpy as np
+import pytest
 
 # [LINKSCOTT] Strict Pathlib and SysPath Management
 PROJECT_ROOT = Path(__file__).parents[2]
@@ -16,6 +17,7 @@ for mod in MOCK_EXTERNALS:
     sys.modules[mod] = MagicMock()
 
 from src.core.engine.atomic_gpt import SessionWarden
+
 
 class TestSessionWardenDeterminismEmpire:
     """
@@ -38,11 +40,11 @@ class TestSessionWardenDeterminismEmpire:
         THEN the output scores must be identical (Zero Variance).
         """
         self.warden.eval() # [V4] Explicit Eval Mode
-        
+
         score_1 = self.warden.predict(self.test_vector)
         score_2 = self.warden.predict(self.test_vector)
         score_3 = self.warden.predict(self.test_vector)
-        
+
         assert score_1 == score_2 == score_3, "Non-deterministic output in eval mode detected."
 
     def test_train_mode_stochasticity(self):
@@ -52,9 +54,9 @@ class TestSessionWardenDeterminismEmpire:
         THEN the output scores SHOULD vary (Dropout Active).
         """
         self.warden.train() # [V4] Explicit Train Mode
-        
+
         scores = [self.warden.predict(self.test_vector) for _ in range(10)]
-        
+
         # In a 4-neuron bottleneck with 10% dropout, variance is high
         unique_scores = set(scores)
         assert len(unique_scores) > 1, "Dropout appears inactive in train mode."

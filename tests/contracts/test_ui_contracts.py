@@ -2,7 +2,6 @@ import io
 import os
 import sys
 import unittest
-from unittest.mock import MagicMock, patch
 
 # Add project root and empire scripts to path
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
@@ -10,7 +9,6 @@ sys.path.append(PROJECT_ROOT)
 sys.path.append(os.path.join(PROJECT_ROOT, ".agent", "scripts"))
 sys.path.append(os.path.join(PROJECT_ROOT, ".agent", "scripts", "empire"))
 
-from factories import create_scenario, create_vector_engine, create_warlord
 from src.core.sovereign_hud import SovereignHUD
 
 
@@ -34,35 +32,35 @@ class TestUi_contracts(unittest.TestCase):
         # WHEN: Atomic Transition
         # `box_row("Label", "Value")` is called
         SovereignHUD.box_row("Label", "Value")
-        
+
         # `box_top("TITLE", width=80)` is called
         SovereignHUD.box_top("TITLE", width=80)
-        
+
         # `render_sparkline([1, 10, 5])` is called
         sparkline = SovereignHUD.render_sparkline([1, 10, 5])
         print(sparkline) # Output to captured_output
 
         # THEN: State Projection
         output = self.captured_output.getvalue()
-        
+
         # Output contains Label (ignoring specific ANSI color code for persona flexibility)
-        self.assertIn("Label", output) 
-        
+        self.assertIn("Label", output)
+
         # Output contains "Value"
         self.assertIn("Value", output)
-        
+
         # Output line length is 80 [SovereignHUD] - verifying box_top width
         # box_top output: ┌─... TITLE ...─┐
         # We need to find the line with TITLE
         lines = output.split('\n')
         title_line = next((line for line in lines if "TITLE" in line), "")
-        # Strip ANSI codes to check length? SovereignHUD code counts length including ANSI? 
+        # Strip ANSI codes to check length? SovereignHUD code counts length including ANSI?
         # No, SovereignHUD calculates padding based on clean length but prints ANSI.
         # Let's just check that it created a box of approximately 80 chars.
         # Actually, let's just trust the "Output line length is 80" intent means checking the math or visual.
         # Providing a simpler check for now:
         self.assertIn("TITLE", output)
-        
+
         # Output contains " █▄" [SovereignHUD] (Sparkline)
         self.assertIn(" █▄", output)
 

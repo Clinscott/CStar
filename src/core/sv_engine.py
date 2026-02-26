@@ -153,7 +153,7 @@ class SovereignEngine:
             match_str = f"{'[G] ' if is_global else ''}{payload.target_workflow}"
             SovereignHUD.box_row("Match", match_str, SovereignHUD.DIM)
             SovereignHUD.box_row("Confidence", f"{SovereignHUD.progress_bar(confidence)} {confidence:.2f}", color)
-            
+
             if payload.target_workflow == 'WEB_FALLBACK':
                  SovereignHUD.box_separator()
                  SovereignHUD.box_row("WEB RESULTS", "", SovereignHUD.CYAN)
@@ -174,7 +174,7 @@ class SovereignEngine:
 
         if confidence <= self.THRESHOLDS["ACCURACY"] and trigger != 'WEB_FALLBACK':
             return
-        
+
         if trigger == 'WEB_FALLBACK':
             return
 
@@ -203,12 +203,12 @@ class SovereignEngine:
         SovereignHUD.box_top("PROACTIVE EXECUTE")
         SovereignHUD.box_row("CMD", command, SovereignHUD.YELLOW)
         SovereignHUD.box_bottom()
-        
+
         # Determine if this command targets a jail-restricted skill
         cmd_parts = command.split()
         is_jailed = False
         target_path = None
-        
+
         if cmd_parts:
             # Check if it's a direct path or a resolved command in skills_db
             potential_path = self.project_root / "skills_db" / f"{cmd_parts[0]}.py"
@@ -221,7 +221,7 @@ class SovereignEngine:
 
         speak = SovereignHUD._speak('PROACTIVE_EXECUTE', 'Run this command?')
         prompt = f"\n{SovereignHUD.CYAN}>> [C*] {speak} [Y/n] {SovereignHUD.RESET}"
-        
+
         if utils.input_with_timeout(prompt) in ['', 'y', 'yes', 'Y', 'YES']:
             if is_jailed and target_path:
                 from src.sentinel.sandbox_warden import SandboxWarden
@@ -260,10 +260,10 @@ class SovereignEngine:
 
         if not top or top['score'] < 0.6:
             # Zero-Hit Fallback: Brave Web Search
-            SovereignHUD.persona_log("INFO", "SovereignEngine: Low confidence match. Creating Web Fallback...") 
+            SovereignHUD.persona_log("INFO", "SovereignEngine: Low confidence match. Creating Web Fallback...")
             searcher = BraveSearch()
             web_results = searcher.search(query)
-            
+
             if web_results:
                 formatted_results = "\n".join(
                     [f"- {r['title']} ({r['url']})\n  {r['description']}" for r in web_results[:3]]
@@ -273,7 +273,7 @@ class SovereignEngine:
                     "score": 1.0,
                     "data": formatted_results,
                     "is_global": False,
-                    "web_results": web_results 
+                    "web_results": web_results
                 }
 
         payload = None
@@ -303,16 +303,16 @@ class SovereignEngine:
         SovereignHUD.persona_log("INFO", "SovereignEngine: Initiating deep teardown...")
         if self.engine:
             self.engine.clear_active_ram()
-        
+
         # Unregister observers (Nullify callbacks if they exist)
         # Note: In a larger system, we'd have a list of observers.
         # For now, we signal to the singletons.
         SovereignHUD._INITIALIZED = False
-        
+
         # [ALFRED] Break cyclic references
         self.strategy = None
         self.engine = None
-        
+
         import gc
         gc.collect() # Trigger immediate Generation 2 sweep
         SovereignHUD.persona_log("SUCCESS", "SovereignEngine: Memory boundaries secured.")
@@ -357,7 +357,7 @@ class SovereignEngine:
         # 4. Inject into Cortex (Session-local)
         cortex = Cortex(str(self.project_root), str(self.base_path))
         cortex.add_node(f"LEXICON:{term}", {"definition": definition, "source": "BraveSearch", "query": term})
-        
+
         # [ALFRED] Note: This improves session-level intent mapping for subsequent queries
 
 

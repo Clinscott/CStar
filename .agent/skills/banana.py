@@ -6,6 +6,7 @@ Purpose: Demonstrate dynamic skill loading.
 """
 from src.core.sovereign_hud import SovereignHUD
 
+
 def main():
     SovereignHUD.transition_ceremony("BANANA", "Operation Potassium")
     SovereignHUD.box_top("BANANA PROTOCOL ACTIVATED")

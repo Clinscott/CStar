@@ -72,8 +72,14 @@ exclude = [
     "sterileAgent",
     ".corvus_quarantine",
     ".agent/chroma_db",
+    ".agent/scripts",
+    ".agent/prompts",
+    ".agent/workflows",
     "tests/empire_tests/src/error_real.py",
-    "tests/gauntlet"
+    "tests/gauntlet",
+    "tests/fixtures",
+    "tmp_diag",
+    "bin"
 ]
 
 [tool.ruff.lint]

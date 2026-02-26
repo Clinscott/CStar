@@ -14,25 +14,25 @@ def generate_phase2_cases():
         "bubble wrap the fragile items", "wrap the wound with gauze", "wrap up the meeting in 5 minutes",
         "tortilla wrap with chicken", "wrap the wires together", "wrap the pipe to prevent freezing",
         "wrap the baby in a blanket",
-        
+
         # /lets-go traps
         "start the engine", "begin the race", "initiate the launch sequence for the rocket",
         "kick off your shoes", "spin up the record player", "fire up the grill",
         "go to the store to buy milk", "lets go to the park", "resume your favorite movie",
         "starting line of the marathon",
-        
+
         # /investigate traps
         "check the weather forecast", "investigate the cold case from 1950", "debug the garden hose",
         "audit the library books", "analyze the chemical reaction", "inspect the fruit for bruises",
         "look into the telescope for stars", "check the mailbox", "fix the broken chair",
         "find my keys in the house",
-        
+
         # /run-task traps
         "build a sandcastle", "make a cup of coffee", "generate a random number",
         "implement a new diet plan", "create a drawing of a cat", "construct a lego tower",
         "add sugar to the tea", "develop a new hobby", "feature film casting",
         "logic puzzle for kids",
-        
+
         # Skill-specific traps
         "playwright for the theater", "automation of the assembly line", "browser history check",
         "sci-fi movie reviews", "glow in the dark toys", "neon sign for the bar",
@@ -45,12 +45,12 @@ def generate_phase2_cases():
         "documentation of the ancient ruins", "readme stories to the kids", "benchmark in the park",
         "profile of a suspect", "measure the length of the table"
     ]
-    
+
     # Fill to 100 traps
     trap_pool = list(set(traps)) # Deduplicate
     count = min(100, len(trap_pool))
     sampled_queries = random.sample(trap_pool, count)
-    
+
     for query in sampled_queries:
         adversarial_cases.append({
             "query": query,
@@ -97,7 +97,7 @@ def generate_phase2_cases():
         ("plan", "/plan"),
         ("document", "GLOBAL:doc-generator")
     ]
-    
+
     while len(ambiguity_cases) < 50:
         q, e = random.choice(ambiguities)
         prefixes = ["can you", "I want to", "please", "go and", "time to"]
@@ -115,10 +115,10 @@ def generate_phase2_cases():
         "baseline_accuracy": 0.0,
         "test_cases": adversarial_cases + ambiguity_cases
     }
-    
+
     with open("fishtest_phase2_data.json", "w", encoding="utf-8") as f:
         json.dump(output, f, indent=4, ensure_ascii=False)
-    
+
     print(f"Generated {len(output['test_cases'])} Phase 2 test cases.")
 
 if __name__ == "__main__":

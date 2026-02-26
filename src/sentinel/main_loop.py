@@ -260,6 +260,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--shadow-forge", "--docker", action="store_true", help="Execute the full Ravens cycle (Hunt -> Forge -> Crucible) inside a sandboxed Docker container.")
     args = parser.parse_args()
-    
+
     _LOCK_PATH = Path(__file__).parent / "ravens.lock"
     daemon_loop(_LOCK_PATH)

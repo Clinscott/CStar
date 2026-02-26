@@ -8,7 +8,7 @@ class PersonaStrategy:
 
     def enforce_policy(self):
         """Analyze and enforce file structure policies."""
-        raise NotImplementedError 
+        raise NotImplementedError
 
     def get_voice(self):
         """Return the name of the dialogue file to use."""
@@ -21,14 +21,14 @@ class OdinStrategy(PersonaStrategy):
     def enforce_policy(self):
         """ODIN Policy: Complete Dominion. Standardize or Perish."""
         results = []
-        
+
         # 1. Enforce AGENTS.md (Main & Sterile)
         for target in [self.root, os.path.join(self.root, "sterileAgent")]:
             agents_path = os.path.join(target, "AGENTS.md")
             if os.path.exists(agents_path):
-                with open(agents_path, 'r', encoding='utf-8') as f:
+                with open(agents_path, encoding='utf-8') as f:
                     content = f.read()
-                
+
                 # Check for absolute requirements: ODIN identity, Symmetry, SovereignFish
                 if "ODIN" not in content or "Symmetry" not in content or "SovereignFish" not in content:
                     self._create_standard_agents(agents_path)
@@ -42,14 +42,14 @@ class OdinStrategy(PersonaStrategy):
         if not os.path.exists(rules_path):
             create_rules = True
         else:
-            with open(rules_path, 'r', encoding='utf-8') as f:
+            with open(rules_path, encoding='utf-8') as f:
                 if "ODIN" not in f.read():
                     create_rules = True # RUTHLESS OVERWRITE
-        
+
         if create_rules:
             self._create_cursor_rules(rules_path)
             results.append("ENFORCED: .cursorrules (Forged)")
-            
+
         return results
 
     def _create_cursor_rules(self, path):
@@ -93,7 +93,7 @@ class AlfredStrategy(PersonaStrategy):
     def enforce_policy(self):
         """ALFRED Policy: Humble Service. Adapt and Assist."""
         results = []
-        
+
         # 1. Adaptive Backup (The Safety Net)
         for file in ["AGENTS.md", "tasks.md", "thesaurus.md"]:
             path = os.path.join(self.root, file)
@@ -109,11 +109,11 @@ class AlfredStrategy(PersonaStrategy):
             if os.path.exists(os.path.join(self.root, name)):
                 agents_found = True
                 break
-        
+
         if not agents_found:
             self._create_minimal_agents(os.path.join(self.root, "AGENTS.md"))
             results.append("SUGGESTED: Created minimal project notes.")
-            
+
         return results
 
     def _create_minimal_agents(self, path):

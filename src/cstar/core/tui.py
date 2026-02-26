@@ -4,7 +4,6 @@ A multi-screen, lore-drenched Textual TUI for the Corvus Star autonomous loop.
 """
 
 import asyncio
-import contextlib
 import json
 import os
 import random
@@ -115,7 +114,7 @@ class VitalsHeader(Static):
             status_lbl.update(f"[red]● {lore['offline']}[/]")
         else:
             status_lbl.update(f"[green]●[/] {lore['online']}")
-        
+
         vitals = state.get("vitals", {})
         if isinstance(vitals, dict):
             # Update Edge Status
@@ -299,7 +298,7 @@ class SovereignApp(App):
 
         self.add_class(LORE["ODIN"]["theme_class"])
         self.push_screen("dashboard")
-        
+
         # Start pure WebSockets listener strictly off-thread
         self.run_worker(self.websocket_listener())
 
@@ -315,14 +314,14 @@ class SovereignApp(App):
             screen = self.screen
             screen.query_one("#sidebar_container").border_title = lore["sidebar_title"]
             screen.query_one("#console").border_title = lore["console_title"]
-            
+
             gphs = screen.query_one(GPHSGauge)
             gphs.border_title = lore["gphs_label"]
             gphs.render_gauge(0.78, lore)
-            
+
             hb = screen.query_one("#odin_heartbeat")
             hb.border_title = "VANGUARD SECURE FEED"
-            
+
             cmd = screen.query_one("#cmd_input", Input)
             cmd.placeholder = f"{self.prompt_string} enter command..."
         except Exception:
@@ -360,18 +359,18 @@ class SovereignApp(App):
         """Background thread holding the websocket connection to avoid event loop contention."""
         uri = f"ws://{HOST}:{PORT}"
         key_file = PROJECT_ROOT / ".agent" / "daemon.key"
-        
+
         while True:
             try:
                 auth_key = key_file.read_text().strip() if key_file.exists() else ""
                 with connect(uri) as ws:
                     self.ws = ws
                     ws.send(json.dumps({"type": "auth", "auth_key": auth_key}))
-                    
+
                     for msg in ws:
                         data = json.loads(msg)
                         self.call_from_thread(self.handle_daemon_message, data)
-            except Exception as e:
+            except Exception:
                 self.ws = None
                 time.sleep(2)
 
@@ -411,45 +410,45 @@ class SovereignApp(App):
                     console.write(f"[cyan][ROUTER] {msg}[/cyan]")
                 return
             # -----------------------------------------------------------------------
-            
+
             # [CANARY] Correlation logic: Stop the clock on terminal events
-            
+
             if msg_type == "broadcast":
                 if event == "SYNC_STATE":
                     state = payload.get("state")
                     persona = "ALFRED" if state == "STATE_ALFRED_REPORT" else "ODIN"
                     if persona != self.active_persona and not self.is_transitioning:
                         self.trigger_crt_glitch(persona)
-                
+
                 elif event == "PAYLOAD_READY":
                     terminal_event = True
                     persona = payload.get("persona", "ALFRED")
                     if self.active_persona != persona and not self.is_transitioning:
                         self.trigger_crt_glitch(persona)
-                        
+
                 elif event == "STATE_ODIN":
                     if self.active_persona != "ODIN" and not self.is_transitioning:
                         self.trigger_crt_glitch("ODIN")
-                        
+
                 elif event == "STATE_ALFRED_THINKING":
-                    console.write(f"[dim][ALFRED] processing...[/dim]")
-                    
+                    console.write("[dim][ALFRED] processing...[/dim]")
+
                 elif event == "STATE_SYSTEM_LOCKED":
                     pass # Handled gracefully implicitly
-                    
+
             elif msg_type == "result":
                 # Check if it's dashboard poll
                 if isinstance(payload, dict) and "vitals" in payload:
                     header = self.screen.query_one(VitalsHeader)
                     header.update_vitals(payload, LORE[self.active_persona])
-                    
+
                     sidebar = self.screen.query_one(SidebarWidget)
                     sidebar.update_tasks(payload.get("tasks", []), LORE[self.active_persona])
                     return
 
                 status = data.get("status")
                 msg = data.get("message", "")
-                
+
                 if status == "uplink_success":
                     text = payload.get("text", str(payload))
                     console.write(f"\n[ALFRED_REPORT]\n{text}\n")
@@ -473,42 +472,42 @@ class SovereignApp(App):
                 })
                 self.active_request_timestamp = None
 
-        except Exception as e: 
+        except Exception:
             pass # Graceful fail if widgets not mounted
 
     @work(exclusive=True)
     async def trigger_crt_glitch(self, new_persona: str) -> None:
         """Execute the intense CRT Glitch Matrix wipe safely."""
         self.is_transitioning = True
-        
+
         old_lore = LORE[self.active_persona]
         new_lore = LORE[new_persona]
-        
+
         try:
             screen = self.screen
             console = screen.query_one("#console", Log)
             cmd_input = screen.query_one("#cmd_input", Input)
             cmd_input.disabled = True
-            
+
             # The CRT Wipe Handoff
             chars = ['█', '▓', '▒', '░', '▄', '▀', '▌', '▐', '▆', '▇']
             for _ in range(6):
                 trash = "".join(random.choices(chars, k=75))
                 console.write(f"[bold cyan]{trash}[/bold cyan]")
                 await asyncio.sleep(0.04)
-                
+
             # Perform CSS Theme Swap
             self.remove_class(old_lore["theme_class"])
             self.active_persona = new_persona
             self.add_class(new_lore["theme_class"])
-            
+
             self.title = new_lore["app_title"]
             self.prompt_string = new_lore["prompt"]
             self._apply_panel_lore()
-            
+
             console.write(f"\n[{new_persona}] {new_lore['transition_in']}")
             console.write(f"[{new_persona}] Systems synchronized.\n")
-            
+
         except Exception:
             pass
         finally:
@@ -518,20 +517,20 @@ class SovereignApp(App):
     async def on_input_submitted(self, message: Input.Submitted) -> None:
         cmd = message.value.strip()
         message.input.value = ""
-        
-        if not cmd or self.is_transitioning: 
+
+        if not cmd or self.is_transitioning:
             return
-            
+
         # [CANARY] Start Correlation Clock
         self.active_request_timestamp = time.time()
-            
-        if cmd.lower() in ("exit", "quit"): 
+
+        if cmd.lower() in ("exit", "quit"):
             self.exit()
             return
-            
+
         try:
             console = self.screen.query_one("#console", Log)
-            
+
             if cmd == "/dev force_alfred":
                 self.trigger_crt_glitch("ALFRED")
                 return
@@ -541,11 +540,11 @@ class SovereignApp(App):
             elif cmd == "clear":
                 console.clear()
                 return
-                
+
             console.write(f"\n{self.prompt_string} {cmd}")
             self._send_command({"command": cmd.split()[0].lower(), "args": cmd.split()[1:]})
-            
-        except Exception: 
+
+        except Exception:
             pass
 
     async def action_sleep_protocol(self) -> None:

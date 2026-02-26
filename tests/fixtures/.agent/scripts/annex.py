@@ -7,8 +7,6 @@ Strandards: Linscott (Tests), Torvalds (Quality), Empire (Contracts), Edda (Docs
 """
 
 import ast
-import os
-import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -27,7 +25,7 @@ class AnnexStrategist:
     def scan(self):
         """Conducts a full comprehensive audit of the territory."""
         print(f"[ANNEX] Scanning realm: {self.root}")
-        
+
         # 1. Scan Code (Linscott & Torvalds)
         for py_file in self.root.rglob("*.py"):
             if self._should_ignore(py_file):
@@ -35,7 +33,6 @@ class AnnexStrategist:
             self._audit_code(py_file)
 
         # 2. Scan Documentation (Edda)
-        from src.core.edda import EddaWeaver  # Assumption: edda.py is in same dir or path
         # We can re-use Edda logic or just replicate the scan for speed
         # Replicating for now to keep loose coupling
         for md_file in self.root.rglob("*.md"):
@@ -44,7 +41,7 @@ class AnnexStrategist:
             # Edda ignores workflows by default, let's check
             if ".agent/workflows" in str(md_file.as_posix()):
                 continue
-                
+
             self.edda_tasks.append(md_file)
 
         self._generate_plan()
@@ -63,7 +60,7 @@ class AnnexStrategist:
     def _audit_code(self, source: Path):
         """Checks for Linscott (Test) and Torvalds (Quality) compliance."""
         rel_path = source.relative_to(self.root)
-        
+
         # A. Linscott Standard: Where is the test?
         test_path = self.root / "tests" / f"test_{source.stem}.py"
         # Also check tests/empire/ or strict mirror if desired, but flat 'tests/' is standard
@@ -97,9 +94,9 @@ class AnnexStrategist:
 
     def _generate_plan(self):
         """Weaves the findings into a QMD battle plan."""
-        
+
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
+
         plan = [
             "---",
             "title: Annexation Plan",
@@ -117,7 +114,7 @@ class AnnexStrategist:
             "Every script must have a companion test. 'Trust, but Verify.'",
             ""
         ]
-        
+
         linscott_breaches = [b for b in self.breaches if b["type"] == "LINSCOTT_BREACH"]
         if linscott_breaches:
             for b in linscott_breaches:
@@ -128,18 +125,18 @@ class AnnexStrategist:
         plan.append("")
         plan.append("## 🐧 Torvalds Protocol (Code Quality)")
         plan.append("Structural integrity mandates. No bare excepts. Strict typing.")
-        
+
         torvalds_breaches = [b for b in self.breaches if b["type"] == "TORVALDS_BREACH"]
         if torvalds_breaches:
             for b in torvalds_breaches:
                 plan.append(f"- [ ] **[quality]** `{b['file']}` → {b['action']}")
         else:
             plan.append("*(No breaches detected. Code is clean.)*")
-            
+
         plan.append("")
         plan.append("## 📜 The Edda (Documentation)")
         plan.append("Legacy markdown must be transmuted to Quarto. Workflows are preserved.")
-        
+
         if self.edda_tasks:
             for doc in self.edda_tasks:
                 rel = doc.relative_to(self.root)
@@ -153,7 +150,7 @@ class AnnexStrategist:
         plan.append("## ⚡ Execution Strategy")
         plan.append("1. **Approve**: Mark items as `[x]` to confirm.")
         plan.append("2. **Execute**: Run the annexation command.")
-        
+
         self.plan_path.write_text("\n".join(plan), encoding="utf-8")
         print(f"[ANNEX] Plan generated: {self.plan_path}")
         print(f"[ANNEX] Breaches found: Linscott={len(linscott_breaches)}, Torvalds={len(torvalds_breaches)}, Edda={len(self.edda_tasks)}")
@@ -166,7 +163,7 @@ def main():
     if len(sys.argv) < 2:
         print("Usage: annex.py --scan [ROOT]")
         sys.exit(1)
-        
+
     cmd = sys.argv[1]
     if cmd == "--scan":
         root = Path(sys.argv[2]) if len(sys.argv) > 2 else Path.cwd()

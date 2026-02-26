@@ -3,7 +3,6 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Dict, List, Optional
 
 # Add project root to sys.path
 project_root = Path(__file__).resolve().parent.parent.parent
@@ -17,11 +16,12 @@ bootstrap()
 
 from src.core.sovereign_hud import SovereignHUD
 
+
 class CorvusDispatcher:
     """
     Main CLI Dispatcher for the Corvus Star framework.
     """
-    def __init__(self, root: Optional[Path] = None) -> None:
+    def __init__(self, root: Path | None = None) -> None:
         self.project_root = root or PROJECT_ROOT
         self.venv_python = self.project_root / ".venv" / "Scripts" / "python.exe"
         if not self.venv_python.exists():
@@ -39,7 +39,7 @@ class CorvusDispatcher:
         except Exception:
             self.warden = None
 
-    def _discover_all(self) -> Dict[str, str]:
+    def _discover_all(self) -> dict[str, str]:
         """Scans all dynamic locations for available commands."""
         commands = {}
 
@@ -58,7 +58,7 @@ class CorvusDispatcher:
                 for f in d.glob("*.py"):
                     if f.stem not in ["__init__", "_bootstrap", "cstar_dispatcher"]:
                         commands.setdefault(f.stem, str(f.resolve()))
-                
+
                 # Directory-based skill discovery (e.g., skills_db/name/name.py)
                 for sub in d.iterdir():
                     if sub.is_dir():
@@ -95,7 +95,7 @@ class CorvusDispatcher:
         SovereignHUD.box_row("SHORTCUTS", "-odin, -alfred", SovereignHUD.YELLOW)
         SovereignHUD.box_bottom()
 
-    def run(self, args: List[str]) -> None:
+    def run(self, args: list[str]) -> None:
         """Parses and dispatches the command dynamically."""
         if not args:
             # [Phase 11] Launch Sovereign SovereignHUD (TUI)
@@ -122,7 +122,7 @@ class CorvusDispatcher:
             set_persona_script = self.project_root / "src" / "core" / "set_persona.py"
             if not set_persona_script.exists():
                 set_persona_script = self.project_root / "scripts" / "set_persona.py"
-                
+
             env = os.environ.copy()
             env["PYTHONPATH"] = str(self.project_root)
             subprocess.run([str(self.venv_python), str(set_persona_script), persona], env=env)
@@ -138,13 +138,13 @@ class CorvusDispatcher:
                     from src.sentinel.sandbox_warden import SandboxWarden
                     warden = SandboxWarden()
                     report = warden.run_in_sandbox(Path(cmd_path), args=cmd_args)
-                    
+
                     if report["stdout"]: print(report["stdout"])
                     if report["stderr"]: print(report["stderr"], file=sys.stderr)
                     if report["timed_out"]:
                         SovereignHUD.persona_log("FAIL", "Sandbox Execution Timed Out.")
                     return
-                
+
                 # Native Execution for core framework skills
                 env = os.environ.copy()
                 env["PYTHONPATH"] = str(self.project_root)
@@ -155,7 +155,7 @@ class CorvusDispatcher:
                 import shutil
                 start_time = time.time()
                 error_status = 0.0
-                
+
                 quarto_path = shutil.which("quarto") or r"C:\Program Files\Quarto\bin\quarto.exe"
                 if os.path.exists(quarto_path):
                     try:
@@ -183,15 +183,13 @@ class CorvusDispatcher:
             return
 
         features = [latency, float(tokens), loops, error]
-        
+
         # Inference
         anomaly_prob = self.warden.forward(features)
-        
+
         # Training (Self-Supervised on success)
         # In Burn-In, we assume Healthy (0.0). Post Burn-In, we only train on successes.
-        if self.warden.burn_in_cycles > 0:
-            self.warden.train_step(features, 0.0)
-        elif error == 0.0:
+        if self.warden.burn_in_cycles > 0 or error == 0.0:
             self.warden.train_step(features, 0.0)
 
         # Alerting

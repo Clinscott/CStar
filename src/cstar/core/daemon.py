@@ -1,16 +1,15 @@
-import socket
-import json
-import psutil
-import gc
-import os
-import sys
-import threading
-import time
-import re
 import asyncio
-import subprocess
+import gc
+import json
+import os
+import re
 import secrets
+import subprocess
+import sys
+import time
 from pathlib import Path
+
+import psutil
 import websockets
 
 # Add project root to path for src imports
@@ -21,9 +20,9 @@ if str(project_root) not in sys.path:
 
 from src.core.engine.vector import SovereignVector
 from src.core.payload import IntentPayload
-from src.cstar.core.uplink import AntigravityUplink
 from src.cstar.core.forge import Forge
 from src.cstar.core.rpc import SovereignRPC
+from src.cstar.core.uplink import AntigravityUplink
 from src.sentinel._bootstrap import bootstrap
 
 # Initialize Environment
@@ -45,7 +44,7 @@ COMMAND_REGISTRY = {}
 UPLINK = AntigravityUplink(api_key=os.getenv("GOOGLE_API_DAEMON_KEY") or os.getenv("GOOGLE_API_KEY"))
 RPC = None
 WARDEN = None
-SESSION_TRACES = [] 
+SESSION_TRACES = []
 
 # WebSockets Pub/Sub State
 CONNECTED_CLIENTS = set()
@@ -68,14 +67,14 @@ def load_engine():
     thesaurus_path = project_root / "src" / "data" / "thesaurus.qmd"
     corrections_path = project_root / ".agent" / "corrections.json"
     stopwords_path = project_root / "src" / "data" / "stopwords.json"
-    
+
     RPC = SovereignRPC(project_root)
 
     ENGINE = SovereignVector(str(thesaurus_path), str(corrections_path), str(stopwords_path))
     ENGINE.load_core_skills()
     ENGINE.load_skills_from_dir(str(project_root / "src" / "skills" / "local"))
     ENGINE.build_index()
-    
+
     # Initialize Warden
     global WARDEN
     try:
@@ -83,10 +82,10 @@ def load_engine():
         WARDEN = AnomalyWarden()
     except Exception:
         pass
-    
+
     dirs = [project_root / ".agent" / "workflows", project_root / ".agent" / "skills"]
     print("[DAEMON] Building Command Registry...")
-    count = 0 
+    count = 0
     for d in dirs:
         if d.exists():
             for f in list(d.glob("*.qmd")) + list(d.glob("*.md")) + list(d.glob("*.py")):
@@ -99,7 +98,7 @@ def load_engine():
                     except: pass
                  COMMAND_REGISTRY[cmd_name] = str(f)
                  count += 1
-    
+
     print(f"[DAEMON] Registry loaded with {count} commands.")
 
 def get_memory_usage_mb():
@@ -107,7 +106,7 @@ def get_memory_usage_mb():
     return process.memory_info().rss / 1024 / 1024
 
 def check_memory_and_restart():
-    gc.collect() 
+    gc.collect()
     mem_usage = get_memory_usage_mb()
     if mem_usage > MEMORY_LIMIT_MB:
         print(f"[DAEMON] Memory breach ({mem_usage:.2f}MB). Restarting.")
@@ -135,12 +134,12 @@ async def handle_client(websocket):
         except Exception:
             await websocket.close(1008, "Auth missing or invalid")
             return
-            
+
         CONNECTED_CLIENTS.add(websocket)
         # Send SYNC_STATE upon connect
         await websocket.send(json.dumps({
-            "type": "broadcast", 
-            "event": "SYNC_STATE", 
+            "type": "broadcast",
+            "event": "SYNC_STATE",
             "data": {"state": GLOBAL_STATE, "locked": SYSTEM_LOCKED}
         }))
 
@@ -150,13 +149,13 @@ async def handle_client(websocket):
                 command = data.get("command")
                 args = data.get("args", [])
                 cwd = data.get("cwd", os.getcwd())
-                
+
                 if command == "get_dashboard_state":
                     # Run RPC synchronously in background thread to avoid event loop blocking
                     response = await asyncio.to_thread(RPC.get_dashboard_state)
                     await websocket.send(json.dumps({"type": "result", "data": response}))
                     continue
-                
+
                 if command == "telemetry":
                     # [CANARY] TUI sensory hook
                     global WARDEN
@@ -166,7 +165,7 @@ async def handle_client(websocket):
                         features = [float(latency), 200.0, 1.0, float(error)]
                         WARDEN.train_step(features, 0.0) # Self-supervised as 'healthy' unless TUI reports error
                     continue
-                    
+
                 if command == "forge":
                     # Background task to stream forge
                     asyncio.create_task(process_forge_stream(websocket, args, cwd))
@@ -183,7 +182,7 @@ async def handle_client(websocket):
                 input_str = command
                 full_query = f"{input_str} {' '.join(args)}".strip().lower()
                 dismissal = False
-                
+
                 if GLOBAL_STATE == "STATE_ALFRED_REPORT":
                     if full_query in ["thanks alfred", "dismiss", "resume vanguard", "continue"]:
                         CURRENT_SESSION_CONTEXT.clear()
@@ -193,11 +192,11 @@ async def handle_client(websocket):
                         await broadcast_state("STATE_SYSTEM_LOCKED", {"locked": False})
                         await websocket.send(json.dumps({"type": "result", "status": "success", "message": "Very good, sir. Securing the channel."}))
                         continue
-                        
+
                 try:
                     # Process generic commands
                     response = await process_command(input_str, args, cwd)
-                    
+
                     if response.get("type") == "uplink" or response.get("status") == "uplink_success":
                         # Cognitive Task -> ALFRED
                         GLOBAL_STATE = "STATE_ALFRED_REPORT"
@@ -215,7 +214,7 @@ async def handle_client(websocket):
                     # Graceful degraded routing to ALFRED
                     GLOBAL_STATE = "STATE_ALFRED_REPORT"
                     await broadcast_state("PAYLOAD_READY", {"persona": "ALFRED", "error": True})
-                    await websocket.send(json.dumps({"type": "result", "status": "error", "message": f"Diagnostics: {str(e)}"}))
+                    await websocket.send(json.dumps({"type": "result", "status": "error", "message": f"Diagnostics: {e!s}"}))
                 finally:
                     SYSTEM_LOCKED = False
                     await broadcast_state("STATE_SYSTEM_LOCKED", {"locked": False})
@@ -235,43 +234,43 @@ def engine_search_sync(query):
     results = ENGINE.search(query)
     top = results[0] if results else None
     score = top['score'] if top else 0.0
-    
+
     # Vanguard routing if it's deterministic
     parts = query.split()
     cmd = parts[0] if parts else ""
     if cmd in COMMAND_REGISTRY:
         return {"status": "success", "type": "deterministic", "target": COMMAND_REGISTRY[cmd], "args": parts[1:]}, top, score
-    
+
     return None, top, score
 
 async def process_command(input_str, args, cwd):
     global COMMAND_REGISTRY, UPLINK, SESSION_TRACES, CURRENT_SESSION_CONTEXT
-    
+
     if not input_str: return {"status": "error"}
-    
+
     if input_str == "sleep":
         return await execute_sleep_protocol()
 
     SESSION_TRACES.append({"cmd": input_str, "args": args, "ts": time.time()})
 
     query = f"{input_str} {' '.join(args)}".strip()
-    
+
     deterministic_resp, top, score = await asyncio.to_thread(engine_search_sync, query)
     if deterministic_resp:
         return deterministic_resp
-    
+
     if score < CONFIDENCE_THRESHOLD or input_str in ["ask", "brain", "uplink", "analyze", "summarize"]:
         await broadcast_state("STATE_ALFRED_THINKING")
         context = {
-            "cwd": cwd, 
-            "persona": "ALFRED", 
+            "cwd": cwd,
+            "persona": "ALFRED",
             "traces": SESSION_TRACES[-5:],
             "session_context": CURRENT_SESSION_CONTEXT
         }
         # Await natively without threading, uplink maintains its own async bounds
         uplink_response = await UPLINK.send_payload(query, context)
         return {"status": "uplink_success", "type": "uplink", "data": uplink_response}
-    
+
     return {"status": "success", "type": "probabilistic", "target": top['trigger'], "score": score}
 
 async def process_forge_stream(websocket, args_list, cwd):
@@ -285,14 +284,14 @@ async def process_forge_stream(websocket, args_list, cwd):
             target = args_list[args_list.index("--target") + 1]
     except IndexError:
         pass
-        
+
     if not task or not target:
         await websocket.send(json.dumps({"type": "result", "status": "error", "message": "Missing arguments"}))
         return
 
     forge = Forge()
     SESSION_TRACES.append({"cmd": "forge", "task": task, "target": target, "ts": time.time(), "status": "started"})
-    
+
     # [ODIN] Wrap task in IntentPayload for structural rigidity
     payload = IntentPayload(
         system_meta={"confidence": 1.0, "source": "daemon_direct"},
@@ -305,7 +304,7 @@ async def process_forge_stream(websocket, args_list, cwd):
     async for event in forge.execute(payload, target):
         payload_event = json.dumps(event)
         await websocket.send(payload_event)
-        
+
         if event.get("type") == "result":
              SESSION_TRACES.append({"cmd": "forge_result", "task": task, "result": event, "ts": time.time()})
 
@@ -314,33 +313,33 @@ async def execute_sleep_protocol():
     proj_mem = project_root / ".agent" / "memory" / f"session_{int(time.time())}.json"
     proj_mem.parent.mkdir(parents=True, exist_ok=True)
     proj_mem.write_text(json.dumps(SESSION_TRACES, indent=2))
-    
+
     try:
         subprocess.Popen([sys.executable, "-m", "src.sentinel.muninn", "--audit"], cwd=str(project_root))
     except Exception:
         pass
-        
+
     SESSION_TRACES = []
     # Clear session context on sleep
     global CURRENT_SESSION_CONTEXT
     CURRENT_SESSION_CONTEXT.clear()
-    
+
     return {"status": "success", "message": "Session consolidated.", "gungnir": "PASS"}
 
 async def async_start_daemon():
     load_engine()
     generate_or_load_key()
-    
+
     if PID_FILE.exists():
         try:
            if psutil.pid_exists(int(PID_FILE.read_text())): return
         except: pass
     PID_FILE.parent.mkdir(parents=True, exist_ok=True)
     PID_FILE.write_text(str(os.getpid()))
-    
+
     print(f"[DAEMON] Started PID: {os.getpid()} PORT: {PORT}")
     print(f"[DAEMON] Auth Key generated at {KEY_FILE}")
-    
+
     try:
         async with websockets.serve(handle_client, HOST, PORT):
             await asyncio.Future()  # run forever

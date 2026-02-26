@@ -14,12 +14,9 @@ import argparse
 import asyncio
 import json
 import logging
-import os
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
-from typing import Any, Optional
 
 # Ensure UTF-8 output for box-drawing characters
 if hasattr(sys.stdout, "reconfigure"):
@@ -46,18 +43,18 @@ class UtilityBelt:
     def __init__(self, target: str, max_retries: int = 3):
         self.target_path = Path(target).resolve()
         self.max_retries = max_retries
-        
+
         # Enforce ALFRED persona
         SovereignHUD.PERSONA = "ALFRED"
 
-    async def _refactor_code(self, file_path: Path) -> Optional[str]:
+    async def _refactor_code(self, file_path: Path) -> str | None:
         """Queries the bridge to refactor the code."""
         if not file_path.exists():
             SovereignHUD.persona_log("ERROR", f"Target file not found: {file_path}")
             return None
-            
+
         code_content = file_path.read_text(encoding="utf-8")
-        
+
         prompt = f"""
 [CRITICAL INSTRUCTION]
 You are ALFRED, the elegant refactoring engine for the Corvus Star Manor.
@@ -82,15 +79,15 @@ Commence the refinement.
             "persona": "ALFRED",
             "target_interface": str(file_path)
         }
-        
+
         SovereignHUD.persona_log("INFO", f"Bridging to Forge for refinement of {file_path.name}...")
-        
+
         for attempt in range(self.max_retries):
             try:
                 response = await query_bridge(prompt, context)
                 if response and response.get("status") == "success":
                     data = response.get("data", {})
-                    
+
                     if isinstance(data, dict):
                          if "code" in data:
                              code = data["code"]
@@ -100,13 +97,13 @@ Commence the refinement.
                              code = json.dumps(data)
                     else:
                         code = str(data)
-                        
+
                     return self._clean_markdown(code)
-                    
+
             except Exception as e:
                 SovereignHUD.persona_log("WARN", f"Forge attempt {attempt+1} failed: {e}")
                 await asyncio.sleep(2)
-                
+
         SovereignHUD.persona_log("ERROR", "Max retries exceeded for refactoring.")
         return None
 
@@ -124,42 +121,42 @@ Commence the refinement.
     def _verify_crucible(self, target_file: Path, refactored_code: str) -> bool:
         """Runs the test suite against the refactored code in a temporary environment."""
         SovereignHUD.persona_log("INFO", "Initializing The Crucible (Verification Phase)...")
-        
+
         # Determine the test file name heuristically based on conventions
         test_filename = f"test_{target_file.name}"
         test_filepath = None
-        
+
         search_dirs = [
             project_root / "tests",
             project_root / "tests" / "unit",
             project_root / "tests" / "integration",
             project_root / "tests" / "empire_tests"
         ]
-        
+
         for sd in search_dirs:
             potential_path = sd / test_filename
             if potential_path.exists():
                 test_filepath = potential_path
                 break
-                
+
         if not test_filepath:
             SovereignHUD.persona_log("WARN", "CRUCIBLE ABORT: No corresponding test file found. Refactoring cannot proceed safely.")
             return False
 
         # We must test the refactored code without permanently destroying the original file.
         # Approach: Backup original -> Write new -> Run Pytest -> Restore original
-        
+
         backup_code = target_file.read_text(encoding="utf-8")
         crucible_passed = False
-        
+
         try:
             # Inject
             target_file.write_text(refactored_code, encoding="utf-8")
-            
+
             # Execute Pytest specifically on the target's test file
             cmd = [sys.executable, "-m", "pytest", str(test_filepath), "-q", "--tb=short"]
             result = subprocess.run(cmd, capture_output=True, text=True)
-            
+
             if result.returncode == 0:
                 SovereignHUD.persona_log("SUCCESS", "CRUCIBLE PASSED: Logic integrity maintained.")
                 crucible_passed = True
@@ -169,11 +166,11 @@ Commence the refinement.
                  SovereignHUD.box_separator()
                  SovereignHUD.box_row("TEST FAILURE", result.stdout[:200].replace('\n', ' ') + "...", SovereignHUD.RED)
                  SovereignHUD.box_separator()
-                 
+
         finally:
             # Always restore the original immediately during verification
             target_file.write_text(backup_code, encoding="utf-8")
-            
+
         return crucible_passed
 
     def _human_review(self, target_file: Path, refactored_code: str) -> bool:
@@ -182,15 +179,15 @@ Commence the refinement.
         SovereignHUD.box_row("HUMAN IN THE LOOP", "REVIEW REQUIRED", SovereignHUD.YELLOW)
         SovereignHUD.box_row("TARGET", target_file.name, SovereignHUD.CYAN)
         SovereignHUD.box_separator()
-        
+
         lines = refactored_code.splitlines()
         preview_lines = lines[:15]
         for line in preview_lines:
              SovereignHUD.box_row("  ", line, SovereignHUD.CYAN, dim_label=True)
-             
+
         if len(lines) > 15:
              SovereignHUD.box_row("  ", f"... (+ {len(lines)-15} more lines)", SovereignHUD.CYAN, dim_label=True)
-             
+
         SovereignHUD.box_separator()
         try:
              ans = input(f"{SovereignHUD.get_theme()['main']}[ALFRED] Sir, the forge glow subsides. Shall I commit this refinement to the main branch? (y/N): {SovereignHUD.RESET}")
@@ -213,36 +210,36 @@ Commence the refinement.
         SovereignHUD.box_top("[A] THE UTILITY BELT")
         SovereignHUD.box_row("DIRECTIVE", "ELEGANCE & REFACTORING", SovereignHUD.CYAN)
         SovereignHUD.box_row("TARGET", str(self.target_path), SovereignHUD.YELLOW)
-        
+
         if not self.target_path.exists() or not self.target_path.is_file():
             SovereignHUD.box_row("STATUS", "Invalid target file.", SovereignHUD.RED)
             SovereignHUD.box_bottom()
             return
-            
+
         SovereignHUD.box_separator()
         SovereignHUD.persona_log("INFO", "Initializing Forge sequence...")
-        
+
         refactored_code = await self._refactor_code(self.target_path)
-        
+
         if not refactored_code:
             SovereignHUD.box_row("RESULT", "Refactoring Failed. Check Bridge logs.", SovereignHUD.RED)
             SovereignHUD.box_bottom()
             return
-            
+
         secure = self._verify_crucible(self.target_path, refactored_code)
-        
+
         if not secure:
              SovereignHUD.box_row("RESULT", "Refactoring discarded due to test failure.", SovereignHUD.RED)
              SovereignHUD.box_bottom()
              return
-                
+
         approved = self._human_review(self.target_path, refactored_code)
-        
+
         if approved:
             self._commit_refactor(self.target_path, refactored_code)
         else:
             SovereignHUD.persona_log("INFO", "Refinement rejected by user. Discarding trace.")
-                
+
         SovereignHUD.box_bottom()
 
 def main():

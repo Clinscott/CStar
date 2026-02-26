@@ -21,15 +21,15 @@ def benchmark(n=100):
     """
     cmd = ["python", ".agent/scripts/sv_engine.py", "--benchmark"]
     times = []
-    
+
     print(f"Executing {n} trials of sv_engine.py startup...")
-    
+
     for i in range(n):
         start = time.perf_counter()
         subprocess.run(cmd, capture_output=True, check=True)
         end = time.perf_counter()
         times.append((end - start) * 1000) # ms
-        
+
         if (i+1) % 10 == 0:
             print(f"Completed {i+1}/{n} trials...")
 
@@ -39,7 +39,7 @@ def benchmark(n=100):
     stdev = statistics.stdev(times)
 
     engine = ReportEngine()
-    
+
     body = f"""
 | Metric | Result |
 | :--- | :--- |
@@ -49,7 +49,7 @@ def benchmark(n=100):
 | **Avg Time** | {avg_t:.2f} ms |
 | **Std Dev** | {stdev:.2f} ms |
 """
-    
+
     if avg_t < 100:
         verdict = "HIGHLY VIABLE"
         detail = "System operating at peak efficiency."

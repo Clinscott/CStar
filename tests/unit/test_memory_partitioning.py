@@ -1,7 +1,9 @@
-import unittest
-from src.core.engine.memory_db import MemoryDB
 import os
 import shutil
+import unittest
+
+from src.core.engine.memory_db import MemoryDB
+
 
 class TestMemoryPartitioning(unittest.TestCase):
     def setUp(self):
@@ -51,7 +53,7 @@ class TestMemoryPartitioning(unittest.TestCase):
         """
         self.db.upsert_skill("test_app", "my_intent", "Test description")
         self.db.upsert_skill("test_app", "nested::intent::id", "Nested test")
-        
+
         results = self.db.search_intent("test_app", "my_intent")
         self.assertEqual(results[0]["trigger"], "my_intent")
         self.assertNotIn("test_app::", results[0]["trigger"])

@@ -3,15 +3,13 @@ import json
 import os
 import sys
 import unittest
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import mock_open, patch
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.append(PROJECT_ROOT)
 sys.path.append(os.path.join(PROJECT_ROOT, ".agent", "scripts"))
 
-from odin_protocol.engine.models import Chromosome, UniverseState
-from odin_protocol.engine.persistence import OdinPersistence
-from src.core.sovereign_hud import SovereignHUD
+from src.games.odin_protocol.engine.persistence import OdinPersistence
 
 
 class TestPersistence_contracts(unittest.TestCase):
@@ -20,7 +18,7 @@ class TestPersistence_contracts(unittest.TestCase):
         sys.stdout = self.captured_output
         self.persistence = OdinPersistence(PROJECT_ROOT)
         # Create a mock UniverseState explicitly convertible to dict if needed
-        # But save_state expects a dict for 'state' arg based on type hint in file, 
+        # But save_state expects a dict for 'state' arg based on type hint in file,
         # BUT logic.py passes UniverseState object? No, persistence.py says 'state: dict[str, Any]'.
         # Wait, let's check persistence.py source again from Step 129.
         # "state: dict[str, Any]".
@@ -33,18 +31,18 @@ class TestPersistence_contracts(unittest.TestCase):
     def test_transition(self):
         # >>> CONTRACT 1: SAVE GAME <<<
         # GIVEN Game State exists [SAVE]
-        
+
         # WHEN Save is requested
         with patch("builtins.open", mock_open()) as mock_file:
             with patch("subprocess.run") as mock_git:
                 # save_state(self, state, world_name, outcome)
                 self.persistence.save_state(self.state_dict, "TestWorld", "Victory")
-                
+
                 # THEN JSON file is written to disk
                 # Check call to save_state.json
                 found_save = any("save_state.json" in str(call) for call in mock_file.mock_calls)
                 self.assertTrue(found_save)
-                
+
                 # THEN Commit is triggered [GIT]
                 mock_git.assert_called()
                 args = mock_git.call_args[0][0]

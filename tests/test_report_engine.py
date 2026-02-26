@@ -1,5 +1,4 @@
 # tests/test_report_engine.py
-import os
 import sys
 import unittest
 from pathlib import Path
@@ -9,7 +8,6 @@ current_dir = Path(__file__).parent.parent
 sys.path.append(str(current_dir / ".agent" / "scripts"))
 
 from report_engine import ReportEngine
-from src.core.sovereign_hud import SovereignHUD
 
 
 class TestReportEngine(unittest.TestCase):

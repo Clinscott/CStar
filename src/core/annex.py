@@ -7,8 +7,6 @@ Wardens: Linscott (Tests), Mimir (Quality), Empire (Contracts), Edda (Docs).
 """
 
 import ast
-import os
-import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -28,7 +26,7 @@ class HeimdallWarden:
         """Conducts a full comprehensive audit of the territory."""
         from src.core.sovereign_hud import SovereignHUD
         SovereignHUD.persona_log("INFO", f"Scanning realm: {self.root}")
-        
+
         # 1. Scan Code (Linscott & Torvalds)
         for py_file in self.root.rglob("*.py"):
             if self._should_ignore(py_file):
@@ -36,7 +34,6 @@ class HeimdallWarden:
             self._audit_code(py_file)
 
         # 2. Scan Documentation (Edda)
-        from src.core.edda import EddaWeaver
         # We can re-use Edda logic or just replicate the scan for speed
         # Replicating for now to keep loose coupling
         for md_file in self.root.rglob("*.md"):
@@ -45,7 +42,7 @@ class HeimdallWarden:
             # Edda ignores workflows by default, let's check
             if ".agent/workflows" in str(md_file.as_posix()):
                 continue
-                
+
             self.edda_tasks.append(md_file)
 
         self._generate_plan()
@@ -78,12 +75,12 @@ class HeimdallWarden:
         basic static analysis for common code quality issues like bare excepts.
         """
         rel_path = source.relative_to(self.root)
-        
+
         # A. Linscott Standard: Where is the test?
         test_path = self.root / "tests" / f"test_{source.stem}.py"
         # [ODIN] Also check Empire TDD path
         empire_test_path = self.root / "tests" / "empire_tests" / f"test_{source.stem}_empire.py"
-        
+
         if not test_path.exists() and not empire_test_path.exists():
             # Try recursive mirror: src/foo.py -> tests/src/test_foo.py
             mirror_test = self.root / "tests" / rel_path.parent / f"test_{source.stem}.py"
@@ -110,7 +107,7 @@ class HeimdallWarden:
                         "action": f"Fix bare except at line {node.lineno}",
                         "severity": "HIGH"
                     })
-                
+
                 # Check for potential hardcoded secrets (Basic heuristic)
                 if isinstance(node, ast.Assign):
                     for target in node.targets:
@@ -125,12 +122,12 @@ class HeimdallWarden:
 
     def _generate_plan(self):
         """Weaves the findings into a QMD battle plan, preserving existing checkmarks."""
-        
+
         # 1. Capture existing checkmarks
         checked_files = set()
         if self.plan_path.exists():
-            import re
             import contextlib
+            import re
             with contextlib.suppress(Exception):
                 existing_content = self.plan_path.read_text(encoding="utf-8")
                 # Find checked items: - [x] **[...]** `file/path`
@@ -138,7 +135,7 @@ class HeimdallWarden:
                 checked_files = set(checked_matches)
 
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
+
         plan = [
             "---",
             "title: Annexation Plan",
@@ -156,7 +153,7 @@ class HeimdallWarden:
             "Every script must have a companion test. 'Trust, but Verify.'",
             ""
         ]
-        
+
         linscott_breaches = [b for b in self.breaches if b["type"] == "LINSCOTT_BREACH"]
         if linscott_breaches:
             for b in linscott_breaches:
@@ -168,21 +165,21 @@ class HeimdallWarden:
         plan.append("")
         plan.append("## 🐧 Torvalds Protocol (Code Quality)")
         plan.append("Structural integrity mandates. No bare excepts. Strict typing.")
-        
+
         mimir_breaches = [b for b in self.breaches if b["type"] == "MIMIR_BREACH"]
         if mimir_breaches:
             for b in mimir_breaches:
-                # For Mimir, we check if filename is in checked_files. 
+                # For Mimir, we check if filename is in checked_files.
                 # Better: use a composite key if needed, but filename works for basic state.
                 status = "x" if b['file'] in checked_files else " "
                 plan.append(f"- [{status}] **[quality]** `{b['file']}` → {b['action']}")
         else:
             plan.append("*(No breaches detected. Code is clean.)*")
-            
+
         plan.append("")
         plan.append("## 📜 The Edda (Documentation)")
         plan.append("Legacy markdown must be transmuted to Quarto. Workflows are preserved.")
-        
+
         if self.edda_tasks:
             for doc in self.edda_tasks:
                 rel = doc.relative_to(self.root).as_posix()
@@ -197,7 +194,7 @@ class HeimdallWarden:
         plan.append("## ⚡ Execution Strategy")
         plan.append("1. **Approve**: Mark items as `[x]` to confirm.")
         plan.append("2. **Execute**: Run the annexation command.")
-        
+
         from src.core.sovereign_hud import SovereignHUD
         self.plan_path.write_text("\n".join(plan), encoding="utf-8")
         SovereignHUD.persona_log("SUCCESS", f"Plan generated: {self.plan_path}")
@@ -213,7 +210,7 @@ def main():
     if len(sys.argv) < 2:
         SovereignHUD.log("WARN", "Usage: annex.py --scan [ROOT]")
         sys.exit(1)
-        
+
     cmd = sys.argv[1]
     if cmd == "--scan":
         root = Path(sys.argv[2]) if len(sys.argv) > 2 else Path.cwd()

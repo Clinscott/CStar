@@ -1,9 +1,9 @@
 import os
-import sys
-import psutil
 import socket
-import json
+import sys
 from pathlib import Path
+
+import psutil
 
 # Linscott Standard Thresholds
 MAX_MEMORY_MB = 150.0
@@ -19,24 +19,24 @@ REQUIRED_FILES = [
 ]
 
 def check_daemon_running():
-    print(f"[CHECK] Searching for C* Daemon...")
+    print("[CHECK] Searching for C* Daemon...")
     for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'memory_info']):
         try:
             cmd = proc.info['cmdline']
             mem = proc.info['memory_info'].rss / (1024 * 1024)
-            
+
             # Simple heuristic: look for "main_loop.py" or "muninn"
             if cmd and any("src/sentinel/main_loop.py" in c for c in cmd):
                 print(f"  [PASS] Oracle (Daemon) active (PID: {proc.info['pid']})")
                 print(f"  [METRIC] Oracle Memory: {mem:.2f} MB")
-                
+
                 if mem > MAX_MEMORY_MB:
                     print(f"  [FAIL] Oracle Memory Violation! ({mem:.2f}MB > {MAX_MEMORY_MB}MB)")
                     return False
                 return True
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             continue
-            
+
     print("  [FAIL] Daemon process not found.")
     return False
 
@@ -53,10 +53,10 @@ def check_port_bound():
         return False
 
 def check_filesystem():
-    print(f"[CHECK] Verifying Filesystem Integrity...")
+    print("[CHECK] Verifying Filesystem Integrity...")
     root = Path.cwd()
     all_good = True
-    
+
     for d in REQUIRED_DIRS:
         path = root / d
         if not path.exists():
@@ -83,11 +83,11 @@ def check_filesystem():
              all_good = False
         else:
              print(f"  [PASS] {f} OK")
-             
+
     return all_good
 
 def check_powershell_profile():
-    print(f"[CHECK] Verifying PowerShell Profile Hook...")
+    print("[CHECK] Verifying PowerShell Profile Hook...")
     # This is trickier from Python without invoking PS, but we can check if the file exists
     # We can try to guess profile path or just assume the user installed it.
     # Let's just run a quick powershell command to check for the module
@@ -96,10 +96,10 @@ def check_powershell_profile():
         cmd = ["powershell", "-NoProfile", "-Command", "Get-Module -ListAvailable CorvusStar"]
         result = subprocess.run(cmd, capture_output=True, text=True)
         if "CorvusStar" in result.stdout:
-             print(f"  [PASS] CorvusStar Module detected in PSPath.")
+             print("  [PASS] CorvusStar Module detected in PSPath.")
              return True
         else:
-             print(f"  [WARN] CorvusStar Module NOT found in global path (Local usage might be intended).")
+             print("  [WARN] CorvusStar Module NOT found in global path (Local usage might be intended).")
              # Not a hard fail if we assume local dev
              return True
     except Exception as e:
@@ -108,14 +108,14 @@ def check_powershell_profile():
 
 def main():
     print("=== SYSTEM IGNITION SEQUENCE (Phase 9) ===\n")
-    
+
     checks = [
         check_daemon_running(),
         check_port_bound(),
         check_filesystem(),
         check_powershell_profile()
     ]
-    
+
     if all(checks):
         print("\n=== [SUCCESS] SYSTEM IGNITION CONFIRMED ===")
         print("Protocol Linscott: ACTIVE")

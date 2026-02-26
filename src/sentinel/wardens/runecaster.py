@@ -34,7 +34,7 @@ class RuneCasterWarden(BaseWarden):
                                 "severity": "LOW",
                                 "line": node.lineno
                             })
-                            
+
                         if missing_ret:
                             if node.name == "__init__":
                                 targets.append({

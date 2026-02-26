@@ -7,11 +7,8 @@ Purpose: Transmute legacy documentation into the Corvus Star standard (.qmd) and
 
 import argparse
 import ast
-import os
 import re
 import shutil
-import sys
-from datetime import datetime
 from pathlib import Path
 
 # ==============================================================================
@@ -34,7 +31,7 @@ class EddaWeaver:
     def scan_and_transmute(self, dry_run: bool = False):
         """Recursively scans for .md files and converts them to .qmd."""
         print(f"[EDDA] Scanning realm: {self.root}")
-        
+
         candidates = []
         for path in self.root.rglob("*.md"):
             if self._should_ignore(path):
@@ -54,7 +51,7 @@ class EddaWeaver:
     def _should_ignore(self, path: Path) -> bool:
         """Determines if a file should be spared from transmutation."""
         rel_path = str(path.relative_to(self.root))
-        
+
         # Pattern Check
         for pattern in self.ignore_patterns:
             if re.search(pattern, rel_path):
@@ -74,13 +71,13 @@ class EddaWeaver:
         """Converts a single .md file to .qmd, preserving the original."""
         try:
             content = source.read_text(encoding="utf-8")
-            
+
             # 1. Harvest Metadata
             title = self._extract_title(content) or source.stem.replace("-", " ").title()
-            
+
             # 2. Forge Frontmatter
             frontmatter = f"---\ntitle: {title}\nformat: html\n---\n\n"
-            
+
             # 3. Transmute Content
             new_content = self._convert_syntax(content)
             final_content = frontmatter + new_content
@@ -105,7 +102,7 @@ class EddaWeaver:
         """Converts standard blockquotes to GitHub/Quarto Alerts."""
         # Convert strict "> Note" pattern to "> [!NOTE]"
         # This is a heuristic; deeper logic could use AST parsing for markdown
-        
+
         def replace_alert(match):
             block = match.group(1)
             # Detect type
@@ -130,9 +127,9 @@ class EddaWeaver:
         try:
             tree = ast.parse(source_file.read_text(encoding="utf-8"))
             docs = []
-            
+
             docs.append(f"# API Reference: {source_file.stem}\n")
-            
+
             for node in ast.walk(tree):
                 if isinstance(node, (ast.FunctionDef, ast.ClassDef)):
                     docstring = ast.get_docstring(node)
@@ -140,7 +137,7 @@ class EddaWeaver:
                         icon = "🔹" if isinstance(node, ast.ClassDef) else "🔸"
                         docs.append(f"## {icon} `{node.name}`")
                         docs.append(f"\n{docstring}\n")
-            
+
             if len(docs) > 1:
                 out_dir = self.root / "docs" / "reference"
                 out_dir.mkdir(parents=True, exist_ok=True)
@@ -161,15 +158,15 @@ def main():
     parser.add_argument("--scan", help="Root directory to scan")
     parser.add_argument("--quarantine", help="Quarantine directory", default=".corvus_quarantine")
     parser.add_argument("--synthesize", help="Generate API docs for source file")
-    
+
     args = parser.parse_args()
-    
+
     if args.scan:
         root = Path(args.scan)
         q_dir = root / args.quarantine
         weaver = EddaWeaver(root, q_dir)
         weaver.scan_and_transmute()
-        
+
     elif args.target:
         target = Path(args.target)
         root = target.parent

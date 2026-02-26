@@ -24,10 +24,10 @@ class SemanticProbe:
         Example: intent="download starts"
         """
         # [ALFRED's Observation]: "We should check for common state flags, sir."
-        
+
         if intent == "download starts":
             return state.get("download_active") is True
-        
+
         if intent == "account is overdrawn":
             return state.get("balance", 0) < 0
 

@@ -1,7 +1,8 @@
-import time
-import numpy as np
 import sys
+import time
 from pathlib import Path
+
+import numpy as np
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -17,9 +18,9 @@ def run_benchmark():
     print("┌──────────────────────────────────────────────────────────────────────────────┐")
     print("│  🔱 ANOMALY WARDEN INFERENCE BENCHMARK                                        │")
     print("└──────────────────────────────────────────────────────────────────────────────┘")
-    
+
     warden = AnomalyWarden()
-    
+
     # Warm up running stats
     for _ in range(50):
         mock_features = [
@@ -32,7 +33,7 @@ def run_benchmark():
 
     iterations = 1000
     times = []
-    
+
     for _ in range(iterations):
         test_features = [
             np.random.normal(500, 100),
@@ -40,24 +41,24 @@ def run_benchmark():
             1.0,
             0.0
         ]
-        
+
         start = time.perf_counter()
         warden.forward(test_features)
         end = time.perf_counter()
-        
+
         times.append((end - start) * 1000) # ms
 
     avg_latency = np.mean(times)
     p95_latency = np.percentile(times, 95)
     max_latency = np.max(times)
 
-    print(f"| Metric | Value |")
-    print(f"| :--- | :--- |")
+    print("| Metric | Value |")
+    print("| :--- | :--- |")
     print(f"| **Iterations** | {iterations} |")
     print(f"| **Average Latency** | {avg_latency:.4f}ms |")
     print(f"| **P95 Latency** | {p95_latency:.4f}ms |")
     print(f"| **Max Latency** | {max_latency:.4f}ms |")
-    print(f"└──────────────────────────────────────────────────────────────────────────────┘")
+    print("└──────────────────────────────────────────────────────────────────────────────┘")
 
     if avg_latency < 1.0:
         print("✅ PASS: Inference latency is < 1ms.")

@@ -14,7 +14,7 @@ class SymbolicLegend:
 
     def _load(self):
         if os.path.exists(self.legend_file):
-            with open(self.legend_file, "r", encoding="utf-8") as f:
+            with open(self.legend_file, encoding="utf-8") as f:
                 return json.load(f)
         return {
             "[$]": {"type": "user", "tier": "premium", "balance": 1000},

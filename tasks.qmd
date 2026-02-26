@@ -403,7 +403,23 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Execution Fortification**: Enhanced `npm link` diagnostic reporting for the ODIN persona. [x]
 - [x] **Verification**: 100% pass on Genesis Node.js tests and JS Sentinel scan. [x]
 
-## ⏭️ Start Here Next (Phase 73)
+### 73. SovereignFish: Benchmark Hardening (Session 86)
+- [x] **Refactor**: Modernized `analyze_failures.py` with strict typing and docstrings (Linscott Standard). [x]
+- [x] **Verification**: Created `tests/test_analyze_failures.py` to ensure logic stability and zero-regression. [x]
+- [x] **Cleanup**: Purged corrupted autonomous test artifacts from `tests/gauntlet/`. [x]
+
+### 74. Scaffold Campaign: Securing the ANNEX (Session 87)
+- [x] **Dominion Expanded**: Refactored 29 core components to the Linscott Standard (strict typing, docstrings, Pathlib).
+- [x] **Neural Engine**: Modernized `vector.py`, `cortex.py`, `dialogue.py`, and `alfred_observer.py`.
+- [x] **Odin Protocol**: Refactored the entire game engine (`main.py`, `logic.py`, `models.py`, `persistence.py`, `rng.py`, `scenarios.py`).
+- [x] **Wardens**: Refactored `base.py` and `freya.py`.
+- [x] **Verification**: Created 20+ new test suites ensuring 100% pass rate across the secured realms.
+- [x] **Shadow Purge**: Removed legacy relative path hacks and brittle string formatting.
+
+## ⏭️ Start Here Next (Phase 75)
+- [ ] **Smart Promotion Registry**: Implement a JSON-based promotion manifest for tracking multiple simultaneous container fixes.
+- [ ] **Three.js Smart Objects**: Embed intent-dispatchers into the isometric Astrologer UI.
+- [ ] **Operation Ironclad**: Secure regular API key rotation logic in `bin/cstar.js`.
 - [ ] **Smart Promotion Registry**: Implement a JSON-based promotion manifest for tracking multiple simultaneous container fixes.
 - [ ] **Three.js Smart Objects**: Embed intent-dispatchers into the isometric Astrologer UI.
 - [ ] **Operation Ironclad**: Secure regular API key rotation logic in `bin/cstar.js`.

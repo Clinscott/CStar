@@ -1,7 +1,7 @@
 import os
 import shutil
 
-__all__ = ["get_strategy", "PersonaStrategy", "OdinStrategy", "AlfredStrategy"]
+__all__ = ["AlfredStrategy", "OdinStrategy", "PersonaStrategy", "get_strategy"]
 
 class PersonaStrategy:
     def __init__(self, project_root):
@@ -9,7 +9,7 @@ class PersonaStrategy:
 
     def enforce_policy(self):
         """Analyze and enforce file structure policies."""
-        raise NotImplementedError 
+        raise NotImplementedError
 
     def get_voice(self):
         """Return the name of the dialogue file to use."""
@@ -23,15 +23,15 @@ class PersonaStrategy:
         """Preserve original file in .corvus_quarantine/ before modification."""
         if not os.path.exists(file_path):
             return
-            
+
         quarantine_dir = os.path.join(os.path.dirname(file_path), ".corvus_quarantine")
         os.makedirs(quarantine_dir, exist_ok=True)
-        
+
         from datetime import datetime
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         basename = os.path.basename(file_path)
         quarantine_path = os.path.join(quarantine_dir, f"{timestamp}_{basename}")
-        
+
         shutil.move(file_path, quarantine_path)
         return quarantine_path
 
@@ -45,13 +45,13 @@ class PersonaStrategy:
         for path in configs:
             if os.path.exists(path):
                 try:
-                    with open(path, 'r', encoding='utf-8') as f:
+                    with open(path, encoding='utf-8') as f:
                         data = json.load(f)
-                    
+
                     # Store both casing for robustness
                     data["persona"] = persona.upper()
                     data["Persona"] = persona.upper()
-                    
+
                     with open(path, 'w', encoding='utf-8') as f:
                         json.dump(data, f, indent=4)
                 except Exception:
@@ -64,7 +64,7 @@ class OdinStrategy(PersonaStrategy):
     def retheme_docs(self):
         """ODIN documentation re-theming: Overwrite for Dominion."""
         results = []
-        
+
         # Target: AGENTS.qmd (Primary) or AGENTS.md
         def _res(base_name):
             names = [f"{base_name}.qmd", f"{base_name}.md"]
@@ -75,29 +75,29 @@ class OdinStrategy(PersonaStrategy):
 
         agents_path = _res("AGENTS")
         source_template = _res("sterileAgent/AGENTS_ODIN")
-        
+
         if os.path.exists(source_template):
             # Capture legacy content if it exists
             legacy_content = ""
             if os.path.exists(agents_path):
-                with open(agents_path, 'r', encoding='utf-8') as f:
+                with open(agents_path, encoding='utf-8') as f:
                     content = f.read()
                     # If already has legacy section, preserve it, else the whole file
                     if "## 📜 Project Legacy" in content:
                         legacy_content = "## 📜 Project Legacy" + content.split("## 📜 Project Legacy")[-1]
                     else:
                         legacy_content = "\n---\n\n## 📜 Project Legacy\n\n" + content
-                
+
                 self._quarantine(agents_path)
-            
-            with open(source_template, 'r', encoding='utf-8') as f:
+
+            with open(source_template, encoding='utf-8') as f:
                 template = f.read()
-            
+
             with open(agents_path, 'w', encoding='utf-8') as f:
                 f.write(template + "\n\n" + legacy_content)
-                
+
             results.append(f"RE-THEMED: {os.path.basename(agents_path)} (ODIN voice applied)")
-            
+
         self._sync_configs("ODIN")
         return results
 
@@ -105,7 +105,7 @@ class OdinStrategy(PersonaStrategy):
     def enforce_policy(self):
         """ODIN Policy: Complete Dominion. Standardize or Perish."""
         results = []
-        
+
         # 1. Enforce AGENTS.qmd (Main & Sterile)
         for target in [self.root, os.path.join(self.root, "sterileAgent")]:
             qmd = os.path.join(target, "AGENTS.qmd")
@@ -113,17 +113,17 @@ class OdinStrategy(PersonaStrategy):
             agents_path = qmd if os.path.exists(qmd) else md
             try:
                 if os.path.exists(agents_path):
-                    with open(agents_path, 'r', encoding='utf-8') as f:
+                    with open(agents_path, encoding='utf-8') as f:
                         content = f.read()
-                    
+
                     # Check for absolute requirements: ODIN or ALFRED identity, Symmetry, SovereignFish
                     if "ODIN" not in content and "ALFRED" not in content:
                         self._create_standard_agents(agents_path)
                         results.append(f"REWRITTEN: {os.path.relpath(agents_path, self.root)} (Compliance Enforced)")
                     else:
                         results.append(f"VERIFIED: {os.path.relpath(agents_path, self.root)} (Compliant)")
-            except (IOError, PermissionError) as e:
-                results.append(f"DEFIANCE: Failed to access {os.path.basename(agents_path)} ({str(e)})")
+            except (OSError, PermissionError) as e:
+                results.append(f"DEFIANCE: Failed to access {os.path.basename(agents_path)} ({e!s})")
 
         # 2. Enforce .cursorrules (The System Directive)
         rules_path = os.path.join(self.root, ".cursorrules")
@@ -131,16 +131,16 @@ class OdinStrategy(PersonaStrategy):
         if not os.path.exists(rules_path):
             create_rules = True
         else:
-            with open(rules_path, 'r', encoding='utf-8') as f:
+            with open(rules_path, encoding='utf-8') as f:
                 content = f.read()
                 # Proactive Persona Match: Overwrite if not ODIN
                 if "IDENTITY: ODIN" not in content:
                     create_rules = True
-        
+
         if create_rules:
             self._create_cursor_rules(rules_path)
             results.append("ENFORCED: .cursorrules (Forged for ODIN)")
-            
+
         return results
 
     def _create_cursor_rules(self, path):
@@ -196,7 +196,7 @@ class AlfredStrategy(PersonaStrategy):
     def enforce_policy(self):
         """ALFRED Policy: Humble Service. Adapt and Assist."""
         results = []
-        
+
         # 1. Adaptive Backup (The Safety Net) - Support .qmd or .md
         doc_targets = ["AGENTS", "tasks", "thesaurus"]
         for name in doc_targets:
@@ -209,7 +209,7 @@ class AlfredStrategy(PersonaStrategy):
                     if not os.path.exists(bak):
                         shutil.copy2(path, bak)
                         results.append(f"PROVISIONED: Backup of {os.path.basename(path)}")
-            except (IOError, PermissionError):
+            except (OSError, PermissionError):
                 pass # [ALFRED] Quietly fail if background process has lock
 
         # 2. Adaptive Discovery (Help the user find their own way)
@@ -218,27 +218,27 @@ class AlfredStrategy(PersonaStrategy):
             if os.path.exists(os.path.join(self.root, name)):
                 agents_found = True
                 break
-        
+
         if not agents_found:
             self._create_minimal_agents(os.path.join(self.root, "AGENTS.qmd"))
             results.append("SUGGESTED: Created minimal project notes.")
-            
+
         # 3. Enforce .cursorrules (The Butler's Record)
         rules_path = os.path.join(self.root, ".cursorrules")
         create_rules = False
         if not os.path.exists(rules_path):
             create_rules = True
         else:
-            with open(rules_path, 'r', encoding='utf-8') as f:
+            with open(rules_path, encoding='utf-8') as f:
                 content = f.read()
                 # Proactive Persona Match: Overwrite if not ALFRED
                 if "IDENTITY: ALFRED" not in content:
                     create_rules = True
-        
+
         if create_rules:
             self._create_cursor_rules(rules_path)
             results.append("PROVISIONED: .cursorrules (The Archive is synchronized)")
-            
+
         self._sync_configs("ALFRED")
         return results
 

@@ -1,6 +1,7 @@
-from src.core.sovereign_hud import SovereignHUD
-from pathlib import Path
 import sys
+from pathlib import Path
+
+from src.core.sovereign_hud import SovereignHUD
 
 # Ensure root is in path
 sys.path.append(str(Path(__file__).parent.parent.parent))

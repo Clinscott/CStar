@@ -1,11 +1,11 @@
-import os
 import asyncio
 import json
 import logging
+import os
 import sys
 import time
 from pathlib import Path
-from typing import Optional, List, Dict, Any
+from typing import Any
 
 # Add project root to path for src imports
 script_dir = Path(__file__).parent.absolute()
@@ -35,7 +35,7 @@ class AntigravityUplink:
     Handles offloading complex queries to the external Antigravity system
     with built-in resilience (Backoff) and safety (Smart Truncation).
     """
-    
+
     def __init__(self, api_key: str = None, client=None):
         """
         Initializes the AntigravityUplink.
@@ -43,7 +43,7 @@ class AntigravityUplink:
         """
         self.host = ANTIGRAVITY_HOST
         self.port = ANTIGRAVITY_PORT
-        
+
         # Load Environment variables from .env.local
         try:
             from dotenv import load_dotenv
@@ -51,10 +51,10 @@ class AntigravityUplink:
             load_dotenv(env_path)
         except ImportError:
             pass
-            
+
         self.api_key = api_key or os.getenv("GOOGLE_API_KEY") or os.getenv("GOOGLE_API_DAEMON_KEY")
         self.client = client  # Allow injected client for tests
-        
+
         if self.client is None and _sdk_available() and self.api_key:
             try:
                 from google import genai
@@ -72,11 +72,11 @@ class AntigravityUplink:
         """
         if context is None:
             context = {}
-            
+
         # 1. Smart Truncation
         history = context.get("history", [])
         system_prompt = context.get("system_prompt", "You are Corvus Star, an autonomous framework.")
-        
+
         if self.client and history:
             context["history"] = await self._smart_truncate(history, system_prompt, query)
 
@@ -87,22 +87,22 @@ class AntigravityUplink:
             "source": "cstar_cli",
             "api_key": self.api_key
         }
-        
+
         msg = "ODIN: Communing with the void..." if context.get("persona") == "ODIN" else "ALFRED: Consulting the Archives, sir..."
-        
+
         # 2. Transmission with Backoff
         task = asyncio.create_task(self._transmit_with_backoff(payload))
-        
+
         try:
             return await self._spinner(task, msg)
         except Exception as e:
             return {
-                "status": "error", 
-                "message": f"Uplink Severed: {str(e)}",
+                "status": "error",
+                "message": f"Uplink Severed: {e!s}",
                 "fallback": True
             }
 
-    async def _smart_truncate(self, history: List[Any], system_prompt: str, current_query: str) -> List[Any]:
+    async def _smart_truncate(self, history: list[Any], system_prompt: str, current_query: str) -> list[Any]:
         """
         Drops middle context to fit within MAX_TOKENS while preserving 
         the system prompt and the latest user intent.
@@ -116,26 +116,26 @@ class AntigravityUplink:
                 # Calculate current token count (including system prompt and query)
                 full_content = f"{system_prompt}\n" + "\n".join([str(m) for m in history]) + f"\n{current_query}"
                 token_count_resp = self.client.models.count_tokens(model="gemini-2.5-flash", contents=full_content)
-                
+
                 if token_count_resp.total_tokens <= MAX_TOKENS:
                     break
-                
+
                 # Drop from the middle (oldest messages after the first few)
                 # Keep index 0 (if it's a critical start) or just drop the second item
                 drop_index = 1 if len(history) > 1 else 0
                 history.pop(drop_index)
-                
+
             except Exception as e:
                 logging.warning(f"Token counting failed: {e}. Aborting truncation.")
                 break
-        
+
         return history
 
     async def _transmit_with_backoff(self, payload: dict) -> dict:
         """Internal transmission logic with exponential backoff."""
         max_retries = 3
         base_delay = 2
-        
+
         for attempt in range(max_retries + 1):
             try:
                 # If we have a client, we could call the API directly,
@@ -147,20 +147,22 @@ class AntigravityUplink:
                     contents = [payload["query"]]
                     if "history" in payload["context"]:
                         contents = payload["context"]["history"] + contents
-                    
+
                     response = self.client.models.generate_content(
                         model=model,
                         contents=contents,
                         config={"system_instruction": payload["context"].get("system_prompt")}
                     )
                     return {"status": "success", "data": {"raw": response.text}}
-                
+
                 # Fallback to Socket Bridge
                 return await self._transmit_socket(payload)
-                
+
             except Exception as e:
-                # Late-bind errors import to ensure patch() can intercept
+                # [ALFRED] Transient Error Detection: 429, 5xx
                 is_transient = False
+                
+                # Check for SDK APIError
                 try:
                     from google.genai import errors
                     if isinstance(e, errors.APIError):
@@ -169,6 +171,11 @@ class AntigravityUplink:
                 except ImportError:
                     pass
                 
+                # Fallback for mock objects in tests
+                if not is_transient and hasattr(e, 'code'):
+                    if e.code in [429, 500, 502, 503, 504]:
+                        is_transient = True
+
                 if is_transient and attempt < max_retries:
                     wait_time = base_delay * (2 ** attempt)
                     logging.warning(f"Uplink throttled/unavailable ({e}). Retrying in {wait_time}s...")
@@ -183,7 +190,7 @@ class AntigravityUplink:
             writer.write(json.dumps(payload).encode('utf-8'))
             await writer.drain()
             writer.write_eof()
-            
+
             data = await asyncio.wait_for(reader.read(8192), timeout=TIMEOUT_SECONDS)
             response = json.loads(data.decode('utf-8'))
             writer.close()

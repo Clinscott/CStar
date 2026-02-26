@@ -1,4 +1,3 @@
-import os
 import sys
 
 # 1. Path Setup: Inject the directory containing the engine module
@@ -19,8 +18,8 @@ STOP_FILE = '.agent/scripts/stopwords.json'
 try:
     # 2. Engine Initialization
     e = SovereignVector(
-        THE_FILE, 
-        CORR_FILE, 
+        THE_FILE,
+        CORR_FILE,
         STOP_FILE
     )
     e.load_core_skills()
@@ -29,11 +28,11 @@ try:
     # 3. Execution and Diagnostics
     query = "catalog start"
     r = e.search(query)
-    
+
     # Required output checks (Gherkin validation points)
     print(f"Tokens: {e.tokenize(query)}")
     print(f"Trigger Map for 'start': {e.trigger_map.get('start')}")
-    
+
     if r:
         print(f"Top Result: {r[0]}")
     else:

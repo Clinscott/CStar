@@ -1,9 +1,10 @@
 
-import pytest
-from unittest.mock import MagicMock, patch, mock_open
-from pathlib import Path
-import sys
 import os
+import sys
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Add project root to sys.path
 PROJECT_ROOT = Path(__file__).parents[2]
@@ -26,8 +27,9 @@ def teardown_module():
 
 from src.sentinel.muninn import Muninn
 
+
 class TestMuninnEmpire:
-    
+
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key", "MUNINN_API_KEY": ""})
     @patch("src.sentinel.muninn.genai.Client")
     def test_init(self, mock_client):
@@ -36,7 +38,7 @@ class TestMuninnEmpire:
              patch("src.sentinel.muninn.ProjectMetricsEngine"), \
              patch("src.sentinel.muninn.AlfredOverwatch"), \
              patch("src.sentinel.muninn.GungnirSPRT"):
-            
+
             muninn = Muninn("dummy_root")
             assert muninn.api_key == "fake_key"
             mock_client.assert_called()
@@ -58,24 +60,24 @@ class TestMuninnEmpire:
     @patch("src.sentinel.muninn.GungnirSPRT")
     def test_run_scan_no_breaches(self, mock_sprt, mock_watcher, mock_metrics, mock_asyncio_run, mock_hud, mock_hunt, mock_cortex):
         muninn = Muninn("dummy_root")
-        
+
         # Mock hunt to return value directly (not a coroutine)
         mock_hunt.return_value = ([], {"ANNEX": 0})
-        
+
         # Mock asyncio.run to return same
         mock_asyncio_run.return_value = ([], {"ANNEX": 0})
 
 
         mock_metrics_inst = mock_metrics.return_value
         mock_metrics_inst.compute.return_value = 80.0
-        
+
         # Mock asyncio.run to return (breaches, stats)
         # _execute_hunt_async returns (all_breaches, scan_results)
         mock_asyncio_run.return_value = ([], {"ANNEX": 0})
-        
+
         # Run
         result = muninn.run()
-        
+
         assert result is False
         # The success message depends on PERSONA, default might be non-ALFRED if not set
         # Check for either success message
@@ -95,7 +97,7 @@ class TestMuninnEmpire:
     @patch("src.sentinel.muninn.subprocess.run")
     def test_run_with_breach_success(self, mock_sub, mock_sprt, mock_watcher, mock_metrics, mock_asyncio_run, mock_hud, mock_hunt, mock_cortex):
         muninn = Muninn("dummy_root")
-        
+
         # Mock hunt
         breach = {
             "file": "bad.py",
@@ -108,7 +110,7 @@ class TestMuninnEmpire:
 
         mock_metrics_inst = mock_metrics.return_value
         mock_metrics_inst.compute.side_effect = [80.0, 85.0] # Pre, Post
-        
+
         # Mock asyncio.run to return a breach
         breach = {
             "file": "bad.py",
@@ -117,12 +119,12 @@ class TestMuninnEmpire:
             "type": "ANNEX_BREACH"
         }
         mock_asyncio_run.return_value = ([breach], {"ANNEX": 1})
-        
+
         # Mock Watcher
         mock_watcher_inst = mock_watcher.return_value
         mock_watcher_inst.is_locked.return_value = False
         mock_watcher_inst.record_edit.return_value = True
-        
+
         # Mock Forge/Gauntlet/Impl
         with patch.object(muninn, "_run_gauntlet", return_value=Path("tests/gauntlet/test_fix.py")), \
              patch.object(muninn, "_generate_implementation", return_value="fixed code"), \
@@ -131,28 +133,28 @@ class TestMuninnEmpire:
              patch("src.sentinel.muninn.Path.write_text"), \
              patch("src.sentinel.muninn.Path.unlink"), \
              patch("src.sentinel.muninn.shutil.copy"):
-                 
+
                  # Mock SPRT
                  mock_sprt_inst = mock_sprt.return_value
                  mock_sprt_inst.evaluate_delta.return_value = 'PASS'
-                 
+
                  # Mock Verify (Crucible)
                  mock_sub.return_value.returncode = 0 # pytest success
-                                 
+
                  result = muninn.run()
                  assert result is True
-                                
+
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key", "MUNINN_API_KEY": ""})
     def test_forge_improvement_failure(self):
          with patch("src.sentinel.muninn.TheWatcher"), \
               patch("src.sentinel.muninn.ProjectMetricsEngine"), \
               patch("src.sentinel.muninn.AlfredOverwatch"), \
               patch("src.sentinel.muninn.GungnirSPRT"):
-             
+
              muninn = Muninn("dummy_root")
-             
+
              target = {"file": "bad.py", "action": "Fix me"}
-             
+
              with patch.object(muninn, "_run_gauntlet", return_value=None), \
                   patch("src.sentinel.muninn.Path.exists", return_value=True), \
                   patch("src.sentinel.muninn.Path.read_text", return_value="content"):

@@ -31,18 +31,18 @@ def optimize_file(file_path):
     SovereignHUD.box_top("AGENT LIGHTNING v0.1")
     SovereignHUD.box_row("Target", os.path.basename(file_path))
     SovereignHUD.box_row("Status", "Analyzing...", SovereignHUD.YELLOW)
-    
+
     # 1. Read
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with open(file_path, encoding='utf-8') as f:
         content = f.read()
-    
+
     time.sleep(0.5) # Simulate processing
     SovereignHUD.box_row("Analysis", f"{len(content)} bytes read", SovereignHUD.CYAN)
-    
+
     # 2. Simulate Optimization (Mock)
     SovereignHUD.box_row("Optimizer", "Applying enhancements...", SovereignHUD.MAGENTA)
     time.sleep(0.5)
-    
+
     # Simple "Optimization": Add a timestamp comment if not present, or update it.
     # checking for existing signature
     signature = "# Optimized by Agent Lightning"
@@ -57,7 +57,7 @@ def optimize_file(file_path):
     if action != "Already Optimized":
         with open(file_path, 'w', encoding='utf-8') as f:
             f.write(new_content)
-    
+
     SovereignHUD.box_row("Result", action, SovereignHUD.GREEN)
     SovereignHUD.box_bottom()
 
@@ -65,5 +65,5 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python lightning_rod.py <file_path>")
         sys.exit(1)
-    
+
     optimize_file(sys.argv[1])

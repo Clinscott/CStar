@@ -4,12 +4,9 @@ Verifies: process_repo, load_persona, load_target_repos.
 All tests use mocked git/sovereign_fish — zero side effects.
 """
 import json
-import os
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import patch
 
 project_root = Path(__file__).parent.parent.parent.absolute()
 if str(project_root) not in sys.path:

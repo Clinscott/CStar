@@ -16,6 +16,7 @@ from typing import Any
 import personas
 import utils
 from engine import Cortex, DialogueRetriever, SovereignVector
+
 from src.core.sovereign_hud import SovereignHUD
 
 

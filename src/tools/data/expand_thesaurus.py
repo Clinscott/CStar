@@ -1,8 +1,7 @@
-import os
 import re
 
 path = 'thesaurus.md'
-with open(path, 'r', encoding='utf-8') as f:
+with open(path, encoding='utf-8') as f:
     content = f.read()
 
 # Extract all clusters
@@ -14,7 +13,7 @@ for headword, syns_str in clusters:
     # Split by comma and clean
     words = [w.strip() for w in syns_str.split(',')]
     words.append(headword.strip())
-    
+
     # Each word in the cluster should map to every other word
     for w in words:
         w = w.lower()

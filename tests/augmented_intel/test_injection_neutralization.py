@@ -1,5 +1,5 @@
-import pytest
 from src.sentinel.code_sanitizer import heimdall_guard, sanitize_code
+
 
 class TestInjectionNeutralization:
     def test_heimdall_guard_basic(self):

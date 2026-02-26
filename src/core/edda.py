@@ -1,12 +1,8 @@
 import argparse
 import ast
-import os
 import re
 import shutil
-import sys
-from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 from src.core.sovereign_hud import SovereignHUD
 
@@ -30,7 +26,7 @@ class EddaWeaver:
     def scan_and_transmute(self, dry_run: bool = False) -> None:
         """Recursively scans for .md files and converts them to .qmd."""
         SovereignHUD.persona_log("INFO", f"Scanning realm for documentation: {self.root}")
-        
+
         candidates = []
         for path in self.root.rglob("*.md"):
             if self._should_ignore(path):
@@ -53,7 +49,7 @@ class EddaWeaver:
             rel_path = str(path.relative_to(self.root))
         except ValueError:
             return True
-            
+
         # Pattern Check
         for pattern in self.ignore_patterns:
             if re.search(pattern, rel_path):
@@ -73,13 +69,13 @@ class EddaWeaver:
         """Converts a single .md file to .qmd, preserving the original."""
         try:
             content = source.read_text(encoding="utf-8")
-            
+
             # 1. Harvest Metadata
             title = self._extract_title(content) or source.stem.replace("-", " ").title()
-            
+
             # 2. Forge Frontmatter
             frontmatter = f"---\ntitle: {title}\nformat: html\n---\n\n"
-            
+
             # 3. Transmute Content
             new_content = self._convert_syntax(content)
             final_content = frontmatter + new_content
@@ -95,7 +91,7 @@ class EddaWeaver:
         except Exception as e:
             SovereignHUD.persona_log("ERROR", f"Failed to weave {source.name}: {e}")
 
-    def _extract_title(self, content: str) -> Optional[str]:
+    def _extract_title(self, content: str) -> str | None:
         """Extracts the first H1 header as title."""
         match = re.search(r"^#\s+(.+)$", content, re.MULTILINE)
         return match.group(1).strip() if match else None
@@ -104,7 +100,7 @@ class EddaWeaver:
         """Converts standard blockquotes to GitHub/Quarto Alerts."""
         def replace_alert(match):
             body = match.group(1).strip()
-            
+
             # Detect explicit header types
             header_match = re.match(r"^(Note|Warning|Important|Tip|Caution):\s*(.*)", body, re.IGNORECASE)
             if header_match:
@@ -119,7 +115,7 @@ class EddaWeaver:
             if "warning" in body.lower():
                 clean_body = re.sub(r"warning:\s*", "", body, flags=re.IGNORECASE).strip()
                 return f"> [!WARNING]\n> {clean_body}"
-            
+
             return f"> [!NOTE]\n> {body}"
 
         # Match lines starting with "> "
@@ -140,9 +136,9 @@ class EddaWeaver:
         try:
             tree = ast.parse(source_file.read_text(encoding="utf-8"))
             docs = []
-            
+
             docs.append(f"# API Reference: {source_file.stem}\n")
-            
+
             for node in ast.walk(tree):
                 if isinstance(node, (ast.FunctionDef, ast.ClassDef)):
                     docstring = ast.get_docstring(node)
@@ -150,7 +146,7 @@ class EddaWeaver:
                         icon = "🔹" if isinstance(node, ast.ClassDef) else "🔸"
                         docs.append(f"## {icon} `{node.name}`")
                         docs.append(f"\n{docstring}\n")
-            
+
             if len(docs) > 1:
                 out_dir = self.root / "docs" / "reference"
                 out_dir.mkdir(parents=True, exist_ok=True)
@@ -168,14 +164,14 @@ def main() -> None:
     parser.add_argument("--scan", help="Root directory to scan")
     parser.add_argument("--quarantine", help="Quarantine directory", default=".corvus_quarantine")
     parser.add_argument("--synthesize", help="Generate API docs for source file")
-    
+
     args = parser.parse_args()
-    
+
     if args.scan:
         root = Path(args.scan).resolve()
         q_dir = root / args.quarantine
         EddaWeaver(root, q_dir).scan_and_transmute()
-        
+
     elif args.target:
         target = Path(args.target).resolve()
         root = target.parent

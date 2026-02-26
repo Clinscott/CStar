@@ -1,6 +1,5 @@
 import os
 import random
-import sys
 
 
 class DialogueRetriever:
@@ -11,9 +10,9 @@ class DialogueRetriever:
     def _load(self, path):
         if not path or not os.path.exists(path): return
         try:
-            with open(path, 'r', encoding='utf-8') as f:
+            with open(path, encoding='utf-8') as f:
                 content = f.read()
-            
+
             # Parse # INTENT: NAME \n "phrase" ...
             sections = content.split("# INTENT:")
             for sec in sections[1:]:
@@ -21,7 +20,7 @@ class DialogueRetriever:
                 name = lines[0].strip()
                 phrases = [l.strip().strip('"') for l in lines[1:] if l.strip()]
                 self.intents[name] = phrases
-        except Exception as e:
+        except Exception:
             # SovereignFish Improvement: Warn Odin if his voice is stolen
             if "ODIN" in str(os.environ.get("PERSONA", "")).upper() or "GOD" in str(os.environ.get("PERSONA", "")).upper():
                 print(f"⚠️ [ODIN] CRITICAL: FAILED TO LOAD DIALOGUE VECTOR: {path}")

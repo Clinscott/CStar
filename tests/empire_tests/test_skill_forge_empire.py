@@ -1,6 +1,5 @@
-import pytest
-import os
 from src.skills.skill_forge import SkillForge
+
 
 def test_select_archetype(tmp_path):
     forge = SkillForge(str(tmp_path))
@@ -21,7 +20,7 @@ def test_validate_skill_safety(tmp_path):
     is_valid, msg = forge.validate_skill(bad_code)
     assert is_valid is False
     assert "Blocked dangerous pattern" in msg
-    
+
     # Safe code
     good_code = "print('hello')"
     is_valid, msg = forge.validate_skill(good_code)

@@ -1,10 +1,8 @@
-import json
 import os
 import shutil
 import subprocess
 import sys
 import time
-from pathlib import Path
 
 from src.core.sovereign_hud import SovereignHUD
 
@@ -42,26 +40,26 @@ class CruciblePipeline:
         name = os.path.basename(file_path)
         SovereignHUD.box_top("CRUCIBLE SCAN")
         SovereignHUD.log("INFO", f"Ingesting {name}")
-        
+
         try:
             if os.path.getsize(file_path) > 5*10**6: raise ValueError("DoS: Oversized")
             os.makedirs(self.stage, exist_ok=True)
             staging_path = shutil.move(file_path, os.path.join(self.stage, name))
-            
+
             # Merge & Ordeal
             backup = self.db + ".bak"
             shutil.copy2(self.db, backup)
-            
+
             m_script = os.path.join(os.path.dirname(__file__), "merge_traces.py")
             res = subprocess.run([sys.executable, m_script, self.stage, self.db], capture_output=True)
-            
+
             if res.returncode == 0:
                 SovereignHUD.log("PASS", "Trace Ingested")
                 if os.path.exists(backup): os.remove(backup)
             else:
                 SovereignHUD.log("FAIL", "Merge Error")
                 shutil.copy2(backup, self.db)
-                
+
         except Exception as e:
             SovereignHUD.log("FAIL", f"Pipeline Error: {str(e)[:40]}")
         SovereignHUD.box_bottom()
@@ -83,13 +81,13 @@ class NetworkWatcher:
                     self.pipeline.process(os.path.join(self.share, f))
                 time.sleep(3)
             except KeyboardInterrupt: break
-            except (IOError, OSError): time.sleep(5)
+            except OSError: time.sleep(5)
 
 if __name__ == "__main__":
     script_dir = os.path.dirname(os.path.abspath(__file__))
     base = os.path.dirname(script_dir)
     root = os.path.dirname(base)
     share = os.path.join(root, "mock_project", "network_share")
-    
+
     pipe = CruciblePipeline(root, base)
     NetworkWatcher(share, pipe).watch()

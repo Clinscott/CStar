@@ -10,9 +10,8 @@ import shutil
 import subprocess
 import sys
 import time
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 # Import Shared UI
 sys.path.append(str(Path(__file__).parent.parent))
@@ -51,26 +50,26 @@ class PushRateLimiter:
         except Exception:
             return "unknown"
 
-    def _load(self) -> Dict[str, Any]:
+    def _load(self) -> dict[str, Any]:
         if self.path.exists():
             try:
                 data = json.loads(self.path.read_text(encoding="utf-8"))
                 return data.get(self.client_id, {"attempts": [], "locked_until": None})
-            except (json.JSONDecodeError, IOError):
+            except (OSError, json.JSONDecodeError):
                 pass
         return {"attempts": [], "locked_until": None}
 
     def _save(self) -> None:
         try:
-            full: Dict[str, Any] = {}
+            full: dict[str, Any] = {}
             if self.path.exists():
                 full = json.loads(self.path.read_text(encoding="utf-8"))
             full[self.client_id] = self.data
             self.path.write_text(json.dumps(full, indent=2), encoding="utf-8")
-        except IOError:
+        except OSError:
             pass
 
-    def check(self) -> Tuple[bool, str]:
+    def check(self) -> tuple[bool, str]:
         now = time.time()
         locked_until = self.data.get("locked_until")
         if locked_until and now < locked_until:
@@ -100,7 +99,7 @@ class GitHelper:
     def __init__(self, repo_path: Path):
         self.path = repo_path
 
-    def run(self, args: List[str]) -> Tuple[bool, str]:
+    def run(self, args: list[str]) -> tuple[bool, str]:
         try:
             res = subprocess.run(
                 ["git"] + args,
@@ -115,19 +114,19 @@ class GitHelper:
         except (subprocess.SubprocessError, OSError):
             return False, "git operation failed"
 
-    def check_permissions(self) -> Tuple[bool, str]:
+    def check_permissions(self) -> tuple[bool, str]:
         ok, _ = self.run(["rev-parse", "--is-inside-work-tree"])
         if not ok:
             return False, "Target is not a git repository"
-        
+
         ok_rem, rems = self.run(["remote"])
         if not ok_rem or not rems:
             return True, "Local-Only Mode"
-            
+
         # Check connectivity
         if not self.run(["ls-remote", "--exit-code", "-q"])[0]:
             return False, "Remote origin unreachable"
-            
+
         user_name = self.run(["config", "user.name"])[1] or "Unknown"
         return True, user_name
 
@@ -141,12 +140,12 @@ class KnowledgeExtractor:
         self.corrections_path = agent_dir / "corrections.json"
         self.trace_dir = agent_dir / "traces" / "processed"
 
-    def extract_all(self) -> List[Dict[str, Any]]:
+    def extract_all(self) -> list[dict[str, Any]]:
         """Aggregates all relevant local knowledge updates."""
         return self._extract_corrections() + self._extract_patterns()
 
-    def _extract_corrections(self) -> List[Dict[str, Any]]:
-        extracted: List[Dict[str, Any]] = []
+    def _extract_corrections(self) -> list[dict[str, Any]]:
+        extracted: list[dict[str, Any]] = []
         if not self.corrections_path.exists():
             return []
         try:
@@ -161,21 +160,21 @@ class KnowledgeExtractor:
                         "query": query,
                         "target": target
                     })
-        except (json.JSONDecodeError, IOError):
+        except (OSError, json.JSONDecodeError):
             pass
         return extracted
 
-    def _extract_patterns(self) -> List[Dict[str, Any]]:
+    def _extract_patterns(self) -> list[dict[str, Any]]:
         if not self.trace_dir.exists():
             return []
-        patterns: Dict[str, int] = {}
+        patterns: dict[str, int] = {}
         try:
             for f in self.trace_dir.glob("*.json"):
                 data = json.loads(f.read_text(encoding="utf-8"))
                 query = data.get("query")
                 if query:
                     patterns[query] = patterns.get(query, 0) + 1
-            
+
             return [
                 {"type": "pattern", "query": q, "freq": c}
                 for q, c in patterns.items() if c >= 3
@@ -191,50 +190,50 @@ class Synapse:
         self.script_path = Path(__file__).absolute()
         self.agent_dir = self.script_path.parent.parent
         self.project_root = self.agent_dir.parent
-        
+
         self.config = self._load_config()
         self.persona = self.config.get("persona") or self.config.get("Persona") or "ALFRED"
-        
+
         self.core_path, self.core_name = self._resolve_core(remote_alias)
         if not self.core_path or not self.core_path.exists():
             SovereignHUD.log("FAIL", "Knowledge Core Unreachable", remote_alias)
             sys.exit(1)
-            
+
         self.git = GitHelper(self.core_path)
         self.limiter = PushRateLimiter(self.core_path)
         self.extractor = KnowledgeExtractor(self.project_root, self.agent_dir)
 
-    def _load_config(self) -> Dict[str, Any]:
+    def _load_config(self) -> dict[str, Any]:
         config_path = self.agent_dir / "config.json"
         if config_path.exists():
             try:
                 return json.loads(config_path.read_text(encoding="utf-8"))
-            except (json.JSONDecodeError, IOError):
+            except (OSError, json.JSONDecodeError):
                 pass
         return {}
 
-    def _resolve_core(self, alias: str) -> Tuple[Optional[Path], str]:
+    def _resolve_core(self, alias: str) -> tuple[Path | None, str]:
         cores = self.config.get("KnowledgeCores", {})
         for name, path_str in cores.items():
             if name.lower() == alias.lower():
                 return Path(path_str), name
-        
+
         legacy = self.config.get("KnowledgeCore")
         if legacy:
             return Path(legacy), "Legacy"
-            
+
         return Path(alias), "Explicit"
 
     def pull(self) -> None:
         """Pulls global knowledge from the Core to the Local project."""
         SovereignHUD.box_top(f"SYNAPSE: PULL [{self.core_name}]")
-        
+
         # Git updates
         ok_rem, rems = self.git.run(["remote"])
         if ok_rem and rems:
             ok, _ = self.git.run(["pull"])
             SovereignHUD.log("INFO", "Git Pull Successful" if ok else "Git Pull Failed")
-        
+
         # Directory Sync
         self._sync_skills()
         self._sync_corrections()
@@ -245,7 +244,7 @@ class Synapse:
         dst = self.project_root / "skills_db"
         if not src.exists():
             return
-            
+
         dst.mkdir(exist_ok=True)
         added = 0
         for item in src.iterdir():
@@ -263,31 +262,31 @@ class Synapse:
         l_file = self.agent_dir / "corrections.json"
         if not c_file.exists():
             return
-            
+
         try:
             c_data = json.loads(c_file.read_text(encoding="utf-8"))
             l_data = json.loads(l_file.read_text(encoding="utf-8"))
-            
+
             c_mappings = c_data.get("phrase_mappings", {})
             l_mappings = l_data.get("phrase_mappings", {})
-            
+
             added = 0
             for k, v in c_mappings.items():
                 if k not in l_mappings:
                     l_mappings[k] = v
                     added += 1
-            
+
             if added:
                 l_data["phrase_mappings"] = l_mappings
                 l_file.write_text(json.dumps(l_data, indent=4), encoding="utf-8")
                 SovereignHUD.log("PASS", f"Wisdom: {added} new mappings")
-        except (json.JSONDecodeError, IOError):
+        except (OSError, json.JSONDecodeError):
             SovereignHUD.log("WARN", "Corrections sync failed (JSON Error)")
 
     def push(self, dry_run: bool = False) -> None:
         """Pushes local knowledge increments to the Knowledge Core."""
         SovereignHUD.box_top(f"SYNAPSE: PUSH [{self.core_name}]")
-        
+
         # Authenticate
         try:
             from scripts.synapse_auth import authenticate_sync
@@ -304,15 +303,15 @@ class Synapse:
                 SovereignHUD.log("FAIL", "Rate Limit", msg)
                 SovereignHUD.box_bottom()
                 return
-        
+
         ok_perm, ident = self.git.check_permissions()
         if not ok_perm:
             SovereignHUD.log("FAIL", "Permissions", ident)
             SovereignHUD.box_bottom()
             return
-            
+
         SovereignHUD.log("INFO", "Identity Secured", f"{ident} ({self.persona})")
-        
+
         # Knowledge Harvesting
         knowledge = self.extractor.extract_all()
         if not knowledge:
@@ -320,13 +319,13 @@ class Synapse:
         else:
             SovereignHUD.log("PASS", f"Harvested {len(knowledge)} knowledge units")
             # Logic for staging knowledge to Core would go here
-            
+
         if dry_run:
             SovereignHUD.log("INFO", "Dry run complete. No modifications made.")
         else:
             self.limiter.record(True)
             SovereignHUD.log("INFO", "Push sequence initialized.")
-            
+
         SovereignHUD.box_bottom()
 
 
@@ -340,7 +339,7 @@ def main() -> None:
     parser.add_argument("--remote", default="primary", help="Target Knowledge Core alias")
     parser.add_argument("--all", action="store_true", help="Sync with all configured cores")
     args = parser.parse_args()
-    
+
     try:
         if args.all:
             # Load config once to get all core names
@@ -350,14 +349,14 @@ def main() -> None:
                 core_names = ["primary"]
         else:
             core_names = [args.remote]
-            
+
         for name in core_names:
             sync = Synapse(remote_alias=name)
             if args.push:
                 sync.push(dry_run=args.dry_run)
             else:
                 sync.pull()
-                
+
     except Exception as e:
         SovereignHUD.log("FAIL", "Critical Error", str(e))
         sys.exit(1)

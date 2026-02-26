@@ -17,11 +17,11 @@ project_root = script_dir.parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
+from src.core.engine.atomic_gpt import AnomalyWarden, WardenCircuitBreaker
+from src.core.payload import IntentPayload
 from src.cstar.core.sprt import evaluate_candidate
 from src.cstar.core.uplink import AntigravityUplink
-from src.core.payload import IntentPayload
 from src.sentinel._bootstrap import bootstrap
-from src.core.engine.atomic_gpt import AnomalyWarden, WardenCircuitBreaker
 
 # Initialize Environment
 bootstrap()
@@ -39,7 +39,7 @@ class Forge:
         self.uplink = AntigravityUplink(api_key=daemon_key)
         self.max_retries = 3
         self.project_root = project_root
-        
+
         # 3. Initialize Warden
         try:
             self.warden = AnomalyWarden()
@@ -251,19 +251,19 @@ class Forge:
                     self._pulse_warden(session_start_time, attempt, 1 if decision != "Accept" else 0)
 
         except WardenCircuitBreaker as e:
-            yield {"type": "ui", "persona": "ALFRED", "msg": f"WARDEN CIRCUIT BREAKER: {str(e)}"}
+            yield {"type": "ui", "persona": "ALFRED", "msg": f"WARDEN CIRCUIT BREAKER: {e!s}"}
             yield {"type": "ui", "persona": "ODIN", "msg": "Safety protocol engaged. Rolling back changes."}
-            
+
             # Rollback logic if backup exists
             if 'backup_path' in locals() and backup_path.exists():
                 shutil.copy(backup_path, target_path)
                 backup_path.unlink()
-            
-            yield {"type": "result", "status": "error", "message": f"Circuit Breaker Toggled: {str(e)}"}
+
+            yield {"type": "result", "status": "error", "message": f"Circuit Breaker Toggled: {e!s}"}
             return
 
         except Exception as e:
-            yield {"type": "ui", "persona": "ALFRED", "msg": f"Forge Exception: {str(e)}"}
+            yield {"type": "ui", "persona": "ALFRED", "msg": f"Forge Exception: {e!s}"}
             yield {"type": "result", "status": "error", "message": str(e)}
             return
 
@@ -365,19 +365,19 @@ class Forge:
         """Intra-loop sensory pulse."""
         if not self.warden:
             return
-            
+
         latency = (time.time() - start_time) * 1000
         features = [latency, 100.0, float(attempt), float(errors)] # Rough token estimate
-        
+
         # Inference
         prob = self.warden.forward(features)
-        
+
         # Train on success, but strictly watch for anomalies
         if self.warden.burn_in_cycles == 0:
             if prob > 0.92:
                 # [CIRCUIT BREAKER] Hard halt on critical drift
                 raise WardenCircuitBreaker(f"Critical Drift Detected ({prob:.2f}). Metrics: {latency:.1f}ms, Attempt {attempt}, Errors {errors}")
-            
+
             if errors == 0:
                 self.warden.train_step(features, 0.0)
         else:

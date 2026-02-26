@@ -7,7 +7,6 @@ RAG-driven skill synthesis from project documentation patterns.
 All generated skills go to drafts/ for review before deployment.
 """
 
-import json
 import os
 import py_compile
 import re
@@ -23,15 +22,17 @@ sys.path.insert(0, _core_dir)
 sys.path.insert(0, _engine_dir)
 
 from cortex import Cortex
+
 from src.core.sovereign_hud import SovereignHUD
 from src.tools.brave_search import BraveSearch  # [BIFRÖST]
+
 
 class SkillForge:
     """
     [ALFRED] Synthesizes Python skill templates from documentation analysis.
     Uses RAG (Cortex) to identify patterns and map them to standard archetypes.
     """
-    
+
     ARCHETYPES = {
         "test": {
             "triggers": ["test", "verify", "check", "validate", "assert", "ensure"],
@@ -59,7 +60,7 @@ class SkillForge:
             "template": "scraper"
         }
     }
-    
+
     DANGEROUS_PATTERNS = [
         r'\beval\s*\(',
         r'\bexec\s*\(',
@@ -69,18 +70,18 @@ class SkillForge:
         r'os\.popen\s*\(',
         r'pickle\.loads?\s*\(',
     ]
-    
+
     def __init__(self, project_root: str) -> None:
         self.project_root = project_root
         self.base_dir = os.path.join(project_root, ".agent")
         self.drafts_dir = os.path.join(self.base_dir, "skills", "drafts")
-        
+
         # Initialize Cortex for RAG
         self.cortex = Cortex(project_root, self.base_dir)
-        
+
         # Ensure drafts directory exists
         Path(self.drafts_dir).mkdir(parents=True, exist_ok=True)
-    
+
     def forge(self, query: str, dry_run: bool = False) -> dict:
         """
         [ALFRED] Orchestrates the multi-phase skill creation protocol.
@@ -93,47 +94,47 @@ class SkillForge:
             A dictionary containing 'success', 'code', 'archetype', and 'path'.
         """
         SovereignHUD.box_top("SKILL FORGE: IGNITION")
-        
+
         if not query or not query.strip():
             SovereignHUD.box_row("ERROR", "Query required", SovereignHUD.RED)
             SovereignHUD.box_bottom()
             return {"success": False, "code": "", "validation": "Query required"}
-        
+
         # Step 1: Analyze pattern via RAG
         SovereignHUD.box_row("PHASE 1", "Analyzing pattern...", SovereignHUD.CYAN)
         try:
             context = self.analyze_pattern(query)
-        except Exception as e:
+        except Exception:
             SovereignHUD.box_row("ERROR", "RAG Analysis Failed", SovereignHUD.RED)
             context = []
 
         if not context:
             SovereignHUD.box_row("WARN", "No Context Found (Proceeding with Defaults)", SovereignHUD.YELLOW)
-        
+
         # Step 2: Select archetype
         SovereignHUD.box_row("PHASE 2", "Selecting archetype...", SovereignHUD.CYAN)
         archetype = self.select_archetype(query, context)
         SovereignHUD.box_row("ARCHETYPE", archetype.upper(), SovereignHUD.GREEN)
-        
+
         # Step 3: Extract subject from query
         subject = self._extract_subject(query)
         SovereignHUD.box_row("SUBJECT", subject, SovereignHUD.GREEN)
-        
+
         # Step 4: Synthesize code
         SovereignHUD.box_row("PHASE 3", "Synthesizing code...", SovereignHUD.CYAN)
         code = self.synthesize_skill(subject, archetype, context)
-        
+
         # Step 5: Validate
         SovereignHUD.box_row("PHASE 4", "Validating...", SovereignHUD.CYAN)
         is_valid, validation_msg = self.validate_skill(code)
-        
+
         if not is_valid:
             SovereignHUD.box_row("REJECTED", validation_msg, SovereignHUD.RED)
             SovereignHUD.box_bottom()
             return {"success": False, "code": code, "validation": validation_msg}
-        
+
         SovereignHUD.box_row("VALIDATED", "All checks passed", SovereignHUD.GREEN)
-        
+
         # Step 6: Save (unless dry-run)
         output_path = None
         if not dry_run:
@@ -141,9 +142,9 @@ class SkillForge:
             SovereignHUD.box_row("SAVED", output_path, SovereignHUD.GREEN)
         else:
             SovereignHUD.box_row("DRY-RUN", "Preview only, not saved", SovereignHUD.YELLOW)
-        
+
         SovereignHUD.box_bottom()
-        
+
         return {
             "success": True,
             "path": output_path,
@@ -151,7 +152,7 @@ class SkillForge:
             "archetype": archetype,
             "validation": validation_msg
         }
-    
+
     def analyze_pattern(self, query: str) -> list[dict]:
         results = self.cortex.query(query)
         context = []
@@ -168,7 +169,7 @@ class SkillForge:
                 "content": content[:1500],
                 "score": round(r['score'], 3)
             })
-        
+
         # [BIFRÖST] Web-RAG: Fetch documentation for external libraries
         libraries = ["aws", "fastapi", "boto3", "requests", "flask", "django", "pytorch", "tensorflow", "pandas"]
         for lib in libraries:
@@ -186,7 +187,7 @@ class SkillForge:
                 break
 
         return context
-    
+
     def select_archetype(self, query: str, context: list[dict]) -> str:
         query_lower = query.lower()
         for archetype, config in self.ARCHETYPES.items():
@@ -197,7 +198,7 @@ class SkillForge:
             for trigger in config["triggers"]:
                 if trigger in context_text: return archetype
         return "utility"
-    
+
     def _extract_subject(self, query: str) -> str:
         stripped = re.sub(r'^(create|make|build|generate|write|test|a|an|the)\s+', '', query.lower())
         stripped = re.sub(r'\s+(for|to|from|with)\s+', ' ', stripped)
@@ -209,7 +210,7 @@ class SkillForge:
         subject = re.sub(r'_+', '_', subject).strip('_')
         if not subject or subject[0].isdigit(): subject = f"skill_{subject}"
         return subject
-    
+
     def _generate_workflow_steps(self, context: list[dict]) -> list[str]:
         steps = []
         for c in context:
@@ -224,8 +225,8 @@ class SkillForge:
             for i, step in enumerate(steps, 1):
                 logic += f'    print(f"[STEP {i}] {step.strip()}...")\n'
         else:
-            logic = f'    print(f"[STEP 1] Loading {{args.input}}...")\n'
-            
+            logic = '    print(f"[STEP 1] Loading {args.input}...")\n'
+
         return f'''# DRAFT - REQUIRES REVIEW
 # Generated by Skill Forge at {datetime.now().isoformat()}
 # Archetype: WORKFLOW
@@ -385,9 +386,9 @@ if __name__ == "__main__":
         config = self.ARCHETYPES[archetype]
         imports = config["imports"]
         context_summary = "\n".join(f"    # Source: {c['source']} > {c['header']} (score: {c['score']})" for c in context[:3])
-        
+
         if archetype == "test": return self._generate_test_template(name, context_summary, imports)
-        elif archetype == "workflow": 
+        elif archetype == "workflow":
             steps = self._generate_workflow_steps(context)
             return self._generate_workflow_template(name, context_summary, imports, steps)
         elif archetype == "scanner": return self._generate_scanner_template(name, context_summary, imports)
@@ -397,7 +398,7 @@ if __name__ == "__main__":
     def validate_skill(self, code: str) -> tuple[bool, str]:
         for pattern in self.DANGEROUS_PATTERNS:
             if re.search(pattern, code): return False, f"Blocked dangerous pattern: {pattern}"
-        
+
         temp_path = os.path.join(self.drafts_dir, ".validate_temp.py")
         try:
             with open(temp_path, 'w', encoding='utf-8') as f: f.write(code)
@@ -405,24 +406,24 @@ if __name__ == "__main__":
         except py_compile.PyCompileError as e: return False, f"Syntax error: {e}"
         finally:
             if os.path.exists(temp_path): os.remove(temp_path)
-        
+
         try:
             with open(temp_path, 'w', encoding='utf-8') as f: f.write(code)
             subprocess.run([sys.executable, "-m", "ruff", "check", "--select=E,F", temp_path], capture_output=True, text=True, timeout=10)
         except (subprocess.SubprocessError, OSError): pass
         finally:
             if os.path.exists(temp_path): os.remove(temp_path)
-        
+
         return True, "All checks passed"
 
     def _save_draft(self, subject: str, archetype: str, code: str) -> str:
         base_name = f"{archetype}_{subject}_gen"
         draft_path = os.path.join(self.drafts_dir, base_name)
         os.makedirs(draft_path, exist_ok=True)
-        
+
         py_path = os.path.join(draft_path, f"{subject}.py")
         with open(py_path, 'w', encoding='utf-8') as f: f.write(code)
-        
+
         # Target 302: Generate SKILL.qmd
         md_content = f"""---
 name: {subject.replace('_', ' ').title()}
@@ -438,7 +439,7 @@ This skill was synthesized by the Skill Forge from project documentation.
 """
         with open(os.path.join(draft_path, "SKILL.qmd"), 'w', encoding='utf-8') as f:
             f.write(md_content)
-            
+
         return draft_path
 
 def main():
@@ -447,13 +448,13 @@ def main():
     parser.add_argument("--query", "-q", required=True, help="What skill to create")
     parser.add_argument("--dry-run", action="store_true", help="Preview without saving")
     args = parser.parse_args()
-    
+
     script_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.dirname(os.path.dirname(script_dir))
-    
+
     forge = SkillForge(project_root)
     result = forge.forge(args.query, dry_run=args.dry_run)
-    
+
     if args.dry_run and result["success"]:
         print("\n" + "="*60)
         print("GENERATED CODE PREVIEW:")

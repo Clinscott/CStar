@@ -36,33 +36,31 @@ class NornWarden(BaseWarden):
             }]
         return []
 
+    def _parse_task_line(self, line: str, index: int) -> dict | None:
+        """Helper to parse a single line for a task."""
+        stripped = line.strip()
+        if stripped.startswith("- [ ]"):
+            return {
+                "type": "CAMPAIGN_TASK",
+                "file": "tasks.qmd",
+                "action": stripped[5:].strip(),
+                "line_index": index,
+                "raw_line": line
+            }
+        return None
+
     def get_next_target(self) -> dict[str, Any] | None:
         """
         Scans tasks.qmd for the first unchecked item '- [ ]'.
-        ignores indentation but preserves it in the action description if needed (though usually we just want text).
         """
         if not self.plan_path.exists():
             return None
 
         lines = self.plan_path.read_text(encoding='utf-8').splitlines()
-
         for i, line in enumerate(lines):
-            stripped = line.strip()
-            if stripped.startswith("- [ ]"):
-                # Found an incomplete task
-                description = stripped[5:].strip()
-                # Remove any trailing comments or metadata if present (optional)
-
-                # We could also capture context (parent header) if we tracked it,
-                # but for now, just the task.
-
-                return {
-                    "type": "CAMPAIGN_TASK",
-                    "file": "tasks.qmd",
-                    "action": description,
-                    "line_index": i,
-                    "raw_line": line
-                }
+            target = self._parse_task_line(line, i)
+            if target:
+                return target
         return None
 
     def mark_complete(self, target: dict[str, Any]):

@@ -14,7 +14,6 @@ import os
 import shutil
 import subprocess
 import time
-import uuid
 from pathlib import Path
 
 from colorama import init
@@ -25,12 +24,13 @@ init(autoreset=True)
 
 # Shared Bootstrap
 import sys
-from pathlib import Path
+
 project_root = Path(__file__).resolve().parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
 from src.sentinel._bootstrap import bootstrap
+
 bootstrap()
 
 # Core Imports
@@ -82,23 +82,23 @@ class Muninn:
         self.root = Path(target_path or os.getcwd()).resolve()
         self.use_bridge = use_bridge
         self.use_docker = use_docker
-        
+
         # Identity
         self.observer = AlfredOverwatch()
-        
+
         # 1. Check for Shadow Forge Environment
         self.is_worker = os.getenv("SHADOW_FORGE_WORKER") == "true"
         self.mock_mode = os.getenv("MOCK_MODE") == "true"
-        
+
         # 2. Prioritize the isolated Muninn key
         self.api_key = os.getenv("MUNINN_API_KEY") or os.getenv("GOOGLE_API_KEY")
-        
+
         if self.mock_mode:
             from tests.harness.raven_proxy import RavenProxy
             SovereignHUD.persona_log("INFO", "[SHADOW] Engaging Local Mock (RavenProxy)")
             self.client = RavenProxy(mock_mode=True)
             self.api_key = self.api_key or "MOCK_KEY"
-        
+
         if not self.api_key:
             raise ValueError("API environment variable not set.")
 
@@ -155,25 +155,30 @@ class Muninn:
         """Mirrors the RO /app mount to a writable /shadow_forge directory."""
         SovereignHUD.persona_log("INFO", "[WORKER] Mirroring workspace to ephemeral layer...")
         shadow_root = Path("/shadow_forge")
-        
+
         try:
             if shadow_root.exists():
                 shutil.rmtree(shadow_root)
-            
+
             # Copy everything from /app to /shadow_forge
             # /app is the RO mount from the host
             shutil.copytree("/app", shadow_root, dirs_exist_ok=True)
             self.root = shadow_root
             SovereignHUD.persona_log("INFO", f"[WORKER] Workspace mirrored to {self.root}")
-            
+
             # Switch to the new root
             os.chdir(str(self.root))
         except Exception as e:
             SovereignHUD.persona_log("ERROR", f"[WORKER] Mirroring failed: {e}")
             sys.exit(1)
-        except Exception as e:
-            SovereignHUD.persona_log("WARN", f"Model resolution failed: {e}")
+
+    def _resolve_model(self) -> str:
+        """Determines the appropriate model based on persona and complexity."""
+        persona = SovereignHUD.PERSONA
+        try:
             return "gemini-2.5-pro" if persona in ["ODIN", "ALFRED"] else "gemini-2.0-flash"
+        except Exception:
+            return "gemini-2.0-flash"
 
     def _load_prompt(self, name: str, variables: dict) -> str:
         """Loads a .prompty file and replaces variables."""
@@ -196,103 +201,66 @@ class Muninn:
             return ""
         return f"\nALFRED SUGGESTIONS:\n{suggestions_path.read_text(encoding='utf-8')}\n"
 
-    def run(self) -> bool:
-        """The main Ravens Protocol loop."""
-        if self.use_docker and not self.is_worker:
-            return self._orchestrate_shadow_forge()
-
-        SovereignHUD.persona_log("INFO", f"Muninn is scouring {self.root.name}...")
-
-        # [GPHS] Initial Metrics Sweep
-        pre_gphs = self.metrics_engine.compute(str(self.root))
-        SovereignHUD.persona_log("INFO", f"Global Project Health Score (Pre): {pre_gphs:.2f}")
-
-        # 1. THE HUNT (Parallel Scan)
-        # Refactored to use Asyncio (Phase 8: Muninn Integration)
-
+    async def _hunt_phase(self) -> tuple[list, dict]:
+        """[ALFRED] Orchestrates the parallel warden scan."""
         self._write_pid()
         try:
             SovereignHUD.persona_log("INFO", "Initiating the Hunt (Asynchronous Scan)...")
-            # We run the async cycle
-            found_breaches, scan_stats = asyncio.run(self._execute_hunt_async())
-            all_breaches = found_breaches
-            scan_results = scan_stats
+            all_breaches, scan_results = await self._execute_hunt_async()
             SovereignHUD.persona_log("INFO", f"Hunt complete. Breaches discovered: {len(all_breaches)}")
+            return all_breaches, scan_results
         except Exception as e:
             SovereignHUD.persona_log("CRITICAL", f"Async Hunt Failed: {e}")
-            return False
+            return [], {}
         finally:
             self._clear_pid()
 
+    def _select_target_phase(self, all_breaches: list) -> dict | None:
+        """[ALFRED] Prioritizes and selects the highest priority target."""
+        severity_map = {"CRITICAL": 100, "HIGH": 80, "MEDIUM": 50, "LOW": 20}
 
-        # 2. SELECT TARGET (Prioritization)
-        # Sort by severity: CRITICAL > HUGINN_xxx (High) > HIGH > MEDIUM > LOW
-        severity_map = {
-            "CRITICAL": 100,
-            "HIGH": 80,
-            "MEDIUM": 50,
-            "LOW": 20
-        }
-
-        # Helper to get score
         def get_score(b):
-            # Special case: Huginn breaches are effectively HIGH/CRITICAL
-            if "HUGINN" in b.get('type', ''):
-                return 85
+            if "HUGINN" in b.get('type', ''): return 85
             return severity_map.get(b.get('severity', 'LOW').upper(), 0)
 
         all_breaches.sort(key=get_score, reverse=True)
+        target = all_breaches[0] if all_breaches else None
+        if target:
+            SovereignHUD.persona_log("INFO", f"Target: {target['file']} -> {target['action']}")
+        return target
 
-        self._emit_metrics_summary(scan_results)
+    def _enrich_context_phase(self, target: dict):
+        """[ALFRED] Performs context enrichment via web search."""
+        searcher = BraveSearch()
+        if not searcher.is_quota_available():
+            return
 
-        if not all_breaches:
-            if SovereignHUD.PERSONA == "ALFRED":
-                SovereignHUD.persona_log("SUCCESS", "Everything appears to be in order, sir.")
+        target_severity = target.get('severity', '')
+        target_type = target.get('type', '')
+        target_action = target.get('action', '').lower()
+
+        is_aesthetic = target_type in ('FREYA_BIRKHOFF_BREACH', 'FREYA_GOLDEN_RATIO_BREACH')
+        is_structural = any(k in target_type for k in ('STRUCTURAL_BREACH', 'EDDA_', 'MIMIR_'))
+
+        if target_severity in ('CRITICAL', 'HIGH') or 'error' in target_action or is_aesthetic or is_structural:
+            if is_aesthetic:
+                query = "UI/UX design best practices reduce complexity increase order harmony Tailwind Golden Ratio"
+            elif is_structural:
+                query = "Python AST clean code best practices cyclomatic complexity balanced ratios"
             else:
-                SovereignHUD.persona_log("SUCCESS", "The waters are clear. Heimdall sees no threats.")
-            return False
+                query = f"python {target.get('action')} {target.get('file', '')}"
 
-        target = all_breaches[0]
+            SovereignHUD.persona_log("INFO", f"Searching Brave for context: {query}")
+            results = searcher.search(query)
+            if results:
+                top = results[0]
+                target['search_context'] = f"Context: {top.get('title')} ({top.get('url')})"
+
+    def _forge_and_crucible_phase(self, target: dict, pre_gphs: float) -> bool:
+        """[ALFRED] Executes the forge and verification cycle."""
         selected_strategist = target.get('type', 'UNKNOWN').split('_')[0]
 
-        SovereignHUD.persona_log("INFO", f"Selected priority target: {target['file']} for {target['action']}")
-        SovereignHUD.persona_log("WARN", f"Target: {target['action']} in {target['file']}")
-        logging.info(f"[{self.root.name}] [TARGET] {target['action']} ({target['file']})")
-
-        # [INTEGRATION] Web Search for Context (Targeted Optimization)
-        # Only search for the ONE item we are actually going to fix.
-        searcher = BraveSearch()
-        if searcher.is_quota_available():
-            target_severity = target.get('severity', '')
-            target_type = target.get('type', '')
-            target_action = target.get('action', '').lower()
-
-            is_aesthetic = target_type in ('FREYA_BIRKHOFF_BREACH', 'FREYA_GOLDEN_RATIO_BREACH')
-            is_structural = any(k in target_type for k in ('STRUCTURAL_BREACH', 'EDDA_', 'MIMIR_'))
-
-            if target_severity in ('CRITICAL', 'HIGH') or 'error' in target_action or is_aesthetic or is_structural:
-                if is_aesthetic:
-                    query = "UI/UX design best practices reduce complexity increase order harmony Tailwind Golden Ratio"
-                elif is_structural:
-                    query = "Python AST clean code best practices cyclomatic complexity balanced ratios"
-                else:
-                    query = f"python {target.get('action')} {target.get('file', '')}"
-
-                SovereignHUD.persona_log("INFO", f"Searching Brave for context: {query}")
-                results = searcher.search(query)
-                if results:
-                    top = results[0]
-                    # Create dedicated context to preserve verb-noun action structure
-                    target['search_context'] = f"Context: {top.get('title')} ({top.get('url')})"
-
-        # [WATCHER] Anti-Oscillation Check
-        if self.watcher.is_locked(target['file']):
-            SovereignHUD.persona_log("WARN", f"Jurisdiction Denied: {target['file']} is LOCKED (Unstable).")
-            return False
-
         try:
-            # 3. FORGE (Execute Fix)
-            # [INTEGRATION] Agent Takeover Check
             if self._check_agent_active():
                  SovereignHUD.persona_log("WARN", "Operation C*CLI: Agent is Active. Skipping Auto-Forge.")
                  return False
@@ -300,30 +268,20 @@ class Muninn:
             if not self._forge_improvement(target):
                 return False
 
-            # 4. CRUCIBLE (Verify)
             if self._verify_fix(target):
                 logging.info(f"[{self.root.name}] [SUCCESS] Verified fix for {target['file']}")
 
-                # 5. SPRT STABILITY CHECK
-                if not self._verify_sprt_stability(target):
+                if not (self._verify_sprt_stability(target) and self._verify_performance(target)):
                     self._record_metric(selected_strategist, hit=False)
                     return False
 
-                # 6. PERFORMANCE BENCHMARK CHECK
-                if not self._verify_performance(target):
-                     return False
-
-                # 6b. [GPHS] Post-Mutation Delta Analysis
                 post_gphs = self.metrics_engine.compute(str(self.root))
                 SovereignHUD.persona_log("INFO", f"Global Project Health Score (Post): {post_gphs:.2f}")
 
                 sprt_result = self.sprt.evaluate_delta(pre_gphs, post_gphs)
                 if sprt_result == 'FAIL':
                     SovereignHUD.persona_log("FAIL", f"GPHS REGRESSION DETECTED (Delta: {post_gphs - pre_gphs:.4f}). Rolling back.")
-                    self.observer.write_suggestion(
-                        self.observer.analyze_failure(target['file'], "GPHS Regression Detected"),
-                        str(self.root / ".agent" / "ALFRED_SUGGESTIONS.md")
-                    )
+                    self.observer.write_suggestion(self.observer.analyze_failure(target['file'], "GPHS Regression Detected"), str(self.root / ".agent" / "ALFRED_SUGGESTIONS.md"))
                     self._rollback(target)
                     self._record_metric(selected_strategist, hit=False)
                     return False
@@ -331,48 +289,61 @@ class Muninn:
                 SovereignHUD.persona_log("PASS", f"GPHS DELTA SECURED: {post_gphs - pre_gphs:+.4f}")
                 self._record_metric(selected_strategist, hit=True)
 
-                if self.is_worker:
-                    SovereignHUD.persona_log("INFO", f"[PROMOTION] {target['file']}")
-                    # We print to stdout as well for the orchestrator to capture
-                    print(f"[PROMOTION] {target['file']}")
-
-                # If Campaign task, update the plan
                 if target.get('type') == 'CAMPAIGN_TASK':
                     NornWarden(self.root).mark_complete(target)
-                    if SovereignHUD.PERSONA == "ALFRED":
-                        SovereignHUD.persona_log("SUCCESS", "I have crossed that item off your list, sir.")
 
-                # [INTEGRATION] Neural Training Hook
-                try:
-                    warden = AnomalyWarden()
-                    target_file = self.root / target['file']
-                    if target_file.exists():
-                        # Feed execution metadata to the warden for anomaly detection
-                        metadata = [100.0, 50, 3, 0.01]  # baseline vector
-                        warden.train_step(metadata, [0.0])  # label 0 = normal
-                        warden.save()
-                        SovereignHUD.persona_log("INFO", f"AnomalyWarden evolved. Training step complete.")
-                except Exception as e:
-                    SovereignHUD.persona_log("WARN", f"Neural evolution failed: {e}")
-
+                self._evolve_neural_warden(target)
                 return True
             else:
-                # [ALFRED] Analyze failure on Crucible Fail
-                self.observer.write_suggestion(
-                    self.observer.analyze_failure(target['file'], "Crucible Verification Failed"),
-                    str(self.root / ".agent" / "ALFRED_SUGGESTIONS.md")
-                )
-                self._rollback(target) # Zero-Trust Rollback
+                self.observer.write_suggestion(self.observer.analyze_failure(target['file'], "Crucible Verification Failed"), str(self.root / ".agent" / "ALFRED_SUGGESTIONS.md"))
+                self._rollback(target)
                 self._record_metric(selected_strategist, hit=False)
                 return False
-
-        except (KeyboardInterrupt, SystemExit):
-            SovereignHUD.persona_log("WARN", "Operation interrupted. Distilling current progress.")
-            self._distill_knowledge(target, success=False)
-            raise
         except Exception as e:
             SovereignHUD.persona_log("ERROR", f"Core Execution Failure: {e}")
             return False
+
+    def _evolve_neural_warden(self, target: dict):
+        """[ALFRED] Feeds metadata to the AnomalyWarden."""
+        try:
+            warden = AnomalyWarden()
+            target_file = self.root / target['file']
+            if target_file.exists():
+                warden.train_step([100.0, 50, 3, 0.01], [0.0])
+                warden.save()
+                SovereignHUD.persona_log("INFO", "AnomalyWarden evolved. Training step complete.")
+        except Exception as e:
+            SovereignHUD.persona_log("WARN", f"Neural evolution failed: {e}")
+
+    def run(self) -> bool:
+        """The main Ravens Protocol loop."""
+        if self.use_docker and not self.is_worker:
+            return self._orchestrate_shadow_forge()
+
+        SovereignHUD.persona_log("INFO", f"Muninn is scouring {self.root.name}...")
+        pre_gphs = self.metrics_engine.compute(str(self.root))
+        SovereignHUD.persona_log("INFO", f"Global Project Health Score (Pre): {pre_gphs:.2f}")
+
+        # 1. HUNT
+        all_breaches, scan_results = asyncio.run(self._hunt_phase())
+        if not all_breaches:
+            SovereignHUD.persona_log("SUCCESS", "The waters are clear.")
+            return False
+
+        # 2. SELECT
+        target = self._select_target_phase(all_breaches)
+        self._emit_metrics_summary(scan_results)
+        if not target: return False
+
+        # 3. ENRICH
+        self._enrich_context_phase(target)
+
+        # 4. FORGE & CRUCIBLE
+        if self.watcher.is_locked(target['file']):
+            SovereignHUD.persona_log("WARN", f"Jurisdiction Denied: {target['file']} is LOCKED.")
+            return False
+
+        return self._forge_and_crucible_phase(target, pre_gphs)
 
     def _emit_metrics_summary(self, scan_results: dict):
         """[ALFRED] Logs the summary of discovered breaches."""
@@ -594,7 +565,7 @@ class Muninn:
         import sys
         # 1. Run the specific gauntlet test
         SovereignHUD.persona_log("INFO", "Executing Gauntlet Test Suite...")
-        
+
         if self.use_docker:
             SovereignHUD.persona_log("INFO", "Deploying Containerized Crucible for verification...")
             from src.sentinel.sandbox_warden import SandboxWarden
@@ -685,11 +656,10 @@ class Muninn:
 
     def _orchestrate_shadow_forge(self) -> bool:
         """Host-side orchestration of the Shadow Forge cycle."""
-        if self.mock_mode:
-            image_name = "sentinel-sandbox" # Specific image for mock/sandbox
-        else:
-            image_name = "sentinel-sandbox"
-        
+        image_name = "sentinel-sandbox"
+        container_name = f"shadow_forge_{int(time.time())}"
+        proj_root = str(self.root.resolve())
+
         # Check if image exists
         try:
             check_img = subprocess.run(["docker", "image", "inspect", image_name], capture_output=True)
@@ -712,11 +682,11 @@ class Muninn:
             "sentinel-sandbox",
             "python", "-m", "src.sentinel.muninn"
         ]
-        
+
         try:
             SovereignHUD.persona_log("INFO", f"[ORCHESTRATOR] Starting transient worker {container_name}...")
             result = subprocess.run(cmd, capture_output=True, text=True)
-            
+
             if result.returncode == 0:
                 SovereignHUD.persona_log("SUCCESS", "[ORCHESTRATOR] Shadow Forge Cycle Verified.")
                 # Atomic Promotion: Pull the fixed file (We need to know which one was fixed)
@@ -738,13 +708,13 @@ class Muninn:
         if not matches:
             SovereignHUD.persona_log("WARN", "[ORCHESTRATOR] No promotion targets detected.")
             return False
-            
+
         for target in matches:
             target_clean = target.strip()
             dest = self.root / target_clean
             SovereignHUD.persona_log("INFO", f"[ORCHESTRATOR] Promoting {target_clean} to host...")
             subprocess.run(["docker", "cp", f"{container_name}:/app/{target_clean}", str(dest)], check=True)
-        
+
         return True
 
     def _distill_knowledge(self, target: dict = None, success: bool = False):
@@ -833,14 +803,15 @@ class Muninn:
 
 if __name__ == "__main__":
     import argparse
+
     from tests.harness.raven_proxy import RavenProxy
-    
+
     p = argparse.ArgumentParser()
     p.add_argument("--audit", action="store_true")
     p.add_argument("--mock", action="store_true", help="Enable mock mode for the Ravens Protocol.")
     p.add_argument("--shadow-forge", "--docker", action="store_true", help="Run the entire cycle inside a sandboxed Docker container.")
     args = p.parse_args()
-    
+
     proxy = None
     if args.mock and not args.shadow_forge:
         SovereignHUD.persona_log("INFO", "Engaging Mock Mode (RavenProxy)...")

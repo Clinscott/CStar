@@ -1,11 +1,11 @@
-import sys
-import subprocess
-import shutil
-import json
-import time
 import gc
-from pathlib import Path
+import json
+import os
+import subprocess
+import sys
+import time
 from datetime import datetime
+from pathlib import Path
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).parent.parent.parent.absolute()
@@ -13,11 +13,12 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
 # Core Imports
+from src.core.engine.atomic_gpt import SessionWarden
 from src.core.sovereign_hud import SovereignHUD
 from src.core.sv_engine import SovereignEngine
-from src.core.engine.atomic_gpt import SessionWarden
 from src.tools import compile_session_traces
 from src.tools.update_gemini_manifest import update_manifest
+
 
 class SovereignWrapper:
     def __init__(self):
@@ -35,11 +36,11 @@ class SovereignWrapper:
     def run_gungnir_gate(self):
         """Executes the Gungnir validation gate (Ruff + Pytest)."""
         SovereignHUD.box_top("GUNGNIR GATE")
-        
+
         SovereignHUD.box_row("STEP 1", "Ruff Linting", SovereignHUD.CYAN)
         try:
             subprocess.run(
-                [sys.executable, "-m", "ruff", "check", ".", "--select", "E9,F63,F7,F82"], 
+                [sys.executable, "-m", "ruff", "check", ".", "--select", "E9,F63,F7,F82"],
                 cwd=str(self.root), check=True, capture_output=True
             )
             SovereignHUD.box_row("STATUS", "PASS", SovereignHUD.GREEN)
@@ -70,7 +71,7 @@ class SovereignWrapper:
             SovereignHUD.box_row("STATUS", "FAIL", SovereignHUD.RED)
             SovereignHUD.persona_log("HEIMDALL", "BREACH: Unit tests failed.")
             sys.exit(1)
-            
+
         SovereignHUD.box_bottom()
 
     def synchronize_state(self):
@@ -83,11 +84,11 @@ class SovereignWrapper:
         SovereignHUD.persona_log("ODIN", "Rebuilding Sovereign Vector Index...")
         try:
             engine = self._get_engine()
-            _ = engine._init_vector_engine() 
+            _ = engine._init_vector_engine()
         except Exception as e:
             SovereignHUD.persona_log("HEIMDALL", f"BREACH: Vector Indexing failed. {e}")
             sys.exit(1)
-            
+
         return stats
 
     def _edda_sync(self):
@@ -117,12 +118,12 @@ class SovereignWrapper:
         """[V4] Hardened Review: 10s Retry Loop, JSONL Archival, and Session Pulse."""
         queue_path = self.root / "src" / "data" / "anomalies_queue.jsonl" # [V4] JSONL
         archive_path = self.root / "src" / "data" / "anomalies_archive.json"
-        
+
         if not queue_path.exists():
             return
-            
+
         SovereignHUD.box_top("TECHNICAL DEBT REVIEW (V4)")
-        
+
         # 1. Bounded Retry Loop for Windows File Locks (10s envelope)
         temp_data = []
         success = False
@@ -132,18 +133,18 @@ class SovereignWrapper:
                 # Move the file to a temp location to break locks for subsequent appends
                 temp_queue = self.root / "src" / "data" / f"queue_pulse_{int(time.time())}.jsonl"
                 os.rename(queue_path, temp_queue)
-                
-                with open(temp_queue, "r", encoding="utf-8") as f:
+
+                with open(temp_queue, encoding="utf-8") as f:
                     for line in f:
                         if line.strip():
                             temp_data.append(json.loads(line))
-                
+
                 temp_queue.unlink()
                 success = True
             except (PermissionError, FileNotFoundError):
                 time.sleep(0.2)
                 retries -= 1
-        
+
         if not success:
             SovereignHUD.persona_log("HEIMDALL", "CAUTION: Anomalies Queue remains locked. Deferred to next session.")
             SovereignHUD.box_bottom()
@@ -151,7 +152,7 @@ class SovereignWrapper:
 
         # 2. Archival & Aggregation
         if archive_path.exists():
-            with open(archive_path, "r", encoding="utf-8") as f:
+            with open(archive_path, encoding="utf-8") as f:
                 archive = json.load(f)
         else:
             archive = []
@@ -172,14 +173,14 @@ class SovereignWrapper:
             avg_score = sum(session_scores) / len(session_scores) if session_scores else 0.5
             trace_count = stats.get('total', 0)
             error_rate = len(stats.get('critical_fails', [])) / max(1, trace_count)
-            
+
             # [V4] 3D Vector for SessionWarden
             session_vector = [avg_score, trace_count, error_rate]
-            
+
             warden = SessionWarden()
             warden.train() # Ensure train mode (dropout active)
             # Label: 0.0 means "Healthy Session"
-            warden.train_step(session_vector, 0.0) 
+            warden.train_step(session_vector, 0.0)
             SovereignHUD.box_row("PULSE", "SessionWarden learning cycle complete.", SovereignHUD.GREEN)
 
         SovereignHUD.box_bottom()
@@ -217,11 +218,11 @@ class SovereignWrapper:
         if self.engine:
             self.engine.teardown()
             self.engine = None
-        
+
         # External module cleanup
         import src.core.sovereign_hud as ui
         ui.SovereignHUD._INITIALIZED = False
-        
+
         # Force three-generation sweep
         gc.collect()
         SovereignHUD.persona_log("SUCCESS", "Wrap-up Protocol: Memory boundaries secured.")
@@ -233,10 +234,10 @@ def main():
         stats = wrapper.synchronize_state()
         wrapper.review_technical_debt(stats)
         wrapper.sovereign_commit(stats)
-        
+
         # [V4] Deep Purge before exit
         wrapper.teardown()
-        
+
     except KeyboardInterrupt:
         sys.exit(130)
 

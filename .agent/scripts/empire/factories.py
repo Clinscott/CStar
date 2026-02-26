@@ -1,7 +1,6 @@
-import json
 import os
 import sys
-from typing import Any, Dict, List
+from typing import Any
 
 # [ALFRED] Ensuring the path is correct for imports
 _project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
@@ -9,7 +8,6 @@ sys.path.append(_project_root)
 sys.path.append(os.path.join(_project_root, "src", "games"))
 
 from odin_protocol.engine.models import Chromosome, UniverseState
-from odin_protocol.engine.scenarios import SovereignScenarioEngine
 
 
 def create_warlord(tier: str) -> UniverseState:
@@ -32,7 +30,7 @@ def create_warlord(tier: str) -> UniverseState:
         )
     return UniverseState(seed="0xEMPTY")
 
-def create_scenario(intensity: str) -> Dict[str, Any]:
+def create_scenario(intensity: str) -> dict[str, Any]:
     """
     [Ω] SCENARIO FACTORY
     Returns a raw JSON scenario dict.

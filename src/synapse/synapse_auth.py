@@ -10,19 +10,18 @@ import hashlib
 import json
 import os
 import random
-from typing import Optional
 
 
 class PersonaVerifier:
     """[ALFRED] Secure persona verification using hashed challenge-response."""
-    
+
     def __init__(self, config_path: str) -> None:
         self.config_path = config_path
         self.secret = self._load_secret()
 
     def _load_secret(self) -> str:
         if os.path.exists(self.config_path):
-            with open(self.config_path, 'r') as f:
+            with open(self.config_path) as f:
                 config = json.load(f)
                 secret = config.get("security", {}).get("neural_secret")
                 return secret or config.get("NeuralSecret", "CORVUS_DEFAULT_SIGNAL")
@@ -47,13 +46,13 @@ def authenticate_sync(persona: str) -> bool:
     """[ALFRED] High-level authentication helper for synapse_sync."""
     script_dir = os.path.dirname(os.path.abspath(__file__))
     config_path = os.path.join(os.path.dirname(script_dir), "config.json")
-    
+
     verifier = PersonaVerifier(config_path)
     challenge = verifier.generate_challenge()
     # In a real federated system, the challenge would come from the remote server.
     # Here, we simulate a 'local handshake' for security hardening.
     response = verifier.solve_challenge(challenge, persona)
-    
+
     return verifier.verify_response(challenge, response, persona)
 
 if __name__ == "__main__":
@@ -62,6 +61,6 @@ if __name__ == "__main__":
     if authenticate_sync(p):
         print(f"AUTHENTICATED: {p}")
         sys.exit(0)
-    
+
     print(f"REJECTED: {p}")
     sys.exit(1)

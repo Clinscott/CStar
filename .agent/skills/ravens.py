@@ -4,8 +4,8 @@ Ravens CLI (Daemon Manager)
 Identity: ODIN
 Purpose: Manage the Huginn & Muninn daemon process (Start/Stop/Status).
 """
-import sys
 import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -16,6 +16,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 # Imports (Now valid)
 from src.core.sovereign_hud import SovereignHUD
+
 
 def _get_running_pids():
     """Returns a list of PIDs for running Ravens processes."""
@@ -35,19 +36,19 @@ def check_status():
     """Checks the status of the Gungnir Spear."""
     SovereignHUD.log("INFO", "Scanning the Roost...")
     pids = _get_running_pids()
-    
+
     # Check for Gungnir Calculus Infrastructure
     weights_path = PROJECT_ROOT / "src" / "core" / "weights.json"
     calc_path = PROJECT_ROOT / "src" / "core" / "metrics.py"
     has_calc = weights_path.exists() and calc_path.exists()
-    
+
     if pids:
         SovereignHUD.log("SUCCESS", "THE RAVENS ARE IN FLIGHT", f"(PIDs: {', '.join(pids)})")
         SovereignHUD.log("INFO", "Alfred is active and providing Overwatch for the swarm.")
     elif has_calc:
         SovereignHUD.log("WARN", "THE RAVENS ARE GROUNDED (IDLE)")
         SovereignHUD.log("SUCCESS", "ALFRED IS WATCHING", "(Gungnir Calculus is Armed and Initialized)")
-        
+
         # Check for recent observations
         suggestions_path = PROJECT_ROOT / ".agent" / "ALFRED_SUGGESTIONS.md"
         if suggestions_path.exists():
@@ -75,14 +76,14 @@ def recall_ravens():
             "}"
         )
         subprocess.run(["powershell", "-NoProfile", "-Command", ps_kill], capture_output=True)
-        
+
         # Cleanup Lock File
         lock_file = PROJECT_ROOT / "src" / "sentinel" / "ravens.lock"
         if lock_file.exists():
             lock_file.unlink()
-        
+
         SovereignHUD.log("SUCCESS", "Ravens recalled and roost cleared.")
-            
+
     except Exception as e:
         SovereignHUD.log("FAIL", f"Termination Protocol Failed: {e}")
 
@@ -101,11 +102,11 @@ def release_ravens():
         python_exe = PROJECT_ROOT / ".venv" / "Scripts" / "python.exe"
         if not python_exe.exists():
             python_exe = "python"
-        
+
         cmd_str = f"Set-Location '{project_dir}'; & '{python_exe}' -m src.sentinel.main_loop"
-        
+
         ps_cmd = f"Start-Process powershell -ArgumentList '-NoExit', '-Command', \"{cmd_str}\""
-        
+
         subprocess.run(["powershell", "-NoProfile", "-Command", ps_cmd], check=True)
         SovereignHUD.log("SUCCESS", "The Ravens take flight.")
     except Exception as e:

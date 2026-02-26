@@ -1,5 +1,5 @@
-import sys
 import json
+import sys
 from pathlib import Path
 
 # Bootstrap project root
@@ -8,16 +8,24 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 # Import Wardens
-from src.sentinel.muninn import ValkyrieWarden, MimirWarden, EddaWarden, RuneCasterWarden, FreyaWarden, HuginnWarden
 from src.core.annex import HeimdallWarden
 from src.core.sovereign_hud import SovereignHUD
+from src.sentinel.muninn import (
+    EddaWarden,
+    FreyaWarden,
+    HuginnWarden,
+    MimirWarden,
+    RuneCasterWarden,
+    ValkyrieWarden,
+)
+
 
 def scout():
     root = PROJECT_ROOT
     SovereignHUD.box_top("SENTINEL SCOUT: BREACH DETECTION")
     SovereignHUD.box_row("ROOT", str(root))
     SovereignHUD.box_separator()
-    
+
     results = {
         "ANNEX": [],
         "VALKYRIE": [],
@@ -27,7 +35,7 @@ def scout():
         "BEAUTY": [],
         "HUGINN": []
     }
-    
+
     # 1. Annex (Structural/Test Breaches)
     try:
         annex = HeimdallWarden(root)
@@ -83,12 +91,12 @@ def scout():
     for k, v in results.items():
         color = SovereignHUD.RED if v else SovereignHUD.GREEN
         SovereignHUD.box_row(k, len(v), color=color)
-    
+
     total = sum(len(v) for v in results.values())
     SovereignHUD.box_separator()
     SovereignHUD.box_row("TOTAL BREACHES", total, color=(SovereignHUD.RED if total else SovereignHUD.GREEN))
     SovereignHUD.box_bottom()
-        
+
     queue_path = root / "breaches_queue.json"
     queue_path.write_text(json.dumps(results, indent=2), encoding='utf-8')
     SovereignHUD.persona_log("SUCCESS", f"Queue synchronized to {queue_path.name}")

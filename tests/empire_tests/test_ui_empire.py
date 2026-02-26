@@ -1,9 +1,9 @@
 
-import pytest
-from unittest.mock import MagicMock, patch, mock_open
-from pathlib import Path
 import sys
-import json
+from pathlib import Path
+from unittest.mock import patch
+
+import pytest
 
 # Add project root to sys.path
 PROJECT_ROOT = Path(__file__).parents[2]
@@ -12,8 +12,9 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from src.core.sovereign_hud import SovereignHUD
 
+
 class TestUIEmpire:
-    
+
     def setup_method(self):
         # Reset SovereignHUD static state
         SovereignHUD._INITIALIZED = False
@@ -26,7 +27,7 @@ class TestUIEmpire:
         agent_dir.mkdir()
         config_file = agent_dir / "config.json"
         config_file.write_text('{"system": {"persona": "ODIN"}}', encoding='utf-8')
-        
+
         with patch("src.core.sovereign_hud.Path.cwd", return_value=tmp_path):
             SovereignHUD._ensure_persona()
             assert SovereignHUD.PERSONA == "ODIN"
@@ -55,7 +56,7 @@ class TestUIEmpire:
     def test_log_rejection(self, tmp_path):
         with patch("src.core.sovereign_hud.Path.cwd", return_value=tmp_path):
             SovereignHUD.log_rejection("TEST_PERSONA", "Reason", "Details")
-            
+
             # Check file exists in tmp_path
             ledger = tmp_path / ".agent" / "traces" / "quarantine" / "REJECTIONS.qmd"
             assert ledger.exists()

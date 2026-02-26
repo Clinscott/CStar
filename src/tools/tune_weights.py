@@ -3,8 +3,8 @@ import os
 import sys
 from collections import defaultdict
 
-from src.core.sovereign_hud import SovereignHUD
 from src.core.engine.vector import SovereignVector
+from src.core.sovereign_hud import SovereignHUD
 
 
 class MetaLearner:
@@ -19,7 +19,7 @@ class MetaLearner:
         q_tokens = self.engine.tokenize(query)
         target_tokens = set(self.engine.tokenize(self.engine.skills.get(expected, "")))
         rival_tokens = set(self.engine.tokenize(self.engine.skills.get(actual['trigger'], "")))
-        
+
         for t in q_tokens:
             if t in rival_tokens and t not in target_tokens:
                 curr = self.engine.thesaurus.get(t, {}).get(t, 1.0)
@@ -37,7 +37,7 @@ class MetaLearner:
         SovereignHUD.log("INFO", f"Proposed {len(self.updates)} neural adjustments:")
         for t, w in self.updates.items():
             SovereignHUD.log("Optimizing", f"{t} -> {w:.1f}", f"({len(self.analysis[t])} signals)")
-        
+
         print(f"\n{SovereignHUD.YELLOW}{SovereignHUD.BOLD}>> [Ω] DECREE: THESAURUS OPTIMIZATION REQUIRED{SovereignHUD.RESET}")
         for t, w in self.updates.items(): print(f"- {t}: {t}:{w:.2f}")
 
@@ -47,11 +47,11 @@ class MetaLearner:
             return
 
         SovereignHUD.log("INFO", f"Writing {len(self.updates)} weight updates to {thesaurus_path}...")
-        
+
         try:
-            with open(thesaurus_path, 'r', encoding='utf-8') as f:
+            with open(thesaurus_path, encoding='utf-8') as f:
                 lines = f.readlines()
-            
+
             new_lines = []
             updated_tokens = set()
 
@@ -59,20 +59,20 @@ class MetaLearner:
             # We assume we are updating the weight of the word itself (word:word:weight)
             # or adding it if missing?
             # For simplicity in this architectural fix, we update existing entries.
-            
+
             for line in lines:
                 if not line.strip().startswith("- "):
                     new_lines.append(line)
                     continue
-                
+
                 # Parse key
                 parts = line.split(":", 1)
                 if len(parts) < 2:
                     new_lines.append(line)
                     continue
-                    
+
                 key = parts[0].strip("- ").strip().lower()
-                
+
                 if key in self.updates:
                     # Reconstruct the line with new weight for the self-referential synonym
                     # This is a simplification. Real implementation might need robust parsing.
@@ -81,7 +81,7 @@ class MetaLearner:
                     syns = [s.strip() for s in rest.split(",")]
                     new_syns = []
                     found_self = False
-                    
+
                     target_weight = self.updates[key]
 
                     for s in syns:
@@ -94,15 +94,15 @@ class MetaLearner:
                                 new_syns.append(s)
                         else:
                             new_syns.append(s)
-                    
+
                     if not found_self:
                         new_syns.insert(0, f"{key}:{target_weight:.2f}")
-                        
+
                     new_lines.append(f"- {key}: {', '.join(new_syns)}\n")
                     updated_tokens.add(key)
                 else:
                     new_lines.append(line)
-            
+
             # Append new keys if needed (optional, but good for learning loop)
             for t, w in self.updates.items():
                 if t not in updated_tokens:
@@ -110,7 +110,7 @@ class MetaLearner:
 
             with open(thesaurus_path, 'w', encoding='utf-8') as f:
                 f.writelines(new_lines)
-                
+
             SovereignHUD.log("SUCCESS", "Neural weights persisted.")
 
         except Exception as e:
@@ -138,9 +138,9 @@ def tune_weights(project_root: str):
     engine.load_skills_from_dir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "skills"))
     engine.build_index()
 
-    with open(db_path, 'r', encoding='utf-8') as f: data = json.load(f)
+    with open(db_path, encoding='utf-8') as f: data = json.load(f)
     learner = MetaLearner(engine)
-    
+
     for case in data.get('test_cases', []):
         res = engine.search(case['query'])
         top = res[0] if res else None
@@ -148,7 +148,7 @@ def tune_weights(project_root: str):
             if top: learner.analyze_failure(case['query'], case['expected'], top)
 
     learner.report()
-    
+
     # Close the loop
     if learner.updates:
         t_path = _res("thesaurus.qmd")

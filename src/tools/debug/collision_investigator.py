@@ -19,7 +19,7 @@ def run_collision_investigation():
     )
 
     try:
-        with open('.agent/config.json', 'r') as f:
+        with open('.agent/config.json') as f:
             config = json.load(f)
     except FileNotFoundError:
         print("Warning: '.agent/config.json' not found. Skipping FrameworkRoot skills.")
@@ -31,7 +31,7 @@ def run_collision_investigation():
     root = config.get("FrameworkRoot")
     if root and os.path.exists(os.path.join(root, "skills_db")):
         e.load_skills_from_dir(os.path.join(root, "skills_db"), prefix="GLOBAL:")
-    
+
     print("Building index...")
     e.build_index()
     print("Index built.")

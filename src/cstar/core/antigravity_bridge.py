@@ -180,34 +180,34 @@ async def process_request(query: str, context: dict, api_key: str = None) -> dic
                  # Force a refresh if cache is empty
                  _get_optimal_model(active_client, api_key or "default", persona)
                  available = _MODEL_CACHE.get(api_key, [])
-                 
+
             # Find the best model we haven't tried yet
             target_model = None
-            
+
             # Simple heuristic routing to align with original _get_optimal_model logic
             if persona in ["ALFRED", "ODIN"]:
                 preferred = ["gemini-2.5-pro", "gemini-pro", "gemini-1.5-pro"]
             else:
                 preferred = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-flash"]
-                
+
             for p in preferred:
                  for m in available:
                      if p in m and m not in attempted_models:
                          target_model = m
                          break
                  if target_model: break
-                 
+
             # Fallback to any unused model
             if not target_model:
                 for m in available:
                     if m not in attempted_models:
                         target_model = m
                         break
-                        
+
             # Absolute fallback if all known fail
             if not target_model:
                 target_model = "gemini-2.5-pro"
-                
+
             logging.info(f"Attempt {attempt + 1}: Routing {persona} workload to {target_model}...")
             attempted_models.add(target_model)
 

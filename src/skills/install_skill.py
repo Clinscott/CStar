@@ -6,11 +6,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-# Resolve shared UI from src/core/
-_core_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "core")
-sys.path.insert(0, _core_dir)
+from src.sentinel.code_sanitizer import neuter_qmd_document
 from src.core.sovereign_hud import SovereignHUD
-from sentinel.code_sanitizer import neuter_qmd_document, perform_quarantine_scan
 
 
 def _sanitize_skill_name(name):
@@ -28,7 +25,7 @@ def _validate_path(base, target):
 def _get_config(base_path):
     path = os.path.join(base_path, "config.json")
     try:
-        with open(path, 'r', encoding='utf-8') as f: return json.load(f), None
+        with open(path, encoding='utf-8') as f: return json.load(f), None
     except Exception as e: return None, f"Config Error: {str(e)[:30]}"
 
 def _verify_integrity(quarantine_zone):
@@ -41,7 +38,7 @@ def _verify_integrity(quarantine_zone):
 def _run_security_scan(quarantine_zone):
     scanner = os.path.join(os.path.dirname(__file__), "security_scan.py")
     if not os.path.exists(scanner): return -1, "Scanner missing"
-    
+
     threat = 0
     for root, _, files in os.walk(quarantine_zone):
         for f in [f for f in files if f.endswith((".py", ".qmd", ".md"))]:
@@ -62,60 +59,57 @@ def _promote_skill(quarantine, dest):
         SovereignHUD.log("FAIL", "Promotion Failed", str(e)[:30])
         return False
 
+def _setup_install_paths(base: str, config: dict, name: str) -> tuple[str, str, str]:
+    """Resolves src, quarantine, and destination paths."""
+    src = os.path.join(config["FrameworkRoot"], "skills_db", name)
+    qua = os.path.join(base, "quarantine", name)
+    dst = os.path.join(base, "skills_db", name)
+    return src, qua, dst
+
 def install_skill(skill_name, target_root=None):
-    """
-    [ALFRED] Refactored skill installer with isolated sub-phases and path validation.
-    
-    Args:
-        skill_name: The slug of the skill to install from the global registry.
-        target_root: Optional override for the project root.
-        
-    Phases:
-        1. Pre-install: Sanitize name and verify config.
-        2. Quarantine: Copy skill to temporary zone for audit.
-        3. Integrity: Verify presence of SKILL metadata.
-        4. Security: Run AST-based security scan.
-        5. Promotion: Move verified skill to final destination.
-    """
+    """[ALFRED] Refactored skill installer with isolated sub-phases."""
     name = _sanitize_skill_name(skill_name)
     base = target_root or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     config, err = _get_config(base)
+
     if not name or err or not config.get("FrameworkRoot"):
         SovereignHUD.log("FAIL", "Pre-install Check", err or "Invalid Name"); return
 
-    src = os.path.join(config["FrameworkRoot"], "skills_db", name)
-    qua = os.path.join(base, "quarantine", name)
-    # Permanent Execution Jailing: Skills land in skills_db/, never src/skills/
-    dst = os.path.join(base, "skills_db", name)
+    src, qua, dst = _setup_install_paths(base, config, name)
 
-    if not all(_validate_path(base if "db" not in p[0] else config["FrameworkRoot"], p[1]) for p in [(src, src), (base, qua), (base, dst)]):
+    # Path Validation
+    paths_to_validate = [(src, src), (base, qua), (base, dst)]
+    if not all(_validate_path(base if "db" not in p[0] else config["FrameworkRoot"], p[1]) for p in paths_to_validate):
         SovereignHUD.log("CRITICAL", "Path Violation"); return
 
-    if os.path.exists(dst): 
+    if os.path.exists(dst):
         SovereignHUD.log("INFO", f"Skill '{name}' already installed."); return
-    if not os.path.exists(src): 
+    if not os.path.exists(src):
         SovereignHUD.log("FAIL", f"Skill '{name}' not found"); return
-    
+
     try:
         if os.path.exists(qua): shutil.rmtree(qua)
         shutil.copytree(src, qua)
-        
+
         ok, i_err = _verify_integrity(qua)
-        if not ok: SovereignHUD.log("FAIL", i_err); shutil.rmtree(qua); return
+        if not ok:
+            SovereignHUD.log("FAIL", i_err); shutil.rmtree(qua); return
 
         threat, s_err = _run_security_scan(qua)
-        if threat >= 2: SovereignHUD.log("CRITICAL", "BLOCKED: Security Threat"); shutil.rmtree(qua); return
+        if threat >= 2:
+            SovereignHUD.log("CRITICAL", "BLOCKED: Security Threat"); shutil.rmtree(qua); return
         if threat == 1:
             if input(f"{SovereignHUD.CYAN}>> Proceed with Warning? [y/N]: {SovereignHUD.RESET}").lower() != 'y':
                 shutil.rmtree(qua); return
 
-        # QMD Lockdown: Neuter any .qmd or .md files before promotion
+        # QMD Lockdown
         for root, _, files in os.walk(qua):
             for f in files:
                 if f.endswith((".qmd", ".md")):
                     neuter_qmd_document(Path(os.path.join(root, f)))
 
-        if _promote_skill(qua, dst): SovereignHUD.log("PASS", f"Skill '{name}' deployed to skills_db (SANDBOXED).")
+        if _promote_skill(qua, dst):
+            SovereignHUD.log("PASS", f"Skill '{name}' deployed to skills_db (SANDBOXED).")
     except Exception as e:
         SovereignHUD.log("FAIL", f"Install Crash: {str(e)[:40]}")
         if os.path.exists(qua): shutil.rmtree(qua)

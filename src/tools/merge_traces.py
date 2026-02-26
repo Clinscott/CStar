@@ -16,7 +16,7 @@ def _load_dataset(target_path):
     if not target_path.exists():
         return {"test_cases": []}
     try:
-        with open(target_path, 'r', encoding='utf-8') as f:
+        with open(target_path, encoding='utf-8') as f:
             return json.load(f)
     except Exception as e:
         SovereignHUD.log("WARN", f"Dataset load failed: {str(e)[:30]}")
@@ -30,7 +30,7 @@ def _save_dataset(dataset, target_path):
             json.dump(dataset, f, indent=2)
         os.replace(temp_target, str(target_path))
         return True
-    except (IOError, PermissionError) as e:
+    except (OSError, PermissionError) as e:
         SovereignHUD.log("FAIL", "Database Save Failed", str(e)[:30])
         if os.path.exists(temp_target): os.remove(temp_target)
         return False
@@ -64,9 +64,9 @@ def _process_trace_file(trace_file, existing_queries, dataset, failed_dir):
     try:
         if trace_file.stat().st_size > 5 * 1024 * 1024:
             raise ValueError("Size limit exceeded")
-        with open(trace_file, 'r', encoding='utf-8') as f:
+        with open(trace_file, encoding='utf-8') as f:
             content = json.load(f)
-        
+
         n_added, n_updated = 0, 0
         for t in (content if isinstance(content, list) else [content]):
             a, u = _process_single_trace(t, existing_queries, dataset)
@@ -85,7 +85,7 @@ def merge_traces(source_dir, target_file="fishtest_data.json"):
 
     dataset = _load_dataset(target_path)
     existing_queries = {c['query']: c for c in dataset.get('test_cases', [])}
-    
+
     total_new, total_upd, files_ok = 0, 0, 0
     for trace_file in source_path.glob("*.json"):
         ok, n, u = _process_trace_file(trace_file, existing_queries, dataset, failed_dir)

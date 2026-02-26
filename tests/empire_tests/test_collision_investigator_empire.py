@@ -1,7 +1,5 @@
 import json
 import os
-import sys
-from pathlib import Path
 
 import pytest
 
@@ -19,7 +17,7 @@ def sovereign_vector_instance(tmp_path_factory):
 
     # Create a temporary root directory for the test execution
     root_path = tmp_path_factory.mktemp("sv_root")
-    
+
     # Create all necessary directories and dummy files
     agent_dir = root_path / ".agent"
     agent_dir.mkdir()

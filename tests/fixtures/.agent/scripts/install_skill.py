@@ -21,7 +21,7 @@ def _validate_path(base, target):
 def _get_config(base_path):
     path = os.path.join(base_path, "config.json")
     try:
-        with open(path, 'r', encoding='utf-8') as f: return json.load(f), None
+        with open(path, encoding='utf-8') as f: return json.load(f), None
     except Exception as e: return None, f"Config Error: {str(e)[:30]}"
 
 def _verify_integrity(quarantine_zone):
@@ -34,7 +34,7 @@ def _verify_integrity(quarantine_zone):
 def _run_security_scan(quarantine_zone):
     scanner = os.path.join(os.path.dirname(__file__), "security_scan.py")
     if not os.path.exists(scanner): return -1, "Scanner missing"
-    
+
     threat = 0
     for root, _, files in os.walk(quarantine_zone):
         for f in [f for f in files if f.endswith((".py", ".qmd", ".md"))]:
@@ -70,15 +70,15 @@ def install_skill(skill_name, target_root=None):
     if not all(_validate_path(base if "db" not in p[0] else config["FrameworkRoot"], p[1]) for p in [(src, src), (base, qua), (base, dst)]):
         SovereignHUD.log("CRITICAL", "Path Violation"); return
 
-    if os.path.exists(dst): 
+    if os.path.exists(dst):
         SovereignHUD.log("INFO", f"Skill '{name}' already installed."); return
-    if not os.path.exists(src): 
+    if not os.path.exists(src):
         SovereignHUD.log("FAIL", f"Skill '{name}' not found"); return
-    
+
     try:
         if os.path.exists(qua): shutil.rmtree(qua)
         shutil.copytree(src, qua)
-        
+
         ok, i_err = _verify_integrity(qua)
         if not ok: SovereignHUD.log("FAIL", i_err); shutil.rmtree(qua); return
 

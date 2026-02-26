@@ -1,9 +1,9 @@
-from pathlib import Path
-from datetime import datetime
 import json
-import os
 import shutil
 import time
+from datetime import datetime
+from pathlib import Path
+
 try:
     import msvcrt
 except ImportError:
@@ -20,7 +20,7 @@ class PersonaStrategy:
 
     def enforce_policy(self, **kwargs) -> dict:
         """Analyze and enforce file structure policies. Returns context for dialogue."""
-        return {} 
+        return {}
 
     def get_voice(self) -> str:
         """Return the name of the dialogue file to use."""
@@ -35,13 +35,13 @@ class PersonaStrategy:
         source = Path(file_path)
         if not source.exists():
             return None
-            
+
         quarantine_dir = source.parent / ".corvus_quarantine"
         quarantine_dir.mkdir(exist_ok=True)
-        
+
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
         quarantine_path = quarantine_dir / f"{timestamp}_{source.name}"
-        
+
         shutil.move(str(source), str(quarantine_path))
         return quarantine_path
 
@@ -78,10 +78,10 @@ class OdinStrategy(PersonaStrategy):
             return self._state_cache["data"]
 
         state_path = self.root / ".agent" / "sovereign_state.json"
-        
+
         from src.core.utils import safe_read_json
         data = safe_read_json(state_path)
-        
+
         if data:
             self._state_cache = {"data": data, "timestamp": now}
         return data
@@ -89,10 +89,10 @@ class OdinStrategy(PersonaStrategy):
     def retheme_docs(self) -> list[str]:
         """ODIN documentation re-theming: Overwrite for Dominion."""
         results = []
-        
+
         def _res(base_name: str) -> Path:
             names = [
-                self.root / f"{base_name}.qmd", 
+                self.root / f"{base_name}.qmd",
                 self.root / f"{base_name}.md",
                 self.root / "docs" / "architecture" / f"{base_name}.qmd",
                 self.root / "docs" / "architecture" / f"{base_name}.md"
@@ -103,7 +103,7 @@ class OdinStrategy(PersonaStrategy):
 
         agents_path = _res("AGENTS")
         source_template = _res("sterileAgent/AGENTS_ODIN")
-        
+
         if source_template.exists():
             legacy_content = ""
             if agents_path.exists():
@@ -112,34 +112,34 @@ class OdinStrategy(PersonaStrategy):
                     legacy_content = "## 📜 Project Legacy" + content.split("## 📜 Project Legacy")[-1]
                 else:
                     legacy_content = "\n---\n\n## 📜 Project Legacy\n\n" + content
-                
+
                 self._quarantine(agents_path)
-            
+
             template = source_template.read_text(encoding='utf-8')
             agents_path.parent.mkdir(parents=True, exist_ok=True)
             agents_path.write_text(template + "\n\n" + legacy_content, encoding='utf-8')
-                
+
             results.append(f"RE-THEMED: {agents_path.name} (ODIN voice applied)")
-            
+
         self._sync_configs("ODIN")
         return results
 
     def enforce_policy(self, **kwargs) -> dict:
         """ODIN Policy: Complete Dominion. Return context for dialogue adjudication."""
         results = [] # Internal logging
-        
+
         # 1. Check for defiance in cached state
         state = self._get_sovereign_state()
-        is_defiant = any(v == "DEFIANCE" or (isinstance(v, dict) and v.get("status") == "DEFIANCE") 
+        is_defiant = any(v == "DEFIANCE" or (isinstance(v, dict) and v.get("status") == "DEFIANCE")
                          for v in state.values())
-        
+
         # 2. Original Policy Enforcement
         target_dirs = [self.root, self.root / "docs" / "architecture"]
         for target in target_dirs:
             qmd = target / "AGENTS.qmd"
             md = target / "AGENTS.md"
             agents_path = qmd if qmd.exists() else (md if md.exists() else None)
-            
+
             if agents_path:
                 try:
                     content = agents_path.read_text(encoding='utf-8')
@@ -152,7 +152,7 @@ class OdinStrategy(PersonaStrategy):
         rules_path = self.root / ".cursorrules"
         if not rules_path.exists():
             self._create_cursor_rules(rules_path)
-            
+
         return {"compliance_breach": is_defiant}
 
     def _create_cursor_rules(self, path: Path | str) -> None:
@@ -213,7 +213,7 @@ class AlfredStrategy(PersonaStrategy):
     def enforce_policy(self, **kwargs) -> dict:
         """ALFRED Policy: Humble Service. Returns context including error details."""
         results = []
-        
+
         doc_targets = ["AGENTS", "tasks", "thesaurus"]
         for name in doc_targets:
             qmd = self.root / f"{name}.qmd"
@@ -224,23 +224,23 @@ class AlfredStrategy(PersonaStrategy):
                     bak = path.with_suffix(path.suffix + ".bak")
                     if not bak.exists():
                         shutil.copy2(str(path), str(bak))
-            except (IOError, PermissionError):
-                pass 
+            except (OSError, PermissionError):
+                pass
 
         agents_found = any((self.root / name).exists() for name in ["AGENTS.qmd", "AGENTS.md", "INSTRUCTIONS.qmd", "brief.qmd", "cursorrules.qmd"])
         if not agents_found:
             self._create_minimal_agents(self.root / "AGENTS.qmd")
-            
+
         rules_path = self.root / ".cursorrules"
         if not rules_path.exists():
             self._create_cursor_rules(rules_path)
-            
+
         self._sync_configs("ALFRED")
-        
+
         context = {}
         if "error_type" in kwargs:
             context["error_type"] = kwargs["error_type"]
-        
+
         return context
 
 

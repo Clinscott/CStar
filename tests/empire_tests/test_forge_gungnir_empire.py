@@ -1,5 +1,7 @@
 import pytest
+
 from src.cstar.core.forge import Forge
+
 
 class TestForgeGungnirCalculus:
     @pytest.fixture

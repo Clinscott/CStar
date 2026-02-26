@@ -1,16 +1,21 @@
-import os
-import sys
+#!/usr/bin/env python3
+"""
+[GAME] Odin Protocol Loop
+Lore: "The cycle of conquest and genetic evolution."
+Purpose: Central coordinator for the Odin Protocol Game Loop.
+"""
+
 import json
-import time
+import os
 import random
 import subprocess
+import sys
+import time
 from pathlib import Path
+from typing import Any
 
-# Fix: Ensure subprocess/random are available for CI
-# Add project root to path for local imports
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from odin_protocol.engine import (
+from src.core.sovereign_hud import SovereignHUD
+from src.games.odin_protocol.engine import (
     Chromosome,
     Item,
     OdinGM,
@@ -22,31 +27,36 @@ from odin_protocol.engine import (
     get_federated_seed,
 )
 
-# [ALFRED] Importing the Corvus Star UI Backbone
-_core_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "core")
-sys.path.insert(0, _core_dir)
-from src.core.sovereign_hud import SovereignHUD
 
 class OdinAdventure:
     """The central coordinator for the Odin Protocol Game Loop."""
 
-    def __init__(self, project_root: str) -> None:
-        self.project_root = project_root
-        self.persistence = OdinPersistence(project_root)
+    def __init__(self, project_root: str | Path) -> None:
+        """
+        Initializes the adventure with the project root.
+        
+        Args:
+            project_root: Path to the project root directory.
+        """
+        self.project_root = Path(project_root)
+        self.persistence = OdinPersistence(str(self.project_root))
         self.gm = OdinGM()
-        self.state = self._init_state()
+        self.state: UniverseState = self._init_state()
 
-        # UI Setup
-        config_path = os.path.join(project_root, "config.json")
+        # UI Setup: Load persona from config
+        config_path = self.project_root / "config.json"
         default_persona = "ALFRED"
-        if os.path.exists(config_path):
-            with open(config_path) as f:
-                config = json.load(f)
-                default_persona = (config.get("persona") or config.get("Persona") or "ALFRED").upper()
+        if config_path.exists():
+            try:
+                with config_path.open() as f:
+                    config = json.load(f)
+                    default_persona = (config.get("persona") or config.get("Persona") or "ALFRED").upper()
+            except (json.JSONDecodeError, OSError):
+                pass
 
         SovereignHUD.PERSONA = self.state.active_persona or default_persona
 
-        # Prompt for name if this is a fresh start or default
+        # Prompt for name if this is a fresh start
         if self.state.player_name == "Odin":
             self.prompt_for_name()
 
@@ -65,66 +75,35 @@ class OdinAdventure:
         """Loads existing state or initializes a new one from the Federated Seed."""
         saved = self.persistence.load_state()
         if saved:
-            inventory = {
-                k: Chromosome(**v) for k, v in saved.get("inventory", {}).items()
-            }
-            items = [Item(**i) for i in saved.get("items", [])]
-            return UniverseState(
-                seed=saved["seed"],
-                player_name=saved.get("player_name", "Odin"),
-                domination_percent=saved.get("domination_percent", 10.0),
-                max_percent_reached=saved.get("max_percent_reached", 10.0),
-                total_worlds_conquered=saved.get("total_worlds_conquered", 0),
-                planets_dominated=saved.get("planets_dominated", 0),
-                mutation_charges=saved.get("mutation_charges", 0),
-                total_turns_played=saved.get("total_turns_played", 0),
-                force=saved.get("force", 100.0),
-                current_planet_name=saved.get("current_planet_name"),
-                current_planet_progress=saved.get("current_planet_progress", 0.0),
-                nodal_progress=saved.get("nodal_progress", {"HIVE": 0.0, "SIEGE": 0.0, "RESOURCE": 0.0, "DROP": 0.0}),
-                ticker_velocity=saved.get("ticker_velocity", 0.0),
-                momentum_turns=saved.get("momentum_turns", 0),
-                last_briefing_turn=saved.get("last_briefing_turn", -5),
-                active_persona=saved.get("active_persona", "ALFRED"),
-                active_campaigns=saved.get("active_campaigns", {}),
-                inventory=inventory,
-                items=items,
-                conquests=saved.get("conquests", [])
-            )
+            try:
+                return UniverseState.from_dict(saved)
+            except Exception as e:
+                SovereignHUD.persona_log("WARN", f"Failed to restore state from dictionary: {e}")
 
         # New Game: 24 Chromosomes
-        from odin_protocol.engine.logic import SYNERGY_MAP
-        seed = get_federated_seed(self.project_root)
+        from src.games.odin_protocol.engine.logic import SYNERGY_MAP
+        seed = get_federated_seed(str(self.project_root))
         dna = {}
         for cid in SYNERGY_MAP:
-            # Extract name from CID (e.g., 'AESIR_MIGHT' -> 'Aesir Might')
             name = cid.replace('_', ' ').title()
             dna[cid] = Chromosome(id=cid, name=name)
 
         return UniverseState(seed=seed, inventory=dna)
 
-    def render_manifest(self, scenario: dict = None) -> None:
+    def render_manifest(self, scenario: dict[str, Any] | None = None) -> None:
         """Displays the player's genetic stats and empire status (Retro-Battle Grid style)."""
-        # Pass world modifiers to stats calculation if available
         modifiers = scenario.get("world_modifiers", []) if scenario else []
         effective = calculate_effective_stats(self.state.inventory, self.state.items, world_modifiers=modifiers)
         rating = get_combat_rating(effective)
 
-        # War Room Proposal: Retro-Battle Grid
         os.system('cls' if os.name == 'nt' else 'clear')
         print(f"{SovereignHUD.GREEN}[ WAR_ROOM - PLANETARY GRID ]-------------------[ v2.0.44 ]{SovereignHUD.RESET}")
         print("-----------------------------------------------------------")
 
-        # Draw a 4x6 grid with SIDE-LEGEND
         grid_labels = "   A    B    C    D    E    F    |  LEGEND"
         print(SovereignHUD.BOLD + grid_labels + SovereignHUD.RESET)
 
-        legend = [
-            "(X) Hive City",
-            "(!) Siege Active",
-            "(#) Resource Node",
-            "(O) Warlord Drop"
-        ]
+        legend = ["(X) Hive City", "(!) Siege Active", "(#) Resource Node", "(O) Warlord Drop"]
 
         for row in range(1, 5):
             row_str = f"{row} "
@@ -135,16 +114,12 @@ class OdinAdventure:
                 if row == 3 and col == 0: char = "#"
                 if row == 4 and col == 3: char = "O"
                 row_str += f"[{SovereignHUD.CYAN}{char}{SovereignHUD.RESET}]  "
-
-            # Add legend entry
             row_str += f"|  {legend[row-1]}"
             print(row_str)
 
         print("-----------------------------------------------------------")
-        # Status Plate (Non-Boxed for cleaner aesthetic)
         print(f" WARLORD              : {SovereignHUD.BOLD}{self.state.player_name}{SovereignHUD.RESET}")
 
-        # Phase 9: Force Resource
         f_color = SovereignHUD.GREEN if self.state.force > 30 else SovereignHUD.RED
         print(f" FORCE DEPLOYED       : {f_color}{self.state.force:.1f}%{SovereignHUD.RESET}")
 
@@ -160,15 +135,13 @@ class OdinAdventure:
             print(f" SIEGE TARGET         : {SovereignHUD.CYAN}{self.state.current_planet_name.upper()}{SovereignHUD.RESET}")
             print(f" DOMINATION %         : {SovereignHUD.GREEN}{self.state.current_planet_progress:.1f}%{SovereignHUD.RESET}")
 
-        # Phase 9: Nodal Coverage
         nodes = self.state.nodal_progress
         n_str = (f" [X] HIVE: {nodes['HIVE']:.0f}% | [!] SIEGE: {nodes['SIEGE']:.0f}% | "
                  f"[#] RES: {nodes['RESOURCE']:.0f}% | [O] DROP: {nodes['DROP']:.0f}%")
         print(f" NODAL COVERAGE       :{SovereignHUD.YELLOW}{n_str}{SovereignHUD.RESET}")
-
         print("-----------------------------------------------------------")
 
-    def briefing(self, scenario: dict = None) -> None:
+    def briefing(self, scenario: dict[str, Any] | None = None) -> None:
         """Strategic Briefing (Tone shifts based on Persona)."""
         turn = self.state.total_worlds_conquered + int(self.state.domination_percent)
         cooldown = 1
@@ -182,8 +155,6 @@ class OdinAdventure:
             return
 
         os.system('cls' if os.name == 'nt' else 'clear')
-
-        # UI Header shifts by Persona
         header = "| THE ADVISOR |" if SovereignHUD.PERSONA == "ALFRED" else "| THE ALL-FATHER |"
         color = SovereignHUD.CYAN if SovereignHUD.PERSONA == "ALFRED" else SovereignHUD.MAGENTA
 
@@ -196,8 +167,6 @@ class OdinAdventure:
             print(f"  THREAT: {SovereignHUD.RED}{scenario.get('failure_penalty', 5.0)}/20 (Volatility Risk){SovereignHUD.RESET}")
 
         print(f"\n  {SovereignHUD.BOLD}:: GENE_STREAM ------------------------------------------{SovereignHUD.RESET}")
-
-        # Recalculate with modifiers
         modifiers = scenario.get("world_modifiers", []) if scenario else []
         effective = calculate_effective_stats(self.state.inventory, self.state.items, world_modifiers=modifiers)
 
@@ -271,13 +240,10 @@ class OdinAdventure:
         print(f"{SovereignHUD.RED}[WARNING]: Manipulating the timeline causes Genetic Decay.{SovereignHUD.RESET}")
 
         try:
-            # 1. git stash
-            subprocess.run(["git", "stash"], cwd=self.project_root, capture_output=True)
-
-            # 2. git log
+            subprocess.run(["git", "stash"], cwd=str(self.project_root), capture_output=True)
             log = subprocess.check_output(
                 ["git", "log", "--oneline", "-n", "5"],
-                cwd=self.project_root
+                cwd=str(self.project_root)
             ).decode("utf-8")
 
             print(f"\n{SovereignHUD.BOLD}Available Temporal Anchors:{SovereignHUD.RESET}")
@@ -286,25 +252,19 @@ class OdinAdventure:
             target = input(f"\n{SovereignHUD.CYAN}>> Enter Git Hash to breach into (or 'c' to cancel): {SovereignHUD.RESET}").strip()
             if target.lower() == 'c': return
 
-            # 3. git checkout save_state
-            # Assuming persistence handles save_state.json
-            save_path = os.path.join(self.project_root, "odin_protocol", "save_state.json")
-            res = subprocess.run(["git", "checkout", target, "--", "odin_protocol/save_state.json"], cwd=self.project_root)
+            res = subprocess.run(["git", "checkout", target, "--", "odin_protocol/save_state.json"], cwd=str(self.project_root))
 
             if res.returncode == 0:
                 print(f"{SovereignHUD.GREEN}Anchor Established. Reloading State...{SovereignHUD.RESET}")
-                self.state = self._init_state() # Reload
+                self.state = self._init_state()
 
-                # 4. Apply Timeline Corruption (Genetic Decay)
-                # Randomly damage 1 chromosome.
                 cid = random.choice(list(self.state.inventory.keys()))
                 old_lvl = self.state.inventory[cid].level
                 self.state.inventory[cid].level = max(1, old_lvl - 2)
                 print(f"{SovereignHUD.RED}[CORRUPTION]: {cid} level dropped from {old_lvl} to {self.state.inventory[cid].level}.{SovereignHUD.RESET}")
 
-                # 5. Commit Breach
-                subprocess.run(["git", "add", "odin_protocol/save_state.json"], cwd=self.project_root)
-                subprocess.run(["git", "commit", "-m", f"TEMPORAL_BREACH: {target}"], cwd=self.project_root)
+                subprocess.run(["git", "add", "odin_protocol/save_state.json"], cwd=str(self.project_root))
+                subprocess.run(["git", "commit", "-m", f"TEMPORAL_BREACH: {target}"], cwd=str(self.project_root))
                 time.sleep(2)
             else:
                 print(f"{SovereignHUD.RED}Failed to reach anchor. Timeline remains intact.{SovereignHUD.RESET}")
@@ -316,97 +276,63 @@ class OdinAdventure:
 
     def _apply_passive_ticker(self, affinity_score: float) -> None:
         """Applies passive domination growth/decay based on Genetic Affinity and Momentum."""
-        # Baseline velocity from affinity
         velocity = affinity_score
-
-        # Momentum Buff / Resurgence Penalty
         if self.state.momentum_turns > 0:
             velocity *= 1.5
             self.state.momentum_turns -= 1
         elif self.state.momentum_turns < 0:
-            velocity *= 0.5 # stalled
+            velocity *= 0.5
             self.state.momentum_turns += 1
 
-        # Update state
         self.state.ticker_velocity = velocity
         self.state.current_planet_progress += velocity
-
-        # Clamp
         self.state.current_planet_progress = max(0.0, min(100.0, self.state.current_planet_progress))
-        self.state.domination_percent = self.state.current_planet_progress # Sync
+        self.state.domination_percent = self.state.current_planet_progress
 
-    def play_turn(self) -> None:
-        """Executes the strategic War Room loop or a tactical nodal campaign."""
-
-        turn_id = self.state.total_turns_played
+    def _strategic_phase(self) -> str | None:
+        """Strategic selection phase in the War Room."""
         planet_name = self.state.current_planet_name
-        campaign = self.state.active_campaigns.get(planet_name) if planet_name else None
+        self.render_manifest()
+        SovereignHUD.divider("WAR ROOM: NODAL SELECTION")
+        print(f"\n {SovereignHUD.BOLD}Warlord, the conquest of {planet_name.upper() if planet_name else 'THE SYSTEM'} continues.{SovereignHUD.RESET}")
+        print(" Choose a tactical node to breach, or manage your manifest.")
 
-        # 1. Strategic Phase: War Room Selection
-        target_node = self.state.active_node
+        print("\n [X] Hive City Campaign")
+        print(" [!] Siege Active Campaign")
+        print(" [#] Resource Node Campaign")
+        print(" [O] Warlord Drop Campaign")
+        print("\n [M] Genetic Manifest")
+        print(f" [P] Persona: {SovereignHUD.PERSONA}")
+        print(" [Q] Save & Exit")
 
-        if not target_node:
-            self.render_manifest()
-            SovereignHUD.divider("WAR ROOM: NODAL SELECTION")
-            print(f"\n {SovereignHUD.BOLD}Warlord, the conquest of {planet_name.upper() if planet_name else 'THE SYSTEM'} continues.{SovereignHUD.RESET}")
-            print(" Choose a tactical node to breach, or manage your manifest.")
+        cmd = input(f"\n{SovereignHUD.CYAN}>> Select Node or Protocol: {SovereignHUD.RESET}").upper().strip()
 
-            print("\n [X] Hive City Campaign")
-            print(" [!] Siege Active Campaign")
-            print(" [#] Resource Node Campaign")
-            print(" [O] Warlord Drop Campaign")
+        if cmd == 'Q': sys.exit(0)
+        if cmd == 'P':
+            SovereignHUD.PERSONA = "ODIN" if SovereignHUD.PERSONA == "ALFRED" else "ALFRED"
+            self.state.active_persona = SovereignHUD.PERSONA
+            return None
+        if cmd == 'M':
+            effective = calculate_effective_stats(self.state.inventory, self.state.items)
+            self.show_genetic_manifest(effective)
+            input("\nPress Enter to return to the bridge...")
+            return None
 
-            print("\n [M] Genetic Manifest")
-            print(f" [P] Persona: {SovereignHUD.PERSONA}")
-            print(" [Q] Save & Exit")
-
-            cmd = input(f"\n{SovereignHUD.CYAN}>> Select Node or Protocol: {SovereignHUD.RESET}").upper().strip()
-
-            # Protocol Handling
-            if cmd == 'Q': sys.exit(0)
-            if cmd == 'P':
-                SovereignHUD.PERSONA = "ODIN" if SovereignHUD.PERSONA == "ALFRED" else "ALFRED"
-                self.state.active_persona = SovereignHUD.PERSONA
-                return
-            if cmd == 'M':
-                effective = calculate_effective_stats(self.state.inventory, self.state.items)
-                self.show_genetic_manifest(effective)
-                input("\nPress Enter to return to the bridge...")
-                return
-
-            # Nodal Mapping
-            node_map = {'X': 'HIVE', '!': 'SIEGE', '#': 'RESOURCE', 'O': 'DROP'}
-            if cmd not in node_map:
-                print(f"{SovereignHUD.RED}Invalid Node Identifier.{SovereignHUD.RESET}")
-                time.sleep(1)
-                return
-
-            target_node = node_map[cmd]
-            self.state.active_node = target_node
-            SovereignHUD.divider("WAR ROOM: LOCKING IN")
-            print(f"{SovereignHUD.CYAN}Nodal Campaign identified. Forces deployed to {target_node}.{SovereignHUD.RESET}")
+        node_map = {'X': 'HIVE', '!': 'SIEGE', '#': 'RESOURCE', 'O': 'DROP'}
+        if cmd not in node_map:
+            print(f"{SovereignHUD.RED}Invalid Node Identifier.{SovereignHUD.RESET}")
             time.sleep(1)
+            return None
 
-        # 3. Scenario Generation (Brutal/Nodal)
-        effective = calculate_effective_stats(self.state.inventory, self.state.items)
-        scenario = self.gm.generate_scenario(
-            stats=effective,
-            seed=self.state.seed,
-            turn_id=turn_id,
-            player_name=self.state.player_name,
-            campaign_data=campaign,
-            node_type=target_node
-        )
+        target_node = node_map[cmd]
+        self.state.active_node = target_node
+        SovereignHUD.divider("WAR ROOM: LOCKING IN")
+        print(f"{SovereignHUD.CYAN}Nodal Campaign identified. Forces deployed to {target_node}.{SovereignHUD.RESET}")
+        time.sleep(1)
+        return target_node
 
-        # Apply Passive Ticker before the encounter
-        self._apply_passive_ticker(scenario.get('affinity_score', 0.1))
-
-        # 4. Update State with new Campaign Data
-        new_planet_name = scenario['planet_name']
-        self.state.current_planet_name = new_planet_name
-        self.state.active_campaigns[new_planet_name] = scenario['campaign_state']
-
-        # 5. PHASE II: THE TACTICAL ENCOUNTER
+    def _tactical_phase(self, target_node: str, scenario: dict[str, Any], effective: dict[str, float]) -> None:
+        """Tactical encounter decision loop."""
         self.render_manifest(scenario)
         SovereignHUD.divider(f"TACTICAL BREACH: {target_node}")
         print(f"\n{SovereignHUD.CYAN}{scenario['lore']}{SovereignHUD.RESET}")
@@ -415,7 +341,6 @@ class OdinAdventure:
         print(f"\n{SovereignHUD.BOLD}{p['rank']} {p['name']} REPORT:{SovereignHUD.RESET}")
         print(f"{SovereignHUD.YELLOW}\"{scenario['conflict']}\"{SovereignHUD.RESET}")
 
-        # Decision Loop (Refined for Nodal Victory)
         while True:
             SovereignHUD.divider(f"COMMAND DECK: {target_node}")
             print(f"\n{SovereignHUD.BOLD}{scenario['immediate_question']}{SovereignHUD.RESET}")
@@ -423,10 +348,7 @@ class OdinAdventure:
             options = scenario.get('options', [])
             for opt in options:
                 diff = opt.get('difficulty', 'Unknown')
-                color = SovereignHUD.CYAN
-                if diff == 'Easy' or diff == 'Trivial': color = SovereignHUD.GREEN
-                elif diff == 'Hard': color = SovereignHUD.YELLOW
-                elif diff == 'Lethal': color = SovereignHUD.RED
+                color = SovereignHUD.GREEN if diff in ('Easy', 'Trivial') else (SovereignHUD.YELLOW if diff == 'Hard' else SovereignHUD.RED)
                 print(f" [{opt['id']}] {opt['text']:35} ({color}{diff}{SovereignHUD.RESET})")
 
             print(f" [R] Retreat & Regroup           ({SovereignHUD.YELLOW}Penalty: 50% Node Progress{SovereignHUD.RESET})")
@@ -440,83 +362,94 @@ class OdinAdventure:
                 time.sleep(2)
                 return
 
-            # Adjudication
             choice = next((o for o in options if o['id'] == raw_input), None)
             if not choice: continue
 
             result = adjudicate_choice(self.state, choice, effective, scenario)
-
-            # Weighted Feedback
-            SovereignHUD.divider("DIE CAST RESULTS")
-            print(f" {SovereignHUD.BOLD}CHANCE  :{SovereignHUD.RESET} {SovereignHUD.CYAN}{result['chance']*100:.1f}%{SovereignHUD.RESET}")
-            print(f" {SovereignHUD.BOLD}ROLL    :{SovereignHUD.RESET} {SovereignHUD.YELLOW}{result['roll']*100:.1f}%{SovereignHUD.RESET}")
-
-            # Phase 9: Nodal Progress Tracking
-            if result['success']:
-                print(f"\n{SovereignHUD.GREEN}[VICTORY]: Tactical objective secured.{SovereignHUD.RESET}")
-                print(f" FORCE   : {SovereignHUD.YELLOW}{result['force_delta']:.1f}%{SovereignHUD.RESET} (Mitigated)")
-                print(f" PROGRESS: {SovereignHUD.GREEN}+{result['dom_delta']:.1f}%{SovereignHUD.RESET}")
-
-                gain = result['dom_delta']
-                current = self.state.nodal_progress.get(target_node, 0.0)
-
-                # Cap at 24%
-                new_prog = min(24.0, current + gain)
-                self.state.nodal_progress[target_node] = new_prog
-
-                # Momentum
-                self.state.momentum_turns = 3
-
-                # Check for Node Completion
-                if new_prog >= 24.0:
-                    print(f"{SovereignHUD.MAGENTA}{SovereignHUD.BOLD}\n[NODE SECURED]: Campaign objective attained at {target_node}.{SovereignHUD.RESET}")
-                    self.state.active_node = None
-
-                # Check for Global Conquest
-                ready_nodes = [v for k, v in self.state.nodal_progress.items() if v >= 24.0]
-                total_dom = sum(self.state.nodal_progress.values())
-
-                if len(ready_nodes) >= 3 and total_dom > 80.0:
-                    print(f"\n{SovereignHUD.MAGENTA}{SovereignHUD.BOLD}[WORLD DOMINATION ATTAINED]{SovereignHUD.RESET}")
-                    self.state.current_planet_progress = 100.0
-            else:
-                print(f"\n{SovereignHUD.RED}[DEFEAT]: Forces repelled. Resistance Resurgence triggered.{SovereignHUD.RESET}")
-                print(f" FORCE   : {SovereignHUD.RED}{result['force_delta']:.1f}%{SovereignHUD.RESET}")
-                print(f" PROGRESS: {SovereignHUD.RED}{result['dom_delta']:.1f}%{SovereignHUD.RESET}")
-
-                if result['penalty_msg']:
-                    print(f" {SovereignHUD.RED}[PENALTY]: {result['penalty_msg']}{SovereignHUD.RESET}")
-
-                # Update Progress
-                current = self.state.nodal_progress.get(target_node, 0.0)
-                self.state.nodal_progress[target_node] = max(0.0, current + result['dom_delta'])
-
-                self.state.momentum_turns = -3
-
-            # Force Update
-            self.state.force = max(0.0, min(100.0, self.state.force + result['force_delta']))
-
-            # Check for Total Depletion
-            if self.state.force <= 0:
-                print(f"\n{SovereignHUD.RED}[TOTAL DEPLETION]: Forces broken. Campaign abandoned.{SovereignHUD.RESET}")
-                self.state.active_node = None
-
-            self.state.total_turns_played += 1
-            self.persistence.save_state(self.state.to_dict(), new_planet_name, "Tactical Breach")
-            input("\nPress Enter to return to the bridge...")
+            self._resolve_encounter(result, target_node)
             break
 
+    def _resolve_encounter(self, result: dict[str, Any], target_node: str) -> None:
+        """Updates state and UI based on the encounter outcome."""
+        SovereignHUD.divider("DIE CAST RESULTS")
+        print(f" {SovereignHUD.BOLD}CHANCE  :{SovereignHUD.RESET} {SovereignHUD.CYAN}{result['chance']*100:.1f}%{SovereignHUD.RESET}")
+        print(f" {SovereignHUD.BOLD}ROLL    :{SovereignHUD.RESET} {SovereignHUD.YELLOW}{result['roll']*100:.1f}%{SovereignHUD.RESET}")
 
+        if result['success']:
+            print(f"\n{SovereignHUD.GREEN}[VICTORY]: Tactical objective secured.{SovereignHUD.RESET}")
+            print(f" FORCE   : {SovereignHUD.YELLOW}{result['force_delta']:.1f}%{SovereignHUD.RESET} (Mitigated)")
+            print(f" PROGRESS: {SovereignHUD.GREEN}+{result['dom_delta']:.1f}%{SovereignHUD.RESET}")
 
-        # Increment turn counter
+            gain = result['dom_delta']
+            current = self.state.nodal_progress.get(target_node, 0.0)
+            new_prog = min(24.0, current + gain)
+            self.state.nodal_progress[target_node] = new_prog
+            self.state.momentum_turns = 3
 
+            if new_prog >= 24.0:
+                print(f"{SovereignHUD.MAGENTA}{SovereignHUD.BOLD}\n[NODE SECURED]: Campaign objective attained at {target_node}.{SovereignHUD.RESET}")
+                self.state.active_node = None
 
-    def show_genetic_manifest(self, effective: dict) -> None:
+            ready_nodes = [v for k, v in self.state.nodal_progress.items() if v >= 24.0]
+            if len(ready_nodes) >= 3 and sum(self.state.nodal_progress.values()) > 80.0:
+                print(f"\n{SovereignHUD.MAGENTA}{SovereignHUD.BOLD}[WORLD DOMINATION ATTAINED]{SovereignHUD.RESET}")
+                self.state.current_planet_progress = 100.0
+        else:
+            print(f"\n{SovereignHUD.RED}[DEFEAT]: Forces repelled. Resistance Resurgence triggered.{SovereignHUD.RESET}")
+            print(f" FORCE   : {SovereignHUD.RED}{result['force_delta']:.1f}%{SovereignHUD.RESET}")
+            print(f" PROGRESS: {SovereignHUD.RED}{result['dom_delta']:.1f}%{SovereignHUD.RESET}")
+            if result['penalty_msg']:
+                print(f" {SovereignHUD.RED}[PENALTY]: {result['penalty_msg']}{SovereignHUD.RESET}")
+
+            current = self.state.nodal_progress.get(target_node, 0.0)
+            self.state.nodal_progress[target_node] = max(0.0, current + result['dom_delta'])
+            self.state.momentum_turns = -3
+
+        self.state.force = max(0.0, min(100.0, self.state.force + result['force_delta']))
+        if self.state.force <= 0:
+            print(f"\n{SovereignHUD.RED}[TOTAL DEPLETION]: Forces broken. Campaign abandoned.{SovereignHUD.RESET}")
+            self.state.active_node = None
+
+        self.state.total_turns_played += 1
+        self.persistence.save_state(self.state.to_dict(), self.state.current_planet_name, "Tactical Breach")
+        input("\nPress Enter to return to the bridge...")
+
+    def play_turn(self) -> None:
+        """Executes the strategic War Room loop or a tactical nodal campaign."""
+        turn_id = self.state.total_turns_played
+        planet_name = self.state.current_planet_name
+
+        target_node = self.state.active_node
+        if not target_node:
+            target_node = self._strategic_phase()
+            if not target_node: return
+
+        effective = calculate_effective_stats(self.state.inventory, self.state.items)
+        campaign = self.state.active_campaigns.get(planet_name)
+
+        scenario = self.gm.generate_scenario(
+            stats=effective,
+            seed=self.state.seed,
+            turn_id=turn_id,
+            player_name=self.state.player_name,
+            campaign_data=campaign,
+            node_type=target_node
+        )
+
+        self._apply_passive_ticker(scenario.get('affinity_score', 0.1))
+
+        new_planet_name = scenario['planet_name']
+        self.state.current_planet_name = new_planet_name
+        self.state.active_campaigns[new_planet_name] = scenario['campaign_state']
+
+        self._tactical_phase(target_node, scenario, effective)
+
+    def show_genetic_manifest(self, effective: dict[str, float]) -> None:
         """Dedicated screen for synergy matrix and genetic data."""
         os.system('cls' if os.name == 'nt' else 'clear')
         SovereignHUD.divider("GENETIC MANIFEST")
         SovereignHUD.box_top("SYNERGY MATRIX (INFINITE SPIRAL)")
-        sorted_dna = sorted(self.state.inventory.items(), key=lambda x: effective[x[0]], reverse=True)
+        sorted_dna = sorted(self.state.inventory.items(), key=lambda x: effective.get(x[0], 0.0), reverse=True)
         for cid, chromosome in sorted_dna:
             eff = effective.get(cid, 0.0)
             base = float(chromosome.level)
@@ -554,11 +487,11 @@ class OdinAdventure:
         input(f"\n{SovereignHUD.CYAN}Press Enter to leave this world's memory...{SovereignHUD.RESET}")
 
 def main() -> None:
-    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-    if project_root not in sys.path:
-        sys.path.append(project_root)
-        
-    # Graceful Disconnect Check (Gungnir Calculus)
+    """CLI entry point for the Odin Protocol Game Loop."""
+    project_root = Path(__file__).resolve().parents[3]
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+
     try:
         from src.cstar.core.client import ping_daemon
         ping_daemon(timeout=1.0)
@@ -569,7 +502,6 @@ def main() -> None:
 
     game = OdinAdventure(project_root)
 
-    # Startup Sequence
     os.system('cls' if os.name == 'nt' else 'clear')
     SovereignHUD.divider("AWAKENING ODIN")
     print(f"\n{SovereignHUD.BOLD}{SovereignHUD.CYAN}Hi. Would you like to play a game?{SovereignHUD.RESET}")

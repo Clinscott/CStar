@@ -17,7 +17,7 @@ class SovereignVector:
         self.thesaurus = self._load_thesaurus(thesaurus_path) if thesaurus_path else {}
         self.corrections = self._load_json(corrections_path) if corrections_path else {"phrase_mappings": {}, "synonym_updates": {}}
         self.stopwords = self._load_stopwords(stopwords_path)
-        
+
         # SovereignFish: Boot Log
         SovereignHUD.box_top("ENGINE INITIALIZED")
         SovereignHUD.box_row("STATUS", "ONLINE", SovereignHUD.GREEN)
@@ -32,23 +32,23 @@ class SovereignVector:
     def _load_json(self, path):
         if not path or not os.path.exists(path): return {}
         try:
-            with open(path, 'r', encoding='utf-8') as f:
+            with open(path, encoding='utf-8') as f:
                 return json.load(f)
         except:
             return {}
 
     def _load_stopwords(self, path):
         defaults = {
-            'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 
-            'is', 'are', 'was', 'were', 'be', 'been', 'it', 'this', 'that', 'these', 'those', 
+            'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by',
+            'is', 'are', 'was', 'were', 'be', 'been', 'it', 'this', 'that', 'these', 'those',
             'i', 'you', 'he', 'she', 'we', 'they', 'me', 'him', 'her', 'us', 'them',
             'what', 'which', 'who', 'whom', 'whose', 'where', 'when', 'why', 'how',
             'some', 'any', 'no', 'not', 'do', 'does', 'did', 'done', 'will', 'would', 'shall', 'should',
-            'can', 'could', 'may', 'might', 'must', 'have', 'has', 'had', 'go', 'get', 'make', 'do'
+            'can', 'could', 'may', 'might', 'must', 'have', 'has', 'had', 'go', 'get', 'make'
         }
         if not path or not os.path.exists(path): return defaults
         try:
-            with open(path, 'r', encoding='utf-8') as f:
+            with open(path, encoding='utf-8') as f:
                 loaded = set(json.load(f))
                 return loaded if loaded else defaults
         except:
@@ -57,9 +57,9 @@ class SovereignVector:
     def _load_thesaurus(self, path):
         if not path or not os.path.exists(path): return {}
         try:
-            with open(path, 'r', encoding='utf-8') as f:
+            with open(path, encoding='utf-8') as f:
                 content = f.read()
-            
+
             mapping = {}
             # Match word: syn1, syn2:weight, syn3
             items = re.findall(r'- (?:\*\*)?(\w+)(?:\*\*)?: ([\w,: \.]+)', content)
@@ -76,7 +76,7 @@ class SovereignVector:
                     else:
                         syn_dict[s] = 1.0
                 mapping[word.lower()] = syn_dict
-            
+
             # Apply corrections to thesaurus
             if hasattr(self, 'corrections'):
                 for word, syns in self.corrections.get("synonym_updates", {}).items():
@@ -84,7 +84,7 @@ class SovereignVector:
                     for s in syns:
                         word_map[s] = 1.0
                     mapping[word] = word_map
-            
+
             return mapping
         except Exception:
             return {}
@@ -98,14 +98,13 @@ class SovereignVector:
     def expand_query(self, query):
         tokens = self.tokenize(query)
         # Use a dict for weights: token -> max_weight
-        weights = {t: 1.0 for t in tokens}
-        
+        weights = dict.fromkeys(tokens, 1.0)
+
         # Stemming (SovereignFish improvement)
         for t in list(weights.keys()):
             if len(t) > 4:
                 if t.endswith('ing'): weights[t[:-3]] = 0.8
-                elif t.endswith('ed'): weights[t[:-2]] = 0.8
-                elif t.endswith('es'): weights[t[:-2]] = 0.8
+                elif t.endswith('ed') or t.endswith('es'): weights[t[:-2]] = 0.8
                 elif t.endswith('s') and not t.endswith('ss'): weights[t[:-1]] = 0.8
 
         # Thesaurus Expansion
@@ -113,7 +112,7 @@ class SovereignVector:
             if token in self.thesaurus:
                 for syn, weight in self.thesaurus[token].items():
                     weights[syn] = max(weights.get(syn, 0), weight)
-        
+
         return weights
 
     def add_skill(self, trigger, text):
@@ -123,7 +122,7 @@ class SovereignVector:
     def build_index(self):
         num_docs = len(self.skills)
         if num_docs == 0: return
-        doc_counts = {word: 0 for word in self.vocab}
+        doc_counts = dict.fromkeys(self.vocab, 0)
         for text in self.skills.values():
             words = set(self.tokenize(text))
             for word in words:
@@ -141,10 +140,10 @@ class SovereignVector:
     def _vectorize(self, token_weights):
         # token_weights is a dict of {token: weight}
         counts = {}
-        for t, weight in token_weights.items(): 
-            if t in self.vocab: 
+        for t, weight in token_weights.items():
+            if t in self.vocab:
                 counts[t] = counts.get(t, 0) + weight
-        
+
         vector = []
         total_weight = sum(token_weights.values()) or 1
         for word in sorted(self.vocab):
@@ -170,7 +169,7 @@ class SovereignVector:
         # 2. Vector search
         weighted_tokens = self.expand_query(query)
         q_vec = self._vectorize(weighted_tokens)
-        
+
         # 3. Direct Trigger Boost
         trigger_boosts = {}
         tokens = self.tokenize(query)
@@ -185,7 +184,7 @@ class SovereignVector:
             # Apply boost
             if trigger in trigger_boosts:
                 score = max(score, trigger_boosts[trigger])
-            
+
             is_global = trigger.startswith("GLOBAL:")
             results.append({"trigger": trigger, "score": score, "is_global": is_global})
         return sorted(results, key=lambda x: x['score'], reverse=True)
@@ -205,12 +204,12 @@ class SovereignVector:
                 trigger = f"{prefix}{skill_folder}" # Defined early for mapping
                 skill_md = os.path.join(folder_path, "SKILL.md")
                 if os.path.exists(skill_md):
-                    with open(skill_md, 'r', encoding='utf-8') as f:
+                    with open(skill_md, encoding='utf-8') as f:
                         lines = f.readlines()
-                    
+
                     # Extract High-Value Signal ONLY
                     signal_tokens = []
-                    
+
                     # 1. Parse YAML Frontmatter (naive)
                     in_frontmatter = False
                     for line in lines:
@@ -220,7 +219,7 @@ class SovereignVector:
                         if in_frontmatter:
                             if line.startswith("name:"): signal_tokens.append(line.split(":", 1)[1].strip())
                             if line.startswith("description:"): signal_tokens.append(line.split(":", 1)[1].strip())
-                        
+
                         # 2. Activation Words (Priority - Direct Mapping)
                         if "Activation Words:" in line:
                             words = line.split(":", 1)[1].strip().replace(',', ' ')
@@ -229,12 +228,12 @@ class SovereignVector:
                                 if clean_w not in self.stopwords:
                                     if clean_w not in self.trigger_map: self.trigger_map[clean_w] = []
                                     self.trigger_map[clean_w].append(trigger)
-                            
-                            signal_tokens.append(words) 
-                    
+
+                            signal_tokens.append(words)
+
                     # 3. Add folder name as explicit token
                     signal_tokens.append(skill_folder)
-                    
+
                     skill_text = " ".join(signal_tokens)
                     self.add_skill(trigger, skill_text)
 
@@ -246,24 +245,24 @@ class SovereignVector:
         # 1. Expand query for text
         weighted_tokens = self.expand_query(text)
         text_vec = self._vectorize(weighted_tokens)
-        
+
         # 2. Re-index temporarily on dialogue
         # We need a mini-engine for this or just simulate similarity
         # Let's use the current engine's vocab but check against dialogue data
         # If the text has tokens that appear frequently in the persona's DB, it's a match.
-        
+
         # Actually, if we have SovereignHUD.DIALOGUE loaded, we can compare directly.
         # Simple heuristic for now: token overlap with dialogue registry
         tokens = set(self.tokenize(text))
         persona_tokens = set()
-        
+
         # Defensive check for SovereignHUD.DIALOGUE
         if SovereignHUD.DIALOGUE:
             for phrases in SovereignHUD.DIALOGUE.intents.values():
                 for p in phrases:
                     persona_tokens.update(self.tokenize(p))
-        
+
         if not persona_tokens or not tokens: return 0.0
-        
+
         match = len(tokens.intersection(persona_tokens)) / len(tokens)
         return match

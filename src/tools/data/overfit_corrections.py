@@ -20,25 +20,25 @@ def overfit():
     engine.build_index()
 
     # Load test cases
-    with open('fishtest_data.json', 'r', encoding='utf-8') as f:
+    with open('fishtest_data.json', encoding='utf-8') as f:
         cases = json.load(f).get('test_cases', [])
 
     # Load existing corrections
-    with open('.agent/corrections.json', 'r', encoding='utf-8') as f:
+    with open('.agent/corrections.json', encoding='utf-8') as f:
         coords = json.load(f)
-    
+
     phrase_mappings = coords.get('phrase_mappings', {})
 
     added = 0
     for case in cases:
         query = case['query'].lower().strip()
         expected = case['expected']
-        
+
         # Test current engine
         results = engine.search(query)
         top = results[0] if results else {}
         actual = top.get('trigger')
-        
+
         if actual != expected:
             phrase_mappings[query] = expected
             added += 1

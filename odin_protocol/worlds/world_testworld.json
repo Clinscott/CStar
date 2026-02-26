@@ -1,0 +1,7 @@
+{
+    "world_name": "TestWorld",
+    "outcome": "Victory",
+    "final_state": {
+        "domination_percent": 50.0
+    }
+}

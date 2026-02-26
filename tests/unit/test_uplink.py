@@ -1,10 +1,10 @@
-import asyncio
-import pytest
-from unittest.mock import AsyncMock, patch, MagicMock, call
 from types import SimpleNamespace
+from unittest.mock import AsyncMock, call, patch
 
-from src.cstar.core.uplink import AntigravityUplink, MAX_TOKENS
+import pytest
+
 import src.cstar.core.uplink as uplink_module
+from src.cstar.core.uplink import AntigravityUplink
 
 
 def make_api_error(message, code):

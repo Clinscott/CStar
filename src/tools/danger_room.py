@@ -13,10 +13,9 @@ import argparse
 import asyncio
 import json
 import logging
-import os
 import sys
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Ensure UTF-8 output for box-drawing characters
 if hasattr(sys.stdout, "reconfigure"):
@@ -45,7 +44,7 @@ class DangerRoom:
         self.target_limit = target_limit
         self.max_retries = max_retries
         self.token_limit = token_limit_per_session # Heuristic for now
-        
+
         # Enforce ALFRED persona
         SovereignHUD.PERSONA = "ALFRED"
 
@@ -54,7 +53,7 @@ class DangerRoom:
         if not self.ledger_path.exists():
             SovereignHUD.persona_log("WARN", "No tech debt ledger found. Run `archive_consolidator.py` first.")
             return []
-            
+
         try:
             data = json.loads(self.ledger_path.read_text(encoding="utf-8"))
             targets = data.get("top_targets", [])
@@ -64,14 +63,14 @@ class DangerRoom:
             SovereignHUD.persona_log("ERROR", "Tech debt ledger is corrupted.")
             return []
 
-    async def _scaffold_test(self, file_path_str: str) -> Optional[str]:
+    async def _scaffold_test(self, file_path_str: str) -> str | None:
         """Queries the bridge to generate a test suite."""
         full_path = project_root / file_path_str
         if not full_path.exists():
             return None
-            
+
         code_content = full_path.read_text(encoding="utf-8")
-        
+
         prompt = f"""
 [CRITICAL INSTRUCTION]
 You are ALFRED, the stringent testing framework for the Corvus Star Manor.
@@ -95,9 +94,9 @@ Generate the robust test suite now.
             "persona": "ALFRED",
             "target_interface": file_path_str
         }
-        
+
         SovereignHUD.persona_log("INFO", f"Bridging to Forge for {Path(file_path_str).name}...")
-        
+
         for attempt in range(self.max_retries):
             try:
                 response = await query_bridge(prompt, context)
@@ -105,7 +104,7 @@ Generate the robust test suite now.
                     # The bridge can sometimes wrap the code in JSON even for ALFRED if we didn't ask it to.
                     # Or it might return raw text based on our prompt.
                     data = response.get("data", {})
-                    
+
                     # Handle varying bridge return structures
                     if isinstance(data, dict):
                          if "code" in data:
@@ -117,14 +116,14 @@ Generate the robust test suite now.
                              return json.dumps(data)
                     else:
                         code = str(data)
-                        
+
                     # Standard sanitize block
                     return self._clean_markdown(code)
-                    
+
             except Exception as e:
                 SovereignHUD.persona_log("WARN", f"Forge attempt {attempt+1} failed: {e}")
                 await asyncio.sleep(2)
-                
+
         SovereignHUD.persona_log("ERROR", "Max retries exceeded for scaffolding.")
         return None
 
@@ -145,15 +144,15 @@ Generate the robust test suite now.
         SovereignHUD.box_row("HUMAN IN THE LOOP", "REVIEW REQUIRED", SovereignHUD.YELLOW)
         SovereignHUD.box_row("TARGET", target_file, SovereignHUD.CYAN)
         SovereignHUD.box_separator()
-        
+
         lines = test_code.splitlines()
         preview_lines = lines[:15]
         for line in preview_lines:
              SovereignHUD.box_row("  ", line, SovereignHUD.GREEN, dim_label=True)
-             
+
         if len(lines) > 15:
              SovereignHUD.box_row("  ", f"... (+ {len(lines)-15} more lines)", SovereignHUD.GREEN, dim_label=True)
-             
+
         SovereignHUD.box_separator()
         try:
              # Basic prompt. In a real TUI, this would use Textual.
@@ -165,14 +164,14 @@ Generate the robust test suite now.
     def _commit_test(self, target_file: str, test_code: str) -> bool:
         """Writes the approved test to the tests directory."""
         target_path = Path(target_file)
-        # Attempt to map it to a logical test position. 
+        # Attempt to map it to a logical test position.
         # By default, empire_tests serves as our integration/generated holding pen.
         test_dir = project_root / "tests" / "empire_tests"
         test_dir.mkdir(parents=True, exist_ok=True)
-        
+
         test_name = f"test_{target_path.name}"
         test_path = test_dir / test_name
-        
+
         try:
              test_path.write_text(test_code, encoding="utf-8")
              SovereignHUD.persona_log("SUCCESS", f"Committed: {test_path.relative_to(project_root)}")
@@ -185,34 +184,34 @@ Generate the robust test suite now.
         """Main execution sequence."""
         SovereignHUD.box_top("[A] THE DANGER ROOM")
         SovereignHUD.box_row("DIRECTIVE", "TEST SCAFFOLDING & VERIFICATION", SovereignHUD.CYAN)
-        
+
         targets = self._read_ledger()
         if not targets:
             SovereignHUD.box_row("STATUS", "No viable targets identified in ledger.", SovereignHUD.GREEN)
             SovereignHUD.box_bottom()
             return
-            
+
         selected_targets = targets[:self.target_limit]
         SovereignHUD.box_row("ISOLATED TARGETS", str(len(selected_targets)), SovereignHUD.YELLOW)
-        
+
         for t in selected_targets:
             file_str = t['file']
             SovereignHUD.box_separator()
             SovereignHUD.box_row("ENGAGING", Path(file_str).name, SovereignHUD.MAGENTA)
-            
+
             test_code = await self._scaffold_test(file_str)
-            
+
             if not test_code:
                 SovereignHUD.box_row("RESULT", "Scaffolding Failed.", SovereignHUD.RED)
                 continue
-                
+
             approved = self._human_review(file_str, test_code)
-            
+
             if approved:
                 self._commit_test(file_str, test_code)
             else:
                 SovereignHUD.persona_log("INFO", "Scaffolding rejected by user. Discarding trace.")
-                
+
         SovereignHUD.box_bottom()
 
 def main():

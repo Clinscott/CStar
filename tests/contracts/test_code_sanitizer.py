@@ -6,8 +6,6 @@ All tests are offline — zero network calls.
 import sys
 from pathlib import Path
 
-import pytest
-
 project_root = Path(__file__).parent.parent.parent.absolute()
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
@@ -20,7 +18,6 @@ from src.sentinel.code_sanitizer import (
     validate_imports,
     validate_syntax,
 )
-
 
 # ==============================================================================
 # validate_syntax

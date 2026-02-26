@@ -1,5 +1,5 @@
-import pytest
 from src.core.sovereign_hud import SovereignHUD
+
 
 def test_hud_logging(capsys):
     SovereignHUD.PERSONA = "ALFRED"

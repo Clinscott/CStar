@@ -1,6 +1,6 @@
+import argparse
 import json
 import os
-import argparse
 import uuid
 from datetime import datetime
 
@@ -19,7 +19,7 @@ def manage_ledger(ledger_path, target, decision, score, llr, observations):
             "flight_history": []
         }
     else:
-        with open(ledger_path, 'r') as f:
+        with open(ledger_path) as f:
             data = json.load(f)
 
     # Append new entry
@@ -42,7 +42,7 @@ def manage_ledger(ledger_path, target, decision, score, llr, observations):
     # Write back to JSON
     with open(ledger_path, 'w') as f:
         json.dump(data, f, indent=4)
-        
+
     print(f"Ledger updated. Current GPHS: {data['global_project_health_score']:.2f}")
 
 if __name__ == "__main__":

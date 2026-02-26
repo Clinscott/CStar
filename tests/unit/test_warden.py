@@ -1,14 +1,12 @@
-import pytest
 import json
-import os
-import shutil
 import uuid
-import asyncio
-from pathlib import Path
-from unittest.mock import MagicMock, patch, AsyncMock
-from src.core.engine.atomic_gpt import AnomalyWarden, WardenCircuitBreaker
-from src.cstar.core.forge import Forge
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+
+from src.core.engine.atomic_gpt import AnomalyWarden
 from src.core.payload import IntentPayload
+from src.cstar.core.forge import Forge
 
 # ==============================================================================
 # Suite 2: The Heartbeat Monitor
@@ -20,13 +18,13 @@ class TestWardenDrift:
     def test_burn_in_and_zscore_drift(self, tmp_path):
         model_path = tmp_path / "warden.pkl"
         ledger_path = tmp_path / "ledger.json"
-        
+
         warden = AnomalyWarden(model_path=model_path, ledger_path=ledger_path)
         healthy = [10.0, 100.0, 1.0, 0.0]
         # Clear burn-in
         for _ in range(warden.burn_in_cycles + 1):
             warden.train_step(healthy, 0.0)
-            
+
         anomalous = [100.0, 100.0, 1.0, 0.0]
         prob = warden.forward(anomalous)
         assert prob >= 0.0
@@ -46,7 +44,7 @@ class TestHallucinationCircuitBreaker:
         original_content = "def old(): pass"
         target_file = tmp_path / "target.py"
         target_file.write_text(original_content)
-        
+
         # Absolute isolation of external dependencies only
         with patch("src.cstar.core.forge.AntigravityUplink") as mock_uplink_class, \
              patch("src.cstar.core.forge.AnomalyWarden") as mock_warden_class, \
@@ -63,7 +61,7 @@ class TestHallucinationCircuitBreaker:
             mock_warden_instance = mock_warden_class.return_value
             mock_warden_instance.burn_in_cycles = 0
             mock_warden_instance.forward.return_value = 0.95 # Trigger Breach
-            
+
             # Setup Forge
             forge = Forge()
             forge.project_root = tmp_path
@@ -76,10 +74,10 @@ class TestHallucinationCircuitBreaker:
                 # Create the artifact that ALFRED looks for
                 gungnir_path = tmp_path / f"gungnir_{session_id_str}.json"
                 gungnir_path.write_text(json.dumps([0,0,0]))
-                
+
                 # Ultimate isolation: bypass ODIN logic to reach the verification phase
                 forge._generate_with_calculus = AsyncMock(return_value={"status": "success", "data": {"code": "def new(): pass"}})
-                
+
                 # Mock Uplink Instance for ALFRED stress test
                 mock_uplink_instance = mock_uplink_class.return_value
                 mock_uplink_instance.send_payload = AsyncMock(return_value={"status": "success", "data": {
@@ -94,7 +92,7 @@ class TestHallucinationCircuitBreaker:
                     intent_normalized="update",
                     target_workflow="forge"
                 )
-                
+
                 results = []
                 # Execute generator
                 async for res in forge.execute(payload, str(target_file)):

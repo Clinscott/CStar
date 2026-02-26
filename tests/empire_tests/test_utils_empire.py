@@ -1,6 +1,7 @@
-import pytest
 import json
+
 from src.core.utils import load_config, sanitize_query
+
 
 def test_load_config_missing(tmp_path):
     # Should return empty dict if .agent/config.json missing

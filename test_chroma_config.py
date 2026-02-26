@@ -1,4 +1,5 @@
 from chromadb.config import Settings
+
 try:
     s = Settings()
     print("Settings initialized successfully")

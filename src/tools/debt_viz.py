@@ -9,7 +9,7 @@ import argparse
 import os
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 # Ensure we can import shared UI
 sys.path.append(str(Path(__file__).parent.parent))
@@ -49,9 +49,9 @@ class DebtAnalyzer:
 
     def __init__(self, root_path: str = ".") -> None:
         self.root_path = Path(root_path).absolute()
-        self.files: List[Path] = []
-        self.blocks: List[Dict[str, Any]] = []
-        self.distribution: Dict[str, int] = {"A": 0, "B": 0, "C": 0, "D": 0, "E": 0, "F": 0}
+        self.files: list[Path] = []
+        self.blocks: list[dict[str, Any]] = []
+        self.distribution: dict[str, int] = {"A": 0, "B": 0, "C": 0, "D": 0, "E": 0, "F": 0}
         self.avg_cc: float = 0.0
 
     def _get_python_files(self) -> None:
@@ -72,7 +72,7 @@ class DebtAnalyzer:
         total_cc = 0
         count = 0
         cwd = Path.cwd()
-        
+
         for f in self.files:
             try:
                 with f.open("r", encoding="utf-8") as file_content:
@@ -83,7 +83,7 @@ class DebtAnalyzer:
                         self.distribution[rank] += 1
                         total_cc += b.complexity
                         count += 1
-                        
+
                         try:
                             rel_file = str(f.relative_to(cwd))
                         except ValueError:
@@ -100,13 +100,13 @@ class DebtAnalyzer:
             except SyntaxError:
                 if log_errors:
                     SovereignHUD.log("WARN", "Parse Failure", f.name)
-            except (IOError, PermissionError) as e:
+            except (OSError, PermissionError) as e:
                 if log_errors:
-                    SovereignHUD.log("FAIL", "IO Error", f"{f.name} ({str(e)})")
+                    SovereignHUD.log("FAIL", "IO Error", f"{f.name} ({e!s})")
             except Exception as e:
                 if log_errors:
-                    SovereignHUD.log("WARN", "Complexity Error", f"{f.name} ({str(e)})")
-                
+                    SovereignHUD.log("WARN", "Complexity Error", f"{f.name} ({e!s})")
+
         self.avg_cc = total_cc / count if count > 0 else 0
         return len(self.blocks) > 0
 
@@ -124,29 +124,29 @@ class DebtAnalyzer:
     def render_dashboard(self) -> None:
         """Renders the SovereignHUD-styled complexity report."""
         os.environ["HUD_WIDTH"] = str(self.HUD_WIDTH)
-        
+
         # Sort blocks by CC descending
         top_offenders = sorted(self.blocks, key=lambda x: x['cc'], reverse=True)[:10]
-        
+
         avg_rank = cc_rank(int(self.avg_cc)) if self.avg_cc > 0 else "A"
         avg_color = SovereignHUD.GREEN if avg_rank == 'A' else (SovereignHUD.YELLOW if avg_rank in ['B', 'C'] else SovereignHUD.RED)
-        
+
         SovereignHUD.box_top("COMBAT ANALYSIS [RADON]")
         SovereignHUD.box_row("TARGET", str(self.root_path))
         SovereignHUD.box_row("SCANNED", f"{len(self.files)} Files")
         SovereignHUD.box_row("AVG COMPLEXITY", f"{self.avg_cc:.1f} ({avg_rank})", color=avg_color)
         SovereignHUD.box_separator()
-        
+
         SovereignHUD.box_row("[WAR ZONES]", "TOP OFFENDERS", dim_label=True)
         for i, b in enumerate(top_offenders, 1):
             color = SovereignHUD.GREEN if b['rank'] == 'A' else (SovereignHUD.YELLOW if b['rank'] in ['B', 'C'] else SovereignHUD.RED)
             rank_str = f"[{b['rank']}]"
             label = f"{i}. {rank_str} {b['cc']:<3} {b['file']}"
             SovereignHUD.box_row(label[:24], f"{b['name']} ({b['type']})", color=color)
-        
+
         SovereignHUD.box_separator()
         SovereignHUD.box_row("[DISTRIBUTION]", "CODEBASE SPREAD", dim_label=True)
-        
+
         total_items = sum(self.distribution.values())
         if total_items > 0:
             for rank in ["A", "B", "C", "D", "E", "F"]:
@@ -155,7 +155,7 @@ class DebtAnalyzer:
                 bar_len = int((perc / 100) * 30)
                 bar = "█" * bar_len + "░" * (30 - bar_len)
                 SovereignHUD.box_row(f"Rank {rank}", f"{bar} {perc:>3.0f}% ({count})")
-                
+
         SovereignHUD.box_bottom()
 
 
@@ -165,7 +165,7 @@ def main() -> None:
     parser.add_argument("path", nargs="?", default=".", help="Path to scan (default: .)")
     parser.add_argument("--json", action="store_true", help="Output in JSON format")
     args = parser.parse_args()
-    
+
     analyzer = DebtAnalyzer(args.path)
     if not analyzer.analyze():
         if args.json:

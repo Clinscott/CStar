@@ -6,7 +6,7 @@ if not os.path.exists(path):
     print(f"File not found: {path}")
     exit(0)
 
-with open(path, 'r', encoding='utf-8') as f:
+with open(path, encoding='utf-8') as f:
     try:
         data = json.load(f)
     except json.JSONDecodeError:

@@ -1,14 +1,15 @@
-import pytest
-import os
-import sys
 import json
+import sys
 from pathlib import Path
+
+import pytest
 
 # Ensure project root is in path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(PROJECT_ROOT))
 
 from src.sentinel.muninn import FreyaWarden
+
 
 class TestFreyaWarden:
     @pytest.fixture
@@ -31,7 +32,7 @@ class TestFreyaWarden:
     def test_scan_finds_hover_breach(self, tmp_path, warden):
         tsx_path = tmp_path / "Button.tsx"
         tsx_path.write_text('<button className="bg-blue-500">Click me</button>', encoding='utf-8')
-        
+
         results = warden.scan()
         assert len(results) == 1
         assert "Add hover state" in results[0]['action']
@@ -39,7 +40,7 @@ class TestFreyaWarden:
     def test_scan_finds_color_breach(self, tmp_path, warden, color_theory):
         tsx_path = tmp_path / "Theme.tsx"
         tsx_path.write_text('<div style={{ color: "#abcdef" }}>Text</div>', encoding='utf-8')
-        
+
         results = warden.scan()
         # Filter for BEAUTY_BREACH with color message
         color_breaches = [r for r in results if "Non-standard color" in r['action']]
@@ -59,7 +60,7 @@ class TestFreyaWarden:
         """
         tsx_path = tmp_path / "Ugly.tsx"
         tsx_path.write_text(bad_jsx, encoding='utf-8')
-        
+
         results = warden.scan()
         assert any(r['type'] == "FREYA_BIRKHOFF_BREACH" for r in results)
 
@@ -72,7 +73,7 @@ class TestFreyaWarden:
         """
         tsx_path = tmp_path / "Dissonant.tsx"
         tsx_path.write_text(bad_jsx, encoding='utf-8')
-        
+
         results = warden.scan()
         assert any(r['type'] == "FREYA_GOLDEN_RATIO_BREACH" for r in results)
 
@@ -87,7 +88,7 @@ class TestFreyaWarden:
         """
         tsx_path = tmp_path / "Beautiful.tsx"
         tsx_path.write_text(good_jsx, encoding='utf-8')
-        
+
         results = warden.scan()
         # Should NOT find Birkhoff or Golden Ratio breaches
         assert not any(r['type'] in ("FREYA_BIRKHOFF_BREACH", "FREYA_GOLDEN_RATIO_BREACH") for r in results)

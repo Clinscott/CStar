@@ -25,11 +25,11 @@ class TestUiFull(unittest.TestCase):
         bar = SovereignHUD.progress_bar(0.5, width=10)
         # We handle output capture manually since it returns string, doesn't print
         print(bar)
-        
+
         # THEN Output contains "██" [SovereignHUD]
         output = self.captured_output.getvalue()
         self.assertIn("█", output)
-        
+
         # THEN Output contains "░░" [SovereignHUD] (Approx match for block char)
         self.assertIn("░", output)
 
@@ -41,7 +41,7 @@ class TestUiFull(unittest.TestCase):
         # WHEN Sparkline [1, 5, 1] is rendered
         spark = SovereignHUD.render_sparkline([1, 5, 1])
         print(spark)
-        
+
         # THEN Output contains " █ " [SovereignHUD]
         # 1 (low) -> ' ', 5 (high) -> '█', 1 (low) -> ' '
         # Expecting something like " █ " (depends on char map)

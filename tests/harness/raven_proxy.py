@@ -2,8 +2,9 @@ import json
 import os
 import time
 from pathlib import Path
+
 from google import genai
-from google.genai import types
+
 
 class RavenProxy:
     """
@@ -14,10 +15,10 @@ class RavenProxy:
         self.target_model = target_model
         self.mock_mode = mock_mode
         self.api_key = api_key or os.getenv("GOOGLE_API_KEY")
-        
+
         if not self.api_key and not self.mock_mode:
             raise ValueError("GOOGLE_API_KEY not found in environment and not in mock mode.")
-        
+
         self.real_client = genai.Client(api_key=self.api_key) if self.api_key else None
         self.logs_dir = Path("tests/harness/logs")
         self.logs_dir.mkdir(parents=True, exist_ok=True)
@@ -32,21 +33,21 @@ class RavenProxy:
         Intercepts the generate_content call.
         """
         requested_model = model or self.target_model
-        
+
         # Mapping for environment stability
         model_map = {
             "gemini-2.0-pro-exp-02-05": "gemini-1.5-flash",
             "gemini-1.5-pro": "gemini-1.5-flash"
         }
         effective_model = model_map.get(requested_model, requested_model)
-        
+
         # 1. Injection logic: Append Lessons from corrections.json
         augmented_contents = self._inject_lessons(contents)
-        
+
         # 2. Log the prompt
         timestamp = int(time.time())
         trace_file = self.logs_dir / f"trace_{timestamp}.json"
-        
+
         trace_data = {
             "timestamp": timestamp,
             "model": effective_model,
@@ -54,7 +55,7 @@ class RavenProxy:
             "augmented_contents": str(augmented_contents),
             "config": str(config) if config else None
         }
-        
+
         # 3. Call the API (Real or Mock)
         try:
             if self.mock_mode:
@@ -66,7 +67,7 @@ class RavenProxy:
                     config=config,
                     **kwargs
                 )
-            
+
             # Log the response
             trace_data["response"] = {
                 "text": response.text if hasattr(response, 'text') else str(response),
@@ -88,13 +89,13 @@ class RavenProxy:
             return contents
 
         try:
-            with open(self.corrections_path, "r", encoding="utf-8") as f:
+            with open(self.corrections_path, encoding="utf-8") as f:
                 data = json.load(f)
-            
+
             lessons = data.get("lessons", [])
             if not lessons:
                 return contents
-            
+
             lesson_block = "\n\n### RELEVANT LESSONS (DO NOT REPEAT PREVIOUS MISTAKES):\n"
             for lesson in lessons:
                 lesson_block += f"- {lesson}\n"
@@ -120,7 +121,7 @@ class RavenProxy:
                                 part.text += lesson_block
                                 break
                 return new_contents
-            
+
             return contents
         except Exception as e:
             print(f"Warning: Failed to inject lessons: {e}")
@@ -130,9 +131,9 @@ class RavenProxy:
         """Generates a synthetic response for offline testing."""
         from unittest.mock import MagicMock
         mock_resp = MagicMock()
-        
+
         prompt_str = str(contents).lower()
-        
+
         if "gauntlet" in prompt_str or "pytest" in prompt_str:
             # Mocking the Test Generator
             mock_resp.text = '```python\nimport pytest\ndef test_mock_reproduction():\n    assert True\n```'
@@ -142,9 +143,9 @@ class RavenProxy:
         else:
             # Generic response
             mock_resp.text = "[MOCK] Odin sees all. The path is clear."
-        
+
         from src.core.sovereign_hud import SovereignHUD
         SovereignHUD.persona_log("DEBUG", f"Mock Response Generated: {mock_resp.text[:50]}...")
-            
+
         mock_resp.candidates = []
         return mock_resp

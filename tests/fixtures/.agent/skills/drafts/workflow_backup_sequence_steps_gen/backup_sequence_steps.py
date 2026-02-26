@@ -6,8 +6,6 @@
 
 
 import argparse
-import json
-import sys
 
 
 def main():
@@ -15,7 +13,7 @@ def main():
     parser.add_argument("--input", required=True, help="Input file or directory")
     parser.add_argument("--dry-run", action="store_true", help="Preview without changes")
     args = parser.parse_args()
-    
+
     print(f"[STEP 1] Loading {args.input}...")
 
     print("[DONE] Workflow complete.")

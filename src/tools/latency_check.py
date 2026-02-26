@@ -9,7 +9,6 @@ import os
 import subprocess
 import sys
 import time
-from typing import List
 
 
 class LatencyProfiler:
@@ -33,15 +32,15 @@ class LatencyProfiler:
             Average startup latency in milliseconds.
         """
         cmd = [sys.executable, self.engine_path, "--json", "ping"]
-        latencies: List[float] = []
-        
+        latencies: list[float] = []
+
         for _ in range(self.iterations):
             try:
                 start = time.perf_counter()
                 subprocess.run(
-                    cmd, 
-                    capture_output=True, 
-                    cwd=self.project_root, 
+                    cmd,
+                    capture_output=True,
+                    cwd=self.project_root,
                     timeout=10,
                     check=False
                 )
@@ -50,10 +49,10 @@ class LatencyProfiler:
             except (subprocess.SubprocessError, subprocess.TimeoutExpired):
                 # Penalty for failed execution
                 latencies.append(10000.0)
-            
+
         if not latencies:
             return 10000.0
-            
+
         return sum(latencies) / len(latencies)
 
     def measure_search(self, query: str = "check logs") -> float:
@@ -64,15 +63,15 @@ class LatencyProfiler:
             Average search latency in milliseconds.
         """
         cmd = [sys.executable, self.engine_path, "--json", query]
-        latencies: List[float] = []
-        
+        latencies: list[float] = []
+
         for _ in range(self.iterations):
             try:
                 start = time.perf_counter()
                 subprocess.run(
-                    cmd, 
-                    capture_output=True, 
-                    cwd=self.project_root, 
+                    cmd,
+                    capture_output=True,
+                    cwd=self.project_root,
                     timeout=5,
                     check=False
                 )
@@ -80,7 +79,7 @@ class LatencyProfiler:
                 latencies.append((end - start) * 1000)
             except (subprocess.SubprocessError, subprocess.TimeoutExpired):
                 latencies.append(5000.0)
-                
+
         return sum(latencies) / len(latencies) if latencies else 5000.0
 
 
@@ -92,11 +91,11 @@ def main() -> None:
             iterations = int(sys.argv[1])
         except ValueError:
             pass
-            
+
     profiler = LatencyProfiler(iterations=iterations)
     avg_startup = profiler.measure_startup()
     avg_search = profiler.measure_search()
-    
+
     # [ALFRED] Return as CSV: Startup,Search
     print(f"{avg_startup:.2f},{avg_search:.2f}")
 

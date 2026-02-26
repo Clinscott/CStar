@@ -1,8 +1,10 @@
-import pytest
 from types import MappingProxyType
-from unittest.mock import MagicMock, patch
-from src.core.payload import IntentPayload
+from unittest.mock import patch
+
+import pytest
+
 from src.core.engine.vector import SovereignVector
+from src.core.payload import IntentPayload
 
 # ==============================================================================
 # Suite 1: Intent Rigidity
@@ -48,7 +50,7 @@ class TestSovereignAnchorPrecision:
         # Semantic search returns a decent score for a "Wrong" intent
         mock_db.search_intent.return_value = [
             {"trigger": "/trash", "score": 0.8},
-            {"trigger": "/hunt-demon", "score": 0.1} 
+            {"trigger": "/hunt-demon", "score": 0.1}
         ]
 
         # Initialize Vector Engine
@@ -60,7 +62,7 @@ class TestSovereignAnchorPrecision:
         # ASSERTIONS:
         # 1. /hunt-demon should be the winner
         assert results[0]["trigger"] == "/hunt-demon"
-        
+
         # 2. Score should be boosted past the Sovereign Anchor threshold (max(score, 1.30...))
         assert results[0]["score"] >= 1.30
         assert "Hybrid" in results[0]["note"]

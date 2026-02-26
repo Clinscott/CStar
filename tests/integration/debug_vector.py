@@ -1,7 +1,6 @@
 
 import os
 import sys
-from pathlib import Path
 
 # Add project root to path
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -9,15 +8,16 @@ sys.path.append(PROJECT_ROOT)
 
 from src.core.engine.vector import SovereignVector
 
+
 def debug():
     engine = SovereignVector()
     engine.load_core_skills()
-    
+
     # Check if skills_db exists to load global skills
     import json
     config_path = os.path.join(PROJECT_ROOT, ".agent", "config.json")
     try:
-        with open(config_path, 'r') as f:
+        with open(config_path) as f:
             config = json.load(f)
             root = config.get("system", {}).get("framework_root")
             if root and os.path.exists(os.path.join(root, "skills_db")):

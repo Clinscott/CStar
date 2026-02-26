@@ -1,7 +1,6 @@
 import io
 import os
 import sys
-from contextlib import redirect_stdout
 from unittest.mock import patch
 
 import pytest
@@ -11,8 +10,8 @@ SCRIPT_DIR = os.path.join(os.getcwd())
 sys.path.insert(0, SCRIPT_DIR)
 
 # Import the module to be tested
+
 from src.tools.debug import debug_engine
-from sv_engine import SovereignVector
 
 # Mock data - replace with actual paths if needed for a full integration test
 THESAURUS_PATH = 'thesaurus.qmd'
@@ -48,12 +47,12 @@ def mock_engine():
 def test_basic_query_processing(mock_engine, monkeypatch):
     captured_output = io.StringIO()
     monkeypatch.setattr('sys.stdout', captured_output)
-    
+
     query = "please initiate our project now"
     debug_engine.debug_query(query)
-    
+
     output = captured_output.getvalue()
-    
+
     assert "--- Thesaurus Check ---" in output
     assert "--- Debugging Query: 'please initiate our project now' ---" in output
     assert "Tokens: ['please', 'initiate', 'project', 'now']" in output

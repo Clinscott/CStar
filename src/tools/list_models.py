@@ -1,7 +1,7 @@
 import os
+
 from dotenv import load_dotenv
 from google import genai
-from google.genai import types
 
 # Load .env.local explicitly
 load_dotenv(".env.local")
@@ -13,14 +13,14 @@ def list_models():
         return
 
     print(f"Using API Key: {api_key[:5]}...")
-    
+
     try:
         client = genai.Client(api_key=api_key)
         print("Listing available models...")
         # Note: client.models.list() returns an iterator
         for m in client.models.list():
             print(f"- {m.name} (Display: {m.display_name})")
-            
+
     except Exception as e:
         print(f"Error listing models: {e}")
 

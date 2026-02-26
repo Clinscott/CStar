@@ -1,8 +1,9 @@
-import unittest
 import os
-import json
+import unittest
+
 from src.core.metrics import ProjectMetricsEngine
 from src.core.prompt_linter import PromptLinter
+
 
 class TestMetricsEngine(unittest.TestCase):
     def test_linter_parse(self):
@@ -10,12 +11,12 @@ class TestMetricsEngine(unittest.TestCase):
         # Mock a prompty file
         with open("test.prompty", "w") as f:
             f.write("Hello {{name}}, welcome to {{project}}.")
-        
+
         vars = linter.parse_prompty_vars("test.prompty")
         self.assertIn("name", vars)
         self.assertIn("project", vars)
         os.remove("test.prompty")
-        
+
     def test_metrics_compute(self):
         engine = ProjectMetricsEngine()
         gphs = engine.compute()

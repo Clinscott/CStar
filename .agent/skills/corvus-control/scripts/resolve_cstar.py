@@ -1,7 +1,7 @@
-import os
-import sys
 import subprocess
+import sys
 from pathlib import Path
+
 
 def resolve():
     args = sys.argv[1:]
@@ -11,7 +11,7 @@ def resolve():
 
     cmd = args[0]
     remaining = args[1:]
-    
+
     project_root = Path(__file__).resolve().parent.parent.parent.parent
     node_dispatcher = project_root / "bin" / "cstar.js"
     python_dispatcher = project_root / "src" / "core" / "cstar_dispatcher.py"
@@ -25,7 +25,7 @@ def resolve():
         # Check if it's a workflow in .agent/workflows
         workflow_dir = project_root / ".agent" / "workflows"
         workflow_match = list(workflow_dir.glob(f"{cmd}.*"))
-        
+
         if workflow_match:
             print(f"Resolving workflow {cmd} via Python Dispatcher...")
             subprocess.run([str(venv_python), str(python_dispatcher), cmd] + remaining)

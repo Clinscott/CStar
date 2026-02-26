@@ -1,3 +1,9 @@
+"""
+[ENGINE] Scenario Generator
+Lore: "The WorldForge Algorithm."
+Purpose: Procedurally generates deterministic planetary encounters and scenarios.
+"""
+
 import hashlib
 import math
 import random
@@ -5,13 +11,14 @@ from typing import Any
 
 
 class SovereignScenarioEngine:
-    """A procedural generator that uses the Agent's logic to create Kingdom Death scenarios.
+    """
+    A procedural generator that uses the Agent's logic to create Kingdom Death scenarios.
 
     This engine ensures that planetary encounters are deterministic based on the
     Federated Seed and implements the WorldForge (NMS-style) generation protocol.
     """
 
-    ENV_PAIRS = [
+    ENV_PAIRS: list[dict[str, Any]] = [
         {"name": "Gravity", "factor": "Physical_Hardness", "pairs": ["AESIR_MIGHT", "BERSERKER_RAGE"]},
         {"name": "Atmosphere", "factor": "Terrain_Complexity", "pairs": ["VALKYRIE_LUNGE", "SKADI_GLIDE"]},
         {"name": "Information_Density", "factor": "Visual_Clarity", "pairs": ["HUGINN_SIGHT", "MUNINN_MEM"]},
@@ -26,10 +33,10 @@ class SovereignScenarioEngine:
         {"name": "Ancient_Power", "factor": "Knowledge_Scarcity", "pairs": ["MIMIR_WELL", "ODIN_EYE"]}
     ]
 
-    PLANET_PREFIXES = ["Grave of", "Echo of", "Siege of", "Void of", "Iron", "Frozen", "Burning", "Shattered"]
-    PLANET_SUFFIXES = ["Solitude", "Niflheim", "Muspelheim", "Hel", "Yggdrasil", "Fensalir", "Vanaheim", "Asgard"]
+    PLANET_PREFIXES: list[str] = ["Grave of", "Echo of", "Siege of", "Void of", "Iron", "Frozen", "Burning", "Shattered"]
+    PLANET_SUFFIXES: list[str] = ["Solitude", "Niflheim", "Muspelheim", "Hel", "Yggdrasil", "Fensalir", "Vanaheim", "Asgard"]
 
-    GOALS = [
+    GOALS: list[str] = [
         "The extraction of a primordial Bio-Seed from the world's marrow",
         "The clinical subjugation of an Ascended Hive-Mind screaming in the void",
         "The reclamation of a Lost Genetic Vault buried beneath shifting obsidian",
@@ -38,7 +45,7 @@ class SovereignScenarioEngine:
         "The forced inoculation of the World-Seed with your genetic signature"
     ]
 
-    CONFLICTS = [
+    CONFLICTS: list[str] = [
         "The atmosphere is a choking fog of electromagnetic discharge and static screams.",
         "Raging gravity storms are liquefying your structural supports in real-time.",
         "The local flora is a sentient, pulsating mesh actively resisting your neural probes.",
@@ -47,16 +54,16 @@ class SovereignScenarioEngine:
         "Lethal radiation from the exposed world-core is melting your physical shielding."
     ]
 
-    DISASTERS = [
+    DISASTERS: list[str] = [
         "The world-seed rejects your presence, triggering a planet-wide tectonic collapse.",
         "A temporal feedback loop erases your tactical gains and fractures your causality.",
         "The local civilizations launch a desperate, scorched-earth neural counter-strike.",
         "The environment itself inverts, turning your genetic strengths into lethal flaws."
     ]
 
-    ENCOUNTER_PILLARS = ["HAZARD", "CONFRONTATION", "ELEMENTAL", "FAILURE", "REFLECTIVE"]
+    ENCOUNTER_PILLARS: list[str] = ["HAZARD", "CONFRONTATION", "ELEMENTAL", "FAILURE", "REFLECTIVE"]
 
-    PILLAR_DEFINITIONS = {
+    PILLAR_DEFINITIONS: dict[str, str] = {
         "HAZARD": "Environmental survival. The world itself is trying to erase your presence.",
         "CONFRONTATION": "Direct tactical engagement with local forces or predators.",
         "ELEMENTAL": "Navigating the raw, chaotic physics of the planetary crust.",
@@ -64,7 +71,7 @@ class SovereignScenarioEngine:
         "REFLECTIVE": "A quiet, philosophical moment in the ruinscape with a weary comrade."
     }
 
-    PILLAR_PROMPTS = {
+    PILLAR_PROMPTS: dict[str, str] = {
         "HAZARD": "The planet itself is striking back. Warlord, how do we survive the environmental onslaught?",
         "CONFRONTATION": "Tactical engagement is unavoidable. Warlord, how do we break the local resistance?",
         "ELEMENTAL": "The world's raw physics are unstable. Warlord, how do we navigate this atmospheric chaos?",
@@ -72,7 +79,7 @@ class SovereignScenarioEngine:
         "REFLECTIVE": "A moment of stillness in the slaughter. Warlord, what is your insight on this conquest?"
     }
 
-    PILLAR_OPTIONS = {
+    PILLAR_OPTIONS: dict[str, list[dict[str, str]]] = {
         "HAZARD": [
             {"text": "Reinforce Structural Hardening", "trait": "TYR_BARRIER", "id": "A", "base_difficulty": "Hard"},
             {"text": "Divert Power to Life-Support", "trait": "SURTR_FLAME", "id": "B", "base_difficulty": "Normal"},
@@ -105,7 +112,7 @@ class SovereignScenarioEngine:
         ]
     }
 
-    PLANET_LORE = {
+    PLANET_LORE: dict[str, str] = {
         "Muspelheim": "A primordial furnace world where the core is exposed, necessitates a kinetic siege to reclaim the lost Bio-Seeds from the shifting ash.",
         "Asgard": "The ancestral seat of the genetic elite, currently undergoing a temporal fracture that threatens to erase the Hugin/Munin memory banks.",
         "Niflheim": "A frozen hell of cryo-obsidian where the local hive-minds have retreated into the deep crust, resisting subjugation through absolute thermal silence.",
@@ -116,13 +123,12 @@ class SovereignScenarioEngine:
         "Vanaheim": "A chaotic, fast-evolving biosphere where the fauna undergoes rapid mutation every solar cycle, forcing constant tactical adaptation."
     }
 
-    # Persona Engine Data
-    RANKS = ["Sergeant", "Corporal", "Lieutenant", "Specialist", "Elder", "Civ-Lead"]
-    NAMES = ["Varick", "Kael", "Thorne", "Vahl", "Zora", "Hera", "Mimir", "Surt"]
-    TRAITS = ["Grim", "Loyal", "Calculated", "Fearful", "Resilient", "Defiant"]
-    ROLES = ["Vanguard", "Bio-Tech", "Scout", "Civilian", "Resistance"]
+    RANKS: list[str] = ["Sergeant", "Corporal", "Lieutenant", "Specialist", "Elder", "Civ-Lead"]
+    NAMES: list[str] = ["Varick", "Kael", "Thorne", "Vahl", "Zora", "Hera", "Mimir", "Surt"]
+    TRAITS: list[str] = ["Grim", "Loyal", "Calculated", "Fearful", "Resilient", "Defiant"]
+    ROLES: list[str] = ["Vanguard", "Bio-Tech", "Scout", "Civilian", "Resistance"]
 
-    CAMPAIGN_OBJECTIVES = [
+    CAMPAIGN_OBJECTIVES: list[str] = [
         "Establish Forward Hive-Base",
         "Subjugate Local Militia",
         "Secure Food & Provisions",
@@ -131,7 +137,7 @@ class SovereignScenarioEngine:
         "Suppress Neural Resistance"
     ]
 
-    RESOLUTION_FLAVOR = {
+    RESOLUTION_FLAVOR: dict[int, dict[str, str]] = {
         0: { # Atmosphere fog
             "Hard": "force the sensor array through the static screams to pin a landing",
             "Normal": "filter the electromagnetic discharge via manual triangulation",
@@ -170,40 +176,8 @@ class SovereignScenarioEngine:
         }
     }
 
-    def generate_scenario(self, stats: dict[str, float], seed: str = "C*DEFAULT", turn_id: int = 0, player_name: str = "Odin", campaign_data: dict = None, node_type: str = None) -> dict[str, Any]:
-        """The WorldForge Algorithm: Procedurally generates a Narrative Campaign Step."""
-        return self._generate_internal(stats, seed, turn_id, player_name, campaign_data, node_type)
-
-    def generate(self, *args, **kwargs):
-        """Test compatibility alias."""
-        return self.generate_scenario(*args, **kwargs)
-
-    def _generate_internal(self, stats: dict[str, float], seed: str = "C*DEFAULT", turn_id: int = 0, player_name: str = "Odin", campaign_data: dict = None, node_type: str = None) -> dict[str, Any]:
-        world_id_str = f"{seed}_{turn_id}"
-        seed_hash = hashlib.sha256(world_id_str.encode()).hexdigest()
-        local_rng = random.Random(seed_hash)
-
-        # 1. Campaign Context Retrieval
-        planet_suffix = local_rng.choice(self.PLANET_SUFFIXES)
-        planet_base_name = f"{local_rng.choice(self.PLANET_PREFIXES)} {planet_suffix}"
-
-        # If we have campaign data, we use it for consistency
-        if campaign_data and campaign_data.get('planet_name'):
-            planet_name = campaign_data['planet_name']
-        else:
-            planet_name = f"SIEGE OF {planet_base_name.upper()}"
-
-        campaign = self._get_or_create_campaign(planet_name, planet_suffix, local_rng, campaign_data)
-
-        # 2. WorldForge Attributes (Persistent)
-        attributes = campaign.get('attributes', {})
-        fauna = attributes.get('fauna', 'Unknown')
-        flora = attributes.get('flora', 'Unknown')
-        sediment = attributes.get('sediment', 'Unknown')
-        civ_type = attributes.get('civ_type', 'Unknown')
-
-        # 3. Environment & Inversion
-        pair_data = local_rng.choice(self.ENV_PAIRS)
+    def _inject_environmental_modifiers(self, local_rng, pair_data):
+        """Helper to resolve environmental chrome and inversions."""
         env_name = pair_data["name"]
         target_chromo = local_rng.choice(pair_data["pairs"])
 
@@ -215,79 +189,127 @@ class SovereignScenarioEngine:
                 "target": target_chromo,
                 "description": f"The {env_name} anomalous. {target_chromo} interferences act as Synergies."
             })
+        return target_chromo, modifiers
+
+    def _transform_pillar_narrative(self, pillar, persona_str, conflict_raw):
+        """Helper to apply pillar-specific narrative transformations."""
+        if pillar == "HAZARD":
+            return f"the ship's structural supports are liquefying under {conflict_raw.lower()}"
+        elif pillar == "REFLECTIVE":
+            return f"{persona_str} whispers about {conflict_raw.lower()} through the ruinscape silence"
+        elif pillar == "FAILURE":
+            return f"critical gear failure manifests as {conflict_raw.lower()}"
+        elif pillar == "CONFRONTATION":
+            return f"{persona_str} reports the local forces are regrouping. {conflict_raw}"
+        return conflict_raw
+
+    def _calculate_option_difficulty(self, opt, stats, combat_rating, is_brutal, flavor_map):
+        """Helper to calculate localized difficulty labels for options."""
+        base_diff = opt['base_difficulty']
+        trait = opt.get('trait', 'Unknown')
+        action_flavor = flavor_map.get(base_diff, "navigate the planetary crisis")
+
+        threshold = combat_rating
+        if base_diff == "Hard": threshold += 5.0
+        elif base_diff == "Gamble": threshold += 10.0
+        elif base_diff == "Normal": threshold += 1.0
+        elif base_diff == "Easy": threshold -= 2.0
+        if is_brutal: threshold += 15.0
+
+        eff_stat = stats.get(trait, 10.0)
+        if eff_stat > threshold + 10: diff_label = "Trivial"
+        elif eff_stat > threshold + 3: diff_label = "Easy"
+        elif eff_stat < threshold - 15: diff_label = "Lethal"
+        elif eff_stat < threshold - 5: diff_label = "Hard"
+        else: diff_label = "Normal"
+
+        return {
+            "id": opt['id'],
+            "text": f"{opt['text']} and {action_flavor}",
+            "trait": trait,
+            "threshold": round(threshold, 1),
+            "difficulty": diff_label
+        }
+
+    def generate_scenario(
+        self,
+        stats: dict[str, float],
+        seed: str = "C*DEFAULT",
+        turn_id: int = 0,
+        player_name: str = "Odin",
+        campaign_data: dict[str, Any] | None = None,
+        node_type: str | None = None
+    ) -> dict[str, Any]:
+        """
+        The WorldForge Algorithm: Procedurally generates a Narrative Campaign Step.
+        
+        Args:
+            stats: Effective player stats.
+            seed: Federated seed for determinism.
+            turn_id: Current turn index.
+            player_name: Name of the warlord.
+            campaign_data: Persistent campaign state.
+            node_type: Optional nodal campaign type.
+            
+        Returns:
+            A dictionary containing the generated scenario.
+        """
+        return self._generate_internal(stats, seed, turn_id, player_name, campaign_data, node_type)
+
+    def _generate_internal(
+        self,
+        stats: dict[str, float],
+        seed: str,
+        turn_id: int,
+        player_name: str,
+        campaign_data: dict[str, Any] | None,
+        node_type: str | None
+    ) -> dict[str, Any]:
+        world_id_str = f"{seed}_{turn_id}"
+        seed_hash = hashlib.sha256(world_id_str.encode()).hexdigest()
+        local_rng = random.Random(seed_hash)
+
+        # 1. Campaign Context Retrieval
+        planet_suffix = local_rng.choice(self.PLANET_SUFFIXES)
+        planet_base_name = f"{local_rng.choice(self.PLANET_PREFIXES)} {planet_suffix}"
+
+        if campaign_data and campaign_data.get('planet_name'):
+            planet_name = campaign_data['planet_name']
+        else:
+            planet_name = f"SIEGE OF {planet_base_name.upper()}"
+
+        campaign = self._get_or_create_campaign(planet_name, planet_suffix, local_rng, campaign_data)
+
+        # 2. WorldForge Attributes (Persistent)
+        attributes = campaign.get('attributes', {})
+
+        # 3. Environment & Inversion
+        pair_data = local_rng.choice(self.ENV_PAIRS)
+        target_chromo, modifiers = self._inject_environmental_modifiers(local_rng, pair_data)
+        env_name = pair_data["name"]
 
         # 4. Narrative Selection
         pillar = local_rng.choice(self.ENCOUNTER_PILLARS)
         goal = campaign['current_objective']
         conflict_raw = local_rng.choice(self.CONFLICTS)
-        conflict = conflict_raw
         disaster = local_rng.choice(self.DISASTERS)
 
-        # RESOLUTION FLAVOR: Difficulty-aware atmospheric descriptions
-        conflict_idx = self.CONFLICTS.index(conflict_raw)
-        flavor_map = self.RESOLUTION_FLAVOR.get(conflict_idx, {})
-
-        # Persona Injection
+        flavor_map = self.RESOLUTION_FLAVOR.get(self.CONFLICTS.index(conflict_raw), {})
         persona = local_rng.choice(campaign['personas'])
         persona_str = f"{persona['rank']} {persona['name']} ({persona['trait']})"
 
         # Pillar Transformation
-        if pillar == "HAZARD":
-            conflict = f"the ship's structural supports are liquefying under {conflict.lower()}"
-        elif pillar == "REFLECTIVE":
-            conflict = f"{persona_str} whispers about {conflict.lower()} through the ruinscape silence"
-        elif pillar == "FAILURE":
-            conflict = f"critical gear failure manifests as {conflict.lower()}"
-        elif pillar == "CONFRONTATION":
-            conflict = f"{persona_str} reports the local forces are regrouping. {conflict}"
-
-        # Combat Rating & Dynamic Difficulty (BRUTAL Check)
+        conflict = self._transform_pillar_narrative(pillar, persona_str, conflict_raw)
         combat_rating = sum(stats.values()) if stats else 25.0
-        is_brutal = node_type is not None # Nodal campaigns are always harder
 
-        # Choice Generation (Dynamic Difficulty Mapping)
-        pillar_opts = self.PILLAR_OPTIONS[pillar]
-        options = []
-        for opt in pillar_opts:
-            base_diff = opt['base_difficulty']
-            trait = opt.get('trait', 'Unknown')
+        # Choice Generation
+        options = [
+            self._calculate_option_difficulty(opt, stats, combat_rating, node_type is not None, flavor_map)
+            for opt in self.PILLAR_OPTIONS[pillar]
+        ]
 
-            # Action Description (sensory/atmospheric)
-            action_flavor = flavor_map.get(base_diff, "navigate the planetary crisis")
-            desc = f"{opt['text']} and {action_flavor}"
-
-            # Threshold Calculation (Kingdom Death Scaling)
-            threshold = combat_rating
-            if base_diff == "Hard": threshold += 5.0
-            elif base_diff == "Gamble": threshold += 10.0
-            elif base_diff == "Normal": threshold += 1.0
-            elif base_diff == "Easy": threshold -= 2.0
-
-            # Brutal Modifier
-            if is_brutal:
-                threshold += 15.0 # The "Kingdom Death" Spike
-
-            # Dynamic Display Label (Gene Seed Integration)
-            eff_stat = stats.get(trait, 10.0)
-
-            if eff_stat > threshold + 10: diff_label = "Trivial"
-            elif eff_stat > threshold + 3: diff_label = "Easy"
-            elif eff_stat < threshold - 15: diff_label = "Lethal" # Higher lethal cap in brutal
-            elif eff_stat < threshold - 5: diff_label = "Hard"
-            else: diff_label = "Normal"
-
-            options.append({
-                "id": opt['id'],
-                "text": desc,
-                "trait": trait,
-                "threshold": round(threshold, 1),
-                "difficulty": diff_label
-            })
-
-        # Calculate Genetic Affinity for Ticker (log scale)
         affinity = self._calculate_affinity(stats, attributes)
 
-        # Immersive Question: Leading with the Nodal Crisis
         prompt = self.PILLAR_PROMPTS.get(pillar, "Warlord, how shall we proceed?")
         if node_type:
             prompt = f"NODE [{node_type}] BREACHED: {prompt}"
@@ -300,10 +322,10 @@ class SovereignScenarioEngine:
             "goal": goal,
             "conflict": conflict,
             "disaster": disaster,
-            "fauna": fauna,
-            "flora": flora,
-            "sediment": sediment,
-            "civ_type": civ_type,
+            "fauna": attributes.get('fauna', 'Unknown'),
+            "flora": attributes.get('flora', 'Unknown'),
+            "sediment": attributes.get('sediment', 'Unknown'),
+            "civ_type": attributes.get('civ_type', 'Unknown'),
             "world_modifiers": modifiers,
             "active_persona": persona,
             "campaign_state": campaign,
@@ -316,55 +338,37 @@ class SovereignScenarioEngine:
             "options": options
         }
 
-    def _calculate_affinity(self, stats: dict[str, float], world_attrs: dict) -> float:
-        """Calculates Warlord-to-Planet affinity (log-scaled background growth)."""
+    def _calculate_affinity(self, stats: dict[str, float], world_attrs: dict[str, str]) -> float:
+        """Calculates Warlord-to-Planet affinity."""
         if not stats: return 1.0
-
-        # Simple mapping for Phase 9 demo:
-        # Fauna -> MIGHT/RAGE, Flora -> BLOOM/SIGHT, Sediment -> STONE/BARRIER
         affinity = 0.0
-
-        # Fauna Affinity
         if world_attrs.get('fauna') == "Apex Predators":
             affinity += stats.get("BERSERKER_RAGE", 10) * 0.1
-
-        # Flora Affinity
         if world_attrs.get('flora') == "Glow-Forests":
             affinity += stats.get("HUGINN_SIGHT", 10) * 0.1
-
-        # Sediment Affinity
         if world_attrs.get('sediment') == "Solid Obsidian":
             affinity += stats.get("YMIR_STONE", 10) * 0.1
-
         return round(math.log10(max(1.1, affinity)) * 0.5, 3)
 
-    def _get_or_create_campaign(self, planet_name: str, suffix: str, rng: random.Random, existing: dict = None) -> dict:
-        """Helper to maintain campaign state or initialize a fresh one."""
-        if existing:
-            # Migration/Persistence Fix: Ensure attributes exist
-            if 'attributes' not in existing:
-                def get_world_att(): return rng.random()
-                f_v, fl_v, s_v, c_v = get_world_att(), get_world_att(), get_world_att(), get_world_att()
+    def _generate_world_attributes(self, rng: random.Random, suffix: str) -> dict[str, str]:
+        """Procedural attribute generation."""
+        def get_world_att(): return rng.random()
+        f_v, fl_v, s_v, c_v = get_world_att(), get_world_att(), get_world_att(), get_world_att()
 
-                # Bias based on suffix if available, otherwise use provided suffix
-                sfx = existing.get('planet_suffix', suffix)
-                if sfx == "Yggdrasil": fl_v = 0.9
-                elif sfx == "Asgard": c_v = 0.9
-                elif sfx == "Niflheim": s_v = 0.9
-                elif sfx == "Muspelheim": s_v = 0.2
+        if suffix == "Yggdrasil": fl_v = 0.9
+        elif suffix == "Asgard": c_v = 0.9
+        elif suffix == "Niflheim": s_v = 0.9
+        elif suffix == "Muspelheim": s_v = 0.2
 
-                fauna = "Apex Predators" if f_v > 0.7 else ("Docile Grazers" if f_v < 0.3 else "Nomadic Packs")
-                flora = "Glow-Forests" if fl_v > 0.7 else ("Dead Scrub" if fl_v < 0.3 else "Adaptive Fungi")
-                sediment = "Explosive Crust" if s_v > 0.7 else ("Solid Obsidian" if s_v < 0.3 else "Sifting Ash")
-                civ_type = "Ascended Neural Nets" if c_v > 0.7 else ("Industrial Bastions" if c_v > 0.3 else "Primitive Hives")
+        return {
+            "fauna": "Apex Predators" if f_v > 0.7 else ("Docile Grazers" if f_v < 0.3 else "Nomadic Packs"),
+            "flora": "Glow-Forests" if fl_v > 0.7 else ("Dead Scrub" if fl_v < 0.3 else "Adaptive Fungi"),
+            "sediment": "Explosive Crust" if s_v > 0.7 else ("Solid Obsidian" if s_v < 0.3 else "Sifting Ash"),
+            "civ_type": "Ascended Neural Nets" if c_v > 0.7 else ("Industrial Bastions" if c_v > 0.3 else "Primitive Hives")
+        }
 
-                existing['attributes'] = {
-                    "fauna": fauna, "flora": flora,
-                    "sediment": sediment, "civ_type": civ_type
-                }
-            return existing
-
-        # Generate Cast
+    def _generate_cast(self, rng: random.Random) -> list[dict[str, str]]:
+        """Generates a procedural roster of personas."""
         personas = []
         for _ in range(3):
             personas.append({
@@ -374,39 +378,29 @@ class SovereignScenarioEngine:
                 "role": rng.choice(self.ROLES),
                 "status": "Healthy"
             })
+        return personas
 
-        # WorldForge Attributes (Seeded once per planet)
-        def get_world_att(): return rng.random()
-        f_v, fl_v, s_v, c_v = get_world_att(), get_world_att(), get_world_att(), get_world_att()
-
-        # Biasing based on suffix
-        if suffix == "Yggdrasil": fl_v = 0.9  # Lush
-        elif suffix == "Asgard": c_v = 0.9   # Ascended
-        elif suffix == "Niflheim": s_v = 0.9 # Obsidian
-        elif suffix == "Muspelheim": s_v = 0.2 # Ash
-
-        fauna = "Apex Predators" if f_v > 0.7 else ("Docile Grazers" if f_v < 0.3 else "Nomadic Packs")
-        flora = "Glow-Forests" if fl_v > 0.7 else ("Dead Scrub" if fl_v < 0.3 else "Adaptive Fungi")
-        sediment = "Explosive Crust" if s_v > 0.7 else ("Solid Obsidian" if s_v < 0.3 else "Sifting Ash")
-        civ_type = "Ascended Neural Nets" if c_v > 0.7 else ("Industrial Bastions" if c_v > 0.3 else "Primitive Hives")
+    def _get_or_create_campaign(self, planet_name: str, suffix: str, rng: random.Random, existing: dict[str, Any] | None) -> dict[str, Any]:
+        """Maintains campaign state or initializes a fresh one."""
+        if existing:
+            if 'attributes' not in existing:
+                sfx = existing.get('planet_suffix', suffix)
+                existing['attributes'] = self._generate_world_attributes(rng, sfx)
+            return existing
 
         return {
             "planet_name": planet_name,
             "planet_suffix": suffix,
             "intro_text": self.PLANET_LORE.get(suffix, "A distant world on the edge of the void."),
             "current_objective": rng.choice(self.CAMPAIGN_OBJECTIVES),
-            "personas": personas,
-            "attributes": {
-                "fauna": fauna,
-                "flora": flora,
-                "sediment": sediment,
-                "civ_type": civ_type
-            },
+            "personas": self._generate_cast(rng),
+            "attributes": self._generate_world_attributes(rng, suffix),
             "history": [],
             "state_vars": {"casualties": 0, "loyalty": 1.0}
         }
 
     def _generate_item(self, chromo_id: str, local_rng: random.Random) -> dict[str, Any] | None:
+        """Procedurally generates an item."""
         if local_rng.random() > 0.6: return None
         return {
             "id": f"ITEM_{chromo_id}",
@@ -417,9 +411,10 @@ class SovereignScenarioEngine:
         }
 
     def get_outcome(self, player_name: str, choice_id: str, success: bool) -> str:
-        """Outcome is now just the raw mathematical directive. Bardic prose is Agent-generated."""
+        """Outcome directive."""
         res = "SUCCESS" if success else "FAILURE"
         return f"[DIRECTIVE]: {res} for choice {choice_id}. Awaiting Agentic Manifestation."
 
     def get_scientist_query(self) -> dict[str, str]:
+        """Scientific status check."""
         return {"speaker": "Chief Vahl", "message": "The void is yawning, sir."}

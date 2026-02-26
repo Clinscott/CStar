@@ -6,11 +6,8 @@ All tests use mock AI client — zero network calls.
 import json
 import os
 import sys
-import time
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-
-import pytest
 
 # Ensure project root is on path
 project_root = Path(__file__).parent.parent.parent.absolute()
@@ -18,12 +15,11 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 from src.sentinel.muninn import (
-    NornWarden,
     EddaWarden,
     Muninn,
+    NornWarden,
     TheWatcher,
 )
-
 
 # ==============================================================================
 # TheWatcher Tests
@@ -93,7 +89,7 @@ class TestNornWarden:
 
         assert target is not None
         assert target["file"] == "tasks.qmd"
-        assert "CAMPAIGN_TASK" == target["type"]
+        assert target["type"] == "CAMPAIGN_TASK"
         assert "Fix the thing" in target["action"]
 
     def test_get_next_target_skips_completed_items(self, tmp_path):
@@ -233,7 +229,7 @@ class TestGauntletEscalation:
         os.environ["GOOGLE_API_KEY"] = "TEST_KEY"
         try:
             fish = Muninn(str(tmp_path), client=mock_genai_client)
-            
+
             # Mock the models list to support dynamic model capability
             mock_flash = MagicMock()
             mock_flash.name = "gemini-2.0-flash"

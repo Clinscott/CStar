@@ -1,18 +1,19 @@
 
 import os
 import sys
-import psutil
-import time
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Any
+
+import psutil
 
 # Ensure project root is in sys.path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
-from src.sentinel.wardens.norn import NornWarden
 from src.core.sovereign_hud import SovereignHUD
+from src.sentinel.wardens.norn import NornWarden
+
 
 class SovereignRPC:
     """
@@ -29,14 +30,14 @@ class SovereignRPC:
         self.root = root
         self.norn = NornWarden(root)
 
-    def get_dashboard_state(self) -> Dict[str, Any]:
+    def get_dashboard_state(self) -> dict[str, Any]:
         """
         Aggregates system state for the SovereignHUD.
         """
         # 1. System Vitals
         process = psutil.Process(os.getpid())
         mem_mb = process.memory_info().rss / 1024 / 1024
-        
+
         # 2. Git Status (Mock/Simple for now, or subprocess)
         # We can implement a quick check or just return "ACTIVE"
         git_branch = "unknown"
@@ -64,11 +65,11 @@ class SovereignRPC:
             # For this MVP, let's just get the *next* one + some placeholders if needed,
             # or implemented a robust 'scan_all' in Norn later.
             # Let's just use Norn's current scan to get the ACTIVE OBJECTIVE.
-            
+
             # Actually, the user asked for "top 5 unchecked".
             # Norn.get_next_target() gets the *first*.
             # We can implement a specialized scan here or just loop.
-            
+
             all_lines = (self.root / "tasks.qmd").read_text(encoding='utf-8').splitlines()
             count = 0
             for line in all_lines:
@@ -92,7 +93,7 @@ class SovereignRPC:
         }
 
 
-    def handle_command(self, cmd: str) -> Dict[str, Any]:
+    def handle_command(self, cmd: str) -> dict[str, Any]:
         """
         Executes a command from the TUI input bar.
         """

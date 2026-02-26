@@ -14,7 +14,6 @@ import argparse
 import ast
 import json
 import logging
-import os
 import subprocess
 import sys
 from collections import defaultdict
@@ -59,7 +58,7 @@ except ImportError:
             tree = ast.parse(source_code)
             complexity = 1
             for node in ast.walk(tree):
-                if isinstance(node, (ast.If, ast.IfExp, ast.For, ast.While, 
+                if isinstance(node, (ast.If, ast.IfExp, ast.For, ast.While,
                                      ast.Try, ast.ExceptHandler, ast.With, ast.Match)):
                     complexity += 1
                 elif isinstance(node, ast.BoolOp) and isinstance(node.op, (ast.And, ast.Or)):
@@ -79,18 +78,18 @@ class ArchiveConsolidator:
         self.target_dir = Path(target_dir).resolve()
         self.days = days
         self.ledger_path = project_root / ".agent" / "tech_debt_ledger.json"
-        
+
         # Enforce ALFRED persona for this tool
         SovereignHUD.PERSONA = "ALFRED"
 
     def _get_git_churn(self) -> dict[str, int]:
         """Calculates line churn for files changed in the last N days."""
         churn_data = defaultdict(int)
-        
+
         try:
             cmd = ["git", "log", f"--since={self.days}.days", "--oneline", "--numstat"]
             result = subprocess.run(cmd, cwd=str(self.target_dir), capture_output=True, text=True, check=True)
-            
+
             if result.stdout:
                 for line in result.stdout.splitlines():
                     parts = line.split('\t')
@@ -98,15 +97,15 @@ class ArchiveConsolidator:
                         additions = parts[0]
                         deletions = parts[1]
                         filepath = parts[2]
-                        
+
                         if additions == "-" or deletions == "-":
                             continue # Binary file
-                            
+
                         churn_data[filepath] += int(additions) + int(deletions)
-                        
-        except (subprocess.CalledProcessError, FileNotFoundError) as e:
+
+        except (subprocess.CalledProcessError, FileNotFoundError):
             SovereignHUD.persona_log("WARN", "Git churn calculation failed. Returning empty data.")
-        
+
         return dict(churn_data)
 
     def _has_test_coverage(self, filepath: str) -> bool:
@@ -114,7 +113,7 @@ class ArchiveConsolidator:
         source_path = Path(filepath)
         if not source_path.name.endswith(".py"):
             return True # Ignore non-python for now
-            
+
         test_filename = f"test_{source_path.name}"
         search_dirs = [
             project_root / "tests",
@@ -122,7 +121,7 @@ class ArchiveConsolidator:
             project_root / "tests" / "integration",
             project_root / "tests" / "empire_tests"
         ]
-        
+
         for sd in search_dirs:
             if sd.exists():
                 for test_file in sd.rglob(test_filename):
@@ -135,35 +134,35 @@ class ArchiveConsolidator:
         SovereignHUD.box_row("TARGET", str(self.target_dir), SovereignHUD.CYAN)
         SovereignHUD.box_row("CHURN WINDOW", f"Last {self.days} days", SovereignHUD.CYAN)
         SovereignHUD.box_separator()
-        
+
         SovereignHUD.persona_log("INFO", "Gathering Git churn statistics...")
         churn_data = self._get_git_churn()
         SovereignHUD.box_row("FILES MODIFIED", str(len(churn_data)), SovereignHUD.GREEN)
-        
+
         target_files = []
         SovereignHUD.persona_log("INFO", "Evaluating complexity and coverage matrix...")
-        
+
         for rel_path, churn in churn_data.items():
             if not rel_path.endswith('.py'):
                 continue
-                
+
             full_path = self.target_dir / rel_path
             if not full_path.exists() or not full_path.is_file():
                 continue
-                
+
             try:
                 code = full_path.read_text(encoding='utf-8')
                 complexity = get_complexity(code)
                 has_test = self._has_test_coverage(rel_path)
-                
+
                 # The "Risk Score" Algorithm
                 # High churn multiplies complexity. Low coverage acts as a huge multiplier.
                 coverage_multiplier = 1.0 if has_test else 3.0
                 # Normalize churn slightly to prevent massive files from dwarfing everything
-                normalized_churn = min(churn / 100.0, 10.0) + 1.0 
-                
+                normalized_churn = min(churn / 100.0, 10.0) + 1.0
+
                 risk_score = (complexity * normalized_churn) * coverage_multiplier
-                
+
                 target_files.append({
                     "file": str(full_path.relative_to(project_root)),
                     "churn": churn,
@@ -176,21 +175,21 @@ class ArchiveConsolidator:
 
         # Sort by risk score, descending
         target_files.sort(key=lambda x: x["risk_score"], reverse=True)
-        
+
         self._write_ledger(target_files)
         self._render_report(target_files)
-        
+
         return target_files
 
     def _write_ledger(self, targets: list[dict[str, Any]]) -> None:
         """Writes the prioritized targets to the ledger."""
         self.ledger_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         ledger_data = {
             "timestamp": SovereignHUD._speak("timestamp", "Now"), # Standard timestamp fallback
             "top_targets": targets[:20] # Keep top 20
         }
-        
+
         self.ledger_path.write_text(json.dumps(ledger_data, indent=4), encoding='utf-8')
 
     def _render_report(self, targets: list[dict[str, Any]]) -> None:
@@ -198,7 +197,7 @@ class ArchiveConsolidator:
         SovereignHUD.box_separator()
         SovereignHUD.box_row("TOP SECURITY TARGETS (RISK SCORE)", "CHURN | CC | TEST COV", SovereignHUD.RED)
         SovereignHUD.box_separator()
-        
+
         if not targets:
             SovereignHUD.box_row("STATUS", "The archive is immaculate, sir.", SovereignHUD.GREEN)
         else:
@@ -207,13 +206,13 @@ class ArchiveConsolidator:
                 color = SovereignHUD.RED if not item['coverage'] else SovereignHUD.YELLOW
                 cov_mark = "[OK]" if item['coverage'] else "[MISSING]"
                 stats = f"{item['churn']:<5} | {item['complexity']:<4} | {cov_mark}"
-                
+
                 # Format: 1.  filename.py ... 142 | 5.2 | [MISSING]
                 SovereignHUD.box_row(f"{idx:02d}. {f_name}", stats, color, dim_label=True)
-                
+
             if len(targets) > 10:
                 SovereignHUD.box_row("...", f"+ {len(targets) - 10} more files analyzed", dim_label=True)
-                
+
         SovereignHUD.box_bottom()
 
 

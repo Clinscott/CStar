@@ -1,8 +1,5 @@
-import os
-import random
-import sys
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 
 class SovereignHUD:
@@ -12,11 +9,11 @@ class SovereignHUD:
     Provides ANSI-colored terminal output primitives for the Corvus Star framework.
     Strictly follows the Linscott Standard for "Iron Clad" reliability.
     """
-    
+
     # "Glow" Palette - Standard ANSI
     CYAN: str = "\033[36m"
-    CYAN_DIM: str = "\033[2;36m" 
-    GREEN: str = "\033[32m" 
+    CYAN_DIM: str = "\033[2;36m"
+    GREEN: str = "\033[32m"
     GREEN_DIM: str = "\033[2;32m"
     YELLOW: str = "\033[33m"
     MAGENTA: str = "\033[35m"
@@ -24,10 +21,10 @@ class SovereignHUD:
     RESET: str = "\033[0m"
     BOLD: str = "\033[1m"
     DIM: str = "\033[2m"
-    
+
     # State
     PERSONA: str = "ALFRED" # Default
-    DIALOGUE: Optional[Any] = None # Instance of DialogueRetriever
+    DIALOGUE: Any | None = None # Instance of DialogueRetriever
 
     @staticmethod
     def _speak(intent: str, fallback: str) -> str:
@@ -37,14 +34,14 @@ class SovereignHUD:
         return fallback
 
     @staticmethod
-    def _get_theme() -> Dict[str, str]:
+    def _get_theme() -> dict[str, str]:
         """Returns the color palette for the active Persona."""
         p = SovereignHUD.PERSONA.upper()
         if p in ["GOD", "ODIN"]:
             return {
-                "main": SovereignHUD.RED, 
-                "dim": SovereignHUD.MAGENTA, 
-                "accent": SovereignHUD.YELLOW, 
+                "main": SovereignHUD.RED,
+                "dim": SovereignHUD.MAGENTA,
+                "accent": SovereignHUD.YELLOW,
                 "title": "Ω ODIN ENGINE Ω",
                 "war_title": "THE WAR ROOM (CONFLICT RADAR)",
                 "trace_label": "TRACE (LIES)",
@@ -52,9 +49,9 @@ class SovereignHUD:
             }
         # Default / Alfred
         return {
-            "main": SovereignHUD.CYAN, 
-            "dim": SovereignHUD.CYAN_DIM, 
-            "accent": SovereignHUD.GREEN, 
+            "main": SovereignHUD.CYAN,
+            "dim": SovereignHUD.CYAN_DIM,
+            "accent": SovereignHUD.GREEN,
             "title": "C* NEURAL TRACE",
             "war_title": "THE BATCAVE (ANOMALY DETECTOR)",
             "trace_label": "EVENT LOG",
@@ -62,7 +59,7 @@ class SovereignHUD:
         }
 
     @staticmethod
-    def box_top(title: str = "", color: Optional[str] = None, width: int = 60) -> None:
+    def box_top(title: str = "", color: str | None = None, width: int = 60) -> None:
         """
         Renders the top implementation of a box with a title.
         
@@ -72,23 +69,23 @@ class SovereignHUD:
             width: Total character width of the box (min 10).
         """
         assert isinstance(width, int) and width >= 10, "Width must be integer >= 10"
-        
+
         theme = SovereignHUD._get_theme()
         display_title = title if title else theme["title"]
         main_color = color if color else theme['main']
         dim_color = color if color else theme['dim']
-        
+
         # Calculate padding
         t_len = len(display_title)
         total_padding = max(0, width - t_len - 4) # -4 for corners and spaces
         pad_l = total_padding // 2
         pad_r = total_padding - pad_l
-        
+
         # Glow effect
         print(f"{dim_color}┌{'─'*pad_l} {main_color}{SovereignHUD.BOLD}{display_title}{SovereignHUD.RESET}{dim_color} {'─'*pad_r}┐{SovereignHUD.RESET}")
 
     @staticmethod
-    def box_row(label: str, value: Any, color: Optional[str] = None, dim_label: bool = False, width: int = 60) -> None:
+    def box_row(label: str, value: Any, color: str | None = None, dim_label: bool = False, width: int = 60) -> None:
         """
         Renders a row within a box.
         
@@ -102,29 +99,29 @@ class SovereignHUD:
         theme = SovereignHUD._get_theme()
         val_color = color if color else theme['main']
         lbl_color = theme['dim'] if dim_label else theme['main']
-        
+
         # Calculate spacing
         # Structure: "│ Label      Value │"
         # Border(1) + Label(20) + Space(1) + Value(N) + Border(1)
-        # For now, we keep the fixed label width of 20 for alignment, 
+        # For now, we keep the fixed label width of 20 for alignment,
         # but ensure the box closes at 'width'
-        
+
         # Safe string conversion
         str_val = str(value)
         str_lbl = str(label)
-        
+
         # Truncate if too long (Defensive)
         max_val_len = width - 24 # 1(L) + 20(Lbl) + 1(Space) + 1(Space) + 1(R)
         if len(str_val) > max_val_len:
             str_val = str_val[:max_val_len-3] + "..."
-            
+
         padding = width - 1 - 20 - 1 - len(str_val) - 1
         if padding < 0: padding = 0
-            
+
         print(f"{theme['dim']}│{SovereignHUD.RESET} {lbl_color}{str_lbl:<20}{SovereignHUD.RESET} {val_color}{str_val}{' '*padding}{theme['dim']}│{SovereignHUD.RESET}")
 
     @staticmethod
-    def box_separator(color: Optional[str] = None, width: int = 60) -> None:
+    def box_separator(color: str | None = None, width: int = 60) -> None:
         """Renders a middle separator line."""
         theme = SovereignHUD._get_theme()
         dim_color = color if color else theme['dim']
@@ -132,13 +129,13 @@ class SovereignHUD:
         print(f"{dim_color}├{'─'*inner_width}┤{SovereignHUD.RESET}")
 
     @staticmethod
-    def box_bottom(color: Optional[str] = None, width: int = 60) -> None:
+    def box_bottom(color: str | None = None, width: int = 60) -> None:
         """Renders the bottom closure of a box."""
         theme = SovereignHUD._get_theme()
         dim_color = color if color else theme['dim']
         inner_width = width - 2
         print(f"{dim_color}└{'─'*inner_width}┘{SovereignHUD.RESET}")
-    
+
     @staticmethod
     def progress_bar(val: float, width: int = 10) -> str:
         """
@@ -153,9 +150,9 @@ class SovereignHUD:
         blocks = int(safe_val * width)
         bar = f"{SovereignHUD.GREEN}" + "█" * blocks + f"{SovereignHUD.GREEN_DIM}" + "░" * (width - blocks) + f"{SovereignHUD.RESET}"
         return bar
-    
+
     @staticmethod
-    def render_sparkline(data: List[float], max_points: int = 20) -> str:
+    def render_sparkline(data: list[float], max_points: int = 20) -> str:
         """
         Generates an ASCII Sparkline.
         
@@ -165,18 +162,18 @@ class SovereignHUD:
         """
         BARS = " ▂▃▄▅▆▇█"
         if not data: return ""
-        
+
         # Slice to max points
         visible = data[-max_points:]
         if not visible: return ""
-        
+
         min_val = min(visible)
         max_val = max(visible)
         range_val = max_val - min_val
-        
+
         if range_val == 0:
             return BARS[0] * len(visible)
-            
+
         line = ""
         for x in visible:
             normalized = (x - min_val) / range_val
@@ -200,5 +197,5 @@ class SovereignHUD:
         if level == "FAIL": color = SovereignHUD.RED
         if level == "PASS": color = SovereignHUD.GREEN
         if level == "CRITICAL": color = SovereignHUD.MAGENTA
-        
+
         print(f"{SovereignHUD.DIM}[{ts}]{SovereignHUD.RESET} {color}[{level}]{SovereignHUD.RESET} {msg} {SovereignHUD.DIM}{detail}{SovereignHUD.RESET}")

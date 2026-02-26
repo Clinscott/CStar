@@ -4,7 +4,6 @@ import os
 import sys
 import time
 from datetime import datetime
-from typing import Any, Dict, List, Tuple
 
 # Import Shared UI
 try:
@@ -17,7 +16,7 @@ def get_timestamp() -> str:
     """Returns formatted current time."""
     return datetime.now().strftime("%H:%M:%S")
 
-def get_stats() -> Dict[str, int]:
+def get_stats() -> dict[str, int]:
     """
     Parses filesystem validation data (Fishtest & Rejections).
     
@@ -26,35 +25,35 @@ def get_stats() -> Dict[str, int]:
     """
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     project_root = os.path.dirname(base_dir)
-    
+
     stats = {"cases": 0, "rejections": 0, "war_zones": 0}
-    
+
     # 1. Fishtest Data
     db_path = os.path.join(project_root, "fishtest_data.json")
     if os.path.exists(db_path):
         try:
-            with open(db_path, 'r', encoding='utf-8') as f:
+            with open(db_path, encoding='utf-8') as f:
                 data = json.load(f)
                 cases = data.get("test_cases", [])
                 stats["cases"] = len(cases)
                 # Count cases with conflicting tags
                 stats["war_zones"] = len([c for c in cases if "ODIN" in c.get("tags", []) and "ALFRED" in c.get("tags", [])])
-        except Exception: 
+        except Exception:
             pass # Silent fail during stats gathering is acceptable
 
     # 2. Rejections
     rej_path = os.path.join(base_dir, "traces", "quarantine", "REJECTIONS.md")
     if os.path.exists(rej_path):
         try:
-            with open(rej_path, 'r', encoding='utf-8') as f:
+            with open(rej_path, encoding='utf-8') as f:
                 # Subtract header/padding lines (approx 3)
                 stats["rejections"] = max(0, len(f.readlines()) - 3)
-        except Exception: 
+        except Exception:
             pass
-        
+
     return stats
 
-def check_for_changes(last_stats: Dict[str, int], last_rej_count: int) -> Tuple[Dict[str, int], int]:
+def check_for_changes(last_stats: dict[str, int], last_rej_count: int) -> tuple[dict[str, int], int]:
     """
     Compares current state to previous state and logs deltas.
     
@@ -68,26 +67,26 @@ def check_for_changes(last_stats: Dict[str, int], last_rej_count: int) -> Tuple[
     current_stats = get_stats()
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     rej_path = os.path.join(base_dir, "traces", "quarantine", "REJECTIONS.md")
-    
+
     # Check Cases
     delta_cases = current_stats["cases"] - last_stats["cases"]
     if delta_cases > 0:
         SovereignHUD.log("PASS", f"Ingested {delta_cases} new trace(s)", f"(Total: {current_stats['cases']})")
-    
+
     # Check Rejections
     current_rej_count = 0
     if os.path.exists(rej_path):
         try:
-            with open(rej_path, 'r', encoding='utf-8') as f:
+            with open(rej_path, encoding='utf-8') as f:
                 current_rej_count = len(f.readlines())
         except Exception: pass
-            
+
     if current_rej_count > last_rej_count:
         SovereignHUD.log("WARN", "Trace Rejected by Crucible", f"(Total: {current_stats['rejections']})")
-        
+
     if current_stats["war_zones"] > last_stats["war_zones"]:
-         SovereignHUD.log("CRITICAL", "New War Zone Detected", f"(Review Conflict)")
-         
+         SovereignHUD.log("CRITICAL", "New War Zone Detected", "(Review Conflict)")
+
     return current_stats, current_rej_count
 
 if __name__ == "__main__":
@@ -100,23 +99,23 @@ if __name__ == "__main__":
     # Header
     print(f"\n{SovereignHUD.RED}{SovereignHUD.BOLD}Ω NEURAL OVERWATCH Ω{SovereignHUD.RESET}")
     print(f"{SovereignHUD.DIM}Monitoring Federated Network...{SovereignHUD.RESET}\n")
-    
+
     SovereignHUD.log("INFO", "System Online", "Listening on mock_project/network_share")
-    
+
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     rej_path = os.path.join(base_dir, "traces", "quarantine", "REJECTIONS.md")
-    
+
     last_rej_count = 0
     if os.path.exists(rej_path):
         try:
-            with open(rej_path, 'r', encoding='utf-8') as f:
+            with open(rej_path, encoding='utf-8') as f:
                 last_rej_count = len(f.readlines())
         except: pass
-            
+
     last_stats = get_stats()
-    latency_data: List[float] = [] 
+    latency_data: list[float] = []
     pulse_count = 0
-    
+
     while True:
         try:
             # Interactive Input - Wrapped for safety
@@ -130,7 +129,7 @@ if __name__ == "__main__":
                         os.system('cls')
                         # Reprint Header
                         print(f"\n{SovereignHUD.RED}{SovereignHUD.BOLD}Ω NEURAL OVERWATCH Ω{SovereignHUD.RESET}")
-                        print(f"{SovereignHUD.DIM}Monitoring Federated Network...{SovereignHUD.RESET}\n") 
+                        print(f"{SovereignHUD.DIM}Monitoring Federated Network...{SovereignHUD.RESET}\n")
                         SovereignHUD.log("INFO", "Dashboard Cleared")
                     elif key == 'p':
                         # Purge Ledger
@@ -139,16 +138,16 @@ if __name__ == "__main__":
                                 f.write("# Rejection Ledger\n\n")
                             SovereignHUD.log("WARN", "Rejection Ledger Purged")
                             last_rej_count = 0
-            
+
             # Update Logic (Throttled)
             if pulse_count % 20 == 0: # Approx 2s
                 last_stats, last_rej_count = check_for_changes(last_stats, last_rej_count)
-            
+
             # Heartbeat / Latency Check (every 60s approx -> 600 ticks)
             if pulse_count % 600 == 0:
                 import subprocess
                 res = subprocess.run(
-                    ["python", os.path.join(base_dir, "scripts", "latency_check.py"), "3"], 
+                    ["python", os.path.join(base_dir, "scripts", "latency_check.py"), "3"],
                     capture_output=True, text=True
                 )
                 if res.returncode == 0:
@@ -156,15 +155,15 @@ if __name__ == "__main__":
                             lat = float(res.stdout.strip())
                             latency_data.append(lat)
                             if len(latency_data) > 20: latency_data.pop(0)
-                            
+
                             status = "PASS" if lat < 100 else "WARN"
                             SovereignHUD.log(status, f"Engine Latency: {lat:.2f}ms", f"Trend: {SovereignHUD.render_sparkline(latency_data)}")
-                        except ValueError: 
+                        except ValueError:
                             SovereignHUD.log("WARN", "Latency Parse Error", res.stdout.strip())
-            
+
             time.sleep(0.1)
             pulse_count += 1
-            
+
         except KeyboardInterrupt:
             print("\n")
             SovereignHUD.log("INFO", "Overwatch Shutdown")

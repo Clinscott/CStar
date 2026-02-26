@@ -4,10 +4,10 @@ import random
 
 def generate_n1000():
     test_cases = []
-    
+
     # 1. CORE INTENTS & THEIR PHRASES
     # (Simplified for the script, but capturing the diversity)
-    
+
     intents = {
         "/lets-go": {
             "verbs": ["start", "begin", "initiate", "resume", "launch", "kick off", "fire up", "spin up", "go"],
@@ -73,14 +73,14 @@ def generate_n1000():
     }
 
     # 2. GENERATION LOGIC
-    
+
     # 2.1 Core Expansion (Tier 1 & 2)
     for intent, data in intents.items():
         count = 60 if "tier-1" in data['tags'] else 35
         for _ in range(count):
             v = random.choice(data['verbs'])
             n = random.choice(data['nouns'])
-            
+
             # Moods
             moods = [
                 f"{v} the {n}",
@@ -90,7 +90,7 @@ def generate_n1000():
                 f"please {v} our {n} now"
             ]
             query = random.choice(moods)
-            
+
             test_cases.append({
                 "query": query,
                 "expected": intent,
@@ -150,7 +150,7 @@ def generate_n1000():
         if len(new_query) > 5 and random.random() > 0.8:
             idx = random.randint(0, len(new_query)-1)
             new_query = new_query[:idx] + new_query[idx+1:] # typo
-        
+
         test_cases.append({
             "query": new_query,
             "expected": base['expected'],
@@ -166,10 +166,10 @@ def generate_n1000():
         "baseline_accuracy": 100.0,
         "test_cases": test_cases[:1000]
     }
-    
+
     with open("fishtest_data.json", "w", encoding="utf-8") as f:
         json.dump(output, f, indent=2, ensure_ascii=False)
-    
+
     print(f"Generated {len(test_cases[:1000])} test cases.")
 
 if __name__ == "__main__":

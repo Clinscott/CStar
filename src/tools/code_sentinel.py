@@ -11,11 +11,10 @@ He sees all. He forgets nothing. No breach escapes his gaze.
 import argparse
 import ast
 import json
-import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Ensure UTF-8 output for box-drawing characters
 if hasattr(sys.stdout, "reconfigure"):
@@ -56,7 +55,7 @@ class Heimdall:
         }
     }
 
-    def __init__(self, target: str = ".", fix: bool = False, persona_override: Optional[str] = None) -> None:
+    def __init__(self, target: str = ".", fix: bool = False, persona_override: str | None = None) -> None:
         self.target = Path(target)
         self.fix = fix
         self.scripts_dir = Path(__file__).parent.absolute()
@@ -76,24 +75,24 @@ class Heimdall:
                 pass
         return {}
 
-    def scan_for_orphans(self, filepath: Path) -> List[Dict[str, Any]]:
+    def scan_for_orphans(self, filepath: Path) -> list[dict[str, Any]]:
         """AST-based scan for top-level functions (orphans)."""
         if not filepath.suffix == ".py" or not filepath.is_file():
             return []
 
         violations = []
         try:
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 lines = f.readlines()
                 content = "".join(lines)
-            
+
             tree = ast.parse(content)
         except Exception as e:
             return [{
-                "code": "SYNTAX", 
-                "filename": str(filepath), 
-                "location": {"row": 1, "column": 0}, 
-                "message": str(e), 
+                "code": "SYNTAX",
+                "filename": str(filepath),
+                "location": {"row": 1, "column": 0},
+                "message": str(e),
                 "severity": "CRITICAL"
             }]
 
@@ -116,10 +115,10 @@ class Heimdall:
                     "message": f"Orphaned Function '{node.name}'. Encapsulate or Privatize.",
                     "severity": "CRITICAL"
                 })
-        
+
         return violations
 
-    def run_ruff(self) -> List[Dict[str, Any]]:
+    def run_ruff(self) -> list[dict[str, Any]]:
         """Executes Ruff check for linting and style metrics."""
         cmd = [sys.executable, "-m", "ruff", "check", str(self.target), "--output-format=json"]
         config_path = self.project_root / "ruff.toml"
@@ -135,7 +134,7 @@ class Heimdall:
             result = subprocess.run(cmd, capture_output=True, timeout=30)
             stdout = result.stdout.decode('utf-8', errors='replace')
             stderr = result.stderr.decode('utf-8', errors='replace')
-            
+
             if not stdout.strip():
                 if stderr and "error:" in stderr.lower():
                     # Strip lines for brevity
@@ -147,7 +146,7 @@ class Heimdall:
                 return json.loads(stdout)
             except json.JSONDecodeError:
                 return []
-                
+
         except FileNotFoundError:
             SovereignHUD.log("WARN", "Sentinel", "Ruff not found. Style scan skipped.")
             return []
@@ -158,11 +157,11 @@ class Heimdall:
             SovereignHUD.log("FAIL", "Sentinel Error", str(e))
             return []
 
-    def format_results(self, violations: List[Dict[str, Any]]) -> None:
+    def format_results(self, violations: list[dict[str, Any]]) -> None:
         """Visual representation of scan results."""
         persona = SovereignHUD.PERSONA if SovereignHUD.PERSONA in self.TEXT_MAP else "ALFRED"
         text = self.TEXT_MAP[persona]
-        
+
         SovereignHUD.box_top(text["TITLE"])
         SovereignHUD.box_row(text["SCAN_TARGET"], str(self.target), SovereignHUD.CYAN)
 
@@ -192,7 +191,7 @@ class Heimdall:
     def execute_audit(self) -> bool:
         """Main entry point for the audit cycle."""
         violations = self.run_ruff()
-        
+
         # Structure Scan
         if self.target.is_file():
             violations.extend(self.scan_for_orphans(self.target))
@@ -214,7 +213,7 @@ def main() -> None:
 
     heimdall = Heimdall(target=args.target, fix=args.fix, persona_override=args.persona)
     success = heimdall.execute_audit()
-    
+
     if not success:
         sys.exit(1)
 

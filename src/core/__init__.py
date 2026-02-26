@@ -2,8 +2,9 @@
 [ODIN] Core Initialization & Environment Patching.
 Formalizes the Python 3.14 / Pydantic v1 compatibility hook.
 """
-import sys
 import logging
+import sys
+
 
 def apply_pydantic_v1_patch():
     """
@@ -19,15 +20,15 @@ def apply_pydantic_v1_patch():
                 import pydantic.v1.fields as fields
             except ImportError:
                 import pydantic.fields as fields
-                
+
             from typing import Any
-            
+
             # Locate the problematic class
             ModelField = fields.ModelField
-            
+
             # [ALFRED] The Patch: Default Undefined types to Any instead of raising ConfigError
             original_set_default = ModelField._set_default_and_type
-            
+
             def patched_set_default(self):
                 # Import errors here to avoid early dependency on pydantic
                 from pydantic import v1 as pydantic_v1
@@ -42,13 +43,13 @@ def apply_pydantic_v1_patch():
                         self.annotation = Any
                     else:
                         raise e
-            
+
             # Apply the patch only if not already patched
             if not hasattr(ModelField, "_is_cstar_patched"):
                 ModelField._set_default_and_type = patched_set_default
                 ModelField._is_cstar_patched = True
                 # print("[ALFRED] Pydantic v1 Compatibility Patch Applied for Python 3.14")
-                
+
         except (ImportError, AttributeError):
             pass # Pydantic not installed or structure differs
 

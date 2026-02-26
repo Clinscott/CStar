@@ -1,11 +1,10 @@
-import pytest
-from pathlib import Path
 from src.sentinel.code_sanitizer import (
-    validate_syntax, 
-    repair_syntax, 
+    classify_error,
+    repair_syntax,
     sanitize_code,
-    classify_error
+    validate_syntax,
 )
+
 
 def test_validate_syntax():
     assert validate_syntax("print('hi')")[0] is True

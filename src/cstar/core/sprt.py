@@ -1,6 +1,7 @@
 import math
 from typing import Any
 
+
 def evaluate_candidate(observations: list[int], p0: float = 0.05, p1: float = 0.20, alpha: float = 0.05, beta: float = 0.20) -> dict[str, Any]:
     """
     Executes the Sequential Probability Ratio Test (SPRT) mathematically mirroring 

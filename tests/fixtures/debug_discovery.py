@@ -9,7 +9,7 @@ def tokenize(text):
 
 base_path = ".agent"
 config_path = os.path.join(base_path, "config.json")
-with open(config_path, 'r', encoding='utf-8') as f:
+with open(config_path, encoding='utf-8') as f:
     config = json.load(f)
 
 root = config.get("FrameworkRoot")
@@ -29,7 +29,7 @@ if os.path.exists(g_path):
             exists_md = os.path.exists(s_md)
             print(f"    SKILL.md exists: {exists_md}")
             if exists_md:
-                with open(s_md, 'r', encoding='utf-8') as f:
+                with open(s_md, encoding='utf-8') as f:
                     content = f.read()
                 print(f"    Content length: {len(content)}")
                 print(f"    Tokens: {tokenize(content)}")

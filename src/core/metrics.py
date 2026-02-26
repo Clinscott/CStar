@@ -3,10 +3,11 @@ import os
 import subprocess
 import sys
 import time
-from pathlib import Path
-from typing import Any, Callable, Optional
-from src.core.prompt_linter import PromptLinter
+from collections.abc import Callable
+from typing import Any
+
 from src.core.engine.atomic_gpt import AnomalyWarden
+from src.core.prompt_linter import PromptLinter
 
 try:
     import psutil
@@ -48,7 +49,7 @@ class ExecutionTracker:
     @property
     def mem_delta_mb(self) -> float:
         return self.end_mem - self.start_mem
-        
+
     def report(self) -> dict[str, Any]:
         return {
             "operation": self.name,
@@ -58,7 +59,7 @@ class ExecutionTracker:
             "memory_delta_mb": round(self.mem_delta_mb, 2)
         }
 
-def track_execution(name: Optional[str] = None):
+def track_execution(name: str | None = None):
     """
     Decorator to easily track execution metrics for a function without polluting its logic.
     """
@@ -67,7 +68,7 @@ def track_execution(name: Optional[str] = None):
             op_name = name or func.__name__
             with ExecutionTracker(op_name) as tracker:
                 result = func(*args, **kwargs)
-                
+
             # Log or store the metrics
             try:
                 from src.core.sovereign_hud import SovereignHUD
@@ -77,7 +78,7 @@ def track_execution(name: Optional[str] = None):
                     SovereignHUD.persona_log("INFO", f"[{op_name}] Latency: {tracker.latency_ms:.2f}ms | Mem: {delta_str}")
             except Exception:
                 pass
-                
+
             return result
         return wrapper
     return decorator
@@ -92,7 +93,7 @@ class ProjectMetricsEngine:
         self.root = os.getcwd()
         full_weights_path = os.path.join(self.root, weights_path)
         if os.path.exists(full_weights_path):
-            with open(full_weights_path, 'r') as f:
+            with open(full_weights_path) as f:
                 self.weights = json.load(f)
         else:
             self.weights = {
@@ -102,7 +103,7 @@ class ProjectMetricsEngine:
                 "cortex_alignment": 15,
                 "lore_saga": 10
             }
-            
+
     def compute(self, project_root: str = ".") -> float:
         """
         Orchestrates Radon, Pytest pass rates, PromptLinter score, and AtomicCortex loss
@@ -110,10 +111,10 @@ class ProjectMetricsEngine:
         """
         linter = PromptLinter()
         warden = AnomalyWarden()
-        
+
         # 1. Prompt Integrity (15%)
         prompt_score = linter.calculate_integrity_score()
-        
+
         # 2. Cortex Alignment (15%) - Uses AnomalyWarden anomaly probability
         #    Low anomaly probability = high alignment
         try:
@@ -123,12 +124,12 @@ class ProjectMetricsEngine:
             import logging
             logging.warning(f"AnomalyWarden alignment fallback triggered: {e}")
             alignment_score = 70.0  # safe fallback
-        
+
         # 3. Functional Health (35%) - Mocking or running pytest pass rate
         # In a real environment, we'd run: pytest --json-report
         # For now, we'll use a heuristic or check a log file
         functional_score = 80.0 # Default
-        
+
         # 4. Form/Structure (25%) - Complexity check via subprocess radon
         complexity_score = 70.0 # Default
         try:
@@ -140,10 +141,10 @@ class ProjectMetricsEngine:
                 complexity_score = 90.0 if "Average complexity: A" in result.stdout else 60.0
         except Exception:
             pass
-            
+
         # 5. Lore Saga (10%) - Documentation check
         lore_score = 50.0 # Default
-        
+
         final_gphs = (
             (functional_score * self.weights["function"]) +
             (complexity_score * self.weights["form_structure"]) +
@@ -151,5 +152,5 @@ class ProjectMetricsEngine:
             (alignment_score * self.weights["cortex_alignment"]) +
             (lore_score * self.weights["lore_saga"])
         ) / 100.0
-        
+
         return final_gphs

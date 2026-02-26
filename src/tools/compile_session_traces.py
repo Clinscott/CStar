@@ -3,15 +3,14 @@ import json
 import os
 import shutil
 from datetime import datetime
-from typing import Dict, List
 
 
 class TraceAnalyzer:
     """[ALFRED] Advanced analytics for neural traces."""
-    def __init__(self, traces: List[dict]) -> None:
+    def __init__(self, traces: list[dict]) -> None:
         self.traces = traces
 
-    def get_summary(self) -> Dict:
+    def get_summary(self) -> dict:
         if not self.traces: return {}
         scores = [t.get('score', 0) for t in self.traces]
         return {
@@ -22,7 +21,7 @@ class TraceAnalyzer:
             "by_persona": self._group_by_persona()
         }
 
-    def _group_by_persona(self) -> Dict[str, List[dict]]:
+    def _group_by_persona(self) -> dict[str, list[dict]]:
         grouped = {}
         for t in self.traces:
             p = t.get('persona', 'UNKNOWN').upper()
@@ -42,7 +41,7 @@ class ReportRenderer:
     def __init__(self, report_path: str) -> None:
         self.path = report_path
 
-    def render(self, traces: List[dict], stats: Dict):
+    def render(self, traces: list[dict], stats: dict):
         lines = [
             "# 🧠 C* Neural Trace Report\n",
             f"**Session Traces**: {stats.get('total', 0)}\n",
@@ -93,21 +92,21 @@ def compile_traces(tdir: str = None, rpath: str = None):
     raw_traces = []
     for f in files:
         try:
-            with open(f, 'r') as j: raw_traces.append(json.load(j))
-        except (json.JSONDecodeError, IOError, OSError): pass
-    
+            with open(f) as j: raw_traces.append(json.load(j))
+        except (json.JSONDecodeError, OSError): pass
+
     analyzer = TraceAnalyzer(raw_traces)
     stats = analyzer.get_summary()
     ReportRenderer(rpath).render(raw_traces, stats)
-    
+
     # Auto-Corrections
     if stats.get('critical_fails'):
         corrections_path = os.path.join(base, ".agent", "corrections.json")
         try:
             data = {}
             if os.path.exists(corrections_path):
-                with open(corrections_path, 'r') as f: data = json.load(f)
-            
+                with open(corrections_path) as f: data = json.load(f)
+
             mappings = data.get("phrase_mappings", {})
             for fail in stats['critical_fails']:
                 # Auto-map query to expected trigger if available
@@ -118,7 +117,7 @@ def compile_traces(tdir: str = None, rpath: str = None):
                 # Assuming traces might come from fishtest or have 'expected' field.
                 if 'expected' in fail and 'query' in fail:
                     mappings[fail['query']] = fail['expected']
-            
+
             data["phrase_mappings"] = mappings
             with open(corrections_path, 'w') as f: json.dump(data, f, indent=2)
             print(f"Applied {len(stats['critical_fails'])} corrections to {corrections_path}")
@@ -130,8 +129,8 @@ def compile_traces(tdir: str = None, rpath: str = None):
     os.makedirs(archive, exist_ok=True)
     for f in files: shutil.move(f, os.path.join(archive, os.path.basename(f)))
     print(f"Report generated: {rpath}")
-    
+
     return raw_traces, stats
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     compile_traces()

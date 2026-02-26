@@ -1,5 +1,6 @@
 import sys
 
+
 def rot13(text):
     result = ""
     for char in text:

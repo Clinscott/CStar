@@ -1,10 +1,9 @@
 
-import pytest
-from unittest.mock import MagicMock, patch
-from pathlib import Path
 import json
 import sys
-import os
+from pathlib import Path
+
+import pytest
 
 # Add project root to sys.path
 PROJECT_ROOT = Path(__file__).parents[2]
@@ -13,11 +12,12 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from src.sentinel.wardens.freya import FreyaWarden
 
+
 class TestFreyaEmpire:
     """
     [Saga] Docstring missing.
     """
-    
+
     @pytest.fixture
     def mock_root(self, tmp_path):
         """Creates a mock project root with necessary structure."""
@@ -35,10 +35,10 @@ class TestFreyaEmpire:
         tsx_file = mock_root / "src" / "components" / "MyButton.tsx"
         tsx_file.parent.mkdir(parents=True, exist_ok=True)
         tsx_file.write_text('<button className="bg-red-500 text-white">Click me</button>', encoding='utf-8')
-        
+
         warden = FreyaWarden(mock_root)
         results = warden.scan()
-        
+
         breach = next((b for b in results if b["type"] == "FREYA_HOVER_MISSING"), None)
         assert breach is not None
         assert breach["file"] == str(tsx_file.relative_to(mock_root))
@@ -48,10 +48,10 @@ class TestFreyaEmpire:
         tsx_file = mock_root / "src" / "components" / "BadStyle.tsx"
         tsx_file.parent.mkdir(parents=True, exist_ok=True)
         tsx_file.write_text('<div className="w-[350px]">Custom Width</div>', encoding='utf-8')
-        
+
         warden = FreyaWarden(mock_root)
         results = warden.scan()
-        
+
         breach = next((b for b in results if b["type"] == "FREYA_TAILWIND_ARBITRARY"), None)
         assert breach is not None
         assert "-[350px]" in breach["action"]
@@ -71,10 +71,10 @@ class TestFreyaEmpire:
         tsx_file.parent.mkdir(parents=True, exist_ok=True)
         # #FF0000 is red, not in our allowed palette
         tsx_file.write_text('<div style={{ color: "#FF0000" }}>Red</div>', encoding='utf-8')
-        
+
         warden = FreyaWarden(mock_root)
         results = warden.scan()
-        
+
         breach = next((b for b in results if b["type"] == "FREYA_COLOR_DEVIANCE"), None)
         assert breach is not None
         assert "#FF0000" in breach["action"]
@@ -87,7 +87,7 @@ class TestFreyaEmpire:
         tsx_file = mock_root / "src" / "components" / "GoodButton.tsx"
         tsx_file.parent.mkdir(parents=True, exist_ok=True)
         tsx_file.write_text('<button className="bg-blue-500 hover:bg-blue-600">Good</button>', encoding='utf-8')
-        
+
         warden = FreyaWarden(mock_root)
         results = warden.scan()
         assert len(results) == 0

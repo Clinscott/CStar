@@ -1,13 +1,11 @@
 import argparse
 import json
-import os
 import random
-import sys
 
 
 def generate_cases(n=1000, threshold=0.3):
     print(f"Generating {n} synthetic test cases...")
-    
+
     # Vocabulary Aligned with sv_engine.py for High Confidence
     vocab = {
         "/lets-go": {
@@ -42,7 +40,7 @@ def generate_cases(n=1000, threshold=0.3):
     ]
 
     cases = []
-    
+
     # 1. Ensure we cover the "Core" manually first (to ensure variety)
     for intent, words in vocab.items():
         for _ in range(int(n * 0.1)): # 10% of N dedicated to simple core coverage
@@ -61,13 +59,13 @@ def generate_cases(n=1000, threshold=0.3):
         intent = random.choice(list(vocab.keys()))
         words = vocab[intent]
         template = random.choice(templates)
-        
+
         query = template.format(
             verb=random.choice(words["verbs"]),
             noun=random.choice(words["nouns"]),
             modifier=random.choice(words["modifiers"])
         )
-        
+
         cases.append({
             "query": query,
             "expected": intent,
@@ -77,7 +75,7 @@ def generate_cases(n=1000, threshold=0.3):
 
     # Shuffle to ensure distribution
     random.shuffle(cases)
-    
+
     return {
         "baseline_accuracy": 100.0,
         "test_cases": cases[:n] # Trim exact
@@ -89,13 +87,13 @@ if __name__ == "__main__":
     parser.add_argument("-o", "--offset", type=int, default=1, help="Multiplier for routine 10x increases")
     parser.add_argument("-t", "--threshold", type=float, default=0.3, help="Minimum score threshold for synthetic cases")
     args = parser.parse_args()
-    
+
     total_n = args.n * args.offset
-    
+
     data = generate_cases(total_n, threshold=args.threshold)
-    
+
     filename = f"fishtest_N{total_n}.json"
     with open(filename, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2)
-        
+
     print(f"Values exported to {filename}")

@@ -13,7 +13,6 @@ import py_compile
 import shutil
 import subprocess
 import sys
-from datetime import datetime
 
 # Ensure we can import shared UI
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
@@ -44,14 +43,14 @@ class Synapse:
         self.project_root = os.path.dirname(self.base_dir) # CorvusStar
         self.config_path = os.path.join(self.base_dir, "config.json")
         self.config = self._load_config()
-        
+
         self.core_path = self.config.get("KnowledgeCore")
         if not self.core_path:
             SovereignHUD.box_top("SYNAPSE ERROR")
             SovereignHUD.box_row("ERROR", "KnowledgeCore not defined in config.json", SovereignHUD.RED)
             SovereignHUD.box_bottom()
             sys.exit(1)
-            
+
         if not os.path.exists(self.core_path):
             SovereignHUD.box_top("SYNAPSE ERROR")
             SovereignHUD.box_row("ERROR", f"Core path not found: {self.core_path}", SovereignHUD.RED)
@@ -61,7 +60,7 @@ class Synapse:
     def _load_config(self):
         if os.path.exists(self.config_path):
             try:
-                with open(self.config_path, 'r') as f:
+                with open(self.config_path) as f:
                     return json.load(f)
             except: return {}
         return {}
@@ -69,10 +68,10 @@ class Synapse:
     def _git_cmd(self, args, cwdir):
         try:
             result = subprocess.run(
-                ["git"] + args, 
-                cwd=cwdir, 
-                capture_output=True, 
-                text=True, 
+                ["git"] + args,
+                cwd=cwdir,
+                capture_output=True,
+                text=True,
                 check=False
             )
             return result.returncode == 0, result.stdout.strip(), result.stderr.strip()
@@ -83,7 +82,7 @@ class Synapse:
         SovereignHUD.box_top("SYNAPSE: INHALE")
         if dry_run:
             SovereignHUD.box_row("MODE", "DRY RUN (No changes will be applied)", SovereignHUD.YELLOW)
-        
+
         # 1. Update Core
         SovereignHUD.box_row("ACTION", "Syncing Knowledge Core...", SovereignHUD.CYAN)
         if not dry_run:
@@ -96,18 +95,18 @@ class Synapse:
             SovereignHUD.box_row("STATUS", "Skipped (Dry Run)", SovereignHUD.YELLOW)
 
         changes_count = 0
-        
+
         # 2. Sync Skills
         core_skills = os.path.join(self.core_path, "skills")
         local_db = os.path.join(self.project_root, "skills_db")
-        
+
         if os.path.exists(core_skills):
             if not os.path.exists(local_db) and not dry_run: os.makedirs(local_db)
-            
+
             for item in os.listdir(core_skills):
                 src = os.path.join(core_skills, item)
                 dst = os.path.join(local_db, item)
-                
+
                 if os.path.isdir(src):
                     # Directory Sync
                     if not os.path.exists(dst):
@@ -129,17 +128,17 @@ class Synapse:
         # 3. Merge Corrections
         core_corr_path = os.path.join(self.core_path, "corrections.json")
         local_corr_path = os.path.join(self.base_dir, "corrections.json")
-        
+
         if os.path.exists(core_corr_path):
             try:
-                with open(core_corr_path, 'r') as f:
+                with open(core_corr_path) as f:
                     core_corr = json.load(f)
-                
+
                 local_corr = {}
                 if os.path.exists(local_corr_path):
-                    with open(local_corr_path, 'r') as f:
+                    with open(local_corr_path) as f:
                         local_corr = json.load(f)
-                
+
                 merged = 0
                 for k, v in core_corr.items():
                     # Core overrides local if not present or explicitly global
@@ -147,18 +146,18 @@ class Synapse:
                         v['is_global'] = True
                         local_corr[k] = v
                         merged += 1
-                
+
                 if merged > 0:
                     with open(local_corr_path, 'w') as f:
                         json.dump(local_corr, f, indent=4)
                     SovereignHUD.box_row("WISDOM", f"Absorbed {merged} global corrections", SovereignHUD.MAGENTA)
                     changes_count += 1
             except Exception as e:
-                SovereignHUD.box_row("ERROR", f"Corruption in Core Corrections: {str(e)}", SovereignHUD.RED)
-                
+                SovereignHUD.box_row("ERROR", f"Corruption in Core Corrections: {e!s}", SovereignHUD.RED)
+
         if changes_count == 0:
             SovereignHUD.box_row("RESULT", "Knowledge is already synchronized.", SovereignHUD.GREEN)
-            
+
         SovereignHUD.box_bottom()
 
 
@@ -169,7 +168,7 @@ class Synapse:
         # 1. Syntax Check
         try:
             py_compile.compile(file_path, doraise=True)
-        except py_compile.PyCompileError as e:
+        except py_compile.PyCompileError:
             SovereignHUD.box_row("REJECTED", f"Syntax Error in {os.path.basename(file_path)}", SovereignHUD.RED)
             return False
 
@@ -192,24 +191,24 @@ class Synapse:
 
     def push(self):
         SovereignHUD.box_top("SYNAPSE: EXHALE")
-        
+
         updates = []
-        
+
         # 1. Scan Local Skills for Global Candidates
         # Look for "GLOBAL: True" in file content
         local_skills_dir = os.path.join(self.project_root, "skills")
         core_skills_dir = os.path.join(self.core_path, "skills")
-        
+
         if os.path.exists(local_skills_dir):
             for f in os.listdir(local_skills_dir):
                 if f.endswith(".py"):
                     path = os.path.join(local_skills_dir, f)
                     try:
-                        with open(path, 'r', encoding='utf-8') as content:
+                        with open(path, encoding='utf-8') as content:
                             if "GLOBAL: True" in content.read():
                                 # Candidate found
                                 dst = os.path.join(core_skills_dir, f)
-                                
+
                                 # Gatekeeper Validation
                                 if not self._validate_skill(path):
                                     updates.append(f"REJECTED: {f}")
@@ -218,7 +217,7 @@ class Synapse:
                                 if not os.path.exists(dst) or os.path.getmtime(path) > os.path.getmtime(dst):
                                     shutil.copy2(path, dst)
                                     updates.append(f"Skill: {f}")
-                                    
+
                                     # Copy associated md if exists
                                     md_file = f.replace(".py", ".md")
                                     md_path = os.path.join(local_skills_dir, ("skills", md_file)) # Logic check? usually structure is skills/name/SKILL.md or flattened
@@ -228,17 +227,17 @@ class Synapse:
         # 2. Push Corrections
         local_corr_path = os.path.join(self.base_dir, "corrections.json")
         core_corr_path = os.path.join(self.core_path, "corrections.json")
-        
+
         if os.path.exists(local_corr_path):
             try:
-                with open(local_corr_path, 'r') as f:
+                with open(local_corr_path) as f:
                     local_corr = json.load(f)
-                
+
                 core_corr = {}
                 if os.path.exists(core_corr_path):
-                    with open(core_corr_path, 'r') as f:
+                    with open(core_corr_path) as f:
                         core_corr = json.load(f)
-                        
+
                 corr_updates = 0
                 for k, v in local_corr.items():
                     # Only push if HIGH confidence and marked for export (or just really high confidence)
@@ -247,7 +246,7 @@ class Synapse:
                         if k not in core_corr:
                             core_corr[k] = v
                             corr_updates += 1
-                
+
                 if corr_updates > 0:
                     with open(core_corr_path, 'w') as f:
                         json.dump(core_corr, f, indent=4)
@@ -256,18 +255,18 @@ class Synapse:
 
         if updates:
             SovereignHUD.box_row("CONTRIBUTION", f"Committing {len(updates)} change items...", SovereignHUD.CYAN)
-            
+
             # Git Commit
             self._git_cmd(["add", "."], self.core_path)
             msg = f"[SYNAPSE] Knowledge from CorvusStar: {', '.join(updates)}"
             ok, out, err = self._git_cmd(["commit", "-m", msg], self.core_path)
-            
+
             if ok:
                 SovereignHUD.box_row("STATUS", "Committed to Core", SovereignHUD.GREEN)
                 # git push usually fails in these non-auth environments, but we try
                 # For local folder repo, it's just a commit basically unless it has origin
                 # Assuming this IS the repo or has origin
-                ok, out, err = self._git_cmd(["push"], self.core_path) 
+                ok, out, err = self._git_cmd(["push"], self.core_path)
             else:
                 SovereignHUD.box_row("WARNING", "Nothing to commit or commit failed", SovereignHUD.YELLOW)
 
@@ -281,11 +280,11 @@ def main():
     parser.add_argument("--pull", action="store_true", help="Inhale: Update local from Core")
     parser.add_argument("--push", action="store_true", help="Exhale: Push local to Core")
     parser.add_argument("--dry-run", action="store_true", help="Simulate changes without applying")
-    
+
     args = parser.parse_args()
-    
+
     synapse = Synapse()
-    
+
     if args.pull:
         synapse.pull(dry_run=args.dry_run)
     elif args.push:

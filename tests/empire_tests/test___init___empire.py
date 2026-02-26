@@ -1,5 +1,6 @@
 import pytest
 
+
 def test_src_is_importable_as_a_package():
     """
     Tests that the 'src' directory can be imported as a package,

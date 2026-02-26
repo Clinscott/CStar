@@ -13,7 +13,7 @@ class Cortex:
         self.project_root = project_root
         # Initialize a fresh brain for knowledge (separate from skills)
         self.brain = SovereignVector(stopwords_path=os.path.join(base_path, "scripts", "stopwords.json"))
-        
+
         # Knowledge Sources - [ALFRED] Staged Symbiosis: Support .qmd with .md fallback
         doc_names = ["AGENTS", "wireframe", "memories", "SovereignFish"]
         self.knowledge_map = {}
@@ -24,15 +24,15 @@ class Cortex:
                 self.knowledge_map[f"{name}.qmd"] = qmd_path
             elif os.path.exists(md_path):
                 self.knowledge_map[f"{name}.md"] = md_path
-        
+
         self._ingest()
-    
+
     def _ingest(self):
         """[ALFRED] Secure ingestion of project laws into the Cortex."""
         from src.core.sovereign_hud import SovereignHUD  # Lazy import to avoid circularity
-        
+
         for name, path in self.knowledge_map.items():
-            if not os.path.exists(path): 
+            if not os.path.exists(path):
                 continue
             try:
                 # [ALFRED] Size guard for the Cortex
@@ -40,15 +40,15 @@ class Cortex:
                     SovereignHUD.log("WARN", "Cortex Security", f"Doc too large: {name}")
                     continue
 
-                with open(path, 'r', encoding='utf-8') as f:
+                with open(path, encoding='utf-8') as f:
                     content = f.read()
-                
+
                 # Chunk by Headers (Markdown)
                 # Split capturing the delimiter
                 sections = re.split(r'(^#+ .*$)', content, flags=re.MULTILINE)
-                
+
                 current_header = name
-                
+
                 # If the file doesn't start with a header, the first chunk is "intro"
                 if sections and not sections[0].startswith('#'):
                      self.brain.add_skill(f"{name} > Intro", sections[0].strip())
@@ -56,17 +56,17 @@ class Cortex:
                 for i in range(len(sections)):
                     section = sections[i].strip()
                     if not section: continue
-                    
+
                     if section.startswith('#'):
                         current_header = f"{name} > {section.lstrip('#').strip()}"
                     else:
                         self.brain.add_skill(current_header, section)
-            except (IOError, PermissionError) as e:
-                SovereignHUD.log("FAIL", "Cortex Ingest", f"{name} ({str(e)})")
-            except Exception as e:
+            except (OSError, PermissionError) as e:
+                SovereignHUD.log("FAIL", "Cortex Ingest", f"{name} ({e!s})")
+            except Exception:
                 # [ALFRED] Log but do not crash; Cortex is auxiliary
                 SovereignHUD.log("WARN", "Cortex Warning", f"Failed to digest {name}")
-        
+
         self.brain.build_index()
 
     def query(self, text):

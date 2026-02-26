@@ -1,9 +1,9 @@
 """Shared fixtures for sentinel tests."""
-import os
 import sys
-import pytest
 from pathlib import Path
 from unittest.mock import MagicMock
+
+import pytest
 
 # ---------------------------------------------------------------------------
 # Centralised sys.path setup — ensures every bare import used by tests
@@ -113,21 +113,21 @@ def reset_hud_singleton():
             # If we already have a mock at this point, we can't save the 'original'.
             originals = {}
             methods = [
-                "box_top", "box_row", "box_bottom", "log", "persona_log", 
-                "warning", "broadcast", "render_loop", "stream_text", 
+                "box_top", "box_row", "box_bottom", "log", "persona_log",
+                "warning", "broadcast", "render_loop", "stream_text",
                 "progress_bar", "render_sparkline", "_speak", "_ensure_persona"
             ]
             for name in methods:
                 val = getattr(SovereignHUD, name, None)
                 if val and not isinstance(val, (unittest.mock.Mock, unittest.mock.MagicMock)):
                     originals[name] = val
-            
+
             reset_hud_singleton._originals_map[SovereignHUD] = originals
 
     def _full_reset():
         # 1. Kill any persistent patches
         unittest.mock.patch.stopall()
-        
+
         # 2. Reset each unique SovereignHUD class
         huds = _get_hud_instances()
         for SovereignHUD in huds:
@@ -138,14 +138,14 @@ def reset_hud_singleton():
             SovereignHUD._render_lock = None
             if hasattr(SovereignHUD, "_last_width"):
                 delattr(SovereignHUD, "_last_width")
-                
+
             # Restore methods ONLY if they are currently Mocks.
             originals = reset_hud_singleton._originals_map.get(SovereignHUD, {})
             for name, original in originals.items():
                 current_val = getattr(SovereignHUD, name, None)
                 if isinstance(current_val, (unittest.mock.Mock, unittest.mock.MagicMock)):
                     setattr(SovereignHUD, name, original)
-        
+
         # 3. Diagnostic: Check if any OTHER module has a SovereignHUD that we missed
         for mod_name, mod in list(sys.modules.items()):
             if mod_name.startswith("tests") or mod_name.startswith("src"):

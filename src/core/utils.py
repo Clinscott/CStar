@@ -1,9 +1,9 @@
+import json
 import os
+import queue
 import re
 import sys
 import threading
-import queue
-import json
 from pathlib import Path
 
 try:
@@ -21,17 +21,17 @@ def safe_read_json(path: Path | str) -> dict:
     path = Path(path)
     if not path.exists():
         return {}
-        
+
     try:
-        with open(path, 'r', encoding='utf-8') as f:
+        with open(path, encoding='utf-8') as f:
             if msvcrt:
                 # Windows-specific: shared read lock (LK_NBLCK)
                 try:
                     msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, os.path.getsize(path))
-                except (IOError, OSError):
+                except OSError:
                     pass
             return json.load(f)
-    except (json.JSONDecodeError, IOError, OSError):
+    except (json.JSONDecodeError, OSError):
         return {}
 
 def _read_json_file(path: Path) -> dict:
@@ -48,7 +48,7 @@ def input_with_timeout(prompt: str, timeout: int = 30) -> str:
     """[ALFRED] Non-blocking threaded input for responsive shells."""
     print(prompt, end="", flush=True)
     q = queue.Queue()
-    
+
     def _read() -> None:
         """Reads one line from sys.stdin and puts it into the queue."""
         try: q.put(sys.stdin.readline().strip().lower())

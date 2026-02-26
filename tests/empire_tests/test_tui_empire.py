@@ -17,17 +17,11 @@ Tests cover:
     11. VitalsHeader update logic
 """
 
-import json
-import pytest
-import asyncio
-from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
 
 from src.cstar.core.tui import (
     KNOWN_COMMANDS,
     LORE,
     PROJECT_ROOT,
-    CommandInput,
     DashboardScreen,
     ForgeScreen,
     GPHSGauge,
@@ -37,7 +31,6 @@ from src.cstar.core.tui import (
     VitalsHeader,
     _load_greeting,
 )
-
 
 # ═══════════════════════════════════════════════════════════════════════════
 # 2. SovereignApp Instantiation

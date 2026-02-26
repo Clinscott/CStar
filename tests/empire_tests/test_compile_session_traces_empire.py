@@ -1,5 +1,5 @@
-import pytest
 from src.tools.compile_session_traces import TraceAnalyzer
+
 
 def test_trace_analyzer_summary():
     traces = [
@@ -7,10 +7,10 @@ def test_trace_analyzer_summary():
         {"query": "test 2", "match": "skill_b", "score": 0.5, "persona": "ODIN"},
         {"query": "test 3", "match": "skill_a", "score": 0.8, "persona": "ALFRED"}
     ]
-    
+
     analyzer = TraceAnalyzer(traces)
     summary = analyzer.get_summary()
-    
+
     assert summary["total"] == 3
     assert summary["avg_score"] == (0.9 + 0.5 + 0.8) / 3
     assert summary["top_performer"] == "skill_a"

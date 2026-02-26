@@ -11,7 +11,6 @@ import argparse
 import json
 import os
 import py_compile
-import re
 import shutil
 import subprocess
 import sys
@@ -46,19 +45,19 @@ class PushRateLimiter:
     RATE_LIMIT_FILE = ".synapse_rate_limit.json"
     MAX_ATTEMPTS_PER_HOUR = 10
     LOCKOUT_MINUTES = 30
-    
+
     def __init__(self, core_path: str):
         self.path = os.path.join(core_path, self.RATE_LIMIT_FILE)
         self.data = self._load()
-    
+
     def _load(self) -> dict:
         if os.path.exists(self.path):
             try:
-                with open(self.path, 'r', encoding='utf-8') as f:
+                with open(self.path, encoding='utf-8') as f:
                     return json.load(f)
             except: pass
         return {"attempts": [], "locked_until": None}
-    
+
     def _save(self):
         try:
             with open(self.path, 'w', encoding='utf-8') as f:
@@ -73,7 +72,7 @@ class PushRateLimiter:
                 return False, f"Locked out for {remaining} more minutes"
             else:
                 self.data["locked_until"] = None
-        
+
         one_hour_ago = now - 3600
         self.data["attempts"] = [a for a in self.data["attempts"] if a > one_hour_ago]
         if len(self.data["attempts"]) >= self.MAX_ATTEMPTS_PER_HOUR:
@@ -107,17 +106,17 @@ class Synapse:
     def __init__(self):
         self.script_dir = os.path.dirname(os.path.abspath(__file__))
         self.base_dir = os.path.dirname(self.script_dir) # .agent
-        self.project_root = os.path.dirname(self.base_dir) 
+        self.project_root = os.path.dirname(self.base_dir)
         self.config_path = os.path.join(self.base_dir, "config.json")
         self.config = self._load_json_safe(self.config_path)
-        
+
         self.core_path = self.config.get("KnowledgeCore")
         if not self.core_path or not os.path.exists(self.core_path):
             SovereignHUD.box_top("SYNAPSE ERROR")
             SovereignHUD.box_row("ERROR", "KnowledgeCore invalid/missing in config.json", SovereignHUD.RED)
             SovereignHUD.box_bottom()
             sys.exit(1)
-            
+
         self.rate_limiter = PushRateLimiter(self.core_path)
         self.security_logger = SecurityEventLogger(os.path.join(self.core_path, ".synapse_audit.log"))
 
@@ -126,7 +125,7 @@ class Synapse:
             if not os.path.exists(file_path): return {}
             file_size = os.path.getsize(file_path)
             if file_size > max_size_mb * 1024 * 1024: return {}
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, encoding='utf-8') as f:
                 data = json.load(f)
             return data if isinstance(data, dict) else {}
         except: return {}
@@ -162,16 +161,16 @@ class Synapse:
         # 1. Network/Git check
         ok, out, err = self._git_cmd(["ls-remote", "--exit-code", "-q"], self.core_path)
         if not ok: return False, "Remote unreachable or not a git repo"
-        
+
         # 2. Dry-run auth check
         ok, out, err = self._git_cmd(["push", "--dry-run", "--porcelain"], self.core_path)
         if not ok: return False, f"Push denied: {err[:50]}"
-        
+
         # 3. Identity check
         ok, name, _ = self._git_cmd(["config", "user.name"], self.core_path)
         ok2, email, _ = self._git_cmd(["config", "user.email"], self.core_path)
         if not name or not email: return False, "Git identity not configured"
-        
+
         return True, f"{name} <{email}>"
 
     def pull(self, dry_run=False):
@@ -183,7 +182,7 @@ class Synapse:
         changes = 0
         core_skills = os.path.join(self.core_path, "skills")
         local_db = os.path.join(self.project_root, "skills_db")
-        
+
         if os.path.exists(core_skills):
             if not os.path.exists(local_db) and not dry_run: os.makedirs(local_db)
             for item in os.listdir(core_skills):
@@ -212,13 +211,13 @@ class Synapse:
             with open(local_corr_path, 'w', encoding='utf-8') as f: json.dump(local_corr, f, indent=4)
             SovereignHUD.box_row("WISDOM", f"Absorbed {merged} corrections", SovereignHUD.MAGENTA)
             changes += 1
-        
+
         if changes == 0: SovereignHUD.box_row("RESULT", "Knowledge synchronized.", SovereignHUD.GREEN)
         SovereignHUD.box_bottom()
 
     def push(self):
         SovereignHUD.box_top("SYNAPSE: EXHALE")
-        
+
         # Layer 1: Rate Limit
         allowed, reason = self.rate_limiter.check_rate_limit()
         if not allowed:
@@ -232,9 +231,9 @@ class Synapse:
             SovereignHUD.box_row("FORBIDDEN", identity, SovereignHUD.RED)
             self.security_logger.log("AUTH_FAILURE", {"reason": identity})
             SovereignHUD.box_bottom(); return
-        
+
         SovereignHUD.box_row("AUTHORIZED", identity, SovereignHUD.GREEN)
-        
+
         updates = []
         # Skill extraction
         l_skills = os.path.join(self.project_root, "skills")
@@ -243,7 +242,7 @@ class Synapse:
                 if f.endswith(".py"):
                     p = os.path.join(l_skills, f)
                     try:
-                        with open(p, 'r', encoding='utf-8') as c:
+                        with open(p, encoding='utf-8') as c:
                             if "GLOBAL: True" in c.read() and self._validate_skill(p):
                                 dst = os.path.join(self.core_path, "skills", f)
                                 if not os.path.exists(dst) or os.path.getmtime(p) > os.path.getmtime(dst):
@@ -266,7 +265,7 @@ class Synapse:
             # Backup
             ts = datetime.now().strftime("%Y%m%d_%H%M%S")
             self._git_cmd(["branch", f"backup/pre-push_{ts}"], self.core_path)
-            
+
             self._git_cmd(["add", "."], self.core_path)
             msg = f"[SYNAPSE] Contribution from {identity}: {', '.join(updates)}"
             ok, _, _ = self._git_cmd(["commit", "-m", msg], self.core_path)

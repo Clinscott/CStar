@@ -1,11 +1,17 @@
-import math
-import subprocess
+"""
+[LOGIC] Odin Protocol Game Mechanics
+Lore: "The rules of the All-Father's game."
+Purpose: Implements combat ratings, effective stats, and choice adjudication.
+"""
 
-from .models import Chromosome, Item, UniverseState
+import subprocess
+from typing import Any
+
+from src.games.odin_protocol.engine.models import Chromosome, Item, UniverseState
 
 # The Great Synergy Map (24 Chromosomes)
 # Rule: Each trait has exactly 2 Synergies (+10%) and 1 Interference (-15%)
-SYNERGY_MAP = {
+SYNERGY_MAP: dict[str, dict[str, list[str]]] = {
     "AESIR_MIGHT": {
         "synergies": ["BERSERKER_RAGE", "TYR_BARRIER"],
         "interferences": ["LOKI_SHADOW"],
@@ -114,7 +120,15 @@ __all__ = [
 ]
 
 def get_federated_seed(project_root: str) -> str:
-    """Derives a unique seed from the project's Git metadata."""
+    """
+    Derives a unique seed from the project's Git metadata.
+    
+    Args:
+        project_root: Path to the project root.
+        
+    Returns:
+        A unique seed string starting with 'C*'.
+    """
     try:
         git_hash = subprocess.check_output(
             ["git", "rev-parse", "--short", "HEAD"],
@@ -125,8 +139,13 @@ def get_federated_seed(project_root: str) -> str:
     except (subprocess.CalledProcessError, FileNotFoundError):
         return "C*FALLBACK_GENESIS"
 
-def calculate_effective_stats(inventory: dict[str, Chromosome], items: list[Item], world_modifiers: list[dict] = None) -> dict[str, float]:
-    """Calculates the ripple-effect math with Recursive Synergies and Compounds.
+def calculate_effective_stats(
+    inventory: dict[str, Chromosome],
+    items: list[Item],
+    world_modifiers: list[dict[str, Any]] | None = None
+) -> dict[str, float]:
+    """
+    Calculates the ripple-effect math with Recursive Synergies and Compounds.
 
     Args:
         inventory: Map of IDs to Chromosome objects.
@@ -152,7 +171,8 @@ def calculate_effective_stats(inventory: dict[str, Chromosome], items: list[Item
     base_snapshot = {id: float(c.level) for id, c in inventory.items()}
     for char_id, level in base_snapshot.items():
         mapping = SYNERGY_MAP.get(char_id)
-        if not mapping: continue
+        if not mapping:
+            continue
 
         # Apply logic: Inverted planets swap Synergies and Interferences
         is_inverted = char_id in inversions
@@ -160,24 +180,47 @@ def calculate_effective_stats(inventory: dict[str, Chromosome], items: list[Item
         int_mult = -0.15 if not is_inverted else 0.10
 
         for target in mapping["synergies"]:
-            if target in eff_stats: eff_stats[target] += (level * syn_mult)
+            if target in eff_stats:
+                eff_stats[target] += (level * syn_mult)
         for target in mapping["interferences"]:
-            if target in eff_stats: eff_stats[target] += (level * int_mult)
+            if target in eff_stats:
+                eff_stats[target] += (level * int_mult)
 
     return eff_stats
 
 def get_combat_rating(effective_stats: dict[str, float]) -> float:
-    """Reduces the entire genetic manifest to a single 'Dominion Score'."""
-    if not effective_stats: return 0.0
+    """
+    Reduces the entire genetic manifest to a single 'Dominion Score'.
+    
+    Args:
+        effective_stats: Map of effective trait levels.
+        
+    Returns:
+        The sum of all effective levels.
+    """
+    if not effective_stats:
+        return 0.0
     return sum(effective_stats.values())
 
 def adjudicate_choice(
-    state: UniverseState, choice: dict, stats: dict[str, float], scenario: dict
-) -> dict:
-    """Calculates tactical outcome using a 'Weighted Die Cast' model.
-
+    state: UniverseState,
+    choice: dict[str, Any],
+    stats: dict[str, float],
+    scenario: dict[str, Any]
+) -> dict[str, Any]:
     """
-    from .rng import TacticalRNG
+    Calculates tactical outcome using a 'Weighted Die Cast' model.
+    
+    Args:
+        state: The current UniverseState.
+        choice: The selected option dictionary.
+        stats: Effective player stats.
+        scenario: The current scenario context.
+        
+    Returns:
+        A dictionary containing the result of the adjudication.
+    """
+    from src.games.odin_protocol.engine.rng import TacticalRNG
 
     threshold = choice.get('threshold', 50.0)
     l_void = stats.get("GINNUNGAGAP_VOID", 0.0)
@@ -235,7 +278,8 @@ def adjudicate_choice(
     }
 
 def update_domination(state: UniverseState, success: bool) -> None:
-    """Updates domination percentage for the current world and global empire.
+    """
+    Updates domination percentage for the current world and global empire.
 
     Args:
         state: The current UniverseState object.
@@ -248,14 +292,12 @@ def update_domination(state: UniverseState, success: bool) -> None:
 
         # Global Progress
         state.domination_percent = min(100.0, state.domination_percent + 5.0)
-        state.domination_count += 1
 
         # Mark Conquest if 100% reached
         if state.current_planet_progress >= 100.0:
             state.planets_dominated += 1
             state.mutation_charges = state.planets_dominated
             state.total_worlds_conquered += 1
-            # History recording handled by play_turn
     else:
         # Failure Penalties
         state.current_planet_progress = max(0.0, state.current_planet_progress - 20.0)
@@ -265,7 +307,8 @@ def update_domination(state: UniverseState, success: bool) -> None:
             trigger_restart(state)
 
 def trigger_restart(state: UniverseState) -> None:
-    """Resets the race state upon death while preserving history.
+    """
+    Resets the race state upon death while preserving history.
 
     Args:
         state: The current UniverseState object to reset.
@@ -273,7 +316,6 @@ def trigger_restart(state: UniverseState) -> None:
     # Restart percent = (max_percent / 3) rounded down
     restart_percent = float(int(state.max_percent_reached / 3.0))
     state.domination_percent = max(5.0, restart_percent) # Floor of 5%
-    state.domination_count = 0
 
     # Reset genetic levels to 1, but keep the inventory structure
     for chromosome in state.inventory.values():

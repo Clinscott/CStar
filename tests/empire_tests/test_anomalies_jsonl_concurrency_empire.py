@@ -1,18 +1,17 @@
 
-import pytest
 import json
-import time
-import threading
-from pathlib import Path
 import sys
-from unittest.mock import MagicMock
+import threading
+import time
+from pathlib import Path
+
+import pytest
 
 # [LINKSCOTT] Strict Pathlib and SysPath Management
 PROJECT_ROOT = Path(__file__).parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.core.utils import atomic_jsonl_append # Hypothetical helper for V4
 # Note: I will implement atomic_jsonl_append and the archival logic in the next steps.
 
 class TestAnomaliesJsonlConcurrencyEmpire:
@@ -61,20 +60,20 @@ class TestAnomaliesJsonlConcurrencyEmpire:
             except PermissionError:
                 time.sleep(0.2)
                 retries -= 1
-        
+
         spam_thread.join()
-        
+
         # 4. Data Integrity Verification
         total_entries = 0
         if self.queue_file.exists():
-            with open(self.queue_file, "r") as f:
+            with open(self.queue_file) as f:
                 total_entries += len(f.readlines())
-        
+
         temp_archive = tmp_path / "archive_pulse.jsonl"
         if temp_archive.exists():
-            with open(temp_archive, "r") as f:
+            with open(temp_archive) as f:
                 total_entries += len(f.readlines())
-                
+
         assert total_entries == 50, f"Data loss detected during JSONL swap: {total_entries}/50"
 
 if __name__ == "__main__":

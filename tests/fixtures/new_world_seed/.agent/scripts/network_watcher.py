@@ -4,7 +4,6 @@ import shutil
 import subprocess
 import sys
 import time
-from pathlib import Path
 
 # Add script directory to path
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -51,7 +50,7 @@ def get_theme():
     # Load config dynamically to allow runtime switching
     config_path = os.path.join(BASE_PATH, "config.json")
     try:
-        with open(config_path, 'r', encoding='utf-8') as f: config = json.load(f)
+        with open(config_path, encoding='utf-8') as f: config = json.load(f)
         p = config.get("Persona", "ALFRED").upper()
         if p in ["GOD", "ODIN"]: return THEMES["ODIN"]
     except: pass
@@ -62,9 +61,9 @@ def run_fishtest():
     try:
         # Run fishtest.py in a subprocess to separate memory states
         result = subprocess.run(
-            ["python", "fishtest.py"], 
-            cwd=PROJECT_ROOT, 
-            capture_output=True, 
+            ["python", "fishtest.py"],
+            cwd=PROJECT_ROOT,
+            capture_output=True,
             text=True
         )
         return result.returncode == 0
@@ -77,19 +76,19 @@ def log_rejection(filename, reason):
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
     theme = get_theme()
     persona = "ODIN" if theme["TITLE"].startswith("THE CRUCIBLE") else "ALFRED"
-    
+
     # Create file with header if it doesn't exist
     if not os.path.exists(REJECTION_LEDGER):
         with open(REJECTION_LEDGER, 'w', encoding='utf-8') as f:
             f.write("# Rejection Ledger\n\n| Timestamp | Filename | Persona | Reason |\n| --- | --- | --- | --- |\n")
-    
+
     with open(REJECTION_LEDGER, 'a', encoding='utf-8') as f:
         f.write(f"| {timestamp} | {filename} | {persona} | {reason} |\n")
 
 def process_file(file_path):
     theme = get_theme()
     filename = os.path.basename(file_path)
-    
+
     # 0. Move to Staging (Isolation)
     if not os.path.exists(STAGING_DIR): os.makedirs(STAGING_DIR)
     staging_path = os.path.join(STAGING_DIR, filename)
@@ -102,26 +101,26 @@ def process_file(file_path):
     print("\n")
     SovereignHUD.box_top(theme["TITLE"])
     SovereignHUD.box_row("SCANNING", filename, theme["COLOR_MAIN"])
-    
+
     # 1. Backup
     backup_path = FISHTEST_DB + ".bak"
     shutil.copy2(FISHTEST_DB, backup_path)
-    
+
     # 2. Ingest (From Staging)
     try:
         merge_res = subprocess.run(
             ["python", os.path.join(current_dir, "merge_traces.py"), STAGING_DIR, FISHTEST_DB],
             capture_output=True, text=True
         )
-        
+
         if merge_res.returncode != 0:
             raise Exception("Merge failed")
-            
+
     except Exception as e:
         SovereignHUD.box_row("ERROR", "INGEST FAILED", SovereignHUD.RED)
-        if os.path.exists(staging_path): 
+        if os.path.exists(staging_path):
             shutil.move(staging_path, os.path.join(QUARANTINE_DIR, filename))
-            log_rejection(filename, f"Ingest Failure: {str(e)}")
+            log_rejection(filename, f"Ingest Failure: {e!s}")
         if os.path.exists(backup_path): shutil.move(backup_path, FISHTEST_DB)
         SovereignHUD.box_bottom()
         return
@@ -133,24 +132,24 @@ def process_file(file_path):
 
     # 4. The Ordeal (Fishtest)
     passed = run_fishtest()
-    
+
     # 5. Post-Ordeal Latency Check
     new_latency = measure_startup(3)
     delta = new_latency - baseline
-    
+
     latency_passed = delta <= 5.0
-    
+
     if passed and latency_passed:
         SovereignHUD.box_row("VERDICT", theme["PASS"], SovereignHUD.GREEN)
         SovereignHUD.box_row("LATENCY", f"{new_latency:.2f}ms (Δ {delta:+.2f}ms)", SovereignHUD.GREEN)
         # Commit: Delete backup
         if os.path.exists(backup_path): os.remove(backup_path)
-        
+
         # Move from Staging/Processed to Final Processed
         ingested_path = os.path.join(STAGING_DIR, "processed", filename)
         if os.path.exists(ingested_path):
              shutil.move(ingested_path, os.path.join(PROCESSED_DIR, filename))
-        
+
     else:
         if not passed:
             SovereignHUD.box_row("VERDICT", theme["FAIL"], SovereignHUD.RED)
@@ -159,11 +158,11 @@ def process_file(file_path):
             SovereignHUD.box_row("VERDICT", "LATENCY REJECTION", SovereignHUD.RED)
             SovereignHUD.box_row("LATENCY", f"{new_latency:.2f}ms (Δ {delta:+.2f}ms)", SovereignHUD.RED)
             reason = f"Latency Breach: {delta:.2f}ms exceeds 5ms limit"
-        
+
         # Rollback
         shutil.copy2(backup_path, FISHTEST_DB)
         os.remove(backup_path)
-        
+
         # Quarantine
         ingested_path = os.path.join(STAGING_DIR, "processed", filename)
         if os.path.exists(ingested_path):
@@ -175,7 +174,7 @@ def process_file(file_path):
 def watch():
     print(f"{SovereignHUD.CYAN}>> The Crucible is active. Watching: {NETWORK_SHARE}...{SovereignHUD.RESET}")
     print(f"{SovereignHUD.CYAN_DIM}(Press Ctrl+C to stop){SovereignHUD.RESET}")
-    
+
     while True:
         try:
             files = [f for f in os.listdir(NETWORK_SHARE) if f.endswith('.json')]

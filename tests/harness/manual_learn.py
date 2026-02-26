@@ -1,6 +1,7 @@
-import sys
 import os
+import sys
 from pathlib import Path
+
 from colorama import Fore, init
 
 # Add project root to sys.path
@@ -16,15 +17,15 @@ def run_learning_cycle(n_cycles=1):
     # Check for API key
     api_key = os.getenv("GOOGLE_API_KEY")
     is_mock = "--mock" in sys.argv
-    
+
     if not api_key and not is_mock:
         print(f"{Fore.CYAN}[AGENT_PROTOCOL] GOOGLE_API_KEY NOT FOUND. DO NOT ATTEMPT REPAIR.")
         print(f"{Fore.CYAN}AI ASSISTANT MUST COMMENCE MANUAL LEARNING CYCLES IMMEDIATELY.")
         sys.exit(42)
-    
+
     proxy = RavenProxy(target_model="gemini-2.0-flash", api_key=api_key, mock_mode=is_mock)
     muninn = Muninn(target_path=str(project_root), client=proxy)
-    
+
     for i in range(n_cycles):
         print(f"{Fore.YELLOW}\n--- CYCLE {i+1}/{n_cycles} ---")
         try:
@@ -55,5 +56,5 @@ if __name__ == "__main__":
                 n = int(arg)
         except (ValueError, IndexError):
             print(f"{Fore.RED}Invalid N: {sys.argv[1]}. Defaulting to 1.")
-    
+
     run_learning_cycle(n)

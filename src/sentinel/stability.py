@@ -22,11 +22,20 @@ class GungnirValidator:
     Lore: "The Infallible Strike."
     Purpose: Statistically verify hypothesis (fix is stable) vs (fix is flaky).
     """
-    def __init__(self, alpha=0.05, beta=0.1, p0=0.01, p1=0.2) -> None:
-        self.alpha = alpha # Type I error (False Positive)
-        self.beta = beta   # Type II error (False Negative)
-        self.p0 = p0       # Base failure rate (Null)
-        self.p1 = p1       # Flaky failure rate (Alternative)
+    def __init__(self, alpha: float = 0.05, beta: float = 0.1, p0: float = 0.01, p1: float = 0.2) -> None:
+        """
+        Initializes the SPRT validator with error boundaries and hypothesis probabilities.
+        
+        Args:
+            alpha: Probability of Type I error (False Positive).
+            beta: Probability of Type II error (False Negative).
+            p0: Base failure rate (Null Hypothesis).
+            p1: Flaky failure rate (Alternative Hypothesis).
+        """
+        self.alpha = alpha
+        self.beta = beta
+        self.p0 = p0
+        self.p1 = p1
 
         # Thresholds
         self.A = (1 - beta) / alpha
@@ -34,10 +43,14 @@ class GungnirValidator:
 
         self.log_likelihood_ratio = 0.0
 
-    def record_trial(self, success: bool):
+    def record_trial(self, success: bool) -> None:
         """
-        Calculates the Wald Likelihood Ratio.
+        Calculates the Wald Likelihood Ratio for the current trial.
+        
         ln(L1/L0) = k*ln(p1/p0) + (n-k)*ln((1-p1)/(1-p0))
+        
+        Args:
+            success: Whether the trial passed.
         """
         if success:
             self.log_likelihood_ratio += math.log((1 - self.p1) / (1 - self.p0))
@@ -46,6 +59,14 @@ class GungnirValidator:
 
     @property
     def status(self) -> str:
+        """
+        Determines the current status of the SPRT test.
+        
+        Returns:
+            "REJECT" if the alternative hypothesis (flaky) is accepted.
+            "ACCEPT" if the null hypothesis (stable) is accepted.
+            "CONTINUE" if more trials are needed.
+        """
         if self.log_likelihood_ratio >= math.log(self.A):
             return "REJECT" # Null hypothesis rejected -> Flaky
         if self.log_likelihood_ratio <= math.log(self.B):
@@ -60,11 +81,18 @@ class TheWatcher:
     Purpose: Prevent oscillation (edit wars) and track file edit fatigue.
     """
     def __init__(self, root: Path) -> None:
+        """
+        Initializes the stability watcher with the project root.
+        
+        Args:
+            root: Path to the project root directory.
+        """
         self.root = root
         self.state_file = self.root / ".agent" / "sovereign_state.json"
         self.state: dict[str, Any] = self._load_state()
 
     def _load_state(self) -> dict[str, Any]:
+        """Loads the sovereign state from the local cache."""
         if not self.state_file.exists():
             return {}
         try:
@@ -72,7 +100,8 @@ class TheWatcher:
         except (OSError, json.JSONDecodeError):
             return {}
 
-    def _save_state(self):
+    def _save_state(self) -> None:
+        """Saves the current sovereign state to the local cache."""
         try:
             self.state_file.parent.mkdir(parents=True, exist_ok=True)
             self.state_file.write_text(json.dumps(self.state, indent=2), encoding='utf-8')
@@ -80,7 +109,15 @@ class TheWatcher:
             pass
 
     def is_locked(self, rel_path: str) -> bool:
-        """Checks if a file is locked due to instability."""
+        """
+        Checks if a file is locked due to instability or fatigue.
+        
+        Args:
+            rel_path: Relative path to the file.
+            
+        Returns:
+            True if the file is locked and within cooldown, False otherwise.
+        """
         file_state = self.state.get(rel_path, {})
         if file_state.get("status") == "LOCKED":
             # Cooldown Logic: Auto-unlock after 1 hour
@@ -96,7 +133,13 @@ class TheWatcher:
     def record_edit(self, rel_path: str, content: str) -> bool:
         """
         Records an edit and checks for oscillation or fatigue.
-        Returns True if state is stable, False if oscillation/fatigue detected.
+        
+        Args:
+            rel_path: Relative path to the file.
+            content: The new content of the file.
+            
+        Returns:
+            True if state is stable, False if oscillation/fatigue detected.
         """
         if rel_path not in self.state:
             self.state[rel_path] = {

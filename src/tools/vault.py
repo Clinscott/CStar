@@ -4,14 +4,10 @@
 │ Developed under Operation Ironclad (Phase 72).                                                      │
 └──────────────────────────────────────────────────────────────────────────────────────────────────────┘
 """
-import os
 import sys
-import json
-import base64
 from pathlib import Path
+
 from cryptography.fernet import Fernet
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 # Add project root to sys.path
 project_root = Path(__file__).resolve().parent.parent.parent
@@ -20,15 +16,16 @@ if str(project_root) not in sys.path:
 
 from src.core.sovereign_hud import SovereignHUD
 
+
 class SovereignVault:
     """[ODIN] The master of secrets. Handles encryption, rotation, and shielding."""
-    
+
     def __init__(self):
         self.root = project_root
         self.vault_dir = self.root / ".agent" / "vault"
         self.key_file = self.vault_dir / "master.key"
         self.env_local = self.root / ".env.local"
-        
+
         self.vault_dir.mkdir(parents=True, exist_ok=True)
         self._ensure_master_key()
 
@@ -48,18 +45,18 @@ class SovereignVault:
             return
 
         SovereignHUD.box_top("🛡️ SHIELDING REALM SECRETS")
-        
+
         try:
             raw_data = self.env_local.read_text(encoding='utf-8')
             encrypted_data = self.cipher.encrypt(raw_data.encode('utf-8'))
-            
+
             artifact_path = self.vault_dir / "secrets.bin"
             artifact_path.write_bytes(encrypted_data)
-            
+
             SovereignHUD.box_row("ARTIFACT", str(artifact_path.name), SovereignHUD.GREEN)
             SovereignHUD.box_row("STATUS", "ENCRYPTED & STORED", SovereignHUD.CYAN)
             SovereignHUD.box_bottom()
-            
+
             # [ODIN] We keep the raw file for now, but in Ironclad we might purge it.
             SovereignHUD.persona_log("INFO", "Raw .env.local remains for active use. Vault artifact is synced.")
         except Exception as e:
@@ -69,17 +66,17 @@ class SovereignVault:
         """Rotates the master key and re-encrypts all secrets."""
         SovereignHUD.persona_log("WARN", "Initiating Master Key Rotation Ceremony...")
         old_cipher = self.cipher
-        
+
         # Generate new key
         new_key = Fernet.generate_key()
         new_cipher = Fernet(new_key)
-        
+
         artifact_path = self.vault_dir / "secrets.bin"
         if artifact_path.exists():
             raw = old_cipher.decrypt(artifact_path.read_bytes())
             new_encrypted = new_cipher.encrypt(raw)
             artifact_path.write_bytes(new_encrypted)
-            
+
         self.key_file.write_bytes(new_key)
         self.cipher = new_cipher
         SovereignHUD.persona_log("SUCCESS", "Rotation Complete. All artifacts re-keyed.")

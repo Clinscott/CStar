@@ -12,7 +12,7 @@ from symbolic_legend import SymbolicLegend
 
 
 class TestEmpireInfrastructure(unittest.TestCase):
-    
+
     def setUp(self):
         self.compiler = EmpireCompiler()
         self.legend = SymbolicLegend()
@@ -21,11 +21,11 @@ class TestEmpireInfrastructure(unittest.TestCase):
     def test_compilation_to_ir(self):
         """Verify .qmd to IR transformation."""
         ir = self.compiler.compile(self.contract_path)
-        
+
         self.assertEqual(len(ir['given']), 1)
         self.assertEqual(len(ir['when']), 1)
         self.assertEqual(len(ir['then']), 1)
-        
+
         self.assertIn("Premium [$]", ir['given'][0])
         self.assertIn("Export PDF", ir['when'][0])
 
@@ -47,7 +47,7 @@ class TestEmpireInfrastructure(unittest.TestCase):
 
             self.assertTrue(os.path.exists(output_path))
 
-            with open(output_path, "r", encoding="utf-8") as f:
+            with open(output_path, encoding="utf-8") as f:
                 content = f.read()
                 self.assertIn("class TestContract_example(unittest.TestCase):", content)
                 self.assertIn("# User is Premium [$]", content)

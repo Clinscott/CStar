@@ -39,7 +39,7 @@ def main():
             print("SUCCESS")
         except Exception as e:
             print(f"FAILED ({e})")
-    
+
     return 0 # Return success code
 
 if __name__ == "__main__":

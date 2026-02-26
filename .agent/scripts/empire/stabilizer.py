@@ -21,7 +21,7 @@ class EmpireStabilizer:
             if system_check_fn():
                 return True
             await asyncio.sleep(0.1)
-        
+
         raise TimeoutError("[!] SYSTEM FAILED TO STABILIZE. RUNE OF FLOW BROKEN.")
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
-import pytest
 import unittest.mock as mock
-import json
+
 from src.tools.update_gemini_manifest import update_manifest
+
 
 def test_update_manifest_simple():
     # Direct mock of the logic dependencies
@@ -15,7 +15,7 @@ def test_update_manifest_simple():
                     # but since we mock open, it returns the same mock object.
                     with mock.patch("json.load", return_value={"persona": "ODIN"}):
                          update_manifest()
-                    
+
                     # Verify write calls
                     handle = m()
                     written = "".join(call[0][0] for call in handle.write.call_args_list)

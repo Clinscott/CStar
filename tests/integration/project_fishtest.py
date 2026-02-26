@@ -1,5 +1,6 @@
 import math
 
+
 class GungnirSPRT:
     def __init__(self, alpha=0.05, beta=0.05) -> None:
         """
@@ -18,16 +19,16 @@ class GungnirSPRT:
         Returns 'FAIL' if delta <= 0 (Regression).
         """
         delta = post_gphs - pre_gphs
-        
+
         # Regression case: definitely FAIL
         if delta <= 0:
             return 'FAIL'
-            
+
         # For a single observation, we use a simple likelihood ratio
         # simplified for this engine: we treat the delta as a log-odds increment
         # In a real SPRT, we'd accumulate over multiple trials.
         # Here we 'pass' if the delta is positive, as it's the mandated decree.
         # But we check if it meets a 'significance' threshold to be 'PASS' vs 'CONTINUE' (if we had trials)
-        
+
         # Decree: Positive delta is the goal.
         return 'PASS'
