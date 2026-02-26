@@ -8,15 +8,11 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from src.core.sovereign_hud import SovereignHUD
+from src.core.utils import load_config
+
 # Absolute project root resolution
 PROJECT_ROOT = Path(__file__).parent.parent.parent.resolve()
-
-# [ALFRED] Architecture Note:
-# We import HUD and load_config at the top level to ensure that
-# pytest patch decorators can reliably target them. Local imports
-# inside functions would bypass module-level patches.
-from src.core.ui import HUD
-from src.core.utils import load_config
 
 _BOOTSTRAPPED = False
 
@@ -41,7 +37,7 @@ def bootstrap() -> None:
     try:
         config = load_config(str(PROJECT_ROOT))
         persona = config.get("persona") or config.get("Persona") or "ALFRED"
-        HUD.PERSONA = str(persona).upper()
+        SovereignHUD.PERSONA = str(persona).upper()
     except Exception as e:
         import logging
         logging.warning(f"Bootstrap persona sync failed: {e}")

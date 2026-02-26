@@ -16,7 +16,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 # Import Shared UI
 sys.path.append(str(Path(__file__).parent.parent))
-from core.ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 
 class ConfigurationError(Exception):
@@ -189,7 +189,7 @@ class Synapse:
         
         self.core_path, self.core_name = self._resolve_core(remote_alias)
         if not self.core_path or not self.core_path.exists():
-            HUD.log("FAIL", "Knowledge Core Unreachable", remote_alias)
+            SovereignHUD.log("FAIL", "Knowledge Core Unreachable", remote_alias)
             sys.exit(1)
             
         self.git = GitHelper(self.core_path)
@@ -226,18 +226,18 @@ class Synapse:
         [ALFRED] Pulls global knowledge from the Core to the Local project.
         Updates git state, synchronizes skills_db, and merges remote corrections.
         """
-        HUD.box_top(f"SYNAPSE: PULL [{self.core_name}]")
+        SovereignHUD.box_top(f"SYNAPSE: PULL [{self.core_name}]")
         
         # Git updates
         ok_rem, rems = self.git.run(["remote"])
         if ok_rem and rems:
             ok, _ = self.git.run(["pull"])
-            HUD.log("INFO", "Git Pull Successful" if ok else "Git Pull Failed")
+            SovereignHUD.log("INFO", "Git Pull Successful" if ok else "Git Pull Failed")
         
         # Directory Sync
         self._sync_skills()
         self._sync_corrections()
-        HUD.box_bottom()
+        SovereignHUD.box_bottom()
 
     def _sync_skills(self) -> None:
         src = self.core_path / "skills"
@@ -252,10 +252,10 @@ class Synapse:
                 target = dst / item.name
                 if not target.exists():
                     shutil.copytree(str(item), str(target))
-                    HUD.log("PASS", f"Skill: {item.name}")
+                    SovereignHUD.log("PASS", f"Skill: {item.name}")
                     added += 1
         if added == 0:
-            HUD.log("INFO", "Skills already synchronized.")
+            SovereignHUD.log("INFO", "Skills already synchronized.")
 
     def _sync_corrections(self) -> None:
         c_file = self.core_path / "corrections.json"
@@ -279,9 +279,9 @@ class Synapse:
             if added:
                 l_data["phrase_mappings"] = l_mappings
                 l_file.write_text(json.dumps(l_data, indent=4), encoding="utf-8")
-                HUD.log("PASS", f"Wisdom: {added} new mappings")
+                SovereignHUD.log("PASS", f"Wisdom: {added} new mappings")
         except (json.JSONDecodeError, IOError):
-            HUD.log("WARN", "Corrections sync failed (JSON Error)")
+            SovereignHUD.log("WARN", "Corrections sync failed (JSON Error)")
 
     def push(self, dry_run: bool = False) -> None:
         """
@@ -291,48 +291,48 @@ class Synapse:
         Args:
             dry_run: If True, simulates the harvest without performing the push.
         """
-        HUD.box_top(f"SYNAPSE: PUSH [{self.core_name}]")
+        SovereignHUD.box_top(f"SYNAPSE: PUSH [{self.core_name}]")
         
         # Authenticate
         try:
             from scripts.synapse_auth import authenticate_sync
             if not authenticate_sync(self.persona):
-                HUD.log("FAIL", "Authentication Rejected", "Neural handshake failure")
-                HUD.box_bottom()
+                SovereignHUD.log("FAIL", "Authentication Rejected", "Neural handshake failure")
+                SovereignHUD.box_bottom()
                 return
         except ImportError:
-            HUD.log("WARN", "Auth module missing. Proceeding with caution.")
+            SovereignHUD.log("WARN", "Auth module missing. Proceeding with caution.")
 
         if not dry_run:
             ok, msg = self.limiter.check()
             if not ok:
-                HUD.log("FAIL", "Rate Limit", msg)
-                HUD.box_bottom()
+                SovereignHUD.log("FAIL", "Rate Limit", msg)
+                SovereignHUD.box_bottom()
                 return
         
         ok_perm, ident = self.git.check_permissions()
         if not ok_perm:
-            HUD.log("FAIL", "Permissions", ident)
-            HUD.box_bottom()
+            SovereignHUD.log("FAIL", "Permissions", ident)
+            SovereignHUD.box_bottom()
             return
             
-        HUD.log("INFO", "Identity Secured", f"{ident} ({self.persona})")
+        SovereignHUD.log("INFO", "Identity Secured", f"{ident} ({self.persona})")
         
         # Knowledge Harvesting
         knowledge = self.extractor.extract_all()
         if not knowledge:
-            HUD.log("INFO", "No new local knowledge to export.")
+            SovereignHUD.log("INFO", "No new local knowledge to export.")
         else:
-            HUD.log("PASS", f"Harvested {len(knowledge)} knowledge units")
+            SovereignHUD.log("PASS", f"Harvested {len(knowledge)} knowledge units")
             # Logic for staging knowledge to Core would go here
             
         if dry_run:
-            HUD.log("INFO", "Dry run complete. No modifications made.")
+            SovereignHUD.log("INFO", "Dry run complete. No modifications made.")
         else:
             self.limiter.record(True)
-            HUD.log("INFO", "Push sequence initialized.")
+            SovereignHUD.log("INFO", "Push sequence initialized.")
             
-        HUD.box_bottom()
+        SovereignHUD.box_bottom()
 
 
 def main() -> None:
@@ -364,7 +364,7 @@ def main() -> None:
                 sync.pull()
                 
     except Exception as e:
-        HUD.log("FAIL", "Critical Error", str(e))
+        SovereignHUD.log("FAIL", "Critical Error", str(e))
         sys.exit(1)
 
 

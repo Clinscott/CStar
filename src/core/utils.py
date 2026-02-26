@@ -59,3 +59,17 @@ def input_with_timeout(prompt: str, timeout: int = 30) -> str:
     t.start()
     try: return q.get(block=True, timeout=timeout) or "n"
     except queue.Empty: return "n"
+
+def atomic_jsonl_append(path: Path | str, data: dict) -> bool:
+    """
+    [V4] Appends a JSON-serialized dict to a .jsonl file.
+    Atomic on most POSIX systems and resilient on Windows via simple append.
+    """
+    path = Path(path)
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(data) + "\n")
+        return True
+    except Exception:
+        return False

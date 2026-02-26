@@ -25,7 +25,7 @@ from odin_protocol.engine import (
 # [ALFRED] Importing the Corvus Star UI Backbone
 _core_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "core")
 sys.path.insert(0, _core_dir)
-from ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 class OdinAdventure:
     """The central coordinator for the Odin Protocol Game Loop."""
@@ -44,7 +44,7 @@ class OdinAdventure:
                 config = json.load(f)
                 default_persona = (config.get("persona") or config.get("Persona") or "ALFRED").upper()
 
-        HUD.PERSONA = self.state.active_persona or default_persona
+        SovereignHUD.PERSONA = self.state.active_persona or default_persona
 
         # Prompt for name if this is a fresh start or default
         if self.state.player_name == "Odin":
@@ -53,9 +53,9 @@ class OdinAdventure:
     def prompt_for_name(self) -> None:
         """Asks the user for their Warlord name."""
         os.system('cls' if os.name == 'nt' else 'clear')
-        HUD.divider("NAME YOUR WARLORD")
-        print(f"\n{HUD.BOLD}The annals of Corvus await your legend.{HUD.RESET}")
-        name = input(f"\n{HUD.CYAN}>> Enter your name, Warlord: {HUD.RESET}").strip()
+        SovereignHUD.divider("NAME YOUR WARLORD")
+        print(f"\n{SovereignHUD.BOLD}The annals of Corvus await your legend.{SovereignHUD.RESET}")
+        name = input(f"\n{SovereignHUD.CYAN}>> Enter your name, Warlord: {SovereignHUD.RESET}").strip()
         if name:
             self.state.player_name = name
         else:
@@ -112,12 +112,12 @@ class OdinAdventure:
 
         # War Room Proposal: Retro-Battle Grid
         os.system('cls' if os.name == 'nt' else 'clear')
-        print(f"{HUD.GREEN}[ WAR_ROOM - PLANETARY GRID ]-------------------[ v2.0.44 ]{HUD.RESET}")
+        print(f"{SovereignHUD.GREEN}[ WAR_ROOM - PLANETARY GRID ]-------------------[ v2.0.44 ]{SovereignHUD.RESET}")
         print("-----------------------------------------------------------")
 
         # Draw a 4x6 grid with SIDE-LEGEND
         grid_labels = "   A    B    C    D    E    F    |  LEGEND"
-        print(HUD.BOLD + grid_labels + HUD.RESET)
+        print(SovereignHUD.BOLD + grid_labels + SovereignHUD.RESET)
 
         legend = [
             "(X) Hive City",
@@ -134,7 +134,7 @@ class OdinAdventure:
                 if row == 1 and col == 1: char = "X"
                 if row == 3 and col == 0: char = "#"
                 if row == 4 and col == 3: char = "O"
-                row_str += f"[{HUD.CYAN}{char}{HUD.RESET}]  "
+                row_str += f"[{SovereignHUD.CYAN}{char}{SovereignHUD.RESET}]  "
 
             # Add legend entry
             row_str += f"|  {legend[row-1]}"
@@ -142,29 +142,29 @@ class OdinAdventure:
 
         print("-----------------------------------------------------------")
         # Status Plate (Non-Boxed for cleaner aesthetic)
-        print(f" WARLORD              : {HUD.BOLD}{self.state.player_name}{HUD.RESET}")
+        print(f" WARLORD              : {SovereignHUD.BOLD}{self.state.player_name}{SovereignHUD.RESET}")
 
         # Phase 9: Force Resource
-        f_color = HUD.GREEN if self.state.force > 30 else HUD.RED
-        print(f" FORCE DEPLOYED       : {f_color}{self.state.force:.1f}%{HUD.RESET}")
+        f_color = SovereignHUD.GREEN if self.state.force > 30 else SovereignHUD.RED
+        print(f" FORCE DEPLOYED       : {f_color}{self.state.force:.1f}%{SovereignHUD.RESET}")
 
         if self.state.planets_dominated > 0:
-            print(f" PLANETS CONQUERED    : {HUD.CYAN}{self.state.planets_dominated}{HUD.RESET}")
+            print(f" PLANETS CONQUERED    : {SovereignHUD.CYAN}{self.state.planets_dominated}{SovereignHUD.RESET}")
 
         if self.state.mutation_charges > 0:
-            print(f" MUTATION CAPACITY    : {HUD.GREEN}{self.state.mutation_charges}{HUD.RESET}")
+            print(f" MUTATION CAPACITY    : {SovereignHUD.GREEN}{self.state.mutation_charges}{SovereignHUD.RESET}")
 
-        print(f" COMBAT RATING        : {HUD.BOLD}{rating:.2f}{HUD.RESET}")
+        print(f" COMBAT RATING        : {SovereignHUD.BOLD}{rating:.2f}{SovereignHUD.RESET}")
 
         if self.state.current_planet_name:
-            print(f" SIEGE TARGET         : {HUD.CYAN}{self.state.current_planet_name.upper()}{HUD.RESET}")
-            print(f" DOMINATION %         : {HUD.GREEN}{self.state.current_planet_progress:.1f}%{HUD.RESET}")
+            print(f" SIEGE TARGET         : {SovereignHUD.CYAN}{self.state.current_planet_name.upper()}{SovereignHUD.RESET}")
+            print(f" DOMINATION %         : {SovereignHUD.GREEN}{self.state.current_planet_progress:.1f}%{SovereignHUD.RESET}")
 
         # Phase 9: Nodal Coverage
         nodes = self.state.nodal_progress
         n_str = (f" [X] HIVE: {nodes['HIVE']:.0f}% | [!] SIEGE: {nodes['SIEGE']:.0f}% | "
                  f"[#] RES: {nodes['RESOURCE']:.0f}% | [O] DROP: {nodes['DROP']:.0f}%")
-        print(f" NODAL COVERAGE       :{HUD.YELLOW}{n_str}{HUD.RESET}")
+        print(f" NODAL COVERAGE       :{SovereignHUD.YELLOW}{n_str}{SovereignHUD.RESET}")
 
         print("-----------------------------------------------------------")
 
@@ -175,27 +175,27 @@ class OdinAdventure:
 
         if turn < self.state.last_briefing_turn + cooldown:
             remaining = (self.state.last_briefing_turn + cooldown) - turn
-            p_name = HUD.PERSONA
+            p_name = SovereignHUD.PERSONA
             msg = "Re-calibrating void-optics" if p_name == "ALFRED" else "Focusing the All-Seeing Eye"
-            print(f"\n{HUD.YELLOW}[{p_name}]: {msg}. Wait {remaining} turns.{HUD.RESET}")
+            print(f"\n{SovereignHUD.YELLOW}[{p_name}]: {msg}. Wait {remaining} turns.{SovereignHUD.RESET}")
             time.sleep(1)
             return
 
         os.system('cls' if os.name == 'nt' else 'clear')
 
         # UI Header shifts by Persona
-        header = "| THE ADVISOR |" if HUD.PERSONA == "ALFRED" else "| THE ALL-FATHER |"
-        color = HUD.CYAN if HUD.PERSONA == "ALFRED" else HUD.MAGENTA
+        header = "| THE ADVISOR |" if SovereignHUD.PERSONA == "ALFRED" else "| THE ALL-FATHER |"
+        color = SovereignHUD.CYAN if SovereignHUD.PERSONA == "ALFRED" else SovereignHUD.MAGENTA
 
-        print(f"{HUD.BOLD}{color}{header} seed: {self.state.seed} | --------------------------{HUD.RESET}")
+        print(f"{SovereignHUD.BOLD}{color}{header} seed: {self.state.seed} | --------------------------{SovereignHUD.RESET}")
         print(f"\n  STATUS: Strategic Briefing for Warlord {self.state.player_name}")
 
         if scenario:
-            lore_tag = "LORE  " if HUD.PERSONA == "ALFRED" else "MYTHOS"
+            lore_tag = "LORE  " if SovereignHUD.PERSONA == "ALFRED" else "MYTHOS"
             print(f"  {lore_tag}: {scenario.get('lore', 'Searching the annals...')}")
-            print(f"  THREAT: {HUD.RED}{scenario.get('failure_penalty', 5.0)}/20 (Volatility Risk){HUD.RESET}")
+            print(f"  THREAT: {SovereignHUD.RED}{scenario.get('failure_penalty', 5.0)}/20 (Volatility Risk){SovereignHUD.RESET}")
 
-        print(f"\n  {HUD.BOLD}:: GENE_STREAM ------------------------------------------{HUD.RESET}")
+        print(f"\n  {SovereignHUD.BOLD}:: GENE_STREAM ------------------------------------------{SovereignHUD.RESET}")
 
         # Recalculate with modifiers
         modifiers = scenario.get("world_modifiers", []) if scenario else []
@@ -204,42 +204,42 @@ class OdinAdventure:
         sorted_dna = sorted(self.state.inventory.items(), key=lambda x: effective[x[0]], reverse=True)
         for cid, chromosome in sorted_dna[:5]:
             eff = effective[cid]
-            bar = HUD.progress_bar(min(100, int(eff * 10)))
+            bar = SovereignHUD.progress_bar(min(100, int(eff * 10)))
             print(f"  {chromosome.name:15} {bar} {eff:.1f}")
 
-        print(f"\n  {HUD.BOLD}:: FEED{HUD.RESET}")
+        print(f"\n  {SovereignHUD.BOLD}:: FEED{SovereignHUD.RESET}")
         if scenario:
-            if HUD.PERSONA == "ALFRED":
+            if SovereignHUD.PERSONA == "ALFRED":
                 print(f"  [ALFRED]: \"The {scenario.get('sediment', 'ground')} seems stable, but the {scenario.get('fauna', 'creatures')} are restless.\"")
             else:
                 print(f"  [ODIN]: \"The {scenario.get('sediment', 'earth')} quakes at your step. The {scenario.get('fauna', 'beasts')} sense their master.\"")
         else:
-            msg = "\"The spiral holds, Master. Our genetics are evolving beautifully.\"" if HUD.PERSONA == "ALFRED" else "\"The cosmic tapestry weaves in your favor, King of Gods.\""
-            print(f"  [{HUD.PERSONA}]: {msg}")
+            msg = "\"The spiral holds, Master. Our genetics are evolving beautifully.\"" if SovereignHUD.PERSONA == "ALFRED" else "\"The cosmic tapestry weaves in your favor, King of Gods.\""
+            print(f"  [{SovereignHUD.PERSONA}]: {msg}")
 
         print("-----------------------------------------------------------")
         self.state.last_briefing_turn = turn
-        input(f"\n{HUD.DIM}Press Enter to return to the command deck...{HUD.RESET}")
+        input(f"\n{SovereignHUD.DIM}Press Enter to return to the command deck...{SovereignHUD.RESET}")
 
     def mutation_screen(self) -> None:
         """Interactive genetic modification interface using mutation credits."""
         credits = self.state.total_worlds_conquered
         if credits <= 0:
-            print(f"\n{HUD.YELLOW}No mutation credits available. Conquer a world first.{HUD.RESET}")
+            print(f"\n{SovereignHUD.YELLOW}No mutation credits available. Conquer a world first.{SovereignHUD.RESET}")
             time.sleep(2)
             return
 
         while credits > 0:
             os.system('cls' if os.name == 'nt' else 'clear')
-            HUD.divider("GENETIC LABORATORY")
-            print(f"{HUD.BOLD}Warlord {self.state.player_name}, you have {HUD.GREEN}{credits}{HUD.RESET} {HUD.BOLD}Mutation Credits Remaining.{HUD.RESET}\n")
+            SovereignHUD.divider("GENETIC LABORATORY")
+            print(f"{SovereignHUD.BOLD}Warlord {self.state.player_name}, you have {SovereignHUD.GREEN}{credits}{SovereignHUD.RESET} {SovereignHUD.BOLD}Mutation Credits Remaining.{SovereignHUD.RESET}\n")
 
             options = list(self.state.inventory.keys())
             for i, cid in enumerate(options):
                 c = self.state.inventory[cid]
                 print(f" [{i+1:2}] {c.name:20} (Lvl {c.level})")
 
-            choice = input(f"\n{HUD.CYAN}>> Select Chromosome to mutate (or 'Q' to finish): {HUD.RESET}").upper()
+            choice = input(f"\n{SovereignHUD.CYAN}>> Select Chromosome to mutate (or 'Q' to finish): {SovereignHUD.RESET}").upper()
             if choice == 'Q':
                 break
 
@@ -247,7 +247,7 @@ class OdinAdventure:
                 cid = options[int(choice) - 1]
                 self.state.inventory[cid].level += 1
                 credits -= 1
-                print(f"\n{HUD.GREEN}SUCCESS: {cid} leveled up. Credits: {credits}{HUD.RESET}")
+                print(f"\n{SovereignHUD.GREEN}SUCCESS: {cid} leveled up. Credits: {credits}{SovereignHUD.RESET}")
                 self.show_ripple_effect(cid)
                 time.sleep(2)
 
@@ -258,17 +258,17 @@ class OdinAdventure:
         if not mapping:
             return
 
-        HUD.box_top("RIPPLE EFFECT TRACE")
+        SovereignHUD.box_top("RIPPLE EFFECT TRACE")
         for target in mapping["synergies"]:
-            HUD.box_row(f"  {target}", "+10% (Synergy)", HUD.CYAN)
+            SovereignHUD.box_row(f"  {target}", "+10% (Synergy)", SovereignHUD.CYAN)
         for target in mapping["interferences"]:
-            HUD.box_row(f"  {target}", "-15% (Interference)", HUD.RED)
-        HUD.box_bottom()
+            SovereignHUD.box_row(f"  {target}", "-15% (Interference)", SovereignHUD.RED)
+        SovereignHUD.box_bottom()
 
     def temporal_breach(self) -> None:
         """Implements the Phase 2 Git-Rollback mechanic: Temporal Breach."""
-        HUD.divider("TEMPORAL BREACH ACTIVATED")
-        print(f"{HUD.RED}[WARNING]: Manipulating the timeline causes Genetic Decay.{HUD.RESET}")
+        SovereignHUD.divider("TEMPORAL BREACH ACTIVATED")
+        print(f"{SovereignHUD.RED}[WARNING]: Manipulating the timeline causes Genetic Decay.{SovereignHUD.RESET}")
 
         try:
             # 1. git stash
@@ -280,10 +280,10 @@ class OdinAdventure:
                 cwd=self.project_root
             ).decode("utf-8")
 
-            print(f"\n{HUD.BOLD}Available Temporal Anchors:{HUD.RESET}")
+            print(f"\n{SovereignHUD.BOLD}Available Temporal Anchors:{SovereignHUD.RESET}")
             print(log)
 
-            target = input(f"\n{HUD.CYAN}>> Enter Git Hash to breach into (or 'c' to cancel): {HUD.RESET}").strip()
+            target = input(f"\n{SovereignHUD.CYAN}>> Enter Git Hash to breach into (or 'c' to cancel): {SovereignHUD.RESET}").strip()
             if target.lower() == 'c': return
 
             # 3. git checkout save_state
@@ -292,7 +292,7 @@ class OdinAdventure:
             res = subprocess.run(["git", "checkout", target, "--", "odin_protocol/save_state.json"], cwd=self.project_root)
 
             if res.returncode == 0:
-                print(f"{HUD.GREEN}Anchor Established. Reloading State...{HUD.RESET}")
+                print(f"{SovereignHUD.GREEN}Anchor Established. Reloading State...{SovereignHUD.RESET}")
                 self.state = self._init_state() # Reload
 
                 # 4. Apply Timeline Corruption (Genetic Decay)
@@ -300,17 +300,17 @@ class OdinAdventure:
                 cid = random.choice(list(self.state.inventory.keys()))
                 old_lvl = self.state.inventory[cid].level
                 self.state.inventory[cid].level = max(1, old_lvl - 2)
-                print(f"{HUD.RED}[CORRUPTION]: {cid} level dropped from {old_lvl} to {self.state.inventory[cid].level}.{HUD.RESET}")
+                print(f"{SovereignHUD.RED}[CORRUPTION]: {cid} level dropped from {old_lvl} to {self.state.inventory[cid].level}.{SovereignHUD.RESET}")
 
                 # 5. Commit Breach
                 subprocess.run(["git", "add", "odin_protocol/save_state.json"], cwd=self.project_root)
                 subprocess.run(["git", "commit", "-m", f"TEMPORAL_BREACH: {target}"], cwd=self.project_root)
                 time.sleep(2)
             else:
-                print(f"{HUD.RED}Failed to reach anchor. Timeline remains intact.{HUD.RESET}")
+                print(f"{SovereignHUD.RED}Failed to reach anchor. Timeline remains intact.{SovereignHUD.RESET}")
 
         except Exception as e:
-            print(f"{HUD.RED}Breach Error: {e}{HUD.RESET}")
+            print(f"{SovereignHUD.RED}Breach Error: {e}{SovereignHUD.RESET}")
 
         input("\nPress Enter to return to the bridge...")
 
@@ -347,8 +347,8 @@ class OdinAdventure:
 
         if not target_node:
             self.render_manifest()
-            HUD.divider("WAR ROOM: NODAL SELECTION")
-            print(f"\n {HUD.BOLD}Warlord, the conquest of {planet_name.upper() if planet_name else 'THE SYSTEM'} continues.{HUD.RESET}")
+            SovereignHUD.divider("WAR ROOM: NODAL SELECTION")
+            print(f"\n {SovereignHUD.BOLD}Warlord, the conquest of {planet_name.upper() if planet_name else 'THE SYSTEM'} continues.{SovereignHUD.RESET}")
             print(" Choose a tactical node to breach, or manage your manifest.")
 
             print("\n [X] Hive City Campaign")
@@ -357,16 +357,16 @@ class OdinAdventure:
             print(" [O] Warlord Drop Campaign")
 
             print("\n [M] Genetic Manifest")
-            print(f" [P] Persona: {HUD.PERSONA}")
+            print(f" [P] Persona: {SovereignHUD.PERSONA}")
             print(" [Q] Save & Exit")
 
-            cmd = input(f"\n{HUD.CYAN}>> Select Node or Protocol: {HUD.RESET}").upper().strip()
+            cmd = input(f"\n{SovereignHUD.CYAN}>> Select Node or Protocol: {SovereignHUD.RESET}").upper().strip()
 
             # Protocol Handling
             if cmd == 'Q': sys.exit(0)
             if cmd == 'P':
-                HUD.PERSONA = "ODIN" if HUD.PERSONA == "ALFRED" else "ALFRED"
-                self.state.active_persona = HUD.PERSONA
+                SovereignHUD.PERSONA = "ODIN" if SovereignHUD.PERSONA == "ALFRED" else "ALFRED"
+                self.state.active_persona = SovereignHUD.PERSONA
                 return
             if cmd == 'M':
                 effective = calculate_effective_stats(self.state.inventory, self.state.items)
@@ -377,14 +377,14 @@ class OdinAdventure:
             # Nodal Mapping
             node_map = {'X': 'HIVE', '!': 'SIEGE', '#': 'RESOURCE', 'O': 'DROP'}
             if cmd not in node_map:
-                print(f"{HUD.RED}Invalid Node Identifier.{HUD.RESET}")
+                print(f"{SovereignHUD.RED}Invalid Node Identifier.{SovereignHUD.RESET}")
                 time.sleep(1)
                 return
 
             target_node = node_map[cmd]
             self.state.active_node = target_node
-            HUD.divider("WAR ROOM: LOCKING IN")
-            print(f"{HUD.CYAN}Nodal Campaign identified. Forces deployed to {target_node}.{HUD.RESET}")
+            SovereignHUD.divider("WAR ROOM: LOCKING IN")
+            print(f"{SovereignHUD.CYAN}Nodal Campaign identified. Forces deployed to {target_node}.{SovereignHUD.RESET}")
             time.sleep(1)
 
         # 3. Scenario Generation (Brutal/Nodal)
@@ -408,33 +408,33 @@ class OdinAdventure:
 
         # 5. PHASE II: THE TACTICAL ENCOUNTER
         self.render_manifest(scenario)
-        HUD.divider(f"TACTICAL BREACH: {target_node}")
-        print(f"\n{HUD.CYAN}{scenario['lore']}{HUD.RESET}")
+        SovereignHUD.divider(f"TACTICAL BREACH: {target_node}")
+        print(f"\n{SovereignHUD.CYAN}{scenario['lore']}{SovereignHUD.RESET}")
 
         p = scenario['active_persona']
-        print(f"\n{HUD.BOLD}{p['rank']} {p['name']} REPORT:{HUD.RESET}")
-        print(f"{HUD.YELLOW}\"{scenario['conflict']}\"{HUD.RESET}")
+        print(f"\n{SovereignHUD.BOLD}{p['rank']} {p['name']} REPORT:{SovereignHUD.RESET}")
+        print(f"{SovereignHUD.YELLOW}\"{scenario['conflict']}\"{SovereignHUD.RESET}")
 
         # Decision Loop (Refined for Nodal Victory)
         while True:
-            HUD.divider(f"COMMAND DECK: {target_node}")
-            print(f"\n{HUD.BOLD}{scenario['immediate_question']}{HUD.RESET}")
+            SovereignHUD.divider(f"COMMAND DECK: {target_node}")
+            print(f"\n{SovereignHUD.BOLD}{scenario['immediate_question']}{SovereignHUD.RESET}")
 
             options = scenario.get('options', [])
             for opt in options:
                 diff = opt.get('difficulty', 'Unknown')
-                color = HUD.CYAN
-                if diff == 'Easy' or diff == 'Trivial': color = HUD.GREEN
-                elif diff == 'Hard': color = HUD.YELLOW
-                elif diff == 'Lethal': color = HUD.RED
-                print(f" [{opt['id']}] {opt['text']:35} ({color}{diff}{HUD.RESET})")
+                color = SovereignHUD.CYAN
+                if diff == 'Easy' or diff == 'Trivial': color = SovereignHUD.GREEN
+                elif diff == 'Hard': color = SovereignHUD.YELLOW
+                elif diff == 'Lethal': color = SovereignHUD.RED
+                print(f" [{opt['id']}] {opt['text']:35} ({color}{diff}{SovereignHUD.RESET})")
 
-            print(f" [R] Retreat & Regroup           ({HUD.YELLOW}Penalty: 50% Node Progress{HUD.RESET})")
+            print(f" [R] Retreat & Regroup           ({SovereignHUD.YELLOW}Penalty: 50% Node Progress{SovereignHUD.RESET})")
 
-            raw_input = input(f"\n{HUD.CYAN}>> Deployment Choice: {HUD.RESET}").upper().strip()
+            raw_input = input(f"\n{SovereignHUD.CYAN}>> Deployment Choice: {SovereignHUD.RESET}").upper().strip()
 
             if raw_input == 'R':
-                print(f"\n{HUD.YELLOW}[RETREAT]: Forces withdrawing. Node progress halved.{HUD.RESET}")
+                print(f"\n{SovereignHUD.YELLOW}[RETREAT]: Forces withdrawing. Node progress halved.{SovereignHUD.RESET}")
                 self.state.nodal_progress[target_node] *= 0.5
                 self.state.active_node = None
                 time.sleep(2)
@@ -447,15 +447,15 @@ class OdinAdventure:
             result = adjudicate_choice(self.state, choice, effective, scenario)
 
             # Weighted Feedback
-            HUD.divider("DIE CAST RESULTS")
-            print(f" {HUD.BOLD}CHANCE  :{HUD.RESET} {HUD.CYAN}{result['chance']*100:.1f}%{HUD.RESET}")
-            print(f" {HUD.BOLD}ROLL    :{HUD.RESET} {HUD.YELLOW}{result['roll']*100:.1f}%{HUD.RESET}")
+            SovereignHUD.divider("DIE CAST RESULTS")
+            print(f" {SovereignHUD.BOLD}CHANCE  :{SovereignHUD.RESET} {SovereignHUD.CYAN}{result['chance']*100:.1f}%{SovereignHUD.RESET}")
+            print(f" {SovereignHUD.BOLD}ROLL    :{SovereignHUD.RESET} {SovereignHUD.YELLOW}{result['roll']*100:.1f}%{SovereignHUD.RESET}")
 
             # Phase 9: Nodal Progress Tracking
             if result['success']:
-                print(f"\n{HUD.GREEN}[VICTORY]: Tactical objective secured.{HUD.RESET}")
-                print(f" FORCE   : {HUD.YELLOW}{result['force_delta']:.1f}%{HUD.RESET} (Mitigated)")
-                print(f" PROGRESS: {HUD.GREEN}+{result['dom_delta']:.1f}%{HUD.RESET}")
+                print(f"\n{SovereignHUD.GREEN}[VICTORY]: Tactical objective secured.{SovereignHUD.RESET}")
+                print(f" FORCE   : {SovereignHUD.YELLOW}{result['force_delta']:.1f}%{SovereignHUD.RESET} (Mitigated)")
+                print(f" PROGRESS: {SovereignHUD.GREEN}+{result['dom_delta']:.1f}%{SovereignHUD.RESET}")
 
                 gain = result['dom_delta']
                 current = self.state.nodal_progress.get(target_node, 0.0)
@@ -469,7 +469,7 @@ class OdinAdventure:
 
                 # Check for Node Completion
                 if new_prog >= 24.0:
-                    print(f"{HUD.MAGENTA}{HUD.BOLD}\n[NODE SECURED]: Campaign objective attained at {target_node}.{HUD.RESET}")
+                    print(f"{SovereignHUD.MAGENTA}{SovereignHUD.BOLD}\n[NODE SECURED]: Campaign objective attained at {target_node}.{SovereignHUD.RESET}")
                     self.state.active_node = None
 
                 # Check for Global Conquest
@@ -477,15 +477,15 @@ class OdinAdventure:
                 total_dom = sum(self.state.nodal_progress.values())
 
                 if len(ready_nodes) >= 3 and total_dom > 80.0:
-                    print(f"\n{HUD.MAGENTA}{HUD.BOLD}[WORLD DOMINATION ATTAINED]{HUD.RESET}")
+                    print(f"\n{SovereignHUD.MAGENTA}{SovereignHUD.BOLD}[WORLD DOMINATION ATTAINED]{SovereignHUD.RESET}")
                     self.state.current_planet_progress = 100.0
             else:
-                print(f"\n{HUD.RED}[DEFEAT]: Forces repelled. Resistance Resurgence triggered.{HUD.RESET}")
-                print(f" FORCE   : {HUD.RED}{result['force_delta']:.1f}%{HUD.RESET}")
-                print(f" PROGRESS: {HUD.RED}{result['dom_delta']:.1f}%{HUD.RESET}")
+                print(f"\n{SovereignHUD.RED}[DEFEAT]: Forces repelled. Resistance Resurgence triggered.{SovereignHUD.RESET}")
+                print(f" FORCE   : {SovereignHUD.RED}{result['force_delta']:.1f}%{SovereignHUD.RESET}")
+                print(f" PROGRESS: {SovereignHUD.RED}{result['dom_delta']:.1f}%{SovereignHUD.RESET}")
 
                 if result['penalty_msg']:
-                    print(f" {HUD.RED}[PENALTY]: {result['penalty_msg']}{HUD.RESET}")
+                    print(f" {SovereignHUD.RED}[PENALTY]: {result['penalty_msg']}{SovereignHUD.RESET}")
 
                 # Update Progress
                 current = self.state.nodal_progress.get(target_node, 0.0)
@@ -498,7 +498,7 @@ class OdinAdventure:
 
             # Check for Total Depletion
             if self.state.force <= 0:
-                print(f"\n{HUD.RED}[TOTAL DEPLETION]: Forces broken. Campaign abandoned.{HUD.RESET}")
+                print(f"\n{SovereignHUD.RED}[TOTAL DEPLETION]: Forces broken. Campaign abandoned.{SovereignHUD.RESET}")
                 self.state.active_node = None
 
             self.state.total_turns_played += 1
@@ -514,44 +514,44 @@ class OdinAdventure:
     def show_genetic_manifest(self, effective: dict) -> None:
         """Dedicated screen for synergy matrix and genetic data."""
         os.system('cls' if os.name == 'nt' else 'clear')
-        HUD.divider("GENETIC MANIFEST")
-        HUD.box_top("SYNERGY MATRIX (INFINITE SPIRAL)")
+        SovereignHUD.divider("GENETIC MANIFEST")
+        SovereignHUD.box_top("SYNERGY MATRIX (INFINITE SPIRAL)")
         sorted_dna = sorted(self.state.inventory.items(), key=lambda x: effective[x[0]], reverse=True)
         for cid, chromosome in sorted_dna:
             eff = effective.get(cid, 0.0)
             base = float(chromosome.level)
             ripple = eff - base
-            color = HUD.YELLOW if ripple > 0 else (HUD.RED if ripple < 0 else HUD.CYAN)
+            color = SovereignHUD.YELLOW if ripple > 0 else (SovereignHUD.RED if ripple < 0 else SovereignHUD.CYAN)
             ripple_str = f"[+{ripple:.1f} SPIRAL]" if ripple > 0 else (f"[{ripple:.1f} DECAY]" if ripple < 0 else "[STABLE]")
-            HUD.box_row(f">> {chromosome.name:15}", f"{eff:4.1f} {HUD.DIM}{ripple_str}{HUD.RESET}", color)
-        HUD.box_bottom()
+            SovereignHUD.box_row(f">> {chromosome.name:15}", f"{eff:4.1f} {SovereignHUD.DIM}{ripple_str}{SovereignHUD.RESET}", color)
+        SovereignHUD.box_bottom()
 
     def retell_conquest(self) -> None:
         """Generates a bardic summary of the conquered world's campaign."""
         os.system('cls' if os.name == 'nt' else 'clear')
-        HUD.divider(f"CONQUEST TALE: {self.state.current_planet_name.upper()}")
+        SovereignHUD.divider(f"CONQUEST TALE: {self.state.current_planet_name.upper()}")
 
         campaign = self.state.active_campaigns.get(self.state.current_planet_name)
         if not campaign:
-            print(f"{HUD.RED}No campaign records found.{HUD.RESET}")
+            print(f"{SovereignHUD.RED}No campaign records found.{SovereignHUD.RESET}")
             time.sleep(2)
             return
 
-        print(f"\n{HUD.BOLD}The Bard of the Void strikes a hollow chord...{HUD.RESET}")
-        print(f"{HUD.CYAN}\"{campaign['intro_text']}\"{HUD.RESET}\n")
+        print(f"\n{SovereignHUD.BOLD}The Bard of the Void strikes a hollow chord...{SovereignHUD.RESET}")
+        print(f"{SovereignHUD.CYAN}\"{campaign['intro_text']}\"{SovereignHUD.RESET}\n")
 
         history = campaign.get('history', [])
         if not history:
-            print(f"{HUD.DIM}The conquest was swift, a silent shadow over the world.{HUD.RESET}")
+            print(f"{SovereignHUD.DIM}The conquest was swift, a silent shadow over the world.{SovereignHUD.RESET}")
         else:
             for entry in history:
                 print(f" * Turn {entry['turn']}: {entry['choice']} for {entry['objective']}")
 
-        print(f"\n{HUD.GREEN}{HUD.BOLD}SO IT WAS WRITTEN:{HUD.RESET}")
-        print(f"{HUD.BOLD}Warlord {self.state.player_name} shattered the resistance of {self.state.current_planet_name}.{HUD.RESET}")
-        print(f"{HUD.DIM}The world now feeds the Great Machine.{HUD.RESET}")
+        print(f"\n{SovereignHUD.GREEN}{SovereignHUD.BOLD}SO IT WAS WRITTEN:{SovereignHUD.RESET}")
+        print(f"{SovereignHUD.BOLD}Warlord {self.state.player_name} shattered the resistance of {self.state.current_planet_name}.{SovereignHUD.RESET}")
+        print(f"{SovereignHUD.DIM}The world now feeds the Great Machine.{SovereignHUD.RESET}")
 
-        input(f"\n{HUD.CYAN}Press Enter to leave this world's memory...{HUD.RESET}")
+        input(f"\n{SovereignHUD.CYAN}Press Enter to leave this world's memory...{SovereignHUD.RESET}")
 
 def main() -> None:
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -563,25 +563,25 @@ def main() -> None:
         from src.cstar.core.client import ping_daemon
         ping_daemon(timeout=1.0)
     except Exception as e:
-        print(f"\n{HUD.RED}[SYSTEM FAILURE] Cortex Daemon Offline. ({e}){HUD.RESET}")
-        print(f"{HUD.DIM}The Sovereign Engine must be running to engage the Odin Protocol.{HUD.RESET}")
+        print(f"\n{SovereignHUD.RED}[SYSTEM FAILURE] Cortex Daemon Offline. ({e}){SovereignHUD.RESET}")
+        print(f"{SovereignHUD.DIM}The Sovereign Engine must be running to engage the Odin Protocol.{SovereignHUD.RESET}")
         sys.exit(1)
 
     game = OdinAdventure(project_root)
 
     # Startup Sequence
     os.system('cls' if os.name == 'nt' else 'clear')
-    HUD.divider("AWAKENING ODIN")
-    print(f"\n{HUD.BOLD}{HUD.CYAN}Hi. Would you like to play a game?{HUD.RESET}")
-    if input(f"{HUD.DIM}(y/N): {HUD.RESET}").lower() != 'y':
-        print(f"{HUD.YELLOW}Dormancy maintained.{HUD.RESET}")
+    SovereignHUD.divider("AWAKENING ODIN")
+    print(f"\n{SovereignHUD.BOLD}{SovereignHUD.CYAN}Hi. Would you like to play a game?{SovereignHUD.RESET}")
+    if input(f"{SovereignHUD.DIM}(y/N): {SovereignHUD.RESET}").lower() != 'y':
+        print(f"{SovereignHUD.YELLOW}Dormancy maintained.{SovereignHUD.RESET}")
         sys.exit(0)
 
     try:
         while True:
             game.play_turn()
     except KeyboardInterrupt:
-        print(f"\n\n{HUD.YELLOW}[SYSTEM]: Connection severed by Warlord. Returning to dormancy...{HUD.RESET}")
+        print(f"\n\n{SovereignHUD.YELLOW}[SYSTEM]: Connection severed by Warlord. Returning to dormancy...{SovereignHUD.RESET}")
         sys.exit(0)
 
 if __name__ == "__main__":

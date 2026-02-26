@@ -15,4 +15,4 @@ description: Deep codebase analytics and debt estimation.
     - File count.
     - Average file size.
 4. **Insight**: Identify "God Files" (files > 500 lines) and flag them for refactoring.
-5. **Output**: Display findings in a HUD table.
+5. **Output**: Display findings in a SovereignHUD table.

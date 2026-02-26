@@ -1,0 +1,32 @@
+# Dockerfile.hunter
+# Purpose: Network-enabled discovery environment for KnowledgeHunter and SkillScout.
+# Security: Isolated from host filesystem, restricted resources.
+
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install specific hunting dependencies
+RUN pip install --no-cache-dir \
+    google-genai \
+    requests \
+    brave-search-python \
+    colorama \
+    python-dotenv
+
+# Copy required core logic
+COPY src/sentinel/_bootstrap.py /app/src/sentinel/
+COPY src/tools/brave_search.py /app/src/tools/
+COPY src/core/ui.py /app/src/core/
+
+# Environment setup
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+
+# Default entrypoint
+ENTRYPOINT ["python", "/app/skill.py"]

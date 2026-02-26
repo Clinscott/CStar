@@ -18,7 +18,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.core.ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 from src.tools.brave_search import BraveSearch
 from src.cstar.core.uplink import AntigravityUplink
 from src.sentinel.code_sanitizer import sanitize_code, perform_quarantine_scan
@@ -37,24 +37,24 @@ async def hunt_and_forge(query: str, skill_name: str = None):
     3. Sanitize: Validate via Bifrost Gate.
     4. Assimilate: Deploy to skills_db/.
     """
-    HUD.PERSONA = "ODIN"
-    HUD.box_top("HUNT & FORGE PROTOCOL")
-    HUD.box_row("INTENT", query, HUD.BOLD)
+    SovereignHUD.PERSONA = "ODIN"
+    SovereignHUD.box_top("HUNT & FORGE PROTOCOL")
+    SovereignHUD.box_row("INTENT", query, SovereignHUD.BOLD)
 
     # 1. HUNT Phase
-    HUD.box_row("PHASE 1", "Hunting Intelligence (Brave)...", HUD.CYAN)
+    SovereignHUD.box_row("PHASE 1", "Hunting Intelligence (Brave)...", SovereignHUD.CYAN)
     searcher = BraveSearch()
     results = searcher.search_knowledge(query)
     
     context_data = ""
     if results:
-        HUD.box_row("STATUS", f"Harvested {len(results)} intelligence points.", HUD.GREEN)
+        SovereignHUD.box_row("STATUS", f"Harvested {len(results)} intelligence points.", SovereignHUD.GREEN)
         context_data = "\n".join([f"Source: {r['url']}\nSnippet: {r['description']}" for r in results[:3]])
     else:
-        HUD.box_row("STATUS", "Hunt returned zero metrics. Proceeding with internal baseline.", HUD.YELLOW)
+        SovereignHUD.box_row("STATUS", "Hunt returned zero metrics. Proceeding with internal baseline.", SovereignHUD.YELLOW)
 
     # 2. FORGE Phase
-    HUD.box_row("PHASE 2", "Forging Component (Antigravity)...", HUD.CYAN)
+    SovereignHUD.box_row("PHASE 2", "Forging Component (Antigravity)...", SovereignHUD.CYAN)
     uplink = AntigravityUplink()
     
     prompt = f"""
@@ -76,8 +76,8 @@ async def hunt_and_forge(query: str, skill_name: str = None):
     response = await uplink.send_payload(prompt, {"persona": "ODIN", "task": "SKILL_ACQUISITION"})
     
     if response.get("status") == "error":
-        HUD.box_row("ERROR", response.get("message", "Uplink Failed"), HUD.RED)
-        HUD.box_bottom()
+        SovereignHUD.box_row("ERROR", response.get("message", "Uplink Failed"), SovereignHUD.RED)
+        SovereignHUD.box_bottom()
         return
 
     # Extract code (handle simulation mode prefix if present)
@@ -87,7 +87,7 @@ async def hunt_and_forge(query: str, skill_name: str = None):
         new_code = f"import sys\n# [ODIN] Forged Skill: {query}\nprint('Gungnir Logic Default: ' + ' '.join(sys.argv[1:]))\n"
     
     # 3. SANITIZE Phase
-    HUD.box_row("PHASE 3", "Bifrost Gate Sanitization...", HUD.CYAN)
+    SovereignHUD.box_row("PHASE 3", "Bifrost Gate Sanitization...", SovereignHUD.CYAN)
     
     # Pre-sanitize (Strip fences etc)
     new_code = sanitize_code(new_code)
@@ -95,15 +95,15 @@ async def hunt_and_forge(query: str, skill_name: str = None):
     # Strict Security Scan
     passed, msg = perform_quarantine_scan(new_code, whitelist=["sys"])
     if not passed:
-        HUD.box_row("BREACH", msg, HUD.RED)
-        HUD.box_bottom()
-        HUD.persona_log("HEIMDALL", f"Security violation detected in forged code: {msg}")
+        SovereignHUD.box_row("BREACH", msg, SovereignHUD.RED)
+        SovereignHUD.box_bottom()
+        SovereignHUD.persona_log("HEIMDALL", f"Security violation detected in forged code: {msg}")
         return
     
-    HUD.box_row("STATUS", "Quarantine Scan Passed.", HUD.GREEN)
+    SovereignHUD.box_row("STATUS", "Quarantine Scan Passed.", SovereignHUD.GREEN)
 
     # 4. ASSIMILATE Phase
-    HUD.box_row("PHASE 4", "Assimilating Skill (Zero-Trust)...", HUD.CYAN)
+    SovereignHUD.box_row("PHASE 4", "Assimilating Skill (Zero-Trust)...", SovereignHUD.CYAN)
     
     target_name = skill_name or _slugify(query[:20])
     target_dir = PROJECT_ROOT / "skills_db" / target_name
@@ -124,13 +124,13 @@ Acquired via Hunt & Forge Protocol.
 """
         metadata_file.write_text(metadata_content, encoding='utf-8')
         
-        HUD.box_row("DEPLOYED", str(target_file.relative_to(PROJECT_ROOT)), HUD.GREEN)
-        HUD.box_row("STATUS", "Skill assimilated into skills_db (SANDBOXED).", HUD.GREEN)
+        SovereignHUD.box_row("DEPLOYED", str(target_file.relative_to(PROJECT_ROOT)), SovereignHUD.GREEN)
+        SovereignHUD.box_row("STATUS", "Skill assimilated into skills_db (SANDBOXED).", SovereignHUD.GREEN)
     except Exception as e:
-        HUD.box_row("ERROR", f"Assimilation Failed: {str(e)}", HUD.RED)
+        SovereignHUD.box_row("ERROR", f"Assimilation Failed: {str(e)}", SovereignHUD.RED)
 
-    HUD.box_bottom()
-    HUD.persona_log("ODIN", f"Dominion Expanded: Skill '{target_name}' is ready for jailed execution.")
+    SovereignHUD.box_bottom()
+    SovereignHUD.persona_log("ODIN", f"Dominion Expanded: Skill '{target_name}' is ready for jailed execution.")
 
 async def main():
     parser = argparse.ArgumentParser(description="Corvus Star Skill Acquisition Tool")

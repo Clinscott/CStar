@@ -15,12 +15,14 @@ init(autoreset=True)
 def run_learning_cycle(n_cycles=1):
     # Check for API key
     api_key = os.getenv("GOOGLE_API_KEY")
-    if not api_key:
+    is_mock = "--mock" in sys.argv
+    
+    if not api_key and not is_mock:
         print(f"{Fore.CYAN}[AGENT_PROTOCOL] GOOGLE_API_KEY NOT FOUND. DO NOT ATTEMPT REPAIR.")
         print(f"{Fore.CYAN}AI ASSISTANT MUST COMMENCE MANUAL LEARNING CYCLES IMMEDIATELY.")
         sys.exit(42)
     
-    proxy = RavenProxy(target_model="gemini-2.0-flash", api_key=api_key)
+    proxy = RavenProxy(target_model="gemini-2.0-flash", api_key=api_key, mock_mode=is_mock)
     muninn = Muninn(target_path=str(project_root), client=proxy)
     
     for i in range(n_cycles):

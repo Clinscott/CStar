@@ -8,7 +8,7 @@ The "Triple Threat" expansion upgrades Corvus Star from a local optimization loo
 ## 1. Neural Trace Visualizer
 **Component**: `.agent/scripts/trace_viz.py`
 **Purpose**: "X-Ray" vision for the SovereignVector Engine.
-**Aesthetic**: Uses the HUD "Glow" effect to render vector matches, token weights, and IDF signals.
+**Aesthetic**: Uses the SovereignHUD "Glow" effect to render vector matches, token weights, and IDF signals.
 
 ### Usage
 ```bash

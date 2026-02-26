@@ -17,4 +17,4 @@ description: Diagnostic tool for the agents framework cleanliness and integrity.
 3. **Engine Check**:
    - Run `python .agent/scripts/sv_engine.py "hello world" --json-only` to verify the vector engine returns valid JSON.
 4. **Report**:
-   - Print a health scorecard [PASS/FAIL] in the HUD.
+   - Print a health scorecard [PASS/FAIL] in the SovereignHUD.

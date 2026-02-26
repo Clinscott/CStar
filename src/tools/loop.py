@@ -17,7 +17,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from src.sentinel.wardens.norn import NornWarden
 from src.tools.wrap_it_up import SovereignWrapper
-from src.core.ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 # We will use AntigravityUplink for the "Act" phase
 from src.cstar.core.uplink import AntigravityUplink
 
@@ -41,8 +41,8 @@ class SovereignForge:
         Returns True if successful (Code changed AND Gungnir passed), False otherwise.
         """
         task_desc = task['action']
-        HUD.box_top("SOVEREIGN FORGE")
-        HUD.persona_log("ODIN", f"Manifesting Objective: {task_desc}")
+        SovereignHUD.box_top("SOVEREIGN FORGE")
+        SovereignHUD.persona_log("ODIN", f"Manifesting Objective: {task_desc}")
 
         # 1. Orient (Identify Target)
         # We ask the Uplink to identify the target file and implementation plan
@@ -50,14 +50,14 @@ class SovereignForge:
         
         target_file = self._orient_target(task_desc)
         if not target_file:
-            HUD.persona_log("ALFRED", "Could not identify target file. Aborting task.")
+            SovereignHUD.persona_log("ALFRED", "Could not identify target file. Aborting task.")
             return False
 
-        HUD.persona_log("ODIN", f"Target Locked: {target_file}")
+        SovereignHUD.persona_log("ODIN", f"Target Locked: {target_file}")
         
         # 2. The Loop (Edit -> Verify)
         for attempt in range(1, self.max_retries + 1):
-            HUD.persona_log("ODIN", f"Attempt {attempt}/{self.max_retries}: Forging Code...")
+            SovereignHUD.persona_log("ODIN", f"Attempt {attempt}/{self.max_retries}: Forging Code...")
             
             # Backup
             self._backup(target_file)
@@ -65,23 +65,23 @@ class SovereignForge:
             # Generate Code
             success = self._generate_code(task_desc, target_file, attempt)
             if not success:
-                HUD.persona_log("ALFRED", "Code generation failed.")
+                SovereignHUD.persona_log("ALFRED", "Code generation failed.")
                 self._rollback(target_file)
                 continue
 
             # Verify (Gungnir Gate)
             # We use SovereignWrapper's gate logic, but localized
             if self._verify_integrity():
-                HUD.persona_log("ODIN", "Verification PASSED. Structure is sound.")
+                SovereignHUD.persona_log("ODIN", "Verification PASSED. Structure is sound.")
                 self._cleanup_backup(target_file)
                 return True
             else:
-                HUD.persona_log("ALFRED", f"Verification FAILED (Attempt {attempt}). Rolling back.")
+                SovereignHUD.persona_log("ALFRED", f"Verification FAILED (Attempt {attempt}). Rolling back.")
                 self._rollback(target_file)
                 gc.collect() # Memory Safety
                 
         # Kill Switch Triggered
-        HUD.persona_log("HEIMDALL", "BREACH: Kill Switch Triggered. Max retries exceeded.")
+        SovereignHUD.persona_log("HEIMDALL", "BREACH: Kill Switch Triggered. Max retries exceeded.")
         # Atomic Rollback is already done in the loop if fail.
         return False
 
@@ -104,7 +104,7 @@ class SovereignForge:
                 pass
 
         # Fallback for verification/scaffold
-        HUD.persona_log("ALFRED", "Orientation Simulation: Defaulting to scratch_forge.py")
+        SovereignHUD.persona_log("ALFRED", "Orientation Simulation: Defaulting to scratch_forge.py")
         scratch = self.root / "scratch_forge.py"
         if not scratch.exists():
             scratch.touch()
@@ -114,7 +114,7 @@ class SovereignForge:
         """
         Calls AntigravityUplink to generate code.
         """
-        HUD.persona_log("ODIN", f"Transmitting objective to Antigravity (Attempt {attempt})...")
+        SovereignHUD.persona_log("ODIN", f"Transmitting objective to Antigravity (Attempt {attempt})...")
         
         # Read content for context
         content = target.read_text(encoding='utf-8') if target.exists() else ""
@@ -132,7 +132,7 @@ class SovereignForge:
         try:
             response = asyncio.run(call_uplink())
         except Exception as e:
-            HUD.persona_log("ALFRED", f"Uplink unavailable: {e}")
+            SovereignHUD.persona_log("ALFRED", f"Uplink unavailable: {e}")
             return False
 
         # Extract Code or Handle Simulation
@@ -140,7 +140,7 @@ class SovereignForge:
         msg = response.get("message", "")
 
         if not new_code and "[SIMULATION]" in msg:
-            HUD.persona_log("ALFRED", "Uplink is in Simulation Mode. Applying heuristic patch.")
+            SovereignHUD.persona_log("ALFRED", "Uplink is in Simulation Mode. Applying heuristic patch.")
             # Heuristic: Just append a comment to verify loop cycle
             timestamp = time.strftime("%H:%M:%S")
             new_code = content + f"\n# [ODIN] Forged Update ({timestamp}): {task}\n"
@@ -149,7 +149,7 @@ class SovereignForge:
             target.write_text(new_code, encoding='utf-8')
             return True
         else:
-            HUD.persona_log("ALFRED", "The void returned no code.")
+            SovereignHUD.persona_log("ALFRED", "The void returned no code.")
             return False
 
     def _verify_integrity(self) -> bool:
@@ -205,11 +205,11 @@ def sovereign_lifecycle():
 
     while True:
         # 1. Observe (Norn)
-        HUD.box_top("SOVEREIGN OBSERVE")
+        SovereignHUD.box_top("SOVEREIGN OBSERVE")
         task = norn.scan() 
         # Norn.scan() returns a list of breaches. For Campaign, it returns one object.
         if not task:
-            HUD.persona_log("ODIN", "No active tasks in queue. The Cycle pauses.")
+            SovereignHUD.persona_log("ODIN", "No active tasks in queue. The Cycle pauses.")
             break
         
         target_task = task[0] # The breach object
@@ -220,7 +220,7 @@ def sovereign_lifecycle():
         
         if success:
             # 3. Finalize
-            HUD.box_top("SOVEREIGN FINALIZE")
+            SovereignHUD.box_top("SOVEREIGN FINALIZE")
             # Mark complete in tasks.qmd
             norn.mark_complete(target_task)
             
@@ -229,7 +229,7 @@ def sovereign_lifecycle():
             wrapper.sovereign_commit({}) # We arguably should compile traces first
             
             # 4. Handshake (Nuke Context)
-            HUD.persona_log("ALFRED", "Purging memory context for next cycle.")
+            SovereignHUD.persona_log("ALFRED", "Purging memory context for next cycle.")
             del task
             del target_task
             gc.collect()
@@ -239,8 +239,8 @@ def sovereign_lifecycle():
             
         else:
             # Kill Switch
-            HUD.persona_log("ODIN", "Task failed after max retries. Intervention required.")
-            HUD.persona_log("HEIMDALL", "BREACH: Loop Halted - " + target_task['action'])
+            SovereignHUD.persona_log("ODIN", "Task failed after max retries. Intervention required.")
+            SovereignHUD.persona_log("HEIMDALL", "BREACH: Loop Halted - " + target_task['action'])
             break
 
         # Wait a moment before next cycle

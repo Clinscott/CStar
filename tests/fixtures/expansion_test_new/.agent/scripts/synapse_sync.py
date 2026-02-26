@@ -18,10 +18,10 @@ from datetime import datetime
 # Ensure we can import shared UI
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 try:
-    from scripts.ui import HUD
+    from scripts.ui import SovereignHUD
 except ImportError:
     # Fallback
-    class HUD:
+    class SovereignHUD:
         RED = "\033[31m"
         GREEN = "\033[32m"
         YELLOW = "\033[33m"
@@ -47,15 +47,15 @@ class Synapse:
         
         self.core_path = self.config.get("KnowledgeCore")
         if not self.core_path:
-            HUD.box_top("SYNAPSE ERROR")
-            HUD.box_row("ERROR", "KnowledgeCore not defined in config.json", HUD.RED)
-            HUD.box_bottom()
+            SovereignHUD.box_top("SYNAPSE ERROR")
+            SovereignHUD.box_row("ERROR", "KnowledgeCore not defined in config.json", SovereignHUD.RED)
+            SovereignHUD.box_bottom()
             sys.exit(1)
             
         if not os.path.exists(self.core_path):
-            HUD.box_top("SYNAPSE ERROR")
-            HUD.box_row("ERROR", f"Core path not found: {self.core_path}", HUD.RED)
-            HUD.box_bottom()
+            SovereignHUD.box_top("SYNAPSE ERROR")
+            SovereignHUD.box_row("ERROR", f"Core path not found: {self.core_path}", SovereignHUD.RED)
+            SovereignHUD.box_bottom()
             sys.exit(1)
 
     def _load_config(self):
@@ -80,20 +80,20 @@ class Synapse:
             return False, "", "git executable not found"
 
     def pull(self, dry_run=False):
-        HUD.box_top("SYNAPSE: INHALE")
+        SovereignHUD.box_top("SYNAPSE: INHALE")
         if dry_run:
-            HUD.box_row("MODE", "DRY RUN (No changes will be applied)", HUD.YELLOW)
+            SovereignHUD.box_row("MODE", "DRY RUN (No changes will be applied)", SovereignHUD.YELLOW)
         
         # 1. Update Core
-        HUD.box_row("ACTION", "Syncing Knowledge Core...", HUD.CYAN)
+        SovereignHUD.box_row("ACTION", "Syncing Knowledge Core...", SovereignHUD.CYAN)
         if not dry_run:
             ok, out, err = self._git_cmd(["pull"], self.core_path)
             if not ok:
-                HUD.box_row("WARNING", "Core sync failed (Offline?)", HUD.YELLOW)
+                SovereignHUD.box_row("WARNING", "Core sync failed (Offline?)", SovereignHUD.YELLOW)
             else:
-                HUD.box_row("STATUS", "Core Updated", HUD.GREEN)
+                SovereignHUD.box_row("STATUS", "Core Updated", SovereignHUD.GREEN)
         else:
-            HUD.box_row("STATUS", "Skipped (Dry Run)", HUD.YELLOW)
+            SovereignHUD.box_row("STATUS", "Skipped (Dry Run)", SovereignHUD.YELLOW)
 
         changes_count = 0
         
@@ -113,7 +113,7 @@ class Synapse:
                     if not os.path.exists(dst):
                         if not dry_run: shutil.copytree(src, dst)
                         changes_count += 1
-                        HUD.box_row("LEARNED", f"Skill: {item}", HUD.GREEN)
+                        SovereignHUD.box_row("LEARNED", f"Skill: {item}", SovereignHUD.GREEN)
                     else:
                         # Overwrite if newer (naive check on folder mtime is unreliable, check SKILL.md)
                         src_meta = os.path.join(src, "SKILL.md")
@@ -124,7 +124,7 @@ class Synapse:
                                     shutil.rmtree(dst)
                                     shutil.copytree(src, dst)
                                 changes_count += 1
-                                HUD.box_row("UPDATED", f"Skill: {item}", HUD.CYAN)
+                                SovereignHUD.box_row("UPDATED", f"Skill: {item}", SovereignHUD.CYAN)
 
         # 3. Merge Corrections
         core_corr_path = os.path.join(self.core_path, "corrections.json")
@@ -151,15 +151,15 @@ class Synapse:
                 if merged > 0:
                     with open(local_corr_path, 'w') as f:
                         json.dump(local_corr, f, indent=4)
-                    HUD.box_row("WISDOM", f"Absorbed {merged} global corrections", HUD.MAGENTA)
+                    SovereignHUD.box_row("WISDOM", f"Absorbed {merged} global corrections", SovereignHUD.MAGENTA)
                     changes_count += 1
             except Exception as e:
-                HUD.box_row("ERROR", f"Corruption in Core Corrections: {str(e)}", HUD.RED)
+                SovereignHUD.box_row("ERROR", f"Corruption in Core Corrections: {str(e)}", SovereignHUD.RED)
                 
         if changes_count == 0:
-            HUD.box_row("RESULT", "Knowledge is already synchronized.", HUD.GREEN)
+            SovereignHUD.box_row("RESULT", "Knowledge is already synchronized.", SovereignHUD.GREEN)
             
-        HUD.box_bottom()
+        SovereignHUD.box_bottom()
 
 
     def _validate_skill(self, file_path: str) -> bool:
@@ -170,7 +170,7 @@ class Synapse:
         try:
             py_compile.compile(file_path, doraise=True)
         except py_compile.PyCompileError as e:
-            HUD.box_row("REJECTED", f"Syntax Error in {os.path.basename(file_path)}", HUD.RED)
+            SovereignHUD.box_row("REJECTED", f"Syntax Error in {os.path.basename(file_path)}", SovereignHUD.RED)
             return False
 
         # 2. Structural Integrity (Ruff)
@@ -182,16 +182,16 @@ class Synapse:
                 capture_output=True, text=True
             )
             if result.returncode != 0:
-                 HUD.box_row("REJECTED", f"Code Sentinel Alert (Ruff) in {os.path.basename(file_path)}", HUD.RED)
+                 SovereignHUD.box_row("REJECTED", f"Code Sentinel Alert (Ruff) in {os.path.basename(file_path)}", SovereignHUD.RED)
                  return False
         except FileNotFoundError:
-             HUD.box_row("WARNING", "Code Sentinel (Ruff) not found. Skipping integrity check.", HUD.YELLOW)
+             SovereignHUD.box_row("WARNING", "Code Sentinel (Ruff) not found. Skipping integrity check.", SovereignHUD.YELLOW)
 
         return True
 
 
     def push(self):
-        HUD.box_top("SYNAPSE: EXHALE")
+        SovereignHUD.box_top("SYNAPSE: EXHALE")
         
         updates = []
         
@@ -255,7 +255,7 @@ class Synapse:
             except: pass
 
         if updates:
-            HUD.box_row("CONTRIBUTION", f"Committing {len(updates)} change items...", HUD.CYAN)
+            SovereignHUD.box_row("CONTRIBUTION", f"Committing {len(updates)} change items...", SovereignHUD.CYAN)
             
             # Git Commit
             self._git_cmd(["add", "."], self.core_path)
@@ -263,18 +263,18 @@ class Synapse:
             ok, out, err = self._git_cmd(["commit", "-m", msg], self.core_path)
             
             if ok:
-                HUD.box_row("STATUS", "Committed to Core", HUD.GREEN)
+                SovereignHUD.box_row("STATUS", "Committed to Core", SovereignHUD.GREEN)
                 # git push usually fails in these non-auth environments, but we try
                 # For local folder repo, it's just a commit basically unless it has origin
                 # Assuming this IS the repo or has origin
                 ok, out, err = self._git_cmd(["push"], self.core_path) 
             else:
-                HUD.box_row("WARNING", "Nothing to commit or commit failed", HUD.YELLOW)
+                SovereignHUD.box_row("WARNING", "Nothing to commit or commit failed", SovereignHUD.YELLOW)
 
         else:
-            HUD.box_row("RESULT", "No new global knowledge to contribute.", HUD.YELLOW)
+            SovereignHUD.box_row("RESULT", "No new global knowledge to contribute.", SovereignHUD.YELLOW)
 
-        HUD.box_bottom()
+        SovereignHUD.box_bottom()
 
 def main():
     parser = argparse.ArgumentParser(description="Corvus Synapse Sync")

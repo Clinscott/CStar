@@ -6,23 +6,21 @@ import sys
 import time
 from pathlib import Path
 
-# Resolve shared UI from src/core/
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "core"))
-from ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 # --- CRUCIBLE CONFIGURATION (THEMES) ---
 THEMES = {
-    "ODIN": {"TITLE": "Ω CRUCIBLE (WAR ROOM) Ω", "DETECTED": "Anomaly Sector", "PASS": "Subjugated", "FAIL": "Defiant", "COLOR_MAIN": HUD.RED},
-    "ALFRED": {"TITLE": "C* THE CRUCIBLE (SYNC)", "DETECTED": "Trace Detected", "PASS": "Ingested", "FAIL": "Rejected", "COLOR_MAIN": HUD.CYAN}
+    "ODIN": {"TITLE": "Ω CRUCIBLE (WAR ROOM) Ω", "DETECTED": "Anomaly Sector", "PASS": "Subjugated", "FAIL": "Defiant", "COLOR_MAIN": SovereignHUD.RED},
+    "ALFRED": {"TITLE": "C* THE CRUCIBLE (SYNC)", "DETECTED": "Trace Detected", "PASS": "Ingested", "FAIL": "Rejected", "COLOR_MAIN": SovereignHUD.CYAN}
 }
 
 def get_theme():
     """Module-level theme retriever for legacy tests."""
-    return THEMES.get(HUD.PERSONA, THEMES["ALFRED"])
+    return THEMES.get(SovereignHUD.PERSONA, THEMES["ALFRED"])
 
 def log_rejection(filename: str, reason: str):
     """Module-level rejection log."""
-    HUD.log_rejection(HUD.PERSONA, reason, filename)
+    SovereignHUD.log_rejection(SovereignHUD.PERSONA, reason, filename)
 
 def process_file(file_path: str):
     """Module-level process alias."""
@@ -42,8 +40,8 @@ class CruciblePipeline:
 
     def process(self, file_path: str):
         name = os.path.basename(file_path)
-        HUD.box_top("CRUCIBLE SCAN")
-        HUD.log("INFO", f"Ingesting {name}")
+        SovereignHUD.box_top("CRUCIBLE SCAN")
+        SovereignHUD.log("INFO", f"Ingesting {name}")
         
         try:
             if os.path.getsize(file_path) > 5*10**6: raise ValueError("DoS: Oversized")
@@ -58,15 +56,15 @@ class CruciblePipeline:
             res = subprocess.run([sys.executable, m_script, self.stage, self.db], capture_output=True)
             
             if res.returncode == 0:
-                HUD.log("PASS", "Trace Ingested")
+                SovereignHUD.log("PASS", "Trace Ingested")
                 if os.path.exists(backup): os.remove(backup)
             else:
-                HUD.log("FAIL", "Merge Error")
+                SovereignHUD.log("FAIL", "Merge Error")
                 shutil.copy2(backup, self.db)
                 
         except Exception as e:
-            HUD.log("FAIL", f"Pipeline Error: {str(e)[:40]}")
-        HUD.box_bottom()
+            SovereignHUD.log("FAIL", f"Pipeline Error: {str(e)[:40]}")
+        SovereignHUD.box_bottom()
 
 class NetworkWatcher:
     """
@@ -78,7 +76,7 @@ class NetworkWatcher:
         self.pipeline = pipeline
 
     def watch(self):
-        print(f"{HUD.CYAN}>> The Crucible is active. Watching: {self.share}...{HUD.RESET}")
+        print(f"{SovereignHUD.CYAN}>> The Crucible is active. Watching: {self.share}...{SovereignHUD.RESET}")
         while True:
             try:
                 for f in [f for f in os.listdir(self.share) if f.endswith('.json')]:

@@ -15,7 +15,7 @@ This project adheres to a strict "Sci-Fi / Minimalist / High-Performance" aesthe
 > **ALWAYS** refer to `wireframe.qmd` for specific component names, layout structures, and design tokens before making UI changes.
 
 ### 🛑 STOP & CHECK (Mandatory Verification)
-1.  **Is this page integrated into the HUD?** (Sidebar/TopBar must be present).
+1.  **Is this page integrated into the SovereignHUD?** (Sidebar/TopBar must be present).
     -   *Violation*: Creating a standalone page for a core feature.
 2.  **Does it look seamless?** (No jarring white flashes or layout shifts).
 3.  **Are you deleting something?**

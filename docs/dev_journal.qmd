@@ -14,11 +14,16 @@ Preserve the "why" behind technical decisions and provide a narrative history of
 
 # Developer Journal
 
+## 2026-02-25 - Session 85: V4 Hardened Intelligence
+- **Accomplishments**: Implemented SessionWarden, JSONL concurrency, and Deep Memory Purge.
+- **Git State**: Secured append-only ledger protocol.
+- **Decisions**: 
+    - **JSONL over JSON**: Switched to append-only lines to prevent race conditions during Windows file moves.
+    - **Bottleneck Neural Architecture**: Used 4-neuron hidden layer for SessionWarden to ensure feature abstraction over rote memorization.
+    - **Explicit Teardown**: Mandated `teardown()` calls to release file handles and clear singleton SovereignHUD state before session exit.
+- **Current State**: V4 Hardening verified; 100% EMPIRE TDD pass.
+
 ## 2026-02-23 - Session 81: The Spoke Routing Layer
-- **Accomplishments**: Implemented Phase 2 (Multi-Tenant Memory) and Phase 3 (Universal Event Router).
-- **Git State**: Cleaned up `node_modules` from tracking and secured `.gitignore`.
-- **Decisions**: Standardized on `app_id` partitioning.
-- **Current State**: Phase 3 verified; Build clean.
 
 ## 2026-02-13 - Operation Bifröst: The Web-Aware Reforge (Session 54)
 ### Summary
@@ -31,7 +36,7 @@ Preserve the "why" behind technical decisions and provide a narrative history of
 ### Architectural Decisions
 - **Proactive Search vs Fallback**: Shifted search from a "failure fallback" to a proactive layer. Identifying unknown terms *before* the vector search prevents "forced matches" to incorrect skill clusters.
 - **Sanitization first**: Established a "Guilty until Proven Innocent" policy for web snippets. By running `heimdall_guard` before any logic processing, we eliminate prompt injection risks from external data.
-- **Transparent Quota**: Chose to log quota errors immediately to the HUD via `persona_log`. This ensures the user (Warlord) is aware when tactical scouting is blinded by limits.
+- **Transparent Quota**: Chose to log quota errors immediately to the SovereignHUD via `persona_log`. This ensures the user (Warlord) is aware when tactical scouting is blinded by limits.
 
 ### Current State
 - **Corvus Star 5.4** is the first web-aware instance.
@@ -46,7 +51,7 @@ Preserve the "why" behind technical decisions and provide a narrative history of
 - **SovereignFish Improvements**: Hardened `update_gemini_manifest.py` path resolution and `security_scan.py` intent matching.
 
 ### Architectural Decisions
-- **Isolation over Global State**: Decided to isolate persona state in `TraceRenderer` by targeting module-internal `HUD` instances, preventing state leakage during multi-persona analysis.
+- **Isolation over Global State**: Decided to isolate persona state in `TraceRenderer` by targeting module-internal `SovereignHUD` instances, preventing state leakage during multi-persona analysis.
 - **Robust JSON Strategy**: Refactored regex-based data scripts into proper `json.load` logic. While regex is faster for simple files, the project's increasing structural complexity requires the robustness of a full parser.
 - **Empire Testing as Doctrine**: Established the `empire_tests` directory as the permanent home for "Infrastructure-as-Code" verification, keeping core engine unit tests separate from tool-specific hardened contracts.
 
@@ -77,7 +82,7 @@ Preserve the "why" behind technical decisions and provide a narrative history of
 ## 2026-01-30 - Corvus Star & The Triple Threat
 ### Summary
 - **Rebranded**: Officially renamed AgLng to **Corvus Star (C*)** globally.
-- **Aesthetic Overhaul**: Implemented a `HUD` class in `sv_engine.py` to drive a "Sci-Fi" terminal interface with box drawing and progress bars.
+- **Aesthetic Overhaul**: Implemented a `SovereignHUD` class in `sv_engine.py` to drive a "Sci-Fi" terminal interface with box drawing and progress bars.
 - **Skill Expansion**: Added `agent-lightning` (RL Optimization) and `playwright-e2e` (Testing) to the global registry.
 - **Robustness**: Upgraded `install.ps1` with "Smart-Merge 2.0" (section awareness) and automatic `.bak` backups.
 
@@ -94,8 +99,8 @@ Preserve the "why" behind technical decisions and provide a narrative history of
 ## 2026-01-30 - Triple Threat Execution Phase
 ### Summary
 - **Interactive Reactivity**: Enabled `sv_engine.py` to accept user input (Y/n) for immediate JIT skill installation, closing the "Proactive" loop.
-- **Agent Lightning PoC**: Created `lightning_rod.py` to demonstrate the read-optimize-write loop using the new HUD.
-- **Template Synchronization**: Propagated the HUD and Smart-Merge 2.0 capabilities to `sterileAgent`, ensuring future projects inherit these standards.
+- **Agent Lightning PoC**: Created `lightning_rod.py` to demonstrate the read-optimize-write loop using the new SovereignHUD.
+- **Template Synchronization**: Propagated the SovereignHUD and Smart-Merge 2.0 capabilities to `sterileAgent`, ensuring future projects inherit these standards.
 
 ### Architectural Decisions
 - **Interactive CLI**: Added `input()` handling in `sv_engine.py`. While risky in some automation contexts, the high-confidence threshold (>0.9) ensures it only triggers when impactful.
@@ -131,10 +136,10 @@ Preserve the "why" behind technical decisions and provide a narrative history of
 
 ## 2026-01-31 - The Triple Threat Expansion
 ### Summary
-- **Visual Intelligence**: Implemented `trace_viz.py`, a CLI tool that visualizes TF-IDF vector breakdown with a glowing HUD.
+- **Visual Intelligence**: Implemented `trace_viz.py`, a CLI tool that visualizes TF-IDF vector breakdown with a glowing SovereignHUD.
 - **Distributed Intelligence**: Upgraded `sv_engine.py` to record interaction traces to `.agent/traces/` and `compile_session_traces.py` to aggregate them into session reports.
 - **Global Intelligence**: Added `git-assistant`, `codestats`, and `agent-health` to the Global Skill Registry.
-- **Polish**: Externalized `stopwords.json` and refined the UI aesthetics (Glow HUD).
+- **Polish**: Externalized `stopwords.json` and refined the UI aesthetics (Glow SovereignHUD).
 
 ### Architectural Decisions
 - **Opt-in Recording**: Decided to use a `--record` flag rather than recording everything by default to keep the engine lightweight.
@@ -170,7 +175,7 @@ Preserve the "why" behind technical decisions and provide a narrative history of
 ### Summary
 - **Persona Implementation**: Introduced `Get-PersonaChoice` in `install.ps1`, allowing users to choose between "Complete Domination" (God) and "Humble Servant" (Alfred).
 - **Engine Adaptation**: `sv_engine.py` now supports dynamic themes (Labels, Colors, Interaction Prompts) based on the selected persona in `config.json`.
-- **SovereignFish Improvements**: Refined HUD progress bars to be dynamic and added a polished header to the installation script.
+- **SovereignFish Improvements**: Refined SovereignHUD progress bars to be dynamic and added a polished header to the installation script.
 
 ### Architectural Decisions
 - **Config-Driven Personality**: Decided to store persona choice in `config.json` rather than an environment variable to ensure persistence across sessions and machines.
@@ -234,16 +239,16 @@ We need to close the loop by visualizing these external traces. Currently `trace
 ## 2026-02-01 - Trace Visualization & Persona Symmetry
 ### Summary
 Completed the upgrade of `trace_viz.py` to Version 2.0. This tool now acts as the visual bridge between the "Distributed Intelligence" back-end and the "Persona" front-end.
-- **Identity Rendering**: The system now correctly respects the author of a trace. If Odin wrote it, it renders in Red. If Alfred wrote it, Cyan. This was achieved by modifying `sv_engine.py` to allow dynamic color overrides in the `HUD` class.
+- **Identity Rendering**: The system now correctly respects the author of a trace. If Odin wrote it, it renders in Red. If Alfred wrote it, Cyan. This was achieved by modifying `sv_engine.py` to allow dynamic color overrides in the `SovereignHUD` class.
 - **Conflict Analysis**: Implemented the "War Room" logic to detect where Odin and Alfred disagree on the same query.
 
 ### Architectural Decisions
-- **Dynamic Theming**: We chose to implement theming at the `sv_engine.py` (HUD) level via optional arguments rather than hardcoding ANSI codes in the consumer scripts. This maintains the "Engine as a Service" architecture.
+- **Dynamic Theming**: We chose to implement theming at the `sv_engine.py` (SovereignHUD) level via optional arguments rather than hardcoding ANSI codes in the consumer scripts. This maintains the "Engine as a Service" architecture.
 - **Trace Format**: The JSON trace format is now the source of truth for Identity (`persona` field).
 
 ### Current State
 - `trace_viz.py`: **STABLE** (Supports live, file, and war-room modes).
-- `sv_engine.py`: **STABLE** (Expanded HUD capabilities).
+- `sv_engine.py`: **STABLE** (Expanded SovereignHUD capabilities).
 - `fishtest`: **READY** for scaled distributed testing.
 
 ## 2026-02-01 - The Great Duality & Universal Verification
@@ -271,7 +276,7 @@ Completed the upgrade of `trace_viz.py` to Version 2.0. This tool now acts as th
 - **Decree of Finality**: Successfully completed Phase 4 of the Federated Learning system.
 - **Auditability**: Implemented `REJECTIONS.qmd` in the quarantine directory to track purged traces with persona-filtered reasoning.
 - **Documentation**: Fully mapped the ingestion, staging, and conflict resolution flow in `wireframe.qmd`.
-- **Polish**: Added real-time timestamps to `fishtest.py` and a HUD boot sequence to `sv_engine.py` (SovereignFish).
+- **Polish**: Added real-time timestamps to `fishtest.py` and a SovereignHUD boot sequence to `sv_engine.py` (SovereignFish).
 - **Stability**: Verified logic with synthetic "bad trace" rejection.
 
 ### Architectural Decisions
@@ -324,12 +329,12 @@ Completed the upgrade of `trace_viz.py` to Version 2.0. This tool now acts as th
 ector.py, 
 ishtest.py, and all auxiliary utilities.
 - **Infrastructure Hardening**: Established mandatory integrity checks for skill installation and isolation containers for federated traces.
-- **Aesthetic Refinement**: Upgraded HUD to Version 2.0 with dynamic width support and persistent layout states.
+- **Aesthetic Refinement**: Upgraded SovereignHUD to Version 2.0 with dynamic width support and persistent layout states.
 - **Persona Realignment**: Refined the ALFRED persona strategy to be 'Firm but Gentle', replacing servile submissive dialogue with 'Reminders' and 'Queries'.
 
 ### Architectural Decisions
 - **The Doctrine of the Blanket**: Decided that a 'Type Blanket' (recursive type hinting) is the primary defense against regression in a dynamic logic environment. By making types explicit, we move verification from 'runtime luck' to 'static law'.
-- **Width Persistence**: HUD 2.0 now remembers its width between calls. This prevents the 'jagged' terminal output common in multi-script CLI executions and ensures a stable, visual surface.
+- **Width Persistence**: SovereignHUD 2.0 now remembers its width between calls. This prevents the 'jagged' terminal output common in multi-script CLI executions and ensures a stable, visual surface.
 - **Atomic Deployment**: install_skill.py was changed to use a 'Crucible' (Isolation Zone) approach. Skills are quarantined, scanned, and verified for file-integrity before being promoted to the project core.
 
 ### Current State
@@ -367,7 +372,7 @@ ishtest.py, and all auxiliary utilities.
 ## 2026-02-02 - Code Sentinel Integration (Session 23)
 ### Summary
 - **Tooling**: Integrated **Ruff** (Rust-based linter) as the project's primary structural integrity tool.
-- **Wrapper**: Developed `code_sentinel.py` to provide persona-themed, HUD-compliant reports that don't block execution but provide high-visibility warnings.
+- **Wrapper**: Developed `code_sentinel.py` to provide persona-themed, SovereignHUD-compliant reports that don't block execution but provide high-visibility warnings.
 - **Workflow**: Updated the `/investigate` workflow to mandate a structural scan.
 
 ### Architectural Decisions
@@ -384,13 +389,13 @@ ishtest.py, and all auxiliary utilities.
 ## 2026-02-02 - The Scout's Hunt (Session 24)
 ### Summary
 - **Tooling**: Implemented `debt_viz.py` utilizing **Radon** for Cyclomatic Complexity analysis.
-- **Visualization**: Created a HUD-styled "Combat Analysis" dashboard that identifies code "War Zones" (Rank C-F).
+- **Visualization**: Created a SovereignHUD-styled "Combat Analysis" dashboard that identifies code "War Zones" (Rank C-F).
 - **Refactoring**: Used the findings of the new tool to refactor `fishtest.py`, reducing its highest function complexity from 18 to 8.
 - **Skill Discovery**: Forged the `radon` skill to allow the agent to proactively analyze code health.
 
 ### Architectural Decisions
 - **Cyclomatic Complexity as Debt**: Chose CC as the primary metric for "Structural Debt" because it correlates directly with testing difficulty and bug density.
-- **HUD-First Rendering**: Maintained the "Text is Interface" standard by building a custom table and distribution chart in ASCII rather than relying on external web visualization.
+- **SovereignHUD-First Rendering**: Maintained the "Text is Interface" standard by building a custom table and distribution chart in ASCII rather than relying on external web visualization.
 - **JSON for Interoperability**: Added a `--json` flag to `debt_viz.py` to enable future automated monitoring or dashboarding without needing to parse ASCII boxes.
 
 ### Current State
@@ -456,7 +461,7 @@ ishtest.py, and all auxiliary utilities.
 - **ZKP for Personas**: Decided on a hashed challenge-response (Neural Handshake) for knowledge contributions. This ensures that only authorized personas (Odin/Alfred) can modify the global Knowledge Core without transmitting the raw secret.
 - **Unicode-Aware Tokenization**: Replaced basic `a-z` regex with `\w+` to capture international characters. In a global framework, intent should not be limited by alphabet.
 - **Cached Vectorization**: Implemented caching for both token expansion and final vector results. Since natural language intents are often repetitive ("wrap it up", "run-task"), this yields O(1) performance for 90% of user queries.
-- **Dynamic HUD Resonance**: Upgraded the UI library to auto-adjust to terminal width while maintaining a 40-120 column safety bracket. This prevents the HUD from "exploding" on large monitors or "collapsing" on small splits.
+- **Dynamic SovereignHUD Resonance**: Upgraded the UI library to auto-adjust to terminal width while maintaining a 40-120 column safety bracket. This prevents the SovereignHUD from "exploding" on large monitors or "collapsing" on small splits.
 
 ### Current State
 - **Corvus Star 4.1** is globally capable and cryptographically secure.
@@ -479,7 +484,7 @@ Achieved 100.0% accuracy on the N=1000 benchmark dataset using an overfit-correc
 ### Summary
 - **Hybrid Extensions**: Resolved the "Empty Slash Menu" blocker by adopting a hybrid file extension strategy: Workflows in `.agent/workflows/` use `.md` for editor visibility, while all other documentation remains in the rich `.qmd` format.
 - **Persona Sync Hardening**: Implemented proactive identity enforcement in `personas.py`. The system now ensures `.cursorrules` matches the active persona's identity (`IDENTITY: ALFRED` vs `IDENTITY: ODIN`) and synchronizes configuration files across the root and agent directories.
-- **HUD Optimization**: Repaired the `ui.py` layout logic to handle ANSI padding correctly on Windows terminals, restoring the stylized "Sci-Fi" aesthetics.
+- **SovereignHUD Optimization**: Repaired the `ui.py` layout logic to handle ANSI padding correctly on Windows terminals, restoring the stylized "Sci-Fi" aesthetics.
 - **SPRT Calibration**: Updated `fishtest.py` to support adversarial test cases (null expectations) and adjusted the accuracy threshold to 90% per user mandate.
 
 ### Architectural Decisions
@@ -536,7 +541,7 @@ Achieved 100.0% accuracy on the N=1000 benchmark dataset using an overfit-correc
 - **Platform Resilience**: Integrated `pathlib` across the core script suite and hardened subprocess handling with explicit UTF-8/replacement encoding to support Windows-specific character challenges.
 
 ### Architectural Decisions
-- **Class-Based Dispatch**: Decided to replace the flat `cstar_dispatcher.py` with a `CorvusDispatcher` class. This allows for better state management of the HUD and prevents global variable pollution during multi-command sessions.
+- **Class-Based Dispatch**: Decided to replace the flat `cstar_dispatcher.py` with a `CorvusDispatcher` class. This allows for better state management of the SovereignHUD and prevents global variable pollution during multi-command sessions.
 - **Encapsulated Auditors**: Transitioned `debt_viz.py` and `code_sentinel.py` into encapsulated classes. This enables future scripts to import and run these audits programmatically as part of their own validation loops.
 - **UTF-8 Resilience**: Implemented a "Standardized Unicode Bridge" for all shell executions. By forcing `errors='replace'` and UTF-8 encoding, we ensure the framework never crashes due to unexpected terminal characters (e.g., null bytes or decorative glyphs) in Windows environments.
 

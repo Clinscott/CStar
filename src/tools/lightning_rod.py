@@ -6,10 +6,10 @@ import time
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 try:
-    from sv_engine import HUD
+    from sv_engine import SovereignHUD
 except ImportError:
     # Fallback if sv_engine not found or fails to import
-    class HUD:
+    class SovereignHUD:
         CYAN = ""
         GREEN = ""
         YELLOW = ""
@@ -25,22 +25,22 @@ except ImportError:
 
 def optimize_file(file_path):
     if not os.path.exists(file_path):
-        print(f"{HUD.RED}Error: File not found: {file_path}{HUD.RESET}")
+        print(f"{SovereignHUD.RED}Error: File not found: {file_path}{SovereignHUD.RESET}")
         return
 
-    HUD.box_top("AGENT LIGHTNING v0.1")
-    HUD.box_row("Target", os.path.basename(file_path))
-    HUD.box_row("Status", "Analyzing...", HUD.YELLOW)
+    SovereignHUD.box_top("AGENT LIGHTNING v0.1")
+    SovereignHUD.box_row("Target", os.path.basename(file_path))
+    SovereignHUD.box_row("Status", "Analyzing...", SovereignHUD.YELLOW)
     
     # 1. Read
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
     
     time.sleep(0.5) # Simulate processing
-    HUD.box_row("Analysis", f"{len(content)} bytes read", HUD.CYAN)
+    SovereignHUD.box_row("Analysis", f"{len(content)} bytes read", SovereignHUD.CYAN)
     
     # 2. Simulate Optimization (Mock)
-    HUD.box_row("Optimizer", "Applying enhancements...", HUD.MAGENTA)
+    SovereignHUD.box_row("Optimizer", "Applying enhancements...", SovereignHUD.MAGENTA)
     time.sleep(0.5)
     
     # Simple "Optimization": Add a timestamp comment if not present, or update it.
@@ -58,8 +58,8 @@ def optimize_file(file_path):
         with open(file_path, 'w', encoding='utf-8') as f:
             f.write(new_content)
     
-    HUD.box_row("Result", action, HUD.GREEN)
-    HUD.box_bottom()
+    SovereignHUD.box_row("Result", action, SovereignHUD.GREEN)
+    SovereignHUD.box_bottom()
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

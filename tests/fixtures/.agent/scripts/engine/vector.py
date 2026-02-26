@@ -6,11 +6,11 @@ import sys
 
 # Import Shared UI from parent directory
 try:
-    from ui import HUD
+    from src.core.sovereign_hud import SovereignHUD
 except ImportError:
     # Fallback if run from engine/ directory locally
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    from ui import HUD
+    from src.core.sovereign_hud import SovereignHUD
 
 class SovereignVector:
     def __init__(self, thesaurus_path=None, corrections_path=None, stopwords_path=None):
@@ -23,9 +23,9 @@ class SovereignVector:
         self.stopwords = self._load_stopwords(stopwords_path)
         
         # SovereignFish: Boot Log
-        HUD.box_top("ENGINE INITIALIZED")
-        HUD.box_row("STATUS", "ONLINE", HUD.GREEN)
-        HUD.box_bottom()
+        SovereignHUD.box_top("ENGINE INITIALIZED")
+        SovereignHUD.box_row("STATUS", "ONLINE", SovereignHUD.GREEN)
+        SovereignHUD.box_bottom()
 
         self.skills = {} # {trigger: "full text of skill description"}
         self.trigger_map = {} # {keyword: [triggers]}
@@ -435,14 +435,14 @@ class SovereignVector:
         # Let's use the current engine's vocab but check against dialogue data
         # If the text has tokens that appear frequently in the persona's DB, it's a match.
         
-        # Actually, if we have HUD.DIALOGUE loaded, we can compare directly.
+        # Actually, if we have SovereignHUD.DIALOGUE loaded, we can compare directly.
         # Simple heuristic for now: token overlap with dialogue registry
         tokens = set(self.tokenize(text))
         persona_tokens = set()
         
-        # Defensive check for HUD.DIALOGUE
-        if HUD.DIALOGUE:
-            for phrases in HUD.DIALOGUE.intents.values():
+        # Defensive check for SovereignHUD.DIALOGUE
+        if SovereignHUD.DIALOGUE:
+            for phrases in SovereignHUD.DIALOGUE.intents.values():
                 for p in phrases:
                     persona_tokens.update(self.tokenize(p))
         

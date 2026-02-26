@@ -29,7 +29,7 @@ project_root = Path(__file__).parent.parent.parent.absolute()
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
-from src.core.ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 # Configure Logging
 logging.basicConfig(
@@ -81,7 +81,7 @@ class ArchiveConsolidator:
         self.ledger_path = project_root / ".agent" / "tech_debt_ledger.json"
         
         # Enforce ALFRED persona for this tool
-        HUD.PERSONA = "ALFRED"
+        SovereignHUD.PERSONA = "ALFRED"
 
     def _get_git_churn(self) -> dict[str, int]:
         """Calculates line churn for files changed in the last N days."""
@@ -105,7 +105,7 @@ class ArchiveConsolidator:
                         churn_data[filepath] += int(additions) + int(deletions)
                         
         except (subprocess.CalledProcessError, FileNotFoundError) as e:
-            HUD.persona_log("WARN", "Git churn calculation failed. Returning empty data.")
+            SovereignHUD.persona_log("WARN", "Git churn calculation failed. Returning empty data.")
         
         return dict(churn_data)
 
@@ -131,17 +131,17 @@ class ArchiveConsolidator:
 
     def analyze(self) -> list[dict[str, Any]]:
         """Performs the full consolidation analysis."""
-        HUD.box_top("[A] THE ARCHIVE CONSOLIDATOR")
-        HUD.box_row("TARGET", str(self.target_dir), HUD.CYAN)
-        HUD.box_row("CHURN WINDOW", f"Last {self.days} days", HUD.CYAN)
-        HUD.box_separator()
+        SovereignHUD.box_top("[A] THE ARCHIVE CONSOLIDATOR")
+        SovereignHUD.box_row("TARGET", str(self.target_dir), SovereignHUD.CYAN)
+        SovereignHUD.box_row("CHURN WINDOW", f"Last {self.days} days", SovereignHUD.CYAN)
+        SovereignHUD.box_separator()
         
-        HUD.persona_log("INFO", "Gathering Git churn statistics...")
+        SovereignHUD.persona_log("INFO", "Gathering Git churn statistics...")
         churn_data = self._get_git_churn()
-        HUD.box_row("FILES MODIFIED", str(len(churn_data)), HUD.GREEN)
+        SovereignHUD.box_row("FILES MODIFIED", str(len(churn_data)), SovereignHUD.GREEN)
         
         target_files = []
-        HUD.persona_log("INFO", "Evaluating complexity and coverage matrix...")
+        SovereignHUD.persona_log("INFO", "Evaluating complexity and coverage matrix...")
         
         for rel_path, churn in churn_data.items():
             if not rel_path.endswith('.py'):
@@ -187,34 +187,34 @@ class ArchiveConsolidator:
         self.ledger_path.parent.mkdir(parents=True, exist_ok=True)
         
         ledger_data = {
-            "timestamp": HUD._speak("timestamp", "Now"), # Standard timestamp fallback
+            "timestamp": SovereignHUD._speak("timestamp", "Now"), # Standard timestamp fallback
             "top_targets": targets[:20] # Keep top 20
         }
         
         self.ledger_path.write_text(json.dumps(ledger_data, indent=4), encoding='utf-8')
 
     def _render_report(self, targets: list[dict[str, Any]]) -> None:
-        """Displays the high-risk targets in the HUD."""
-        HUD.box_separator()
-        HUD.box_row("TOP SECURITY TARGETS (RISK SCORE)", "CHURN | CC | TEST COV", HUD.RED)
-        HUD.box_separator()
+        """Displays the high-risk targets in the SovereignHUD."""
+        SovereignHUD.box_separator()
+        SovereignHUD.box_row("TOP SECURITY TARGETS (RISK SCORE)", "CHURN | CC | TEST COV", SovereignHUD.RED)
+        SovereignHUD.box_separator()
         
         if not targets:
-            HUD.box_row("STATUS", "The archive is immaculate, sir.", HUD.GREEN)
+            SovereignHUD.box_row("STATUS", "The archive is immaculate, sir.", SovereignHUD.GREEN)
         else:
             for idx, item in enumerate(targets[:10], start=1):
                 f_name = Path(item['file']).name
-                color = HUD.RED if not item['coverage'] else HUD.YELLOW
+                color = SovereignHUD.RED if not item['coverage'] else SovereignHUD.YELLOW
                 cov_mark = "[OK]" if item['coverage'] else "[MISSING]"
                 stats = f"{item['churn']:<5} | {item['complexity']:<4} | {cov_mark}"
                 
                 # Format: 1.  filename.py ... 142 | 5.2 | [MISSING]
-                HUD.box_row(f"{idx:02d}. {f_name}", stats, color, dim_label=True)
+                SovereignHUD.box_row(f"{idx:02d}. {f_name}", stats, color, dim_label=True)
                 
             if len(targets) > 10:
-                HUD.box_row("...", f"+ {len(targets) - 10} more files analyzed", dim_label=True)
+                SovereignHUD.box_row("...", f"+ {len(targets) - 10} more files analyzed", dim_label=True)
                 
-        HUD.box_bottom()
+        SovereignHUD.box_bottom()
 
 
 def main():
@@ -228,10 +228,10 @@ def main():
         consolidator.analyze()
         return 0
     except KeyboardInterrupt:
-        HUD.persona_log("WARN", "Consolidation aborted by user.")
+        SovereignHUD.persona_log("WARN", "Consolidation aborted by user.")
         return 1
     except Exception as e:
-        HUD.persona_log("ERROR", f"Consolidation failed: {e}")
+        SovereignHUD.persona_log("ERROR", f"Consolidation failed: {e}")
         return 1
 
 if __name__ == "__main__":

@@ -119,9 +119,9 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 ### 2026-02-13 (Session 51 - Dominion Expanded)
 
 ### 2026-02-12 (Session 50 - Dominion Expanded)
--   **Security**: Hardened `HUD` box methods against non-integer width pollution, ensuring UI stability during stubbed/mocked testing cycles. - Status: SECURED.
+-   **Security**: Hardened `SovereignHUD` box methods against non-integer width pollution, ensuring UI stability during stubbed/mocked testing cycles. - Status: SECURED.
 -   **Logic**: Expanded `thesaurus.qmd` with "stabilization" and "regression" clusters to harden Raven intent resolution during post-hardening phases. - Status: SECURED.
--   **UI**: Implemented lazy persona synchronization in `HUD` to ensure consistent theming across all modules without explicit initialization. - Status: SECURED.
+-   **UI**: Implemented lazy persona synchronization in `SovereignHUD` to ensure consistent theming across all modules without explicit initialization. - Status: SECURED.
 -   **Architecture**: Integrated SIGINT/SIGTERM signal handling into `main_loop.py` for graceful shutdown and state preservation of the Raven Daemon. - Status: SECURED.
 
 ### 2026-02-10 (Session 49)
@@ -139,7 +139,7 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 
 ### 2026-02-01
 -   **Docs**: Added clear docstrings to `trace_viz.py` modes for better developer experience (DX).
--   **Code**: Improved `sv_engine.py` HUD class to support dynamic color overrides (required for persona symmetry).
+-   **Code**: Improved `sv_engine.py` SovereignHUD class to support dynamic color overrides (required for persona symmetry).
 -   **Architecture**: Implemented "War Room" conflict analysis in `trace_viz.py`.
 
 ### 2026-01-30
@@ -160,7 +160,7 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 
 ### 2026-02-16 (Session 61 - High Seat Secured)
 -   **TUI**: Implemented a "Heartbeat" status indicator (dot) in the HeaderWidget that updates during every poll. - Status: SECURED.
--   **TUI**: Standardized all HUD components to use descendant-based CSS selectors, bypassing variable-parsing regressions. - Status: SECURED.
+-   **TUI**: Standardized all SovereignHUD components to use descendant-based CSS selectors, bypassing variable-parsing regressions. - Status: SECURED.
 -   **Verification**: Created the first "Empire-Class" test suite for the TUI (`test_tui_empire.py`), verifying instantiation, CSS validity, and client resilience. - Status: SECURED.
 
 ### 2026-02-17 (Session 65 - Dominion Expanded)

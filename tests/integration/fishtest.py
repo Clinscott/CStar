@@ -32,10 +32,10 @@ except ImportError as e:
         sys.exit(1)
 
 try:
-    from src.core.ui import HUD
+    from src.core.sovereign_hud import SovereignHUD
 except ImportError:
-    # Dummy HUD for headless or local runs if sv_engine/ui fails
-    class HUD:
+    # Dummy SovereignHUD for headless or local runs if sv_engine/ui fails
+    class SovereignHUD:
         RED = "\033[31m"; GREEN = "\033[32m"; YELLOW = "\033[33m"
         CYAN = "\033[36m"; MAGENTA = "\033[35m"; BOLD = "\033[1m"; DIM = "\033[2m"; RESET = "\033[0m"
         PERSONA = "ALFRED"
@@ -64,15 +64,15 @@ class SPRT:
     def evaluate(self, passed: int, total: int) -> Tuple[str, str]:
         """Calculates the Likelihood Ratio for the passed test count."""
         if total == 0:
-            return "INCONCLUSIVE", HUD.YELLOW
+            return "INCONCLUSIVE", SovereignHUD.YELLOW
         llr = (passed * math.log(self.p1 / self.p0)) + \
               ((total - passed) * math.log((1 - self.p1) / (1 - self.p0)))
         
         if llr >= self.lb:
-            return "PASS (Confirmed)", HUD.GREEN
+            return "PASS (Confirmed)", SovereignHUD.GREEN
         if llr <= self.la:
-            return "FAIL (Regression)", HUD.RED
-        return "INCONCLUSIVE", HUD.YELLOW
+            return "FAIL (Regression)", SovereignHUD.RED
+        return "INCONCLUSIVE", SovereignHUD.YELLOW
 
 
 class FishtestRunner:
@@ -85,7 +85,7 @@ class FishtestRunner:
         self.current_dir = os.path.dirname(os.path.abspath(__file__))
         self.base_path = os.path.join(PROJECT_ROOT, ".agent")
         self.engine, self.persona = self._initialize_engine()
-        HUD.PERSONA = self.persona
+        SovereignHUD.PERSONA = self.persona
 
     def _initialize_engine(self) -> Tuple[SovereignVector, str]:
         """Initializes the SovereignVector engine with local and global skills."""
@@ -155,17 +155,17 @@ class FishtestRunner:
             with open(self.data_file, 'r', encoding='utf-8') as f:
                 cases = json.load(f).get('test_cases', [])
         except (IOError, json.JSONDecodeError) as e:
-            HUD.log("FAIL", "Load Error", str(e))
+            SovereignHUD.log("FAIL", "Load Error", str(e))
             sys.exit(1)
         
         if not cases:
-            HUD.log("WARN", "EMPTY", "No test cases found.")
+            SovereignHUD.log("WARN", "EMPTY", "No test cases found.")
             return
 
-        HUD.box_top("Ω THE CRUCIBLE Ω" if self.persona == "ODIN" else "Linguistic Integrity Briefing")
-        HUD.box_row("TIMESTAMP", time.strftime("%H:%M:%S"), dim_label=True)
-        HUD.box_row("POPULATION", f"{len(cases)} Cases", HUD.BOLD)
-        HUD.box_separator()
+        SovereignHUD.box_top("Ω THE CRUCIBLE Ω" if self.persona == "ODIN" else "Linguistic Integrity Briefing")
+        SovereignHUD.box_row("TIMESTAMP", time.strftime("%H:%M:%S"), dim_label=True)
+        SovereignHUD.box_row("POPULATION", f"{len(cases)} Cases", SovereignHUD.BOLD)
+        SovereignHUD.box_separator()
 
         passed, skipped, start = 0, 0, time.time()
         for case in cases:
@@ -179,10 +179,10 @@ class FishtestRunner:
             if ok:
                 passed += 1
             else:
-                HUD.box_row("FAIL", case['query'], HUD.RED)
+                SovereignHUD.box_row("FAIL", case['query'], SovereignHUD.RED)
                 for r in info['reasons']:
-                    HUD.box_row("  -", r, dim_label=True)
-                HUD.box_separator()
+                    SovereignHUD.box_row("  -", r, dim_label=True)
+                SovereignHUD.box_separator()
 
         duration = time.time() - start
         active_cases = len(cases) - skipped
@@ -190,11 +190,11 @@ class FishtestRunner:
         sprt_msg, sprt_color = SPRT().evaluate(passed, active_cases)
         
         if skipped:
-            HUD.box_row("SKIPPED", f"{skipped} (Non-En)", HUD.YELLOW)
-        HUD.box_row("ACCURACY", f"{accuracy:.1f}%", HUD.GREEN if accuracy == 100 else HUD.YELLOW)
-        HUD.box_row("VERDICT", sprt_msg, sprt_color)
-        HUD.box_row("LATENCY", f"{(duration/len(cases))*1000:.2f}ms/target", dim_label=True)
-        HUD.box_bottom()
+            SovereignHUD.box_row("SKIPPED", f"{skipped} (Non-En)", SovereignHUD.YELLOW)
+        SovereignHUD.box_row("ACCURACY", f"{accuracy:.1f}%", SovereignHUD.GREEN if accuracy == 100 else SovereignHUD.YELLOW)
+        SovereignHUD.box_row("VERDICT", sprt_msg, sprt_color)
+        SovereignHUD.box_row("LATENCY", f"{(duration/len(cases))*1000:.2f}ms/target", dim_label=True)
+        SovereignHUD.box_bottom()
 
         # [ODIN] Persona-driven Final Report
         report = ReportEngine()

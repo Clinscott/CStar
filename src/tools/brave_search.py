@@ -9,7 +9,7 @@ import json
 import requests
 from datetime import datetime
 from pathlib import Path
-from src.core.ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 class BraveSearch:
     QUOTA_FILE = Path(".agent/brave_quota.json")
@@ -70,11 +70,11 @@ class BraveSearch:
         Enforces the 1,000 search/month limit.
         """
         if not self.api_key:
-            HUD.persona_log("ERROR", "BRAVE_API_KEY not found in environment.")
+            SovereignHUD.persona_log("ERROR", "BRAVE_API_KEY not found in environment.")
             return []
 
         if not self.is_quota_available():
-            HUD.persona_log("ERROR", "Brave Search Quota Exhausted (1,000/mo hit).")
+            SovereignHUD.persona_log("ERROR", "Brave Search Quota Exhausted (1,000/mo hit).")
             return []
 
         endpoint = "https://api.search.brave.com/res/v1/web/search"
@@ -103,14 +103,14 @@ class BraveSearch:
                     })
                 return results
             except requests.exceptions.RequestException as e:
-                HUD.persona_log("WARN", f"Brave Search Request Failed (Attempt {attempt+1}/{max_retries}): {str(e)}")
+                SovereignHUD.persona_log("WARN", f"Brave Search Request Failed (Attempt {attempt+1}/{max_retries}): {str(e)}")
                 if attempt < max_retries - 1:
                     time.sleep(2 ** attempt)
                 else:
-                    HUD.persona_log("ERROR", f"Brave Search Exhausted: {str(e)}")
+                    SovereignHUD.persona_log("ERROR", f"Brave Search Exhausted: {str(e)}")
                     return []
             except Exception as e:
-                HUD.persona_log("ERROR", f"Brave Search Error: {str(e)}")
+                SovereignHUD.persona_log("ERROR", f"Brave Search Error: {str(e)}")
                 return []
         
         return []
@@ -121,7 +121,7 @@ class BraveSearch:
         Wraps user intent in semantic hints to pull documentation and code.
         """
         knowledge_query = f"Python implementation example for {intent} with documentation"
-        HUD.persona_log("ALFRED", f"Transmuting intent into knowledge query: {knowledge_query}")
+        SovereignHUD.persona_log("ALFRED", f"Transmuting intent into knowledge query: {knowledge_query}")
         return self.search(knowledge_query)
 
 if __name__ == "__main__":
@@ -142,12 +142,12 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         query = " ".join(sys.argv[1:]) # Handle multi-word queries without quotes if needed, or just take the rest
         
-        HUD.persona_log("INFO", f"Executing Brave Search for: {query}")
+        SovereignHUD.persona_log("INFO", f"Executing Brave Search for: {query}")
         
         results = searcher.search(query)
         
         if results:
-            HUD.box_top(f"SEARCH RESULTS: {query}")
+            SovereignHUD.box_top(f"SEARCH RESULTS: {query}")
             
             for i, res in enumerate(results):
                 title = res.get('title', 'N/A')
@@ -158,13 +158,13 @@ if __name__ == "__main__":
                 if len(desc) > 80:
                     desc = desc[:77] + "..."
                     
-                print(f"\n{HUD.CYAN}[{i+1}] {HUD.BOLD}{title}{HUD.RESET}")
-                print(f"    {HUD.DIM}{url}{HUD.RESET}")
+                print(f"\n{SovereignHUD.CYAN}[{i+1}] {SovereignHUD.BOLD}{title}{SovereignHUD.RESET}")
+                print(f"    {SovereignHUD.DIM}{url}{SovereignHUD.RESET}")
                 print(f"    {desc}")
                 
-            print(f"\n{HUD.DIM}Found {len(results)} results.{HUD.RESET}")
+            print(f"\n{SovereignHUD.DIM}Found {len(results)} results.{SovereignHUD.RESET}")
         else:
-            HUD.persona_log("WARN", "No results returned.")
+            SovereignHUD.persona_log("WARN", "No results returned.")
             
     else:
-        HUD.persona_log("WARN", "Usage: python -m src.tools.brave_search <query>")
+        SovereignHUD.persona_log("WARN", "Usage: python -m src.tools.brave_search <query>")

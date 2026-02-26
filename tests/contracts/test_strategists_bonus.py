@@ -5,7 +5,7 @@ Uses mocking to avoid external tool dependencies (Vulture/Radon) where possible.
 """
 import pytest
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, AsyncMock
 import sys
 import os
 
@@ -114,16 +114,16 @@ def nightmare(x):
         mock_annex_inst.scan.return_value = [] # No critical breaches
         
         mock_valkyrie_inst = mock_valkyrie.return_value
-        breaches_valk = [{"file": "dead.py", "action": "Prune", "severity": "HIGH"}]
-        mock_valkyrie_inst.scan.return_value = breaches_valk
+        breaches_valk = [{"file": "dead.py", "action": "Prune", "severity": "HIGH", "type": "VALKYRIE_BREACH"}]
+        mock_valkyrie_inst.scan_async = AsyncMock(return_value=breaches_valk)
 
         mock_mimir_inst = mock_mimir.return_value
-        breaches_mimir = [{"file": "complex.py", "action": "Simplify", "severity": "MEDIUM"}]
-        mock_mimir_inst.scan.return_value = breaches_mimir
+        breaches_mimir = [{"file": "complex.py", "action": "Simplify", "severity": "MEDIUM", "type": "MIMIR_BREACH"}]
+        mock_mimir_inst.scan_async = AsyncMock(return_value=breaches_mimir)
 
         mock_visual_inst = mock_visual.return_value
-        breaches_visual = [{"file": "ugly.py", "action": "Beautify", "severity": "LOW"}]
-        mock_visual_inst.scan.return_value = breaches_visual
+        breaches_visual = [{"file": "ugly.py", "action": "Beautify", "severity": "LOW", "type": "FREYA_BREACH"}]
+        mock_visual_inst.scan_async = AsyncMock(return_value=breaches_visual)
 
         with patch.dict(os.environ, {"GOOGLE_API_KEY": "TEST"}):
             with patch("google.genai.Client"):
@@ -133,7 +133,7 @@ def nightmare(x):
                 fish._save_state = MagicMock()
                 fish._forge_improvement = MagicMock(return_value=None)
                 
-                with patch('src.sentinel.muninn.HUD') as mock_hud:
+                with patch('src.sentinel.muninn.SovereignHUD') as mock_hud:
                     mock_hud.PERSONA = "ODIN"
                     fish.run()
                     

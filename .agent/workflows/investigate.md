@@ -23,7 +23,7 @@ Read the files and analyze for:
 - **Functionality**: strict verification that the code performs its intended purpose.
 - **Missing Counterparts**: Look for logical gaps (e.g., Login exists but Logout is missing; Create exists but Delete is missing).
 - **Security & Safety**: proper validation, error handling, and authorization checking.
-- **Layout Integration**: Does this component/page respect the global **DashboardLayout**? Is it trying to break out of the HUD? (This is strictly forbidden for core feature pages).
+- **Layout Integration**: Does this component/page respect the global **DashboardLayout**? Is it trying to break out of the SovereignHUD? (This is strictly forbidden for core feature pages).
 - **Structural Integrity Scan (Sentinel)**: 
   // turbo
   `python .agent/scripts/code_sentinel.py <target_path>`

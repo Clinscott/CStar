@@ -3,7 +3,7 @@ import os
 import sys
 from collections import defaultdict
 
-from src.core.ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 from src.core.engine.vector import SovereignVector
 
 
@@ -32,13 +32,13 @@ class MetaLearner:
     def report(self):
         """Display the proposed optimization plan."""
         if not self.updates:
-            HUD.log("PASS", "Optimization Matrix Balanced")
+            SovereignHUD.log("PASS", "Optimization Matrix Balanced")
             return
-        HUD.log("INFO", f"Proposed {len(self.updates)} neural adjustments:")
+        SovereignHUD.log("INFO", f"Proposed {len(self.updates)} neural adjustments:")
         for t, w in self.updates.items():
-            HUD.log("Optimizing", f"{t} -> {w:.1f}", f"({len(self.analysis[t])} signals)")
+            SovereignHUD.log("Optimizing", f"{t} -> {w:.1f}", f"({len(self.analysis[t])} signals)")
         
-        print(f"\n{HUD.YELLOW}{HUD.BOLD}>> [Ω] DECREE: THESAURUS OPTIMIZATION REQUIRED{HUD.RESET}")
+        print(f"\n{SovereignHUD.YELLOW}{SovereignHUD.BOLD}>> [Ω] DECREE: THESAURUS OPTIMIZATION REQUIRED{SovereignHUD.RESET}")
         for t, w in self.updates.items(): print(f"- {t}: {t}:{w:.2f}")
 
     def apply_updates(self, thesaurus_path: str):
@@ -46,7 +46,7 @@ class MetaLearner:
         if not self.updates or not os.path.exists(thesaurus_path):
             return
 
-        HUD.log("INFO", f"Writing {len(self.updates)} weight updates to {thesaurus_path}...")
+        SovereignHUD.log("INFO", f"Writing {len(self.updates)} weight updates to {thesaurus_path}...")
         
         try:
             with open(thesaurus_path, 'r', encoding='utf-8') as f:
@@ -111,14 +111,14 @@ class MetaLearner:
             with open(thesaurus_path, 'w', encoding='utf-8') as f:
                 f.writelines(new_lines)
                 
-            HUD.log("SUCCESS", "Neural weights persisted.")
+            SovereignHUD.log("SUCCESS", "Neural weights persisted.")
 
         except Exception as e:
-            HUD.log("ERROR", f"Failed to persist weights: {e}")
+            SovereignHUD.log("ERROR", f"Failed to persist weights: {e}")
 
 def tune_weights(project_root: str):
     """[ALFRED] Refactored tuning loop with encapsulated MetaLearner."""
-    HUD.box_top("SOVEREIGN CYCLE: WEIGHT TUNING")
+    SovereignHUD.box_top("SOVEREIGN CYCLE: WEIGHT TUNING")
     db_path = os.path.join(project_root, "fishtest_data.json")
     if not os.path.exists(db_path): return
 

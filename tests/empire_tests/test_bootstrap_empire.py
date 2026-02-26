@@ -18,7 +18,7 @@ class TestBootstrapEmpire:
         _bootstrap._BOOTSTRAPPED = False
 
     @patch("src.sentinel._bootstrap.load_config")
-    @patch("src.sentinel._bootstrap.HUD")
+    @patch("src.sentinel._bootstrap.SovereignHUD")
     @patch("src.sentinel._bootstrap.load_dotenv")
     def test_bootstrap_flow(self, mock_dotenv, mock_hud, mock_load_config):
         mock_load_config.return_value = {"persona": "ODIN"}
@@ -30,7 +30,7 @@ class TestBootstrapEmpire:
         mock_dotenv.assert_called()
 
     @patch("src.sentinel._bootstrap.load_config", return_value={})
-    @patch("src.sentinel._bootstrap.HUD")
+    @patch("src.sentinel._bootstrap.SovereignHUD")
     @patch("src.sentinel._bootstrap.load_dotenv")
     def test_bootstrap_no_env_file(self, mock_dotenv, mock_hud, mock_load_config):
         _bootstrap.bootstrap()

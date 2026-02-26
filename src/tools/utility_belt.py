@@ -29,7 +29,7 @@ project_root = Path(__file__).parent.parent.parent.absolute()
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
-from src.core.ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 from src.cstar.core.uplink import query_bridge
 
 # Configure Logging
@@ -48,12 +48,12 @@ class UtilityBelt:
         self.max_retries = max_retries
         
         # Enforce ALFRED persona
-        HUD.PERSONA = "ALFRED"
+        SovereignHUD.PERSONA = "ALFRED"
 
     async def _refactor_code(self, file_path: Path) -> Optional[str]:
         """Queries the bridge to refactor the code."""
         if not file_path.exists():
-            HUD.persona_log("ERROR", f"Target file not found: {file_path}")
+            SovereignHUD.persona_log("ERROR", f"Target file not found: {file_path}")
             return None
             
         code_content = file_path.read_text(encoding="utf-8")
@@ -83,7 +83,7 @@ Commence the refinement.
             "target_interface": str(file_path)
         }
         
-        HUD.persona_log("INFO", f"Bridging to Forge for refinement of {file_path.name}...")
+        SovereignHUD.persona_log("INFO", f"Bridging to Forge for refinement of {file_path.name}...")
         
         for attempt in range(self.max_retries):
             try:
@@ -104,10 +104,10 @@ Commence the refinement.
                     return self._clean_markdown(code)
                     
             except Exception as e:
-                HUD.persona_log("WARN", f"Forge attempt {attempt+1} failed: {e}")
+                SovereignHUD.persona_log("WARN", f"Forge attempt {attempt+1} failed: {e}")
                 await asyncio.sleep(2)
                 
-        HUD.persona_log("ERROR", "Max retries exceeded for refactoring.")
+        SovereignHUD.persona_log("ERROR", "Max retries exceeded for refactoring.")
         return None
 
     def _clean_markdown(self, text: str) -> str:
@@ -123,7 +123,7 @@ Commence the refinement.
 
     def _verify_crucible(self, target_file: Path, refactored_code: str) -> bool:
         """Runs the test suite against the refactored code in a temporary environment."""
-        HUD.persona_log("INFO", "Initializing The Crucible (Verification Phase)...")
+        SovereignHUD.persona_log("INFO", "Initializing The Crucible (Verification Phase)...")
         
         # Determine the test file name heuristically based on conventions
         test_filename = f"test_{target_file.name}"
@@ -143,7 +143,7 @@ Commence the refinement.
                 break
                 
         if not test_filepath:
-            HUD.persona_log("WARN", "CRUCIBLE ABORT: No corresponding test file found. Refactoring cannot proceed safely.")
+            SovereignHUD.persona_log("WARN", "CRUCIBLE ABORT: No corresponding test file found. Refactoring cannot proceed safely.")
             return False
 
         # We must test the refactored code without permanently destroying the original file.
@@ -161,14 +161,14 @@ Commence the refinement.
             result = subprocess.run(cmd, capture_output=True, text=True)
             
             if result.returncode == 0:
-                HUD.persona_log("SUCCESS", "CRUCIBLE PASSED: Logic integrity maintained.")
+                SovereignHUD.persona_log("SUCCESS", "CRUCIBLE PASSED: Logic integrity maintained.")
                 crucible_passed = True
             else:
-                 HUD.persona_log("FAIL", "CRUCIBLE FAILED: Refactoring broke the logic.")
+                 SovereignHUD.persona_log("FAIL", "CRUCIBLE FAILED: Refactoring broke the logic.")
                  # Print a snippet of the failure
-                 HUD.box_separator()
-                 HUD.box_row("TEST FAILURE", result.stdout[:200].replace('\n', ' ') + "...", HUD.RED)
-                 HUD.box_separator()
+                 SovereignHUD.box_separator()
+                 SovereignHUD.box_row("TEST FAILURE", result.stdout[:200].replace('\n', ' ') + "...", SovereignHUD.RED)
+                 SovereignHUD.box_separator()
                  
         finally:
             # Always restore the original immediately during verification
@@ -178,22 +178,22 @@ Commence the refinement.
 
     def _human_review(self, target_file: Path, refactored_code: str) -> bool:
         """Presents the refactored code to the user for diff review."""
-        HUD.box_separator()
-        HUD.box_row("HUMAN IN THE LOOP", "REVIEW REQUIRED", HUD.YELLOW)
-        HUD.box_row("TARGET", target_file.name, HUD.CYAN)
-        HUD.box_separator()
+        SovereignHUD.box_separator()
+        SovereignHUD.box_row("HUMAN IN THE LOOP", "REVIEW REQUIRED", SovereignHUD.YELLOW)
+        SovereignHUD.box_row("TARGET", target_file.name, SovereignHUD.CYAN)
+        SovereignHUD.box_separator()
         
         lines = refactored_code.splitlines()
         preview_lines = lines[:15]
         for line in preview_lines:
-             HUD.box_row("  ", line, HUD.CYAN, dim_label=True)
+             SovereignHUD.box_row("  ", line, SovereignHUD.CYAN, dim_label=True)
              
         if len(lines) > 15:
-             HUD.box_row("  ", f"... (+ {len(lines)-15} more lines)", HUD.CYAN, dim_label=True)
+             SovereignHUD.box_row("  ", f"... (+ {len(lines)-15} more lines)", SovereignHUD.CYAN, dim_label=True)
              
-        HUD.box_separator()
+        SovereignHUD.box_separator()
         try:
-             ans = input(f"{HUD.get_theme()['main']}[ALFRED] Sir, the forge glow subsides. Shall I commit this refinement to the main branch? (y/N): {HUD.RESET}")
+             ans = input(f"{SovereignHUD.get_theme()['main']}[ALFRED] Sir, the forge glow subsides. Shall I commit this refinement to the main branch? (y/N): {SovereignHUD.RESET}")
              return ans.strip().lower() in ['y', 'yes']
         except (KeyboardInterrupt, EOFError):
              return False
@@ -202,38 +202,38 @@ Commence the refinement.
         """Writes the approved refactored code strictly over the original file."""
         try:
              target_file.write_text(refactored_code, encoding="utf-8")
-             HUD.persona_log("SUCCESS", f"Committed refinement to: {target_file.relative_to(project_root)}")
+             SovereignHUD.persona_log("SUCCESS", f"Committed refinement to: {target_file.relative_to(project_root)}")
              return True
         except Exception as e:
-             HUD.persona_log("ERROR", f"Failed to commit {target_file.name}: {e}")
+             SovereignHUD.persona_log("ERROR", f"Failed to commit {target_file.name}: {e}")
              return False
 
     async def execute(self):
         """Main execution sequence."""
-        HUD.box_top("[A] THE UTILITY BELT")
-        HUD.box_row("DIRECTIVE", "ELEGANCE & REFACTORING", HUD.CYAN)
-        HUD.box_row("TARGET", str(self.target_path), HUD.YELLOW)
+        SovereignHUD.box_top("[A] THE UTILITY BELT")
+        SovereignHUD.box_row("DIRECTIVE", "ELEGANCE & REFACTORING", SovereignHUD.CYAN)
+        SovereignHUD.box_row("TARGET", str(self.target_path), SovereignHUD.YELLOW)
         
         if not self.target_path.exists() or not self.target_path.is_file():
-            HUD.box_row("STATUS", "Invalid target file.", HUD.RED)
-            HUD.box_bottom()
+            SovereignHUD.box_row("STATUS", "Invalid target file.", SovereignHUD.RED)
+            SovereignHUD.box_bottom()
             return
             
-        HUD.box_separator()
-        HUD.persona_log("INFO", "Initializing Forge sequence...")
+        SovereignHUD.box_separator()
+        SovereignHUD.persona_log("INFO", "Initializing Forge sequence...")
         
         refactored_code = await self._refactor_code(self.target_path)
         
         if not refactored_code:
-            HUD.box_row("RESULT", "Refactoring Failed. Check Bridge logs.", HUD.RED)
-            HUD.box_bottom()
+            SovereignHUD.box_row("RESULT", "Refactoring Failed. Check Bridge logs.", SovereignHUD.RED)
+            SovereignHUD.box_bottom()
             return
             
         secure = self._verify_crucible(self.target_path, refactored_code)
         
         if not secure:
-             HUD.box_row("RESULT", "Refactoring discarded due to test failure.", HUD.RED)
-             HUD.box_bottom()
+             SovereignHUD.box_row("RESULT", "Refactoring discarded due to test failure.", SovereignHUD.RED)
+             SovereignHUD.box_bottom()
              return
                 
         approved = self._human_review(self.target_path, refactored_code)
@@ -241,9 +241,9 @@ Commence the refinement.
         if approved:
             self._commit_refactor(self.target_path, refactored_code)
         else:
-            HUD.persona_log("INFO", "Refinement rejected by user. Discarding trace.")
+            SovereignHUD.persona_log("INFO", "Refinement rejected by user. Discarding trace.")
                 
-        HUD.box_bottom()
+        SovereignHUD.box_bottom()
 
 def main():
     parser = argparse.ArgumentParser(description="The Utility Belt - Refactoring Forge")
@@ -255,10 +255,10 @@ def main():
         asyncio.run(belt.execute())
         return 0
     except KeyboardInterrupt:
-        HUD.persona_log("WARN", "Utility Belt protocol aborted.")
+        SovereignHUD.persona_log("WARN", "Utility Belt protocol aborted.")
         return 1
     except Exception as e:
-        HUD.persona_log("ERROR", f"Utility Belt protocol failed: {e}")
+        SovereignHUD.persona_log("ERROR", f"Utility Belt protocol failed: {e}")
         return 1
 
 if __name__ == "__main__":

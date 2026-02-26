@@ -13,7 +13,7 @@ project_root = script_dir.parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
-from src.core.ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 # Constants
 ANTIGRAVITY_HOST = '127.0.0.1'
@@ -60,10 +60,10 @@ class AntigravityUplink:
                 from google import genai
                 self.client = genai.Client(api_key=self.api_key)
             except Exception as e:
-                HUD.persona_log("WARN", f"Failed to initialize GenAI Client: {e}")
+                SovereignHUD.persona_log("WARN", f"Failed to initialize GenAI Client: {e}")
 
         if not self.api_key:
-            HUD.persona_log("WARN", "No API key found for AntigravityUplink. Simulation mode only.")
+            SovereignHUD.persona_log("WARN", "No API key found for AntigravityUplink. Simulation mode only.")
 
     async def send_payload(self, query: str, context: dict = None) -> dict:
         """

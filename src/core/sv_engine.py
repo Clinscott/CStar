@@ -24,7 +24,7 @@ from src.core.engine.cortex import Cortex  # noqa: E402
 from src.core.engine.dialogue import DialogueEngine  # noqa: E402
 from src.core.engine.vector import SovereignVector  # noqa: E402
 from src.core.payload import IntentPayload  # noqa: E402
-from src.core.ui import HUD  # noqa: E402
+from src.core.sovereign_hud import SovereignHUD  # noqa: E402
 from src.tools.brave_search import BraveSearch  # noqa: E402
 
 
@@ -49,22 +49,22 @@ class SovereignEngine:
             for k, v in self._DEFAULT_THRESHOLDS.items()
         }
 
-        # Persona & HUD Initialization
+        # Persona & SovereignHUD Initialization
         legacy_persona = self.config.get("persona") or self.config.get("Persona") or "ALFRED"
-        HUD.PERSONA = str(self.config.get("system", {}).get("persona", legacy_persona)).upper()
-        HUD._INITIALIZED = True
-        self.strategy = personas.get_strategy(HUD.PERSONA, str(self.project_root))
+        SovereignHUD.PERSONA = str(self.config.get("system", {}).get("persona", legacy_persona)).upper()
+        SovereignHUD._INITIALIZED = True
+        self.strategy = personas.get_strategy(SovereignHUD.PERSONA, str(self.project_root))
         self._init_hud_dialogue()
         self.engine = self._init_vector_engine()
 
     def _init_hud_dialogue(self) -> None:
-        """Initializes the HUD dialogue retriever based on persona voice."""
+        """Initializes the SovereignHUD dialogue retriever based on persona voice."""
         voice = self.strategy.get_voice()
         # [ALFRED] Staged Path Resolution for dialogue databases
         qmd = self.project_root / "src" / "data" / "dialogue" / f"{voice}.qmd"
         md = self.project_root / "src" / "data" / "dialogue" / f"{voice}.md"
         path = qmd if qmd.exists() else md
-        HUD.DIALOGUE = DialogueEngine(str(path))
+        SovereignHUD.DIALOGUE = DialogueEngine(str(path))
 
     def _init_vector_engine(self) -> SovereignVector:
         """Initializes and loads skills into the Sovereign Vector engine."""
@@ -104,18 +104,18 @@ class SovereignEngine:
         """Execution path for Knowledge Graph (Cortex) queries."""
         cortex = Cortex(str(self.project_root), str(self.base_path))
         results = cortex.query(query)
-        HUD.box_top("CORTEX KNOWLEDGE QUERY")
-        HUD.box_row("QUERY", query, HUD.BOLD)
-        HUD.box_separator()
+        SovereignHUD.box_top("CORTEX KNOWLEDGE QUERY")
+        SovereignHUD.box_row("QUERY", query, SovereignHUD.BOLD)
+        SovereignHUD.box_separator()
         if not results:
-            HUD.box_row("RESULT", "NO DATA FOUND", HUD.RED)
+            SovereignHUD.box_row("RESULT", "NO DATA FOUND", SovereignHUD.RED)
         else:
             for r in results[:3]:
-                color = HUD.GREEN if r['score'] > self.THRESHOLDS["REC"] else HUD.YELLOW
-                HUD.box_row("SOURCE", r.get('trigger', 'unknown'), HUD.MAGENTA, dim_label=True)
-                HUD.box_row("RELEVANCE", f"{r['score']:.2f}", color, dim_label=True)
-                HUD.box_separator()
-        HUD.box_bottom()
+                color = SovereignHUD.GREEN if r['score'] > self.THRESHOLDS["REC"] else SovereignHUD.YELLOW
+                SovereignHUD.box_row("SOURCE", r.get('trigger', 'unknown'), SovereignHUD.MAGENTA, dim_label=True)
+                SovereignHUD.box_row("RELEVANCE", f"{r['score']:.2f}", color, dim_label=True)
+                SovereignHUD.box_separator()
+        SovereignHUD.box_bottom()
         sys.exit(0)
 
     def record_trace(self, payload: IntentPayload) -> None:
@@ -130,7 +130,7 @@ class SovereignEngine:
             "match": payload.target_workflow,
             "score": payload.system_meta['confidence'],
             "is_global": payload.system_meta.get('is_global', False),
-            "persona": HUD.PERSONA,
+            "persona": SovereignHUD.PERSONA,
             "timestamp": self.config.get("version", "unknown")
         }
 
@@ -141,30 +141,30 @@ class SovereignEngine:
             pass
 
     def _render_hud(self, payload: IntentPayload | None, query: str = "") -> None:
-        """Renders the standard search results in the HUD."""
-        HUD.box_top()
-        label = "COMMAND" if HUD.PERSONA == "ODIN" else "Intent"
-        HUD.box_row(label, payload.intent_raw if payload else query, HUD.BOLD)
+        """Renders the standard search results in the SovereignHUD."""
+        SovereignHUD.box_top()
+        label = "COMMAND" if SovereignHUD.PERSONA == "ODIN" else "Intent"
+        SovereignHUD.box_row(label, payload.intent_raw if payload else query, SovereignHUD.BOLD)
 
         if payload:
             confidence = payload.system_meta['confidence']
-            color = HUD.GREEN if confidence > self.THRESHOLDS["ACCURACY"] else HUD.YELLOW
+            color = SovereignHUD.GREEN if confidence > self.THRESHOLDS["ACCURACY"] else SovereignHUD.YELLOW
             is_global = payload.system_meta.get('is_global', False)
             match_str = f"{'[G] ' if is_global else ''}{payload.target_workflow}"
-            HUD.box_row("Match", match_str, HUD.DIM)
-            HUD.box_row("Confidence", f"{HUD.progress_bar(confidence)} {confidence:.2f}", color)
+            SovereignHUD.box_row("Match", match_str, SovereignHUD.DIM)
+            SovereignHUD.box_row("Confidence", f"{SovereignHUD.progress_bar(confidence)} {confidence:.2f}", color)
             
             if payload.target_workflow == 'WEB_FALLBACK':
-                 HUD.box_separator()
-                 HUD.box_row("WEB RESULTS", "", HUD.CYAN)
+                 SovereignHUD.box_separator()
+                 SovereignHUD.box_row("WEB RESULTS", "", SovereignHUD.CYAN)
                  for i, r in enumerate(payload.extracted_entities.get('web_results', [])[:3]): # Show top 3
-                     HUD.box_row(f"[{i+1}]", r['title'], HUD.BOLD)
-                     HUD.box_row("   ", r['url'], HUD.DIM)
+                     SovereignHUD.box_row(f"[{i+1}]", r['title'], SovereignHUD.BOLD)
+                     SovereignHUD.box_row("   ", r['url'], SovereignHUD.DIM)
 
         else:
-            HUD.box_row("Match", "NONE", HUD.RED)
+            SovereignHUD.box_row("Match", "NONE", SovereignHUD.RED)
 
-        HUD.box_bottom()
+        SovereignHUD.box_bottom()
 
     def _handle_proactive(self, payload: IntentPayload) -> None:
         """Checks for and executes proactive installation or command runs."""
@@ -188,11 +188,11 @@ class SovereignEngine:
 
     def _proactive_install(self, skill_name: str) -> None:
         """Prompts and installs a missing global skill."""
-        HUD.box_top("PROACTIVE INSTALL")
-        HUD.box_row("SKILL", skill_name, HUD.CYAN)
-        HUD.box_bottom()
-        speak = HUD._speak('PROACTIVE_INSTALL', 'Install skill?')
-        prompt = f"\n{HUD.CYAN}>> [C*] {speak} [Y/n] {HUD.RESET}"
+        SovereignHUD.box_top("PROACTIVE INSTALL")
+        SovereignHUD.box_row("SKILL", skill_name, SovereignHUD.CYAN)
+        SovereignHUD.box_bottom()
+        speak = SovereignHUD._speak('PROACTIVE_INSTALL', 'Install skill?')
+        prompt = f"\n{SovereignHUD.CYAN}>> [C*] {speak} [Y/n] {SovereignHUD.RESET}"
         if utils.input_with_timeout(prompt) in ['', 'y', 'yes', 'Y', 'YES']:
             subprocess.run(  # noqa: S603
                 [sys.executable, str(self.script_dir / "install_skill.py"), skill_name]
@@ -200,9 +200,9 @@ class SovereignEngine:
 
     def _proactive_execute(self, command: str) -> None:
         """Prompts and executes a direct CLI command, jailing if it targets skills_db."""
-        HUD.box_top("PROACTIVE EXECUTE")
-        HUD.box_row("CMD", command, HUD.YELLOW)
-        HUD.box_bottom()
+        SovereignHUD.box_top("PROACTIVE EXECUTE")
+        SovereignHUD.box_row("CMD", command, SovereignHUD.YELLOW)
+        SovereignHUD.box_bottom()
         
         # Determine if this command targets a jail-restricted skill
         cmd_parts = command.split()
@@ -219,8 +219,8 @@ class SovereignEngine:
                 is_jailed = True
                 target_path = Path(cmd_parts[0]).resolve()
 
-        speak = HUD._speak('PROACTIVE_EXECUTE', 'Run this command?')
-        prompt = f"\n{HUD.CYAN}>> [C*] {speak} [Y/n] {HUD.RESET}"
+        speak = SovereignHUD._speak('PROACTIVE_EXECUTE', 'Run this command?')
+        prompt = f"\n{SovereignHUD.CYAN}>> [C*] {speak} [Y/n] {SovereignHUD.RESET}"
         
         if utils.input_with_timeout(prompt) in ['', 'y', 'yes', 'Y', 'YES']:
             if is_jailed and target_path:
@@ -247,7 +247,7 @@ class SovereignEngine:
 
         if not query and not json_mode:
             for res in self.strategy.enforce_policy():
-                HUD.persona_log("INFO", res)
+                SovereignHUD.persona_log("INFO", res)
             return
 
         # Engine Setup & Execution
@@ -260,7 +260,7 @@ class SovereignEngine:
 
         if not top or top['score'] < 0.6:
             # Zero-Hit Fallback: Brave Web Search
-            HUD.persona_log("INFO", "SovereignEngine: Low confidence match. Creating Web Fallback...") 
+            SovereignHUD.persona_log("INFO", "SovereignEngine: Low confidence match. Creating Web Fallback...") 
             searcher = BraveSearch()
             web_results = searcher.search(query)
             
@@ -298,7 +298,26 @@ class SovereignEngine:
         if payload:
             self._handle_proactive(payload)
 
-        if json_mode:
+    def teardown(self):
+        """[V4] Explicitly unregisters observers and clears module-level singletons."""
+        SovereignHUD.persona_log("INFO", "SovereignEngine: Initiating deep teardown...")
+        if self.engine:
+            self.engine.clear_active_ram()
+        
+        # Unregister observers (Nullify callbacks if they exist)
+        # Note: In a larger system, we'd have a list of observers.
+        # For now, we signal to the singletons.
+        SovereignHUD._INITIALIZED = False
+        
+        # [ALFRED] Break cyclic references
+        self.strategy = None
+        self.engine = None
+        
+        import gc
+        gc.collect() # Trigger immediate Generation 2 sweep
+        SovereignHUD.persona_log("SUCCESS", "SovereignEngine: Memory boundaries secured.")
+
+    def json_mode(self, query, top):
             print(json.dumps({"query": query, "top_match": top}, indent=2))
             return
 
@@ -319,7 +338,7 @@ class SovereignEngine:
             return
 
         term = unknown_terms[0]
-        HUD.persona_log("INFO", f"Raven's Eye: Unknown term detected '{term}'. Seeking definition...")
+        SovereignHUD.persona_log("INFO", f"Raven's Eye: Unknown term detected '{term}'. Seeking definition...")
 
         # 2. Trigger Brave Search
         searcher = BraveSearch()
@@ -333,7 +352,7 @@ class SovereignEngine:
         if not definition:
             return
 
-        HUD.persona_log("INFO", f"Raven's Eye: Ingesting intelligence for '{term}'.")
+        SovereignHUD.persona_log("INFO", f"Raven's Eye: Ingesting intelligence for '{term}'.")
 
         # 4. Inject into Cortex (Session-local)
         cortex = Cortex(str(self.project_root), str(self.base_path))
@@ -356,14 +375,14 @@ def main() -> None:
 
     if args.benchmark:
         ve = engine._init_vector_engine()
-        HUD.box_top("DIAGNOSTIC")
-        HUD.box_row("ENGINE", "SovereignVector 2.5 (Iron Cortex)", HUD.CYAN)
-        HUD.box_row("PERSONA", HUD.PERSONA, HUD.MAGENTA)
-        HUD.box_separator()
-        HUD.box_row("SKILLS", f"{len(ve.skills)}", HUD.GREEN)
-        HUD.box_row("TOKENS", f"{len(ve.vocab)}", HUD.YELLOW)
-        HUD.box_row("VECTORS", f"{len(ve.vectors)}", HUD.CYAN)
-        HUD.box_bottom()
+        SovereignHUD.box_top("DIAGNOSTIC")
+        SovereignHUD.box_row("ENGINE", "SovereignVector 2.5 (Iron Cortex)", SovereignHUD.CYAN)
+        SovereignHUD.box_row("PERSONA", SovereignHUD.PERSONA, SovereignHUD.MAGENTA)
+        SovereignHUD.box_separator()
+        SovereignHUD.box_row("SKILLS", f"{len(ve.skills)}", SovereignHUD.GREEN)
+        SovereignHUD.box_row("TOKENS", f"{len(ve.vocab)}", SovereignHUD.YELLOW)
+        SovereignHUD.box_row("VECTORS", f"{len(ve.vectors)}", SovereignHUD.CYAN)
+        SovereignHUD.box_bottom()
         sys.exit(0)
 
     query = utils.sanitize_query(" ".join(args.query))

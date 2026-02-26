@@ -8,10 +8,10 @@ from typing import Any, Dict, List, Tuple
 
 # Import Shared UI
 try:
-    from ui import HUD
+    from src.core.sovereign_hud import SovereignHUD
 except ImportError:
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-    from ui import HUD
+    from src.core.sovereign_hud import SovereignHUD
 
 def get_timestamp() -> str:
     """Returns formatted current time."""
@@ -72,7 +72,7 @@ def check_for_changes(last_stats: Dict[str, int], last_rej_count: int) -> Tuple[
     # Check Cases
     delta_cases = current_stats["cases"] - last_stats["cases"]
     if delta_cases > 0:
-        HUD.log("PASS", f"Ingested {delta_cases} new trace(s)", f"(Total: {current_stats['cases']})")
+        SovereignHUD.log("PASS", f"Ingested {delta_cases} new trace(s)", f"(Total: {current_stats['cases']})")
     
     # Check Rejections
     current_rej_count = 0
@@ -83,25 +83,25 @@ def check_for_changes(last_stats: Dict[str, int], last_rej_count: int) -> Tuple[
         except Exception: pass
             
     if current_rej_count > last_rej_count:
-        HUD.log("WARN", "Trace Rejected by Crucible", f"(Total: {current_stats['rejections']})")
+        SovereignHUD.log("WARN", "Trace Rejected by Crucible", f"(Total: {current_stats['rejections']})")
         
     if current_stats["war_zones"] > last_stats["war_zones"]:
-         HUD.log("CRITICAL", "New War Zone Detected", f"(Review Conflict)")
+         SovereignHUD.log("CRITICAL", "New War Zone Detected", f"(Review Conflict)")
          
     return current_stats, current_rej_count
 
 if __name__ == "__main__":
     if "--help" in sys.argv:
-        print(f"\n{HUD.BOLD}Neural Overwatch Utilities{HUD.RESET}")
+        print(f"\n{SovereignHUD.BOLD}Neural Overwatch Utilities{SovereignHUD.RESET}")
         print("Usage: python overwatch.py")
         print("  Real-time dashboard for the Corvus Star Federated Network.")
         sys.exit(0)
 
     # Header
-    print(f"\n{HUD.RED}{HUD.BOLD}Ω NEURAL OVERWATCH Ω{HUD.RESET}")
-    print(f"{HUD.DIM}Monitoring Federated Network...{HUD.RESET}\n")
+    print(f"\n{SovereignHUD.RED}{SovereignHUD.BOLD}Ω NEURAL OVERWATCH Ω{SovereignHUD.RESET}")
+    print(f"{SovereignHUD.DIM}Monitoring Federated Network...{SovereignHUD.RESET}\n")
     
-    HUD.log("INFO", "System Online", "Listening on mock_project/network_share")
+    SovereignHUD.log("INFO", "System Online", "Listening on mock_project/network_share")
     
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     rej_path = os.path.join(base_dir, "traces", "quarantine", "REJECTIONS.md")
@@ -124,20 +124,20 @@ if __name__ == "__main__":
                 if msvcrt.kbhit():
                     key = msvcrt.getch().decode('utf-8').lower()
                     if key == 'q':
-                        HUD.log("INFO", "Overwatch Shutdown")
+                        SovereignHUD.log("INFO", "Overwatch Shutdown")
                         sys.exit(0)
                     elif key == 'c':
                         os.system('cls')
                         # Reprint Header
-                        print(f"\n{HUD.RED}{HUD.BOLD}Ω NEURAL OVERWATCH Ω{HUD.RESET}")
-                        print(f"{HUD.DIM}Monitoring Federated Network...{HUD.RESET}\n") 
-                        HUD.log("INFO", "Dashboard Cleared")
+                        print(f"\n{SovereignHUD.RED}{SovereignHUD.BOLD}Ω NEURAL OVERWATCH Ω{SovereignHUD.RESET}")
+                        print(f"{SovereignHUD.DIM}Monitoring Federated Network...{SovereignHUD.RESET}\n") 
+                        SovereignHUD.log("INFO", "Dashboard Cleared")
                     elif key == 'p':
                         # Purge Ledger
                         if os.path.exists(rej_path):
                             with open(rej_path, 'w', encoding='utf-8') as f:
                                 f.write("# Rejection Ledger\n\n")
-                            HUD.log("WARN", "Rejection Ledger Purged")
+                            SovereignHUD.log("WARN", "Rejection Ledger Purged")
                             last_rej_count = 0
             
             # Update Logic (Throttled)
@@ -158,17 +158,17 @@ if __name__ == "__main__":
                             if len(latency_data) > 20: latency_data.pop(0)
                             
                             status = "PASS" if lat < 100 else "WARN"
-                            HUD.log(status, f"Engine Latency: {lat:.2f}ms", f"Trend: {HUD.render_sparkline(latency_data)}")
+                            SovereignHUD.log(status, f"Engine Latency: {lat:.2f}ms", f"Trend: {SovereignHUD.render_sparkline(latency_data)}")
                         except ValueError: 
-                            HUD.log("WARN", "Latency Parse Error", res.stdout.strip())
+                            SovereignHUD.log("WARN", "Latency Parse Error", res.stdout.strip())
             
             time.sleep(0.1)
             pulse_count += 1
             
         except KeyboardInterrupt:
             print("\n")
-            HUD.log("INFO", "Overwatch Shutdown")
+            SovereignHUD.log("INFO", "Overwatch Shutdown")
             sys.exit(0)
         except Exception as e:
-            HUD.log("FAIL", f"Monitor Error: {e}")
+            SovereignHUD.log("FAIL", f"Monitor Error: {e}")
             time.sleep(5)

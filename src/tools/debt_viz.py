@@ -14,10 +14,10 @@ from typing import Any, Dict, List, Optional, Tuple
 # Ensure we can import shared UI
 sys.path.append(str(Path(__file__).parent.parent))
 try:
-    from scripts.ui import HUD
+    from scripts.ui import SovereignHUD
 except ImportError:
     # Fallback if not in the expected structure
-    class HUD:
+    class SovereignHUD:
         RED = "\033[31m"; YELLOW = "\033[33m"; GREEN = "\033[32m"
         CYAN = "\033[36m"; RESET = "\033[0m"; BOLD = "\033[1m"; DIM = "\033[2m"
         @staticmethod
@@ -35,7 +35,7 @@ try:
     from radon.complexity import cc_rank, cc_visit
     from radon.visitors import Class as RadonClass
 except ImportError:
-    HUD.log("FAIL", "Radon library not found.", "Run 'pip install radon'")
+    SovereignHUD.log("FAIL", "Radon library not found.", "Run 'pip install radon'")
     sys.exit(1)
 
 
@@ -99,13 +99,13 @@ class DebtAnalyzer:
                         })
             except SyntaxError:
                 if log_errors:
-                    HUD.log("WARN", "Parse Failure", f.name)
+                    SovereignHUD.log("WARN", "Parse Failure", f.name)
             except (IOError, PermissionError) as e:
                 if log_errors:
-                    HUD.log("FAIL", "IO Error", f"{f.name} ({str(e)})")
+                    SovereignHUD.log("FAIL", "IO Error", f"{f.name} ({str(e)})")
             except Exception as e:
                 if log_errors:
-                    HUD.log("WARN", "Complexity Error", f"{f.name} ({str(e)})")
+                    SovereignHUD.log("WARN", "Complexity Error", f"{f.name} ({str(e)})")
                 
         self.avg_cc = total_cc / count if count > 0 else 0
         return len(self.blocks) > 0
@@ -122,30 +122,30 @@ class DebtAnalyzer:
         print(json.dumps(data, indent=2))
 
     def render_dashboard(self) -> None:
-        """Renders the HUD-styled complexity report."""
+        """Renders the SovereignHUD-styled complexity report."""
         os.environ["HUD_WIDTH"] = str(self.HUD_WIDTH)
         
         # Sort blocks by CC descending
         top_offenders = sorted(self.blocks, key=lambda x: x['cc'], reverse=True)[:10]
         
         avg_rank = cc_rank(int(self.avg_cc)) if self.avg_cc > 0 else "A"
-        avg_color = HUD.GREEN if avg_rank == 'A' else (HUD.YELLOW if avg_rank in ['B', 'C'] else HUD.RED)
+        avg_color = SovereignHUD.GREEN if avg_rank == 'A' else (SovereignHUD.YELLOW if avg_rank in ['B', 'C'] else SovereignHUD.RED)
         
-        HUD.box_top("COMBAT ANALYSIS [RADON]")
-        HUD.box_row("TARGET", str(self.root_path))
-        HUD.box_row("SCANNED", f"{len(self.files)} Files")
-        HUD.box_row("AVG COMPLEXITY", f"{self.avg_cc:.1f} ({avg_rank})", color=avg_color)
-        HUD.box_separator()
+        SovereignHUD.box_top("COMBAT ANALYSIS [RADON]")
+        SovereignHUD.box_row("TARGET", str(self.root_path))
+        SovereignHUD.box_row("SCANNED", f"{len(self.files)} Files")
+        SovereignHUD.box_row("AVG COMPLEXITY", f"{self.avg_cc:.1f} ({avg_rank})", color=avg_color)
+        SovereignHUD.box_separator()
         
-        HUD.box_row("[WAR ZONES]", "TOP OFFENDERS", dim_label=True)
+        SovereignHUD.box_row("[WAR ZONES]", "TOP OFFENDERS", dim_label=True)
         for i, b in enumerate(top_offenders, 1):
-            color = HUD.GREEN if b['rank'] == 'A' else (HUD.YELLOW if b['rank'] in ['B', 'C'] else HUD.RED)
+            color = SovereignHUD.GREEN if b['rank'] == 'A' else (SovereignHUD.YELLOW if b['rank'] in ['B', 'C'] else SovereignHUD.RED)
             rank_str = f"[{b['rank']}]"
             label = f"{i}. {rank_str} {b['cc']:<3} {b['file']}"
-            HUD.box_row(label[:24], f"{b['name']} ({b['type']})", color=color)
+            SovereignHUD.box_row(label[:24], f"{b['name']} ({b['type']})", color=color)
         
-        HUD.box_separator()
-        HUD.box_row("[DISTRIBUTION]", "CODEBASE SPREAD", dim_label=True)
+        SovereignHUD.box_separator()
+        SovereignHUD.box_row("[DISTRIBUTION]", "CODEBASE SPREAD", dim_label=True)
         
         total_items = sum(self.distribution.values())
         if total_items > 0:
@@ -154,9 +154,9 @@ class DebtAnalyzer:
                 perc = (count / total_items) * 100
                 bar_len = int((perc / 100) * 30)
                 bar = "█" * bar_len + "░" * (30 - bar_len)
-                HUD.box_row(f"Rank {rank}", f"{bar} {perc:>3.0f}% ({count})")
+                SovereignHUD.box_row(f"Rank {rank}", f"{bar} {perc:>3.0f}% ({count})")
                 
-        HUD.box_bottom()
+        SovereignHUD.box_bottom()
 
 
 def main() -> None:
@@ -171,7 +171,7 @@ def main() -> None:
         if args.json:
             print("{}")
         else:
-            HUD.log("FAIL", "No parseable Python blocks found.")
+            SovereignHUD.log("FAIL", "No parseable Python blocks found.")
         return
 
     if args.json:

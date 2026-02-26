@@ -16,7 +16,7 @@ class TestSovereignEngineEmpire:
     @patch("src.core.sv_engine.utils.load_config", return_value={"persona": "ALFRED"})
     @patch("src.core.sv_engine.personas.get_strategy")
     @patch("src.core.sv_engine.SovereignVector")
-    @patch("src.core.sv_engine.HUD")
+    @patch("src.core.sv_engine.SovereignHUD")
     def test_init(self, mock_hud, mock_vector, mock_strat, mock_config):
         engine = SovereignEngine(project_root=Path("dummy_root"))
         mock_config.assert_called()
@@ -26,7 +26,7 @@ class TestSovereignEngineEmpire:
     @patch("src.core.utils.input_with_timeout", return_value="n")
     @patch("src.core.sv_engine.personas.get_strategy")
     @patch("src.core.sv_engine.SovereignVector")
-    @patch("src.core.sv_engine.HUD")
+    @patch("src.core.sv_engine.SovereignHUD")
     def test_run_basic_flow(self, mock_hud, mock_vector, mock_strat, mock_input, mock_config):
         engine = SovereignEngine(project_root=Path("dummy_root"))
         mock_v_instance = mock_vector.return_value
@@ -41,7 +41,7 @@ class TestSovereignEngineEmpire:
     @patch("src.core.sv_engine.SovereignVector")
     @patch("src.core.sv_engine.BraveSearch")
     @patch("src.core.sv_engine.Cortex")
-    @patch("src.core.sv_engine.HUD")
+    @patch("src.core.sv_engine.SovereignHUD")
     def test_proactive_lexicon_lift(self, mock_hud, mock_cortex, mock_brave, mock_vector, mock_strat, mock_config):
         engine = SovereignEngine(project_root=Path("dummy_root"))
         mock_v_instance = mock_vector.return_value

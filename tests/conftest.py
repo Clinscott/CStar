@@ -14,12 +14,6 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 _paths_to_add = [
     PROJECT_ROOT,                                        # src.* imports
-    PROJECT_ROOT / "src" / "core",                       # annex, edda, ui, report_engine, sv_engine
-    PROJECT_ROOT / "src" / "core" / "engine",            # vector (SovereignVector)
-    PROJECT_ROOT / "src" / "tools",                      # network_watcher
-    PROJECT_ROOT / "src" / "tools" / "debug",            # check_pro, cjk_check, debug_engine
-    PROJECT_ROOT / "src" / "games",                      # odin_protocol.*
-    PROJECT_ROOT / ".agent" / "scripts" / "empire",      # factories
 ]
 
 for p in _paths_to_add:
@@ -87,4 +81,79 @@ def isolate_warden_state():
     _cleanup()
     yield
     _cleanup()
+
+
+@pytest.fixture(autouse=True)
+def reset_hud_singleton():
+    """
+    [ALFRED] Multi-targeted reset of the SovereignHUD singleton class.
+    Identifies all instances of SovereignHUD in sys.modules (both src.core.sovereign_hud 
+    and the raw ui import) and scrubs them to prevent cross-test 
+    contamination.
+    """
+    import sys
+    import unittest.mock
+
+    def _get_hud_instances():
+        instances = []
+        if "src.core.sovereign_hud" in sys.modules:
+            instances.append(sys.modules["src.core.sovereign_hud"].SovereignHUD)
+        if "ui" in sys.modules:
+            instances.append(sys.modules["ui"].SovereignHUD)
+        return list(set(instances)) # Unique classes
+
+    # Store original methods once for each unique SovereignHUD class found
+    if not hasattr(reset_hud_singleton, "_originals_map"):
+        reset_hud_singleton._originals_map = {}
+
+    huds = _get_hud_instances()
+    for SovereignHUD in huds:
+        if SovereignHUD not in reset_hud_singleton._originals_map:
+            # Only store originals if they ARE NOT Mocks.
+            # If we already have a mock at this point, we can't save the 'original'.
+            originals = {}
+            methods = [
+                "box_top", "box_row", "box_bottom", "log", "persona_log", 
+                "warning", "broadcast", "render_loop", "stream_text", 
+                "progress_bar", "render_sparkline", "_speak", "_ensure_persona"
+            ]
+            for name in methods:
+                val = getattr(SovereignHUD, name, None)
+                if val and not isinstance(val, (unittest.mock.Mock, unittest.mock.MagicMock)):
+                    originals[name] = val
+            
+            reset_hud_singleton._originals_map[SovereignHUD] = originals
+
+    def _full_reset():
+        # 1. Kill any persistent patches
+        unittest.mock.patch.stopall()
+        
+        # 2. Reset each unique SovereignHUD class
+        huds = _get_hud_instances()
+        for SovereignHUD in huds:
+            SovereignHUD.PERSONA = "ALFRED"
+            SovereignHUD._INITIALIZED = False
+            SovereignHUD.DIALOGUE = None
+            SovereignHUD._render_queue = None
+            SovereignHUD._render_lock = None
+            if hasattr(SovereignHUD, "_last_width"):
+                delattr(SovereignHUD, "_last_width")
+                
+            # Restore methods ONLY if they are currently Mocks.
+            originals = reset_hud_singleton._originals_map.get(SovereignHUD, {})
+            for name, original in originals.items():
+                current_val = getattr(SovereignHUD, name, None)
+                if isinstance(current_val, (unittest.mock.Mock, unittest.mock.MagicMock)):
+                    setattr(SovereignHUD, name, original)
+        
+        # 3. Diagnostic: Check if any OTHER module has a SovereignHUD that we missed
+        for mod_name, mod in list(sys.modules.items()):
+            if mod_name.startswith("tests") or mod_name.startswith("src"):
+                if hasattr(mod, "SovereignHUD") and mod.SovereignHUD not in huds:
+                    # Found a shadow SovereignHUD!
+                    pass
+
+    _full_reset()
+    yield
+    _full_reset()
 

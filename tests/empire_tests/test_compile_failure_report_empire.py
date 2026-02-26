@@ -15,4 +15,4 @@ def test_compile_report_categorization(tmp_path):
     compile_report(str(tmp_path))
     
     # Since it uses a global UI object for logging, we mostly check it handles the file presence correctly.
-    # In a real scenario, we'd mock HUD if we wanted to verify counts.
+    # In a real scenario, we'd mock SovereignHUD if we wanted to verify counts.

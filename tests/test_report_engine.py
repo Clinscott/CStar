@@ -9,7 +9,7 @@ current_dir = Path(__file__).parent.parent
 sys.path.append(str(current_dir / ".agent" / "scripts"))
 
 from report_engine import ReportEngine
-from ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 
 class TestReportEngine(unittest.TestCase):

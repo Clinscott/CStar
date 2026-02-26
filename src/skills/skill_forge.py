@@ -23,7 +23,7 @@ sys.path.insert(0, _core_dir)
 sys.path.insert(0, _engine_dir)
 
 from cortex import Cortex
-from ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 from src.tools.brave_search import BraveSearch  # [BIFRÖST]
 
 class SkillForge:
@@ -92,57 +92,57 @@ class SkillForge:
         Returns:
             A dictionary containing 'success', 'code', 'archetype', and 'path'.
         """
-        HUD.box_top("SKILL FORGE: IGNITION")
+        SovereignHUD.box_top("SKILL FORGE: IGNITION")
         
         if not query or not query.strip():
-            HUD.box_row("ERROR", "Query required", HUD.RED)
-            HUD.box_bottom()
+            SovereignHUD.box_row("ERROR", "Query required", SovereignHUD.RED)
+            SovereignHUD.box_bottom()
             return {"success": False, "code": "", "validation": "Query required"}
         
         # Step 1: Analyze pattern via RAG
-        HUD.box_row("PHASE 1", "Analyzing pattern...", HUD.CYAN)
+        SovereignHUD.box_row("PHASE 1", "Analyzing pattern...", SovereignHUD.CYAN)
         try:
             context = self.analyze_pattern(query)
         except Exception as e:
-            HUD.box_row("ERROR", "RAG Analysis Failed", HUD.RED)
+            SovereignHUD.box_row("ERROR", "RAG Analysis Failed", SovereignHUD.RED)
             context = []
 
         if not context:
-            HUD.box_row("WARN", "No Context Found (Proceeding with Defaults)", HUD.YELLOW)
+            SovereignHUD.box_row("WARN", "No Context Found (Proceeding with Defaults)", SovereignHUD.YELLOW)
         
         # Step 2: Select archetype
-        HUD.box_row("PHASE 2", "Selecting archetype...", HUD.CYAN)
+        SovereignHUD.box_row("PHASE 2", "Selecting archetype...", SovereignHUD.CYAN)
         archetype = self.select_archetype(query, context)
-        HUD.box_row("ARCHETYPE", archetype.upper(), HUD.GREEN)
+        SovereignHUD.box_row("ARCHETYPE", archetype.upper(), SovereignHUD.GREEN)
         
         # Step 3: Extract subject from query
         subject = self._extract_subject(query)
-        HUD.box_row("SUBJECT", subject, HUD.GREEN)
+        SovereignHUD.box_row("SUBJECT", subject, SovereignHUD.GREEN)
         
         # Step 4: Synthesize code
-        HUD.box_row("PHASE 3", "Synthesizing code...", HUD.CYAN)
+        SovereignHUD.box_row("PHASE 3", "Synthesizing code...", SovereignHUD.CYAN)
         code = self.synthesize_skill(subject, archetype, context)
         
         # Step 5: Validate
-        HUD.box_row("PHASE 4", "Validating...", HUD.CYAN)
+        SovereignHUD.box_row("PHASE 4", "Validating...", SovereignHUD.CYAN)
         is_valid, validation_msg = self.validate_skill(code)
         
         if not is_valid:
-            HUD.box_row("REJECTED", validation_msg, HUD.RED)
-            HUD.box_bottom()
+            SovereignHUD.box_row("REJECTED", validation_msg, SovereignHUD.RED)
+            SovereignHUD.box_bottom()
             return {"success": False, "code": code, "validation": validation_msg}
         
-        HUD.box_row("VALIDATED", "All checks passed", HUD.GREEN)
+        SovereignHUD.box_row("VALIDATED", "All checks passed", SovereignHUD.GREEN)
         
         # Step 6: Save (unless dry-run)
         output_path = None
         if not dry_run:
             output_path = self._save_draft(subject, archetype, code)
-            HUD.box_row("SAVED", output_path, HUD.GREEN)
+            SovereignHUD.box_row("SAVED", output_path, SovereignHUD.GREEN)
         else:
-            HUD.box_row("DRY-RUN", "Preview only, not saved", HUD.YELLOW)
+            SovereignHUD.box_row("DRY-RUN", "Preview only, not saved", SovereignHUD.YELLOW)
         
-        HUD.box_bottom()
+        SovereignHUD.box_bottom()
         
         return {
             "success": True,
@@ -173,7 +173,7 @@ class SkillForge:
         libraries = ["aws", "fastapi", "boto3", "requests", "flask", "django", "pytorch", "tensorflow", "pandas"]
         for lib in libraries:
             if lib in query.lower():
-                HUD.box_row("WEB-RAG", f"Fetching documentation for {lib}...", HUD.DIM)
+                SovereignHUD.box_row("WEB-RAG", f"Fetching documentation for {lib}...", SovereignHUD.DIM)
                 searcher = BraveSearch()
                 web_results = searcher.search(f"{lib} library official documentation and syntax")
                 for wr in web_results[:2]:

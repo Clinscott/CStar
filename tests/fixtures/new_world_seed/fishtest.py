@@ -106,8 +106,8 @@ def run_test():
     persona_name = config.get("Persona", "ALFRED").upper()
     # Import Shared UI
     try:
-        from ui import HUD
-        HUD.PERSONA = persona_name
+        from src.core.sovereign_hud import SovereignHUD
+        SovereignHUD.PERSONA = persona_name
     except ImportError:
         # Should not happen given sys.path augmentation above
         print("CRITICAL: Failed to load UI module.")
@@ -149,12 +149,12 @@ def run_test():
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
     
     # --- Persona Header ---
-    title = "Ω THE CRUCIBLE (GATEKEEPER) Ω" if HUD.PERSONA == "ODIN" else "Linguistic Integrity Briefing"
-    HUD.box_top(title)
-    HUD.box_row("TIMESTAMP", timestamp, HUD.BOLD, dim_label=True)
-    HUD.box_row("TARGET", target_file, HUD.BOLD)
-    HUD.box_row("POPULATION", f"{total} Cases", HUD.BOLD)
-    HUD.box_separator()
+    title = "Ω THE CRUCIBLE (GATEKEEPER) Ω" if SovereignHUD.PERSONA == "ODIN" else "Linguistic Integrity Briefing"
+    SovereignHUD.box_top(title)
+    SovereignHUD.box_row("TIMESTAMP", timestamp, SovereignHUD.BOLD, dim_label=True)
+    SovereignHUD.box_row("TARGET", target_file, SovereignHUD.BOLD)
+    SovereignHUD.box_row("POPULATION", f"{total} Cases", SovereignHUD.BOLD)
+    SovereignHUD.box_separator()
 
     import time
     start_time = time.time()
@@ -165,10 +165,10 @@ def run_test():
             passed += 1
         else:
             status = "FAIL"
-            HUD.box_row("ERROR", f"INGEST FAILED", "\033[31m")
-            HUD.box_row("QUERY", case['query'], dim_label=True)
-            HUD.box_row("ACTUAL", f"{info['actual']} ({info['score']:.2f})", dim_label=True)
-            HUD.box_separator()
+            SovereignHUD.box_row("ERROR", f"INGEST FAILED", "\033[31m")
+            SovereignHUD.box_row("QUERY", case['query'], dim_label=True)
+            SovereignHUD.box_row("ACTUAL", f"{info['actual']} ({info['score']:.2f})", dim_label=True)
+            SovereignHUD.box_separator()
 
     end_time = time.time()
     duration = end_time - start_time
@@ -183,10 +183,10 @@ def run_test():
     sprt_color = "\033[32m" if "PASS" in sprt_result else "\033[31m"
     if "INCONCLUSIVE" in sprt_result: sprt_color = "\033[33m"
 
-    HUD.box_row("ACCURACY", f"{accuracy:.1f}%", passed_color)
-    HUD.box_row("VERDICT", sprt_result, sprt_color)
-    HUD.box_row("LATENCY", f"{avg_time:.2f}ms/target", dim_label=True)
-    HUD.box_bottom()
+    SovereignHUD.box_row("ACCURACY", f"{accuracy:.1f}%", passed_color)
+    SovereignHUD.box_row("VERDICT", sprt_result, sprt_color)
+    SovereignHUD.box_row("LATENCY", f"{avg_time:.2f}ms/target", dim_label=True)
+    SovereignHUD.box_bottom()
     
     if accuracy < 100:
         sys.exit(1)

@@ -13,7 +13,7 @@ import subprocess
 import uuid
 import sys
 from pathlib import Path
-from src.core.ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 class SandboxWarden:
     def __init__(self, timeout: int = 5):
@@ -23,10 +23,10 @@ class SandboxWarden:
         try:
             subprocess.run(["docker", "--version"], capture_output=True, check=True)
         except (subprocess.CalledProcessError, FileNotFoundError):
-            HUD.persona_log("WARN", "Docker CLI not found. Physical isolation will be simulated.")
+            SovereignHUD.persona_log("WARN", "Docker CLI not found. Physical isolation will be simulated.")
             self.docker_available = False
 
-    def run_in_sandbox(self, file_path: Path, args: list[str] = None) -> dict:
+    def run_in_sandbox(self, file_path: Path, args: list[str] = None, hunting: bool = False) -> dict:
         """
         Executes a Python script in a transient, isolated Docker container.
         """
@@ -36,23 +36,37 @@ class SandboxWarden:
         # 2. Assign deterministic name for brute-force cleanup
         container_name = f"cstar_sandbox_{uuid.uuid4().hex[:8]}"
         
-        # 3. Construct the Docker Command
+        # 3. Apply dynamic hunting configuration
+        # Untrusted logic = NO NETWORK + alpine. Hunting logic = BRIDGE + sentinel-hunter.
+        network_mode = "bridge" if hunting else "none"
+        image_name = "sentinel-hunter" if hunting else "sentinel-sandbox" # Or python:3.14-alpine as fallback
+        
+        # Determine image (Check if our custom images exist, else fallback to alpine)
+        try:
+            check_img = subprocess.run(["docker", "image", "inspect", image_name], capture_output=True)
+            if check_img.returncode != 0:
+                SovereignHUD.persona_log("WARN", f"Image {image_name} not found. Falling back to python:3.14-alpine.")
+                image_name = "python:3.14-alpine"
+        except Exception:
+            image_name = "python:3.14-alpine"
+
+        # 4. Construct the Docker Command
         cmd = [
             "docker", "run",
             "--rm",
             "--name", container_name,
-            "--network", "none",
+            "--network", network_mode,
             "--memory", "128m",
             "--cpus", "0.5",
             "-v", f"{abs_path}:/app/skill.py:ro",
-            "python:3.14-alpine",
+            image_name,
             "python", "/app/skill.py"
         ]
         
         if args:
             cmd.extend(args)
 
-        HUD.persona_log("HEIMDALL", f"Isolating specimen in container '{container_name}'...")
+        SovereignHUD.persona_log("HEIMDALL", f"Isolating specimen in container '{container_name}'...")
         
         result = {
             "stdout": "",
@@ -77,12 +91,12 @@ class SandboxWarden:
                          raise OSError(proc.stderr)
                          
                 except (subprocess.CalledProcessError, OSError):
-                    HUD.persona_log("WARN", "Docker Engine connection failed. Falling back to SIMULATED_JAIL.")
+                    SovereignHUD.persona_log("WARN", "Docker Engine connection failed. Falling back to SIMULATED_JAIL.")
                     self.docker_available = False # Set for current session
                     result["simulated"] = True
             
             if not self.docker_available:
-                HUD.persona_log("HEIMDALL", "[SIMULATION] Applying namespace constraints purely via OS handles...")
+                SovereignHUD.persona_log("HEIMDALL", "[SIMULATION] Applying namespace constraints purely via OS handles...")
                 native_cmd = [sys.executable, str(abs_path)] + (args or [])
                 proc = subprocess.run(
                     native_cmd,
@@ -96,19 +110,19 @@ class SandboxWarden:
             result["exit_code"] = proc.returncode
             
         except subprocess.TimeoutExpired as e:
-            HUD.persona_log("WARNING", f"Specimen exceeded time limit ({self.timeout}s). Terminating.")
+            SovereignHUD.persona_log("WARNING", f"Specimen exceeded time limit ({self.timeout}s). Terminating.")
             result["timed_out"] = True
             result["stdout"] = e.stdout.decode() if e.stdout else ""
             result["stderr"] = e.stderr.decode() if e.stderr else ""
             
         except Exception as e:
-            HUD.persona_log("ERROR", f"Sandbox Breach: {str(e)}")
+            SovereignHUD.persona_log("ERROR", f"Sandbox Breach: {str(e)}")
             result["stderr"] = str(e)
         
         finally:
             # 5. [CRITICAL] Zombie Containment
             # Brute-force removal to prevent resource leaks from background container spin
-            HUD.persona_log("ODIN", f"Purging container {container_name}...")
+            SovereignHUD.persona_log("ODIN", f"Purging container {container_name}...")
             subprocess.run(["docker", "rm", "-f", container_name], capture_output=True)
 
         return result

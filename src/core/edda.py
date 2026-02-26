@@ -8,7 +8,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from src.core.ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 # ==============================================================================
 # 🛡️ THE WEAVER'S LOGIC
@@ -29,7 +29,7 @@ class EddaWeaver:
 
     def scan_and_transmute(self, dry_run: bool = False) -> None:
         """Recursively scans for .md files and converts them to .qmd."""
-        HUD.persona_log("INFO", f"Scanning realm for documentation: {self.root}")
+        SovereignHUD.persona_log("INFO", f"Scanning realm for documentation: {self.root}")
         
         candidates = []
         for path in self.root.rglob("*.md"):
@@ -37,7 +37,7 @@ class EddaWeaver:
                 continue
             candidates.append(path)
 
-        HUD.persona_log("INFO", f"Found {len(candidates)} candidates for transmutation.")
+        SovereignHUD.persona_log("INFO", f"Found {len(candidates)} candidates for transmutation.")
 
         if dry_run:
             for c in candidates:
@@ -90,10 +90,10 @@ class EddaWeaver:
             # 5. Write New Scroll
             new_path = source.with_suffix(".qmd")
             new_path.write_text(final_content, encoding="utf-8")
-            HUD.persona_log("SUCCESS", f"Weaved {source.name} -> {new_path.name}")
+            SovereignHUD.persona_log("SUCCESS", f"Weaved {source.name} -> {new_path.name}")
 
         except Exception as e:
-            HUD.persona_log("ERROR", f"Failed to weave {source.name}: {e}")
+            SovereignHUD.persona_log("ERROR", f"Failed to weave {source.name}: {e}")
 
     def _extract_title(self, content: str) -> Optional[str]:
         """Extracts the first H1 header as title."""
@@ -156,10 +156,10 @@ class EddaWeaver:
                 out_dir.mkdir(parents=True, exist_ok=True)
                 out_path = out_dir / f"{source_file.stem}.qmd"
                 out_path.write_text("\n".join(docs), encoding="utf-8")
-                HUD.persona_log("SUCCESS", f"API Docs synthesized: {out_path.name}")
+                SovereignHUD.persona_log("SUCCESS", f"API Docs synthesized: {out_path.name}")
 
         except Exception as e:
-            HUD.persona_log("ERROR", f"Failed to synthesize {source_file.name}: {e}")
+            SovereignHUD.persona_log("ERROR", f"Failed to synthesize {source_file.name}: {e}")
 
 def main() -> None:
     """Command-line interface for the Edda Protocol."""

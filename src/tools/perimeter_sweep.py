@@ -27,7 +27,7 @@ project_root = Path(__file__).parent.parent.parent.absolute()
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
-from src.core.ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 # Configure Logging
 logging.basicConfig(
@@ -48,11 +48,11 @@ class PerimeterSweep:
         self.report_path = project_root / ".agent" / "perimeter_report.json"
         
         # Enforce ALFRED persona for this tool
-        HUD.PERSONA = "ALFRED"
+        SovereignHUD.PERSONA = "ALFRED"
 
     def _run_pip_audit(self) -> dict[str, Any]:
         """Runs pip-audit to check for Python CVEs."""
-        HUD.persona_log("INFO", "Executing pip-audit for Python dependencies...")
+        SovereignHUD.persona_log("INFO", "Executing pip-audit for Python dependencies...")
         report = {"status": "success", "vulnerabilities": 0, "details": []}
         
         try:
@@ -101,7 +101,7 @@ class PerimeterSweep:
 
     def _run_npm_audit(self) -> dict[str, Any]:
         """Runs npm audit to check for JS CVEs."""
-        HUD.persona_log("INFO", "Executing npm audit for Node.js dependencies...")
+        SovereignHUD.persona_log("INFO", "Executing npm audit for Node.js dependencies...")
         report = {"status": "success", "vulnerabilities": 0, "details": []}
         
         if not (self.target_dir / "package.json").exists():
@@ -146,7 +146,7 @@ class PerimeterSweep:
 
     def _manor_cleanup(self) -> dict[str, Any]:
         """Sweeps for temporary, orphaned, or log files."""
-        HUD.persona_log("INFO", "Sweeping the manor for temporary files...")
+        SovereignHUD.persona_log("INFO", "Sweeping the manor for temporary files...")
         report = {"status": "success", "files_found": 0, "purged": False, "details": []}
         
         targets = []
@@ -181,10 +181,10 @@ class PerimeterSweep:
 
     def analyze(self) -> dict[str, Any]:
         """Performs the comprehensive security sweep."""
-        HUD.box_top("[A] THE PERIMETER SWEEP")
-        HUD.box_row("SCAN AREA", str(self.target_dir), HUD.CYAN)
-        HUD.box_row("PURGE MODE", "ACTIVE" if self.purge else "DISABLED", HUD.YELLOW if self.purge else HUD.GREEN)
-        HUD.box_separator()
+        SovereignHUD.box_top("[A] THE PERIMETER SWEEP")
+        SovereignHUD.box_row("SCAN AREA", str(self.target_dir), SovereignHUD.CYAN)
+        SovereignHUD.box_row("PURGE MODE", "ACTIVE" if self.purge else "DISABLED", SovereignHUD.YELLOW if self.purge else SovereignHUD.GREEN)
+        SovereignHUD.box_separator()
         
         results = {
             "pip_audit": self._run_pip_audit(),
@@ -200,59 +200,59 @@ class PerimeterSweep:
         """Writes the sweep report to disk."""
         self.report_path.parent.mkdir(parents=True, exist_ok=True)
         report_data = {
-            "timestamp": HUD._speak("timestamp", "Now"),
+            "timestamp": SovereignHUD._speak("timestamp", "Now"),
             "results": results
         }
         self.report_path.write_text(json.dumps(report_data, indent=4), encoding='utf-8')
 
     def _render_report(self, results: dict[str, Any]) -> None:
-        """Displays the perimeter status in the HUD."""
-        HUD.box_separator()
-        HUD.box_row("PERIMETER SECURITY STATUS", "FINDINGS", HUD.CYAN)
-        HUD.box_separator()
+        """Displays the perimeter status in the SovereignHUD."""
+        SovereignHUD.box_separator()
+        SovereignHUD.box_row("PERIMETER SECURITY STATUS", "FINDINGS", SovereignHUD.CYAN)
+        SovereignHUD.box_separator()
         
         # PIP Audit
         pip = results["pip_audit"]
-        p_color = HUD.GREEN if pip["vulnerabilities"] == 0 else HUD.RED
+        p_color = SovereignHUD.GREEN if pip["vulnerabilities"] == 0 else SovereignHUD.RED
         p_text = "SECURE" if pip["vulnerabilities"] == 0 else f"{pip['vulnerabilities']} CVEs"
         if pip["status"] == "missing_tool": p_text = "MISSING TOOL"
-        HUD.box_row("Python Dependencies", p_text, p_color)
+        SovereignHUD.box_row("Python Dependencies", p_text, p_color)
         
         if pip["vulnerabilities"] > 0:
              for d in pip["details"]:
-                 HUD.box_row(f"  {d['package']}@{d['version']}", f"CVE: {d['id']}", HUD.RED, dim_label=True)
+                 SovereignHUD.box_row(f"  {d['package']}@{d['version']}", f"CVE: {d['id']}", SovereignHUD.RED, dim_label=True)
         
         # NPM Audit
         npm = results["npm_audit"]
         if npm["status"] != "skipped":
-            n_color = HUD.GREEN if npm["vulnerabilities"] == 0 else HUD.RED
+            n_color = SovereignHUD.GREEN if npm["vulnerabilities"] == 0 else SovereignHUD.RED
             n_text = "SECURE" if npm["vulnerabilities"] == 0 else f"{npm['vulnerabilities']} CVEs"
             if npm["status"] == "missing_tool": n_text = "MISSING TOOL"
-            HUD.box_row("Node.js Dependencies", n_text, n_color)
+            SovereignHUD.box_row("Node.js Dependencies", n_text, n_color)
             
             if npm["vulnerabilities"] > 0:
                  for d in npm["details"][:3]: # Cap output
                      via = d['via'][0] if d.get('via') and isinstance(d['via'], list) else 'Unknown'
-                     HUD.box_row(f"  {d['package']}", f"Sev: {d.get('severity', 'N/A')} ({via})", HUD.RED, dim_label=True)
+                     SovereignHUD.box_row(f"  {d['package']}", f"Sev: {d.get('severity', 'N/A')} ({via})", SovereignHUD.RED, dim_label=True)
                  if len(npm["details"]) > 3:
-                     HUD.box_row("  ...", f"+ {len(npm['details']) - 3} more", dim_label=True)
+                     SovereignHUD.box_row("  ...", f"+ {len(npm['details']) - 3} more", dim_label=True)
                      
         # Cleanup
         cln = results["cleanup"]
-        c_color = HUD.GREEN if cln["files_found"] == 0 else HUD.YELLOW
+        c_color = SovereignHUD.GREEN if cln["files_found"] == 0 else SovereignHUD.YELLOW
         c_text = "IMMACULATE" if cln["files_found"] == 0 else f"{cln['files_found']} orphans"
         if cln["purged"]: c_text += " (PURGED)"
-        HUD.box_row("Manor Hygiene", c_text, c_color)
+        SovereignHUD.box_row("Manor Hygiene", c_text, c_color)
 
-        HUD.box_separator()
+        SovereignHUD.box_separator()
         if (pip["vulnerabilities"] == 0 and 
             (npm["status"] == "skipped" or npm["vulnerabilities"] == 0) and 
             cln["files_found"] == 0):
-            HUD.box_row("STATUS", "The perimeter is secure, sir.", HUD.GREEN)
+            SovereignHUD.box_row("STATUS", "The perimeter is secure, sir.", SovereignHUD.GREEN)
         else:
-            HUD.box_row("STATUS", "Anomalies detected in the perimeter.", HUD.YELLOW)
+            SovereignHUD.box_row("STATUS", "Anomalies detected in the perimeter.", SovereignHUD.YELLOW)
             
-        HUD.box_bottom()
+        SovereignHUD.box_bottom()
 
 
 def main():
@@ -266,10 +266,10 @@ def main():
         sweep.analyze()
         return 0
     except KeyboardInterrupt:
-        HUD.persona_log("WARN", "Sweep aborted by user.")
+        SovereignHUD.persona_log("WARN", "Sweep aborted by user.")
         return 1
     except Exception as e:
-        HUD.persona_log("ERROR", f"Sweep failed: {e}")
+        SovereignHUD.persona_log("ERROR", f"Sweep failed: {e}")
         return 1
 
 if __name__ == "__main__":

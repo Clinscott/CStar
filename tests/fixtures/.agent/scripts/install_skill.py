@@ -5,7 +5,7 @@ import shutil
 import subprocess
 import sys
 
-from sv_engine import HUD
+from sv_engine import SovereignHUD
 
 
 def _sanitize_skill_name(name):
@@ -52,7 +52,7 @@ def _promote_skill(quarantine, dest):
         shutil.move(quarantine, dest)
         return True
     except Exception as e:
-        HUD.log("FAIL", "Promotion Failed", str(e)[:30])
+        SovereignHUD.log("FAIL", "Promotion Failed", str(e)[:30])
         return False
 
 def install_skill(skill_name, target_root=None):
@@ -61,36 +61,36 @@ def install_skill(skill_name, target_root=None):
     base = target_root or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     config, err = _get_config(base)
     if not name or err or not config.get("FrameworkRoot"):
-        HUD.log("FAIL", "Pre-install Check", err or "Invalid Name"); return
+        SovereignHUD.log("FAIL", "Pre-install Check", err or "Invalid Name"); return
 
     src = os.path.join(config["FrameworkRoot"], "skills_db", name)
     qua = os.path.join(base, "quarantine", name)
     dst = os.path.join(base, "skills", name)
 
     if not all(_validate_path(base if "db" not in p[0] else config["FrameworkRoot"], p[1]) for p in [(src, src), (base, qua), (base, dst)]):
-        HUD.log("CRITICAL", "Path Violation"); return
+        SovereignHUD.log("CRITICAL", "Path Violation"); return
 
     if os.path.exists(dst): 
-        HUD.log("INFO", f"Skill '{name}' already installed."); return
+        SovereignHUD.log("INFO", f"Skill '{name}' already installed."); return
     if not os.path.exists(src): 
-        HUD.log("FAIL", f"Skill '{name}' not found"); return
+        SovereignHUD.log("FAIL", f"Skill '{name}' not found"); return
     
     try:
         if os.path.exists(qua): shutil.rmtree(qua)
         shutil.copytree(src, qua)
         
         ok, i_err = _verify_integrity(qua)
-        if not ok: HUD.log("FAIL", i_err); shutil.rmtree(qua); return
+        if not ok: SovereignHUD.log("FAIL", i_err); shutil.rmtree(qua); return
 
         threat, s_err = _run_security_scan(qua)
-        if threat >= 2: HUD.log("CRITICAL", "BLOCKED: Security Threat"); shutil.rmtree(qua); return
+        if threat >= 2: SovereignHUD.log("CRITICAL", "BLOCKED: Security Threat"); shutil.rmtree(qua); return
         if threat == 1:
-            if input(f"{HUD.CYAN}>> Proceed with Warning? [y/N]: {HUD.RESET}").lower() != 'y':
+            if input(f"{SovereignHUD.CYAN}>> Proceed with Warning? [y/N]: {SovereignHUD.RESET}").lower() != 'y':
                 shutil.rmtree(qua); return
 
-        if _promote_skill(qua, dst): HUD.log("PASS", f"Skill '{name}' deployed.")
+        if _promote_skill(qua, dst): SovereignHUD.log("PASS", f"Skill '{name}' deployed.")
     except Exception as e:
-        HUD.log("FAIL", f"Install Crash: {str(e)[:40]}")
+        SovereignHUD.log("FAIL", f"Install Crash: {str(e)[:40]}")
         if os.path.exists(qua): shutil.rmtree(qua)
 
 if __name__ == "__main__":

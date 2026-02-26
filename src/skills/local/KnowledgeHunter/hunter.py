@@ -20,13 +20,13 @@ except (ImportError, ValueError, IndexError):
 
 from google import genai
 from src.tools.brave_search import BraveSearch
-from src.core.ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 class KnowledgeHunter:
     def __init__(self):
         self.api_key = os.getenv("GOOGLE_API_KEY")
         if not self.api_key:
-            HUD.persona_log("ERROR", "GOOGLE_API_KEY not found.")
+            SovereignHUD.persona_log("ERROR", "GOOGLE_API_KEY not found.")
             sys.exit(1)
             
         self.client = genai.Client(api_key=self.api_key)
@@ -34,14 +34,14 @@ class KnowledgeHunter:
         self.root = Path(__file__).parent.parent.parent.parent.parent.resolve() # CorvusStar root
         
     def hunt(self, topic: str):
-        HUD.persona_log("INFO", f"Hunting for knowledge on: {topic}...")
+        SovereignHUD.persona_log("INFO", f"Hunting for knowledge on: {topic}...")
         
         # Step 1: Brave Search
-        HUD.persona_log("INFO", "Deploying Brave Search spiders...")
+        SovereignHUD.persona_log("INFO", "Deploying Brave Search spiders...")
         results = self.searcher.search(topic)
         
         if not results:
-            HUD.persona_log("WARN", "The spiders returned empty-handed.")
+            SovereignHUD.persona_log("WARN", "The spiders returned empty-handed.")
             return
 
         # Step 2: Format Snippets
@@ -49,7 +49,7 @@ class KnowledgeHunter:
         for i, res in enumerate(results):
             snippets += f"[{i+1}] {res.get('title')}\n{res.get('description')}\nURL: {res.get('url')}\n\n"
             
-        HUD.persona_log("INFO", f"Captured {len(results)} snippets. Synthesizing...")
+        SovereignHUD.persona_log("INFO", f"Captured {len(results)} snippets. Synthesizing...")
         
         # Step 3: Gemini Synthesis
         prompt = f"""You are Odin's Knowledge Hunter. 
@@ -82,10 +82,10 @@ class KnowledgeHunter:
             
             filepath.write_text(report_content, encoding='utf-8')
             
-            HUD.persona_log("SUCCESS", f"Knowledge synthesized: {filename}")
+            SovereignHUD.persona_log("SUCCESS", f"Knowledge synthesized: {filename}")
             
         except Exception as e:
-            HUD.persona_log("ERROR", f"Synthesis failed: {e}")
+            SovereignHUD.persona_log("ERROR", f"Synthesis failed: {e}")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

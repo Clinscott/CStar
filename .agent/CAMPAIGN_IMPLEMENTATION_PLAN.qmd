@@ -348,7 +348,7 @@ def generate_backlog(batch_number: int) -> dict:
 
 | Component | Path | Notes |
 |-----------|------|-------|
-| HUD Core | `ui.py` L63-148 | Visual backbone |
+| SovereignHUD Core | `ui.py` L63-148 | Visual backbone |
 | Corrections | `.agent/corrections.json` | Intent mappings |
 | Dialogue DB | `dialogue_db/*.qmd` | Voice consistency |
 

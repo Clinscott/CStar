@@ -15,7 +15,7 @@ from src.sentinel._bootstrap import PROJECT_ROOT, bootstrap
 
 bootstrap()
 
-from src.core.ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 class CorvusDispatcher:
     """
@@ -30,7 +30,7 @@ class CorvusDispatcher:
         # Persona Synchronization
         from src.core.utils import load_config
         self.config = load_config(str(self.project_root))
-        HUD.PERSONA = (self.config.get("persona") or "ALFRED").upper()
+        SovereignHUD.PERSONA = (self.config.get("persona") or "ALFRED").upper()
 
         # [THE CANARY] Initialize AnomalyWarden
         try:
@@ -77,39 +77,39 @@ class CorvusDispatcher:
 
     def show_help(self) -> None:
         """Displays the C* command interface."""
-        HUD.box_top("🔱 CORVUS STAR CLI (c*)")
-        HUD.box_row("ROOT", str(self.project_root), dim_label=True)
-        HUD.box_separator()
+        SovereignHUD.box_top("🔱 CORVUS STAR CLI (c*)")
+        SovereignHUD.box_row("ROOT", str(self.project_root), dim_label=True)
+        SovereignHUD.box_separator()
 
         commands = self._discover_all()
         scripts = sorted(c for c, p in commands.items() if p.endswith(".py"))
         workflows = sorted(c for c, p in commands.items() if p.endswith(".md") or p.endswith(".qmd"))
 
         if scripts:
-            HUD.box_row("SCRIPTS", ", ".join(scripts), HUD.GREEN, dim_label=True)
+            SovereignHUD.box_row("SCRIPTS", ", ".join(scripts), SovereignHUD.GREEN, dim_label=True)
         if workflows:
-            HUD.box_separator()
-            HUD.box_row("WORKFLOWS", ", ".join(workflows), HUD.MAGENTA, dim_label=True)
+            SovereignHUD.box_separator()
+            SovereignHUD.box_row("WORKFLOWS", ", ".join(workflows), SovereignHUD.MAGENTA, dim_label=True)
 
-        HUD.box_separator()
-        HUD.box_row("SHORTCUTS", "-odin, -alfred", HUD.YELLOW)
-        HUD.box_bottom()
+        SovereignHUD.box_separator()
+        SovereignHUD.box_row("SHORTCUTS", "-odin, -alfred", SovereignHUD.YELLOW)
+        SovereignHUD.box_bottom()
 
     def run(self, args: List[str]) -> None:
         """Parses and dispatches the command dynamically."""
         if not args:
-            # [Phase 11] Launch Sovereign HUD (TUI)
+            # [Phase 11] Launch Sovereign SovereignHUD (TUI)
             try:
                 from src.cstar.core.tui import SovereignApp
                 SovereignApp().run()
                 return
             except ImportError as e:
                 # Fallback if Textual not installed
-                HUD.persona_log("FAIL", f"Sovereign HUD failed to load (Missing Dependency): {e}")
+                SovereignHUD.persona_log("FAIL", f"Sovereign SovereignHUD failed to load (Missing Dependency): {e}")
                 self.show_help()
                 return
             except Exception as e:
-                HUD.persona_log("FAIL", f"Sovereign HUD failed to launch: {e}")
+                SovereignHUD.persona_log("FAIL", f"Sovereign SovereignHUD failed to launch: {e}")
                 self.show_help()
                 return
 
@@ -142,7 +142,7 @@ class CorvusDispatcher:
                     if report["stdout"]: print(report["stdout"])
                     if report["stderr"]: print(report["stderr"], file=sys.stderr)
                     if report["timed_out"]:
-                        HUD.persona_log("FAIL", "Sandbox Execution Timed Out.")
+                        SovereignHUD.persona_log("FAIL", "Sandbox Execution Timed Out.")
                     return
                 
                 # Native Execution for core framework skills
@@ -151,7 +151,7 @@ class CorvusDispatcher:
                 subprocess.run([str(self.venv_python), cmd_path] + cmd_args, env=env)
                 return
             else: # Workflow
-                HUD.persona_log("INFO", f"Dispatching workflow: /{cmd}")
+                SovereignHUD.persona_log("INFO", f"Dispatching workflow: /{cmd}")
                 import shutil
                 start_time = time.time()
                 error_status = 0.0
@@ -160,20 +160,20 @@ class CorvusDispatcher:
                     try:
                         subprocess.run(["quarto", "render", cmd_path], check=True)
                     except Exception as e:
-                         HUD.persona_log("FAIL", f"Workflow execution failed: {e}")
+                         SovereignHUD.persona_log("FAIL", f"Workflow execution failed: {e}")
                          error_status = 1.0
                 else:
-                    HUD.persona_log("WARN", "Quarto not found. Displaying raw workflow:")
-                    HUD.box_top(f"WORKFLOW: {cmd}")
+                    SovereignHUD.persona_log("WARN", "Quarto not found. Displaying raw workflow:")
+                    SovereignHUD.box_top(f"WORKFLOW: {cmd}")
                     print(Path(cmd_path).read_text(encoding='utf-8')[:1000] + "\n... (truncated)")
-                    HUD.box_bottom()
+                    SovereignHUD.box_bottom()
 
                 # [CANARY] Record Heartbeat
                 latency = (time.time() - start_time) * 1000
                 self._record_heartbeat(latency, len(args), 1.0, error_status)
                 return
 
-        HUD.persona_log("FAIL", f"Unknown command: {cmd}")
+        SovereignHUD.persona_log("FAIL", f"Unknown command: {cmd}")
         self.show_help()
 
     def _record_heartbeat(self, latency: float, tokens: int, loops: float, error: float):
@@ -195,7 +195,7 @@ class CorvusDispatcher:
 
         # Alerting
         if self.warden.burn_in_cycles == 0 and anomaly_prob > 0.8:
-            HUD.persona_log("CRITICAL", f"Anomaly Detected: {anomaly_prob:.2f} (Heartbeat: {features})")
+            SovereignHUD.persona_log("CRITICAL", f"Anomaly Detected: {anomaly_prob:.2f} (Heartbeat: {features})")
 
 def main() -> None:
     """Entry point for the dispatcher."""

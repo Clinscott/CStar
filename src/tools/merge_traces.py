@@ -6,10 +6,10 @@ from pathlib import Path
 
 # Import Shared UI
 try:
-    from ui import HUD
+    from src.core.sovereign_hud import SovereignHUD
 except ImportError:
     sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "core"))
-    from ui import HUD
+    from src.core.sovereign_hud import SovereignHUD
 
 def _load_dataset(target_path):
     """Safely load the existing test dataset."""
@@ -19,7 +19,7 @@ def _load_dataset(target_path):
         with open(target_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     except Exception as e:
-        HUD.log("WARN", f"Dataset load failed: {str(e)[:30]}")
+        SovereignHUD.log("WARN", f"Dataset load failed: {str(e)[:30]}")
         return {"test_cases": []}
 
 def _save_dataset(dataset, target_path):
@@ -31,7 +31,7 @@ def _save_dataset(dataset, target_path):
         os.replace(temp_target, str(target_path))
         return True
     except (IOError, PermissionError) as e:
-        HUD.log("FAIL", "Database Save Failed", str(e)[:30])
+        SovereignHUD.log("FAIL", "Database Save Failed", str(e)[:30])
         if os.path.exists(temp_target): os.remove(temp_target)
         return False
 
@@ -73,7 +73,7 @@ def _process_trace_file(trace_file, existing_queries, dataset, failed_dir):
             n_added += a; n_updated += u
         return True, n_added, n_updated
     except Exception as e:
-        HUD.log("WARN", f"Skip {trace_file.name}: {str(e)[:20]}")
+        SovereignHUD.log("WARN", f"Skip {trace_file.name}: {str(e)[:20]}")
         shutil.move(str(trace_file), str(failed_dir / trace_file.name))
         return False, 0, 0
 
@@ -95,10 +95,10 @@ def merge_traces(source_dir, target_file="fishtest_data.json"):
 
     if files_ok > 0:
         if _save_dataset(dataset, target_path):
-            HUD.log("PASS", f"Merge Complete ({files_ok} files)")
-            HUD.log("INFO", f"Stats: +{total_new} New | ~{total_upd} Updated")
+            SovereignHUD.log("PASS", f"Merge Complete ({files_ok} files)")
+            SovereignHUD.log("INFO", f"Stats: +{total_new} New | ~{total_upd} Updated")
     else:
-        HUD.log("INFO", "No trace files to process.")
+        SovereignHUD.log("INFO", "No trace files to process.")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2: print("Usage: python merge_traces.py <source_dir> [target_file]")

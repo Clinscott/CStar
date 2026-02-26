@@ -3,24 +3,24 @@ import unittest.mock as mock
 from src.tools.trace_viz import TraceRenderer
 
 def test_trace_renderer_isolation():
-    # Target the HUD instance used by the module
-    from src.tools.trace_viz import HUD
-    HUD._INITIALIZED = True # Prevent loading from config
-    HUD.PERSONA = "ALFRED" # Set base
+    # Target the SovereignHUD instance used by the module
+    from src.tools.trace_viz import SovereignHUD
+    SovereignHUD._INITIALIZED = True # Prevent loading from config
+    SovereignHUD.PERSONA = "ALFRED" # Set base
     
     # We want to ensure TraceRenderer(ALFRED) uses Cyan
-    # and TraceRenderer(ODIN) uses Red, regardless of current HUD.PERSONA
+    # and TraceRenderer(ODIN) uses Red, regardless of current SovereignHUD.PERSONA
     
     renderer_a = TraceRenderer("ALFRED")
-    assert renderer_a.theme["main"] == HUD.CYAN
+    assert renderer_a.theme["main"] == SovereignHUD.CYAN
     
     renderer_o = TraceRenderer("ODIN")
-    assert renderer_o.theme["main"] == HUD.RED
+    assert renderer_o.theme["main"] == SovereignHUD.RED
     
     # Check that it restores correctly
-    HUD.PERSONA = "ALFRED"
+    SovereignHUD.PERSONA = "ALFRED"
     renderer_o = TraceRenderer("ODIN")
-    assert HUD.PERSONA == "ALFRED" # Restored after init
+    assert SovereignHUD.PERSONA == "ALFRED" # Restored after init
 
 def test_trace_renderer_causal_chain():
     renderer = TraceRenderer("ALFRED")
@@ -30,7 +30,7 @@ def test_trace_renderer_causal_chain():
         {"trigger": "/run-task"} # duplicate
     ]
     
-    with mock.patch("src.tools.trace_viz.HUD.box_row") as mock_row:
+    with mock.patch("src.tools.trace_viz.SovereignHUD.box_row") as mock_row:
         renderer.render_neural_path(traces)
         # Should have called box_row for STEP 01 and STEP 02
         assert mock_row.call_count == 2

@@ -68,7 +68,7 @@ TOTAL: 315 / 1000
 | Range | Target Script | Feature / Improvement Highlights |
 |-------|---------------|-----------------------------------|
 | 201-210 | `overwatch.py` | Refactored monitor loop into decoupled Collector/Renderer/Input classes. |
-| 211-220 | `install_skill.py` | Isolated promotion and cleanup logic. Standardized HUD reporting. |
+| 211-220 | `install_skill.py` | Isolated promotion and cleanup logic. Standardized SovereignHUD reporting. |
 | 221-230 | `synapse_sync.py` | Specialized GitHelper and PushRateLimiter components. |
 | 231-240 | `compile_traces.py` | Advanced analytics (Avg Score, Top Performer) decoupled from reporting. |
 | 241-250 | `network_watcher.py`| Refactored into CruciblePipeline and NetworkWatcher for async flows. |
@@ -93,7 +93,7 @@ TOTAL: 315 / 1000
 | 306 | `sentinel_perf.py` | High-precision profiler: Reached Rank A (0.065ms search latency). |
 | 308 | `overwatch.py` | Implementation of 5x5 Security Heatmap with real-time heuristic scanning. |
 | 309 | `engine/vector.py` | Implemented Neural Search Cache (Hit rate > 90% for top intents). |
-| 310 | `ui.py` | Dynamic HUD width resilience (auto-sensing terminal columns). |
+| 310 | `ui.py` | Dynamic SovereignHUD width resilience (auto-sensing terminal columns). |
 | 311 | `skill_forge.py` | Added SCRAPER archetype for automated RAG-driven web fetching. |
 | 312 | `security_scan.py`| Cross-Language Support: Added risk detection for JS/TS/React patterns. |
 | 313 | `trace_viz.py` | Neural Path mapping: Visualized chronological causal chains in traces. |

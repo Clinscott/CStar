@@ -15,7 +15,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 # Imports (Now valid)
-from src.core.ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 def _get_running_pids():
     """Returns a list of PIDs for running Ravens processes."""
@@ -33,7 +33,7 @@ def _get_running_pids():
 
 def check_status():
     """Checks the status of the Gungnir Spear."""
-    HUD.log("INFO", "Scanning the Roost...")
+    SovereignHUD.log("INFO", "Scanning the Roost...")
     pids = _get_running_pids()
     
     # Check for Gungnir Calculus Infrastructure
@@ -42,11 +42,11 @@ def check_status():
     has_calc = weights_path.exists() and calc_path.exists()
     
     if pids:
-        HUD.log("SUCCESS", "THE RAVENS ARE IN FLIGHT", f"(PIDs: {', '.join(pids)})")
-        HUD.log("INFO", "Alfred is active and providing Overwatch for the swarm.")
+        SovereignHUD.log("SUCCESS", "THE RAVENS ARE IN FLIGHT", f"(PIDs: {', '.join(pids)})")
+        SovereignHUD.log("INFO", "Alfred is active and providing Overwatch for the swarm.")
     elif has_calc:
-        HUD.log("WARN", "THE RAVENS ARE GROUNDED (IDLE)")
-        HUD.log("SUCCESS", "ALFRED IS WATCHING", "(Gungnir Calculus is Armed and Initialized)")
+        SovereignHUD.log("WARN", "THE RAVENS ARE GROUNDED (IDLE)")
+        SovereignHUD.log("SUCCESS", "ALFRED IS WATCHING", "(Gungnir Calculus is Armed and Initialized)")
         
         # Check for recent observations
         suggestions_path = PROJECT_ROOT / ".agent" / "ALFRED_SUGGESTIONS.md"
@@ -54,14 +54,14 @@ def check_status():
             import os
             mtime = os.path.getmtime(suggestions_path)
             last_obs = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(mtime))
-            HUD.log("INFO", f"Last Alfred Observation: {last_obs}")
+            SovereignHUD.log("INFO", f"Last Alfred Observation: {last_obs}")
     else:
-        HUD.log("WARN", "THE RAVENS ARE GROUNDED")
-        HUD.log("FAIL", "THE REALM IS UNPROTECTED", "(Gungnir Calculus not found)")
+        SovereignHUD.log("WARN", "THE RAVENS ARE GROUNDED")
+        SovereignHUD.log("FAIL", "THE REALM IS UNPROTECTED", "(Gungnir Calculus not found)")
 
 def recall_ravens():
     """Recalls the Ravens (terminates the daemon)."""
-    HUD.log("INFO", "Initiating START-9 (Nuclear Termination)...")
+    SovereignHUD.log("INFO", "Initiating START-9 (Nuclear Termination)...")
     try:
         ps_kill = (
             "$currentPid = $pid; "
@@ -81,20 +81,20 @@ def recall_ravens():
         if lock_file.exists():
             lock_file.unlink()
         
-        HUD.log("SUCCESS", "Ravens recalled and roost cleared.")
+        SovereignHUD.log("SUCCESS", "Ravens recalled and roost cleared.")
             
     except Exception as e:
-        HUD.log("FAIL", f"Termination Protocol Failed: {e}")
+        SovereignHUD.log("FAIL", f"Termination Protocol Failed: {e}")
 
 def release_ravens():
     """Releases the Ravens in a new window."""
     # Check if already running
     pids = _get_running_pids()
     if pids:
-        HUD.log("WARN", "The Ravens are already in flight.", f"(PIDs: {', '.join(pids)})")
+        SovereignHUD.log("WARN", "The Ravens are already in flight.", f"(PIDs: {', '.join(pids)})")
         return
 
-    HUD.log("INFO", "Releasing the Ravens...")
+    SovereignHUD.log("INFO", "Releasing the Ravens...")
     try:
         project_dir = str(PROJECT_ROOT)
         # Use simple python if venv python not found (handled by shell mostly, but let's try to find venv)
@@ -107,23 +107,23 @@ def release_ravens():
         ps_cmd = f"Start-Process powershell -ArgumentList '-NoExit', '-Command', \"{cmd_str}\""
         
         subprocess.run(["powershell", "-NoProfile", "-Command", ps_cmd], check=True)
-        HUD.log("SUCCESS", "The Ravens take flight.")
+        SovereignHUD.log("SUCCESS", "The Ravens take flight.")
     except Exception as e:
-        HUD.log("FAIL", f"Deployment Failed: {e}")
+        SovereignHUD.log("FAIL", f"Deployment Failed: {e}")
 
 def learn(n_cycles=1):
     """Starts the Sovereign Test Harness Cycle."""
-    HUD.log("INFO", f"Initiating {n_cycles} Cycle(s) of Manual Learning...")
+    SovereignHUD.log("INFO", f"Initiating {n_cycles} Cycle(s) of Manual Learning...")
     try:
         test_script = PROJECT_ROOT / "tests" / "harness" / "manual_learn.py"
         if not test_script.exists():
-            HUD.log("FAIL", "Manual learn script not found at tests/harness/manual_learn.py")
+            SovereignHUD.log("FAIL", "Manual learn script not found at tests/harness/manual_learn.py")
             return
 
         # Run via sys.executable
         subprocess.run([sys.executable, str(test_script), f"N={n_cycles}"], check=False)
     except Exception as e:
-        HUD.log("FAIL", f"Failed to start manual learn: {e}")
+        SovereignHUD.log("FAIL", f"Failed to start manual learn: {e}")
 
 def main():
     args = sys.argv[1:]
@@ -138,7 +138,7 @@ def main():
                 try:
                     n_cycles = int(arg.split("=")[1])
                 except (ValueError, IndexError):
-                    HUD.log("WARN", f"Invalid N value: {arg}. Defaulting to 5.")
+                    SovereignHUD.log("WARN", f"Invalid N value: {arg}. Defaulting to 5.")
         learn(n_cycles)
     else:
         release_ravens()

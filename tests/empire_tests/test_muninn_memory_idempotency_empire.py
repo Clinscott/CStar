@@ -22,9 +22,10 @@ class TestMuninnMemoryIdempotency:
         # Mock client
         mock_client = MagicMock()
         
-        # Initialize Muninn with tmp path
-        muninn = Muninn(str(tmp_path), client=mock_client)
-        return muninn, memory_file, mock_client
+        with patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key", "MUNINN_API_KEY": ""}):
+            # Initialize Muninn with tmp path
+            muninn = Muninn(str(tmp_path), client=mock_client)
+            return muninn, memory_file, mock_client
 
     def test_distill_knowledge_creates_directives(self, mock_muninn, tmp_path):
         muninn, _, _ = mock_muninn

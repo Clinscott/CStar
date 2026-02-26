@@ -5,11 +5,11 @@ from collections import defaultdict
 
 # Import Shared UI
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "core"))
-from ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 
 def compile_report(project_root):
-    HUD.box_top("SOVEREIGN CYCLE: FAILURE ANALYSIS")
+    SovereignHUD.box_top("SOVEREIGN CYCLE: FAILURE ANALYSIS")
     
     # Paths
     base_dir = os.path.join(project_root, ".agent")
@@ -23,7 +23,7 @@ def compile_report(project_root):
                 if line.startswith("- ["):
                     rejections.append(line.strip())
     
-    HUD.log("INFO", f"Found {len(rejections)} rejected traces in Quarantine.")
+    SovereignHUD.log("INFO", f"Found {len(rejections)} rejected traces in Quarantine.")
     
     # Categorize
     categories = defaultdict(int)
@@ -33,20 +33,20 @@ def compile_report(project_root):
         elif "score" in r.lower(): categories["CONFIDENCE"] += 1
         else: categories["UNKNOWN"] += 1
         
-    HUD.box_separator()
-    HUD.box_row("CATEGORY", "COUNT", HUD.BOLD)
+    SovereignHUD.box_separator()
+    SovereignHUD.box_row("CATEGORY", "COUNT", SovereignHUD.BOLD)
     for cat, count in categories.items():
-        color = HUD.YELLOW
-        if cat == "LATENCY": color = HUD.RED
-        HUD.box_row(cat, str(count), color)
+        color = SovereignHUD.YELLOW
+        if cat == "LATENCY": color = SovereignHUD.RED
+        SovereignHUD.box_row(cat, str(count), color)
         
-    HUD.box_bottom()
+    SovereignHUD.box_bottom()
 
     # Recommendations
     if categories["LATENCY"] > 5:
-        print(f"\n{HUD.RED}>> ADVISORY: Latency Spike Detected. Investigate network_watcher.py{HUD.RESET}")
+        print(f"\n{SovereignHUD.RED}>> ADVISORY: Latency Spike Detected. Investigate network_watcher.py{SovereignHUD.RESET}")
     if categories["CONFLICT"] > 5:
-        print(f"\n{HUD.YELLOW}>> ADVISORY: High Conflict Rate. Run 'python trace_viz.py --war-room'{HUD.RESET}")
+        print(f"\n{SovereignHUD.YELLOW}>> ADVISORY: High Conflict Rate. Run 'python trace_viz.py --war-room'{SovereignHUD.RESET}")
 
 if __name__ == "__main__":
     compile_report(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))

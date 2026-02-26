@@ -51,11 +51,11 @@ While 94.7% is mathematically high, it fails the "Zero Regression" mandate. Spec
 
 ---
 
-## 🎨 4. HUD Aesthetic Audit
+## 🎨 4. SovereignHUD Aesthetic Audit
 **Verdict**: **MODERATE INCONSISTENCY**
 
-- **`cstar_dispatcher.py`**: **VIOLATION**. Uses raw `print()` and emojis instead of the `HUD` primitives defined in `ui.py`.
-- **`ui.py`**: **INTEGRATED**. Provides robust Glow/Odin theme support, but many scripts only use basic `HUD.log` rather than full `box_top`/`box_row` layout patterns.
+- **`cstar_dispatcher.py`**: **VIOLATION**. Uses raw `print()` and emojis instead of the `SovereignHUD` primitives defined in `ui.py`.
+- **`ui.py`**: **INTEGRATED**. Provides robust Glow/Odin theme support, but many scripts only use basic `SovereignHUD.log` rather than full `box_top`/`box_row` layout patterns.
 - **Alignment**: Box-drawing characters are correctly handled via UTF-8 enforcement in `ui.py`.
 
 ---

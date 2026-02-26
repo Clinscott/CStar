@@ -25,8 +25,8 @@ class MemoryDB:
                     metadata={"hnsw:space": "cosine"}
                 )
             except Exception:
-                from src.core.ui import HUD
-                HUD.persona_log("WARN", "ChromaDB failed. Falling back to Simulation.")
+                from src.core.sovereign_hud import SovereignHUD
+                SovereignHUD.persona_log("WARN", "ChromaDB failed. Falling back to Simulation.")
                 self.simulated = True
                 self.collection = None
         else:

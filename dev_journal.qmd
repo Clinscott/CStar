@@ -1,9 +1,18 @@
 # Developer Journal: Corvus Star
 
-## 2026-02-25: Session 83 (Cognitive Hub & Sovereign HUD Patch)
+## 2026-02-25: Session 84 (Shadow Forge: Zero-Trust Sandboxing)
+- **Physical Isolation Achieved**: Today's leap was moving from "Logical" sandboxing to "Physical" isolation via Docker. By mounting the project as Read-Only and mirroring it to an ephemeral layer, we've guaranteed that no generated code can mutate the host without proof of integrity.
+- **Atomic Promotion**: The use of `docker cp` for promotion is a critical architectural pattern. It ensures that only the specific, verified fix is "radiated" back into the production environment.
+- **Mock Consistency**: Environment variable propagation (`MOCK_MODE`) successfully bridged the gap between the host orchestrator and the containerized worker, allowing the full Ravens loop to be tested without credentials.
+
+**Reflections**:
+Security is not a feature; it is a boundary. The Shadow Forge Protocol transforms the "Crucible" from a simple test runner into a true isolation chamber. As we move toward more autonomous repair cycles, this physical boundary is our primary insurance against accidental divergence or adversarial code generation.
+
+
+## 2026-02-25: Session 83 (Cognitive Hub & Sovereign SovereignHUD Patch)
 - **The Zero-Cost Edge**: Today's major breakthrough was the Cognitive Router. By offloading trivial intents to local Ollama instances, we've achieved "zero-cost" high-speed inference for common UI tasks. This preserves our Gemini quota for the heavy lifting required by Muninn and Odin.
 - **Telemetry Intercepts**: The new intercept logic in `tui.py` makes the "Edge" visible. Seeing `[EDGE_ROUTER]` logs in the console confirms that the tiering logic is actually working in real-time. It transforms the TUI from a passive display into a live monitoring station for the entire spoke network.
-- **Architectural Cleanup**: While implementing the router, I noticed the HUD needed more visual distinction for edge telemetry. The "EDGE UP/DOWN" status in the header provides that immediate psychological reassurance that the local worker is ready.
+- **Architectural Cleanup**: While implementing the router, I noticed the SovereignHUD needed more visual distinction for edge telemetry. The "EDGE UP/DOWN" status in the header provides that immediate psychological reassurance that the local worker is ready.
 
 **Reflections**:
 Local-first AI is the future of resilient agentic systems. A cluster of spikes should not go dark just because an API quota is reached. The Cognitive Router is the first step toward a "Self-Healing Edge" where Corvus Star remains operational even in disconnected or throttled states. The lesson: **Always build a low-fidelity, local fallback for high-frequency intents.**
@@ -16,8 +25,8 @@ Local-first AI is the future of resilient agentic systems. A cluster of spikes s
 **Reflections**:
 File corruption is the "Ghost in the Machine" of autonomous coding. When an LLM fails to correctly close a file handle or crashes mid-edit, it leaves behind artifacts that no amount of refactoring can fix—you simply have to burn the file and build it anew. The lesson: **If ruff says a line is indented incorrectly but your eyes say it's perfect, trust the linter and assume corruption.**
 
-## 2026-02-23: Session 80 (Sovereign HUD Async Layer)
-- **The Async Transition**: Today we moved the `HUD` class from a purely synchronous `print`-based utility to an asynchrously-aware rendering layer. This was the missing piece for the multi-daemon architecture; without it, ODIN and Muninn would have eventually fought over the terminal cursor, resulting in unreadable "tearing."
+## 2026-02-23: Session 80 (Sovereign SovereignHUD Async Layer)
+- **The Async Transition**: Today we moved the `SovereignHUD` class from a purely synchronous `print`-based utility to an asynchrously-aware rendering layer. This was the missing piece for the multi-daemon architecture; without it, ODIN and Muninn would have eventually fought over the terminal cursor, resulting in unreadable "tearing."
 - **The Interruption Fix**: A subtle but critical fix was implemented in `stream_text`. By tracking an `interrupted` flag, we ensure that the cursor is not only shown but the line is *finished* with a `\n` if the task is cancelled. This prevents the "Phantom Prompt" bug where the next command line starts at the end of half-rendered text.
 - **Verification Logic**: Used `asyncio.gather` and `asyncio.Queue.join()` to create a high-velocity stress test. Proving zero-dropped frames for 150 concurrent messages builds significant confidence in the stability of the new UI pipeline.
 
@@ -167,7 +176,7 @@ The "Import-Time Side Effect" problem is Python's most insidious test killer. Mo
 - Ready for Phase 49 (Ironclad or TUI Content Polish).
 
 ## 2026-02-16: Session 61 - High Seat Secured (TUI Stabilization)
-**Summary**: Resolved persistent TUI regressions and achieved "Empire-Class" verification for the Sovereign HUD.
+**Summary**: Resolved persistent TUI regressions and achieved "Empire-Class" verification for the Sovereign SovereignHUD.
 - **CSS Repair**: Discovered that nested CSS variables inside class blocks cause parsing errors in the current `Textual` version. Refactored to explicit descendant selectors.
 - **Cinematic Transitions**: Added `TransitionScreen` with asynchronous ASCII animations (Gungnir Spear/Bat-Signal) for a premium persona-swap experience.
 - **Linscott Tests**: Created `tests/empire_tests/test_tui_empire.py` covering mock daemon clients and UI instantiation.
@@ -178,14 +187,14 @@ The "Import-Time Side Effect" problem is Python's most insidious test killer. Mo
 - Moved `TITLE` to a class constant to support testable instantiation without mounting.
 
 **Current State**:
-- HUD is 100% stable and verified via automated tests.
+- SovereignHUD is 100% stable and verified via automated tests.
 - High Seat is secured. Ready for Phase 48 (Ironclad).
 
-## 2026-02-15: The Sovereign HUD & Agentic Loop
+## 2026-02-15: The Sovereign SovereignHUD & Agentic Loop
 
 **Summary**: Today marked the transition from a CLI tool to a Sovereign Agent.
 - **Phase 10 (Agentic Loop)**: Implemented `src/tools/loop.py` to autonomously Observe, Orient, and Act. Verified via simulation.
-- **Phase 11 (Sovereign HUD)**: Abandoned static output for a 4-zone TUI (`src/cstar/core/tui.py`) built with `textual`.
+- **Phase 11 (Sovereign SovereignHUD)**: Abandoned static output for a 4-zone TUI (`src/cstar/core/tui.py`) built with `textual`.
 - **Architecture**: Enforced the "Dumb Client Rule" where TUI polls Daemon via RPC.
 
 **Key Decisions**:
@@ -234,7 +243,7 @@ The "Hallucination Problem" in code repair often stems from the LLM guessing API
 **Changes**:
 - **Brave CLI**: Exposed `brave_search.py` to the command line, allowing manual queries via `python -m src.tools.brave_search "query"`.
 - **Bootstrap Patch**: Fixed a `ModuleNotFoundError` and missing environment variables by importing `src.sentinel._bootstrap` in the `__main__` block.
-- **HUD Integration**: Wrapped search results in the standard `HUD.box_top` and `HUD.persona_log` for consistent aesthetics.
+- **SovereignHUD Integration**: Wrapped search results in the standard `SovereignHUD.box_top` and `SovereignHUD.persona_log` for consistent aesthetics.
 - **Zero-Hit Fallback**: Modified `sv_engine.py` to automatically trigger a Brave Search when the local vector store returns a confidence score below 0.6.
 
 **Reflections**:
@@ -332,7 +341,7 @@ The "SovereignFish" protocol is now fully agentic. It doesn't just execute; it r
 
 ### Architectural Decisions
 - **PowerShell Profile**: Added `chcp 65001` and UTF-8 encoding to user's PowerShell profile for permanent terminal fix.
-- **HUD Enhancement**: Added Windows VT mode activation and stderr reconfiguration to `ui.py`.
+- **SovereignHUD Enhancement**: Added Windows VT mode activation and stderr reconfiguration to `ui.py`.
 - **Log Archiving**: Created `logs/archive/` for historical test outputs instead of cluttering root.
 
 ## 2026-02-09: Session 44 - The Odin Lore Restoration
@@ -420,7 +429,7 @@ The "SovereignFish" protocol is now fully agentic. It doesn't just execute; it r
 ### Achievements
 - **20-Cycle Autonomous Sprint**: Successfully navigated 20 manual learning cycles, resolving 10+ regressions in the process.
 - **100% Test Stability**: Achieved a flawless 81/81 green pass rate for all core and empire tests.
-- **UI Resilience**: Hardened the HUD framework against mock-object pollution, preventing assertion failures in high-mock environments.
+- **UI Resilience**: Hardened the SovereignHUD framework against mock-object pollution, preventing assertion failures in high-mock environments.
 - **Knowledge Synthesis**: Successfully synchronized all session learning traces and updated the GEMINI Neural Manifest.
 
 ### Architectural Decisions
@@ -431,10 +440,10 @@ The "SovereignFish" protocol is now fully agentic. It doesn't just execute; it r
 ## 2026-02-12: Session 51 - Persona Synchronization & Core Hardening
 
 ### Achievements
-- **Lazy Persona Synchronization**: Implemented `_ensure_persona` in `HUD` to unify identity theaming across all entry points, including sub-processes.
+- **Lazy Persona Synchronization**: Implemented `_ensure_persona` in `SovereignHUD` to unify identity theaming across all entry points, including sub-processes.
 - **Graceful Termination**: Hardened the Raven Daemon (`main_loop.py`) with SIGINT/SIGTERM handlers for atomic state preservation.
 - **Pathlib Standardization**: Completed the project-wide migration to Pathlib for all core modules (`annex.py`, `personas.py`, `utils.py`).
-- **HUD-ified Annexation Warden**: Refactored the `Heimdall` audit output to utilize themed `HUD` boxes, aligning security reports with the active persona.
+- **SovereignHUD-ified Annexation Warden**: Refactored the `Heimdall` audit output to utilize themed `SovereignHUD` boxes, aligning security reports with the active persona.
 - **Utility Restoration**: Fixed missing standard library imports and standardized the `utils.py` module for robust path resolution.
 
 ### Architectural Decisions

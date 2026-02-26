@@ -5,10 +5,10 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from src.core.engine.dialogue import DialogueEngine
-from src.core.ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 def main():
-    hud = HUD()
+    hud = SovereignHUD()
     engine = DialogueEngine("src/data/dialogue/phrases.yaml")
     
     if len(sys.argv) < 3:

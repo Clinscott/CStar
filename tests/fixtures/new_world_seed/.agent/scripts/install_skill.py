@@ -4,7 +4,7 @@ import shutil
 import subprocess
 import sys
 
-from sv_engine import HUD
+from sv_engine import SovereignHUD
 
 
 def install_skill(skill_name, target_root=None):
@@ -33,11 +33,11 @@ def install_skill(skill_name, target_root=None):
     final_dest = os.path.join(base_path, "skills", skill_name)
 
     if not os.path.exists(source):
-        print(f"{HUD.RED}Error: Skill '{skill_name}' not found in registry.{HUD.RESET}")
+        print(f"{SovereignHUD.RED}Error: Skill '{skill_name}' not found in registry.{SovereignHUD.RESET}")
         return
 
     if os.path.exists(final_dest):
-        print(f"{HUD.YELLOW}Skill '{skill_name}' is already installed.{HUD.RESET}")
+        print(f"{SovereignHUD.YELLOW}Skill '{skill_name}' is already installed.{SovereignHUD.RESET}")
         return
         
     # Step 1: Quarantine
@@ -61,28 +61,28 @@ def install_skill(skill_name, target_root=None):
 
     # Step 3: Verdict
     if threat_level == 2: # CRITICAL
-        print(f"{HUD.RED}>> BLOCKED: '{skill_name}' contains CRITICAL THREATS (Prompt Injection/Damage).{HUD.RESET}")
-        print(f"{HUD.RED}>> DESTROYING QUARANTINED FILES...{HUD.RESET}")
+        print(f"{SovereignHUD.RED}>> BLOCKED: '{skill_name}' contains CRITICAL THREATS (Prompt Injection/Damage).{SovereignHUD.RESET}")
+        print(f"{SovereignHUD.RED}>> DESTROYING QUARANTINED FILES...{SovereignHUD.RESET}")
         shutil.rmtree(quarantine_zone)
         sys.exit(1)
         
     if threat_level == 1: # WARNING
-        print(f"{HUD.YELLOW}>> WARNING: Suspicious patterns detected.{HUD.RESET}")
-        if HUD.PERSONA == "GOD" or HUD.PERSONA == "ODIN":
-             prompt = f"{HUD.RED}>> [ODIN] OVERRIDE SECURITY PROTOCOL? (RISK ACKNOWLEDGED) [y/N]: {HUD.RESET}"
+        print(f"{SovereignHUD.YELLOW}>> WARNING: Suspicious patterns detected.{SovereignHUD.RESET}")
+        if SovereignHUD.PERSONA == "GOD" or SovereignHUD.PERSONA == "ODIN":
+             prompt = f"{SovereignHUD.RED}>> [ODIN] OVERRIDE SECURITY PROTOCOL? (RISK ACKNOWLEDGED) [y/N]: {SovereignHUD.RESET}"
         else:
-             prompt = f"{HUD.CYAN}>> Proceed with caution? [y/N]: {HUD.RESET}"
+             prompt = f"{SovereignHUD.CYAN}>> Proceed with caution? [y/N]: {SovereignHUD.RESET}"
              
         choice = input(prompt).strip().lower()
         if choice != 'y':
-            print(f"{HUD.YELLOW}>> ABORTED. Cleaning up.{HUD.RESET}")
+            print(f"{SovereignHUD.YELLOW}>> ABORTED. Cleaning up.{SovereignHUD.RESET}")
             shutil.rmtree(quarantine_zone)
             return
 
     # Step 4: Promote
     if os.path.exists(quarantine_zone):
         shutil.move(quarantine_zone, final_dest)
-        print(f"{HUD.GREEN}>> VERIFIED. Skill '{skill_name}' deployed to active matrix.{HUD.RESET}")
+        print(f"{SovereignHUD.GREEN}>> VERIFIED. Skill '{skill_name}' deployed to active matrix.{SovereignHUD.RESET}")
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:

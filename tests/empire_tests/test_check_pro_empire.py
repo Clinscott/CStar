@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock, call, patch
 
 # Import the refactored script to test its main function
-import check_pro
+from src.tools.debug import check_pro
 import pytest
 
 
@@ -9,8 +9,8 @@ import pytest
 class MockGoogleAPIError(Exception):
     pass
 
-@patch('check_pro.os.getenv')
-@patch('check_pro.genai.Client')
+@patch('src.tools.debug.check_pro.os.getenv')
+@patch('src.tools.debug.check_pro.genai.Client')
 def test_script_checks_model_availability(mock_genai_client_class, mock_getenv, capsys):
     """
     Tests the check_pro script's main execution flow against the Gherkin scenario.
@@ -62,8 +62,8 @@ def test_script_checks_model_availability(mock_genai_client_class, mock_getenv, 
     assert f"Testing {expected_candidates[1]}... FAILED (Model not found)" in output_lines
     assert f"Testing {expected_candidates[2]}... SUCCESS" in output_lines
 
-@patch('check_pro.os.getenv')
-@patch('check_pro.genai.Client')
+@patch('src.tools.debug.check_pro.os.getenv')
+@patch('src.tools.debug.check_pro.genai.Client')
 def test_script_exits_when_no_api_key(mock_genai_client_class, mock_getenv, capsys):
     """
     Tests the precondition from the Gherkin scenario that a valid API key is configured.

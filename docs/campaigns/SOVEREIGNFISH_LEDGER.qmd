@@ -117,7 +117,7 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 -   **Skills**: Refined `ui-sci-fi` and `agent-lightning` skill signals to ensure reliable discovery and suggestion.
 
 ### 2026-01-31 (Session 4)
--   **Visual**: Added `[{HUD.PERSONA}]` label to `trace_viz.py` header, improving debugging context.
+-   **Visual**: Added `[{SovereignHUD.PERSONA}]` label to `trace_viz.py` header, improving debugging context.
 -   **UX**: Colorized SPRT output in `fishtest.py` (Green=Pass, Red=Fail, Yellow=Inconclusive).
 -   **Safety**: Added `KeyboardInterrupt` handling to `set_persona.py`.
 
@@ -125,7 +125,7 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 ### 2026-02-01 (Session 5)
 - **Visual**: Added real-time timestamp and duration tracking to `fishtest.py` headers.
 - **Protocol**: Implemented "Decree of Finality" (Alpha) and mapped Federated Learning Infrastructure.
-- **Code**: Added HUD boot sequence to `sv_engine.py` to verify engine health on initialization.
+- **Code**: Added SovereignHUD boot sequence to `sv_engine.py` to verify engine health on initialization.
 - **Safety**: Integrated `log_rejection` into the Crucible to prevent silent trace failures.
 - **Protocol**: Formalized the **Torvalds Mandate** in `AGENTS.qmd`. Mediocrity is purged.
 
@@ -183,7 +183,7 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 - **Improvement 5 (Optim)**: Optimized combinatorial test generator for better core intent coverage. - Status: SECURED.
 
 ### 2026-02-02 (Session 16: Federated Loop Hardening)
-- **Improvement 1 (Infrastructure)**: Standardized network_watcher.py to use HUD.log_rejection for consistent auditing. - Status: SECURED.
+- **Improvement 1 (Infrastructure)**: Standardized network_watcher.py to use SovereignHUD.log_rejection for consistent auditing. - Status: SECURED.
 - **Improvement 2 (Quality)**: Hardened trial-and-rollback logic with explicit backup validation. - Status: SECURED.
 - **Improvement 3 (Quality)**: Ensured trace ingestion respect current Persona theme for reporting. - Status: SECURED.
 - **Improvement 4 (Safety)**: Added isolation layer (Staging) for incoming network traces to prevent race conditions. - Status: SECURED.
@@ -193,7 +193,7 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 - **Improvement 1 (Compliance)**: Redefined Alfred's subconscious aliases to [Alfred's Reminder], [Alfred's Query], and [Alfred's Observation]. - Status: SECURED.
 - **Improvement 2 (Compliance)**: Refined Alfred's persona characterization as 'firm but gentle' rather than 'soft and servile' in AGENTS.qmd. - Status: SECURED.
 - **Improvement 3 (Refactor)**: Hardened Trace Visualizer logic to support clean separation of persona visual signals. - Status: SECURED.
-- **Improvement 4 (Refactor)**: Implemented dynamic HUD theme restoration to prevent persona pollution. - Status: SECURED.
+- **Improvement 4 (Refactor)**: Implemented dynamic SovereignHUD theme restoration to prevent persona pollution. - Status: SECURED.
 - **Improvement 5 (Optim)**: Simplified TraceRenderer initialization for more robust identity isolation. - Status: SECURED.
 
 ### 2026-02-02 (Session 18: Security Logic & Test Reinforcement)
@@ -201,12 +201,12 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 - **Improvement 2 (Quality)**: Expanded test_install_skill.py to cover Integrity Failure (missing SKILL.qmd) and Empty File rejection. - Status: SECURED.
 - **Improvement 3 (Refactor)**: Hardened trace-merging validation suite to prevent dataset corruption via malformed traces. - Status: SECURED.
 - **Improvement 4 (Safety)**: Ensured quarantine cleanup logic in install_skill.py is atomic and robust against I/O errors. - Status: SECURED.
-- **Improvement 5 (Optim)**: Refined HUD output during installation flow to distinguish between Integrity Rejection and Security Rejection. - Status: SECURED.
+- **Improvement 5 (Optim)**: Refined SovereignHUD output during installation flow to distinguish between Integrity Rejection and Security Rejection. - Status: SECURED.
 
 ### 2026-02-02 (Session 19: Dashboard Intelligence & Latency Tracking)
 - **Improvement 1 (UX)**: Hardened overwatch.py to track and visualize Latency Trends (sparklines). - Status: SECURED.
 - **Improvement 2 (Quality)**: Updated get_stats() to include cumulative ingestion success rate. - Status: SECURED.
-- **Improvement 3 (Quality)**: Refined Overwatch UI to use dynamic width support from HUD 2.0. - Status: SECURED.
+- **Improvement 3 (Quality)**: Refined Overwatch UI to use dynamic width support from SovereignHUD 2.0. - Status: SECURED.
 - **Improvement 4 (Safety)**: Ensured overwatch.py handles missing directories and ledgers without crashing. - Status: SECURED.
 - **Improvement 5 (Optim)**: Optimized statistics calculation loop for high-frequency dashboard updates. - Status: SECURED.
 
@@ -228,7 +228,7 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 - **Improvement 1 (Critical/Fix)**: Restored missing `class TraceRenderer:` declaration in `trace_viz.py` - orphan class body was causing NameError. - Status: SECURED.
 - **Improvement 2 (Safety)**: Replaced bare `except:` with specific `(json.JSONDecodeError, IOError)` in `trace_viz.py`. - Status: SECURED.
 - **Improvement 3 (Safety)**: Replaced bare `except:` with specific exception handling in `mock_project/new_world_seed/fishtest.py`. - Status: SECURED.
-- **Improvement 4 (Quality)**: Rewrote `test_trace_viz.py` to match HUD 2.0 API (removed obsolete THEMES/TraceRenderer references). - Status: SECURED.
+- **Improvement 4 (Quality)**: Rewrote `test_trace_viz.py` to match SovereignHUD 2.0 API (removed obsolete THEMES/TraceRenderer references). - Status: SECURED.
 - **Improvement 5 (Quality)**: Fixed `test_workflow_analyst.py` assertion checking wrong dict key (`stalled_tasks` vs `open_loops`). - Status: SECURED.
 
 ### 2026-02-02 (Session 23: Code Sentinel Integration)
@@ -311,7 +311,7 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 - **Structural**: 72.1% compliance with the Linscott Standard. 39 orphaned functions identified.
 - **Neural**: 94.7% accuracy / 0.39ms latency. Regression detected in 5.3% of intents.
 - **Quality**: Identified Rank D complexity in `set_persona.py` and `synapse_sync.py`.
-- **Aesthetic**: Noted visual breach in `cstar_dispatcher.py` (missing HUD usage).
+- **Aesthetic**: Noted visual breach in `cstar_dispatcher.py` (missing SovereignHUD usage).
 - **Report**: [BASE_BASELINE_REPORT.qmd](file:///c:/Users/Craig/Corvus/CorvusStar/BASE_BASELINE_REPORT.qmd)
 - Status: **SECURED (BASELINE ESTABLISHED)**
 

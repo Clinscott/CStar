@@ -14,7 +14,7 @@ def test_muninn_run_instantiation():
          patch("src.sentinel.muninn.ProjectMetricsEngine") as MockMetricsEngine, \
          patch("src.sentinel.muninn.AlfredOverwatch"), \
          patch("src.sentinel.muninn.GungnirSPRT"), \
-         patch("src.sentinel.muninn.HUD") as MockHUD, \
+         patch("src.sentinel.muninn.SovereignHUD") as MockHUD, \
          patch("src.sentinel.muninn.NornWarden"), \
          patch("src.sentinel.muninn.HeimdallWarden"), \
          patch("src.sentinel.muninn.ValkyrieWarden"), \

@@ -16,7 +16,7 @@ Maintain a searchable, accurate map of the project's UI and service architecture
 # Project Map / Wireframe
 
 ## 📂 Directory Structure (Modular Core)
-- `src/core`: `c:/Users/Craig/Corvus/CorvusStar/src/core` - The biological engine core (Dispatcher, Vector, HUD, Persona logic).
+- `src/core`: `c:/Users/Craig/Corvus/CorvusStar/src/core` - The biological engine core (Dispatcher, Vector, SovereignHUD, Persona logic).
 - `src/sentinel`: `c:/Users/Craig/Corvus/CorvusStar/src/sentinel` - Defensive and Improvement logic (Muninn, Wardens, Gauntlet).
 - `src/tools`: `c:/Users/Craig/Corvus/CorvusStar/src/tools` - Developer productivity and neural trace tools.
 - `src/synapse`: `c:/Users/Craig/Corvus/CorvusStar/src/synapse` - Cross-project knowledge synchronization logic.
@@ -41,6 +41,7 @@ Maintain a searchable, accurate map of the project's UI and service architecture
     - `run()`: Executes the Hunt -> Forge -> Crucible -> SPRT -> Teach cycle.
     - **SPRT (Sequential Probability Ratio Test)**: Statistical proof of fix stability.
     - **Teach Phase**: Periodic distillation of architectural lessons into `memory.qmd`.
+    - **SessionWarden**: Bottleneck neural network (4 hidden neurons) in `atomic_gpt.py` monitoring session aggregates.
 - **Harness**: `c:/Users/Craig/Corvus/CorvusStar/tests/harness/manual_learn.py` - Multi-cycle execution controller (`N=x`).
 
 ### Aesthetics & Security (The Wardens)
@@ -62,6 +63,7 @@ Maintain a searchable, accurate map of the project's UI and service architecture
     - `compiler.py`: Translates `.qmd` contracts into unit tests.
     - `benchmark_engine.py`: Performance regression monitor integrated into `Muninn`.
     - `fishtest.py`: N=1000 ground-truth accuracy benchmark (SPRT).
+    - **Empire V4**: Neural determinism and JSONL concurrency verification suite.
 
 ### Intelligence & Web Integration (Bifröst)
 - **Path**: `c:/Users/Craig/Corvus/CorvusStar/src/tools/brave_search.py`
@@ -75,12 +77,12 @@ Maintain a searchable, accurate map of the project's UI and service architecture
 - **Description**: Bidirectional sync between local and global Knowledge Cores (Mimir's Eye).
 - **Security**: `src/synapse/synapse_auth.py` (Neural Handshake ZKP).
 
-### UI Framework (HUD)
+### UI Framework (SovereignHUD)
 - **Path**: `c:/Users/Craig/Corvus/CorvusStar/src/core/ui.py`
 - **Description**: Robust terminal UI with Persona support and ANSI ceremonies.
 - **Key Functions**:
-    - `HUD.transition_ceremony()`: Dramatic identity switching animations.
-    - `HUD.log()`: Priority-based colored output.
+    - `SovereignHUD.transition_ceremony()`: Dramatic identity switching animations.
+    - `SovereignHUD.log()`: Priority-based colored output.
 
 ## 🏁 SovereighFish Campaign (N=1000)
 - **Roadmap**: `c:/Users/Craig/Corvus/CorvusStar/.agent/CAMPAIGN_IMPLEMENTATION_PLAN.qmd`.

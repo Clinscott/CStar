@@ -19,7 +19,7 @@ from tests.harness.raven_proxy import RavenProxy
 
 @pytest.fixture
 def mock_hud():
-    with patch("src.sentinel.muninn.HUD") as mock:
+    with patch("src.sentinel.muninn.SovereignHUD") as mock:
         yield mock
 
 @pytest.fixture

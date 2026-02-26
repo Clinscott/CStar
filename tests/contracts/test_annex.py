@@ -4,11 +4,11 @@ from pathlib import Path
 
 import pytest
 
-# Add .agent/scripts to sys.path to import annex and edda
+# Add .agent/scripts to sys.path to from src.core import annex and edda
 scripts_dir = Path(__file__).parents[2] / ".agent" / "scripts"
 sys.path.append(str(scripts_dir))
 
-from annex import HeimdallWarden
+from src.core.annex import HeimdallWarden
 
 
 @pytest.fixture

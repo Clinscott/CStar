@@ -8,18 +8,18 @@ from math import log
 # Import Engine & UI
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from sv_engine import SovereignVector
-from ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 
 def tune_weights(project_root):
-    HUD.box_top("SOVEREIGN CYCLE: WEIGHT TUNING")
+    SovereignHUD.box_top("SOVEREIGN CYCLE: WEIGHT TUNING")
     
     # Paths
     thesaurus_path = os.path.join(project_root, "thesaurus.md")
     fishtest_path = os.path.join(project_root, "fishtest_data.json")
     
     if not os.path.exists(fishtest_path):
-        HUD.log("FAIL", "Fishtest Data not found")
+        SovereignHUD.log("FAIL", "Fishtest Data not found")
         return
 
     # Initialize Engine
@@ -37,7 +37,7 @@ def tune_weights(project_root):
         
     analysis = defaultdict(list)
     
-    HUD.log("INFO", f"Analyzing {len(data['test_cases'])} cases...")
+    SovereignHUD.log("INFO", f"Analyzing {len(data['test_cases'])} cases...")
     
     updates = {}
     
@@ -53,7 +53,7 @@ def tune_weights(project_root):
             # We have a candidate for tuning
             if not top: continue
             
-            HUD.log("WARN", f"Weak/Fail: {query} -> Exp: {expected} | Got: {top['trigger']} ({top['score']:.2f})")
+            SovereignHUD.log("WARN", f"Weak/Fail: {query} -> Exp: {expected} | Got: {top['trigger']} ({top['score']:.2f})")
             
             # 1. Identify Confusing Tokens
             # Tokens in query that are driving the Wrong Match
@@ -79,23 +79,23 @@ def tune_weights(project_root):
                      updates[t] = min(2.0, updates.get(t, 1.0) + 0.1)
                      analysis[t].append(f"Up-vote from '{query}' (Unique to {expected})")
 
-    HUD.box_separator()
+    SovereignHUD.box_separator()
     
     if not updates:
-        HUD.log("PASS", "No optimizations found. System is stable.")
+        SovereignHUD.log("PASS", "No optimizations found. System is stable.")
         return
 
     # Apply Updates
-    HUD.log("INFO", f"Proposed {len(updates)} weight adjustments:")
+    SovereignHUD.log("INFO", f"Proposed {len(updates)} weight adjustments:")
     for token, weight in updates.items():
         reasons = analysis[token][:1]
-        HUD.log("Optimizing", f"{token} -> {weight:.1f}", f"({len(analysis[token])} votes)")
+        SovereignHUD.log("Optimizing", f"{token} -> {weight:.1f}", f"({len(analysis[token])} votes)")
     
     # In a real scenario, we would write to thesaurus.md. 
     # For now, we simulate the "Sovereign Cycle" by outputting the patch instructions.
     
     print("\n")
-    print(f"{HUD.YELLOW}{HUD.BOLD}>> [Ω] DECREE: THESAURUS OPTIMIZATION REQUIRED{HUD.RESET}")
+    print(f"{SovereignHUD.YELLOW}{SovereignHUD.BOLD}>> [Ω] DECREE: THESAURUS OPTIMIZATION REQUIRED{SovereignHUD.RESET}")
     print("Add the following to thesaurus.md:")
     for t, w in updates.items():
         print(f"- {t}: {t}:{w}")

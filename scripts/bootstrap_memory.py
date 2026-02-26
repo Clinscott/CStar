@@ -9,20 +9,20 @@ if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
 from src.core.engine.memory_db import MemoryDB
-from src.core.ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 def bootstrap():
     """
     [ODIN] Initializing Semantic Context.
     Scans the .agent/workflows directory and populates ChromaDB with workflow intents.
     """
-    HUD.box_top("BOOTSTRAP: SEMANTIC BRAIN")
+    SovereignHUD.box_top("BOOTSTRAP: SEMANTIC BRAIN")
     db = MemoryDB(str(project_root))
     
     workflow_dir = project_root / ".agent" / "workflows"
     if not workflow_dir.exists():
-        HUD.box_row("ERROR", "Workflows directory not found.", HUD.RED)
-        HUD.box_bottom()
+        SovereignHUD.box_row("ERROR", "Workflows directory not found.", SovereignHUD.RED)
+        SovereignHUD.box_bottom()
         return
 
     count = 0
@@ -42,14 +42,14 @@ def bootstrap():
             unhyphenated_id = intent_id.replace('-', ' ')
             enriched_doc = f"[COMMAND: {intent_id}] {description}. Keywords: {unhyphenated_id}"
             
-            HUD.box_row("INDEXING", f"{intent_id} -> {description[:30]}...", HUD.CYAN)
+            SovereignHUD.box_row("INDEXING", f"{intent_id} -> {description[:30]}...", SovereignHUD.CYAN)
             db.upsert_skill(intent_id, enriched_doc, {"source": "workflow_bootstrap", "file": str(f.name)})
             count += 1
         else:
-            HUD.box_row("SKIP", f"{intent_id} (No description found)", HUD.YELLOW)
+            SovereignHUD.box_row("SKIP", f"{intent_id} (No description found)", SovereignHUD.YELLOW)
 
-    HUD.box_row("COMPLETE", f"Indexed {count} semantic intents.", HUD.GREEN)
-    HUD.box_bottom()
+    SovereignHUD.box_row("COMPLETE", f"Indexed {count} semantic intents.", SovereignHUD.GREEN)
+    SovereignHUD.box_bottom()
 
 if __name__ == "__main__":
     bootstrap()

@@ -39,6 +39,6 @@ def test_meta_learner_report():
     mock_engine = mock.MagicMock()
     learner = MetaLearner(mock_engine)
     # Just ensure report doesn't crash with empty updates
-    with mock.patch("src.tools.tune_weights.HUD.log") as mock_log:
+    with mock.patch("src.tools.tune_weights.SovereignHUD.log") as mock_log:
         learner.report()
         mock_log.assert_called_with("PASS", "Optimization Matrix Balanced")

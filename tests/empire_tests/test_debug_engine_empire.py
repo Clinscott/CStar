@@ -11,7 +11,7 @@ SCRIPT_DIR = os.path.join(os.getcwd())
 sys.path.insert(0, SCRIPT_DIR)
 
 # Import the module to be tested
-import debug_engine
+from src.tools.debug import debug_engine
 from sv_engine import SovereignVector
 
 # Mock data - replace with actual paths if needed for a full integration test
@@ -23,7 +23,7 @@ GLOBAL_SKILLS_DIR = os.path.join(SCRIPT_DIR, 'skills_db')
 
 @pytest.fixture
 def mock_engine():
-    with patch('debug_engine.SovereignVector') as MockEngine:
+    with patch('src.tools.debug.debug_engine.SovereignVector') as MockEngine:
         mock_engine_instance = MockEngine.return_value
         mock_engine_instance.thesaurus = {
             'begin': ['start'],

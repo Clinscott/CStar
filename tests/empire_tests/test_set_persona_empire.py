@@ -36,7 +36,7 @@ class TestSetPersonaEmpire:
         
     @patch("src.core.set_persona.Path.exists", return_value=True)
     @patch("src.core.set_persona.Path.open", new_callable=mock_open, read_data='{"persona": "ALFRED"}')
-    @patch("src.core.set_persona.HUD")
+    @patch("src.core.set_persona.SovereignHUD")
     def test_switch_interactive_cancel(self, mock_hud, mock_file, mock_exists):
         manager = PersonaManager(target_root=Path("dummy_root"))
         
@@ -57,7 +57,7 @@ class TestSetPersonaEmpire:
 
     @patch("src.core.set_persona.Path.exists", return_value=True)
     @patch("src.core.set_persona.Path.open", new_callable=mock_open, read_data='{"persona": "ALFRED"}')
-    @patch("src.core.set_persona.HUD")
+    @patch("src.core.set_persona.SovereignHUD")
     @patch("src.core.personas.get_strategy")
     def test_switch_direct(self, mock_strat, mock_hud, mock_file, mock_exists):
         manager = PersonaManager(target_root=Path("dummy_root"))

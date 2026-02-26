@@ -12,11 +12,11 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
 from src.sentinel.wardens.norn import NornWarden
-from src.core.ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 class SovereignRPC:
     """
-    Handles Remote Procedure Calls from the Sovereign HUD (TUI).
+    Handles Remote Procedure Calls from the Sovereign SovereignHUD (TUI).
     Acts as the interface between the Dumb Client and the Daemon Backend.
     """
     def __init__(self, root: Path):
@@ -31,7 +31,7 @@ class SovereignRPC:
 
     def get_dashboard_state(self) -> Dict[str, Any]:
         """
-        Aggregates system state for the HUD.
+        Aggregates system state for the SovereignHUD.
         """
         # 1. System Vitals
         process = psutil.Process(os.getpid())
@@ -88,7 +88,7 @@ class SovereignRPC:
                 "status": "ONLINE"
             },
             "tasks": tasks,
-            "persona": HUD.PERSONA
+            "persona": SovereignHUD.PERSONA
         }
 
 

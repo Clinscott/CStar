@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any
 
-from src.core.ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 from src.tools.brave_search import BraveSearch
 
 
@@ -61,10 +61,10 @@ class BaseWarden(ABC):
         Utilizes Brave Search to find info on a topic.
         """
         if self.brave.is_quota_available():
-            HUD.persona_log("INFO", f"Researching: {topic}...")
+            SovereignHUD.persona_log("INFO", f"Researching: {topic}...")
             return self.brave.search(topic)
         else:
-            HUD.persona_log("WARN", "Brave Search Quota Exhausted. Skipping research.")
+            SovereignHUD.persona_log("WARN", "Brave Search Quota Exhausted. Skipping research.")
             return []
 
     @abstractmethod

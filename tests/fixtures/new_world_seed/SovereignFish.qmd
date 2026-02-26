@@ -98,7 +98,7 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 
 ### 2026-02-01
 -   **Docs**: Added clear docstrings to `trace_viz.py` modes for better developer experience (DX).
--   **Code**: Improved `sv_engine.py` HUD class to support dynamic color overrides (required for persona symmetry).
+-   **Code**: Improved `sv_engine.py` SovereignHUD class to support dynamic color overrides (required for persona symmetry).
 -   **Architecture**: Implemented "War Room" conflict analysis in `trace_viz.py`.
 
 ### 2026-01-30

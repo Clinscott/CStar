@@ -46,7 +46,7 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Priority Logic**: Implemented Sovereign Priority (1.05x) for core intents. [x]
 - [x] **Script Modernization**: Updated all 15+ system scripts to prefer .qmd. [x]
 - [x] **Verification**: 100% pass on pytest for core engine components. [x]
-- [x] **Hybrid Calibration**: Restored .md for workflows; verified Persona sync and HUD aesthetics. [x]
+- [x] **Hybrid Calibration**: Restored .md for workflows; verified Persona sync and SovereignHUD aesthetics. [x]
 - [x] **SPRT Calibration**: Adjusted integrity threshold to 90% and hardened adversarial testing. [x]
 
 ### 21. Odin Protocol Strategic Depth
@@ -105,7 +105,7 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Strategist Metrics**: Added hit/miss tracking to `SovereignFish` strategists. [x]
 - [x] **Fishtest Rollback**: Implemented automatic rollback if accuracy drops below 95% after a fix. [x]
 - [x] **Persona Registry**: Refactored `personas.py` to use a scalable registry pattern. [x]
-- [x] **Theme Registry**: Refactored `HUD.get_theme()` to use `_THEME_REGISTRY`. [x]
+- [x] **Theme Registry**: Refactored `SovereignHUD.get_theme()` to use `_THEME_REGISTRY`. [x]
 - [x] **Transition Ceremony**: Implemented 3-phase ANSI animation for Persona switching in `ui.py`. [x]
 - [x] **Manual Improvements**: Excluded `__init__.py` from Annex scan and typed `cortex.py` (Rune). [x]
 
@@ -204,7 +204,7 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 ### 42. Web-Aware CLI Tools (Session 57)
 - [x] **Brave CLI**: Exposed `src/tools/brave_search.py` to the CLI for manual ad-hoc queries (`python -m src.tools.brave_search`). [x]
 - [x] **Environment Bootstrap**: Patched `brave_search.py` to use `src.sentinel._bootstrap` for robust `.env` loading in script mode. [x]
-- [x] **Verification**: Verified live search functionality with HUD integration. [x]
+- [x] **Verification**: Verified live search functionality with SovereignHUD integration. [x]
 - [x] **Zero-Hit Fallback**: Implemented automatic Brave Search fallback in `sv_engine.py` for low-confidence (<0.6) queries. [x]
 
 ### 43. Live Documentation Injection (Session 58)
@@ -225,8 +225,8 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 
 ### 47. TUI Cinematic Refactor & Empire Verification (Session 61)
 - [x] **Cinematic Transitions**: Implemented `TransitionScreen` with ASCII frames (Gungnir/Bat-Signal) and async non-blocking animation. [x]
-- [x] **Dynamic Theming**: Refactored CSS to use descendant selectors for robust theme switching across HUD zones. [x]
-- [x] **Empire Test Suite**: Created `tests/empire_tests/test_tui_empire.py` for verification of HUD stability. [x]
+- [x] **Dynamic Theming**: Refactored CSS to use descendant selectors for robust theme switching across SovereignHUD zones. [x]
+- [x] **Empire Test Suite**: Created `tests/empire_tests/test_tui_empire.py` for verification of SovereignHUD stability. [x]
 - [x] **Linscott Compliance**: Standardized TUI module with strict typing, docstrings, and graceful connection handling. [x]
 
 ### 48. Operation Ragnarök: DOOM Aesthetic & WAR ROOM (Session 62)
@@ -282,7 +282,7 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 ### 55. The Batcomputer Subsystems & Bridge Fortification (Session 70)
 - [x] **Technical Debt Analysis**: Developed `archive_consolidator.py` using `radon` and `git` churn to identify high-risk files.
 - [x] **Perimeter Sweep**: Created `perimeter_sweep.py` to act as a strict wrapper for standard CLI security tools like `pip-audit` and `npm audit`.
-- [x] **Danger Room Interactivity**: Refined `danger_room.py` to include Human-in-the-Loop verification via the `HUD` before committing tests to the disk.
+- [x] **Danger Room Interactivity**: Refined `danger_room.py` to include Human-in-the-Loop verification via the `SovereignHUD` before committing tests to the disk.
 - [x] **Utility Belt Optimization**: Implemented `utility_belt.py` with automatic, background `pytest` verification loops using The Crucible.
 - [x] **Decoupled Profiling**: Refactored `src/core/metrics.py` to use a context-based `ExecutionTracker` for pure latency metrics, halting aggressive global memory polling.
 - [x] **Antigravity Bridge Resiliency**: Overhauled `antigravity_bridge.py` to dynamically fallback to alternative models on receiving 503/429 quotas.
@@ -366,7 +366,7 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Multi-Tenant Memory**: Implemented `app_id` partitioning in `MemoryDB.py`. [x]
 - [x] **Universal Event Router**: Launched WebSocket gateway with Pub/Sub isolation. [x]
 - [x] **Verification**: 100% pass on Empire TDD (`test_ws_pubsub_empire.ts`). [x]
-- [x] **HUD Fortification**: Hardened async layer and Pydantic warning suppression. [x]
+- [x] **SovereignHUD Fortification**: Hardened async layer and Pydantic warning suppression. [x]
 
 ### 68. Test Collection Resolution & Arch Remapping (Session 82)
 - [x] **Collection Resolution**: Resolved 18 test collection errors by purging legacy `sovereign_fish` references and restoring corrupted test files. [x]
@@ -375,14 +375,30 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Dependency Hardening**: Reconciled `pyproject.toml` with mission-critical dependencies (`google-genai`, `colorama`, `radon`, `chromadb`). [x]
 - [x] **Verification**: 100% test collection pass (328 tests) achieved. [x]
 
-### 69. Cognitive Hub & Sovereign HUD Patch (Session 83)
+### 69. Cognitive Hub & Sovereign SovereignHUD Patch (Session 83)
 - [x] **Cognitive Router**: Implemented `CognitiveRouter.ts` for tiered AI traffic control (Ollama vs. Core). [x]
 - [x] **Gateway Integration**: Wired `/api/intent` to the Cognitive Router for zero-cost edge processing. [x]
-- [x] **HUD Telemetry**: Upgraded `tui.py` with real-time routing intercepts and "EDGE" health monitoring. [x]
+- [x] **SovereignHUD Telemetry**: Upgraded `tui.py` with real-time routing intercepts and "EDGE" health monitoring. [x]
 - [x] **Verification**: Validated tiered routing with `verify_router.ts` and passing Node.js test suite. [x]
 
-## ⏭️ Start Here Next (Phase 70)
+### 70. Shadow Forge Protocol: Full-Cycle Sandboxing (Session 84)
+- [x] **Universal Runtime**: Configured `Dockerfile.sentinel` with full auditing toolset (`ruff`, `vulture`, `radon`, `pytest`). [x]
+- [x] **Shadow Forge Orchestrator**: Implemented host-side Docker lifecycle management in `muninn.py` with Read-Only workspace mounts. [x]
+- [x] **Isolated Workspaces**: Built `_setup_shadow_workspace` to mirror code into ephemeral container layers for zero-trust repairs. [x]
+- [x] **Atomic Promotion**: Integrated `docker cp` file extraction logic to promote only 100% verified fixes to the host. [x]
+- [x] **Environment Toggles**: Bridged host-container boundaries using `MOCK_MODE` and `SHADOW_FORGE_WORKER` env vars. [x]
+- [x] **Verification**: 100% pass on security gauntlet; confirmed argument passing to sandboxed processes. [x]
+
+### 71. V4 Hardening: Integrated Session Intelligence (Session 85)
+- [x] **Neural Determinism**: Implemented `train()`/`eval()` modes in `BaseWarden` for stable inference. [x]
+- [x] **Concurrency Safety**: Migrated Anomaly Ledger to append-only **JSON Lines (.jsonl)** via `atomic_jsonl_append`. [x]
+- [x] **SessionWarden**: Developed bottleneck neural architecture (4 hidden) to monitor longitudinal session health. [x]
+- [x] **Windows Resilience**: Implemented 10s retry loop in `wrap_it_up.py` to overcome WinError 32 locks. [x]
+- [x] **Deep Memory Purge**: Integrated `engine.teardown()` and `clear_active_ram()` for surgical resource reclamation. [x]
+- [x] **Verification**: 100% pass on V4 EMPIRE TDD suite (Determinism, Concurrency, Purge). [x]
+
+## ⏭️ Start Here Next (Phase 72)
+- [ ] **Smart Promotion Registry**: Implement a JSON-based promotion manifest for tracking multiple simultaneous container fixes.
 - [ ] **Three.js Smart Objects**: Embed intent-dispatchers into the isometric Astrologer UI.
-- [ ] **KeepOS State Logic**: Implement persistence and mutation handling for routed intents.
 - [ ] **Operation Ironclad**: Secure regular API key rotation logic in `bin/cstar.js`.
 

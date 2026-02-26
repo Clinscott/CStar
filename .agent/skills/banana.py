@@ -4,14 +4,14 @@ Banana Protocol
 Identity: JESTER
 Purpose: Demonstrate dynamic skill loading.
 """
-from src.core.ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 def main():
-    HUD.transition_ceremony("BANANA", "Operation Potassium")
-    HUD.box_top("BANANA PROTOCOL ACTIVATED")
-    HUD.box_row("Status", "Operational", HUD.GREEN)
-    HUD.box_row("Message", "The fruit has been deployed.", HUD.CYAN)
-    HUD.box_bottom()
+    SovereignHUD.transition_ceremony("BANANA", "Operation Potassium")
+    SovereignHUD.box_top("BANANA PROTOCOL ACTIVATED")
+    SovereignHUD.box_row("Status", "Operational", SovereignHUD.GREEN)
+    SovereignHUD.box_row("Message", "The fruit has been deployed.", SovereignHUD.CYAN)
+    SovereignHUD.box_bottom()
 
 if __name__ == "__main__":
     main()

@@ -16,7 +16,7 @@ description: Analyzes code complexity (Cyclomatic Complexity) using the radon li
 2.  **Action**:
     -   **Scan**: Use `radon cc <path>` to get Cyclomatic Complexity scores.
     -   **Summarize**: Provide a list of the most complex functions or classes.
-    -   **Visualize**: Use `debt_viz.py` for a full HUD-styled report.
+    -   **Visualize**: Use `debt_viz.py` for a full SovereignHUD-styled report.
 
 3.  **Metrics**:
     -   **A (1-5)**: Low complexity, easy to test.

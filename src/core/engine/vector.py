@@ -9,7 +9,7 @@ project_root = Path(__file__).parent.parent.parent.parent.absolute()
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
-from src.core.ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 from src.core.engine.memory_db import MemoryDB
 
 class SovereignVector:
@@ -95,8 +95,13 @@ class SovereignVector:
             
             return mapping
         except Exception as e:
-            HUD.persona_log("FAIL", f"Thesaurus breach: {e}")
+            SovereignHUD.persona_log("FAIL", f"Thesaurus breach: {e}")
             return {}
+
+    def clear_active_ram(self):
+        """[V4] Explicitly purges internal caches to signal for GC."""
+        self._search_cache.clear()
+        SovereignHUD.persona_log("INFO", "SovereignVector: Active RAM cache purged.")
 
     def normalize(self, text: str) -> str:
         """
@@ -134,7 +139,7 @@ class SovereignVector:
             return res
 
         # 2. Semantic Search (Fetch top 30 candidates for wider hybrid recall)
-        results = self.memory_db.search_intent(query, n_results=30)
+        results = self.memory_db.search_intent("system", query, n_results=30)
         
         final_results = []
         original_tokens = set(query_norm.split())
@@ -199,7 +204,7 @@ class SovereignVector:
                 score = semantic_score
 
             # Normalize to trigger format
-            trigger = intent_id if intent_id.startswith("/") or intent_id == "SovereignFish" else f"/{intent_id}"
+            trigger = intent_id if intent_id.startswith("/") or intent_id == "SovereignFish" or intent_id.startswith("GLOBAL:") else f"/{intent_id}"
             
             # Sovereign Priority (Tie-breaker)
             if (trigger.startswith("/") or trigger == "SovereignFish") and not is_global:
@@ -255,7 +260,7 @@ class SovereignVector:
                     
                     self.add_skill(trigger, content)
                 except Exception as e:
-                    HUD.persona_log("WARN", f"Failed to ingest .qmd skill {path.name}: {e}")
+                    SovereignHUD.persona_log("WARN", f"Failed to ingest .qmd skill {path.name}: {e}")
             elif path.suffix == ".json":
                 try:
                     data = json.loads(path.read_text(encoding='utf-8'))
@@ -275,12 +280,12 @@ class SovereignVector:
                                 trigger = f"{prefix}:{trigger}"
                             self.add_skill(trigger, text)
                 except Exception as e:
-                    HUD.persona_log("WARN", f"Failed to ingest .json skill {path.name}: {e}")
+                    SovereignHUD.persona_log("WARN", f"Failed to ingest .json skill {path.name}: {e}")
 
     def build_index(self):
         """[ALFRED] Finalizes the semantic index. (ChromaDB handles this automatically per upsert)."""
-        HUD.persona_log("HEIMDALL", "Semantic Indexing Synchronized.")
+        SovereignHUD.persona_log("HEIMDALL", "Semantic Indexing Synchronized.")
 
     def add_skill(self, trigger: str, text: str):
         """[ALFRED] Bridges to MemoryDB for intent persistence."""
-        self.memory_db.upsert_skill(trigger, text)
+        self.memory_db.upsert_skill("system", trigger, text)

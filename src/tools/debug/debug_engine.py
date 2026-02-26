@@ -5,7 +5,7 @@ import sys
 
 # Add script path for engine import
 sys.path.append(os.path.join(os.getcwd(), ".agent", "scripts"))
-from sv_engine import HUD, SovereignVector
+from sv_engine import SovereignHUD, SovereignVector
 
 
 def debug_query(query):

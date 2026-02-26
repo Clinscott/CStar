@@ -22,10 +22,10 @@ from datetime import datetime
 # Ensure we can import shared UI
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 try:
-    from scripts.ui import HUD
+    from scripts.ui import SovereignHUD
 except ImportError:
     # Fallback
-    class HUD:
+    class SovereignHUD:
         RED = "\033[31m"
         GREEN = "\033[32m"
         YELLOW = "\033[33m"
@@ -113,9 +113,9 @@ class Synapse:
         
         self.core_path = self.config.get("KnowledgeCore")
         if not self.core_path or not os.path.exists(self.core_path):
-            HUD.box_top("SYNAPSE ERROR")
-            HUD.box_row("ERROR", "KnowledgeCore invalid/missing in config.json", HUD.RED)
-            HUD.box_bottom()
+            SovereignHUD.box_top("SYNAPSE ERROR")
+            SovereignHUD.box_row("ERROR", "KnowledgeCore invalid/missing in config.json", SovereignHUD.RED)
+            SovereignHUD.box_bottom()
             sys.exit(1)
             
         self.rate_limiter = PushRateLimiter(self.core_path)
@@ -175,10 +175,10 @@ class Synapse:
         return True, f"{name} <{email}>"
 
     def pull(self, dry_run=False):
-        HUD.box_top("SYNAPSE: INHALE")
+        SovereignHUD.box_top("SYNAPSE: INHALE")
         if not dry_run:
             ok, _, _ = self._git_cmd(["pull"], self.core_path)
-            HUD.box_row("STATUS", "Core Updated" if ok else "Sync failed", HUD.GREEN if ok else HUD.YELLOW)
+            SovereignHUD.box_row("STATUS", "Core Updated" if ok else "Sync failed", SovereignHUD.GREEN if ok else SovereignHUD.YELLOW)
 
         changes = 0
         core_skills = os.path.join(self.core_path, "skills")
@@ -196,7 +196,7 @@ class Synapse:
                     if not os.path.exists(dst):
                         if not dry_run: shutil.copytree(src, dst)
                         changes += 1
-                        HUD.box_row("LEARNED", f"Skill: {item}", HUD.GREEN)
+                        SovereignHUD.box_row("LEARNED", f"Skill: {item}", SovereignHUD.GREEN)
 
         # Merge Corrections
         core_corr = self._load_json_safe(os.path.join(self.core_path, "corrections.json"))
@@ -210,30 +210,30 @@ class Synapse:
                 merged += 1
         if merged > 0 and not dry_run:
             with open(local_corr_path, 'w', encoding='utf-8') as f: json.dump(local_corr, f, indent=4)
-            HUD.box_row("WISDOM", f"Absorbed {merged} corrections", HUD.MAGENTA)
+            SovereignHUD.box_row("WISDOM", f"Absorbed {merged} corrections", SovereignHUD.MAGENTA)
             changes += 1
         
-        if changes == 0: HUD.box_row("RESULT", "Knowledge synchronized.", HUD.GREEN)
-        HUD.box_bottom()
+        if changes == 0: SovereignHUD.box_row("RESULT", "Knowledge synchronized.", SovereignHUD.GREEN)
+        SovereignHUD.box_bottom()
 
     def push(self):
-        HUD.box_top("SYNAPSE: EXHALE")
+        SovereignHUD.box_top("SYNAPSE: EXHALE")
         
         # Layer 1: Rate Limit
         allowed, reason = self.rate_limiter.check_rate_limit()
         if not allowed:
-            HUD.box_row("REJECTED", reason, HUD.RED)
+            SovereignHUD.box_row("REJECTED", reason, SovereignHUD.RED)
             self.security_logger.log("RATE_LIMIT", {"reason": reason})
-            HUD.box_bottom(); return
+            SovereignHUD.box_bottom(); return
 
         # Layer 2: Auth Check
         allowed, identity = self._check_push_permission()
         if not allowed:
-            HUD.box_row("FORBIDDEN", identity, HUD.RED)
+            SovereignHUD.box_row("FORBIDDEN", identity, SovereignHUD.RED)
             self.security_logger.log("AUTH_FAILURE", {"reason": identity})
-            HUD.box_bottom(); return
+            SovereignHUD.box_bottom(); return
         
-        HUD.box_row("AUTHORIZED", identity, HUD.GREEN)
+        SovereignHUD.box_row("AUTHORIZED", identity, SovereignHUD.GREEN)
         
         updates = []
         # Skill extraction
@@ -273,15 +273,15 @@ class Synapse:
             if ok:
                 ok_push, _, err = self._git_cmd(["push"], self.core_path)
                 if ok_push:
-                    HUD.box_row("STATUS", "Knowledge Uploaded", HUD.GREEN)
+                    SovereignHUD.box_row("STATUS", "Knowledge Uploaded", SovereignHUD.GREEN)
                     self.security_logger.log("PUSH_SUCCESS", {"identity": identity, "updates": updates})
                 else:
-                    HUD.box_row("ERROR", f"Push failed: {err[:50]}", HUD.RED)
+                    SovereignHUD.box_row("ERROR", f"Push failed: {err[:50]}", SovereignHUD.RED)
                     self.security_logger.log("PUSH_FAILURE", {"identity": identity, "error": err})
             self.rate_limiter.record_attempt(ok and ok_push)
         else:
-            HUD.box_row("RESULT", "No items to contribute.", HUD.YELLOW)
-        HUD.box_bottom()
+            SovereignHUD.box_row("RESULT", "No items to contribute.", SovereignHUD.YELLOW)
+        SovereignHUD.box_bottom()
 
     def _validate_skill(self, file_path: str) -> bool:
         try:

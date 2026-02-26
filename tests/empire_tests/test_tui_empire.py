@@ -1,5 +1,5 @@
 """
-Empire Test Suite for Sovereign HUD (TUI) — Operation Ragnarök.
+Empire Test Suite for Sovereign SovereignHUD (TUI) — Operation Ragnarök.
 
 Adheres to the Linscott Standard for Verification.
 
@@ -47,7 +47,7 @@ from src.cstar.core.tui import (
 def test_sovereign_app_instantiation() -> None:
     """Verify SovereignApp can be instantiated with correct TITLE."""
     app = SovereignApp()
-    assert app.title == "C* SOVEREIGN HUD"
+    assert app.title == "C* SOVEREIGN SovereignHUD"
 
 
 def test_sovereign_app_has_css() -> None:

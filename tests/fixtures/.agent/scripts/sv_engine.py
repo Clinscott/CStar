@@ -16,7 +16,7 @@ from typing import Any
 import personas
 import utils
 from engine import Cortex, DialogueRetriever, SovereignVector
-from ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 
 class SovereignEngine:
@@ -32,19 +32,19 @@ class SovereignEngine:
         self.base_path = self.project_root / ".agent"
         self.config = utils.load_config(str(self.project_root))
 
-        # Persona & HUD Initialization
-        HUD.PERSONA = (self.config.get("persona") or self.config.get("Persona") or "ALFRED").upper()
-        self.strategy = personas.get_strategy(HUD.PERSONA, str(self.project_root))
+        # Persona & SovereignHUD Initialization
+        SovereignHUD.PERSONA = (self.config.get("persona") or self.config.get("Persona") or "ALFRED").upper()
+        self.strategy = personas.get_strategy(SovereignHUD.PERSONA, str(self.project_root))
         self._init_hud_dialogue()
 
     def _init_hud_dialogue(self) -> None:
-        """Initializes the HUD dialogue retriever based on persona voice."""
+        """Initializes the SovereignHUD dialogue retriever based on persona voice."""
         voice = self.strategy.get_voice()
         # [ALFRED] Staged Path Resolution for dialogue databases
         qmd = self.project_root / "dialogue_db" / f"{voice}.qmd"
         md = self.project_root / "dialogue_db" / f"{voice}.md"
         path = qmd if qmd.exists() else md
-        HUD.DIALOGUE = DialogueRetriever(str(path))
+        SovereignHUD.DIALOGUE = DialogueRetriever(str(path))
 
     def _init_vector_engine(self) -> SovereignVector:
         """Initializes and loads skills into the Sovereign Vector engine."""
@@ -72,18 +72,18 @@ class SovereignEngine:
         """Execution path for Knowledge Graph (Cortex) queries."""
         cortex = Cortex(str(self.project_root), str(self.base_path))
         results = cortex.query(query)
-        HUD.box_top("CORTEX KNOWLEDGE QUERY")
-        HUD.box_row("QUERY", query, HUD.BOLD)
-        HUD.box_separator()
+        SovereignHUD.box_top("CORTEX KNOWLEDGE QUERY")
+        SovereignHUD.box_row("QUERY", query, SovereignHUD.BOLD)
+        SovereignHUD.box_separator()
         if not results:
-            HUD.box_row("RESULT", "NO DATA FOUND", HUD.RED)
+            SovereignHUD.box_row("RESULT", "NO DATA FOUND", SovereignHUD.RED)
         else:
             for r in results[:3]:
-                color = HUD.GREEN if r['score'] > self.THRESHOLDS["REC"] else HUD.YELLOW
-                HUD.box_row("SOURCE", r.get('trigger', 'unknown'), HUD.MAGENTA, dim_label=True)
-                HUD.box_row("RELEVANCE", f"{r['score']:.2f}", color, dim_label=True)
-                HUD.box_separator()
-        HUD.box_bottom()
+                color = SovereignHUD.GREEN if r['score'] > self.THRESHOLDS["REC"] else SovereignHUD.YELLOW
+                SovereignHUD.box_row("SOURCE", r.get('trigger', 'unknown'), SovereignHUD.MAGENTA, dim_label=True)
+                SovereignHUD.box_row("RELEVANCE", f"{r['score']:.2f}", color, dim_label=True)
+                SovereignHUD.box_separator()
+        SovereignHUD.box_bottom()
         sys.exit(0)
 
     def record_trace(self, query: str, match: dict[str, Any]) -> None:
@@ -98,7 +98,7 @@ class SovereignEngine:
             "match": match.get('trigger'),
             "score": match.get('score'),
             "is_global": match.get('is_global', False),
-            "persona": HUD.PERSONA,
+            "persona": SovereignHUD.PERSONA,
             "timestamp": self.config.get("version", "unknown")
         }
 
@@ -109,20 +109,20 @@ class SovereignEngine:
             pass
 
     def _render_hud(self, query: str, top: dict[str, Any] | None) -> None:
-        """Renders the standard search results in the HUD."""
-        HUD.box_top()
-        label = "COMMAND" if HUD.PERSONA == "ODIN" else "Intent"
-        HUD.box_row(label, query, HUD.BOLD)
+        """Renders the standard search results in the SovereignHUD."""
+        SovereignHUD.box_top()
+        label = "COMMAND" if SovereignHUD.PERSONA == "ODIN" else "Intent"
+        SovereignHUD.box_row(label, query, SovereignHUD.BOLD)
 
         if top:
-            color = HUD.GREEN if top['score'] > self.THRESHOLDS["ACCURACY"] else HUD.YELLOW
+            color = SovereignHUD.GREEN if top['score'] > self.THRESHOLDS["ACCURACY"] else SovereignHUD.YELLOW
             match_str = f"{'[G] ' if top['is_global'] else ''}{top['trigger']}"
-            HUD.box_row("Match", match_str, HUD.DIM)
-            HUD.box_row("Confidence", f"{HUD.progress_bar(top['score'])} {top['score']:.2f}", color)
+            SovereignHUD.box_row("Match", match_str, SovereignHUD.DIM)
+            SovereignHUD.box_row("Confidence", f"{SovereignHUD.progress_bar(top['score'])} {top['score']:.2f}", color)
         else:
-            HUD.box_row("Match", "NONE", HUD.RED)
+            SovereignHUD.box_row("Match", "NONE", SovereignHUD.RED)
 
-        HUD.box_bottom()
+        SovereignHUD.box_bottom()
 
     def _handle_proactive(self, top: dict[str, Any]) -> None:
         """Checks for and executes proactive installation or command runs."""
@@ -141,19 +141,19 @@ class SovereignEngine:
 
     def _proactive_install(self, skill_name: str) -> None:
         """Prompts and installs a missing global skill."""
-        HUD.box_top("PROACTIVE INSTALL")
-        HUD.box_row("SKILL", skill_name, HUD.CYAN)
-        HUD.box_bottom()
-        prompt = f"\n{HUD.CYAN}>> [C*] {HUD._speak('PROACTIVE_INSTALL', 'Install skill?')} [Y/n] {HUD.RESET}"
+        SovereignHUD.box_top("PROACTIVE INSTALL")
+        SovereignHUD.box_row("SKILL", skill_name, SovereignHUD.CYAN)
+        SovereignHUD.box_bottom()
+        prompt = f"\n{SovereignHUD.CYAN}>> [C*] {SovereignHUD._speak('PROACTIVE_INSTALL', 'Install skill?')} [Y/n] {SovereignHUD.RESET}"
         if utils.input_with_timeout(prompt) in ['', 'y', 'yes', 'Y', 'YES']:
             subprocess.run([sys.executable, str(self.script_dir / "install_skill.py"), skill_name])
 
     def _proactive_execute(self, command: str) -> None:
         """Prompts and executes a direct CLI command."""
-        HUD.box_top("PROACTIVE EXECUTE")
-        HUD.box_row("CMD", command, HUD.YELLOW)
-        HUD.box_bottom()
-        prompt = f"\n{HUD.CYAN}>> [C*] {HUD._speak('PROACTIVE_EXECUTE', 'Run this command?')} [Y/n] {HUD.RESET}"
+        SovereignHUD.box_top("PROACTIVE EXECUTE")
+        SovereignHUD.box_row("CMD", command, SovereignHUD.YELLOW)
+        SovereignHUD.box_bottom()
+        prompt = f"\n{SovereignHUD.CYAN}>> [C*] {SovereignHUD._speak('PROACTIVE_EXECUTE', 'Run this command?')} [Y/n] {SovereignHUD.RESET}"
         if utils.input_with_timeout(prompt) in ['', 'y', 'yes', 'Y', 'YES']:
             subprocess.run(command, shell=True, cwd=str(self.project_root))
 
@@ -165,7 +165,7 @@ class SovereignEngine:
 
         if not query and not json_mode:
             for res in self.strategy.enforce_policy():
-                HUD.persona_log("INFO", res)
+                SovereignHUD.persona_log("INFO", res)
             return
 
         # Engine Setup & Execution
@@ -202,10 +202,10 @@ def main() -> None:
     engine = SovereignEngine()
 
     if args.benchmark:
-        HUD.box_top("DIAGNOSTIC")
-        HUD.box_row("ENGINE", "SovereignVector 2.5 (Iron Cortex)", HUD.CYAN)
-        HUD.box_row("PERSONA", HUD.PERSONA, HUD.MAGENTA)
-        HUD.box_bottom()
+        SovereignHUD.box_top("DIAGNOSTIC")
+        SovereignHUD.box_row("ENGINE", "SovereignVector 2.5 (Iron Cortex)", SovereignHUD.CYAN)
+        SovereignHUD.box_row("PERSONA", SovereignHUD.PERSONA, SovereignHUD.MAGENTA)
+        SovereignHUD.box_bottom()
         sys.exit(0)
 
     query = utils.sanitize_query(" ".join(args.query))

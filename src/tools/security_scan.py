@@ -4,9 +4,9 @@ import re
 import sys
 
 try:
-    from sv_engine import HUD
+    from sv_engine import SovereignHUD
 except ImportError:
-    class HUD:
+    class SovereignHUD:
         RED, GREEN, YELLOW, RESET, BOLD, CYAN = "\033[31m", "\033[32m", "\033[33m", "\033[0m", "\033[1m", "\033[36m"
         @staticmethod
         def box_top(t): print(f"--- {t} ---")
@@ -96,12 +96,12 @@ class SecurityScanner:
                 self.findings.append("[OBFUSCATION] High hex density")
 
     def report(self):
-        HUD.box_top("🛡️  HEIMDALL SECURITY SCAN  🛡️")
-        HUD.box_row("TARGET", os.path.basename(self.path), HUD.CYAN)
-        c = HUD.RED if self.threat_score >= 10 else (HUD.YELLOW if self.threat_score > 0 else HUD.GREEN)
-        HUD.box_row("THREAT LEVEL", f"{self.threat_score}/10", c)
-        for f in self.findings: print(f"   - {HUD.RED}{f}{HUD.RESET}")
-        HUD.box_bottom()
+        SovereignHUD.box_top("🛡️  HEIMDALL SECURITY SCAN  🛡️")
+        SovereignHUD.box_row("TARGET", os.path.basename(self.path), SovereignHUD.CYAN)
+        c = SovereignHUD.RED if self.threat_score >= 10 else (SovereignHUD.YELLOW if self.threat_score > 0 else SovereignHUD.GREEN)
+        SovereignHUD.box_row("THREAT LEVEL", f"{self.threat_score}/10", c)
+        for f in self.findings: print(f"   - {SovereignHUD.RED}{f}{SovereignHUD.RESET}")
+        SovereignHUD.box_bottom()
         return self.threat_score
 
 if __name__ == "__main__":

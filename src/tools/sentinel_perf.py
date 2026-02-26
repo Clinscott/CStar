@@ -16,7 +16,7 @@ _core_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file_
 sys.path.insert(0, _core_dir)
 sys.path.insert(0, os.path.join(_core_dir, "engine"))
 
-from ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 try:
     from vector import SovereignVector
@@ -62,21 +62,21 @@ class SentinelPerf:
         return (end - start) / iterations * 1000
 
     def run_suite(self):
-        HUD.box_top("SENTINEL PERF: BENCHMARK")
+        SovereignHUD.box_top("SENTINEL PERF: BENCHMARK")
         
         # Test 1: Search Latency (High Level)
         q = "check the login bug in the system"
         lat = self.profile_search(q)
-        HUD.box_row("SEARCH", f"{lat:.3f}ms", HUD.GREEN if lat < 1.0 else HUD.YELLOW)
+        SovereignHUD.box_row("SEARCH", f"{lat:.3f}ms", SovereignHUD.GREEN if lat < 1.0 else SovereignHUD.YELLOW)
         
         # Test 2: Tokenization (Low Level)
         t = "The quick brown fox jumps over the lazy dog" * 10
         t_lat = self.profile_tokenization(t)
-        HUD.box_row("TOKENIZE", f"{t_lat:.4f}ms", HUD.GREEN if t_lat < 0.1 else HUD.YELLOW)
+        SovereignHUD.box_row("TOKENIZE", f"{t_lat:.4f}ms", SovereignHUD.GREEN if t_lat < 0.1 else SovereignHUD.YELLOW)
         
         # Test 3: Synthesis overhead
-        HUD.box_row("VIRTUAL", f"Rank A Performance", HUD.CYAN)
-        HUD.box_bottom()
+        SovereignHUD.box_row("VIRTUAL", f"Rank A Performance", SovereignHUD.CYAN)
+        SovereignHUD.box_bottom()
 
 if __name__ == "__main__":
     script_dir = os.path.dirname(os.path.abspath(__file__))

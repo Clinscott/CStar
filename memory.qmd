@@ -1,9 +1,22 @@
 # Corvus Star Memory
 
+## 2026-02-25: Session 85 (V4 Hardening & Concurrency Safety)
+- **JSONL for Concurrency**: On Windows, frequent read-modify-write cycles on JSON files trigger `PermissionError` during high-latency daemon loops. Use append-only **JSON Lines (.jsonl)** combined with an atomic-like append helper (`atomic_jsonl_append`) to ensure thread-safety and lock resilience.
+- **Bottleneck Neural Regularization**: For longitudinal meta-learning (like `SessionWarden`), use a extreme bottleneck (e.g., 4 hidden neurons) to force the network to learn low-dimensional session health features instead of wide-field trace memorization.
+- **Train/Eval Mode Consistency**: Always implement `train()` and `eval()` toggles in neural wardens. `eval()` must strictly disable stochastic elements (dropout) to ensure EMPIRE determinism contracts are satisfied.
+- **Deep Memory Purge Protocol**: Resource reclamation must be explicit. Call `teardown()` methods that nullify internal caches and unregister observers before triggering a `gc.collect()` sweep. This prevents "Ghost State" from persisting in the next development session.
+
+## 2026-02-25: Session 84 (Shadow Forge & Full-Cycle Sandboxing)
+- **Physical Isolation via RO Mounts**: To ensure zero-trust execution, always mount the host project as Read-Only (`:ro`) when containerizing the repair loop. The worker must mirror this into a writable ephemeral layer (`/shadow_forge`) to execute its mission.
+- **Atomic promotion via `docker cp`**: Do not allow the container to write directly to the host. Instead, use an external orchestrator to "promote" verified changes by copying specific files out of the container layer.
+- **Environment Variable Bridging**: Use environment flags (`SHADOW_FORGE_WORKER`, `MOCK_MODE`) to signal architectural role and mode to containerized processes, ensuring consistent client initialization.
+
+
 ## 2026-02-25: Session 83 (Cognitive Hub & Tiered Routing)
 - **High-Frequency Intent Tiering**: Trivial/UI-centric intents should be routed to "Edge" (Ollama) to preserve API quota and minimize latency. The `CognitiveRouter` serves as the bifurcation point, ensuring only complex orchestration tasks hit the Gungnir Matrix.
 - **TUI Telemetry Interception**: For asynchronous telemetry (like router status or background inferences), use specific `type` and `source` flags in daemon messages. The TUI should explicitly intercept these to provide visual feedback (e.g., `[ROUTER_FAULT]`) without cluttering standard dialogue logs.
-- **Edge Health Monitoring**: Live "EDGE" status in the HUD vitals is essential for monitoring local model readiness. UNKNOWN or DOWN states should trigger automatic routing to Core fallbacks to prevent user-facing hangs.
+- **Edge Health Monitoring**: Live "EDGE" status in the SovereignHUD vitals is essential for monitoring local model readiness. UNKNOWN or DOWN states should trigger automatic routing to Core fallbacks to prevent user-facing hangs.
+- **Muninn Verbosity**: The Ravens (Muninn) must be more verbose about their internal state and decision-making steps during the improvement cycle to aid debugging and observability.
 
 ## 2026-02-24: Session 82 (File Corruption & Arch Remapping)
 - **Silent File Corruption**: If a Python file triggers `IndentationError` on lines that appear visually perfect, suspect null-byte corruption or interleaved characters. The most resilient fix is to regenerate the file content from scratch using `write_to_file` to ensure a clean byte stream.
@@ -15,7 +28,7 @@
 - **WebSocket Garbage Collection**: Explicitly delete keys from subscription maps when the number of subscribers drops to zero to prevent "ghost key" memory leaks.
 - **Heartbeat Enforcement**: Use 30s server-initiated intervals for WebSocket termination to clear dead connections on high-latency networks.
 
-## 2026-02-23: Session 80 (Sovereign HUD Async Layer)
+## 2026-02-23: Session 80 (Sovereign SovereignHUD Async Layer)
 - **Centralized Async Rendering**: When multiple asynchronous producers (daemons) must share a single synchronous output (terminal), use an `asyncio.Queue` to buffer messages and an `asyncio.Lock` to serialize the final write. This creates a "funnel" that eliminates character tearing and race conditions.
 - **Cancellation-Safety in UI**: Typewriter effects or progress bars that hide the cursor MUST use a `finally` block to restore it (`\033[?25h`). If interrupted mid-line, the block should also inject a newline (`\n`) to prevent the next terminal prompt from colliding with aborted text.
 - **Dependency Injection for I/O**: Instead of mocking `sys.stdout` globally, pass an `output_stream` (defaulting to `sys.stdout`) to rendering methods. This allows tests to use `io.StringIO` for high-fidelity verification of ANSI sequences without polluting the host terminal.
@@ -139,7 +152,7 @@
 
 ## 2026-02-13: Muninn's Awakening (Session 54)
 -   **Architecture**: Modularizing a "God Object" into distinct Wardens (Strategy Pattern) significantly improves testability and allows for parallel execution.
--   **Performance**: `ThreadPoolExecutor` is effective for I/O-bound audit tasks (scanning thousands of files) but requires thread-safe logging (handled via `HUD` queue or atomic writes).
+-   **Performance**: `ThreadPoolExecutor` is effective for I/O-bound audit tasks (scanning thousands of files) but requires thread-safe logging (handled via `SovereignHUD` queue or atomic writes).
 -   **Stability**: Separating "Stability Logic" (SPRT, Anti-Oscillation) from "Execution Logic" (Wardens) prevents circular dependencies and allows stability rules to evolve independently.
 -   **Neural Audit**: Using a lightweight model (Gemini Flash) to audit trace files for hallucinations provides a second-order meta-cognitive check that regex cannot match.
 
@@ -198,7 +211,7 @@
 - **Dependency Hardening**: System-level utilities (e.g., `psutil`) must be declared in `pyproject.toml`. Expose internal orchestration logic (like singleton checks) as module-level functions to allow for robust unit testing and mocking.
 - **Idempotent Artifacts**: Documentation and planning generators should parse and merge existing user state (e.g., checkmarks in `ANNEXATION_PLAN.qmd`) before overwriting to prevent data loss across re-scans.
 - **Regex Heuristics**: When implementing documentation transmuters (e.g., `EddaWeaver`), use multi-line regex with anchoring (`^`) and case-insensitive matching to reliably capture and convert legacy patterns into modern standards (like Quarto alerts).
-- **Assertion Resilience**: Hardening UI components (like `HUD`) against mock-specific behavior (e.g., `MagicMock` width objects) ensures that the system is stable during high-velocity development where dependencies are frequently stubbed.
+- **Assertion Resilience**: Hardening UI components (like `SovereignHUD`) against mock-specific behavior (e.g., `MagicMock` width objects) ensures that the system is stable during high-velocity development where dependencies are frequently stubbed.
 - **Dynamic Lock Management**: Daemon processes should accept an optional `lock_file_path` at runtime. This allows test suites to isolate lock-checks in temporary directories, preventing collisions with active system processes and enabling parallel test execution.
 - **Patch Precision**: When using aliased imports (e.g., `from ... import Muninn as SovereignFish`), always verify the patch target. Patching the original module path fails if the caller uses the alias; patch the *calling module's* reference to the alias to ensure interception.
 - **Subject Extraction Meta-Filters**: Content generation tools (like `SkillForge`) must differentiate between the *topic* and the *intent*. Filtering out meta-words like "test" from the subject prevented naming collisions and ensured a clean file registry.
@@ -211,8 +224,8 @@
 - **Bootstrap Idempotency (_bootstrap)**: Shared initialization modules must gate execution to prevent redundant `sys.path` injections and environment reloads during multi-module orchestration.
 - **Graceful Daemon Resilience (MainLoop)**: Long-running orchestration loops must implement signal handling (SIGINT/SIGTERM) and use atomic lock files with PID validation to ensure single-instance integrity and clean resource cleanup.
 - **Neural Observability (HuginnWarden)**: Continuous auditing of agent-generated traces for hallucination patterns and cross-persona deviance ensures the stability of the long-term knowledge weave and prevents state corruption.
-- **Breach Aggregation Sovereignty (Scout)**: Strategic audit scripts (e.g., `scout_targets.py`) must serve as the source of truth for system-wide technical debt, providing HUD-standard visual summaries and persistent queue state (JSON) to drive automated remediation workflows.
-- **HUD State Integrity (UI)**: Terminal interfaces must encapsulate all state (persona, dialogue archives, terminal width) and use Pathlib for persistence (e.g., rejection ledgers) to ensure a consistent and resilient user experience across diverse shell environments.
+- **Breach Aggregation Sovereignty (Scout)**: Strategic audit scripts (e.g., `scout_targets.py`) must serve as the source of truth for system-wide technical debt, providing SovereignHUD-standard visual summaries and persistent queue state (JSON) to drive automated remediation workflows.
+- **SovereignHUD State Integrity (UI)**: Terminal interfaces must encapsulate all state (persona, dialogue archives, terminal width) and use Pathlib for persistence (e.g., rejection ledgers) to ensure a consistent and resilient user experience across diverse shell environments.
 - **Aesthetic Report Sovereignty (ReportEngine)**: Automated reporting modules must dynamically adapt their visual structure (ASCII headers, callouts, signatures) to the active persona while maintaining cross-platform path integrity via Pathlib.
 - **Doc Graph Ingestion (Cortex)**: Knowledge graphs built from project documentation should use header-based chunking and Pathlib-aware discovery with staged extension fallbacks (e.g., `.qmd` to `.md`) to maintain sync with evolving documentation standards.
 - **Dialogue Intent Safety (DialogueRetriever)**: Persona-driven dialogue archives must be loaded with multiple encoding fallbacks and provided with safe default return values for missing intents to ensure the user interface remains communicative even during archive corruption.
@@ -225,7 +238,7 @@
 - **Security Vigilance (Heimdall)**: Automated security audits must include basic heuristics for identifying potential hardcoded secrets and insecure patterns during the annexation scan to ensure realm protection.
 - **Complexity Decomposition (Mimir)**: High-cyclomatic methods should be identified using Radon and decomposed into semantic helpers to enhance testability and readability, following the Linscott Standard for structural clarity.
 - **Rune Rigidity (RuneCaster)**: Type hint audits must move beyond fragile regex and utilize AST parsing to correctly identify missing annotations for both arguments and return values, ensuring 100% type coverage for structural reliability.
-- **Visual Output Integrity**: Core engine execution paths (`sv_engine.run`) must explicitly trigger HUD rendering to ensure contract compliance for status feedback.
+- **Visual Output Integrity**: Core engine execution paths (`sv_engine.run`) must explicitly trigger SovereignHUD rendering to ensure contract compliance for status feedback.
 - **Semantic Documentation Audits (EddaWarden)**: Using AST-based parsing (`ast.get_docstring`) enables more precise identification of missing documentation across both functions and classes, reducing the noise associated with simple string-based searches.
 - **Stability Cooldowns (TheWatcher)**: Automated locking for unstable files (fatigue/oscillation) should include time-based cooldowns (e.g., 1 hour) to allow for system self-recovery without requiring manual state intervention.
 - **Archive Preservation**: Quarantine mechanisms (`_quarantine_file`) must be documented to ensure that documentation transmutation is recognized as a non-destructive synthesis process by the EddaWarden.
@@ -235,14 +248,14 @@
 - **Quarto Weaver Standards (Edda)**: Automated documentation transmuters should utilize persona-enabled logging and robust Pathlib resolution to ensure the "Saga of the Code" is preserved with high visual fidelity.
 - **CLI Dispatcher Resilience (Odin)**: Dynamic command resolution must verify environment parity (venv vs system) and project root integrity to prevent "Split-Brain" execution during high-velocity development.
 - **The Long Game: 50-Cycle Marathon**: True system robustness is achieved through iterative failure-recovery cycles. Completing the 50-cycle marathon has hardened Corvus Star into an "Iron Clad" framework.
-- **Lazy Persona Synchronization (UI)**: Encapsulating persona loading within the HUD's lazy-initializer ensures that all terminal outputs correctly reflect the project's identity without requiring explicit setup in every script.
+- **Lazy Persona Synchronization (UI)**: Encapsulating persona loading within the SovereignHUD's lazy-initializer ensures that all terminal outputs correctly reflect the project's identity without requiring explicit setup in every script.
 - **Graceful Daemon Signaling (Daemon)**: Implementing standard signal handlers (SIGINT/SIGTERM) is critical for long-running processes (e.g., Ravens) to ensure lock files are purged and state is persisted during shutdown.
-- **HUD-ified Warden Output**: Migrating audit tools (e.g., `annex.py`) to the HUD box framework aligns technical reports with the project's immersion directives while providing a consistent visual standard for technical debt assessments.
+- **SovereignHUD-ified Warden Output**: Migrating audit tools (e.g., `annex.py`) to the SovereignHUD box framework aligns technical reports with the project's immersion directives while providing a consistent visual standard for technical debt assessments.
 - **Pathlib Universality**: Absolute Pathlib resolution is the only reliable way to handle scripts that may be executed from different working directories (e.g., root, `src/`, or `.agent/`).
 - **Empire Testing Protocol (N=40)**: Core infrastructure and tool-suite files must have a dedicated companion test in `tests/empire_tests/` following the Linscott Standard. This prevents regression during deep learning cycles.
-- **HUD Initialization Guard**: When testing UI-dependent modules, manually set `HUD._INITIALIZED = True` to prevent unintentional loading of local `config.json` state, ensuring environment isolation.
+- **SovereignHUD Initialization Guard**: When testing UI-dependent modules, manually set `SovereignHUD._INITIALIZED = True` to prevent unintentional loading of local `config.json` state, ensuring environment isolation.
 - **Regex Boundary Anchors**: Security and intent patterns should use word boundaries (`\b`) to prevent false positives (e.g., matching 'exec' in 'executing').
-- **Trace Persona Isolation**: Explicitly import and reference the internal `HUD` instance of the module under test during persona analysis to avoid global state contamination.
+- **Trace Persona Isolation**: Explicitly import and reference the internal `SovereignHUD` instance of the module under test during persona analysis to avoid global state contamination.
 - **JSON over Regex**: For complex data structures (like corrections or audit reports), prefer robust `json.load` parsing over fragile line-based regex to ensure structural integrity across directory migrations.
 
 ## Strategic Blueprints

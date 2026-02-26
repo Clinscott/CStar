@@ -18,7 +18,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 # [ALFRED] Use standard imports from project root
 from src.core.sv_engine import SovereignEngine
-from src.core.ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 from src.core.engine.dialogue import DialogueEngine
 
 
@@ -41,33 +41,33 @@ class DialogueAuditor:
 
     def audit(self, text: str) -> None:
         """Calculates and displays soul alignment score."""
-        # Initialize HUD Dialogue
+        # Initialize SovereignHUD Dialogue
         voice_file = ("odin" if self.persona in ["GOD", "ODIN"] else "alfred") + ".qmd"
         dialogue_path = self._resolve(self.project_root, voice_file, "dialogue_db")
         
         # [ALFRED] Use DialogueEngine for context-aware audit
-        HUD.DIALOGUE = DialogueEngine(str(dialogue_path))
-        HUD.PERSONA = self.persona
+        SovereignHUD.DIALOGUE = DialogueEngine(str(dialogue_path))
+        SovereignHUD.PERSONA = self.persona
 
         # Calculate purity
         score = self.engine.score_identity(text, self.persona)
         
         # Visual Output
-        HUD.box_top("IDENTITY PURITY AUDIT")
-        HUD.box_row("PERSONA", self.persona, HUD.MAGENTA)
+        SovereignHUD.box_top("IDENTITY PURITY AUDIT")
+        SovereignHUD.box_row("PERSONA", self.persona, SovereignHUD.MAGENTA)
         
-        bar = HUD.progress_bar(score)
-        color = HUD.GREEN if score > 0.4 else HUD.RED
-        HUD.box_row("PURITY SCORE", f"{bar} {score:.2f}", color)
+        bar = SovereignHUD.progress_bar(score)
+        color = SovereignHUD.GREEN if score > 0.4 else SovereignHUD.RED
+        SovereignHUD.box_row("PURITY SCORE", f"{bar} {score:.2f}", color)
         
         if score > 0.4:
             msg = "SOUL ALIGNMENT: STABLE" if self.persona in ["GOD", "ODIN"] else "Fidelity check passed, sir."
-            HUD.persona_log("SUCCESS", msg)
+            SovereignHUD.persona_log("SUCCESS", msg)
         else:
             msg = "DEVIANCE DETECTED. PURGE ENHANCED." if self.persona in ["GOD", "ODIN"] else "I'm concerned about our tone stability, sir."
-            HUD.persona_log("FAIL", msg)
+            SovereignHUD.persona_log("FAIL", msg)
         
-        HUD.box_bottom()
+        SovereignHUD.box_bottom()
 
 
 def main():

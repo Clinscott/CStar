@@ -51,7 +51,7 @@ class TestMuninnEmpire:
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key", "MUNINN_API_KEY": ""})
     @patch("src.sentinel.muninn.AnomalyWarden")
     @patch("src.sentinel.muninn.Muninn._execute_hunt_async", new_callable=MagicMock)
-    @patch("src.sentinel.muninn.HUD")
+    @patch("src.sentinel.muninn.SovereignHUD")
     @patch("src.sentinel.muninn.asyncio.run")
     @patch("src.sentinel.muninn.ProjectMetricsEngine")
     @patch("src.sentinel.muninn.TheWatcher")
@@ -79,7 +79,7 @@ class TestMuninnEmpire:
         assert result is False
         # The success message depends on PERSONA, default might be non-ALFRED if not set
         # Check for either success message
-        # HUD.persona_log("SUCCESS", ...)
+        # SovereignHUD.persona_log("SUCCESS", ...)
         # We can just check that it was called with SUCCESS
         args, _ = mock_hud.persona_log.call_args
         assert args[0] == "SUCCESS"
@@ -87,7 +87,7 @@ class TestMuninnEmpire:
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key", "MUNINN_API_KEY": ""})
     @patch("src.sentinel.muninn.AnomalyWarden")
     @patch("src.sentinel.muninn.Muninn._execute_hunt_async", new_callable=MagicMock)
-    @patch("src.sentinel.muninn.HUD")
+    @patch("src.sentinel.muninn.SovereignHUD")
     @patch("src.sentinel.muninn.asyncio.run")
     @patch("src.sentinel.muninn.ProjectMetricsEngine")
     @patch("src.sentinel.muninn.TheWatcher")

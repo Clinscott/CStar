@@ -24,10 +24,15 @@ class TestCorvusDispatcher:
         assert cmds["test_cmd"].endswith(".py")
         assert cmds["test_wf"].endswith(".md")
 
-    @patch('src.core.ui.HUD.box_row')
-    def test_show_help_categorization(self, mock_box_row, dispatcher):
-        dispatcher.show_help()
-        # Verify box_row was called with Scripts and Workflows
-        calls = [call.args[0] for call in mock_box_row.call_args_list]
-        assert "SCRIPTS" in calls
-        assert "WORKFLOWS" in calls
+        def test_show_help_categorization(self, dispatcher):
+            # We patch inside to catch the SovereignHUD instances currently in sys.modules
+            # after CorvusDispatcher and its bootstrap have run.
+            with patch('src.core.sovereign_hud.SovereignHUD.box_row') as mock_src_box_row:
+    
+                dispatcher.show_help()
+    
+                # Combine calls from both potential mocks
+                calls_src = [call.args[0] for call in mock_src_box_row.call_args_list]
+    
+                assert "SCRIPTS" in calls_src
+                assert "WORKFLOWS" in calls_src

@@ -10,14 +10,15 @@ class RavenProxy:
     RavenProxy mimics the google.genai.Client to intercept, log, and augment
     API calls from the Muninn agent.
     """
-    def __init__(self, target_model="gemini-2.0-flash", api_key=None) -> None:
+    def __init__(self, target_model="gemini-2.0-flash", api_key=None, mock_mode=False) -> None:
         self.target_model = target_model
-        # Use provided key or fall back to environment (Main Agent's Key)
+        self.mock_mode = mock_mode
         self.api_key = api_key or os.getenv("GOOGLE_API_KEY")
-        if not self.api_key:
-            raise ValueError("GOOGLE_API_KEY not found in environment.")
         
-        self.real_client = genai.Client(api_key=self.api_key)
+        if not self.api_key and not self.mock_mode:
+            raise ValueError("GOOGLE_API_KEY not found in environment and not in mock mode.")
+        
+        self.real_client = genai.Client(api_key=self.api_key) if self.api_key else None
         self.logs_dir = Path("tests/harness/logs")
         self.logs_dir.mkdir(parents=True, exist_ok=True)
         self.corrections_path = Path(".agent/corrections.json")
@@ -54,14 +55,17 @@ class RavenProxy:
             "config": str(config) if config else None
         }
         
-        # 3. Call the real API
+        # 3. Call the API (Real or Mock)
         try:
-            response = self.real_client.models.generate_content(
-                model=effective_model,
-                contents=augmented_contents,
-                config=config,
-                **kwargs
-            )
+            if self.mock_mode:
+                response = self._generate_mock_response(effective_model, augmented_contents)
+            else:
+                response = self.real_client.models.generate_content(
+                    model=effective_model,
+                    contents=augmented_contents,
+                    config=config,
+                    **kwargs
+                )
             
             # Log the response
             trace_data["response"] = {
@@ -121,3 +125,26 @@ class RavenProxy:
         except Exception as e:
             print(f"Warning: Failed to inject lessons: {e}")
             return contents
+
+    def _generate_mock_response(self, model, contents):
+        """Generates a synthetic response for offline testing."""
+        from unittest.mock import MagicMock
+        mock_resp = MagicMock()
+        
+        prompt_str = str(contents).lower()
+        
+        if "gauntlet" in prompt_str or "pytest" in prompt_str:
+            # Mocking the Test Generator
+            mock_resp.text = '```python\nimport pytest\ndef test_mock_reproduction():\n    assert True\n```'
+        elif "fix the issue" in prompt_str or "forge" in prompt_str:
+            # Mocking the Forge (Implementation)
+            mock_resp.text = '```python\n# MOCK FIX\ndef placeholder():\n    pass\n```'
+        else:
+            # Generic response
+            mock_resp.text = "[MOCK] Odin sees all. The path is clear."
+        
+        from src.core.sovereign_hud import SovereignHUD
+        SovereignHUD.persona_log("DEBUG", f"Mock Response Generated: {mock_resp.text[:50]}...")
+            
+        mock_resp.candidates = []
+        return mock_resp

@@ -70,11 +70,11 @@ def track_execution(name: Optional[str] = None):
                 
             # Log or store the metrics
             try:
-                from src.core.ui import HUD
+                from src.core.sovereign_hud import SovereignHUD
                 # Only log if it's a significant operation (>50ms) to avoid spam
                 if tracker.latency_ms > 50:
                     delta_str = f"+{tracker.mem_delta_mb}MB" if tracker.mem_delta_mb >= 0 else f"{tracker.mem_delta_mb}MB"
-                    HUD.persona_log("INFO", f"[{op_name}] Latency: {tracker.latency_ms:.2f}ms | Mem: {delta_str}")
+                    SovereignHUD.persona_log("INFO", f"[{op_name}] Latency: {tracker.latency_ms:.2f}ms | Mem: {delta_str}")
             except Exception:
                 pass
                 

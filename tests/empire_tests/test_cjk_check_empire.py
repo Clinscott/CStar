@@ -34,7 +34,7 @@ sys.modules['engine'] = type('engine', (object,), {})
 sys.modules['engine.vector'] = type('engine.vector', (object,), {'SovereignVector': MockSovereignVector})
 
 # Import the script after mocking
-import cjk_check
+from src.tools.debug import cjk_check
 
 
 @pytest.fixture

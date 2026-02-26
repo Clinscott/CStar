@@ -14,7 +14,7 @@ from src.tools.debug import audit_dialogue
 class TestAuditDialogueEmpire:
     
     @patch("src.tools.debug.audit_dialogue.SovereignEngine")
-    @patch("src.tools.debug.audit_dialogue.HUD")
+    @patch("src.tools.debug.audit_dialogue.SovereignHUD")
     @patch("src.tools.debug.audit_dialogue.DialogueEngine")
     def test_audit_flow(self, mock_dialogue, mock_hud, mock_sv_cls):
         mock_engine = mock_sv_cls.return_value
@@ -23,7 +23,7 @@ class TestAuditDialogueEmpire:
         auditor = audit_dialogue.DialogueAuditor()
         auditor.audit("test dialogue")
         
-        # Verify HUD calls
+        # Verify SovereignHUD calls
         mock_hud.box_top.assert_called_with("IDENTITY PURITY AUDIT")
         mock_hud.progress_bar.assert_called()
         
@@ -31,7 +31,7 @@ class TestAuditDialogueEmpire:
         assert mock_hud.PERSONA == "GOD"
 
     @patch("src.tools.debug.audit_dialogue.SovereignEngine")
-    @patch("src.tools.debug.audit_dialogue.HUD")
+    @patch("src.tools.debug.audit_dialogue.SovereignHUD")
     @patch("src.tools.debug.audit_dialogue.DialogueEngine")
     def test_audit_deviance(self, mock_dialogue, mock_hud, mock_sv_cls):
         mock_engine = mock_sv_cls.return_value

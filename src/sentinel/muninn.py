@@ -1,7 +1,7 @@
 """
 Muninn: The Raven of Memory & Excellence (Autonomous Improver)
 Identity: ODIN/ALFRED Hybrid
-Purpose: Execute the SovereignFish Protocol autonomously.
+Purpose: Execute the Ravens Protocol autonomously.
 
 Wardens of Asgard (Modular):
   Valkyrie, Mimir, Edda, RuneCaster, Freya, Norn, Huginn
@@ -14,6 +14,7 @@ import os
 import shutil
 import subprocess
 import time
+import uuid
 from pathlib import Path
 
 from colorama import init
@@ -23,8 +24,13 @@ from google import genai
 init(autoreset=True)
 
 # Shared Bootstrap
-from src.sentinel._bootstrap import bootstrap
+import sys
+from pathlib import Path
+project_root = Path(__file__).resolve().parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.append(str(project_root))
 
+from src.sentinel._bootstrap import bootstrap
 bootstrap()
 
 # Core Imports
@@ -34,7 +40,7 @@ from src.core.engine.atomic_gpt import AnomalyWarden
 
 # Gungnir Engine Imports
 from src.core.metrics import ProjectMetricsEngine
-from src.core.ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 from src.cstar.core.uplink import AntigravityUplink
 from src.sentinel.code_sanitizer import (
     sanitize_code,
@@ -65,39 +71,53 @@ logging.basicConfig(
 )
 
 class Muninn:
-    def __init__(self, target_path: str = None, client=None, use_bridge=False):
-        # Auto-detect root if not provided
-        if target_path is None:
-            script_dir = Path(__file__).parent.absolute()
-            self.root = script_dir.parent.parent.resolve()
-        else:
-            self.root = Path(target_path).resolve()
-
+    def __init__(self, target_path: str = None, client: any = None, use_bridge: bool = False, use_docker: bool = False) -> None:
+        """
+        Initializes Muninn (The Memory).
+        :param target_path: The root directory to monitor.
+        :param client: Optional mock/proxy client for LLM testing.
+        :param use_bridge: If True, uses the Antigravity Bridge for inference.
+        :param use_docker: If True, executes verification in a sandboxed Docker container.
+        """
+        self.root = Path(target_path or os.getcwd()).resolve()
         self.use_bridge = use_bridge
+        self.use_docker = use_docker
+        
+        # Identity
+        self.observer = AlfredOverwatch()
+        
+        # 1. Check for Shadow Forge Environment
+        self.is_worker = os.getenv("SHADOW_FORGE_WORKER") == "true"
+        self.mock_mode = os.getenv("MOCK_MODE") == "true"
+        
+        # 2. Prioritize the isolated Muninn key
+        self.api_key = os.getenv("MUNINN_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        
+        if self.mock_mode:
+            from tests.harness.raven_proxy import RavenProxy
+            SovereignHUD.persona_log("INFO", "[SHADOW] Engaging Local Mock (RavenProxy)")
+            self.client = RavenProxy(mock_mode=True)
+            self.api_key = self.api_key or "MOCK_KEY"
+        
+        if not self.api_key:
+            raise ValueError("API environment variable not set.")
 
-        # 1. Prioritize the isolated Muninn key
-        self.api_key = os.getenv("MUNINN_API_KEY")
-        if self.api_key:
-            HUD.persona_log("INFO", f"Muninn operating on isolated API quota. (Bridge: {self.use_bridge})")
-        else:
-            self.api_key = os.getenv("GOOGLE_API_KEY")
-            HUD.persona_log("WARN", "MUNINN_API_KEY missing. Falling back to shared GOOGLE_API_KEY.")
-
-        if self.use_bridge:
-            self.uplink = AntigravityUplink(api_key=self.api_key)
-        else:
-            if not self.api_key and client is None:
-                raise ValueError("API environment variable not set.")
+        if not self.mock_mode:
             self.client = client or genai.Client(api_key=self.api_key)
-            # 2. Inject the key into the uplink instance (for reference/other use)
-            self.uplink = AntigravityUplink(api_key=self.api_key)
+
+        self.uplink = AntigravityUplink(api_key=self.api_key or "MOCK_KEY")
+
+        # Stability Manager
+        self.validator = GungnirValidator()
+        self.watcher = TheWatcher(self.root / ".agent" / "watcher.json")
+        self.metrics_engine = ProjectMetricsEngine()
+
+        # 3. Mirror Workspace if Shadow Forge Worker
+        if self.is_worker:
+            self._setup_shadow_workspace()
 
         # Model configuration will be resolved dynamically via the bridge's fallback logic.
-        # Stability Manager
-        self.watcher = TheWatcher(self.root)
-
         # Metrics & Engines
-        self.metrics_engine = ProjectMetricsEngine()
         self.observer = AlfredOverwatch()
         self.sprt = GungnirSPRT()
 
@@ -118,7 +138,7 @@ class Muninn:
     def _check_agent_active(self) -> bool:
         """Checks if the Antigravity Agent is currently active."""
         if os.getenv("CSTAR_AGENT_ACTIVE"):
-            HUD.persona_log("INFO", "Active Agent Detected. Deferring execution to allowed entity.")
+            SovereignHUD.persona_log("INFO", "Active Agent Detected. Deferring execution to allowed entity.")
             return True
         return False
 
@@ -128,8 +148,31 @@ class Muninn:
             from src.cstar.core.antigravity_bridge import _get_optimal_model
             # Use api_key or 'default' to key the model cache
             return _get_optimal_model(self.client, self.api_key or "default", persona)
+        except Exception:
+            return "gemini-2.0-flash"
+
+    def _setup_shadow_workspace(self):
+        """Mirrors the RO /app mount to a writable /shadow_forge directory."""
+        SovereignHUD.persona_log("INFO", "[WORKER] Mirroring workspace to ephemeral layer...")
+        shadow_root = Path("/shadow_forge")
+        
+        try:
+            if shadow_root.exists():
+                shutil.rmtree(shadow_root)
+            
+            # Copy everything from /app to /shadow_forge
+            # /app is the RO mount from the host
+            shutil.copytree("/app", shadow_root, dirs_exist_ok=True)
+            self.root = shadow_root
+            SovereignHUD.persona_log("INFO", f"[WORKER] Workspace mirrored to {self.root}")
+            
+            # Switch to the new root
+            os.chdir(str(self.root))
         except Exception as e:
-            HUD.persona_log("WARN", f"Model resolution failed: {e}")
+            SovereignHUD.persona_log("ERROR", f"[WORKER] Mirroring failed: {e}")
+            sys.exit(1)
+        except Exception as e:
+            SovereignHUD.persona_log("WARN", f"Model resolution failed: {e}")
             return "gemini-2.5-pro" if persona in ["ODIN", "ALFRED"] else "gemini-2.0-flash"
 
     def _load_prompt(self, name: str, variables: dict) -> str:
@@ -154,29 +197,29 @@ class Muninn:
         return f"\nALFRED SUGGESTIONS:\n{suggestions_path.read_text(encoding='utf-8')}\n"
 
     def run(self) -> bool:
-        """
-        Executes one cycle of the Sovereign Fish Protocol using Modular Wardens.
-        """
-        if HUD.PERSONA == "ALFRED":
-            HUD.persona_log("INFO", f"The Ravens are scouting {self.root}...")
-        else:
-            HUD.persona_log("INFO", f"Muninn is scouring {self.root.name}...")
+        """The main Ravens Protocol loop."""
+        if self.use_docker and not self.is_worker:
+            return self._orchestrate_shadow_forge()
+
+        SovereignHUD.persona_log("INFO", f"Muninn is scouring {self.root.name}...")
 
         # [GPHS] Initial Metrics Sweep
         pre_gphs = self.metrics_engine.compute(str(self.root))
-        HUD.persona_log("INFO", f"Global Project Health Score (Pre): {pre_gphs:.2f}")
+        SovereignHUD.persona_log("INFO", f"Global Project Health Score (Pre): {pre_gphs:.2f}")
 
         # 1. THE HUNT (Parallel Scan)
         # Refactored to use Asyncio (Phase 8: Muninn Integration)
 
         self._write_pid()
         try:
+            SovereignHUD.persona_log("INFO", "Initiating the Hunt (Asynchronous Scan)...")
             # We run the async cycle
             found_breaches, scan_stats = asyncio.run(self._execute_hunt_async())
             all_breaches = found_breaches
             scan_results = scan_stats
+            SovereignHUD.persona_log("INFO", f"Hunt complete. Breaches discovered: {len(all_breaches)}")
         except Exception as e:
-            HUD.persona_log("CRITICAL", f"Async Hunt Failed: {e}")
+            SovereignHUD.persona_log("CRITICAL", f"Async Hunt Failed: {e}")
             return False
         finally:
             self._clear_pid()
@@ -203,16 +246,17 @@ class Muninn:
         self._emit_metrics_summary(scan_results)
 
         if not all_breaches:
-            if HUD.PERSONA == "ALFRED":
-                HUD.persona_log("SUCCESS", "Everything appears to be in order, sir.")
+            if SovereignHUD.PERSONA == "ALFRED":
+                SovereignHUD.persona_log("SUCCESS", "Everything appears to be in order, sir.")
             else:
-                HUD.persona_log("SUCCESS", "The waters are clear. Heimdall sees no threats.")
+                SovereignHUD.persona_log("SUCCESS", "The waters are clear. Heimdall sees no threats.")
             return False
 
         target = all_breaches[0]
         selected_strategist = target.get('type', 'UNKNOWN').split('_')[0]
 
-        HUD.persona_log("WARN", f"Target: {target['action']} in {target['file']}")
+        SovereignHUD.persona_log("INFO", f"Selected priority target: {target['file']} for {target['action']}")
+        SovereignHUD.persona_log("WARN", f"Target: {target['action']} in {target['file']}")
         logging.info(f"[{self.root.name}] [TARGET] {target['action']} ({target['file']})")
 
         # [INTEGRATION] Web Search for Context (Targeted Optimization)
@@ -234,7 +278,7 @@ class Muninn:
                 else:
                     query = f"python {target.get('action')} {target.get('file', '')}"
 
-                HUD.persona_log("INFO", f"Searching Brave for context: {query}")
+                SovereignHUD.persona_log("INFO", f"Searching Brave for context: {query}")
                 results = searcher.search(query)
                 if results:
                     top = results[0]
@@ -243,14 +287,14 @@ class Muninn:
 
         # [WATCHER] Anti-Oscillation Check
         if self.watcher.is_locked(target['file']):
-            HUD.persona_log("WARN", f"Jurisdiction Denied: {target['file']} is LOCKED (Unstable).")
+            SovereignHUD.persona_log("WARN", f"Jurisdiction Denied: {target['file']} is LOCKED (Unstable).")
             return False
 
         try:
             # 3. FORGE (Execute Fix)
             # [INTEGRATION] Agent Takeover Check
             if self._check_agent_active():
-                 HUD.persona_log("WARN", "Operation C*CLI: Agent is Active. Skipping Auto-Forge.")
+                 SovereignHUD.persona_log("WARN", "Operation C*CLI: Agent is Active. Skipping Auto-Forge.")
                  return False
 
             if not self._forge_improvement(target):
@@ -271,11 +315,11 @@ class Muninn:
 
                 # 6b. [GPHS] Post-Mutation Delta Analysis
                 post_gphs = self.metrics_engine.compute(str(self.root))
-                HUD.persona_log("INFO", f"Global Project Health Score (Post): {post_gphs:.2f}")
+                SovereignHUD.persona_log("INFO", f"Global Project Health Score (Post): {post_gphs:.2f}")
 
                 sprt_result = self.sprt.evaluate_delta(pre_gphs, post_gphs)
                 if sprt_result == 'FAIL':
-                    HUD.persona_log("FAIL", f"GPHS REGRESSION DETECTED (Delta: {post_gphs - pre_gphs:.4f}). Rolling back.")
+                    SovereignHUD.persona_log("FAIL", f"GPHS REGRESSION DETECTED (Delta: {post_gphs - pre_gphs:.4f}). Rolling back.")
                     self.observer.write_suggestion(
                         self.observer.analyze_failure(target['file'], "GPHS Regression Detected"),
                         str(self.root / ".agent" / "ALFRED_SUGGESTIONS.md")
@@ -284,14 +328,19 @@ class Muninn:
                     self._record_metric(selected_strategist, hit=False)
                     return False
 
-                HUD.persona_log("PASS", f"GPHS DELTA SECURED: {post_gphs - pre_gphs:+.4f}")
+                SovereignHUD.persona_log("PASS", f"GPHS DELTA SECURED: {post_gphs - pre_gphs:+.4f}")
                 self._record_metric(selected_strategist, hit=True)
+
+                if self.is_worker:
+                    SovereignHUD.persona_log("INFO", f"[PROMOTION] {target['file']}")
+                    # We print to stdout as well for the orchestrator to capture
+                    print(f"[PROMOTION] {target['file']}")
 
                 # If Campaign task, update the plan
                 if target.get('type') == 'CAMPAIGN_TASK':
                     NornWarden(self.root).mark_complete(target)
-                    if HUD.PERSONA == "ALFRED":
-                        HUD.persona_log("SUCCESS", "I have crossed that item off your list, sir.")
+                    if SovereignHUD.PERSONA == "ALFRED":
+                        SovereignHUD.persona_log("SUCCESS", "I have crossed that item off your list, sir.")
 
                 # [INTEGRATION] Neural Training Hook
                 try:
@@ -302,9 +351,9 @@ class Muninn:
                         metadata = [100.0, 50, 3, 0.01]  # baseline vector
                         warden.train_step(metadata, [0.0])  # label 0 = normal
                         warden.save()
-                        HUD.persona_log("INFO", f"AnomalyWarden evolved. Training step complete.")
+                        SovereignHUD.persona_log("INFO", f"AnomalyWarden evolved. Training step complete.")
                 except Exception as e:
-                    HUD.persona_log("WARN", f"Neural evolution failed: {e}")
+                    SovereignHUD.persona_log("WARN", f"Neural evolution failed: {e}")
 
                 return True
             else:
@@ -318,12 +367,23 @@ class Muninn:
                 return False
 
         except (KeyboardInterrupt, SystemExit):
-            HUD.persona_log("WARN", "Operation interrupted. Distilling current progress.")
+            SovereignHUD.persona_log("WARN", "Operation interrupted. Distilling current progress.")
             self._distill_knowledge(target, success=False)
             raise
         except Exception as e:
-            HUD.persona_log("ERROR", f"Core Execution Failure: {e}")
+            SovereignHUD.persona_log("ERROR", f"Core Execution Failure: {e}")
             return False
+
+    def _emit_metrics_summary(self, scan_results: dict):
+        """[ALFRED] Logs the summary of discovered breaches."""
+        SovereignHUD.persona_log("INFO", "Scan Summary:")
+        if not scan_results:
+            SovereignHUD.persona_log("INFO", "  - No wardens reported.")
+            return
+
+        for warden, counts in scan_results.items():
+            if counts > 0:
+                SovereignHUD.persona_log("INFO", f"  - {warden}: {counts} breaches")
 
     async def _execute_hunt_async(self):
         """
@@ -354,7 +414,7 @@ class Muninn:
             scan_results["ANNEX"] = len(annex_breaches)
             all_breaches.extend(annex_breaches)
         except Exception as e:
-            HUD.persona_log("WARN", f"Heimdall Scan Failed: {e}")
+            SovereignHUD.persona_log("WARN", f"Heimdall Scan Failed: {e}")
 
         # Async Wardens
         tasks = []
@@ -374,7 +434,7 @@ class Muninn:
 
             for name, res in zip(names, results):
                 if isinstance(res, Exception):
-                    HUD.persona_log("WARN", f"{name} Failed: {res}")
+                    SovereignHUD.persona_log("WARN", f"{name} Failed: {res}")
                     scan_results[name] = 0
                 else:
                     scan_results[name] = len(res)
@@ -396,17 +456,23 @@ class Muninn:
         else:
             original_content = "" # New file creation
 
-        HUD.persona_log("INFO", "Forging improvement...")
+        SovereignHUD.persona_log("INFO", "Forging improvement...")
 
         # 1. Generate Test Case (The Gauntlet)
+        SovereignHUD.persona_log("INFO", "Step 1: Generating the Gauntlet (Reproduction Test)...")
         test_path = self._run_gauntlet(target, original_content)
         if not test_path:
+            SovereignHUD.persona_log("FAIL", "Gauntlet generation failed.")
             return False
+        SovereignHUD.persona_log("SUCCESS", f"Gauntlet secured: {test_path.name}")
 
         # 2. Generate Implementation (The Steel)
+        SovereignHUD.persona_log("INFO", "Step 2: Forging the Steel (Implementation Fix)...")
         new_content = self._generate_implementation(target, original_content, test_path)
         if not new_content:
+             SovereignHUD.persona_log("FAIL", "Forge failed to generate implementation.")
              return False
+        SovereignHUD.persona_log("SUCCESS", "Steel forged successfully.")
 
         # 3. Apply Change
         try:
@@ -414,19 +480,20 @@ class Muninn:
             if file_path.exists():
                 shutil.copy(file_path, str(file_path) + ".bak")
 
-            # Write
-            file_path.parent.mkdir(parents=True, exist_ok=True)
+            SovereignHUD.persona_log("INFO", f"Applying mutation to {target['file']}...")
             file_path.write_text(new_content, encoding='utf-8')
 
             # Watcher Record
             if not self.watcher.record_edit(target['file'], new_content):
+                SovereignHUD.persona_log("FAIL", "Watcher rejected the mutation: Potential oscillation or fatigue.")
                 # Rollback if watcher says NO
                 if Path(str(file_path) + ".bak").exists():
                     shutil.copy(str(file_path) + ".bak", file_path)
                 return False
+            SovereignHUD.persona_log("SUCCESS", "Mutation applied and recorded.")
 
         except Exception as e:
-            HUD.persona_log("ERROR", f"Forge failed to write: {e}")
+            SovereignHUD.persona_log("ERROR", f"Forge failed to write: {e}")
             return False
 
         return True
@@ -466,7 +533,7 @@ class Muninn:
 
             return test_file
         except Exception as e:
-            HUD.persona_log("ERROR", f"Gauntlet creation failed: {e}")
+            SovereignHUD.persona_log("ERROR", f"Gauntlet creation failed: {e}")
             return None
 
 
@@ -479,7 +546,7 @@ class Muninn:
         # [Ragnarok] Live Knowledge Injection
         live_docs = scan_and_enrich_imports(original_code, self.root)
         if live_docs:
-            HUD.persona_log("INFO", "Augmenting Forge prompt with live documentation.")
+            SovereignHUD.persona_log("INFO", "Augmenting Forge prompt with live documentation.")
 
         # We append docs to the code so it appears in the context
         augmented_code = original_code + live_docs
@@ -513,7 +580,7 @@ class Muninn:
                 raw_code = response.text
             return sanitize_code(raw_code)
         except Exception as e:
-            HUD.persona_log("ERROR", f"Implementation generation failed: {e}")
+            SovereignHUD.persona_log("ERROR", f"Implementation generation failed: {e}")
             return None
 
     # ==============================================================================
@@ -522,55 +589,74 @@ class Muninn:
 
     def _verify_fix(self, target: dict) -> bool:
         """Runs the test suite to verify the fix."""
-        HUD.persona_log("INFO", "Entering the Crucible (Verification)...")
+        SovereignHUD.persona_log("INFO", "Entering the Crucible (Verification)...")
 
+        import sys
         # 1. Run the specific gauntlet test
-        cmd = ["pytest", str(self.root / "tests" / "gauntlet"), "-v"]
+        SovereignHUD.persona_log("INFO", "Executing Gauntlet Test Suite...")
+        
+        if self.use_docker:
+            SovereignHUD.persona_log("INFO", "Deploying Containerized Crucible for verification...")
+            from src.sentinel.sandbox_warden import SandboxWarden
+            warden = SandboxWarden(timeout=30)
+            # For verification, we just run the gauntlet test file
+            # Ideally, we would mount the whole project, but for now, we test the logic.
+            # Real implementation: build image once, then run.
+            report = warden.run_in_sandbox(self.root / "tests" / "gauntlet" / "test_reproduce.py") # Example path
+            if report["exit_code"] != 0:
+                SovereignHUD.persona_log("FAIL", "Containerized Gauntlet Failed.")
+                return False
+            SovereignHUD.persona_log("PASS", "Containerized Gauntlet Successful.")
+            return True
+
+        cmd = [sys.executable, "-m", "pytest", str(self.root / "tests" / "gauntlet"), "-v"]
         try:
             result = subprocess.run(cmd, capture_output=True, text=True)
             if result.returncode != 0:
-                HUD.persona_log("FAIL", "Gauntlet Verification Failed.")
+                SovereignHUD.persona_log("FAIL", "Gauntlet Verification Failed.")
+                SovereignHUD.persona_log("DEBUG", f"Pytest Output: {result.stdout}")
                 return False
+            SovereignHUD.persona_log("PASS", "Gauntlet Verification Successful.")
         except Exception as e:
-            HUD.persona_log("FAIL", f"Gauntlet Verification execution failed: {e}")
+            SovereignHUD.persona_log("FAIL", f"Gauntlet Verification execution failed: {e}")
             return False
 
         # 2. Run relevant unit tests (Regression Check)
         # Scan for related tests
-        cmd_reg = ["pytest", "tests/unit", "-k", Path(target['file']).stem]
+        cmd_reg = [sys.executable, "-m", "pytest", "tests/unit", "-k", Path(target['file']).stem]
         try:
             reg_result = subprocess.run(cmd_reg, capture_output=True, text=True)
             if reg_result.returncode != 0:
-                HUD.persona_log("WARN", f"Regression test flagged: {Path(target['file']).stem}")
+                SovereignHUD.persona_log("WARN", f"Regression test flagged: {Path(target['file']).stem}")
         except Exception as e:
-            HUD.persona_log("WARN", f"Regression Verification execution failed: {e}")
+            SovereignHUD.persona_log("WARN", f"Regression Verification execution failed: {e}")
         # We don't strictly fail on regression here yet, but we could.
 
         return True
 
     def _verify_sprt_stability(self, target: dict) -> bool:
         """Runs Gungnir SPRT to statistically verify stability."""
-        HUD.persona_log("INFO", "Running Gungnir SPRT verification...")
+        SovereignHUD.persona_log("INFO", "Running Gungnir SPRT verification...")
 
         # Use a quick 3-run check for now
         # Ideally we run the test N times
         validator = GungnirValidator()
 
         for i in range(3):
-            cmd = ["pytest", str(self.root / "tests" / "gauntlet"), "-q"]
+            cmd = [sys.executable, "-m", "pytest", str(self.root / "tests" / "gauntlet"), "-q"]
             try:
                 res = subprocess.run(cmd, capture_output=True, text=True)
                 success = (res.returncode == 0)
             except Exception as e:
-                HUD.persona_log("FAIL", f"SPRT test execution failed: {e}")
+                SovereignHUD.persona_log("FAIL", f"SPRT test execution failed: {e}")
                 success = False
             validator.record_trial(success)
 
             if validator.status == "REJECT":
-                 HUD.persona_log("FAIL", "Gungnir: Fix is statistically FLAKY.")
+                 SovereignHUD.persona_log("FAIL", "Gungnir: Fix is statistically FLAKY.")
                  return False
             if validator.status == "ACCEPT":
-                 HUD.persona_log("PASS", "Gungnir: Fix is statistically STABLE.")
+                 SovereignHUD.persona_log("PASS", "Gungnir: Fix is statistically STABLE.")
                  return True
 
         return True # Default pass if inclusive
@@ -586,7 +672,7 @@ class Muninn:
         backup = Path(str(file_path) + ".bak")
         if backup.exists():
             shutil.copy(backup, file_path)
-            HUD.persona_log("WARN", "Changes rolled back.")
+            SovereignHUD.persona_log("WARN", "Changes rolled back.")
 
     def _record_metric(self, strategist: str, hit: bool):
         """Records success/fail rate for each warden."""
@@ -597,10 +683,69 @@ class Muninn:
         if hit:
             self._strategist_metrics[strategist]["success"] += 1
 
-    def _emit_metrics_summary(self, scan_results: dict):
-        """Logs the summary of the scan."""
-        summary = ", ".join([f"{k}:{v}" for k,v in scan_results.items()])
-        logging.info(f"[{self.root.name}] [SCAN] {summary}")
+    def _orchestrate_shadow_forge(self) -> bool:
+        """Host-side orchestration of the Shadow Forge cycle."""
+        if self.mock_mode:
+            image_name = "sentinel-sandbox" # Specific image for mock/sandbox
+        else:
+            image_name = "sentinel-sandbox"
+        
+        # Check if image exists
+        try:
+            check_img = subprocess.run(["docker", "image", "inspect", image_name], capture_output=True)
+            if check_img.returncode != 0:
+                SovereignHUD.persona_log("FAIL", f"[ORCHESTRATOR] Docker Image '{image_name}' not found. Please build it first.")
+                return False
+        except Exception:
+            SovereignHUD.persona_log("FAIL", "[ORCHESTRATOR] Docker daemon not responsive.")
+            return False
+
+        # Build command
+        cmd = [
+            "docker", "run",
+            "--name", container_name,
+            "-v", f"{proj_root}:/app:ro", # RO Mount
+            "-e", "SHADOW_FORGE_WORKER=true",
+            "-e", f"MOCK_MODE={'true' if self.mock_mode else 'false'}",
+            "-e", f"GOOGLE_API_KEY={os.getenv('GOOGLE_API_KEY', '')}",
+            "-e", f"MUNINN_API_KEY={os.getenv('MUNINN_API_KEY', '')}",
+            "sentinel-sandbox",
+            "python", "-m", "src.sentinel.muninn"
+        ]
+        
+        try:
+            SovereignHUD.persona_log("INFO", f"[ORCHESTRATOR] Starting transient worker {container_name}...")
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            
+            if result.returncode == 0:
+                SovereignHUD.persona_log("SUCCESS", "[ORCHESTRATOR] Shadow Forge Cycle Verified.")
+                # Atomic Promotion: Pull the fixed file (We need to know which one was fixed)
+                # For now, we'll assume the worker logs or signal the chosen file.
+                # A more robust way is to have the worker write metadata to stdout.
+                return self._promote_from_container(container_name, result.stdout)
+            else:
+                SovereignHUD.persona_log("FAIL", f"[ORCHESTRATOR] Shadow Forge Failed (Code {result.returncode})")
+                SovereignHUD.persona_log("DEBUG", result.stderr)
+                return False
+        finally:
+            subprocess.run(["docker", "rm", "-f", container_name], capture_output=True)
+
+    def _promote_from_container(self, container_name: str, stdout: str) -> bool:
+        """Extracts fixed files from the container layer."""
+        # Simple extraction: look for [PROMOTION] tags in stdout
+        import re
+        matches = re.findall(r"\[PROMOTION\]\s+(.*)", stdout)
+        if not matches:
+            SovereignHUD.persona_log("WARN", "[ORCHESTRATOR] No promotion targets detected.")
+            return False
+            
+        for target in matches:
+            target_clean = target.strip()
+            dest = self.root / target_clean
+            SovereignHUD.persona_log("INFO", f"[ORCHESTRATOR] Promoting {target_clean} to host...")
+            subprocess.run(["docker", "cp", f"{container_name}:/app/{target_clean}", str(dest)], check=True)
+        
+        return True
 
     def _distill_knowledge(self, target: dict = None, success: bool = False):
         """
@@ -688,11 +833,21 @@ class Muninn:
 
 if __name__ == "__main__":
     import argparse
+    from tests.harness.raven_proxy import RavenProxy
+    
     p = argparse.ArgumentParser()
     p.add_argument("--audit", action="store_true")
+    p.add_argument("--mock", action="store_true", help="Enable mock mode for the Ravens Protocol.")
+    p.add_argument("--shadow-forge", "--docker", action="store_true", help="Run the entire cycle inside a sandboxed Docker container.")
     args = p.parse_args()
+    
+    proxy = None
+    if args.mock and not args.shadow_forge:
+        SovereignHUD.persona_log("INFO", "Engaging Mock Mode (RavenProxy)...")
+        proxy = RavenProxy(mock_mode=True)
+
     try:
-        m = Muninn()
+        m = Muninn(client=proxy, use_docker=args.shadow_forge)
         m.run()
     except Exception as e:
-        HUD.persona_log("CRITICAL", f"Muninn Terminated: {e}")
+        SovereignHUD.persona_log("CRITICAL", f"Muninn Terminated: {e}")

@@ -1,13 +1,46 @@
-# Walkthrough: Session 83 - Cognitive Hub & Sovereign HUD Patch
+# Walkthrough: Session 84 - Shadow Forge Protocol (Full-Cycle Sandboxing)
 
 ## 🎯 Goal
-Implement tiered AI routing via the Cognitive Router and upgrade the Sovereign HUD with real-time telemetry intercepts and "EDGE" health monitoring.
+Implement the Shadow Forge Protocol to provide full Workspace Sandboxing for the Ravens, ensuring the entire Hunt -> Forge -> Crucible cycle executes in a zero-trust, isolated Docker environment.
+
+## 🏆 Results
+| Metric | Value |
+|:---|:---|
+| **Isolation Model** | **Physical (Docker)** |
+| **Mount Strategy** | **Read-Only (:ro)** |
+| **Promotion Model** | **Atomic (docker cp)** |
+| **Verification** | **100% Pass** (Orchestration logic) |
+
+## 🛠️ Key Changes
+
+### 1. Shadow Forge Orchestrator (`muninn.py`)
+- **Isolated Lifecycle**: Implemented host-side orchestration that spawns a transient container, mounts the project as read-only, and injects necessary credentials and mode flags via environment variables.
+- **Atomic Promotion**: Only upon successful container exit (Crucible verified) does the orchestrator pull the modified file back to the host.
+
+### 2. Shadow Workspace Mirroring (`muninn.py`)
+- **Ephemeral Environment**: The worker container automatically mirrors the read-only `/app` mount to a writable `/shadow_forge` layer, enabling internal repairs and testing without host pollution.
+
+### 3. Universal Sentinel Runtime (`Dockerfile.sentinel`)
+- **Audit Readiness**: Configured the standard sandbox image with `ruff`, `vulture`, and `radon` to support the full Ravens auditing toolset during sandboxed execution.
+
+## 🤝 Session Handshake
+**Session Delta**:
+- Deployed Shadow Forge Protocol for zero-trust repairs.
+- Implemented RO-mount and `docker cp` promotion pipeline.
+- Added `--shadow-forge` CLI support to Muninn and the main loop.
+
+**Resume Directive**:
+- To test isolated fix: `python src/sentinel/muninn.py --shadow-forge --mock`.
+
+
+## 🎯 Goal
+Implement tiered AI routing via the Cognitive Router and upgrade the Sovereign SovereignHUD with real-time telemetry intercepts and "EDGE" health monitoring.
 
 ## 🏆 Results
 | Metric | Value |
 |:---|:---|
 | **Routing Strategy** | **Tiered** (Ollama/Edge vs. Gemini/Core) |
-| **Edge Health** | **Live** (HUD Status Bar Integration) |
+| **Edge Health** | **Live** (SovereignHUD Status Bar Integration) |
 | **Intercepts** | **Active** (Zero-cost inference visualization) |
 | **Verification** | **100% Pass** (`verify_router.ts`) |
 
@@ -17,7 +50,7 @@ Implement tiered AI routing via the Cognitive Router and upgrade the Sovereign H
 - **Tiered Logic**: Implemented a router that bifurcates traffic based on intent complexity. Zero-cost "Edge" intents are routed to local Ollama; complex "Core" intents go to the Gungnir Matrix.
 - **Gateway Hook**: Integrated the router into the `/api/intent` route, providing a unified entry point for all spoke applications.
 
-### 2. HUD Telemetry Patch (`tui.py`)
+### 2. SovereignHUD Telemetry Patch (`tui.py`)
 - **Vitals Upgrade**: Added an "EDGE" status label to the header to track local Ollama availability.
 - **Message Intercepts**: Patched `handle_daemon_message` to capture and display `INFERENCE_RESULT` (from Ollama) and `TELEMETRY` (from the Cognitive Router) with distinct styling.
 
@@ -27,7 +60,7 @@ Implement tiered AI routing via the Cognitive Router and upgrade the Sovereign H
 ## 🤝 Session Handshake
 **Session Delta**:
 - Deployed Cognitive Router for tiered inference.
-- Patched Sovereign HUD with real-time edge telemetry.
+- Patched Sovereign SovereignHUD with real-time edge telemetry.
 - Verified system stability with 100% test pass rate.
 
 **Resume Directive**:
@@ -104,10 +137,10 @@ Implement Phase 2 (Multi-Tenant Memory) and Phase 3 (Universal Event Router) to 
 **Resume Directive**:
 - Proceed to Phase 4 in `tasks.qmd` (Intent-Driven Hub Overlays).
 
-# Walkthrough: Session 80 - Sovereign HUD Async Layer
+# Walkthrough: Session 80 - Sovereign SovereignHUD Async Layer
 
 ## 🎯 Goal
-Evolve the `HUD` class to support high-velocity asynchronous broadcasts from multiple daemons (ODIN, Muninn, Warden) without terminal tearing, and implement a safe interruption protocol for typewriter streaming.
+Evolve the `SovereignHUD` class to support high-velocity asynchronous broadcasts from multiple daemons (ODIN, Muninn, Warden) without terminal tearing, and implement a safe interruption protocol for typewriter streaming.
 
 ## 🏆 Results
 | Metric | Value |
@@ -133,7 +166,7 @@ Evolve the `HUD` class to support high-velocity asynchronous broadcasts from mul
 
 ## 🤝 Session Handshake
 **Session Delta**:
-- Augmented `HUD` with an industrial-grade async rendering layer.
+- Augmented `SovereignHUD` with an industrial-grade async rendering layer.
 - Stabilized terminal state during typewriter streaming interruptions.
 - Created mathematical proof of zero-tearing UI.
 
@@ -329,7 +362,7 @@ Implement the AnomalyWarden's active sentinel capabilities, including a persiste
 **Resume Directive**:
 - Proceed to Phase 62 in `tasks.qmd` (Node.js CortexLink Alignment).
 
-# Walkthrough: Session 74 - The Sovereign HUD Rebirth (Persona Architecture Refactor)
+# Walkthrough: Session 74 - The Sovereign SovereignHUD Rebirth (Persona Architecture Refactor)
 
 ## 🎯 Goal
 Overhaul the Corvus Star Terminal UI (TUI) and Daemon by migrating to a lightning-fast, fully asynchronous Pure WebSockets architecture, decoupling the TUI to be a reactive client, and implementing gamified cinematic persona transitions.
@@ -685,7 +718,7 @@ Eradicate all remaining PowerShell dependencies by bootstrapping a native Node.j
 # Walkthrough: Session 62 - Operation Ragnarök: DOOM Aesthetic & WAR ROOM
 
 ## 🎯 Goal
-Overhaul the Sovereign HUD's ODIN theme to achieve an aggressive DOOM/Quake-inspired aesthetic, redesign the WAR ROOM sidebar as a battle briefing panel, fix a command input crash, and resolve a keybinding conflict with the IDE.
+Overhaul the Sovereign SovereignHUD's ODIN theme to achieve an aggressive DOOM/Quake-inspired aesthetic, redesign the WAR ROOM sidebar as a battle briefing panel, fix a command input crash, and resolve a keybinding conflict with the IDE.
 
 ## 🏆 Results
 | Metric | Value |
@@ -844,14 +877,14 @@ Expose the internal `BraveSearch` tool to the interactive CLI to allow for manua
 |:---|:---|
 | **CLI Access** | **Active** (`src.tools.brave_search`) |
 | **Env Safety** | **Bootstrapped** (Auto-load .env) |
-| **UX** | **HUD Integrated** (Themed Output) |
+| **UX** | **SovereignHUD Integrated** (Themed Output) |
 
 ## 🛠️ Key Changes
 
 ### 1. CLI Exposure (`src/tools/brave_search.py`)
 - **Main Block**: Added `if __name__ == "__main__":` logic to parse `sys.argv` and execute searches.
 - **Bootstrap**: Integrated `src.sentinel._bootstrap` to ensure `BRAVE_API_KEY` is loaded from `.env.local`.
-- **HUD Output**: Formatted results using `HUD.box_top` and color-coded entries for readability.
+- **SovereignHUD Output**: Formatted results using `SovereignHUD.box_top` and color-coded entries for readability.
 
 ## 🤝 Session Handshake
 **Session Delta**:
@@ -1077,7 +1110,7 @@ Fulfill the protocol requirement for 40 manual learning cycles by addressing mis
 ### 2. Logic Remediation
 - **report_engine.py**: Fixed verdict icon logic for success/failure alignment.
 - **security_scan.py**: Implemented word-boundary matching to prevent regex false positives.
-- **trace_viz.py**: Resolved persona state leakage by isolating `HUD` instances.
+- **trace_viz.py**: Resolved persona state leakage by isolating `SovereignHUD` instances.
 - **dedupe_corrections.py**: Hardened JSON parsing to handle malformed entries gracefully.
 
 ### 3. SovereignFish Improvements
@@ -1157,7 +1190,7 @@ Complete the **Six-Pillar Improvement Campaign** (Phases 2 & 3) to harden the So
 
 ### 3. Persona Immersion
 - **Registry Pattern**: Refactored `personas.py` and `ui.py` to use `_PERSONA_REGISTRY` and `_THEME_REGISTRY` for scalable additions.
-- **Transition Ceremony**: `HUD.transition_ceremony()` now plays a dramatic 3-phase ANSI animation when switching identities.
+- **Transition Ceremony**: `SovereignHUD.transition_ceremony()` now plays a dramatic 3-phase ANSI animation when switching identities.
 
 ## 🤝 Session Handshake
 **Session Delta**:
@@ -1244,7 +1277,7 @@ Eliminate the "Gauntlet Crash" cycle by implementing a proactive code sanitizati
 ## 🤝 Session Handshake
 **Session Delta**:
 - Implemented Bifrost Gate sanitizer with auto-repair (Syntax/Indent/Import).
-- [x] Hybrid Calibration: Restored .md for workflows; verified Persona sync and HUD aesthetics. [x]
+- [x] Hybrid Calibration: Restored .md for workflows; verified Persona sync and SovereignHUD aesthetics. [x]
 - [x] SPRT Calibration: Adjusted integrity threshold to 90% and hardened adversarial testing. [x]
 - Created 100-iteration Ravens Harness for reliable regression testing.
 - Rebranded all Strategists to Norse Wardens.
@@ -1369,7 +1402,7 @@ To resume, consult `tasks.qmd` → **Phase 34: Annexation**.
 # Walkthrough: Session 51 - Persona Synchronization & Core Hardening
 
 ## 🎯 Goal
-Resolve persona activation issues where HUD responses failed to sync with the active identity; harden core utilities for Pathlib compliance and signal handling.
+Resolve persona activation issues where SovereignHUD responses failed to sync with the active identity; harden core utilities for Pathlib compliance and signal handling.
 
 ## 🏆 Results
 | Metric | Value |
@@ -1377,12 +1410,12 @@ Resolve persona activation issues where HUD responses failed to sync with the ac
 | **Persona Sync** | **100% Compliance** (Lazy-loading Active) |
 | **Daemon Health** | **Graceful Shutdown** (SIGINT/SIGTERM) |
 | **Code Standard** | **Pathlib Universal** (src/core/ standardized) |
-| **Warden UI** | **Heimdall HUD-ified** (Persona-aware audit) |
+| **Warden UI** | **Heimdall SovereignHUD-ified** (Persona-aware audit) |
 
 ## 🛠️ Key Changes
 
 ### 1. Lazy Persona Synchronization (`src/core/ui.py`)
-- **Self-Initializing HUD**: Implemented `_ensure_persona()` to lazy-load identity from `config.json` on the first call. This ensures 100% persona alignment even in sub-processes and deep imports.
+- **Self-Initializing SovereignHUD**: Implemented `_ensure_persona()` to lazy-load identity from `config.json` on the first call. This ensures 100% persona alignment even in sub-processes and deep imports.
 
 ### 2. Graceful Raven Resilience (`src/sentinel/main_loop.py`)
 - **Signal Intercept**: Integrated SIGINT and SIGTERM handling into the Raven Daemon.
@@ -1390,15 +1423,15 @@ Resolve persona activation issues where HUD responses failed to sync with the ac
 
 ### 3. Core Hardening (`src/core/`)
 - **Pathlib Standard**: Standardized `personas.py`, `annex.py`, and `utils.py` to use absolute Pathlib objects.
-- **HUD Integration**: Refactored `annex.py` (Heimdall) to utilize HUD themed output, bringing terminal audits into lore alignment.
+- **SovereignHUD Integration**: Refactored `annex.py` (Heimdall) to utilize SovereignHUD themed output, bringing terminal audits into lore alignment.
 - **Utility Fix**: Resolved missing imports in `utils.py` (re, sys, queue, threading).
 
 ## 🤝 Session Handshake
 **Session Delta**:
-- Fixed persona synchronization in HUD.
+- Fixed persona synchronization in SovereignHUD.
 - Implemented graceful shutdown for Raven Daemon.
 - Pathlib-ized core infrastructure modules.
-- HUD-ified Annexation Warden.
+- SovereignHUD-ified Annexation Warden.
 
 **Resume Directive**:
 To resume, start here: `c* annex --scan`.
@@ -1447,7 +1480,7 @@ Implement and execute the "Sovereign Commit" protocol to autonomously validate, 
 # Walkthrough: Session 61 (Phase 47) - TUI Cinematic & Persistence
 
 ## 🎯 Goal
-Stabilize the Sovereign HUD by resolving CSS regressions, implementing cinematic transitions for persona switching, and establishing an "Empire-Class" test suite for HUD verification.
+Stabilize the Sovereign SovereignHUD by resolving CSS regressions, implementing cinematic transitions for persona switching, and establishing an "Empire-Class" test suite for SovereignHUD verification.
 
 ## 🏆 Results
 | Metric | Value |
@@ -1468,7 +1501,7 @@ Stabilize the Sovereign HUD by resolving CSS regressions, implementing cinematic
 - **Layout Grid**: Maintained 4-zone synchronization across theme changes.
 
 ### 3. Verification Suite (`tests/empire_tests/test_tui_empire.py`)
-- **Instantiation**: Verified the HUD can boot without a running daemon.
+- **Instantiation**: Verified the SovereignHUD can boot without a running daemon.
 - **Daemon Mock**: Simulated success and failure (graceful degradation) for `DaemonClient`.
 - **CSS Check**: Validated that the `TITLE` and layouts are correctly parsed.
 

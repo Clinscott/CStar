@@ -306,7 +306,7 @@ def scan_and_enrich_imports(code: str, project_root: Path) -> str:
     if not searcher.is_quota_available():
         return ""
 
-    from src.core.ui import HUD
+    from src.core.sovereign_hud import SovereignHUD
     context_snippets = []
     processed = set()
 
@@ -315,7 +315,7 @@ def scan_and_enrich_imports(code: str, project_root: Path) -> str:
         processed.add(module)
 
         query = f"{module} latest documentation python"
-        HUD.persona_log("INFO", f"Injecting live docs for unknown module: {module}")
+        SovereignHUD.persona_log("INFO", f"Injecting live docs for unknown module: {module}")
 
         results = searcher.search(query)
         if results:

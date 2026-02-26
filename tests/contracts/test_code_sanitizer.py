@@ -132,7 +132,7 @@ class TestValidateImports:
         assert bad == []
 
     def test_src_imports_pass(self):
-        code = "from src.core.ui import HUD\n"
+        code = "from src.core.sovereign_hud import SovereignHUD\n"
         bad = validate_imports(code, project_root)
         assert bad == []
 

@@ -12,7 +12,7 @@ from typing import Dict, List, Optional, Tuple
 
 # Resolve shared UI from src/core/
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "core"))
-from ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 
 class StatsCollector:
@@ -44,36 +44,36 @@ class OverwatchRenderer:
         self.latency_trend: List[float] = []
 
     def render_header(self):
-        print(f"\n{HUD.RED}{HUD.BOLD}Ω NEURAL OVERWATCH Ω{HUD.RESET}")
-        print(f"{HUD.DIM}Monitoring Federated Network...{HUD.RESET}\n")
-        HUD.log("INFO", "System Online", "Listening on mock_project/network_share")
+        print(f"\n{SovereignHUD.RED}{SovereignHUD.BOLD}Ω NEURAL OVERWATCH Ω{SovereignHUD.RESET}")
+        print(f"{SovereignHUD.DIM}Monitoring Federated Network...{SovereignHUD.RESET}\n")
+        SovereignHUD.log("INFO", "System Online", "Listening on mock_project/network_share")
 
     def render_heatmap(self, threat_matrix: List[float]):
         """Render a 5x5 sc-fi security heatmap."""
-        print(f"\n{HUD.BOLD}SECURITY HEATMAP [HEIMDALL SCAN]{HUD.RESET}")
+        print(f"\n{SovereignHUD.BOLD}SECURITY HEATMAP [HEIMDALL SCAN]{SovereignHUD.RESET}")
         for i in range(0, 25, 5):
             row = threat_matrix[i:i+5]
             row_str = " ".join([self._color_cell(v) for v in row])
             print(f"  {row_str}")
-        print(f"{HUD.DIM}Status: Secure / Low Threat{HUD.RESET}")
+        print(f"{SovereignHUD.DIM}Status: Secure / Low Threat{SovereignHUD.RESET}")
 
     def _color_cell(self, val: float) -> str:
-        if val > 0.8: return f"{HUD.RED}■{HUD.RESET}"
-        if val > 0.4: return f"{HUD.YELLOW}■{HUD.RESET}"
-        return f"{HUD.GREEN}■{HUD.RESET}"
+        if val > 0.8: return f"{SovereignHUD.RED}■{SovereignHUD.RESET}"
+        if val > 0.4: return f"{SovereignHUD.YELLOW}■{SovereignHUD.RESET}"
+        return f"{SovereignHUD.GREEN}■{SovereignHUD.RESET}"
 
     def render_pulse_logs(self, logs: List[str]):
         """Render the 5 most recent neural pulse events."""
-        print(f"\n{HUD.BOLD}NEURAL PULSE LOGS [LATEST INTENTS]{HUD.RESET}")
+        print(f"\n{SovereignHUD.BOLD}NEURAL PULSE LOGS [LATEST INTENTS]{SovereignHUD.RESET}")
         for log in logs[-5:]:
-            print(f"  {HUD.DIM}»{HUD.RESET} {HUD.CYAN}{log}{HUD.RESET}")
-        if not logs: print(f"  {HUD.DIM}(Waiting for signal...){HUD.RESET}")
+            print(f"  {SovereignHUD.DIM}»{SovereignHUD.RESET} {SovereignHUD.CYAN}{log}{SovereignHUD.RESET}")
+        if not logs: print(f"  {SovereignHUD.DIM}(Waiting for signal...){SovereignHUD.RESET}")
 
     def update_latency(self, lat: float):
         self.latency_trend.append(lat)
         if len(self.latency_trend) > 20: self.latency_trend.pop(0)
         status = "PASS" if lat < 100 else "WARN"
-        HUD.log(status, f"Engine Latency: {lat:.2f}ms", f"Trend: {HUD.render_sparkline(self.latency_trend)}")
+        SovereignHUD.log(status, f"Engine Latency: {lat:.2f}ms", f"Trend: {SovereignHUD.render_sparkline(self.latency_trend)}")
 
 class InputManager:
     """[ALFRED] Non-blocking input handler for interactive controls."""
@@ -111,30 +111,30 @@ class Overwatch:
                 time.sleep(0.1)
                 self.pulse += 1
             except KeyboardInterrupt:
-                HUD.log("INFO", "Overwatch Shutdown"); sys.exit(0)
+                SovereignHUD.log("INFO", "Overwatch Shutdown"); sys.exit(0)
             except Exception as e:
-                HUD.log("FAIL", f"Monitor Error: {str(e)[:40]}"); time.sleep(5)
+                SovereignHUD.log("FAIL", f"Monitor Error: {str(e)[:40]}"); time.sleep(5)
 
     def _handle_input(self):
         cmd = InputManager.poll()
         if not cmd: return
-        if cmd == 'q': HUD.log("INFO", "Overwatch Shutdown"); sys.exit(0)
+        if cmd == 'q': SovereignHUD.log("INFO", "Overwatch Shutdown"); sys.exit(0)
         elif cmd == 'c': os.system('cls'); self.renderer.render_header()
         elif cmd == 'h': self.renderer.render_heatmap([0.1]*25)
         elif cmd == 'p':
             rej_path = self.collector.rej_path
             if os.path.exists(rej_path):
                 with open(rej_path, 'w', encoding='utf-8') as f: f.write("# Rejection Ledger\n\n")
-                HUD.log("WARN", "Rejection Ledger Purged")
+                SovereignHUD.log("WARN", "Rejection Ledger Purged")
 
     def _check_delta(self):
         curr = self.collector.collect()
         if curr["cases"] > self.last_stats["cases"]:
-            HUD.log("PASS", f"Ingested {curr['cases'] - self.last_stats['cases']} new traces", f"(Total: {curr['cases']})")
+            SovereignHUD.log("PASS", f"Ingested {curr['cases'] - self.last_stats['cases']} new traces", f"(Total: {curr['cases']})")
         if curr["rejections"] > self.last_stats["rejections"]:
-            HUD.log("WARN", f"New Trace Rejected", f"(Total: {curr['rejections']})")
+            SovereignHUD.log("WARN", f"New Trace Rejected", f"(Total: {curr['rejections']})")
         if curr["war_zones"] > self.last_stats["war_zones"]:
-            HUD.log("CRITICAL", "New War Zone Detected")
+            SovereignHUD.log("CRITICAL", "New War Zone Detected")
         self.last_stats = curr
 
     def _measure_latency(self):

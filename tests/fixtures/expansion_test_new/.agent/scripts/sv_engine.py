@@ -16,11 +16,11 @@ if sys.platform == "win32" and hasattr(sys.stdout, "reconfigure"):
 
 # Import Shared UI
 try:
-    from ui import HUD
+    from src.core.sovereign_hud import SovereignHUD
 except ImportError:
     # Fallback if run from different context without sys.path setup
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-    from ui import HUD
+    from src.core.sovereign_hud import SovereignHUD
 
 # PROPOSAL 1 & 3: IRON CORTEX
 from engine import Cortex, DialogueRetriever, SovereignVector
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     
     # Apply Persona Configuration
     persona_name = config.get("Persona", "ALFRED")
-    HUD.PERSONA = persona_name.upper()
+    SovereignHUD.PERSONA = persona_name.upper()
 
     # Initialize Strategies
     strategy = personas.get_strategy(persona_name, project_root)
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     # Initialize Dialogue
     voice_file = strategy.get_voice() + ".md"
     dialogue_path = os.path.join(project_root, "dialogue_db", voice_file)
-    HUD.DIALOGUE = DialogueRetriever(dialogue_path)
+    SovereignHUD.DIALOGUE = DialogueRetriever(dialogue_path)
 
     # Argument Parsing
     parser = argparse.ArgumentParser(description="Corvus Star SovereignVector Engine")
@@ -75,11 +75,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     if args.benchmark:
-        HUD.box_top("DIAGNOSTIC")
-        HUD.box_row("ENGINE", "SovereignVector 2.5 (Iron Cortex)", HUD.CYAN)
-        HUD.box_row("PERSONA", HUD.PERSONA, HUD.MAGENTA)
-        HUD.box_row("ENCODING", sys.stdout.encoding, HUD.GREEN)
-        HUD.box_bottom()
+        SovereignHUD.box_top("DIAGNOSTIC")
+        SovereignHUD.box_row("ENGINE", "SovereignVector 2.5 (Iron Cortex)", SovereignHUD.CYAN)
+        SovereignHUD.box_row("PERSONA", SovereignHUD.PERSONA, SovereignHUD.MAGENTA)
+        SovereignHUD.box_row("ENCODING", sys.stdout.encoding, SovereignHUD.GREEN)
+        SovereignHUD.box_bottom()
         sys.exit(0)
 
     query_text = " ".join(args.query)
@@ -96,30 +96,30 @@ if __name__ == "__main__":
         cortex = Cortex(project_root, base_path)
         results = cortex.query(query_text)
         
-        HUD.box_top("CORTEX KNOWLEDGE QUERY")
-        HUD.box_row("QUERY", query_text, HUD.BOLD)
-        HUD.box_separator()
+        SovereignHUD.box_top("CORTEX KNOWLEDGE QUERY")
+        SovereignHUD.box_row("QUERY", query_text, SovereignHUD.BOLD)
+        SovereignHUD.box_separator()
         
         if not results:
-             HUD.box_row("RESULT", "NO DATA FOUND", HUD.RED)
+             SovereignHUD.box_row("RESULT", "NO DATA FOUND", SovereignHUD.RED)
         else:
             top = results[0]
             # Show top 3
             for r in results[:3]:
                 score = r['score']
-                color = HUD.GREEN if score > THRESHOLDS["REC"] else HUD.YELLOW
-                HUD.box_row("SOURCE", r['trigger'], HUD.MAGENTA, dim_label=True)
-                HUD.box_row("RELEVANCE", f"{score:.2f}", color, dim_label=True)
-                HUD.box_separator()
+                color = SovereignHUD.GREEN if score > THRESHOLDS["REC"] else SovereignHUD.YELLOW
+                SovereignHUD.box_row("SOURCE", r['trigger'], SovereignHUD.MAGENTA, dim_label=True)
+                SovereignHUD.box_row("RELEVANCE", f"{score:.2f}", color, dim_label=True)
+                SovereignHUD.box_separator()
         
-        HUD.box_bottom()
+        SovereignHUD.box_bottom()
         sys.exit(0)
 
     # 0. Enforce Operational Policy (Interactive Mode Only)
     if not query_text and not args.json:
         policy_results = strategy.enforce_policy()
         for res in policy_results:
-            print(f"[{HUD.PERSONA}] {res}")
+            print(f"[{SovereignHUD.PERSONA}] {res}")
 
     # Initialize Engine (Normal Mode)
     engine = SovereignVector(
@@ -136,10 +136,10 @@ if __name__ == "__main__":
     knowledge_core = config.get("KnowledgeCore")
     if knowledge_core:
         if not os.path.exists(knowledge_core): 
-            if HUD.PERSONA == "ODIN":
-                 print(f"{HUD._get_theme()['dim']}>> [Ω] WARNING: Mimir's Eye is blind. Path not found: {knowledge_core}{HUD.RESET}")
+            if SovereignHUD.PERSONA == "ODIN":
+                 print(f"{SovereignHUD._get_theme()['dim']}>> [Ω] WARNING: Mimir's Eye is blind. Path not found: {knowledge_core}{SovereignHUD.RESET}")
             else:
-                 print(f"{HUD._get_theme()['dim']}>> [C*] Briefing: Knowledge Core unreachable at {knowledge_core}{HUD.RESET}")
+                 print(f"{SovereignHUD._get_theme()['dim']}>> [C*] Briefing: Knowledge Core unreachable at {knowledge_core}{SovereignHUD.RESET}")
         else:
             global_path = os.path.join(knowledge_core, "skills")
             if os.path.exists(global_path):
@@ -178,7 +178,7 @@ if __name__ == "__main__":
                 "match": top_match['trigger'],
                 "score": top_match['score'],
                 "is_global": top_match['is_global'],
-                "persona": HUD.PERSONA,
+                "persona": SovereignHUD.PERSONA,
                 "timestamp": config.get("version", "unknown")
             }
             with open(trace_path, "w", encoding='utf-8') as f:
@@ -200,71 +200,71 @@ if __name__ == "__main__":
         
         # Neural Handshake Animation
         if top_match and top_match['score'] > THRESHOLDS["HANDSHAKE"]:
-            theme = HUD._get_theme()
-            print(f"{theme['dim']}>> ESTABLISHING ROBUST LINK...{HUD.RESET}", end="\r")
+            theme = SovereignHUD._get_theme()
+            print(f"{theme['dim']}>> ESTABLISHING ROBUST LINK...{SovereignHUD.RESET}", end="\r")
             time.sleep(0.3)
-            print(f"{theme['main']}>> LINK ESTABLISHED           {HUD.RESET}")
+            print(f"{theme['main']}>> LINK ESTABLISHED           {SovereignHUD.RESET}")
 
-        HUD.box_top() 
+        SovereignHUD.box_top() 
         
-        intent_label = "COMMAND" if HUD.PERSONA == "ODIN" else "User Intent"
-        HUD.box_row(intent_label, query_text, HUD.BOLD)
+        intent_label = "COMMAND" if SovereignHUD.PERSONA == "ODIN" else "User Intent"
+        SovereignHUD.box_row(intent_label, query_text, SovereignHUD.BOLD)
         
         if top_match:
             score = top_match['score']
-            score_color = HUD.GREEN if score > THRESHOLDS["ACCURACY"] else HUD.YELLOW
-            if HUD.PERSONA == "ODIN": score_color = HUD.RED if score > THRESHOLDS["ACCURACY"] else HUD.YELLOW
+            score_color = SovereignHUD.GREEN if score > THRESHOLDS["ACCURACY"] else SovereignHUD.YELLOW
+            if SovereignHUD.PERSONA == "ODIN": score_color = SovereignHUD.RED if score > THRESHOLDS["ACCURACY"] else SovereignHUD.YELLOW
             
-            is_global = f"{HUD.MAGENTA}[GLOBAL]{HUD.RESET} " if top_match['is_global'] else ""
+            is_global = f"{SovereignHUD.MAGENTA}[GLOBAL]{SovereignHUD.RESET} " if top_match['is_global'] else ""
             
-            bar = HUD.progress_bar(score)
-            match_label = "ENTITY DETECTED" if HUD.PERSONA == "ODIN" else "Match"
-            conf_label = "PROBABILITY" if HUD.PERSONA == "ODIN" else "Confidence"
+            bar = SovereignHUD.progress_bar(score)
+            match_label = "ENTITY DETECTED" if SovereignHUD.PERSONA == "ODIN" else "Match"
+            conf_label = "PROBABILITY" if SovereignHUD.PERSONA == "ODIN" else "Confidence"
             
-            HUD.box_row(match_label, f"{is_global}{top_match['trigger']}", dim_label=True)
-            HUD.box_row(conf_label, f"{bar} {score:.2f}", score_color, dim_label=True)
+            SovereignHUD.box_row(match_label, f"{is_global}{top_match['trigger']}", dim_label=True)
+            SovereignHUD.box_row(conf_label, f"{bar} {score:.2f}", score_color, dim_label=True)
         
         if propose_install:
-            HUD.box_separator()
+            SovereignHUD.box_separator()
             skill_short = skill_name if 'skill_name' in locals() else ""
-            if HUD.PERSONA == "ODIN":
-                HUD.box_row("⚠️  MANDATE", "CAPABILITY REQUIRED", HUD.RED)
-                HUD.box_row("EXECUTION", f"Install {skill_short}", HUD.RED)
+            if SovereignHUD.PERSONA == "ODIN":
+                SovereignHUD.box_row("⚠️  MANDATE", "CAPABILITY REQUIRED", SovereignHUD.RED)
+                SovereignHUD.box_row("EXECUTION", f"Install {skill_short}", SovereignHUD.RED)
             else:
-                HUD.box_row("⚠️  PROACTIVE", HUD._speak("SEARCH_SUCCESS", "Handshake Detected"), HUD.YELLOW)
-                HUD.box_row("Suggestion", f"Install {skill_short}", HUD.GREEN)
+                SovereignHUD.box_row("⚠️  PROACTIVE", SovereignHUD._speak("SEARCH_SUCCESS", "Handshake Detected"), SovereignHUD.YELLOW)
+                SovereignHUD.box_row("Suggestion", f"Install {skill_short}", SovereignHUD.GREEN)
             
-            HUD.box_bottom()
+            SovereignHUD.box_bottom()
             try:
                 sys.stdout.flush()
                 prompt = ""
-                if HUD.PERSONA == "ODIN":
-                    prompt = f"\n{HUD.RED}>> [Ω] {HUD._speak('PROACTIVE_INSTALL', 'AUTHORIZE DEPLOYMENT?')} [Y/n] {HUD.RESET}"
+                if SovereignHUD.PERSONA == "ODIN":
+                    prompt = f"\n{SovereignHUD.RED}>> [Ω] {SovereignHUD._speak('PROACTIVE_INSTALL', 'AUTHORIZE DEPLOYMENT?')} [Y/n] {SovereignHUD.RESET}"
                 else:
-                    prompt = f"\n{HUD.CYAN}>> [C*] {HUD._speak('PROACTIVE_INSTALL', 'Would you like to install this?')} [Y/n] {HUD.RESET}"
+                    prompt = f"\n{SovereignHUD.CYAN}>> [C*] {SovereignHUD._speak('PROACTIVE_INSTALL', 'Would you like to install this?')} [Y/n] {SovereignHUD.RESET}"
                 
                 choice = input(prompt).strip().lower()
                 
                 if choice in ['', 'y', 'yes']:
-                    if HUD.PERSONA == "ODIN":
-                        print(f"\n{HUD.RED}>> COMMAND ACCEPTED.{HUD.RESET} ENFORCING...")
+                    if SovereignHUD.PERSONA == "ODIN":
+                        print(f"\n{SovereignHUD.RED}>> COMMAND ACCEPTED.{SovereignHUD.RESET} ENFORCING...")
                     else:
-                        print(f"\n{HUD.GREEN}>> ACCEL{HUD.RESET} Initiating deployment sequence...")
+                        print(f"\n{SovereignHUD.GREEN}>> ACCEL{SovereignHUD.RESET} Initiating deployment sequence...")
                     
                     import subprocess
                     subprocess.run(["powershell", "-Command", f"& {{ python .agent/scripts/install_skill.py {skill_short} }}"], check=False)
                 else:
-                    msg = "DISSENT RECORDED" if "ODIN" in HUD.PERSONA else "ABORT"
-                    color = HUD.YELLOW
-                    print(f"\n{color}>> {msg}.{HUD.RESET}")
+                    msg = "DISSENT RECORDED" if "ODIN" in SovereignHUD.PERSONA else "ABORT"
+                    color = SovereignHUD.YELLOW
+                    print(f"\n{color}>> {msg}.{SovereignHUD.RESET}")
             except (EOFError, KeyboardInterrupt):
                 pass
             
             sys.exit(0)
         elif recommendations:
-            HUD.box_separator()
-            rec_label = "ALTERNATE REALITIES" if HUD.PERSONA == "ODIN" else "Discovery"
+            SovereignHUD.box_separator()
+            rec_label = "ALTERNATE REALITIES" if SovereignHUD.PERSONA == "ODIN" else "Discovery"
             for rec in recommendations[:2]:
-               HUD.box_row(rec_label, f"{rec['trigger']} ({rec['score']:.2f})", HUD.MAGENTA)
+               SovereignHUD.box_row(rec_label, f"{rec['trigger']} ({rec['score']:.2f})", SovereignHUD.MAGENTA)
         
-        HUD.box_bottom()
+        SovereignHUD.box_bottom()

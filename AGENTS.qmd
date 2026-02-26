@@ -96,7 +96,7 @@ This project adheres to a strict "Sci-Fi / Minimalist / High-Performance" aesthe
 >
 > 1. **Universal Testing**: ANY component you create (scripts, utilities, tools) **MUST** have a corresponding test in `c:/Users/Craig/Corvus/CorvusStar/tests/`. No exceptions.
 > 2. **Proactive Skill Creation**: You must analyze the User's workflow. If you see a repetitive pattern, **CREATE A SKILL** for it. Do not wait to be asked.
-> 3. **Self-Analysis HUD**: Every session must end with a visual report of your own performance (Neural Trace efficacy, Skill Discovery stats).
+> 3. **Self-Analysis SovereignHUD**: Every session must end with a visual report of your own performance (Neural Trace efficacy, Skill Discovery stats).
 > 4. **Project Independence**: Do not rely on the user's project structure for your own survival. Maintain your own `tests`, `scripts`, and `docs` within `c:/Users/Craig/Corvus/CorvusStar/.agent/`.
 
 ## 🐟 SovereignFish Mandate (CRITICAL)

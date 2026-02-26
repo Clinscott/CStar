@@ -7,14 +7,14 @@ saved_memory:
     announce_writes: true
   items:
     - Corvus Star (C*): Formerly AgLng. Plain-English-to-Workflow mapping using SovereignVector.
-    - Aesthetic Standard: CLI tools must use the `HUD` class for Box-Drawing/Color/Progress output. "Text is User Interface."
+    - Aesthetic Standard: CLI tools must use the `SovereignHUD` class for Box-Drawing/Color/Progress output. "Text is User Interface."
     - Smart-Merge 2.0: Installation script supports section-aware merging and automatic backups.
     - SovereignVector: Local Python engine for intent recognition; supports tiered proactive recommendations (>90% triggers JIT install).
     - Intelligent Handshake: Non-destructive installation script (`install.ps1`) with interactive conflict resolution (O/S/M/D).
     - Global Registry: Centralized `c:/Users/Craig/Corvus/CorvusStar/skills_db/` in `CorvusStar` for cross-project capability sharing.
     - Encoding Rule: Use BOM-less UTF-8 for all Inter-agent configs (JSON/MD) to avoid PowerShell/Python encoding conflicts.
     - Interaction Pattern: High-confidence (>90%) local intent matches should trigger an interactive confirmation (Y/n) rather than just a proposal.
-    - Lightning Protocol: File optimization skills should follow a Read -> HUD -> Modify -> Report loop (as seen in `lightning_rod.py`).
+    - Lightning Protocol: File optimization skills should follow a Read -> SovereignHUD -> Modify -> Report loop (as seen in `lightning_rod.py`).
     - SovereignFish Mandate: Use `/sovereignfish` workflow (`c:/Users/Craig/Corvus/CorvusStar/.agent/workflows/sovereignfish.qmd`) EVERY session to implement 5 improvements. Log to `c:/Users/Craig/Corvus/CorvusStar/SOVEREIGNFISH_LEDGER.qmd`.
     - The 85% Bar: Execution-level triggers must meet an 85% confidence score. Core workflows should be hard-mapped in `corrections.json` for 110% (1.10) confidence.
     - Intent Polarity: Use Vector Search for *Discovery* (finding new skills) and Corrections for *Execution* (triggering established workflows).
@@ -22,7 +22,7 @@ saved_memory:
     - Weighted Nuance: Use `word:weight` in `thesaurus.qmd` (e.g., `go:0.5`) to dampen broad synonyms and preserve engine precision.
     - SPRT Standard: Sequential Probability Ratio Test (LLR-based) is the project's statistical verification standard for engine-level improvements.
     - Stemming Rule: Automated stemming for `-ing`, `-ed`, `-es`, `-s` suffixes is applied with a 0.8 weight to prevent noise in small datasets.
-    - Neural Tracing: `trace_viz.py` is the standard tool for inspecting engine logic. It uses the "Glow" HUD aesthetic.
+    - Neural Tracing: `trace_viz.py` is the standard tool for inspecting engine logic. It uses the "Glow" SovereignHUD aesthetic.
     - Stopword Policy: Stopwords must be externalized to `c:/Users/Craig/Corvus/CorvusStar/stopwords.json` to keep engine logic clean and allow for easy language swapping.
     - Trace Archiving: `TRACE_REPORT.qmd` must only show the CURRENT session's traces. Processed traces are moved to `traces/archive/`.
     - Real User Wins: In conflict resolution (Federated Learning), actual user trace data always overrides synthetic or theoretical test cases.
@@ -56,7 +56,7 @@ saved_memory:
     - Neural Handshake (ZKP): Knowledge Core pushes require a SHA-256 challenge-response verification based on the `NeuralSecret`. Raw secrets are never transmitted.
     - Unicode Tokenization: Use `\w+` in tokenizers to capture CJK, Cyrillic, and other non-Latin scripts, ensuring intent parity for international teams.
     - LRU Search Cache: Vector engine search results should be cached by query phrase to achieve O(1) retrieval for common natural language commands.
-    - Dynamic HUD Width: Auto-sensing UI width should include a 40-120 column "Safety Bracket" to ensure ASCII art and progress bars remain readable across varied console environments.
+    - Dynamic SovereignHUD Width: Auto-sensing UI width should include a 40-120 column "Safety Bracket" to ensure ASCII art and progress bars remain readable across varied console environments.
     - Campaign Roadmap (N=1000): Large-scale architectural campaigns must be indexed in a master `IMPLEMENTATION_PLAN.qmd` with numbered targets (1-1000) for high-fidelity progress tracking.
     - Intent Sink Pattern: Use a dedicated 'noise' skill with worldly nouns (e.g., 'coffee', 'gift') to act as a mathematical sink for non-technical adversarial traps.
     - Sanitized Clustering: Thesaurus intent groups must be atomic and non-overlapping. Overlapping keywords cause vector ambiguity.
@@ -78,8 +78,8 @@ saved_memory:
     - Voice of the Machine: Use `report_engine.py` to decouple output formatting from logic. This allows the system to speak in the active Persona's voice without hardcoding strings in logic scripts.
     - Negative Boosting: In `vector.py`, generic intents (e.g., `/run-task`) must be explicitly dampened/demoted when a specific Global Skill (e.g., `GLOBAL:perf-profiler`) is present with high confidence.
     - Accuracy Doctrine: For edge cases (typos, specific phrasing), explicit mapping in `corrections.json` is superior to vector tuning. "Real User Wins" means we memorize the user's specific failure rather than generalizing the engine.
-    - Sovereign Fish Automaton (The Sovereign 5): Expanded the Sovereign Fish to include 5 distinct Strategists (Valkyrie, Edda, RuneCaster, Torvalds, Visual) managed by a centralized HUD.
-    - Centralized Persona Architecture: All system voice and persona logic (ODIN/ALFRED) is now centralized in `ui.py` (HUD class) and dynamically reloaded, eliminating hardcoded string checks and enabling hot-swapping.
+    - Sovereign Fish Automaton (The Sovereign 5): Expanded the Sovereign Fish to include 5 distinct Strategists (Valkyrie, Edda, RuneCaster, Torvalds, Visual) managed by a centralized SovereignHUD.
+    - Centralized Persona Architecture: All system voice and persona logic (ODIN/ALFRED) is now centralized in `ui.py` (SovereignHUD class) and dynamically reloaded, eliminating hardcoded string checks and enabling hot-swapping.
     - Sentinel CLI: Implemented `c* sentinel [-status|-end]` for daemon management (Start/Stop/Status).
     - Configuration Safety: `.env.local` is strictly ignored and removed from git tracking to prevent secret leakage.
     - Gemini Model Standard: Use `gemini-2.5-flash` for the Ravens (Muninn). Explicit versioning is required to avoid 404s and access the latest reasoning capabilities.

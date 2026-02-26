@@ -5,7 +5,7 @@ import sys
 import os
 
 
-class HUD:
+class SovereignHUD:
     CYAN = "\033[36m"
     GREEN = "\033[32m"
     YELLOW = "\033[33m"
@@ -19,19 +19,19 @@ class HUD:
         width = 60
         t_len = len(title)
         padding = (width - t_len - 4) // 2
-        print(f"{HUD.CYAN}┌{'─'*padding} {HUD.BOLD}{title}{HUD.RESET}{HUD.CYAN} {'─'*padding}┐{HUD.RESET}")
+        print(f"{SovereignHUD.CYAN}┌{'─'*padding} {SovereignHUD.BOLD}{title}{SovereignHUD.RESET}{SovereignHUD.CYAN} {'─'*padding}┐{SovereignHUD.RESET}")
 
     @staticmethod
     def box_row(label, value, color=CYAN):
-        print(f"{HUD.CYAN}│{HUD.RESET} {label:<20} {color}{value}{HUD.RESET}")
+        print(f"{SovereignHUD.CYAN}│{SovereignHUD.RESET} {label:<20} {color}{value}{SovereignHUD.RESET}")
 
     @staticmethod
     def box_separator():
-        print(f"{HUD.CYAN}├{'─'*58}┤{HUD.RESET}")
+        print(f"{SovereignHUD.CYAN}├{'─'*58}┤{SovereignHUD.RESET}")
 
     @staticmethod
     def box_bottom():
-        print(f"{HUD.CYAN}└{'─'*58}┘{HUD.RESET}")
+        print(f"{SovereignHUD.CYAN}└{'─'*58}┘{SovereignHUD.RESET}")
     
     @staticmethod
     def progress_bar(val: float):
@@ -219,49 +219,49 @@ if __name__ == "__main__":
             sys.exit(0)
 
         # --- SCI-FI TERMINAL UI (SovereignFish Improvement) ---
-        HUD.box_top("C* NEURAL TRACE")
-        HUD.box_row("Intent", query, HUD.BOLD)
+        SovereignHUD.box_top("C* NEURAL TRACE")
+        SovereignHUD.box_row("Intent", query, SovereignHUD.BOLD)
         
         if top_match:
             score = top_match['score']
-            score_color = HUD.GREEN if score > 0.8 else HUD.YELLOW
-            is_global = f"{HUD.MAGENTA}[GLOBAL]{HUD.RESET} " if top_match['is_global'] else ""
+            score_color = SovereignHUD.GREEN if score > 0.8 else SovereignHUD.YELLOW
+            is_global = f"{SovereignHUD.MAGENTA}[GLOBAL]{SovereignHUD.RESET} " if top_match['is_global'] else ""
             
-            bar = HUD.progress_bar(score)
-            HUD.box_row("Match", f"{is_global}{top_match['trigger']}")
-            HUD.box_row("Confidence", f"{bar} {score:.2f}", score_color)
+            bar = SovereignHUD.progress_bar(score)
+            SovereignHUD.box_row("Match", f"{is_global}{top_match['trigger']}")
+            SovereignHUD.box_row("Confidence", f"{bar} {score:.2f}", score_color)
         
         if propose_install:
-            HUD.box_separator()
-            HUD.box_row("⚠️  PROACTIVE", "Handshake Detected", HUD.YELLOW)
-            HUD.box_row("Action", f"Install {skill_name}", HUD.GREEN)
+            SovereignHUD.box_separator()
+            SovereignHUD.box_row("⚠️  PROACTIVE", "Handshake Detected", SovereignHUD.YELLOW)
+            SovereignHUD.box_row("Action", f"Install {skill_name}", SovereignHUD.GREEN)
             
             # Interactive Handshake
-            HUD.box_bottom()
+            SovereignHUD.box_bottom()
             try:
-                # Flush stdout to ensure HUD is visible
+                # Flush stdout to ensure SovereignHUD is visible
                 sys.stdout.flush()
                 # Use raw input if possible, but keep it simple
-                choice = input(f"\n{HUD.CYAN}>> [C*] Initialize Handshake for {skill_name}? [Y/n] {HUD.RESET}").strip().lower()
+                choice = input(f"\n{SovereignHUD.CYAN}>> [C*] Initialize Handshake for {skill_name}? [Y/n] {SovereignHUD.RESET}").strip().lower()
                 if choice in ['', 'y', 'yes']:
-                    print(f"\n{HUD.GREEN}>> ACCEL{HUD.RESET} Initiating deployment sequence...")
+                    print(f"\n{SovereignHUD.GREEN}>> ACCEL{SovereignHUD.RESET} Initiating deployment sequence...")
                     import subprocess
                     # Run the command
                     subprocess.run(["powershell", "-Command", f"& {{ python .agent/scripts/install_skill.py {skill_name} }}"], check=False)
                 else:
-                    print(f"\n{HUD.YELLOW}>> ABORT{HUD.RESET} Sequence cancelled.")
+                    print(f"\n{SovereignHUD.YELLOW}>> ABORT{SovereignHUD.RESET} Sequence cancelled.")
             except (EOFError, KeyboardInterrupt):
                 # Handle cases where input isn't possible (e.g. non-interactive shells)
-                print(f"\n{HUD.RED}>> SKIP{HUD.RESET} Non-interactive mode detected.")
+                print(f"\n{SovereignHUD.RED}>> SKIP{SovereignHUD.RESET} Non-interactive mode detected.")
                 pass
             
             sys.exit(0) # Exit after handling proactive install to avoid redundant output
         elif recommendations:
-            HUD.box_separator()
+            SovereignHUD.box_separator()
             for rec in recommendations[:2]:
-               HUD.box_row("🔍 Discovery", f"{rec['trigger']} ({rec['score']:.2f})", HUD.MAGENTA)
+               SovereignHUD.box_row("🔍 Discovery", f"{rec['trigger']} ({rec['score']:.2f})", SovereignHUD.MAGENTA)
         
-        HUD.box_bottom()
+        SovereignHUD.box_bottom()
         
         # Optional: Keep raw JSON for agent parsing if requested via --json
         if "--json" in sys.argv:

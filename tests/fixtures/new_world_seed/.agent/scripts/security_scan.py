@@ -2,11 +2,11 @@ import os
 import re
 import sys
 
-# Import HUD from sv_engine if available, else mock it
+# Import SovereignHUD from sv_engine if available, else mock it
 try:
-    from sv_engine import HUD
+    from sv_engine import SovereignHUD
 except ImportError:
-    class HUD:
+    class SovereignHUD:
         RED = "\033[31m"
         GREEN = "\033[32m"
         YELLOW = "\033[33m"
@@ -73,30 +73,30 @@ class SecurityScanner:
 
     def report(self):
         title = "🛡️  HEIMDALL SECURITY SCAN  🛡️"
-        if HUD.PERSONA == "ALFRED":
+        if SovereignHUD.PERSONA == "ALFRED":
             title = "🦇  WAYNETECH SECURITY SCAN  🦇"
             
-        HUD.box_top(title)
-        HUD.box_row("TARGET", os.path.basename(self.path), HUD.CYAN)
+        SovereignHUD.box_top(title)
+        SovereignHUD.box_row("TARGET", os.path.basename(self.path), SovereignHUD.CYAN)
         
-        color = HUD.GREEN
+        color = SovereignHUD.GREEN
         status = "CLEAN"
         if self.threat_score > 0: 
-            color = HUD.YELLOW
+            color = SovereignHUD.YELLOW
             status = "WARNING"
         if self.threat_score >= 10: 
-            color = HUD.RED
+            color = SovereignHUD.RED
             status = "CRITICAL THREAT"
 
-        HUD.box_row("THREAT LEVEL", f"{self.threat_score}/10", color)
-        HUD.box_row("STATUS", status, color)
+        SovereignHUD.box_row("THREAT LEVEL", f"{self.threat_score}/10", color)
+        SovereignHUD.box_row("STATUS", status, color)
         
         if self.findings:
-            print(f"{HUD.YELLOW}>> DETECTED THREATS:{HUD.RESET}")
+            print(f"{SovereignHUD.YELLOW}>> DETECTED THREATS:{SovereignHUD.RESET}")
             for f in self.findings:
-                print(f"   - {HUD.RED}{f}{HUD.RESET}")
+                print(f"   - {SovereignHUD.RED}{f}{SovereignHUD.RESET}")
         
-        HUD.box_bottom()
+        SovereignHUD.box_bottom()
         return self.threat_score
 
 if __name__ == "__main__":

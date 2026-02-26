@@ -10,7 +10,7 @@ from pathlib import Path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
 
-from sv_engine import HUD
+from sv_engine import SovereignHUD
 
 try:
     from latency_check import measure_startup
@@ -36,14 +36,14 @@ THEMES = {
         "DETECTED": "INTRUDER DETECTED",
         "PASS": "STRENGTH ADDED",
         "FAIL": "WEAKNESS PURGED",
-        "COLOR_MAIN": HUD.RED
+        "COLOR_MAIN": SovereignHUD.RED
     },
     "ALFRED": {
         "TITLE": "NETWORK WATCHER (INTEGRATION)",
         "DETECTED": "NEW TRACE DETECTED",
         "PASS": "INTEGRATION COMPLETE",
         "FAIL": "REGRESSION PREVENTED",
-        "COLOR_MAIN": HUD.CYAN
+        "COLOR_MAIN": SovereignHUD.CYAN
     }
 }
 
@@ -100,8 +100,8 @@ def process_file(file_path):
         return
 
     print("\n")
-    HUD.box_top(theme["TITLE"])
-    HUD.box_row("SCANNING", filename, theme["COLOR_MAIN"])
+    SovereignHUD.box_top(theme["TITLE"])
+    SovereignHUD.box_row("SCANNING", filename, theme["COLOR_MAIN"])
     
     # 1. Backup
     backup_path = FISHTEST_DB + ".bak"
@@ -118,18 +118,18 @@ def process_file(file_path):
             raise Exception("Merge failed")
             
     except Exception as e:
-        HUD.box_row("ERROR", "INGEST FAILED", HUD.RED)
+        SovereignHUD.box_row("ERROR", "INGEST FAILED", SovereignHUD.RED)
         if os.path.exists(staging_path): 
             shutil.move(staging_path, os.path.join(QUARANTINE_DIR, filename))
             log_rejection(filename, f"Ingest Failure: {str(e)}")
         if os.path.exists(backup_path): shutil.move(backup_path, FISHTEST_DB)
-        HUD.box_bottom()
+        SovereignHUD.box_bottom()
         return
 
     # 3. The Law of Latency (Phase A)
-    HUD.box_row("PROFILING", "MEASURING LATENCY...", HUD.YELLOW)
+    SovereignHUD.box_row("PROFILING", "MEASURING LATENCY...", SovereignHUD.YELLOW)
     baseline = measure_startup(3)
-    HUD.box_row("BASELINE", f"{baseline:.2f}ms", HUD.CYAN)
+    SovereignHUD.box_row("BASELINE", f"{baseline:.2f}ms", SovereignHUD.CYAN)
 
     # 4. The Ordeal (Fishtest)
     passed = run_fishtest()
@@ -141,8 +141,8 @@ def process_file(file_path):
     latency_passed = delta <= 5.0
     
     if passed and latency_passed:
-        HUD.box_row("VERDICT", theme["PASS"], HUD.GREEN)
-        HUD.box_row("LATENCY", f"{new_latency:.2f}ms (Δ {delta:+.2f}ms)", HUD.GREEN)
+        SovereignHUD.box_row("VERDICT", theme["PASS"], SovereignHUD.GREEN)
+        SovereignHUD.box_row("LATENCY", f"{new_latency:.2f}ms (Δ {delta:+.2f}ms)", SovereignHUD.GREEN)
         # Commit: Delete backup
         if os.path.exists(backup_path): os.remove(backup_path)
         
@@ -153,11 +153,11 @@ def process_file(file_path):
         
     else:
         if not passed:
-            HUD.box_row("VERDICT", theme["FAIL"], HUD.RED)
+            SovereignHUD.box_row("VERDICT", theme["FAIL"], SovereignHUD.RED)
             reason = "Regression: Failed Fishtest Ordeal"
         elif not latency_passed:
-            HUD.box_row("VERDICT", "LATENCY REJECTION", HUD.RED)
-            HUD.box_row("LATENCY", f"{new_latency:.2f}ms (Δ {delta:+.2f}ms)", HUD.RED)
+            SovereignHUD.box_row("VERDICT", "LATENCY REJECTION", SovereignHUD.RED)
+            SovereignHUD.box_row("LATENCY", f"{new_latency:.2f}ms (Δ {delta:+.2f}ms)", SovereignHUD.RED)
             reason = f"Latency Breach: {delta:.2f}ms exceeds 5ms limit"
         
         # Rollback
@@ -170,11 +170,11 @@ def process_file(file_path):
             shutil.move(ingested_path, os.path.join(QUARANTINE_DIR, filename))
             log_rejection(filename, reason)
 
-    HUD.box_bottom()
+    SovereignHUD.box_bottom()
 
 def watch():
-    print(f"{HUD.CYAN}>> The Crucible is active. Watching: {NETWORK_SHARE}...{HUD.RESET}")
-    print(f"{HUD.CYAN_DIM}(Press Ctrl+C to stop){HUD.RESET}")
+    print(f"{SovereignHUD.CYAN}>> The Crucible is active. Watching: {NETWORK_SHARE}...{SovereignHUD.RESET}")
+    print(f"{SovereignHUD.CYAN_DIM}(Press Ctrl+C to stop){SovereignHUD.RESET}")
     
     while True:
         try:

@@ -11,7 +11,7 @@ sys.path.append(os.path.join(PROJECT_ROOT, ".agent", "scripts"))
 
 from odin_protocol.engine.models import Chromosome, UniverseState
 from odin_protocol.engine.persistence import OdinPersistence
-from ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 
 class TestPersistence_contracts(unittest.TestCase):

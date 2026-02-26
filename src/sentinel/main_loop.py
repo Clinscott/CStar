@@ -1,7 +1,7 @@
 """
 Huginn & Muninn: The Twin Ravens (Daemon)
 Identity: ODIN
-Purpose: Orchestrate the SovereignFish agents across the Corvus Cluster.
+Purpose: Orchestrate the Ravens agents across the Corvus Cluster.
 
 Huginn (Thought) gathers intel. Muninn (Memory) persists it.
 Together they fly across the Nine Realms, reporting all to the All-Father.
@@ -34,7 +34,7 @@ def _ensure_bootstrapped():
         bootstrap()
         _bootstrapped = True
 
-from src.core.ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 
 # --- GRACEFUL SHUTDOWN ---
@@ -46,7 +46,7 @@ class ShutdownHandler:
         signal.signal(signal.SIGTERM, self.shutdown)
 
     def shutdown(self, signum, frame):
-        HUD.persona_log("WARN", f"Signal {signum} received. Closing all realms...")
+        SovereignHUD.persona_log("WARN", f"Signal {signum} received. Closing all realms...")
         self.active = False
 
 SHUTDOWN = ShutdownHandler()
@@ -127,18 +127,19 @@ def load_persona() -> str:
     p = cfg.get("persona") or cfg.get("Persona")
     return p.upper() if p else "ODIN"
 
-def process_repo(repo_path: Path, persona: str) -> bool:
-    """Process a single repository cycle."""
+def process_repo(repo_path: Path, persona: str, use_docker: bool = False) -> bool:
+    """Performs a single cleanup cycle on a repo."""
     repo_name = repo_path.name
+    SovereignHUD.persona_log("INFO", f"Engaging Jurisdiction: {repo_name} {' (DOCKER SANDBOX)' if use_docker else ''}")
     if not repo_path.exists():
         logging.warning(f"[{repo_name}] [SKIP] Path not found.")
         return False
 
-    HUD.persona_log("INFO", f"Auditing {repo_name}...")
+    SovereignHUD.persona_log("INFO", f"Auditing {repo_name}...")
 
     # 1. Dirty Check
     if not is_clean(repo_path):
-        HUD.persona_log("WARN", f"{repo_name}: Dirty tree. Skipping to preserve user state.")
+        SovereignHUD.persona_log("WARN", f"{repo_name}: Dirty tree. Skipping to preserve user state.")
         logging.info(f"[{repo_name}] [SKIP] Dirty working tree.")
         return False
 
@@ -147,9 +148,11 @@ def process_repo(repo_path: Path, persona: str) -> bool:
 
     try:
         # 3. Execution — lazy imports to avoid import-time side effects
+        # 3. RUN RAVENS
+        SovereignHUD.persona_log("INFO", f"Running Ravens Protocol: {repo_name}...")
         _ensure_bootstrapped()
         from src.sentinel.muninn import Muninn
-        raven = Muninn(str(repo_path))
+        raven = Muninn(str(repo_path), use_docker=use_docker)
         changed = raven.run()
 
         # 4. Commit (If changed)
@@ -158,19 +161,19 @@ def process_repo(repo_path: Path, persona: str) -> bool:
             commit_msg = (
                 f"🧹 Alfred: Tying up loose ends [{ts}]"
                 if persona == "ALFRED"
-                else f"🐟 Sovereign Fish: Auto-improvement [{ts}]"
+                else f"🦅 Ravens: Auto-improvement [{ts}]"
             )
 
             git_cmd(repo_path, ["add", "-A"])
             git_cmd(repo_path, ["commit", "-m", commit_msg])
-            HUD.persona_log("SUCCESS", f"Changes Committed: {commit_msg}")
+            SovereignHUD.persona_log("SUCCESS", f"Changes Committed: {commit_msg}")
             logging.info(f"[{repo_name}] [COMMIT] {commit_msg}")
             return True
         else:
             return False
 
     except Exception as e:
-        HUD.persona_log("ERROR", f"EXECUTION ERROR: {e}")
+        SovereignHUD.persona_log("ERROR", f"EXECUTION ERROR: {e}")
         logging.error(f"[{repo_name}] [EXEC_ERROR] {e}")
         return False
     finally:
@@ -185,14 +188,14 @@ def highlander_check(lock_file: Path) -> bool:
         owner_pid = int(lock_file.read_text().strip())
         if owner_pid != os.getpid():
             if psutil.pid_exists(owner_pid):
-                HUD.persona_log("WARNING", f"Highlander Protocol: PID {owner_pid} holds the Mandate. Terminating.")
+                SovereignHUD.persona_log("WARNING", f"Highlander Protocol: PID {owner_pid} holds the Mandate. Terminating.")
                 return False
     except (OSError, ValueError):
         pass
     return True
 
 def daemon_loop(lock_file_path: Path | None = None):
-    """Main daemon loop orchestrating SovereignFish across the Corvus Cluster."""
+    """Main daemon loop orchestrating Ravens across the Corvus Cluster."""
     LOCK_FILE = lock_file_path or (Path(__file__).parent / "ravens.lock")
 
     if LOCK_FILE.exists():
@@ -207,9 +210,9 @@ def daemon_loop(lock_file_path: Path | None = None):
     LOCK_FILE.write_text(str(os.getpid()), encoding='utf-8')
 
     # Initialize
-    HUD.PERSONA = load_persona()
-    HUD.persona_log("INFO", "Sovereign Fish Automaton Initialized.")
-    HUD.persona_log("INFO", f"Identity: {HUD.PERSONA}")
+    SovereignHUD.PERSONA = load_persona()
+    SovereignHUD.persona_log("INFO", "Ravens Automaton Initialized.")
+    SovereignHUD.persona_log("INFO", f"Identity: {SovereignHUD.PERSONA}")
 
     interval = get_interval()
     TARGET_REPOS = load_target_repos()
@@ -220,21 +223,21 @@ def daemon_loop(lock_file_path: Path | None = None):
                 break
 
             # Hot-Swap Persona
-            prev_persona = HUD.PERSONA
-            HUD.PERSONA = load_persona()
-            if prev_persona != HUD.PERSONA:
-                HUD.persona_log("INFO", f"Persona Shift Detected: {prev_persona} -> {HUD.PERSONA}")
+            prev_persona = SovereignHUD.PERSONA
+            SovereignHUD.PERSONA = load_persona()
+            if prev_persona != SovereignHUD.PERSONA:
+                SovereignHUD.persona_log("INFO", f"Persona Shift Detected: {prev_persona} -> {SovereignHUD.PERSONA}")
 
             cycle_start = time.time()
-            HUD.persona_log("INFO", f"--- CYCLE START: {time.strftime('%H:%M:%S')} ---")
+            SovereignHUD.persona_log("INFO", f"--- CYCLE START: {time.strftime('%H:%M:%S')} ---")
 
             for repo_str in TARGET_REPOS:
                 if not SHUTDOWN.active: break
-                process_repo(Path(repo_str), HUD.PERSONA)
+                process_repo(Path(repo_str), SovereignHUD.PERSONA, use_docker=args.docker)
 
             # Sleep with frequent checks
             sleep_time = max(0, interval - (time.time() - cycle_start))
-            HUD.persona_log("INFO", f"--- CYCLE END. Sleeping for {int(sleep_time)}s ---")
+            SovereignHUD.persona_log("INFO", f"--- CYCLE END. Sleeping for {int(sleep_time)}s ---")
 
             slept = 0
             while slept < sleep_time and SHUTDOWN.active:
@@ -248,10 +251,15 @@ def daemon_loop(lock_file_path: Path | None = None):
             try:
                 if LOCK_FILE.read_text().strip() == str(os.getpid()):
                     LOCK_FILE.unlink()
-                    HUD.persona_log("SUCCESS", "Mandate returned to the All-Father. (Lock Cleared)")
+                    SovereignHUD.persona_log("SUCCESS", "Mandate returned to the All-Father. (Lock Cleared)")
             except (OSError, ValueError):
                 pass
 
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--shadow-forge", "--docker", action="store_true", help="Execute the full Ravens cycle (Hunt -> Forge -> Crucible) inside a sandboxed Docker container.")
+    args = parser.parse_args()
+    
     _LOCK_PATH = Path(__file__).parent / "ravens.lock"
     daemon_loop(_LOCK_PATH)

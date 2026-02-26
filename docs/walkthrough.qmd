@@ -67,10 +67,11 @@ The Corvus Star framework has successfully transitioned to the `.qmd` documentat
 
 ## ⏭️ Session Handshake
 
-**Session Delta (Session 71)**:
-- **Codebase Integrity**: Conducted an extensive bug hunt across the Sentinel Wardens, fixing 54 failing tests.
-- **Warden Fortification**: Repaired an aggressive `ValueError` in `BraveSearch` that crashed all Wardens, fixed false-positive color deviance in `Freya`, and corrected AST type-hint masking in `RuneCaster`.
-- **System Verification**: Reached a 100% green state (309/309 tests passing) across both Python and Node.js test harnesses.
+**Session Delta (Session 85)**:
+- **V4 Hardening**: Implemented `SessionWarden` and migrated to append-only JSONL for high-concurrency logging.
+- **Neural Stability**: Added `train()`/`eval()` toggles to `BaseWarden` to ensure deterministic inference.
+- **Deep Memory Purge**: Integrated surgical teardown protocols in `sv_engine.py` and `wrap_it_up.py`.
+- **EMPIRE Verification**: 100% pass rate achieved on determinism and concurrency contracts.
 
 **To resume, start here**:
 1. **Operation Ironclad**: Begin the migration to the persistent `src/cstar` modular package and security hardening.

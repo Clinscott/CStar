@@ -1,5 +1,5 @@
 """
-Suite 6: Sovereign HUD — The Async Tearing & Interruption Protocol.
+Suite 6: Sovereign SovereignHUD — The Async Tearing & Interruption Protocol.
 
 Mathematically proves the gamified TUI can handle high-velocity
 asynchronous broadcasts from multiple daemons without tearing,
@@ -23,7 +23,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.core.ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 # ===========================================================================
 # Fixtures
@@ -39,13 +39,13 @@ def mock_stream():
 @pytest.fixture(autouse=True)
 def reset_hud_async_state():
     """Ensure each test starts with a virgin queue and lock (no cross-test contamination)."""
-    HUD._render_queue = None
-    HUD._render_lock = None
-    HUD._INITIALIZED = False
-    HUD.PERSONA = "ALFRED"
+    SovereignHUD._render_queue = None
+    SovereignHUD._render_lock = None
+    SovereignHUD._INITIALIZED = False
+    SovereignHUD.PERSONA = "ALFRED"
     yield
-    HUD._render_queue = None
-    HUD._render_lock = None
+    SovereignHUD._render_queue = None
+    SovereignHUD._render_lock = None
 
 
 # ===========================================================================
@@ -57,7 +57,7 @@ def reset_hud_async_state():
 async def test_hud_async_tearing(mock_stream):
     """
     [ODIN] Multiple daemons (ODIN, MUNINN, WARDEN) simultaneously broadcast
-    50 messages each to the HUD's internal rendering queue. The HUD must queue
+    50 messages each to the SovereignHUD's internal rendering queue. The SovereignHUD must queue
     these messages and render them sequentially without race conditions, dropped
     frames, or crashing the event loop.
 
@@ -71,7 +71,7 @@ async def test_hud_async_tearing(mock_stream):
     # Phase 1: Concurrent broadcast flood from three daemons
     async def daemon_flood(source: str, count: int) -> None:
         for i in range(count):
-            await HUD.broadcast(source, f"msg_{i:03d}")
+            await SovereignHUD.broadcast(source, f"msg_{i:03d}")
 
     await asyncio.gather(
         daemon_flood("ODIN", MSG_COUNT),
@@ -80,8 +80,8 @@ async def test_hud_async_tearing(mock_stream):
     )
 
     # Phase 2: Drain via render_loop — poison pill to terminate
-    queue = HUD.get_render_queue()
-    render_task = asyncio.create_task(HUD.render_loop(output_stream=mock_stream))
+    queue = SovereignHUD.get_render_queue()
+    render_task = asyncio.create_task(SovereignHUD.render_loop(output_stream=mock_stream))
     await queue.join()        # Wait until all 150 items are processed
     await queue.put(None)     # Poison pill
     await render_task         # Wait for clean exit
@@ -120,7 +120,7 @@ async def test_hud_async_tearing(mock_stream):
 @pytest.mark.asyncio
 async def test_hud_interruption_cleanup(mock_stream):
     """
-    [ODIN] The HUD is rendering a slow typewriter stream. The user injects a
+    [ODIN] The SovereignHUD is rendering a slow typewriter stream. The user injects a
     CancelledError mid-stream. The rendering coroutine must:
 
     1. Immediately catch the cancellation
@@ -137,7 +137,7 @@ async def test_hud_interruption_cleanup(mock_stream):
     long_text = "A" * 100  # 100 chars at 0.1s delay = 10s total
 
     task = asyncio.create_task(
-        HUD.stream_text(long_text, delay=0.1, output_stream=mock_stream)
+        SovereignHUD.stream_text(long_text, delay=0.1, output_stream=mock_stream)
     )
 
     # Let ~2-3 chars render before cancellation
@@ -150,17 +150,17 @@ async def test_hud_interruption_cleanup(mock_stream):
     output = mock_stream.getvalue()
 
     # Cursor hide was written at stream start
-    assert output.startswith(HUD.CURSOR_HIDE), (
+    assert output.startswith(SovereignHUD.CURSOR_HIDE), (
         f"Expected output to start with CURSOR_HIDE, got: {output[:20]!r}"
     )
 
     # Cursor restore was written in finally block (with preceding newline for clean prompt)
-    assert output.endswith("\n" + HUD.CURSOR_SHOW), (
+    assert output.endswith("\n" + SovereignHUD.CURSOR_SHOW), (
         f"Expected output to end with \\n + CURSOR_SHOW, got: {output[-20:]!r}"
     )
 
     # Partial render — not all 100 chars were written
-    content = output.replace(HUD.CURSOR_HIDE, "").replace(HUD.CURSOR_SHOW, "")
+    content = output.replace(SovereignHUD.CURSOR_HIDE, "").replace(SovereignHUD.CURSOR_SHOW, "")
     # Remove the newlines (the interrupted newline from finally)
     char_content = content.replace("\n", "")
     assert 0 < len(char_content) < 100, (

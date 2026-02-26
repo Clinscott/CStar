@@ -19,7 +19,7 @@ The brain of the operation.
 - `sv_engine.py`: Sovereign Vector Engine (Entry Point)
 - `cstar_dispatcher.py`: CLI Command Dispatcher
 - `personas.py`: Identity management
-- `ui/`: Terminal User Interface (HUD)
+- `ui/`: Terminal User Interface (SovereignHUD)
 - `engine/`:
   - `vector.py`: Intent resolution logic
   - `cortex.py`: Deep thought processing

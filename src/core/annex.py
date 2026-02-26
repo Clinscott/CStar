@@ -26,8 +26,8 @@ class HeimdallWarden:
 
     def scan(self):
         """Conducts a full comprehensive audit of the territory."""
-        from src.core.ui import HUD
-        HUD.persona_log("INFO", f"Scanning realm: {self.root}")
+        from src.core.sovereign_hud import SovereignHUD
+        SovereignHUD.persona_log("INFO", f"Scanning realm: {self.root}")
         
         # 1. Scan Code (Linscott & Torvalds)
         for py_file in self.root.rglob("*.py"):
@@ -198,10 +198,10 @@ class HeimdallWarden:
         plan.append("1. **Approve**: Mark items as `[x]` to confirm.")
         plan.append("2. **Execute**: Run the annexation command.")
         
-        from src.core.ui import HUD
+        from src.core.sovereign_hud import SovereignHUD
         self.plan_path.write_text("\n".join(plan), encoding="utf-8")
-        HUD.persona_log("SUCCESS", f"Plan generated: {self.plan_path}")
-        HUD.persona_log("INFO", f"Breaches found: Linscott={len(linscott_breaches)}, Mimir={len(mimir_breaches)}, Edda={len(self.edda_tasks)}")
+        SovereignHUD.persona_log("SUCCESS", f"Plan generated: {self.plan_path}")
+        SovereignHUD.persona_log("INFO", f"Breaches found: Linscott={len(linscott_breaches)}, Mimir={len(mimir_breaches)}, Edda={len(self.edda_tasks)}")
 
 # ==============================================================================
 # 🚀 ENTRY POINT
@@ -209,9 +209,9 @@ class HeimdallWarden:
 
 def main():
     """Command-line entry point for the Annexation Protocol."""
-    from src.core.ui import HUD
+    from src.core.sovereign_hud import SovereignHUD
     if len(sys.argv) < 2:
-        HUD.log("WARN", "Usage: annex.py --scan [ROOT]")
+        SovereignHUD.log("WARN", "Usage: annex.py --scan [ROOT]")
         sys.exit(1)
         
     cmd = sys.argv[1]
@@ -219,7 +219,7 @@ def main():
         root = Path(sys.argv[2]) if len(sys.argv) > 2 else Path.cwd()
         HeimdallWarden(root).scan()
     elif cmd == "--execute":
-        HUD.log("WARN", "Execution module not yet linked. Review ANNEXATION_PLAN.qmd first.")
+        SovereignHUD.log("WARN", "Execution module not yet linked. Review ANNEXATION_PLAN.qmd first.")
 
 if __name__ == "__main__":
     main()

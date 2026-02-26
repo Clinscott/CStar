@@ -10,7 +10,7 @@ if str(current_dir) not in sys.path:
     sys.path.append(str(current_dir))
 
 import utils
-from ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 
 class ReportEngine:
@@ -27,8 +27,8 @@ class ReportEngine:
         legacy = self.config.get("persona") or self.config.get("Persona") or "ALFRED"
         self.persona = str(self.config.get("system", {}).get("persona", legacy)).upper()
         
-        # Ensure HUD is synced
-        HUD.PERSONA = self.persona
+        # Ensure SovereignHUD is synced
+        SovereignHUD.PERSONA = self.persona
 
     def header(self, title: str) -> str:
         """Returns the stylized ASCII header for the report."""

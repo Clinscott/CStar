@@ -4,6 +4,12 @@ import argparse
 import uuid
 from datetime import datetime
 
+"""
+Identity: Alfred (The Butler)
+Purpose: Maintain the accounts and records for the Gungnir Engine.
+The Butler's Ledger ensures the meticulous preservation of flight history.
+"""
+
 def manage_ledger(ledger_path, target, decision, score, llr, observations):
     # Initialize structure if ledger doesn't exist
     if not os.path.exists(ledger_path):
@@ -40,7 +46,7 @@ def manage_ledger(ledger_path, target, decision, score, llr, observations):
     print(f"Ledger updated. Current GPHS: {data['global_project_health_score']:.2f}")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Muninn Memory Ledger Manager")
+    parser = argparse.ArgumentParser(description="[ALFRED] The Butler's Ledger: Gungnir Memory Manager")
     parser.add_argument("--ledger", required=True, help="Path to the JSON ledger")
     parser.add_argument("--target", required=True, help="Target file evaluated")
     parser.add_argument("--decision", required=True, help="SPRT Decision (Accept/Reject/Continue)")

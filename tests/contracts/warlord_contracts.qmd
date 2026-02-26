@@ -12,9 +12,9 @@ THEN Force remains > 90.0
 GIVEN Warlord is Max Level [@]
 WHEN Temporal Breach is activated "HEAD~1"
 THEN Git Checkout is called [Git]
-THEN Genetic Decay triggers (Level Drop) [HUD]
+THEN Genetic Decay triggers (Level Drop) [SovereignHUD]
 
 GIVEN Warlord is Max Level [@][!]
 WHEN Player chooses "RETREAT"
-THEN Nodal Progress is halved [HUD]
-THEN Output contains "withdrawing" [HUD]
+THEN Nodal Progress is halved [SovereignHUD]
+THEN Output contains "withdrawing" [SovereignHUD]

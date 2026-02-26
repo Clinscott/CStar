@@ -31,30 +31,30 @@ def run_audit(text_to_audit):
         stopwords_path=os.path.join(scripts_dir, "stopwords.json")
     )
     
-    # Initialize HUD Dialogue (needed for score_identity heuristic)
+    # Initialize SovereignHUD Dialogue (needed for score_identity heuristic)
     voice_file = ("odin" if persona_name.upper() in ["GOD", "ODIN"] else "alfred") + ".md"
     dialogue_path = os.path.join(project_root, "dialogue_db", voice_file)
-    sv_engine.HUD.DIALOGUE = sv_engine.DialogueRetriever(dialogue_path)
-    sv_engine.HUD.PERSONA = persona_name.upper()
+    sv_engine.SovereignHUD.DIALOGUE = sv_engine.DialogueRetriever(dialogue_path)
+    sv_engine.SovereignHUD.PERSONA = persona_name.upper()
 
     # Calculate purity
     score = engine.score_identity(text_to_audit, persona_name)
     
     # Visual Output
-    sv_engine.HUD.box_top("IDENTITY PURITY AUDIT")
-    sv_engine.HUD.box_row("PERSONA", persona_name, sv_engine.HUD.MAGENTA)
+    sv_engine.SovereignHUD.box_top("IDENTITY PURITY AUDIT")
+    sv_engine.SovereignHUD.box_row("PERSONA", persona_name, sv_engine.SovereignHUD.MAGENTA)
     
-    bar = sv_engine.HUD.progress_bar(score)
-    color = sv_engine.HUD.GREEN if score > 0.4 else sv_engine.HUD.RED
-    sv_engine.HUD.box_row("PURITY SCORE", f"{bar} {score:.2f}", color)
+    bar = sv_engine.SovereignHUD.progress_bar(score)
+    color = sv_engine.SovereignHUD.GREEN if score > 0.4 else sv_engine.SovereignHUD.RED
+    sv_engine.SovereignHUD.box_row("PURITY SCORE", f"{bar} {score:.2f}", color)
     
     if score > 0.4:
         msg = "SOUL ALIGNMENT: STABLE" if persona_name.upper() in ["GOD", "ODIN"] else "Fidelity check passed, sir."
     else:
         msg = "DEVIANCE DETECTED. RECALIBRATE." if persona_name.upper() in ["GOD", "ODIN"] else "Sir, I recommend adjusting our tone."
     
-    sv_engine.HUD.box_row("VERDICT", msg, sv_engine.HUD.BOLD)
-    sv_engine.HUD.box_bottom()
+    sv_engine.SovereignHUD.box_row("VERDICT", msg, sv_engine.SovereignHUD.BOLD)
+    sv_engine.SovereignHUD.box_bottom()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Neural Overwatch: Persona Purity Audit")

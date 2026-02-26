@@ -7,7 +7,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.append(PROJECT_ROOT)
 sys.path.append(os.path.join(PROJECT_ROOT, ".agent", "scripts"))
 
-from ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 
 class TestUiFull(unittest.TestCase):
@@ -20,29 +20,29 @@ class TestUiFull(unittest.TestCase):
 
     def test_transition(self):
         # >>> CONTRACT 1: PROGRESS BAR <<<
-        # GIVEN HUD is active
+        # GIVEN SovereignHUD is active
         # WHEN Progress Bar (0.5) is rendered
-        bar = HUD.progress_bar(0.5, width=10)
+        bar = SovereignHUD.progress_bar(0.5, width=10)
         # We handle output capture manually since it returns string, doesn't print
         print(bar)
         
-        # THEN Output contains "██" [HUD]
+        # THEN Output contains "██" [SovereignHUD]
         output = self.captured_output.getvalue()
         self.assertIn("█", output)
         
-        # THEN Output contains "░░" [HUD] (Approx match for block char)
+        # THEN Output contains "░░" [SovereignHUD] (Approx match for block char)
         self.assertIn("░", output)
 
         self.captured_output.truncate(0)
         self.captured_output.seek(0)
 
         # >>> CONTRACT 2: SPARKLINE <<<
-        # GIVEN HUD is active
+        # GIVEN SovereignHUD is active
         # WHEN Sparkline [1, 5, 1] is rendered
-        spark = HUD.render_sparkline([1, 5, 1])
+        spark = SovereignHUD.render_sparkline([1, 5, 1])
         print(spark)
         
-        # THEN Output contains " █ " [HUD]
+        # THEN Output contains " █ " [SovereignHUD]
         # 1 (low) -> ' ', 5 (high) -> '█', 1 (low) -> ' '
         # Expecting something like " █ " (depends on char map)
         output = self.captured_output.getvalue()

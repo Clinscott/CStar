@@ -4,7 +4,7 @@ description: Prompts the agent to resume work from tasks.qmd by identifying curr
 
 1. Read the latest `tasks.qmd` to identify the current priority and "Next Steps".
 2. Check `memory.qmd` for long-term context, architectural rules, and past decisions.
-3. If the task involves UI, check `wireframe.qmd` for existing components. **CRITICAL:** Ensure any new page is planned to be wrapped in `DashboardLayout` (HUD). Standalone pages are strictly prohibited for core features.
+3. If the task involves UI, check `wireframe.qmd` for existing components. **CRITICAL:** Ensure any new page is planned to be wrapped in `DashboardLayout` (SovereignHUD). Standalone pages are strictly prohibited for core features.
 4. **Locate Files**: Consult the "Project Directory Structure" in `wireframe.qmd` to instantly find relevant API routes and components.
 5.  **Verify Existing Architecture**:
     -   **STOP**: Does this task imply replacing an existing page?

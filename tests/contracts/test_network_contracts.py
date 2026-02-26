@@ -9,7 +9,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.append(PROJECT_ROOT)
 sys.path.append(os.path.join(PROJECT_ROOT, ".agent", "scripts"))
 
-from network_watcher import HUD, CruciblePipeline
+from src.tools.network_watcher import SovereignHUD, CruciblePipeline
 
 
 class TestNetwork_contracts(unittest.TestCase):
@@ -60,18 +60,18 @@ class TestNetwork_contracts(unittest.TestCase):
              patch("os.makedirs"), \
              patch("os.path.getsize", return_value=100), \
              patch("subprocess.run", return_value=MagicMock(returncode=1)) as mock_run, \
-             patch("ui.HUD.log") as mock_log:
+             patch("src.tools.network_watcher.SovereignHUD.log") as mock_log:
              
             self.pipeline.process(bad_trace)
             
             # THEN Trace is Quarantined (In this code: Database rolled back)
             # The pipeline restores db from backup if merge fails
-            # HUD Logs FAIL
+            # SovereignHUD Logs FAIL
             logs = [call[0][0] for call in mock_log.call_args_list]
             self.assertIn("FAIL", logs)
             
             # THEN Rejection is logged
-            # Verified via HUD Log FAIL "Merge Error"
+            # Verified via SovereignHUD Log FAIL "Merge Error"
 
 if __name__ == '__main__':
     unittest.main()

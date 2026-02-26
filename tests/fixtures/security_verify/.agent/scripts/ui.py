@@ -5,9 +5,9 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
 
-class HUD:
+class SovereignHUD:
     """
-    Hyper-Refined User Interface (HUD) Class.
+    Hyper-Refined User Interface (SovereignHUD) Class.
     
     Provides ANSI-colored terminal output primitives for the Corvus Star framework.
     Strictly follows the Linscott Standard for "Iron Clad" reliability.
@@ -32,19 +32,19 @@ class HUD:
     @staticmethod
     def _speak(intent: str, fallback: str) -> str:
         """Retrieves dialogue from the vector DB or returns fallback."""
-        if HUD.DIALOGUE:
-            return HUD.DIALOGUE.get(intent) or fallback
+        if SovereignHUD.DIALOGUE:
+            return SovereignHUD.DIALOGUE.get(intent) or fallback
         return fallback
 
     @staticmethod
     def _get_theme() -> Dict[str, str]:
         """Returns the color palette for the active Persona."""
-        p = HUD.PERSONA.upper()
+        p = SovereignHUD.PERSONA.upper()
         if p in ["GOD", "ODIN"]:
             return {
-                "main": HUD.RED, 
-                "dim": HUD.MAGENTA, 
-                "accent": HUD.YELLOW, 
+                "main": SovereignHUD.RED, 
+                "dim": SovereignHUD.MAGENTA, 
+                "accent": SovereignHUD.YELLOW, 
                 "title": "Ω ODIN ENGINE Ω",
                 "war_title": "THE WAR ROOM (CONFLICT RADAR)",
                 "trace_label": "TRACE (LIES)",
@@ -52,9 +52,9 @@ class HUD:
             }
         # Default / Alfred
         return {
-            "main": HUD.CYAN, 
-            "dim": HUD.CYAN_DIM, 
-            "accent": HUD.GREEN, 
+            "main": SovereignHUD.CYAN, 
+            "dim": SovereignHUD.CYAN_DIM, 
+            "accent": SovereignHUD.GREEN, 
             "title": "C* NEURAL TRACE",
             "war_title": "THE BATCAVE (ANOMALY DETECTOR)",
             "trace_label": "EVENT LOG",
@@ -74,9 +74,9 @@ class HUD:
         if width is None:
             width = int(os.environ.get("HUD_WIDTH", 60))
         assert isinstance(width, int) and width >= 10, "Width must be integer >= 10"
-        HUD._last_width = width
+        SovereignHUD._last_width = width
         
-        theme = HUD._get_theme()
+        theme = SovereignHUD._get_theme()
         display_title = title if title else theme["title"]
         main_color = color if color else theme['main']
         dim_color = color if color else theme['dim']
@@ -88,7 +88,7 @@ class HUD:
         pad_r = total_padding - pad_l
         
         # Glow effect
-        print(f"{dim_color}┌{'─'*pad_l} {main_color}{HUD.BOLD}{display_title}{HUD.RESET}{dim_color} {'─'*pad_r}┐{HUD.RESET}")
+        print(f"{dim_color}┌{'─'*pad_l} {main_color}{SovereignHUD.BOLD}{display_title}{SovereignHUD.RESET}{dim_color} {'─'*pad_r}┐{SovereignHUD.RESET}")
 
     @staticmethod
     def box_row(label: str, value: Any, color: Optional[str] = None, dim_label: bool = False, width: Optional[int] = None) -> None:
@@ -103,8 +103,8 @@ class HUD:
             width: Override width.
         """
         if width is None:
-            width = getattr(HUD, "_last_width", 60)
-        theme = HUD._get_theme()
+            width = getattr(SovereignHUD, "_last_width", 60)
+        theme = SovereignHUD._get_theme()
         val_color = color if color else theme['main']
         lbl_color = theme['dim'] if dim_label else theme['main']
         
@@ -126,27 +126,27 @@ class HUD:
         padding = width - 1 - 20 - 1 - len(str_val) - 1
         if padding < 0: padding = 0
             
-        print(f"{theme['dim']}│{HUD.RESET} {lbl_color}{str_lbl:<20}{HUD.RESET} {val_color}{str_val}{' '*padding}{theme['dim']}│{HUD.RESET}")
+        print(f"{theme['dim']}│{SovereignHUD.RESET} {lbl_color}{str_lbl:<20}{SovereignHUD.RESET} {val_color}{str_val}{' '*padding}{theme['dim']}│{SovereignHUD.RESET}")
 
     @staticmethod
     def box_separator(color: Optional[str] = None, width: Optional[int] = None) -> None:
         """Renders a middle separator line."""
         if width is None:
-            width = getattr(HUD, "_last_width", 60)
-        theme = HUD._get_theme()
+            width = getattr(SovereignHUD, "_last_width", 60)
+        theme = SovereignHUD._get_theme()
         dim_color = color if color else theme['dim']
         inner_width = width - 2
-        print(f"{dim_color}├{'─'*inner_width}┤{HUD.RESET}")
+        print(f"{dim_color}├{'─'*inner_width}┤{SovereignHUD.RESET}")
 
     @staticmethod
     def box_bottom(color: Optional[str] = None, width: Optional[int] = None) -> None:
         """Renders the bottom closure of a box."""
         if width is None:
-            width = getattr(HUD, "_last_width", 60)
-        theme = HUD._get_theme()
+            width = getattr(SovereignHUD, "_last_width", 60)
+        theme = SovereignHUD._get_theme()
         dim_color = color if color else theme['dim']
         inner_width = width - 2
-        print(f"{dim_color}└{'─'*inner_width}┘{HUD.RESET}")
+        print(f"{dim_color}└{'─'*inner_width}┘{SovereignHUD.RESET}")
     
     @staticmethod
     def progress_bar(val: float, width: int = 10) -> str:
@@ -160,7 +160,7 @@ class HUD:
         # [||||||....] with subtle coloring
         safe_val = max(0.0, min(1.0, val))
         blocks = int(safe_val * width)
-        bar = f"{HUD.GREEN}" + "█" * blocks + f"{HUD.GREEN_DIM}" + "░" * (width - blocks) + f"{HUD.RESET}"
+        bar = f"{SovereignHUD.GREEN}" + "█" * blocks + f"{SovereignHUD.GREEN_DIM}" + "░" * (width - blocks) + f"{SovereignHUD.RESET}"
         return bar
     
     @staticmethod
@@ -204,28 +204,28 @@ class HUD:
             detail: Secondary detail string.
         """
         ts = datetime.now().strftime("%H:%M:%S")
-        color = HUD.CYAN
-        if level == "WARN": color = HUD.YELLOW
-        if level == "FAIL": color = HUD.RED
-        if level == "PASS": color = HUD.GREEN
-        if level == "CRITICAL": color = HUD.MAGENTA
+        color = SovereignHUD.CYAN
+        if level == "WARN": color = SovereignHUD.YELLOW
+        if level == "FAIL": color = SovereignHUD.RED
+        if level == "PASS": color = SovereignHUD.GREEN
+        if level == "CRITICAL": color = SovereignHUD.MAGENTA
         
-        print(f"{HUD.DIM}[{ts}]{HUD.RESET} {color}[{level}]{HUD.RESET} {msg} {HUD.DIM}{detail}{HUD.RESET}")
+        print(f"{SovereignHUD.DIM}[{ts}]{SovereignHUD.RESET} {color}[{level}]{SovereignHUD.RESET} {msg} {SovereignHUD.DIM}{detail}{SovereignHUD.RESET}")
 
     @staticmethod
     def warning(msg: str) -> None:
         """Shorthand for a yellow warning log."""
-        HUD.log("WARN", msg)
+        SovereignHUD.log("WARN", msg)
 
     @staticmethod
     def divider(label: str = "") -> None:
         """Prints a visual divider line."""
-        theme = HUD._get_theme()
+        theme = SovereignHUD._get_theme()
         width = 60
         if label:
-            print(f"{theme['dim']}── {theme['accent']}{label}{theme['dim']} {'─'*(width-len(label)-4)}{HUD.RESET}")
+            print(f"{theme['dim']}── {theme['accent']}{label}{theme['dim']} {'─'*(width-len(label)-4)}{SovereignHUD.RESET}")
         else:
-            print(f"{theme['dim']}{'─'*width}{HUD.RESET}")
+            print(f"{theme['dim']}{'─'*width}{SovereignHUD.RESET}")
 
     @staticmethod
     def log_rejection(persona: str, reason: str, details: str) -> None:

@@ -13,7 +13,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from src.core.ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 
 class GungnirValidator:
@@ -127,13 +127,13 @@ class TheWatcher:
         if is_echo:
             file_state["status"] = "LOCKED"
             self._save_state()
-            HUD.persona_log("FAIL", f"OSCILLATION DETECTED: {rel_path} returning to previous state. LOCKING.")
+            SovereignHUD.persona_log("FAIL", f"OSCILLATION DETECTED: {rel_path} returning to previous state. LOCKING.")
             return False
 
         if file_state["edit_count_24h"] >= 10: # Increased limit for Phase 4
             file_state["status"] = "LOCKED"
             self._save_state()
-            HUD.persona_log("FAIL", f"FILE FATIGUE: {rel_path} locked after 10 edits.")
+            SovereignHUD.persona_log("FAIL", f"FILE FATIGUE: {rel_path} locked after 10 edits.")
             return False
 
         self._save_state()

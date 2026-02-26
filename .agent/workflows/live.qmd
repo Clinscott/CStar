@@ -23,4 +23,4 @@ python src/tools/loop.py
 ## Constraints
 - **Kill Switch**: Max 3 retries per task.
 - **Memory**: Strict garbage collection.
-- **Audited**: All actions logged to HUD.
+- **Audited**: All actions logged to SovereignHUD.

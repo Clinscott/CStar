@@ -66,6 +66,7 @@ class TestZombiePurge:
         # Reset mock after init
         mock_run.reset_mock()
         mock_run.side_effect = [
+            MagicMock(returncode=0), # image check
             subprocess.TimeoutExpired(cmd="docker run...", timeout=5),
             MagicMock(returncode=0)
         ]
@@ -73,14 +74,12 @@ class TestZombiePurge:
         result = warden.run_in_sandbox(Path("skills_db/dummy.py"))
         
         # ASSERTIONS:
-        # 1. Assert exactly 2 calls (Run, Purge)
-        assert mock_run.call_count == 2
+        # 1. Assert exactly 3 calls (Image check, Run, Purge)
+        assert mock_run.call_count == 3
         
-        # 2. Verify the 2nd call (Purge) is docker rm -f
-        # call_args_list[1] is the (args, kwargs) tuple of the second call
-        # args is call_args_list[1][0]
-        # cmd list is call_args_list[1][0][0]
-        purge_cmd = mock_run.call_args_list[1][0][0]
+        # 2. Verify the 3rd call (Purge) is docker rm -f
+        # call_args_list[2] is the (args, kwargs) tuple of the third call
+        purge_cmd = mock_run.call_args_list[2][0][0]
         assert "rm" in purge_cmd
         assert "-f" in purge_cmd
         assert "docker" in purge_cmd

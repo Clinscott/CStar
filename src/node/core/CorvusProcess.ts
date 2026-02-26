@@ -162,7 +162,7 @@ export class CorvusProcess extends EventEmitter {
             // Fallback: Std SSE Telemetry
             this.emit('telemetry', { ...payload, type: 'TELEMETRY' });
         } catch {
-            // Fallback: Raw HUD async rendering strings
+            // Fallback: Raw SovereignHUD async rendering strings
             this.emit('telemetry', {
                 type: 'HUD_STREAM',
                 message: line,

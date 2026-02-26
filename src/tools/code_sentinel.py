@@ -26,7 +26,7 @@ project_root = Path(__file__).parent.parent.parent.absolute()
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
-from src.core.ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 
 class Heimdall:
@@ -62,9 +62,9 @@ class Heimdall:
         self.scripts_dir = Path(__file__).parent.absolute()
         self.project_root = self.scripts_dir.parent.parent
         self.config = self._load_config()
-        HUD.PERSONA = persona_override.upper() if persona_override else self.config.get("Persona", "ALFRED").upper()
-        if HUD.PERSONA == "GOD":
-            HUD.PERSONA = "ODIN"
+        SovereignHUD.PERSONA = persona_override.upper() if persona_override else self.config.get("Persona", "ALFRED").upper()
+        if SovereignHUD.PERSONA == "GOD":
+            SovereignHUD.PERSONA = "ODIN"
 
     def _load_config(self) -> dict:
         config_path = self.project_root / ".agent" / "config.json"
@@ -97,7 +97,7 @@ class Heimdall:
                 "severity": "CRITICAL"
             }]
 
-        persona = HUD.PERSONA if HUD.PERSONA in self.TEXT_MAP else "ALFRED"
+        persona = SovereignHUD.PERSONA if SovereignHUD.PERSONA in self.TEXT_MAP else "ALFRED"
         v_code = self.TEXT_MAP[persona]["STRUCT_CODE"]
 
         for node in tree.body:
@@ -140,7 +140,7 @@ class Heimdall:
                 if stderr and "error:" in stderr.lower():
                     # Strip lines for brevity
                     err_lines = [l for l in stderr.splitlines() if l.strip()]
-                    HUD.box_row("RUFF ERROR", err_lines[0][:60] if err_lines else "Unknown", HUD.RED)
+                    SovereignHUD.box_row("RUFF ERROR", err_lines[0][:60] if err_lines else "Unknown", SovereignHUD.RED)
                 return []
 
             try:
@@ -149,45 +149,45 @@ class Heimdall:
                 return []
                 
         except FileNotFoundError:
-            HUD.log("WARN", "Sentinel", "Ruff not found. Style scan skipped.")
+            SovereignHUD.log("WARN", "Sentinel", "Ruff not found. Style scan skipped.")
             return []
         except subprocess.TimeoutExpired:
-            HUD.log("WARN", "Sentinel", "Ruff scan timed out.")
+            SovereignHUD.log("WARN", "Sentinel", "Ruff scan timed out.")
             return []
         except Exception as e:
-            HUD.log("FAIL", "Sentinel Error", str(e))
+            SovereignHUD.log("FAIL", "Sentinel Error", str(e))
             return []
 
     def format_results(self, violations: List[Dict[str, Any]]) -> None:
         """Visual representation of scan results."""
-        persona = HUD.PERSONA if HUD.PERSONA in self.TEXT_MAP else "ALFRED"
+        persona = SovereignHUD.PERSONA if SovereignHUD.PERSONA in self.TEXT_MAP else "ALFRED"
         text = self.TEXT_MAP[persona]
         
-        HUD.box_top(text["TITLE"])
-        HUD.box_row(text["SCAN_TARGET"], str(self.target), HUD.CYAN)
+        SovereignHUD.box_top(text["TITLE"])
+        SovereignHUD.box_row(text["SCAN_TARGET"], str(self.target), SovereignHUD.CYAN)
 
         if self.fix:
-            HUD.box_row("ACTION", "REPAIR ATTEMPTED (--fix)", HUD.YELLOW)
+            SovereignHUD.box_row("ACTION", "REPAIR ATTEMPTED (--fix)", SovereignHUD.YELLOW)
 
-        HUD.box_row(text["VIOLATIONS"], str(len(violations)), HUD.RED if violations else HUD.GREEN)
+        SovereignHUD.box_row(text["VIOLATIONS"], str(len(violations)), SovereignHUD.RED if violations else SovereignHUD.GREEN)
 
         if violations:
-            HUD.box_separator()
+            SovereignHUD.box_separator()
             # Show top 15 findings
             for v in violations[:15]:
                 filename = Path(v['filename']).name
                 loc = f"{filename}:{v['location']['row']}:{v['location']['column']}"
                 severity = v.get('severity', '')
-                color = HUD.RED if ("Error" in severity or "CRITICAL" in severity or severity == "ERROR") else HUD.YELLOW
+                color = SovereignHUD.RED if ("Error" in severity or "CRITICAL" in severity or severity == "ERROR") else SovereignHUD.YELLOW
                 prefix = text["V_PREFIX"]
-                HUD.box_row(f"{prefix} {v['code']}", f"{loc} - {v['message'][:50]}", color, dim_label=True)
+                SovereignHUD.box_row(f"{prefix} {v['code']}", f"{loc} - {v['message'][:50]}", color, dim_label=True)
 
             if len(violations) > 15:
-                HUD.box_row("...", f"+ {len(violations) - 15} more findings", dim_label=True)
+                SovereignHUD.box_row("...", f"+ {len(violations) - 15} more findings", dim_label=True)
         else:
-            HUD.box_row("STATUS", text["PASS"], HUD.GREEN)
+            SovereignHUD.box_row("STATUS", text["PASS"], SovereignHUD.GREEN)
 
-        HUD.box_bottom()
+        SovereignHUD.box_bottom()
 
     def execute_audit(self) -> bool:
         """Main entry point for the audit cycle."""

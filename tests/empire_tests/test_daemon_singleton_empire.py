@@ -19,7 +19,7 @@ def test_daemon_singleton_lock_creation(tmp_path):
     
     # Mock Path.unlink and other dependencies
     with patch("src.sentinel.main_loop.load_config", return_value={"persona": "ODIN"}), \
-         patch("src.sentinel.main_loop.HUD"), \
+         patch("src.sentinel.main_loop.SovereignHUD"), \
          patch("src.sentinel.main_loop.load_target_repos", return_value=[]), \
          patch("src.sentinel.main_loop.psutil"), \
          patch("src.sentinel.main_loop.highlander_check", return_value=False), \
@@ -45,7 +45,7 @@ def test_daemon_detects_existing_lock(tmp_path):
     
     with patch("src.sentinel.main_loop.psutil") as mock_psutil, \
          patch("src.sentinel.main_loop.load_config", return_value={"persona": "ODIN"}), \
-         patch("src.sentinel.main_loop.HUD"):
+         patch("src.sentinel.main_loop.SovereignHUD"):
         
         mock_psutil.pid_exists.return_value = True
         

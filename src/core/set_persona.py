@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from src.core import personas
-from src.core.ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 
 class PersonaManager:
@@ -166,11 +166,11 @@ class PersonaManager:
         # Update and Apply
         self._save_persona(new_persona)
 
-        # [ALFRED] Fire the HUD transition ceremony
+        # [ALFRED] Fire the SovereignHUD transition ceremony
         try:
-            HUD.transition_ceremony(self.old_persona, new_persona)
+            SovereignHUD.transition_ceremony(self.old_persona, new_persona)
         except Exception:
-            pass  # Graceful fallback if HUD import fails
+            pass  # Graceful fallback if SovereignHUD import fails
 
         print(f"\n✅ Persona set to: {new_persona}")
         print("Applying operational policy...")

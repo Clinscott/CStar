@@ -1,5 +1,5 @@
 """
-Operation Ragnarök: The Sovereign HUD Rebirth.
+Operation Ragnarök: The Sovereign SovereignHUD Rebirth.
 A multi-screen, lore-drenched Textual TUI for the Corvus Star autonomous loop.
 """
 
@@ -247,7 +247,7 @@ class HelpScreen(ModalScreen):
 # ---------------------------------------------------------------------------
 
 class SovereignApp(App):
-    TITLE = "C* SOVEREIGN HUD"
+    TITLE = "C* SOVEREIGN SovereignHUD"
     BINDINGS: ClassVar[list[Binding]] = [
         Binding("f1", "push_screen('help')", "Help", show=True),
         Binding("f2", "push_screen('dashboard')", "Dashboard", show=True),

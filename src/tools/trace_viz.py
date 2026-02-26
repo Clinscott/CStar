@@ -15,10 +15,10 @@ sys.path.insert(0, _core_dir)
 sys.path.insert(0, _engine_dir)
 
 from vector import SovereignVector
-from ui import HUD
+from src.core.sovereign_hud import SovereignHUD
 
 # --- CONFIGURATION (SYMMETRY MANDATE) ---
-# Themes are now handled by ui.HUD based on HUD.PERSONA setting
+# Themes are now handled by ui.SovereignHUD based on SovereignHUD.PERSONA setting
 
 # --- UTILITIES ---
 
@@ -29,13 +29,13 @@ def load_json(path, max_size_mb: int = 10):
         # [ALFRED] DoS Protection: Prevent loading massive artifacts
         file_size = os.path.getsize(path)
         if file_size > max_size_mb * 1024 * 1024:
-            HUD.log("WARN", "Trace Integrity", f"Artifact too large: {os.path.basename(path)}")
+            SovereignHUD.log("WARN", "Trace Integrity", f"Artifact too large: {os.path.basename(path)}")
             return {}
             
         with open(path, 'r', encoding='utf-8') as f: 
             return json.load(f)
     except (json.JSONDecodeError, IOError, PermissionError) as e:
-        HUD.log("FAIL", "Replay Error", f"{os.path.basename(path)} ({str(e)})")
+        SovereignHUD.log("FAIL", "Replay Error", f"{os.path.basename(path)} ({str(e)})")
         return {}
 
 def get_engine():
@@ -94,32 +94,32 @@ class TraceRenderer:
             target_persona: The name of the persona to use for styling (e.g., 'ALFRED', 'ODIN').
         """
         self.target_persona = target_persona
-        # Temporarily switch global HUD persona to get theme colors
-        self.original_persona = HUD.PERSONA
-        HUD.PERSONA = target_persona
-        self.theme = HUD.get_theme()
-        HUD.PERSONA = self.original_persona # Restore
+        # Temporarily switch global SovereignHUD persona to get theme colors
+        self.original_persona = SovereignHUD.PERSONA
+        SovereignHUD.PERSONA = target_persona
+        self.theme = SovereignHUD.get_theme()
+        SovereignHUD.PERSONA = self.original_persona # Restore
 
     def box_top(self, title: str) -> None:
         """Renders the top bar of a themed log box."""
-        HUD.PERSONA = self.target_persona
-        HUD.box_top(title)
+        SovereignHUD.PERSONA = self.target_persona
+        SovereignHUD.box_top(title)
 
     def box_row(self, label: str, value: Any, value_color: str = None, dim_label: bool = False) -> None:
         """Renders a labeled data row in the current theme."""
-        HUD.PERSONA = self.target_persona
-        HUD.box_row(label, value, value_color, dim_label)
+        SovereignHUD.PERSONA = self.target_persona
+        SovereignHUD.box_row(label, value, value_color, dim_label)
 
     def box_separator(self):
         """Renders a horizontal separator line within the log box."""
-        HUD.PERSONA = self.target_persona
-        HUD.box_separator()
+        SovereignHUD.PERSONA = self.target_persona
+        SovereignHUD.box_separator()
 
     def box_bottom(self):
         """Closes the current log box and restores character context."""
-        HUD.PERSONA = self.target_persona
-        HUD.box_bottom()
-        HUD.PERSONA = self.original_persona
+        SovereignHUD.PERSONA = self.target_persona
+        SovereignHUD.box_bottom()
+        SovereignHUD.PERSONA = self.original_persona
 
     def render_neural_path(self, traces: list[dict]):
         """[ALFRED] Render a chronological flowchart of triggered intents."""
@@ -132,43 +132,43 @@ class TraceRenderer:
                 path.append(trigger)
         
         if not path:
-            self.box_row("PATH", "Empty Signal", HUD.YELLOW)
+            self.box_row("PATH", "Empty Signal", SovereignHUD.YELLOW)
         else:
             for i, step in enumerate(path):
                 arrow = "  ▼  " if i < len(path)-1 else "  🏁  "
-                self.box_row(f"STEP {i+1:02}", step, HUD.CYAN)
+                self.box_row(f"STEP {i+1:02}", step, SovereignHUD.CYAN)
                 if i < len(path)-1:
-                    HUD.PERSONA = self.target_persona
-                    inner_width = getattr(HUD, "_last_width", 60)
+                    SovereignHUD.PERSONA = self.target_persona
+                    inner_width = getattr(SovereignHUD, "_last_width", 60)
                     pad = " " * (inner_width - 2 - 20 - 5 - 1)
-                    print(f"{HUD.DIM}│{HUD.RESET} {' '*20} {HUD.DIM}{arrow}{HUD.RESET}{pad}{HUD.DIM}│{HUD.RESET}")
+                    print(f"{SovereignHUD.DIM}│{SovereignHUD.RESET} {' '*20} {SovereignHUD.DIM}{arrow}{SovereignHUD.RESET}{pad}{SovereignHUD.DIM}│{SovereignHUD.RESET}")
                     
         self.box_bottom()
 
     def render_analysis(self, query, trigger, score, is_global, engine_instance=None):
         # Set Persona Context
-        HUD.PERSONA = self.target_persona
-        theme = HUD.get_theme()
+        SovereignHUD.PERSONA = self.target_persona
+        theme = SovereignHUD.get_theme()
         
         # Header
         print("\n")
         
         # Scanline Effect (Simulated)
         if self.target_persona in ["ODIN", "GOD"]:
-             print(f"{theme['dim']}>> INITIATING WAR PROTOCOL...{HUD.RESET}")
+             print(f"{theme['dim']}>> INITIATING WAR PROTOCOL...{SovereignHUD.RESET}")
         else:
-             print(f"{theme['dim']}>> DECRYPTING LOG...{HUD.RESET}")
+             print(f"{theme['dim']}>> DECRYPTING LOG...{SovereignHUD.RESET}")
 
         self.box_top(theme["war_title"])
         
         self.box_row("Query", query, dim_label=True)
         
         # Score Color Logic (Relative to Theme)
-        match_color = HUD.GREEN if score > 0.8 else HUD.YELLOW
+        match_color = SovereignHUD.GREEN if score > 0.8 else SovereignHUD.YELLOW
         if self.target_persona in ["ODIN", "GOD"]:
-             match_color = HUD.RED if score > 0.8 else HUD.YELLOW
+             match_color = SovereignHUD.RED if score > 0.8 else SovereignHUD.YELLOW
 
-        global_tag = f"{HUD.MAGENTA}[GLOBAL]{HUD.RESET} " if is_global else ""
+        global_tag = f"{SovereignHUD.MAGENTA}[GLOBAL]{SovereignHUD.RESET} " if is_global else ""
         self.box_row(theme["trace_label"], f"{global_tag}{trigger}", match_color, dim_label=True)
         self.box_row("Confidence", f"{score:.4f}", match_color, dim_label=True)
         
@@ -188,14 +188,14 @@ class TraceRenderer:
                     overlaps.append((qt, qw, count, idf))
             overlaps.sort(key=lambda x: x[3], reverse=True)
 
-            print(f"{theme['dim']}│{HUD.RESET} {theme['main']}{'TOKEN':<15} {'WEIGHT':<10} {'IDF':<10} {'SIGNAL'}{HUD.RESET}")
+            print(f"{theme['dim']}│{SovereignHUD.RESET} {theme['main']}{'TOKEN':<15} {'WEIGHT':<10} {'IDF':<10} {'SIGNAL'}{SovereignHUD.RESET}")
             
             for token, weight, count, idf in overlaps[:5]:
                 signal_strength = weight * idf * math.log(1 + count)
                 # Bar is always main theme color
-                print(f"{theme['dim']}│{HUD.RESET} {token:<15} {weight:<10.2f} {idf:<10.2f} {theme['main']}{'█' * int(signal_strength * 2)}{HUD.RESET}")
+                print(f"{theme['dim']}│{SovereignHUD.RESET} {token:<15} {weight:<10.2f} {idf:<10.2f} {theme['main']}{'█' * int(signal_strength * 2)}{SovereignHUD.RESET}")
         else:
-            self.box_row("Status", "Offline (No Engine)", HUD.YELLOW)
+            self.box_row("Status", "Offline (No Engine)", SovereignHUD.YELLOW)
 
         self.box_bottom()
         print("\n")
@@ -209,7 +209,7 @@ def mode_live(query):
     
     # Live always uses CURRENT Identity
     # Live always uses CURRENT Identity
-    p = HUD.PERSONA
+    p = SovereignHUD.PERSONA
     renderer = TraceRenderer(p)
     
     trigger = top_match['trigger'] if top_match else "NONE"
@@ -230,12 +230,12 @@ def mode_file(file_path):
     renderer = TraceRenderer(stored_persona)
     
     # Get Theme for message (temp switch)
-    original = HUD.PERSONA
-    HUD.PERSONA = stored_persona
-    theme = HUD.get_theme()
-    HUD.PERSONA = original # Restore
+    original = SovereignHUD.PERSONA
+    SovereignHUD.PERSONA = stored_persona
+    theme = SovereignHUD.get_theme()
+    SovereignHUD.PERSONA = original # Restore
     
-    print(f"{theme['dim']}>> REPLAYING ARTIFACT: {file_path} [{stored_persona}]{HUD.RESET}")
+    print(f"{theme['dim']}>> REPLAYING ARTIFACT: {file_path} [{stored_persona}]{SovereignHUD.RESET}")
     
     engine = get_engine() # For token analysis
     
@@ -250,8 +250,8 @@ def mode_file(file_path):
 def mode_war_room():
     # War Room is ODIN'S DOMAIN
     renderer = TraceRenderer("ODIN")
-    HUD.PERSONA = "ODIN" # Enforce globally for direct log calls
-    theme = HUD.get_theme()
+    SovereignHUD.PERSONA = "ODIN" # Enforce globally for direct log calls
+    theme = SovereignHUD.get_theme()
     
     print("\n")
     renderer.box_top("⚔️  THE WAR ROOM  ⚔️")
@@ -269,7 +269,7 @@ def mode_war_room():
             query_map[q].append(t_data)
             
     conflicts = []
-    print(f"{theme['dim']}>> SCANNING {len(trace_files)} SECTORS...{HUD.RESET}")
+    print(f"{theme['dim']}>> SCANNING {len(trace_files)} SECTORS...{SovereignHUD.RESET}")
     
     for query, traces in query_map.items():
         matches = set()
@@ -286,18 +286,18 @@ def mode_war_room():
             })
             
     if not conflicts:
-        renderer.box_row("STATUS", "PACIFIED", HUD.GREEN)
+        renderer.box_row("STATUS", "PACIFIED", SovereignHUD.GREEN)
     else:
-        renderer.box_row("STATUS", f"{len(conflicts)} ACTIVE CONFLICTS", HUD.RED)
+        renderer.box_row("STATUS", f"{len(conflicts)} ACTIVE CONFLICTS", SovereignHUD.RED)
         renderer.box_separator()
         
-        print(f"{theme['dim']}│{HUD.RESET} {theme['main']}{'QUERY':<25} {'FACTIONS':<20} {'CONFLICTING OUTCOMES'}{HUD.RESET}")
+        print(f"{theme['dim']}│{SovereignHUD.RESET} {theme['main']}{'QUERY':<25} {'FACTIONS':<20} {'CONFLICTING OUTCOMES'}{SovereignHUD.RESET}")
         
         for c in conflicts:
             q_short = (c['query'][:22] + '..') if len(c['query']) > 22 else c['query']
             f_str = ",".join(c['factions'])
             o_str = " vs ".join([str(o) for o in c['outcomes']])
-            print(f"{theme['dim']}│{HUD.RESET} {q_short:<25} {f_str:<20} {o_str}")
+            print(f"{theme['dim']}│{SovereignHUD.RESET} {q_short:<25} {f_str:<20} {o_str}")
 
     renderer.box_bottom()
     print("\n")

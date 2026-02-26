@@ -27,7 +27,7 @@ The decision-making brain of Corvus Star.
     - Multi-tenant WebSocket gateway with singleton-based broadcast routing and ghost-key garbage collection.
 - **Cognitive Router** (`src/node/core/CognitiveRouter.ts`):
     - `route(intent)`: Bifurcates traffic between Edge (Ollama) and Core (Gungnir Matrix) based on `requires_core` payload flags.
-- **Sovereign HUD** (`src/cstar/core/tui.py` & `src/core/ui.py`):
+- **Sovereign SovereignHUD** (`src/cstar/core/tui.py` & `src/core/ui.py`):
     - Reactive Textual UI driven by Daemon broadcasts (`STATE_ODIN`, `STATE_ALFRED_REPORT`).
     - **Telemetry Intercepts**: Real-time visualization of `EDGE_ROUTER` and `CognitiveRouter` activity.
     - **Async Layer** (`ui.py`): Implements `render_loop`, `broadcast`, and `stream_text` with queue-based serialization.
@@ -64,14 +64,15 @@ The autonomous daemon ensuring system health.
 - **Huginn & Muninn** (`main_loop.py`):
     - `daemon_loop()`: Orchestrates the twin ravens (Thought/Memory).
 - **Muninn: The Improver** (`src/sentinel/muninn.py`):
-    - `run()`: orchestrates parallel scans via `ThreadPoolExecutor`.
+    - `run()`: orchestrates parallel scans or triggers **Shadow Forge**.
+    - **Shadow Forge Orchestrator**: Host-side Docker lifecycle management (RO Mounts, `docker cp` promotion).
+    - **Shadow Workspace Mirroring**: Internal worker logic for ephemeral environment setup.
     - **Debt Slasher**: Review and eviction logic for the anomaly ledger in `wrap_it_up.py`.
 - **Sandbox Warden** (`src/sentinel/sandbox_warden.py`):
     - `run_in_sandbox(path, args)`: Executes Python scripts within isolated, resource-capped Docker containers.
-    - **Zero-Trust Jailing**: Routes all commands targeting `skills_db/` through containerization.
-    - `Wardens**: Modular logic in `src/sentinel/wardens/` (Norn, Valkyrie, Edda, etc.).
-    - `Stability`: `src/sentinel/stability.py` (GungnirValidator, TheWatcher).
-    - `NornWarden`: Executes the Campaign Implementation Plan (N1000).
+- **Docker Runtimes**:
+    - `Dockerfile.sentinel`: Full-cycle sandboxing container (Shadow Forge).
+    - `Dockerfile.hunter`: Network-enabled discovery container (Skill Hunting).
 
 ### 📂 Test Infrastructure (`tests/`)
 Verification and hardening tools.

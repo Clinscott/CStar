@@ -25,7 +25,7 @@
 -   **Identity Rendering**: `trace_viz.py` enforces visual consistency (Odin=Red, Alfred=Cyan) by reading the `persona` tag from historical traces.
 
 ### 4. The Triple Threat (Visuals, Distribution, Global Skills)
--   **Visuals**: `trace_viz.py` provides a glowing Sci-Fi HUD for debugging.
+-   **Visuals**: `trace_viz.py` provides a glowing Sci-Fi SovereignHUD for debugging.
 -   **Stats**: `codestats` skill provides deep codebase metrics.
 -   **Health**: `agent-health` skill diagnoses workflow issues.
 
