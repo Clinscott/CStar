@@ -1,5 +1,21 @@
 # Corvus Star Memory
 
+## 2026-02-26: Session 90 (Fishtest Regression & Vector Calibration)
+- **Engine Prefix Hardening**: Corrected the `SovereignVector` prefix joining logic to prevent "Double-Colon" errors (`GLOBAL::`). Prefixes that already contain a separator (like `GLOBAL:`) must be handled as suffixes to prevent search fragmentation.
+- **Ghost Data Purge**: When modifying composite IDs in ChromaDB (e.g., `system::GLOBAL:skill`), the old IDs persist in the index. A full `.agent/chroma_db` purge is required to eliminate "Ghost Data" that can pollute intent resolution accuracy.
+- **Greedy Intent Calibration**: Reduced the core trigger boost in `src/core/engine/vector.py` from 1.2 to 1.15 to prevent "Sovereign Triggers" from statistically bullying more specialized global skills.
+- **Operational Tool Restoration**: Repaired `sterileAgent/fishtest.py` by correcting its `PROJECT_ROOT` and configuration loading logic to support the new nested `system` domain.
+
+## 2026-02-26: Session 89 (CStar CLI TS Migration & Typed IPC)
+- **Bootstrap Pattern for TSX**: For Node.js CLI tools, use a lightweight `.js` entry point in `bin/` that invokes `tsx` on the `.ts` core. This avoids the "Stale JS" conflict (where both `.js` and `.ts` files exist in the same directory) and ensures ESM imports resolve correctly via the TypeScript-aware loader.
+- **Constructor Injection for Mocks**: Native `node:test` ESM mocking (`mock.module`) is often fragile in mixed TS/JS environments. Use constructor injection (Dependency Injection) for high-impact classes like `CortexLink`, passing the implementation (e.g., `WebSocket`) as a parameter to allow for deterministic unit testing without brittle module intercepts.
+- **Atomic Cleanup in Hybrid Migrations**: When converting modules from JS to TS, aggressively purge legacy `.js` files. Residual `.js` files can cause "Split-Brain" resolution issues where tests or imports unintentionally target the stale logic instead of the new typed core.
+
+## 2026-02-26: Session 88 (Mimir Remediation & Import Sovereignty)
+- **Semantic Decomposition**: When refactoring for Cyclomatic Complexity, prioritize extracting I/O or decision-heavy blocks into private `_helper` methods. This preserves the primary method's "Clean Story" while isolating logic branches for individual unit testing.
+- **Regex Edge Cases in QMD**: When neutralizing Quarto files, always use `re.MULTILINE` and anchor on `^` to handle YAML frontmatter correctly. Check for existing `execute` keys before appending to prevent duplicate key errors in the Quarto compiler.
+- **Dependency Whitelisting**: The `_KNOWN_THIRD_PARTY` list in `code_sanitizer.py` is a living document. Frequently add common project dependencies (e.g., `websockets`, `google-genai`) to prevent the Bifrost Gate from incorrectly flagging valid infrastructure imports.
+
 ## 2026-02-25: Session 87 (Scaffold Campaign & Linscott Sovereignty)
 - **High-Fidelity Tool Mocking**: When testing tools that interact with core engines (Vector, Dialogue, Muninn), create localized mock classes within the test file that mirror the engine's interface. This avoids the latency and complexity of initializing real vector databases or loading YAML banks while allowing for precise logic verification.
 - **Import Sovereignty (`src.`)**: Never use relative imports in game logic or tools that might be executed as standalone scripts. Always use absolute imports with the `src.` prefix. This ensures the `PYTHONPATH` (set by `_bootstrap.py` or the Node control plane) always resolves the core framework.

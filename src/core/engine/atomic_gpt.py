@@ -303,3 +303,25 @@ class SessionWarden(BaseWarden):
                 self.count = max(1, state["count"])
             except Exception:
                 pass
+
+def main() -> None:
+    """CLI entry point for warden management and training."""
+    import argparse
+    parser = argparse.ArgumentParser(description="Atomic Neural Warden Management")
+    parser.add_argument("--train", type=int, help="Run N training cycles with random noise.")
+    args = parser.parse_args()
+
+    if args.train:
+        warden = AnomalyWarden()
+        warden.train()
+        print(f"Executing {args.train} training cycles...")
+        for i in range(args.train):
+            # Simulate a healthy baseline with occasional noise
+            x = [10.0 + np.random.rand()*5, 50.0 + np.random.rand()*10, 1.0, 0.0]
+            warden.train_step(x, 0.0)
+            if i % 100 == 0:
+                print(f"Cycle {i} complete.")
+        print("Training complete. State secured.")
+
+if __name__ == "__main__":
+    main()

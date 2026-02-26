@@ -82,34 +82,13 @@ def install_skill(skill_name, target_root=None):
     if not all(_validate_path(base if "db" not in p[0] else config["FrameworkRoot"], p[1]) for p in paths_to_validate):
         SovereignHUD.log("CRITICAL", "Path Violation"); return
 
-    if os.path.exists(dst):
+    if os.path.exists(dst): 
         SovereignHUD.log("INFO", f"Skill '{name}' already installed."); return
-    if not os.path.exists(src):
+    if not os.path.exists(src): 
         SovereignHUD.log("FAIL", f"Skill '{name}' not found"); return
-
+    
     try:
-        if os.path.exists(qua): shutil.rmtree(qua)
-        shutil.copytree(src, qua)
-
-        ok, i_err = _verify_integrity(qua)
-        if not ok:
-            SovereignHUD.log("FAIL", i_err); shutil.rmtree(qua); return
-
-        threat, s_err = _run_security_scan(qua)
-        if threat >= 2:
-            SovereignHUD.log("CRITICAL", "BLOCKED: Security Threat"); shutil.rmtree(qua); return
-        if threat == 1:
-            if input(f"{SovereignHUD.CYAN}>> Proceed with Warning? [y/N]: {SovereignHUD.RESET}").lower() != 'y':
-                shutil.rmtree(qua); return
-
-        # QMD Lockdown
-        for root, _, files in os.walk(qua):
-            for f in files:
-                if f.endswith((".qmd", ".md")):
-                    neuter_qmd_document(Path(os.path.join(root, f)))
-
-        if _promote_skill(qua, dst):
-            SovereignHUD.log("PASS", f"Skill '{name}' deployed to skills_db (SANDBOXED).")
+        _execute_installation_logic(src, qua, dst)
     except Exception as e:
         SovereignHUD.log("FAIL", f"Install Crash: {str(e)[:40]}")
         if os.path.exists(qua): shutil.rmtree(qua)

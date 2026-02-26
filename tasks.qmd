@@ -416,11 +416,21 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Verification**: Created 20+ new test suites ensuring 100% pass rate across the secured realms.
 - [x] **Shadow Purge**: Removed legacy relative path hacks and brittle string formatting.
 
-## ⏭️ Start Here Next (Phase 75)
+### 75. Mimir Breach Remediation: Batch 1 & 2 (Session 88)
+- [x] **Batch 1 Refactor**: Modularized `muninn.py` (run loop), `code_sanitizer.py` (imports), and `norn.py` (parsing). [x]
+- [x] **Batch 2 Refactor**: Modularized `dialogue.py`, `scenarios.py`, and `install_skill.py`. [x]
+- [x] **Complexity Reduction**: Achieved B/C grade (<15 CC) for all targeted methods (e.g., `Muninn.run` 20 -> 6). [x]
+- [x] **Verification**: 10/10 functional parity tests passing (`test_mimir_batch_1_2.py`). [x]
+- [x] **SovereignFish**: Hardened `neuter_qmd_document` and expanded dependency list. [x]
+
+### 76. CStar CLI TypeScript Migration (Session 89)
+- [x] **TypeScript Entry Point**: Implemented `cstar.ts` as the primary CLI core with explicit types for commands. [x]
+- [x] **Bootstrap Wrapper**: Refactored `bin/cstar.js` into a lightweight `tsx` bootstrap. [x]
+- [x] **Module Conversion**: Successfully converted `cortex_link.js`, `agent_loop.js`, and `deployment.js` to `.ts`. [x]
+- [x] **Verification**: Integrated constructor injection Mocking for WebSockets; 100% pass on Node.js test suite (20/20). [x]
+
+## ⏭️ Start Here Next (Phase 77)
+- [ ] **Mimir Remediation: Batch 3**: Focus on `src/core/engine/vector.py` (CC: 32) and `src/games/odin_protocol/main.py`.
 - [ ] **Smart Promotion Registry**: Implement a JSON-based promotion manifest for tracking multiple simultaneous container fixes.
-- [ ] **Three.js Smart Objects**: Embed intent-dispatchers into the isometric Astrologer UI.
-- [ ] **Operation Ironclad**: Secure regular API key rotation logic in `bin/cstar.js`.
-- [ ] **Smart Promotion Registry**: Implement a JSON-based promotion manifest for tracking multiple simultaneous container fixes.
-- [ ] **Three.js Smart Objects**: Embed intent-dispatchers into the isometric Astrologer UI.
 - [ ] **Operation Ironclad**: Secure regular API key rotation logic in `bin/cstar.js`.
 

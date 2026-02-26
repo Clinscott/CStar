@@ -32,7 +32,8 @@ _KNOWN_THIRD_PARTY = {
     "tempfile", "copy", "math", "random", "datetime", "abc",
     "enum", "struct", "socket", "http", "urllib", "base64",
     "inspect", "traceback", "pprint", "string", "operator",
-    "warnings", "types", "glob", "fnmatch", "stat",
+    "warnings", "types", "glob", "fnmatch", "stat", "websockets",
+    "chromadb", "pyarrow", "pandas", "numpy", "yaml", "charset_normalizer",
     "_pytest",  # pytest internals
 }
 
@@ -65,38 +66,43 @@ def _get_project_modules(project_root: Path) -> set[str]:
                 project_modules.add(p.stem)
     return project_modules
 
+def _check_import_node(node: ast.AST, project_modules: set[str]) -> list[str]:
+    """Helper to validate a single import node."""
+    bad_imports = []
+    if isinstance(node, ast.Import):
+        for alias in node.names:
+            top = alias.name.split(".")[0]
+            if top not in _KNOWN_THIRD_PARTY and top not in project_modules:
+                if not _can_import(top):
+                    bad_imports.append(f"line {node.lineno}: `import {alias.name}` — '{top}' is not a known module")
+    elif isinstance(node, ast.ImportFrom):
+        if node.module:
+            top = node.module.split(".")[0]
+            if top not in _KNOWN_THIRD_PARTY and top not in project_modules:
+                if not _can_import(top):
+                    bad_imports.append(f"line {node.lineno}: `from {node.module} import ...` — '{top}' is not a known module")
+    elif isinstance(node, ast.Call):
+        if isinstance(node.func, ast.Name) and node.func.id == "__import__":
+            bad_imports.append(f"line {node.lineno}: Forbidden dynamic import `__import__` detected.")
+        elif isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name):
+            if node.func.value.id == "importlib":
+                bad_imports.append(f"line {node.lineno}: Forbidden dynamic import `importlib` detected.")
+    return bad_imports
+
 def validate_imports(code: str, project_root: Path) -> list[str]:
     """
     AST-walk import statements and flag any that cannot resolve.
     Returns a list of bad import descriptions.
     """
-    bad_imports = []
     try:
         tree = ast.parse(code)
     except SyntaxError:
         return ["Code has syntax errors — cannot validate imports"]
 
+    bad_imports = []
     project_modules = _get_project_modules(project_root)
-
     for node in ast.walk(tree):
-        if isinstance(node, ast.Import):
-            for alias in node.names:
-                top = alias.name.split(".")[0]
-                if top not in _KNOWN_THIRD_PARTY and top not in project_modules:
-                    if not _can_import(top):
-                        bad_imports.append(f"line {node.lineno}: `import {alias.name}` — '{top}' is not a known module")
-        elif isinstance(node, ast.ImportFrom):
-            if node.module:
-                top = node.module.split(".")[0]
-                if top not in _KNOWN_THIRD_PARTY and top not in project_modules:
-                    if not _can_import(top):
-                        bad_imports.append(f"line {node.lineno}: `from {node.module} import ...` — '{top}' is not a known module")
-        elif isinstance(node, ast.Call):
-            if isinstance(node.func, ast.Name) and node.func.id == "__import__":
-                bad_imports.append(f"line {node.lineno}: Forbidden dynamic import `__import__` detected.")
-            elif isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name):
-                if node.func.value.id == "importlib":
-                    bad_imports.append(f"line {node.lineno}: Forbidden dynamic import `importlib` detected.")
+        bad_imports.extend(_check_import_node(node, project_modules))
 
     return bad_imports
 
@@ -372,22 +378,25 @@ def neuter_qmd_document(file_path: Path):
         return
 
     content = file_path.read_text(encoding='utf-8')
+    # Use re.MULTILINE to find any entry of execute:
+    if re.search(r'^execute:\s*', content, re.MULTILINE):
+        # Already has an execute key, force it to false if it's not already
+        if not re.search(r'^execute:\s*false', content, re.MULTILINE):
+            content = re.sub(r'^execute:.*$', 'execute: false', content, flags=re.MULTILINE)
+            file_path.write_text(content, encoding='utf-8')
+        return
 
-    # Check for existing YAML frontmatter
+    # Check for existing YAML frontmatter to inject into
     yaml_match = re.search(r'^---\s*\n(.*?)\n---\s*\n', content, re.DOTALL)
 
     if yaml_match:
         yaml_block = yaml_match.group(1)
-        # Check if execute: false is already there
-        if "execute: false" not in yaml_block:
-            # Inject execute: false into existing YAML
-            new_yaml = yaml_block.rstrip() + "\nexecute: false\n"
-            content = content.replace(yaml_block, new_yaml)
-            file_path.write_text(content, encoding='utf-8')
+        new_yaml = yaml_block.rstrip() + "\nexecute: false\n"
+        content = content.replace(yaml_block, new_yaml)
     else:
-        # Prepend new YAML block
-        new_content = "---\nexecute: false\n---\n" + content
-        file_path.write_text(new_content, encoding='utf-8')
+        content = "---\nexecute: false\n---\n" + content
+    
+    file_path.write_text(content, encoding='utf-8')
 
 
 # ==============================================================================

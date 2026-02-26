@@ -96,6 +96,10 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 
 *Format: `[Date] - [Category]: [Description]`*
 
+### 2026-02-26
+-   **Security**: Hardened `neuter_qmd_document` in `code_sanitizer.py` with multi-line regex to prevent ACE regressions. Status: IMPROVED.
+-   **Code**: Expanded `_KNOWN_THIRD_PARTY` in `code_sanitizer.py` to include `websockets`, `chromadb`, and data-science staples to reduce false-positive import warnings. Status: IMPROVED.
+
 ### 2026-02-19
 -   **Protocol**: Standardized `AntigravityUplink` and `SovereignRPC` with strict docstrings and type hints to maintain the Linscott Standard during architecture overhaul. Status: IMPROVED.
 -   **Code**: Suppressed heavy UI boot logs in `SovereignVector` to optimize Daemon startup latency (preempting CLI timeouts). Status: IMPROVED.

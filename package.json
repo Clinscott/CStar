@@ -29,7 +29,7 @@
   "scripts": {
     "test": "npm run test:node && npm run test:python",
     "test:python": "python -m pytest",
-    "test:node": "node --test",
+    "test:node": "tsx --test",
     "test:empire": "tsx --test tests/empire_tests/test_corvus_process_empire.ts tests/empire_tests/test_gateway_empire.ts",
     "setup": "node src/node/setup.js",
     "postinstall": "npm run setup"

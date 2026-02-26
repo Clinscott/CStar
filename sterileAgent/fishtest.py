@@ -13,7 +13,7 @@ import time
 from typing import Any, Dict, List, Optional, Tuple
 
 # Add project root to path for src imports
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if PROJECT_ROOT not in sys.path:
     sys.path.append(PROJECT_ROOT)
 try:
@@ -97,6 +97,11 @@ class FishtestRunner:
             print(f"WARN: Could not load config from {config_path}")
             config = {}
         
+        # [ALFRED] Handle nested config schema
+        sys_config = config.get("system", {})
+        persona = sys_config.get("persona", config.get("Persona", "ALFRED")).upper()
+        root = sys_config.get("framework_root", config.get("FrameworkRoot"))
+
         engine = SovereignVector(
             thesaurus_path=os.path.join(PROJECT_ROOT, "src", "data", "thesaurus.qmd"),
             corrections_path=os.path.join(self.base_path, "corrections.json"),
@@ -106,12 +111,11 @@ class FishtestRunner:
         # Load Local Skills from src/skills/local
         engine.load_skills_from_dir(os.path.join(PROJECT_ROOT, "src", "skills", "local"))
         
-        root = config.get("FrameworkRoot")
         if root and os.path.exists(os.path.join(root, "skills_db")):
             engine.load_skills_from_dir(os.path.join(root, "skills_db"), prefix="GLOBAL:")
         
         engine.build_index()
-        return engine, config.get("Persona", "ALFRED").upper()
+        return engine, persona
 
     def run_case(self, case: Dict[str, Any]) -> Tuple[bool, Dict[str, Any]]:
         """Executes a single test case query and validates the result."""

@@ -2,7 +2,7 @@
 
 ## 🌊 Expanded Intent Clusters
 
-- **aesthetics**: aesthetics, beautify, clean, glow, improve, layout, polish, refine, sovereignfish, visual
+- **aesthetics**: aesthetics, layout, polish, refine, style, visual
 - **agent-health**: anomaly, drift, health, heartbeat, monitoring, pulse, status, warden, zscore
 - **agent-lightning**: benchmark, fast, measure, metrics, optimization, optimize, perf, perf-profiler, performance, profile, quick, reinforcement, rl, speed, timing, velocity
 - **analyze**: audit, auth, bug, check, debug, dig-into, error, failure, find, fix, investigate, issue, linter, look-into, sentinel, track-down, validate, verify
@@ -10,7 +10,7 @@
 - **architect**: blueprint, design, itinerary, map, outline, plan, prepare, roadmap, strategy
 - **audit**: analyze, auth, bug, check, debug, dig-into, error, failure, find, fix, investigate, issue, latency, linter, look-into, sentinel, track-down, validate, verify, 审计, 監査
 - **automation**: browser-automation, e2e, playwright, playwright-e2e
-- **beautify**: aesthetics, clean, futuristic, glass, glow, holographic, improve, neon, polish, refine, sci-fi, sovereignfish, ui, ui-sci-fi, visual
+- **beautify**: beautify, clean, glow, improve, polish, refine, visual
 - **begin**: begin, boot, c*, cstar, fire-up, initiate, kick-off, lets-go, resume, spin-up, start, store, 开始, スタート
 - **benchmark**: agent-lightning, fast, measure, metrics, optimization, optimize, perf, perf-profiler, performance, profile, quick, reinforcement, rl, speed, timing, velocity
 - **blueprint**: architect, design, itinerary, map, outline, plan, prepare, roadmap, strategy
@@ -124,7 +124,7 @@
 - **search**: documentation, find, how-does, hunter, knowledge, knowledge-hunter, research, scour, where-is
 - **sentinel**: analyze, audit, bug, check, debug, dig-into, error, find, investigate, issue, linter, look-into, track-down, validate, verify
 - **ship**: deploy, deployment, launch, publish, push, release
-- **sovereignfish**: aesthetics, beautify, clean, futuristic, glass, glow, holographic, improve, neon, polish, refine, sci-fi, ui-sci-fi, visual
+- **sovereignfish**: aesthetics, beautify, clean, futuristic, glass, glow, holographic, improve, neon, polish, refine, sci-fi, visual
 - **speed**: agent-lightning, benchmark, fast, measure, metrics, optimization, optimize, perf, perf-profiler, performance, profile, quick, reinforcement, rl, timing, velocity
 - **system**: begin, boot, fire-up, initiate, kick-off, lets-go, resume, spin-up, start
 - **spin-up**: begin, boot, fire-up, initiate, kick-off, lets-go, resume, start
@@ -135,7 +135,7 @@
 - **test**: check, integrity, performance, validate, validity, verification, verify, 测试, テスト
 - **timing**: agent-lightning, benchmark, fast, measure, metrics, optimization, optimize, perf, perf-profiler, performance, profile, quick, reinforcement, rl, speed, velocity
 - **track-down**: analyze, audit, bug, check, debug, dig-into, error, find, investigate, issue, linter, look-into, sentinel, validate, verify
-- **ui-sci-fi**: aesthetics, beautify, clean, futuristic, glass, glow, holographic, improve, neon, polish, refine, sci-fi, sovereignfish, ui, ui-sci-fi, visual
+- **ui-sci-fi**: aesthetics, beautify, clean, futuristic, glass, glow, holographic, improve, neon, polish, refine, sci-fi, visual
 - **update**: build, component, construct, create, develop, feature, generate, implement, make, modification, page, run-task
 - **validate**: analyze, audit, bug, check, debug, dig-into, error, find, integrity, investigate, issue, linter, look-into, performance, sentinel, test, track-down, validity, verification, verify
 - **validity**: check, integrity, performance, test, validate, verification, verify

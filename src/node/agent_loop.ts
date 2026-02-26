@@ -2,17 +2,24 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import chalk from 'chalk';
 import { deployCandidate } from './deployment.js';
+import { CortexLink } from './cortex_link.js';
 
 /**
  * Orchestrates the 7-step Gungnir Flight Cycle to modify and verify a target file.
  * 
- * @param {string} targetFile - The code file the agent should analyze/refactor.
- * @param {string} ledgerDirectory - The path to the working knowledge/ledger vault.
- * @param {string} taskDescription - The high-level directive for the compute plane.
- * @param {CortexLink} cortexLink - Instantiated TCP bridge to the Python daemon.
- * @param {Function} deployExec - Dependency-injected execution function (defaults to internal deployCandidate).
+ * @param targetFile - The code file the agent should analyze/refactor.
+ * @param ledgerDirectory - The path to the working knowledge/ledger vault.
+ * @param taskDescription - The high-level directive for the compute plane.
+ * @param cortexLink - Instantiated TCP bridge to the Python daemon.
+ * @param deployExec - Dependency-injected execution function (defaults to internal deployCandidate).
  */
-export async function executeCycle(targetFile, ledgerDirectory, taskDescription, cortexLink, deployExec = deployCandidate) {
+export async function executeCycle(
+    targetFile: string,
+    ledgerDirectory: string,
+    taskDescription: string,
+    cortexLink: CortexLink,
+    deployExec: (target: string, candidate: string, msg: string) => Promise<void> = deployCandidate
+): Promise<void> {
     // 1. Extract Directives
     console.log(chalk.cyan("ALFRED: 'Consulting the Archives...'"));
     let ledgerConfig = "";
@@ -50,10 +57,10 @@ export async function executeCycle(targetFile, ledgerDirectory, taskDescription,
     console.log(chalk.cyan("ALFRED: 'Candidate forged...'"));
     const parsedPath = path.parse(targetFile);
     const candidatePath = path.join(parsedPath.dir, `${parsedPath.name}_candidate${parsedPath.ext}`);
-    
+
     // [Ω] Extract code from markdown block if present
-    const cleanCode = forgedCode.includes('```python') 
-        ? forgedCode.split('```python')[1].split('```')[0].trim() 
+    const cleanCode = forgedCode.includes('```python')
+        ? forgedCode.split('```python')[1].split('```')[0].trim()
         : forgedCode.trim();
 
     await fs.writeFile(candidatePath, cleanCode, 'utf8');

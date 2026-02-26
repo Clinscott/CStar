@@ -14,6 +14,14 @@ Preserve the "why" behind technical decisions and provide a narrative history of
 
 # Developer Journal
 
+## 2026-02-26 - Session 89: CStar CLI TypeScript Migration
+- **Accomplishments**: Migrated `cstar.ts`, `cortex_link.ts`, `agent_loop.ts`, and `deployment.ts` to TypeScript. Replaced the JS entry point with a `tsx` bootstrapper.
+- **Git State**: Cleaned up redundant `.js` files; 100% Node test pass.
+- **Decisions**: 
+    - **Bootstrap via tsx**: Chose `tsx` over `tsc + node` for development to avoid stale build artifacts and provide a seamless "just works" experience for the CLI.
+    - **Constructor Injection for Mocks**: Switched from `mock.module` (fragile in current ESM/TS environments) to explicit dependency injection in `CortexLink`, allowing for robust WebSocket mocking during tests.
+- **Current State**: Control plane is now fully typed; Mimir Batch 3 is next.
+
 ## 2026-02-25 - Session 85: V4 Hardened Intelligence
 - **Accomplishments**: Implemented SessionWarden, JSONL concurrency, and Deep Memory Purge.
 - **Git State**: Secured append-only ledger protocol.

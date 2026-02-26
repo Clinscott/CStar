@@ -167,8 +167,9 @@ class SovereignVector:
         # Normalize trigger format
         trigger = intent_id if intent_id.startswith("/") or intent_id == "SovereignFish" or intent_id.startswith("GLOBAL:") else f"/{intent_id}"
 
+        # [ALFRED] Calibrated boost to 1.15 for balance
         if (trigger.startswith("/") or trigger == "SovereignFish") and not is_global:
-            score *= 1.2
+            score *= 1.15
 
         return {
             "trigger": trigger,
@@ -241,13 +242,13 @@ class SovereignVector:
     def load_core_skills(self) -> None:
         """Registers foundational system intents into the semantic brain."""
         core_skills = {
-            "SovereignFish": "Automated code aesthetics, UI polish, design refinement, and SovereignFish protocol execution.",
-            "lets-go": "Resume the current development session, identify priorities, and start the agent loop.",
-            "run-task": "Execute a specific task, build a feature, or implement a logic change.",
-            "investigate": "Deeply analyze the codebase, debug failures, and audit structural integrity.",
-            "plan": "Architect the system, create blueprints, and design implementation roadmaps.",
-            "test": "Verify code integrity, run regression suites, and validate performance metrics.",
-            "wrap-it-up": "Finalize the session, update documentation, and execute the handshake protocol.",
+            "SovereignFish": "Automated code aesthetics, polish, refinement, and SovereignFish protocol execution.",
+            "lets-go": "Resume the current development session, identify priorities, and start the agent loop. synonyms: begin, start, resume.",
+            "run-task": "Execute a specific task, build a feature, construct, implement, or create a logic change. synonyms: build, create, implement, make.",
+            "investigate": "Deeply analyze the codebase, debug failures, audit, check, and audit structural integrity. synonyms: analyze, audit, debug.",
+            "plan": "Architect the system, create blueprints, and design implementation roadmaps. synonyms: architect, blueprint, design.",
+            "test": "Verify code integrity, run regression suites, and validate performance metrics. synonyms: verify, validate.",
+            "wrap-it-up": "Finalize the session, update documentation, and execute the handshake protocol. synonyms: finish, finalize, wrap.",
             "oracle": "Consult the Corvus Star oracle for tactical guidance and system state analysis."
         }
         for trigger, text in core_skills.items():
@@ -264,7 +265,13 @@ class SovereignVector:
                 try:
                     content = path.read_text(encoding='utf-8')
                     skill_id = path.parent.name if path.name.lower() == "skill.qmd" else path.stem
-                    trigger = f"{prefix}:{skill_id}" if prefix else skill_id
+                    
+                    # [ALFRED] Ensure prefix joining doesn't double-colon
+                    if prefix:
+                        trigger = f"{prefix}{skill_id}" if prefix.endswith(":") else f"{prefix}:{skill_id}"
+                    else:
+                        trigger = skill_id
+                    
                     self.add_skill(trigger, content)
                 except Exception as e:
                     SovereignHUD.persona_log("WARN", f"Failed to ingest skill {path.name}: {e}")
@@ -276,13 +283,19 @@ class SovereignVector:
                             trigger = item.get("trigger")
                             text = item.get("description") or item.get("text")
                             if trigger and text:
-                                full_trigger = f"{prefix}:{trigger}" if prefix else trigger
+                                if prefix:
+                                    full_trigger = f"{prefix}{trigger}" if prefix.endswith(":") else f"{prefix}:{trigger}"
+                                else:
+                                    full_trigger = trigger
                                 self.add_skill(full_trigger, text)
                     elif isinstance(data, dict):
                         trigger = data.get("trigger")
                         text = data.get("description") or data.get("text")
                         if trigger and text:
-                            full_trigger = f"{prefix}:{trigger}" if prefix else trigger
+                            if prefix:
+                                full_trigger = f"{prefix}{trigger}" if prefix.endswith(":") else f"{prefix}:{trigger}"
+                            else:
+                                full_trigger = trigger
                             self.add_skill(full_trigger, text)
                 except Exception as e:
                     SovereignHUD.persona_log("WARN", f"Failed to ingest .json skill {path.name}: {e}")

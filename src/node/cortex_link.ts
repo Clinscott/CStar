@@ -10,18 +10,31 @@ const PROJECT_ROOT = path.resolve(__dirname, '../../');
 const DAEMON_ENTRYPOINT = path.join(PROJECT_ROOT, 'src/cstar/core/daemon.py');
 const KEY_FILE = path.join(PROJECT_ROOT, '.agent', 'daemon.key');
 
+export interface CortexResponse {
+    type: string;
+    data: any;
+    status: string;
+}
+
 export class CortexLink {
-    constructor(port = 50051, host = '127.0.0.1') {
+    private port: number;
+    private host: string;
+    private wsUrl: string;
+
+    private wsImpl: any;
+
+    constructor(port = 50051, host = '127.0.0.1', wsImpl = WebSocket) {
         this.port = port;
         this.host = host;
         this.wsUrl = `ws://${this.host}:${this.port}`;
+        this.wsImpl = wsImpl;
     }
 
     /**
      * Checks if the daemon port is listening. If not, spawns the python daemon
      * as a detached background process and waits for the port to open.
      */
-    async ensureDaemon() {
+    async ensureDaemon(): Promise<void> {
         const isUp = await this._checkPort();
         if (isUp) return;
 
@@ -42,7 +55,7 @@ export class CortexLink {
             const nowUp = await this._checkPort();
             if (nowUp) return;
             if (i % 4 === 0) {
-                console.log(chalk.dim(`ALFRED: 'Waiting for the Oracle to awaken (Cycle ${i/4 + 1})...' `));
+                console.log(chalk.dim(`ALFRED: 'Waiting for the Oracle to awaken (Cycle ${i / 4 + 1})...' `));
             }
         }
 
@@ -52,9 +65,9 @@ export class CortexLink {
     /**
      * Internal helper to quickly check if the port is open and accepting WebSocket connections.
      */
-    _checkPort() {
+    private _checkPort(): Promise<boolean> {
         return new Promise((resolve) => {
-            const ws = new WebSocket(this.wsUrl);
+            const ws = new this.wsImpl(this.wsUrl);
             ws.on('open', () => {
                 ws.close();
                 resolve(true);
@@ -68,7 +81,7 @@ export class CortexLink {
     /**
      * Sends a command payload to the Python Daemon via WebSockets.
      */
-    async sendCommand(command, args = [], cwd = process.cwd()) {
+    async sendCommand(command: string, args: string[] = [], cwd = process.cwd()): Promise<any> {
         const authKey = fs.readFileSync(KEY_FILE, 'utf8').trim();
         const payload = {
             command,
@@ -77,7 +90,7 @@ export class CortexLink {
         };
 
         return new Promise((resolve, reject) => {
-            const ws = new WebSocket(this.wsUrl);
+            const ws = new this.wsImpl(this.wsUrl);
 
             // Timeout after 30 seconds (longer for inference)
             const timeout = setTimeout(() => {
@@ -94,21 +107,26 @@ export class CortexLink {
                 ws.send(JSON.stringify(payload));
             });
 
-            ws.on('message', (data) => {
-                const response = JSON.parse(data.toString());
-                if (response.type === 'result') {
+            ws.on('message', (data: Buffer) => {
+                try {
+                    const response = JSON.parse(data.toString());
+                    if (response.type === 'result') {
+                        clearTimeout(timeout);
+                        ws.close();
+                        resolve(response.data);
+                    }
+                } catch (err) {
                     clearTimeout(timeout);
-                    ws.close();
-                    resolve(response.data);
+                    reject(new Error('Failed to parse daemon response'));
                 }
             });
 
-            ws.on('error', (err) => {
+            ws.on('error', (err: Error) => {
                 clearTimeout(timeout);
                 reject(err);
             });
 
-            ws.on('close', (code, reason) => {
+            ws.on('close', (code: number, reason: string) => {
                 clearTimeout(timeout);
                 if (code === 1008) {
                     reject(new Error(`Authentication Failed: ${reason}`));

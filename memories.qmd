@@ -92,5 +92,8 @@ saved_memory:
     - MagicMock Serialization: When recording traces, convert `MagicMock` objects to strings or dictionaries before JSON serialization to avoid TypeErrors.
     - JS Sentinel Standard: Node.js flight deck security is enforced via `js_sentinel.js` (ESLint wrapper). Persona-aware reports ensure audit symmetry across the hybrid plane.
     - Persona-Aware Node: Node.js components must read `.agent/config.json` and utilize themed logging to honor the active persona (ODIN/ALFRED), as seen in `src/node/setup.js`.
+    - TSX Bootstrap: CLI tools use a `.js` bridge in `bin/` to invoke `tsx` on the `.ts` core, ensuring zero-config ESM execution.
+    - Constructor Injection Doctrine: Use DI for core implementation (e.g., WebSocket) in system drivers to ensure robust testability in ESM/TS environments.
+    - Atomic Cleanup: Hybrid migration requires aggressive removal of legacy `.js` files to prevent import ambiguity.
 deletions: []
 ```
