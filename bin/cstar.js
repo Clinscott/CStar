@@ -4,7 +4,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { join } from 'node:path';
+import { join, parse } from 'node:path';
 import { execa } from 'execa';
 import { CortexLink } from '../src/node/cortex_link.js';
 import { executeCycle } from '../src/node/agent_loop.js';
@@ -92,31 +92,23 @@ program
     .action(async (options) => {
         if (options.status) {
             try {
-                // ◤ WOW DESIGN: Local Deterministic Status Report ◢
-                // We no longer rely on the Daemon API for status (User Directive)
-
                 console.log(chalk.bgCyan.black.bold('\n ◤ MUNINN MONITOR ◢ '));
                 console.log(chalk.cyan(' ' + '━'.repeat(40)));
 
-                // 1. Muninn Status (Local PID Check)
                 const muninnPidPath = join(PROJECT_ROOT, '.agent', 'muninn.pid');
                 let muninnStatus = chalk.red.bold('OFFLINE');
 
                 if (fs.existsSync(muninnPidPath)) {
                     try {
                         const pid = parseInt(fs.readFileSync(muninnPidPath, 'utf-8').trim());
-                        // Simple cross-platform check for PID existence
                         process.kill(pid, 0);
                         muninnStatus = chalk.green.bold('ACTIVE');
                     } catch (e) {
-                        // PID file exists but process is dead
                         muninnStatus = chalk.red.bold('OFFLINE');
                     }
                 }
                 console.log(`${chalk.bold(' Raven Status:')}     ${muninnStatus}`);
 
-                // 2. Quota Isolation Table (Local Env Check)
-                // We read .env.local manually if it exists to verify isolation
                 const envPath = join(PROJECT_ROOT, '.env.local');
                 let envContent = "";
                 if (fs.existsSync(envPath)) {
@@ -131,7 +123,6 @@ program
                 console.log(` BRAVE_KEY:      ${isSet('BRAVE_API_KEY')}`);
                 console.log(` SHARED_KEY:     ${isSet('GOOGLE_API_KEY')}`);
 
-                // 3. Active Wardens (Local File Scan)
                 console.log(chalk.cyan('\n ◤ ACTIVE RAVENS ◢ '));
                 const wardenDir = join(PROJECT_ROOT, 'src', 'sentinel', 'wardens');
                 let active_wardens = [];
@@ -142,7 +133,6 @@ program
                 }
 
                 if (active_wardens.length > 0) {
-                    // Title Case formatting
                     active_wardens = active_wardens.map(w => w.charAt(0).toUpperCase() + w.slice(1));
                     for (let i = 0; i < active_wardens.length; i += 2) {
                         const w1 = active_wardens[i];
@@ -169,9 +159,59 @@ program
         }
     });
 
-// Fallback for completely unrecognized usage or missing commands
-program.on('command:*', function (operands) {
-    handleError(`Unknown command '${operands[0]}'`);
+// ◤ DYNAMIC WORKFLOW & SKILL DISCOVERY ◢
+const discoverAll = () => {
+    const commands = new Map();
+    const scriptDirs = [
+        join(PROJECT_ROOT, '.agent', 'skills'),
+        join(PROJECT_ROOT, 'src', 'tools'),
+        join(PROJECT_ROOT, 'src', 'skills', 'local'),
+        join(PROJECT_ROOT, 'skills_db'),
+        join(PROJECT_ROOT, 'src', 'sentinel'),
+        join(PROJECT_ROOT, 'scripts'),
+    ];
+
+    scriptDirs.forEach(d => {
+        if (fs.existsSync(d)) {
+            fs.readdirSync(d).forEach(f => {
+                if (f.endsWith('.py') && !f.startsWith('_')) {
+                    const name = parse(f).name;
+                    commands.set(name, join(d, f));
+                }
+            });
+        }
+    });
+
+    const workflowDir = join(PROJECT_ROOT, '.agent', 'workflows');
+    if (fs.existsSync(workflowDir)) {
+        fs.readdirSync(workflowDir).forEach(f => {
+            if (f.endsWith('.md') || f.endsWith('.qmd')) {
+                const name = parse(f).name.toLowerCase();
+                commands.set(name, join(workflowDir, f));
+            }
+        });
+    }
+    return commands;
+};
+
+// Fallback for unrecognized usage - Attempts dynamic resolution via Python Dispatcher
+program.on('command:*', async (operands) => {
+    const cmd = operands[0].toLowerCase();
+    const allCmds = discoverAll();
+
+    if (allCmds.has(cmd)) {
+        try {
+            // Forward to Python Dispatcher for Persona, UI, and Warden (Learning) support
+            const pythonPath = join(PROJECT_ROOT, '.venv', 'Scripts', 'python.exe');
+            const dispatcherPath = join(PROJECT_ROOT, 'src', 'core', 'cstar_dispatcher.py');
+            
+            await execa(pythonPath, [dispatcherPath, ...process.argv.slice(2)], { stdio: 'inherit', env: { ...process.env, PYTHONPATH: PROJECT_ROOT } });
+        } catch (err) {
+            // Silence execa errors as they usually mean the subprocess failed (handled internally)
+        }
+    } else {
+        handleError(`Unknown command '${cmd}'`);
+    }
 });
 
 try {

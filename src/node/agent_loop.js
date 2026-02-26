@@ -39,15 +39,24 @@ export async function executeCycle(targetFile, ledgerDirectory, taskDescription,
     console.log(chalk.cyan("ALFRED: 'Transmitting constraints...'"));
     const askPayload = await cortexLink.sendCommand('ask', [taskDescription, targetFile]);
 
-    if (!askPayload || askPayload.status !== 'success') {
+    if (!askPayload || (askPayload.status !== 'success' && askPayload.status !== 'uplink_success')) {
         throw new Error(`Execution aborted: Cortex Daemon reported failure during 'ask' step. Details: ${JSON.stringify(askPayload)}`);
     }
+
+    // [Ω] Normalize data extraction (handle nested 'uplink' payloads)
+    const forgedCode = askPayload.status === 'uplink_success' ? askPayload.data.data.raw : askPayload.data;
 
     // 5. Save Candidate
     console.log(chalk.cyan("ALFRED: 'Candidate forged...'"));
     const parsedPath = path.parse(targetFile);
     const candidatePath = path.join(parsedPath.dir, `${parsedPath.name}_candidate${parsedPath.ext}`);
-    await fs.writeFile(candidatePath, askPayload.data, 'utf8');
+    
+    // [Ω] Extract code from markdown block if present
+    const cleanCode = forgedCode.includes('```python') 
+        ? forgedCode.split('```python')[1].split('```')[0].trim() 
+        : forgedCode.trim();
+
+    await fs.writeFile(candidatePath, cleanCode, 'utf8');
 
     // 6. Invoke Gungnir Strike
     console.log(chalk.cyan("ALFRED: 'Summoning the Raven for judgment...'"));

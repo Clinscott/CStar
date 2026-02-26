@@ -66,12 +66,10 @@
   },
   "analyze_failures.py": {
     "last_edited": 1771991642.4552107,
-    "edit_count_24h": 3,
+    "edit_count_24h": 1,
     "content_hashes": [
-      "af1a1a01dda0db17d4ae017f90e69871",
-      "da79c9a2d218e42e29e514c381641ec1",
-      "da79c9a2d218e42e29e514c381641ec1"
+      "af1a1a01dda0db17d4ae017f90e69871"
     ],
-    "status": "LOCKED"
+    "status": "ACTIVE"
   }
 }

@@ -1,3 +1,39 @@
+# Walkthrough: Session 85 - Genesis Alignment & JS Sentinel (Heimdall JS)
+
+## 🎯 Goal
+Align the Genesis Bootstrapper with the project's persona configuration and implement a JavaScript-aware security sentinel (ESLint) to harden the Node.js flight deck.
+
+## 🏆 Results
+| Metric | Value |
+|:---|:---|
+| **Persona Alignment** | **Dynamic (ODIN/ALFRED)** |
+| **JS Sentinel** | **Active (ESLint)** |
+| **Anomalies Fixed** | **21** (In `setup.js`) |
+| **Verification** | **100% Pass** (Tests + Lint) |
+
+## 🛠️ Key Changes
+
+### 1. Genesis Persona Alignment (`src/node/setup.js`)
+- **Dynamic Voice**: Refactored the bootstrapper to read `.agent/config.json` and adjust its logging style based on the active persona.
+- **Themed Logging**: Implemented `personaLog` to ensure consistent cyan/green prefixes and voice formatting (ODIN's directness vs. ALFRED's quotes).
+
+### 2. Heimdall JS: The Sentinel (`src/tools/js_sentinel.js`)
+- **Node.js Guard**: Integrated ESLint as the core engine for JS security and quality audits.
+- **Themed Reports**: Created a persona-aware wrapper that presents linting anomalies as sector breaches, matching the aesthetic of the Python `code_sentinel.py`.
+
+### 3. Execution Fortification
+- **Dependency Hardening**: Added explicit `eslint` and `eslint-plugin-jsdoc` dependencies to `package.json`.
+- **Diagnostic UX**: Enhanced `npm link` failure reporting with tactical recovery instructions.
+
+## 🤝 Session Handshake
+**Session Delta**:
+- Automated persona alignment in the Node.js control plane.
+- Established "Heimdall JS" for zero-trust JS auditing.
+- Resolved 21 code quality anomalies in the bootstrapper.
+
+**Resume Directive**:
+- To run the new JS Sentinel: `node src/tools/js_sentinel.js <path>`.
+
 # Walkthrough: Session 84 - Shadow Forge Protocol (Full-Cycle Sandboxing)
 
 ## 🎯 Goal

@@ -206,7 +206,11 @@ class SovereignHUD:
             "ERROR": theme["error"]
         }.get(level.upper(), theme["main"])
 
-        print(f"{color}{prefix}{SovereignHUD.RESET} {msg}")
+        # [Ω] Automatic Redaction
+        from src.core.redactor import redact_text
+        safe_msg = redact_text(msg)
+
+        print(f"{color}{prefix}{SovereignHUD.RESET} {safe_msg}")
 
     @staticmethod
     def _get_width() -> int:
@@ -273,6 +277,10 @@ class SovereignHUD:
         val_color = color if color else theme['main']
         lbl_color = theme['dim'] if dim_label else theme['main']
 
+        # [Ω] Automatic Redaction
+        from src.core.redactor import redact_text
+        safe_val = redact_text(str(value))
+
         # Calculate spacing
         # Structure: "│ Label      Value │"
         # Border(1) + Label(20) + Space(1) + Value(N) + Border(1)
@@ -281,7 +289,7 @@ class SovereignHUD:
 
         # Safe string conversion and multi-line handling
         try:
-            str_val = str(value).replace("\n", " ")
+            str_val = safe_val.replace("\n", " ")
             str_lbl = str(label)
         except Exception:
             str_val = "[TYPE ERROR]"

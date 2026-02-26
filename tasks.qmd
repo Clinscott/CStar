@@ -397,7 +397,13 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Deep Memory Purge**: Integrated `engine.teardown()` and `clear_active_ram()` for surgical resource reclamation. [x]
 - [x] **Verification**: 100% pass on V4 EMPIRE TDD suite (Determinism, Concurrency, Purge). [x]
 
-## ⏭️ Start Here Next (Phase 72)
+### 72. Genesis Persona Alignment & Sentinel Restoration (Session 85)
+- [x] **Persona Symmetry**: Refactored `src/node/setup.js` to dynamically load and honor the active persona (ODIN/ALFRED). [x]
+- [x] **JS Sentinel (Heimdall JS)**: Integrated ESLint and created `js_sentinel.js` for themed JS linting reports. [x]
+- [x] **Execution Fortification**: Enhanced `npm link` diagnostic reporting for the ODIN persona. [x]
+- [x] **Verification**: 100% pass on Genesis Node.js tests and JS Sentinel scan. [x]
+
+## ⏭️ Start Here Next (Phase 73)
 - [ ] **Smart Promotion Registry**: Implement a JSON-based promotion manifest for tracking multiple simultaneous container fixes.
 - [ ] **Three.js Smart Objects**: Embed intent-dispatchers into the isometric Astrologer UI.
 - [ ] **Operation Ironclad**: Secure regular API key rotation logic in `bin/cstar.js`.

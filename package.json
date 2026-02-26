@@ -45,11 +45,15 @@
     "execa": "^9.6.1",
     "fastify": "^5.2.1",
     "fastify-plugin": "^5.0.1",
-    "pino-pretty": "^13.0.0"
+    "pino-pretty": "^13.0.0",
+    "ws": "^8.19.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/node": "^22.13.4",
     "@types/ws": "^8.18.1",
+    "eslint": "^10.0.2",
+    "eslint-plugin-jsdoc": "^62.7.1",
     "tsx": "^4.19.3",
     "typescript": "^5.7.3"
   }

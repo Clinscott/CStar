@@ -156,9 +156,10 @@ class CorvusDispatcher:
                 start_time = time.time()
                 error_status = 0.0
                 
-                if shutil.which("quarto"):
+                quarto_path = shutil.which("quarto") or r"C:\Program Files\Quarto\bin\quarto.exe"
+                if os.path.exists(quarto_path):
                     try:
-                        subprocess.run(["quarto", "render", cmd_path], check=True)
+                        subprocess.run([quarto_path, "render", cmd_path], check=True)
                     except Exception as e:
                          SovereignHUD.persona_log("FAIL", f"Workflow execution failed: {e}")
                          error_status = 1.0

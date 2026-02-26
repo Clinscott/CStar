@@ -90,5 +90,7 @@ saved_memory:
     - Gauntlet PYTHONPATH: Ensure both project root and `.agent/scripts` are in `PYTHONPATH` during Gauntlet runs to resolve internal engine imports reliably.
     - Encoding Sensitivity: Force UTF-8 encoding in all `open()` and `read_text()` calls to prevent `UnicodeDecodeError` on non-English environments.
     - MagicMock Serialization: When recording traces, convert `MagicMock` objects to strings or dictionaries before JSON serialization to avoid TypeErrors.
+    - JS Sentinel Standard: Node.js flight deck security is enforced via `js_sentinel.js` (ESLint wrapper). Persona-aware reports ensure audit symmetry across the hybrid plane.
+    - Persona-Aware Node: Node.js components must read `.agent/config.json` and utilize themed logging to honor the active persona (ODIN/ALFRED), as seen in `src/node/setup.js`.
 deletions: []
 ```

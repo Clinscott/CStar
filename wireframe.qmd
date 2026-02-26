@@ -42,6 +42,7 @@ The decision-making brain of Corvus Star.
 - **Muninn** (`src/sentinel/muninn.py`): Memory ledger with HEARTBEAT tracking (`.agent/muninn.pid`).
 - **Genesis Bootstrapper** (`src/node/setup.js`):
     - Zero-touch cross-platform installation.
+    - **Persona Alignment**: Dynamically honors active persona logging (ODIN/ALFRED).
 - **The Gungnir Calculus (Legacy/Global)** (`src/core/`):
     - `metrics.py`: Computes GPHS (Global Project Health Score).
     - `prompt_linter.py`: AST-based validation of .prompty files.
@@ -83,7 +84,9 @@ Verification and hardening tools.
 ### 🛠️ Tools (`src/tools/`)
 Specialized utilities for analysis and repair.
 - **Heimdall: The Guardian** (`code_sentinel.py`):
-    - `scan(path)`: Static analysis for syntax and security.
+    - `scan(path)`: Static analysis for syntax and security (Python).
+- **Heimdall JS: The Sentinel** (`src/tools/js_sentinel.js`):
+    - `main()`: Persona-aware ESLint wrapper for Node.js flight deck security.
 - **MemoryDB** (`src/core/engine/MemoryDB.py`):
     - Vector-based memory engine with `app_id` partitioning and composite ID namespacing (`app_id::intent_id`).
 - **Voice Check: Logic Diagnostic** (`src/tools/voice_check.py`):

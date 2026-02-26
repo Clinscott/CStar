@@ -43,11 +43,14 @@ describe('Genesis Bootstrapper (Native Installation)', () => {
                 return { stdout: 'Mock Output' };
             });
 
-            // Default: requirements.txt exists, .venv does NOT
+            // Default: requirements.txt exists, .venv does NOT, config is ODIN
             mockFs = {
                 access: mock.fn(async (target) => {
                     if (target.includes('.venv')) throw new Error('ENOENT'); // Needs to be created
                     return true; // requirements.txt exists
+                }),
+                readFile: mock.fn(async () => {
+                    return JSON.stringify({ system: { persona: 'ODIN' } });
                 })
             };
         });
