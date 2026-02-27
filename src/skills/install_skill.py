@@ -82,7 +82,17 @@ def _execute_installation_logic(src, qua, dst):
 
     # Promote
     if _promote_skill(qua, dst):
-        SovereignHUD.log("SUCCESS", f"Skill '{os.path.basename(dst)}' installed.")
+        from src.core.promotion_registry import PromotionRegistry
+        registry = PromotionRegistry(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        
+        # Collect all files in the promoted skill
+        promoted_files = []
+        for root, _, files in os.walk(dst):
+            for f in files:
+                promoted_files.append(Path(os.path.join(root, f)))
+        
+        registry.register_promotion(os.path.basename(dst), promoted_files)
+        SovereignHUD.log("SUCCESS", f"Skill '{os.path.basename(dst)}' installed and registered.")
 
 def install_skill(skill_name, target_root=None) -> None:
     """[ALFRED] Refactored skill installer with isolated sub-phases."""

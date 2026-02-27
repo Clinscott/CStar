@@ -20,6 +20,7 @@ try:
     from src.core import utils
     from src.core.engine.vector import SovereignVector
     from src.core.report_engine import ReportEngine
+    from src.tools.brave_search import BraveSearch
 except ImportError as e:
     print(f"CRITICAL ERROR: Failed to import engine modules: {e}")
     sys.path.append(os.path.join(PROJECT_ROOT, "src")) # Fallback
@@ -160,6 +161,15 @@ class FishtestRunner:
         except Exception as e:
             return False, {"actual": None, "score": 0, "reasons": [f"Runtime Error: {str(e)[:40]}"]}
 
+    def _investigate_failure(self, query: str) -> None:
+        """[BIFRÖST] Uses BraveSearch to find if the query contains unknown terminology."""
+        SovereignHUD.persona_log("INFO", f"Fishtest: Scrying for unknown terms in '{query}'...")
+        searcher = BraveSearch()
+        results = searcher.search(f"Technical synonyms for {query}")
+        if results:
+            top = results[0]
+            SovereignHUD.persona_log("INFO", f"Fishtest Insight: {top['title']} - {top['description'][:100]}...")
+
     def execute_suite(self) -> None:
         """Main suite runner loop."""
         try:
@@ -193,6 +203,10 @@ class FishtestRunner:
                 SovereignHUD.box_row("FAIL", case['query'], SovereignHUD.RED)
                 for r in info['reasons']:
                     SovereignHUD.box_row("  -", r, dim_label=True)
+                
+                # [BIFRÖST] Investigate unknown terms
+                self._investigate_failure(case['query'])
+                
                 SovereignHUD.box_separator()
 
         duration = time.time() - start

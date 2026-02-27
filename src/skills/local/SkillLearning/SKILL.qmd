@@ -1,0 +1,11 @@
+---
+name: Skill Learning
+description: Interactive ALFRED mandate for proactive skill acquisition.
+---
+# Skill Learning
+
+## Activation Words: learn, acquisition, scry, study
+
+## Instructions
+1. Run `python src/skills/local/SkillLearning/learn.py`
+2. Follow ALFRED's interactive prompts.

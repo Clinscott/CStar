@@ -1,85 +1,114 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Stars, PerspectiveCamera } from '@react-three/drei';
+import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import { NeuralGraph } from './components/NeuralGraph.js';
-import { AgentGhost } from './components/AgentGhost.js';
 import { PlaybackHUD } from './components/PlaybackHUD.js';
+import { AgentGhost } from './components/AgentGhost.js';
 import * as THREE from 'three';
+import chalk from 'chalk';
 
 /**
- * Operation PennyOne: The Matrix App
+ * PennyOne Visualization Environment
+ * Lore: "The Glass Penthouse of the Manor."
  */
 export const App: React.FC = () => {
-    const [data, setData] = useState<any>(null);
-    const [session, setSession] = useState<any[]>([]);
-    const [nodeRegistry, setNodeRegistry] = useState<Map<string, THREE.Vector3>>(new Map());
-    const [playbackIndex, setPlaybackIndex] = useState(0);
-    const [isLive, setIsLive] = useState(true);
+    const [matrixData, setMatrixData] = useState<any>(null);
+    const [nodeMap, setNodeMap] = useState<Map<string, THREE.Vector3>>(new Map());
+    const [token, setToken] = useState<string | null>(null);
 
+    // 1. Security: Extract token from URL
     useEffect(() => {
-        fetch('/api/matrix')
-            .then(res => res.json())
-            .then(setData)
-            .catch(err => console.error("Failed to fetch matrix data:", err));
+        const params = new URLSearchParams(window.location.search);
+        const t = params.get('token');
+        if (t) {
+            setToken(t);
+            console.log('[ALFRED]: "Security token verified. Establishing handshake..."');
+        } else {
+            console.error('[ODIN]: "SECURITY BREACH! NO TOKEN DETECTED. HALTING STREAM."');
+        }
+    }, []);
 
-        const socket = new WebSocket(`ws://${window.location.host}`);
-        socket.onmessage = (event) => {
-            const msg = JSON.parse(event.data);
-            if (msg.type === 'AGENT_TRACE') {
-                setSession(prev => {
-                    const next = [...prev, msg.payload];
-                    if (isLive) setPlaybackIndex(next.length - 1);
-                    return next;
+    // 2. Load Matrix Data
+    useEffect(() => {
+        if (!token) return;
+
+        const loadMatrix = async () => {
+            try {
+                const res = await fetch('/api/matrix', {
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
-            } else if (msg.type === 'GRAPH_REBUILT') {
-                fetch('/api/matrix').then(res => res.json()).then(setData);
+                if (res.ok) {
+                    const data = await res.json();
+                    setMatrixData(data);
+                }
+            } catch (err) {
+                console.error('[ALFRED]: "Failed to synchronize matrix, sir."', err);
             }
         };
-        return () => socket.close();
-    }, [isLive]);
 
-    if (!data) {
+        loadMatrix();
+    }, [token]);
+
+    if (!token) {
         return (
-            <div style={{ color: '#00f2ff', background: '#000', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'monospace' }}>
-                [ALFRED]: "Searching for neural graph telemetry..."
+            <div style={{ color: '#ff4d4d', padding: '40px', fontFamily: 'monospace', textAlign: 'center' }}>
+                <h1>[ODIN]: ACCESS DENIED</h1>
+                <p>Security Handshake Failed. Valid Token Required.</p>
             </div>
         );
     }
 
     return (
         <div style={{ width: '100vw', height: '100vh', background: '#000' }}>
-            <Canvas shadows dpr={[1, 2]}>
-                <PerspectiveCamera makeDefault position={[0, 50, 200]} fov={60} />
-                <OrbitControls makeDefault enableDamping />
+            <Canvas shadows gl={{ antialias: true, alpha: true }}>
+                <PerspectiveCamera makeDefault position={[0, 100, 300]} fov={60} far={20000} />
+                <color attach="background" args={['#00050a']} />
 
-                <Stars radius={300} depth={60} count={20000} factor={7} saturation={0} fade speed={1} />
-                <ambientLight intensity={0.2} />
-                <pointLight position={[100, 100, 100]} intensity={1} color="#00f2ff" />
+                <ambientLight intensity={0.8} />
+                <directionalLight position={[100, 100, 100]} intensity={1.5} color="#00f2ff" />
 
-                <NeuralGraph data={data} onNodesMapped={setNodeRegistry} />
-                <AgentGhost
-                    trace={session.slice(0, playbackIndex + 1)}
-                    nodeRegistry={nodeRegistry}
+                {matrixData && (
+                    <NeuralGraph
+                        data={matrixData}
+                        token={token}
+                        onNodesMapped={setNodeMap}
+                    />
+                )}
+
+                <OrbitControls
+                    makeDefault
+                    enableDamping
+                    maxDistance={10000}
+                    minDistance={50}
                 />
+
+
             </Canvas>
-            <HUD summary={data.summary} />
-            <PlaybackHUD
-                sessionLength={session.length}
-                currentIndex={playbackIndex}
-                onSeek={setPlaybackIndex}
-                isLive={isLive}
-                onToggleLive={() => setIsLive(!isLive)}
-            />
+
+            {/* Glass HUD Overlay */}
+            <div className="glass-hud">
+                <div className="title">CORVUS STAR: SOVEREIGN MATRIX</div>
+                <div className="subtitle">Operation PennyOne | Lead Engineer Overhaul</div>
+            </div>
+
+            <style>{`
+                .glass-hud {
+                    position: absolute;
+                    top: 20px;
+                    left: 20px;
+                    background: rgba(0, 5, 10, 0.7);
+                    backdrop-filter: blur(10px);
+                    border: 1px solid rgba(0, 242, 255, 0.3);
+                    padding: 20px;
+                    color: #fff;
+                    font-family: 'Inter', sans-serif;
+                    border-radius: 4px;
+                    pointer-events: none;
+                }
+                .title { font-size: 1.2rem; font-weight: bold; color: #00f2ff; letter-spacing: 2px; }
+                .subtitle { font-size: 0.7rem; color: #aaa; margin-top: 5px; text-transform: uppercase; }
+            `}</style>
         </div>
     );
 };
 
-const HUD: React.FC<{ summary: { total_files: number, total_loc: number, average_score: number } }> = ({ summary }) => (
-    <div style={{ position: 'absolute', top: 20, left: 20, color: '#00f2ff', pointerEvents: 'none', fontFamily: 'monospace', background: 'rgba(0, 0, 0, 0.7)', padding: '15px', border: '1px solid #00f2ff', borderRadius: '4px' }}>
-        <h1 style={{ margin: '0 0 10px 0', fontSize: '1.2rem' }}>OPERATION PENNYONE</h1>
-        <div>Files Scanned: {summary.total_files}</div>
-        <div>Total LOC: {summary.total_loc}</div>
-        <div>Avg Gungnir: {summary.average_score.toFixed(2)}</div>
-        <div style={{ marginTop: '10px', fontSize: '0.8rem', opacity: 0.6 }}>[ALFRED]: "The matrix is live, sir."</div>
-    </div>
-);

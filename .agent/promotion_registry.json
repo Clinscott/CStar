@@ -1,0 +1,560 @@
+{
+  "taste-skill": {
+    "timestamp": "2026-02-27T09:07:21.099173",
+    "status": "VERIFIED",
+    "files": [
+      {
+        "path": "skills_db\\taste-skill\\README.md",
+        "hash": "e92648e0555bc04adca5d7221f687ee5b4b33e430a9390f72cab661a82417647"
+      },
+      {
+        "path": "skills_db\\taste-skill\\SKILL.md",
+        "hash": "f3ea62aaeba2c5a44783ab18aa507ce0aa3fdbd1b5fd839e6b3bc5c50e2c1480"
+      },
+      {
+        "path": "skills_db\\taste-skill\\SKILL.qmd",
+        "hash": "c204f14f5c2a321d13b0be1f39aa68f360c47780f5c1e0a07d6c38aaccbae92d"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\config",
+        "hash": "b6d232648b203ecafb33f3ebe5caaad5458c217f3d880153d439ba9cb227273a"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\description",
+        "hash": "85ab6c163d43a17ea9cf7788308bca1466f1b0a8d1cc92e26e9bf63da4062aee"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\HEAD",
+        "hash": "28d25bf82af4c0e2b72f50959b2beb859e3e60b9630a5e8c603dad4ddb2b6e80"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\index",
+        "hash": "b53e9d8f91a35e3c5b2a54f6b48f54d04347c0c6799b56136a75e9873a297826"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\packed-refs",
+        "hash": "b761368a66af227a3d91bb7396fd48f02f9f53b452e107dae2d9d70ea26711d0"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\shallow",
+        "hash": "ac01f2399df96ab1285c1861412971ed8b683c05152674395e54ae7f7581feff"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\hooks\\applypatch-msg.sample",
+        "hash": "0223497a0b8b033aa58a3a521b8629869386cf7ab0e2f101963d328aa62193f7"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\hooks\\commit-msg.sample",
+        "hash": "1f74d5e9292979b573ebd59741d46cb93ff391acdd083d340b94370753d92437"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\hooks\\fsmonitor-watchman.sample",
+        "hash": "e0549964e93897b519bd8e333c037e51fff0f88ba13e086a331592bf801fa1d0"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\hooks\\post-update.sample",
+        "hash": "81765af2daef323061dcbc5e61fc16481cb74b3bac9ad8a174b186523586f6c5"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\hooks\\pre-applypatch.sample",
+        "hash": "e15c5b469ea3e0a695bea6f2c82bcf8e62821074939ddd85b77e0007ff165475"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\hooks\\pre-commit.sample",
+        "hash": "57185b7b9f05239d7ab52db045f5b89eb31348d7b2177eab214f5eb872e1971b"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\hooks\\pre-merge-commit.sample",
+        "hash": "d3825a70337940ebbd0a5c072984e13245920cdf8898bd225c8d27a6dfc9cb53"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\hooks\\pre-push.sample",
+        "hash": "ecce9c7e04d3f5dd9d8ada81753dd1d549a9634b26770042b58dda00217d086a"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\hooks\\pre-rebase.sample",
+        "hash": "4febce867790052338076f4e66cc47efb14879d18097d1d61c8261859eaaa7b3"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\hooks\\pre-receive.sample",
+        "hash": "a4c3d2b9c7bb3fd8d1441c31bd4ee71a595d66b44fcf49ddb310252320169989"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\hooks\\prepare-commit-msg.sample",
+        "hash": "e9ddcaa4189fddd25ed97fc8c789eca7b6ca16390b2392ae3276f0c8e1aa4619"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\hooks\\push-to-checkout.sample",
+        "hash": "a53d0741798b287c6dd7afa64aee473f305e65d3f49463bb9d7408ec3b12bf5f"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\hooks\\sendemail-validate.sample",
+        "hash": "44ebfc923dc5466bc009602f0ecf067b9c65459abfe8868ddc49b78e6ced7a92"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\hooks\\update.sample",
+        "hash": "8d5f2fa83e103cf08b57eaa67521df9194f45cbdbcb37da52ad586097a14d106"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\info\\exclude",
+        "hash": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\logs\\HEAD",
+        "hash": "e9c89611e8661a390fd153c949de60e17c8dbd6b5cf9ad34e78ef7ee8ab8d2d2"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\logs\\refs\\heads\\main",
+        "hash": "e9c89611e8661a390fd153c949de60e17c8dbd6b5cf9ad34e78ef7ee8ab8d2d2"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\logs\\refs\\remotes\\origin\\HEAD",
+        "hash": "e9c89611e8661a390fd153c949de60e17c8dbd6b5cf9ad34e78ef7ee8ab8d2d2"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\objects\\pack\\pack-05c47add8b97776892c140e4b9f6918ae9f04cf2.idx",
+        "hash": "9e831421ccacbd35c1eac45cef173ffba0b47c2d3682d5c3a97ace166860b47c"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\objects\\pack\\pack-05c47add8b97776892c140e4b9f6918ae9f04cf2.pack",
+        "hash": "a76a3dfd7d98e125fe6941db6fc5a286a41031fe8f3fdd107254354750bb552d"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\objects\\pack\\pack-05c47add8b97776892c140e4b9f6918ae9f04cf2.rev",
+        "hash": "ba9142497f8e6f0ea9cfc59518489f2c12c7f4cf95e5cc0b9112375930aa276a"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\refs\\heads\\main",
+        "hash": "ac01f2399df96ab1285c1861412971ed8b683c05152674395e54ae7f7581feff"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\refs\\remotes\\origin\\HEAD",
+        "hash": "2bb6a24aa0fc6c484100f5d51a29bbad841cd2c755f5d93faa204e5dbb4eb2b4"
+      }
+    ]
+  },
+  "cachebro": {
+    "timestamp": "2026-02-27T09:07:40.196077",
+    "status": "VERIFIED",
+    "files": [
+      {
+        "path": "skills_db\\cachebro\\.gitignore",
+        "hash": "b35898ebb7074cd60df83a65704243595a89a81297d0fa18e8ca13edad2ddfd4"
+      },
+      {
+        "path": "skills_db\\cachebro\\.mcp.json",
+        "hash": "1a3edb72172b963fc199dabc3b749ebbd9ec496acf10583833227f58d189a145"
+      },
+      {
+        "path": "skills_db\\cachebro\\bun.lock",
+        "hash": "222112c2215c0029c109cb4a73a644f510a8921ac3f96187ecee225f16a188dd"
+      },
+      {
+        "path": "skills_db\\cachebro\\LICENSE",
+        "hash": "6777aaf4129c48ed03d473d5b820b7b0abbf96ee1c055c6386c38a0c8124cff5"
+      },
+      {
+        "path": "skills_db\\cachebro\\logo.svg",
+        "hash": "14c222125a9aa034bd7d0e04190cf052b56ae2240b43f54baa97383f100da9cd"
+      },
+      {
+        "path": "skills_db\\cachebro\\package.json",
+        "hash": "7e41a701973aa84fa1fd3c7d4b62c2efe714350a13b4447d6109fdd941b9a06d"
+      },
+      {
+        "path": "skills_db\\cachebro\\README.md",
+        "hash": "ae36a2ba9078868b39c760c6bb56949d404ca08c3d09d38973dab340575e0751"
+      },
+      {
+        "path": "skills_db\\cachebro\\server.json",
+        "hash": "2813a518f5cce8b34af30b266adebe1016f49757b02c8ea619ae209a56a602a7"
+      },
+      {
+        "path": "skills_db\\cachebro\\SKILL.qmd",
+        "hash": "215f4932c3549abfe3836b8fe482f481fb2d657cb1b6de9b1ad2571620e705f3"
+      },
+      {
+        "path": "skills_db\\cachebro\\tsconfig.json",
+        "hash": "546c71eb72662bb2ae37340a6afde3499b1d8e4f887846b0454c89e0f8e40c4b"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\config",
+        "hash": "a1f47a869b34a8cd6918e0e01aab3170828fa91a08c2c778e1dd8bcda9432ead"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\description",
+        "hash": "85ab6c163d43a17ea9cf7788308bca1466f1b0a8d1cc92e26e9bf63da4062aee"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\HEAD",
+        "hash": "28d25bf82af4c0e2b72f50959b2beb859e3e60b9630a5e8c603dad4ddb2b6e80"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\index",
+        "hash": "ea897fd28dd907d2501ea8fd5118739e80b17990c91b9a882d11f68df9ff7778"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\packed-refs",
+        "hash": "d8e8ec51b139a14e4c09ce19170e41f056b8247507329e5aac7d1d46023617ab"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\shallow",
+        "hash": "ca1628a98cd6f968ff1ce0d29ca2f3c3568fa82d6131e615c8c6b2a7661cb9fd"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\hooks\\applypatch-msg.sample",
+        "hash": "0223497a0b8b033aa58a3a521b8629869386cf7ab0e2f101963d328aa62193f7"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\hooks\\commit-msg.sample",
+        "hash": "1f74d5e9292979b573ebd59741d46cb93ff391acdd083d340b94370753d92437"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\hooks\\fsmonitor-watchman.sample",
+        "hash": "e0549964e93897b519bd8e333c037e51fff0f88ba13e086a331592bf801fa1d0"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\hooks\\post-update.sample",
+        "hash": "81765af2daef323061dcbc5e61fc16481cb74b3bac9ad8a174b186523586f6c5"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\hooks\\pre-applypatch.sample",
+        "hash": "e15c5b469ea3e0a695bea6f2c82bcf8e62821074939ddd85b77e0007ff165475"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\hooks\\pre-commit.sample",
+        "hash": "57185b7b9f05239d7ab52db045f5b89eb31348d7b2177eab214f5eb872e1971b"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\hooks\\pre-merge-commit.sample",
+        "hash": "d3825a70337940ebbd0a5c072984e13245920cdf8898bd225c8d27a6dfc9cb53"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\hooks\\pre-push.sample",
+        "hash": "ecce9c7e04d3f5dd9d8ada81753dd1d549a9634b26770042b58dda00217d086a"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\hooks\\pre-rebase.sample",
+        "hash": "4febce867790052338076f4e66cc47efb14879d18097d1d61c8261859eaaa7b3"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\hooks\\pre-receive.sample",
+        "hash": "a4c3d2b9c7bb3fd8d1441c31bd4ee71a595d66b44fcf49ddb310252320169989"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\hooks\\prepare-commit-msg.sample",
+        "hash": "e9ddcaa4189fddd25ed97fc8c789eca7b6ca16390b2392ae3276f0c8e1aa4619"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\hooks\\push-to-checkout.sample",
+        "hash": "a53d0741798b287c6dd7afa64aee473f305e65d3f49463bb9d7408ec3b12bf5f"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\hooks\\sendemail-validate.sample",
+        "hash": "44ebfc923dc5466bc009602f0ecf067b9c65459abfe8868ddc49b78e6ced7a92"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\hooks\\update.sample",
+        "hash": "8d5f2fa83e103cf08b57eaa67521df9194f45cbdbcb37da52ad586097a14d106"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\info\\exclude",
+        "hash": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\logs\\HEAD",
+        "hash": "bb1345f1dabcb705534fc7b9e1ea1514a9f803b45e9b02ffeb12903fbf13b0ff"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\logs\\refs\\heads\\main",
+        "hash": "bb1345f1dabcb705534fc7b9e1ea1514a9f803b45e9b02ffeb12903fbf13b0ff"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\logs\\refs\\remotes\\origin\\HEAD",
+        "hash": "bb1345f1dabcb705534fc7b9e1ea1514a9f803b45e9b02ffeb12903fbf13b0ff"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\objects\\pack\\pack-bc7c60cc4fffec26e9d5edacebfe56c563fbcd18.idx",
+        "hash": "6ae5a9b9a0ea2a61982d2909d4cd608079d1accb2aa7d21ec8072f70ccc98f0f"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\objects\\pack\\pack-bc7c60cc4fffec26e9d5edacebfe56c563fbcd18.pack",
+        "hash": "0a369b2d28081ef1dc2cb378b13e97c3f4f99ece303b621e5c0a8c8d752c4ec7"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\objects\\pack\\pack-bc7c60cc4fffec26e9d5edacebfe56c563fbcd18.rev",
+        "hash": "26c313fc99a54773cb6ce25432e2af5f6e4832042128cd3e380764873d63d820"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\refs\\heads\\main",
+        "hash": "ca1628a98cd6f968ff1ce0d29ca2f3c3568fa82d6131e615c8c6b2a7661cb9fd"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\refs\\remotes\\origin\\HEAD",
+        "hash": "2bb6a24aa0fc6c484100f5d51a29bbad841cd2c755f5d93faa204e5dbb4eb2b4"
+      },
+      {
+        "path": "skills_db\\cachebro\\.github\\workflows\\ci.yml",
+        "hash": "00470f505cadf28e19812e5c66a73a19c825bf8df908221e97490b2c5016f7d0"
+      },
+      {
+        "path": "skills_db\\cachebro\\.github\\workflows\\publish.yml",
+        "hash": "1850ede660dda17d53f13bb77e0c303ecfdf84dc4e055396b4a7ab6537e085dc"
+      },
+      {
+        "path": "skills_db\\cachebro\\packages\\cli\\package.json",
+        "hash": "374870bd1e0aba1ec781be1d3a5ddc410ba658192453105171765a602187c8f2"
+      },
+      {
+        "path": "skills_db\\cachebro\\packages\\cli\\src\\index.ts",
+        "hash": "61c6f35b831fabd18b602a61fbca462d3726d9dbf51f49b623ca6c4ea0669672"
+      },
+      {
+        "path": "skills_db\\cachebro\\packages\\cli\\src\\mcp.ts",
+        "hash": "138921f260c36312d5247d7e586a896ccbddd4f7852da317f926548725429547"
+      },
+      {
+        "path": "skills_db\\cachebro\\packages\\sdk\\package.json",
+        "hash": "4eaf31b8e1320effb93a4000bc55ce3ff40caea28ae4be4692a8efd3a35d69e2"
+      },
+      {
+        "path": "skills_db\\cachebro\\packages\\sdk\\src\\cache.ts",
+        "hash": "adec4d659956f383faa8597aa8c271dde43daeb421dcd085d26033e6ef7917f0"
+      },
+      {
+        "path": "skills_db\\cachebro\\packages\\sdk\\src\\differ.ts",
+        "hash": "b98ce2c7b7ab8d7019a90d73029c48049f0e39d11396615590be7bef2145dc08"
+      },
+      {
+        "path": "skills_db\\cachebro\\packages\\sdk\\src\\index.ts",
+        "hash": "05eec5062fc627de619ac6a20789a8ac69cfdee6c351822475d8ba62b9561648"
+      },
+      {
+        "path": "skills_db\\cachebro\\packages\\sdk\\src\\types.ts",
+        "hash": "7d7a0766d314320310cc865d8ffb79ba76e82de9188f85558bbde7ad72ae7e56"
+      },
+      {
+        "path": "skills_db\\cachebro\\packages\\sdk\\src\\watcher.ts",
+        "hash": "ece4a38e3de9df4a7b91f786c4eb69a65668c1388ba4e43d2397aca5dd3af47b"
+      },
+      {
+        "path": "skills_db\\cachebro\\test\\mcp-meta.test.ts",
+        "hash": "4b101d7aede3b1a0639cd3c4a8c3af28525ae57d4b6f5fa0a100a8cf68d9666f"
+      },
+      {
+        "path": "skills_db\\cachebro\\test\\smoke.test.ts",
+        "hash": "1dd73fbea304ded293185ee96a426a7af37f9bbd641439357d382cb7d84f72c5"
+      }
+    ]
+  },
+  "visual-explainer": {
+    "timestamp": "2026-02-27T09:07:41.638648",
+    "status": "VERIFIED",
+    "files": [
+      {
+        "path": "skills_db\\visual-explainer\\.gitignore",
+        "hash": "e48d69406979f6930a9a6135f795c482d5b78aaa99cce6b317ab40786ff41ecb"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\banner.png",
+        "hash": "64f5117cc927a568b5abbc92f6934647b899ba3cea99ea03925beb65c63f0a02"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\CHANGELOG.md",
+        "hash": "7c982bef7accb02e0465bf659f1eadbf5a7da8f3fb98e21cd8bfc672ada32b68"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\LICENSE",
+        "hash": "30050aede81d2b3c99737fb33d344e24067e46249fd6b0bff1d0ade0aa248437"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\package.json",
+        "hash": "b9296ff2b2b603062893fbe05bee88f0a92ef3d196c36799211d06fe6efb1bf9"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\README.md",
+        "hash": "26b050aa9e0137a801caa27856fd6133ee1a9bb421a3b775b7a1d9fa869ca810"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\SKILL.md",
+        "hash": "f14b303c79e3995e11ac4f6a7dc10884ae317b610f38cda236cb387c1019cecb"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\SKILL.qmd",
+        "hash": "bdc28fd987ad20dbac7a354f7a498d5e703e0b1c91e82811a6df3f5d7e1c6848"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\config",
+        "hash": "472af875a069db2ad150d74460813f41bdb6806d321014253e952d2b73ca8253"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\description",
+        "hash": "85ab6c163d43a17ea9cf7788308bca1466f1b0a8d1cc92e26e9bf63da4062aee"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\HEAD",
+        "hash": "28d25bf82af4c0e2b72f50959b2beb859e3e60b9630a5e8c603dad4ddb2b6e80"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\index",
+        "hash": "fce5b3495b4f08ec4ca6d8174736885af5a62796a25f3e6275913e2f077162f6"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\packed-refs",
+        "hash": "eb4b7f64c11d384fbeca3c9f230000c8bf7b9ca0ac5972c558f798d8b2c804b6"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\shallow",
+        "hash": "30704c60e7fbfbc5a86c1fd6ec05a4402cee736486a95b130973f2f2974bee41"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\hooks\\applypatch-msg.sample",
+        "hash": "0223497a0b8b033aa58a3a521b8629869386cf7ab0e2f101963d328aa62193f7"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\hooks\\commit-msg.sample",
+        "hash": "1f74d5e9292979b573ebd59741d46cb93ff391acdd083d340b94370753d92437"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\hooks\\fsmonitor-watchman.sample",
+        "hash": "e0549964e93897b519bd8e333c037e51fff0f88ba13e086a331592bf801fa1d0"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\hooks\\post-update.sample",
+        "hash": "81765af2daef323061dcbc5e61fc16481cb74b3bac9ad8a174b186523586f6c5"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\hooks\\pre-applypatch.sample",
+        "hash": "e15c5b469ea3e0a695bea6f2c82bcf8e62821074939ddd85b77e0007ff165475"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\hooks\\pre-commit.sample",
+        "hash": "57185b7b9f05239d7ab52db045f5b89eb31348d7b2177eab214f5eb872e1971b"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\hooks\\pre-merge-commit.sample",
+        "hash": "d3825a70337940ebbd0a5c072984e13245920cdf8898bd225c8d27a6dfc9cb53"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\hooks\\pre-push.sample",
+        "hash": "ecce9c7e04d3f5dd9d8ada81753dd1d549a9634b26770042b58dda00217d086a"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\hooks\\pre-rebase.sample",
+        "hash": "4febce867790052338076f4e66cc47efb14879d18097d1d61c8261859eaaa7b3"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\hooks\\pre-receive.sample",
+        "hash": "a4c3d2b9c7bb3fd8d1441c31bd4ee71a595d66b44fcf49ddb310252320169989"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\hooks\\prepare-commit-msg.sample",
+        "hash": "e9ddcaa4189fddd25ed97fc8c789eca7b6ca16390b2392ae3276f0c8e1aa4619"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\hooks\\push-to-checkout.sample",
+        "hash": "a53d0741798b287c6dd7afa64aee473f305e65d3f49463bb9d7408ec3b12bf5f"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\hooks\\sendemail-validate.sample",
+        "hash": "44ebfc923dc5466bc009602f0ecf067b9c65459abfe8868ddc49b78e6ced7a92"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\hooks\\update.sample",
+        "hash": "8d5f2fa83e103cf08b57eaa67521df9194f45cbdbcb37da52ad586097a14d106"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\info\\exclude",
+        "hash": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\logs\\HEAD",
+        "hash": "90325aefa65dcef3fe9bb9305f826ea274dbed11c75c51e35e40019157319b14"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\logs\\refs\\heads\\main",
+        "hash": "90325aefa65dcef3fe9bb9305f826ea274dbed11c75c51e35e40019157319b14"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\logs\\refs\\remotes\\origin\\HEAD",
+        "hash": "90325aefa65dcef3fe9bb9305f826ea274dbed11c75c51e35e40019157319b14"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\objects\\pack\\pack-0871bb9f630d69f241d9d5462676d69df8cde986.idx",
+        "hash": "0cd23b2ef91497362a009c230aec01838f2f1f07f9614818e3e919c071c83d2a"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\objects\\pack\\pack-0871bb9f630d69f241d9d5462676d69df8cde986.pack",
+        "hash": "75fe1f7719a8674126b65abd9c21962b0fd55fdc381845c5089feb94f5ccb6f3"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\objects\\pack\\pack-0871bb9f630d69f241d9d5462676d69df8cde986.rev",
+        "hash": "98fa0a25023729a038a39d70ea608daa5dc66533d9e57ddeffd3daddd5ffe0d9"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\refs\\heads\\main",
+        "hash": "30704c60e7fbfbc5a86c1fd6ec05a4402cee736486a95b130973f2f2974bee41"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\refs\\remotes\\origin\\HEAD",
+        "hash": "2bb6a24aa0fc6c484100f5d51a29bbad841cd2c755f5d93faa204e5dbb4eb2b4"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\prompts\\diff-review.md",
+        "hash": "e459a19891d9cd35e23b3a036bdbb11d5cff62fbbf87e62e31fe581fa2984547"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\prompts\\fact-check.md",
+        "hash": "9934f2519f5f34b1e1fc3765e2a5f4f3cee4852a026451891e44d45c83d644e4"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\prompts\\generate-slides.md",
+        "hash": "4baf932949e1e671cc788cbd8a38575ad1f8e9198224fcc081828f1dbeb4ea46"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\prompts\\generate-web-diagram.md",
+        "hash": "835d8e87546f8a89bfa3905f0bf287422b0cd3e2f1fe5d7ee13fc176a88698be"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\prompts\\plan-review.md",
+        "hash": "ab5d207a309bc61cb2c0d5b6742481050714beea79c45a522c02938c8c7383a3"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\prompts\\project-recap.md",
+        "hash": "fa9fa8712a04c11ed95a1e63b433096bbb600c8e490861810ac9be9ac635adef"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\references\\css-patterns.md",
+        "hash": "ea4050544ac22aaf8b425c03d8e418568e950313ae86d3d2fd70e2b509492196"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\references\\libraries.md",
+        "hash": "47d11b1c9431baf934de79ffd003b46b89cd61d9f2142c6e0c3c12b47c864942"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\references\\responsive-nav.md",
+        "hash": "538e58a1f346d119a9cbf86d1513254a09046fd0f1ee43f9fbfa7b467b0fb415"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\references\\slide-patterns.md",
+        "hash": "a7fd5421cd1816a0afec13b1bc10edb38f78372a52886cbafa6ea34976f5e1c0"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\templates\\architecture.html",
+        "hash": "895111ace67639c20c2edc4655c3f2f604dd7c884638afb32c840e64f6120708"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\templates\\data-table.html",
+        "hash": "4c31c29602ad950bc42ec65948eb2ae99f05a8dda3242e992ec51c8019fa9a03"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\templates\\mermaid-flowchart.html",
+        "hash": "78bc073238e6e02bd6f0ef9cf14522bcb350f03171d9fafa3a953917289ecf76"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\templates\\slide-deck.html",
+        "hash": "1f5744b9df641f7e96ff3c9fbf3fb6d2839c0deb91bdf748f6e063a793862a22"
+      }
+    ]
+  }
+}

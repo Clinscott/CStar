@@ -15,7 +15,14 @@ class InstructionLoader:
         self.project_root = Path(project_root)
         self.skills_db_path = self.project_root / "skills_db"
         self.local_skills_path = self.project_root / "src" / "skills" / "local"
+        self.extra_sources: list[Path] = []
         self._instruction_cache: dict[str, str] = {}
+
+    def add_source(self, path: str) -> None:
+        """Adds a new directory to search for skill instructions."""
+        p = Path(path)
+        if p.exists() and p not in self.extra_sources:
+            self.extra_sources.append(p)
 
     def get_instructions(self, intent_ids: list[str]) -> str:
         """
@@ -56,6 +63,18 @@ class InstructionLoader:
                 if p.exists():
                     skill_path = p
                     break
+            
+            # Search extra sources
+            if not skill_path:
+                for source in self.extra_sources:
+                    p = source / pure_id / "SKILL.qmd"
+                    if p.exists():
+                        skill_path = p
+                        break
+                    p = source / f"{pure_id}.qmd"
+                    if p.exists():
+                        skill_path = p
+                        break
 
         # 2. Read Content
         if skill_path and skill_path.exists():

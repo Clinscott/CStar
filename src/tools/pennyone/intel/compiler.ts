@@ -1,11 +1,36 @@
 import { FileData } from '../analyzer.js';
 import fs from 'fs/promises';
 import path from 'path';
+import { registry } from '../pathRegistry.js';
+
+export interface GungnirMatrix {
+    logic: number;
+    style: number;
+    intel: number;
+    overall: number;
+}
+
+export interface CompiledGraph {
+    version: string;
+    scanned_at: string;
+    files: Array<{
+        path: string;
+        loc: number;
+        complexity: number;
+        matrix: GungnirMatrix;
+        intent: string;
+        dependencies: string[];
+    }>;
+    summary: {
+        total_files: number;
+        total_loc: number;
+        average_score: number;
+    };
+}
 
 /**
  * Matrix Compiler
  * Purpose: Compile all FileData into a master JSON graph with resolved dependencies.
- * Mandate: Normalize all paths to forward slashes for cross-platform/D3 consistency.
  */
 export async function compileMatrix(results: FileData[], targetRepo: string): Promise<string> {
     const statsDir = path.join(targetRepo, '.stats');
@@ -13,18 +38,27 @@ export async function compileMatrix(results: FileData[], targetRepo: string): Pr
 
     const graphPath = path.join(statsDir, 'matrix-graph.json');
 
-    // Normalize utility
-    const normalize = (p: string) => p.replace(/\\/g, '/');
-
     // Create a set of all known absolute paths for fast lookup
-    const knownPaths = new Set(results.map(r => normalize(r.path)));
+    const knownPaths = new Set(results.map(r => registry.normalize(r.path)));
 
     // Helper to resolve an import
     const resolveDependency = (sourceFile: string, importPath: string): string | null => {
-        if (!importPath.startsWith('.')) return null;
+        let absolute: string;
 
-        const dir = path.dirname(sourceFile);
-        let absolute = normalize(path.resolve(dir, importPath));
+        // Python specific: Convert dot-notation (core.engine) to path (core/engine)
+        // only if it's not a relative import and contains dots
+        let normalizedImport = importPath;
+        if (!importPath.startsWith('.') && importPath.includes('.')) {
+            normalizedImport = importPath.replace(/\./g, '/');
+        }
+
+        if (normalizedImport.startsWith('.')) {
+            // Standard relative import (JS/TS or local Python)
+            absolute = registry.resolve(sourceFile, normalizedImport);
+        } else {
+            // Absolute import (Usually Python root imports)
+            absolute = registry.normalize(path.join(targetRepo, normalizedImport));
+        }
 
         // 1. Try exact match
         if (knownPaths.has(absolute)) return absolute;
@@ -44,18 +78,18 @@ export async function compileMatrix(results: FileData[], targetRepo: string): Pr
 
         // 4. Try index files
         for (const ext of extensions) {
-            const indexFile = normalize(path.join(absolute, `index${ext}`));
+            const indexFile = registry.normalize(path.join(absolute, `index${ext}`));
             if (knownPaths.has(indexFile)) return indexFile;
         }
 
         return null;
     };
 
-    const payload = {
-        version: "1.6.2",
+    const payload: CompiledGraph = {
+        version: "1.7.0",
         scanned_at: new Date().toISOString(),
         files: results.map(r => ({
-            path: normalize(r.path),
+            path: registry.normalize(r.path),
             loc: r.loc,
             complexity: r.complexity,
             matrix: r.matrix,
@@ -74,3 +108,4 @@ export async function compileMatrix(results: FileData[], targetRepo: string): Pr
     await fs.writeFile(graphPath, JSON.stringify(payload, null, 2), 'utf-8');
     return graphPath;
 }
+

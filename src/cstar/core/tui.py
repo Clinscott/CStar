@@ -240,8 +240,49 @@ class HelpScreen(ModalScreen):
             "  scout      Run system audit\n"
             "  forge      Code generation stream\n"
             "  sleep      Consolidate session\n"
+            "  feedback   Report performance (F5)\n"
         )
         yield Static(help_text, id="help_box")
+
+class FeedbackScreen(ModalScreen):
+    BINDINGS: ClassVar[list[Binding]] = [
+        Binding("escape", "dismiss", "Cancel"),
+    ]
+    CSS = """
+    FeedbackScreen { align: center middle; background: $surface 90%; }
+    #feedback_box { width: 60; height: 15; padding: 2 3; border: solid $accent; layout: vertical; }
+    #fb_title { text-align: center; text-style: bold; margin-bottom: 1; }
+    #fb_input { margin-bottom: 1; }
+    #fb_score { text-align: center; margin-bottom: 1; }
+    """
+    def compose(self) -> ComposeResult:
+        yield Vertical(
+            Label("📊 REPORT PERFORMANCE", id="fb_title"),
+            Label("Enter Score (1-5) and Comment:"),
+            Input(placeholder="Score (e.g. 1) ", id="fb_score_input"),
+            Input(placeholder="Your comment... ", id="fb_comment_input"),
+            Label("Press Enter to Submit, Escape to Cancel", id="fb_help"),
+            id="feedback_box"
+        )
+
+    def on_input_submitted(self, event: Input.Submitted) -> None:
+        score_val = self.query_one("#fb_score_input", Input).value
+        comment_val = self.query_one("#fb_comment_input", Input).value
+        
+        try:
+            score = int(score_val)
+            if not (1 <= score <= 5): raise ValueError()
+        except:
+            self.query_one("#fb_title", Label).update("[red]INVALID SCORE (1-5)[/]")
+            return
+
+        # Log via tool
+        import subprocess
+        python_path = join(PROJECT_ROOT, ".venv", "Scripts", "python.exe")
+        feedback_script = join(PROJECT_ROOT, "src", "tools", "user_feedback.py")
+        subprocess.run([python_path, feedback_script, str(score), comment_val])
+        
+        self.dismiss(True)
 
 # ---------------------------------------------------------------------------
 # App Main
@@ -254,6 +295,7 @@ class SovereignApp(App):
         Binding("f2", "push_screen('dashboard')", "Dashboard", show=True),
         Binding("f3", "push_screen('forge')", "Forge", show=True),
         Binding("f4", "push_screen('traces')", "Traces", show=True),
+        Binding("f5", "push_screen('feedback')", "Feedback", show=True),
         Binding("ctrl+s", "sleep_protocol", "Sleep", show=True),
         Binding("escape", "quit", "Quit", show=True),
     ]
@@ -286,6 +328,8 @@ class SovereignApp(App):
         "dashboard": DashboardScreen,
         "forge": ForgeScreen,
         "traces": TraceScreen,
+        "help": HelpScreen,
+        "feedback": FeedbackScreen,
     }
 
     def compose(self) -> ComposeResult:

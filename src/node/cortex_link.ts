@@ -46,8 +46,8 @@ export class CortexLink {
             stdio: 'ignore'
         }).unref();
 
-        // Poll until the port opens (max 10 seconds)
-        const maxRetries = 20;
+        // Poll until the port opens (max 30 seconds)
+        const maxRetries = 60;
         const delayMs = 500;
 
         for (let i = 0; i < maxRetries; i++) {

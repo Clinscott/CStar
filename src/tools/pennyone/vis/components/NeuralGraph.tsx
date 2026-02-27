@@ -1,8 +1,9 @@
 import React, { useMemo, useRef, useState, useEffect } from 'react';
 import * as THREE from 'three';
-import { useFrame } from '@react-three/fiber';
-import { Html } from '@react-three/drei';
+import { useFrame, useThree } from '@react-three/fiber';
+import { Html, Line } from '@react-three/drei';
 import * as d3 from 'd3-force-3d';
+import gsap from 'gsap';
 
 interface Node extends d3.SimulationNodeDatum {
     id: string;
@@ -10,6 +11,7 @@ interface Node extends d3.SimulationNodeDatum {
     loc: number;
     matrix: any;
     intent: string;
+    type: 'PYTHON' | 'LOGIC';
     x?: number;
     y?: number;
     z?: number;
@@ -24,213 +26,270 @@ const tempObject = new THREE.Object3D();
 const tempColor = new THREE.Color();
 
 /**
- * [ALFRED]: "The visual cortex is being recalibrated, sir. 
- * We now observe the matrix with logarithmic depth and interaction-aware sensors."
+ * NeuralGraph: The Sovereign Semantic Visualizer
+ * Lore: "Observing the pulse of the manor's logic."
  */
-export const NeuralGraph: React.FC<{ data: any, onNodesMapped?: (map: Map<string, THREE.Vector3>) => void }> = ({ data: initialData, onNodesMapped }) => {
-    const meshRef = useRef<THREE.InstancedMesh>(null!);
-    const [hovered, setHovered] = useState<number | null>(null);
+export const NeuralGraph: React.FC<{
+    data: any,
+    token: string,
+    onNodesMapped?: (map: Map<string, THREE.Vector3>) => void
+}> = ({ data: initialData, token, onNodesMapped }) => {
+    const { camera, controls } = useThree() as any;
+    const sphereMeshRef = useRef<THREE.InstancedMesh>(null!);
+    const tetraMeshRef = useRef<THREE.InstancedMesh>(null!);
+    const lineGroupRef = useRef<THREE.Group>(null!);
+
+    const [hovered, setHovered] = useState<{ type: string, id: number } | null>(null);
     const [data, setData] = useState(initialData);
+    const [selectedNode, setSelectedNode] = useState<Node | null>(null);
 
-    // Dynamic Interpolation State
-    const targetStates = useRef<Map<number, { scale: number, color: THREE.Color }>>(new Map());
+    const targetStates = useRef<Map<string, { scale: number, color: THREE.Color }>>(new Map());
 
-    // 1. Prepare Simulation Data
-    const nodes: Node[] = useMemo(() => data.files.map((f: any) => ({
+    // 1. Prepare Semantic Nodes
+    const allNodes: Node[] = useMemo(() => initialData.files.map((f: any) => ({
         id: f.path,
         path: f.path,
         loc: f.loc,
         matrix: f.matrix,
-        intent: f.intent || "..."
-    })), [data.files]);
+        intent: f.intent || "...",
+        type: f.path.endsWith('.py') ? 'PYTHON' : 'LOGIC'
+    })), [initialData.files]);
+
+    const pyNodes = useMemo(() => allNodes.filter(n => n.type === 'PYTHON'), [allNodes]);
+    const logicNodes = useMemo(() => allNodes.filter(n => n.type === 'LOGIC'), [allNodes]);
 
     const links: Link[] = useMemo(() => {
         const l: Link[] = [];
-        data.files.forEach((f: any) => {
+        initialData.files.forEach((f: any) => {
             f.dependencies?.forEach((dep: string) => {
-                if (nodes.find(n => n.id === dep)) {
+                if (allNodes.find(n => n.id === dep)) {
                     l.push({ source: f.path, target: dep });
                 }
             });
         });
         return l;
-    }, [data.files, nodes]);
+    }, [initialData.files, allNodes]);
 
-    // Index mapping for fast lookups
-    const pathToIndex = useMemo(() => {
-        const map = new Map<string, number>();
-        nodes.forEach((n, i) => map.set(n.path, i));
-        return map;
-    }, [nodes]);
+    // Scaled for high-performance interaction while maintaining hierarchy
+    const getLogScale = (loc: number) => Math.max(0.4, Math.log10(loc || 1) * 0.8);
 
-    // Helper for logarithmic scaling
-    const getLogScale = (loc: number) => Math.max(0.5, Math.log10(loc || 1) * 2);
-
-    // 2. Run Spatial Simulation & WebSocket Connection
+    // 2. Run Spatial Simulation
     useEffect(() => {
-        const simulation = (d3 as any).forceSimulation(nodes, 3)
-            .force("link", (d3 as any).forceLink(links).id((d: any) => d.id).distance(100))
-            .force("charge", (d3 as any).forceManyBody().strength(-200))
+        const degreeMap = new Map<string, number>();
+        allNodes.forEach(n => degreeMap.set(n.id, 0));
+        links.forEach(l => {
+            const sId = (l.source as any).id || l.source;
+            const tId = (l.target as any).id || l.target;
+            degreeMap.set(sId, (degreeMap.get(sId) || 0) + 1);
+            degreeMap.set(tId, (degreeMap.get(tId) || 0) + 1);
+        });
+
+        const simulation = (d3 as any).forceSimulation(allNodes, 3)
+            .force("link", (d3 as any).forceLink(links).id((d: any) => d.id).distance(200)) // increased distance
+            .force("charge", (d3 as any).forceManyBody().strength(-600))
             .force("center", (d3 as any).forceCenter(0, 0, 0))
             .stop();
 
         for (let i = 0; i < 300; ++i) simulation.tick();
 
-        // Populate Coordinate Registry
+        // Utility Ring Calculation - using true Degree count
+        const orphans = allNodes.filter(n => degreeMap.get(n.id) === 0);
+        const radius = 600;
+        orphans.forEach((n, i) => {
+            const theta = (i / orphans.length) * Math.PI * 2;
+            n.x = Math.cos(theta) * radius;
+            n.z = Math.sin(theta) * radius;
+            n.y = (Math.random() - 0.5) * 80;
+        });
+
         if (onNodesMapped) {
             const map = new Map<string, THREE.Vector3>();
-            nodes.forEach(n => {
-                map.set(n.path, new THREE.Vector3(n.x || 0, n.y || 0, n.z || 0));
-            });
+            allNodes.forEach(n => map.set(n.path, new THREE.Vector3(n.x, n.y, n.z)));
             onNodesMapped(map);
         }
 
-        // WebSocket Subspace Relay
-        const socket = new WebSocket(`ws://${window.location.host}`);
+        // Subspace Relay
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const socket = new WebSocket(`${protocol}//${window.location.host}`);
         socket.onmessage = (event) => {
             const msg = JSON.parse(event.data);
             if (msg.type === 'NODE_UPDATED') {
-                const idx = pathToIndex.get(msg.payload.path);
-                if (idx !== undefined) {
+                const node = allNodes.find(n => n.path === msg.payload.path);
+                if (node) {
                     const newScale = getLogScale(msg.payload.loc);
                     const newColor = new THREE.Color();
                     const score = msg.payload.matrix.overall;
                     if (score > 8) newColor.set('#00f2ff');
                     else if (score < 5) newColor.set('#ff4d4d');
                     else newColor.set('#ffffff');
-
-                    // Queue for interpolation
-                    targetStates.current.set(idx, { scale: newScale, color: newColor });
-
-                    // Update the underlying data ref for hover cards
-                    nodes[idx].loc = msg.payload.loc;
-                    nodes[idx].matrix = msg.payload.matrix;
-                    nodes[idx].intent = msg.payload.intent;
+                    targetStates.current.set(node.id, { scale: newScale, color: newColor });
+                    node.loc = msg.payload.loc;
+                    node.matrix = msg.payload.matrix;
                 }
             } else if (msg.type === 'GRAPH_REBUILT') {
-                console.log('[ALFRED]: "Structural shift detected. Re-buffering matrix..."');
-                fetch('/api/matrix').then(res => res.json()).then(setData);
+                window.location.reload();
             }
         };
-
         return () => socket.close();
-    }, [nodes, links, pathToIndex, getLogScale]);
+    }, [allNodes, links, onNodesMapped]);
 
-    // 3. Render Loop (with interpolation)
+    const linesGeometryRef = useRef<THREE.BufferGeometry>(null!);
+
+    // 3. Render Loop (Animations & Pulse)
     useFrame((state, delta) => {
-        nodes.forEach((node, i) => {
-            const { x, y, z } = node;
-            tempObject.position.set(x || 0, y || 0, z || 0);
+        const time = state.clock.getElapsedTime();
 
-            // Interpolate Scale
-            const target = targetStates.current.get(i);
-            const currentScale = getLogScale(node.loc);
-            let scale = currentScale;
+        // Update Instanced Meshes
+        [
+            { mesh: sphereMeshRef, nodes: logicNodes, type: 'LOGIC' },
+            { mesh: tetraMeshRef, nodes: pyNodes, type: 'PYTHON' }
+        ].forEach(({ mesh, nodes, type }) => {
+            if (!mesh.current) return;
+            nodes.forEach((node, i) => {
+                const { id } = node;
+                let finalX = node.x || 0;
+                let finalY = node.y || 0;
+                let finalZ = node.z || 0;
 
-            if (target) {
-                scale = THREE.MathUtils.lerp(tempObject.scale.x || currentScale, target.scale, delta * 5);
-                if (Math.abs(scale - target.scale) < 0.01) {
-                    // Update complete
+                // utility Ring Rotation - Must sync back to node object for lines
+                const isOrphan = links.every(l => {
+                    const sId = (l.source as any).id || l.source;
+                    const tId = (l.target as any).id || l.target;
+                    return sId !== id && tId !== id;
+                });
+
+                if (isOrphan) {
+                    const radius = 600;
+                    const originalTheta = Math.atan2(node.z || 0, node.x || 1);
+                    const newTheta = originalTheta + (time * 0.05);
+                    finalX = Math.cos(newTheta) * radius;
+                    finalZ = Math.sin(newTheta) * radius;
+
+                    // Critical: sync back for line segments
+                    node.x = finalX;
+                    node.z = finalZ;
                 }
-            }
 
-            // Highlight hovered node
-            if (hovered === i) {
-                scale *= 1.2;
-            }
+                tempObject.matrix.identity(); // Reset matrix to prevent scale bleed
+                tempObject.position.set(finalX, finalY, finalZ);
 
-            tempObject.scale.set(scale, scale, scale);
-            tempObject.updateMatrix();
-            meshRef.current.setMatrixAt(i, tempObject.matrix);
+                const target = targetStates.current.get(id);
+                let scale = getLogScale(node.loc);
+                if (target) scale = THREE.MathUtils.lerp(tempObject.scale.x || scale, target.scale, delta * 3);
+                if (hovered?.type === type && hovered?.id === i) scale *= 1.4;
+                if (selectedNode?.id === id) scale *= 1.6;
 
-            // Interpolate Color
-            const score = node.matrix.overall;
-            if (score > 8) tempColor.set('#00f2ff');
-            else if (score < 5) tempColor.set('#ff4d4d');
-            else tempColor.set('#ffffff');
+                tempObject.scale.set(scale, scale, scale);
+                tempObject.updateMatrix();
+                mesh.current.setMatrixAt(i, tempObject.matrix);
 
-            if (target) {
-                tempColor.lerp(target.color, delta * 5);
-            }
+                // Persona Auras
+                const pathStr = node.path.toLowerCase();
+                if (pathStr.includes('agent') || pathStr.includes('core')) tempColor.set('#ff9900'); // ODIN
+                else if (pathStr.includes('tool') || pathStr.includes('scanner')) tempColor.set('#00f2ff'); // ALFRED
+                else if (node.matrix.overall > 8) tempColor.set('#ffffff');
+                else if (node.matrix.overall < 5) tempColor.set('#ff4d4d');
+                else tempColor.set('#666666');
 
-            meshRef.current.setColorAt(i, tempColor);
+                if (target) tempColor.lerp(target.color, delta * 3);
+                mesh.current.setColorAt(i, tempColor);
+            });
+            mesh.current.instanceMatrix.needsUpdate = true;
+            if (mesh.current.instanceColor) mesh.current.instanceColor.needsUpdate = true;
         });
-        meshRef.current.instanceMatrix.needsUpdate = true;
-        if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true;
+
+        // High-Performance Neural Pathways Update
+        if (linesGeometryRef.current && links.length > 0) {
+            const positions = new Float32Array(links.length * 6);
+            let pIdx = 0;
+            links.forEach((link: any) => {
+                const s = link.source;
+                const t = link.target;
+                if (s.x !== undefined && t.x !== undefined) {
+                    positions[pIdx++] = s.x; positions[pIdx++] = s.y; positions[pIdx++] = s.z;
+                    positions[pIdx++] = t.x; positions[pIdx++] = t.y; positions[pIdx++] = t.z;
+                }
+            });
+            linesGeometryRef.current.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            linesGeometryRef.current.attributes.position.needsUpdate = true;
+        }
     });
 
-    // 4. Render Edges (LineSegments)
-    const edgeGeometry = useMemo(() => {
-        const geometry = new THREE.BufferGeometry();
-        const vertices = new Float32Array(links.length * 6);
-        links.forEach((link, i) => {
-            const sourceNode = link.source as any as Node;
-            const targetNode = link.target as any as Node;
-            vertices[i * 6] = sourceNode.x || 0;
-            vertices[i * 6 + 1] = sourceNode.y || 0;
-            vertices[i * 6 + 2] = sourceNode.z || 0;
-            vertices[i * 6 + 3] = targetNode.x || 0;
-            vertices[i * 6 + 4] = targetNode.y || 0;
-            vertices[i * 6 + 5] = targetNode.z || 0;
+    const handleNodeClick = (node: Node) => {
+        setSelectedNode(node);
+        const targetPos = new THREE.Vector3(node.x!, node.y!, node.z!);
+        gsap.to(camera.position, {
+            x: targetPos.x + 80, y: targetPos.y + 80, z: targetPos.z + 80,
+            duration: 1.5, ease: "power3.inOut"
         });
-        geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-        return geometry;
-    }, [links]);
+        if (controls) {
+            gsap.to(controls.target, { x: targetPos.x, y: targetPos.y, z: targetPos.z, duration: 1.5, ease: "power3.inOut" });
+        }
+    };
 
     return (
-        <>
+        <group>
             <instancedMesh
-                ref={meshRef}
-                args={[null!, null!, nodes.length]}
-                onPointerMove={(e) => {
-                    e.stopPropagation();
-                    setHovered(e.instanceId!);
-                }}
+                ref={sphereMeshRef}
+                args={[null!, null!, logicNodes.length]}
+                frustumCulled={false}
+                onPointerMove={(e) => { e.stopPropagation(); setHovered({ type: 'LOGIC', id: e.instanceId! }); }}
                 onPointerOut={() => setHovered(null)}
-            >
-                <icosahedronGeometry args={[1, 2]} />
-                <meshStandardMaterial emissive="#111" />
+                onClick={(e) => { e.stopPropagation(); handleNodeClick(logicNodes[e.instanceId!]); }}>
+                <icosahedronGeometry args={[12, 2]} />
+                <meshStandardMaterial emissive="#111" emissiveIntensity={2} />
             </instancedMesh>
 
-            <lineSegments geometry={edgeGeometry}>
-                <lineBasicMaterial color="#00f2ff" transparent opacity={0.2} />
+            <instancedMesh
+                ref={tetraMeshRef}
+                args={[null!, null!, pyNodes.length]}
+                frustumCulled={false}
+                onPointerMove={(e) => { e.stopPropagation(); setHovered({ type: 'PYTHON', id: e.instanceId! }); }}
+                onPointerOut={() => setHovered(null)}
+                onClick={(e) => { e.stopPropagation(); handleNodeClick(pyNodes[e.instanceId!]); }}>
+                <tetrahedronGeometry args={[14]} />
+                <meshStandardMaterial emissive="#111" emissiveIntensity={2} />
+            </instancedMesh>
+
+            <lineSegments frustumCulled={false}>
+                <bufferGeometry ref={linesGeometryRef} />
+                <lineBasicMaterial color="#00f2ff" transparent opacity={0.8} />
             </lineSegments>
 
-            {hovered !== null && nodes[hovered] && (
-                <Html position={[nodes[hovered].x || 0, nodes[hovered].y || 0, nodes[hovered].z || 0]} pointerEvents="none">
-                    <div className="hover-card">
-                        <div className="title">FILE: {nodes[hovered].path.split(/[\\/]/).pop()}</div>
-                        <div className="intent">{nodes[hovered].intent}</div>
-                        <div className="stats">
-                            LOC: {nodes[hovered].loc} | GUNGNIR: {nodes[hovered].matrix?.overall?.toFixed(2)}
+
+            {selectedNode && (
+                <Html fullscreen>
+                    <div className="glass-panel">
+                        <div className="panel-header">
+                            <span>SECTOR: {selectedNode.type}</span>
+                            <button onClick={() => setSelectedNode(null)}>×</button>
                         </div>
-                        <div className="matrix-bar">
-                            <div className="segment" style={{ width: `${(nodes[hovered].matrix?.logic || 0) * 10}%`, background: '#00f2ff' }}></div>
-                            <div className="segment" style={{ width: `${(nodes[hovered].matrix?.style || 0) * 10}%`, background: '#ffffff' }}></div>
-                            <div className="segment" style={{ width: `${(nodes[hovered].matrix?.intel || 0) * 10}%`, background: '#ff4d4d' }}></div>
+                        <div className="panel-content">
+                            <h1>{selectedNode.path.split('/').pop()}</h1>
+                            <div className="path-label">{selectedNode.path}</div>
+                            <p>{selectedNode.intent}</p>
+                            <div className="stats-grid">
+                                <div><label>LOC</label>{selectedNode.loc}</div>
+                                <div><label>GUNGNIR</label>{selectedNode.matrix.overall.toFixed(2)}</div>
+                            </div>
+                            <button className="scan-btn" onClick={() => window.open(`file://${selectedNode.path}`)}>EXTRACT LOGIC</button>
                         </div>
                     </div>
                     <style>{`
-                        .hover-card {
-                            background: rgba(0, 5, 10, 0.9);
-                            backdrop-filter: blur(4px);
-                            color: #00f2ff;
-                            padding: 12px;
-                            border: 1px solid #00f2ff;
-                            border-radius: 2px;
-                            width: 280px;
-                            font-family: 'Courier New', Courier, monospace;
-                            transform: translate(25px, -50%);
-                            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
-                        }
-                        .title { font-weight: bold; border-bottom: 1px solid #00f2ff33; padding-bottom: 5px; margin-bottom: 8px; font-size: 0.9rem; color: #fff; }
-                        .intent { font-size: 0.75rem; color: #aaa; margin-bottom: 8px; line-height: 1.2; font-style: italic; }
-                        .stats { font-size: 0.8rem; margin-bottom: 8px; }
-                        .matrix-bar { display: flex; height: 3px; background: #111; overflow: hidden; }
-                        .segment { height: 100%; transition: width 0.3s; }
+                        .glass-panel { position: absolute; right: 40px; top: 40px; width: 380px; background: rgba(0, 5, 10, 0.6); backdrop-filter: blur(30px); border: 1px solid #00f2ff55; color: #fff; font-family: monospace; }
+                        .panel-header { display: flex; justify-content: space-between; padding: 10px 15px; background: #00f2ff22; font-size: 10px; color: #00f2ff; }
+                        .panel-header button { background: none; border: none; color: #00f2ff; cursor: pointer; font-size: 20px; }
+                        .panel-content { padding: 30px; }
+                        h1 { margin: 0; font-size: 1.4rem; color: #00f2ff; }
+                        .path-label { font-size: 9px; opacity: 0.4; margin-bottom: 20px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+                        p { font-size: 0.8rem; line-height: 1.6; color: #ccc; margin-bottom: 30px; }
+                        .stats-grid { display: flex; gap: 40px; margin-bottom: 40px; }
+                        .stats-grid label { display: block; font-size: 10px; color: #00f2ff; opacity: 0.6; margin-bottom: 5px; }
+                        .scan-btn { width: 100%; padding: 12px; background: transparent; border: 1px solid #00f2ff; color: #00f2ff; cursor: pointer; transition: all 0.3s; }
+                        .scan-btn:hover { background: #00f2ff; color: #000; box-shadow: 0 0 20px #00f2ff77; }
                     `}</style>
                 </Html>
             )}
-        </>
+        </group>
     );
 };

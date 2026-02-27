@@ -135,6 +135,16 @@ function getWardenStatus(): string {
     return 'STANDBY';
 }
 
+function getVaultStatus(): string {
+    const vaultDir = join(PROJECT_ROOT, '.agent', 'vault');
+    const masterKey = join(vaultDir, 'master.key');
+    const secretsBin = join(vaultDir, 'secrets.bin');
+    if (fs.existsSync(masterKey) && fs.existsSync(secretsBin)) {
+        return 'SECURED';
+    }
+    return fs.existsSync(masterKey) ? 'ARMED' : 'OFFLINE';
+}
+
 export async function runStartupCeremony() {
     let persona = "ALFRED";
     try {
@@ -176,15 +186,18 @@ export async function runStartupCeremony() {
         const forge = getForgeStatus();
         const fishtest = getFishtestStatus();
         const warden = getWardenStatus();
+        const vault = getVaultStatus();
         
         console.log(`   ${dim("◈")} RAVENS:    ${getStatusColor(ravens)(ravens.padEnd(10))} ${dim("◈")} FORGE:     ${getStatusColor(forge)(forge.padEnd(10))}`);
         console.log(`   ${dim("◈")} FISHTEST:  ${getStatusColor(fishtest)(fishtest.padEnd(10))} ${dim("◈")} VIGIL:     ${getStatusColor(warden)(warden.padEnd(10))}`);
+        console.log(`   ${dim("◈")} VAULT:     ${getStatusColor(vault)(vault.padEnd(10))}`);
     } else {
         const perimeter = getPerimeterStatus();
         const pennyone = getPennyOneStatus();
+        const vault = getVaultStatus();
         
         console.log(`   ${dim("◈")} PERIMETER: ${getStatusColor(perimeter)(perimeter.padEnd(10))} ${dim("◈")} REPOSITORY: ${getStatusColor(pennyone)(pennyone.padEnd(10))}`);
-        console.log(`   ${dim("◈")} ARCHIVE:   ${chalk.green("SECURE    ")} ${dim("◈")} LOGIC:      ${chalk.green("NOMINAL   ")}`);
+        console.log(`   ${dim("◈")} ARCHIVE:   ${chalk.green("SECURE    ")} ${dim("◈")} VAULT:      ${getStatusColor(vault)(vault.padEnd(10))}`);
     }
 
     console.log(` ${main("─".repeat(width - 2))}`);

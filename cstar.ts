@@ -95,6 +95,28 @@ program
     });
 
 program
+    .command('skill')
+    .description('Skill Management & Acquisition')
+    .option('-l, --learn', 'Initiate proactive learning (ALFRED Mandate)')
+    .action(async (options: { learn?: boolean }) => {
+        if (options.learn) {
+            try {
+                const pythonPath = join(PROJECT_ROOT, '.venv', 'Scripts', 'python.exe');
+                const learnScript = join(PROJECT_ROOT, 'src/skills/local/SkillLearning/learn.py');
+                await execa(pythonPath, [learnScript], { 
+                    stdio: 'inherit',
+                    env: { ...process.env, PYTHONPATH: PROJECT_ROOT }
+                });
+            } catch (err) {
+                handleError('Skill learning interrupted.');
+            }
+        } else {
+            // Default to help or list skills
+            program.help();
+        }
+    });
+
+program
     .command('ravens')
     .description('Monitor the Raven Wardens')
     .option('--status', 'Display Raven health and quota isolation')

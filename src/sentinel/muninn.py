@@ -203,6 +203,22 @@ class Muninn:
             return ""
         return f"\nALFRED SUGGESTIONS:\n{suggestions_path.read_text(encoding='utf-8')}\n"
 
+    def _check_user_feedback(self) -> list[str]:
+        """[ALFRED] Scans feedback.jsonl for poor performance flags."""
+        feedback_path = self.root / ".agent" / "feedback.jsonl"
+        poor_files = []
+        if feedback_path.exists():
+            try:
+                with open(feedback_path, encoding="utf-8") as f:
+                    for line in f:
+                        data = json.loads(line)
+                        if data.get("score", 5) <= 2: # Poor or very poor
+                            target = data.get("target_file")
+                            if target and target != "unknown":
+                                poor_files.append(target)
+            except Exception: pass
+        return list(set(poor_files))
+
     # ==============================================================================
     # 🌲 THE HUNT (Scoping & Selection)
     # ==============================================================================
@@ -224,10 +240,18 @@ class Muninn:
     def _select_target_phase(self, all_breaches: list) -> dict | None:
         """[ALFRED] Prioritizes and selects the highest priority target."""
         severity_map = {"CRITICAL": 100, "HIGH": 80, "MEDIUM": 50, "LOW": 20}
+        poor_performance_files = self._check_user_feedback()
 
         def get_score(b):
-            if "HUGINN" in b.get('type', ''): return 85
-            return severity_map.get(b.get('severity', 'LOW').upper(), 0)
+            score = severity_map.get(b.get('severity', 'LOW').upper(), 0)
+            if "HUGINN" in b.get('type', ''): score = max(score, 85)
+
+            # Boost score if user reported poor performance on this file
+            if b.get('file') in poor_performance_files:
+                score += 50
+                SovereignHUD.persona_log("INFO", f"User Feedback Boost applied to {b.get('file')}")
+
+            return score
 
         all_breaches.sort(key=get_score, reverse=True)
         target = all_breaches[0] if all_breaches else None

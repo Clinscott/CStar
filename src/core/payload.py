@@ -31,3 +31,13 @@ class IntentPayload:
             f"entities={list(self.extracted_entities.keys())}"
             f")"
         )
+
+    def to_dict(self) -> dict[str, Any]:
+        """[ALFRED] Converts the immutable payload back to a standard dictionary."""
+        return {
+            "system_meta": dict(self.system_meta),
+            "intent_raw": self.intent_raw,
+            "intent_normalized": self.intent_normalized,
+            "target_workflow": self.target_workflow,
+            "extracted_entities": dict(self.extracted_entities)
+        }

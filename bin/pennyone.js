@@ -63,4 +63,19 @@ program
         startBridge(path, parseInt(options.port));
     });
 
+program
+    .command('clean')
+    .description('Purge the .stats/ directory and all archived sessions')
+    .argument('[path]', 'repository path', '.')
+    .action(async (target) => {
+        const statsDir = path.join(target, '.stats');
+        try {
+            await fs.rm(statsDir, { recursive: true, force: true });
+            console.log(chalk.green(`\n[ALFRED]: "The .stats/ directory has been purged, sir. The manor is immaculate."\n`));
+        } catch (err) {
+            console.error(chalk.red('[ALFRED]: "I am afraid I could not complete the cleaning, sir."'), err);
+        }
+    });
+
 program.parse();
+

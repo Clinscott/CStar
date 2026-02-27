@@ -14,6 +14,7 @@ if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
 from src.core.sovereign_hud import SovereignHUD
+from src.tools.brave_search import BraveSearch
 
 # Constants
 ANTIGRAVITY_HOST = '127.0.0.1'
@@ -65,13 +66,22 @@ class AntigravityUplink:
         if not self.api_key:
             SovereignHUD.persona_log("WARN", "No API key found for AntigravityUplink. Simulation mode only.")
 
-    async def send_payload(self, query: str, context: dict | None = None) -> dict:
+    async def send_payload(self, query: str, context: dict | None = None, search_augment: bool = False) -> dict:
         """
         Asynchronously sends a payload to Antigravity with a visual spinner.
         Implements Smart Truncation and Exponential Backoff.
         """
         if context is None:
             context = {}
+
+        # [BIFRÖST] Web Augmentation
+        if search_augment:
+            SovereignHUD.persona_log("INFO", f"Uplink: Augmenting payload with web search for '{query}'...")
+            searcher = BraveSearch()
+            results = searcher.search(query)
+            if results:
+                web_context = "\n".join([f"- {r['title']}: {r['description']} ({r['url']})" for r in results[:3]])
+                context["web_research"] = web_context
 
         # 1. Smart Truncation
         history = context.get("history", [])
