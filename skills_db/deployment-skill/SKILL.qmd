@@ -1,7 +1,7 @@
 ---
 name: deployment-skill
 description: Automates the deployment of the application to production.
-Activation Words: deploy, ship, release, production, publish, live, application
+Activation Words: deploy, ship, release, production, publish, live, application, server
 ---
 
 # Deployment Skill

@@ -93,7 +93,7 @@
 - **page**: build, component, construct, create, develop, feature, generate, implement, make, modification, run-task, update
 - **perf**: agent-lightning, benchmark, fast, measure, metrics, optimization, optimize, perf-profiler, performance, profile, quick, reinforcement, rl, speed, timing, velocity
 - **perf-profiler**: agent-lightning, benchmark, fast, measure, metrics, optimization, optimize, perf, performance, profile, quick, reinforcement, rl, speed, timing, velocity
-- **performance**: agent-lightning, benchmark, check, fast, integrity, measure, metrics, optimization, optimize, perf, perf-profiler, profile, quick, reinforcement, rl, speed, test, timing, validate, validity, velocity, verification, verify
+- **performance**: agent-lightning, check, fast, integrity, optimization, optimize, quick, reinforcement, rl, speed, test, validate, validity, velocity, verification, verify
 - **plan**: architect, blueprint, design, itinerary, map, outline, prepare, roadmap, strategy
 - **playwright**: automation, browser-automation, e2e, playwright, playwright-e2e
 - **playwright-e2e**: automation, browser-automation, e2e, playwright

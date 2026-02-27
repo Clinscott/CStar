@@ -347,11 +347,11 @@ class SovereignVector:
         """Registers foundational system intents into the semantic brain with Domain partitioning."""
         core_skills = {
             "SovereignFish": ("Automated code aesthetics, polish, refinement, and SovereignFish protocol execution. synonyms: beautify, improve, clean, formatting, layout, polish, refine, standardize. visuals, aesthetics, ui, design, layout, code style", "UI"),
-            "lets-go": ("Resume the current development session, identify priorities, and start the agent loop. synonyms: begin, start, resume, initiate, kick-off, fire-up, lets-go, workspace. project, session, work, environment", "CORE"),
+            "lets-go": ("Resume the current development session, identify priorities, and start the agent loop. synonyms: begin, start, resume, initiate, kick-off, fire-up, lets-go, workspace. project, session, work, environment, workflow", "CORE"),
             "run-task": ("Execute a specific task, build a feature, construct, implement, or create a logic change. synonyms: build, create, implement, make, generate, construct, develop, update. page, component, feature, logic, api, endpoint", "CORE"),
-            "investigate": ("Deeply analyze the codebase, troubleshoot failures, and debug structural integrity. synonyms: analyze, diagnose, debug, investigate, examine, trace, troubleshoot, hunt. bug, issue, error, auth, crash, latency, failure, anomaly, diagnostic", "DEV"),
+            "investigate": ("Deeply analyze the codebase, troubleshoot failures, and debug structural integrity. synonyms: analyze, diagnose, debug, investigate, examine, trace, troubleshoot, hunt, fix. bug, issue, error, auth, crash, latency, failure, anomaly, diagnostic", "DEV"),
             "plan": ("Architect the system, create blueprints, and design implementation roadmaps. synonyms: architect, blueprint, design, plan, roadmap, strategy, outline. system, architecture, strategy, implementation, module, strategize", "CORE"),
-            "test": ("Verify code integrity, run regression suites, and validate execution metrics. synonyms: verify, validate, test, check, benchmark, smoke-test. code, integrity, coverage, reliability", "DEV"),
+            "test": ("Verify code integrity, run regression suites, and validate execution metrics. synonyms: verify, validate, test, check, benchmark, smoke-test, probe. code, integrity, coverage, reliability", "DEV"),
             "wrap-it-up": ("Finalize the session, update documentation, and execute the handshake protocol. synonyms: finish, finalize, wrap, close, end, call-it-a-day, conclude. task, complete, stop, shutdown, archive", "CORE"),
             "oracle": ("Consult the Corvus Star oracle for tactical guidance and system state analysis.", "CORE")
         }

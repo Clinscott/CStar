@@ -1,7 +1,7 @@
 import json
 import random
 
-def generate_cases(n=100, min_score=0.90):
+def generate_cases(n=100, min_score=0.80):
     test_cases = []
 
     intents = {

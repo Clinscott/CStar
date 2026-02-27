@@ -1,6 +1,6 @@
 # Skill: Environment (EnvDoctor)
 
-Activation Words: port, server, dependencies, npm, install, health, check port
+Activation Words: port, dev-server, dependencies, npm, install, health, check port
 
 ## Instructions
 When the user mentions "port 3000", "broken server", or "installing", trigger the EnvDoctor skill.
