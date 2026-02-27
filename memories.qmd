@@ -95,5 +95,9 @@ saved_memory:
     - TSX Bootstrap: CLI tools use a `.js` bridge in `bin/` to invoke `tsx` on the `.ts` core, ensuring zero-config ESM execution.
     - Constructor Injection Doctrine: Use DI for core implementation (e.g., WebSocket) in system drivers to ensure robust testability in ESM/TS environments.
     - Atomic Cleanup: Hybrid migration requires aggressive removal of legacy `.js` files to prevent import ambiguity.
+    - Dynamic Warden Discovery: Use `importlib` and `inspect` to automatically discover and instantiate subclasses from a target directory. This eliminates the "Blind Spot" where new Warden modules are added but not recruited by the orchestrator.
+    - Muninn Architecture: Decompose monolithic execution phases into semantic helper methods (e.g., `_finalize_success`, `_handle_verification_failure`) to reduce cyclomatic complexity and satisfy Mimir aesthetic standards.
+    - A.L.F.R.E.D. (Automated Logic & File Repository Evaluation Dashboard): The formal service persona designation for repository logic and interface control.
+    - RuneCaster Engine Restoration: Always verify "Ghost Fix" resolutions with a dedicated audit cycle using the recast engine to ensure true type-safety compliance.
 deletions: []
 ```

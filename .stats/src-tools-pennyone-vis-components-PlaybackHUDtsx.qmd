@@ -1,0 +1,26 @@
+---
+title: "PlaybackHUD.tsx"
+path: "src\tools\pennyone\vis\components\PlaybackHUD.tsx"
+loc: 77
+complexity: 4
+logic_score: 9.90
+style_score: 8.00
+intel_score: 8.00
+overall_score: 8.63
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.9/10
+- **Style [S]**: 8.0/10
+- **Intel [I]**: 8.0/10
+
+## Neural Pathways
+
+### Imports
+- [*](file://react)
+
+### Exports
+Internal logic only.

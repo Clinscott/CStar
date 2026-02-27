@@ -4,7 +4,7 @@ description: Optimization framework for AI agents using Reinforcement Learning (
 ---
 # ⚡ Agent Lightning (Optimization)
 
-**Activation Words**: optimize, rl, reinforcement learning, fine-tune, train, gradient, reward
+**Activation Words**: optimize, rl, reinforcement learning, fine-tune, train, gradient, reward, inference, performance, latency, response time, execution speed, speed up, accelerate
 
 ## Description
 Agent Lightning is a Microsoft framework for optimizing agentic workflows. It uses a "sidecar" architecture to capture execution traces and rewards, enabling RL-based fine-tuning of the agent's decision models.

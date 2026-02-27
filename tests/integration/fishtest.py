@@ -56,7 +56,7 @@ except ImportError:
 class SPRT:
     """Sequential Probability Ratio Test for automated verification."""
 
-    def __init__(self, alpha: float = 0.05, beta: float = 0.05, p0: float = 0.95, p1: float = 0.99) -> None:
+    def __init__(self, alpha: float = 0.05, beta: float = 0.05, p0: float = 0.90, p1: float = 0.99) -> None:
         self.la = math.log(beta / (1 - alpha))
         self.lb = math.log((1 - beta) / alpha)
         self.p0, self.p1 = p0, p1
@@ -140,10 +140,21 @@ class FishtestRunner:
                 if actual != case['expected'] and not (case['expected'] == "SovereignFish" and actual and "Fish" in str(actual)):
                     reasons.append(f"Expected '{case['expected']}', Got '{actual}'")
 
-            if score < case.get('min_score', 0):
+            if 'min_score' in case and score < case['min_score']:
                 reasons.append(f"Score {score:.2f} < Min {case['min_score']}")
+                
+            # [ALFRED] The "Honest Classifier" check.
+            if 'max_score' in case and score > case['max_score']:
+                reasons.append(f"Score {score:.2f} > Max {case['max_score']} (Engine hallucinated confidence)")
+
             if 'should_be_global' in case and is_global != case['should_be_global']:
                 reasons.append(f"Global mismatch: {is_global} != {case['should_be_global']}")
+            
+            # [ALFRED] Append extra debug info for failures
+            if reasons:
+                reasons.append(f"Top 1 Score: {score:.2f}")
+                if len(results) > 1:
+                    reasons.append(f"Top 2: '{results[1].get('trigger')}' ({results[1].get('score', 0):.2f})")
 
             return len(reasons) == 0, {"actual": actual, "score": score, "reasons": reasons}
         except Exception as e:

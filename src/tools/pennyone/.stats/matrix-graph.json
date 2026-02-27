@@ -1,0 +1,159 @@
+{
+  "version": "1.5.0",
+  "scanned_at": "2026-02-27T01:24:56.968Z",
+  "files": [
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/analyzer.ts",
+      "loc": 136,
+      "complexity": 23,
+      "matrix": {
+        "logic": 1.45,
+        "style": 6.960695759710313,
+        "intel": 8.764705882352942,
+        "overall": 5.7251338806877525
+      },
+      "dependencies": [
+        "./parser.js",
+        "@babel/traverse",
+        "@babel/types",
+        "./calculus/logic.js",
+        "./calculus/style.js",
+        "./calculus/intel.js"
+      ]
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/crawler.ts",
+      "loc": 10,
+      "complexity": 1,
+      "matrix": {
+        "logic": 9.2,
+        "style": 8.793589542668975,
+        "intel": 10,
+        "overall": 9.331196514222992
+      },
+      "dependencies": [
+        "fast-glob"
+      ]
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/index.ts",
+      "loc": 24,
+      "complexity": 3,
+      "matrix": {
+        "logic": 7.6,
+        "style": 8.994406251432446,
+        "intel": 7,
+        "overall": 7.864802083810815
+      },
+      "dependencies": [
+        "./crawler.js",
+        "./analyzer.js",
+        "./analyzer.js",
+        "./intel/writer.js",
+        "./intel/compiler.js",
+        "./llm.js",
+        "fs/promises"
+      ]
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/parser.ts",
+      "loc": 21,
+      "complexity": 5,
+      "matrix": {
+        "logic": 7.8,
+        "style": 7.772373846717894,
+        "intel": 3.904761904761905,
+        "overall": 6.4923785838266
+      },
+      "dependencies": [
+        "@babel/parser"
+      ]
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/calculus/intel.ts",
+      "loc": 10,
+      "complexity": 5,
+      "matrix": {
+        "logic": 7.8,
+        "style": 8.768266177343277,
+        "intel": 10,
+        "overall": 8.856088725781092
+      },
+      "dependencies": []
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/calculus/logic.ts",
+      "loc": 7,
+      "complexity": 2,
+      "matrix": {
+        "logic": 8.85,
+        "style": 8.609249536684933,
+        "intel": 10,
+        "overall": 9.153083178894978
+      },
+      "dependencies": []
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/calculus/style.ts",
+      "loc": 25,
+      "complexity": 7,
+      "matrix": {
+        "logic": 6.199999999999999,
+        "style": 8.564234590994744,
+        "intel": 10,
+        "overall": 8.254744863664914
+      },
+      "dependencies": []
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/intel/compiler.ts",
+      "loc": 26,
+      "complexity": 1,
+      "matrix": {
+        "logic": 9.2,
+        "style": 7.232995791301734,
+        "intel": 3.5384615384615383,
+        "overall": 6.657152443254425
+      },
+      "dependencies": [
+        "../analyzer.js",
+        "fs/promises",
+        "path"
+      ]
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/intel/llm.ts",
+      "loc": 19,
+      "complexity": 5,
+      "matrix": {
+        "logic": 7.8,
+        "style": 8.16108792131432,
+        "intel": 10,
+        "overall": 8.65369597377144
+      },
+      "dependencies": []
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/intel/writer.ts",
+      "loc": 37,
+      "complexity": 3,
+      "matrix": {
+        "logic": 8.5,
+        "style": 7.463173240266131,
+        "intel": 6.324324324324325,
+        "overall": 7.429165854863484
+      },
+      "dependencies": [
+        "../analyzer.js",
+        "./llm.js",
+        "fs/promises",
+        "path"
+      ]
+    }
+  ],
+  "summary": {
+    "total_files": 10,
+    "total_loc": 315,
+    "average_score": 7.84174421027785
+  }
+}

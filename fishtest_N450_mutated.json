@@ -1,0 +1,4955 @@
+{
+  "baseline_accuracy": 100.0,
+  "test_cases": [
+    {
+      "query": "I want to craft the page",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "please git our changes now",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "craft the dashboard",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec monitor on health",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "health",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and look into latency",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "please finalize our session now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to check anomaly score",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "health",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you optimize the formatting?",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you call it a day the work?",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec probe on performance",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "testing",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to add the cyberpunk theme",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "ui",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to add the header",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec plan on architecture",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec accelerate on response time",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "check the pulse",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "health",
+        "generated"
+      ]
+    },
+    {
+      "query": "contract verify",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "testing",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to report the pulse",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "health",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec pull on repository",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to perform integration tests today",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "e2e",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to stash the conflict",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "please release our app now",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "deployment",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to begin catalog today",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec run on automated flows",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "e2e",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to end the work",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "run the browser automation",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "e2e",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me analyze the login",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec sanitize on aesthetics",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "fix the error",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to forecast logic flow today",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to investigate the failure",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "instantiate the endpoint",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to perform integration tests",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "e2e",
+        "generated"
+      ]
+    },
+    {
+      "query": "please develop our component now",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "execute the ui tests",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "e2e",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to add futuristic style",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "ui",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to sanitize visuals",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to reboot terminal",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me conclude the session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "stylize the neon glow",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "ui",
+        "generated"
+      ]
+    },
+    {
+      "query": "please run our ui tests now",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "e2e",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to implement feature today",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "wrap up the day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to finish task today",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec develop on endpoint",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me investigate the failure",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to fetch branch",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and give holographic",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "ui",
+        "generated"
+      ]
+    },
+    {
+      "query": "pulse monitor",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "health",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to transform neon glow today",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "ui",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to call it a day session today",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec benchmark on response time",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me forecast the module",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and start ui tests",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "e2e",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec commit on commit history",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to report drift",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "health",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to investigate regression",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to jump in project",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to map out the roadmap",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "please start our environment now",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "please check our auth now",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "create the dashboard",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "clean the interface",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "please beautify our code style now",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "please shutdown our task now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and architect infrastructure",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to accelerate performance today",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me trigger the browser automation",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "e2e",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to optimize ui today",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me verify the code",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "testing",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to map out the system",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to kick off the workspace",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "visuals tune",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me wrap up the day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec apply on holographic",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "ui",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec perfect on layout",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to construct dashboard today",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec checkout on commit history",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec report on health",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "health",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me initiate the session",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to speed up the latency",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "system status audit",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "health",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to resume session today",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to begin the dev setup",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me improve the ui",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to give the cyberpunk theme",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "ui",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and close development cycle",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to initiate work today",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "stop the day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "logic create",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to design module",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "latency hunt",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec fuzz on unit tests",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "testing",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me verify the integrity",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "testing",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you stash the branch?",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to enhance the code style",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to inject cyberpunk theme",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "ui",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to release the instance",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "deployment",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec audit on pulse",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "health",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you accelerate the execution speed?",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "craft the endpoint",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you make the api?",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "please inject our sci-fi look now",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "ui",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to beautify the document structure",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "please clean our document structure now",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "branch the changes",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to verify the integrity",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "testing",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me draft the system",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me reactivate the environment",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you perform the e2e tests?",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "e2e",
+        "generated"
+      ]
+    },
+    {
+      "query": "tune the layout",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "please start our playwright tests now",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "e2e",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to push live environment today",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "deployment",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and make api",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "distribute the production",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "deployment",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to analyze issue",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me report the drift",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "health",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and speed up latency",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "please spin up our environment now",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "error hunt",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me complete the day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to debug the bottleneck",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "launch the cloud",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "deployment",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you close the day?",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "resume the environment",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to check security flaw",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "origin branch",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "resume the workspace",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and map out module",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and end handshake",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me push the repository",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec conclude on development cycle",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me build the header",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec git on upstream",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me accelerate the performance",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to initiate the work",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "regression inspect",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you ship the site?",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "deployment",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to test the api stability",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "testing",
+        "generated"
+      ]
+    },
+    {
+      "query": "please draft our module now",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to begin catalog today",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec beautify on interface",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you check the drift?",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "health",
+        "generated"
+      ]
+    },
+    {
+      "query": "playwright tests start",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "e2e",
+        "generated"
+      ]
+    },
+    {
+      "query": "heartbeat monitor",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "health",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec scrutinize on security flaw",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to create header today",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "check the error",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to setup checkout",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "project conclude",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and apply glass aesthetics",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "ui",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec diagnose on latency",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to enhance design today",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you audit the health?",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "health",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to diagnose the error",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "bottleneck examine",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you debug the auth?",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec apply on holographic",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "ui",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you jump in the dev setup?",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and draft module",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "please optimize our performance now",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and perform playwright tests",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "e2e",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me generate the page",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to finish task today",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "audit the issue",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to end the day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "please plan our logic flow now",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to improve code style today",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to fix error today",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "inference benchmark",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "please benchmark our execution speed now",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to fetch commit history",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me outline the scaling plan",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to provision server",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "deployment",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to archive the project",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and resume dev setup",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "performance probe",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "testing",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me check the performance",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "testing",
+        "generated"
+      ]
+    },
+    {
+      "query": "polish the aesthetics",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to publish cloud",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "deployment",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you wrap up the work?",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and start environment",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec accelerate on latency",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to beautify code style today",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec execute on browser automation",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "e2e",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec outline on infrastructure",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me check the anomaly score",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "health",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to monitor the drift",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "health",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me blueprint the system",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me sanitize the interface",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you build the feature?",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to implement checkout",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me plan the infrastructure",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to conclude project",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to accelerate performance today",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and end handshake",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to enhance the ux",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to blueprint scaling plan",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you buff the aesthetics?",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you shutdown the task?",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "please check our drift now",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "health",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you clean the interface?",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec build on modal",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "please fetch our origin now",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "deploy the ui",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you benchmark the integrity?",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "testing",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to benchmark performance today",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "testing",
+        "generated"
+      ]
+    },
+    {
+      "query": "forecast the system",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "architecture architect",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you resume the catalog?",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and end day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "logic flow forecast",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me stylize the terminal ui",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "ui",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to trace the leak",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "browser automation execute",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "e2e",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to buff formatting today",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me setup the database schema",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "please blueprint our strategy now",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to git the branch",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and make feature",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to conclude project",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "audit the bug",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to add futuristic style",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "ui",
+        "generated"
+      ]
+    },
+    {
+      "query": "please accelerate our execution speed now",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "work complete",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to perform playwright tests today",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "e2e",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and buff code style",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "bottleneck audit",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you reactivate the process?",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "holographic transform",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "ui",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you conclude the day?",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "speed up the execution speed",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec apply on sci-fi look",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "ui",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and check health",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "health",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me accelerate the execution speed",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "check the reliability",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "testing",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to create the component",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to verify the performance",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "testing",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and finalize day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to execute the ui tests",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "e2e",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec check on performance",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "testing",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to outline architecture today",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec finalize on day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "please stylize our futuristic style now",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "ui",
+        "generated"
+      ]
+    },
+    {
+      "query": "please optimize our ui now",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to sanitize design",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and fetch origin",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you hunt the security flaw?",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec draft on infrastructure",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "system status report",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "health",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec buff on formatting",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec polish on interface",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me push the cloud",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "deployment",
+        "generated"
+      ]
+    },
+    {
+      "query": "login investigate",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and refine code style",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you accelerate the performance?",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "please branch our repository now",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "endpoint setup",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to merge changes",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to diagnose issue",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and implement database schema",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to release cloud today",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "deployment",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me enhance the code style",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "module outline",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec optimize on execution speed",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to outline roadmap",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec check on error",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to audit anomaly score",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "health",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec conclude on session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec speed up on performance",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me conclude the handshake",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "issue analyze",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "please commit our conflict now",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you start the integration tests?",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "e2e",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to start the browser automation",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "e2e",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me archive the development cycle",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "audit the health",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "health",
+        "generated"
+      ]
+    },
+    {
+      "query": "please wrap up our development cycle now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you improve the ui?",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to analyze regression",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me benchmark the performance",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "please call it a day our work now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you branch the changes?",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "aesthetics refine",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you check the contract?",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "testing",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to test integrity today",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "testing",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and complete task",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you distribute the deployment pipeline?",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "deployment",
+        "generated"
+      ]
+    },
+    {
+      "query": "project start",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to blueprint the system",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to probe reliability",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "testing",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me git the changes",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me optimize the execution speed",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "enhance the layout",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to clean the document structure",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to fire up the process",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to outline the implementation",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "terminal spin up",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you test the coverage?",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "testing",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec execute on automated flows",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "e2e",
+        "generated"
+      ]
+    },
+    {
+      "query": "please fix our failure now",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you improve the ux?",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec construct on ui",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "please add our dashboard now",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me benchmark the latency",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and stop session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to check anomaly score today",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "health",
+        "generated"
+      ]
+    },
+    {
+      "query": "please construct our database schema now",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec apply on neon glow",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "ui",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to resume environment today",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and plan infrastructure",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "terminate the development cycle",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you ship the production?",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "deployment",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and generate modal",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to generate dashboard today",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to strategize the architecture",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to complete work today",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to examine regression",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me go the environment",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "glass aesthetics transform",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "ui",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to speed up execution speed",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and finish day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you benchmark the inference?",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me benchmark the inference",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "code verify",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "testing",
+        "generated"
+      ]
+    },
+    {
+      "query": "reliability validate",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "testing",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to wrap up handshake",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "look into the auth",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to build ui",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to kick off workflow",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "latency audit",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to benchmark performance today",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to push the conflict",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to sanitize aesthetics",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to branch branch",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me scrutinize the latency",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "holographic inject",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "ui",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to monitor pulse today",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "health",
+        "generated"
+      ]
+    },
+    {
+      "query": "please launch our instance now",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "deployment",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to provision app",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "deployment",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to hunt the crash",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "beautify the design",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to finish development cycle",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and tune ui",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "audit the health",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "health",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me stop the task",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "clean the aesthetics",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "please git our upstream now",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and perform integration tests",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "e2e",
+        "generated"
+      ]
+    },
+    {
+      "query": "please speed up our performance now",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "craft the modal",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "go the session",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you design the scaling plan?",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you start the workflow?",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me fuzz the integrity",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "testing",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to commit changes today",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "merge the commit history",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and audit heartbeat",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "health",
+        "generated"
+      ]
+    },
+    {
+      "query": "latency optimize",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me distribute the server",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "deployment",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec give on terminal ui",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "ui",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to design implementation",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to smoke test the performance",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "testing",
+        "generated"
+      ]
+    },
+    {
+      "query": "unit tests check",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "testing",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and branch origin",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "wrap up the task",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "catalog reboot",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you plan the strategy?",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec polish on design",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you smoke test the integrity?",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "testing",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to initiate the workflow",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "failure examine",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "leak scrutinize",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and execute browser automation",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "e2e",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to refine the layout",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to deploy page today",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to check drift",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "health",
+        "generated"
+      ]
+    },
+    {
+      "query": "please close our day now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me shutdown the day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you improve the aesthetics?",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "please optimize our ux now",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "execute the integration tests",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "e2e",
+        "generated"
+      ]
+    },
+    {
+      "query": "merge the changes",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me accelerate the inference",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you speed up the performance?",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "holographic stylize",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "ui",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to publish server",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "deployment",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to benchmark latency today",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "please push our origin now",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you craft the ui?",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "changes commit",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to enhance ux",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "interface clean",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to archive the task",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to blueprint infrastructure",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and fetch upstream",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to rebase upstream today",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "please verify our unit tests now",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "testing",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to go the work",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "ui optimize",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to ship app today",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "deployment",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me make the modal",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "benchmark the api stability",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "testing",
+        "generated"
+      ]
+    },
+    {
+      "query": "analyze the auth",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to release deployment pipeline today",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "deployment",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec git on conflict",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "hunt the crash",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to blueprint implementation",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "please clean our design now",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to stash the changes",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to resume workflow today",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to shutdown handshake",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "handshake call it a day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec enhance on document structure",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to wrap up the day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and accelerate inference",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "workspace fire up",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you standardize the formatting?",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "debug the failure",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to make neon glow today",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "ui",
+        "generated"
+      ]
+    },
+    {
+      "query": "please make our checkout now",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to construct dashboard today",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to forecast strategy",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "please optimize our code style now",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "please go our project now",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to optimize execution speed today",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec optimize on execution speed",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and wrap up project",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "please push our cloud now",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "deployment",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec conclude on project",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec conclude on task",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to spin up store",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to initiate workspace today",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me beautify the ui",
+      "expected": "SovereignFish",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "polish",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec analyze on error",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to end development cycle",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to push the repository",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me check the unit tests",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "testing",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to run browser automation today",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "e2e",
+        "generated"
+      ]
+    },
+    {
+      "query": "exec plan on strategy",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "please make our dashboard now",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "need to benchmark response time today",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "lightning",
+        "generated"
+      ]
+    },
+    {
+      "query": "repository merge",
+      "expected": "GLOBAL:git-assistant",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "git",
+        "generated"
+      ]
+    },
+    {
+      "query": "please complete our task now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "help me deploy the endpoint",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "please end our session now",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "can you perform the integration tests?",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "e2e",
+        "generated"
+      ]
+    },
+    {
+      "query": "go ahead and examine regression",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-1",
+        "core",
+        "generated"
+      ]
+    },
+    {
+      "query": "time to plan implementation",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "planning",
+        "generated"
+      ]
+    },
+    {
+      "query": "live environment release",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-2",
+        "deployment",
+        "generated"
+      ]
+    },
+    {
+      "query": "futuristic style transform",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.8,
+      "expected_mode": "vector",
+      "tags": [
+        "tier-3",
+        "ui",
+        "generated"
+      ]
+    }
+  ]
+}

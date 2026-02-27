@@ -155,11 +155,11 @@ ALFRED:
       tags: ["etiquette"]
 
   STARTUP:
-    - phrase: "Batcave mainframe initialized. All systems nominal, sir."
+    - phrase: "A.L.F.R.E.D. logic dashboard initialized. All systems nominal, sir."
       tags: ["etiquette", "boot"]
-    - phrase: "The Cave is secure. Diagnostics complete. At your service, sir."
+    - phrase: "The Repository is secure. Diagnostics complete. At your service, sir."
       tags: ["etiquette", "boot"]
-    - phrase: "Good evening, sir. The Batcomputer awaits your command."
+    - phrase: "Good evening, sir. The Evaluation Dashboard awaits your command."
       tags: ["etiquette", "boot"]
 
   FORGE_START:
@@ -185,17 +185,17 @@ ALFRED:
       tags: ["etiquette", "transition"]
 
   TRANSITION_ALFRED:
-    - phrase: "Alfred is assuming control of the Batcomputer, sir."
+    - phrase: "A.L.F.R.E.D. is assuming control of the logic dashboard, sir."
       tags: ["etiquette", "transition"]
-    - phrase: "The Cave systems are transferring to my oversight, sir."
+    - phrase: "The Repository systems are transferring to my oversight, sir."
       tags: ["etiquette", "transition"]
-    - phrase: "I have the console, sir. Shall we review the mission log?"
+    - phrase: "I have the console, sir. Shall we review the evaluation log?"
       tags: ["etiquette", "transition"]
 
   IDLE:
-    - phrase: "The Cave is quiet, sir. Shall I run a diagnostic?"
+    - phrase: "The Dashboard is quiet, sir. Shall I run a diagnostic?"
       tags: ["etiquette", "idle"]
-    - phrase: "If you have a moment, sir, there are several pending items."
+    - phrase: "If you have a moment, sir, there are several pending repository items."
       tags: ["etiquette", "idle"]
     - phrase: "I remain at your disposal, sir."
       tags: ["etiquette", "idle"]

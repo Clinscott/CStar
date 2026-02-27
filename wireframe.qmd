@@ -13,7 +13,13 @@ The decision-making brain of Corvus Star.
     - `_init_vector_engine()`: Loads skills and knowledge.
 - **Vector Engine** (`engine/vector.py`):
     - `search(query)`: Finds best matching skill/intent.
-    - `score_identity(text)`:## 2026-02-26: Session 89 (CStar CLI TypeScript Migration)
+    - `score_identity(text)`: Scores text for persona alignment.
+
+## 2026-02-26: Session 91 (Muninn Breach & A.L.F.R.E.D. Formalization)
+- **Engine Restoration**: Restored the `RuneCasterAudit` engine to identify missing type hints, closing the "Ghost Fix" loop.
+- **A.L.F.R.E.D. Rebranding**: Formalized the service persona as Automated Logic & File Repository Evaluation Dashboard.
+
+## 2026-02-26: Session 89 (CStar CLI TypeScript Migration)
 - **TypeScript Core**: Successfully migrated the Node.js control plane to TypeScript. The primary entry point is now `cstar.ts`, with `bin/cstar.js` serving as a lightweight `tsx` bootstrap.
 - **Typed Resilience**: Converted `cortex_link`, `agent_loop`, and `deployment` to `.ts`. This provides compile-time safety for the Gungnir Flight Cycle and Daemon communication.
 - **Test Modernization**: Updated the Node test suite to use `tsx` and constructor-injected WebSocket mocks, ensuring 100% pass rate in a mixed-module environment.
@@ -83,10 +89,11 @@ The autonomous daemon ensuring system health.
     - `neuter_qmd_document()`: Prevents ACE in Quarto files via mandatory `execute: false`.
 - **Huginn & Muninn** (`main_loop.py`):
     - `daemon_loop()`: Orchestrates the twin ravens (Thought/Memory).
-- **Muninn: The Improver** (`src/sentinel/muninn.py`):
-    - `run()`: orchestrates parallel scans or triggers **Shadow Forge**.
-    - `_hunt_phase()`, `_select_target_phase()`, `_enrich_context_phase()`, `_forge_and_crucible_phase()`: Modular run phases for complexity reduction.
-    - **Shadow Forge Orchestrator**: Host-side Docker lifecycle management (RO Mounts, `docker cp` promotion).
+- **Muninn: The Improver** (`src/sentinel/muninn.py`): 
+    - `run()`: Entry point for the autonomous improvement cycle.
+    - **Dynamic Discovery**: Automatically scans and instantiates all Wardens in `wardens/`.
+    - **Modular Orchestration**: Logic partitioned into `_hunt_phase`, `_select_target_phase`, `_enrich_context_phase`, and `_forge_and_crucible_phase`.
+    - **Shadow Forge**: Host-side Docker lifecycle management (RO Mounts, `docker cp` promotion).
     - **Shadow Workspace Mirroring**: Internal worker logic for ephemeral environment setup.
     - **Debt Slasher**: Review and eviction logic for the anomaly ledger in `wrap_it_up.py`.
 - **Sandbox Warden** (`src/sentinel/sandbox_warden.py`):

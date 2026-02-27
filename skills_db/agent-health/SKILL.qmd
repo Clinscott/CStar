@@ -5,7 +5,7 @@ description: Diagnostic tool for the agents framework cleanliness and integrity.
 
 # Agent Health
 
-## Activation Words: health, check, status, verify, doctor, diagnostic, self-test
+## Activation Words: health, check, status, verify, doctor, diagnostic, self-test, heartbeat, pulse, anomaly score, system status, drift, monitor, report
 
 ## Instructions
 1. **Path Verification**:

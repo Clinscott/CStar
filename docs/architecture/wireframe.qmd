@@ -59,6 +59,10 @@ Maintain a searchable, accurate map of the project's UI and service architecture
     - `tests/unit/test_intent.py`: Intent Immutability & Lexical Anchor Precision.
     - `tests/unit/test_warden.py`: Z-Score Drift & Circuit Breaker Rollback.
     - `tests/unit/test_crucible.py`: AST Jailing & Docker Zombie Purge.
+    - `tests/empire_tests/test_universal_gungnir.py`: Universal Aesthetic Calculus Verification.
+- **UniversalGungnir Engine**:
+    - **Path**: `c:/Users/Craig/Corvus/CorvusStar/src/core/engine/gungnir/universal.py`
+    - **Description**: Centralized auditing for Birkhoff's Measure across Logic, Style, Data, and Structure domains.
 - **Key Modules**:
     - `compiler.py`: Translates `.qmd` contracts into unit tests.
     - `benchmark_engine.py`: Performance regression monitor integrated into `Muninn`.
@@ -83,6 +87,16 @@ Maintain a searchable, accurate map of the project's UI and service architecture
 - **Key Functions**:
     - `SovereignHUD.transition_ceremony()`: Dramatic identity switching animations.
     - `SovereignHUD.log()`: Priority-based colored output.
+
+### Operation PennyOne (3D Mirror)
+- **Path**: `c:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/`
+- **Description**: 3D Digital Twin and Agent Telemetry visualization.
+- **Key Components**:
+    - `NeuralGraph.tsx`: High-perf instanced mesh rendering of the repository graph.
+    - `AgentGhost.tsx`: Renders arcing logic trails for AI agent traversals.
+    - `compiler.ts`: Resolves polyglot dependencies into a unified Gungnir Matrix JSON.
+    - `telemetry.ts`: Express endpoint for real-time agent tracking and broadcast.
+    - `recorder.ts`: Chronological session ledger for 3D DVR playback.
 
 ## 🏁 SovereighFish Campaign (N=1000)
 - **Roadmap**: `c:/Users/Craig/Corvus/CorvusStar/.agent/CAMPAIGN_IMPLEMENTATION_PLAN.qmd`.

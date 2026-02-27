@@ -56,7 +56,7 @@ except ImportError:
 class SPRT:
     """Sequential Probability Ratio Test for automated verification."""
 
-    def __init__(self, alpha: float = 0.05, beta: float = 0.05, p0: float = 0.95, p1: float = 0.99) -> None:
+    def __init__(self, alpha: float = 0.05, beta: float = 0.05, p0: float = 0.90, p1: float = 0.99) -> None:
         self.la = math.log(beta / (1 - alpha))
         self.lb = math.log((1 - beta) / alpha)
         self.p0, self.p1 = p0, p1

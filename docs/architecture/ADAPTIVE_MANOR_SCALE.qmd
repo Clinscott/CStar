@@ -1,0 +1,35 @@
+# The Adaptive Multi-Tiered Manor: Scaling to 100+ Skills
+
+## Core Philosophy
+The system must gracefully scale to hundreds of skills without causing semantic saturation or context window exhaustion. It must adapt to its host environment: utilizing Sub-Agents when available (e.g., Gemini CLI) and falling back to Virtual Skill Paging (JIT Loading) when running as a monolithic process.
+
+## Tier 1: The Domain Router (The Bifröst)
+Instead of a flat vector space, skills are strictly categorized into **Domains** (e.g., `Domain:UI`, `Domain:Infra`, `Domain:Database`).
+1. **The Primary Pass**: The user's query is embedded and matched against Domain definitions, not individual skills.
+2. **Contextual Bias**: The Domain Router reads the environment. If the user is in `src/components`, the `Domain:UI` vector is mathematically boosted. If in `.github/workflows`, `Domain:Infra` is boosted.
+
+## Tier 2: The Environment Adapter (The Fork)
+Once a Domain is selected, the engine checks its host environment for capabilities.
+
+### Path A: The Sovereign Council (Sub-Agent Environments)
+If the environment supports sub-agents (e.g., Gemini CLI):
+1. The Domain Router identifies `Domain:UI`.
+2. The orchestrator delegates the query to the `@ui-agent`.
+3. The `@ui-agent` is initialized with the 15-20 skills belonging *only* to that domain. 
+4. **Benefit**: Infinite horizontal scaling. The context window is pristine, and semantic collisions are mathematically impossible between domains.
+
+### Path B: Virtual Skill Paging (Monolithic Environments)
+If the environment does not support sub-agents (e.g., a standard terminal or isolated script):
+1. The Domain Router identifies `Domain:UI`.
+2. The `SovereignVector` engine performs a localized semantic search *only* within the vectors tagged with `metadata: { domain: 'UI' }`.
+3. **Just-In-Time (JIT) Injection**: The engine identifies the Top 2 skills. It dynamically reads their `SKILL.qmd` files from the disk and injects them into the active prompt's `<available_skills>` block.
+4. **Benefit**: The single agent retains the illusion of infinite skills without blowing out its context window or getting confused by infrastructure synonyms while writing React code.
+
+## Tier 3: The Semantic Linter (CI/CD for Wisdom)
+To prevent the thesaurus from becoming a tangled web at 100+ skills:
+- A new tool: `cstar-audit-skills`.
+- It calculates the cosine similarity between every skill's "Activation Words."
+- If `Skill A` and `Skill B` have a similarity > 0.85, the build fails. The developer is forced to clarify the linguistic boundary before the skill is merged.
+
+## Conclusion
+This adaptive approach ensures that Corvus Star remains lightning-fast and highly accurate, regardless of whether it is running in a rich multi-agent ecosystem or a bare-metal terminal.

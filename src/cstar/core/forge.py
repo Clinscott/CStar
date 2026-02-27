@@ -22,6 +22,7 @@ from src.core.payload import IntentPayload
 from src.cstar.core.sprt import evaluate_candidate
 from src.cstar.core.uplink import AntigravityUplink
 from src.sentinel._bootstrap import bootstrap
+from src.core.engine.gungnir.universal import UniversalGungnir
 
 # Initialize Environment
 bootstrap()
@@ -268,58 +269,8 @@ class Forge:
             return
 
     def _verify_gungnir_calculus(self, code_string: str, file_ext: str) -> list[str]:
-        """Runs the mathematical aesthetic checks on generated code before outputting."""
-        breaches = []
-
-        # 1. UI/UX Frontend Checks (.tsx / .jsx)
-        if file_ext in ('.tsx', '.jsx'):
-            elements = len(re.findall(r'<[a-zA-Z0-9]+', code_string))
-            classes = re.findall(r'className=["\']([^"\']+)["\']', code_string)
-            all_cls = [c for match in classes for c in match.split()]
-            unique_cls = len(set(all_cls))
-
-            C = elements + unique_cls if (elements + unique_cls) > 0 else 1
-
-            # Order calculation
-            class_counts = {c: all_cls.count(c) for c in set(all_cls)}
-            O = sum(count for count in class_counts.values() if count > 2)
-
-            symmetric_ops = {'flex', 'grid', 'justify-center', 'items-center', 'mx-auto', 'text-center'}
-            O += sum(5 for c in all_cls if c in symmetric_ops)
-
-            if elements > 5 and (O / C) < 0.3:
-                breaches.append(f"GUNGNIR_UI_BREACH: Birkhoff Measure M={(O/C):.2f} is too low. Increase symmetry (O) and reduce raw classes (C).")
-
-            if len(re.findall(r'-\[[0-9]+px\]', code_string)) > 3:
-                breaches.append("GUNGNIR_UI_BREACH: Too many arbitrary pixel sizes. Use native Tailwind Fibonacci scales.")
-
-        # 2. Backend Structural Checks (.py)
-        elif file_ext == '.py':
-            # Whitespace Rhythm Enforcement
-            lines = code_string.split('\n')
-            consecutive = 0
-            for line in lines:
-                if line.strip() and not line.strip().startswith('#'):
-                    consecutive += 1
-                    if consecutive > 12:
-                        breaches.append("GUNGNIR_BACKEND_BREACH: Claustrophobic code block (>12 lines). Inject vertical whitespace.")
-                        break
-                else:
-                    consecutive = 0
-
-            # Ratio Check (Setup vs Execution)
-            try:
-                tree = ast.parse(code_string)
-                for node in ast.walk(tree):
-                    if isinstance(node, ast.FunctionDef):
-                        setup = sum(1 for child in node.body if isinstance(child, (ast.Assign, ast.AnnAssign, ast.Assert)))
-                        exec_nodes = sum(1 for child in node.body if isinstance(child, (ast.For, ast.While, ast.Return, ast.Expr, ast.If)))
-                        if exec_nodes > 0 and (setup / exec_nodes) > 1.7:
-                            breaches.append(f"GUNGNIR_BACKEND_BREACH: Function '{node.name}' is top-heavy setup (Ratio: {setup/exec_nodes:.2f}). Extract helper functions.")
-            except (SyntaxError, Exception):
-                pass # Defer to standard linters/validators
-
-        return breaches
+        """Runs the universal mathematical aesthetic checks on generated code."""
+        return UniversalGungnir.audit(code_string, file_ext)
 
     def _extract_code_blocks(self, text: str) -> str:
         """Helper to extract code content from markdown triple backticks."""

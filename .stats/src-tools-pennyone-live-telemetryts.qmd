@@ -1,0 +1,30 @@
+---
+title: "telemetry.ts"
+path: "src\tools\pennyone\live\telemetry.ts"
+loc: 17
+complexity: 2
+logic_score: 9.76
+style_score: 8.00
+intel_score: 8.00
+overall_score: 8.59
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.8/10
+- **Style [S]**: 8.0/10
+- **Intel [I]**: 8.0/10
+
+## Neural Pathways
+
+### Imports
+- [*](file://express)
+- [*](file://./socket.js)
+- [*](file://./recorder.js)
+- [*](file://../types.js)
+
+### Exports
+- `normalizePath`
+- `handleTelemetryPing`

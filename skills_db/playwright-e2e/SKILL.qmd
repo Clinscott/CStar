@@ -4,7 +4,7 @@ description: Browser automation and End-to-End testing testing framework.
 ---
 # 🎭 Playwright E2E
 
-**Activation Words**: test, browser, e2e, automation, scrape, verify ui, integration test
+**Activation Words**: test, browser, e2e, automation, scrape, verify ui, integration tests, e2e tests, browser automation, ui tests, perform, start, run
 
 ## Description
 Playwright is a powerful browser automation library from Microsoft. It allows for reliable end-to-end testing of web applications across Chromium, Firefox, and WebKit.

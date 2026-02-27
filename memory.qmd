@@ -1,5 +1,30 @@
 # Corvus Star Memory
 
+## 2026-02-26: Session 94 (Operation PennyOne: The Ghost in the Matrix)
+- **Instanced Mesh Performance**: When rendering thousands of nodes in 3D, use `THREE.InstancedMesh` with a single geometry and material. Update transformations via `instanceMatrix` rather than individual `mesh` objects to preserve draw-call overhead.
+- **Arcing Spline Logic**: To prevent "Logic Trails" from clipping through nodes in a dense 3D graph, use `THREE.CatmullRomCurve3` with an "Arcing Pivot". By adding a vertical offset ($Y+N$) to the midpoint between two nodes, the trail arcs over the "digital surface" rather than tunneling through it.
+- **Shared Telemetry Types**: In hybrid Node/Python systems, use a dedicated `types.ts` (for Node) and corresponding Python interfaces (for the Daemon) to enforce telemetry payload consistency. This prevents "Schema Drift" during real-time broadcasts.
+- **Path Normalization Mandate**: Windows/Unix interoperability requires aggressive path normalization (forward slashes, absolute resolution) at the earliest possible entry point of the API (e.g., `telemetry.ts`).
+- **DVR Decoupling**: Separate visual playback from the physics engine. In PennyOne, we frozen the D3 coordinates and simple drive the visibility of history via a `playbackIndex` to ensure buttery smooth timeline scrubbing.
+
+## 2026-02-26: Session 93 (The Multi-Tiered Manor & Adaptive Scaling)
+- **Hierarchical Domain Routing**: Transitioned the `SovereignVector` engine from a monolithic search to a two-tier routing system. The engine now identifies a high-level Domain (CORE, UI, INFRA, DEV, STATS) before performing a targeted skill search, neutralizing semantic saturation at scale.
+- **Contextual Gravity**: Implemented path-based domain boosting. The engine now "senses" its location; for example, working in `src/ui` provides a 25% mathematical boost to the `UI` domain, reducing intent theft.
+- **JIT Instruction Injection**: Created the `InstructionLoader` to dynamically fetch `SKILL.qmd` content only when needed. This keeps the LLM's context window pristine even as the Manor scales to 100+ skills.
+- **Adaptive Environment Adapter**: Integrated a capability probe to detect host support for Sub-Agent delegation (e.g., Gemini CLI) vs. monolithic JIT injection, ensuring environment-agnostic sovereignty.
+- **Semantic Skill Auditor**: Deployed `scripts/audit_skills.py` to perform All-vs-All collision detection between skill activation phrases, acting as a CI/CD gate for linguistic integrity.
+- **Performance Optimization**: Latency reduced through Lexical Fast-Paths for core commands and bi-directional expansion caching in the thesaurus engine.
+- **Fishtest Restoration**: Resolved the `GLOBAL::` prefix bug and corrected `sterileAgent` path regressions, restoring system accuracy to a stable **94.1%**.
+
+## 2026-02-26: Session 92 (Universal Gungnir Expansion)
+- **Universal Aesthetic Calculus**: Migrated Gungnir's Birkhoff measure logic to a centralized `UniversalGungnir` engine. This enables aesthetic auditing across Python, TypeScript/React, CSS, JSON, and Markdown.
+- **Cross-Domain Birkhoff Metrics**: Defined $M = O/C$ for non-logic files: CSS rewards variable usage (Order) against selective complexity; Markdown rewards structural hierarchy (Headers/Alerts) against textual density.
+- **Empire Test Calibration**: Hardened the expansion via `tests/empire_tests/test_universal_gungnir.py`, verifying that the "Aesthetic Floor" is correctly calculated for diverse file formats.
+- **Dynamic Warden Discovery Pattern**: Use `importlib` and `inspect` to automatically discover and instantiate subclasses of a base module (e.g., `BaseWarden`) from a target directory. This eliminates the "Blind Spot" where new modules are added to the disk but not the orchestrator.
+- **Semantic Modularization for CC**: To satisfy Mimir (Torvalds/Linscott) complexity audits, decompose "Phase" methods into semantic helper methods (e.g., `_finalize_success`, `_handle_gphs_regression`). This keeps the primary loop readable while isolating business logic for specific outcomes.
+- **Restoration Metrics**: When a tool is "restored" from a reported breach (Ghost Fix), verify it with a dedicated audit cycle to ensure it identifies the very violations it was recast to solve.
+- **A.L.F.R.E.D. Rebranding Protocol**: When rebranding a core persona, update the triad: Documentation (`AGENTS.qmd`), Logic (`phrases.yaml`), and Interface (`tui.py`). The acronym **A.L.F.R.E.D.** (Automated Logic & File Repository Evaluation Dashboard) transition demonstrates that "Personality" is a reflection of "Mission".
+
 ## 2026-02-26: Session 90 (Fishtest Regression & Vector Calibration)
 - **Engine Prefix Hardening**: Corrected the `SovereignVector` prefix joining logic to prevent "Double-Colon" errors (`GLOBAL::`). Prefixes that already contain a separator (like `GLOBAL:`) must be handled as suffixes to prevent search fragmentation.
 - **Ghost Data Purge**: When modifying composite IDs in ChromaDB (e.g., `system::GLOBAL:skill`), the old IDs persist in the index. A full `.agent/chroma_db` purge is required to eliminate "Ghost Data" that can pollute intent resolution accuracy.
@@ -52,6 +77,12 @@
 
 ## 2026-02-23: Session 80 (Sovereign SovereignHUD Async Layer)
 - **Centralized Async Rendering**: When multiple asynchronous producers (daemons) must share a single synchronous output (terminal), use an `asyncio.Queue` to buffer messages and an `asyncio.Lock` to serialize the final write. This creates a "funnel" that eliminates character tearing and race conditions.
+    - `tests/unit/test_warden.py`: Z-Score Drift & Circuit Breaker Rollback.
+    - `tests/unit/test_crucible.py`: AST Jailing & Docker Zombie Purge.
+    - `tests/empire_tests/test_universal_gungnir.py`: Universal Aesthetic Calculus Verification.
+- **UniversalGungnir Engine**:
+    - **Path**: `c:/Users/Craig/Corvus/CorvusStar/src/core/engine/gungnir/universal.py`
+    - **Description**: Centralized auditing for Birkhoff's Measure across Logic, Style, Data, and Structure domains.
 - **Cancellation-Safety in UI**: Typewriter effects or progress bars that hide the cursor MUST use a `finally` block to restore it (`\033[?25h`). If interrupted mid-line, the block should also inject a newline (`\n`) to prevent the next terminal prompt from colliding with aborted text.
 - **Dependency Injection for I/O**: Instead of mocking `sys.stdout` globally, pass an `output_stream` (defaulting to `sys.stdout`) to rendering methods. This allows tests to use `io.StringIO` for high-fidelity verification of ANSI sequences without polluting the host terminal.
 
