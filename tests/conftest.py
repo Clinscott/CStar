@@ -94,23 +94,41 @@ def reset_hud_singleton():
     import sys
     import unittest.mock
 
+    from src.core.sovereign_hud import SovereignHUD as RealHUD
+
     def _get_hud_instances():
-        instances = []
-        if "src.core.sovereign_hud" in sys.modules:
-            instances.append(sys.modules["src.core.sovereign_hud"].SovereignHUD)
-        if "ui" in sys.modules:
-            instances.append(sys.modules["ui"].SovereignHUD)
+        instances = [RealHUD]
+        # Scan sys.modules for any other SovereignHUD classes (e.g. from different import paths)
+        for mod_name, mod in list(sys.modules.items()):
+            if mod_name.startswith("src") or mod_name.startswith("tests") or mod_name == "ui":
+                hud_cls = getattr(mod, "SovereignHUD", None)
+                if hud_cls and isinstance(hud_cls, type):
+                    instances.append(hud_cls)
         return list(set(instances)) # Unique classes
 
     # Store original methods once for each unique SovereignHUD class found
+    # We do this at the module level or first call to ensure we get REAL methods.
     if not hasattr(reset_hud_singleton, "_originals_map"):
         reset_hud_singleton._originals_map = {}
+
+        # [ALFRED] Ensure we have the PURE originals from the source of truth
+        pure_originals = {}
+        methods = [
+            "box_top", "box_row", "box_bottom", "log", "persona_log",
+            "warning", "broadcast", "render_loop", "stream_text",
+            "progress_bar", "render_sparkline", "_speak", "_ensure_persona"
+        ]
+        for name in methods:
+            val = getattr(RealHUD, name, None)
+            # If it's already a mock here, we are in trouble, but let's assume RealHUD
+            # from direct import is clean at startup.
+            pure_originals[name] = val
+
+        reset_hud_singleton._pure_originals = pure_originals
 
     huds = _get_hud_instances()
     for SovereignHUD in huds:
         if SovereignHUD not in reset_hud_singleton._originals_map:
-            # Only store originals if they ARE NOT Mocks.
-            # If we already have a mock at this point, we can't save the 'original'.
             originals = {}
             methods = [
                 "box_top", "box_row", "box_bottom", "log", "persona_log",
@@ -119,7 +137,10 @@ def reset_hud_singleton():
             ]
             for name in methods:
                 val = getattr(SovereignHUD, name, None)
-                if val and not isinstance(val, (unittest.mock.Mock, unittest.mock.MagicMock)):
+                # Use pure original if current is a mock
+                if isinstance(val, (unittest.mock.Mock, unittest.mock.MagicMock)):
+                    originals[name] = reset_hud_singleton._pure_originals.get(name)
+                else:
                     originals[name] = val
 
             reset_hud_singleton._originals_map[SovereignHUD] = originals

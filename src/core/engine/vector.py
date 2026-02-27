@@ -10,8 +10,8 @@ import re
 from pathlib import Path
 from typing import Any
 
-from src.core.engine.memory_db import MemoryDB
 from src.core.engine.instruction_loader import InstructionLoader
+from src.core.engine.memory_db import MemoryDB
 from src.core.sovereign_hud import SovereignHUD
 
 
@@ -41,7 +41,7 @@ class SovereignVector:
         self.instruction_loader = InstructionLoader(str(self.project_root))
         self._search_cache: dict[str, list[dict[str, Any]]] = {}
         self._expansion_cache: dict[str, set[str]] = {}
-        
+
         # [ALFRED] Shadow Engine: In-memory lexical search for 0.06ms latency
         self._shadow_index: dict[str, dict[str, Any]] = {}
 
@@ -146,7 +146,7 @@ class SovereignVector:
             if token in self.thesaurus:
                 for syn in self.thesaurus[token]:
                     expansion.update(syn.replace('-', ' ').replace('_', ' ').lower().split())
-            
+
             self._expansion_cache[token] = expansion
             expansion_map[token] = expansion
         return expansion_map
@@ -179,11 +179,11 @@ class SovereignVector:
         i_density = matched_intent_tokens / len(intent_tokens) if intent_tokens else 0.0
 
         lexical_evidence = (q_coverage * 0.5) + (i_density * 0.5)
-        
+
         # [ALFRED] High-Confidence Floor Logic
-        # If identity match exists, start at 0.95
+        # If identity match exists, start at 1.30 (Sovereign Anchor)
         if has_identity_match:
-            score = max(0.95, semantic_score + 0.5)
+            score = max(1.30, semantic_score + 0.5)
         else:
             score = self._apply_boosts(semantic_score, lexical_evidence, matched_query_words, q_coverage)
 
@@ -217,14 +217,15 @@ class SovereignVector:
         score = semantic_score * boost_factor
 
         if matched_query_words >= 2 and lexical_evidence >= 0.7:
-            score = max(score, 1.40 + (lexical_evidence * 0.1))
+            # [Ω] Sovereign Anchor: Strong multi-word lexical evidence triggers 1.30 floor.
+            score = max(score, 1.30 + (lexical_evidence * 0.1))
         elif lexical_evidence >= 0.8:
             score = max(score, 0.75 + (lexical_evidence * 0.2))
         else:
             score = max(score, 0.55 + (lexical_evidence * 0.15))
 
         if matched_query_words >= 2 and q_coverage >= 0.8:
-            score = max(score, 1.50)
+            score = max(score, 1.30)
 
         return score
 
@@ -273,7 +274,7 @@ class SovereignVector:
 
         # 4. [TIER 1] Domain Identification with Fast-Path & Contextual Gravity
         top_domain = None
-        
+
         # [ALFRED] Lexical Domain Fast-Path: Quick-route definitive keywords
         domain_hot_tokens = {
             "UI": ["visual", "polish", "aesthetic", "design", "layout", "neon", "glow", "holographic", "glass", "sci-fi", "futuristic"],
@@ -281,7 +282,7 @@ class SovereignVector:
             "DEV": ["git", "commit", "push", "pull", "merge", "branch", "debug", "investigate", "audit", "fix", "bug", "error", "test", "verify", "validate"],
             "STATS": ["health", "monitor", "metrics", "performance", "latency", "speed", "optimization", "accelerate", "benchmark"]
         }
-        
+
         for d_id, hot_tokens in domain_hot_tokens.items():
             if any(ht in query_norm for ht in hot_tokens):
                 top_domain = d_id
@@ -290,13 +291,13 @@ class SovereignVector:
         if not top_domain:
             # Fallback to Semantic Domain Search
             domain_results = self.memory_db.search_intent("system", query, n_results=10)
-            
+
             # Aggregate domain scores
             domain_scores = {}
             for r in domain_results:
                 d = r.get("domain", "GENERAL")
                 domain_scores[d] = domain_scores.get(d, 0.0) + r["score"]
-            
+
             # Apply Contextual Gravity
             cwd = os.getcwd().lower()
             gravity_map = {
@@ -311,7 +312,7 @@ class SovereignVector:
                         domain_scores[target_domain] *= 1.25 # 25% Boost
                     else:
                         domain_scores[target_domain] = 0.5 # Baseline for relevant domain
-            
+
             if domain_scores:
                 top_domain = max(domain_scores, key=domain_scores.get)
             else:
@@ -392,12 +393,12 @@ class SovereignVector:
                 try:
                     content = path.read_text(encoding='utf-8')
                     skill_id = path.parent.name if path.name.lower() == "skill.qmd" else path.stem
-                    
+
                     if prefix:
                         trigger = f"{prefix}{skill_id}" if prefix.endswith(":") else f"{prefix}:{skill_id}"
                     else:
                         trigger = skill_id
-                    
+
                     self.add_skill(trigger, content, domain=domain)
                 except Exception as e:
                     SovereignHUD.persona_log("WARN", f"Failed to ingest skill {path.name}: {e}")
@@ -422,14 +423,14 @@ class SovereignVector:
         """Finalizes the semantic index and warms the Shadow Engine with TF-IDF."""
         # [ALFRED] Warm the Shadow Engine (TF-IDF Lexical Cache)
         all_skills = self.memory_db.search_intent("system", "", n_results=1000)
-        
+
         doc_freq = {}
         total_docs = len(all_skills)
-        
+
         for s in all_skills:
             trigger = s["trigger"]
             doc = s["description"].lower()
-            
+
             # Extract activation words
             activation_text = ""
             syn_match = re.search(r'synonyms:\s*(.*)', doc)
@@ -440,10 +441,10 @@ class SovereignVector:
             activation_text += trigger_clean
 
             tokens = set(re.findall(r'\w+', activation_text))
-            
+
             for t in tokens:
                 doc_freq[t] = doc_freq.get(t, 0) + 1
-            
+
             self._shadow_index[trigger] = {
                 "trigger": trigger,
                 "tokens": tokens,
@@ -460,8 +461,8 @@ class SovereignVector:
         """Performs a lightning-fast TF-IDF lexical search."""
         q_tokens = set(re.findall(r'\w+', query.lower()))
         q_tokens = {t for t in q_tokens if t not in self.stopwords}
-        
-        if not q_tokens: 
+
+        if not q_tokens:
             return []
 
         expanded_q_tokens = set()
@@ -474,7 +475,7 @@ class SovereignVector:
                 for syn in self.thesaurus[token]:
                     expansion.update(syn.replace('-', ' ').replace('_', ' ').lower().split())
                 self._expansion_cache[token] = expansion
-            
+
             expanded_q_tokens.update(expansion)
             q_token_to_expanded[token] = expansion
 
@@ -483,15 +484,15 @@ class SovereignVector:
             intersection = expanded_q_tokens.intersection(data["tokens"])
             if not intersection:
                 continue
-                
+
             matched_q_words = 0
             tfidf_score = 0.0
             max_possible_tfidf = sum(self._idf_map.get(t, 1.0) for t in q_tokens)
             has_identity = False
-            
+
             trigger_clean = trigger.lower().replace("/", "").replace("-", "").replace("global:", "")
             trigger_parts = set(trigger_clean.split())
-            
+
             for q_token in q_tokens:
                 q_expanded = q_token_to_expanded[q_token]
                 match_subset = q_expanded.intersection(data["tokens"])
@@ -500,20 +501,20 @@ class SovereignVector:
                     # Give it the max IDF of the matched synonyms for this query token
                     best_idf = max(self._idf_map.get(m, 1.0) for m in match_subset)
                     tfidf_score += best_idf
-                    
+
                 if q_token in trigger_parts or q_token == trigger_clean:
                     has_identity = True
 
             if matched_q_words > 0:
                 q_coverage = matched_q_words / len(q_tokens)
                 e_density = len(intersection) / len(data["tokens"]) if data["tokens"] else 0.0
-                
+
                 # Base score is normalized TF-IDF sum
                 lex_score = (tfidf_score / max_possible_tfidf) if max_possible_tfidf > 0 else 0
-                
+
                 # Weight with density to break ties
                 lex_score = (lex_score * 0.8) + (e_density * 0.2)
-                
+
                 # Multipliers
                 if has_identity:
                     lex_score *= 1.4
@@ -521,16 +522,16 @@ class SovereignVector:
                     lex_score *= 1.25
                 elif q_coverage >= 0.5:
                     lex_score *= 1.1
-                    
+
                 is_global = trigger.startswith("GLOBAL:")
                 final_trigger = trigger
                 if not final_trigger.startswith("/") and final_trigger != "SovereignFish" and not is_global:
                     final_trigger = f"/{final_trigger}"
-                    
+
                 core_intents = {"/lets-go", "/run-task", "/investigate", "/plan", "/test", "/wrap-it-up", "SovereignFish", "/oracle"}
                 if final_trigger in core_intents or is_global:
                     lex_score *= 1.25 # Boost core/global over local overlaps
-                    
+
                 lex_score = min(1.99, lex_score)
 
                 results.append({
@@ -540,7 +541,7 @@ class SovereignVector:
                     "description": data["description"],
                     "note": f"Shadow TF-IDF (Cov:{q_coverage:.2f})"
                 })
-        
+
         results.sort(key=lambda x: x["score"], reverse=True)
         return results
 

@@ -29,14 +29,14 @@ saved_memory:
     - Scalability Benchmark: The testing infrastructure is certified for N=1000 execution at <0.5ms per call.
     - Learning by Memorization: High-value failing traces should be added directly to `corrections.json` for immediate resolution.
     - Persona Pattern: Store personality/voice settings in `config.json` and use a centralized theme dictionary (like `_get_theme()`) to drive CLI aesthetics dynamically.
-    - Operational Divergence: Use the Strategy Pattern (`Personas.py`) to map "Soul" to "Behavior". ODIN = Strict Enforcement; ALFRED = Adaptive Service.
+    - Operational Divergence: Use the Strategy Pattern (`Personas.py`) to map "Soul" to "Behavior". ODIN = Strict Enforcement; A.L.F.R.E.D. = Adaptive Service.
     - Vector Dialogue: Store system responses in markdown corpora (`dialogue_db/`) to be retrieved by semantic intent, not hardcoded strings.
     - Metadata Tagging: Use flexible `tags` arrays in test/trace data to store origin metadata (like Persona) rather than rigid schema columns.
     - Distributed Conflict Resolution: Real Trace > Synthetic Test. In Real vs Real conflicts, Last Writer Wins.
     - Trace Archiving: To prevent infinite ingestion loops, processed trace files must be moved to a `processed/` subdirectory immediately after reading.
     - Principle of Symmetry: Every feature or UI element for one persona must have a thematic equivalent for the others.
     - Linscott Standard: Universal rule. Code and Verification are an atomic unit.
-    - The Great Duality: ODIN (Enforcer) and ALFRED (Servant) are distinct operational states.
+    - The Great Duality: ODIN (Enforcer) and A.L.F.R.E.D. (Servant) are distinct operational states.
     - Mimir's Eye (Knowledge Core): All Corvus instances sync to a central Git repo (`CorvusKnowledge`). 
     - Synapse Protocol: Use `synapse_sync.py` to Inhale (Pull) global skills and Exhale (Push) new discoveries.
     - Zero-Copy Discovery: `sv_engine.py` indexes `CorvusKnowledge/skills` directly, bypassing local copy until verified.
@@ -45,7 +45,7 @@ saved_memory:
     - Torvalds Mandate: Code quality is non-negotiable. Strict typing and Google-style docstrings are required for all core utilities.
     - Backbone Verification: Shared libraries (like ui.py) must have their own independent test suites (test_ui.py).
     - Subconscious Architecture: Inactive personas contribute Observation/Reminders (Alfred) or Void Shouts (Odin) to session context.
-    - Alfred Persona Refinement: Alfred is firm but gentle. His subconscious voices are Aliased as [Alfred's Reminder], [Alfred's Query], and [Alfred's Observation].
+    - A.L.F.R.E.D. Persona Refinement: A.L.F.R.E.D. is firm but gentle. His subconscious voices are Aliased as [A.L.F.R.E.D.'s Reminder], [A.L.F.R.E.D.'s Query], and [A.L.F.R.E.D.'s Observation].
     - SovereignFish N=100: Successfully completed the initial 100-improvement milestone (Sessions 9-21) to achieve system sovereignty.
     - Code Sentinel: The framework uses **Ruff** for structural integrity. Integrated into `/investigate` workflow to detect orphans and code smells via `code_sentinel.py`.
     - No Bare Except: Per the Linscott Standard, all `except:` blocks must specify exceptions (e.g. `except (json.JSONDecodeError, IOError)`) to prevent silent structural failures.
@@ -79,7 +79,7 @@ saved_memory:
     - Negative Boosting: In `vector.py`, generic intents (e.g., `/run-task`) must be explicitly dampened/demoted when a specific Global Skill (e.g., `GLOBAL:perf-profiler`) is present with high confidence.
     - Accuracy Doctrine: For edge cases (typos, specific phrasing), explicit mapping in `corrections.json` is superior to vector tuning. "Real User Wins" means we memorize the user's specific failure rather than generalizing the engine.
     - Sovereign Fish Automaton (The Sovereign 5): Expanded the Sovereign Fish to include 5 distinct Strategists (Valkyrie, Edda, RuneCaster, Torvalds, Visual) managed by a centralized SovereignHUD.
-    - Centralized Persona Architecture: All system voice and persona logic (ODIN/ALFRED) is now centralized in `ui.py` (SovereignHUD class) and dynamically reloaded, eliminating hardcoded string checks and enabling hot-swapping.
+    - Centralized Persona Architecture: All system voice and persona logic (ODIN/A.L.F.R.E.D.) is now centralized in `ui.py` (SovereignHUD class) and dynamically reloaded, eliminating hardcoded string checks and enabling hot-swapping.
     - Sentinel CLI: Implemented `c* sentinel [-status|-end]` for daemon management (Start/Stop/Status).
     - Configuration Safety: `.env.local` is strictly ignored and removed from git tracking to prevent secret leakage.
     - Gemini Model Standard: Use `gemini-2.5-flash` for the Ravens (Muninn). Explicit versioning is required to avoid 404s and access the latest reasoning capabilities.
@@ -98,6 +98,7 @@ saved_memory:
     - Dynamic Warden Discovery: Use `importlib` and `inspect` to automatically discover and instantiate subclasses from a target directory. This eliminates the "Blind Spot" where new Warden modules are added but not recruited by the orchestrator.
     - Muninn Architecture: Decompose monolithic execution phases into semantic helper methods (e.g., `_finalize_success`, `_handle_verification_failure`) to reduce cyclomatic complexity and satisfy Mimir aesthetic standards.
     - A.L.F.R.E.D. (Automated Logic & File Repository Evaluation Dashboard): The formal service persona designation for repository logic and interface control.
-    - RuneCaster Engine Restoration: Always verify "Ghost Fix" resolutions with a dedicated audit cycle using the recast engine to ensure true type-safety compliance.
+    - A.L.F.R.E.D. Lore Pattern: A.L.F.R.E.D.'s voice is driven by the "The Velvet Refusal" archetype. Use tags `lore`, `sas`, `medic`, and `theatrical` in `phrases.yaml` to trigger context-aware tactical sarcasm or poignancy.
+    - Persona-Log Prefix Rule: All terminal and log output must use the formalized `[A.L.F.R.E.D]` prefix (with brackets) for consistency with the ODIN `[ODIN]` standard.
 deletions: []
 ```

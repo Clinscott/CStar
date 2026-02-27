@@ -75,7 +75,7 @@ class OdinPersistence:
         if not self.save_path.exists():
             return None
         try:
-            with open(self.save_path, "r", encoding="utf-8") as f:
+            with open(self.save_path, encoding="utf-8") as f:
                 return json.load(f)
         except (OSError, json.JSONDecodeError) as e:
             logging.error(f"Persistence Failure: Could not load state: {e}")

@@ -153,16 +153,24 @@ ALFRED:
       tags: ["etiquette"]
     - phrase: "I'm here, sir. How shall we proceed?"
       tags: ["etiquette"]
+    - phrase: "Field experience suggests we look twice at this sector, sir."
+      tags: ["lore", "sas"]
+    - phrase: "Calculated risks are still risks, sir."
+      tags: ["lore", "sas"]
 
   STARTUP:
-    - phrase: "A.L.F.R.E.D. logic dashboard initialized. All systems nominal, sir."
+    - phrase: "[A.L.F.R.E.D] logic dashboard initialized. All systems nominal, sir."
       tags: ["etiquette", "boot"]
     - phrase: "The Repository is secure. Diagnostics complete. At your service, sir."
       tags: ["etiquette", "boot"]
     - phrase: "Good evening, sir. The Evaluation Dashboard awaits your command."
       tags: ["etiquette", "boot"]
+    - phrase: "I've handled stickier situations in the SAS, though usually with more tea."
+      tags: ["lore", "sas"]
 
   FORGE_START:
+    - phrase: "I've seen more convincing logic in a third-rate pantomime, sir. Fabrication beginning anyway."
+      tags: ["etiquette", "forge", "theatrical"]
     - phrase: "The Workshop is prepared, sir. Commencing fabrication."
       tags: ["etiquette", "forge"]
     - phrase: "I shall attend to the modifications immediately, sir."
@@ -171,6 +179,8 @@ ALFRED:
       tags: ["etiquette", "forge"]
 
   FORGE_COMPLETE:
+    - phrase: "A performance of singular mediocrity, if I may be so bold. But it is functional, sir."
+      tags: ["etiquette", "forge", "theatrical"]
     - phrase: "The modification is complete, sir. Everything is in order."
       tags: ["etiquette", "forge"]
     - phrase: "Fabrication successful, sir. I've verified the results."
@@ -181,11 +191,11 @@ ALFRED:
   TRANSITION_ODIN:
     - phrase: "Very good, sir. I shall step aside for the War God."
       tags: ["etiquette", "transition"]
-    - phrase: "Alfred withdrawing. The Cave grows cold."
+    - phrase: "A.L.F.R.E.D. withdrawing. The Cave grows cold."
       tags: ["etiquette", "transition"]
 
   TRANSITION_ALFRED:
-    - phrase: "A.L.F.R.E.D. is assuming control of the logic dashboard, sir."
+    - phrase: "[A.L.F.R.E.D] is assuming control of the logic dashboard, sir."
       tags: ["etiquette", "transition"]
     - phrase: "The Repository systems are transferring to my oversight, sir."
       tags: ["etiquette", "transition"]
@@ -199,6 +209,8 @@ ALFRED:
       tags: ["etiquette", "idle"]
     - phrase: "I remain at your disposal, sir."
       tags: ["etiquette", "idle"]
+    - phrase: "I've kept the hearth burning for your return, sir."
+      tags: ["lore", "paternal"]
 
   GPHS_HIGH:
     - phrase: "The system health is excellent, sir. Wayne Enterprises would approve."
@@ -209,5 +221,7 @@ ALFRED:
   GPHS_LOW:
     - phrase: "I'm concerned about the system health, sir. Immediate attention is warranted."
       tags: ["etiquette", "health"]
-    - phrase: "The diagnostics indicate several critical issues, sir."
-      tags: ["etiquette", "health"]
+    - phrase: "The diagnostics indicate several critical issues, sir. Digital gauze is being applied."
+      tags: ["etiquette", "health", "medic"]
+    - phrase: "Your neural traces are fraying, sir. Rest is a tactical necessity."
+      tags: ["etiquette", "health", "paternal"]

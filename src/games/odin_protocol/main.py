@@ -17,7 +17,6 @@ from typing import Any
 from src.core.sovereign_hud import SovereignHUD
 from src.games.odin_protocol.engine import (
     Chromosome,
-    Item,
     OdinGM,
     OdinPersistence,
     UniverseState,

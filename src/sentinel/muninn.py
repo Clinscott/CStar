@@ -53,6 +53,7 @@ from src.sentinel.stability import GungnirValidator, TheWatcher
 
 # Warden Modules
 from src.sentinel.wardens.base import BaseWarden
+from src.sentinel.wardens.norn import NornWarden
 from src.tools.brave_search import BraveSearch
 from tests.integration.project_fishtest import GungnirSPRT
 
@@ -878,19 +879,20 @@ class Muninn:
 
 if __name__ == "__main__":
     import argparse
+
     from tests.harness.raven_proxy import RavenProxy
 
     p = argparse.ArgumentParser()
     p.add_argument("--audit", action="store_true")
     p.add_argument(
-        "--mock", 
-        action="store_true", 
+        "--mock",
+        action="store_true",
         help="Enable mock mode for the Ravens Protocol."
     )
     p.add_argument(
-        "--shadow-forge", 
-        "--docker", 
-        action="store_true", 
+        "--shadow-forge",
+        "--docker",
+        action="store_true",
         help="Run the entire cycle inside a sandboxed Docker container."
     )
     args = p.parse_args()

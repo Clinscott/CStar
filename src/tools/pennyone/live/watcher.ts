@@ -17,13 +17,13 @@ export function startWatcher(targetPath: string, relay: SubspaceRelay) {
         ignoreInitial: true
     });
 
-    console.log(chalk.cyan(`[ALFRED]: "Telemetry sensors active. Monitoring sector: ${targetPath}"`));
+    console.log(chalk.cyan(`[A.L.F.R.E.D]: "Telemetry sensors active. Monitoring sector: ${targetPath}"`));
 
     // 1. Handle File Changes (Delta Update)
     watcher.on('change', async (filePath: string) => {
         if (!filePath.match(/\.(ts|js|tsx|jsx)$/)) return;
 
-        console.log(chalk.yellow(`[ALFRED]: "Delta detected in ${path.basename(filePath)}. Recalibrating sensors..."`));
+        console.log(chalk.yellow(`[A.L.F.R.E.D]: "Delta detected in ${path.basename(filePath)}. Recalibrating sensors..."`));
         try {
             const code = await fs.readFile(filePath, 'utf-8');
             const data = await analyzeFile(code, filePath);
@@ -45,7 +45,7 @@ export function startWatcher(targetPath: string, relay: SubspaceRelay) {
 
     // 2. Handle Add/Unlink (Buffer Rebuild)
     const rebuild = async () => {
-        console.log(chalk.magenta(`[ALFRED]: "Structural shift detected. Recompiling Matrix buffer..."`));
+        console.log(chalk.magenta(`[A.L.F.R.E.D]: "Structural shift detected. Recompiling Matrix buffer..."`));
         // Note: Full scan and graph compilation would ideally be triggered here
         // For Phase 4, we signal the frontend to re-fetch the compiled JSON
         relay.broadcast('GRAPH_REBUILT', {});

@@ -70,9 +70,14 @@ class SovereignHUD:
             import json
             from pathlib import Path
 
-            # Resolve root relative to this file: src/core/ui.py -> project_root
-            root = Path(__file__).parent.parent.parent.resolve()
+            # [ALFRED] Robust root resolution: check CWD first (standard for CLI), then relative to file.
+            root = Path.cwd()
             config_path = root / ".agent" / "config.json"
+
+            if not config_path.exists():
+                # Fallback: src/core/sovereign_hud.py -> project_root
+                root = Path(__file__).parent.parent.parent.resolve()
+                config_path = root / ".agent" / "config.json"
 
             if config_path.exists():
                 with config_path.open("r", encoding="utf-8") as f:

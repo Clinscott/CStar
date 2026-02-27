@@ -43,10 +43,10 @@ class RuneCasterAudit:
                         # 1. Check Missing Argument Hints
                         # Skip 'self' and 'cls' as they are standard
                         missing_args = [
-                            arg.arg for arg in node.args.args 
+                            arg.arg for arg in node.args.args
                             if arg.annotation is None and arg.arg not in ('self', 'cls')
                         ]
-                        
+
                         if missing_args:
                             targets.append({
                                 "type": "RUNE_MISSING_ARGS",
@@ -86,7 +86,7 @@ class RuneCasterAudit:
                                         "severity": "LOW",
                                         "line": node.lineno
                                     })
-                                    
+
             except (SyntaxError, UnicodeDecodeError):
                 # We do not falter at broken runes, we simply pass.
                 pass

@@ -55,9 +55,9 @@ describe('PennyOne: Empire Gungnir Matrix Sensors', () => {
 });
 
 describe('PennyOne: Empire Analysis Engine', () => {
-    it('should correctly build the nested GungnirMatrix object', () => {
+    it('should correctly build the nested GungnirMatrix object', async () => {
         const code = "export const x = 1;";
-        const result = analyzeFile(code, 'test.ts');
+        const result = await analyzeFile(code, 'test.ts');
 
         assert.ok(result.matrix, 'Matrix object should exist');
         assert.ok(result.matrix.logic > 0);
@@ -66,12 +66,12 @@ describe('PennyOne: Empire Analysis Engine', () => {
         assert.ok(result.matrix.overall > 0);
     });
 
-    it('should handle aliased imports and exports rigorously', () => {
+    it('should handle aliased imports and exports rigorously', async () => {
         const code = `
             import { foo as bar } from './module';
             export { bar as baz };
         `;
-        const result = analyzeFile(code, 'test.ts');
+        const result = await analyzeFile(code, 'test.ts');
 
         assert.deepStrictEqual(result.imports[0], { source: './module', local: 'bar', imported: 'foo' });
         assert.ok(result.exports.includes('baz'));

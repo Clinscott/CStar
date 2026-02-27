@@ -142,14 +142,14 @@ class FishtestRunner:
 
             if 'min_score' in case and score < case['min_score']:
                 reasons.append(f"Score {score:.2f} < Min {case['min_score']}")
-                
+
             # [ALFRED] The "Honest Classifier" check.
             if 'max_score' in case and score > case['max_score']:
                 reasons.append(f"Score {score:.2f} > Max {case['max_score']} (Engine hallucinated confidence)")
 
             if 'should_be_global' in case and is_global != case['should_be_global']:
                 reasons.append(f"Global mismatch: {is_global} != {case['should_be_global']}")
-            
+
             # [ALFRED] Append extra debug info for failures
             if reasons:
                 reasons.append(f"Top 1 Score: {score:.2f}")

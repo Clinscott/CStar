@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 [ODIN] Persona Management System (set_persona.py)
-Handles dynamic switching between ODIN and ALFRED personas.
+Handles dynamic switching between ODIN and A.L.F.R.E.D. personas.
 Enforces Linscott Standards: Encapsulated, Typed, Pathlib.
 """
 
@@ -45,7 +45,7 @@ class PersonaManager:
         return merged
 
     def _extract_persona(self, config: dict[str, Any]) -> str:
-        """Extracts the persona name from config, defaulting to ALFRED."""
+        """Extracts the persona name from config, defaulting to A.L.F.R.E.D."""
         val = config.get("system", {}).get("persona", "ALFRED")
         if not val and ("persona" in config or "Persona" in config):
             val = config.get("persona") or config.get("Persona") or "ALFRED"
@@ -83,9 +83,9 @@ class PersonaManager:
         return None
 
     def _render_alfred_intro(self) -> None:
-        """Displays Alfred's stylized reporting interface."""
+        """Displays A.L.F.R.E.D.'s stylized reporting interface."""
         print("\n" + "=" * 60)
-        print("  🎩  ALFRED REPORTING FOR DUTY, SIR.")
+        print("  🎩  A.L.F.R.E.D. REPORTING FOR DUTY, SIR.")
         print("=" * 60)
         print("\n  *adjusts cufflinks*")
         print("\n  I see the All-Father has grown weary of shouting decrees.")
@@ -142,7 +142,7 @@ class PersonaManager:
         else:
             print("🎭 Corvus Star Persona Switcher")
             print("1. ODIN   (Domination / Structural Enforcement)")
-            print("2. ALFRED (Service    / Adaptive Assistance)")
+            print("2. A.L.F.R.E.D. (Service    / Adaptive Assistance)")
             try:
                 choice = input("\nSelect Persona [1/2]: ").strip()
                 if choice == "1": new_persona = "ODIN"
@@ -166,7 +166,7 @@ class PersonaManager:
         # Update and Apply
         self._save_persona(new_persona)
 
-        # [ALFRED] Fire the SovereignHUD transition ceremony
+        # [A.L.F.R.E.D] Fire the SovereignHUD transition ceremony
         try:
             SovereignHUD.transition_ceremony(self.old_persona, new_persona)
         except Exception:

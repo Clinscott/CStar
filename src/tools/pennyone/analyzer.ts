@@ -18,7 +18,7 @@ export interface FileData {
 }
 
 /**
- * [ALFRED]: "I have refined the analysis engine to be polyglot, sir. 
+ * [A.L.F.R.E.D]: "I have refined the analysis engine to be polyglot, sir. 
  * We now observe both the JS sectors and the Python backend with equal clarity."
  */
 export async function analyzeFile(code: string, filepath: string): Promise<FileData> {
@@ -102,21 +102,50 @@ export async function analyzeFile(code: string, filepath: string): Promise<FileD
             m.captures.forEach((c: any) => {
                 const node = c.node;
                 if (c.name === 'import') {
-                    // Primitive source extraction
                     const sourceNode = node.descendantsOfType('string')[0];
                     if (sourceNode) {
                         const src = sourceNode.text.replace(/['"]/g, '');
-                        imports.push({ source: src, local: '*', imported: '*' });
+                        const specifiers = node.descendantsOfType('import_specifier');
+                        if (specifiers.length > 0) {
+                            specifiers.forEach((s: any) => {
+                                const importedNode = s.childForFieldName('name');
+                                const aliasNode = s.childForFieldName('alias');
+                                const imported = importedNode ? importedNode.text : s.text;
+                                const local = aliasNode ? aliasNode.text : imported;
+                                imports.push({ source: src, local, imported });
+                            });
+                        } else {
+                            imports.push({ source: src, local: '*', imported: '*' });
+                        }
                     }
-                } else if (c.name === 'func' || c.name === 'class') {
-                    // Try to find identifier
-                    const idNode = node.childForFieldName ? node.childForFieldName('name') : null;
-                    if (idNode) {
-                        exports.push(idNode.text);
+                } else if (c.name === 'func' || c.name === 'class' || c.name === 'export') {
+                    const specifiers = node.descendantsOfType('export_specifier');
+                    if (specifiers.length > 0) {
+                        specifiers.forEach((s: any) => {
+                            const idNodes = [];
+                            for (let i = 0; i < s.childCount; i++) {
+                                const child = s.child(i);
+                                if (child && child.type === 'identifier') idNodes.push(child);
+                            }
+                            if (idNodes.length >= 2) {
+                                // { name as alias } -> alias is the export
+                                exports.push(idNodes[1].text);
+                            } else if (idNodes.length === 1) {
+                                exports.push(idNodes[0].text);
+                            }
+                        });
                     } else {
-                        // Fallback: first identifier child
-                        const firstId = node.descendantsOfType('identifier')[0];
-                        if (firstId) exports.push(firstId.text);
+                        // Regular export like 'export const x = 1'
+                        const idNode = node.childForFieldName ? node.childForFieldName('name') : null;
+                        if (idNode) {
+                            exports.push(idNode.text);
+                        } else {
+                            const idNodes = node.descendantsOfType('identifier');
+                            if (idNodes.length > 0) {
+                                const filtered = idNodes.filter((id: any) => !['const', 'let', 'var', 'async', 'function', 'class'].includes(id.text));
+                                exports.push(filtered.length > 0 ? filtered[0].text : idNodes[0].text);
+                            }
+                        }
                     }
                 }
             });

@@ -4,9 +4,7 @@ import re
 import shutil
 import subprocess
 import sys
-from pathlib import Path
 
-from src.sentinel.code_sanitizer import neuter_qmd_document
 from src.core.sovereign_hud import SovereignHUD
 
 
@@ -82,11 +80,11 @@ def install_skill(skill_name, target_root=None):
     if not all(_validate_path(base if "db" not in p[0] else config["FrameworkRoot"], p[1]) for p in paths_to_validate):
         SovereignHUD.log("CRITICAL", "Path Violation"); return
 
-    if os.path.exists(dst): 
+    if os.path.exists(dst):
         SovereignHUD.log("INFO", f"Skill '{name}' already installed."); return
-    if not os.path.exists(src): 
+    if not os.path.exists(src):
         SovereignHUD.log("FAIL", f"Skill '{name}' not found"); return
-    
+
     try:
         _execute_installation_logic(src, qua, dst)
     except Exception as e:

@@ -1,6 +1,6 @@
 import json
 import random
-import os
+
 
 def generate_n10000(target_n=10000):
     test_cases = []
@@ -75,7 +75,7 @@ def generate_n10000(target_n=10000):
     }
 
     # 2. GENERATION LOGIC
-    
+
     # 2.1 Combinatorial Expansion
     for intent, data in intents.items():
         # High volume for core intents
@@ -83,7 +83,7 @@ def generate_n10000(target_n=10000):
         for _ in range(count):
             v = random.choice(data['verbs'])
             n = random.choice(data['nouns'])
-            
+
             # Diverse structures
             moods = [
                 f"{v} the {n}",
@@ -129,7 +129,7 @@ def generate_n10000(target_n=10000):
         base = random.choice(test_cases)
         if base.get('tags') and 'unknown' in base['tags']: continue # Don't mutate unknowns heavily
         if base['expected'] is None: continue # Don't duplicate traps too much
-        
+
         query = base['query']
         # Mutation types
         r = random.random()
@@ -154,7 +154,7 @@ def generate_n10000(target_n=10000):
 
     # FINAL SHUFFLE
     random.shuffle(test_cases)
-    
+
     output = {
         "baseline_accuracy": 100.0,
         "test_cases": test_cases[:target_n]

@@ -1,4 +1,5 @@
-import fetch from 'node-fetch';
+// Use built-in fetch
+
 
 async function testTelemetry() {
     const url = 'http://localhost:4000/api/telemetry/ping';

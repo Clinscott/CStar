@@ -18,11 +18,11 @@ if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
 from src.core.engine.atomic_gpt import AnomalyWarden, WardenCircuitBreaker
+from src.core.engine.gungnir.universal import UniversalGungnir
 from src.core.payload import IntentPayload
 from src.cstar.core.sprt import evaluate_candidate
 from src.cstar.core.uplink import AntigravityUplink
 from src.sentinel._bootstrap import bootstrap
-from src.core.engine.gungnir.universal import UniversalGungnir
 
 # Initialize Environment
 bootstrap()

@@ -129,6 +129,15 @@ def nightmare(x):
                 fish._save_state = MagicMock()
                 fish._forge_improvement = MagicMock(return_value=None)
 
+                # Mock the hunt results directly since Muninn creates its own warden instances
+                all_breaches = []
+                all_breaches.extend(breaches_valk)
+                all_breaches.extend(breaches_mimir)
+                all_breaches.extend(breaches_visual)
+                scan_results = {"VALKYRIE": 1, "MIMIR": 1, "FREYA": 1}
+
+                fish._execute_hunt_async = AsyncMock(return_value=(all_breaches, scan_results))
+
                 with patch('src.sentinel.muninn.SovereignHUD') as mock_hud:
                     mock_hud.PERSONA = "ODIN"
                     fish.run()

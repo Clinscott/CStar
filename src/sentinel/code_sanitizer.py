@@ -395,7 +395,7 @@ def neuter_qmd_document(file_path: Path):
         content = content.replace(yaml_block, new_yaml)
     else:
         content = "---\nexecute: false\n---\n" + content
-    
+
     file_path.write_text(content, encoding='utf-8')
 
 

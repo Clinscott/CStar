@@ -7,24 +7,24 @@ import fs from 'fs/promises';
 import path from 'path';
 
 describe('PennyOne Phase 2: Priority Refactor Verification', () => {
-    it('should correctly preserve URLs in LOC calculation (The URL Trap)', () => {
+    it('should correctly preserve URLs in LOC calculation (The URL Trap)', async () => {
         const code = `
             const api = "https://corvus.star";
             // This is a comment
             const x = 1;
         `;
-        const result = analyzeFile(code, 'test.ts');
+        const result = await analyzeFile(code, 'test.ts');
         assert.strictEqual(result.loc, 2, 'Should count 2 lines of code, ignoring comment but preserving URL');
     });
 
-    it('should use AST for nesting depth (The String Trap)', () => {
+    it('should use AST for nesting depth (The String Trap)', async () => {
         const code = `
             const template = "{ variable }";
             if (true) {
                 const inner = "{ outer }";
             }
         `;
-        const result = analyzeFile(code, 'test.ts');
+        const result = await analyzeFile(code, 'test.ts');
         assert.strictEqual(result.matrix.logic > 0, true);
         // String literal braces should not affect nesting. 
         // 1 BlockStatement = depth 1.

@@ -96,6 +96,7 @@ class TestMuninnEmpire:
     @patch("src.sentinel.muninn.GungnirSPRT")
     @patch("src.sentinel.muninn.subprocess.run")
     def test_run_with_breach_success(self, mock_sub, mock_sprt, mock_watcher, mock_metrics, mock_asyncio_run, mock_hud, mock_hunt, mock_cortex):
+        # We must initialize Muninn AFTER the patches are set up so it picks up the Mocks in its __init__
         muninn = Muninn("dummy_root")
 
         # Mock hunt
@@ -105,11 +106,10 @@ class TestMuninnEmpire:
             "severity": "CRITICAL",
             "type": "ANNEX_BREACH"
         }
-        mock_hunt.return_value = ([breach], {"ANNEX": 1})
-        mock_asyncio_run.return_value = ([breach], {"ANNEX": 1})
 
-        mock_metrics_inst = mock_metrics.return_value
-        mock_metrics_inst.compute.side_effect = [80.0, 85.0] # Pre, Post
+        # Setup the mock metrics instance that was created during Muninn.__init__
+        muninn.metrics_engine = MagicMock()
+        muninn.metrics_engine.compute.side_effect = [80.0, 85.0] # Pre, Post
 
         # Mock asyncio.run to return a breach
         breach = {

@@ -161,7 +161,7 @@ class AntigravityUplink:
             except Exception as e:
                 # [ALFRED] Transient Error Detection: 429, 5xx
                 is_transient = False
-                
+
                 # Check for SDK APIError
                 try:
                     from google.genai import errors
@@ -170,7 +170,7 @@ class AntigravityUplink:
                             is_transient = True
                 except ImportError:
                     pass
-                
+
                 # Fallback for mock objects in tests
                 if not is_transient and hasattr(e, 'code'):
                     if e.code in [429, 500, 502, 503, 504]:

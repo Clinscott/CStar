@@ -5,10 +5,8 @@ Purpose: Implements lightweight MLP models for metadata anomaly detection and se
 """
 
 import pickle
-import json
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Union, Tuple
 
 import numpy as np
 
@@ -162,13 +160,13 @@ class AnomalyWarden(BaseWarden):
 
         self.save()
 
-    def log_anomaly(self, metadata: Union[np.ndarray, List[float]], prob: float) -> None:
+    def log_anomaly(self, metadata: np.ndarray | list[float], prob: float) -> None:
         """Logs detected anomaly to the queue file."""
         from src.core.utils import atomic_jsonl_append
-        
+
         # Ensure metadata is a list for JSON serialization
         metadata_list = metadata.tolist() if hasattr(metadata, "tolist") else list(metadata)
-        
+
         dossier = {
             "timestamp": datetime.now().isoformat(),
             "metadata_vector": metadata_list,

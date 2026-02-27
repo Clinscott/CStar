@@ -1,15 +1,16 @@
-import os
 import statistics
 import subprocess
 import sys
 import time
+from pathlib import Path
 
 # Add script directory to path for module discovery
-current_dir = os.path.dirname(os.path.abspath(__file__))
-if current_dir not in sys.path:
-    sys.path.append(current_dir)
+current_dir = Path(__file__).parent.resolve()
+project_root = current_dir.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.append(str(project_root))
 
-from report_engine import ReportEngine
+from src.core.report_engine import ReportEngine
 
 
 def benchmark(n=100):

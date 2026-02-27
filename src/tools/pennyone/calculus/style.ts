@@ -32,12 +32,21 @@ export function calculateStyleScore(code: string): number {
     for (const line of lines) {
         if (!line.includes('//') && !line.includes('/*')) {
             blockCount++;
-            if (blockCount > 12) claustrophobicPenalty += 0.5;
+            if (blockCount > 10) claustrophobicPenalty += 2.0;
         } else {
             blockCount = 0;
         }
     }
 
-    const rawScore = (symmetryScore * 0.4) + (purityScore * 0.4) + (Math.max(1, 10 - claustrophobicPenalty) * 0.2);
-    return Math.min(Math.max(rawScore, 1), 10);
+    // 4. UI Harmony (Birkhoff O/C)
+    let uiOrderBonus = 0;
+    if (code.includes('className')) {
+        const adhoc = (code.match(/\[[^\]]+\]/g) || []).length;
+        uiOrderBonus = -adhoc * 1.5;
+    }
+
+    const baseScore = (symmetryScore * 0.2) + (purityScore * 0.2) + (Math.max(1, 10 - claustrophobicPenalty) * 0.6);
+    const finalScore = baseScore + uiOrderBonus;
+
+    return Math.min(Math.max(finalScore, 1), 10);
 }

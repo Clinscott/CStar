@@ -71,7 +71,7 @@ class ReportEngine:
         if self.persona in ["ODIN", "GOD"]:
             return "\n\n---\n**SIGNED: ODIN, THE ALL-FATHER**\n*The Runes Are Cast.*"
         else:
-            return "\n\n---\n**Your Humble Servant,**\n*Alfred Pennyworth*"
+            return "\n\n---\n**Your Humble Servant,**\n*A.L.F.R.E.D. Pennyworth*"
 
     def generate_report(self, title: str, body: str, status: str = "INFO") -> str:
         """Combines all elements into a final markdown string."""

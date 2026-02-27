@@ -159,7 +159,7 @@ def process_repo(repo_path: Path, persona: str, use_docker: bool = False) -> boo
         if changed:
             ts = time.strftime("%Y-%m-%d %H:%M")
             commit_msg = (
-                f"🧹 Alfred: Tying up loose ends [{ts}]"
+                f"🧹 A.L.F.R.E.D.: Tying up loose ends [{ts}]"
                 if persona == "ALFRED"
                 else f"🦅 Ravens: Auto-improvement [{ts}]"
             )

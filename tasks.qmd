@@ -40,7 +40,7 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Mimir's Boost**: Achieved 0.06ms search latency via LRU caching. [x]
 - [x] **Heimdall Vigil**: Implemented SHA-256 challenge-response and security scanning. [x]
 - [x] **Sterile Seed**: Verified replicability via `sterileAgent` template. [x]
-- [x] **The Great Duality**: Implemented asymmetric ODIN/ALFRED persona support. [x]
+- [x] **The Great Duality**: Implemented asymmetric ODIN/A.L.F.R.E.D. persona support. [x]
 
 ### 16-19. Campaign N=1000 (Saturation)
 - [x] **Phase 1 (Saturation)**: Achieved 100.0% accuracy on N=1000 benchmark cases. [x]
@@ -60,7 +60,7 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 ### 21. Odin Protocol Strategic Depth
 - [x] **Genetic Ripple Effect**: Implemented `SYNERGY_MAP` and interference logic for 24 traits. [x]
 - [x] **Federated Seeding**: Seeded scenario generation with Git hash for unique deterministic universes. [x]
-- [x] **Alfred's Briefing**: Added infrequent tactical scans with turn-based cooldown protocol. [x]
+- [x] **A.L.F.R.E.D.'s Briefing**: Added infrequent tactical scans with turn-based cooldown protocol. [x]
 - [x] **Immutable History**: Finalized Git-based persistence with state-hash commit records. [x]
 - [x] **Linscott Compliance**: Refactored logic/persistence to strict typing and docstring standards. [x]
 
@@ -164,7 +164,7 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 ### 34. The Gungnir Calculus (Session 52)
 - [x] **Atomic Cortex**: Implemented dependency-free Transformer with autograd engine. [x]
 - [x] **Metrics Engine**: Orchestrated Radon, Pytest, and Neural loss for GPHS computation. [x]
-- [x] **Alfred Overwatch**: Integrated failure patterns and automated guidance persistence. [x]
+- [x] **A.L.F.R.E.D. Overwatch**: Integrated failure patterns and automated guidance persistence. [x]
 - [x] **Muninn Integration**: Wired GPHS/SPRT into the autopilot cycle with auto-rollback. [x]
 - [x] **Verification**: 100% pass on Gungnir unit tests and training loop. [x]
 
@@ -172,7 +172,7 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **YAML Migration**: Migrated phrase banks from .qmd to centralized `phrases.yaml`. [x]
 - [x] **Dialogue Engine**: Implemented tag-based scoring and Short-Term Memory (STM) in `DialogueEngine`. [x]
 - [x] **State Caching**: Added TTL-based caching and Windows-safe file locks to `OdinStrategy`. [x]
-- [x] **Analytical Failures**: Refactored `AlfredOverwatch` to return structured error context. [x]
+- [x] **Analytical Failures**: Refactored `A.L.F.R.E.D. Overwatch` to return structured error context. [x]
 - [x] **Verification**: 100% pass on contextual routing integration tests. [x]
 
 ### 36. Operation Bifröst: Web-Aware Intelligence (Session 54)
@@ -322,7 +322,7 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Decoupled TUI**: Transformed `tui.py` into a purely reactive client driven by the Daemon's Pub/Sub state broadcasts.
 - [x] **Async Boundaries**: Isolated blocking search engine calls in the daemon using `asyncio.to_thread` to preserve 60FPS UI polling.
 - [x] **CRT Glitch Aesthetics**: Implemented a visceral ASCII matrix wipe animation during ODIN/ALFRED persona toggles.
-- [x] **Ephemeral Context**: Integrated `CURRENT_SESSION_CONTEXT` inside ALFRED for short-term memory, instantly purged via Vanguard overrides or dismissal.
+- [x] **Ephemeral Context**: Integrated `CURRENT_SESSION_CONTEXT` inside A.L.F.R.E.D. for short-term memory, instantly purged via Vanguard overrides or dismissal.
 - [x] **Verification**: 100% green pass rate across `test_tui_empire.py`, `test_tui_client.py`, and `test_daemon_singleton_empire.py`.
 
 ### 61. The Active Sentinel (Session 75)
@@ -458,7 +458,13 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Session DVR**: Built chronological recording and playback HUD for 3D traversal audits. [x]
 - [x] **Verification**: 100% pass on PennyOne EMPIRE tests and path normalization audit. [x]
 
-## ⏭️ Start Here Next (Phase 80)
+### 80. A.L.F.R.E.D. Lore & Global Rebranding (Session 95)
+- [x] **Lore Enrichment**: Integrated SAS, Combat Medic, and Theatrical background into core persona. [x]
+- [x] **Phrase Expansion**: Populated `phrases.yaml` with tactical sarcasm and poignant lore-based dialogue. [x]
+- [x] **Prefix Standardization**: Standardized `[A.L.F.R.E.D]` prefix across documentation and code logs. [x]
+- [x] **Global Cleanse**: Verified zero remaining instances of legacy `[ALFRED]` branding. [x]
+
+## ⏭️ Start Here Next (Phase 81)
 - [ ] **Mimir Remediation: Batch 3**: Focus on `src/core/engine/vector.py` (CC: 32) and `src/games/odin_protocol/main.py`.
 - [ ] **Smart Promotion Registry**: Implement the JSON manifest for containerized fixes.
 - [ ] **Operation Ironclad**: Secure regular API key rotation logic in `bin/cstar.js`.
