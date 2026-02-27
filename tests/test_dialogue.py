@@ -38,7 +38,6 @@ def test_dialogue_engine_scoring(mock_phrases_file):
     engine = DialogueEngine(mock_phrases_file)
 
     # Force a context that favors "Silence!"
-    context = {"compliance_breach": True}
     # Note: "Silence!" doesn't have "shatters" or "hel" but scoring logic adds 10 if words match
     # I should use words that are in the scoring logic for a better test.
 

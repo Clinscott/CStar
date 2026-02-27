@@ -14,7 +14,7 @@ class MetaLearner:
         self.updates: dict = {}
         self.analysis = defaultdict(list)
 
-    def analyze_failure(self, query: str, expected: str, actual: dict):
+    def analyze_failure(self, query: str, expected: str, actual: dict) -> None:
         """Diagnose a single test failure and propose weight shifts."""
         q_tokens = self.engine.tokenize(query)
         target_tokens = set(self.engine.tokenize(self.engine.skills.get(expected, "")))
@@ -29,7 +29,7 @@ class MetaLearner:
                 self.updates[t] = min(2.0, self.updates.get(t, 1.0) + 0.1)
                 self.analysis[t].append(f"Up: Unique to {expected}")
 
-    def report(self):
+    def report(self) -> None:
         """Display the proposed optimization plan."""
         if not self.updates:
             SovereignHUD.log("PASS", "Optimization Matrix Balanced")
@@ -41,7 +41,7 @@ class MetaLearner:
         print(f"\n{SovereignHUD.YELLOW}{SovereignHUD.BOLD}>> [Ω] DECREE: THESAURUS OPTIMIZATION REQUIRED{SovereignHUD.RESET}")
         for t, w in self.updates.items(): print(f"- {t}: {t}:{w:.2f}")
 
-    def apply_updates(self, thesaurus_path: str):
+    def apply_updates(self, thesaurus_path: str) -> None:
         """Persist the learned weights back to the thesaurus file."""
         if not self.updates or not os.path.exists(thesaurus_path):
             return
@@ -86,7 +86,7 @@ class MetaLearner:
 
                     for s in syns:
                         if ":" in s:
-                            s_key, s_w = s.split(":")[:2]
+                            s_key, _s_w = s.split(":")[:2]
                             if s_key.strip().lower() == key:
                                 new_syns.append(f"{s_key}:{target_weight:.2f}")
                                 found_self = True
@@ -116,7 +116,7 @@ class MetaLearner:
         except Exception as e:
             SovereignHUD.log("ERROR", f"Failed to persist weights: {e}")
 
-def tune_weights(project_root: str):
+def tune_weights(project_root: str) -> None:
     """[ALFRED] Refactored tuning loop with encapsulated MetaLearner."""
     SovereignHUD.box_top("SOVEREIGN CYCLE: WEIGHT TUNING")
     db_path = os.path.join(project_root, "fishtest_data.json")

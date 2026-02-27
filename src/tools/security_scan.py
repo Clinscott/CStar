@@ -9,11 +9,11 @@ except ImportError:
     class SovereignHUD:
         RED, GREEN, YELLOW, RESET, BOLD, CYAN = "\033[31m", "\033[32m", "\033[33m", "\033[0m", "\033[1m", "\033[36m"
         @staticmethod
-        def box_top(t): print(f"--- {t} ---")
+        def box_top(t) -> None: print(f"--- {t} ---")
         @staticmethod
-        def box_row(l, v, c): print(f"{l}: {v}")
+        def box_row(l, v, c) -> None: print(f"{l}: {v}")
         @staticmethod
-        def box_bottom(): print("------")
+        def box_bottom() -> None: print("------")
 
 class SecurityScanner:
     RISK_VECTORS = {
@@ -41,7 +41,7 @@ class SecurityScanner:
         elif self.path.endswith((".js", ".ts")): self._analyze_web_script()
         return self.threat_score < 5, self.findings
 
-    def _analyze_web_script(self):
+    def _analyze_web_script(self) -> None:
         """[ALFRED] Detect front-end specific risk vectors."""
         patterns = [
             (r"eval\(", 10, "JS-EVAL"),
@@ -55,7 +55,7 @@ class SecurityScanner:
                 self.threat_score += weight
                 self.findings.append(f"[{cat}] Detected '{pat}'")
 
-    def _regex_scan(self):
+    def _regex_scan(self) -> None:
         is_internal = "scripts" in self.path and ".agent" in self.path
         for cat, patterns in self.RISK_VECTORS.items():
             for pat, weight in patterns:
@@ -64,7 +64,7 @@ class SecurityScanner:
                     self.threat_score += weight
                     self.findings.append(f"[{cat}] Detected '{pat}'")
 
-    def _analyze_ast(self):
+    def _analyze_ast(self) -> None:
         try:
             tree = ast.parse(self.content)
             for node in ast.walk(tree):
@@ -75,7 +75,7 @@ class SecurityScanner:
             self.findings.append(f"[MALFORMED] Syntax: {e!s}")
         except (SyntaxError, ValueError): pass
 
-    def _scan_imports(self, node):
+    def _scan_imports(self, node) -> None:
         net, dang = {"requests", "urllib", "socket", "http"}, {"ctypes", "pickle", "base64"}
         names = [n.name for n in node.names] if isinstance(node, ast.Import) else [node.module]
         for name in names:
@@ -86,7 +86,7 @@ class SecurityScanner:
                 self.threat_score += 8
                 self.findings.append(f"[DANGEROUS] '{name}' import")
 
-    def _scan_constants(self, node):
+    def _scan_constants(self, node) -> None:
         if isinstance(node.value, str):
             if len(node.value) > 200 and re.match(r'^[a-zA-Z0-9+/=]+$', node.value):
                 self.threat_score += 5

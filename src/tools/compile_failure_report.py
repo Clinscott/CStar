@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(
 from src.core.sovereign_hud import SovereignHUD
 
 
-def compile_report(project_root):
+def compile_report(project_root) -> None:
     SovereignHUD.box_top("SOVEREIGN CYCLE: FAILURE ANALYSIS")
 
     # Paths

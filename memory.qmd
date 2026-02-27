@@ -1,5 +1,12 @@
 # Corvus Star Memory
 
+## 2026-02-27: Session 96 (Mimir Remediation: Batch 3)
+- **TUI Decoupling Case Study**: For complex games built with Rich/Textual (like Odin Protocol), always extract the manifest and briefing rendering logic into a specialized `ui.py`. This reduces the primary game loop's complexity by an order of magnitude (CC 18 -> 1) and enables easier TUI component testing.
+- **Semantic Helper Extraction for CC**: When targetting cyclomatic complexity in intent resolution (`_score_intent`), extract lexical evidence calculation (`_calculate_lexical_evidence`) from the scoring loop. This allows for independent validation of tf-idf and density scoring without the overhead of the full hybrid loop.
+- **Mock State Initialization**: When mocking complex state objects (like `UniverseState`), ensure all numeric attributes used in comparison logic (e.g., `turn < last_briefing + cooldown`) are initialized with real integers/floats. `MagicMock` defaults return other mocks, which trigger `TypeError` during standard numeric comparisons.
+- **Token Scoping Integrity**: In hybrid search engines, ensure `original_tokens` are derived early from the normalized query and passed through to all helper methods to prevent `NameError` in complex branching logic.
+
+
 ## 2026-02-27: Session 95 (First Principles & TF-IDF Sovereignty)
 - **Shadow Engine (TF-IDF)**: Replaced overfitted hash-routing with a continuous Weighted Jaccard scoring engine utilizing Inverse Document Frequency (IDF). This provides generalizable linguistic understanding without the brittleness of hardcoded lookups.
 - **Latency Mastered**: Achieved **0.90ms active latency** (a 162x improvement over ChromaDB) while maintaining 100% memory residency for the primary search path.

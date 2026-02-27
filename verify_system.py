@@ -18,7 +18,7 @@ REQUIRED_FILES = [
     "src/cstar/CorvusStar.psm1"
 ]
 
-def check_daemon_running():
+def check_daemon_running() -> bool:
     print("[CHECK] Searching for C* Daemon...")
     for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'memory_info']):
         try:
@@ -40,7 +40,7 @@ def check_daemon_running():
     print("  [FAIL] Daemon process not found.")
     return False
 
-def check_port_bound():
+def check_port_bound() -> bool:
     print(f"[CHECK] Verifying Uplink Port {DAEMON_PORT}...")
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     result = sock.connect_ex(('localhost', DAEMON_PORT))
@@ -86,7 +86,7 @@ def check_filesystem():
 
     return all_good
 
-def check_powershell_profile():
+def check_powershell_profile() -> bool | None:
     print("[CHECK] Verifying PowerShell Profile Hook...")
     # This is trickier from Python without invoking PS, but we can check if the file exists
     # We can try to guess profile path or just assume the user installed it.
@@ -106,7 +106,7 @@ def check_powershell_profile():
         print(f"  [WARN] Could not verify PowerShell: {e}")
         return True
 
-def main():
+def main() -> None:
     print("=== SYSTEM IGNITION SEQUENCE (Phase 9) ===\n")
 
     checks = [

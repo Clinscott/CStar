@@ -35,7 +35,7 @@ class KnowledgeHunter:
         self.searcher = BraveSearch()
         self.root = Path(__file__).parent.parent.parent.parent.parent.resolve() # CorvusStar root
 
-    def hunt(self, topic: str):
+    def hunt(self, topic: str) -> None:
         SovereignHUD.persona_log("INFO", f"Hunting for knowledge on: {topic}...")
 
         # Step 1: Brave Search
@@ -54,14 +54,14 @@ class KnowledgeHunter:
         SovereignHUD.persona_log("INFO", f"Captured {len(results)} snippets. Synthesizing...")
 
         # Step 3: Gemini Synthesis
-        prompt = f"""You are Odin's Knowledge Hunter. 
+        prompt = f"""You are Odin's Knowledge Hunter.
         Synthesize the following web search results into a comprehensive, professional Markdown report.
-        
+
         Topic: {topic}
-        
+
         Search Results:
         {snippets}
-        
+
         Format:
         - Title
         - Executive Summary

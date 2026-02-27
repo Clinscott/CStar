@@ -6,7 +6,7 @@ sys.path.append(os.path.join(os.getcwd(), ".agent", "scripts"))
 from sv_engine import SovereignVector
 
 
-def debug_query(query):
+def debug_query(query) -> None:
     cur_dir = os.getcwd()
     base = os.path.join(cur_dir, ".agent")
 

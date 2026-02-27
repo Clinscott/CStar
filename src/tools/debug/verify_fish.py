@@ -14,7 +14,7 @@ def verify_system_integrity() -> bool:
     """
     Verifies that Muninn and the main loop can be imported and initialized.
     Mocks external dependencies (like Google GenAI) for safety.
-    
+
     Returns:
         True if the system is verified, False otherwise.
     """

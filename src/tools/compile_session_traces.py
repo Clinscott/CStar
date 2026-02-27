@@ -41,7 +41,7 @@ class ReportRenderer:
     def __init__(self, report_path: str) -> None:
         self.path = report_path
 
-    def render(self, traces: list[dict], stats: dict):
+    def render(self, traces: list[dict], stats: dict) -> None:
         lines = [
             "# 🧠 C* Neural Trace Report\n",
             f"**Session Traces**: {stats.get('total', 0)}\n",
@@ -79,7 +79,7 @@ class ReportRenderer:
 
         with open(self.path, "w", encoding="utf-8") as f: f.write("\n".join(lines))
 
-def compile_traces(tdir: str = None, rpath: str = None):
+def compile_traces(tdir: str | None = None, rpath: str | None = None):
     """[ALFRED] Restored trace compiler with persona-awareness and identity-theming."""
     base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     tdir = tdir or os.path.join(base, "traces")

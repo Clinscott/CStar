@@ -19,7 +19,7 @@ class WorkflowAnalyst:
     def __init__(self, root_dir: str | Path) -> None:
         """
         Initializes the analyst with the project root.
-        
+
         Args:
             root_dir: Path to the project root.
         """
@@ -30,7 +30,7 @@ class WorkflowAnalyst:
     def analyze(self) -> dict[str, Any]:
         """
         Performs the workflow analysis.
-        
+
         Returns:
             A dictionary containing stalled tasks, open loops, patterns, and suggestions.
         """

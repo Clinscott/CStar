@@ -7,7 +7,7 @@ sys.path.insert(0, '.agent/scripts')
 from engine.vector import SovereignVector
 
 
-def run_collision_investigation():
+def run_collision_investigation() -> None:
     """
     Initializes SovereignVector, loads skills, builds the index,
     and runs a series of queries to demonstrate search functionality.

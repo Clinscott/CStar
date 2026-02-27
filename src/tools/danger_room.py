@@ -85,7 +85,7 @@ TARGET FILE ({file_path_str}):
 1. DO NOT write "tautological tests" (shallow mocking that only asserts a mock was called).
 2. You MUST verify the actual mathematical or logical state changes of the functions.
 3. If dependencies must be mocked, ensure the return values are structurally realistic.
-4. Output ONLY the raw Python code for the test file. No markdown formatting, no explanations. 
+4. Output ONLY the raw Python code for the test file. No markdown formatting, no explanations.
 5. Start the file strictly with standard imports (pytest, etc).
 
 Generate the robust test suite now.
@@ -180,7 +180,7 @@ Generate the robust test suite now.
              SovereignHUD.persona_log("ERROR", f"Failed to commit {test_name}: {e}")
              return False
 
-    async def execute(self):
+    async def execute(self) -> None:
         """Main execution sequence."""
         SovereignHUD.box_top("[A] THE DANGER ROOM")
         SovereignHUD.box_row("DIRECTIVE", "TEST SCAFFOLDING & VERIFICATION", SovereignHUD.CYAN)
@@ -214,7 +214,7 @@ Generate the robust test suite now.
 
         SovereignHUD.box_bottom()
 
-def main():
+def main() -> int | None:
     parser = argparse.ArgumentParser(description="The Danger Room - Test Scaffolding")
     parser.add_argument("--limit", type=int, default=1, help="Number of files to process per session")
     args = parser.parse_args()

@@ -14,7 +14,7 @@ class GungnirSPRT:
 
     def evaluate_delta(self, pre_gphs: float, post_gphs: float) -> str:
         """
-        Calculates the likelihood ratio based on the delta. 
+        Calculates the likelihood ratio based on the delta.
         Returns 'PASS' if delta > 0 and statistically significant.
         Returns 'FAIL' if delta <= 0 (Regression).
         """

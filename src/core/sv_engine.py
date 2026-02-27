@@ -298,7 +298,7 @@ class SovereignEngine:
         if payload:
             self._handle_proactive(payload)
 
-    def teardown(self):
+    def teardown(self) -> None:
         """[V4] Explicitly unregisters observers and clears module-level singletons."""
         SovereignHUD.persona_log("INFO", "SovereignEngine: Initiating deep teardown...")
         if self.engine:
@@ -317,7 +317,7 @@ class SovereignEngine:
         gc.collect() # Trigger immediate Generation 2 sweep
         SovereignHUD.persona_log("SUCCESS", "SovereignEngine: Memory boundaries secured.")
 
-    def json_mode(self, query, top):
+    def json_mode(self, query, top) -> None:
             print(json.dumps({"query": query, "top_match": top}, indent=2))
             return
 

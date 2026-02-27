@@ -242,7 +242,7 @@ class SovereignScenarioEngine:
     ) -> dict[str, Any]:
         """
         The WorldForge Algorithm: Procedurally generates a Narrative Campaign Step.
-        
+
         Args:
             stats: Effective player stats.
             seed: Federated seed for determinism.
@@ -250,7 +250,7 @@ class SovereignScenarioEngine:
             player_name: Name of the warlord.
             campaign_data: Persistent campaign state.
             node_type: Optional nodal campaign type.
-            
+
         Returns:
             A dictionary containing the generated scenario.
         """

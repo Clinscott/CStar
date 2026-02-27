@@ -21,7 +21,7 @@ ANTIGRAVITY_PORT = 50052
 TIMEOUT_SECONDS = 30
 MAX_TOKENS = 1_000_000 # 1M Token Limit for Guardrail
 
-def _sdk_available():
+def _sdk_available() -> bool | None:
     """Lazily check if the Google GenAI SDK is importable."""
     try:
         from google import genai  # noqa: F401
@@ -36,7 +36,7 @@ class AntigravityUplink:
     with built-in resilience (Backoff) and safety (Smart Truncation).
     """
 
-    def __init__(self, api_key: str = None, client=None):
+    def __init__(self, api_key: str | None = None, client=None):
         """
         Initializes the AntigravityUplink.
         Supports dependency injection via `client` for testability.
@@ -65,7 +65,7 @@ class AntigravityUplink:
         if not self.api_key:
             SovereignHUD.persona_log("WARN", "No API key found for AntigravityUplink. Simulation mode only.")
 
-    async def send_payload(self, query: str, context: dict = None) -> dict:
+    async def send_payload(self, query: str, context: dict | None = None) -> dict:
         """
         Asynchronously sends a payload to Antigravity with a visual spinner.
         Implements Smart Truncation and Exponential Backoff.
@@ -104,7 +104,7 @@ class AntigravityUplink:
 
     async def _smart_truncate(self, history: list[Any], system_prompt: str, current_query: str) -> list[Any]:
         """
-        Drops middle context to fit within MAX_TOKENS while preserving 
+        Drops middle context to fit within MAX_TOKENS while preserving
         the system prompt and the latest user intent.
         """
         if not self.client:
@@ -220,13 +220,13 @@ class AntigravityUplink:
         finally:
             sys.stdout.write("\033[?25h")
 
-async def query_bridge(query: str, context: dict = None) -> dict:
+async def query_bridge(query: str, context: dict | None = None) -> dict:
     """Convenience wrapper for the AntigravityUplink."""
     uplink = AntigravityUplink()
     return await uplink.send_payload(query, context)
 
 if __name__ == "__main__":
-    async def main():
+    async def main() -> None:
         uplink = AntigravityUplink()
         print("Testing Uplink...")
         res = await uplink.send_payload("What is the speed of an unladen swallow?", {"persona": "ODIN"})

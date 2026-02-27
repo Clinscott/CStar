@@ -97,10 +97,9 @@ class TestLoadTargetRepos:
         config_path = PROJECT_ROOT / ".agent" / "config.json"
         if config_path.exists():
             original = config_path.read_text(encoding="utf-8")
-            original_data = json.loads(original)
+            json.loads(original)
         else:
             original = None
-            original_data = {}
 
         try:
             # If the config already has target_repos, verify it loads

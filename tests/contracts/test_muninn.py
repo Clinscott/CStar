@@ -107,7 +107,7 @@ class TestNornWarden:
 
         cs = NornWarden(tmp_path)
         target = cs.get_next_target()
-        cs.mark_complete(target["raw_target"] if "raw_target" in target else target)
+        cs.mark_complete(target.get("raw_target", target))
 
         updated = (tmp_path / "tasks.qmd").read_text(encoding="utf-8")
         assert "- [x] Fix the thing" in updated
@@ -206,7 +206,6 @@ class TestGauntletEscalation:
     def test_escalates_to_pro_on_final_attempt(self, tmp_path, mock_genai_client):
         # Track which models are called
         models_called = []
-        original_generate = mock_genai_client.models.generate_content
 
         def track_model_call(*args, **kwargs):
             model = kwargs.get("model") or (args[0] if args else "unknown")

@@ -8,13 +8,22 @@ import { join, parse } from 'node:path';
 import { execa } from 'execa';
 import { CortexLink } from './src/node/cortex_link.js';
 import { executeCycle } from './src/node/agent_loop.js';
+import { runStartupCeremony } from './src/node/ceremony.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const PROJECT_ROOT = __dirname;
 const pkgPath = join(PROJECT_ROOT, 'package.json');
 const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
 
-const program = new Command();
+(async () => {
+    // Only run ceremony if not just asking for help or version
+    const isHelpOrVersion = process.argv.includes('--help') || process.argv.includes('-h') || process.argv.includes('--version') || process.argv.includes('-V');
+    
+    if (!isHelpOrVersion) {
+        await runStartupCeremony();
+    }
+
+    const program = new Command();
 
 // Gungnir Calculus: Opinionated Error Handler
 const handleError = (msg: string) => {
@@ -217,8 +226,9 @@ program.on('command:*', async (operands: string[]) => {
     }
 });
 
-try {
-    program.parse(process.argv);
-} catch (error: any) {
-    handleError(error.message);
-}
+    try {
+        program.parse(process.argv);
+    } catch (error: any) {
+        handleError(error.message);
+    }
+})();

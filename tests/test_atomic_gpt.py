@@ -16,7 +16,7 @@ def test_anomaly_warden_train_step():
     x = [100.0, 500.0, 10.0, 0.05]
     y = 1.0 # Anomaly
 
-    initial_prob = warden.forward(x)
+    warden.forward(x)
     for _ in range(10):
         warden.train_step(x, y)
 

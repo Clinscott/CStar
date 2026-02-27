@@ -17,7 +17,7 @@ def test_sprt_acceptance_baseline_hypothesis():
 
 def test_sprt_rejection_flaky_hypothesis():
     """
-    Given an observation array of [1,1,0,1,1], When the SPRT is invoked, 
+    Given an observation array of [1,1,0,1,1], When the SPRT is invoked,
     Then the Decision must be 'Reject' (From legacy GungnirSPRT.Tests.ps1)
     """
     observations = [1, 1, 0, 1, 1]
@@ -29,7 +29,7 @@ def test_sprt_rejection_flaky_hypothesis():
 
 def test_sprt_inconclusive_continue_evaluation():
     """
-    Given an observation array of [0,1,0], When the SPRT is invoked, 
+    Given an observation array of [0,1,0], When the SPRT is invoked,
     Then the Decision must be 'Continue' (From legacy GungnirSPRT.Tests.ps1)
     """
     observations = [0, 1, 0]
@@ -40,7 +40,7 @@ def test_sprt_inconclusive_continue_evaluation():
 
 def test_sprt_empty_observations_edge_case():
     """
-    Given an empty observation array, When the SPRT is invoked, 
+    Given an empty observation array, When the SPRT is invoked,
     Then the Decision must be 'Continue' and gracefully handle division/iteration bounds.
     """
     observations = []

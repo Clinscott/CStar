@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from google import genai
 
 
-def main():
+def main() -> int:
     """
     Initializes the genai client, iterates through a list of candidate models,
     and attempts to generate content to check for their availability.
@@ -32,7 +32,7 @@ def main():
         print(f"Testing {model_name}...", end=" ")
         try:
             # This network call will be mocked during tests
-            response = client.models.generate_content(
+            client.models.generate_content(
                 model=model_name,
                 contents="Hello, are you online?"
             )

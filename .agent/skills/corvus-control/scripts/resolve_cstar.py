@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 
 
-def resolve():
+def resolve() -> None:
     args = sys.argv[1:]
     if not args:
         print("Usage: python resolve_cstar.py <command>")
@@ -20,7 +20,7 @@ def resolve():
     # Node-specific commands
     if cmd in ["start", "dominion", "odin", "ravens"]:
         print(f"Resolving {cmd} via Node Dispatcher...")
-        subprocess.run(["node", str(node_dispatcher), cmd] + remaining)
+        subprocess.run(["node", str(node_dispatcher), cmd, *remaining])
     else:
         # Check if it's a workflow in .agent/workflows
         workflow_dir = project_root / ".agent" / "workflows"
@@ -28,10 +28,10 @@ def resolve():
 
         if workflow_match:
             print(f"Resolving workflow {cmd} via Python Dispatcher...")
-            subprocess.run([str(venv_python), str(python_dispatcher), cmd] + remaining)
+            subprocess.run([str(venv_python), str(python_dispatcher), cmd, *remaining])
         else:
             print(f"Unknown command: {cmd}. Attempting Python fallback...")
-            subprocess.run([str(venv_python), str(python_dispatcher), cmd] + remaining)
+            subprocess.run([str(venv_python), str(python_dispatcher), cmd, *remaining])
 
 if __name__ == "__main__":
     resolve()

@@ -33,7 +33,7 @@ class SovereignWrapper:
             self.engine = SovereignEngine(project_root=self.root)
         return self.engine
 
-    def run_gungnir_gate(self):
+    def run_gungnir_gate(self) -> None:
         """Executes the Gungnir validation gate (Ruff + Pytest)."""
         SovereignHUD.box_top("GUNGNIR GATE")
 
@@ -57,7 +57,7 @@ class SovereignWrapper:
         SovereignHUD.box_row("STEP 2", "Gungnir Matrix", SovereignHUD.CYAN)
         try:
             matrix_tests = ["tests/unit/test_intent.py", "tests/unit/test_warden.py", "tests/unit/test_crucible.py"]
-            subprocess.run([sys.executable, "-m", "pytest"] + matrix_tests, cwd=str(self.root), check=True)
+            subprocess.run([sys.executable, "-m", "pytest", *matrix_tests], cwd=str(self.root), check=True)
             SovereignHUD.box_row("STATUS", "PASS", SovereignHUD.GREEN)
         except subprocess.CalledProcessError:
             SovereignHUD.box_row("STATUS", "FAIL", SovereignHUD.RED)
@@ -89,7 +89,7 @@ class SovereignWrapper:
 
         return stats
 
-    def _edda_sync(self):
+    def _edda_sync(self) -> None:
         try:
             proc = subprocess.run(["git", "status", "--porcelain"], cwd=str(self.root), capture_output=True, text=True)
             changes = proc.stdout.splitlines()
@@ -112,7 +112,7 @@ class SovereignWrapper:
         except Exception as e:
             SovereignHUD.persona_log("EDDA", f"Warning: Auto-documentation failed. {e}")
 
-    def review_technical_debt(self, stats=None):
+    def review_technical_debt(self, stats=None) -> None:
         """[V4] Hardened Review: 10s Retry Loop, JSONL Archival, and Session Pulse."""
         queue_path = self.root / "src" / "data" / "anomalies_queue.jsonl" # [V4] JSONL
         archive_path = self.root / "src" / "data" / "anomalies_archive.json"
@@ -183,7 +183,7 @@ class SovereignWrapper:
 
         SovereignHUD.box_bottom()
 
-    def sovereign_commit(self, stats):
+    def sovereign_commit(self, stats) -> None:
         """Generates commit message and pushes."""
         SovereignHUD.persona_log("ODIN", "Initiating Sovereign Commit Protocol...")
         proc = subprocess.run(["git", "status", "--porcelain"], cwd=str(self.root), capture_output=True, text=True)
@@ -211,7 +211,7 @@ class SovereignWrapper:
             SovereignHUD.persona_log("HEIMDALL", f"BREACH: Git Protocol Failed. {e}")
             sys.exit(1)
 
-    def teardown(self):
+    def teardown(self) -> None:
         """[V4] Deep Teardown and Resource Reclamation."""
         if self.engine:
             self.engine.teardown()
@@ -225,7 +225,7 @@ class SovereignWrapper:
         gc.collect()
         SovereignHUD.persona_log("SUCCESS", "Wrap-up Protocol: Memory boundaries secured.")
 
-def main():
+def main() -> None:
     try:
         wrapper = SovereignWrapper()
         wrapper.run_gungnir_gate()

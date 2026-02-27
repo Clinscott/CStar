@@ -17,13 +17,13 @@ except ImportError:
         RESET = ""
         BOLD = ""
         @staticmethod
-        def box_top(t): print(f"--- {t} ---")
+        def box_top(t) -> None: print(f"--- {t} ---")
         @staticmethod
-        def box_row(l, v, c=""): print(f"{l}: {v}")
+        def box_row(l, v, c="") -> None: print(f"{l}: {v}")
         @staticmethod
-        def box_bottom(): print("------")
+        def box_bottom() -> None: print("------")
 
-def optimize_file(file_path):
+def optimize_file(file_path) -> None:
     if not os.path.exists(file_path):
         print(f"{SovereignHUD.RED}Error: File not found: {file_path}{SovereignHUD.RESET}")
         return

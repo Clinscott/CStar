@@ -16,10 +16,10 @@ from src.games.odin_protocol.engine.scenarios import SovereignScenarioEngine
 def process_queue(project_root: Path) -> list[dict[str, Any]] | None:
     """
     Processes the pending actions queue and updates the persistent universe state.
-    
+
     Args:
         project_root: Path to the project root directory.
-        
+
     Returns:
         A list of narrative records for each processed action, or None if no queue exists.
     """

@@ -15,12 +15,12 @@ _core_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file_
 sys.path.insert(0, _core_dir)
 sys.path.insert(0, os.path.join(_core_dir, "engine"))
 
+import contextlib
+
 from src.core.sovereign_hud import SovereignHUD
 
-try:
+with contextlib.suppress(ImportError):
     from vector import SovereignVector
-except ImportError:
-    pass
 
 class SentinelPerf:
     """
@@ -60,7 +60,7 @@ class SentinelPerf:
         end = time.perf_counter()
         return (end - start) / iterations * 1000
 
-    def run_suite(self):
+    def run_suite(self) -> None:
         SovereignHUD.box_top("SENTINEL PERF: BENCHMARK")
 
         # Test 1: Search Latency (High Level)

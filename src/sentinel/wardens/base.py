@@ -22,7 +22,7 @@ class BaseWarden(ABC):
     def __init__(self, root: Path) -> None:
         """
         Initializes the warden with the project root.
-        
+
         Args:
             root: Path to the project root directory.
         """
@@ -33,7 +33,7 @@ class BaseWarden(ABC):
     def _load_config(self) -> dict[str, Any]:
         """
         Loads configuration from .agent/config.json.
-        
+
         Returns:
             A dictionary containing the configuration data.
         """
@@ -49,28 +49,24 @@ class BaseWarden(ABC):
         """
         Centralized logic for ignoring directories.
         Default ignores: .git, .venv, node_modules, __pycache__, .agent, .pytest_cache, dist, build.
-        
+
         Args:
             path: Path to the file or directory being checked.
-            
+
         Returns:
             True if the path should be ignored, False otherwise.
         """
         ignored_dirs = {".git", ".venv", "node_modules", "__pycache__", ".agent", ".pytest_cache", "dist", "build"}
 
-        for part in path.parts:
-            if part in ignored_dirs:
-                return True
-
-        return False
+        return any(part in ignored_dirs for part in path.parts)
 
     def research_topic(self, topic: str) -> list[dict[str, str]]:
         """
         Utilizes Brave Search to find info on a topic.
-        
+
         Args:
             topic: The search query or topic to research.
-            
+
         Returns:
             A list of search results.
         """
@@ -85,7 +81,7 @@ class BaseWarden(ABC):
     def scan(self) -> list[dict[str, Any]]:
         """
         Scans the codebase for breaches.
-        
+
         Returns:
             A list of breach dictionaries with keys: type, file, action, severity, line.
         """
@@ -95,7 +91,7 @@ class BaseWarden(ABC):
         """
         Asynchronous wrapper for scan().
         Executes the blocking scan in a separate thread to prevent loop blocking.
-        
+
         Returns:
             A list of breach dictionaries.
         """
@@ -106,10 +102,10 @@ class BaseWarden(ABC):
         """
         Proposes a self-evolution update to the Warden itself.
         Returns a Critical Breach targeting this Warden's source file.
-        
+
         Args:
             issue: Description of the edge case or issue requiring evolution.
-            
+
         Returns:
             A breach dictionary representing the evolution proposal.
         """

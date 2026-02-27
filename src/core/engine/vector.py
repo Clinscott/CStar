@@ -28,7 +28,7 @@ class SovereignVector:
     ) -> None:
         """
         Initializes the vector engine with paths to thesaurus, corrections, and stopwords.
-        
+
         Args:
             thesaurus_path: Path to the thesaurus .qmd file.
             corrections_path: Path to the corrections .json file.
@@ -106,7 +106,7 @@ class SovereignVector:
                 header = cluster_raw.strip().lower()
                 synonyms = [s.strip().lower() for s in syn_str.split(',')]
 
-                full_cluster = set([header] + synonyms)
+                full_cluster = {header, *synonyms}
                 for word in full_cluster:
                     if word not in mapping:
                         mapping[word] = set()
@@ -151,16 +151,8 @@ class SovereignVector:
             expansion_map[token] = expansion
         return expansion_map
 
-    def _score_intent(self, r: dict[str, Any], query_word_expansion: dict[str, set[str]], original_tokens: set[str], all_expanded_query_tokens: set[str]) -> dict[str, Any]:
-        """Calculates the hybrid score for a single intent candidate with High Confidence Floors."""
-        intent_id: str = r['trigger']
-        semantic_score: float = r['score']
-        is_global: bool = intent_id.startswith("GLOBAL:")
-
-        # Identity Mapping
-        intent_tokens = set(intent_id.replace('/', ' ').replace('-', ' ').replace('_', ' ').lower().split())
-
-        # Coverage & Density
+    def _calculate_lexical_evidence(self, intent_tokens: set[str], query_word_expansion: dict[str, set[str]], all_expanded_query_tokens: set[str], original_tokens: set[str]) -> tuple[float, float, int, bool]:
+        """Calculates lexical evidence metrics (coverage, density, hits, identity)."""
         matched_query_words = 0
         has_identity_match = False
         for q_token, expansion in query_word_expansion.items():
@@ -170,15 +162,25 @@ class SovereignVector:
                 if q_token in intent_tokens and q_token not in self.stopwords:
                     has_identity_match = True
 
-        matched_intent_tokens = 0
-        for intent_token in intent_tokens:
-            if intent_token in all_expanded_query_tokens:
-                matched_intent_tokens += 1
+        matched_intent_tokens = sum(1 for t in intent_tokens if t in all_expanded_query_tokens)
 
         q_coverage = matched_query_words / len(original_tokens) if original_tokens else 0.0
         i_density = matched_intent_tokens / len(intent_tokens) if intent_tokens else 0.0
 
-        lexical_evidence = (q_coverage * 0.5) + (i_density * 0.5)
+        return (q_coverage * 0.5) + (i_density * 0.5), q_coverage, matched_query_words, has_identity_match
+
+    def _score_intent(self, r: dict[str, Any], query_word_expansion: dict[str, set[str]], original_tokens: set[str], all_expanded_query_tokens: set[str]) -> dict[str, Any]:
+        """Calculates the hybrid score for a single intent candidate with High Confidence Floors."""
+        intent_id: str = r['trigger']
+        semantic_score: float = r['score']
+        is_global: bool = intent_id.startswith("GLOBAL:")
+
+        # Identity Mapping
+        intent_tokens = set(intent_id.replace('/', ' ').replace('-', ' ').replace('_', ' ').lower().split())
+
+        lexical_evidence, q_coverage, matched_query_words, has_identity_match = self._calculate_lexical_evidence(
+            intent_tokens, query_word_expansion, all_expanded_query_tokens, original_tokens
+        )
 
         # [ALFRED] High-Confidence Floor Logic
         # If identity match exists, start at 1.30 (Sovereign Anchor)
@@ -229,53 +231,38 @@ class SovereignVector:
 
         return score
 
-    def search(self, query: str) -> list[dict[str, Any]]:
-        """
-        Performs Hierarchical Semantic Routing with Shadow Engine Fast-Path.
-        """
-        # 0. Check Search Cache
-        query_norm = self.normalize(query)
-        if query_norm in self._search_cache:
-            return self._search_cache[query_norm]
-
-        # 1. Check direct phrase mappings
+    def _check_direct_mappings(self, query_norm: str) -> list[dict[str, Any]] | None:
+        """Checks for direct phrase mappings in corrections.json."""
         if query_norm in self.corrections.get("phrase_mappings", {}):
             trigger = self.corrections["phrase_mappings"][query_norm]
             is_global = trigger.startswith("GLOBAL:") if trigger else False
-            res = [{"trigger": trigger, "score": 1.5, "note": "Correction mapped", "is_global": is_global}]
-            self._search_cache[query_norm] = res
-            return res
+            return [{"trigger": trigger, "score": 1.5, "note": "Correction mapped", "is_global": is_global}]
+        return None
 
-        # 2. [ALFRED] Lexical Fast-Path: Exact Trigger or Core Synonym match
+    def _check_fast_path(self, query_norm: str) -> list[dict[str, Any]] | None:
+        """Checks for common manual command aliases."""
         tokens = query_norm.split()
-        if len(tokens) <= 3:
-            token_str = "".join(tokens)
-            fast_map = {
-                "letsgo": "/lets-go", "start": "/lets-go", "begin": "/lets-go",
-                "runtask": "/run-task", "build": "/run-task", "create": "/run-task",
-                "investigate": "/investigate", "debug": "/investigate", "audit": "/investigate",
-                "plan": "/plan", "design": "/plan", "architect": "/plan",
-                "test": "/test", "verify": "/test", "validate": "/test",
-                "wrapitup": "/wrap-it-up", "finish": "/wrap-it-up", "finalize": "/wrap-it-up",
-                "sovereignfish": "SovereignFish", "polish": "SovereignFish", "beautify": "SovereignFish",
-                "oracle": "/oracle"
-            }
-            if token_str in fast_map:
-                trigger = fast_map[token_str]
-                res = [{"trigger": trigger, "score": 1.6, "note": "Fast-Path: Lexical Identity", "is_global": False}]
-                self._search_cache[query_norm] = res
-                return res
+        if len(tokens) > 3:
+            return None
 
-        # 3. [ALFRED] Expanded Shadow Engine Fast-Path
-        shadow_results = self._shadow_search(query_norm)
-        if shadow_results and shadow_results[0]["score"] >= 0.80:
-            self._search_cache[query_norm] = shadow_results[:5]
-            return shadow_results[:5]
+        token_str = "".join(tokens)
+        fast_map = {
+            "letsgo": "/lets-go", "start": "/lets-go", "begin": "/lets-go",
+            "runtask": "/run-task", "build": "/run-task", "create": "/run-task",
+            "investigate": "/investigate", "debug": "/investigate", "audit": "/investigate",
+            "plan": "/plan", "design": "/plan", "architect": "/plan",
+            "test": "/test", "verify": "/test", "validate": "/test",
+            "wrapitup": "/wrap-it-up", "finish": "/wrap-it-up", "finalize": "/wrap-it-up",
+            "sovereignfish": "SovereignFish", "polish": "SovereignFish", "beautify": "SovereignFish",
+            "oracle": "/oracle"
+        }
+        if token_str in fast_map:
+            trigger = fast_map[token_str]
+            return [{"trigger": trigger, "score": 1.6, "note": "Fast-Path: Lexical Identity", "is_global": False}]
+        return None
 
-        # 4. [TIER 1] Domain Identification with Fast-Path & Contextual Gravity
-        top_domain = None
-
-        # [ALFRED] Lexical Domain Fast-Path: Quick-route definitive keywords
+    def _get_top_domain(self, query_norm: str, query: str) -> str:
+        """Identifies the target domain for the query."""
         domain_hot_tokens = {
             "UI": ["visual", "polish", "aesthetic", "design", "layout", "neon", "glow", "holographic", "glass", "sci-fi", "futuristic"],
             "INFRA": ["deploy", "production", "release", "publish", "ship", "server", "cloud", "instance"],
@@ -285,45 +272,60 @@ class SovereignVector:
 
         for d_id, hot_tokens in domain_hot_tokens.items():
             if any(ht in query_norm for ht in hot_tokens):
-                top_domain = d_id
-                break
+                return d_id
 
-        if not top_domain:
-            # Fallback to Semantic Domain Search
-            domain_results = self.memory_db.search_intent("system", query, n_results=10)
+        # Fallback to Semantic Domain Search
+        domain_results = self.memory_db.search_intent("system", query, n_results=10)
+        domain_scores = {}
+        for r in domain_results:
+            d = r.get("domain", "GENERAL")
+            domain_scores[d] = domain_scores.get(d, 0.0) + r["score"]
 
-            # Aggregate domain scores
-            domain_scores = {}
-            for r in domain_results:
-                d = r.get("domain", "GENERAL")
-                domain_scores[d] = domain_scores.get(d, 0.0) + r["score"]
+        # Apply Contextual Gravity
+        cwd = os.getcwd().lower().replace("\\", "/")
+        gravity_map = {
+            "src/ui": "UI", "components": "UI", "style": "UI",
+            "scripts": "DEV", "tests": "DEV", "test": "DEV",
+            "infra": "INFRA", "docker": "INFRA", ".github": "INFRA",
+            "stats": "STATS", "logs": "STATS"
+        }
+        for path_key, target_domain in gravity_map.items():
+            if path_key in cwd:
+                score = domain_scores.get(target_domain, 0.5)
+                domain_scores[target_domain] = score * 1.25
 
-            # Apply Contextual Gravity
-            cwd = os.getcwd().lower()
-            gravity_map = {
-                "src/ui": "UI", "components": "UI", "style": "UI",
-                "scripts": "DEV", "tests": "DEV", "test": "DEV",
-                "infra": "INFRA", "docker": "INFRA", ".github": "INFRA",
-                "stats": "STATS", "logs": "STATS"
-            }
-            for path_key, target_domain in gravity_map.items():
-                if path_key in cwd.replace("\\", "/"):
-                    if target_domain in domain_scores:
-                        domain_scores[target_domain] *= 1.25 # 25% Boost
-                    else:
-                        domain_scores[target_domain] = 0.5 # Baseline for relevant domain
+        return max(domain_scores, key=domain_scores.get) if domain_scores else "GENERAL"
 
-            if domain_scores:
-                top_domain = max(domain_scores, key=domain_scores.get)
-            else:
-                top_domain = "GENERAL"
+    def search(self, query: str) -> list[dict[str, Any]]:
+        """
+        Performs Hierarchical Semantic Routing with Shadow Engine Fast-Path.
+        """
+        # 0. Check Search Cache
+        query_norm = self.normalize(query)
+        if query_norm in self._search_cache:
+            return self._search_cache[query_norm]
+
+        # 1-2. Lexical Fast-Paths
+        for strategy in [self._check_direct_mappings, self._check_fast_path]:
+            if result := strategy(query_norm):
+                self._search_cache[query_norm] = result
+                return result
+
+        # 3. [ALFRED] Expanded Shadow Engine Fast-Path
+        shadow_results = self._shadow_search(query_norm)
+        if shadow_results and shadow_results[0]["score"] >= 0.80:
+            self._search_cache[query_norm] = shadow_results[:5]
+            return shadow_results[:5]
+
+        # 4. [TIER 1] Domain Identification with Fast-Path & Contextual Gravity
+        top_domain = self._get_top_domain(query_norm, query)
 
         # 5. [TIER 2] Targeted Skill Search
         # Search specifically within the identified domain for high precision
         results = self.memory_db.search_intent("system", query, n_results=30, domain=top_domain)
 
         # 6. Hybrid Scoring & Expansion
-        original_tokens = set(tokens)
+        original_tokens = set(query_norm.split())
         query_word_expansion = self._expand_query(original_tokens)
         all_expanded_query_tokens = set().union(*query_word_expansion.values())
 
@@ -359,65 +361,68 @@ class SovereignVector:
         for trigger, (text, domain) in core_skills.items():
             self.add_skill(trigger, text, domain=domain)
 
+    def _ingest_markdown_file(self, path: Path, prefix: str, domain: str) -> None:
+        """Reads a .qmd or .md file and adds it as a skill."""
+        try:
+            content = path.read_text(encoding='utf-8')
+            skill_id = path.parent.name if path.name.lower() == "skill.qmd" else path.stem
+            trigger = f"{prefix}{skill_id}" if prefix.endswith(":") else f"{prefix}:{skill_id}" if prefix else skill_id
+            self.add_skill(trigger, content, domain=domain)
+        except Exception as e:
+            SovereignHUD.persona_log("WARN", f"Failed to ingest skill {path.name}: {e}")
+
+    def _ingest_json_file(self, path: Path, prefix: str, domain: str) -> None:
+        """Reads a .json file and adds skills from its contents."""
+        try:
+            data = json.loads(path.read_text(encoding='utf-8'))
+            items = data if isinstance(data, list) else [data]
+            for item in items:
+                trigger = item.get("trigger")
+                description = item.get("description") or item.get("text")
+                if trigger and description:
+                    sep = "" if not prefix or prefix.endswith(":") else ":"
+                    full_trigger = f"{prefix}{sep}{trigger}"
+                    self.add_skill(full_trigger, description, domain=domain)
+        except Exception as e:
+            SovereignHUD.persona_log("WARN", f"Failed to ingest .json skill {path.name}: {e}")
+
     def load_skills_from_dir(self, directory: str | Path, prefix: str = "") -> None:
         """Recursively discovers and ingests skills from .qmd, .md, or .json files with Domain mapping."""
         dir_path = Path(directory)
         if not dir_path.exists():
             return
 
-        # Simple Domain Mapping based on folder structure
         domain_map = {
-            "ui": "UI",
-            "visuals": "UI",
-            "infra": "INFRA",
-            "deployment": "INFRA",
-            "environment": "INFRA",
-            "dev": "DEV",
-            "git": "DEV",
-            "testing": "DEV",
-            "stats": "STATS",
-            "health": "STATS",
-            "lightning": "STATS"
+            "ui": "UI", "visuals": "UI", "infra": "INFRA", "deployment": "INFRA",
+            "environment": "INFRA", "dev": "DEV", "git": "DEV", "testing": "DEV",
+            "stats": "STATS", "health": "STATS", "lightning": "STATS"
         }
 
         for path in dir_path.rglob("*"):
-            # Determine domain from parent folder
+            if not path.is_file():
+                continue
+
             domain = "GENERAL"
-            parent_name = path.parent.name.lower()
             for key, val in domain_map.items():
-                if key in parent_name:
+                if key in path.parent.name.lower():
                     domain = val
                     break
 
             if path.suffix in [".qmd", ".md"]:
-                try:
-                    content = path.read_text(encoding='utf-8')
-                    skill_id = path.parent.name if path.name.lower() == "skill.qmd" else path.stem
-
-                    if prefix:
-                        trigger = f"{prefix}{skill_id}" if prefix.endswith(":") else f"{prefix}:{skill_id}"
-                    else:
-                        trigger = skill_id
-
-                    self.add_skill(trigger, content, domain=domain)
-                except Exception as e:
-                    SovereignHUD.persona_log("WARN", f"Failed to ingest skill {path.name}: {e}")
+                self._ingest_markdown_file(path, prefix, domain)
             elif path.suffix == ".json":
-                try:
-                    data = json.loads(path.read_text(encoding='utf-8'))
-                    items = data if isinstance(data, list) else [data]
-                    for item in items:
-                        trigger = item.get("trigger")
-                        text = item.get("description") or item.get("text")
-                        if trigger and text:
-                            full_trigger = f"{prefix}{trigger}" if prefix and not prefix.endswith(":") else f"{prefix}:{trigger}" if prefix else trigger
-                            # [ALFRED] Handle potential prefix double-colon again just in case
-                            if prefix and prefix.endswith(":"):
-                                full_trigger = f"{prefix}{trigger}"
-
-                            self.add_skill(full_trigger, text, domain=domain)
-                except Exception as e:
-                    SovereignHUD.persona_log("WARN", f"Failed to ingest .json skill {path.name}: {e}")
+                self._ingest_json_file(path, prefix, domain)
+    def _get_activation_text(self, trigger: str, doc: str) -> str:
+        """Extracts and concatenates activation keywords and synonyms from a skill description."""
+        text = ""
+        syn_match = re.search(r'synonyms:\s*(.*)', doc)
+        if syn_match:
+            text += syn_match.group(1) + " "
+        act_match = re.search(r'(?:activation words|keywords):?\s*(.*)', doc, re.IGNORECASE)
+        if act_match:
+            text += act_match.group(1) + " "
+        text += trigger.replace("/", " ").replace("-", " ").replace("global:", "").replace("_", " ")
+        return text
 
     def build_index(self) -> None:
         """Finalizes the semantic index and warms the Shadow Engine with TF-IDF."""
@@ -430,16 +435,7 @@ class SovereignVector:
         for s in all_skills:
             trigger = s["trigger"]
             doc = s["description"].lower()
-
-            # Extract activation words
-            activation_text = ""
-            syn_match = re.search(r'synonyms:\s*(.*)', doc)
-            if syn_match: activation_text += syn_match.group(1) + " "
-            act_match = re.search(r'(?:activation words|keywords):?\s*(.*)', doc, re.IGNORECASE)
-            if act_match: activation_text += act_match.group(1) + " "
-            trigger_clean = trigger.replace("/", " ").replace("-", " ").replace("global:", "").replace("_", " ")
-            activation_text += trigger_clean
-
+            activation_text = self._get_activation_text(trigger, doc)
             tokens = set(re.findall(r'\w+', activation_text))
 
             for t in tokens:
@@ -457,13 +453,11 @@ class SovereignVector:
 
         SovereignHUD.persona_log("HEIMDALL", f"Semantic Indexing Synchronized. Shadow Engine: {len(self._shadow_index)} skills.")
 
-    def _shadow_search(self, query: str) -> list[dict[str, Any]]:
-        """Performs a lightning-fast TF-IDF lexical search."""
-        q_tokens = set(re.findall(r'\w+', query.lower()))
-        q_tokens = {t for t in q_tokens if t not in self.stopwords}
-
+    def _shadow_extract_tokens(self, query: str) -> tuple[set[str], set[str], dict[str, set[str]]]:
+        """Extracts and expands query tokens for shadow search."""
+        q_tokens = {t for t in re.findall(r'\w+', query.lower()) if t not in self.stopwords}
         if not q_tokens:
-            return []
+            return set(), set(), {}
 
         expanded_q_tokens = set()
         q_token_to_expanded = {}
@@ -479,67 +473,67 @@ class SovereignVector:
             expanded_q_tokens.update(expansion)
             q_token_to_expanded[token] = expansion
 
+        return q_tokens, expanded_q_tokens, q_token_to_expanded
+
+    def _shadow_calculate_score(self, trigger: str, data: dict, q_tokens: set[str], expanded_q_tokens: set[str], q_token_to_expanded: dict) -> float:
+        """Calculates the TF-IDF and coverage score for a single shadow index entry."""
+        intersection = expanded_q_tokens.intersection(data["tokens"])
+        if not intersection:
+            return 0.0
+
+        matched_q_words = 0
+        tfidf_score = 0.0
+        max_possible_tfidf = sum(self._idf_map.get(t, 1.0) for t in q_tokens)
+
+        trigger_clean = trigger.lower().replace("/", "").replace("-", "").replace("global:", "")
+        trigger_parts = set(trigger_clean.split())
+        has_identity = False
+
+        for q_token in q_tokens:
+            q_expanded = q_token_to_expanded[q_token]
+            match_subset = q_expanded.intersection(data["tokens"])
+            if match_subset:
+                matched_q_words += 1
+                tfidf_score += max(self._idf_map.get(m, 1.0) for m in match_subset)
+
+            if q_token in trigger_parts or q_token == trigger_clean:
+                has_identity = True
+
+        q_coverage = matched_q_words / len(q_tokens)
+        lex_score = (tfidf_score / max_possible_tfidf) if max_possible_tfidf > 0 else 0
+        e_density = len(intersection) / len(data["tokens"]) if data["tokens"] else 0.0
+        lex_score = (lex_score * 0.8) + (e_density * 0.2)
+
+        if has_identity: lex_score *= 1.4
+        elif q_coverage == 1.0: lex_score *= 1.25
+        elif q_coverage >= 0.5: lex_score *= 1.1
+
+        is_global = trigger.startswith("GLOBAL:")
+        final_trigger = trigger if trigger.startswith("/") or trigger == "SovereignFish" or is_global else f"/{trigger}"
+
+        if final_trigger in {"/lets-go", "/run-task", "/investigate", "/plan", "/test", "/wrap-it-up", "SovereignFish", "/oracle"} or is_global:
+            lex_score *= 1.25
+
+        return min(1.99, lex_score)
+
+    def _shadow_search(self, query: str) -> list[dict[str, Any]]:
+        """Performs a lightning-fast TF-IDF lexical search."""
+        q_tokens, expanded_q_tokens, q_token_to_expanded = self._shadow_extract_tokens(query)
+        if not q_tokens:
+            return []
+
         results = []
         for trigger, data in self._shadow_index.items():
-            intersection = expanded_q_tokens.intersection(data["tokens"])
-            if not intersection:
-                continue
-
-            matched_q_words = 0
-            tfidf_score = 0.0
-            max_possible_tfidf = sum(self._idf_map.get(t, 1.0) for t in q_tokens)
-            has_identity = False
-
-            trigger_clean = trigger.lower().replace("/", "").replace("-", "").replace("global:", "")
-            trigger_parts = set(trigger_clean.split())
-
-            for q_token in q_tokens:
-                q_expanded = q_token_to_expanded[q_token]
-                match_subset = q_expanded.intersection(data["tokens"])
-                if match_subset:
-                    matched_q_words += 1
-                    # Give it the max IDF of the matched synonyms for this query token
-                    best_idf = max(self._idf_map.get(m, 1.0) for m in match_subset)
-                    tfidf_score += best_idf
-
-                if q_token in trigger_parts or q_token == trigger_clean:
-                    has_identity = True
-
-            if matched_q_words > 0:
-                q_coverage = matched_q_words / len(q_tokens)
-                e_density = len(intersection) / len(data["tokens"]) if data["tokens"] else 0.0
-
-                # Base score is normalized TF-IDF sum
-                lex_score = (tfidf_score / max_possible_tfidf) if max_possible_tfidf > 0 else 0
-
-                # Weight with density to break ties
-                lex_score = (lex_score * 0.8) + (e_density * 0.2)
-
-                # Multipliers
-                if has_identity:
-                    lex_score *= 1.4
-                elif q_coverage == 1.0:
-                    lex_score *= 1.25
-                elif q_coverage >= 0.5:
-                    lex_score *= 1.1
-
+            score = self._shadow_calculate_score(trigger, data, q_tokens, expanded_q_tokens, q_token_to_expanded)
+            if score > 0:
                 is_global = trigger.startswith("GLOBAL:")
-                final_trigger = trigger
-                if not final_trigger.startswith("/") and final_trigger != "SovereignFish" and not is_global:
-                    final_trigger = f"/{final_trigger}"
-
-                core_intents = {"/lets-go", "/run-task", "/investigate", "/plan", "/test", "/wrap-it-up", "SovereignFish", "/oracle"}
-                if final_trigger in core_intents or is_global:
-                    lex_score *= 1.25 # Boost core/global over local overlaps
-
-                lex_score = min(1.99, lex_score)
-
+                final_trigger = trigger if trigger.startswith("/") or trigger == "SovereignFish" or is_global else f"/{trigger}"
                 results.append({
                     "trigger": final_trigger,
-                    "score": lex_score,
+                    "score": score,
                     "domain": data["domain"],
                     "description": data["description"],
-                    "note": f"Shadow TF-IDF (Cov:{q_coverage:.2f})"
+                    "note": "Shadow TF-IDF"
                 })
 
         results.sort(key=lambda x: x["score"], reverse=True)

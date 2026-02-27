@@ -20,7 +20,7 @@ from src.sentinel.muninn import (
 )
 
 
-def scout():
+def scout() -> None:
     root = PROJECT_ROOT
     SovereignHUD.box_top("SENTINEL SCOUT: BREACH DETECTION")
     SovereignHUD.box_row("ROOT", str(root))

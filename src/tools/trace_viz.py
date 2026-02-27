@@ -89,7 +89,7 @@ class TraceRenderer:
     def __init__(self, target_persona: str) -> None:
         """
         Initializes the renderer with a target persona theme.
-        
+
         Args:
             target_persona: The name of the persona to use for styling (e.g., 'ALFRED', 'ODIN').
         """
@@ -105,23 +105,23 @@ class TraceRenderer:
         SovereignHUD.PERSONA = self.target_persona
         SovereignHUD.box_top(title)
 
-    def box_row(self, label: str, value: Any, value_color: str = None, dim_label: bool = False) -> None:
+    def box_row(self, label: str, value: Any, value_color: str | None = None, dim_label: bool = False) -> None:
         """Renders a labeled data row in the current theme."""
         SovereignHUD.PERSONA = self.target_persona
         SovereignHUD.box_row(label, value, value_color, dim_label)
 
-    def box_separator(self):
+    def box_separator(self) -> None:
         """Renders a horizontal separator line within the log box."""
         SovereignHUD.PERSONA = self.target_persona
         SovereignHUD.box_separator()
 
-    def box_bottom(self):
+    def box_bottom(self) -> None:
         """Closes the current log box and restores character context."""
         SovereignHUD.PERSONA = self.target_persona
         SovereignHUD.box_bottom()
         SovereignHUD.PERSONA = self.original_persona
 
-    def render_neural_path(self, traces: list[dict]):
+    def render_neural_path(self, traces: list[dict]) -> None:
         """[ALFRED] Render a chronological flowchart of triggered intents."""
         self.box_top("NEURAL PATH (THE CAUSAL CHAIN)")
 
@@ -145,7 +145,7 @@ class TraceRenderer:
 
         self.box_bottom()
 
-    def render_analysis(self, query, trigger, score, is_global, engine_instance=None):
+    def render_analysis(self, query, trigger, score, is_global, engine_instance=None) -> None:
         # Set Persona Context
         SovereignHUD.PERSONA = self.target_persona
         theme = SovereignHUD.get_theme()
@@ -202,7 +202,7 @@ class TraceRenderer:
 
 # --- MODES ---
 
-def mode_live(query):
+def mode_live(query) -> None:
     engine = get_engine()
     results = engine.search(query)
     top_match = results[0] if results else None
@@ -218,7 +218,7 @@ def mode_live(query):
 
     renderer.render_analysis(query, trigger, score, is_global, engine)
 
-def mode_file(file_path):
+def mode_file(file_path) -> None:
     data = load_json(file_path)
     if not data:
         print(f"Failed to load trace: {file_path}")
@@ -247,7 +247,7 @@ def mode_file(file_path):
         engine
     )
 
-def mode_war_room():
+def mode_war_room() -> None:
     # War Room is ODIN'S DOMAIN
     renderer = TraceRenderer("ODIN")
     SovereignHUD.PERSONA = "ODIN" # Enforce globally for direct log calls

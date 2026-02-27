@@ -22,7 +22,7 @@ class HeimdallWarden:
         self.breaches = []
         self.edda_tasks = []
 
-    def scan(self):
+    def scan(self) -> None:
         """Conducts a full comprehensive audit of the territory."""
         from src.core.sovereign_hud import SovereignHUD
         SovereignHUD.persona_log("INFO", f"Scanning realm: {self.root}")
@@ -63,14 +63,12 @@ class HeimdallWarden:
         if any(p.startswith(".") for p in parts):
             return True
         # [ODIN] Init files are structural, rarely logic-bearing.
-        if path.name == "__init__.py":
-            return True
-        return False
+        return path.name == "__init__.py"
 
-    def _audit_code(self, source: Path):
+    def _audit_code(self, source: Path) -> None:
         """
         Checks for Linscott (Test) and Torvalds (Quality) compliance.
-        
+
         This method verifies the existence of companion tests and performs
         basic static analysis for common code quality issues like bare excepts.
         """
@@ -120,7 +118,7 @@ class HeimdallWarden:
                                     "severity": "CRITICAL"
                                 })
 
-    def _generate_plan(self):
+    def _generate_plan(self) -> None:
         """Weaves the findings into a QMD battle plan, preserving existing checkmarks."""
 
         # 1. Capture existing checkmarks
@@ -204,7 +202,7 @@ class HeimdallWarden:
 # 🚀 ENTRY POINT
 # ==============================================================================
 
-def main():
+def main() -> None:
     """Command-line entry point for the Annexation Protocol."""
     from src.core.sovereign_hud import SovereignHUD
     if len(sys.argv) < 2:

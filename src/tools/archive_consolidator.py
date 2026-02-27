@@ -4,7 +4,7 @@
 Identity: ALFRED
 Purpose: Tech-Debt Analysis & Target Isolation.
 
-Analyzes the history (Git churn) and current coverage, identifying weak points 
+Analyzes the history (Git churn) and current coverage, identifying weak points
 by cross-referencing Complexity + Churn + Coverage.
 
 Outputs the top priority targets to .agent/tech_debt_ledger.json.
@@ -124,7 +124,7 @@ class ArchiveConsolidator:
 
         for sd in search_dirs:
             if sd.exists():
-                for test_file in sd.rglob(test_filename):
+                for _test_file in sd.rglob(test_filename):
                     return True
         return False
 
@@ -216,7 +216,7 @@ class ArchiveConsolidator:
         SovereignHUD.box_bottom()
 
 
-def main():
+def main() -> int | None:
     parser = argparse.ArgumentParser(description="The Archive Consolidator - Tech Debt Analysis")
     parser.add_argument("target", nargs="?", default=".", help="Target directory to scan")
     parser.add_argument("--days", type=int, default=30, help="Days of git history to analyze")

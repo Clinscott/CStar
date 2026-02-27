@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 
 
-def standardize_muninn(filepath: Path):
+def standardize_muninn(filepath: Path) -> None:
     """
     Standardizes the Muninn warden implementation by injecting the RuneCasterWarden v2 logic.
     """

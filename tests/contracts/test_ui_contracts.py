@@ -53,7 +53,7 @@ class TestUi_contracts(unittest.TestCase):
         # box_top output: ┌─... TITLE ...─┐
         # We need to find the line with TITLE
         lines = output.split('\n')
-        title_line = next((line for line in lines if "TITLE" in line), "")
+        next((line for line in lines if "TITLE" in line), "")
         # Strip ANSI codes to check length? SovereignHUD code counts length including ANSI?
         # No, SovereignHUD calculates padding based on clean length but prints ANSI.
         # Let's just check that it created a box of approximately 80 chars.

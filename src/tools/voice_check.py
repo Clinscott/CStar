@@ -15,12 +15,12 @@ from src.core.sovereign_hud import SovereignHUD
 def run_voice_diagnostic(persona: str, intent: str, tags: list[str]) -> str:
     """
     Retrieves a phrase from the dialogue engine and prints it to the HUD.
-    
+
     Args:
         persona: The active persona (ODIN/ALFRED).
         intent: The dialogue intent (e.g., TASK_FAILED).
         tags: Contextual tags for scoring.
-        
+
     Returns:
         The retrieved phrase.
     """

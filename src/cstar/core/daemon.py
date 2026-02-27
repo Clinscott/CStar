@@ -18,6 +18,8 @@ project_root = script_dir.parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
+import contextlib
+
 from src.core.engine.vector import SovereignVector
 from src.core.payload import IntentPayload
 from src.cstar.core.forge import Forge
@@ -53,7 +55,7 @@ CURRENT_SESSION_CONTEXT = []
 GLOBAL_STATE = "STATE_ODIN"
 AUTH_KEY = ""
 
-def generate_or_load_key():
+def generate_or_load_key() -> None:
     global AUTH_KEY
     if KEY_FILE.exists():
         AUTH_KEY = KEY_FILE.read_text().strip()
@@ -62,7 +64,7 @@ def generate_or_load_key():
         AUTH_KEY = secrets.token_hex(32)
         KEY_FILE.write_text(AUTH_KEY)
 
-def load_engine():
+def load_engine() -> None:
     global ENGINE, COMMAND_REGISTRY, RPC
     thesaurus_path = project_root / "src" / "data" / "thesaurus.qmd"
     corrections_path = project_root / ".agent" / "corrections.json"
@@ -105,7 +107,7 @@ def get_memory_usage_mb():
     process = psutil.Process(os.getpid())
     return process.memory_info().rss / 1024 / 1024
 
-def check_memory_and_restart():
+def check_memory_and_restart() -> None:
     gc.collect()
     mem_usage = get_memory_usage_mb()
     if mem_usage > MEMORY_LIMIT_MB:
@@ -115,13 +117,13 @@ def check_memory_and_restart():
         except Exception:
             sys.exit(1)
 
-async def broadcast_state(event_type: str, payload: dict = None):
+async def broadcast_state(event_type: str, payload: dict | None = None) -> None:
     if payload is None: payload = {}
     message = json.dumps({"type": "broadcast", "event": event_type, "data": payload})
     if CONNECTED_CLIENTS:
         websockets.broadcast(CONNECTED_CLIENTS, message)
 
-async def handle_client(websocket):
+async def handle_client(websocket) -> None:
     global SYSTEM_LOCKED, CURRENT_SESSION_CONTEXT, GLOBAL_STATE, AUTH_KEY
     try:
         # Require Authentication Handshake
@@ -181,7 +183,6 @@ async def handle_client(websocket):
                 # Check dismissal logic when ALFRED is active
                 input_str = command
                 full_query = f"{input_str} {' '.join(args)}".strip().lower()
-                dismissal = False
 
                 if GLOBAL_STATE == "STATE_ALFRED_REPORT":
                     if full_query in ["thanks alfred", "dismiss", "resume vanguard", "continue"]:
@@ -273,7 +274,7 @@ async def process_command(input_str, args, cwd):
 
     return {"status": "success", "type": "probabilistic", "target": top['trigger'], "score": score}
 
-async def process_forge_stream(websocket, args_list, cwd):
+async def process_forge_stream(websocket, args_list, cwd) -> None:
     global SESSION_TRACES
     task = ""
     target = ""
@@ -314,10 +315,8 @@ async def execute_sleep_protocol():
     proj_mem.parent.mkdir(parents=True, exist_ok=True)
     proj_mem.write_text(json.dumps(SESSION_TRACES, indent=2))
 
-    try:
+    with contextlib.suppress(Exception):
         subprocess.Popen([sys.executable, "-m", "src.sentinel.muninn", "--audit"], cwd=str(project_root))
-    except Exception:
-        pass
 
     SESSION_TRACES = []
     # Clear session context on sleep
@@ -326,7 +325,7 @@ async def execute_sleep_protocol():
 
     return {"status": "success", "message": "Session consolidated.", "gungnir": "PASS"}
 
-async def async_start_daemon():
+async def async_start_daemon() -> None:
     load_engine()
     generate_or_load_key()
 
@@ -348,7 +347,7 @@ async def async_start_daemon():
     finally:
         if PID_FILE.exists(): PID_FILE.unlink()
 
-def start_daemon():
+def start_daemon() -> None:
     asyncio.run(async_start_daemon())
 
 if __name__ == "__main__":

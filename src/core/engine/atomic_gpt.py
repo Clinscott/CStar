@@ -92,10 +92,10 @@ class AnomalyWarden(BaseWarden):
     def forward(self, x: list[float]) -> float:
         """
         Inference pass with dropout logic.
-        
+
         Args:
             x: List of 4 features [latency, tokens, loops, errors].
-            
+
         Returns:
             Anomaly probability score (0.0 to 1.0).
         """
@@ -115,7 +115,7 @@ class AnomalyWarden(BaseWarden):
     def train_step(self, x: list[float], y: float, lr: float = 0.01) -> None:
         """
         Vectorized backpropagation step.
-        
+
         Args:
             x: Input feature vector.
             y: Target label (1.0 for anomaly, 0.0 for normal).

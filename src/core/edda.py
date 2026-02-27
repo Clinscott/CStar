@@ -98,7 +98,7 @@ class EddaWeaver:
 
     def _convert_syntax(self, content: str) -> str:
         """Converts standard blockquotes to GitHub/Quarto Alerts."""
-        def replace_alert(match):
+        def replace_alert(match) -> str:
             body = match.group(1).strip()
 
             # Detect explicit header types

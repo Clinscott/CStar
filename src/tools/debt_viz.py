@@ -21,15 +21,15 @@ except ImportError:
         RED = "\033[31m"; YELLOW = "\033[33m"; GREEN = "\033[32m"
         CYAN = "\033[36m"; RESET = "\033[0m"; BOLD = "\033[1m"; DIM = "\033[2m"
         @staticmethod
-        def box_top(t): print(t)
+        def box_top(t) -> None: print(t)
         @staticmethod
-        def box_row(l, v, **k): print(f"{l}: {v}")
+        def box_row(l, v, **k) -> None: print(f"{l}: {v}")
         @staticmethod
-        def box_separator(): print("-" * 60)
+        def box_separator() -> None: print("-" * 60)
         @staticmethod
-        def box_bottom(): print("-" * 60)
+        def box_bottom() -> None: print("-" * 60)
         @staticmethod
-        def log(lv, msg, d=""): print(f"[{lv}] {msg} {d}")
+        def log(lv, msg, d="") -> None: print(f"[{lv}] {msg} {d}")
 
 try:
     from radon.complexity import cc_rank, cc_visit

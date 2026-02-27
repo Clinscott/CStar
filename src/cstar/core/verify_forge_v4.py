@@ -14,7 +14,7 @@ from src.core.payload import IntentPayload
 from src.cstar.core.forge import Forge
 
 
-async def main():
+async def main() -> None:
     print("=== Verifying Forge V4 Pipeline ===")
 
     # Setup Test Environment
@@ -50,7 +50,7 @@ from pathlib import Path
 
 def test_add():
     assert 1 + 1 == 2
-    
+
 if __name__ == "__main__":
     test_add()
     # Write Gungnir JSON - 25 clean passes to beat the SPRT Threshold

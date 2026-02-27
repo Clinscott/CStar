@@ -93,11 +93,11 @@ class HuginnWarden(BaseWarden):
             1. The agent getting stuck in a loop of repeating the same failed tool call.
             2. The agent inventing file paths that likely don't exist.
             3. The agent claiming to have fixed something but immediately seeing the same error.
-            
+
             Return a JSON object with a list of "breaches". Each breach should have:
             - description: What went wrong.
             - confidence: 0.0 to 1.0 (Ignore anything below 0.8).
-            
+
             TRACE CONTENT:
             {content}
             """

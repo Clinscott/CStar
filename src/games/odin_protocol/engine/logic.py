@@ -122,10 +122,10 @@ __all__ = [
 def get_federated_seed(project_root: str) -> str:
     """
     Derives a unique seed from the project's Git metadata.
-    
+
     Args:
         project_root: Path to the project root.
-        
+
     Returns:
         A unique seed string starting with 'C*'.
     """
@@ -191,10 +191,10 @@ def calculate_effective_stats(
 def get_combat_rating(effective_stats: dict[str, float]) -> float:
     """
     Reduces the entire genetic manifest to a single 'Dominion Score'.
-    
+
     Args:
         effective_stats: Map of effective trait levels.
-        
+
     Returns:
         The sum of all effective levels.
     """
@@ -210,13 +210,13 @@ def adjudicate_choice(
 ) -> dict[str, Any]:
     """
     Calculates tactical outcome using a 'Weighted Die Cast' model.
-    
+
     Args:
         state: The current UniverseState.
         choice: The selected option dictionary.
         stats: Effective player stats.
         scenario: The current scenario context.
-        
+
     Returns:
         A dictionary containing the result of the adjudication.
     """
@@ -252,10 +252,7 @@ def adjudicate_choice(
     force_delta = -base_cost if not success else -(base_cost * 0.5)
 
     # Domination Adjudication
-    if success:
-        dom_delta = TacticalRNG.uniform(1.5, 4.0)
-    else:
-        dom_delta = -TacticalRNG.uniform(2.0, 5.0)
+    dom_delta = TacticalRNG.uniform(1.5, 4.0) if success else -TacticalRNG.uniform(2.0, 5.0)
 
     penalty_msg = ""
     if not success:

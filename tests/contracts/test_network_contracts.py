@@ -27,10 +27,10 @@ class TestNetwork_contracts(unittest.TestCase):
 
         # WHEN Watcher Cycle runs (Simulation: Calling pipeline.process directly)
         with patch("shutil.move") as mock_move, \
-             patch("shutil.copy2") as mock_copy, \
+             patch("shutil.copy2"), \
              patch("os.makedirs"), \
              patch("os.path.getsize", return_value=100), \
-             patch("os.remove") as mock_remove, \
+             patch("os.remove"), \
              patch("subprocess.run", return_value=MagicMock(returncode=0)) as mock_run:
 
             self.pipeline.process(trace_file)
@@ -55,7 +55,7 @@ class TestNetwork_contracts(unittest.TestCase):
 
         # WHEN Watcher Cycle runs
         with patch("shutil.move") as mock_move, \
-             patch("shutil.copy2") as mock_copy, \
+             patch("shutil.copy2"), \
              patch("os.makedirs"), \
              patch("os.path.getsize", return_value=100), \
              patch("subprocess.run", return_value=MagicMock(returncode=1)) as mock_run, \

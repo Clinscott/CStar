@@ -16,7 +16,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from src.core.sovereign_hud import SovereignHUD
 
 
-def main():
+def main() -> None:
     """Entry point for the skill."""
     SovereignHUD.transition_ceremony("TEMPLATE SKILL", "Initializing...")
 

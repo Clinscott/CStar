@@ -11,9 +11,15 @@ The decision-making brain of Corvus Star.
 - **Sovereign Engine** (`sv_engine.py`):
     - `run(query)`: Main execution loop for intent resolution.
     - `_init_vector_engine()`: Loads skills and knowledge.
-- **Vector Engine** (`engine/vector.py`):
-    - `search(query)`: Finds best matching skill/intent.
-    - `score_identity(text)`: Scores text for persona alignment.
+- **Vector Engine** (`src/core/engine/vector.py`):
+    - `search(query)`: Finds best matching skill/intent. (Modularized CC < 15).
+    - `_shadow_search(query)`: TF-IDF lexical search (Modularized).
+    - `_get_top_domain(query)`: Contextual domain routing.
+
+## 2026-02-27: Session 96 (Mimir Remediation: Batch 3)
+- **Modularized Intent Resolution**: Refactored `vector.py` into semantic helper methods (`_check_fast_path`, `_get_top_domain`, `_calculate_lexical_evidence`), reducing maximum cyclomatic complexity from 27 to 11.
+- **Odin UI Decoupling**: Extracted all TUI and manifest rendering logic from `src/games/odin_protocol/main.py` into a new `ui.py` module. This provides a clean separation between game logic and visual presentation, reducing `main.py` complexity.
+- **Verification Integrity**: Established `test_mimir_batch_3.py` for functional parity verification and confirmed CC A/B grades for all target files.
 
 ## 2026-02-26: Session 91 (Muninn Breach & A.L.F.R.E.D. Formalization)
 - **Engine Restoration**: Restored the `RuneCasterAudit` engine to identify missing type hints, closing the "Ghost Fix" loop.

@@ -25,7 +25,7 @@ class GungnirValidator:
     def __init__(self, alpha: float = 0.05, beta: float = 0.1, p0: float = 0.01, p1: float = 0.2) -> None:
         """
         Initializes the SPRT validator with error boundaries and hypothesis probabilities.
-        
+
         Args:
             alpha: Probability of Type I error (False Positive).
             beta: Probability of Type II error (False Negative).
@@ -46,9 +46,9 @@ class GungnirValidator:
     def record_trial(self, success: bool) -> None:
         """
         Calculates the Wald Likelihood Ratio for the current trial.
-        
+
         ln(L1/L0) = k*ln(p1/p0) + (n-k)*ln((1-p1)/(1-p0))
-        
+
         Args:
             success: Whether the trial passed.
         """
@@ -61,7 +61,7 @@ class GungnirValidator:
     def status(self) -> str:
         """
         Determines the current status of the SPRT test.
-        
+
         Returns:
             "REJECT" if the alternative hypothesis (flaky) is accepted.
             "ACCEPT" if the null hypothesis (stable) is accepted.
@@ -83,7 +83,7 @@ class TheWatcher:
     def __init__(self, root: Path) -> None:
         """
         Initializes the stability watcher with the project root.
-        
+
         Args:
             root: Path to the project root directory.
         """
@@ -111,10 +111,10 @@ class TheWatcher:
     def is_locked(self, rel_path: str) -> bool:
         """
         Checks if a file is locked due to instability or fatigue.
-        
+
         Args:
             rel_path: Relative path to the file.
-            
+
         Returns:
             True if the file is locked and within cooldown, False otherwise.
         """
@@ -133,11 +133,11 @@ class TheWatcher:
     def record_edit(self, rel_path: str, content: str) -> bool:
         """
         Records an edit and checks for oscillation or fatigue.
-        
+
         Args:
             rel_path: Relative path to the file.
             content: The new content of the file.
-            
+
         Returns:
             True if state is stable, False if oscillation/fatigue detected.
         """

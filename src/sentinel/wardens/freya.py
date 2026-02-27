@@ -20,7 +20,7 @@ class FreyaWarden(BaseWarden):
     def scan(self) -> list[dict[str, Any]]:
         """
         Scans the project for visual styling breaches.
-        
+
         Returns:
             A list of detected styling breaches.
         """

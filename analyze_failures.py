@@ -8,10 +8,10 @@ from src.core.engine.vector import SovereignVector
 def analyze_benchmarks(source_path: Path) -> list[dict[str, Any]]:
     """
     Analyzes the vector engine's performance against a benchmark JSON file.
-    
+
     Args:
         source_path: Path to the fishtest JSON file.
-        
+
     Returns:
         A list of failure records.
     """

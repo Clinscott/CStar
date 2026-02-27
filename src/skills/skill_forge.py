@@ -85,11 +85,11 @@ class SkillForge:
     def forge(self, query: str, dry_run: bool = False) -> dict:
         """
         [ALFRED] Orchestrates the multi-phase skill creation protocol.
-        
+
         Args:
             query: The user's natural language request (e.g., 'create a log parser').
             dry_run: If True, provides a preview of the generated code without saving.
-            
+
         Returns:
             A dictionary containing 'success', 'code', 'archetype', and 'path'.
         """
@@ -219,7 +219,7 @@ class SkillForge:
             if found: steps.extend(found)
         return list(dict.fromkeys(steps))[:5] # Deduplicate and limit
 
-    def _generate_workflow_template(self, name: str, context: str, imports: list, steps: list[str] = None) -> str:
+    def _generate_workflow_template(self, name: str, context: str, imports: list, steps: list[str] | None = None) -> str:
         logic = ""
         if steps:
             for i, step in enumerate(steps, 1):
@@ -243,7 +243,7 @@ def main():
     parser.add_argument("--input", required=True, help="Input file or directory")
     parser.add_argument("--dry-run", action="store_true", help="Preview without changes")
     args = parser.parse_args()
-    
+
 {logic}
     print("[DONE] Workflow complete.")
 
@@ -265,12 +265,12 @@ class Test{name.title().replace('_', '')}:
     """
     Test suite for {name}.
     """
-    
+
     def test_basic_functionality(self):
         """Test basic operation."""
         # TODO: Implement test
         assert True
-    
+
     def test_edge_case_empty_input(self):
         """Test behavior with empty input."""
         # TODO: Implement edge case
@@ -442,7 +442,7 @@ This skill was synthesized by the Skill Forge from project documentation.
 
         return draft_path
 
-def main():
+def main() -> None:
     import argparse
     parser = argparse.ArgumentParser(description="Skill Forge: RAG-driven skill synthesis")
     parser.add_argument("--query", "-q", required=True, help="What skill to create")

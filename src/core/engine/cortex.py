@@ -19,7 +19,7 @@ class Cortex:
     def __init__(self, project_root: str | Path, base_path: str | Path) -> None:
         """
         Initializes the Cortex with project documentation sources.
-        
+
         Args:
             project_root: Path to the project root directory.
             base_path: Internal base path for the Cortex.
@@ -92,10 +92,10 @@ class Cortex:
     def query(self, text: str) -> list[dict[str, Any]]:
         """
         Queries the Cortex for relevant documentation snippets.
-        
+
         Args:
             text: The query string.
-            
+
         Returns:
             A list of matching knowledge results.
         """

@@ -21,7 +21,7 @@ def test_security_scanner_obfuscation(tmp_path):
     f.write_text(f"x = '{long_b64}'", encoding='utf-8')
 
     scanner = SecurityScanner(str(f))
-    is_safe, findings = scanner.scan()
+    _is_safe, findings = scanner.scan()
 
     assert any("OBFUSCATION" in f for f in findings)
 
@@ -30,7 +30,7 @@ def test_security_scanner_safe(tmp_path):
     f.write_text("def hello():\n    print('hi')", encoding='utf-8')
 
     scanner = SecurityScanner(str(f))
-    is_safe, findings = scanner.scan()
+    is_safe, _findings = scanner.scan()
 
     assert is_safe is True
     assert scanner.threat_score == 0

@@ -26,6 +26,8 @@ project_root = Path(__file__).parent.parent.parent.absolute()
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
+import contextlib
+
 from src.core.sovereign_hud import SovereignHUD
 
 # Configure Logging
@@ -168,10 +170,8 @@ class PerimeterSweep:
         for t in targets:
             report["details"].append(str(t.relative_to(project_root)))
             if self.purge:
-                try:
+                with contextlib.suppress(OSError):
                     t.unlink()
-                except OSError:
-                    pass
 
         if self.purge and targets:
             report["purged"] = True
@@ -254,7 +254,7 @@ class PerimeterSweep:
         SovereignHUD.box_bottom()
 
 
-def main():
+def main() -> int | None:
     parser = argparse.ArgumentParser(description="The Perimeter Sweep - Security & Hygiene")
     parser.add_argument("target", nargs="?", default=".", help="Target directory to scan")
     parser.add_argument("--purge", action="store_true", help="Automatically delete found temporary files")

@@ -8,7 +8,7 @@ from src.core.payload import IntentPayload
 from src.cstar.core.forge import Forge
 
 
-async def diag():
+async def diag() -> None:
     tmp_path = Path("tmp_diag")
     tmp_path.mkdir(exist_ok=True)
     target_file = tmp_path / "target.py"

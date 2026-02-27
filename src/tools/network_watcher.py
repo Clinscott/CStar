@@ -16,11 +16,11 @@ def get_theme():
     """Module-level theme retriever for legacy tests."""
     return THEMES.get(SovereignHUD.PERSONA, THEMES["ALFRED"])
 
-def log_rejection(filename: str, reason: str):
+def log_rejection(filename: str, reason: str) -> None:
     """Module-level rejection log."""
     SovereignHUD.log_rejection(SovereignHUD.PERSONA, reason, filename)
 
-def process_file(file_path: str):
+def process_file(file_path: str) -> None:
     """Module-level process alias."""
     script_dir = os.path.dirname(os.path.abspath(__file__))
     base = os.path.dirname(script_dir)
@@ -36,7 +36,7 @@ class CruciblePipeline:
         self.quar = os.path.join(base, "traces", "quarantine")
         self.db = os.path.join(root, "fishtest_data.json")
 
-    def process(self, file_path: str):
+    def process(self, file_path: str) -> None:
         name = os.path.basename(file_path)
         SovereignHUD.box_top("CRUCIBLE SCAN")
         SovereignHUD.log("INFO", f"Ingesting {name}")
@@ -44,7 +44,7 @@ class CruciblePipeline:
         try:
             if os.path.getsize(file_path) > 5*10**6: raise ValueError("DoS: Oversized")
             os.makedirs(self.stage, exist_ok=True)
-            staging_path = shutil.move(file_path, os.path.join(self.stage, name))
+            shutil.move(file_path, os.path.join(self.stage, name))
 
             # Merge & Ordeal
             backup = self.db + ".bak"
@@ -73,7 +73,7 @@ class NetworkWatcher:
         self.share = share_path
         self.pipeline = pipeline
 
-    def watch(self):
+    def watch(self) -> None:
         print(f"{SovereignHUD.CYAN}>> The Crucible is active. Watching: {self.share}...{SovereignHUD.RESET}")
         while True:
             try:

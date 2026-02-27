@@ -58,9 +58,9 @@ def test_alfred_provides_syntax_guidance(dialogue_engine):
 
     # Mocking the tuple return (error_type, analysis_string)
     with patch.object(observer, 'analyze_failure', return_value=("SyntaxError", "Missing colon on line 10")):
-        error_type, analysis = observer.analyze_failure("dummy_target", "dummy_traceback")
+        error_type, _analysis = observer.analyze_failure("dummy_target", "dummy_traceback")
 
-        alfred = AlfredStrategy(".")
+        AlfredStrategy(".")
         # Proposed change: alfred.enforce_policy(error_type=error_type)
         context = {"error_type": error_type}
 

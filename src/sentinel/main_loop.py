@@ -27,7 +27,7 @@ from src.sentinel._bootstrap import PROJECT_ROOT, bootstrap
 
 _bootstrapped = False
 
-def _ensure_bootstrapped():
+def _ensure_bootstrapped() -> None:
     """Lazily run bootstrap() on first use, not at import time."""
     global _bootstrapped
     if not _bootstrapped:
@@ -45,7 +45,7 @@ class ShutdownHandler:
         signal.signal(signal.SIGINT, self.shutdown)
         signal.signal(signal.SIGTERM, self.shutdown)
 
-    def shutdown(self, signum, frame):
+    def shutdown(self, signum, frame) -> None:
         SovereignHUD.persona_log("WARN", f"Signal {signum} received. Closing all realms...")
         self.active = False
 
@@ -87,7 +87,7 @@ def git_cmd(repo_path: str | Path, args: list[str]) -> str | None:
     """Executes a git command in the target repo."""
     try:
         result = subprocess.run(
-            ["git"] + args,
+            ["git", *args],
             cwd=str(repo_path),
             capture_output=True,
             text=True,
@@ -194,7 +194,7 @@ def highlander_check(lock_file: Path) -> bool:
         pass
     return True
 
-def daemon_loop(lock_file_path: Path | None = None):
+def daemon_loop(lock_file_path: Path | None = None) -> None:
     """Main daemon loop orchestrating Ravens across the Corvus Cluster."""
     LOCK_FILE = lock_file_path or (Path(__file__).parent / "ravens.lock")
 

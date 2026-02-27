@@ -1,3 +1,4 @@
+import contextlib
 import json
 import os
 import queue
@@ -26,10 +27,8 @@ def safe_read_json(path: Path | str) -> dict:
         with open(path, encoding='utf-8') as f:
             if msvcrt:
                 # Windows-specific: shared read lock (LK_NBLCK)
-                try:
+                with contextlib.suppress(OSError):
                     msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, os.path.getsize(path))
-                except OSError:
-                    pass
             return json.load(f)
     except (json.JSONDecodeError, OSError):
         return {}

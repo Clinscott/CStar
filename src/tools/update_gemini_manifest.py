@@ -44,7 +44,7 @@ def get_task_status():
         pass
     return "Could not parse next tasks."
 
-def update_manifest():
+def update_manifest() -> None:
     # Robust root resolution: walk up until config.json or .git is found
     current = os.path.dirname(os.path.abspath(__file__))
     root = current

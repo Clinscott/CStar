@@ -15,11 +15,11 @@ class AlfredOverwatch:
     def analyze_failure(self, target_file: str, error_trace: str) -> tuple[str, str]:
         """
         Reads a failure trace and generates plain-text guidance for the agent.
-        
+
         Args:
             target_file: The path to the file that failed.
             error_trace: The full stack trace or error message.
-            
+
         Returns:
             A tuple of (error_type, suggestion_text).
         """
@@ -39,7 +39,7 @@ class AlfredOverwatch:
     def write_suggestion(self, suggestion: str, file_path: str = ".agent/ALFRED_SUGGESTIONS.md") -> None:
         """
         Writes guidance to a suggestion file for persistence.
-        
+
         Args:
             suggestion: The text to write.
             file_path: Path to the suggestion ledger.

@@ -22,7 +22,7 @@ def _load_dataset(target_path):
         SovereignHUD.log("WARN", f"Dataset load failed: {str(e)[:30]}")
         return {"test_cases": []}
 
-def _save_dataset(dataset, target_path):
+def _save_dataset(dataset, target_path) -> bool | None:
     """Atomic save of the test dataset."""
     temp_target = str(target_path) + ".tmp"
     try:
@@ -44,14 +44,14 @@ def _process_single_trace(trace, existing_queries, dataset):
 
     new_case = {
         "query": query, "expected": match, "min_score": 0.85,
-        "tags": sorted(list(set(["federated", "real-user"] + [trace.get('persona', 'unknown')])))
+        "tags": sorted({"federated", "real-user", trace.get('persona', 'unknown')})
     }
     if trace.get('is_global'): new_case['expected_global'] = True
 
     if query in existing_queries:
         existing = existing_queries[query]
         existing['expected'] = match
-        existing['tags'] = sorted(list(set(existing.get('tags', []) + new_case['tags'])))
+        existing['tags'] = sorted(set(existing.get('tags', []) + new_case['tags']))
         if 'expected_global' in new_case: existing['expected_global'] = True
         return 0, 1
     else:
@@ -77,7 +77,7 @@ def _process_trace_file(trace_file, existing_queries, dataset, failed_dir):
         shutil.move(str(trace_file), str(failed_dir / trace_file.name))
         return False, 0, 0
 
-def merge_traces(source_dir, target_file="fishtest_data.json"):
+def merge_traces(source_dir, target_file="fishtest_data.json") -> None:
     """[ALFRED] Refactored trace merger with O(1) lookups and atomic persistence."""
     source_path, target_path = Path(source_dir), Path(target_file)
     processed_dir, failed_dir = source_path / "processed", source_path / "failed"

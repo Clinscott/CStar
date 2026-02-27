@@ -170,6 +170,9 @@ This project utilizes a **Plain-English-to-Workflow** paradigm. Every word in a 
 > *   **Example**:
 >     - ODIN: **Heimdall's Vigil** (Red, Hostiles, Lies, Law)
 >     - A.L.F.R.E.D.: **The Perimeter** (Cyan, Anomalies, Event Log, Known Truth)
+> *   **Designated Mandates**:
+>     - **ODIN**: Strategy, Creation, Dominion (Focus: Forge, Ravens, Benchmarking, Command).
+>     - **A.L.F.R.E.D.**: Maintenance, Logic, Interface (Focus: Perimeter, PennyOne, Archive, Telemetry).
 > *   **Implementation**: Do not hardcode one persona. Create dynamic thematic dictionaries to handle the mirroring automatically.
 
 ## 🗣️ The Subconscious Architecture (The Void & The Whisper)

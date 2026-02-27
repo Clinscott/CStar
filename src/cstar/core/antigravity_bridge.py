@@ -66,7 +66,7 @@ def _get_optimal_model(client, api_key: str, persona: str) -> str:
     # If preferred are missing, return the first valid Gemini model
     return available[0] if available else safe_default
 
-def init_client():
+def init_client() -> None:
     """Initializes the google.genai client exclusively using the Daemon key."""
     global CLIENT
     try:
@@ -90,7 +90,7 @@ def init_client():
         logging.error(f"Missing dependency: {e}. Please ensure 'google-genai' and 'python-dotenv' are installed.")
         CLIENT = None
 
-async def handle_client(reader, writer):
+async def handle_client(reader, writer) -> None:
     """Handles incoming JSON payloads from uplink.py."""
     addr = writer.get_extra_info('peername')
     logging.info(f"Connection from {addr}")
@@ -122,7 +122,7 @@ async def handle_client(reader, writer):
     finally:
         writer.close()
 
-async def process_request(query: str, context: dict, api_key: str = None) -> dict:
+async def process_request(query: str, context: dict, api_key: str | None = None) -> dict:
     """
     Assembles the prompt and calls the LLM.
     """
@@ -304,7 +304,7 @@ def generate_simulation(query, context):
         }
     return {"status": "success", "data": {"insight": "Simulation Mode Active"}}
 
-async def main():
+async def main() -> None:
     init_client()
 
     server = await asyncio.start_server(handle_client, HOST, PORT)

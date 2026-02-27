@@ -16,7 +16,7 @@ from src.core.sovereign_hud import SovereignHUD
 class ReportEngine:
     """
     Enforces Persona-driven reporting standards.
-    Prevents "generic engineer" hallucinations by algorithmically 
+    Prevents "generic engineer" hallucinations by algorithmically
     injecting the correct voice and signature.
     """
 
@@ -39,7 +39,7 @@ class ReportEngine:
 │  WAR ROOM: {datetime.now().strftime('%Y-%m-%d %H:%M:%S'):<60} │
 └──────────────────────────────────────────────────────────────────────────────┘
 """
-        else: # ALFRED
+        else: # A.L.F.R.E.D.
             return f"""
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │  ⚓  {title.title():<64} │
@@ -65,7 +65,7 @@ class ReportEngine:
 
     def signature(self) -> str:
         """
-        The anti-hallucination seal. 
+        The anti-hallucination seal.
         Returns the ONLY authorized signature for the active persona.
         """
         if self.persona in ["ODIN", "GOD"]:

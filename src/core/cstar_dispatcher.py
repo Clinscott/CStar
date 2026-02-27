@@ -9,13 +9,10 @@ project_root = Path(__file__).resolve().parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-# Bootstrap
+from src.core.sovereign_hud import SovereignHUD
 from src.sentinel._bootstrap import PROJECT_ROOT, bootstrap
 
 bootstrap()
-
-from src.core.sovereign_hud import SovereignHUD
-
 
 class CorvusDispatcher:
     """
@@ -148,7 +145,7 @@ class CorvusDispatcher:
                 # Native Execution for core framework skills
                 env = os.environ.copy()
                 env["PYTHONPATH"] = str(self.project_root)
-                subprocess.run([str(self.venv_python), cmd_path] + cmd_args, env=env)
+                subprocess.run([str(self.venv_python), cmd_path, *cmd_args], env=env)
                 return
             else: # Workflow
                 SovereignHUD.persona_log("INFO", f"Dispatching workflow: /{cmd}")
@@ -177,7 +174,7 @@ class CorvusDispatcher:
         SovereignHUD.persona_log("FAIL", f"Unknown command: {cmd}")
         self.show_help()
 
-    def _record_heartbeat(self, latency: float, tokens: int, loops: float, error: float):
+    def _record_heartbeat(self, latency: float, tokens: int, loops: float, error: float) -> None:
         """Feeding the Warden."""
         if not self.warden:
             return

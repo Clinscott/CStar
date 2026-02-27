@@ -39,7 +39,7 @@ class MemoryDB:
                 "metadata": {"app_id": "system"}
             })
 
-    def upsert_skill(self, app_id: str, intent_id: str, description: str, metadata: dict[str, Any] = None):
+    def upsert_skill(self, app_id: str, intent_id: str, description: str, metadata: dict[str, Any] | None = None) -> None:
         """
         [PHASE 2] Composite ID Namespacing.
         Ensures no cross-tenant collisions (app_id::intent_id).
@@ -63,7 +63,7 @@ class MemoryDB:
                 "metadata": safe_metadata
             })
 
-    def search_intent(self, app_id: str, query: str, n_results: int = 1, domain: str = None) -> list[dict[str, Any]]:
+    def search_intent(self, app_id: str, query: str, n_results: int = 1, domain: str | None = None) -> list[dict[str, Any]]:
         """
         [PHASE 2] Zero-Trust Isolation.
         Filters by app_id in metadata and optionally by domain.

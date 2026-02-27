@@ -69,7 +69,6 @@ class TestSetPersonaEmpire:
         # Since we are ALFRED, it prompts confirm if interactive.
         # But we pass target="ODIN", so interactive=False.
 
-        start_calls = mock_file.call_count
 
         # We need to mock _confirm_odin_switch if we want to be sure, but code says:
         # if not interactive: return True

@@ -70,7 +70,7 @@ TARGET FILE ({file_path.name}):
 2. Break down highly complex (cyclomatic complexity > C) functions into smaller, private helper functions.
 3. Enforce rigorous Type Hints (e.g., `list[str]`, `dict[str, Any]`, `Optional[int]`).
 4. Weave in missing Google-style Docstrings for all classes and functions.
-5. Output ONLY the raw, complete Python code for the refactored file. No markdown formatting, no explanations. 
+5. Output ONLY the raw, complete Python code for the refactored file. No markdown formatting, no explanations.
 6. Do not remove necessary imports.
 
 Commence the refinement.
@@ -205,7 +205,7 @@ Commence the refinement.
              SovereignHUD.persona_log("ERROR", f"Failed to commit {target_file.name}: {e}")
              return False
 
-    async def execute(self):
+    async def execute(self) -> None:
         """Main execution sequence."""
         SovereignHUD.box_top("[A] THE UTILITY BELT")
         SovereignHUD.box_row("DIRECTIVE", "ELEGANCE & REFACTORING", SovereignHUD.CYAN)
@@ -242,7 +242,7 @@ Commence the refinement.
 
         SovereignHUD.box_bottom()
 
-def main():
+def main() -> int | None:
     parser = argparse.ArgumentParser(description="The Utility Belt - Refactoring Forge")
     parser.add_argument("target", help="File to refactor")
     args = parser.parse_args()

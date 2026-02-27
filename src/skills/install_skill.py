@@ -47,7 +47,7 @@ def _run_security_scan(quarantine_zone):
             except (subprocess.SubprocessError, OSError): threat = max(threat, 1)
     return threat, None
 
-def _promote_skill(quarantine, dest):
+def _promote_skill(quarantine, dest) -> bool | None:
     """Securely move skill from quarantine to final destination."""
     try:
         if os.path.exists(dest): shutil.rmtree(dest)
@@ -64,7 +64,27 @@ def _setup_install_paths(base: str, config: dict, name: str) -> tuple[str, str, 
     dst = os.path.join(base, "skills_db", name)
     return src, qua, dst
 
-def install_skill(skill_name, target_root=None):
+def _execute_installation_logic(src, qua, dst):
+    """Sub-phase for the actual file operations and validations."""
+    if os.path.exists(qua): shutil.rmtree(qua)
+    os.makedirs(os.path.dirname(qua), exist_ok=True)
+    shutil.copytree(src, qua)
+
+    # Validate
+    valid, v_err = _verify_integrity(qua)
+    if not valid:
+        SovereignHUD.log("FAIL", "Integrity Check", v_err); return
+
+    # Scan
+    threat, s_err = _run_security_scan(qua)
+    if threat > 0 or s_err:
+        SovereignHUD.log("FAIL", "Security Breach", s_err or f"Threat Level {threat}"); return
+
+    # Promote
+    if _promote_skill(qua, dst):
+        SovereignHUD.log("SUCCESS", f"Skill '{os.path.basename(dst)}' installed.")
+
+def install_skill(skill_name, target_root=None) -> None:
     """[ALFRED] Refactored skill installer with isolated sub-phases."""
     name = _sanitize_skill_name(skill_name)
     base = target_root or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

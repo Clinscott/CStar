@@ -183,12 +183,11 @@ def _find_bad_imports(tree: ast.AST, project_root: Path) -> dict[int, list[str]]
                 if not _is_valid_import(top, project_root):
                     name = alias.asname or alias.name.split(".")[-1]
                     bad_imports.setdefault(node.lineno, []).append(name)
-        elif isinstance(node, ast.ImportFrom):
-            if node.module:
-                top = node.module.split(".")[0]
-                if not _is_valid_import(top, project_root):
-                    names = [alias.asname or alias.name for alias in node.names]
-                    bad_imports.setdefault(node.lineno, []).extend(names)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            top = node.module.split(".")[0]
+            if not _is_valid_import(top, project_root):
+                names = [alias.asname or alias.name for alias in node.names]
+                bad_imports.setdefault(node.lineno, []).extend(names)
     return bad_imports
 
 def _apply_mock_stubs(lines: list[str], bad_imports: dict[int, list[str]], code: str) -> list[str]:
@@ -282,11 +281,10 @@ def scan_and_enrich_imports(code: str, project_root: Path) -> str:
                 top = alias.name.split(".")[0]
                 if not _is_valid_import(top, project_root):
                     bad_modules.add(top)
-        elif isinstance(node, ast.ImportFrom):
-            if node.module:
-                top = node.module.split(".")[0]
-                if not _is_valid_import(top, project_root):
-                    bad_modules.add(top)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            top = node.module.split(".")[0]
+            if not _is_valid_import(top, project_root):
+                bad_modules.add(top)
 
     if not bad_modules:
         return ""
@@ -321,7 +319,7 @@ def scan_and_enrich_imports(code: str, project_root: Path) -> str:
 
 def perform_quarantine_scan(code: str, whitelist: list[str] | None = None) -> tuple[bool, str]:
     """
-    Strict AST analysis for new skills. 
+    Strict AST analysis for new skills.
     Blocks restricted modules and dynamic import attempts.
     """
     FORBIDDEN_MODULES = {"os", "subprocess", "sys", "socket", "requests", "urllib", "builtins", "importlib"}
@@ -370,7 +368,7 @@ def perform_quarantine_scan(code: str, whitelist: list[str] | None = None) -> tu
 
     return True, "Passed quarantine scan."
 
-def neuter_qmd_document(file_path: Path):
+def neuter_qmd_document(file_path: Path) -> None:
     """
     Prevents Arbitrary Code Execution (ACE) in Quarto files by forcing execute: false.
     """

@@ -7,7 +7,7 @@ except ImportError:
     print("[FAIL] python-dotenv is not installed. Run: pip install python-dotenv")
     exit(1)
 
-def verify():
+def verify() -> None:
     # Target the .env.local in the current execution directory (project root)
     env_path = Path(".env.local").resolve()
 

@@ -18,8 +18,8 @@ except ImportError:
 class ExecutionTracker:
     """
     Decoupled Metrics Tracker.
-    Tracks pure latency using perf_counter. 
-    Memory profiling (psutil) is only sampled at explicit start/end bounds 
+    Tracks pure latency using perf_counter.
+    Memory profiling (psutil) is only sampled at explicit start/end bounds
     to prevent Observer Effect latency inflation.
     """
     def __init__(self, name: str):

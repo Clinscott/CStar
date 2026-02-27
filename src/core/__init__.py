@@ -6,7 +6,7 @@ import logging
 import sys
 
 
-def apply_pydantic_v1_patch():
+def apply_pydantic_v1_patch() -> None:
     """
     [ALFRED] Surgical Monkeypatch for Pydantic v1 / Python 3.14 compatibility.
     Bypasses 'unable to infer type for attribute "X"' errors in ChromaDB configuration.
@@ -29,7 +29,7 @@ def apply_pydantic_v1_patch():
             # [ALFRED] The Patch: Default Undefined types to Any instead of raising ConfigError
             original_set_default = ModelField._set_default_and_type
 
-            def patched_set_default(self):
+            def patched_set_default(self) -> None:
                 # Import errors here to avoid early dependency on pydantic
                 from pydantic import v1 as pydantic_v1
                 try:

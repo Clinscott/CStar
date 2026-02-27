@@ -10,6 +10,8 @@ from colorama import Fore, Style, init
 project_root = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(project_root))
 
+import contextlib
+
 from google import genai
 
 from src.sentinel.muninn import Muninn
@@ -56,16 +58,16 @@ class SovereignStressTest:
         prompt = f"""
         ACT AS: Lead Systems Architect / Teacher.
         CONTEXT: The Raven Agent (Muninn) running on Gemini Flash failed a task.
-        
+
         FORENSIC TRACE:
         {trace_content}
-        
+
         EXCEPTION (If any):
         {error_msg}
-        
+
         TASK: Why did Flash fail this task? Provide a 1-sentence instruction to prevent this.
         Your instruction will be appended to the Student's next prompt to help them succeed.
-        
+
         OUTPUT: Only the 1-sentence instruction.
         """
 
@@ -137,10 +139,8 @@ class SovereignStressTest:
 if __name__ == "__main__":
     max_retries = 5
     if len(sys.argv) > 1:
-        try:
+        with contextlib.suppress(ValueError):
             max_retries = int(sys.argv[1])
-        except ValueError:
-            pass
 
     test = SovereignStressTest(max_retries=max_retries)
     test.run()

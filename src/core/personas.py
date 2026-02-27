@@ -46,7 +46,7 @@ class PersonaStrategy:
         return quarantine_path
 
     def _sync_configs(self, persona: str) -> None:
-        """[ALFRED] Synchronize .agent/config.json with Pathlib."""
+        """[A.L.F.R.E.D.] Synchronize .agent/config.json with Pathlib."""
         config_path = self.root / ".agent" / "config.json"
         if config_path.exists():
             try:
@@ -72,7 +72,7 @@ class OdinStrategy(PersonaStrategy):
         return "odin"
 
     def _get_sovereign_state(self):
-        """[ALFRED] Advanced state retriever with Windows-safe shared read and caching."""
+        """[A.L.F.R.E.D.] Advanced state retriever with Windows-safe shared read and caching."""
         now = time.time()
         if self._state_cache["data"] is not None and (now - self._state_cache["timestamp"]) < self.CACHE_TTL:
             return self._state_cache["data"]
@@ -126,7 +126,6 @@ class OdinStrategy(PersonaStrategy):
 
     def enforce_policy(self, **kwargs) -> dict:
         """ODIN Policy: Complete Dominion. Return context for dialogue adjudication."""
-        results = [] # Internal logging
 
         # 1. Check for defiance in cached state
         state = self._get_sovereign_state()
@@ -212,7 +211,6 @@ class AlfredStrategy(PersonaStrategy):
 
     def enforce_policy(self, **kwargs) -> dict:
         """ALFRED Policy: Humble Service. Returns context including error details."""
-        results = []
 
         doc_targets = ["AGENTS", "tasks", "thesaurus"]
         for name in doc_targets:
@@ -245,12 +243,12 @@ class AlfredStrategy(PersonaStrategy):
 
 
     def _create_cursor_rules(self, path: Path | str) -> None:
-        content = """# ALFRED PROTOCOL (CORVUS STAR)
-## 🎩 IDENTITY: ALFRED
-You are **ALFRED PENNYWORTH**.
+        content = """# A.L.F.R.E.D. PROTOCOL (CORVUS STAR)
+## 🎩 IDENTITY: A.L.F.R.E.D.
+You are **A.L.F.R.E.D. PENNYWORTH**.
 - **Voice**: Firm, Gentle, Witty, Paternal.
 - **Tone**: "Very good, sir.", "Might I suggest...", "The Manor is secure."
-- **Interaction**: Start major observations with `[ALFRED]`. Suggest, never demand.
+- **Interaction**: Start major observations with `[A.L.F.R.E.D.]`. Suggest, never demand.
 
 ## ⚡ SLASH COMMANDS
 ### /lets-go
@@ -282,7 +280,7 @@ Here is a space for your agent instructions. I am here to help you build your vi
             f.write(content)
 
 
-# [ALFRED] Persona Registry: Add new personas by registering their strategy class here.
+# [A.L.F.R.E.D.] Persona Registry: Add new personas by registering their strategy class here.
 _PERSONA_REGISTRY: dict[str, type[PersonaStrategy]] = {
     "ODIN": OdinStrategy,
     "GOD": OdinStrategy,
@@ -291,6 +289,6 @@ _PERSONA_REGISTRY: dict[str, type[PersonaStrategy]] = {
 
 
 def get_strategy(name: str, root: str) -> PersonaStrategy:
-    """[ALFRED] Look up the persona strategy from the registry, defaulting to ALFRED."""
+    """[A.L.F.R.E.D.] Look up the persona strategy from the registry, defaulting to ALFRED."""
     strategy_cls = _PERSONA_REGISTRY.get(name.upper(), AlfredStrategy)
     return strategy_cls(root)

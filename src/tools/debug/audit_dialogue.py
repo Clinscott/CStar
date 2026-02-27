@@ -68,7 +68,7 @@ class DialogueAuditor:
         SovereignHUD.box_bottom()
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Audit dialogue for persona alignment")
     parser.add_argument("text", help="Text to audit")
     parser.add_argument("--persona", default="GOD", help="Persona to audit against (GOD, ALFRED)")

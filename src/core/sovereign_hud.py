@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import os
 import sys
 import time
@@ -15,10 +16,8 @@ if sys.platform == "win32":
     # Reconfigure stdout/stderr for UTF-8
     for stream in [sys.stdout, sys.stderr]:
         if stream and hasattr(stream, "reconfigure"):
-            try:
+            with contextlib.suppress(OSError, AttributeError):
                 stream.reconfigure(encoding="utf-8", errors="replace")
-            except (OSError, AttributeError):
-                pass
 
     # Enable Windows Console Virtual Terminal Processing (ANSI support)
     try:
@@ -33,7 +32,7 @@ if sys.platform == "win32":
 class SovereignHUD:
     """
     Hyper-Refined User Interface (SovereignHUD) Class.
-    
+
     Provides ANSI-colored terminal output primitives for the Corvus Star framework.
     Strictly follows the Linscott Standard for "Iron Clad" reliability.
     """
@@ -57,7 +56,7 @@ class SovereignHUD:
 
     @staticmethod
     def _ensure_persona() -> None:
-        """[ALFRED] Lazy-load the persona from config if not already set."""
+        """[A.L.F.R.E.D.] Lazy-load the persona from config if not already set."""
         if SovereignHUD._INITIALIZED:
             return
 
@@ -70,7 +69,7 @@ class SovereignHUD:
             import json
             from pathlib import Path
 
-            # [ALFRED] Robust root resolution: check CWD first (standard for CLI), then relative to file.
+            # [A.L.F.R.E.D.] Robust root resolution: check CWD first (standard for CLI), then relative to file.
             root = Path.cwd()
             config_path = root / ".agent" / "config.json"
 
@@ -94,7 +93,7 @@ class SovereignHUD:
     def _speak(intent: str, fallback: str) -> str:
         """
         Retrieves dialogue from the vector DB or returns fallback.
-        
+
         Args:
             intent: The semantic intent key to look up.
             fallback: The string to return if the intent is not found.
@@ -103,7 +102,7 @@ class SovereignHUD:
             return SovereignHUD.DIALOGUE.get(SovereignHUD.PERSONA, intent) or fallback
         return fallback
 
-    # [ALFRED] Theme Registry: Add new persona themes by adding an entry here.
+    # [A.L.F.R.E.D.] Theme Registry: Add new persona themes by adding an entry here.
     _THEME_REGISTRY: dict[str, dict[str, str]] = {
         "ODIN": {
             "main": "\033[31m",   # RED
@@ -130,7 +129,7 @@ class SovereignHUD:
             "warning": "\033[33m",
             "error": "\033[31m",
             "title": "C* BUTLER INTERFACE",
-            "prefix": "[ALFRED]",
+            "prefix": "[A.L.F.R.E.D.]",
             "war_title": "THE BATCAVE (ANOMALY DETECTOR)",
             "trace_label": "EVENT LOG",
             "truth_label": "KNOWN TRUTH",
@@ -153,7 +152,7 @@ class SovereignHUD:
 
     @classmethod
     def transition_ceremony(cls, old_persona: str, new_persona: str) -> None:
-        """[ALFRED] Render a dramatic visual ceremony on persona switch."""
+        """[A.L.F.R.E.D.] Render a dramatic visual ceremony on persona switch."""
         theme = cls._THEME_REGISTRY.get(new_persona.upper(), cls._THEME_REGISTRY["ALFRED"])
         main = theme["main"]
         dim = theme["dim"]
@@ -196,7 +195,7 @@ class SovereignHUD:
     def persona_log(level: str, msg: str) -> None:
         """
         Log with persona prefix for major announcements.
-        
+
         Args:
             level: The severity level (INFO, SUCCESS, WARN, ERROR).
             msg: The message to log.
@@ -221,11 +220,11 @@ class SovereignHUD:
     def _get_width() -> int:
         """Dynamically calculates the optimal SovereignHUD width (40-120 range)."""
         try:
-            # [ALFRED] Attempt to get terminal size, fallback to 60
+            # [A.L.F.R.E.D.] Attempt to get terminal size, fallback to 60
             width = os.get_terminal_size().columns - 2
             return max(40, min(120, width))
         except (OSError, AttributeError):
-            # [ALFRED] Robust environment parsing
+            # [A.L.F.R.E.D.] Robust environment parsing
             val = os.environ.get("HUD_WIDTH", "60")
             try:
                 return max(10, int(val))
@@ -236,7 +235,7 @@ class SovereignHUD:
     def box_top(title: str = "", color: str | None = None, width: int | None = None) -> None:
         """
         Renders the top implementation of a box with a title.
-        
+
         Args:
             title: The text to display in the center header.
             color: Optional override for the main color.
@@ -266,7 +265,7 @@ class SovereignHUD:
     def box_row(label: str, value: Any, color: str | None = None, dim_label: bool = False, width: int | None = None) -> None:
         """
         Renders a row within a box.
-        
+
         Args:
             label: The key string (left side).
             value: The value string (right side).
@@ -339,7 +338,7 @@ class SovereignHUD:
     def progress_bar(val: float, width: int = 10) -> str:
         """
         Generates a progress bar string.
-        
+
         Args:
             val: Float between 0.0 and 1.0.
             width: Number of characters for the bar.
@@ -354,7 +353,7 @@ class SovereignHUD:
     def render_sparkline(data: list[float], max_points: int = 20) -> str:
         """
         Generates an ASCII Sparkline.
-        
+
         Args:
             data: List of float values.
             max_points: Maximum characters to render.
@@ -363,7 +362,7 @@ class SovereignHUD:
         if not data: return ""
 
         try:
-            # [ALFRED] Filter non-numeric to prevent crashes
+            # [A.L.F.R.E.D.] Filter non-numeric to prevent crashes
             visible = [float(x) for x in data[-max_points:] if isinstance(x, (int, float, str))]
             if not visible: return ""
 
@@ -401,7 +400,7 @@ class SovereignHUD:
     def warning(msg: str) -> None:
         """
         Shorthand for a yellow warning log.
-        
+
         Args:
             msg: The warning message as a string.
         """

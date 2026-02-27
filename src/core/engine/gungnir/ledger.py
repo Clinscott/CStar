@@ -10,7 +10,7 @@ Purpose: Maintain the accounts and records for the Gungnir Engine.
 The Butler's Ledger ensures the meticulous preservation of flight history.
 """
 
-def manage_ledger(ledger_path, target, decision, score, llr, observations):
+def manage_ledger(ledger_path, target, decision, score, llr, observations) -> None:
     # Initialize structure if ledger doesn't exist
     if not os.path.exists(ledger_path):
         data = {

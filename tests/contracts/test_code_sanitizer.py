@@ -48,7 +48,7 @@ class TestValidateSyntax:
         assert "Empty" in msg
 
     def test_none_code_fails(self):
-        ok, msg = validate_syntax(None)
+        ok, _msg = validate_syntax(None)
         assert ok is False
 
 

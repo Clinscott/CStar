@@ -49,10 +49,10 @@ def top_heavy_func():
         good_python = """
 def beautiful_function():
     data = extract_data()
-    
+
     if not data:
         return False
-        
+
     return process(data)
 """
         breaches = forge._verify_gungnir_calculus(good_python, '.py')

@@ -20,7 +20,7 @@ class TestSovereignEngineEmpire:
     @patch("src.core.sv_engine.SovereignVector")
     @patch("src.core.sv_engine.SovereignHUD")
     def test_init(self, mock_hud, mock_vector, mock_strat, mock_config):
-        engine = SovereignEngine(project_root=Path("dummy_root"))
+        SovereignEngine(project_root=Path("dummy_root"))
         mock_config.assert_called()
         mock_strat.assert_called()
 

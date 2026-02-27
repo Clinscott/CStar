@@ -11,7 +11,7 @@ from src.core.engine.memory_db import MemoryDB
 from src.core.sovereign_hud import SovereignHUD
 
 
-def bootstrap():
+def bootstrap() -> None:
     """
     [ODIN] Initializing Semantic Context.
     Scans the .agent/workflows directory and populates ChromaDB with workflow intents.

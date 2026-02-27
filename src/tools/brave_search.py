@@ -71,16 +71,16 @@ class BraveSearch:
     def search(self, query: str) -> list[dict[str, str]]:
         """
         Executes a Brave Search. Returns a list of result dictionaries.
-        
+
         Args:
             query: The search query.
-            
+
         Returns:
             A list of dictionaries, each containing:
                 - title (str): The page title.
                 - description (str): The snippet or description.
                 - url (str): The direct URL.
-        
+
         Enforces the 1,000 search/month limit and implements exponential backoff retries.
         """
         if not self.api_key:

@@ -6,7 +6,7 @@ from google import genai
 # Load .env.local explicitly
 load_dotenv(".env.local")
 
-def list_models():
+def list_models() -> None:
     api_key = os.getenv("GOOGLE_API_KEY")
     if not api_key:
         print("Error: GOOGLE_API_KEY not found in .env.local")

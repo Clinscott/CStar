@@ -50,10 +50,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         try:
             arg = sys.argv[1]
-            if "=" in arg:
-                n = int(arg.split("=")[1])
-            else:
-                n = int(arg)
+            n = int(arg.split("=")[1]) if "=" in arg else int(arg)
         except (ValueError, IndexError):
             print(f"{Fore.RED}Invalid N: {sys.argv[1]}. Defaulting to 1.")
 

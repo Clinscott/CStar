@@ -16,7 +16,7 @@ HOST = '127.0.0.1'
 PORT = int(os.getenv("CSTAR_DAEMON_PORT", 50051))
 KEY_FILE = project_root / ".agent" / "daemon.key"
 
-def ping_daemon(host=HOST, port=PORT, timeout=1.0):
+def ping_daemon(host=HOST, port=PORT, timeout=1.0) -> None:
     """
     Pre-flight check to verify the Cortex Daemon is online via websockets.
     Raises ConnectionError or TimeoutError if the daemon is unreachable.
@@ -24,7 +24,7 @@ def ping_daemon(host=HOST, port=PORT, timeout=1.0):
     uri = f"ws://{host}:{port}"
     try:
         # Just testing connection
-        with connect(uri, open_timeout=timeout) as ws:
+        with connect(uri, open_timeout=timeout):
             pass
     except (websockets.exceptions.WebSocketException, ConnectionRefusedError):
         raise ConnectionRefusedError("Connection refused")

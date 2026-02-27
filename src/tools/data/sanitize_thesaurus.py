@@ -11,16 +11,16 @@ from pathlib import Path
 def sanitize_clusters(clusters: dict[str, list[str]]) -> dict[str, set[str]]:
     """
     Inverts a cluster dictionary into a bidirectional synonym map.
-    
+
     Args:
         clusters: A dictionary mapping headwords to a list of synonyms.
-        
+
     Returns:
         An inverted dictionary mapping every word to its set of synonyms.
     """
     inverted: dict[str, set[str]] = {}
     for head, syns in clusters.items():
-        words = syns + [head]
+        words = [*syns, head]
         for w in set(words):
             w = w.lower().strip()
             if not w:
@@ -36,7 +36,7 @@ def sanitize_clusters(clusters: dict[str, list[str]]) -> dict[str, set[str]]:
 def write_thesaurus(clusters: dict[str, list[str]], output_path: Path) -> None:
     """
     Writes the sanitized clusters to a markdown file.
-    
+
     Args:
         clusters: The raw cluster dictionary.
         output_path: The file path to write to.
@@ -49,7 +49,7 @@ def write_thesaurus(clusters: dict[str, list[str]], output_path: Path) -> None:
         ""
     ]
     for w in sorted(inverted.keys()):
-        syns = sorted(list(inverted[w]))
+        syns = sorted(inverted[w])
         lines.append(f"- **{w}**: {', '.join(syns)}")
 
     output_path.write_text('\n'.join(lines), encoding='utf-8')

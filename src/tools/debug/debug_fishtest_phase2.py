@@ -15,10 +15,10 @@ from src.core.engine.vector import SovereignVector
 def run_debug_phase2(data_path: str = "fishtest_phase2_data.json") -> tuple[int, int]:
     """
     Runs the phase 2 fishtest diagnostic and returns results.
-    
+
     Args:
         data_path: Path to the phase 2 fishtest JSON data.
-        
+
     Returns:
         A tuple of (passed_count, total_count).
     """

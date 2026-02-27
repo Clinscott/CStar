@@ -23,7 +23,7 @@ class SovereignRPC:
     def __init__(self, root: Path):
         """
         Initializes the SovereignRPC.
-        
+
         Args:
             root (Path): The project root directory.
         """
@@ -45,10 +45,7 @@ class SovereignRPC:
             head_path = self.root / ".git" / "HEAD"
             if head_path.exists():
                 ref = head_path.read_text().strip()
-                if "ref: " in ref:
-                    git_branch = ref.split("/")[-1]
-                else:
-                    git_branch = ref[:7]
+                git_branch = ref.split("/")[-1] if "ref: " in ref else ref[:7]
         except:
             pass
 

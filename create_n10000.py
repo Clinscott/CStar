@@ -2,7 +2,7 @@ import json
 import random
 
 
-def generate_n10000(target_n=10000):
+def generate_n10000(target_n=10000) -> None:
     test_cases = []
 
     # 1. INTENT REGISTRY

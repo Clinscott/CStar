@@ -13,10 +13,10 @@ if str(project_root) not in sys.path:
 from src.core.report_engine import ReportEngine
 
 
-def benchmark(n=100):
+def benchmark(n=100) -> None:
     """
     Executes a performance trial of the sv_engine.py startup latency.
-    
+
     Args:
         n: The number of trials to execute for statistical significance.
     """

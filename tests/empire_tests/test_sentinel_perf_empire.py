@@ -23,7 +23,7 @@ def test_sentinel_perf_metrics():
         assert mock_instance.tokenize.call_count == 10
 
 def test_sentinel_perf_suite():
-    with mock.patch("src.tools.sentinel_perf.SovereignVector") as mock_vector:
+    with mock.patch("src.tools.sentinel_perf.SovereignVector"):
         perf = SentinelPerf(project_root=".")
         # Just ensure run_suite doesn't crash
         perf.run_suite()

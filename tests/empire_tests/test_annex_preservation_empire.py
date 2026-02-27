@@ -15,7 +15,7 @@ def test_annex_preservation_checkmarks(tmp_path):
     # 2. Run initial scan
     warden = HeimdallWarden(root)
     # Mock _should_ignore to ensure dummy_file is NOT ignored
-    warden._should_ignore = lambda p: False if p.name == "missing_test.py" else True
+    warden._should_ignore = lambda p: p.name != "missing_test.py"
 
     warden.scan()
     assert plan_path.exists()
@@ -30,7 +30,7 @@ def test_annex_preservation_checkmarks(tmp_path):
 
     # 4. Run scan again
     warden2 = HeimdallWarden(root)
-    warden2._should_ignore = lambda p: False if p.name == "missing_test.py" else True
+    warden2._should_ignore = lambda p: p.name != "missing_test.py"
     warden2.scan()
 
     # 5. Verify [x] is preserved

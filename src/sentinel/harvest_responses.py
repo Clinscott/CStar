@@ -65,7 +65,7 @@ class ResponseRecorder:
             })
             raise
 
-    def save(self, path: Path):
+    def save(self, path: Path) -> None:
         """Save all recordings to JSON."""
         path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, "w", encoding="utf-8") as f:
@@ -78,10 +78,10 @@ def harvest(cycles: int = 5):
     """
     [ODIN] Run N cycles of SovereignFish against CorvusStar with recording.
     Captures prompt/response pairs for offline verification and hardening.
-    
+
     Args:
         cycles: Number of autonomous learning cycles to trigger.
-        
+
     Returns:
         A list of captured response dictionaries.
     """

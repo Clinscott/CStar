@@ -1,3 +1,30 @@
+# Walkthrough: Session 96 - Mimir Remediation (Batch 3)
+
+## 🎯 Goal
+Refactor `src/core/engine/vector.py` and `src/games/odin_protocol/main.py` to reduce cyclomatic complexity below the 15 threshold, ensuring modularity and functional parity.
+
+## 🏆 Results
+| Metric | Value |
+| :--- | :--- |
+| **Complexity Reduction** | **Peak CC 27 -> 11** |
+| **UI Extraction** | **`ui.py` created (CC 1)** |
+| **Verification** | **100% Pass** (`test_mimir_batch_3.py`) |
+| **Linscott Alignment** | **100%** |
+
+## 🛠️ Key Changes
+- **Modularized Intent Resolution**: Broke down `SovereignVector` scoring and search into semantic helpers (`_calculate_lexical_evidence`, `_check_fast_path`, etc.).
+- **Odin UI Refactor**: Extracted 100+ lines of TUI/Manifest logic from `main.py` into `src/games/odin_protocol/ui.py`.
+- **Numeric Verification**: Hardened the verification suite to handle complex `UniverseState` attribute comparisons.
+
+## 🤝 Session Handshake
+**Session Delta**:
+- Achieved Grade A/B for target engine components.
+- Decoupled Odin Protocol UI from the primary game loop.
+- Established robust unit testing for the refactored logic.
+
+**Resume Directive**:
+- Proceed to Phase 82 in `tasks.qmd` (Smart Promotion Registry).
+
 # Walkthrough: Session 87 - Scaffold Campaign (Securing the ANNEX)
 
 ## 🎯 Goal

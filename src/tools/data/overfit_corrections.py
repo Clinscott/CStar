@@ -7,7 +7,7 @@ sys.path.append(os.path.join('.agent', 'scripts'))
 from sv_engine import SovereignVector
 
 
-def overfit():
+def overfit() -> None:
     # Initialize engine
     engine = SovereignVector(
         thesaurus_path='thesaurus.md',

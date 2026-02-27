@@ -28,7 +28,7 @@ def _slugify(text: str) -> str:
     text = re.sub(r'[^a-z0-9]+', '_', text)
     return text.strip('_')
 
-async def hunt_and_forge(query: str, skill_name: str = None):
+async def hunt_and_forge(query: str, skill_name: str | None = None) -> None:
     """
     Orchestrates the Hunt & Forge sequence.
     1. Hunt: Search Brave for technical context.
@@ -59,10 +59,10 @@ async def hunt_and_forge(query: str, skill_name: str = None):
     prompt = f"""
     Create a standalone Python skill for the Corvus Star (C*) framework.
     Task: {query}
-    
+
     Technical Context:
     {context_data}
-    
+
     Requirements:
     - Must be a self-contained Python script.
     - Must handle CLI arguments cleanly using argparse or sys.argv.
@@ -131,7 +131,7 @@ Acquired via Hunt & Forge Protocol.
     SovereignHUD.box_bottom()
     SovereignHUD.persona_log("ODIN", f"Dominion Expanded: Skill '{target_name}' is ready for jailed execution.")
 
-async def main():
+async def main() -> None:
     parser = argparse.ArgumentParser(description="Corvus Star Skill Acquisition Tool")
     parser.add_argument("query", help="What skill do you want to acquire?")
     parser.add_argument("--name", help="Optional name for the skill.")

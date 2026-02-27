@@ -11,6 +11,8 @@ import time
 
 # Resolve shared UI from src/core/
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "core"))
+import contextlib
+
 from src.core.sovereign_hud import SovereignHUD
 
 
@@ -42,12 +44,12 @@ class OverwatchRenderer:
     def __init__(self) -> None:
         self.latency_trend: list[float] = []
 
-    def render_header(self):
+    def render_header(self) -> None:
         print(f"\n{SovereignHUD.RED}{SovereignHUD.BOLD}Ω NEURAL OVERWATCH Ω{SovereignHUD.RESET}")
         print(f"{SovereignHUD.DIM}Monitoring Federated Network...{SovereignHUD.RESET}\n")
         SovereignHUD.log("INFO", "System Online", "Listening on mock_project/network_share")
 
-    def render_heatmap(self, threat_matrix: list[float]):
+    def render_heatmap(self, threat_matrix: list[float]) -> None:
         """Render a 5x5 sc-fi security heatmap."""
         print(f"\n{SovereignHUD.BOLD}SECURITY HEATMAP [HEIMDALL SCAN]{SovereignHUD.RESET}")
         for i in range(0, 25, 5):
@@ -61,14 +63,14 @@ class OverwatchRenderer:
         if val > 0.4: return f"{SovereignHUD.YELLOW}■{SovereignHUD.RESET}"
         return f"{SovereignHUD.GREEN}■{SovereignHUD.RESET}"
 
-    def render_pulse_logs(self, logs: list[str]):
+    def render_pulse_logs(self, logs: list[str]) -> None:
         """Render the 5 most recent neural pulse events."""
         print(f"\n{SovereignHUD.BOLD}NEURAL PULSE LOGS [LATEST INTENTS]{SovereignHUD.RESET}")
         for log in logs[-5:]:
             print(f"  {SovereignHUD.DIM}»{SovereignHUD.RESET} {SovereignHUD.CYAN}{log}{SovereignHUD.RESET}")
         if not logs: print(f"  {SovereignHUD.DIM}(Waiting for signal...){SovereignHUD.RESET}")
 
-    def update_latency(self, lat: float):
+    def update_latency(self, lat: float) -> None:
         self.latency_trend.append(lat)
         if len(self.latency_trend) > 20: self.latency_trend.pop(0)
         status = "PASS" if lat < 100 else "WARN"
@@ -91,7 +93,7 @@ class Overwatch:
         self.last_stats = self.collector.collect()
         self.pulse = 0
 
-    def run(self):
+    def run(self) -> None:
         self.renderer.render_header()
         # Initial scan
         threats = self._update_heatmap()
@@ -114,7 +116,7 @@ class Overwatch:
             except Exception as e:
                 SovereignHUD.log("FAIL", f"Monitor Error: {str(e)[:40]}"); time.sleep(5)
 
-    def _handle_input(self):
+    def _handle_input(self) -> None:
         cmd = InputManager.poll()
         if not cmd: return
         if cmd == 'q': SovereignHUD.log("INFO", "Overwatch Shutdown"); sys.exit(0)
@@ -126,7 +128,7 @@ class Overwatch:
                 with open(rej_path, 'w', encoding='utf-8') as f: f.write("# Rejection Ledger\n\n")
                 SovereignHUD.log("WARN", "Rejection Ledger Purged")
 
-    def _check_delta(self):
+    def _check_delta(self) -> None:
         curr = self.collector.collect()
         if curr["cases"] > self.last_stats["cases"]:
             SovereignHUD.log("PASS", f"Ingested {curr['cases'] - self.last_stats['cases']} new traces", f"(Total: {curr['cases']})")
@@ -136,12 +138,11 @@ class Overwatch:
             SovereignHUD.log("CRITICAL", "New War Zone Detected")
         self.last_stats = curr
 
-    def _measure_latency(self):
+    def _measure_latency(self) -> None:
         l_script = os.path.join(self.base, "scripts", "latency_check.py")
         res = subprocess.run([sys.executable, l_script, "3"], capture_output=True, text=True)
         if res.returncode == 0:
-            try: self.renderer.update_latency(float(res.stdout.strip()))
-            except (ValueError, TypeError): pass
+            with contextlib.suppress(ValueError, TypeError): self.renderer.update_latency(float(res.stdout.strip()))
 
     def _update_heatmap(self) -> list[float]:
         """[ODIN] Scan core scripts for vulnerabilities to populate matrix."""

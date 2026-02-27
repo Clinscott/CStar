@@ -28,7 +28,7 @@ class SandboxWarden:
             SovereignHUD.persona_log("WARN", "Docker CLI not found. Physical isolation will be simulated.")
             self.docker_available = False
 
-    def run_in_sandbox(self, file_path: Path, args: list[str] = None, hunting: bool = False) -> dict:
+    def run_in_sandbox(self, file_path: Path, args: list[str] | None = None, hunting: bool = False) -> dict:
         """
         Executes a Python script in a transient, isolated Docker container.
         """

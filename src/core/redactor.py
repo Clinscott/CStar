@@ -20,7 +20,7 @@ class Redactor:
             cls._instance._initialize()
         return cls._instance
 
-    def _initialize(self):
+    def _initialize(self) -> None:
         """Loads secrets from the Vault and prepares regex patterns."""
         try:
             vault = SovereignVault()

@@ -1,3 +1,4 @@
+import contextlib
 import json
 
 from scripts.scout_targets import scout
@@ -14,10 +15,8 @@ def test_scout_generates_queue(tmp_path, monkeypatch):
 
     # Run scout (it might fail on actual scans if dependencies aren't mocked,
     # but we check if it produces the output file)
-    try:
+    with contextlib.suppress(Exception):
         scout()
-    except Exception:
-        pass
 
     queue_path = tmp_path / "breaches_queue.json"
     assert queue_path.exists()

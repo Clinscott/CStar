@@ -77,7 +77,7 @@ class Heimdall:
 
     def scan_for_orphans(self, filepath: Path) -> list[dict[str, Any]]:
         """AST-based scan for top-level functions (orphans)."""
-        if not filepath.suffix == ".py" or not filepath.is_file():
+        if filepath.suffix != ".py" or not filepath.is_file():
             return []
 
         violations = []

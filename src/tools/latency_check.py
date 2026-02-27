@@ -5,6 +5,7 @@ Measures Sovereign Engine search and startup performance metrics.
 Encapsulated for the Linscott Standard.
 """
 
+import contextlib
 import os
 import subprocess
 import sys
@@ -27,7 +28,7 @@ class LatencyProfiler:
     def measure_startup(self) -> float:
         """
         Runs the engine multiple times to calculate average latency.
-        
+
         Returns:
             Average startup latency in milliseconds.
         """
@@ -58,7 +59,7 @@ class LatencyProfiler:
     def measure_search(self, query: str = "check logs") -> float:
         """
         Measures the raw search latency of the engine.
-        
+
         Returns:
             Average search latency in milliseconds.
         """
@@ -87,10 +88,8 @@ def main() -> None:
     """Entry point for command line profiling."""
     iterations = 5
     if len(sys.argv) > 1:
-        try:
+        with contextlib.suppress(ValueError):
             iterations = int(sys.argv[1])
-        except ValueError:
-            pass
 
     profiler = LatencyProfiler(iterations=iterations)
     avg_startup = profiler.measure_startup()

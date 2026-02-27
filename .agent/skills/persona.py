@@ -18,5 +18,5 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # Pass along arguments
-    result = subprocess.run([sys.executable, str(script_path)] + sys.argv[1:])
+    result = subprocess.run([sys.executable, str(script_path), *sys.argv[1:]])
     sys.exit(result.returncode)

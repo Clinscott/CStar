@@ -32,7 +32,7 @@ new_lines = [
 ]
 
 for w in sorted(inverted.keys()):
-    syns = sorted(list(inverted[w]))
+    syns = sorted(inverted[w])
     new_lines.append(f"- **{w}**: {', '.join(syns)}")
 
 with open(path, 'w', encoding='utf-8') as f:

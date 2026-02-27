@@ -14,7 +14,7 @@ from src.core.engine.vector import SovereignVector
 from src.core.sovereign_hud import SovereignHUD
 
 
-def audit_manor_skills(threshold: float = 0.85):
+def audit_manor_skills(threshold: float = 0.85) -> int:
     """
     Performs an All-vs-All semantic audit of skill activation words.
     """
@@ -29,7 +29,6 @@ def audit_manor_skills(threshold: float = 0.85):
     skill_definitions = engine.memory_db.search_intent("system", "", n_results=1000)
 
     collisions = []
-    processed_pairs = set()
 
     for i, s1 in enumerate(skill_definitions):
         for j, s2 in enumerate(skill_definitions):

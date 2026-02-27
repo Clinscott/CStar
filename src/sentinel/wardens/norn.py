@@ -63,7 +63,7 @@ class NornWarden(BaseWarden):
                 return target
         return None
 
-    def mark_complete(self, target: dict[str, Any]):
+    def mark_complete(self, target: dict[str, Any]) -> None:
         """
         Marks the action as complete by switching '[ ]' to '[x]'.
         """

@@ -19,7 +19,7 @@ class DialogueEngine:
     def __init__(self, phrases_path: str | Path | None) -> None:
         """
         Initializes the dialogue engine.
-        
+
         Args:
             phrases_path: Path to the phrases.yaml database.
         """
@@ -41,11 +41,11 @@ class DialogueEngine:
     def _score_candidate(self, entry: dict[str, Any], context: dict[str, Any]) -> int:
         """
         Helper to score a single dialogue candidate based on context.
-        
+
         Args:
             entry: A dictionary containing the phrase and its tags.
             context: Contextual parameters for scoring.
-            
+
         Returns:
             An integer score.
         """
@@ -74,10 +74,10 @@ class DialogueEngine:
     def _select_final_phrase(self, scored_candidates: list[tuple[int, str]]) -> str:
         """
         Helper to resolve top candidates and handle history to avoid repetition.
-        
+
         Args:
             scored_candidates: List of (score, phrase) tuples.
-            
+
         Returns:
             The selected phrase string.
         """
@@ -98,12 +98,12 @@ class DialogueEngine:
     def get(self, persona: str, intent: str, context: dict[str, Any] | None = None) -> str:
         """
         Retrieves a contextually scored phrase for a persona and intent.
-        
+
         Args:
             persona: Active persona (ODIN/ALFRED).
             intent: Dialogue intent (e.g., GREETING).
             context: Optional scoring context.
-            
+
         Returns:
             The selected phrase string.
         """

@@ -14,10 +14,10 @@ from src.core.engine.vector import SovereignVector
 def run_debug_fishtest(data_path: str = "fishtest_data.json") -> tuple[int, int]:
     """
     Runs the fishtest diagnostic and returns the pass count and total count.
-    
+
     Args:
         data_path: Path to the fishtest JSON data.
-        
+
     Returns:
         A tuple of (passed_count, total_count).
     """

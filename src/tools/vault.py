@@ -29,7 +29,7 @@ class SovereignVault:
         self.vault_dir.mkdir(parents=True, exist_ok=True)
         self._ensure_master_key()
 
-    def _ensure_master_key(self):
+    def _ensure_master_key(self) -> None:
         """Generates a master key if one does not exist."""
         if not self.key_file.exists():
             SovereignHUD.persona_log("INFO", "Master Key missing. Generating new entropy...")
@@ -38,7 +38,7 @@ class SovereignVault:
             SovereignHUD.persona_log("SUCCESS", "Master Key forged.")
         self.cipher = Fernet(self.key_file.read_bytes())
 
-    def shield(self):
+    def shield(self) -> None:
         """Encrypts .env.local into a vault artifact."""
         if not self.env_local.exists():
             SovereignHUD.persona_log("WARN", ".env.local not found. Nothing to shield.")
@@ -62,7 +62,7 @@ class SovereignVault:
         except Exception as e:
             SovereignHUD.persona_log("FAIL", f"Shielding failed: {e}")
 
-    def rotate(self):
+    def rotate(self) -> None:
         """Rotates the master key and re-encrypts all secrets."""
         SovereignHUD.persona_log("WARN", "Initiating Master Key Rotation Ceremony...")
         old_cipher = self.cipher
@@ -95,7 +95,7 @@ class SovereignVault:
                         secrets[key.strip()] = val
         return secrets
 
-def main():
+def main() -> None:
     vault = SovereignVault()
     if len(sys.argv) < 2:
         print("Usage: cstar vault [shield|rotate|status]")

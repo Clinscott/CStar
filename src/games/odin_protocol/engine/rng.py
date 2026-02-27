@@ -24,7 +24,7 @@ class TacticalRNG:
     def uniform(a: float, b: float) -> float:
         """
         Returns a random float N such that a <= N <= b.
-        
+
         Args:
             a: Lower bound.
             b: Upper bound.
@@ -35,7 +35,7 @@ class TacticalRNG:
     def choice(seq: Sequence[T]) -> T:
         """
         Choose a random element from a non-empty sequence.
-        
+
         Args:
             seq: A sequence of elements.
         """
@@ -45,7 +45,7 @@ class TacticalRNG:
     def randint(a: int, b: int) -> int:
         """
         Return a random integer in range [a, b], including both end points.
-        
+
         Args:
             a: Lower bound.
             b: Upper bound.
@@ -56,7 +56,7 @@ class TacticalRNG:
     def secure_choice(seq: Sequence[T]) -> T:
         """
         Cryptographically secure choice from a sequence.
-        
+
         Args:
             seq: A sequence of elements.
         """

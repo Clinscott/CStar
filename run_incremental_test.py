@@ -2,7 +2,7 @@ import subprocess
 import sys
 
 
-def run_incremental():
+def run_incremental() -> None:
     N = 100
     while N <= 1000:
         print(f"--- Running Iteration N={N} ---")

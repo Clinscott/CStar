@@ -46,11 +46,11 @@ def top_heavy():
 def beautiful_function():
     # Setup
     data = {"v": 1}
-    
+
     # Execution Breathes
     if not data:
         return None
-        
+
     return data.get("v")
 """
         py_file = tmp_path / "beautiful.py"

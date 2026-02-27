@@ -90,7 +90,7 @@ class GitHelper:
     def run(self, args: list[str]) -> tuple[bool, str]:
         try:
             res = subprocess.run(
-                ["git"] + args,
+                ["git", *args],
                 cwd=self.path,
                 capture_output=True,
                 text=True,
@@ -286,7 +286,7 @@ class Synapse:
         """
         [ALFRED] Pushes local knowledge increments to the Knowledge Core.
         Includes authentication handshake, rate limiting, and Git-based export.
-        
+
         Args:
             dry_run: If True, simulates the harvest without performing the push.
         """

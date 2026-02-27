@@ -29,9 +29,7 @@ class TestProjectMetricsEngine(unittest.TestCase):
 
         # Mock file existence: weights.json -> False (use defaults), others -> True
         def exists_side_effect(path):
-            if "weights.json" in str(path):
-                return False
-            return True
+            return "weights.json" not in str(path)
         mock_exists.side_effect = exists_side_effect
 
         # Mock file read: return dummy content for muninn.py

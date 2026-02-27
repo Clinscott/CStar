@@ -1,4 +1,5 @@
 """Shared fixtures for sentinel tests."""
+import contextlib
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock
@@ -73,10 +74,8 @@ def isolate_warden_state():
     def _cleanup():
         for f in warden_files:
             if f.exists():
-                try:
+                with contextlib.suppress(OSError):
                     f.unlink()
-                except OSError:
-                    pass
 
     _cleanup()
     yield
@@ -87,8 +86,8 @@ def isolate_warden_state():
 def reset_hud_singleton():
     """
     [ALFRED] Multi-targeted reset of the SovereignHUD singleton class.
-    Identifies all instances of SovereignHUD in sys.modules (both src.core.sovereign_hud 
-    and the raw ui import) and scrubs them to prevent cross-test 
+    Identifies all instances of SovereignHUD in sys.modules (both src.core.sovereign_hud
+    and the raw ui import) and scrubs them to prevent cross-test
     contamination.
     """
     import sys

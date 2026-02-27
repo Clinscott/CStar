@@ -12,11 +12,11 @@ import os
 class SovereignVector:
     def __init__(self, *args, **kwargs):
         # Successful initialization and pre-loaded trigger map
-        self.trigger_map = {'start': [{'skill': 'catalog', 'weight': 0.9}]} 
+        self.trigger_map = {'start': [{'skill': 'catalog', 'weight': 0.9}]}
 
     def load_core_skills(self):
         pass
-        
+
     def build_index(self):
         pass
 
@@ -130,7 +130,7 @@ def test_handling_of_no_results_path_implicit_check(setup_environment):
     # WHEN a known non-indexed query is hypothetically searched
     # (Achieved by setting environment variable SEARCH_FAIL=1)
     env_overrides = {'SEARCH_FAIL': '1'}
-    stdout, stderr, exit_code = run_script(script_path, cwd=tmp_path, env_overrides=env_overrides)
+    stdout, _stderr, exit_code = run_script(script_path, cwd=tmp_path, env_overrides=env_overrides)
 
     # THEN the conditional logic ensures that if no results are found,
     # the message "No results found." is printed

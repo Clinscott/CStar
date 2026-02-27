@@ -48,7 +48,7 @@ def migrate_file(md_path: Path, dry_run=False) -> tuple[bool, str]:
     except Exception as e:
         return False, f"EXCEPTION: {md_path.name} - {e!s}"
 
-def main():
+def main() -> None:
     dry_run = "--dry-run" in sys.argv
     md_files = list(PROJECT_ROOT.rglob("*.md"))
 

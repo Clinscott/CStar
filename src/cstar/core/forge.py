@@ -312,7 +312,7 @@ class Forge:
         # Return whatever we have on final attempt if still breaches
         return {"status": "success", "data": {"code": new_code}, "warnings": breaches}
 
-    def _pulse_warden(self, start_time, attempt, errors):
+    def _pulse_warden(self, start_time, attempt, errors) -> None:
         """Intra-loop sensory pulse."""
         if not self.warden:
             return

@@ -14,6 +14,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
+import contextlib
+
 from src.core.sovereign_hud import SovereignHUD
 
 # We will use AntigravityUplink for the "Act" phase
@@ -91,7 +93,6 @@ class SovereignForge:
         """
         # Simulation Logic for Activation Phase
         # If we can't really call LLM, we default to a safe scratch file for testing the loop.
-        prompt = f"Identify target for: {task}"
 
         # Try simplistic extraction
         if "(Target: " in task:
@@ -156,7 +157,7 @@ class SovereignForge:
         """
         Runs the Gungnir Gate (Ruff + Pytest).
         """
-        wrapper = SovereignWrapper() # Initializes at root
+        SovereignWrapper() # Initializes at root
         # We need to suppress sys.exit in wrapper or catch it
         try:
             # We'll reimplement specific checks to avoid wrapper's sys.exit(1)
@@ -170,30 +171,26 @@ class SovereignForge:
             if res_lint.returncode != 0: return False
 
             res_test = subprocess.run([sys.executable, "-m", "pytest"], cwd=str(self.root), capture_output=True)
-            if res_test.returncode != 0: return False
-
-            return True
+            return res_test.returncode == 0
         except Exception:
             return False
 
-    def _backup(self, target: Path):
-        try:
+    def _backup(self, target: Path) -> None:
+        with contextlib.suppress(OSError):
             shutil.copy(target, target.with_suffix(target.suffix + ".bak"))
-        except OSError:
-            pass
 
-    def _rollback(self, target: Path):
+    def _rollback(self, target: Path) -> None:
         bak = target.with_suffix(target.suffix + ".bak")
         if bak.exists():
             shutil.move(bak, target)
 
-    def _cleanup_backup(self, target: Path):
+    def _cleanup_backup(self, target: Path) -> None:
         bak = target.with_suffix(target.suffix + ".bak")
         if bak.exists():
             os.remove(bak)
 
 
-def sovereign_lifecycle():
+def sovereign_lifecycle() -> None:
     """
     The Main Loop.
     Observe -> Orient -> Act -> Verify -> Finalize -> Handshake.

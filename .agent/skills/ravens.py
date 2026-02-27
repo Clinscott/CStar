@@ -32,7 +32,7 @@ def _get_running_pids():
     except Exception:
         return []
 
-def check_status():
+def check_status() -> None:
     """Checks the status of the Gungnir Spear."""
     SovereignHUD.log("INFO", "Scanning the Roost...")
     pids = _get_running_pids()
@@ -60,7 +60,7 @@ def check_status():
         SovereignHUD.log("WARN", "THE RAVENS ARE GROUNDED")
         SovereignHUD.log("FAIL", "THE REALM IS UNPROTECTED", "(Gungnir Calculus not found)")
 
-def recall_ravens():
+def recall_ravens() -> None:
     """Recalls the Ravens (terminates the daemon)."""
     SovereignHUD.log("INFO", "Initiating START-9 (Nuclear Termination)...")
     try:
@@ -87,7 +87,7 @@ def recall_ravens():
     except Exception as e:
         SovereignHUD.log("FAIL", f"Termination Protocol Failed: {e}")
 
-def release_ravens():
+def release_ravens() -> None:
     """Releases the Ravens in a new window."""
     # Check if already running
     pids = _get_running_pids()
@@ -112,7 +112,7 @@ def release_ravens():
     except Exception as e:
         SovereignHUD.log("FAIL", f"Deployment Failed: {e}")
 
-def learn(n_cycles=1):
+def learn(n_cycles=1) -> None:
     """Starts the Sovereign Test Harness Cycle."""
     SovereignHUD.log("INFO", f"Initiating {n_cycles} Cycle(s) of Manual Learning...")
     try:
@@ -126,7 +126,7 @@ def learn(n_cycles=1):
     except Exception as e:
         SovereignHUD.log("FAIL", f"Failed to start manual learn: {e}")
 
-def main():
+def main() -> None:
     args = sys.argv[1:]
     if "-status" in args:
         check_status()

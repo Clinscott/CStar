@@ -18,6 +18,8 @@ try:
 except ModuleNotFoundError:
     yaml = None
 
+import contextlib
+
 from textual import work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -61,7 +63,7 @@ LORE: dict[str, dict[str, str]] = {
     "ALFRED": {
         "app_title": "C* A.L.F.R.E.D. DASHBOARD",
         "theme_class": "theme-alfred",
-        "prompt": "[ALFRED] >",
+        "prompt": "[A.L.F.R.E.D] >",
         "header_title": "DASHBOARD SYSTEMS",
         "sidebar_title": "EVALUATION LOG",
         "trace_title": "EVENT LOG",
@@ -376,12 +378,10 @@ class SovereignApp(App):
 
     def _send_command(self, payload: dict) -> None:
         @work(thread=True)
-        def _send():
+        def _send() -> None:
             if getattr(self, "ws", None):
-                try:
+                with contextlib.suppress(Exception):
                     self.ws.send(json.dumps(payload))
-                except Exception:
-                    pass
         _send()
 
     def handle_daemon_message(self, data: dict) -> None:
@@ -431,7 +431,7 @@ class SovereignApp(App):
                         self.trigger_crt_glitch("ODIN")
 
                 elif event == "STATE_ALFRED_THINKING":
-                    console.write("[dim][ALFRED] processing...[/dim]")
+                    console.write("[dim][A.L.F.R.E.D.] processing...[/dim]")
 
                 elif event == "STATE_SYSTEM_LOCKED":
                     pass # Handled gracefully implicitly
@@ -451,7 +451,7 @@ class SovereignApp(App):
 
                 if status == "uplink_success":
                     text = payload.get("text", str(payload))
-                    console.write(f"\n[ALFRED_REPORT]\n{text}\n")
+                    console.write(f"\n[A.L.F.R.E.D._REPORT]\n{text}\n")
                 elif status == "error":
                     terminal_event = True
                     error_status = 1.0

@@ -32,7 +32,7 @@ class TestWarlord_contracts(unittest.TestCase):
     def test_transition(self):
 
         # We need to mock 'json.dump' to verify saving
-        with patch('json.dump') as mock_json_dump, \
+        with patch('json.dump'), \
              patch('random.random') as mock_random_roll, \
              patch('random.uniform') as mock_random_uniform, \
              patch('random.choice') as mock_random_choice:

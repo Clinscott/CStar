@@ -2,8 +2,7 @@ import json
 import random
 
 
-def generate_cases(n=100, min_score=0.80):
-    test_cases = []
+def generate_cases(n=100, min_score=0.80) -> None:
 
     intents = {
         "/lets-go": {

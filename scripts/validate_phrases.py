@@ -7,13 +7,13 @@ import yaml
 def validate_persona_phrases(file_path: str | Path) -> bool:
     """
     Validates the persona phrase bank for state-aware routing.
-    
+
     Checks for required keywords in specific intents (e.g., ODIN's TASK_FAILED)
     and ensures all phrases have associated tags.
-    
+
     Args:
         file_path: Path to the phrases.yaml file.
-        
+
     Returns:
         True if the phrase bank is valid, False otherwise.
     """
