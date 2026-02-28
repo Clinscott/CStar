@@ -4,6 +4,7 @@ import re
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 from src.core.sovereign_hud import SovereignHUD
 
@@ -34,7 +35,8 @@ def _verify_integrity(quarantine_zone):
     return False, "Missing/empty SKILL metadata (.qmd or .md)"
 
 def _run_security_scan(quarantine_zone):
-    scanner = os.path.join(os.path.dirname(__file__), "security_scan.py")
+    framework_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    scanner = os.path.join(framework_root, "src", "tools", "security_scan.py")
     if not os.path.exists(scanner): return -1, "Scanner missing"
 
     threat = 0
@@ -99,15 +101,20 @@ def install_skill(skill_name, target_root=None) -> None:
     name = _sanitize_skill_name(skill_name)
     base = target_root or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     config, err = _get_config(base)
+    
+    # Access nested system config
+    framework_root = config.get("system", {}).get("framework_root") if config else None
 
-    if not name or err or not config.get("FrameworkRoot"):
-        SovereignHUD.log("FAIL", "Pre-install Check", err or "Invalid Name"); return
+    if not name or err or not framework_root:
+        SovereignHUD.log("FAIL", "Pre-install Check", err or "Invalid Name/Root"); return
 
-    src, qua, dst = _setup_install_paths(base, config, name)
+    src = os.path.join(framework_root, "skills_db", name)
+    qua = os.path.join(base, "quarantine", name)
+    dst = os.path.join(base, "skills", name)
 
     # Path Validation
     paths_to_validate = [(src, src), (base, qua), (base, dst)]
-    if not all(_validate_path(base if "db" not in p[0] else config["FrameworkRoot"], p[1]) for p in paths_to_validate):
+    if not all(_validate_path(base if "db" not in p[0] else framework_root, p[1]) for p in paths_to_validate):
         SovereignHUD.log("CRITICAL", "Path Violation"); return
 
     if os.path.exists(dst):

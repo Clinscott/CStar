@@ -16,6 +16,11 @@ The decision-making brain of Corvus Star.
     - `_shadow_search(query)`: TF-IDF lexical search (Modularized).
     - `_get_top_domain(query)`: Contextual domain routing.
 
+## 2026-02-28: Session 99 (Operation PennyOne: Path Sovereignty)
+- **Path Sovereignty**: `PathRegistry.ts` now uses `import.meta.dirname` to ascend the directory tree and cache the project root, replacing brittle `process.cwd()` calls across the PennyOne matrix.
+- **Enhanced Intelligence**: Upgraded the `IntelProvider` tier (`GeminiProvider` and `MockProvider`) to extract multi-sentence architectural intents, deepening the analytical context gathered during scans.
+- **TypeScript Surveillance**: The `investigate.md` workflow now explicitly executes `js_sentinel.ts`, granting equal audit coverage to TypeScript artifacts.
+
 ## 2026-02-27: Session 96 (Mimir Remediation: Batch 3)
 - **Modularized Intent Resolution**: Refactored `vector.py` into semantic helper methods (`_check_fast_path`, `_get_top_domain`, `_calculate_lexical_evidence`), reducing maximum cyclomatic complexity from 27 to 11.
 - **O.D.I.N. UI Decoupling**: Extracted all TUI and manifest rendering logic from `src/games/odin_protocol/main.py` into a new `ui.py` module. This provides a clean separation between game logic and visual presentation, reducing `main.py` complexity.

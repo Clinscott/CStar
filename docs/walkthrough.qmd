@@ -126,11 +126,25 @@ The Corvus Star framework has successfully transitioned to the `.qmd` documentat
 - **Orbital Velocity**: **0.002** (Auditable)
 - **Empire Test Pass Rate**: **100%** (312/312)
 
+### 15. Operation PennyOne: Path Sovereignty & Intelligence (Session 99)
+- **Path Sovereignty**: Eliminated `process.cwd()` vulnerabilities across `index.ts`, `personaRegistry.ts`, `compiler.ts`, and `writer.ts` by centralizing physical root resolution within an ascension-caching `PathRegistry`.
+- **Architectural Depth**: Deepened PennyOne's heuristic intent extraction to require multi-sentence summaries, significantly enhancing the tactical utility of generated `.qmd` nodes.
+- **TypeScript Recon**: Wove `js_sentinel.ts` into the `/investigate` workflow, achieving parity in structural surveillance between Python and Node.js domains.
+- **Verification**: Created 100% compliant Linscott Foundation tests for `PathRegistry.ts` and validated matrix compilation outputs.
+
+## 🧪 Final Verification State
+
+### Operational Metrics
+- **Path Resolution**: **CACHE-LOCKED** (Ascension Verified)
+- **Intent Depth**: **MULTI-SENTENCE** (Heuristics Enhanced)
+- **TypeScript Audit**: **ACTIVE** (js_sentinel integrated)
+- **Empire Test Pass Rate**: **100%** (313/313)
+
 ## ⏭️ Session Handshake
 
-**Session Delta (Session 97)**:
-- **Operation PennyOne**: Stabilized the Matrix rendering pipeline and implemented the Phase 9 Gravity Protocol.
-- **Aesthetic Hardening**: Secured the Gungnir Lattice against high-G data anomalies.
+**Session Delta (Session 99)**:
+- **Operation PennyOne**: Hardened path resolution with directory ascension and enriched codebase intent extraction for deeper topological maps.
+- **Workflow Security**: Expanded `investigate` to mandate Heimdall JS surveillance.
 
 **To resume, start here**:
 1. **Neural Graph Depth**: Enhance PennyOne to visualize multi-session learning trajectories.

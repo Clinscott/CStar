@@ -6,7 +6,7 @@ complexity: 1
 logic_score: 8.75
 style_score: 9.42
 intel_score: 7.00
-overall_score: 8.39
+overall_score: 7.16
 ---
 
 ## Intent
@@ -23,9 +23,12 @@ A functional component of the Corvus Star static analysis matrix.
 ## Neural Pathways
 
 ### Imports
-- [*](file://fastify)
+- [FastifyInstance](file://fastify)
+- [FastifyPluginAsync](file://fastify)
 - [*](file://fastify-plugin)
-- [*](file://../../core/CorvusProcess.js)
+- [CorvusProcess](file://../../core/CorvusProcess.js)
 
 ### Exports
-Internal logic only.
+- `corvusPlugin`
+- `corvus`
+- `fp`

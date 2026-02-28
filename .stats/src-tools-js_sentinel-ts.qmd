@@ -6,7 +6,7 @@ complexity: 8
 logic_score: 5.40
 style_score: 3.92
 intel_score: 2.23
-overall_score: 3.85
+overall_score: 2.62
 ---
 
 ## Intent
@@ -30,5 +30,21 @@ A functional component of the Corvus Star static analysis matrix.
 - [fileURLToPath](file://node:url)
 
 ### Exports
+- `__filename`
+- `__dirname`
+- `PROJECT_ROOT`
+- `CONFIG_PATH`
 - `getActivePersona`
+- `configData`
+- `config`
+- `TEXT_MAP`
 - `runSentinel`
+- `persona`
+- `text`
+- `execa`
+- `results`
+- `totalViolations`
+- `violations`
+- `color`
+- `loc`
+- `target`

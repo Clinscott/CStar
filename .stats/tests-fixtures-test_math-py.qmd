@@ -6,7 +6,7 @@ complexity: 9
 logic_score: 5.50
 style_score: 4.01
 intel_score: 1.40
-overall_score: 3.64
+overall_score: 2.41
 ---
 
 ## Intent

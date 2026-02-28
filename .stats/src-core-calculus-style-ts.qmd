@@ -6,7 +6,7 @@ complexity: 4
 logic_score: 6.80
 style_score: 9.41
 intel_score: 10.00
-overall_score: 8.74
+overall_score: 7.51
 ---
 
 ## Intent
@@ -27,3 +27,13 @@ Minimal internal dependencies.
 
 ### Exports
 - `calculateStyleScore`
+- `calculateStyleScore`
+- `elements`
+- `arbitraryValues`
+- `lines`
+- `claustrophobicCount`
+- `consecutiveLogic`
+- `utilitySymmetry`
+- `order`
+- `complexity`
+- `measure`

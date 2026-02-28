@@ -6,7 +6,7 @@ complexity: 7
 logic_score: 6.65
 style_score: 3.95
 intel_score: 6.65
-overall_score: 5.75
+overall_score: 4.52
 ---
 
 ## Intent
@@ -27,6 +27,19 @@ Orchestrates Babel AST parsing for the static analysis engine.
 - [*](file://path)
 
 ### Exports
+- `TreeSitter`
+- `isInitialized`
+- `parsers`
+- `initParsers`
 - `initParsers`
 - `getParser`
+- `getParser`
+- `ext`
+- `langPath`
+- `languageName`
+- `fullWasmPath`
+- `lang`
+- `parser`
 - `parseCode`
+- `parseCode`
+- `getParser`

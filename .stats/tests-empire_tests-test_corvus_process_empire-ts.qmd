@@ -6,7 +6,7 @@ complexity: 6
 logic_score: 5.65
 style_score: 4.06
 intel_score: 3.70
-overall_score: 4.47
+overall_score: 3.24
 ---
 
 ## Intent
@@ -23,12 +23,24 @@ A functional component of the Corvus Star static analysis matrix.
 ## Neural Pathways
 
 ### Imports
-- [*](file://node:test)
+- [describe](file://node:test)
+- [it](file://node:test)
+- [beforeEach](file://node:test)
+- [afterEach](file://node:test)
 - [*](file://node:assert)
-- [*](file://../../src/node/core/CorvusProcess.js)
-- [*](file://child_process)
-- [*](file://events)
-- [*](file://stream)
+- [CorvusProcess](file://../../src/node/core/CorvusProcess.js)
+- [spawn](file://child_process)
+- [EventEmitter](file://events)
+- [PassThrough](file://stream)
 
 ### Exports
-Internal logic only.
+- `cp`
+- `stdout`
+- `stderr`
+- `mockChild`
+- `stdout`
+- `stderr`
+- `mockChild`
+- `stdout`
+- `stderr`
+- `mockChild`

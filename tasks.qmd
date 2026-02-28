@@ -476,7 +476,13 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Global Constant Replacement**: Removed static `[ODIN]` and `[ALFRED]` string references across Python and TypeScript modules.
 - [x] **Verification**: Patched 5 `test_muninn_naming_empire.py` assertion errors and achieved 100% (328/328) test stability.
 
-## ⏭️ Start Here Next (Phase 83)
+### 83. Operation PennyOne: Path Sovereignty & Intelligence (Session 99)
+- [x] **Path Sovereignty**: Implemented directory ascension caching (`import.meta.dirname`) in `PathRegistry` to enforce project root consistency and eliminate `process.cwd()` vulnerabilities.
+- [x] **Intelligence Gathering**: Enhanced LLM prompts and `MockProvider` heuristics to generate comprehensive, multi-sentence architectural summaries for codebase intents.
+- [x] **TypeScript Surveillance**: Injected `js_sentinel.ts` execution into the structural integrity node of the `/investigate` workflow.
+- [x] **Verification**: Created `test_pathRegistry.ts` and achieved 100% pass on TDD and execution validation (Linscott Standard).
+
+## ⏭️ Start Here Next (Phase 84)
 - [ ] **Neural Graph Depth**: Enhance PennyOne to visualize multi-session learning trajectories.
 - [ ] **Adaptive Campaigning**: Implement turn-based campaign updates in O.D.I.N. Protocol based on Agent session successes.
 

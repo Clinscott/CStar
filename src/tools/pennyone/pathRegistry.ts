@@ -1,5 +1,7 @@
 import path from 'path';
 
+import fs from 'fs';
+
 /**
  * Operation PennyOne: Centralized Path Registry
  * Purpose: Eliminate path hallucination and ensure consistent normalization across the codebase.
@@ -9,7 +11,46 @@ export class PathRegistry {
     private root: string;
 
     private constructor() {
-        this.root = process.cwd().replace(/\\/g, '/');
+        this.root = this.findProjectRoot();
+    }
+
+    /**
+     * Ascend the directory tree using ESM import.meta.dirname to locate the true project root.
+     * Guaranteed to only run once per instantiation (The Ascension Cache).
+     */
+    private findProjectRoot(): string {
+        try {
+            let currentDir = import.meta.dirname;
+            if (process.platform === 'win32' && currentDir.startsWith('/')) {
+                currentDir = currentDir.slice(1);
+            }
+
+            let previousDir = '';
+
+            while (currentDir !== previousDir) {
+                const packageJsonPath = path.join(currentDir, 'package.json');
+                const agentConfigPath = path.join(currentDir, '.agent', 'config.json');
+
+                if (fs.existsSync(packageJsonPath) || fs.existsSync(agentConfigPath)) {
+                    return currentDir.replace(/\\/g, '/');
+                }
+
+                previousDir = currentDir;
+                currentDir = path.dirname(currentDir);
+            }
+        } catch (error) {
+            // Suppress and fallback
+        }
+
+        console.warn('[WARNING] PathRegistry could not determine true project root via ascension. Falling back to process.cwd().');
+        return process.cwd().replace(/\\/g, '/');
+    }
+
+    /**
+     * Retrieves the cached, mathematically proven project root.
+     */
+    public getRoot(): string {
+        return this.root;
     }
 
     public static getInstance(): PathRegistry {

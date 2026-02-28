@@ -37,7 +37,7 @@ export interface CompiledGraph {
  * Purpose: Compile all FileData into a master JSON graph with resolved dependencies.
  */
 export async function compileMatrix(results: FileData[], targetRepo: string): Promise<string> {
-    const statsDir = path.join(process.cwd(), '.stats');
+    const statsDir = path.join(registry.getRoot(), '.stats');
     await fs.mkdir(statsDir, { recursive: true });
 
     const graphPath = path.join(statsDir, 'matrix-graph.json');
@@ -67,14 +67,14 @@ export async function compileMatrix(results: FileData[], targetRepo: string): Pr
 
         // 3. Try variations (Handling TS/ESM extension quirks)
         const candidates = [absolute];
-        
+
         // If it's an ESM import ending in .js, it might actually be a .ts file on disk
         if (absolute.endsWith('.js')) {
             candidates.push(absolute.slice(0, -3));
         }
 
         const extensions = ['', '.ts', '.tsx', '.js', '.jsx', '.py'];
-        
+
         for (const cand of candidates) {
             // Exact match or with extensions
             for (const ext of extensions) {
@@ -111,7 +111,7 @@ export async function compileMatrix(results: FileData[], targetRepo: string): Pr
         summary: {
             total_files: results.length,
             total_loc: results.reduce((a, b) => a + b.loc, 0),
-            average_score: results.length > 0 
+            average_score: results.length > 0
                 ? results.reduce((a, b) => a + b.matrix.overall, 0) / results.length
                 : 0
         }

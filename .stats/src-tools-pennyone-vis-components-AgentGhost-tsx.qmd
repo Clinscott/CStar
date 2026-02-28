@@ -6,7 +6,7 @@ complexity: 4
 logic_score: 7.25
 style_score: 4.08
 intel_score: 6.18
-overall_score: 5.84
+overall_score: 4.61
 ---
 
 ## Intent
@@ -23,9 +23,19 @@ React component rendering AgentGhost with 4 logic branches.
 ## Neural Pathways
 
 ### Imports
-- [*](file://react)
+- [useMemo](file://react)
 - [*](file://three)
-- [*](file://@react-three/drei)
+- [Float](file://@react-three/drei)
 
 ### Exports
-Internal logic only.
+- `AgentGhost`
+- `AgentGhost`
+- `points`
+- `curve`
+- `arcedPoints`
+- `i`
+- `start`
+- `end`
+- `mid`
+- `dist`
+- `activeNode`

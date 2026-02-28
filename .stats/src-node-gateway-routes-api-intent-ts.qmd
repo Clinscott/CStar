@@ -6,7 +6,7 @@ complexity: 3
 logic_score: 7.60
 style_score: 3.90
 intel_score: 3.90
-overall_score: 5.14
+overall_score: 3.91
 ---
 
 ## Intent
@@ -25,8 +25,12 @@ A functional component of the Corvus Star static analysis matrix.
 ## Neural Pathways
 
 ### Imports
-- [*](file://fastify)
-- [*](file://@sinclair/typebox)
+- [FastifyInstance](file://fastify)
+- [Type](file://@sinclair/typebox)
+- [Static](file://@sinclair/typebox)
 
 ### Exports
-Internal logic only.
+- `IntentSchema`
+- `fastify`
+- `fastify`
+- `router`

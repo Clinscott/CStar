@@ -6,7 +6,7 @@ complexity: 4
 logic_score: 7.25
 style_score: 3.84
 intel_score: 4.91
-overall_score: 5.33
+overall_score: 4.10
 ---
 
 ## Intent
@@ -23,11 +23,19 @@ A functional component of the Corvus Star static analysis matrix.
 ## Neural Pathways
 
 ### Imports
-- [*](file://child_process)
+- [spawn](file://child_process)
 - [*](file://net)
 - [*](file://path)
-- [*](file://url)
-- [*](file://perf_hooks)
+- [fileURLToPath](file://url)
+- [performance](file://perf_hooks)
 
 ### Exports
-Internal logic only.
+- `__filename`
+- `__dirname`
+- `PROJECT_ROOT`
+- `bridgeProcess`
+- `payload`
+- `startTime`
+- `client`
+- `data`
+- `latency`

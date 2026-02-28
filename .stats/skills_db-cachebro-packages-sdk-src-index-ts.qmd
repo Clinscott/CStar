@@ -6,7 +6,7 @@ complexity: 2
 logic_score: 8.40
 style_score: 9.39
 intel_score: 4.67
-overall_score: 7.49
+overall_score: 6.26
 ---
 
 ## Intent
@@ -23,9 +23,16 @@ A functional component of the Corvus Star static analysis matrix.
 ## Neural Pathways
 
 ### Imports
-- [*](file://./cache.js)
-- [*](file://./watcher.js)
-- [*](file://./types.js)
+- [CacheStore](file://./cache.js)
+- [FileWatcher](file://./watcher.js)
+- [CacheConfig](file://./types.js)
 
 ### Exports
+- `CacheStore`
+- `FileWatcher`
+- `computeDiff`
+- `CacheConfig`
 - `createCache`
+- `createCache`
+- `cache`
+- `watcher`

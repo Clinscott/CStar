@@ -2,22 +2,23 @@ import { FileData } from '../analyzer.js';
 import { defaultProvider } from './llm.js';
 import fs from 'fs/promises';
 import path from 'path';
+import { registry } from '../pathRegistry.js';
 
 /**
  * QMD Writer
  * Purpose: Generate Quarto reports in a flattened .stats/ directory.
  */
 export async function writeReport(file: FileData, targetRepo: string, code: string): Promise<{ qmdPath: string, intent: string }> {
-    const statsDir = path.join(process.cwd(), '.stats');
+    const statsDir = path.join(registry.getRoot(), '.stats');
     await fs.mkdir(statsDir, { recursive: true });
 
-    const intent = await defaultProvider.getIntent(code, file); 
+    const intent = await defaultProvider.getIntent(code, file);
 
-    const absoluteRoot = path.resolve(process.cwd()).replace(/\\/g, '/');
+    const absoluteRoot = registry.getRoot();
     const absoluteFile = path.resolve(file.path).replace(/\\/g, '/');
     let relativePath = absoluteFile.replace(absoluteRoot, '').replace(/^\//, '');
     relativePath = relativePath.replace(/:/g, '');
-    
+
     const flattenedName = relativePath.replace(/[\/\\]/g, '-').replace(/\./g, '-');
     const qmdPath = path.join(statsDir, `${flattenedName}.qmd`);
 

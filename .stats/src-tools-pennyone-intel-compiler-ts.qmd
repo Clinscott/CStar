@@ -4,9 +4,9 @@ path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/intel/compiler.ts"
 loc: 94
 complexity: 7
 logic_score: 5.75
-style_score: 3.95
+style_score: 3.94
 intel_score: 7.11
-overall_score: 5.60
+overall_score: 4.37
 ---
 
 ## Intent
@@ -23,10 +23,22 @@ A functional component of the Corvus Star static analysis matrix.
 ## Neural Pathways
 
 ### Imports
-- [*](file://../analyzer.js)
+- [FileData](file://../analyzer.js)
 - [*](file://fs/promises)
 - [*](file://path)
-- [*](file://../pathRegistry.js)
+- [registry](file://../pathRegistry.js)
 
 ### Exports
 - `compileMatrix`
+- `compileMatrix`
+- `statsDir`
+- `graphPath`
+- `knownPaths`
+- `resolveDependency`
+- `absolute`
+- `normalizedImport`
+- `candidates`
+- `extensions`
+- `p`
+- `indexFile`
+- `payload`

@@ -6,7 +6,7 @@ complexity: 6
 logic_score: 7.45
 style_score: 2.74
 intel_score: 2.39
-overall_score: 4.19
+overall_score: 2.96
 ---
 
 ## Intent
@@ -26,4 +26,5 @@ React component rendering PlaybackHUD with 6 logic branches.
 - [*](file://react)
 
 ### Exports
-Internal logic only.
+- `PlaybackHUD`
+- `PlaybackHUD`

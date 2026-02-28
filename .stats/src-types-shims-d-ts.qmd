@@ -6,7 +6,7 @@ complexity: 1
 logic_score: 9.20
 style_score: 7.33
 intel_score: 2.00
-overall_score: 6.18
+overall_score: 4.95
 ---
 
 ## Intent
@@ -26,4 +26,15 @@ A functional component of the Corvus Star static analysis matrix.
 Minimal internal dependencies.
 
 ### Exports
-Internal logic only.
+- `forceSimulation`
+- `forceSimulation`
+- `forceCenter`
+- `forceCenter`
+- `forceLink`
+- `forceLink`
+- `forceManyBody`
+- `forceManyBody`
+- `traverse`
+- `traverse`
+- `visitors`
+- `visitors`

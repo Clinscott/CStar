@@ -1,7 +1,7 @@
 ---
 title: "dev_journal.qmd"
 path: "C:/Users/Craig/Corvus/CorvusStar/docs/dev_journal.qmd"
-loc: 570
+loc: 581
 complexity: 1
 logic_score: 10.00
 style_score: 10.00

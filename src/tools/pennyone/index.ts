@@ -21,7 +21,7 @@ export async function runScan(targetPath: string): Promise<FileData[]> {
 
     // Load existing matrix for incremental check (Always in project root .stats)
     let existingGraph: CompiledGraph | null = null;
-    const statsDir = path.join(process.cwd(), '.stats');
+    const statsDir = path.join(registry.getRoot(), '.stats');
     const graphPath = path.join(statsDir, 'matrix-graph.json');
     try {
         const raw = await fs.readFile(graphPath, 'utf-8');
@@ -40,7 +40,7 @@ export async function runScan(targetPath: string): Promise<FileData[]> {
             const code = await fs.readFile(file, 'utf-8');
             const currentHash = crypto.createHash('md5').update(code).digest('hex');
             const normalizedPath = registry.normalize(file);
-            
+
             const existing = hashMap.get(normalizedPath);
             if (existing && existing.hash === currentHash) {
                 // Skip analysis, but keep the data for recompilation
@@ -49,7 +49,7 @@ export async function runScan(targetPath: string): Promise<FileData[]> {
                     loc: existing.loc,
                     complexity: existing.complexity,
                     matrix: existing.matrix,
-                    imports: [], 
+                    imports: [],
                     exports: [],
                     intent: existing.intent,
                     hash: currentHash,

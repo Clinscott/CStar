@@ -6,7 +6,7 @@ complexity: 11
 logic_score: 3.90
 style_score: 1.00
 intel_score: 2.00
-overall_score: 2.30
+overall_score: 1.07
 ---
 
 ## Intent
@@ -23,12 +23,35 @@ React component rendering App with 11 logic branches.
 ## Neural Pathways
 
 ### Imports
-- [*](file://react)
-- [*](file://@react-three/fiber)
-- [*](file://@react-three/drei)
-- [*](file://./components/NeuralGraph.js)
-- [*](file://./components/PlaybackHUD.js)
+- [useState](file://react)
+- [useEffect](file://react)
+- [Component](file://react)
+- [ReactNode](file://react)
+- [Canvas](file://@react-three/fiber)
+- [OrbitControls](file://@react-three/drei)
+- [PerspectiveCamera](file://@react-three/drei)
+- [NeuralGraph](file://./components/NeuralGraph.js)
+- [PlaybackHUD](file://./components/PlaybackHUD.js)
 - [*](file://three)
 
 ### Exports
+- `logToServer`
+- `params`
+- `token`
 - `MatrixErrorBoundary`
+- `App`
+- `App`
+- `token`
+- `matrixData`
+- `gravityData`
+- `nodeMap`
+- `isLive`
+- `currentIndex`
+- `sessionHistory`
+- `params`
+- `t`
+- `handleError`
+- `fetchData`
+- `matrixRes`
+- `mData`
+- `gData`

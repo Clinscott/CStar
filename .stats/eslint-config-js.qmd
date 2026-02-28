@@ -6,7 +6,7 @@ complexity: 1
 logic_score: 9.65
 style_score: 4.16
 intel_score: 4.16
-overall_score: 5.99
+overall_score: 4.76
 ---
 
 ## Intent
@@ -27,4 +27,4 @@ A functional component of the Corvus Star static analysis matrix.
 - [*](file://eslint-plugin-jsdoc)
 
 ### Exports
-Internal logic only.
+- `js`

@@ -1,7 +1,7 @@
 ---
 title: "walkthrough.qmd"
 path: "C:/Users/Craig/Corvus/CorvusStar/docs/walkthrough.qmd"
-loc: 108
+loc: 119
 complexity: 1
 logic_score: 10.00
 style_score: 10.00

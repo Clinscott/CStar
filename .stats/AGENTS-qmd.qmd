@@ -1,7 +1,7 @@
 ---
 title: "AGENTS.qmd"
 path: "C:/Users/Craig/Corvus/CorvusStar/AGENTS.qmd"
-loc: 328
+loc: 61
 complexity: 1
 logic_score: 10.00
 style_score: 10.00
@@ -23,17 +23,7 @@ Documentation scroll or workflow directive for the Gungnir Calculus.
 ## Neural Pathways
 
 ### Imports
-- [*](file://.agent/workflows/lets-go.md)
-- [*](file://.agent/workflows/run-task.md)
-- [*](file://.agent/workflows/investigate.md)
-- [*](file://.agent/workflows/wrap-it-up.md)
-- [*](file://.agent/workflows/SovereignFish.qmd)
-- [*](file://.agent/workflows/lets-go.qmd)
-- [*](file://.agent/workflows/investigate.qmd)
-- [*](file://.agent/workflows/plan.qmd)
-- [*](file://.agent/workflows/execute.qmd)
-- [*](file://.agent/workflows/test.qmd)
-- [*](file://.agent/workflows/wrap-it-up.qmd)
+Minimal internal dependencies.
 
 ### Exports
 Internal logic only.

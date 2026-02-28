@@ -6,7 +6,7 @@ complexity: 10
 logic_score: 4.70
 style_score: 4.08
 intel_score: 2.85
-overall_score: 3.88
+overall_score: 2.65
 ---
 
 ## Intent
@@ -23,10 +23,19 @@ A functional component of the Corvus Star static analysis matrix.
 ## Neural Pathways
 
 ### Imports
-- [*](file://node:test)
-- [*](file://node:assert)
-- [*](file://node:events)
-- [*](file://../../src/node/cortex_link.js)
+- [test](file://node:test)
+- [describe](file://node:test)
+- [it](file://node:test)
+- [assert](file://node:assert)
+- [EventEmitter](file://node:events)
+- [CortexLink](file://../../src/node/cortex_link.js)
 
 ### Exports
+- `mockWsOptions`
 - `MockWebSocket`
+- `payload`
+- `link`
+- `res`
+- `link`
+- `link`
+- `link`

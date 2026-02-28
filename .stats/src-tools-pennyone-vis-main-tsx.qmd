@@ -6,7 +6,7 @@ complexity: 1
 logic_score: 9.65
 style_score: 9.56
 intel_score: 1.40
-overall_score: 6.87
+overall_score: 5.64
 ---
 
 ## Intent
@@ -25,7 +25,7 @@ React component rendering main with 1 logic branches.
 ### Imports
 - [*](file://react)
 - [*](file://react-dom/client)
-- [*](file://./App.js)
+- [App](file://./App.js)
 
 ### Exports
 Internal logic only.

@@ -6,7 +6,7 @@ complexity: 6
 logic_score: 6.10
 style_score: 4.07
 intel_score: 6.75
-overall_score: 5.64
+overall_score: 4.41
 ---
 
 ## Intent
@@ -23,16 +23,32 @@ A functional component of the Corvus Star static analysis matrix.
 ## Neural Pathways
 
 ### Imports
-- [*](file://./crawler.js)
-- [*](file://./analyzer.js)
-- [*](file://./intel/writer.js)
-- [*](file://./intel/compiler.js)
-- [*](file://./intel/llm.js)
-- [*](file://./intel/database.js)
+- [crawlRepository](file://./crawler.js)
+- [analyzeFile](file://./analyzer.js)
+- [FileData](file://./analyzer.js)
+- [writeReport](file://./intel/writer.js)
+- [compileMatrix](file://./intel/compiler.js)
+- [CompiledGraph](file://./intel/compiler.js)
+- [defaultProvider](file://./intel/llm.js)
+- [registerSpoke](file://./intel/database.js)
 - [*](file://fs/promises)
 - [*](file://path)
 - [*](file://node:crypto)
-- [*](file://./pathRegistry.js)
+- [registry](file://./pathRegistry.js)
 
 ### Exports
 - `runScan`
+- `runScan`
+- `files`
+- `results`
+- `existingGraph`
+- `statsDir`
+- `graphPath`
+- `raw`
+- `hashMap`
+- `code`
+- `currentHash`
+- `normalizedPath`
+- `existing`
+- `data`
+- `writeReport`

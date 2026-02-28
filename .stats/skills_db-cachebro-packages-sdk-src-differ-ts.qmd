@@ -6,7 +6,7 @@ complexity: 28
 logic_score: 1.45
 style_score: 3.88
 intel_score: 7.67
-overall_score: 4.33
+overall_score: 3.10
 ---
 
 ## Intent
@@ -27,4 +27,36 @@ Minimal internal dependencies.
 
 ### Exports
 - `computeDiff`
+- `computeDiff`
+- `oldLines`
+- `newLines`
+- `lcs`
+- `hunks`
+- `oldIdx`
+- `newIdx`
+- `lcsIdx`
+- `linesChanged`
+- `rawLines`
+- `changedNewLines`
+- `CONTEXT`
+- `hunkGroups`
+- `currentHunk`
+- `lastChangeIdx`
+- `i`
+- `line`
+- `c`
+- `c`
+- `contextEnd`
+- `c`
+- `firstLine`
+- `lastLine`
+- `prefix`
+- `header`
 - `longestCommonSubsequence`
+- `m`
+- `n`
+- `dp`
+- `i`
+- `j`
+- `result`
+- `i`

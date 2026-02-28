@@ -14,6 +14,7 @@ class IntentPayload:
     intent_normalized: str
     target_workflow: str
     extracted_entities: MappingProxyType[str, Any] = field(default_factory=lambda: MappingProxyType({}))
+    terminal_state: MappingProxyType[str, Any] = field(default_factory=lambda: MappingProxyType({}))
 
     def __post_init__(self):
         """[ALFRED] Converts standard dicts to MappingProxyType for true physical immutability."""
@@ -21,6 +22,8 @@ class IntentPayload:
             object.__setattr__(self, 'system_meta', MappingProxyType(self.system_meta))
         if isinstance(self.extracted_entities, dict):
             object.__setattr__(self, 'extracted_entities', MappingProxyType(self.extracted_entities))
+        if isinstance(self.terminal_state, dict):
+            object.__setattr__(self, 'terminal_state', MappingProxyType(self.terminal_state))
 
     def __repr__(self) -> str:
         """[ALFRED] Clean representation for Warden logging, avoiding raw memory addresses."""
@@ -39,5 +42,6 @@ class IntentPayload:
             "intent_raw": self.intent_raw,
             "intent_normalized": self.intent_normalized,
             "target_workflow": self.target_workflow,
-            "extracted_entities": dict(self.extracted_entities)
+            "extracted_entities": dict(self.extracted_entities),
+            "terminal_state": dict(self.terminal_state)
         }

@@ -6,7 +6,7 @@ complexity: 31
 logic_score: 1.00
 style_score: 1.00
 intel_score: 2.71
-overall_score: 1.57
+overall_score: 1.00
 ---
 
 ## Intent
@@ -38,4 +38,47 @@ React component rendering NeuralGraph with 31 logic branches.
 - [*](file://gsap)
 
 ### Exports
+- `tempObject`
+- `tempColor`
+- `SelectionHighlight`
+- `meshRef`
+- `time`
+- `scale`
+- `SpriteIcon`
+- `odinTexture`
+- `alfredTexture`
+- `orphanTexture`
+- `texture`
+- `p`
+- `spriteRef`
 - `NeuralGraph`
+- `NeuralGraph`
+- `useThree`
+- `sphereMeshRef`
+- `tetraMeshRef`
+- `simReady`
+- `hovered`
+- `selectedNode`
+- `useMemo`
+- `fallback`
+- `nodes`
+- `nodeMap`
+- `linkList`
+- `usedIds`
+- `orphans`
+- `getLogScale`
+- `simulation`
+- `i`
+- `orphans`
+- `radius`
+- `oCount`
+- `theta`
+- `map`
+- `layers`
+- `scale`
+- `isHovered`
+- `isSelected`
+- `p`
+- `handleNodeClick`
+- `targetPos`
+- `validLinks`

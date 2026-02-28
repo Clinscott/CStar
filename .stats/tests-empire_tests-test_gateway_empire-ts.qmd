@@ -6,7 +6,7 @@ complexity: 2
 logic_score: 7.95
 style_score: 3.94
 intel_score: 2.73
-overall_score: 4.88
+overall_score: 3.65
 ---
 
 ## Intent
@@ -23,7 +23,10 @@ A functional component of the Corvus Star static analysis matrix.
 ## Neural Pathways
 
 ### Imports
-- [*](file://node:test)
+- [describe](file://node:test)
+- [it](file://node:test)
+- [beforeEach](file://node:test)
+- [afterEach](file://node:test)
 - [*](file://node:assert)
 - [*](file://fastify)
 - [*](file://../../src/node/gateway/plugins/corvus.js)
@@ -31,4 +34,8 @@ A functional component of the Corvus Star static analysis matrix.
 - [*](file://../../src/node/gateway/routes/streams/telemetry.js)
 
 ### Exports
-Internal logic only.
+- `fastify`
+- `response`
+- `payload`
+- `response`
+- `response`

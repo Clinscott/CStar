@@ -6,7 +6,7 @@ complexity: 1
 logic_score: 8.75
 style_score: 6.76
 intel_score: 8.86
-overall_score: 8.12
+overall_score: 6.89
 ---
 
 ## Intent
@@ -26,10 +26,20 @@ A functional component of the Corvus Star static analysis matrix.
 ## Neural Pathways
 
 ### Imports
-- [*](file://node:test)
+- [test](file://node:test)
+- [describe](file://node:test)
 - [*](file://node:assert)
-- [*](file://../../src/tools/pennyone/intel/database.js)
-- [*](file://../../src/tools/pennyone/analyzer.js)
+- [getDb](file://../../src/tools/pennyone/intel/database.js)
+- [savePing](file://../../src/tools/pennyone/intel/database.js)
+- [getSessionsWithSummaries](file://../../src/tools/pennyone/intel/database.js)
+- [getSessionPings](file://../../src/tools/pennyone/intel/database.js)
+- [analyzeFile](file://../../src/tools/pennyone/analyzer.js)
 
 ### Exports
-Internal logic only.
+- `testRepo`
+- `mockAgent`
+- `sessions`
+- `agentSession`
+- `pings`
+- `mockCode`
+- `data`

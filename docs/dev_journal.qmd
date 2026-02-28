@@ -14,6 +14,18 @@ Preserve the "why" behind technical decisions and provide a narrative history of
 
 # Developer Journal
 
+## 2026-02-28 - Session 99: Operation PennyOne - Path Sovereignty & Intelligence
+- **Accomplishments**:
+    - **Path Sovereignty**: Eradicated the fragile `process.cwd()` dependency for directory resolution across PennyOne's core files (`analyzer.ts`, `compiler.ts`, `writer.ts`, etc.). 
+    - **Centralized Ascension**: Implemented a caching `PathRegistry` that uses `import.meta.dirname` to ascend directory trees until it locates `package.json` or `.agent/config.json`, locking down the true project root regardless of execution context.
+    - **Intelligence Upgrade**: Upgraded `llm.ts` to demand deep, multi-sentence architectural summaries from both `MockProvider` heuristics and Gemini prompts, greatly enriching the Glass HUD panels in the Sovereign Matrix.
+    - **TypeScript Surveillance**: Injected `js_sentinel.ts` into the `/investigate` workflow, covering the prior "Perimeter Blindspot" for Node.js environments.
+- **Git State**: 100% Empire TDD pass for `PathRegistry`; matrix graph successfully rebuilt and verified. 
+- **Decisions**:
+    - **Caching the Ascension**: Decided to calculate the root via `findProjectRoot()` only once on instantiation and cache it to `this.root`. This prevents expensive IO operations (checking filesystem stats) during intensive deep-tree recursive scans while maintaining Path Sovereignty.
+    - **Empire TDD First**: Adhered strictly to the Linscott Standard by writing the `test_pathRegistry.ts` failing assertions *before* correcting the primary logic matrix, ensuring genuine verification of the directory ascension capability.
+- **Current State**: PennyOne pathing is unbreakable; intelligence data is dense and actionable; testing integrity remains uncompromised.
+
 ## 2026-02-27 - Session 97: Operation PennyOne Phase 5.2 & 9
 - **Accomplishments**:
     - **Aesthetic Overhaul (Phase 5.2)**: Successfully implemented the "Ghost in the Machine" cinematic layer, including Bloom, Chromatic Aberration, and animated data-flows on the Gungnir Lattice.

@@ -25,9 +25,12 @@ Read the files and analyze for:
 - **Security & Safety**: proper validation, error handling, and authorization checking.
 - **Layout Integration**: Does this component/page respect the global **DashboardLayout**? Is it trying to break out of the SovereignHUD? (This is strictly forbidden for core feature pages).
 - **Structural Integrity Scan (Sentinel)**: 
-  // turbo
+  // turbo-all
   `python .agent/scripts/code_sentinel.py <target_path>`
   Run the Ruff linter to detect code smells, typing issues, and structural malformations. Use `--fix` to attempt automated repair.
+  
+  `tsx src/tools/js_sentinel.ts <target_path>`
+  Enforce strict TypeScript surveillance across the entire Node.js operational domain.
 
 ## 3. System Interaction Check
 - **Dependencies**: How does this interact with the rest of the app?

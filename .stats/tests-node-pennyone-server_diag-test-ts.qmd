@@ -6,7 +6,7 @@ complexity: 7
 logic_score: 5.30
 style_score: 4.54
 intel_score: 8.75
-overall_score: 6.19
+overall_score: 4.96
 ---
 
 ## Intent
@@ -23,12 +23,27 @@ A functional component of the Corvus Star static analysis matrix.
 ## Neural Pathways
 
 ### Imports
-- [*](file://node:test)
-- [*](file://node:assert)
-- [*](file://../../../src/tools/pennyone/vis/server.js)
+- [test](file://node:test)
+- [describe](file://node:test)
+- [it](file://node:test)
+- [assert](file://node:assert)
+- [startBridge](file://../../../src/tools/pennyone/vis/server.js)
 - [*](file://http)
 - [*](file://fs)
 - [*](file://path)
 
 ### Exports
-Internal logic only.
+- `PORT`
+- `statsDir`
+- `signetPath`
+- `token`
+- `i`
+- `url`
+- `match`
+- `fetchIndex`
+- `data`
+- `indexHtml`
+- `fetchMatrix`
+- `url`
+- `statusNoAuth`
+- `statusAuth`

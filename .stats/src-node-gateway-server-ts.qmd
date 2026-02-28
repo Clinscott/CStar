@@ -6,7 +6,7 @@ complexity: 3
 logic_score: 8.05
 style_score: 4.08
 intel_score: 7.11
-overall_score: 6.41
+overall_score: 5.18
 ---
 
 ## Intent
@@ -27,10 +27,12 @@ A functional component of the Corvus Star static analysis matrix.
 ### Imports
 - [*](file://fastify)
 - [*](file://@fastify/cors)
-- [*](file://@fastify/type-provider-typebox)
+- [TypeBoxTypeProvider](file://@fastify/type-provider-typebox)
 - [*](file://./plugins/corvus.js)
 - [*](file://./routes/api/intent.js)
 - [*](file://./routes/streams/telemetry.js)
 
 ### Exports
-Internal logic only.
+- `fastify`
+- `start`
+- `PORT`

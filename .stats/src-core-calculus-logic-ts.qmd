@@ -6,7 +6,7 @@ complexity: 2
 logic_score: 8.85
 style_score: 9.36
 intel_score: 10.00
-overall_score: 9.40
+overall_score: 8.17
 ---
 
 ## Intent
@@ -27,3 +27,7 @@ Minimal internal dependencies.
 
 ### Exports
 - `calculateLogicScore`
+- `calculateLogicScore`
+- `complexityScore`
+- `nestingScore`
+- `rawScore`

@@ -6,7 +6,7 @@ complexity: 7
 logic_score: 6.20
 style_score: 4.08
 intel_score: 4.16
-overall_score: 4.81
+overall_score: 3.58
 ---
 
 ## Intent
@@ -23,7 +23,11 @@ A functional component of the Corvus Star static analysis matrix.
 ## Neural Pathways
 
 ### Imports
-- [*](file://ws)
+- [WebSocket](file://ws)
 
 ### Exports
+- `Map`
 - `EventManager`
+- `clients`
+- `clients`
+- `message`

@@ -1,12 +1,12 @@
 ---
 title: "sv_engine.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/core/sv_engine.py"
-loc: 294
-complexity: 41
+loc: 265
+complexity: 35
 logic_score: 1.00
 style_score: 3.72
-intel_score: 5.75
-overall_score: 3.49
+intel_score: 5.32
+overall_score: 2.12
 ---
 
 ## Intent
@@ -15,7 +15,7 @@ Core semantic routing engine for intent resolution.
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 1.0/10
 - **Style [S]**: 3.7/10
-- **Intel [I]**: 5.8/10
+- **Intel [I]**: 5.3/10
 - **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
 
 
@@ -50,10 +50,7 @@ Core semantic routing engine for intent resolution.
 - `_load_feedback_context`
 - `_init_hud_dialogue`
 - `_init_vector_engine`
-- `_render_hud`
-- `record_trace`
-- `handle_cortex_query`
-- `_handle_proactive`
+- `_proactive_discovery`
 - `run`
 - `_suggest_forge`
 - `teardown`

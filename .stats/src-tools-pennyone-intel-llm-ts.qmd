@@ -1,12 +1,12 @@
 ---
 title: "llm.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/intel/llm.ts"
-loc: 45
+loc: 46
 complexity: 10
 logic_score: 5.60
-style_score: 4.27
-intel_score: 7.33
-overall_score: 5.73
+style_score: 2.78
+intel_score: 7.22
+overall_score: 3.97
 ---
 
 ## Intent
@@ -14,8 +14,8 @@ Orchestrates Babel AST parsing for the static analysis engine.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 5.6/10
-- **Style [S]**: 4.3/10
-- **Intel [I]**: 7.3/10
+- **Style [S]**: 2.8/10
+- **Intel [I]**: 7.2/10
 - **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
 
 
@@ -23,8 +23,16 @@ Orchestrates Babel AST parsing for the static analysis engine.
 ## Neural Pathways
 
 ### Imports
-- [*](file://../analyzer.js)
+- [FileData](file://../analyzer.js)
 
 ### Exports
+- `code`
+- `code`
 - `MockProvider`
+- `filename`
+- `code`
 - `GeminiProvider`
+- `directive`
+- `mock`
+- `defaultProvider`
+- `defaultProvider`

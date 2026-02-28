@@ -6,7 +6,7 @@ complexity: 1
 logic_score: 9.20
 style_score: 7.11
 intel_score: 1.40
-overall_score: 5.90
+overall_score: 4.67
 ---
 
 ## Intent
@@ -23,8 +23,9 @@ A functional component of the Corvus Star static analysis matrix.
 ## Neural Pathways
 
 ### Imports
-- [*](file://./src/tools/pennyone/index.js)
+- [runScan](file://./src/tools/pennyone/index.js)
 - [*](file://path)
 
 ### Exports
 - `main`
+- `target`

@@ -6,7 +6,7 @@ complexity: 1
 logic_score: 9.20
 style_score: 9.40
 intel_score: 6.92
-overall_score: 8.50
+overall_score: 7.27
 ---
 
 ## Intent
@@ -23,11 +23,18 @@ Calculates structural logic density using CC and nesting metrics.
 ## Neural Pathways
 
 ### Imports
-- [*](file://node:test)
+- [test](file://node:test)
 - [*](file://node:assert)
-- [*](file://../../../src/core/calculus/logic.js)
-- [*](file://../../../src/core/calculus/style.js)
-- [*](file://../../../src/core/calculus/intel.js)
+- [calculateLogicScore](file://../../../src/core/calculus/logic.js)
+- [calculateStyleScore](file://../../../src/core/calculus/style.js)
+- [calculateIntelScore](file://../../../src/core/calculus/intel.js)
 
 ### Exports
-Internal logic only.
+- `simple`
+- `complex`
+- `goodCode`
+- `badCode`
+- `opaqueCode`
+- `lowScore`
+- `transparentCode`
+- `highScore`

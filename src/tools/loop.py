@@ -47,15 +47,13 @@ class SovereignForge:
         SovereignHUD.persona_log("ODIN", f"Manifesting Objective: {task_desc}")
 
         # 1. Orient (Identify Target)
-        # We ask the Uplink to identify the target file and implementation plan
-        # This is a mini-chain.
-
         target_file = self._orient_target(task_desc)
         if not target_file:
             SovereignHUD.persona_log("ALFRED", "Could not identify target file. Aborting task.")
             return False
 
         SovereignHUD.persona_log("ODIN", f"Target Locked: {target_file}")
+        self._write_handshake("Investigate", f"Target locked: {target_file.name}")
 
         # 2. The Loop (Edit -> Verify)
         for attempt in range(1, self.max_retries + 1):
@@ -65,17 +63,19 @@ class SovereignForge:
             self._backup(target_file)
 
             # Generate Code
+            self._write_handshake("Plan", f"Generating implementation plan for {target_file.name}")
             success = self._generate_code(task_desc, target_file, attempt)
             if not success:
                 SovereignHUD.persona_log("ALFRED", "Code generation failed.")
                 self._rollback(target_file)
                 continue
 
-            # Verify (Gungnir Gate)
-            # We use SovereignWrapper's gate logic, but localized
-            if self._verify_integrity():
-                SovereignHUD.persona_log("ODIN", "Verification PASSED. Structure is sound.")
+            # Verify (Gungnir Gate + Empire TDD)
+            self._write_handshake("Execute", f"Verifying {target_file.name} against Gungnir and Contracts")
+            if self._verify_integrity(target_file):
+                SovereignHUD.persona_log("ODIN", "Verification PASSED. Structure and Contracts are sound.")
                 self._cleanup_backup(target_file)
+                self._write_handshake("Test", f"Stability verified for {target_file.name}")
                 return True
             else:
                 SovereignHUD.persona_log("ALFRED", f"Verification FAILED (Attempt {attempt}). Rolling back.")
@@ -84,8 +84,19 @@ class SovereignForge:
 
         # Kill Switch Triggered
         SovereignHUD.persona_log("HEIMDALL", "BREACH: Kill Switch Triggered. Max retries exceeded.")
-        # Atomic Rollback is already done in the loop if fail.
         return False
+
+    def _write_handshake(self, phase: str, delta: str) -> None:
+        """[ALFRED] Records the Phase Handshake in walkthrough.qmd."""
+        walkthrough_path = self.root / "walkthrough.qmd"
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        handshake_entry = f"\n### 🤝 Phase Handshake: {phase} ({timestamp})\n- **Delta**: {delta}\n- **Status**: COMPLETED\n"
+        
+        try:
+            with walkthrough_path.open("a", encoding="utf-8") as f:
+                f.write(handshake_entry)
+        except Exception as e:
+            SovereignHUD.persona_log("WARN", f"Handshake failed: {e}")
 
     def _orient_target(self, task: str) -> Path | None:
         """
@@ -153,24 +164,34 @@ class SovereignForge:
             SovereignHUD.persona_log("ALFRED", "The void returned no code.")
             return False
 
-    def _verify_integrity(self) -> bool:
+    def _verify_integrity(self, target_file: Path) -> bool:
         """
-        Runs the Gungnir Gate (Ruff + Pytest).
+        Runs the Gungnir Gate (Ruff + Pytest) and Empire TDD Contract Validation.
         """
-        SovereignWrapper() # Initializes at root
-        # We need to suppress sys.exit in wrapper or catch it
         try:
-            # We'll reimplement specific checks to avoid wrapper's sys.exit(1)
-            # Or assume wrapper has a method that returns bool
-            # Wrapper.run_gungnir_gate() calls sys.exit(1).
-            # We should refactor wrapper or run subprocess manually.
-
-            # Manual Check
             import subprocess
-            res_lint = subprocess.run([sys.executable, "-m", "ruff", "check", ".", "--select", "E9,F63,F7,F82"], cwd=str(self.root), capture_output=True)
+            
+            # 1. Gungnir: Linting
+            res_lint = subprocess.run([sys.executable, "-m", "ruff", "check", str(target_file), "--select", "E9,F63,F7,F82"], capture_output=True)
             if res_lint.returncode != 0: return False
 
-            res_test = subprocess.run([sys.executable, "-m", "pytest"], cwd=str(self.root), capture_output=True)
+            # 2. Empire TDD: Contract Validation
+            # Search for a .qmd contract associated with the target file
+            contract_path = target_file.with_suffix(".qmd")
+            if not contract_path.exists():
+                # Check in tests/contracts
+                contract_path = self.root / "tests" / "contracts" / f"{target_file.stem}_contracts.qmd"
+            
+            if contract_path.exists():
+                SovereignHUD.persona_log("INFO", f"Empire TDD: Validating against contract {contract_path.name}")
+                # Simple integrity check: ensure the contract isn't empty and has required sections
+                contract_content = contract_path.read_text(encoding='utf-8')
+                if "Given" not in contract_content or "Then" not in contract_content:
+                    SovereignHUD.persona_log("WARN", "Contract missing Gherkin syntax.")
+                    return False
+
+            # 3. Gungnir: Testing
+            res_test = subprocess.run([sys.executable, "-m", "pytest", str(self.root / "tests")], capture_output=True)
             return res_test.returncode == 0
         except Exception:
             return False

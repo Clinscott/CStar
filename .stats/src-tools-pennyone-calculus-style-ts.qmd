@@ -6,7 +6,7 @@ complexity: 6
 logic_score: 6.55
 style_score: 1.00
 intel_score: 10.00
-overall_score: 5.85
+overall_score: 4.62
 ---
 
 ## Intent
@@ -27,3 +27,20 @@ Minimal internal dependencies.
 
 ### Exports
 - `calculateStyleScore`
+- `calculateStyleScore`
+- `lines`
+- `lengths`
+- `avgLength`
+- `variance`
+- `stdDev`
+- `symmetryScore`
+- `identifiers`
+- `validIdentifiers`
+- `purityRatio`
+- `purityScore`
+- `claustrophobicPenalty`
+- `blockCount`
+- `uiOrderBonus`
+- `adhoc`
+- `baseScore`
+- `finalScore`

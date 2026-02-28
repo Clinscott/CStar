@@ -1,12 +1,12 @@
 ---
 title: "personaRegistry.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/personaRegistry.ts"
-loc: 55
+loc: 56
 complexity: 6
 logic_score: 6.55
 style_score: 4.04
-intel_score: 4.91
-overall_score: 5.17
+intel_score: 4.86
+overall_score: 3.92
 ---
 
 ## Intent
@@ -25,6 +25,17 @@ A functional component of the Corvus Star static analysis matrix.
 ### Imports
 - [*](file://fs)
 - [*](file://path)
+- [registry](file://./pathRegistry.js)
 
 ### Exports
 - `PersonaRegistry`
+- `PersonaRegistry`
+- `root`
+- `configPath`
+- `configData`
+- `data`
+- `personaStr`
+- `message`
+- `upper`
+- `activePersona`
+- `activePersona`

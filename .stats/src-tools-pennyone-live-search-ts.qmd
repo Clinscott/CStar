@@ -6,7 +6,7 @@ complexity: 7
 logic_score: 5.75
 style_score: 3.86
 intel_score: 3.67
-overall_score: 4.43
+overall_score: 3.20
 ---
 
 ## Intent
@@ -26,7 +26,20 @@ A functional component of the Corvus Star static analysis matrix.
 - [*](file://node:fs/promises)
 - [*](file://node:path)
 - [*](file://chalk)
-- [*](file://../pathRegistry.js)
+- [registry](file://../pathRegistry.js)
 
 ### Exports
 - `searchMatrix`
+- `searchMatrix`
+- `statsDir`
+- `graphPath`
+- `raw`
+- `graph`
+- `results`
+- `lowerQuery`
+- `relPath`
+- `intentText`
+- `matchesIntent`
+- `matchesPath`
+- `matchesEndpoints`
+- `q`

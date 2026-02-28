@@ -6,7 +6,7 @@ complexity: 1
 logic_score: 8.30
 style_score: 1.00
 intel_score: 3.21
-overall_score: 4.17
+overall_score: 2.94
 ---
 
 ## Intent
@@ -23,12 +23,30 @@ Calculates structural logic density using CC and nesting metrics.
 ## Neural Pathways
 
 ### Imports
-- [*](file://node:test)
+- [describe](file://node:test)
+- [it](file://node:test)
 - [*](file://node:assert)
-- [*](file://../../src/tools/pennyone/calculus/logic.js)
-- [*](file://../../src/tools/pennyone/calculus/style.js)
-- [*](file://../../src/tools/pennyone/calculus/intel.js)
-- [*](file://../../src/tools/pennyone/analyzer.js)
+- [calculateLogicScore](file://../../src/tools/pennyone/calculus/logic.js)
+- [calculateStyleScore](file://../../src/tools/pennyone/calculus/style.js)
+- [calculateIntelScore](file://../../src/tools/pennyone/calculus/intel.js)
+- [analyzeFile](file://../../src/tools/pennyone/analyzer.js)
 
 ### Exports
-Internal logic only.
+- `score`
+- `score`
+- `goodCode`
+- `score`
+- `badCode`
+- `score`
+- `badUI`
+- `goodUI`
+- `badScore`
+- `goodScore`
+- `undocumented`
+- `documented`
+- `lowScore`
+- `highScore`
+- `code`
+- `result`
+- `code`
+- `result`

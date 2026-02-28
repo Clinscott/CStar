@@ -6,7 +6,7 @@ complexity: 3
 logic_score: 7.15
 style_score: 4.00
 intel_score: 6.21
-overall_score: 5.79
+overall_score: 4.56
 ---
 
 ## Intent
@@ -25,9 +25,15 @@ A functional component of the Corvus Star static analysis matrix.
 ## Neural Pathways
 
 ### Imports
-- [*](file://fastify)
-- [*](file://ws)
-- [*](file://../../../core/EventManager.js)
+- [FastifyInstance](file://fastify)
+- [FastifyPluginAsync](file://fastify)
+- [WebSocket](file://ws)
+- [EventManager](file://../../../core/EventManager.js)
 
 ### Exports
-Internal logic only.
+- `wsRoutes`
+- `appId`
+- `eventManager`
+- `ws`
+- `interval`
+- `wsRoutes`
