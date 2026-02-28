@@ -1,0 +1,30 @@
+---
+title: "database.ts"
+path: "C:/Users/Craig/Corvus/SEF/src/ingestion/database.ts"
+loc: 90
+complexity: 1
+logic_score: 9.20
+style_score: 4.02
+intel_score: 3.33
+overall_score: 5.52
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 3.3/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [*](file://better-sqlite3)
+- [resolve](file://path)
+
+### Exports
+- `initializeDatabase`
+- `initializeDatabase`
+- `db`

@@ -1,0 +1,28 @@
+---
+title: "DashboardLayout.tsx"
+path: "C:/Users/Craig/Corvus/SecureSphere/src/components/layout/DashboardLayout.tsx"
+loc: 21
+complexity: 1
+logic_score: 9.20
+style_score: 2.95
+intel_score: 5.81
+overall_score: 5.99
+---
+
+## Intent
+React component rendering DashboardLayout with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 2.9/10
+- **Intel [I]**: 5.8/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [*](file://react)
+- [AppHeader](file://./AppHeader)
+
+### Exports
+- `DashboardLayout`

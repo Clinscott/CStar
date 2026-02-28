@@ -1,0 +1,32 @@
+---
+title: "runecaster.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/sentinel/wardens/runecaster.py"
+loc: 8
+complexity: 1
+logic_score: 8.75
+style_score: 4.12
+intel_score: 9.40
+overall_score: 7.42
+---
+
+## Intent
+Autonomous neural guardian monitoring system drift and anomalies.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 4.1/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [typing](file://typing)
+- [src.sentinel.wardens.base](file://src.sentinel.wardens.base)
+- [src.tools.debug.runecaster_audit](file://src.tools.debug.runecaster_audit)
+
+### Exports
+- `RuneCasterWarden`
+- `scan`

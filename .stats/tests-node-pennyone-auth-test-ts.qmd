@@ -1,0 +1,34 @@
+---
+title: "auth.test.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/node/pennyone/auth.test.ts"
+loc: 44
+complexity: 5
+logic_score: 6.00
+style_score: 4.52
+intel_score: 7.76
+overall_score: 6.10
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.0/10
+- **Style [S]**: 4.5/10
+- **Intel [I]**: 7.8/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://node:test)
+- [*](file://node:assert)
+- [*](file://../../../src/tools/pennyone/vis/server.js)
+- [*](file://http)
+- [*](file://fs)
+- [*](file://path)
+
+### Exports
+Internal logic only.

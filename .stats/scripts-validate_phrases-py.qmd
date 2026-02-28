@@ -1,0 +1,32 @@
+---
+title: "validate_phrases.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/scripts/validate_phrases.py"
+loc: 54
+complexity: 17
+logic_score: 1.80
+style_score: 3.80
+intel_score: 4.36
+overall_score: 3.32
+---
+
+## Intent
+Python module facilitating validate_persona_phrases, main.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.8/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 4.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [yaml](file://yaml)
+
+### Exports
+- `validate_persona_phrases`
+- `main`

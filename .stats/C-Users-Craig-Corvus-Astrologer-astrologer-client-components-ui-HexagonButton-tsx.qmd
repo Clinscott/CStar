@@ -1,0 +1,32 @@
+---
+title: "HexagonButton.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-client/components/ui/HexagonButton.tsx"
+loc: 52
+complexity: 4
+logic_score: 8.15
+style_score: 1.00
+intel_score: 5.85
+overall_score: 5.00
+---
+
+## Intent
+React component rendering HexagonButton with 4 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.1/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 5.8/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [*](file://react)
+- [clsx](file://clsx)
+- [ClassValue](file://clsx)
+- [twMerge](file://tailwind-merge)
+
+### Exports
+- `cn`
+- `HexagonButton`
+- `HexagonButton`

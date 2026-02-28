@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-[ODIN] Latency Profiler (latency_check.py)
+[O.D.I.N.] Latency Profiler (latency_check.py)
 Measures Sovereign Engine search and startup performance metrics.
 Encapsulated for the Linscott Standard.
 """
@@ -14,7 +14,7 @@ import time
 
 class LatencyProfiler:
     """
-    [ODIN] Handles performance measurement for the Sovereign Engine.
+    [O.D.I.N.] Handles performance measurement for the Sovereign Engine.
     Focuses on cold-start latency and search execution timing.
     """
 

@@ -1,0 +1,36 @@
+---
+title: "cortex.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/core/engine/cortex.py"
+loc: 54
+complexity: 11
+logic_score: 3.45
+style_score: 3.82
+intel_score: 8.81
+overall_score: 5.36
+---
+
+## Intent
+Python module facilitating Cortex, __init__.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 3.4/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 8.8/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [re](file://re)
+- [pathlib](file://pathlib)
+- [typing](file://typing)
+- [src.core.engine.vector](file://src.core.engine.vector)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+
+### Exports
+- `Cortex`
+- `__init__`
+- `_ingest`
+- `query`

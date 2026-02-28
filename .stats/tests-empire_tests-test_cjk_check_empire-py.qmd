@@ -1,0 +1,39 @@
+---
+title: "test_cjk_check_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_cjk_check_empire.py"
+loc: 42
+complexity: 2
+logic_score: 7.95
+style_score: 3.77
+intel_score: 1.40
+overall_score: 4.37
+---
+
+## Intent
+Python module facilitating MockSovereignVector, __init__.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.9/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [io](file://io)
+- [pytest](file://pytest)
+- [src.tools.debug](file://src.tools.debug)
+
+### Exports
+- `MockSovereignVector`
+- `__init__`
+- `load_core_skills`
+- `build_index`
+- `search`
+- `mock_sovereign_vector`
+- `test_successful_cjk_query`
+- `test_no_results_for_cjk_query`

@@ -1,0 +1,27 @@
+---
+title: "test-brain.ts"
+path: "C:/Users/Craig/Corvus/SEF/scripts/test-brain.ts"
+loc: 34
+complexity: 3
+logic_score: 7.60
+style_score: 3.78
+intel_score: 4.93
+overall_score: 5.44
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.6/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 4.9/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+Minimal internal dependencies.
+
+### Exports
+- `testBrain`

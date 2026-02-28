@@ -1,0 +1,29 @@
+---
+title: "vitest.config.ts"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-client/vitest.config.ts"
+loc: 16
+complexity: 1
+logic_score: 9.65
+style_score: 4.19
+intel_score: 2.00
+overall_score: 5.28
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.6/10
+- **Style [S]**: 4.2/10
+- **Intel [I]**: 2.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [defineConfig](file://vitest/config)
+- [*](file://@vitejs/plugin-react)
+- [*](file://path)
+
+### Exports
+- `defineConfig`

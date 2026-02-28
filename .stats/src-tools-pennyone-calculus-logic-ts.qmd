@@ -1,0 +1,29 @@
+---
+title: "logic.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/calculus/logic.ts"
+loc: 7
+complexity: 2
+logic_score: 8.85
+style_score: 9.30
+intel_score: 10.00
+overall_score: 9.38
+---
+
+## Intent
+Calculates structural logic density using CC and nesting metrics.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 9.3/10
+- **Intel [I]**: 10.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+Minimal internal dependencies.
+
+### Exports
+- `calculateLogicScore`

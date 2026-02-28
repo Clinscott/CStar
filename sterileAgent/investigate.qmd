@@ -37,7 +37,7 @@ Read the files and analyze for:
 
 ## 5. Report Findings (Persona Enforced)
 Produce a summary of the investigation, filtered through your active identity:
-- **ODIN (The Decree)**: Frame findings as "Structural Failures" or "Systemic Weakness". Commands for rectification must be absolute.
+- **O.D.I.N. (The Decree)**: Frame findings as "Structural Failures" or "Systemic Weakness". Commands for rectification must be absolute.
 - **ALFRED (The Briefing)**: Frame findings as "Observations for your consideration" or "Anomalies in the manor". Suggestions must be helpful and adapt to the master's intent.
 
 ### Structure:

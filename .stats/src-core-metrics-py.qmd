@@ -1,0 +1,52 @@
+---
+title: "metrics.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/core/metrics.py"
+loc: 105
+complexity: 6
+logic_score: 5.65
+style_score: 3.70
+intel_score: 4.45
+overall_score: 4.60
+---
+
+## Intent
+Core semantic routing engine for intent resolution.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 5.6/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 4.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [os](file://os)
+- [subprocess](file://subprocess)
+- [sys](file://sys)
+- [time](file://time)
+- [collections.abc](file://collections.abc)
+- [typing](file://typing)
+- [src.core.engine.atomic_gpt](file://src.core.engine.atomic_gpt)
+- [src.core.prompt_linter](file://src.core.prompt_linter)
+- [psutil](file://psutil)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [logging](file://logging)
+
+### Exports
+- `ExecutionTracker`
+- `__init__`
+- `__enter__`
+- `__exit__`
+- `latency_ms`
+- `mem_delta_mb`
+- `report`
+- `track_execution`
+- `decorator`
+- `wrapper`
+- `ProjectMetricsEngine`
+- `__init__`
+- `compute`

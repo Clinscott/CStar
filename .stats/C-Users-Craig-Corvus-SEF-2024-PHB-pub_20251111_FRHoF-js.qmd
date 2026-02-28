@@ -1,0 +1,33 @@
+---
+title: "pub_20251111_FRHoF.js"
+path: "C:/Users/Craig/Corvus/SEF/2024-PHB/pub_20251111_FRHoF.js"
+loc: 3378
+complexity: 23
+logic_score: 1.00
+style_score: 2.80
+intel_score: 1.64
+overall_score: 1.81
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.0/10
+- **Style [S]**: 2.8/10
+- **Intel [I]**: 1.6/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+Minimal internal dependencies.
+
+### Exports
+- `escapeRegExp`
+- `legacySpellRefactor`
+- `legacyClassRefactor`
+- `archiveSubClass`
+- `legacySubClassRefactor`
+- `legacyRaceRefactor`
+- `legacyBackgroundRefactor`

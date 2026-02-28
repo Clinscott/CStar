@@ -1,0 +1,38 @@
+---
+title: "audit_dialogue.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/debug/audit_dialogue.py"
+loc: 44
+complexity: 4
+logic_score: 7.25
+style_score: 3.76
+intel_score: 8.67
+overall_score: 6.56
+---
+
+## Intent
+Python module facilitating DialogueAuditor, __init__.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.3/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 8.7/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [argparse](file://argparse)
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [src.core.engine.dialogue](file://src.core.engine.dialogue)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [src.core.sv_engine](file://src.core.sv_engine)
+
+### Exports
+- `DialogueAuditor`
+- `__init__`
+- `_resolve`
+- `audit`
+- `main`

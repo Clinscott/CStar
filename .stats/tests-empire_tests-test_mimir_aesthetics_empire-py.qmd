@@ -1,0 +1,36 @@
+---
+title: "test_mimir_aesthetics_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_mimir_aesthetics_empire.py"
+loc: 28
+complexity: 1
+logic_score: 8.75
+style_score: 3.71
+intel_score: 7.11
+overall_score: 6.53
+---
+
+## Intent
+Python module facilitating TestMimirBeauty, warden.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 7.1/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [pytest](file://pytest)
+- [src.sentinel.wardens.mimir](file://src.sentinel.wardens.mimir)
+
+### Exports
+- `TestMimirBeauty`
+- `warden`
+- `test_claustrophobic_code_breach`
+- `test_top_heavy_function_breach`
+- `test_structural_beauty_pass`

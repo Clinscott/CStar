@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-[ODIN] Synapse Synchronization System (synapse_sync.py)
+[O.D.I.N.] Synapse Synchronization System (synapse_sync.py)
 Bidirectional knowledge sync between Local Project and Knowledge Core.
 Enforces Linscott Standards: Encapsulated, Typed, Pathlib.
 """
@@ -19,7 +19,7 @@ from src.core.sovereign_hud import SovereignHUD
 
 
 class ConfigurationError(Exception):
-    """[ODIN] Raised when project configuration is malformed."""
+    """[O.D.I.N.] Raised when project configuration is malformed."""
     pass
 
 
@@ -173,7 +173,7 @@ class KnowledgeExtractor:
 
 class Synapse:
     """
-    [ODIN] Main orchestrator for knowledge synchronization.
+    [O.D.I.N.] Main orchestrator for knowledge synchronization.
     Management of the bidirectional flow between Local Project activity and the Knowledge Core.
     """
 
@@ -196,7 +196,7 @@ class Synapse:
         self.extractor = KnowledgeExtractor(self.project_root, self.agent_dir)
 
     def _load_config(self) -> dict[str, Any]:
-        # [ODIN] Config is in .agent/config.json
+        # [O.D.I.N.] Config is in .agent/config.json
         config_path = self.project_root / ".agent" / "config.json"
         if config_path.exists():
             try:

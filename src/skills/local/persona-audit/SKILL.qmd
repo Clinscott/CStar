@@ -1,6 +1,6 @@
 ---
 name: Persona Audit
-description: Analyzes text to ensure semantic alignment with the active persona (ODIN/ALFRED).
+description: Analyzes text to ensure semantic alignment with the active persona (O.D.I.N./ALFRED).
 ---
 
 # Persona Audit Skill
@@ -17,7 +17,7 @@ audit, identity, purity, check voice, persona alignment
 ## Logic:
 The skill calculate the token overlap between the input and the persona's designated `dialogue_db` corpus.
 
-- **ODIN**: Expects powerful, archaic, and clinical terminology.
+- **O.D.I.N.**: Expects powerful, archaic, and clinical terminology.
 - **ALFRED**: Expects polite, servile, and manor-context terminology.
 
 ## Workflow Integration:

@@ -1,0 +1,27 @@
+---
+title: "next-env.d.ts"
+path: "C:/Users/Craig/Corvus/SEF/next-env.d.ts"
+loc: 1
+complexity: 1
+logic_score: 9.65
+style_score: 9.49
+intel_score: 9.40
+overall_score: 9.51
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.6/10
+- **Style [S]**: 9.5/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [*](file://./.next/dev/types/routes.d.ts)
+
+### Exports
+Internal logic only.

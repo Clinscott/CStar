@@ -1,0 +1,43 @@
+---
+title: "utils.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/core/utils.py"
+loc: 53
+complexity: 4
+logic_score: 6.35
+style_score: 3.98
+intel_score: 9.40
+overall_score: 6.58
+---
+
+## Intent
+Python module facilitating load_config, safe_read_json.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.3/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [contextlib](file://contextlib)
+- [json](file://json)
+- [os](file://os)
+- [queue](file://queue)
+- [re](file://re)
+- [sys](file://sys)
+- [threading](file://threading)
+- [pathlib](file://pathlib)
+- [msvcrt](file://msvcrt)
+
+### Exports
+- `load_config`
+- `safe_read_json`
+- `_read_json_file`
+- `sanitize_query`
+- `input_with_timeout`
+- `_read`
+- `atomic_jsonl_append`

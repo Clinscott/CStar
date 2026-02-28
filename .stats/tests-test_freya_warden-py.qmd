@@ -1,0 +1,31 @@
+---
+title: "test_freya_warden.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_freya_warden.py"
+loc: 13
+complexity: 1
+logic_score: 9.20
+style_score: 1.00
+intel_score: 9.40
+overall_score: 6.53
+---
+
+## Intent
+Python module facilitating mock_project, test_freya_warden_scan.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [pytest](file://pytest)
+- [src.sentinel.wardens.freya](file://src.sentinel.wardens.freya)
+
+### Exports
+- `mock_project`
+- `test_freya_warden_scan`

@@ -1,0 +1,32 @@
+---
+title: "HexagonButton.test.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-client/test/HexagonButton.test.tsx"
+loc: 9
+complexity: 1
+logic_score: 8.75
+style_score: 9.45
+intel_score: 1.40
+overall_score: 6.53
+---
+
+## Intent
+React component rendering HexagonButton with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 9.5/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [render](file://@testing-library/react)
+- [screen](file://@testing-library/react)
+- [describe](file://vitest)
+- [it](file://vitest)
+- [expect](file://vitest)
+- [HexagonButton](file://@/components/ui/HexagonButton)
+
+### Exports
+Internal logic only.

@@ -56,13 +56,13 @@ class HeimdallWarden:
             return True
         if ".corvus_quarantine" in parts:
             return True
-        # [ODIN] Tests do not require tests. Temp gauntlet is ephemeral.
+        # [O.D.I.N.] Tests do not require tests. Temp gauntlet is ephemeral.
         if "tests" in parts or "temp_gauntlet" in parts:
             return True
         # Ignore hidden files/dirs
         if any(p.startswith(".") for p in parts):
             return True
-        # [ODIN] Init files are structural, rarely logic-bearing.
+        # [O.D.I.N.] Init files are structural, rarely logic-bearing.
         return path.name == "__init__.py"
 
     def _audit_code(self, source: Path) -> None:
@@ -76,7 +76,7 @@ class HeimdallWarden:
 
         # A. Linscott Standard: Where is the test?
         test_path = self.root / "tests" / f"test_{source.stem}.py"
-        # [ODIN] Also check Empire TDD path
+        # [O.D.I.N.] Also check Empire TDD path
         empire_test_path = self.root / "tests" / "empire_tests" / f"test_{source.stem}_empire.py"
 
         if not test_path.exists() and not empire_test_path.exists():

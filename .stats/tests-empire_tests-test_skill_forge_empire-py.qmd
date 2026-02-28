@@ -1,0 +1,31 @@
+---
+title: "test_skill_forge_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_skill_forge_empire.py"
+loc: 20
+complexity: 1
+logic_score: 9.20
+style_score: 3.55
+intel_score: 1.40
+overall_score: 4.72
+---
+
+## Intent
+Python module facilitating test_select_archetype, test_extract_subject.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [src.skills.skill_forge](file://src.skills.skill_forge)
+
+### Exports
+- `test_select_archetype`
+- `test_extract_subject`
+- `test_validate_skill_safety`

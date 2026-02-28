@@ -198,7 +198,7 @@ class SovereignWrapper:
 - SessionWarden learning pulse successful.
 - Deep memory teardown and GC sweep complete.
 
-[ODIN] Dominion Expanded."""
+[O.D.I.N.] Dominion Expanded."""
 
         try:
             subprocess.run(["git", "add", "."], cwd=str(self.root), check=True)

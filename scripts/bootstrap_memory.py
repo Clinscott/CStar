@@ -13,7 +13,7 @@ from src.core.sovereign_hud import SovereignHUD
 
 def bootstrap() -> None:
     """
-    [ODIN] Initializing Semantic Context.
+    [O.D.I.N.] Initializing Semantic Context.
     Scans the .agent/workflows directory and populates ChromaDB with workflow intents.
     """
     SovereignHUD.box_top("BOOTSTRAP: SEMANTIC BRAIN")

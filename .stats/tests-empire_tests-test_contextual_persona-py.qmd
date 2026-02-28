@@ -1,0 +1,37 @@
+---
+title: "test_contextual_persona.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_contextual_persona.py"
+loc: 49
+complexity: 1
+logic_score: 8.30
+style_score: 3.64
+intel_score: 6.30
+overall_score: 6.08
+---
+
+## Intent
+Python module facilitating dialogue_engine, test_odin_reacts_to_defiance.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.3/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 6.3/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [unittest.mock](file://unittest.mock)
+- [pytest](file://pytest)
+- [src.core.engine.alfred_observer](file://src.core.engine.alfred_observer)
+- [src.core.engine.dialogue](file://src.core.engine.dialogue)
+- [src.core.personas](file://src.core.personas)
+
+### Exports
+- `dialogue_engine`
+- `test_odin_reacts_to_defiance`
+- `test_alfred_provides_syntax_guidance`
+- `test_dialogue_fallback_on_no_match`

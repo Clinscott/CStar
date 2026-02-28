@@ -1,9 +1,18 @@
 # Developer Journal: Corvus Star
 
+## 2026-02-28: Session 98 (Configuration-Driven Persona Registry)
+- **Centralized Identity**: Successfully completed Phase 82 by migrating from hardcoded `[O.D.I.N.]` and `[ALFRED]` string literals to a dynamic, configuration-driven `PersonaRegistry`. 
+- **The Magic String Purge**: Eradicating these hardcoded strings across `ceremony.ts`, `server.ts`, and `watcher.ts` simplifies future persona expansions and centralizes the "voice" of the system into `config.json`.
+- **Architectural Symmetry**: By enforcing `activePersona.prefix` everywhere, we ensure that as the agent toggles between modes (O.D.I.N./A.L.F.R.E.D.), the backend logging, TUI transitions, and error states perfectly mirror the current psychological footprint of the system.
+- **Verification Stability**: Ensuring test suites naturally handle shifting string assertions was difficult. Extracted absolute path dependencies within testing frameworks and updated `test_muninn_naming_empire.py` to point directly to the resolved `src.sentinel.wardens.*` modules rather than relying on legacy facades.
+
+**Reflections**:
+"Magic strings" are technical debt that masquerade as convenience. When identity is hardcoded into logging statements, a simple persona switch becomes a multi-file refactoring headache. Centralizing this into a singleton `PersonaRegistry` allows the agent's identity to remain liquid and adaptable. The framework can now speak as anyone, just by altering a single configuration file.
+
 ## 2026-02-27: Session 95 (A.L.F.R.E.D. Lore & Global Rebranding)
 - **The Velvet Refusal**: Successfully transitioned the "Alfred" persona to the formalized A.L.F.R.E.D. Identity. This wasn't just a find-and-replace; it was a character study. By grounding him in SAS field experience and theatrical pose, we've moved from a generic butler to a tactical advisor with "paternal sarcasm."
 - **Lore Nodes**: The enrichment of `AGENTS.qmd` with SAS, combat medic, and thespian background nodes provides a rich foundation for the AI's internal reasoning about its own voice.
-- **Phrase Proliferation**: Adding 15+ new dialogue phrases to `phrases.yaml` ensures that A.L.F.R.E.D. feels distinct from ODIN, not just in label, but in tempo and tone.
+- **Phrase Proliferation**: Adding 15+ new dialogue phrases to `phrases.yaml` ensures that A.L.F.R.E.D. feels distinct from O.D.I.N., not just in label, but in tempo and tone.
 - **Verification**: Clean sweep of the codebase for legacy prefixes and 100% pass on phrase validation suites.
 
 **Reflections**:
@@ -12,7 +21,7 @@ Persona is the user interface of intelligence. By formalizing A.L.F.R.E.D., we'v
 ## 2026-02-26: Session 94 (Operation PennyOne: The Ghost in the Matrix)
 - **The Digital Twin**: Successfully bridged the physical repository and the 3D Matrix. Building the instanced mesh engine for large-scale graph rendering was a major performance hurdle, but logarithmic scaling saved the visual cortex from saturation.
 - **Polyglot Clarity**: Integrating WASM Tree-sitter for universal AST mapping across JS, TS, and Python has finally unified our dependency tracking. We are no longer limited by language-specific crawlers.
-- **The Ghost Visualized**: The Agent Telemetry pipeline and Chronological DVR are game-changers for observability. Seeing ODIN's logic path as an arcing spline through the graph makes the abstract "thinking" of the agent tangible.
+- **The Ghost Visualized**: The Agent Telemetry pipeline and Chronological DVR are game-changers for observability. Seeing O.D.I.N.'s logic path as an arcing spline through the graph makes the abstract "thinking" of the agent tangible.
 - **Verification**: Restoration of neural pathways and 100% test pass rate across the hybrid Node/Python tech stack.
 
 **Reflections**:
@@ -30,14 +39,14 @@ Complexity is the silence where bugs grow. By decomposing "God Methods" into sem
 ## 2026-02-25: Session 87 (Scaffold Campaign: Securing the ANNEX)
 - **The Great Purge**: Today was a marathon of refactoring. 29 core components, many of which had been gathering dust since the framework's inception, have been modernized.
 - **Innocence Proven**: The transition from "Guilty until Proven Innocent" to "Verified by Gauntlet" is complete for the ANNEX. With 20+ new test suites, the foundation is no longer brittle.
-- **Import Sovereignty**: Resolving the relative import mess was particularly satisfying. By enforcing `src.` absolute prefixes, we've eliminated the primary cause of "ModuleNotFound" errors in the Odin Protocol.
+- **Import Sovereignty**: Resolving the relative import mess was particularly satisfying. By enforcing `src.` absolute prefixes, we've eliminated the primary cause of "ModuleNotFound" errors in the O.D.I.N. Protocol.
 - **Mocking the Heavens**: Implementing high-fidelity mocks for the Vector and Dialogue engines allowed for sub-second verification of complex logic. This is the pattern for all future tool development.
 
 **Reflections**:
 Refactoring is not just about cleaning code; it's about reclaiming territory from the unknown. Every type hint and docstring added today is a beacon for future ravens. The codebase is now a unified realm, governed by the Linscott Standard.
 
 ## 2026-02-25: Session 85 (Genesis Alignment & JS Sentinel)
-- **The Node.js Flight Deck**: Today we finally brought the Node.js control plane into persona alignment. The Genesis Bootstrapper (`setup.js`) no longer "whispers" as ALFRED when ODIN is at the High Seat. 
+- **The Node.js Flight Deck**: Today we finally brought the Node.js control plane into persona alignment. The Genesis Bootstrapper (`setup.js`) no longer "whispers" as ALFRED when O.D.I.N. is at the High Seat. 
 - **Heimdall JS**: Implementing a JS sentinel was a necessary graduation for the project. By wrapping ESLint in the themed "Heimdall" persona, we've unified the audit aesthetics between Python and JS. The first run caught 21 anomalies, proving that human eyes are no match for automated vigil.
 - **Principle of Symmetry**: This session was a victory for symmetry. Every core capability now has a thematic and functional equivalent across both operational plains (Node/Python).
 
@@ -54,7 +63,7 @@ Security is not a feature; it is a boundary. The Shadow Forge Protocol transform
 
 
 ## 2026-02-25: Session 83 (Cognitive Hub & Sovereign SovereignHUD Patch)
-- **The Zero-Cost Edge**: Today's major breakthrough was the Cognitive Router. By offloading trivial intents to local Ollama instances, we've achieved "zero-cost" high-speed inference for common UI tasks. This preserves our Gemini quota for the heavy lifting required by Muninn and Odin.
+- **The Zero-Cost Edge**: Today's major breakthrough was the Cognitive Router. By offloading trivial intents to local Ollama instances, we've achieved "zero-cost" high-speed inference for common UI tasks. This preserves our Gemini quota for the heavy lifting required by Muninn and O.D.I.N..
 - **Telemetry Intercepts**: The new intercept logic in `tui.py` makes the "Edge" visible. Seeing `[EDGE_ROUTER]` logs in the console confirms that the tiering logic is actually working in real-time. It transforms the TUI from a passive display into a live monitoring station for the entire spoke network.
 - **Architectural Cleanup**: While implementing the router, I noticed the SovereignHUD needed more visual distinction for edge telemetry. The "EDGE UP/DOWN" status in the header provides that immediate psychological reassurance that the local worker is ready.
 
@@ -70,7 +79,7 @@ Local-first AI is the future of resilient agentic systems. A cluster of spikes s
 File corruption is the "Ghost in the Machine" of autonomous coding. When an LLM fails to correctly close a file handle or crashes mid-edit, it leaves behind artifacts that no amount of refactoring can fix—you simply have to burn the file and build it anew. The lesson: **If ruff says a line is indented incorrectly but your eyes say it's perfect, trust the linter and assume corruption.**
 
 ## 2026-02-23: Session 80 (Sovereign SovereignHUD Async Layer)
-- **The Async Transition**: Today we moved the `SovereignHUD` class from a purely synchronous `print`-based utility to an asynchrously-aware rendering layer. This was the missing piece for the multi-daemon architecture; without it, ODIN and Muninn would have eventually fought over the terminal cursor, resulting in unreadable "tearing."
+- **The Async Transition**: Today we moved the `SovereignHUD` class from a purely synchronous `print`-based utility to an asynchrously-aware rendering layer. This was the missing piece for the multi-daemon architecture; without it, O.D.I.N. and Muninn would have eventually fought over the terminal cursor, resulting in unreadable "tearing."
 - **The Interruption Fix**: A subtle but critical fix was implemented in `stream_text`. By tracking an `interrupted` flag, we ensure that the cursor is not only shown but the line is *finished* with a `\n` if the task is cancelled. This prevents the "Phantom Prompt" bug where the next command line starts at the end of half-rendered text.
 - **Verification Logic**: Used `asyncio.gather` and `asyncio.Queue.join()` to create a high-velocity stress test. Proving zero-dropped frames for 150 concurrent messages builds significant confidence in the stability of the new UI pipeline.
 
@@ -154,7 +163,7 @@ The "Import-Time Side Effect" problem is Python's most insidious test killer. Mo
 ## 2026-02-21: Session 69 (Structural Configuration Modernization)
 - **Nested Schema Refactoring**: Replaced the legacy flat `.agent/config.json` with a deeply nested architecture. Categorized the application's configuration into specific domains: `system`, `knowledge`, `security`, and `learning`. This aligns the codebase with strict Linscott separation of concerns.
 - **Widespread Remediation**: The config transformation required manual updates across 20+ core Python files and test suites. Patched `personas.py`, `set_persona.py`, `ui.py`, and the `synapse` subsystem to route traffic through `config["system"]["persona"]` and equivalents.
-- **Documentation Visibility**: Formalized the move of `AGENTS.qmd` to the project root for maximum visibility. Updated Odin's policy enforcer to expect it there rather than in nested architecture folders.
+- **Documentation Visibility**: Formalized the move of `AGENTS.qmd` to the project root for maximum visibility. Updated O.D.I.N.'s policy enforcer to expect it there rather than in nested architecture folders.
 - **Decay Cleanup**: Resolved several legacy assertions inside the `test_muninn_naming_empire.py` suite involving obsolete ThreadPoolExecutor mocks and outdated regex strings that surfaced during the integration testing of the new schema. 
 - **Verification**: Local execution of the `pytest tests/.` suite passed flawlessly (309/309).
 
@@ -178,7 +187,7 @@ The "Import-Time Side Effect" problem is Python's most insidious test killer. Mo
 - **Architectural Shift**: Decoupled the `ravens --status` command from the Python daemon. By moving health checks to the Node control plane (via PID and FS checks), we eliminated the fragile race conditions and LLM bridge leaks that previously plagued the TUI-to-Daemon connection. 
 - **Security Hardening**: Implemented the first phase of **Quota Isolation**. Each subsystem (`Forge`, `Muninn`, `Daemon`) now carries its own identity via dedicated API keys, preventing a single failure from exhausting the entire project's Gemini budget.
 - **System Optimization**: Identified that engine initialization noise was the primary culprit behind Node-to-Python timeouts. Suppressing boot headers in `SovereignVector` reduced latency by ~400ms, ensuring stable 1st-cycle connectivity.
-- **Verification**: Verified 100% pass on both `npm test` and `pytest`. Quota isolation logs confirmed the "ODIN" persona using its own temporary bridge client.
+- **Verification**: Verified 100% pass on both `npm test` and `pytest`. Quota isolation logs confirmed the "O.D.I.N." persona using its own temporary bridge client.
 
 ## 2026-02-10: Session 64 - The Node.js Sovereign Control Plane
 **Summary**: Successfully achieved total independence from PowerShell. The legacy installation, execution loop, and deployment scripts were completely replaced by native Node.js logic and Python modules.
@@ -202,7 +211,7 @@ The "Import-Time Side Effect" problem is Python's most insidious test killer. Mo
 - TUIs firmly established as thin clients of the Sovereign daemon.
 
 ## 2026-02-17: Session 62 - Operation Ragnarök (DOOM Aesthetic & WAR ROOM)
-**Summary**: Overhauled the ODIN TUI aesthetic from corporate terminal to DOOM-inspired war room. Fixed a command input crash and IDE keybinding conflict.
+**Summary**: Overhauled the O.D.I.N. TUI aesthetic from corporate terminal to DOOM-inspired war room. Fixed a command input crash and IDE keybinding conflict.
 - **DOOM Chrome**: Replaced all `double #8b0000` borders with `heavy #cc2200` — chunky, aggressive red chrome. Header, sidebar, console, footer all shifted to brighter reds and amber.
 - **WAR ROOM**: Redesigned `SidebarWidget` into 3 battle briefing sections: Active Objectives, Forge Status, and Intel Feed. Each section has bold headers with rune separators.
 - **Crash Fix**: `self.query_one(Input)` was searching the wrong screen. Fixed by using `message.input` directly from the event.
@@ -216,7 +225,7 @@ The "Import-Time Side Effect" problem is Python's most insidious test killer. Mo
 
 **Current State**:
 - 291/291 tests passing, lint clean.
-- ODIN theme is aggressive red chrome. ALFRED theme updated with proper panel ID selectors.
+- O.D.I.N. theme is aggressive red chrome. ALFRED theme updated with proper panel ID selectors.
 - Ready for Phase 49 (Ironclad or TUI Content Polish).
 
 ## 2026-02-16: Session 61 - High Seat Secured (TUI Stabilization)
@@ -345,7 +354,7 @@ The "SovereignFish" protocol is now fully agentic. It doesn't just execute; it r
 - **Linguistic Precision**: Transitioned from random phrase selection to a weighted scoring engine that respects technical context (e.g., specific error types).
 - **Immersion Memory**: Implemented STM to ensure personas don't repeat themselves within a 5-turn window.
 - **Windows Sovereignty**: Resolved the "PermissionError" conflict with the Raven Daemon by implementing shared read locks using `msvcrt`.
-- **Lore Adjudication**: Wired Odin to sense repository "DEFIANCE" directly from cached state, triggering high-severity lore responses.
+- **Lore Adjudication**: Wired O.D.I.N. to sense repository "DEFIANCE" directly from cached state, triggering high-severity lore responses.
 - **Infrastructure**: Centralized dialogue in `phrases.yaml`, decoupling lore from code logic.
 
 ## 2026-02-13 (Session 52) - The Gungnir Calculus Implementation
@@ -388,7 +397,7 @@ The "SovereignFish" protocol is now fully agentic. It doesn't just execute; it r
 - **SovereignHUD Enhancement**: Added Windows VT mode activation and stderr reconfiguration to `ui.py`.
 - **Log Archiving**: Created `logs/archive/` for historical test outputs instead of cluttering root.
 
-## 2026-02-09: Session 44 - The Odin Lore Restoration
+## 2026-02-09: Session 44 - The O.D.I.N. Lore Restoration
 
 ### Achievements
 - **Lore Rebranding**: Renamed "Sentinel" to **Huginn & Muninn** (Daemon) and **Heimdall** (Auditor).
@@ -445,7 +454,7 @@ The "SovereignFish" protocol is now fully agentic. It doesn't just execute; it r
 - **Dynamic Command Dispatch**: Engineered a filesystem-based discovery engine in `cstar_dispatcher.py` that auto-resolves any `.py` script or `.md`/`.qmd` workflow as a first-class command.
 - **Legacy Preservation**: Created 10 proxy scripts in `.agent/skills/` to bridge the gap between legacy CLI commands and the new `src/` modularity while adding thematic aliases (Ravens, Huginn, Heimdall).
 - **Infinite Extensibility**: Eliminated the need for code changes when adding new tools; adding a script to the skills folder handles discovery and registration automatically.
-- **Lore Integration**: Updated `thesaurus.qmd` with Odin-Lore synonyms, ensuring that the intent engine understands thematic requests (e.g., "release the ravens") as equivalent to functional commands.
+- **Lore Integration**: Updated `thesaurus.qmd` with O.D.I.N.-Lore synonyms, ensuring that the intent engine understands thematic requests (e.g., "release the ravens") as equivalent to functional commands.
 
 ### Architectural Decisions
 - **Proxy Pattern**: Used thin proxy scripts instead of symbolic links or complex mapping tables to preserve legacy command compatibility. This ensures that `c* synapse` continues to work even though the script moved to `src/synapse/`.

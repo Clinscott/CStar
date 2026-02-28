@@ -30,7 +30,7 @@ class TestLexiconLift:
         # Create a mock vector engine that sees 'quasibartle' as unknown
         class MockVector(SovereignVector):
             def __init__(self, *args, **kwargs) -> None:
-                self.vocab = {"tell", "me", "about"}
+                self._idf_map = {"tell": 1.0, "me": 1.0, "about": 1.0}
                 self.stopwords = {"the", "and"}
             def search(self, query):
                 return [{"trigger": "none", "score": 0.1, "is_global": False}]

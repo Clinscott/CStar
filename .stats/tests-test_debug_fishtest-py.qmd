@@ -1,0 +1,37 @@
+---
+title: "test_debug_fishtest.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_debug_fishtest.py"
+loc: 29
+complexity: 2
+logic_score: 7.50
+style_score: 3.76
+intel_score: 6.92
+overall_score: 6.06
+---
+
+## Intent
+Core semantic routing engine for intent resolution.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.5/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 6.9/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [src.tools.debug.debug_fishtest](file://src.tools.debug.debug_fishtest)
+
+### Exports
+- `test_run_debug_fishtest_logic`
+- `MockEngine`
+- `__init__`
+- `search`
+- `load_core_skills`
+- `load_skills_from_dir`
+- `build_index`
+- `test_run_debug_fishtest_missing_file`

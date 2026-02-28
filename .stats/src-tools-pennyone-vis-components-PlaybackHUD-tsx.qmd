@@ -1,0 +1,29 @@
+---
+title: "PlaybackHUD.tsx"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/components/PlaybackHUD.tsx"
+loc: 103
+complexity: 6
+logic_score: 7.45
+style_score: 2.74
+intel_score: 2.39
+overall_score: 4.19
+---
+
+## Intent
+React component rendering PlaybackHUD with 6 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.4/10
+- **Style [S]**: 2.7/10
+- **Intel [I]**: 2.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://react)
+
+### Exports
+Internal logic only.

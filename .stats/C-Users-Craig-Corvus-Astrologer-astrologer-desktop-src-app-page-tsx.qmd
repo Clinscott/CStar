@@ -1,0 +1,38 @@
+---
+title: "page.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/src/app/page.tsx"
+loc: 131
+complexity: 8
+logic_score: 5.85
+style_score: 1.00
+intel_score: 6.58
+overall_score: 4.48
+---
+
+## Intent
+React component rendering page with 8 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 5.8/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 6.6/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [useState](file://react)
+- [useCallback](file://react)
+- [AstronomySidebar](file://@/components/layout/AstronomySidebar)
+- [CelestialHeader](file://@/components/layout/CelestialHeader)
+- [ResizablePanelLayout](file://@/components/layout/ResizablePanelLayout)
+- [ConversationListPanel](file://@/components/layout/ConversationListPanel)
+- [MessageDetailPanel](file://@/components/layout/MessageDetailPanel)
+- [GalaxyView](file://@/components/ui/GalaxyView)
+- [useCelestial](file://@/context/CelestialContext)
+- [useUnifiedInbox](file://@/hooks/useUnifiedInbox)
+- [cn](file://@/lib/utils)
+
+### Exports
+- `DesktopHome`
+- `DesktopHome`

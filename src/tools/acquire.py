@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-[ODIN] Implementation of the Hunt & Forge Protocol.
+[O.D.I.N.] Implementation of the Hunt & Forge Protocol.
 Acquires new skills autonomously via Brave Search and Antigravity Uplink.
 Deploys results strictly to the zero-trust skills_db/ directory.
 """
@@ -83,7 +83,7 @@ async def hunt_and_forge(query: str, skill_name: str | None = None) -> None:
     new_code = response.get("data", {}).get("code") or response.get("message", "")
     if "[SIMULATION]" in new_code:
         # Generate dummy code for testing if in simulation mode
-        new_code = f"import sys\n# [ODIN] Forged Skill: {query}\nprint('Gungnir Logic Default: ' + ' '.join(sys.argv[1:]))\n"
+        new_code = f"import sys\n# [O.D.I.N.] Forged Skill: {query}\nprint('Gungnir Logic Default: ' + ' '.join(sys.argv[1:]))\n"
 
     # 3. SANITIZE Phase
     SovereignHUD.box_row("PHASE 3", "Bifrost Gate Sanitization...", SovereignHUD.CYAN)

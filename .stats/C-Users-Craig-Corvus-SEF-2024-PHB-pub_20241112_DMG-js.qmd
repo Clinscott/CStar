@@ -1,0 +1,27 @@
+---
+title: "pub_20241112_DMG.js"
+path: "C:/Users/Craig/Corvus/SEF/2024-PHB/pub_20241112_DMG.js"
+loc: 11268
+complexity: 166
+logic_score: 2.35
+style_score: 2.80
+intel_score: 1.76
+overall_score: 2.30
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 2.3/10
+- **Style [S]**: 2.8/10
+- **Intel [I]**: 1.8/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+Minimal internal dependencies.
+
+### Exports
+Internal logic only.

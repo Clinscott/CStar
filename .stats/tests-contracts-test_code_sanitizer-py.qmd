@@ -1,0 +1,68 @@
+---
+title: "test_code_sanitizer.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/contracts/test_code_sanitizer.py"
+loc: 147
+complexity: 4
+logic_score: 6.80
+style_score: 3.81
+intel_score: 1.94
+overall_score: 4.18
+---
+
+## Intent
+Python module facilitating TestValidateSyntax, test_valid_code_passes.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.8/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 1.9/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [src.sentinel.code_sanitizer](file://src.sentinel.code_sanitizer)
+
+### Exports
+- `TestValidateSyntax`
+- `test_valid_code_passes`
+- `test_indentation_error_caught`
+- `test_syntax_error_caught`
+- `test_empty_code_fails`
+- `test_none_code_fails`
+- `TestSanitizeCode`
+- `test_strips_markdown_fences`
+- `test_strips_json_fences`
+- `test_removes_bom`
+- `test_removes_null_bytes`
+- `test_converts_tabs_to_spaces`
+- `test_normalizes_line_endings`
+- `test_strips_trailing_whitespace`
+- `test_ensures_trailing_newline`
+- `test_fixes_simple_indentation`
+- `test_preserves_valid_code`
+- `TestValidateImports`
+- `test_stdlib_imports_pass`
+- `test_src_imports_pass`
+- `test_fabricated_import_flagged`
+- `test_nonexistent_module_flagged`
+- `test_pytest_import_passes`
+- `TestSanitizeTest`
+- `test_injects_sys_path_when_missing`
+- `test_preserves_existing_sys_path`
+- `TestClassifyError`
+- `test_indent_error`
+- `test_syntax_error`
+- `test_import_error`
+- `test_assertion_error`
+- `test_runtime_error`
+- `test_unknown`
+- `test_empty`
+- `TestExtractErrorSummary`
+- `test_extracts_short_summary`
+- `test_fallback_to_e_lines`
+- `test_empty_output`

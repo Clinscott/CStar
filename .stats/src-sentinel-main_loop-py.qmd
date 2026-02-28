@@ -1,0 +1,56 @@
+---
+title: "main_loop.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/sentinel/main_loop.py"
+loc: 186
+complexity: 24
+logic_score: 1.45
+style_score: 3.62
+intel_score: 7.42
+overall_score: 4.16
+---
+
+## Intent
+Python module facilitating _ensure_bootstrapped, ShutdownHandler.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.4/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 7.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [logging](file://logging)
+- [os](file://os)
+- [signal](file://signal)
+- [subprocess](file://subprocess)
+- [time](file://time)
+- [pathlib](file://pathlib)
+- [typing](file://typing)
+- [psutil](file://psutil)
+- [colorama](file://colorama)
+- [src.sentinel._bootstrap](file://src.sentinel._bootstrap)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [src.sentinel.muninn](file://src.sentinel.muninn)
+- [argparse](file://argparse)
+
+### Exports
+- `_ensure_bootstrapped`
+- `ShutdownHandler`
+- `__init__`
+- `shutdown`
+- `load_config`
+- `load_target_repos`
+- `get_interval`
+- `git_cmd`
+- `is_clean`
+- `ensure_branch`
+- `restore_branch`
+- `load_persona`
+- `process_repo`
+- `highlander_check`
+- `daemon_loop`

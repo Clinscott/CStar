@@ -1,0 +1,101 @@
+---
+title: "muninn.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/sentinel/muninn.py"
+loc: 628
+complexity: 90
+logic_score: 1.00
+style_score: 3.67
+intel_score: 6.11
+overall_score: 3.60
+---
+
+## Intent
+Python module facilitating Muninn, __init__.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.0/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 6.1/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [asyncio](file://asyncio)
+- [json](file://json)
+- [logging](file://logging)
+- [os](file://os)
+- [shutil](file://shutil)
+- [subprocess](file://subprocess)
+- [time](file://time)
+- [pathlib](file://pathlib)
+- [colorama](file://colorama)
+- [google](file://google)
+- [sys](file://sys)
+- [src.sentinel._bootstrap](file://src.sentinel._bootstrap)
+- [src.core.annex](file://src.core.annex)
+- [src.core.engine.alfred_observer](file://src.core.engine.alfred_observer)
+- [src.core.engine.atomic_gpt](file://src.core.engine.atomic_gpt)
+- [src.core.metrics](file://src.core.metrics)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [src.cstar.core.uplink](file://src.cstar.core.uplink)
+- [src.sentinel.code_sanitizer](file://src.sentinel.code_sanitizer)
+- [src.sentinel.stability](file://src.sentinel.stability)
+- [src.sentinel.wardens.base](file://src.sentinel.wardens.base)
+- [src.sentinel.wardens.norn](file://src.sentinel.wardens.norn)
+- [src.tools.brave_search](file://src.tools.brave_search)
+- [src.tools.gemini_search](file://src.tools.gemini_search)
+- [tests.integration.project_fishtest](file://tests.integration.project_fishtest)
+- [tests.harness.raven_proxy](file://tests.harness.raven_proxy)
+- [src.cstar.core.antigravity_bridge](file://src.cstar.core.antigravity_bridge)
+- [importlib](file://importlib)
+- [inspect](file://inspect)
+- [src.sentinel.sandbox_warden](file://src.sentinel.sandbox_warden)
+- [sys](file://sys)
+- [sys](file://sys)
+- [re](file://re)
+- [argparse](file://argparse)
+- [tests.harness.raven_proxy](file://tests.harness.raven_proxy)
+
+### Exports
+- `Muninn`
+- `__init__`
+- `_write_pid`
+- `_clear_pid`
+- `_check_agent_active`
+- `_get_model`
+- `_setup_shadow_workspace`
+- `_resolve_model`
+- `_load_prompt`
+- `_sync_send`
+- `_get_alfred_suggestions`
+- `_check_user_feedback`
+- `_hunt_phase`
+- `_select_target_phase`
+- `get_score`
+- `_enrich_context_phase`
+- `_forge_and_crucible_phase`
+- `_finalize_success`
+- `_handle_verification_failure`
+- `_handle_gphs_regression`
+- `_evolve_neural_warden`
+- `run`
+- `_emit_metrics_summary`
+- `_execute_hunt_async`
+- `_forge_improvement`
+- `_run_gauntlet`
+- `_generate_implementation`
+- `_verify_fix`
+- `_verify_in_docker`
+- `_verify_locally`
+- `_check_unit_regressions`
+- `_verify_sprt_stability`
+- `_verify_performance`
+- `_rollback`
+- `_record_metric`
+- `_orchestrate_shadow_forge`
+- `_promote_from_container`
+- `_distill_knowledge`
+- `_select_breach_target`

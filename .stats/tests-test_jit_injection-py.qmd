@@ -1,0 +1,31 @@
+---
+title: "test_jit_injection.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_jit_injection.py"
+loc: 32
+complexity: 6
+logic_score: 6.10
+style_score: 3.85
+intel_score: 3.90
+overall_score: 4.62
+---
+
+## Intent
+Python module facilitating test_jit_loading.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.1/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 3.9/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [os](file://os)
+- [sys](file://sys)
+- [src.core.engine.vector](file://src.core.engine.vector)
+
+### Exports
+- `test_jit_loading`

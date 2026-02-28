@@ -1,0 +1,30 @@
+---
+title: "utils.ts"
+path: "C:/Users/Craig/Corvus/KeepOS/lib/utils.ts"
+loc: 5
+complexity: 1
+logic_score: 9.20
+style_score: 9.51
+intel_score: 10.00
+overall_score: 9.57
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 9.5/10
+- **Intel [I]**: 10.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [clsx](file://clsx)
+- [ClassValue](file://clsx)
+- [twMerge](file://tailwind-merge)
+
+### Exports
+- `cn`
+- `cn`

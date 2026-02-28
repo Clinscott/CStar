@@ -1,0 +1,34 @@
+---
+title: "prompt_linter.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/core/prompt_linter.py"
+loc: 48
+complexity: 16
+logic_score: 1.70
+style_score: 3.81
+intel_score: 6.40
+overall_score: 3.97
+---
+
+## Intent
+Python module facilitating PromptLinter, parse_prompty_vars.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.7/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 6.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [ast](file://ast)
+- [os](file://os)
+- [re](file://re)
+
+### Exports
+- `PromptLinter`
+- `parse_prompty_vars`
+- `audit_python_invocation`
+- `calculate_integrity_score`

@@ -1,0 +1,31 @@
+---
+title: "AgentGhost.tsx"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/components/AgentGhost.tsx"
+loc: 67
+complexity: 4
+logic_score: 7.25
+style_score: 4.08
+intel_score: 6.18
+overall_score: 5.84
+---
+
+## Intent
+React component rendering AgentGhost with 4 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.3/10
+- **Style [S]**: 4.1/10
+- **Intel [I]**: 6.2/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://react)
+- [*](file://three)
+- [*](file://@react-three/drei)
+
+### Exports
+Internal logic only.

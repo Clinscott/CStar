@@ -1,0 +1,28 @@
+---
+title: "page.tsx"
+path: "C:/Users/Craig/Corvus/KeepOS/app/page.tsx"
+loc: 5
+complexity: 1
+logic_score: 9.20
+style_score: 5.78
+intel_score: 10.00
+overall_score: 8.33
+---
+
+## Intent
+React component rendering page with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 5.8/10
+- **Intel [I]**: 10.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [CastleView](file://./components/castle)
+
+### Exports
+- `Home`
+- `Home`

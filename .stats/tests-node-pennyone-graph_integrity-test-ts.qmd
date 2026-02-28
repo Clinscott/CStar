@@ -1,0 +1,33 @@
+---
+title: "graph_integrity.test.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/node/pennyone/graph_integrity.test.ts"
+loc: 56
+complexity: 4
+logic_score: 6.35
+style_score: 5.64
+intel_score: 9.26
+overall_score: 7.08
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.3/10
+- **Style [S]**: 5.6/10
+- **Intel [I]**: 9.3/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://node:test)
+- [*](file://node:assert)
+- [*](file://../../../src/tools/pennyone/index.js)
+- [*](file://fs/promises)
+- [*](file://path)
+
+### Exports
+Internal logic only.

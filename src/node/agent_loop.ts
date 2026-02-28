@@ -3,6 +3,7 @@ import path from 'node:path';
 import chalk from 'chalk';
 import { deployCandidate } from './deployment.js';
 import { CortexLink } from './cortex_link.js';
+import { activePersona } from '../tools/pennyone/personaRegistry.js';
 
 /**
  * Orchestrates the 7-step Gungnir Flight Cycle to modify and verify a target file.
@@ -21,7 +22,7 @@ export async function executeCycle(
     deployExec: (target: string, candidate: string, msg: string) => Promise<void> = deployCandidate
 ): Promise<void> {
     // 1. Extract Directives
-    console.log(chalk.cyan("ALFRED: 'Consulting the Archives...'"));
+    console.log(chalk.cyan(`${activePersona.prefix} 'Consulting the Archives...'`));
     let ledgerConfig = "";
     try {
         ledgerConfig = await fs.readFile(path.join(ledgerDirectory, 'ledger.json'), 'utf8');
@@ -43,7 +44,7 @@ export async function executeCycle(
     // 3. Construct Prompt -> Handled automatically by Daemon orchestration
 
     // 4. Agent Call
-    console.log(chalk.cyan("ALFRED: 'Transmitting constraints...'"));
+    console.log(chalk.cyan(`${activePersona.prefix} 'Transmitting constraints...'`));
     const askPayload = await cortexLink.sendCommand('ask', [taskDescription, targetFile]);
 
     if (!askPayload || (askPayload.status !== 'success' && askPayload.status !== 'uplink_success')) {
@@ -54,7 +55,7 @@ export async function executeCycle(
     const forgedCode = askPayload.status === 'uplink_success' ? askPayload.data.data.raw : askPayload.data;
 
     // 5. Save Candidate
-    console.log(chalk.cyan("ALFRED: 'Candidate forged...'"));
+    console.log(chalk.cyan(`${activePersona.prefix} 'Candidate forged...'`));
     const parsedPath = path.parse(targetFile);
     const candidatePath = path.join(parsedPath.dir, `${parsedPath.name}_candidate${parsedPath.ext}`);
 
@@ -66,7 +67,7 @@ export async function executeCycle(
     await fs.writeFile(candidatePath, cleanCode, 'utf8');
 
     // 6. Invoke Gungnir Strike
-    console.log(chalk.cyan("ALFRED: 'Summoning the Raven for judgment...'"));
+    console.log(chalk.cyan(`${activePersona.prefix} 'Summoning the Raven for judgment...'`));
     const verifyPayload = await cortexLink.sendCommand('verify', [candidatePath, ledgerDirectory]);
 
     if (!verifyPayload || verifyPayload.status !== 'success') {
@@ -77,5 +78,5 @@ export async function executeCycle(
     await deployExec(targetFile, candidatePath, "C* Auto-Refactor: " + taskDescription);
 
     // 8. Complete
-    console.log(chalk.green("ALFRED: 'Cycle complete. The stars await...'"));
+    console.log(chalk.green(`${activePersona.prefix} 'Cycle complete. The stars await...'`));
 }

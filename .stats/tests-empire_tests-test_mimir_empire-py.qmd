@@ -1,0 +1,38 @@
+---
+title: "test_mimir_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_mimir_empire.py"
+loc: 47
+complexity: 4
+logic_score: 7.25
+style_score: 3.91
+intel_score: 8.21
+overall_score: 6.45
+---
+
+## Intent
+Python module facilitating TestMimirEmpire, mock_root.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.3/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 8.2/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [unittest.mock](file://unittest.mock)
+- [pytest](file://pytest)
+- [src.sentinel.wardens.mimir](file://src.sentinel.wardens.mimir)
+
+### Exports
+- `TestMimirEmpire`
+- `mock_root`
+- `test_scan_no_files`
+- `test_scan_clean_file`
+- `test_scan_complex_file`
+- `test_scan_maintainability`

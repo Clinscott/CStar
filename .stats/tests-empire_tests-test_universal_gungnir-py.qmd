@@ -1,0 +1,35 @@
+---
+title: "test_universal_gungnir.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_universal_gungnir.py"
+loc: 29
+complexity: 1
+logic_score: 8.75
+style_score: 1.00
+intel_score: 6.92
+overall_score: 5.56
+---
+
+## Intent
+Python module facilitating TestUniversalGungnir, test_logic_python_claustrophobia.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 6.9/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [src.core.engine.gungnir.universal](file://src.core.engine.gungnir.universal)
+
+### Exports
+- `TestUniversalGungnir`
+- `test_logic_python_claustrophobia`
+- `test_logic_typescript_birkhoff`
+- `test_style_css_dissonance`
+- `test_data_json_nesting`
+- `test_structure_markdown_density`
+- `test_harmony_pass`

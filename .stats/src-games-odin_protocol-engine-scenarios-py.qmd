@@ -1,0 +1,45 @@
+---
+title: "scenarios.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/games/odin_protocol/engine/scenarios.py"
+loc: 332
+complexity: 17
+logic_score: 2.25
+style_score: 3.42
+intel_score: 4.53
+overall_score: 3.40
+---
+
+## Intent
+Core semantic routing engine for intent resolution.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 2.3/10
+- **Style [S]**: 3.4/10
+- **Intel [I]**: 4.5/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [hashlib](file://hashlib)
+- [math](file://math)
+- [random](file://random)
+- [typing](file://typing)
+
+### Exports
+- `SovereignScenarioEngine`
+- `_inject_environmental_modifiers`
+- `_transform_pillar_narrative`
+- `_calculate_option_difficulty`
+- `generate_scenario`
+- `_generate_internal`
+- `_calculate_affinity`
+- `_generate_world_attributes`
+- `get_world_att`
+- `_generate_cast`
+- `_get_or_create_campaign`
+- `_generate_item`
+- `get_outcome`
+- `get_scientist_query`

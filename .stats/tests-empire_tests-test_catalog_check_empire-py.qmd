@@ -1,0 +1,37 @@
+---
+title: "test_catalog_check_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_catalog_check_empire.py"
+loc: 63
+complexity: 3
+logic_score: 7.60
+style_score: 2.86
+intel_score: 7.75
+overall_score: 6.07
+---
+
+## Intent
+Python module facilitating setup_environment, run_script.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.6/10
+- **Style [S]**: 2.9/10
+- **Intel [I]**: 7.7/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [os](file://os)
+- [re](file://re)
+- [subprocess](file://subprocess)
+- [sys](file://sys)
+- [pytest](file://pytest)
+
+### Exports
+- `setup_environment`
+- `run_script`
+- `test_successful_index_building_and_retrieval`
+- `assert_step`
+- `test_handling_of_no_results_path_implicit_check`

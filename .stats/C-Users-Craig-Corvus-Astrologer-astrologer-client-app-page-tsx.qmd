@@ -1,0 +1,38 @@
+---
+title: "page.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-client/app/page.tsx"
+loc: 110
+complexity: 2
+logic_score: 8.85
+style_score: 1.00
+intel_score: 4.55
+overall_score: 4.80
+---
+
+## Intent
+React component rendering page with 2 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 4.5/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [useState](file://react)
+- [CelestialIcon](file://@/components/ui/CelestialIcon)
+- [HexagonButton](file://@/components/ui/HexagonButton)
+- [DashboardToggle](file://@/components/ui/DashboardToggle)
+- [MessageFeed](file://@/components/ui/MessageFeed)
+- [GalaxyView](file://@/components/ui/GalaxyView)
+- [motion](file://framer-motion)
+- [AnimatePresence](file://framer-motion)
+- [ArrowLeft](file://lucide-react)
+- [Bell](file://lucide-react)
+- [Settings](file://lucide-react)
+
+### Exports
+- `Home`
+- `Home`

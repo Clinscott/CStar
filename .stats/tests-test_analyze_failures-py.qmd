@@ -1,0 +1,34 @@
+---
+title: "test_analyze_failures.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_analyze_failures.py"
+loc: 26
+complexity: 2
+logic_score: 7.50
+style_score: 3.76
+intel_score: 7.55
+overall_score: 6.27
+---
+
+## Intent
+Python module facilitating test_analyze_benchmarks_logic, MockVector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.5/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 7.6/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [pathlib](file://pathlib)
+- [analyze_failures](file://analyze_failures)
+
+### Exports
+- `test_analyze_benchmarks_logic`
+- `MockVector`
+- `search`
+- `test_analyze_benchmarks_missing_file`

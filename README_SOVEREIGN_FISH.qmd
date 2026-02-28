@@ -1,7 +1,7 @@
 # 🐟 Sovereign Fish Autonomous Daemon
 
 **Autonomous Code Improvement System**
-*Identity: ODIN/ALFRED*
+*Identity: O.D.I.N./ALFRED*
 
 ## Overview
 The Sovereign Fish Daemon (`main_loop.py`) is a background process that continuously monitors your repositories, identifies structural or quality issues, and autonomously fixes them using the Gemini API. The core logic is implemented in the `Muninn` agent (`muninn.py`).
@@ -30,7 +30,7 @@ You can launch the background process using the Corvus Star CLI:
 # Standard Command
 c* daemon
 
-# ODIN Persona Alias (Preferred)
+# O.D.I.N. Persona Alias (Preferred)
 c* ravens
 ```
 

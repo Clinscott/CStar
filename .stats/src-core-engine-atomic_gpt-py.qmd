@@ -1,0 +1,56 @@
+---
+title: "atomic_gpt.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/core/engine/atomic_gpt.py"
+loc: 197
+complexity: 13
+logic_score: 3.20
+style_score: 3.73
+intel_score: 9.40
+overall_score: 5.44
+---
+
+## Intent
+Autonomous neural guardian monitoring system drift and anomalies.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 3.2/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [pickle](file://pickle)
+- [datetime](file://datetime)
+- [pathlib](file://pathlib)
+- [src.core.utils](file://src.core.utils)
+- [argparse](file://argparse)
+
+### Exports
+- `WardenCircuitBreaker`
+- `BaseWarden`
+- `__init__`
+- `train`
+- `eval`
+- `sigmoid`
+- `relu`
+- `_normalize`
+- `predict`
+- `forward`
+- `AnomalyWarden`
+- `__init__`
+- `forward`
+- `train_step`
+- `log_anomaly`
+- `save`
+- `load`
+- `SessionWarden`
+- `__init__`
+- `forward`
+- `train_step`
+- `save`
+- `load`
+- `main`

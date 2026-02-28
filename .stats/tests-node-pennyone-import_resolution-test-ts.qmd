@@ -1,0 +1,35 @@
+---
+title: "import_resolution.test.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/node/pennyone/import_resolution.test.ts"
+loc: 52
+complexity: 1
+logic_score: 8.75
+style_score: 3.87
+intel_score: 6.78
+overall_score: 6.47
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 6.8/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://node:test)
+- [*](file://node:assert)
+- [*](file://../../../src/tools/pennyone/intel/compiler.js)
+- [*](file://../../../src/tools/pennyone/analyzer.js)
+- [*](file://../../../src/tools/pennyone/pathRegistry.js)
+- [*](file://fs/promises)
+- [*](file://path)
+
+### Exports
+Internal logic only.

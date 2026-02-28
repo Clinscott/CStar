@@ -1,0 +1,39 @@
+---
+title: "test_mimir_batch_3.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/unit/test_mimir_batch_3.py"
+loc: 72
+complexity: 1
+logic_score: 8.75
+style_score: 3.62
+intel_score: 5.84
+overall_score: 6.07
+---
+
+## Intent
+Python module facilitating mock_memory_db, vector_engine.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 5.8/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [pathlib](file://pathlib)
+- [unittest.mock](file://unittest.mock)
+- [pytest](file://pytest)
+- [src.core.engine.vector](file://src.core.engine.vector)
+- [src.games.odin_protocol.main](file://src.games.odin_protocol.main)
+- [src.games.odin_protocol.ui](file://src.games.odin_protocol.ui)
+
+### Exports
+- `mock_memory_db`
+- `vector_engine`
+- `test_vector_search_modularized`
+- `test_vector_score_intent_modularized`
+- `test_odin_ui_extraction`
+- `test_odin_main_delegation`

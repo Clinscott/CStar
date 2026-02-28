@@ -1,0 +1,82 @@
+---
+title: "tui.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/cstar/core/tui.py"
+loc: 442
+complexity: 29
+logic_score: 1.00
+style_score: 3.72
+intel_score: 3.48
+overall_score: 2.73
+---
+
+## Intent
+Python module facilitating _load_greeting, VitalsHeader.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.0/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 3.5/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [asyncio](file://asyncio)
+- [json](file://json)
+- [os](file://os)
+- [random](file://random)
+- [time](file://time)
+- [pathlib](file://pathlib)
+- [typing](file://typing)
+- [websockets.sync.client](file://websockets.sync.client)
+- [yaml](file://yaml)
+- [contextlib](file://contextlib)
+- [textual](file://textual)
+- [textual.app](file://textual.app)
+- [textual.binding](file://textual.binding)
+- [textual.containers](file://textual.containers)
+- [textual.screen](file://textual.screen)
+- [textual.suggester](file://textual.suggester)
+- [textual.widgets](file://textual.widgets)
+- [subprocess](file://subprocess)
+
+### Exports
+- `_load_greeting`
+- `VitalsHeader`
+- `compose`
+- `update_vitals`
+- `SidebarWidget`
+- `compose`
+- `update_tasks`
+- `GPHSGauge`
+- `render_gauge`
+- `CommandInput`
+- `__init__`
+- `DashboardScreen`
+- `compose`
+- `ForgeScreen`
+- `compose`
+- `TraceScreen`
+- `compose`
+- `HelpScreen`
+- `__init__`
+- `compose`
+- `FeedbackScreen`
+- `compose`
+- `on_input_submitted`
+- `SovereignApp`
+- `compose`
+- `on_mount`
+- `_apply_panel_lore`
+- `_startup_greeting`
+- `_odin_heartbeat_tick`
+- `poll_dashboard`
+- `websocket_listener`
+- `_send_command`
+- `_send`
+- `handle_daemon_message`
+- `trigger_crt_glitch`
+- `on_input_submitted`
+- `action_sleep_protocol`

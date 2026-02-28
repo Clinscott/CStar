@@ -1,0 +1,53 @@
+{
+  "version": "1.7.0",
+  "scanned_at": "2026-02-27T23:55:27.496Z",
+  "files": [
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/components/AgentGhost.tsx",
+      "loc": 67,
+      "complexity": 4,
+      "matrix": {
+        "logic": 7.25,
+        "style": 4.080161716642012,
+        "intel": 6.17910447761194,
+        "overall": 5.836422064751318
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "7366b3be6b972c330fb4cdf9697864ef"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/components/NeuralGraph.tsx",
+      "loc": 338,
+      "complexity": 33,
+      "matrix": {
+        "logic": 1.45,
+        "style": 1,
+        "intel": 4.603550295857989,
+        "overall": 2.351183431952663
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "60e2b45b49a72709a2af8a416dd7be8e"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/components/PlaybackHUD.tsx",
+      "loc": 77,
+      "complexity": 4,
+      "matrix": {
+        "logic": 8.149999999999999,
+        "style": 2.7349234883274463,
+        "intel": 2.5194805194805197,
+        "overall": 4.468134669269322
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "d65615a7ac78689566a43f48a5890594"
+    }
+  ],
+  "summary": {
+    "total_files": 3,
+    "total_loc": 482,
+    "average_score": 4.218580055324434
+  }
+}

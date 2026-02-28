@@ -1,10 +1,17 @@
 import { getParser, TreeSitter } from './parser.js';
+import crypto from 'node:crypto';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { calculateLogicScore } from './calculus/logic.js';
+import { calculateStyleScore } from './calculus/style.js';
+import { calculateIntelScore } from './calculus/intel.js';
 
 export interface GungnirMatrix {
     logic: number;
     style: number;
     intel: number;
     overall: number;
+    gravity: number;
 }
 
 export interface FileData {
@@ -15,14 +22,26 @@ export interface FileData {
     imports: { source: string; local: string; imported: string }[];
     exports: string[];
     intent?: string;
+    hash: string;
+    endpoints?: string[];
+    is_api?: boolean;
+    cachedDependencies?: string[];
 }
 
-/**
- * [A.L.F.R.E.D]: "I have refined the analysis engine to be polyglot, sir. 
- * We now observe both the JS sectors and the Python backend with equal clarity."
- */
 export async function analyzeFile(code: string, filepath: string): Promise<FileData> {
     const loc = calculateLOC(code, filepath);
+    const hash = crypto.createHash('md5').update(code).digest('hex');
+    
+    const endpoints = detectEndpoints(code, filepath);
+    const isApi = endpoints.length > 0;
+
+    if (filepath.endsWith('.md') || filepath.endsWith('.qmd')) {
+        const docResult = analyzeMarkdown(code, filepath, hash, loc);
+        const gravity = await getFileGravity(filepath);
+        docResult.matrix.gravity = gravity;
+        return { ...docResult, endpoints, is_api: isApi };
+    }
+
     const { parser, lang, languageName } = await getParser(filepath);
     const tree = parser.parse(code);
 
@@ -31,7 +50,6 @@ export async function analyzeFile(code: string, filepath: string): Promise<FileD
     const imports: FileData['imports'] = [];
     const exports: string[] = [];
 
-    // 1. Complexity & Nesting
     let complexityQuerySource = '';
     if (languageName === 'python') {
         complexityQuerySource = `
@@ -54,9 +72,7 @@ export async function analyzeFile(code: string, filepath: string): Promise<FileD
         const complexityQuery = new TreeSitter.Query(lang, complexityQuerySource);
         const matches = complexityQuery.matches(tree.rootNode);
         complexity += matches.length;
-    } catch (e) {
-        // Query error ignored for robustness
-    }
+    } catch (e) {}
 
     const traverse = (node: any, depth: number) => {
         if (node.type === 'statement_block' || node.type === 'block' || node.type === 'suite') {
@@ -70,7 +86,6 @@ export async function analyzeFile(code: string, filepath: string): Promise<FileD
     };
     traverse(tree.rootNode, 0);
 
-    // 2. Language Specific Extraction
     if (languageName === 'python') {
         const pyQuery = new TreeSitter.Query(lang, `
             (import_from_statement module_name: (dotted_name) @module)
@@ -90,21 +105,22 @@ export async function analyzeFile(code: string, filepath: string): Promise<FileD
             });
         });
     } else {
-        // JS/TS: Broad patterns to avoid field name mismatches
         const jsQuery = new TreeSitter.Query(lang, `
             (import_statement) @import
+            (export_statement) @export
+            (lexical_declaration) @export
+            (variable_declaration) @export
             (function_declaration) @func
             (class_declaration) @class
-            (export_statement) @export
         `);
         const jsMatches = jsQuery.matches(tree.rootNode);
         jsMatches.forEach((m: any) => {
             m.captures.forEach((c: any) => {
                 const node = c.node;
                 if (c.name === 'import') {
-                    const sourceNode = node.descendantsOfType('string')[0];
-                    if (sourceNode) {
-                        const src = sourceNode.text.replace(/['"]/g, '');
+                    const sourceNodes = node.descendantsOfType('string');
+                    if (sourceNodes.length > 0) {
+                        const src = sourceNodes[0].text.replace(/['"]/g, '');
                         const specifiers = node.descendantsOfType('import_specifier');
                         if (specifiers.length > 0) {
                             specifiers.forEach((s: any) => {
@@ -119,32 +135,15 @@ export async function analyzeFile(code: string, filepath: string): Promise<FileD
                         }
                     }
                 } else if (c.name === 'func' || c.name === 'class' || c.name === 'export') {
-                    const specifiers = node.descendantsOfType('export_specifier');
-                    if (specifiers.length > 0) {
-                        specifiers.forEach((s: any) => {
-                            const idNodes = [];
-                            for (let i = 0; i < s.childCount; i++) {
-                                const child = s.child(i);
-                                if (child && child.type === 'identifier') idNodes.push(child);
-                            }
-                            if (idNodes.length >= 2) {
-                                // { name as alias } -> alias is the export
-                                exports.push(idNodes[1].text);
-                            } else if (idNodes.length === 1) {
-                                exports.push(idNodes[0].text);
-                            }
-                        });
+                    const idNode = node.childForFieldName ? node.childForFieldName('name') : null;
+                    if (idNode) {
+                        exports.push(idNode.text);
                     } else {
-                        // Regular export like 'export const x = 1'
-                        const idNode = node.childForFieldName ? node.childForFieldName('name') : null;
-                        if (idNode) {
-                            exports.push(idNode.text);
-                        } else {
-                            const idNodes = node.descendantsOfType('identifier');
-                            if (idNodes.length > 0) {
-                                const filtered = idNodes.filter((id: any) => !['const', 'let', 'var', 'async', 'function', 'class'].includes(id.text));
-                                exports.push(filtered.length > 0 ? filtered[0].text : idNodes[0].text);
-                            }
+                        // Support for const/let exports
+                        const idNodes = node.descendantsOfType('identifier');
+                        if (idNodes.length > 0) {
+                            const filtered = idNodes.filter((id: any) => !['const', 'let', 'var', 'async', 'function', 'class'].includes(id.text));
+                            if (filtered.length > 0) exports.push(filtered[0].text);
                         }
                     }
                 }
@@ -152,42 +151,91 @@ export async function analyzeFile(code: string, filepath: string): Promise<FileD
         });
     }
 
-    const logicValue = Math.min(Math.max(10 - (complexity / Math.max(loc, 1)) * 2, 1), 10);
-    const style = 8;
-    const intel = 8;
-    const overall = (logicValue + style + intel) / 3;
+    const logicValue = calculateLogicScore(complexity, maxNesting, loc);
+    const style = calculateStyleScore(code);
+    const intel = calculateIntelScore(code, loc);
+    const gravity = await getFileGravity(filepath);
+    const anomalyScore = await getSystemAnomaly();
+
+    const penalty = (gravity > 10 ? 0.5 : 0) + (anomalyScore * 1.5);
+    const overall = Math.min(Math.max(((logicValue + style + intel) / 3) - penalty, 1), 10);
 
     return {
         path: filepath,
         loc,
         complexity,
-        matrix: { logic: logicValue, style, intel, overall },
+        matrix: { logic: logicValue, style, intel, overall, gravity },
         imports,
         exports,
-        intent: undefined
+        intent: undefined,
+        hash,
+        endpoints,
+        is_api: isApi
     };
 }
 
-/**
- * Multi-Language LOC calculation
- */
+function detectEndpoints(code: string, filepath: string): string[] {
+    const endpoints: string[] = [];
+    const routeRegex = /\.(get|post|put|delete|patch)(?:<.*?>)?\s*\(\s*['"](\/.*?)['"]/g;
+    const nextJsRegex = /export\s+async\s+function\s+(GET|POST|PUT|DELETE|PATCH)/g;
+    const fastapiRegex = /@.*?\.(get|post|put|delete|patch)\s*\(\s*['"](\/.*?)['"]/g;
+
+    routeRegex.lastIndex = 0;
+    nextJsRegex.lastIndex = 0;
+    fastapiRegex.lastIndex = 0;
+
+    let match;
+    while ((match = routeRegex.exec(code)) !== null) endpoints.push(`[${match[1].toUpperCase()}] ${match[2]}`);
+    while ((match = nextJsRegex.exec(code)) !== null) {
+        const rel = filepath.replace(/.*\/app\//, '/').replace(/\/route\.(ts|js)$/, '');
+        endpoints.push(`[${match[1]}] ${rel}`);
+    }
+    while ((match = fastapiRegex.exec(code)) !== null) endpoints.push(`[${match[1].toUpperCase()}] ${match[2]}`);
+
+    return [...new Set(endpoints)];
+}
+
+async function getSystemAnomaly(): Promise<number> {
+    const statePath = path.join(process.cwd(), '.agent', 'sovereign_state.json');
+    try {
+        const raw = await fs.readFile(statePath, 'utf-8');
+        const data = JSON.parse(raw);
+        return data.last_anomaly_score || 0;
+    } catch (e) { return 0; }
+}
+
+async function getFileGravity(filepath: string): Promise<number> {
+    const gravityPath = path.join(process.cwd(), '.stats', 'gravity.json');
+    try {
+        const raw = await fs.readFile(gravityPath, 'utf-8');
+        const data = JSON.parse(raw);
+        const normalized = filepath.replace(/\\/g, '/');
+        return data[normalized] || 0;
+    } catch (e) { return 0; }
+}
+
+function analyzeMarkdown(code: string, filepath: string, hash: string, loc: number): FileData {
+    const imports: FileData['imports'] = [];
+    const exports: string[] = [];
+    const linkRegex = /\[.*?\]\((.*?\.md|.*?\.qmd)\)/g;
+    let match;
+    while ((match = linkRegex.exec(code)) !== null) imports.push({ source: match[1], local: '*', imported: '*' });
+    const nameMatch = code.match(/^name:\s*['"]?([\w-]+)['"]?/m);
+    if (nameMatch) exports.push(nameMatch[1]);
+
+    return {
+        path: filepath, loc, complexity: 1, 
+        matrix: { logic: 10, style: 10, intel: 10, overall: 10, gravity: 0 },
+        imports, exports, intent: undefined, hash
+    };
+}
+
 function calculateLOC(code: string, filepath: string): number {
     const isPython = filepath.endsWith('.py');
     const commentRegex = isPython ? /(?<!:)#/ : /(?<!:)\/\//;
-
-    let cleanCode = code;
-    if (!isPython) {
-        cleanCode = code.replace(/\/\*[\s\S]*?\*\//g, '');
-    } else {
-        cleanCode = code.replace(/'''[\s\S]*?'''|"""[\s\S]*?"""/g, '');
-    }
-
-    return cleanCode
-        .split('\n')
-        .map(line => {
-            const content = line.split(commentRegex)[0];
-            return content ? content.trim() : '';
-        })
-        .filter(line => line.length > 0)
-        .length;
+    let cleanCode = isPython ? code.replace(/'''[\s\S]*?'''|"""[\s\S]*?"""/g, '') : code.replace(/\/\*[\s\S]*?\*\//g, '');
+    return cleanCode.split('\n').map(line => {
+        const content = line.split(commentRegex)[0];
+        return content ? content.trim() : '';
+    }).filter(line => line.length > 0).length;
 }

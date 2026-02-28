@@ -1,0 +1,33 @@
+---
+title: "WindowControls.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/src/components/ui/WindowControls.tsx"
+loc: 61
+complexity: 5
+logic_score: 5.55
+style_score: 2.50
+intel_score: 5.28
+overall_score: 4.44
+---
+
+## Intent
+React component rendering WindowControls with 5 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 5.5/10
+- **Style [S]**: 2.5/10
+- **Intel [I]**: 5.3/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [useEffect](file://react)
+- [useState](file://react)
+- [Minus](file://lucide-react)
+- [Square](file://lucide-react)
+- [X](file://lucide-react)
+- [TauriWindow](file://@tauri-apps/api/window)
+
+### Exports
+- `WindowControls`
+- `WindowControls`

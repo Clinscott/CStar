@@ -1,0 +1,32 @@
+---
+title: "ResizablePanelLayout.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/src/components/layout/ResizablePanelLayout.tsx"
+loc: 98
+complexity: 5
+logic_score: 6.90
+style_score: 1.00
+intel_score: 5.27
+overall_score: 4.39
+---
+
+## Intent
+React component rendering ResizablePanelLayout with 5 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.9/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 5.3/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [useState](file://react)
+- [useRef](file://react)
+- [useCallback](file://react)
+- [useEffect](file://react)
+- [cn](file://@/lib/utils)
+
+### Exports
+- `ResizablePanelLayout`
+- `ResizablePanelLayout`

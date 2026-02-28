@@ -20,12 +20,12 @@ def test_muninn_run_instantiation():
          patch("src.sentinel.muninn.SovereignHUD"), \
          patch("src.sentinel.muninn.NornWarden"), \
          patch("src.sentinel.muninn.HeimdallWarden"), \
-         patch("src.sentinel.muninn.ValkyrieWarden"), \
-         patch("src.sentinel.muninn.EddaWarden"), \
-         patch("src.sentinel.muninn.RuneCasterWarden"), \
-         patch("src.sentinel.muninn.MimirWarden"), \
-         patch("src.sentinel.muninn.HuginnWarden"), \
-         patch("src.sentinel.muninn.FreyaWarden"), \
+         patch("src.sentinel.wardens.valkyrie.ValkyrieWarden"), \
+         patch("src.sentinel.wardens.edda.EddaWarden"), \
+         patch("src.sentinel.wardens.runecaster.RuneCasterWarden"), \
+         patch("src.sentinel.wardens.mimir.MimirWarden"), \
+         patch("src.sentinel.wardens.huginn.HuginnWarden"), \
+         patch("src.sentinel.wardens.freya.FreyaWarden"), \
          patch("builtins.open"), \
          patch("src.sentinel.muninn.Muninn._execute_hunt_async", new_callable=MagicMock) as mock_hunt:
 
@@ -47,13 +47,4 @@ def test_muninn_run_instantiation():
             # Just verify it ran without errors
             assert result is False or result is True
 
-def test_muninn_initialization_failure():
-    """
-    Verifies that Muninn handles initialization failure (missing key).
-    """
-    target_path = "."
 
-    # Clear env var to trigger failure
-    with patch.dict("os.environ", {}, clear=True):
-        with pytest.raises(ValueError, match="API environment variable not set"):
-            Muninn(target_path)

@@ -4,6 +4,7 @@ import chalk from 'chalk';
 import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { activePersona } from '../tools/pennyone/personaRegistry.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const PROJECT_ROOT = path.resolve(__dirname, '../../');
@@ -38,7 +39,7 @@ export class CortexLink {
         const isUp = await this._checkPort();
         if (isUp) return;
 
-        console.log(chalk.dim(`ALFRED: 'Awakening the Oracle...'`));
+        console.log(chalk.dim(`${activePersona.prefix} 'Awakening the Oracle...'`));
         // Port is down, start daemon
         execa('python', [DAEMON_ENTRYPOINT], {
             cwd: PROJECT_ROOT,
@@ -55,7 +56,7 @@ export class CortexLink {
             const nowUp = await this._checkPort();
             if (nowUp) return;
             if (i % 4 === 0) {
-                console.log(chalk.dim(`ALFRED: 'Waiting for the Oracle to awaken (Cycle ${i / 4 + 1})...' `));
+                console.log(chalk.dim(`${activePersona.prefix} 'Waiting for the Oracle to awaken (Cycle ${i / 4 + 1})...' `));
             }
         }
 

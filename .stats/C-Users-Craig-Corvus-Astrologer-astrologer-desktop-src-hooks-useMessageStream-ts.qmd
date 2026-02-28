@@ -1,0 +1,39 @@
+---
+title: "useMessageStream.ts"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/src/hooks/useMessageStream.ts"
+loc: 214
+complexity: 24
+logic_score: 1.00
+style_score: 3.99
+intel_score: 3.31
+overall_score: 2.76
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.0/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 3.3/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [useState](file://react)
+- [useEffect](file://react)
+- [useCallback](file://react)
+- [useMemo](file://react)
+- [useRef](file://react)
+- [safeInvoke](file://@/lib/tauri-bridge)
+- [safeListen](file://@/lib/tauri-bridge)
+- [Message](file://@/lib/types/message)
+- [MessageSchema](file://@/lib/types/message)
+- [z](file://zod)
+- [isTauri](file://@/lib/utils)
+
+### Exports
+- `useMessageStream`
+- `useMessageStream`
+- `setupListener`

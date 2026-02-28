@@ -1,0 +1,30 @@
+---
+title: "BridgeConnectionRow.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/src/components/ui/BridgeConnectionRow.tsx"
+loc: 48
+complexity: 6
+logic_score: 7.45
+style_score: 1.00
+intel_score: 2.83
+overall_score: 3.76
+---
+
+## Intent
+React component rendering BridgeConnectionRow with 6 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.4/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 2.8/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [*](file://react)
+- [Loader2](file://lucide-react)
+- [XCircle](file://lucide-react)
+- [Sparkles](file://lucide-react)
+
+### Exports
+- `BridgeConnectionRow`

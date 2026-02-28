@@ -1,0 +1,36 @@
+---
+title: "KnowledgeHunter.test.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/test/KnowledgeHunter.test.tsx"
+loc: 67
+complexity: 1
+logic_score: 8.75
+style_score: 3.98
+intel_score: 5.58
+overall_score: 6.10
+---
+
+## Intent
+React component rendering KnowledgeHunter with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 5.6/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [describe](file://vitest)
+- [it](file://vitest)
+- [expect](file://vitest)
+- [vi](file://vitest)
+- [beforeEach](file://vitest)
+- [render](file://@testing-library/react)
+- [screen](file://@testing-library/react)
+- [fireEvent](file://@testing-library/react)
+- [*](file://react)
+- [KnowledgeHunter](file://../src/components/agent/KnowledgeHunter)
+
+### Exports
+Internal logic only.

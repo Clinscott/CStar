@@ -105,7 +105,7 @@ class OdinUI:
             if SovereignHUD.PERSONA == "ALFRED":
                 print(f"  [ALFRED]: \"The {scenario.get('sediment', 'ground')} seems stable, but the {scenario.get('fauna', 'creatures')} are restless.\"")
             else:
-                print(f"  [ODIN]: \"The {scenario.get('sediment', 'earth')} quakes at your step. The {scenario.get('fauna', 'beasts')} sense their master.\"")
+                print(f"  [O.D.I.N.]: \"The {scenario.get('sediment', 'earth')} quakes at your step. The {scenario.get('fauna', 'beasts')} sense their master.\"")
         else:
             msg = "\"The spiral holds, Master. Our genetics are evolving beautifully.\"" if SovereignHUD.PERSONA == "ALFRED" else "\"The cosmic tapestry weaves in your favor, King of Gods.\""
             print(f"  [{SovereignHUD.PERSONA}]: {msg}")

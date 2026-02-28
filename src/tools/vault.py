@@ -18,7 +18,7 @@ from src.core.sovereign_hud import SovereignHUD
 
 
 class SovereignVault:
-    """[ODIN] The master of secrets. Handles encryption, rotation, and shielding."""
+    """[O.D.I.N.] The master of secrets. Handles encryption, rotation, and shielding."""
 
     def __init__(self):
         self.root = project_root
@@ -57,7 +57,7 @@ class SovereignVault:
             SovereignHUD.box_row("STATUS", "ENCRYPTED & STORED", SovereignHUD.CYAN)
             SovereignHUD.box_bottom()
 
-            # [ODIN] We keep the raw file for now, but in Ironclad we might purge it.
+            # [O.D.I.N.] We keep the raw file for now, but in Ironclad we might purge it.
             SovereignHUD.persona_log("INFO", "Raw .env.local remains for active use. Vault artifact is synced.")
         except Exception as e:
             SovereignHUD.persona_log("FAIL", f"Shielding failed: {e}")

@@ -1,0 +1,38 @@
+---
+title: "agent_loop.test.js"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/node/agent_loop.test.js"
+loc: 114
+complexity: 10
+logic_score: 5.15
+style_score: 3.87
+intel_score: 5.26
+overall_score: 4.76
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 5.2/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 5.3/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [test](file://node:test)
+- [describe](file://node:test)
+- [it](file://node:test)
+- [mock](file://node:test)
+- [beforeEach](file://node:test)
+- [afterEach](file://node:test)
+- [assert](file://node:assert)
+- [*](file://node:fs/promises)
+- [executeCycle](file://../../src/node/agent_loop.js)
+- [*](file://../../src/node/deployment.js)
+
+### Exports
+- `MockCortexLink`

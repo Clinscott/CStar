@@ -1,0 +1,36 @@
+---
+title: "pub_202512097_EFotA.js"
+path: "C:/Users/Craig/Corvus/SEF/2024-PHB/pub_202512097_EFotA.js"
+loc: 4347
+complexity: 177
+logic_score: 1.00
+style_score: 2.80
+intel_score: 2.15
+overall_score: 1.98
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.0/10
+- **Style [S]**: 2.8/10
+- **Intel [I]**: 2.1/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+Minimal internal dependencies.
+
+### Exports
+- `escapeRegExp`
+- `legacySpellRefactor`
+- `legacyClassRefactor`
+- `archiveSubClass`
+- `legacySubClassRefactor`
+- `legacyRaceRefactor`
+- `legacyBackgroundRefactor`
+- `AddArtificerMI`
+- `addToArtMi`
+- `getRarityLevel`

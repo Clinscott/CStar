@@ -1,0 +1,40 @@
+---
+title: "CelestialHeader.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/src/components/layout/CelestialHeader.tsx"
+loc: 91
+complexity: 3
+logic_score: 8.05
+style_score: 1.00
+intel_score: 7.27
+overall_score: 5.44
+---
+
+## Intent
+React component rendering CelestialHeader with 3 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.0/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 7.3/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [Search](file://lucide-react)
+- [Moon](file://lucide-react)
+- [Sun](file://lucide-react)
+- [MoreHorizontal](file://lucide-react)
+- [Sparkles](file://lucide-react)
+- [Orbit](file://lucide-react)
+- [cn](file://@/lib/utils)
+- [WindowControls](file://@/components/ui/WindowControls)
+- [ASTRAL_PALETTES](file://@/lib/astronomy)
+- [AstralType](file://@/lib/astronomy)
+- [ConstellationType](file://@/lib/astronomy)
+- [CelestialSun](file://@/components/ui/CelestialSun)
+- [SunVariant](file://@/components/ui/CelestialSun)
+
+### Exports
+- `CelestialHeader`
+- `CelestialHeader`

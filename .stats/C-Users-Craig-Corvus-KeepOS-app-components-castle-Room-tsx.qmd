@@ -1,0 +1,33 @@
+---
+title: "Room.tsx"
+path: "C:/Users/Craig/Corvus/KeepOS/app/components/castle/Room.tsx"
+loc: 90
+complexity: 2
+logic_score: 8.40
+style_score: 1.05
+intel_score: 4.67
+overall_score: 4.70
+---
+
+## Intent
+React component rendering Room with 2 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.4/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 4.7/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [motion](file://framer-motion)
+- [*](file://next/image)
+- [useRouter](file://next/navigation)
+- [cn](file://../../../lib/utils)
+- [RoomConfig](file://./types)
+- [AlertLevel](file://./types)
+
+### Exports
+- `Room`
+- `Room`

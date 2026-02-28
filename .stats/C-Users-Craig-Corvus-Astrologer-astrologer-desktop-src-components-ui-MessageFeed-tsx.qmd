@@ -1,0 +1,32 @@
+---
+title: "MessageFeed.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/src/components/ui/MessageFeed.tsx"
+loc: 41
+complexity: 1
+logic_score: 9.20
+style_score: 3.69
+intel_score: 3.95
+overall_score: 5.61
+---
+
+## Intent
+React component rendering MessageFeed with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 4.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [*](file://react)
+- [Message](file://@/lib/types/message)
+- [MessageItem](file://./MessageItem)
+- [Search](file://lucide-react)
+- [Filter](file://lucide-react)
+
+### Exports
+- `MessageFeed`
+- `MessageFeed`

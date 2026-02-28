@@ -1,0 +1,27 @@
+---
+title: "next.config.js"
+path: "C:/Users/Craig/Corvus/SEF/next.config.js"
+loc: 5
+complexity: 1
+logic_score: 9.65
+style_score: 9.67
+intel_score: 10.00
+overall_score: 9.77
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.6/10
+- **Style [S]**: 9.7/10
+- **Intel [I]**: 10.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+Minimal internal dependencies.
+
+### Exports
+- `nextConfig`

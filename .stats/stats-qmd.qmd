@@ -1,0 +1,29 @@
+---
+title: "stats.qmd"
+path: "C:/Users/Craig/Corvus/CorvusStar/stats.qmd"
+loc: 17
+complexity: 1
+logic_score: 10.00
+style_score: 10.00
+intel_score: 10.00
+overall_score: 10.00
+---
+
+## Intent
+Documentation scroll or workflow directive for the Gungnir Calculus.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 10.0/10
+- **Style [S]**: 10.0/10
+- **Intel [I]**: 10.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://docs/PENNYONE_MAP.qmd)
+
+### Exports
+Internal logic only.

@@ -144,7 +144,7 @@ class SovereignForge:
             SovereignHUD.persona_log("ALFRED", "Uplink is in Simulation Mode. Applying heuristic patch.")
             # Heuristic: Just append a comment to verify loop cycle
             timestamp = time.strftime("%H:%M:%S")
-            new_code = content + f"\n# [ODIN] Forged Update ({timestamp}): {task}\n"
+            new_code = content + f"\n# [O.D.I.N.] Forged Update ({timestamp}): {task}\n"
 
         if new_code:
             target.write_text(new_code, encoding='utf-8')

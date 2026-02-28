@@ -1,0 +1,51 @@
+---
+title: "9509aec5d75af5f6.js"
+path: "C:/Users/Craig/Corvus/SecureSphere/out/_next/static/chunks/9509aec5d75af5f6.js"
+loc: 1
+complexity: 89
+logic_score: 1.00
+style_score: 9.96
+intel_score: 1.40
+overall_score: 4.12
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.0/10
+- **Style [S]**: 10.0/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+Minimal internal dependencies.
+
+### Exports
+- `u`
+- `i`
+- `s`
+- `f`
+- `p`
+- `d`
+- `y`
+- `u`
+- `o`
+- `S`
+- `j`
+- `w`
+- `T`
+- `R`
+- `A`
+- `C`
+- `P`
+- `$`
+- `M`
+- `L`
+- `i`
+- `c`
+- `l`
+- `a`
+- `o`

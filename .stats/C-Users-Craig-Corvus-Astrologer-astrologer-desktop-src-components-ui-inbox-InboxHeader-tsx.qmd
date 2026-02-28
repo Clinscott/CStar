@@ -1,0 +1,29 @@
+---
+title: "InboxHeader.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/src/components/ui/inbox/InboxHeader.tsx"
+loc: 51
+complexity: 3
+logic_score: 8.50
+style_score: 1.00
+intel_score: 2.00
+overall_score: 3.83
+---
+
+## Intent
+React component rendering InboxHeader with 3 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.5/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 2.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [BridgePlatform](file://@/lib/types/bridge)
+- [Sparkles](file://lucide-react)
+
+### Exports
+- `InboxHeader`
+- `InboxHeader`

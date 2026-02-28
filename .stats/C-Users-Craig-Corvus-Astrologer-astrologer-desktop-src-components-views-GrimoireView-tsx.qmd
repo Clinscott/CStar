@@ -1,0 +1,36 @@
+---
+title: "GrimoireView.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/src/components/views/GrimoireView.tsx"
+loc: 109
+complexity: 4
+logic_score: 7.25
+style_score: 1.00
+intel_score: 3.10
+overall_score: 3.78
+---
+
+## Intent
+React component rendering GrimoireView with 4 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.3/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 3.1/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [Book](file://lucide-react)
+- [Save](file://lucide-react)
+- [RefreshCw](file://lucide-react)
+- [AlertTriangle](file://lucide-react)
+- [Lock](file://lucide-react)
+- [Trash2](file://lucide-react)
+- [Sparkles](file://lucide-react)
+- [Scroll](file://lucide-react)
+- [useCelestial](file://@/context/CelestialContext)
+
+### Exports
+- `GrimoireView`
+- `GrimoireView`

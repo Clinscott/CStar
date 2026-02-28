@@ -1,0 +1,57 @@
+---
+title: "main.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/games/odin_protocol/main.py"
+loc: 320
+complexity: 40
+logic_score: 1.45
+style_score: 3.58
+intel_score: 5.90
+overall_score: 3.64
+---
+
+## Intent
+Python module facilitating OdinAdventure, __init__.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.4/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 5.9/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [os](file://os)
+- [random](file://random)
+- [subprocess](file://subprocess)
+- [sys](file://sys)
+- [time](file://time)
+- [pathlib](file://pathlib)
+- [typing](file://typing)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [src.games.odin_protocol.engine](file://src.games.odin_protocol.engine)
+- [src.games.odin_protocol.engine.logic](file://src.games.odin_protocol.engine.logic)
+- [odin_protocol.engine.logic](file://odin_protocol.engine.logic)
+- [src.cstar.core.client](file://src.cstar.core.client)
+
+### Exports
+- `OdinAdventure`
+- `__init__`
+- `prompt_for_name`
+- `_init_state`
+- `render_manifest`
+- `briefing`
+- `mutation_screen`
+- `show_ripple_effect`
+- `temporal_breach`
+- `_apply_passive_ticker`
+- `_strategic_phase`
+- `_tactical_phase`
+- `_resolve_encounter`
+- `play_turn`
+- `show_genetic_manifest`
+- `retell_conquest`
+- `main`

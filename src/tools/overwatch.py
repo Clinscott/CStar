@@ -145,7 +145,7 @@ class Overwatch:
             with contextlib.suppress(ValueError, TypeError): self.renderer.update_latency(float(res.stdout.strip()))
 
     def _update_heatmap(self) -> list[float]:
-        """[ODIN] Scan core scripts for vulnerabilities to populate matrix."""
+        """[O.D.I.N.] Scan core scripts for vulnerabilities to populate matrix."""
         from security_scan import SecurityScanner
         scripts_dir = os.path.join(self.base, "scripts")
         files = [f for f in os.listdir(scripts_dir) if f.endswith(".py")][:25]

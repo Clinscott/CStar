@@ -1,0 +1,47 @@
+---
+title: "set_persona.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/core/set_persona.py"
+loc: 155
+complexity: 22
+logic_score: 1.00
+style_score: 3.91
+intel_score: 8.11
+overall_score: 4.34
+---
+
+## Intent
+Python module facilitating PersonaManager, __init__.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.0/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 8.1/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [sys](file://sys)
+- [datetime](file://datetime)
+- [pathlib](file://pathlib)
+- [typing](file://typing)
+- [src.core](file://src.core)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+
+### Exports
+- `PersonaManager`
+- `__init__`
+- `_load_union_config`
+- `_extract_persona`
+- `_save_persona`
+- `_get_alfred_suggestion`
+- `_render_alfred_intro`
+- `_confirm_odin_switch`
+- `_log_audit`
+- `switch`
+- `_apply_policy`
+- `set_persona`
+- `main`

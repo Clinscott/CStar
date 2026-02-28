@@ -1,0 +1,31 @@
+---
+title: "project_fishtest.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/integration/project_fishtest.py"
+loc: 12
+complexity: 2
+logic_score: 7.95
+style_score: 3.86
+intel_score: 9.40
+overall_score: 7.07
+---
+
+## Intent
+Python module facilitating GungnirSPRT, __init__.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.9/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [math](file://math)
+
+### Exports
+- `GungnirSPRT`
+- `__init__`
+- `evaluate_delta`

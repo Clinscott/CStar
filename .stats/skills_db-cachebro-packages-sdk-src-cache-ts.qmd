@@ -1,0 +1,34 @@
+---
+title: "cache.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/skills_db/cachebro/packages/sdk/src/cache.ts"
+loc: 249
+complexity: 23
+logic_score: 1.00
+style_score: 3.84
+intel_score: 4.89
+overall_score: 3.25
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.0/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 4.9/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://@tursodatabase/database)
+- [*](file://./differ.js)
+- [*](file://./types.js)
+- [*](file://crypto)
+
+### Exports
+- `estimateTokens`
+- `contentHash`
+- `CacheStore`

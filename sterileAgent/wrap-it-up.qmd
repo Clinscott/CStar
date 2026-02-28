@@ -16,7 +16,7 @@ description: Finalizes the current session, updates documentation, runs a produc
 714. Run a final production build to ensure stability.
    `npm run build`
 8. Summarize the state and provide a definitive handoff message. Output MUST be persona-filtered:
-    - **ODIN**: A final decree on progress. Successes are "Dominion Expanded".
+    - **O.D.I.N.**: A final decree on progress. Successes are "Dominion Expanded".
     - **ALFRED**: A humble report on service rendered. Successes are "Mission Objectives Secured".
 9. **Generate Commit Description**: Include a ready-to-copy markdown block for the git commit message. Format:
    ```

@@ -1,0 +1,39 @@
+---
+title: "test_crucible.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/unit/test_crucible.py"
+loc: 50
+complexity: 1
+logic_score: 8.75
+style_score: 3.77
+intel_score: 9.40
+overall_score: 7.31
+---
+
+## Intent
+Python module facilitating TestCrucibleSecurity, test_deep_ast_bypass_prevention.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [subprocess](file://subprocess)
+- [pathlib](file://pathlib)
+- [unittest.mock](file://unittest.mock)
+- [pytest](file://pytest)
+- [src.sentinel.code_sanitizer](file://src.sentinel.code_sanitizer)
+- [src.sentinel.sandbox_warden](file://src.sentinel.sandbox_warden)
+
+### Exports
+- `TestCrucibleSecurity`
+- `test_deep_ast_bypass_prevention`
+- `TestQMDNeutering`
+- `test_neuter_qmd_no_yaml_injects_header`
+- `TestZombiePurge`
+- `test_sandbox_zombie_purge_on_timeout`

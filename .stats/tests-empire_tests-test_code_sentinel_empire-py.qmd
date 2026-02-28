@@ -1,0 +1,30 @@
+---
+title: "test_code_sentinel_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_code_sentinel_empire.py"
+loc: 15
+complexity: 1
+logic_score: 9.20
+style_score: 3.72
+intel_score: 1.40
+overall_score: 4.77
+---
+
+## Intent
+Python module facilitating test_heimdall_scan_orphans, test_heimdall_ignore_main.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [src.tools.code_sentinel](file://src.tools.code_sentinel)
+
+### Exports
+- `test_heimdall_scan_orphans`
+- `test_heimdall_ignore_main`

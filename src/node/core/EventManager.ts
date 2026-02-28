@@ -1,7 +1,7 @@
 import { WebSocket } from 'ws';
 
 /**
- * [ODIN] The Nerve Center of the Universal Event Router.
+ * [O.D.I.N.] The Nerve Center of the Universal Event Router.
  * Manages multi-tenant subscriptions and prevents memory leaks.
  */
 export class EventManager {

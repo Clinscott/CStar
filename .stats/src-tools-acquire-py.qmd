@@ -1,0 +1,39 @@
+---
+title: "acquire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/acquire.py"
+loc: 73
+complexity: 7
+logic_score: 6.65
+style_score: 3.59
+intel_score: 6.88
+overall_score: 5.71
+---
+
+## Intent
+Python module facilitating _slugify, hunt_and_forge.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.7/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 6.9/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [argparse](file://argparse)
+- [asyncio](file://asyncio)
+- [re](file://re)
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [src.cstar.core.uplink](file://src.cstar.core.uplink)
+- [src.sentinel.code_sanitizer](file://src.sentinel.code_sanitizer)
+- [src.tools.brave_search](file://src.tools.brave_search)
+
+### Exports
+- `_slugify`
+- `hunt_and_forge`
+- `main`

@@ -1,0 +1,31 @@
+---
+title: "test_synapse_sync_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_synapse_sync_empire.py"
+loc: 26
+complexity: 2
+logic_score: 8.40
+style_score: 3.66
+intel_score: 1.40
+overall_score: 4.49
+---
+
+## Intent
+Python module facilitating test_push_rate_limiter, test_knowledge_extractor_corrections.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.4/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [src.synapse.synapse_sync](file://src.synapse.synapse_sync)
+
+### Exports
+- `test_push_rate_limiter`
+- `test_knowledge_extractor_corrections`

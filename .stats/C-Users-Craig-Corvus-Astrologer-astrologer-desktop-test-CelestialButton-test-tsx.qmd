@@ -1,0 +1,32 @@
+---
+title: "CelestialButton.test.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/test/CelestialButton.test.tsx"
+loc: 18
+complexity: 1
+logic_score: 8.75
+style_score: 7.82
+intel_score: 3.62
+overall_score: 6.73
+---
+
+## Intent
+React component rendering CelestialButton with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 7.8/10
+- **Intel [I]**: 3.6/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [render](file://@testing-library/react)
+- [screen](file://@testing-library/react)
+- [describe](file://vitest)
+- [it](file://vitest)
+- [expect](file://vitest)
+- [CelestialButton](file://@/components/ui/CelestialButton)
+
+### Exports
+Internal logic only.

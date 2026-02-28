@@ -1,5 +1,5 @@
 """
-[ODIN] RuneCaster - The All-Seeing Eye of Type Safety.
+[O.D.I.N.] RuneCaster - The All-Seeing Eye of Type Safety.
 Lore: "Casting the Runes of Definition across the codebase."
 Purpose: Encapsulates the AST-based logic for identifying type-hint breaches.
 """

@@ -1,0 +1,33 @@
+---
+title: "taste.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/sentinel/wardens/taste.py"
+loc: 56
+complexity: 10
+logic_score: 3.80
+style_score: 3.79
+intel_score: 5.69
+overall_score: 4.42
+---
+
+## Intent
+Autonomous neural guardian monitoring system drift and anomalies.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 3.8/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 5.7/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [re](file://re)
+- [pathlib](file://pathlib)
+- [typing](file://typing)
+- [src.sentinel.wardens.base](file://src.sentinel.wardens.base)
+
+### Exports
+- `TasteWarden`
+- `scan`

@@ -1,0 +1,36 @@
+---
+title: "test_valkyrie_audit_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_valkyrie_audit_empire.py"
+loc: 31
+complexity: 1
+logic_score: 8.75
+style_score: 3.66
+intel_score: 1.40
+overall_score: 4.60
+---
+
+## Intent
+Autonomous neural guardian monitoring system drift and anomalies.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [unittest.mock](file://unittest.mock)
+- [pytest](file://pytest)
+- [src.sentinel.wardens.valkyrie](file://src.sentinel.wardens.valkyrie)
+
+### Exports
+- `TestValkyrieWarden`
+- `warden`
+- `test_scan_ignores_init`
+- `test_scan_filters_confidence`

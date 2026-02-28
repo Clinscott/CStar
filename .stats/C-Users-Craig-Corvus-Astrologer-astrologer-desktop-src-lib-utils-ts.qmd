@@ -1,0 +1,32 @@
+---
+title: "utils.ts"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/src/lib/utils.ts"
+loc: 17
+complexity: 3
+logic_score: 8.05
+style_score: 8.03
+intel_score: 4.35
+overall_score: 6.81
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.0/10
+- **Style [S]**: 8.0/10
+- **Intel [I]**: 4.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [clsx](file://clsx)
+- [ClassValue](file://clsx)
+- [twMerge](file://tailwind-merge)
+
+### Exports
+- `cn`
+- `cn`
+- `isTauri`
+- `isTauri`

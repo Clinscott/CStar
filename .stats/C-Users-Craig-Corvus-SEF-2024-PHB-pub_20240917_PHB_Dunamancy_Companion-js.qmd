@@ -1,0 +1,27 @@
+---
+title: "pub_20240917_PHB_Dunamancy_Companion.js"
+path: "C:/Users/Craig/Corvus/SEF/2024-PHB/pub_20240917_PHB_Dunamancy_Companion.js"
+loc: 152
+complexity: 10
+logic_score: 6.05
+style_score: 2.79
+intel_score: 4.29
+overall_score: 4.38
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.0/10
+- **Style [S]**: 2.8/10
+- **Intel [I]**: 4.3/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+Minimal internal dependencies.
+
+### Exports
+Internal logic only.

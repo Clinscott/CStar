@@ -1,0 +1,30 @@
+---
+title: "update-state.ts"
+path: "C:/Users/Craig/Corvus/SEF/src/agent/tools/update-state.ts"
+loc: 10
+complexity: 1
+logic_score: 9.20
+style_score: 9.13
+intel_score: 6.00
+overall_score: 8.11
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 9.1/10
+- **Intel [I]**: 6.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [writeFile](file://fs/promises)
+- [readFile](file://fs/promises)
+- [resolve](file://path)
+
+### Exports
+- `updateState`
+- `updateState`

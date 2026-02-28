@@ -1,0 +1,56 @@
+---
+title: "personas.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/core/personas.py"
+loc: 157
+complexity: 21
+logic_score: 1.00
+style_score: 3.81
+intel_score: 9.40
+overall_score: 4.74
+---
+
+## Intent
+Python module facilitating PersonaStrategy, __init__.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.0/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [shutil](file://shutil)
+- [time](file://time)
+- [datetime](file://datetime)
+- [pathlib](file://pathlib)
+- [msvcrt](file://msvcrt)
+- [src.core.utils](file://src.core.utils)
+- [re](file://re)
+
+### Exports
+- `PersonaStrategy`
+- `__init__`
+- `enforce_policy`
+- `get_voice`
+- `retheme_docs`
+- `_quarantine`
+- `_sync_configs`
+- `OdinStrategy`
+- `get_voice`
+- `_get_sovereign_state`
+- `retheme_docs`
+- `_res`
+- `enforce_policy`
+- `_create_cursor_rules`
+- `_create_standard_agents`
+- `AlfredStrategy`
+- `get_voice`
+- `enforce_policy`
+- `_create_cursor_rules`
+- `_create_minimal_agents`
+- `get_strategy`

@@ -1,0 +1,23 @@
+Feature: PennyOne Maturation and Hall of Records
+
+  This feature verifies the maturation of the PennyOne system, specifically
+  the integration of the SQLite Hall of Records, multi-spoke tracking,
+  API endpoint detection, and cross-platform search capabilities.
+
+  Scenario: SQLite Hall of Records stores telemetry
+    Given the PennyOne database is initialized
+    When an AgentPing is saved for a specific target repository
+    Then the spoke should be registered
+    And the session should be recorded in the database
+    And the ping should be retrievable via Chronicle queries
+
+  Scenario: Analyzer detects API endpoints
+    Given a source code string containing Fastify and Next.js routes
+    When the code is analyzed by PennyOne
+    Then the resulting FileData should contain the detected endpoints
+    And the is_api flag should be true
+
+  Scenario: Gungnir Matrix Search identifies targets
+    Given a matrix-graph.json containing file intents and endpoints
+    When the cross-platform search is executed with a matching query
+    Then the relevant sectors should be identified without throwing an error

@@ -1,0 +1,38 @@
+---
+title: "test_huginn_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_huginn_empire.py"
+loc: 57
+complexity: 3
+logic_score: 8.05
+style_score: 3.77
+intel_score: 8.42
+overall_score: 6.75
+---
+
+## Intent
+Python module facilitating TestHuginnEmpire, mock_root.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.0/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 8.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [unittest.mock](file://unittest.mock)
+- [pytest](file://pytest)
+- [src.sentinel.wardens.huginn](file://src.sentinel.wardens.huginn)
+
+### Exports
+- `TestHuginnEmpire`
+- `mock_root`
+- `test_scan_no_traces`
+- `test_scan_regex_hallucination`
+- `test_scan_regex_deviance`
+- `test_scan_neural_audit`

@@ -1,0 +1,30 @@
+---
+title: "test_sentinel_perf_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_sentinel_perf_empire.py"
+loc: 18
+complexity: 1
+logic_score: 8.75
+style_score: 3.68
+intel_score: 1.40
+overall_score: 4.61
+---
+
+## Intent
+Python module facilitating test_sentinel_perf_metrics, test_sentinel_perf_suite.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [src.tools.sentinel_perf](file://src.tools.sentinel_perf)
+
+### Exports
+- `test_sentinel_perf_metrics`
+- `test_sentinel_perf_suite`

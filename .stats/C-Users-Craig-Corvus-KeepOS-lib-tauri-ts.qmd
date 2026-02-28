@@ -1,0 +1,29 @@
+---
+title: "tauri.ts"
+path: "C:/Users/Craig/Corvus/KeepOS/lib/tauri.ts"
+loc: 23
+complexity: 5
+logic_score: 6.90
+style_score: 9.33
+intel_score: 10.00
+overall_score: 8.74
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.9/10
+- **Style [S]**: 9.3/10
+- **Intel [I]**: 10.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [tauriInvoke](file://@tauri-apps/api/core)
+
+### Exports
+- `isTauri`
+- `invoke`
+- `invoke`

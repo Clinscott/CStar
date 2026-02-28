@@ -1,3 +1,29 @@
+# Walkthrough: Session 98 - Configuration-Driven Persona Registry
+
+## 🎯 Goal
+Implement a dynamic configuration-driven Persona Registry (`personaRegistry.ts`) to centralize the identity (O.D.I.N. vs A.L.F.R.E.D) and themes loaded from `config.json`. Eliminate hardcoded persona static references throughout the system.
+
+## 🏆 Results
+| Metric | Value |
+| :--- | :--- |
+| **Architectural Upgrade** | **Registry Pattern Established** |
+| **Dynamic Interpolation** | **10+ Files Adjusted** |
+| **Verification** | **100% Pass** (Node TS & PyTest) |
+
+## 🛠️ Key Changes
+- **Persona Registry**: Implemented `src/tools/pennyone/personaRegistry.ts` which loads `config.json` and exposes an immutable `activePersona` object globally.
+- **Dynamic Theming**: Intercepted static references like `[O.D.I.N.]` and `[ALFRED]` in `ceremony.ts`, `server.ts`, and `watcher.ts` with interpolated strings (e.g., `activePersona.prefix`).
+- **Python Consistency**: Updated Python test suites (`test_muninn_naming_empire.py`, `test_lexicon_lift.py`, `test_report_engine.py`) to align with the renamed identifiers and path changes.
+
+## 🤝 Session Handshake
+**Session Delta**:
+- The framework now speaks securely via a single source of truth matrix (`personaRegistry.ts`).
+- Global references are decoupled from static identity naming.
+- All testing suites reconciled with the renaming constraints.
+
+**Resume Directive**:
+- Proceed to Phase 83 in `tasks.qmd` (Neural Graph Depth).
+
 # Walkthrough: Session 96 - Mimir Remediation (Batch 3)
 
 ## 🎯 Goal
@@ -13,13 +39,13 @@ Refactor `src/core/engine/vector.py` and `src/games/odin_protocol/main.py` to re
 
 ## 🛠️ Key Changes
 - **Modularized Intent Resolution**: Broke down `SovereignVector` scoring and search into semantic helpers (`_calculate_lexical_evidence`, `_check_fast_path`, etc.).
-- **Odin UI Refactor**: Extracted 100+ lines of TUI/Manifest logic from `main.py` into `src/games/odin_protocol/ui.py`.
+- **O.D.I.N. UI Refactor**: Extracted 100+ lines of TUI/Manifest logic from `main.py` into `src/games/odin_protocol/ui.py`.
 - **Numeric Verification**: Hardened the verification suite to handle complex `UniverseState` attribute comparisons.
 
 ## 🤝 Session Handshake
 **Session Delta**:
 - Achieved Grade A/B for target engine components.
-- Decoupled Odin Protocol UI from the primary game loop.
+- Decoupled O.D.I.N. Protocol UI from the primary game loop.
 - Established robust unit testing for the refactored logic.
 
 **Resume Directive**:
@@ -46,7 +72,7 @@ Secure the ANNEX by refactoring 29 core components to the Linscott Standard (str
 - **Dialogue Engine (`dialogue.py`)**: Cleaned up the "Raven's Tongue" with strict type hints and repetitive selection guards.
 - **A.L.F.R.E.D. Overwatch (`alfred_observer.py`)**: Added type safety to failure analysis and guidance generation.
 
-### 2. Odin Protocol Reforging
+### 2. O.D.I.N. Protocol Reforging
 - **Game Engine**: Refactored the entire game loop (`main.py`, `logic.py`, `models.py`, `persistence.py`, `rng.py`, `scenarios.py`).
 - **State Restoration**: Added `from_dict` methods to `UniverseState` and `Chromosome` for reliable state hydration from Git history.
 - **Import Sovereignty**: Fixed all relative imports to use the `src.` absolute prefix, ensuring stability across execution contexts.
@@ -77,7 +103,7 @@ Align the Genesis Bootstrapper with the project's persona configuration and impl
 ## 🏆 Results
 | Metric | Value |
 |:---|:---|
-| **Persona Alignment** | **Dynamic (ODIN/ALFRED)** |
+| **Persona Alignment** | **Dynamic (O.D.I.N./ALFRED)** |
 | **JS Sentinel** | **Active (ESLint)** |
 | **Anomalies Fixed** | **21** (In `setup.js`) |
 | **Verification** | **100% Pass** (Tests + Lint) |
@@ -86,9 +112,9 @@ Align the Genesis Bootstrapper with the project's persona configuration and impl
 
 ### 1. Genesis Persona Alignment (`src/node/setup.js`)
 - **Dynamic Voice**: Refactored the bootstrapper to read `.agent/config.json` and adjust its logging style based on the active persona.
-- **Themed Logging**: Implemented `personaLog` to ensure consistent cyan/green prefixes and voice formatting (ODIN's directness vs. A.L.F.R.E.D.'s quotes).
+- **Themed Logging**: Implemented `personaLog` to ensure consistent cyan/green prefixes and voice formatting (O.D.I.N.'s directness vs. A.L.F.R.E.D.'s quotes).
 
-### 2. Heimdall JS: The Sentinel (`src/tools/js_sentinel.js`)
+### 2. Heimdall JS: The Sentinel (`src/tools/js_sentinel.ts`)
 - **Node.js Guard**: Integrated ESLint as the core engine for JS security and quality audits.
 - **Themed Reports**: Created a persona-aware wrapper that presents linting anomalies as sector breaches, matching the aesthetic of the Python `code_sentinel.py`.
 
@@ -103,7 +129,7 @@ Align the Genesis Bootstrapper with the project's persona configuration and impl
 - Resolved 21 code quality anomalies in the bootstrapper.
 
 **Resume Directive**:
-- To run the new JS Sentinel: `node src/tools/js_sentinel.js <path>`.
+- To run the new JS Sentinel: `node src/tools/js_sentinel.ts <path>`.
 
 
 ### ⚡ Dynamic Capabilities Forged (22:36:01)

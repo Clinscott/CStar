@@ -1,0 +1,34 @@
+---
+title: "test_voice_check.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_voice_check.py"
+loc: 24
+complexity: 1
+logic_score: 9.20
+style_score: 3.76
+intel_score: 9.40
+overall_score: 7.45
+---
+
+## Intent
+Python module facilitating mock_phrases, test_voice_check_usage.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [pytest](file://pytest)
+- [src.tools.voice_check](file://src.tools.voice_check)
+- [src.core.engine.dialogue](file://src.core.engine.dialogue)
+
+### Exports
+- `mock_phrases`
+- `test_voice_check_usage`
+- `test_voice_check_execution`

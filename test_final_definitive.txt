@@ -209,7 +209,7 @@ text = 'I am the All-Father.'
     def audit(self, text: str) -> None:
         """Calculates and displays soul alignment score."""
         # Initialize HUD Dialogue
-        voice_file = ("odin" if self.persona in ["GOD", "ODIN"] else "alfred") + ".qmd"
+        voice_file = ("O.D.I.N." if self.persona in ["GOD", "O.D.I.N."] else "alfred") + ".qmd"
         dialogue_path = self._resolve(self.project_root, voice_file, "dialogue_db")
 >       sv_engine.HUD.DIALOGUE = sv_engine.DialogueRetriever(str(dialogue_path))
                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -246,7 +246,7 @@ text = 'Sup dude.'
     def audit(self, text: str) -> None:
         """Calculates and displays soul alignment score."""
         # Initialize HUD Dialogue
-        voice_file = ("odin" if self.persona in ["GOD", "ODIN"] else "alfred") + ".qmd"
+        voice_file = ("O.D.I.N." if self.persona in ["GOD", "O.D.I.N."] else "alfred") + ".qmd"
         dialogue_path = self._resolve(self.project_root, voice_file, "dialogue_db")
 >       sv_engine.HUD.DIALOGUE = sv_engine.DialogueRetriever(str(dialogue_path))
                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^

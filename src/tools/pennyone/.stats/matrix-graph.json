@@ -1,159 +1,336 @@
 {
-  "version": "1.5.0",
-  "scanned_at": "2026-02-27T01:24:56.968Z",
+  "version": "1.7.0",
+  "scanned_at": "2026-02-28T00:01:28.230Z",
   "files": [
     {
       "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/analyzer.ts",
-      "loc": 136,
-      "complexity": 23,
+      "loc": 200,
+      "complexity": 30,
       "matrix": {
-        "logic": 1.45,
-        "style": 6.960695759710313,
-        "intel": 8.764705882352942,
-        "overall": 5.7251338806877525
+        "logic": 1,
+        "style": 3.9568375838812613,
+        "intel": 5.4,
+        "overall": 3.452279194627087
       },
-      "dependencies": [
-        "./parser.js",
-        "@babel/traverse",
-        "@babel/types",
-        "./calculus/logic.js",
-        "./calculus/style.js",
-        "./calculus/intel.js"
-      ]
+      "intent": "...",
+      "dependencies": [],
+      "hash": "c6d0ced984d406e4ef8337855af66c5b"
     },
     {
       "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/crawler.ts",
-      "loc": 10,
+      "loc": 13,
       "complexity": 1,
       "matrix": {
-        "logic": 9.2,
-        "style": 8.793589542668975,
+        "logic": 9.649999999999999,
+        "style": 9.338321454846335,
         "intel": 10,
-        "overall": 9.331196514222992
+        "overall": 9.662773818282112
       },
-      "dependencies": [
-        "fast-glob"
-      ]
+      "intent": "...",
+      "dependencies": [],
+      "hash": "8cf17fce4b2612894d474e53e4ad12ef"
     },
     {
       "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/index.ts",
-      "loc": 24,
-      "complexity": 3,
+      "loc": 54,
+      "complexity": 1,
       "matrix": {
-        "logic": 7.6,
-        "style": 8.994406251432446,
-        "intel": 7,
-        "overall": 7.864802083810815
+        "logic": 9.649999999999999,
+        "style": 7.0702257367225005,
+        "intel": 7.185185185185185,
+        "overall": 7.96847030730256
       },
-      "dependencies": [
-        "./crawler.js",
-        "./analyzer.js",
-        "./analyzer.js",
-        "./intel/writer.js",
-        "./intel/compiler.js",
-        "./llm.js",
-        "fs/promises"
-      ]
+      "intent": "...",
+      "dependencies": [],
+      "hash": "63ecf9b84248b45009a152bb422754b8"
     },
     {
       "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/parser.ts",
-      "loc": 21,
-      "complexity": 5,
+      "loc": 43,
+      "complexity": 1,
       "matrix": {
-        "logic": 7.8,
-        "style": 7.772373846717894,
-        "intel": 3.904761904761905,
-        "overall": 6.4923785838266
+        "logic": 9.649999999999999,
+        "style": 3.950806191771267,
+        "intel": 6.651162790697675,
+        "overall": 6.750656327489647
       },
-      "dependencies": [
-        "@babel/parser"
-      ]
+      "intent": "...",
+      "dependencies": [],
+      "hash": "f78217ba977e412ccd97624e75b10fca"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/pathRegistry.ts",
+      "loc": 31,
+      "complexity": 1,
+      "matrix": {
+        "logic": 9.649999999999999,
+        "style": 4.022495796230104,
+        "intel": 7.161290322580645,
+        "overall": 6.944595372936916
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "d9c63fd1a1efddde14bbdf0fcad0ebd3"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/types.ts",
+      "loc": 13,
+      "complexity": 1,
+      "matrix": {
+        "logic": 9.649999999999999,
+        "style": 3.8889951037393016,
+        "intel": 5.076923076923077,
+        "overall": 6.205306060220792
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "ed485c77d84fe2da62f4905a36975797"
     },
     {
       "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/calculus/intel.ts",
       "loc": 10,
-      "complexity": 5,
+      "complexity": 1,
       "matrix": {
-        "logic": 7.8,
-        "style": 8.768266177343277,
+        "logic": 9.649999999999999,
+        "style": 9.38413308867164,
         "intel": 10,
-        "overall": 8.856088725781092
+        "overall": 9.678044362890546
       },
-      "dependencies": []
+      "intent": "...",
+      "dependencies": [],
+      "hash": "37d697cfb6beb02486e4e6250125a41f"
     },
     {
       "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/calculus/logic.ts",
       "loc": 7,
-      "complexity": 2,
+      "complexity": 1,
       "matrix": {
-        "logic": 8.85,
-        "style": 8.609249536684933,
+        "logic": 9.649999999999999,
+        "style": 9.304624768342467,
         "intel": 10,
-        "overall": 9.153083178894978
+        "overall": 9.651541589447488
       },
-      "dependencies": []
+      "intent": "...",
+      "dependencies": [],
+      "hash": "38ff4f1bf23a31c94380d32b4ca30ef6"
     },
     {
       "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/calculus/style.ts",
-      "loc": 25,
-      "complexity": 7,
+      "loc": 31,
+      "complexity": 1,
       "matrix": {
-        "logic": 6.199999999999999,
-        "style": 8.564234590994744,
+        "logic": 9.649999999999999,
+        "style": 1,
         "intel": 10,
-        "overall": 8.254744863664914
+        "overall": 6.883333333333333
       },
-      "dependencies": []
+      "intent": "...",
+      "dependencies": [],
+      "hash": "76fcb5a19abaf7a61e45a63ca45510e2"
     },
     {
       "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/intel/compiler.ts",
-      "loc": 26,
+      "loc": 83,
       "complexity": 1,
       "matrix": {
-        "logic": 9.2,
-        "style": 7.232995791301734,
-        "intel": 3.5384615384615383,
-        "overall": 6.657152443254425
+        "logic": 9.649999999999999,
+        "style": 3.973317024811755,
+        "intel": 7.3012048192771095,
+        "overall": 6.974840614696288
       },
-      "dependencies": [
-        "../analyzer.js",
-        "fs/promises",
-        "path"
-      ]
+      "intent": "...",
+      "dependencies": [],
+      "hash": "f480bea406c55573bc9d2d80db6af4af"
     },
     {
       "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/intel/llm.ts",
-      "loc": 19,
-      "complexity": 5,
+      "loc": 31,
+      "complexity": 1,
       "matrix": {
-        "logic": 7.8,
-        "style": 8.16108792131432,
-        "intel": 10,
-        "overall": 8.65369597377144
+        "logic": 9.649999999999999,
+        "style": 8.967104785185708,
+        "intel": 9.741935483870968,
+        "overall": 9.453013423018891
       },
-      "dependencies": []
+      "intent": "...",
+      "dependencies": [],
+      "hash": "ada90b5dde5a4b6e89313363198bcaf2"
     },
     {
       "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/intel/writer.ts",
-      "loc": 37,
+      "loc": 41,
       "complexity": 3,
       "matrix": {
         "logic": 8.5,
-        "style": 7.463173240266131,
-        "intel": 6.324324324324325,
-        "overall": 7.429165854863484
+        "style": 3.8333626208827556,
+        "intel": 6.878048780487806,
+        "overall": 6.403803800456854
       },
+      "intent": "...",
       "dependencies": [
-        "../analyzer.js",
-        "./llm.js",
-        "fs/promises",
-        "path"
-      ]
+        "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/analyzer.ts",
+        "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/intel/llm.ts"
+      ],
+      "hash": "10d4c8a51b6f3df1aac7eadcb71d1f6e"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/live/recorder.ts",
+      "loc": 40,
+      "complexity": 1,
+      "matrix": {
+        "logic": 9.649999999999999,
+        "style": 8.197923458836346,
+        "intel": 10,
+        "overall": 9.282641152945448
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "ee03d2d668bc62819411d27bd04a5bf3"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/live/socket.ts",
+      "loc": 26,
+      "complexity": 1,
+      "matrix": {
+        "logic": 9.649999999999999,
+        "style": 3.8915180579268394,
+        "intel": 5.076923076923077,
+        "overall": 6.206147044949972
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "3566680ca9f209f64a61537c18e8b801"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/live/telemetry.ts",
+      "loc": 17,
+      "complexity": 1,
+      "matrix": {
+        "logic": 9.649999999999999,
+        "style": 6.781944043681655,
+        "intel": 9.058823529411764,
+        "overall": 8.496922524364473
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "a976bb322c6faaccb4af7cb98ff6ed95"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/live/watcher.ts",
+      "loc": 46,
+      "complexity": 1,
+      "matrix": {
+        "logic": 9.649999999999999,
+        "style": 3.8509484666147666,
+        "intel": 8.086956521739133,
+        "overall": 7.1959683294513
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "2e7f673099aabe6aa6490a8f285a3ef0"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/App.tsx",
+      "loc": 99,
+      "complexity": 1,
+      "matrix": {
+        "logic": 9.649999999999999,
+        "style": 1,
+        "intel": 4.424242424242424,
+        "overall": 5.024747474747474
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "1d8abfe787924554c6f19834e5c59f9f"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/main.tsx",
+      "loc": 8,
+      "complexity": 1,
+      "matrix": {
+        "logic": 9.649999999999999,
+        "style": 9.55858891042476,
+        "intel": 1.4000000000000001,
+        "overall": 6.869529636808252
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "fb98cd0c5d9f655552d1d425bd184161"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/server.ts",
+      "loc": 51,
+      "complexity": 1,
+      "matrix": {
+        "logic": 9.649999999999999,
+        "style": 6.903672722874648,
+        "intel": 9.843137254901961,
+        "overall": 8.79893665925887
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "58698d83792381d23c27ba98278390a1"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/vite.config.ts",
+      "loc": 20,
+      "complexity": 1,
+      "matrix": {
+        "logic": 9.649999999999999,
+        "style": 9.654685378965791,
+        "intel": 6,
+        "overall": 8.43489512632193
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "77ece712a42981e82748f3f864881e81"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/components/AgentGhost.tsx",
+      "loc": 67,
+      "complexity": 1,
+      "matrix": {
+        "logic": 9.649999999999999,
+        "style": 4.080161716642012,
+        "intel": 6.17910447761194,
+        "overall": 6.636422064751318
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "7366b3be6b972c330fb4cdf9697864ef"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/components/NeuralGraph.tsx",
+      "loc": 338,
+      "complexity": 1,
+      "matrix": {
+        "logic": 9.649999999999999,
+        "style": 1,
+        "intel": 4.603550295857989,
+        "overall": 5.084516765285996
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "60e2b45b49a72709a2af8a416dd7be8e"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/components/PlaybackHUD.tsx",
+      "loc": 77,
+      "complexity": 1,
+      "matrix": {
+        "logic": 9.649999999999999,
+        "style": 2.7349234883274463,
+        "intel": 2.5194805194805197,
+        "overall": 4.968134669269322
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "d65615a7ac78689566a43f48a5890594"
     }
   ],
   "summary": {
-    "total_files": 10,
-    "total_loc": 315,
-    "average_score": 7.84174421027785
+    "total_files": 23,
+    "total_loc": 1346,
+    "average_score": 7.262066071863342
   }
 }

@@ -1,0 +1,32 @@
+---
+title: "test_injection_neutralization.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/augmented_intel/test_injection_neutralization.py"
+loc: 17
+complexity: 1
+logic_score: 8.75
+style_score: 4.03
+intel_score: 9.40
+overall_score: 7.39
+---
+
+## Intent
+Python module facilitating TestInjectionNeutralization, test_heimdall_guard_basic.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [src.sentinel.code_sanitizer](file://src.sentinel.code_sanitizer)
+
+### Exports
+- `TestInjectionNeutralization`
+- `test_heimdall_guard_basic`
+- `test_heimdall_guard_case_insensitivity`
+- `test_integration_with_sanitize_code`

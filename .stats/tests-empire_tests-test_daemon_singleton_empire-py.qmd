@@ -1,0 +1,34 @@
+---
+title: "test_daemon_singleton_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_daemon_singleton_empire.py"
+loc: 32
+complexity: 1
+logic_score: 8.30
+style_score: 3.61
+intel_score: 6.40
+overall_score: 6.10
+---
+
+## Intent
+Python module facilitating test_daemon_singleton_lock_creation, test_daemon_detects_existing_lock.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.3/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 6.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [os](file://os)
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [unittest.mock](file://unittest.mock)
+- [src.sentinel.main_loop](file://src.sentinel.main_loop)
+
+### Exports
+- `test_daemon_singleton_lock_creation`
+- `test_daemon_detects_existing_lock`

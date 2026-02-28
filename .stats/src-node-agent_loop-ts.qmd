@@ -1,0 +1,34 @@
+---
+title: "agent_loop.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/node/agent_loop.ts"
+loc: 49
+complexity: 7
+logic_score: 6.65
+style_score: 3.73
+intel_score: 10.00
+overall_score: 6.79
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.7/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 10.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://node:fs/promises)
+- [*](file://node:path)
+- [*](file://chalk)
+- [*](file://./deployment.js)
+- [*](file://./cortex_link.js)
+- [*](file://../tools/pennyone/personaRegistry.js)
+
+### Exports
+- `executeCycle`

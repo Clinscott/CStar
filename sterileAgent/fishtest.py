@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-[ODIN] Fishtest Validator (fishtest.py)
+[O.D.I.N.] Fishtest Validator (fishtest.py)
 Statistical intent resolution validator comparing results against ground truth.
 Refined for the Linscott Standard.
 """
@@ -196,7 +196,7 @@ class FishtestRunner:
         SovereignHUD.box_row("LATENCY", f"{(duration/len(cases))*1000:.2f}ms/target", dim_label=True)
         SovereignHUD.box_bottom()
 
-        # [ODIN] Persona-driven Final Report
+        # [O.D.I.N.] Persona-driven Final Report
         report = ReportEngine()
         body = f"""
 | Metric | Value |

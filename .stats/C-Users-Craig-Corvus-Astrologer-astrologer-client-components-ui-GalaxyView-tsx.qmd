@@ -1,0 +1,34 @@
+---
+title: "GalaxyView.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-client/components/ui/GalaxyView.tsx"
+loc: 105
+complexity: 8
+logic_score: 4.95
+style_score: 1.00
+intel_score: 10.00
+overall_score: 5.32
+---
+
+## Intent
+React component rendering GalaxyView with 8 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 4.9/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 10.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [useMemo](file://react)
+- [useState](file://react)
+- [useEffect](file://react)
+- [useCallback](file://react)
+- [*](file://next/dynamic)
+- [MOCK_MESSAGES](file://@/lib/mock-data)
+- [Message](file://@/lib/mock-data)
+
+### Exports
+- `GalaxyView`
+- `GalaxyView`

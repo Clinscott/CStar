@@ -1,0 +1,31 @@
+---
+title: "main.tsx"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/main.tsx"
+loc: 8
+complexity: 1
+logic_score: 9.65
+style_score: 9.56
+intel_score: 1.40
+overall_score: 6.87
+---
+
+## Intent
+React component rendering main with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.6/10
+- **Style [S]**: 9.6/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://react)
+- [*](file://react-dom/client)
+- [*](file://./App.js)
+
+### Exports
+Internal logic only.

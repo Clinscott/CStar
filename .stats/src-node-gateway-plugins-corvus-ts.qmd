@@ -1,0 +1,31 @@
+---
+title: "corvus.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/node/gateway/plugins/corvus.ts"
+loc: 24
+complexity: 1
+logic_score: 8.75
+style_score: 9.42
+intel_score: 7.00
+overall_score: 8.39
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 9.4/10
+- **Intel [I]**: 7.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://fastify)
+- [*](file://fastify-plugin)
+- [*](file://../../core/CorvusProcess.js)
+
+### Exports
+Internal logic only.

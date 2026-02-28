@@ -1,0 +1,45 @@
+---
+title: "danger_room.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/danger_room.py"
+loc: 148
+complexity: 18
+logic_score: 1.00
+style_score: 3.65
+intel_score: 6.26
+overall_score: 3.64
+---
+
+## Intent
+Python module facilitating DangerRoom, __init__.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.0/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 6.3/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [argparse](file://argparse)
+- [asyncio](file://asyncio)
+- [json](file://json)
+- [logging](file://logging)
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [typing](file://typing)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [src.cstar.core.uplink](file://src.cstar.core.uplink)
+
+### Exports
+- `DangerRoom`
+- `__init__`
+- `_read_ledger`
+- `_scaffold_test`
+- `_clean_markdown`
+- `_human_review`
+- `_commit_test`
+- `execute`
+- `main`

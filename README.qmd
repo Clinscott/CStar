@@ -83,7 +83,7 @@ A collection of specialized agent abilities:
 
 ### 4. Refined Personas (The Great Duality)
 The framework operates under two lore-accurate personas:
-- **ODIN (The All-Father)**: Cryptic, observational, and riddling. Guided by the *Hávamál*.
+- **O.D.I.N. (The All-Father)**: Cryptic, observational, and riddling. Guided by the *Hávamál*.
 - **ALFRED (The Butler)**: Firm, gentle, and witty. Guided by the *Pennyworth Protocol*.
 - **System Naming**: Mirroring names like *Mimir's Well* vs *The Brain* ensure thematic consistency.
 

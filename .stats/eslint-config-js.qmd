@@ -1,0 +1,30 @@
+---
+title: "eslint.config.js"
+path: "C:/Users/Craig/Corvus/CorvusStar/eslint.config.js"
+loc: 37
+complexity: 1
+logic_score: 9.65
+style_score: 4.16
+intel_score: 4.16
+overall_score: 5.99
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.6/10
+- **Style [S]**: 4.2/10
+- **Intel [I]**: 4.2/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://@eslint/js)
+- [*](file://eslint-plugin-jsdoc)
+
+### Exports
+Internal logic only.

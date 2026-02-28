@@ -1,0 +1,34 @@
+---
+title: "test_pennyone_empire.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_pennyone_empire.ts"
+loc: 66
+complexity: 1
+logic_score: 8.30
+style_score: 1.00
+intel_score: 3.21
+overall_score: 4.17
+---
+
+## Intent
+Calculates structural logic density using CC and nesting metrics.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.3/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 3.2/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://node:test)
+- [*](file://node:assert)
+- [*](file://../../src/tools/pennyone/calculus/logic.js)
+- [*](file://../../src/tools/pennyone/calculus/style.js)
+- [*](file://../../src/tools/pennyone/calculus/intel.js)
+- [*](file://../../src/tools/pennyone/analyzer.js)
+
+### Exports
+Internal logic only.

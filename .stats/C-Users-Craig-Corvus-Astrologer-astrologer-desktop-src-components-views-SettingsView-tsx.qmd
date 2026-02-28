@@ -1,0 +1,41 @@
+---
+title: "SettingsView.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/src/components/views/SettingsView.tsx"
+loc: 280
+complexity: 17
+logic_score: 1.80
+style_score: 1.00
+intel_score: 2.00
+overall_score: 1.60
+---
+
+## Intent
+React component rendering SettingsView with 17 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.8/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 2.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [useState](file://react)
+- [Settings](file://lucide-react)
+- [User](file://lucide-react)
+- [Bell](file://lucide-react)
+- [Book](file://lucide-react)
+- [Sparkles](file://lucide-react)
+- [Database](file://lucide-react)
+- [Moon](file://lucide-react)
+- [Sun](file://lucide-react)
+- [useCelestial](file://@/context/CelestialContext)
+- [isTauri](file://@/lib/utils)
+- [BridgeConnectionRow](file://@/components/ui/BridgeConnectionRow)
+- [BridgePlatform](file://@/lib/types/bridge)
+
+### Exports
+- `SettingsView`
+- `SettingsView`
+- `SignalAlignmentModal`

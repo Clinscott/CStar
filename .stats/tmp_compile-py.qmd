@@ -1,0 +1,29 @@
+---
+title: "tmp_compile.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tmp_compile.py"
+loc: 2
+complexity: 1
+logic_score: 9.65
+style_score: 8.14
+intel_score: 1.40
+overall_score: 6.40
+---
+
+## Intent
+Python module facilitating internal logic.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.6/10
+- **Style [S]**: 8.1/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [create_router](file://create_router)
+
+### Exports
+Internal logic only.

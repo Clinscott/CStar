@@ -1,0 +1,35 @@
+---
+title: "useGalaxyView.test.ts"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/test/useGalaxyView.test.ts"
+loc: 130
+complexity: 1
+logic_score: 8.30
+style_score: 4.08
+intel_score: 4.48
+overall_score: 5.62
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.3/10
+- **Style [S]**: 4.1/10
+- **Intel [I]**: 4.5/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [describe](file://vitest)
+- [it](file://vitest)
+- [expect](file://vitest)
+- [vi](file://vitest)
+- [beforeEach](file://vitest)
+- [renderHook](file://@testing-library/react)
+- [act](file://@testing-library/react)
+- [waitFor](file://@testing-library/react)
+- [useGalaxyView](file://@/hooks/useGalaxyView)
+
+### Exports
+Internal logic only.

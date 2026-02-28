@@ -1,0 +1,30 @@
+---
+title: "test_debt_viz_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_debt_viz_empire.py"
+loc: 25
+complexity: 1
+logic_score: 9.20
+style_score: 3.98
+intel_score: 4.60
+overall_score: 5.93
+---
+
+## Intent
+Python module facilitating test_debt_analyzer_files, test_debt_analyzer_logic.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 4.6/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [src.tools.debt_viz](file://src.tools.debt_viz)
+
+### Exports
+- `test_debt_analyzer_files`
+- `test_debt_analyzer_logic`

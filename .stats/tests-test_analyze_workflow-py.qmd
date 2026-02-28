@@ -1,0 +1,31 @@
+---
+title: "test_analyze_workflow.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_analyze_workflow.py"
+loc: 16
+complexity: 1
+logic_score: 9.20
+style_score: 3.72
+intel_score: 9.40
+overall_score: 7.44
+---
+
+## Intent
+Python module facilitating mock_workspace, test_workflow_analyst_logic.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [pytest](file://pytest)
+- [src.skills.local.workflow_analyst.analyze_workflow](file://src.skills.local.workflow_analyst.analyze_workflow)
+
+### Exports
+- `mock_workspace`
+- `test_workflow_analyst_logic`

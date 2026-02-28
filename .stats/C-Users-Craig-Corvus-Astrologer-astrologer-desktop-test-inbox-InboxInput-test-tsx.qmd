@@ -1,0 +1,35 @@
+---
+title: "InboxInput.test.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/test/inbox/InboxInput.test.tsx"
+loc: 76
+complexity: 1
+logic_score: 8.75
+style_score: 4.01
+intel_score: 3.51
+overall_score: 5.42
+---
+
+## Intent
+React component rendering InboxInput with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 3.5/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [render](file://@testing-library/react)
+- [screen](file://@testing-library/react)
+- [fireEvent](file://@testing-library/react)
+- [describe](file://vitest)
+- [it](file://vitest)
+- [expect](file://vitest)
+- [vi](file://vitest)
+- [InboxInput](file://@/components/ui/inbox/InboxInput)
+- [Message](file://@/lib/types/message)
+
+### Exports
+Internal logic only.

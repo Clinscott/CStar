@@ -1,0 +1,32 @@
+---
+title: "audit_skills.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/scripts/audit_skills.py"
+loc: 34
+complexity: 8
+logic_score: 5.40
+style_score: 3.80
+intel_score: 6.11
+overall_score: 5.10
+---
+
+## Intent
+Python module facilitating audit_manor_skills.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 5.4/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 6.1/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [src.core.engine.vector](file://src.core.engine.vector)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+
+### Exports
+- `audit_manor_skills`

@@ -1,0 +1,30 @@
+---
+title: "tmp_scan.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/tmp_scan.ts"
+loc: 12
+complexity: 1
+logic_score: 9.20
+style_score: 7.11
+intel_score: 1.40
+overall_score: 5.90
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 7.1/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://./src/tools/pennyone/index.js)
+- [*](file://path)
+
+### Exports
+- `main`

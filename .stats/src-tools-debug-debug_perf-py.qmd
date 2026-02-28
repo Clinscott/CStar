@@ -1,0 +1,31 @@
+---
+title: "debug_perf.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/debug/debug_perf.py"
+loc: 39
+complexity: 4
+logic_score: 7.70
+style_score: 3.77
+intel_score: 5.50
+overall_score: 5.66
+---
+
+## Intent
+Python module facilitating run_profile.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.7/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 5.5/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [time](file://time)
+- [pathlib](file://pathlib)
+- [src.core.engine.vector](file://src.core.engine.vector)
+
+### Exports
+- `run_profile`

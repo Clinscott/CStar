@@ -1,0 +1,36 @@
+---
+title: "test_anomalies_jsonl_concurrency_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_anomalies_jsonl_concurrency_empire.py"
+loc: 44
+complexity: 8
+logic_score: 4.95
+style_score: 3.74
+intel_score: 6.85
+overall_score: 5.18
+---
+
+## Intent
+Python module facilitating TestAnomaliesJsonlConcurrencyEmpire, test_concurrent_append_during_archival.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 4.9/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 6.9/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [sys](file://sys)
+- [threading](file://threading)
+- [time](file://time)
+- [pathlib](file://pathlib)
+- [pytest](file://pytest)
+
+### Exports
+- `TestAnomaliesJsonlConcurrencyEmpire`
+- `test_concurrent_append_during_archival`
+- `simulate_daemon_spam`

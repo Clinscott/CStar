@@ -1,7 +1,18 @@
 # Corvus Star Memory
 
+## 2026-02-28: Session 98 (Configuration-Driven Persona Registry)
+- **Centralized Application Identity**: Hardcoding operational identities (e.g., `[O.D.I.N.]`, `[ALFRED]`) within logging, UI matrices, and telemetry structures creates widespread technical drift when personas evolve. Establishing a dynamic `PersonaRegistry` that loads from a singular configuration file ensures true system-wide symmetry.
+- **Interpolation over Literals**: Replacing literal tags in UI formatting engines (like `server.ts` or `ceremony.ts`) with interpolated properties (e.g., `${activePersona.prefix}`) prevents "Split-Brain" output where different Node subprocesses emit conflicting identities.
+- **Testing Absolute Paths in Renames**: When refactoring file names or internal module identifiers (like Wardens in `Muninn`), test suites that rely on complex, dotted mock targets (e.g., `src.sentinel.muninn.Muninn`) must be painstakingly recalibrated. Point the mock path directly to the resolved target rather than importing a facade.
+
+## 2026-02-27: Session 97 (Operation PennyOne: Phase 5.2 & 9)
+- **Scorched-Earth Guard Pattern**: When bridging high-frequency telemetry data (WebSockets) to complex 3D scenes (R3F), always guard iterations over arrays (`.map`, `.forEach`) with `.files || []` and `Array.isArray()` checks. A single undefined payload during a re-scan will trigger a cascading `TypeError` and WebGL context loss.
+- **Orbital Raycaster Precision**: High-radius orbital rings (e.g., Radius 600) move nodes at extreme circumference speeds even at low angular velocities. Limit `useFrame` time multipliers to `<0.002` to allow for reliable mouse-over raycasting.
+- **Gravity-Driven D3 Simulations**: D3 `forceManyBody()` strength can be dynamically modulated by telemetry-driven mass. Scaling node `strength` by a `gravity.hits` factor creates a visceral sense of "Cognitive Hotspots" where the lattice clusters around active files.
+- **Emissive Pulse Logic**: In high-bloom post-processing environments, cap `emissiveIntensity` at 10 to avoid "white-out" artifacts while maintaining a sharp neon glow for active nodes.
+
 ## 2026-02-27: Session 96 (Mimir Remediation: Batch 3)
-- **TUI Decoupling Case Study**: For complex games built with Rich/Textual (like Odin Protocol), always extract the manifest and briefing rendering logic into a specialized `ui.py`. This reduces the primary game loop's complexity by an order of magnitude (CC 18 -> 1) and enables easier TUI component testing.
+- **TUI Decoupling Case Study**: For complex games built with Rich/Textual (like O.D.I.N. Protocol), always extract the manifest and briefing rendering logic into a specialized `ui.py`. This reduces the primary game loop's complexity by an order of magnitude (CC 18 -> 1) and enables easier TUI component testing.
 - **Semantic Helper Extraction for CC**: When targetting cyclomatic complexity in intent resolution (`_score_intent`), extract lexical evidence calculation (`_calculate_lexical_evidence`) from the scoring loop. This allows for independent validation of tf-idf and density scoring without the overhead of the full hybrid loop.
 - **Mock State Initialization**: When mocking complex state objects (like `UniverseState`), ensure all numeric attributes used in comparison logic (e.g., `turn < last_briefing + cooldown`) are initialized with real integers/floats. `MagicMock` defaults return other mocks, which trigger `TypeError` during standard numeric comparisons.
 - **Token Scoping Integrity**: In hybrid search engines, ensure `original_tokens` are derived early from the normalized query and passed through to all helper methods to prevent `NameError` in complex branching logic.
@@ -58,7 +69,7 @@
 ## 2026-02-25: Session 87 (Scaffold Campaign & Linscott Sovereignty)
 - **High-Fidelity Tool Mocking**: When testing tools that interact with core engines (Vector, Dialogue, Muninn), create localized mock classes within the test file that mirror the engine's interface. This avoids the latency and complexity of initializing real vector databases or loading YAML banks while allowing for precise logic verification.
 - **Import Sovereignty (`src.`)**: Never use relative imports in game logic or tools that might be executed as standalone scripts. Always use absolute imports with the `src.` prefix. This ensures the `PYTHONPATH` (set by `_bootstrap.py` or the Node control plane) always resolves the core framework.
-- **State Hydration Patterns**: Implement `from_dict` class methods for all game and state models (`UniverseState`, `Chromosome`). This enables reliable state restoration from Git-persistent JSON logs, which is foundational for the temporal mechanics of the Odin Protocol.
+- **State Hydration Patterns**: Implement `from_dict` class methods for all game and state models (`UniverseState`, `Chromosome`). This enables reliable state restoration from Git-persistent JSON logs, which is foundational for the temporal mechanics of the O.D.I.N. Protocol.
 - **Docstring Precedence**: The EddaWarden enforces that all public methods, including abstract base class methods, must have docstrings. This is not just for documentation; it's a structural requirement for AI-assisted navigation of the codebase.
 
 ## 2026-02-25: Session 85 (V4 Hardening & Concurrency Safety)
@@ -168,7 +179,7 @@
 
 ## 2026-02-20: Session 66 (Ghost Protocol & Dynamic Selection)
 - **Ghost Protocol**: Resilient backoff logic should live as close to the I/O layer as possible. In the Bridge, wrapping `generate_content` in an `asyncio.sleep` retry loop prevents cascading failures to the TUI and Node control plane.
-- **Model Agnosticism**: Hardcoding model names (e.g., "gemini-3.1-pro") is technical debt. Runtime model discovery (`client.models.list()`) combined with "Workload Personas" (ODIN=Pro, ALFRED=Flash) creates a self-healing identity system.
+- **Model Agnosticism**: Hardcoding model names (e.g., "gemini-3.1-pro") is technical debt. Runtime model discovery (`client.models.list()`) combined with "Workload Personas" (O.D.I.N.=Pro, ALFRED=Flash) creates a self-healing identity system.
 - **Async Collisions**: `asyncio.run()` should NEVER be called from within a thread that might already be managed by an event loop. Using `asyncio.new_event_loop()` or a dedicated `_sync_send` bridge is mandatory for hybrid Warden architectures.
 - **TCP EOF Signaling**: Reliable TCP termination requires an explicit `writer.write_eof()` call. Without it, the Bridge's `read(-1)` might hang indefinitely waiting for a stream end that never arrives.
 
@@ -193,7 +204,7 @@
 - **CSS Panel ID Selectors**: Theme CSS should target specific panel IDs (`#console`, `#gphs_bar`, `#sidebar_container`) instead of generic widget types (`Log`, `Static`) to avoid styling unintended widgets on other screens.
 
 ## 2026-02-16: Session 61 (High Seat Secured)
-- **Textual CSS Regressions**: Nested CSS variables (e.g., `--app-accent`) declared inside class blocks (e.g., `.theme-odin { --v: red; }`) can fail significantly in older/specific versions of Textual. Prefer explicit descendant selectors (`.theme-odin Widget { background: red; }`) for theme definitions to maximize compatibility.
+- **Textual CSS Regressions**: Nested CSS variables (e.g., `--app-accent`) declared inside class blocks (e.g., `.theme-O.D.I.N. { --v: red; }`) can fail significantly in older/specific versions of Textual. Prefer explicit descendant selectors (`.theme-O.D.I.N. Widget { background: red; }`) for theme definitions to maximize compatibility.
 - **Log Widget Versioning**: The `Log` widget in some Textual versions does *not* accept `markup=True` in its constructor, triggering a `TypeError`. Use `log.write(markup_string)` instead, or ensure the environment matches the dev specs exactly.
 - **Modal Non-Blocking**: `self.push_screen(ModalScreen)` in Textual allows background workers to continue. If multiple UI updates must be suspended during an animation (e.g., persona transition), use a state flag (e.g., `self.is_transitioning`) to gate polling workers.
 - **App Instantiation Testing**: Testing a Textual `App` subclass without calling `run()` requires moving instance-level configuration (like `self.title`) to class-level constants (e.g., `TITLE = "..."`) to ensure it's accessible during a simple constructor call in unit tests.
@@ -229,7 +240,7 @@
 - **Quota Persistence**: Use a simple JSON ledger (`brave_quota.json`) with `YYYY-MM` keys for lightweight, atomic rate limiting without a full DB.
 
 ## 2026-02-13: Context-Aware Dialogue (Session 53)
-- **Pattern**: Deterministic routing based on tag-scoring is superior to random sampling for specialized task assistants (Alfred/Odin).
+- **Pattern**: Deterministic routing based on tag-scoring is superior to random sampling for specialized task assistants (Alfred/O.D.I.N.).
 - **STM (Short-Term Memory)**: Using a `deque(maxlen=5)` in the dialogue engine maintains immersion and prevents repetitive verbal loops.
 - **Windows File Strategy**: Using `msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, size)` allows multiple readers to access sensitive files like `sovereign_state.json` without blocking the writer (Raven Daemon).
 - **YAML over QMD**: For highly structured data bank (phrases/tags), YAML is the preferred format due to its machine-readability and hierarchy support.
@@ -252,7 +263,7 @@
 - **Intent Resolution**: Is highly sensitive to `GLOBAL:` prefixing and strict `Activation Words` formatting.
 - **Configuration**: `pyproject.toml` is the law. All tools must respect it.
 - **Testing**: `fishtest.py` is the gold standard. Unit tests are supporting evidence.
-- **Identity (Odin Lore)**: Use **Huginn & Muninn** for the daemon loop, **Heimdall** for security/auditing, and **Muninn** for incremental improvements.
+- **Identity (O.D.I.N. Lore)**: Use **Huginn & Muninn** for the daemon loop, **Heimdall** for security/auditing, and **Muninn** for incremental improvements.
 
 ## Active Context
 - **Project Structure**: `src/` is the core. `.agent/` is configuration. `tests/` is verification.
@@ -310,10 +321,10 @@
 - **Stability Cooldowns (TheWatcher)**: Automated locking for unstable files (fatigue/oscillation) should include time-based cooldowns (e.g., 1 hour) to allow for system self-recovery without requiring manual state intervention.
 - **Archive Preservation**: Quarantine mechanisms (`_quarantine_file`) must be documented to ensure that documentation transmutation is recognized as a non-destructive synthesis process by the EddaWarden.
 - **Complexity Decomposition**: High-cyclomatic methods (e.g., `_deep_fix_indentation`, `_run_gauntlet`, `load_config`) should be decomposed into semantic helpers to enhance testability and readability.
-- **Idempotent Harvesting (Odin)**: Response harvesters should use intermediate saves and robust error handling to ensure AI logic capture remains resilient during autonomous endurance cycles.
+- **Idempotent Harvesting (O.D.I.N.)**: Response harvesters should use intermediate saves and robust error handling to ensure AI logic capture remains resilient during autonomous endurance cycles.
 - **Strategic Territory Auditing (Heimdall)**: Centralizing breach detection in shared Warden logic ensures consistent enforcement of the Linscott and Torvalds standards across all modules.
 - **Quarto Weaver Standards (Edda)**: Automated documentation transmuters should utilize persona-enabled logging and robust Pathlib resolution to ensure the "Saga of the Code" is preserved with high visual fidelity.
-- **CLI Dispatcher Resilience (Odin)**: Dynamic command resolution must verify environment parity (venv vs system) and project root integrity to prevent "Split-Brain" execution during high-velocity development.
+- **CLI Dispatcher Resilience (O.D.I.N.)**: Dynamic command resolution must verify environment parity (venv vs system) and project root integrity to prevent "Split-Brain" execution during high-velocity development.
 - **The Long Game: 50-Cycle Marathon**: True system robustness is achieved through iterative failure-recovery cycles. Completing the 50-cycle marathon has hardened Corvus Star into an "Iron Clad" framework.
 - **Lazy Persona Synchronization (UI)**: Encapsulating persona loading within the SovereignHUD's lazy-initializer ensures that all terminal outputs correctly reflect the project's identity without requiring explicit setup in every script.
 - **Graceful Daemon Signaling (Daemon)**: Implementing standard signal handlers (SIGINT/SIGTERM) is critical for long-running processes (e.g., Ravens) to ensure lock files are purged and state is persisted during shutdown.

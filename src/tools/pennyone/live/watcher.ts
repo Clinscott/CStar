@@ -5,6 +5,7 @@ import { runScan } from '../index.js';
 import { compileMatrix } from '../intel/compiler.js';
 import { SubspaceRelay } from './socket.js';
 import chalk from 'chalk';
+import { activePersona } from '../personaRegistry.js';
 
 /**
  * RepositoryWatcher: Monitors files and triggers delta analysis
@@ -16,13 +17,13 @@ export function startWatcher(targetPath: string, relay: SubspaceRelay) {
         ignoreInitial: true
     });
 
-    console.log(chalk.cyan(`[A.L.F.R.E.D]: "Telemetry sensors active. Monitoring sector: ${targetPath}"`));
+    console.log(chalk.cyan(`${activePersona.prefix}: "Telemetry sensors active. Monitoring sector: ${targetPath}"`));
 
     // 1. Handle File Changes (Delta Update)
     watcher.on('change', async (filePath: string) => {
         if (!filePath.match(/\.(ts|js|tsx|jsx|py)$/)) return;
 
-        console.log(chalk.yellow(`[A.L.F.R.E.D]: "Delta detected in ${path.basename(filePath)}. Recalibrating sensors..."`));
+        console.log(chalk.yellow(`${activePersona.prefix}: "Delta detected in ${path.basename(filePath)}. Recalibrating sensors..."`));
         try {
             // Re-run the full scan for consistency and to update qmd/json
             const results = await runScan(targetPath);
@@ -44,7 +45,7 @@ export function startWatcher(targetPath: string, relay: SubspaceRelay) {
 
     // 2. Handle Add/Unlink (Full Rebuild)
     const rebuild = async () => {
-        console.log(chalk.magenta(`[A.L.F.R.E.D]: "Structural shift detected. Recompiling Matrix buffer..."`));
+        console.log(chalk.magenta(`${activePersona.prefix}: "Structural shift detected. Recompiling Matrix buffer..."`));
         try {
             const results = await runScan(targetPath);
             await compileMatrix(results, targetPath);

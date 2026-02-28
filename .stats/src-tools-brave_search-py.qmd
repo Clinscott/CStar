@@ -1,0 +1,47 @@
+---
+title: "brave_search.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/brave_search.py"
+loc: 116
+complexity: 14
+logic_score: 2.85
+style_score: 3.85
+intel_score: 9.33
+overall_score: 5.35
+---
+
+## Intent
+Python module facilitating BraveSearch, __init__.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 2.8/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 9.3/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [os](file://os)
+- [time](file://time)
+- [datetime](file://datetime)
+- [pathlib](file://pathlib)
+- [typing](file://typing)
+- [requests](file://requests)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [sys](file://sys)
+- [src.sentinel._bootstrap](file://src.sentinel._bootstrap)
+
+### Exports
+- `BraveSearch`
+- `__init__`
+- `_ensure_quota_ledger`
+- `_read_ledger`
+- `_save_ledger`
+- `_increment_quota`
+- `is_quota_available`
+- `search`
+- `search_knowledge`
+- `main`

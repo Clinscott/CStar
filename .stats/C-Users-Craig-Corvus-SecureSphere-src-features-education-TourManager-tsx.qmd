@@ -1,0 +1,29 @@
+---
+title: "TourManager.tsx"
+path: "C:/Users/Craig/Corvus/SecureSphere/src/features/education/TourManager.tsx"
+loc: 27
+complexity: 2
+logic_score: 8.85
+style_score: 4.31
+intel_score: 2.00
+overall_score: 5.05
+---
+
+## Intent
+React component rendering TourManager with 2 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 4.3/10
+- **Intel [I]**: 2.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [*](file://react)
+- [useTour](file://../../hooks/useTour)
+- [TourOverlay](file://./TourOverlay)
+
+### Exports
+- `TourManager`

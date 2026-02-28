@@ -1,0 +1,48 @@
+---
+title: "test_tui_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_tui_empire.py"
+loc: 86
+complexity: 4
+logic_score: 7.70
+style_score: 3.85
+intel_score: 9.40
+overall_score: 6.98
+---
+
+## Intent
+Python module facilitating test_sovereign_app_instantiation, test_sovereign_app_has_css.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.7/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [src.cstar.core.tui](file://src.cstar.core.tui)
+
+### Exports
+- `test_sovereign_app_instantiation`
+- `test_sovereign_app_has_css`
+- `test_sovereign_app_has_screens`
+- `test_odin_lore_completeness`
+- `test_alfred_lore_completeness`
+- `test_lore_personas_present`
+- `test_odin_theme_class_value`
+- `test_alfred_theme_class_value`
+- `test_keybindings_registered`
+- `test_project_root_resolution`
+- `test_load_greeting_odin`
+- `test_load_greeting_alfred`
+- `test_load_greeting_fallback`
+- `test_gphs_gauge_instantiation`
+- `test_known_commands_list`
+- `test_dashboard_screen_has_css`
+- `test_forge_screen_has_css`
+- `test_trace_screen_has_css`
+- `test_help_screen_accepts_persona`
+- `test_vitals_header_instantiation`

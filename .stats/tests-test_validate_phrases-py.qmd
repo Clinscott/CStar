@@ -1,0 +1,35 @@
+---
+title: "test_validate_phrases.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_validate_phrases.py"
+loc: 61
+complexity: 1
+logic_score: 8.75
+style_score: 3.64
+intel_score: 7.96
+overall_score: 6.78
+---
+
+## Intent
+Python module facilitating mock_phrases_yaml, test_validate_phrases_valid.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 8.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [pytest](file://pytest)
+- [yaml](file://yaml)
+- [scripts.validate_phrases](file://scripts.validate_phrases)
+
+### Exports
+- `mock_phrases_yaml`
+- `test_validate_phrases_valid`
+- `test_validate_phrases_invalid_odin`
+- `test_validate_phrases_missing_tags`
+- `test_validate_phrases_missing_file`

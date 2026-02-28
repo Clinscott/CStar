@@ -2,6 +2,7 @@ import chalk, { ChalkInstance } from 'chalk';
 import fs from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { activePersona } from '../tools/pennyone/personaRegistry.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const PROJECT_ROOT = join(__dirname, '..', '..');
@@ -17,11 +18,11 @@ interface PersonaTheme {
 }
 
 const THEMES: Record<string, PersonaTheme> = {
-    ODIN: {
+    "O.D.I.N.": {
         main: chalk.red,
         dim: chalk.magenta,
         accent: chalk.yellow,
-        title: "Ω ODIN GUNGNIR CONTROL Ω",
+        title: "Ω O.D.I.N. GUNGNIR CONTROL Ω",
         greeting: "Speak, wanderer. The Hooded One listens.",
         bootMessages: [
             "Heimdall's Vigil: [SECURED]",
@@ -31,7 +32,7 @@ const THEMES: Record<string, PersonaTheme> = {
         ],
         mandates: ["STRATEGY", "CREATION", "DOMINION"]
     },
-    ALFRED: {
+    "A.L.F.R.E.D.": {
         main: chalk.cyan,
         dim: chalk.gray,
         accent: chalk.green,
@@ -130,7 +131,7 @@ function getWardenStatus(): string {
         try {
             const state = JSON.parse(fs.readFileSync(statePath, 'utf-8'));
             return state.warden?.active ? 'VIGILANT' : 'STANDBY';
-        } catch (e) {}
+        } catch (e) { }
     }
     return 'STANDBY';
 }
@@ -146,48 +147,41 @@ function getVaultStatus(): string {
 }
 
 export async function runStartupCeremony() {
-    let persona = "ALFRED";
-    try {
-        const configPath = join(PROJECT_ROOT, ".agent", "config.json");
-        if (fs.existsSync(configPath)) {
-            const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
-            persona = config.system?.persona || config.persona || "ALFRED";
-        }
-    } catch (e) {}
+    const persona = activePersona.name;
 
-    const theme = THEMES[persona.toUpperCase()] || THEMES.ALFRED;
+    const theme = THEMES[persona] || THEMES["A.L.F.R.E.D."];
     const { main, dim, accent, title, greeting, bootMessages, mandates } = theme;
 
     const width = 64;
     const bar = "━".repeat(width);
 
     console.log(`\n${main(bar)}`);
-    
+
     // Title Box
     const tLen = title.length;
     const pad = Math.max(0, Math.floor((width - tLen - 4) / 2));
-    
+
     console.log(`${main("┏")}${main("━".repeat(pad))} ${chalk.bold(title)} ${main("━".repeat(width - tLen - 4 - pad))}${main("┓")}`);
     console.log(`${main("┃")}${" ".repeat(width - 2)}${main("┃")}`);
-    
+
     // Greeting
     const gPad = Math.max(0, width - 6 - greeting.length);
     console.log(`${main("┃")}  ${dim(greeting)}${" ".repeat(gPad)}  ${main("┃")}`);
-    
+
     console.log(`${main("┃")}${" ".repeat(width - 2)}${main("┃")}`);
     console.log(`${main("┗")}${main("━".repeat(width - 2))}${main("┛")}`);
 
     // Mandates & Status Section
     console.log(` ${dim("ACTIVE MANDATES:")} ${mandates.map(m => accent.bold(m)).join(dim(" | "))}`);
     console.log(` ${main("─".repeat(width - 2))}`);
-    
-    if (persona.toUpperCase() === 'ODIN') {
+
+    if (persona === 'O.D.I.N.') {
         const ravens = getRavensStatus();
         const forge = getForgeStatus();
         const fishtest = getFishtestStatus();
         const warden = getWardenStatus();
         const vault = getVaultStatus();
-        
+
         console.log(`   ${dim("◈")} RAVENS:    ${getStatusColor(ravens)(ravens.padEnd(10))} ${dim("◈")} FORGE:     ${getStatusColor(forge)(forge.padEnd(10))}`);
         console.log(`   ${dim("◈")} FISHTEST:  ${getStatusColor(fishtest)(fishtest.padEnd(10))} ${dim("◈")} VIGIL:     ${getStatusColor(warden)(warden.padEnd(10))}`);
         console.log(`   ${dim("◈")} VAULT:     ${getStatusColor(vault)(vault.padEnd(10))}`);
@@ -195,12 +189,19 @@ export async function runStartupCeremony() {
         const perimeter = getPerimeterStatus();
         const pennyone = getPennyOneStatus();
         const vault = getVaultStatus();
-        
+
         console.log(`   ${dim("◈")} PERIMETER: ${getStatusColor(perimeter)(perimeter.padEnd(10))} ${dim("◈")} REPOSITORY: ${getStatusColor(pennyone)(pennyone.padEnd(10))}`);
         console.log(`   ${dim("◈")} ARCHIVE:   ${chalk.green("SECURE    ")} ${dim("◈")} VAULT:      ${getStatusColor(vault)(vault.padEnd(10))}`);
     }
 
     console.log(` ${main("─".repeat(width - 2))}`);
+
+    // Gemini CLI Integration Status
+    if (process.env.GEMINI_CLI_ACTIVE === 'true') {
+        const mind = "GEMINI-3.1-PRO"; // This could be dynamic in the future
+        console.log(`   ${dim("◈")} INTELLIGENCE: ${chalk.magenta.bold("DECOUPLED")} ${dim("◈")} MIND: ${chalk.magenta.bold(mind)}`);
+        console.log(`   ${main("─".repeat(width - 2))}`);
+    }
 
     // Boot sequence
     for (const msg of bootMessages) {

@@ -1,0 +1,383 @@
+...F............................................F................F.....F [ 16%]
+....FFF..........F..............................................FFFFF... [ 33%]
+...........FFFF...............................F....FF................... [ 50%]
+...................................F.................................... [ 67%]
+.....................................................................F.. [ 84%]
+.............s......................................................     [100%]
+================================== FAILURES ===================================
+__________________ TestLexiconLift.test_lexicon_lift_trigger __________________
+tests\augmented_intel\test_lexicon_lift.py:38: in test_lexicon_lift_trigger
+    mock_vec = MockVector("dummy", "dummy", "dummy")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\augmented_intel\test_lexicon_lift.py:33: in __init__
+    self.vocab = {"tell", "me", "about"}
+    ^^^^^^^^^^
+E   AttributeError: property 'vocab' of 'TestLexiconLift.test_lexicon_lift_trigger.<locals>.MockVector' object has no setter
+---------------------------- Captured stdout call -----------------------------
+[31m[O.D.I.N.][0m Semantic Indexing Synchronized. Shadow Engine: 17 skills.
+____________________ TestEngine_contracts.test_transition _____________________
+tests\contracts\test_engine_contracts.py:77: in test_transition
+    self.assertIn("PROACTIVE INSTALL", output)
+E   AssertionError: 'PROACTIVE INSTALL' not found in '\x1b[2;36m┌───────────────────────────────────────── \x1b[36m\x1b[1mGUNGNIR IMPACT\x1b[0m\x1b[2;36m ─────────────────────────────────────────┐\x1b[0m\n\x1b[2;36m│\x1b[0m \x1b[36mIntent              \x1b[0m \x1b[36mGLOBAL:git-assistant\x1b[0m                                                         \x1b[2;36m│\x1b[0m\n\x1b[2;36m│\x1b[0m \x1b[36mMatch               \x1b[0m \x1b[2m[G] GLOBAL:git-assistant\x1b[0m                                                     \x1b[2;36m│\x1b[0m\n\x1b[2;36m│\x1b[0m \x1b[36mConfidence          \x1b[0m \x1b[32m\x1b[32m█████████\x1b[2;32m░\x1b[0m 0.95\x1b[0m                                              \x1b[2;36m│\x1b[0m\n\x1b[2;36m└──────────────────────────────────────────────────────────────────────────────────────────────────┘\x1b[0m\n'
+________ TestGauntletEscalation.test_escalates_to_pro_on_final_attempt ________
+tests\contracts\test_muninn.py:254: in test_escalates_to_pro_on_final_attempt
+    assert len(models_called) == 1
+E   assert 0 == 1
+E    +  where 0 = len([])
+---------------------------- Captured stdout call -----------------------------
+[?25l
+ALFRED: Consulting the Archives, sir... |
+                                         
+[?25h
+________________ TestMimirWarden.test_valkyrie_precedes_beauty ________________
+C:\Python314\Lib\unittest\mock.py:1429: in patched
+    with self.decoration_helper(patched,
+C:\Python314\Lib\contextlib.py:141: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+C:\Python314\Lib\unittest\mock.py:1411: in decoration_helper
+    arg = exit_stack.enter_context(patching)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Python314\Lib\contextlib.py:530: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+C:\Python314\Lib\unittest\mock.py:1503: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+C:\Python314\Lib\unittest\mock.py:1473: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'src.sentinel.muninn' from 'C:\\Users\\Craig\\Corvus\\CorvusStar\\src\\sentinel\\muninn.py'> does not have the attribute 'FreyaWarden'
+________________________ test_rendering_initialization ________________________
+.venv\Lib\site-packages\_pytest\fixtures.py:539: in getfixturevalue
+    fixturedef = self._get_active_fixturedef(argname)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\_pytest\fixtures.py:627: in _get_active_fixturedef
+    fixturedef.execute(request=subrequest)
+.venv\Lib\site-packages\_pytest\fixtures.py:1110: in execute
+    result: FixtureValue = ihook.pytest_fixture_setup(
+.venv\Lib\site-packages\pluggy\_hooks.py:512: in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pluggy\_manager.py:120: in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pytest_asyncio\plugin.py:743: in pytest_fixture_setup
+    hook_result = yield
+                  ^^^^^
+.venv\Lib\site-packages\pluggy\_callers.py:53: in run_old_style_hookwrapper
+    return result.get_result()
+           ^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pluggy\_callers.py:38: in run_old_style_hookwrapper
+    res = yield
+          ^^^^^
+.venv\Lib\site-packages\_pytest\setuponly.py:36: in pytest_fixture_setup
+    return (yield)
+            ^^^^^
+.venv\Lib\site-packages\_pytest\fixtures.py:1202: in pytest_fixture_setup
+    result = call_fixture_func(fixturefunc, request, kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\_pytest\fixtures.py:915: in call_fixture_func
+    fixture_result = fixturefunc(**kwargs)
+                     ^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pytest_asyncio\plugin.py:313: in _asyncgen_fixture_wrapper
+    result = runner.run(setup(), context=context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Python314\Lib\asyncio\runners.py:127: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Python314\Lib\asyncio\base_events.py:719: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pytest_asyncio\plugin.py:309: in setup
+    res = await gen_obj.__anext__()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\empire_tests\test_aesthetic_steps.py:31: in shared_state
+    await page.goto(f"http://127.0.0.1:4000/?token={token}")
+.venv\Lib\site-packages\playwright\async_api\_generated.py:9045: in goto
+    await self._impl_obj.goto(
+.venv\Lib\site-packages\playwright\_impl\_page.py:552: in goto
+    return await self._main_frame.goto(**locals_to_params(locals()))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\playwright\_impl\_frame.py:153: in goto
+    await self._channel.send(
+.venv\Lib\site-packages\playwright\_impl\_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+.venv\Lib\site-packages\playwright\_impl\_connection.py:559: in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:4000/?token=2c1e729d6ce35a3b12e4caf9fbff197e
+E   Call log:
+E     - navigating to "http://127.0.0.1:4000/?token=2c1e729d6ce35a3b12e4caf9fbff197e", waiting until "load"
+_______________________________ test_data_pulse _______________________________
+.venv\Lib\site-packages\_pytest\fixtures.py:539: in getfixturevalue
+    fixturedef = self._get_active_fixturedef(argname)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\_pytest\fixtures.py:627: in _get_active_fixturedef
+    fixturedef.execute(request=subrequest)
+.venv\Lib\site-packages\_pytest\fixtures.py:1110: in execute
+    result: FixtureValue = ihook.pytest_fixture_setup(
+.venv\Lib\site-packages\pluggy\_hooks.py:512: in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pluggy\_manager.py:120: in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pytest_asyncio\plugin.py:743: in pytest_fixture_setup
+    hook_result = yield
+                  ^^^^^
+.venv\Lib\site-packages\pluggy\_callers.py:53: in run_old_style_hookwrapper
+    return result.get_result()
+           ^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pluggy\_callers.py:38: in run_old_style_hookwrapper
+    res = yield
+          ^^^^^
+.venv\Lib\site-packages\_pytest\setuponly.py:36: in pytest_fixture_setup
+    return (yield)
+            ^^^^^
+.venv\Lib\site-packages\_pytest\fixtures.py:1202: in pytest_fixture_setup
+    result = call_fixture_func(fixturefunc, request, kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\_pytest\fixtures.py:915: in call_fixture_func
+    fixture_result = fixturefunc(**kwargs)
+                     ^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pytest_asyncio\plugin.py:313: in _asyncgen_fixture_wrapper
+    result = runner.run(setup(), context=context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Python314\Lib\asyncio\runners.py:127: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Python314\Lib\asyncio\base_events.py:719: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pytest_asyncio\plugin.py:309: in setup
+    res = await gen_obj.__anext__()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\empire_tests\test_aesthetic_steps.py:31: in shared_state
+    await page.goto(f"http://127.0.0.1:4000/?token={token}")
+.venv\Lib\site-packages\playwright\async_api\_generated.py:9045: in goto
+    await self._impl_obj.goto(
+.venv\Lib\site-packages\playwright\_impl\_page.py:552: in goto
+    return await self._main_frame.goto(**locals_to_params(locals()))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\playwright\_impl\_frame.py:153: in goto
+    await self._channel.send(
+.venv\Lib\site-packages\playwright\_impl\_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+.venv\Lib\site-packages\playwright\_impl\_connection.py:559: in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:4000/?token=2c1e729d6ce35a3b12e4caf9fbff197e
+E   Call log:
+E     - navigating to "http://127.0.0.1:4000/?token=2c1e729d6ce35a3b12e4caf9fbff197e", waiting until "load"
+______________________________ test_iconography _______________________________
+.venv\Lib\site-packages\_pytest\fixtures.py:539: in getfixturevalue
+    fixturedef = self._get_active_fixturedef(argname)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\_pytest\fixtures.py:627: in _get_active_fixturedef
+    fixturedef.execute(request=subrequest)
+.venv\Lib\site-packages\_pytest\fixtures.py:1110: in execute
+    result: FixtureValue = ihook.pytest_fixture_setup(
+.venv\Lib\site-packages\pluggy\_hooks.py:512: in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pluggy\_manager.py:120: in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pytest_asyncio\plugin.py:743: in pytest_fixture_setup
+    hook_result = yield
+                  ^^^^^
+.venv\Lib\site-packages\pluggy\_callers.py:53: in run_old_style_hookwrapper
+    return result.get_result()
+           ^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pluggy\_callers.py:38: in run_old_style_hookwrapper
+    res = yield
+          ^^^^^
+.venv\Lib\site-packages\_pytest\setuponly.py:36: in pytest_fixture_setup
+    return (yield)
+            ^^^^^
+.venv\Lib\site-packages\_pytest\fixtures.py:1202: in pytest_fixture_setup
+    result = call_fixture_func(fixturefunc, request, kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\_pytest\fixtures.py:915: in call_fixture_func
+    fixture_result = fixturefunc(**kwargs)
+                     ^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pytest_asyncio\plugin.py:313: in _asyncgen_fixture_wrapper
+    result = runner.run(setup(), context=context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Python314\Lib\asyncio\runners.py:127: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Python314\Lib\asyncio\base_events.py:719: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\pytest_asyncio\plugin.py:309: in setup
+    res = await gen_obj.__anext__()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\empire_tests\test_aesthetic_steps.py:31: in shared_state
+    await page.goto(f"http://127.0.0.1:4000/?token={token}")
+.venv\Lib\site-packages\playwright\async_api\_generated.py:9045: in goto
+    await self._impl_obj.goto(
+.venv\Lib\site-packages\playwright\_impl\_page.py:552: in goto
+    return await self._main_frame.goto(**locals_to_params(locals()))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\playwright\_impl\_frame.py:153: in goto
+    await self._channel.send(
+.venv\Lib\site-packages\playwright\_impl\_connection.py:69: in send
+    return await self._connection.wrap_api_call(
+.venv\Lib\site-packages\playwright\_impl\_connection.py:559: in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:4000/?token=2c1e729d6ce35a3b12e4caf9fbff197e
+E   Call log:
+E     - navigating to "http://127.0.0.1:4000/?token=2c1e729d6ce35a3b12e4caf9fbff197e", waiting until "load"
+____________________ test_script_checks_model_availability ____________________
+tests\empire_tests\test_check_pro_empire.py:55: in test_script_checks_model_availability
+    mock_client_instance.models.generate_content.assert_has_calls(expected_calls, any_order=False)
+C:\Python314\Lib\unittest\mock.py:1022: in assert_has_calls
+    raise AssertionError(
+E   AssertionError: Calls not found.
+E   Expected: [call(model='gemini-2.0-flash', contents='Hello, are you online?'),
+E    call(model='gemini-2.5-pro', contents='Hello, are you online?'),
+E    call(model='gemini-2.0-flash-lite-preview-02-05', contents='Hello, are you online?')]
+E     Actual: [call(model='gemini-3.1-flash-preview', contents='Hello, are you online?'),
+E    call(model='gemini-3.1-pro-preview', contents='Hello, are you online?'),
+E    call(model='gemini-3-flash-preview', contents='Hello, are you online?')]
+______ TestForgeGungnirCalculus.test_forge_detects_claustrophobic_python ______
+tests\empire_tests\test_forge_gungnir_empire.py:14: in test_forge_detects_claustrophobic_python
+    breaches = forge._verify_gungnir_calculus(bad_python, '.py')
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'Forge' object has no attribute '_verify_gungnir_calculus'
+________ TestForgeGungnirCalculus.test_forge_detects_top_heavy_python _________
+tests\empire_tests\test_forge_gungnir_empire.py:28: in test_forge_detects_top_heavy_python
+    breaches = forge._verify_gungnir_calculus(top_heavy_python, '.py')
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'Forge' object has no attribute '_verify_gungnir_calculus'
+___________ TestForgeGungnirCalculus.test_forge_detects_ugly_react ____________
+tests\empire_tests\test_forge_gungnir_empire.py:44: in test_forge_detects_ugly_react
+    breaches = forge._verify_gungnir_calculus(bad_jsx, '.tsx')
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'Forge' object has no attribute '_verify_gungnir_calculus'
+__________ TestForgeGungnirCalculus.test_forge_passes_beautiful_code __________
+tests\empire_tests\test_forge_gungnir_empire.py:58: in test_forge_passes_beautiful_code
+    breaches = forge._verify_gungnir_calculus(good_python, '.py')
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'Forge' object has no attribute '_verify_gungnir_calculus'
+_________ TestForgeGungnirCalculus.test_forge_passes_symmetric_react __________
+tests\empire_tests\test_forge_gungnir_empire.py:70: in test_forge_passes_symmetric_react
+    breaches = forge._verify_gungnir_calculus(good_jsx, '.tsx')
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'Forge' object has no attribute '_verify_gungnir_calculus'
+____________________ TestHuginnEmpire.test_scan_no_traces _____________________
+tests\empire_tests\test_huginn_empire.py:35: in test_scan_no_traces
+    results = warden.scan()
+              ^^^^^^^^^^^^^
+src\sentinel\wardens\huginn.py:32: in scan
+    targets.extend(self._scan_regex())
+                   ^^^^^^^^^^^^^^^^
+E   AttributeError: 'HuginnWarden' object has no attribute '_scan_regex'
+_______________ TestHuginnEmpire.test_scan_regex_hallucination ________________
+tests\empire_tests\test_huginn_empire.py:49: in test_scan_regex_hallucination
+    results = warden.scan()
+              ^^^^^^^^^^^^^
+src\sentinel\wardens\huginn.py:32: in scan
+    targets.extend(self._scan_regex())
+                   ^^^^^^^^^^^^^^^^
+E   AttributeError: 'HuginnWarden' object has no attribute '_scan_regex'
+__________________ TestHuginnEmpire.test_scan_regex_deviance __________________
+tests\empire_tests\test_huginn_empire.py:64: in test_scan_regex_deviance
+    results = warden.scan()
+              ^^^^^^^^^^^^^
+src\sentinel\wardens\huginn.py:32: in scan
+    targets.extend(self._scan_regex())
+                   ^^^^^^^^^^^^^^^^
+E   AttributeError: 'HuginnWarden' object has no attribute '_scan_regex'
+___________________ TestHuginnEmpire.test_scan_neural_audit ___________________
+C:\Python314\Lib\unittest\mock.py:1429: in patched
+    with self.decoration_helper(patched,
+C:\Python314\Lib\contextlib.py:141: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+C:\Python314\Lib\unittest\mock.py:1411: in decoration_helper
+    arg = exit_stack.enter_context(patching)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Python314\Lib\contextlib.py:530: in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+C:\Python314\Lib\unittest\mock.py:1487: in __enter__
+    self.target = self.getter()
+                  ^^^^^^^^^^^^^
+C:\Python314\Lib\pkgutil.py:473: in resolve_name
+    result = getattr(result, p)
+             ^^^^^^^^^^^^^^^^^^
+E   AttributeError: module 'src.sentinel.wardens.huginn' has no attribute 'genai'
+______________________ TestMuninnEmpire.test_init_no_key ______________________
+tests\empire_tests\test_muninn_empire.py:50: in test_init_no_key
+    with pytest.raises(ValueError, match="API environment variable not set."):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE <class 'ValueError'>
+________________________ test_muninn_run_instantiation ________________________
+tests\empire_tests\test_muninn_naming_empire.py:23: in test_muninn_run_instantiation
+    patch("src.sentinel.muninn.ValkyrieWarden"), \
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Python314\Lib\unittest\mock.py:1503: in __enter__
+    original, local = self.get_original()
+                      ^^^^^^^^^^^^^^^^^^^
+C:\Python314\Lib\unittest\mock.py:1473: in get_original
+    raise AttributeError(
+E   AttributeError: <module 'src.sentinel.muninn' from 'C:\\Users\\Craig\\Corvus\\CorvusStar\\src\\sentinel\\muninn.py'> does not have the attribute 'ValkyrieWarden'
+_____________________ test_muninn_initialization_failure ______________________
+tests\empire_tests\test_muninn_naming_empire.py:58: in test_muninn_initialization_failure
+    with pytest.raises(ValueError, match="API environment variable not set"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE <class 'ValueError'>
+____________ TestSovereignEngineEmpire.test_proactive_lexicon_lift ____________
+tests\empire_tests\test_sv_engine_empire.py:63: in test_proactive_lexicon_lift
+    assert "broken" in args
+E   AssertionError: assert 'broken' in 'Technical definition and synonyms for flux_capacitor'
+___________________ TestReportEngine.test_signature_alfred ____________________
+tests\test_report_engine.py:23: in test_signature_alfred
+    self.assertIn("Alfred Pennyworth", sig)
+E   AssertionError: 'Alfred Pennyworth' not found in '\n\n---\n**Your Humble Servant,**\n*A.L.F.R.E.D. Pennyworth*'
+============================== warnings summary ===============================
+.venv\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\Craig\Corvus\CorvusStar\.venv\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+.venv\Lib\site-packages\google\genai\types.py:43
+  C:\Users\Craig\Corvus\CorvusStar\.venv\Lib\site-packages\google\genai\types.py:43: DeprecationWarning: '_UnionGenericAlias' is deprecated and slated for removal in Python 3.17
+    VersionedUnionType = Union[builtin_types.UnionType, _UnionGenericAlias]
+
+tests/empire_tests/test_persona_logic_empire.py::test_persona_loading
+  C:\Users\Craig\Corvus\CorvusStar\tests\conftest.py:170: RuntimeWarning: coroutine 'Muninn._hunt_phase' was never awaited
+    for mod_name, mod in list(sys.modules.items()):
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/unit/test_sprt.py::test_sprt_acceptance_baseline_hypothesis
+  C:\Users\Craig\Corvus\CorvusStar\tests\conftest.py:101: RuntimeWarning: coroutine 'Muninn._hunt_phase' was never awaited
+    for mod_name, mod in list(sys.modules.items()):
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/augmented_intel/test_lexicon_lift.py::TestLexiconLift::test_lexicon_lift_trigger
+FAILED tests/contracts/test_engine_contracts.py::TestEngine_contracts::test_transition
+FAILED tests/contracts/test_muninn.py::TestGauntletEscalation::test_escalates_to_pro_on_final_attempt
+FAILED tests/contracts/test_strategists_bonus.py::TestMimirWarden::test_valkyrie_precedes_beauty
+FAILED tests/empire_tests/test_aesthetic_steps.py::test_rendering_initialization
+FAILED tests/empire_tests/test_aesthetic_steps.py::test_data_pulse - playwrig...
+FAILED tests/empire_tests/test_aesthetic_steps.py::test_iconography - playwri...
+FAILED tests/empire_tests/test_check_pro_empire.py::test_script_checks_model_availability
+FAILED tests/empire_tests/test_forge_gungnir_empire.py::TestForgeGungnirCalculus::test_forge_detects_claustrophobic_python
+FAILED tests/empire_tests/test_forge_gungnir_empire.py::TestForgeGungnirCalculus::test_forge_detects_top_heavy_python
+FAILED tests/empire_tests/test_forge_gungnir_empire.py::TestForgeGungnirCalculus::test_forge_detects_ugly_react
+FAILED tests/empire_tests/test_forge_gungnir_empire.py::TestForgeGungnirCalculus::test_forge_passes_beautiful_code
+FAILED tests/empire_tests/test_forge_gungnir_empire.py::TestForgeGungnirCalculus::test_forge_passes_symmetric_react
+FAILED tests/empire_tests/test_huginn_empire.py::TestHuginnEmpire::test_scan_no_traces
+FAILED tests/empire_tests/test_huginn_empire.py::TestHuginnEmpire::test_scan_regex_hallucination
+FAILED tests/empire_tests/test_huginn_empire.py::TestHuginnEmpire::test_scan_regex_deviance
+FAILED tests/empire_tests/test_huginn_empire.py::TestHuginnEmpire::test_scan_neural_audit
+FAILED tests/empire_tests/test_muninn_empire.py::TestMuninnEmpire::test_init_no_key
+FAILED tests/empire_tests/test_muninn_naming_empire.py::test_muninn_run_instantiation
+FAILED tests/empire_tests/test_muninn_naming_empire.py::test_muninn_initialization_failure
+FAILED tests/empire_tests/test_sv_engine_empire.py::TestSovereignEngineEmpire::test_proactive_lexicon_lift
+FAILED tests/test_report_engine.py::TestReportEngine::test_signature_alfred
+22 failed, 405 passed, 1 skipped, 4 warnings in 115.42s (0:01:55)

@@ -1,0 +1,33 @@
+---
+title: "CelestialSun.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/src/components/ui/CelestialSun.tsx"
+loc: 100
+complexity: 15
+logic_score: 3.40
+style_score: 1.00
+intel_score: 6.80
+overall_score: 3.73
+---
+
+## Intent
+React component rendering CelestialSun with 15 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 3.4/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 6.8/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [*](file://react)
+- [cn](file://@/lib/utils)
+- [AstralType](file://@/lib/astronomy)
+- [ASTRAL_PALETTES](file://@/lib/astronomy)
+- [ConstellationType](file://@/lib/astronomy)
+- [CONSTELLATIONS](file://@/lib/astronomy)
+
+### Exports
+- `CelestialSun`
+- `CelestialSun`

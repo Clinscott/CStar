@@ -1,0 +1,31 @@
+---
+title: "CelestialIcon.test.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/test/CelestialIcon.test.tsx"
+loc: 15
+complexity: 1
+logic_score: 8.75
+style_score: 9.48
+intel_score: 6.73
+overall_score: 8.32
+---
+
+## Intent
+React component rendering CelestialIcon with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 9.5/10
+- **Intel [I]**: 6.7/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [render](file://@testing-library/react)
+- [describe](file://vitest)
+- [it](file://vitest)
+- [expect](file://vitest)
+- [CelestialIcon](file://@/components/ui/CelestialIcon)
+
+### Exports
+Internal logic only.

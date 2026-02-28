@@ -1,0 +1,35 @@
+---
+title: "SystemStatusWidget.test.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/test/SystemStatusWidget.test.tsx"
+loc: 50
+complexity: 1
+logic_score: 8.75
+style_score: 4.07
+intel_score: 2.20
+overall_score: 5.01
+---
+
+## Intent
+React component rendering SystemStatusWidget with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 4.1/10
+- **Intel [I]**: 2.2/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [render](file://@testing-library/react)
+- [screen](file://@testing-library/react)
+- [fireEvent](file://@testing-library/react)
+- [SystemStatusWidget](file://../src/components/ui/SystemStatusWidget)
+- [describe](file://vitest)
+- [it](file://vitest)
+- [expect](file://vitest)
+- [vi](file://vitest)
+- [useCelestial](file://../src/context/CelestialContext)
+
+### Exports
+Internal logic only.

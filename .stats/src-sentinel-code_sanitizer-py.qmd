@@ -1,0 +1,59 @@
+---
+title: "code_sanitizer.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/sentinel/code_sanitizer.py"
+loc: 418
+complexity: 109
+logic_score: 1.45
+style_score: 3.85
+intel_score: 6.47
+overall_score: 3.92
+---
+
+## Intent
+Python module facilitating QuarantineFailure, validate_syntax.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.4/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 6.5/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [ast](file://ast)
+- [importlib](file://importlib)
+- [re](file://re)
+- [textwrap](file://textwrap)
+- [pathlib](file://pathlib)
+- [src.tools.brave_search](file://src.tools.brave_search)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+
+### Exports
+- `QuarantineFailure`
+- `validate_syntax`
+- `_get_project_modules`
+- `_check_import_node`
+- `validate_imports`
+- `_can_import`
+- `repair_syntax`
+- `_find_bad_imports`
+- `_apply_mock_stubs`
+- `repair_imports`
+- `_is_valid_import`
+- `scan_and_enrich_imports`
+- `perform_quarantine_scan`
+- `neuter_qmd_document`
+- `heimdall_guard`
+- `sanitize_code`
+- `sanitize_test`
+- `_strip_markdown_fences`
+- `_fix_indentation`
+- `_deep_fix_indentation`
+- `_is_syntax_valid`
+- `_find_min_indent`
+- `_apply_indent_correction`
+- `classify_error`
+- `extract_error_summary`

@@ -1,0 +1,30 @@
+---
+title: "PeripheralCard.tsx"
+path: "C:/Users/Craig/Corvus/SecureSphere/src/components/dashboard/PeripheralCard.tsx"
+loc: 245
+complexity: 22
+logic_score: 2.35
+style_score: 1.00
+intel_score: 3.96
+overall_score: 2.44
+---
+
+## Intent
+React component rendering PeripheralCard with 22 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 2.3/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 4.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [useState](file://react)
+- [useEffect](file://react)
+- [usePeripheralAudit](file://@/hooks/usePeripheralAudit)
+- [PeripheralDevice](file://@/hooks/usePeripheralAudit)
+
+### Exports
+- `PeripheralCard`

@@ -1,0 +1,32 @@
+---
+title: "debug_vector.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/integration/debug_vector.py"
+loc: 30
+complexity: 4
+logic_score: 6.80
+style_score: 3.86
+intel_score: 1.40
+overall_score: 4.02
+---
+
+## Intent
+Python module facilitating debug.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.8/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [os](file://os)
+- [sys](file://sys)
+- [src.core.engine.vector](file://src.core.engine.vector)
+- [json](file://json)
+
+### Exports
+- `debug`

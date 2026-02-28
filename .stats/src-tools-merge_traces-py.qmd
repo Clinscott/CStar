@@ -1,0 +1,39 @@
+---
+title: "merge_traces.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/merge_traces.py"
+loc: 86
+complexity: 16
+logic_score: 3.05
+style_score: 3.56
+intel_score: 6.05
+overall_score: 4.22
+---
+
+## Intent
+Python module facilitating _load_dataset, _save_dataset.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 3.0/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 6.1/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [os](file://os)
+- [shutil](file://shutil)
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+
+### Exports
+- `_load_dataset`
+- `_save_dataset`
+- `_process_single_trace`
+- `_process_trace_file`
+- `merge_traces`

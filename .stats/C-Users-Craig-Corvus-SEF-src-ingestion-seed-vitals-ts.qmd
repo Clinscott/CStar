@@ -1,0 +1,28 @@
+---
+title: "seed-vitals.ts"
+path: "C:/Users/Craig/Corvus/SEF/src/ingestion/seed-vitals.ts"
+loc: 21
+complexity: 2
+logic_score: 8.85
+style_score: 8.70
+intel_score: 7.11
+overall_score: 8.22
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 8.7/10
+- **Intel [I]**: 7.1/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [*](file://better-sqlite3)
+- [resolve](file://path)
+
+### Exports
+Internal logic only.

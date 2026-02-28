@@ -1,0 +1,38 @@
+---
+title: "mcp.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/skills_db/cachebro/packages/cli/src/mcp.ts"
+loc: 177
+complexity: 13
+logic_score: 3.20
+style_score: 3.73
+intel_score: 2.23
+overall_score: 3.05
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 3.2/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 2.2/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://@modelcontextprotocol/sdk/server/mcp.js)
+- [*](file://@modelcontextprotocol/sdk/server/stdio.js)
+- [*](file://zod)
+- [*](file://@turso/cachebro)
+- [*](file://path)
+- [*](file://fs)
+- [*](file://crypto)
+- [*](file://url)
+- [*](file://path)
+
+### Exports
+- `getCacheDir`
+- `startMcpServer`

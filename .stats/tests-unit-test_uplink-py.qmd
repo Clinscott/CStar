@@ -1,0 +1,40 @@
+---
+title: "test_uplink.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/unit/test_uplink.py"
+loc: 80
+complexity: 1
+logic_score: 8.30
+style_score: 3.56
+intel_score: 7.40
+overall_score: 6.42
+---
+
+## Intent
+Python module facilitating make_api_error, mock_spinner.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.3/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 7.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [types](file://types)
+- [unittest.mock](file://unittest.mock)
+- [pytest](file://pytest)
+- [src.cstar.core.uplink](file://src.cstar.core.uplink)
+- [google.genai.errors](file://google.genai.errors)
+
+### Exports
+- `make_api_error`
+- `mock_spinner`
+- `wrapper`
+- `mock_spinner_impl`
+- `_force_sdk_available`
+- `test_uplink_token_flood_truncation`
+- `test_uplink_api_severance_retry`
+- `test_uplink_fatal_exhaustion`

@@ -1,0 +1,44 @@
+---
+title: "KnowledgeHunter.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/src/components/agent/KnowledgeHunter.tsx"
+loc: 203
+complexity: 6
+logic_score: 6.55
+style_score: 1.00
+intel_score: 2.39
+overall_score: 3.31
+---
+
+## Intent
+React component rendering KnowledgeHunter with 6 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.5/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 2.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [useState](file://react)
+- [useKnowledgeHunter](file://@/hooks/useKnowledgeHunter)
+- [VectorDebugger](file://./VectorDebugger)
+- [Search](file://lucide-react)
+- [Download](file://lucide-react)
+- [Database](file://lucide-react)
+- [Loader2](file://lucide-react)
+- [CheckCircle2](file://lucide-react)
+- [AlertCircle](file://lucide-react)
+- [Eye](file://lucide-react)
+- [Activity](file://lucide-react)
+- [ShieldCheck](file://lucide-react)
+- [cn](file://@/lib/utils)
+- [SearchResult](file://@/lib/types/knowledge)
+- [*](file://@/styles/HolographicEffects.css)
+
+### Exports
+- `TacticalBrackets`
+- `SegmentedProgress`
+- `KnowledgeHunter`
+- `KnowledgeHunter`

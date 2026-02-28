@@ -1,0 +1,38 @@
+---
+title: "test_valkyrie_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_valkyrie_empire.py"
+loc: 57
+complexity: 3
+logic_score: 8.05
+style_score: 3.65
+intel_score: 7.01
+overall_score: 6.24
+---
+
+## Intent
+Python module facilitating TestValkyrieEmpire, mock_root.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.0/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 7.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [unittest.mock](file://unittest.mock)
+- [pytest](file://pytest)
+- [src.sentinel.wardens.valkyrie](file://src.sentinel.wardens.valkyrie)
+
+### Exports
+- `TestValkyrieEmpire`
+- `mock_root`
+- `test_scan_no_dead_code`
+- `test_scan_detects_dead_code`
+- `test_scan_filters_low_confidence`
+- `test_scan_ignores_init`

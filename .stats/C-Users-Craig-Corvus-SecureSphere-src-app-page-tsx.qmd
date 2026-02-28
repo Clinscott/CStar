@@ -1,0 +1,32 @@
+---
+title: "page.tsx"
+path: "C:/Users/Craig/Corvus/SecureSphere/src/app/page.tsx"
+loc: 31
+complexity: 1
+logic_score: 9.20
+style_score: 3.86
+intel_score: 5.87
+overall_score: 6.31
+---
+
+## Intent
+React component rendering page with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 5.9/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [DashboardLayout](file://@/components/layout/DashboardLayout)
+- [NetworkCard](file://@/components/dashboard/NetworkCard)
+- [ScannerCard](file://@/components/dashboard/ScannerCard)
+- [PeripheralCard](file://@/components/dashboard/PeripheralCard)
+- [LiveThreatMonitor](file://@/components/dashboard/LiveThreatMonitor)
+
+### Exports
+- `Home`
+- `Home`

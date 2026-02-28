@@ -23,6 +23,15 @@ const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
         await runStartupCeremony();
     }
 
+    const isGeminiMode = process.env.GEMINI_CLI_ACTIVE === 'true';
+
+    if (isGeminiMode && !isHelpOrVersion) {
+        console.log(chalk.bgMagenta.white.bold(' ◤ GEMINI CLI INTEGRATION ACTIVE ◢ '));
+        console.log(chalk.magenta(' ' + '━'.repeat(40)));
+        console.log(chalk.dim(' Intelligence Layer: Decoupled to Gemini CLI'));
+        console.log(chalk.magenta(' ' + '━'.repeat(40) + '\n'));
+    }
+
     const program = new Command();
 
 // Gungnir Calculus: Opinionated Error Handler
@@ -91,6 +100,23 @@ program
             await execa('python', [join(PROJECT_ROOT, 'src/games/odin_protocol/main.py')], { stdio: 'inherit' });
         } catch (err) {
             handleError('Odin Protocol crashed or was interrupted.');
+        }
+    });
+
+program
+    .command('dormancy')
+    .alias('sleep')
+    .description('Initiate Dormancy Protocol (Sleep)')
+    .action(async () => {
+        try {
+            const pythonPath = join(PROJECT_ROOT, '.venv', 'Scripts', 'python.exe');
+            const dormancyScript = join(PROJECT_ROOT, 'src/skills/local/dormancy.py');
+            await execa(pythonPath, [dormancyScript], { 
+                stdio: 'inherit',
+                env: { ...process.env, PYTHONPATH: PROJECT_ROOT }
+            });
+        } catch (err) {
+            handleError('Dormancy interrupted.');
         }
     });
 
@@ -187,6 +213,44 @@ program
             }
         } else {
             program.help();
+        }
+    });
+
+program
+    .command('pennyone')
+    .alias('p1')
+    .description('Operation PennyOne: 3D Neural Matrix & Repository Stats')
+    .option('-s, --scan [path]', 'Scan the repository for stats and Gungnir scores', '.')
+    .option('-v, --view', 'Spin up the 3D Gungnir Matrix visualization bridge')
+    .option('-c, --clean', 'Purge the .stats/ directory and all archived sessions')
+    .option('--stats', 'View long-term agent activity and logic loop analytics')
+    .option('--search <query>', 'Search the Hall of Records by intent, path, or API endpoint')
+    .action(async (options: { scan?: string | boolean; view?: boolean; clean?: boolean; stats?: boolean; search?: string }) => {
+        try {
+            const pennyoneBin = join(PROJECT_ROOT, 'bin', 'pennyone.js');
+            
+            if (options.search) {
+                const searchScript = join(PROJECT_ROOT, 'src/tools/pennyone/live/search.ts');
+                await execa('npx', ['tsx', searchScript, options.search], { stdio: 'inherit' });
+                return;
+            }
+
+            if (options.stats) {
+                const analyticsScript = join(PROJECT_ROOT, 'scripts', 'p1_analytics.ts');
+                await execa('npx', ['tsx', analyticsScript], { stdio: 'inherit' });
+                return;
+            }
+
+            if (options.view) {
+                await execa('node', [pennyoneBin, 'view'], { stdio: 'inherit' });
+                return;
+            }
+
+            const scanPath = typeof options.scan === 'string' ? options.scan : '.';
+            await execa('node', [pennyoneBin, 'scan', scanPath], { stdio: 'inherit' });
+
+        } catch (err) {
+            handleError('Operation PennyOne interrupted or failed.');
         }
     });
 

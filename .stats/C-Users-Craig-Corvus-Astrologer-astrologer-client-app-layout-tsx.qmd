@@ -1,0 +1,32 @@
+---
+title: "layout.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-client/app/layout.tsx"
+loc: 32
+complexity: 1
+logic_score: 9.20
+style_score: 1.00
+intel_score: 4.50
+overall_score: 4.90
+---
+
+## Intent
+React component rendering layout with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 4.5/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [Metadata](file://next)
+- [Geist](file://next/font/google)
+- [Geist_Mono](file://next/font/google)
+- [*](file://./globals.css)
+
+### Exports
+- `metadata`
+- `RootLayout`
+- `RootLayout`

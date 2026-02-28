@@ -1,0 +1,44 @@
+---
+title: "useGalaxyView.ts"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/src/hooks/useGalaxyView.ts"
+loc: 237
+complexity: 19
+logic_score: 1.45
+style_score: 4.03
+intel_score: 5.21
+overall_score: 3.56
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.4/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 5.2/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [useState](file://react)
+- [useEffect](file://react)
+- [useCallback](file://react)
+- [useMemo](file://react)
+- [safeInvoke](file://@/lib/tauri-bridge)
+- [safeListen](file://@/lib/tauri-bridge)
+- [GalaxyGraph](file://@/lib/types/galaxy)
+- [GalaxyGraphSchema](file://@/lib/types/galaxy)
+- [GalaxyNode](file://@/lib/types/galaxy)
+- [GalaxyEdge](file://@/lib/types/galaxy)
+- [isTauri](file://@/lib/utils)
+- [CONSTELLATIONS](file://@/lib/astronomy)
+- [ConstellationType](file://@/lib/astronomy)
+- [getCelestialConfig](file://@/lib/astronomy)
+
+### Exports
+- `applyConstellationLayout`
+- `enhanceNodes`
+- `useGalaxyView`
+- `useGalaxyView`
+- `setupListener`

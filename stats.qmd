@@ -1,0 +1,23 @@
+---
+title: "Project Neural Stats"
+subtitle: "Gungnir Matrix Overview"
+---
+
+# ◤ SYSTEM OVERVIEW ◢
+
+Consult the Hall of Records for detailed file-by-file intelligence.
+
+- **Primary Map**: [docs/PENNYONE_MAP.qmd](docs/PENNYONE_MAP.qmd)
+- **Hall of Records**: `./.stats/`
+- **Matrix Graph**: `./.stats/matrix-graph.json`
+
+## ◈ Active Wheel Spokes
+- **Axis**: CorvusStar
+- **Spokes**: Astrologer, CorvusEye, CorvusKnowledge, KeepOS, SecureSphere, SEF
+
+## ◈ Search Instructions
+To find a file by purpose:
+`cstar p1 --search "your query"`
+
+To see the 3D Matrix:
+`cstar p1 --view`

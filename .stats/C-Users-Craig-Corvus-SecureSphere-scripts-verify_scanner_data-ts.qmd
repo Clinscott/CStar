@@ -1,0 +1,28 @@
+---
+title: "verify_scanner_data.ts"
+path: "C:/Users/Craig/Corvus/SecureSphere/scripts/verify_scanner_data.ts"
+loc: 33
+complexity: 6
+logic_score: 7.00
+style_score: 9.19
+intel_score: 9.40
+overall_score: 8.53
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.0/10
+- **Style [S]**: 9.2/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [generateMockScanResults](file://../src/data/mockScanData)
+- [MOCK_DEVICES](file://../src/data/mockScanData)
+
+### Exports
+Internal logic only.

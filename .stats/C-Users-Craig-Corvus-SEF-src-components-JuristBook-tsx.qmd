@@ -1,0 +1,28 @@
+---
+title: "JuristBook.tsx"
+path: "C:/Users/Craig/Corvus/SEF/src/components/JuristBook.tsx"
+loc: 129
+complexity: 4
+logic_score: 7.70
+style_score: 1.00
+intel_score: 2.93
+overall_score: 3.88
+---
+
+## Intent
+React component rendering JuristBook with 4 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.7/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 2.9/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [useState](file://react)
+- [*](file://@/app/Aureate.module.css)
+
+### Exports
+- `JuristBook`

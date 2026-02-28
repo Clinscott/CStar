@@ -138,7 +138,7 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 ### 2026-02-01 (Session 7: Iron Clad)
 - **Code**: Hardened .agent/scripts/ui.py with strict type hinting and docstrings.
 - **Safety**: Fortified overwatch.py with try-except blocks for msvcrt and strict typing.
-### 2026-02-02 (The ODIN Protocol)
+### 2026-02-02 (The O.D.I.N. Protocol)
 -   **Improvement 1 (Doc/Arch)**: Extended "Subconscious Architecture" to `/plan` and `/investigate`, ensuring 360-degree persona awareness.
 -   **Improvement 2 (Visual/Doc)**: Standardized header formatting for `run-task.qmd` and `investigate.qmd` to match the new `/execute` standard.
 
@@ -147,7 +147,7 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 -   **Improvement 2 (Critial/Infra)**: Repaired `install.ps1` to correctly deploy `fishtest.py` and all scripts in `.agent/scripts` (dynamic loop) instead of hardcoded lists.
 
 ### 2026-02-02 (Session 9: Exception Handling Purge)
-- **Improvement 1 (Code Quality)**: Replaced obsolete `GOD` persona with `ODIN` globally in `sv_engine.py`. - Status: SECURED.
+- **Improvement 1 (Code Quality)**: Replaced obsolete `GOD` persona with `O.D.I.N.` globally in `sv_engine.py`. - Status: SECURED.
 - **Improvement 2 (Optimization)**: Extracted magic thresholds to `THRESHOLDS` dictionary in `sv_engine.py`. - Status: SECURED.
 - **Improvement 3 (Safety)**: Replaced bare `except:` blocks with specific exception handling in `vector.py`. - Status: SECURED.
 - **Improvement 4 (Safety)**: Hardened `fishtest.py` config loading with specific exception guards. - Status: SECURED.
@@ -292,7 +292,7 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 - **Improvement 4 (Consistency)**: Updated `set_persona.py` to synchronize both root and agent config files during persona switching. - Status: SECURED.
 - **Improvement 5 (Quality)**: Added structural docstrings to `SovereignVector.tokenize` and fixed ANSI rendering padding in `ui.py`. - Status: SECURED.
 
-### 2026-02-05 (Session 33: Odin Protocol Polish)
+### 2026-02-05 (Session 33: O.D.I.N. Protocol Polish)
 -   **Improvement 1 (Visual/UX)**: Integrated Federated Seed (Instance ID) into the Dominion Status manifest for environmental persistence. - Status: SECURED.
 -   **Improvement 2 (Safety/Robustness)**: Implemented `KeyboardInterrupt` handling in `main.py` ensuring state persistence even on forced shutdown. - Status: SECURED.
 -   **Improvement 3 (Quality)**: Hardened `test_odin_advanced.py` with version-agnostic typing checks for `Dict` vs `dict`. - Status: SECURED.
@@ -324,7 +324,7 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 
 ---
 
-### 2026-02-07 (Session 39: The Odin Annexation)
+### 2026-02-07 (Session 39: The O.D.I.N. Annexation)
 - **Improvement 1 (Safety)**: Purged bare `except:` blocks in `ui.py`, `edda.py`, `annex.py`, and `code_sentinel.py`. - Status: SECURED.
 - **Improvement 2 (Quality)**: Standardized path handling in `KnowledgeExtractor` to handle null intent targets gracefully. - Status: SECURED.
 - **Improvement 3 (Protocol)**: Integrated Annexation Scan into `install.ps1` as a mandatory onboarding phase. - Status: SECURED.

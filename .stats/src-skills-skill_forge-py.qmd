@@ -1,0 +1,54 @@
+---
+title: "skill_forge.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/skills/skill_forge.py"
+loc: 227
+complexity: 29
+logic_score: 1.45
+style_score: 3.75
+intel_score: 6.51
+overall_score: 3.90
+---
+
+## Intent
+Python module facilitating SkillForge, __init__.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.4/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 6.5/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [os](file://os)
+- [py_compile](file://py_compile)
+- [re](file://re)
+- [subprocess](file://subprocess)
+- [sys](file://sys)
+- [datetime](file://datetime)
+- [pathlib](file://pathlib)
+- [cortex](file://cortex)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [src.tools.brave_search](file://src.tools.brave_search)
+- [argparse](file://argparse)
+
+### Exports
+- `SkillForge`
+- `__init__`
+- `forge`
+- `analyze_pattern`
+- `select_archetype`
+- `_extract_subject`
+- `_generate_workflow_steps`
+- `_generate_workflow_template`
+- `_generate_test_template`
+- `_generate_scanner_template`
+- `_generate_utility_template`
+- `_generate_scraper_template`
+- `synthesize_skill`
+- `validate_skill`
+- `_save_draft`
+- `main`

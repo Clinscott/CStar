@@ -1,0 +1,37 @@
+---
+title: "cstar.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/cstar.ts"
+loc: 270
+complexity: 32
+logic_score: 1.00
+style_score: 3.80
+intel_score: 2.88
+overall_score: 2.56
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.0/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 2.9/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://commander)
+- [*](file://chalk)
+- [*](file://node:fs)
+- [*](file://node:url)
+- [*](file://node:path)
+- [*](file://execa)
+- [*](file://./src/node/cortex_link.js)
+- [*](file://./src/node/agent_loop.js)
+- [*](file://./src/node/ceremony.js)
+
+### Exports
+Internal logic only.

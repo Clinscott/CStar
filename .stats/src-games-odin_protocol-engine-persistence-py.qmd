@@ -1,0 +1,37 @@
+---
+title: "persistence.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/games/odin_protocol/engine/persistence.py"
+loc: 50
+complexity: 3
+logic_score: 7.15
+style_score: 3.77
+intel_score: 9.40
+overall_score: 6.77
+---
+
+## Intent
+Python module facilitating OdinPersistence, __init__.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.1/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [logging](file://logging)
+- [subprocess](file://subprocess)
+- [pathlib](file://pathlib)
+- [typing](file://typing)
+
+### Exports
+- `OdinPersistence`
+- `__init__`
+- `save_state`
+- `load_state`
+- `_git_commit`

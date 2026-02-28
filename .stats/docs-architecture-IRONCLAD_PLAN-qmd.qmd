@@ -1,0 +1,29 @@
+---
+title: "IRONCLAD_PLAN.qmd"
+path: "C:/Users/Craig/Corvus/CorvusStar/docs/architecture/IRONCLAD_PLAN.qmd"
+loc: 55
+complexity: 1
+logic_score: 10.00
+style_score: 10.00
+intel_score: 10.00
+overall_score: 10.00
+---
+
+## Intent
+Documentation scroll or workflow directive for the Gungnir Calculus.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 10.0/10
+- **Style [S]**: 10.0/10
+- **Intel [I]**: 10.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+Minimal internal dependencies.
+
+### Exports
+Internal logic only.

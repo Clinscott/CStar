@@ -1,0 +1,60 @@
+---
+title: "daemon.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/cstar/core/daemon.py"
+loc: 290
+complexity: 38
+logic_score: 1.00
+style_score: 3.69
+intel_score: 4.71
+overall_score: 3.13
+---
+
+## Intent
+Python module facilitating generate_or_load_key, load_engine.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.0/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 4.7/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [asyncio](file://asyncio)
+- [gc](file://gc)
+- [json](file://json)
+- [os](file://os)
+- [re](file://re)
+- [secrets](file://secrets)
+- [subprocess](file://subprocess)
+- [sys](file://sys)
+- [time](file://time)
+- [pathlib](file://pathlib)
+- [typing](file://typing)
+- [psutil](file://psutil)
+- [websockets](file://websockets)
+- [contextlib](file://contextlib)
+- [src.core.engine.vector](file://src.core.engine.vector)
+- [src.core.payload](file://src.core.payload)
+- [src.cstar.core.forge](file://src.cstar.core.forge)
+- [src.cstar.core.rpc](file://src.cstar.core.rpc)
+- [src.cstar.core.uplink](file://src.cstar.core.uplink)
+- [src.sentinel._bootstrap](file://src.sentinel._bootstrap)
+- [src.core.engine.atomic_gpt](file://src.core.engine.atomic_gpt)
+
+### Exports
+- `generate_or_load_key`
+- `load_engine`
+- `get_memory_usage_mb`
+- `check_memory_and_restart`
+- `broadcast_state`
+- `handle_client`
+- `engine_search_sync`
+- `process_command`
+- `process_forge_stream`
+- `execute_sleep_protocol`
+- `async_start_daemon`
+- `start_daemon`

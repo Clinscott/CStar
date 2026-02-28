@@ -1,0 +1,33 @@
+---
+title: "layout.tsx"
+path: "C:/Users/Craig/Corvus/SecureSphere/src/app/layout.tsx"
+loc: 33
+complexity: 1
+logic_score: 9.20
+style_score: 1.08
+intel_score: 2.00
+overall_score: 4.09
+---
+
+## Intent
+React component rendering layout with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 1.1/10
+- **Intel [I]**: 2.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [Metadata](file://next)
+- [Geist](file://next/font/google)
+- [Geist_Mono](file://next/font/google)
+- [*](file://./globals.css)
+- [TourManager](file://../features/education/TourManager)
+
+### Exports
+- `metadata`
+- `RootLayout`
+- `RootLayout`

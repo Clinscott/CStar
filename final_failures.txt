@@ -182,7 +182,7 @@ tests\empire_tests\test_dispatcher_help_empire.py:32: AssertionError
 [2;36m├──────────────────────────────────────────────────────────────────────────────────────────────────┤[0m
 [2;36m│[0m [2;36mWORKFLOWS           [0m [35mtest_wf[0m                                                                      [2;36m│[0m
 [2;36m├──────────────────────────────────────────────────────────────────────────────────────────────────┤[0m
-[2;36m│[0m [36mSHORTCUTS           [0m [33m-odin, -alfred[0m                                                               [2;36m│[0m
+[2;36m│[0m [36mSHORTCUTS           [0m [33m-O.D.I.N., -alfred[0m                                                               [2;36m│[0m
 [2;36m└──────────────────────────────────────────────────────────────────────────────────────────────────┘[0m
 ____________ TestSovereignEngineEmpire.test_proactive_lexicon_lift ____________
 
@@ -233,13 +233,13 @@ mock_file = <MagicMock name='open' id='1843044039520'>
 mock_exists = <MagicMock name='exists' id='1843044714880'>
 
     @patch("src.core.ui.Path.exists", return_value=True)
-    @patch("src.core.ui.Path.open", new_callable=mock_open, read_data='{"persona": "ODIN"}')
+    @patch("src.core.ui.Path.open", new_callable=mock_open, read_data='{"persona": "O.D.I.N."}')
     def test_ensure_persona(self, mock_file, mock_exists):
         HUD._ensure_persona()
->       assert HUD.PERSONA == "ODIN"
-E       AssertionError: assert 'ALFRED' == 'ODIN'
+>       assert HUD.PERSONA == "O.D.I.N."
+E       AssertionError: assert 'ALFRED' == 'O.D.I.N.'
 E         
-E         - ODIN
+E         - O.D.I.N.
 E         + ALFRED
 
 tests\empire_tests\test_ui_empire.py:30: AssertionError
@@ -327,10 +327,10 @@ tmp_path = WindowsPath('C:/Users/Craig/AppData/Local/Temp/pytest-of-Craig/pytest
     def test_load_config_missing(tmp_path):
         # Should return empty dict if .agent/config.json missing
 >       assert load_config(tmp_path) == {}
-E       AssertionError: assert {'persona': 'ODIN'} == {}
+E       AssertionError: assert {'persona': 'O.D.I.N.'} == {}
 E         
 E         Left contains 1 more item:
-E         {'persona': 'ODIN'}
+E         {'persona': 'O.D.I.N.'}
 E         Use -v to get more diff
 
 tests\empire_tests\test_utils_empire.py:7: AssertionError
@@ -343,10 +343,10 @@ tmp_path = WindowsPath('C:/Users/Craig/AppData/Local/Temp/pytest-of-Craig/pytest
         agent_dir.mkdir()
         (agent_dir / "config.json").write_text(json.dumps({"test": "ok"}), encoding='utf-8')
 >       assert load_config(tmp_path) == {"test": "ok"}
-E       AssertionError: assert {'persona': 'ODIN'} == {'test': 'ok'}
+E       AssertionError: assert {'persona': 'O.D.I.N.'} == {'test': 'ok'}
 E         
 E         Left contains 1 more item:
-E         {'persona': 'ODIN'}
+E         {'persona': 'O.D.I.N.'}
 E         Right contains 1 more item:
 E         {'test': 'ok'}
 E         Use -v to get more diff

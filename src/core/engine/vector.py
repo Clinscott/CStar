@@ -17,7 +17,7 @@ from src.core.sovereign_hud import SovereignHUD
 
 class SovereignVector:
     """
-    [ODIN] Unified Semantic Router for Corvus Star.
+    [O.D.I.N.] Unified Semantic Router for Corvus Star.
     Acts as a bridge to MemoryDB (ChromaDB) for intent resolution.
     """
     def __init__(
@@ -253,6 +253,7 @@ class SovereignVector:
             "plan": "/plan", "design": "/plan", "architect": "/plan",
             "test": "/test", "verify": "/test", "validate": "/test",
             "wrapitup": "/wrap-it-up", "finish": "/wrap-it-up", "finalize": "/wrap-it-up",
+            "sleep": "dormancy", "rest": "dormancy", "dormancy": "dormancy",
             "sovereignfish": "SovereignFish", "polish": "SovereignFish", "beautify": "SovereignFish",
             "oracle": "/oracle"
         }
@@ -356,6 +357,7 @@ class SovereignVector:
             "plan": ("Architect the system, create blueprints, and design implementation roadmaps. synonyms: architect, blueprint, design, plan, roadmap, strategy, outline. system, architecture, strategy, implementation, module, strategize", "CORE"),
             "test": ("Verify code integrity, run regression suites, and validate execution metrics. synonyms: verify, validate, test, check, benchmark, smoke-test, probe. code, integrity, coverage, reliability", "DEV"),
             "wrap-it-up": ("Finalize the session, update documentation, and execute the handshake protocol. synonyms: finish, finalize, wrap, close, end, call-it-a-day, conclude. task, complete, stop, shutdown, archive", "CORE"),
+            "dormancy": ("Initiate dormancy protocol. The system enters a sleep state. synonyms: sleep, dormancy, rest, hibernate, standby, inactive, dormant", "CORE"),
             "oracle": ("Consult the Corvus Star oracle for tactical guidance and system state analysis.", "CORE")
         }
         for trigger, (text, domain) in core_skills.items():
@@ -423,6 +425,11 @@ class SovereignVector:
             text += act_match.group(1) + " "
         text += trigger.replace("/", " ").replace("-", " ").replace("global:", "").replace("_", " ")
         return text
+
+    @property
+    def vocab(self) -> set[str]:
+        """Exposes the Shadow Engine's vocabulary."""
+        return set(self._idf_map.keys())
 
     def build_index(self) -> None:
         """Finalizes the semantic index and warms the Shadow Engine with TF-IDF."""

@@ -1,0 +1,43 @@
+---
+title: "conftest.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/conftest.py"
+loc: 113
+complexity: 21
+logic_score: 1.45
+style_score: 3.73
+intel_score: 5.65
+overall_score: 3.61
+---
+
+## Intent
+Python module facilitating mock_genai_client, temp_project.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.4/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 5.6/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [contextlib](file://contextlib)
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [unittest.mock](file://unittest.mock)
+- [pytest](file://pytest)
+- [sys](file://sys)
+- [unittest.mock](file://unittest.mock)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+
+### Exports
+- `mock_genai_client`
+- `temp_project`
+- `prevent_api_key_leak`
+- `isolate_warden_state`
+- `_cleanup`
+- `reset_hud_singleton`
+- `_get_hud_instances`
+- `_full_reset`

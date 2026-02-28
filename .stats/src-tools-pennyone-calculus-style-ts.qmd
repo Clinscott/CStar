@@ -1,0 +1,29 @@
+---
+title: "style.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/calculus/style.ts"
+loc: 31
+complexity: 6
+logic_score: 6.55
+style_score: 1.00
+intel_score: 10.00
+overall_score: 5.85
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.5/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 10.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+Minimal internal dependencies.
+
+### Exports
+- `calculateStyleScore`

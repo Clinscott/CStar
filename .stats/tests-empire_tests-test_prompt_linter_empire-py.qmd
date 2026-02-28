@@ -1,0 +1,36 @@
+---
+title: "test_prompt_linter_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_prompt_linter_empire.py"
+loc: 49
+complexity: 2
+logic_score: 7.95
+style_score: 3.55
+intel_score: 1.40
+overall_score: 4.30
+---
+
+## Intent
+Python module facilitating TestPromptLinterEmpire, test_parse_prompty_vars.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.9/10
+- **Style [S]**: 3.5/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [unittest.mock](file://unittest.mock)
+- [pytest](file://pytest)
+- [src.core.prompt_linter](file://src.core.prompt_linter)
+
+### Exports
+- `TestPromptLinterEmpire`
+- `test_parse_prompty_vars`
+- `test_audit_python_invocation_dict`
+- `test_audit_python_invocation_kwargs`
+- `test_audit_python_invocation_format`
+- `test_calculate_integrity_score`

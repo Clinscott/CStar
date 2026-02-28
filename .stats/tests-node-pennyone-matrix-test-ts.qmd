@@ -1,0 +1,33 @@
+---
+title: "matrix.test.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/node/pennyone/matrix.test.ts"
+loc: 29
+complexity: 1
+logic_score: 9.20
+style_score: 9.40
+intel_score: 6.92
+overall_score: 8.50
+---
+
+## Intent
+Calculates structural logic density using CC and nesting metrics.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 9.4/10
+- **Intel [I]**: 6.9/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://node:test)
+- [*](file://node:assert)
+- [*](file://../../../src/core/calculus/logic.js)
+- [*](file://../../../src/core/calculus/style.js)
+- [*](file://../../../src/core/calculus/intel.js)
+
+### Exports
+Internal logic only.

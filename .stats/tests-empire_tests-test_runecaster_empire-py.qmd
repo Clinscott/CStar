@@ -1,0 +1,38 @@
+---
+title: "test_runecaster_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_runecaster_empire.py"
+loc: 50
+complexity: 3
+logic_score: 8.05
+style_score: 3.65
+intel_score: 9.40
+overall_score: 7.03
+---
+
+## Intent
+Python module facilitating TestRuneCasterEmpire, mock_root.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.0/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [pytest](file://pytest)
+- [src.sentinel.wardens.runecaster](file://src.sentinel.wardens.runecaster)
+
+### Exports
+- `TestRuneCasterEmpire`
+- `mock_root`
+- `test_scan_perfect_file`
+- `test_scan_missing_args`
+- `test_scan_missing_return`
+- `test_scan_strict_init`
+- `test_scan_weak_generics`

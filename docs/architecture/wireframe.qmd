@@ -93,6 +93,8 @@ Maintain a searchable, accurate map of the project's UI and service architecture
 - **Description**: 3D Digital Twin and Agent Telemetry visualization.
 - **Key Components**:
     - `NeuralGraph.tsx`: High-perf instanced mesh rendering of the repository graph.
+    - **Gravity Protocol**: Implements Massive Scale (LOC-driven), Gravitational Distortion, and Pulse Overload effects.
+    - **Telemetry Bridge**: Hardened with scorched-earth guards to ensure WebGL stability under varying data states.
     - `AgentGhost.tsx`: Renders arcing logic trails for AI agent traversals.
     - `compiler.ts`: Resolves polyglot dependencies into a unified Gungnir Matrix JSON.
     - `telemetry.ts`: Express endpoint for real-time agent tracking and broadcast.

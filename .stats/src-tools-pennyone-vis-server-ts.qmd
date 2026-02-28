@@ -1,0 +1,51 @@
+---
+title: "server.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/server.ts"
+loc: 131
+complexity: 15
+logic_score: 3.40
+style_score: 3.85
+intel_score: 4.75
+overall_score: 4.00
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 3.4/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 4.7/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## ⛩️ API Gateways
+- `[GET] /api/matrix`
+- `[GET] /api/gravity`
+- `[POST] /api/telemetry/ping`
+- `[POST] /api/log`
+- `[GET] /api/chronicle/sessions`
+- `[POST] /api/chronicle/playback/:id`
+- `[GET] /api/chronicle/download/:id`
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://express)
+- [*](file://path)
+- [*](file://fs/promises)
+- [*](file://fs)
+- [*](file://chalk)
+- [*](file://http)
+- [*](file://../live/socket.js)
+- [*](file://../live/watcher.js)
+- [*](file://../live/telemetry.js)
+- [*](file://body-parser)
+- [*](file://crypto)
+- [*](file://os)
+- [*](file://../intel/database.js)
+- [*](file://url)
+- [*](file://../personaRegistry.js)
+
+### Exports
+- `startBridge`

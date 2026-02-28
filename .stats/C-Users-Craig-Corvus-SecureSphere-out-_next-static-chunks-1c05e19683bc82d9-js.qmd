@@ -1,0 +1,40 @@
+---
+title: "1c05e19683bc82d9.js"
+path: "C:/Users/Craig/Corvus/SecureSphere/out/_next/static/chunks/1c05e19683bc82d9.js"
+loc: 8
+complexity: 92
+logic_score: 1.00
+style_score: 1.00
+intel_score: 9.40
+overall_score: 3.80
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.0/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+Minimal internal dependencies.
+
+### Exports
+- `i`
+- `l`
+- `d`
+- `c`
+- `u`
+- `x`
+- `p`
+- `m`
+- `h`
+- `f`
+- `b`
+- `v`
+- `i`
+- `l`

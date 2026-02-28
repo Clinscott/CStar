@@ -1,0 +1,40 @@
+---
+title: "raven_proxy.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/harness/raven_proxy.py"
+loc: 101
+complexity: 12
+logic_score: 3.10
+style_score: 3.69
+intel_score: 4.57
+overall_score: 3.78
+---
+
+## Intent
+Python module facilitating RavenProxy, __init__.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 3.1/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 4.6/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [os](file://os)
+- [time](file://time)
+- [pathlib](file://pathlib)
+- [google](file://google)
+- [unittest.mock](file://unittest.mock)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+
+### Exports
+- `RavenProxy`
+- `__init__`
+- `models`
+- `generate_content`
+- `_inject_lessons`
+- `_generate_mock_response`

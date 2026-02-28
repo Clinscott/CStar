@@ -1,0 +1,33 @@
+---
+title: "instruction_loader.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/core/engine/instruction_loader.py"
+loc: 56
+complexity: 14
+logic_score: 2.40
+style_score: 3.68
+intel_score: 8.54
+overall_score: 4.87
+---
+
+## Intent
+Python module facilitating InstructionLoader, __init__.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 2.4/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 8.5/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [pathlib](file://pathlib)
+
+### Exports
+- `InstructionLoader`
+- `__init__`
+- `add_source`
+- `get_instructions`
+- `_fetch_skill_content`

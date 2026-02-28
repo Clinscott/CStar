@@ -8,6 +8,7 @@ export interface GungnirMatrix {
     style: number;
     intel: number;
     overall: number;
+    gravity: number;
 }
 
 export interface CompiledGraph {
@@ -20,6 +21,9 @@ export interface CompiledGraph {
         matrix: GungnirMatrix;
         intent: string;
         dependencies: string[];
+        hash: string;
+        endpoints?: string[];
+        is_api?: boolean;
     }>;
     summary: {
         total_files: number;
@@ -33,7 +37,7 @@ export interface CompiledGraph {
  * Purpose: Compile all FileData into a master JSON graph with resolved dependencies.
  */
 export async function compileMatrix(results: FileData[], targetRepo: string): Promise<string> {
-    const statsDir = path.join(targetRepo, '.stats');
+    const statsDir = path.join(process.cwd(), '.stats');
     await fs.mkdir(statsDir, { recursive: true });
 
     const graphPath = path.join(statsDir, 'matrix-graph.json');
@@ -41,45 +45,48 @@ export async function compileMatrix(results: FileData[], targetRepo: string): Pr
     // Create a set of all known absolute paths for fast lookup
     const knownPaths = new Set(results.map(r => registry.normalize(r.path)));
 
-    // Helper to resolve an import
+    /**
+     * Helper to resolve an import path to an absolute file path known by the scan.
+     */
     const resolveDependency = (sourceFile: string, importPath: string): string | null => {
         let absolute: string;
 
-        // Python specific: Convert dot-notation (core.engine) to path (core/engine)
-        // only if it's not a relative import and contains dots
+        // 1. Python dot-notation normalization
         let normalizedImport = importPath;
-        if (!importPath.startsWith('.') && importPath.includes('.')) {
+        if (!importPath.startsWith('.') && importPath.includes('.') && !importPath.includes('/')) {
             normalizedImport = importPath.replace(/\./g, '/');
         }
 
+        // 2. Initial resolution
         if (normalizedImport.startsWith('.')) {
-            // Standard relative import (JS/TS or local Python)
             absolute = registry.resolve(sourceFile, normalizedImport);
         } else {
-            // Absolute import (Usually Python root imports)
+            // Assume package or absolute path within targetRepo
             absolute = registry.normalize(path.join(targetRepo, normalizedImport));
         }
 
-        // 1. Try exact match
-        if (knownPaths.has(absolute)) return absolute;
-
-        // 2. Handle .js -> .ts / .tsx mapping (ESM style)
+        // 3. Try variations (Handling TS/ESM extension quirks)
+        const candidates = [absolute];
+        
+        // If it's an ESM import ending in .js, it might actually be a .ts file on disk
         if (absolute.endsWith('.js')) {
-            const base = absolute.slice(0, -3);
-            if (knownPaths.has(base + '.ts')) return base + '.ts';
-            if (knownPaths.has(base + '.tsx')) return base + '.tsx';
+            candidates.push(absolute.slice(0, -3));
         }
 
-        // 3. Try common extensions if no extension provided
-        const extensions = ['.ts', '.tsx', '.js', '.jsx', '.py'];
-        for (const ext of extensions) {
-            if (knownPaths.has(absolute + ext)) return absolute + ext;
-        }
+        const extensions = ['', '.ts', '.tsx', '.js', '.jsx', '.py'];
+        
+        for (const cand of candidates) {
+            // Exact match or with extensions
+            for (const ext of extensions) {
+                const p = cand + ext;
+                if (knownPaths.has(p)) return p;
+            }
 
-        // 4. Try index files
-        for (const ext of extensions) {
-            const indexFile = registry.normalize(path.join(absolute, `index${ext}`));
-            if (knownPaths.has(indexFile)) return indexFile;
+            // Index file resolution
+            for (const ext of extensions.filter(e => e !== '')) {
+                const indexFile = registry.normalize(path.join(cand, `index${ext}`));
+                if (knownPaths.has(indexFile)) return indexFile;
+            }
         }
 
         return null;
@@ -94,18 +101,27 @@ export async function compileMatrix(results: FileData[], targetRepo: string): Pr
             complexity: r.complexity,
             matrix: r.matrix,
             intent: r.intent || "...",
-            dependencies: r.imports
+            dependencies: r.cachedDependencies || r.imports
                 .map(i => resolveDependency(r.path, i.source))
-                .filter((d): d is string => d !== null)
+                .filter((d): d is string => d !== null && d !== registry.normalize(r.path)), // Avoid self-refs
+            hash: r.hash,
+            endpoints: r.endpoints,
+            is_api: r.is_api
         })),
         summary: {
             total_files: results.length,
             total_loc: results.reduce((a, b) => a + b.loc, 0),
-            average_score: results.reduce((a, b) => a + b.matrix.overall, 0) / results.length
+            average_score: results.length > 0 
+                ? results.reduce((a, b) => a + b.matrix.overall, 0) / results.length
+                : 0
         }
     };
+
+    // Deduplicate dependencies per file
+    payload.files.forEach(f => {
+        f.dependencies = [...new Set(f.dependencies)];
+    });
 
     await fs.writeFile(graphPath, JSON.stringify(payload, null, 2), 'utf-8');
     return graphPath;
 }
-

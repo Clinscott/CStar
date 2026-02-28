@@ -1,0 +1,36 @@
+---
+title: "test_forge_gungnir_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_forge_gungnir_empire.py"
+loc: 27
+complexity: 1
+logic_score: 8.75
+style_score: 1.00
+intel_score: 9.40
+overall_score: 6.38
+---
+
+## Intent
+Python module facilitating TestForgeGungnirCalculus, forge.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [pytest](file://pytest)
+- [src.cstar.core.forge](file://src.cstar.core.forge)
+
+### Exports
+- `TestForgeGungnirCalculus`
+- `forge`
+- `test_forge_detects_claustrophobic_python`
+- `test_forge_detects_top_heavy_python`
+- `test_forge_detects_ugly_react`
+- `test_forge_passes_beautiful_code`
+- `test_forge_passes_symmetric_react`

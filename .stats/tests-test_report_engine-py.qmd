@@ -1,0 +1,36 @@
+---
+title: "test_report_engine.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_report_engine.py"
+loc: 25
+complexity: 2
+logic_score: 8.40
+style_score: 4.18
+intel_score: 9.40
+overall_score: 7.33
+---
+
+## Intent
+Core semantic routing engine for intent resolution.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.4/10
+- **Style [S]**: 4.2/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [unittest](file://unittest)
+- [pathlib](file://pathlib)
+- [src.core.report_engine](file://src.core.report_engine)
+
+### Exports
+- `TestReportEngine`
+- `setUp`
+- `test_signature_alfred`
+- `test_signature_odin`
+- `test_header_generation`

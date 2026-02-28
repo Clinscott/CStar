@@ -1,0 +1,27 @@
+---
+title: "_buildManifest.js"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/out/_next/static/2r9P6N4vIPr_hgo7tP95A/_buildManifest.js"
+loc: 11
+complexity: 1
+logic_score: 9.65
+style_score: 7.52
+intel_score: 1.40
+overall_score: 6.19
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.6/10
+- **Style [S]**: 7.5/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+Minimal internal dependencies.
+
+### Exports
+Internal logic only.

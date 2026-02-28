@@ -1,0 +1,36 @@
+---
+title: "LoginOverlay.tsx"
+path: "C:/Users/Craig/Corvus/KeepOS/app/components/auth/LoginOverlay.tsx"
+loc: 138
+complexity: 9
+logic_score: 5.05
+style_score: 1.00
+intel_score: 3.16
+overall_score: 3.07
+---
+
+## Intent
+React component rendering LoginOverlay with 9 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 5.0/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 3.2/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [useState](file://react)
+- [useAuth](file://./AuthContext)
+- [User](file://./AuthContext)
+- [motion](file://framer-motion)
+- [AnimatePresence](file://framer-motion)
+- [Lock](file://lucide-react)
+- [UserIcon](file://lucide-react)
+- [Delete](file://lucide-react)
+- [ChevronLeft](file://lucide-react)
+
+### Exports
+- `LoginOverlay`
+- `LoginOverlay`

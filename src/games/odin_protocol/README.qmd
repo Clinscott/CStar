@@ -1,10 +1,10 @@
 ---
-title: "The Odin Protocol: Federated Warlords"
+title: "The O.D.I.N. Protocol: Federated Warlords"
 status: "OPERATIONAL"
 version: "1.2.0"
 ---
 
-# 🛸 The Odin Protocol: Federated Warlords
+# 🛸 The O.D.I.N. Protocol: Federated Warlords
 
 ## Overview
 A continuous, incremental, agentic CLI adventure built for the Corvus Star framework. Conquer planets, mutate your genetic manifest, and build a history that scales with you.

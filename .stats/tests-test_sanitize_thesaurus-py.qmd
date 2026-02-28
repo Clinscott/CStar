@@ -1,0 +1,31 @@
+---
+title: "test_sanitize_thesaurus.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_sanitize_thesaurus.py"
+loc: 20
+complexity: 1
+logic_score: 9.20
+style_score: 3.85
+intel_score: 9.40
+overall_score: 7.48
+---
+
+## Intent
+Python module facilitating test_sanitize_clusters_logic, test_sanitize_file_operation.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [src.tools.data.sanitize_thesaurus](file://src.tools.data.sanitize_thesaurus)
+- [src.tools.data.sanitize_thesaurus](file://src.tools.data.sanitize_thesaurus)
+
+### Exports
+- `test_sanitize_clusters_logic`
+- `test_sanitize_file_operation`

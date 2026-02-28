@@ -1,0 +1,38 @@
+---
+title: "test_empire_infrastructure.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/contracts/test_empire_infrastructure.py"
+loc: 37
+complexity: 2
+logic_score: 7.50
+style_score: 3.90
+intel_score: 7.89
+overall_score: 6.43
+---
+
+## Intent
+Python module facilitating TestEmpireInfrastructure, setUp.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.5/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 7.9/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [os](file://os)
+- [sys](file://sys)
+- [unittest](file://unittest)
+- [compiler](file://compiler)
+- [symbolic_legend](file://symbolic_legend)
+- [tempfile](file://tempfile)
+
+### Exports
+- `TestEmpireInfrastructure`
+- `setUp`
+- `test_compilation_to_ir`
+- `test_symbol_resolution`
+- `test_boilerplate_generation`

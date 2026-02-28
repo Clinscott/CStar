@@ -1,0 +1,29 @@
+---
+title: "MiniMap.tsx"
+path: "C:/Users/Craig/Corvus/KeepOS/app/components/castle/HUD/MiniMap.tsx"
+loc: 36
+complexity: 1
+logic_score: 9.20
+style_score: 1.08
+intel_score: 4.22
+overall_score: 4.83
+---
+
+## Intent
+React component rendering MiniMap with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 1.1/10
+- **Intel [I]**: 4.2/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [motion](file://framer-motion)
+- [*](file://next/image)
+
+### Exports
+- `MiniMap`
+- `MiniMap`

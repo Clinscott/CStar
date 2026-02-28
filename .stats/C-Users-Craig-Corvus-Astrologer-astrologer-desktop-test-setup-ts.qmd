@@ -1,0 +1,30 @@
+---
+title: "setup.ts"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/test/setup.ts"
+loc: 70
+complexity: 1
+logic_score: 8.75
+style_score: 4.17
+intel_score: 7.11
+overall_score: 6.68
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 4.2/10
+- **Intel [I]**: 7.1/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [*](file://@testing-library/jest-dom)
+- [vi](file://vitest)
+- [beforeAll](file://vitest)
+- [beforeEach](file://vitest)
+
+### Exports
+- `ResizeObserver`

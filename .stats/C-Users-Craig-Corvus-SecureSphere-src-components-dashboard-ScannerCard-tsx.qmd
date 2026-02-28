@@ -1,0 +1,29 @@
+---
+title: "ScannerCard.tsx"
+path: "C:/Users/Craig/Corvus/SecureSphere/src/components/dashboard/ScannerCard.tsx"
+loc: 143
+complexity: 12
+logic_score: 4.90
+style_score: 1.00
+intel_score: 2.56
+overall_score: 2.82
+---
+
+## Intent
+React component rendering ScannerCard with 12 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 4.9/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 2.6/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [useState](file://react)
+- [useNetworkScanner](file://@/hooks/useNetworkScanner)
+- [ScannedDevice](file://@/hooks/useNetworkScanner)
+
+### Exports
+- `ScannerCard`

@@ -1,0 +1,31 @@
+---
+title: "README.md"
+path: "C:/Users/Craig/Corvus/Astrologer/README.md"
+loc: 38
+complexity: 1
+logic_score: 10.00
+style_score: 10.00
+intel_score: 10.00
+overall_score: 10.00
+---
+
+## Intent
+Documentation scroll or workflow directive for the Gungnir Calculus.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 10.0/10
+- **Style [S]**: 10.0/10
+- **Intel [I]**: 10.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [*](file://file:///c:/Users/Craig/OneDrive/Desktop/Enorth/Astrologer/agents.md)
+- [*](file://file:///c:/Users/Craig/OneDrive/Desktop/Enorth/Astrologer/letsgo.md)
+- [*](file://file:///c:/Users/Craig/OneDrive/Desktop/Enorth/Astrologer/tasks.md)
+- [*](file://file:///c:/Users/Craig/OneDrive/Desktop/Enorth/Astrologer/tasks.md)
+- [*](file://file:///c:/Users/Craig/OneDrive/Desktop/Enorth/Astrologer/wrap-it-up.md)
+
+### Exports
+Internal logic only.

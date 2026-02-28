@@ -1,0 +1,35 @@
+---
+title: "update_gemini_manifest.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/update_gemini_manifest.py"
+loc: 79
+complexity: 11
+logic_score: 3.90
+style_score: 4.03
+intel_score: 1.40
+overall_score: 3.11
+---
+
+## Intent
+Python module facilitating get_git_summary, get_task_status.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 3.9/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [json](file://json)
+- [os](file://os)
+- [subprocess](file://subprocess)
+- [datetime](file://datetime)
+
+### Exports
+- `get_git_summary`
+- `get_task_status`
+- `update_manifest`

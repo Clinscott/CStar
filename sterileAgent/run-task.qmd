@@ -6,7 +6,7 @@ description: Focused task execution workflow that identifies user objectives, co
 2. **Contextualize**: Read `tasks.qmd` to see where this fits in the overall project progress.
 3. **Analyze Dependencies**: Examine relevant files and logic to understand the scope of the change.
 4. **Proposals**: Provide **three (3)** distinct implementation proposals. Output MUST be persona-filtered:
-    - **ODIN**: Present as "Grand Decrees". Proposals are paths to dominion.
+    - **O.D.I.N.**: Present as "Grand Decrees". Proposals are paths to dominion.
     - **ALFRED**: Present as "Humble Suggestions". Proposals are ways to serve the mission better.
     - **Range**: Include trade-offs (Simple, Robust, Moonshot).
 5. **Update Tasks**: Once a proposal is chosen, update `tasks.qmd` with a detailed step-by-step breakdown (preserving history).

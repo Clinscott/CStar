@@ -1,0 +1,36 @@
+---
+title: "paladin-agent.ts"
+path: "C:/Users/Craig/Corvus/SEF/src/agent/paladin-agent.ts"
+loc: 34
+complexity: 3
+logic_score: 8.05
+style_score: 3.96
+intel_score: 5.53
+overall_score: 5.85
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.0/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 5.5/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [IAgentRuntime](file://./runtime/interface)
+- [NativeRuntime](file://./runtime/native-runtime)
+- [DockerRuntime](file://./runtime/docker-runtime)
+- [readLore](file://./tools/read-lore)
+- [updateState](file://./tools/update-state)
+- [evaluateAction](file://./tactical-engine)
+- [TacticalResponse](file://./tactical-engine)
+- [*](file://../../config/agent-config.json)
+- [resolve](file://path)
+
+### Exports
+- `config`
+- `PaladinAgent`

@@ -6,7 +6,7 @@
 ## 🧩 Context Anchors
 - **Project Root**: `C:\Users\Craig\Corvus\CorvusStar`
 - **Persona Strategy**: `personas.py -> alfred`
-- **Framework Port**: 3000 (Odin Dashboard)
+- **Framework Port**: 3000 (O.D.I.N. Dashboard)
 
 ## ⏭️ Priority Directives
 ## ⏭️ Start Here Next (Phase 62)

@@ -1,0 +1,27 @@
+---
+title: "setup-brain.ts"
+path: "C:/Users/Craig/Corvus/SEF/scripts/setup-brain.ts"
+loc: 28
+complexity: 3
+logic_score: 8.05
+style_score: 5.56
+intel_score: 7.11
+overall_score: 6.91
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.0/10
+- **Style [S]**: 5.6/10
+- **Intel [I]**: 7.1/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [execSync](file://child_process)
+
+### Exports
+- `setupBrain`

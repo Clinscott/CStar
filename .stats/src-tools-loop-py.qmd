@@ -1,0 +1,53 @@
+---
+title: "loop.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/loop.py"
+loc: 142
+complexity: 17
+logic_score: 2.25
+style_score: 3.75
+intel_score: 4.78
+overall_score: 3.59
+---
+
+## Intent
+Python module facilitating SovereignForge, __init__.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 2.3/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 4.8/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [asyncio](file://asyncio)
+- [gc](file://gc)
+- [logging](file://logging)
+- [os](file://os)
+- [shutil](file://shutil)
+- [sys](file://sys)
+- [time](file://time)
+- [pathlib](file://pathlib)
+- [typing](file://typing)
+- [contextlib](file://contextlib)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [src.cstar.core.uplink](file://src.cstar.core.uplink)
+- [src.sentinel.wardens.norn](file://src.sentinel.wardens.norn)
+- [src.tools.wrap_it_up](file://src.tools.wrap_it_up)
+- [subprocess](file://subprocess)
+
+### Exports
+- `SovereignForge`
+- `__init__`
+- `forge_task`
+- `_orient_target`
+- `_generate_code`
+- `call_uplink`
+- `_verify_integrity`
+- `_backup`
+- `_rollback`
+- `_cleanup_backup`
+- `sovereign_lifecycle`

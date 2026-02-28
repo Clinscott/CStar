@@ -1,0 +1,34 @@
+---
+title: "redactor.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/core/redactor.py"
+loc: 35
+complexity: 6
+logic_score: 6.10
+style_score: 3.72
+intel_score: 9.40
+overall_score: 6.41
+---
+
+## Intent
+Python module facilitating Redactor, __new__.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.1/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [re](file://re)
+- [src.tools.vault](file://src.tools.vault)
+
+### Exports
+- `Redactor`
+- `__new__`
+- `_initialize`
+- `redact`
+- `redact_text`

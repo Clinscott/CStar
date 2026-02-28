@@ -1,0 +1,31 @@
+---
+title: "test_install_skill_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_install_skill_empire.py"
+loc: 15
+complexity: 1
+logic_score: 9.20
+style_score: 3.60
+intel_score: 1.40
+overall_score: 4.73
+---
+
+## Intent
+Python module facilitating test_sanitize_skill_name, test_get_config.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [src.skills.install_skill](file://src.skills.install_skill)
+
+### Exports
+- `test_sanitize_skill_name`
+- `test_get_config`

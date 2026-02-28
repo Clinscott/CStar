@@ -1,0 +1,30 @@
+---
+title: "test_pennyone_ui_contract_empire.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_pennyone_ui_contract_empire.ts"
+loc: 12
+complexity: 1
+logic_score: 8.75
+style_score: 9.28
+intel_score: 9.40
+overall_score: 9.14
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 9.3/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://node:test)
+- [*](file://node:assert)
+
+### Exports
+Internal logic only.

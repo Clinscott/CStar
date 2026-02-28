@@ -1,0 +1,36 @@
+---
+title: "test_metrics_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_metrics_empire.py"
+loc: 46
+complexity: 3
+logic_score: 7.60
+style_score: 3.66
+intel_score: 1.40
+overall_score: 4.22
+---
+
+## Intent
+Core semantic routing engine for intent resolution.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.6/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [unittest](file://unittest)
+- [pathlib](file://pathlib)
+- [unittest.mock](file://unittest.mock)
+- [src.core.metrics](file://src.core.metrics)
+
+### Exports
+- `TestProjectMetricsEngine`
+- `test_compute_score`
+- `exists_side_effect`
+- `test_radon_failure`

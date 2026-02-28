@@ -25,7 +25,7 @@ def main() -> int:
     print("Initializing google.genai Client...")
     client = genai.Client(api_key=api_key)
 
-    candidates = ["gemini-2.0-flash", "gemini-2.5-pro", "gemini-2.0-flash-lite-preview-02-05"]
+    candidates = ["gemini-3.1-flash-preview", "gemini-3.1-pro-preview", "gemini-3-flash-preview"]
 
     print("\nAttempting generation with candidate models:")
     for model_name in candidates:

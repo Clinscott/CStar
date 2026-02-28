@@ -1,0 +1,36 @@
+---
+title: "CommandConsole.tsx"
+path: "C:/Users/Craig/Corvus/SEF/src/components/CommandConsole.tsx"
+loc: 171
+complexity: 8
+logic_score: 5.85
+style_score: 1.00
+intel_score: 3.87
+overall_score: 3.57
+---
+
+## Intent
+React component rendering CommandConsole with 8 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 5.8/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 3.9/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [useState](file://react)
+- [useRef](file://react)
+- [useEffect](file://react)
+- [motion](file://framer-motion)
+- [AnimatePresence](file://framer-motion)
+- [Send](file://lucide-react)
+- [Gavel](file://lucide-react)
+- [Shield](file://lucide-react)
+- [Move](file://lucide-react)
+- [*](file://@/app/Aureate.module.css)
+
+### Exports
+- `CommandConsole`

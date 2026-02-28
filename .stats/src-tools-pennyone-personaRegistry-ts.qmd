@@ -1,0 +1,30 @@
+---
+title: "personaRegistry.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/personaRegistry.ts"
+loc: 55
+complexity: 6
+logic_score: 6.55
+style_score: 4.04
+intel_score: 4.91
+overall_score: 5.17
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.5/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 4.9/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://fs)
+- [*](file://path)
+
+### Exports
+- `PersonaRegistry`

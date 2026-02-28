@@ -1,0 +1,28 @@
+---
+title: "message.ts"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/src/lib/types/message.ts"
+loc: 17
+complexity: 1
+logic_score: 9.65
+style_score: 9.36
+intel_score: 6.71
+overall_score: 8.57
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.6/10
+- **Style [S]**: 9.4/10
+- **Intel [I]**: 6.7/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [z](file://zod)
+
+### Exports
+- `MessageSchema`
+- `z`

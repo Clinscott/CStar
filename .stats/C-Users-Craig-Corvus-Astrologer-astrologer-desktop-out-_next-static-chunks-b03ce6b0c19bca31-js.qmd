@@ -1,0 +1,27 @@
+---
+title: "b03ce6b0c19bca31.js"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/out/_next/static/chunks/b03ce6b0c19bca31.js"
+loc: 1
+complexity: 2
+logic_score: 8.85
+style_score: 10.00
+intel_score: 1.40
+overall_score: 6.75
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 10.0/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+Minimal internal dependencies.
+
+### Exports
+Internal logic only.

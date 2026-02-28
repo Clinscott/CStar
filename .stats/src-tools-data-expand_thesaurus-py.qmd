@@ -1,0 +1,29 @@
+---
+title: "expand_thesaurus.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/data/expand_thesaurus.py"
+loc: 28
+complexity: 7
+logic_score: 5.75
+style_score: 4.05
+intel_score: 1.40
+overall_score: 3.73
+---
+
+## Intent
+Python module facilitating internal logic.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 5.8/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [re](file://re)
+
+### Exports
+Internal logic only.

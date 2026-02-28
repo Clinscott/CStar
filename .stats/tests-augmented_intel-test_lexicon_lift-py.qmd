@@ -1,0 +1,39 @@
+---
+title: "test_lexicon_lift.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/augmented_intel/test_lexicon_lift.py"
+loc: 26
+complexity: 1
+logic_score: 7.85
+style_score: 3.90
+intel_score: 4.48
+overall_score: 5.41
+---
+
+## Intent
+Python module facilitating TestLexiconLift, test_lexicon_lift_trigger.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.8/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 4.5/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [src.core.engine.vector](file://src.core.engine.vector)
+- [src.core.sv_engine](file://src.core.sv_engine)
+
+### Exports
+- `TestLexiconLift`
+- `test_lexicon_lift_trigger`
+- `MockBraveSearch`
+- `search`
+- `MockCortex`
+- `__init__`
+- `add_node`
+- `MockVector`
+- `__init__`
+- `search`

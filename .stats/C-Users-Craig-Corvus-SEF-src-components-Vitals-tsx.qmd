@@ -1,0 +1,28 @@
+---
+title: "Vitals.tsx"
+path: "C:/Users/Craig/Corvus/SEF/src/components/Vitals.tsx"
+loc: 77
+complexity: 6
+logic_score: 7.45
+style_score: 3.81
+intel_score: 3.04
+overall_score: 4.77
+---
+
+## Intent
+React component rendering Vitals with 6 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.4/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 3.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [*](file://react)
+- [*](file://@/app/Aureate.module.css)
+
+### Exports
+- `Vitals`

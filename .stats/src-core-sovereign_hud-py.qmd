@@ -1,0 +1,62 @@
+---
+title: "sovereign_hud.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/core/sovereign_hud.py"
+loc: 331
+complexity: 36
+logic_score: 1.45
+style_score: 3.81
+intel_score: 6.96
+overall_score: 4.07
+---
+
+## Intent
+Python module facilitating SovereignHUD, _ensure_persona.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.4/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 7.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [asyncio](file://asyncio)
+- [contextlib](file://contextlib)
+- [os](file://os)
+- [sys](file://sys)
+- [time](file://time)
+- [datetime](file://datetime)
+- [pathlib](file://pathlib)
+- [typing](file://typing)
+- [ctypes](file://ctypes)
+- [json](file://json)
+- [pathlib](file://pathlib)
+- [src.core.redactor](file://src.core.redactor)
+- [src.core.redactor](file://src.core.redactor)
+
+### Exports
+- `SovereignHUD`
+- `_ensure_persona`
+- `_speak`
+- `get_theme`
+- `transition_ceremony`
+- `persona_log`
+- `_get_width`
+- `box_top`
+- `box_row`
+- `box_separator`
+- `box_bottom`
+- `progress_bar`
+- `render_sparkline`
+- `log`
+- `warning`
+- `divider`
+- `log_rejection`
+- `get_render_queue`
+- `get_render_lock`
+- `broadcast`
+- `render_loop`
+- `stream_text`

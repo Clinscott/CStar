@@ -1,0 +1,33 @@
+---
+title: "MessageItem.test.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-client/test/MessageItem.test.tsx"
+loc: 32
+complexity: 1
+logic_score: 8.75
+style_score: 4.12
+intel_score: 1.40
+overall_score: 4.76
+---
+
+## Intent
+React component rendering MessageItem with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 4.1/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [render](file://@testing-library/react)
+- [screen](file://@testing-library/react)
+- [describe](file://vitest)
+- [it](file://vitest)
+- [expect](file://vitest)
+- [MessageItem](file://@/components/ui/MessageItem)
+- [Message](file://@/lib/mock-data)
+
+### Exports
+Internal logic only.

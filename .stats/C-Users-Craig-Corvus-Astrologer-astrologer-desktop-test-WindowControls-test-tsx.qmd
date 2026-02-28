@@ -1,0 +1,35 @@
+---
+title: "WindowControls.test.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/test/WindowControls.test.tsx"
+loc: 43
+complexity: 1
+logic_score: 8.75
+style_score: 4.12
+intel_score: 4.19
+overall_score: 5.69
+---
+
+## Intent
+React component rendering WindowControls with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 4.1/10
+- **Intel [I]**: 4.2/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [render](file://@testing-library/react)
+- [screen](file://@testing-library/react)
+- [fireEvent](file://@testing-library/react)
+- [WindowControls](file://@/components/ui/WindowControls)
+- [describe](file://vitest)
+- [it](file://vitest)
+- [expect](file://vitest)
+- [vi](file://vitest)
+- [beforeEach](file://vitest)
+
+### Exports
+Internal logic only.

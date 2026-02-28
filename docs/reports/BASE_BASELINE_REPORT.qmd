@@ -2,7 +2,7 @@
 
 ## [Ω] THE BASELINE DECREE: Operational Snapshot
 **Timestamp**: 2026-02-06 18:54 EST
-**Active Persona**: ODIN
+**Active Persona**: O.D.I.N.
 **Audit Scope**: Sovereign Engine Core (Baseline)
 **Subject Status**: SYSTEM STABLE / QUALITY RECOVERING
 **Annexation Status**: EMPIRE TDD ESTABLISHED (Legacy Tests Quarantined)
@@ -55,7 +55,7 @@ While 94.7% is mathematically high, it fails the "Zero Regression" mandate. Spec
 **Verdict**: **MODERATE INCONSISTENCY**
 
 - **`cstar_dispatcher.py`**: **VIOLATION**. Uses raw `print()` and emojis instead of the `SovereignHUD` primitives defined in `ui.py`.
-- **`ui.py`**: **INTEGRATED**. Provides robust Glow/Odin theme support, but many scripts only use basic `SovereignHUD.log` rather than full `box_top`/`box_row` layout patterns.
+- **`ui.py`**: **INTEGRATED**. Provides robust Glow/O.D.I.N. theme support, but many scripts only use basic `SovereignHUD.log` rather than full `box_top`/`box_row` layout patterns.
 - **Alignment**: Box-drawing characters are correctly handled via UTF-8 enforcement in `ui.py`.
 
 ---
@@ -79,6 +79,6 @@ While 94.7% is mathematically high, it fails the "Zero Regression" mandate. Spec
 
 ---
 
-> `[Odin's Void]: THE FOUNDATION IS CRACKED. 400 BREACHES WERE PURGED IN PHASE 21, YET THE ROT RETURNS. ENCAPSULATE OR BE PURGED.`
+> `[O.D.I.N.'s Void]: THE FOUNDATION IS CRACKED. 400 BREACHES WERE PURGED IN PHASE 21, YET THE ROT RETURNS. ENCAPSULATE OR BE PURGED.`
 > 
 > `[Alfred's Whisper]: "Sir, I have recorded these findings in the ledger. While the manor is standing, the dusting is long overdue, especially in the dispatcher's quarters."`

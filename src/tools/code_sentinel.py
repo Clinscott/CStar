@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-[ODIN] Heimdall - The All-Seeing Code Guardian.
+[O.D.I.N.] Heimdall - The All-Seeing Code Guardian.
 [Ω] HEIMDALL'S VIGIL / [ALFRED] THE PERIMETER
 Refined for the Linscott Standard (Typing, Pathlib, Encapsulation).
 

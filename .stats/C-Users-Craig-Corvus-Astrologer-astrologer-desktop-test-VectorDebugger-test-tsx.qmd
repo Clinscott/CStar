@@ -1,0 +1,36 @@
+---
+title: "VectorDebugger.test.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/test/VectorDebugger.test.tsx"
+loc: 70
+complexity: 2
+logic_score: 7.50
+style_score: 3.96
+intel_score: 3.69
+overall_score: 5.05
+---
+
+## Intent
+React component rendering VectorDebugger with 2 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.5/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 3.7/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [render](file://@testing-library/react)
+- [screen](file://@testing-library/react)
+- [fireEvent](file://@testing-library/react)
+- [waitFor](file://@testing-library/react)
+- [VectorDebugger](file://@/components/agent/VectorDebugger)
+- [describe](file://vitest)
+- [it](file://vitest)
+- [expect](file://vitest)
+- [vi](file://vitest)
+- [beforeEach](file://vitest)
+
+### Exports
+Internal logic only.

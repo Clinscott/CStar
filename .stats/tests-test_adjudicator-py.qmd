@@ -1,0 +1,34 @@
+---
+title: "test_adjudicator.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_adjudicator.py"
+loc: 41
+complexity: 1
+logic_score: 8.30
+style_score: 3.43
+intel_score: 5.30
+overall_score: 5.68
+---
+
+## Intent
+Python module facilitating mock_game_files, test_process_queue_success.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.3/10
+- **Style [S]**: 3.4/10
+- **Intel [I]**: 5.3/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [pytest](file://pytest)
+- [src.games.odin_protocol.engine.adjudicator](file://src.games.odin_protocol.engine.adjudicator)
+
+### Exports
+- `mock_game_files`
+- `test_process_queue_success`
+- `MockGM`
+- `get_outcome`

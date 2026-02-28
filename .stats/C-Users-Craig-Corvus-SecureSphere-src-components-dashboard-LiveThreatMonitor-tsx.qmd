@@ -1,0 +1,30 @@
+---
+title: "LiveThreatMonitor.tsx"
+path: "C:/Users/Craig/Corvus/SecureSphere/src/components/dashboard/LiveThreatMonitor.tsx"
+loc: 122
+complexity: 11
+logic_score: 4.80
+style_score: 1.00
+intel_score: 4.95
+overall_score: 3.58
+---
+
+## Intent
+React component rendering LiveThreatMonitor with 11 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 4.8/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 5.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [*](file://react)
+- [useEventPipeline](file://@/hooks/useEventPipeline)
+- [ThreatEvent](file://@/hooks/useEventPipeline)
+- [useActiveResponse](file://@/hooks/useActiveResponse)
+
+### Exports
+- `LiveThreatMonitor`

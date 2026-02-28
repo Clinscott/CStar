@@ -1,0 +1,35 @@
+---
+title: "universal.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/core/engine/gungnir/universal.py"
+loc: 90
+complexity: 18
+logic_score: 1.00
+style_score: 1.00
+intel_score: 4.51
+overall_score: 2.17
+---
+
+## Intent
+Python module facilitating UniversalGungnir, audit.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.0/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 4.5/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [ast](file://ast)
+- [re](file://re)
+
+### Exports
+- `UniversalGungnir`
+- `audit`
+- `_audit_logic`
+- `_audit_style`
+- `_audit_data`
+- `_audit_structure`

@@ -1,0 +1,38 @@
+---
+title: "ConversationBubble.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/src/components/ui/ConversationBubble.tsx"
+loc: 220
+complexity: 12
+logic_score: 4.00
+style_score: 1.00
+intel_score: 7.82
+overall_score: 4.27
+---
+
+## Intent
+React component rendering ConversationBubble with 12 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 4.0/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 7.8/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [useState](file://react)
+- [useEffect](file://react)
+- [useRef](file://react)
+- [useMemo](file://react)
+- [useCallback](file://react)
+- [Message](file://@/lib/types/message)
+- [MessageItem](file://./MessageItem)
+- [X](file://lucide-react)
+- [Send](file://lucide-react)
+- [Sparkles](file://lucide-react)
+- [cn](file://@/lib/utils)
+
+### Exports
+- `ConversationBubble`
+- `ConversationBubble`

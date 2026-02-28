@@ -1,0 +1,34 @@
+---
+title: "payload.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/core/payload.py"
+loc: 31
+complexity: 3
+logic_score: 7.60
+style_score: 3.55
+intel_score: 9.40
+overall_score: 6.85
+---
+
+## Intent
+Python module facilitating IntentPayload, __post_init__.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.6/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [dataclasses](file://dataclasses)
+- [types](file://types)
+- [typing](file://typing)
+
+### Exports
+- `IntentPayload`
+- `__post_init__`
+- `__repr__`
+- `to_dict`

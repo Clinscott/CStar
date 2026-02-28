@@ -1,0 +1,36 @@
+---
+title: "test_metrics_engine.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/unit/test_metrics_engine.py"
+loc: 26
+complexity: 2
+logic_score: 7.95
+style_score: 4.08
+intel_score: 1.40
+overall_score: 4.48
+---
+
+## Intent
+Core semantic routing engine for intent resolution.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.9/10
+- **Style [S]**: 4.1/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [os](file://os)
+- [unittest](file://unittest)
+- [src.core.metrics](file://src.core.metrics)
+- [src.core.prompt_linter](file://src.core.prompt_linter)
+- [tests.integration.project_fishtest](file://tests.integration.project_fishtest)
+
+### Exports
+- `TestMetricsEngine`
+- `test_linter_parse`
+- `test_metrics_compute`
+- `test_sprt_delta`

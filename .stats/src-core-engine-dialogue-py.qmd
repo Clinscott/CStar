@@ -1,0 +1,39 @@
+---
+title: "dialogue.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/core/engine/dialogue.py"
+loc: 59
+complexity: 12
+logic_score: 4.00
+style_score: 3.80
+intel_score: 9.40
+overall_score: 5.73
+---
+
+## Intent
+Core semantic routing engine for intent resolution.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 4.0/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [random](file://random)
+- [collections](file://collections)
+- [pathlib](file://pathlib)
+- [typing](file://typing)
+- [yaml](file://yaml)
+
+### Exports
+- `DialogueEngine`
+- `__init__`
+- `_load`
+- `_score_candidate`
+- `_select_final_phrase`
+- `get`
+- `__repr__`

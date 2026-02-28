@@ -1,0 +1,36 @@
+---
+title: "test_edda_audit_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_edda_audit_empire.py"
+loc: 27
+complexity: 1
+logic_score: 8.75
+style_score: 3.77
+intel_score: 4.36
+overall_score: 5.63
+---
+
+## Intent
+Autonomous neural guardian monitoring system drift and anomalies.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 4.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [pytest](file://pytest)
+- [src.sentinel.wardens.edda](file://src.sentinel.wardens.edda)
+
+### Exports
+- `TestEddaWarden`
+- `warden`
+- `test_scan_finds_missing_docstring_function`
+- `test_scan_finds_missing_docstring_class`
+- `test_scan_ignores_existing_docstring`

@@ -1,0 +1,31 @@
+---
+title: "test_atomic_gpt.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_atomic_gpt.py"
+loc: 23
+complexity: 2
+logic_score: 8.40
+style_score: 4.05
+intel_score: 9.40
+overall_score: 7.28
+---
+
+## Intent
+Python module facilitating test_anomaly_warden_forward, test_anomaly_warden_train_step.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.4/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [src.core.engine.atomic_gpt](file://src.core.engine.atomic_gpt)
+
+### Exports
+- `test_anomaly_warden_forward`
+- `test_anomaly_warden_train_step`
+- `test_session_warden_forward`

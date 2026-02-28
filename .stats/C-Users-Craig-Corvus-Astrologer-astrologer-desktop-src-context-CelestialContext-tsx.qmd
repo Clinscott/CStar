@@ -1,0 +1,37 @@
+---
+title: "CelestialContext.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/src/context/CelestialContext.tsx"
+loc: 57
+complexity: 2
+logic_score: 8.40
+style_score: 4.08
+intel_score: 3.40
+overall_score: 5.30
+---
+
+## Intent
+React component rendering CelestialContext with 2 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.4/10
+- **Style [S]**: 4.1/10
+- **Intel [I]**: 3.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [createContext](file://react)
+- [useContext](file://react)
+- [ReactNode](file://react)
+- [useMessageStream](file://@/hooks/useMessageStream)
+- [VaultState](file://@/hooks/useMessageStream)
+- [useBridgeStatus](file://@/hooks/useBridgeStatus)
+- [Message](file://@/lib/types/message)
+- [BridgePlatform](file://@/lib/types/bridge)
+
+### Exports
+- `CelestialProvider`
+- `CelestialProvider`
+- `useCelestial`
+- `useCelestial`

@@ -1,0 +1,29 @@
+---
+title: "test_annex_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_annex_empire.py"
+loc: 8
+complexity: 1
+logic_score: 9.20
+style_score: 8.14
+intel_score: 1.40
+overall_score: 6.25
+---
+
+## Intent
+Python module facilitating test_annex_scan.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 8.1/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [src.core.annex](file://src.core.annex)
+
+### Exports
+- `test_annex_scan`

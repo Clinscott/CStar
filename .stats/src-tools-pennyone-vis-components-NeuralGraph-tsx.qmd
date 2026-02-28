@@ -1,0 +1,41 @@
+---
+title: "NeuralGraph.tsx"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/components/NeuralGraph.tsx"
+loc: 280
+complexity: 31
+logic_score: 1.00
+style_score: 1.00
+intel_score: 2.71
+overall_score: 1.57
+---
+
+## Intent
+React component rendering NeuralGraph with 31 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.0/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 2.7/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [useMemo](file://react)
+- [useRef](file://react)
+- [useState](file://react)
+- [useEffect](file://react)
+- [*](file://three)
+- [useFrame](file://@react-three/fiber)
+- [useThree](file://@react-three/fiber)
+- [Html](file://@react-three/drei)
+- [useTexture](file://@react-three/drei)
+- [Segments](file://@react-three/drei)
+- [Segment](file://@react-three/drei)
+- [*](file://d3-force-3d)
+- [*](file://gsap)
+
+### Exports
+- `NeuralGraph`

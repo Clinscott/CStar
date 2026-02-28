@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-[ODIN] Persona Management System (set_persona.py)
+[O.D.I.N.] Persona Management System (set_persona.py)
 Handles dynamic switching between ODIN and A.L.F.R.E.D. personas.
 Enforces Linscott Standards: Encapsulated, Typed, Pathlib.
 """

@@ -1,0 +1,38 @@
+---
+title: "test_quota_hard_stop.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/augmented_intel/test_quota_hard_stop.py"
+loc: 44
+complexity: 3
+logic_score: 7.15
+style_score: 3.93
+intel_score: 8.67
+overall_score: 6.58
+---
+
+## Intent
+Python module facilitating TestQuotaHardStop, setup_quota.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.1/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 8.7/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [pathlib](file://pathlib)
+- [pytest](file://pytest)
+- [src.tools.brave_search](file://src.tools.brave_search)
+
+### Exports
+- `TestQuotaHardStop`
+- `setup_quota`
+- `test_quota_increment`
+- `MockResponse`
+- `raise_for_status`
+- `json`
+- `test_quota_hard_stop`
+- `test_monthly_reset`

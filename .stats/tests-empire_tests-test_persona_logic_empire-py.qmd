@@ -1,0 +1,30 @@
+---
+title: "test_persona_logic_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_persona_logic_empire.py"
+loc: 9
+complexity: 1
+logic_score: 9.20
+style_score: 8.99
+intel_score: 1.40
+overall_score: 6.53
+---
+
+## Intent
+Python module facilitating test_persona_loading.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 9.0/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [src.core.utils](file://src.core.utils)
+
+### Exports
+- `test_persona_loading`

@@ -1,0 +1,31 @@
+---
+title: "useUnifiedInbox.ts"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/src/hooks/useUnifiedInbox.ts"
+loc: 52
+complexity: 4
+logic_score: 7.70
+style_score: 4.12
+intel_score: 2.00
+overall_score: 4.61
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.7/10
+- **Style [S]**: 4.1/10
+- **Intel [I]**: 2.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [useState](file://react)
+- [useMemo](file://react)
+- [useCelestial](file://@/context/CelestialContext)
+- [Message](file://@/lib/types/message)
+
+### Exports
+- `useUnifiedInbox`
+- `useUnifiedInbox`

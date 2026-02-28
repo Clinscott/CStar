@@ -1,0 +1,34 @@
+---
+title: "InboxMessageList.test.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/test/inbox/InboxMessageList.test.tsx"
+loc: 42
+complexity: 1
+logic_score: 8.75
+style_score: 4.02
+intel_score: 2.35
+overall_score: 5.04
+---
+
+## Intent
+React component rendering InboxMessageList with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 2.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [render](file://@testing-library/react)
+- [screen](file://@testing-library/react)
+- [describe](file://vitest)
+- [it](file://vitest)
+- [expect](file://vitest)
+- [vi](file://vitest)
+- [InboxMessageList](file://@/components/ui/inbox/InboxMessageList)
+- [Message](file://@/lib/types/message)
+
+### Exports
+Internal logic only.

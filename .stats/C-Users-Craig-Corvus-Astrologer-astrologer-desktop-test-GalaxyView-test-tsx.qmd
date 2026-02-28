@@ -1,0 +1,36 @@
+---
+title: "GalaxyView.test.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/test/GalaxyView.test.tsx"
+loc: 118
+complexity: 2
+logic_score: 7.95
+style_score: 4.05
+intel_score: 6.48
+overall_score: 6.16
+---
+
+## Intent
+React component rendering GalaxyView with 2 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.9/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 6.5/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [describe](file://vitest)
+- [it](file://vitest)
+- [expect](file://vitest)
+- [vi](file://vitest)
+- [beforeEach](file://vitest)
+- [render](file://@testing-library/react)
+- [screen](file://@testing-library/react)
+- [fireEvent](file://@testing-library/react)
+- [GalaxyView](file://@/components/ui/GalaxyView)
+- [calculateOrbitalPositions](file://@/components/ui/galaxy/renderers)
+
+### Exports
+- `ResizeObserver`

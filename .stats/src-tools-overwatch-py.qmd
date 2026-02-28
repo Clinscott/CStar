@@ -1,0 +1,57 @@
+---
+title: "overwatch.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/overwatch.py"
+loc: 147
+complexity: 26
+logic_score: 1.00
+style_score: 3.75
+intel_score: 5.75
+overall_score: 3.50
+---
+
+## Intent
+Python module facilitating StatsCollector, __init__.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.0/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 5.8/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [msvcrt](file://msvcrt)
+- [os](file://os)
+- [subprocess](file://subprocess)
+- [sys](file://sys)
+- [time](file://time)
+- [contextlib](file://contextlib)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [security_scan](file://security_scan)
+
+### Exports
+- `StatsCollector`
+- `__init__`
+- `collect`
+- `OverwatchRenderer`
+- `__init__`
+- `render_header`
+- `render_heatmap`
+- `_color_cell`
+- `render_pulse_logs`
+- `update_latency`
+- `InputManager`
+- `poll`
+- `Overwatch`
+- `__init__`
+- `run`
+- `_handle_input`
+- `_check_delta`
+- `_measure_latency`
+- `_update_heatmap`
+- `_get_latest_pulses`
+- `get_stats`

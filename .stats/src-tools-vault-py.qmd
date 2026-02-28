@@ -1,0 +1,38 @@
+---
+title: "vault.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/vault.py"
+loc: 82
+complexity: 12
+logic_score: 3.10
+style_score: 3.64
+intel_score: 7.25
+overall_score: 4.67
+---
+
+## Intent
+Python module facilitating SovereignVault, __init__.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 3.1/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 7.3/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [cryptography.fernet](file://cryptography.fernet)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+
+### Exports
+- `SovereignVault`
+- `__init__`
+- `_ensure_master_key`
+- `shield`
+- `rotate`
+- `get_secrets_map`
+- `main`

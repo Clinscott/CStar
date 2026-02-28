@@ -1,0 +1,30 @@
+---
+title: "vite.config.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/vite.config.ts"
+loc: 20
+complexity: 1
+logic_score: 9.65
+style_score: 9.65
+intel_score: 6.00
+overall_score: 8.43
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.6/10
+- **Style [S]**: 9.7/10
+- **Intel [I]**: 6.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://vite)
+- [*](file://@vitejs/plugin-react)
+
+### Exports
+Internal logic only.

@@ -1,0 +1,35 @@
+---
+title: "ui.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/games/odin_protocol/ui.py"
+loc: 89
+complexity: 15
+logic_score: 2.50
+style_score: 3.52
+intel_score: 3.20
+overall_score: 3.07
+---
+
+## Intent
+Python module facilitating OdinUI, render_manifest.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 2.5/10
+- **Style [S]**: 3.5/10
+- **Intel [I]**: 3.2/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [os](file://os)
+- [time](file://time)
+- [rich.console](file://rich.console)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [src.games.odin_protocol.engine](file://src.games.odin_protocol.engine)
+
+### Exports
+- `OdinUI`
+- `render_manifest`
+- `briefing`

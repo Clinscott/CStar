@@ -1,0 +1,30 @@
+---
+title: "test___init___empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test___init___empire.py"
+loc: 10
+complexity: 1
+logic_score: 8.75
+style_score: 4.49
+intel_score: 9.40
+overall_score: 7.55
+---
+
+## Intent
+Python module facilitating test_src_is_importable_as_a_package.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 4.5/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [pytest](file://pytest)
+- [src](file://src)
+
+### Exports
+- `test_src_is_importable_as_a_package`

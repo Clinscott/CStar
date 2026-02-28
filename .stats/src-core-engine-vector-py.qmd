@@ -1,0 +1,62 @@
+---
+title: "vector.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/core/engine/vector.py"
+loc: 389
+complexity: 64
+logic_score: 1.00
+style_score: 3.32
+intel_score: 6.95
+overall_score: 3.76
+---
+
+## Intent
+Python module facilitating SovereignVector, __init__.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.0/10
+- **Style [S]**: 3.3/10
+- **Intel [I]**: 7.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [os](file://os)
+- [re](file://re)
+- [pathlib](file://pathlib)
+- [typing](file://typing)
+- [src.core.engine.instruction_loader](file://src.core.engine.instruction_loader)
+- [src.core.engine.memory_db](file://src.core.engine.memory_db)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [math](file://math)
+
+### Exports
+- `SovereignVector`
+- `__init__`
+- `_load_json`
+- `_load_stopwords`
+- `_load_thesaurus`
+- `clear_active_ram`
+- `normalize`
+- `_expand_query`
+- `_calculate_lexical_evidence`
+- `_score_intent`
+- `_apply_boosts`
+- `_check_direct_mappings`
+- `_check_fast_path`
+- `_get_top_domain`
+- `search`
+- `load_core_skills`
+- `_ingest_markdown_file`
+- `_ingest_json_file`
+- `load_skills_from_dir`
+- `_get_activation_text`
+- `vocab`
+- `build_index`
+- `_shadow_extract_tokens`
+- `_shadow_calculate_score`
+- `_shadow_search`
+- `add_skill`

@@ -6,7 +6,7 @@ from typing import Any
 @dataclass(frozen=True)
 class IntentPayload:
     """
-    [ODIN] Immutable Payload Object for intent routing.
+    [O.D.I.N.] Immutable Payload Object for intent routing.
     Enforces strict structural rigidity across the Python Daemon boundaries.
     """
     system_meta: MappingProxyType[str, Any]

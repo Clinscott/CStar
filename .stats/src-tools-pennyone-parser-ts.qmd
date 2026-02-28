@@ -1,0 +1,32 @@
+---
+title: "parser.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/parser.ts"
+loc: 43
+complexity: 7
+logic_score: 6.65
+style_score: 3.95
+intel_score: 6.65
+overall_score: 5.75
+---
+
+## Intent
+Orchestrates Babel AST parsing for the static analysis engine.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.7/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 6.7/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://web-tree-sitter)
+- [*](file://path)
+
+### Exports
+- `initParsers`
+- `getParser`
+- `parseCode`

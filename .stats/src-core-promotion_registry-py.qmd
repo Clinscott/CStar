@@ -1,0 +1,39 @@
+---
+title: "promotion_registry.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/core/promotion_registry.py"
+loc: 43
+complexity: 5
+logic_score: 6.00
+style_score: 3.85
+intel_score: 1.40
+overall_score: 3.75
+---
+
+## Intent
+Python module facilitating PromotionRegistry, __init__.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.0/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [os](file://os)
+- [hashlib](file://hashlib)
+- [datetime](file://datetime)
+- [pathlib](file://pathlib)
+
+### Exports
+- `PromotionRegistry`
+- `__init__`
+- `_load_registry`
+- `_save_registry`
+- `_get_hash`
+- `register_promotion`
+- `is_verified`

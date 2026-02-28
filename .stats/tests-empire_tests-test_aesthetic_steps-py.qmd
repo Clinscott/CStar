@@ -1,0 +1,49 @@
+---
+title: "test_aesthetic_steps.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_aesthetic_steps.py"
+loc: 69
+complexity: 1
+logic_score: 8.30
+style_score: 3.87
+intel_score: 1.98
+overall_score: 4.72
+---
+
+## Intent
+Python module facilitating test_rendering_initialization, test_data_pulse.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.3/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 2.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [pytest](file://pytest)
+- [asyncio](file://asyncio)
+- [playwright.async_api](file://playwright.async_api)
+- [pytest_bdd](file://pytest_bdd)
+- [pathlib](file://pathlib)
+
+### Exports
+- `test_rendering_initialization`
+- `test_data_pulse`
+- `test_iconography`
+- `shared_state`
+- `check_data_fetched`
+- `check_webgl`
+- `wait_for_mount`
+- `check_geometries`
+- `check_bloom`
+- `check_pathways`
+- `check_render_loop`
+- `check_dash_animation`
+- `check_pulse_colors`
+- `check_agent_nodes`
+- `view_matrix`
+- `check_sprites`
+- `check_pixel_assets`

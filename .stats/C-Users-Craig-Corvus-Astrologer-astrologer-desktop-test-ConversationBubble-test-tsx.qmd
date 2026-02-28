@@ -1,0 +1,36 @@
+---
+title: "ConversationBubble.test.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/test/ConversationBubble.test.tsx"
+loc: 125
+complexity: 3
+logic_score: 7.15
+style_score: 3.96
+intel_score: 4.28
+overall_score: 5.13
+---
+
+## Intent
+React component rendering ConversationBubble with 3 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.1/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 4.3/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [describe](file://vitest)
+- [it](file://vitest)
+- [expect](file://vitest)
+- [vi](file://vitest)
+- [render](file://@testing-library/react)
+- [screen](file://@testing-library/react)
+- [fireEvent](file://@testing-library/react)
+- [waitFor](file://@testing-library/react)
+- [ConversationBubble](file://@/components/ui/ConversationBubble)
+- [Message](file://@/lib/types/message)
+
+### Exports
+Internal logic only.

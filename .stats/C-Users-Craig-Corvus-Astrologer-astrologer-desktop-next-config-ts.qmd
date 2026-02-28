@@ -1,0 +1,27 @@
+---
+title: "next.config.ts"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/next.config.ts"
+loc: 8
+complexity: 1
+logic_score: 9.65
+style_score: 9.59
+intel_score: 10.00
+overall_score: 9.75
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.6/10
+- **Style [S]**: 9.6/10
+- **Intel [I]**: 10.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [NextConfig](file://next)
+
+### Exports
+- `nextConfig`

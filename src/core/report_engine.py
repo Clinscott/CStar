@@ -32,7 +32,7 @@ class ReportEngine:
 
     def header(self, title: str) -> str:
         """Returns the stylized ASCII header for the report."""
-        if self.persona in ["ODIN", "GOD"]:
+        if self.persona in ["O.D.I.N.", "ODIN", "GOD"]:
             return f"""
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │  Ω  {title.upper():<64} │
@@ -49,14 +49,14 @@ class ReportEngine:
 
     def section(self, title: str) -> str:
         """Returns a section divider."""
-        if self.persona in ["ODIN", "GOD"]:
+        if self.persona in ["O.D.I.N.", "ODIN", "GOD"]:
             return f"\n> [!IMPORTANT]\n> **{title.upper()}**\n"
         else:
             return f"\n### {title.title()}\n"
 
     def verdict(self, status: str, detail: str) -> str:
         """Formats a verdict/conclusion line."""
-        if self.persona in ["ODIN", "GOD"]:
+        if self.persona in ["O.D.I.N.", "ODIN", "GOD"]:
             icon = "✅" if status == "PASS" else "❌"
             return f"\n**JUDGMENT**: {icon} {status.upper()} — *{detail}*"
         else:
@@ -68,8 +68,8 @@ class ReportEngine:
         The anti-hallucination seal.
         Returns the ONLY authorized signature for the active persona.
         """
-        if self.persona in ["ODIN", "GOD"]:
-            return "\n\n---\n**SIGNED: ODIN, THE ALL-FATHER**\n*The Runes Are Cast.*"
+        if self.persona in ["O.D.I.N.", "ODIN", "GOD"]:
+            return "\n\n---\n**SIGNED: O.D.I.N., THE ALL-FATHER**\n*The Runes Are Cast.*"
         else:
             return "\n\n---\n**Your Humble Servant,**\n*A.L.F.R.E.D. Pennyworth*"
 

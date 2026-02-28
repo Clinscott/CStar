@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-[ODIN] Identity Purity Audit (audit_dialogue.py)
+[O.D.I.N.] Identity Purity Audit (audit_dialogue.py)
 Analyzes text for persona alignment using SovereignVector.
 Encapsulated for the Linscott Standard.
 """

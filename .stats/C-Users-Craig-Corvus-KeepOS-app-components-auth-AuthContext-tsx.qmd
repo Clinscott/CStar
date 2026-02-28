@@ -1,0 +1,34 @@
+---
+title: "AuthContext.tsx"
+path: "C:/Users/Craig/Corvus/KeepOS/app/components/auth/AuthContext.tsx"
+loc: 83
+complexity: 10
+logic_score: 4.25
+style_score: 3.97
+intel_score: 4.89
+overall_score: 4.37
+---
+
+## Intent
+React component rendering AuthContext with 10 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 4.3/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 4.9/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [createContext](file://react)
+- [useContext](file://react)
+- [useState](file://react)
+- [useEffect](file://react)
+- [ReactNode](file://react)
+- [invoke](file://@/lib/tauri)
+
+### Exports
+- `AuthProvider`
+- `AuthProvider`
+- `useAuth`

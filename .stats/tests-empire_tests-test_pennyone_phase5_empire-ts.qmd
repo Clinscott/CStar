@@ -1,0 +1,31 @@
+---
+title: "test_pennyone_phase5_empire.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_pennyone_phase5_empire.ts"
+loc: 53
+complexity: 1
+logic_score: 8.75
+style_score: 3.80
+intel_score: 3.51
+overall_score: 5.35
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 3.5/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://node:test)
+- [*](file://node:assert)
+- [*](file://../../src/tools/pennyone/analyzer.js)
+
+### Exports
+Internal logic only.

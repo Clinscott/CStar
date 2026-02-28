@@ -1,0 +1,33 @@
+---
+title: "events.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/node/gateway/routes/ws/events.ts"
+loc: 38
+complexity: 3
+logic_score: 7.15
+style_score: 4.00
+intel_score: 6.21
+overall_score: 5.79
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.1/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 6.2/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## ⛩️ API Gateways
+- `[GET] /connect`
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://fastify)
+- [*](file://ws)
+- [*](file://../../../core/EventManager.js)
+
+### Exports
+Internal logic only.

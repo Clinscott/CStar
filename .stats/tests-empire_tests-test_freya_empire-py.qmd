@@ -1,0 +1,39 @@
+---
+title: "test_freya_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_freya_empire.py"
+loc: 62
+complexity: 3
+logic_score: 8.05
+style_score: 1.00
+intel_score: 9.14
+overall_score: 6.06
+---
+
+## Intent
+Python module facilitating TestFreyaEmpire, mock_root.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.0/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 9.1/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [pytest](file://pytest)
+- [src.sentinel.wardens.freya](file://src.sentinel.wardens.freya)
+
+### Exports
+- `TestFreyaEmpire`
+- `mock_root`
+- `test_scan_no_files`
+- `test_scan_hover_breach`
+- `test_scan_tailwind_arbitrary`
+- `test_scan_color_deviance`
+- `test_valid_file`

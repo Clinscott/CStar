@@ -1,0 +1,36 @@
+---
+title: "UnifiedInbox.test.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/test/UnifiedInbox.test.tsx"
+loc: 61
+complexity: 1
+logic_score: 8.75
+style_score: 4.03
+intel_score: 2.06
+overall_score: 4.94
+---
+
+## Intent
+React component rendering UnifiedInbox with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 2.1/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [render](file://@testing-library/react)
+- [screen](file://@testing-library/react)
+- [UnifiedInbox](file://../src/components/ui/UnifiedInbox)
+- [describe](file://vitest)
+- [it](file://vitest)
+- [expect](file://vitest)
+- [vi](file://vitest)
+- [beforeEach](file://vitest)
+- [*](file://@testing-library/jest-dom)
+- [useUnifiedInbox](file://@/hooks/useUnifiedInbox)
+
+### Exports
+Internal logic only.

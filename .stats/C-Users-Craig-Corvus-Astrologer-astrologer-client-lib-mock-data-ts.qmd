@@ -1,0 +1,27 @@
+---
+title: "mock-data.ts"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-client/lib/mock-data.ts"
+loc: 55
+complexity: 1
+logic_score: 9.65
+style_score: 3.90
+intel_score: 5.64
+overall_score: 6.39
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.6/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 5.6/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+Minimal internal dependencies.
+
+### Exports
+- `MOCK_MESSAGES`

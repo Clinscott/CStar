@@ -1,0 +1,39 @@
+---
+title: "gm_client.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/games/odin_protocol/engine/gm_client.py"
+loc: 98
+complexity: 5
+logic_score: 6.45
+style_score: 3.73
+intel_score: 7.93
+overall_score: 6.04
+---
+
+## Intent
+Python module facilitating OdinGM, __init__.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.5/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 7.9/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [logging](file://logging)
+- [os](file://os)
+- [typing](file://typing)
+- [google](file://google)
+- [google.genai](file://google.genai)
+- [src.games.odin_protocol.engine.scenarios](file://src.games.odin_protocol.engine.scenarios)
+
+### Exports
+- `OdinGM`
+- `__init__`
+- `generate_scenario`
+- `describe_outcome`
+- `scientist_query`

@@ -1,0 +1,31 @@
+---
+title: "test_warden_burnin.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/unit/test_warden_burnin.py"
+loc: 34
+complexity: 4
+logic_score: 7.70
+style_score: 3.70
+intel_score: 1.40
+overall_score: 4.27
+---
+
+## Intent
+Python module facilitating test_burn_in.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.7/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [src.core.engine.atomic_gpt](file://src.core.engine.atomic_gpt)
+
+### Exports
+- `test_burn_in`

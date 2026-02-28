@@ -1,0 +1,30 @@
+---
+title: "test_odin_rng.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_odin_rng.py"
+loc: 13
+complexity: 2
+logic_score: 8.40
+style_score: 4.14
+intel_score: 9.40
+overall_score: 7.31
+---
+
+## Intent
+Python module facilitating test_tactical_rng_bounds, test_tactical_rng_choice.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.4/10
+- **Style [S]**: 4.1/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [src.games.odin_protocol.engine.rng](file://src.games.odin_protocol.engine.rng)
+
+### Exports
+- `test_tactical_rng_bounds`
+- `test_tactical_rng_choice`

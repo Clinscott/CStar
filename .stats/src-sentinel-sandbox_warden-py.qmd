@@ -1,0 +1,35 @@
+---
+title: "sandbox_warden.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/sentinel/sandbox_warden.py"
+loc: 96
+complexity: 8
+logic_score: 4.50
+style_score: 3.65
+intel_score: 3.07
+overall_score: 3.74
+---
+
+## Intent
+Autonomous neural guardian monitoring system drift and anomalies.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 4.5/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 3.1/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [subprocess](file://subprocess)
+- [sys](file://sys)
+- [uuid](file://uuid)
+- [pathlib](file://pathlib)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+
+### Exports
+- `SandboxWarden`
+- `__init__`
+- `run_in_sandbox`

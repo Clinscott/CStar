@@ -1,0 +1,419 @@
+{
+  "version": "1.7.0",
+  "scanned_at": "2026-02-27T23:51:06.239Z",
+  "files": [
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/annex.py",
+      "loc": 148,
+      "complexity": 29,
+      "matrix": {
+        "logic": 9.608108108108109,
+        "style": 8,
+        "intel": 8,
+        "overall": 8.536036036036036
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "96db49e28a12ac8d1fd9096422ef01d0"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/cstar_dispatcher.py",
+      "loc": 143,
+      "complexity": 29,
+      "matrix": {
+        "logic": 9.594405594405595,
+        "style": 8,
+        "intel": 8,
+        "overall": 8.531468531468532
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "d07402d398a0f8403893187ff2b11b60"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/edda.py",
+      "loc": 130,
+      "complexity": 18,
+      "matrix": {
+        "logic": 9.723076923076922,
+        "style": 8,
+        "intel": 8,
+        "overall": 8.574358974358974
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "8f821d1bb07dcf5261236d5ab4b33c99"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/metrics.py",
+      "loc": 105,
+      "complexity": 6,
+      "matrix": {
+        "logic": 9.885714285714286,
+        "style": 8,
+        "intel": 8,
+        "overall": 8.628571428571428
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "00ce8ae0cbed822d4f0d24a675ec4301"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/payload.py",
+      "loc": 31,
+      "complexity": 3,
+      "matrix": {
+        "logic": 9.806451612903226,
+        "style": 8,
+        "intel": 8,
+        "overall": 8.602150537634408
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "1d5aef49f2b192c5fd4590b9fbbbcfca"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/personas.py",
+      "loc": 157,
+      "complexity": 21,
+      "matrix": {
+        "logic": 9.73248407643312,
+        "style": 8,
+        "intel": 8,
+        "overall": 8.577494692144374
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "a821277ba64b14b6fa872a14167de3d5"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/promotion_registry.py",
+      "loc": 43,
+      "complexity": 5,
+      "matrix": {
+        "logic": 9.767441860465116,
+        "style": 8,
+        "intel": 8,
+        "overall": 8.589147286821705
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "fb746f78018d90d91c2d4feb782d2144"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/prompt_linter.py",
+      "loc": 48,
+      "complexity": 16,
+      "matrix": {
+        "logic": 9.333333333333334,
+        "style": 8,
+        "intel": 8,
+        "overall": 8.444444444444445
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "0aac9903cef3f02f54e50805e17175af"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/redactor.py",
+      "loc": 35,
+      "complexity": 6,
+      "matrix": {
+        "logic": 9.657142857142857,
+        "style": 8,
+        "intel": 8,
+        "overall": 8.552380952380952
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "3a3179e0e78ec22ad0a7e272e3cbbbf8"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/report_engine.py",
+      "loc": 43,
+      "complexity": 6,
+      "matrix": {
+        "logic": 9.720930232558139,
+        "style": 8,
+        "intel": 8,
+        "overall": 8.573643410852712
+      },
+      "intent": "...",
+      "dependencies": [
+        "C:/Users/Craig/Corvus/CorvusStar/src/core/utils.py"
+      ],
+      "hash": "fbbe5bd329d79dd703275b72ffd6f6f7"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/set_persona.py",
+      "loc": 155,
+      "complexity": 22,
+      "matrix": {
+        "logic": 9.716129032258065,
+        "style": 8,
+        "intel": 8,
+        "overall": 8.572043010752688
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "105dbe17d599d4e13ed419474f820cf2"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/sovereign_hud.py",
+      "loc": 331,
+      "complexity": 36,
+      "matrix": {
+        "logic": 9.782477341389727,
+        "style": 8,
+        "intel": 8,
+        "overall": 8.594159113796577
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "ade13a2c3e1ab4b04d1b48c32a182d2a"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/sv_engine.py",
+      "loc": 294,
+      "complexity": 41,
+      "matrix": {
+        "logic": 9.72108843537415,
+        "style": 8,
+        "intel": 8,
+        "overall": 8.573696145124716
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "3fa992a4b7e24ee1bd378b4ba4981010"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/utils.py",
+      "loc": 53,
+      "complexity": 4,
+      "matrix": {
+        "logic": 9.849056603773585,
+        "style": 8,
+        "intel": 8,
+        "overall": 8.616352201257861
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "c8a6f96d0e2c5e05134cdb28465ea0a4"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/__init__.py",
+      "loc": 31,
+      "complexity": 4,
+      "matrix": {
+        "logic": 9.741935483870968,
+        "style": 8,
+        "intel": 8,
+        "overall": 8.580645161290322
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "258f91fbfd0db466d2b054f3dfff6887"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/calculus/intel.ts",
+      "loc": 10,
+      "complexity": 3,
+      "matrix": {
+        "logic": 9.4,
+        "style": 8,
+        "intel": 8,
+        "overall": 8.466666666666667
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "37d697cfb6beb02486e4e6250125a41f"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/calculus/logic.ts",
+      "loc": 7,
+      "complexity": 2,
+      "matrix": {
+        "logic": 9.428571428571429,
+        "style": 8,
+        "intel": 8,
+        "overall": 8.476190476190476
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "a341931c94feea1318a83e9b3664bbe6"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/calculus/style.ts",
+      "loc": 23,
+      "complexity": 4,
+      "matrix": {
+        "logic": 9.652173913043478,
+        "style": 8,
+        "intel": 8,
+        "overall": 8.550724637681158
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "03d3f1fdee2212556c8c9cd4c802c929"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/engine/alfred_observer.py",
+      "loc": 20,
+      "complexity": 6,
+      "matrix": {
+        "logic": 9.4,
+        "style": 8,
+        "intel": 8,
+        "overall": 8.466666666666667
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "f9538a553b5919eeaa13d270ddd8f09c"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/engine/atomic_gpt.py",
+      "loc": 197,
+      "complexity": 13,
+      "matrix": {
+        "logic": 9.868020304568528,
+        "style": 8,
+        "intel": 8,
+        "overall": 8.622673434856177
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "15be892d0a67d3ac951ee9b2363ab6b1"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/engine/cortex.py",
+      "loc": 54,
+      "complexity": 11,
+      "matrix": {
+        "logic": 9.592592592592593,
+        "style": 8,
+        "intel": 8,
+        "overall": 8.530864197530866
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "34e717d78b35cba3571b8f76cc71e05b"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/engine/dialogue.py",
+      "loc": 59,
+      "complexity": 12,
+      "matrix": {
+        "logic": 9.59322033898305,
+        "style": 8,
+        "intel": 8,
+        "overall": 8.531073446327683
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "47419931b3d78a0144813f89bce7041a"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/engine/env_adapter.py",
+      "loc": 32,
+      "complexity": 4,
+      "matrix": {
+        "logic": 9.75,
+        "style": 8,
+        "intel": 8,
+        "overall": 8.583333333333334
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "9a57b06164ef1fd0b28ec58021b13ce0"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/engine/instruction_loader.py",
+      "loc": 56,
+      "complexity": 14,
+      "matrix": {
+        "logic": 9.5,
+        "style": 8,
+        "intel": 8,
+        "overall": 8.5
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "be075677a28804f7d93a9edaa4eae889"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/engine/memory_db.py",
+      "loc": 103,
+      "complexity": 11,
+      "matrix": {
+        "logic": 9.78640776699029,
+        "style": 8,
+        "intel": 8,
+        "overall": 8.59546925566343
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "2a8a8e702c854fa86b7b827ba491fcf3"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/engine/vector.py",
+      "loc": 389,
+      "complexity": 64,
+      "matrix": {
+        "logic": 9.67095115681234,
+        "style": 8,
+        "intel": 8,
+        "overall": 8.556983718937447
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "a3938fc0be89da1f5ab803a7e51d6885"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/engine/__init__.py",
+      "loc": 0,
+      "complexity": 1,
+      "matrix": {
+        "logic": 8,
+        "style": 8,
+        "intel": 8,
+        "overall": 8
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "81051bcc2cf1bedf378224b0a93e2877"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/engine/gungnir/ledger.py",
+      "loc": 41,
+      "complexity": 4,
+      "matrix": {
+        "logic": 9.804878048780488,
+        "style": 8,
+        "intel": 8,
+        "overall": 8.601626016260163
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "57fbe8659ff54ab43756fa83e03fdfc7"
+    },
+    {
+      "path": "C:/Users/Craig/Corvus/CorvusStar/src/core/engine/gungnir/universal.py",
+      "loc": 90,
+      "complexity": 18,
+      "matrix": {
+        "logic": 9.6,
+        "style": 8,
+        "intel": 8,
+        "overall": 8.533333333333333
+      },
+      "intent": "...",
+      "dependencies": [],
+      "hash": "59a72c6cb5588b026731089a375080ee"
+    }
+  ],
+  "summary": {
+    "total_files": 29,
+    "total_loc": 2828,
+    "average_score": 8.536627486564937
+  }
+}

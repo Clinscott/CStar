@@ -1,0 +1,27 @@
+---
+title: "AppHeader.tsx"
+path: "C:/Users/Craig/Corvus/SecureSphere/src/components/layout/AppHeader.tsx"
+loc: 30
+complexity: 1
+logic_score: 9.20
+style_score: 1.00
+intel_score: 3.33
+overall_score: 4.51
+---
+
+## Intent
+React component rendering AppHeader with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 3.3/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [*](file://react)
+
+### Exports
+- `AppHeader`

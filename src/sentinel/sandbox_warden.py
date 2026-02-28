@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-[ODIN] The Sandbox Warden
+[O.D.I.N.] The Sandbox Warden
 Responsible for executing untrusted Python skills in a restricted Docker environment.
 Implements:
 1. Physical Isolation (Docker container with no networking)

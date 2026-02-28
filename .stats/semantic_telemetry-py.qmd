@@ -1,0 +1,29 @@
+---
+title: "semantic_telemetry.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/semantic_telemetry.py"
+loc: 8
+complexity: 3
+logic_score: 8.05
+style_score: 9.51
+intel_score: 1.40
+overall_score: 6.32
+---
+
+## Intent
+Python module facilitating internal logic.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.0/10
+- **Style [S]**: 9.5/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [src.core.engine.vector](file://src.core.engine.vector)
+
+### Exports
+Internal logic only.

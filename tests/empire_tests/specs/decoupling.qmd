@@ -1,0 +1,26 @@
+
+Feature: Gemini CLI Decoupling and Integration
+
+  This feature verifies that Corvus Star correctly decouples its intelligence layer 
+  when running within the Gemini CLI environment. It ensures that direct API calls
+  are bypassed in favor of structured directives and that the UI reflects this state.
+
+  Scenario: AntigravityUplink emits [GEMINI_DIRECTIVE] in Gemini Mode
+    Given the environment variable "GEMINI_CLI_ACTIVE" is set to "true"
+    And a query is sent to the AntigravityUplink
+    When the uplink processes the transmission
+    Then the uplink should NOT initialize a direct SDK client
+    And it should print a structured "[GEMINI_DIRECTIVE]" JSON block to stdout
+    And it should return a "pending" status to the caller
+
+  Scenario: Muninn operates without a direct SDK client in Gemini Mode
+    Given the environment variable "GEMINI_CLI_ACTIVE" is set to "true"
+    When Muninn is initialized
+    Then Muninn.client should be None
+    And Muninn should utilize the AntigravityUplink for all Forge operations
+
+  Scenario: Control Plane (cstar.ts) displays integration status in Gemini Mode
+    Given the environment variable "GEMINI_CLI_ACTIVE" is set to "true"
+    When the "ravens --status" command is executed
+    Then the output should include "◤ GEMINI CLI INTEGRATION ACTIVE ◢"
+    And the startup ceremony should display "INTELLIGENCE: DECOUPLED"

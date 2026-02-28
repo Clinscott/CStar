@@ -1,0 +1,49 @@
+---
+title: "MessageDetailPanel.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/src/components/layout/MessageDetailPanel.tsx"
+loc: 228
+complexity: 9
+logic_score: 5.95
+style_score: 1.00
+intel_score: 4.46
+overall_score: 3.80
+---
+
+## Intent
+React component rendering MessageDetailPanel with 9 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 5.9/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 4.5/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [useState](file://react)
+- [useMemo](file://react)
+- [cn](file://@/lib/utils)
+- [PanelTabBar](file://./PanelTabBar)
+- [PanelTab](file://./PanelTabBar)
+- [Message](file://@/lib/types/message)
+- [MessageFeed](file://@/components/ui/MessageFeed)
+- [InboxInput](file://@/components/ui/inbox/InboxInput)
+- [SettingsView](file://@/components/views/SettingsView)
+- [GrimoireView](file://@/components/views/GrimoireView)
+- [GalaxyView](file://@/components/ui/GalaxyView)
+- [MessageCircle](file://lucide-react)
+- [Settings](file://lucide-react)
+- [Book](file://lucide-react)
+- [Pin](file://lucide-react)
+- [Search](file://lucide-react)
+- [Sparkles](file://lucide-react)
+- [MoreHorizontal](file://lucide-react)
+- [Orbit](file://lucide-react)
+- [ScrollText](file://lucide-react)
+- [ConversationBubble](file://@/components/ui/ConversationBubble)
+- [KnowledgeHunter](file://@/components/agent/KnowledgeHunter)
+
+### Exports
+- `MessageDetailPanel`
+- `MessageDetailPanel`

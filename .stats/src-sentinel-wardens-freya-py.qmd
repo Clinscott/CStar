@@ -1,0 +1,34 @@
+---
+title: "freya.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/sentinel/wardens/freya.py"
+loc: 92
+complexity: 18
+logic_score: 1.00
+style_score: 1.00
+intel_score: 4.01
+overall_score: 2.00
+---
+
+## Intent
+Autonomous neural guardian monitoring system drift and anomalies.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.0/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 4.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [re](file://re)
+- [pathlib](file://pathlib)
+- [typing](file://typing)
+- [src.sentinel.wardens.base](file://src.sentinel.wardens.base)
+
+### Exports
+- `FreyaWarden`
+- `scan`

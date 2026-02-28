@@ -1,0 +1,40 @@
+---
+title: "test_freya_aesthetics_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_freya_aesthetics_empire.py"
+loc: 54
+complexity: 1
+logic_score: 8.75
+style_score: 1.00
+intel_score: 5.84
+overall_score: 5.20
+---
+
+## Intent
+Autonomous neural guardian monitoring system drift and anomalies.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 5.8/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [pytest](file://pytest)
+- [src.sentinel.wardens.freya](file://src.sentinel.wardens.freya)
+
+### Exports
+- `TestFreyaWarden`
+- `warden`
+- `color_theory`
+- `test_scan_finds_hover_breach`
+- `test_scan_finds_color_breach`
+- `test_birkhoff_measure_breach`
+- `test_golden_ratio_breach`
+- `test_aesthetic_pass`

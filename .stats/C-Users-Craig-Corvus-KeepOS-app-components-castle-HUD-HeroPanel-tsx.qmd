@@ -1,0 +1,32 @@
+---
+title: "HeroPanel.tsx"
+path: "C:/Users/Craig/Corvus/KeepOS/app/components/castle/HUD/HeroPanel.tsx"
+loc: 72
+complexity: 4
+logic_score: 8.15
+style_score: 1.00
+intel_score: 5.33
+overall_score: 4.83
+---
+
+## Intent
+React component rendering HeroPanel with 4 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.1/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 5.3/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [motion](file://framer-motion)
+- [*](file://next/image)
+- [Battery](file://lucide-react)
+- [Swords](file://lucide-react)
+- [HeroStats](file://../types)
+
+### Exports
+- `HeroPanel`
+- `HeroPanel`

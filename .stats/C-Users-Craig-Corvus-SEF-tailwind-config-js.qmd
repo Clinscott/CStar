@@ -1,0 +1,27 @@
+---
+title: "tailwind.config.js"
+path: "C:/Users/Craig/Corvus/SEF/tailwind.config.js"
+loc: 16
+complexity: 1
+logic_score: 9.65
+style_score: 7.25
+intel_score: 9.40
+overall_score: 8.77
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.6/10
+- **Style [S]**: 7.2/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+Minimal internal dependencies.
+
+### Exports
+Internal logic only.

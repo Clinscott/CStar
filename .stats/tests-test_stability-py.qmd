@@ -1,0 +1,39 @@
+---
+title: "test_stability.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_stability.py"
+loc: 48
+complexity: 4
+logic_score: 7.70
+style_score: 3.71
+intel_score: 9.40
+overall_score: 6.94
+---
+
+## Intent
+Python module facilitating test_gungnir_validator_stable, test_gungnir_validator_flaky.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.7/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [time](file://time)
+- [pytest](file://pytest)
+- [src.sentinel.stability](file://src.sentinel.stability)
+
+### Exports
+- `test_gungnir_validator_stable`
+- `test_gungnir_validator_flaky`
+- `test_gungnir_validator_continue`
+- `mock_watcher`
+- `test_watcher_load_save_state`
+- `test_watcher_is_locked`
+- `test_watcher_cooldown`
+- `test_watcher_record_edit_fatigue`
+- `test_watcher_echo_detection`

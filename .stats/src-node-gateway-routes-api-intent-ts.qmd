@@ -1,0 +1,32 @@
+---
+title: "intent.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/node/gateway/routes/api/intent.ts"
+loc: 42
+complexity: 3
+logic_score: 7.60
+style_score: 3.90
+intel_score: 3.90
+overall_score: 5.14
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.6/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 3.9/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## ⛩️ API Gateways
+- `[POST] /intent`
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://fastify)
+- [*](file://@sinclair/typebox)
+
+### Exports
+Internal logic only.

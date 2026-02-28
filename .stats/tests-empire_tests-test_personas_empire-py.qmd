@@ -1,0 +1,38 @@
+---
+title: "test_personas_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_personas_empire.py"
+loc: 56
+complexity: 3
+logic_score: 7.15
+style_score: 3.70
+intel_score: 1.40
+overall_score: 4.08
+---
+
+## Intent
+Python module facilitating TestPersonasEmpire, test_get_strategy_resolution.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.1/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [unittest.mock](file://unittest.mock)
+- [pytest](file://pytest)
+- [src.core.personas](file://src.core.personas)
+
+### Exports
+- `TestPersonasEmpire`
+- `test_get_strategy_resolution`
+- `test_quarantine_logic`
+- `test_odin_policy_defiance`
+- `test_voices`
+- `test_sync_configs_alfred`

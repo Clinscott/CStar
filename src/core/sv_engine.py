@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-[ODIN] Sovereign Engine Entry Point (sv_engine.py)
+[O.D.I.N.] Sovereign Engine Entry Point (sv_engine.py)
 Orchestrates neural search, cortex queries, and proactive skill installation.
 Refined for the Linscott Standard (Typing, Pathlib, Encapsulation).
 """
@@ -33,12 +33,13 @@ from src.core.engine.vector import SovereignVector
 from src.core.payload import IntentPayload
 from src.core.sovereign_hud import SovereignHUD
 from src.tools.brave_search import BraveSearch
+from src.tools.gemini_search import GeminiSearch
 from src.tools.compile_session_traces import compile_traces
 
 
 class SovereignEngine:
     """
-    [ODIN] The Master Engine of Corvus Star.
+    [O.D.I.N.] The Master Engine of Corvus Star.
     V4: High-Performance Intent Resolution with Proactive Acquisition.
     """
 
@@ -218,10 +219,19 @@ class SovereignEngine:
         top = results[0] if results else None
 
         if not top or top['score'] < 0.6:
-            # Zero-Hit Fallback: Brave Web Search
+            # Zero-Hit Fallback: Integrated Search
             SovereignHUD.persona_log("INFO", "SovereignEngine: Low confidence. Fallback...")
-            searcher = BraveSearch()
-            web_results = searcher.search(query)
+            
+            # [Ω] Prioritize Gemini CLI Search if active
+            gemini = GeminiSearch()
+            if gemini.is_available():
+                searcher = gemini
+            else:
+                searcher = BraveSearch()
+            
+            # [ALFRED] Contextualize the query for better search relevance
+            contextual_query = f"Corvus Star agent command '{query}' meaning programmatic interface"
+            web_results = searcher.search(contextual_query)
 
             if web_results:
                 formatted_results = "\n".join(
@@ -329,8 +339,13 @@ class SovereignEngine:
         term = unknown_terms[0]
         SovereignHUD.persona_log("INFO", f"Raven's Eye: Unknown term '{term}'. Seeking definition.")
 
-        # 2. Trigger Brave Search
-        searcher = BraveSearch()
+        # 2. Trigger Search (Prioritize Gemini CLI)
+        gemini = GeminiSearch()
+        if gemini.is_available():
+            searcher = gemini
+        else:
+            searcher = BraveSearch()
+            
         results = searcher.search(f"Technical definition and synonyms for {term}")
 
         if not results:
@@ -343,10 +358,8 @@ class SovereignEngine:
 
         SovereignHUD.persona_log("INFO", f"Raven's Eye: Ingesting intelligence for '{term}'.")
 
-        # 4. Inject into Cortex (Session-local)
-        cortex = Cortex(str(self.project_root), str(self.base_path))
-        cortex.add_node(f"LEXICON:{term}", {"definition": definition,
-                                            "source": "BraveSearch", "query": term})
+        # 4. Inject into Engine (Session-local memory)
+        self.engine.add_skill(f"LEXICON:{term}", definition, domain="GENERAL")
 
         # [Ω] Persistent Learning: Update thesaurus.qmd with the new knowledge
         try:

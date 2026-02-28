@@ -1,0 +1,35 @@
+---
+title: "test_debug_perf.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_debug_perf.py"
+loc: 13
+complexity: 1
+logic_score: 8.30
+style_score: 3.90
+intel_score: 7.55
+overall_score: 6.59
+---
+
+## Intent
+Core semantic routing engine for intent resolution.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.3/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 7.6/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [src.tools.debug.debug_perf](file://src.tools.debug.debug_perf)
+
+### Exports
+- `test_run_profile_mock`
+- `MockEngine`
+- `__init__`
+- `load_core_skills`
+- `load_skills_from_dir`
+- `build_index`
+- `search`

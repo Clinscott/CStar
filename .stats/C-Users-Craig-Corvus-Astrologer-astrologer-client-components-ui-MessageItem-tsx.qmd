@@ -1,0 +1,34 @@
+---
+title: "MessageItem.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-client/components/ui/MessageItem.tsx"
+loc: 73
+complexity: 1
+logic_score: 9.20
+style_score: 1.00
+intel_score: 2.00
+overall_score: 4.07
+---
+
+## Intent
+React component rendering MessageItem with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 2.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [*](file://react)
+- [Message](file://@/lib/mock-data)
+- [MessageSquare](file://lucide-react)
+- [Hash](file://lucide-react)
+- [Slack](file://lucide-react)
+- [Send](file://lucide-react)
+- [Mail](file://lucide-react)
+
+### Exports
+- `MessageItem`
+- `MessageItem`

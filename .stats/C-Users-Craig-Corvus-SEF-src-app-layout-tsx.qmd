@@ -1,0 +1,30 @@
+---
+title: "layout.tsx"
+path: "C:/Users/Craig/Corvus/SEF/src/app/layout.tsx"
+loc: 22
+complexity: 1
+logic_score: 9.20
+style_score: 4.47
+intel_score: 3.82
+overall_score: 5.83
+---
+
+## Intent
+React component rendering layout with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 4.5/10
+- **Intel [I]**: 3.8/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [Metadata](file://next)
+- [*](file://./globals.css)
+
+### Exports
+- `metadata`
+- `RootLayout`
+- `RootLayout`

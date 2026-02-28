@@ -1,0 +1,36 @@
+---
+title: "SystemStatusWidget.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/src/components/ui/SystemStatusWidget.tsx"
+loc: 86
+complexity: 5
+logic_score: 7.80
+style_score: 1.00
+intel_score: 2.93
+overall_score: 3.91
+---
+
+## Intent
+React component rendering SystemStatusWidget with 5 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.8/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 2.9/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [Moon](file://lucide-react)
+- [Globe](file://lucide-react)
+- [RefreshCw](file://lucide-react)
+- [CheckCircle2](file://lucide-react)
+- [XCircle](file://lucide-react)
+- [Sparkles](file://lucide-react)
+- [Sun](file://lucide-react)
+- [useCelestial](file://@/context/CelestialContext)
+- [cn](file://@/lib/utils)
+
+### Exports
+- `SystemStatusWidget`
+- `SystemStatusWidget`

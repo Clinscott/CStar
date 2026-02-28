@@ -1,0 +1,29 @@
+---
+title: "useActiveResponse.ts"
+path: "C:/Users/Craig/Corvus/SecureSphere/src/hooks/useActiveResponse.ts"
+loc: 46
+complexity: 5
+logic_score: 6.90
+style_score: 4.00
+intel_score: 3.74
+overall_score: 4.88
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.9/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 3.7/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [useState](file://react)
+- [useCallback](file://react)
+- [invoke](file://@tauri-apps/api/core)
+
+### Exports
+- `useActiveResponse`

@@ -1,0 +1,35 @@
+---
+title: "NetworkScannerIntegration.test.tsx"
+path: "C:/Users/Craig/Corvus/SecureSphere/src/tests/NetworkScannerIntegration.test.tsx"
+loc: 100
+complexity: 1
+logic_score: 8.30
+style_score: 3.95
+intel_score: 4.20
+overall_score: 5.48
+---
+
+## Intent
+React component rendering NetworkScannerIntegration with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.3/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 4.2/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [*](file://react)
+- [render](file://@testing-library/react)
+- [screen](file://@testing-library/react)
+- [waitFor](file://@testing-library/react)
+- [act](file://@testing-library/react)
+- [*](file://@testing-library/jest-dom)
+- [NetworkCard](file://../components/dashboard/NetworkCard)
+- [useNetworkScanner](file://../hooks/useNetworkScanner)
+- [useNetworkStatus](file://../hooks/useNetworkStatus)
+
+### Exports
+Internal logic only.

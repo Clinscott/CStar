@@ -55,7 +55,9 @@ from src.sentinel.stability import GungnirValidator, TheWatcher
 from src.sentinel.wardens.base import BaseWarden
 from src.sentinel.wardens.norn import NornWarden
 from src.tools.brave_search import BraveSearch
+from src.tools.gemini_search import GeminiSearch
 from tests.integration.project_fishtest import GungnirSPRT
+
 
 # Configure Logging
 logging.basicConfig(
@@ -101,11 +103,9 @@ class Muninn:
             self.client = RavenProxy(mock_mode=True)
             self.api_key = self.api_key or "MOCK_KEY"
 
-        if not self.api_key:
-            raise ValueError("API environment variable not set.")
-
-        if not self.mock_mode:
-            self.client = client or genai.Client(api_key=self.api_key)
+        # [Ω] Decoupled: Muninn no longer initializes its own genai Client.
+        # It relies on AntigravityUplink for all intelligence.
+        self.client = None 
 
         self.uplink = AntigravityUplink(api_key=self.api_key or "MOCK_KEY")
 
@@ -151,7 +151,7 @@ class Muninn:
             # Use api_key or 'default' to key the model cache
             return _get_optimal_model(self.client, self.api_key or "default", persona)
         except Exception:
-            return "gemini-2.0-flash"
+            return "gemini-3.1-flash-preview"
 
     def _setup_shadow_workspace(self) -> None:
         """Mirrors the RO /app mount to a writable /shadow_forge directory."""
@@ -178,9 +178,9 @@ class Muninn:
         """Determines the appropriate model based on persona and complexity."""
         persona = SovereignHUD.PERSONA
         try:
-            return "gemini-2.5-pro" if persona in ["ODIN", "ALFRED"] else "gemini-2.0-flash"
+            return "gemini-3.1-pro-preview" if persona in ["ODIN", "ALFRED"] else "gemini-3.1-flash-preview"
         except Exception:
-            return "gemini-2.0-flash"
+            return "gemini-3.1-flash-preview"
 
     def _load_prompt(self, name: str, variables: dict) -> str:
         """Loads a .prompty file and replaces variables."""
@@ -264,9 +264,13 @@ class Muninn:
 
     def _enrich_context_phase(self, target: dict) -> None:
         """[ALFRED] Performs context enrichment via web search."""
-        searcher = BraveSearch()
-        if not searcher.is_quota_available():
-            return
+        gemini = GeminiSearch()
+        if gemini.is_available():
+             searcher = gemini
+        else:
+             searcher = BraveSearch()
+             if not searcher.is_quota_available():
+                 return
 
         target_severity = target.get('severity', '')
         target_type = target.get('type', '')
@@ -289,7 +293,7 @@ class Muninn:
             else:
                 query = f"python {target.get('action')} {target.get('file', '')}"
 
-            SovereignHUD.persona_log("INFO", f"Searching Brave for context: {query}")
+            SovereignHUD.persona_log("INFO", f"Searching for context: {query}")
             results = searcher.search(query)
             if results:
                 top = results[0]
@@ -563,19 +567,16 @@ class Muninn:
              prompt = f"Create a pytest reproduction script for: {target['action']} in {target['file']}.{search_str}\nContext:\n{code_context}"
 
         try:
-            if self.use_bridge:
-                # Route safely through Node.js Bridge
-                response = self._sync_send(prompt, {"persona": "ODIN"})
-                raw_data = response.get("data", {})
-                raw_test = raw_data.get("code", "") if isinstance(raw_data, dict) else raw_data
-            else:
-                # Direct Native API Call
-                model_name = self._get_model("TESTER") # Use flash
-                response = self.client.models.generate_content(
-                    model=model_name,
-                    contents=prompt
-                )
-                raw_test = response.text
+            # [Ω] Decoupled: Always use Uplink for Gauntlet Generation
+            response = self._sync_send(prompt, {"persona": "ALFRED"})
+            
+            if response.get("status") == "pending":
+                SovereignHUD.persona_log("INFO", "Gauntlet requested via Gemini CLI.")
+                return None # The CLI will handle the next step
+
+            raw_data = response.get("data", {})
+            raw_test = raw_data.get("code", "") if isinstance(raw_data, dict) else raw_data.get("raw", "")
+            
             clean_test = sanitize_test(raw_test, target['file'], self.root)
 
             test_file = self.root / "tests" / "gauntlet" / f"test_{int(time.time())}.py"
@@ -616,19 +617,15 @@ class Muninn:
             prompt = f"Fix the issue: {target['action']}.{search_str}\nFile: {target['file']}\nCode:\n{augmented_code}\nTest:\n{test_content}"
 
         try:
-            if self.use_bridge:
-                # Route safely through Node.js Bridge
-                response = self._sync_send(prompt, {"persona": "ODIN"})
-                raw_data = response.get("data", {})
-                raw_code = raw_data.get("code", "") if isinstance(raw_data, dict) else raw_data
-            else:
-                # Direct Native API Call
-                model_name = self._get_model("ODIN") # Use pro
-                response = self.client.models.generate_content(
-                    model=model_name,
-                    contents=prompt
-                )
-                raw_code = response.text
+            # [Ω] Decoupled: Always use Uplink for Implementation Generation
+            response = self._sync_send(prompt, {"persona": "ODIN"})
+            
+            if response.get("status") == "pending":
+                SovereignHUD.persona_log("INFO", "Implementation requested via Gemini CLI.")
+                return None
+
+            raw_data = response.get("data", {})
+            raw_code = raw_data.get("code", "") if isinstance(raw_data, dict) else raw_data.get("raw", "")
             return sanitize_code(raw_code)
         except Exception as e:
             SovereignHUD.persona_log("ERROR", f"Implementation generation failed: {e}")

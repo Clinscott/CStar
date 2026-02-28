@@ -1,0 +1,33 @@
+---
+title: "MessageFeed.test.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-client/test/MessageFeed.test.tsx"
+loc: 20
+complexity: 1
+logic_score: 8.75
+style_score: 9.42
+intel_score: 5.40
+overall_score: 7.86
+---
+
+## Intent
+React component rendering MessageFeed with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 9.4/10
+- **Intel [I]**: 5.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [render](file://@testing-library/react)
+- [screen](file://@testing-library/react)
+- [describe](file://vitest)
+- [it](file://vitest)
+- [expect](file://vitest)
+- [vi](file://vitest)
+- [MessageFeed](file://@/components/ui/MessageFeed)
+
+### Exports
+Internal logic only.

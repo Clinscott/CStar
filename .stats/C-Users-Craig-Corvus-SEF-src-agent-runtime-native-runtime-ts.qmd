@@ -1,0 +1,30 @@
+---
+title: "native-runtime.ts"
+path: "C:/Users/Craig/Corvus/SEF/src/agent/runtime/native-runtime.ts"
+loc: 20
+complexity: 2
+logic_score: 8.40
+style_score: 4.09
+intel_score: 2.00
+overall_score: 4.83
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.4/10
+- **Style [S]**: 4.1/10
+- **Intel [I]**: 2.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [IAgentRuntime](file://./interface)
+- [exec](file://child_process)
+- [promisify](file://util)
+
+### Exports
+- `console`
+- `NativeRuntime`

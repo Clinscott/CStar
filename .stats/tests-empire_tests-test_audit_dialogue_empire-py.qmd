@@ -1,0 +1,35 @@
+---
+title: "test_audit_dialogue_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_audit_dialogue_empire.py"
+loc: 32
+complexity: 3
+logic_score: 8.05
+style_score: 3.63
+intel_score: 1.40
+overall_score: 4.36
+---
+
+## Intent
+Python module facilitating TestAuditDialogueEmpire, test_audit_flow.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.0/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [unittest.mock](file://unittest.mock)
+- [pytest](file://pytest)
+- [src.tools.debug](file://src.tools.debug)
+
+### Exports
+- `TestAuditDialogueEmpire`
+- `test_audit_flow`
+- `test_audit_deviance`

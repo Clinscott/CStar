@@ -10,7 +10,7 @@ E501 Line too long (113 > 100)
  --> src\core\annex.py:5:101
   |
 3 | The Annexation Protocol (Heimdall's Watch)
-4 | Identity: ODIN
+4 | Identity: O.D.I.N.
 5 | Purpose: Scan the territory, identify weakness (non-compliance), and propose a battle plan (ANNEXATION_PLAN.qmd).
   |                                                                                                     ^^^^^^^^^^^^^
 6 | Wardens: Linscott (Tests), Mimir (Quality), Empire (Contracts), Edda (Docs).
@@ -90,7 +90,7 @@ SIM103 Return the condition `path.name == "__init__.py"` directly
   --> src\core\annex.py:69:9
    |
 67 |               return True
-68 |           # [ODIN] Init files are structural, rarely logic-bearing.
+68 |           # [O.D.I.N.] Init files are structural, rarely logic-bearing.
 69 | /         if path.name == "__init__.py":
 70 | |             return True
 71 | |         return False
@@ -139,7 +139,7 @@ help: Remove whitespace from blank line
 W293 [*] Blank line contains whitespace
   --> src\core\annex.py:86:1
    |
-84 |         # [ODIN] Also check Empire TDD path
+84 |         # [O.D.I.N.] Also check Empire TDD path
 85 |         empire_test_path = self.root / "tests" / "empire_tests" / f"test_{source.stem}_empire.py"
 86 |         
    | ^^^^^^^^
@@ -4722,7 +4722,7 @@ RUF012 Mutable class attributes should be annotated with `typing.ClassVar`
 ANN202 Missing return type annotation for private function `_get_sovereign_state`
   --> src\core\personas.py:74:9
    |
-72 |         return "odin"
+72 |         return "O.D.I.N."
 73 |
 74 |     def _get_sovereign_state(self):
    |         ^^^^^^^^^^^^^^^^^^^^
@@ -4767,7 +4767,7 @@ help: Remove whitespace from blank line
 W293 [*] Blank line contains whitespace
   --> src\core\personas.py:92:1
    |
-90 |         """ODIN documentation re-theming: Overwrite for Dominion."""
+90 |         """O.D.I.N. documentation re-theming: Overwrite for Dominion."""
 91 |         results = []
 92 |         
    | ^^^^^^^^
@@ -4850,17 +4850,17 @@ W293 [*] Blank line contains whitespace
 120 |             agents_path.write_text(template + "\n\n" + legacy_content, encoding='utf-8')
 121 |                 
     | ^^^^^^^^^^^^^^^^
-122 |             results.append(f"RE-THEMED: {agents_path.name} (ODIN voice applied)")
+122 |             results.append(f"RE-THEMED: {agents_path.name} (O.D.I.N. voice applied)")
     |
 help: Remove whitespace from blank line
 
 W293 [*] Blank line contains whitespace
    --> src\core\personas.py:123:1
     |
-122 |             results.append(f"RE-THEMED: {agents_path.name} (ODIN voice applied)")
+122 |             results.append(f"RE-THEMED: {agents_path.name} (O.D.I.N. voice applied)")
 123 |             
     | ^^^^^^^^^^^^
-124 |         self._sync_configs("ODIN")
+124 |         self._sync_configs("O.D.I.N.")
 125 |         return results
     |
 help: Remove whitespace from blank line
@@ -4872,7 +4872,7 @@ ANN003 Missing type annotation for `**kwargs`
 126 |
 127 |     def enforce_policy(self, **kwargs) -> dict:
     |                              ^^^^^^^^
-128 |         """ODIN Policy: Complete Dominion. Return context for dialogue adjudication."""
+128 |         """O.D.I.N. Policy: Complete Dominion. Return context for dialogue adjudication."""
 129 |         results = [] # Internal logging
     |
 
@@ -4880,7 +4880,7 @@ F841 Local variable `results` is assigned to but never used
    --> src\core\personas.py:129:9
     |
 127 |     def enforce_policy(self, **kwargs) -> dict:
-128 |         """ODIN Policy: Complete Dominion. Return context for dialogue adjudication."""
+128 |         """O.D.I.N. Policy: Complete Dominion. Return context for dialogue adjudication."""
 129 |         results = [] # Internal logging
     |         ^^^^^^^
 130 |         
@@ -4891,7 +4891,7 @@ help: Remove assignment to unused variable `results`
 W293 [*] Blank line contains whitespace
    --> src\core\personas.py:130:1
     |
-128 |         """ODIN Policy: Complete Dominion. Return context for dialogue adjudication."""
+128 |         """O.D.I.N. Policy: Complete Dominion. Return context for dialogue adjudication."""
 129 |         results = [] # Internal logging
 130 |         
     | ^^^^^^^^
@@ -5565,7 +5565,7 @@ RUF012 Mutable class attributes should be annotated with `typing.ClassVar`
    |
 21 |     """
 22 |
-23 |     ALLOWED_PERSONAS = ["ODIN", "ALFRED"]
+23 |     ALLOWED_PERSONAS = ["O.D.I.N.", "ALFRED"]
    |                        ^^^^^^^^^^^^^^^^^^
 24 |
 25 |     def __init__(self, target_root: Optional[Path] = None) -> None:
@@ -5574,7 +5574,7 @@ RUF012 Mutable class attributes should be annotated with `typing.ClassVar`
 UP045 [*] Use `X | None` for type annotations
   --> src\core\set_persona.py:25:37
    |
-23 |     ALLOWED_PERSONAS = ["ODIN", "ALFRED"]
+23 |     ALLOWED_PERSONAS = ["O.D.I.N.", "ALFRED"]
 24 |
 25 |     def __init__(self, target_root: Optional[Path] = None) -> None:
    |                                     ^^^^^^^^^^^^^^
@@ -5715,7 +5715,7 @@ help: Remove whitespace from blank line
 W293 [*] Blank line contains whitespace
    --> src\core\set_persona.py:110:1
     |
-108 |         print("Documentation (AGENTS.md) will be re-themed to ODIN voice.")
+108 |         print("Documentation (AGENTS.md) will be re-themed to O.D.I.N. voice.")
 109 |         print("Original files will be preserved in .corvus_quarantine/")
 110 |         
     | ^^^^^^^^
@@ -5764,7 +5764,7 @@ E701 Multiple statements on one line (colon)
     |
 146 |             try:
 147 |                 choice = input("\nSelect Persona [1/2]: ").strip()
-148 |                 if choice == "1": new_persona = "ODIN"
+148 |                 if choice == "1": new_persona = "O.D.I.N."
     |                                 ^
 149 |                 elif choice == "2": new_persona = "ALFRED"
 150 |                 else:
@@ -5774,7 +5774,7 @@ E701 Multiple statements on one line (colon)
    --> src\core\set_persona.py:149:35
     |
 147 |                 choice = input("\nSelect Persona [1/2]: ").strip()
-148 |                 if choice == "1": new_persona = "ODIN"
+148 |                 if choice == "1": new_persona = "O.D.I.N."
 149 |                 elif choice == "2": new_persona = "ALFRED"
     |                                   ^
 150 |                 else:
@@ -5826,8 +5826,8 @@ W293 [*] Blank line contains whitespace
 184 |             strategy = personas.get_strategy(persona, str(self.project_root))
 185 |             
     | ^^^^^^^^^^^^
-186 |             # documentation re-theme for ODIN
-187 |             if self.old_persona == "ALFRED" and persona == "ODIN":
+186 |             # documentation re-theme for O.D.I.N.
+187 |             if self.old_persona == "ALFRED" and persona == "O.D.I.N.":
     |
 help: Remove whitespace from blank line
 
@@ -6150,15 +6150,15 @@ RUF012 Mutable class attributes should be annotated with `typing.ClassVar`
 100 |       # [ALFRED] Theme Registry: Add new persona themes by adding an entry here.
 101 |       _THEME_REGISTRY: dict[str, dict[str, str]] = {
     |  __________________________________________________^
-102 | |         "ODIN": {
+102 | |         "O.D.I.N.": {
 103 | |             "main": "\033[31m",   # RED
 104 | |             "dim": "\033[35m",    # MAGENTA
 105 | |             "accent": "\033[33m", # YELLOW
 106 | |             "success": "\033[32m",
 107 | |             "warning": "\033[33m",
 108 | |             "error": "\033[31m",
-109 | |             "title": "Ω ODIN ENGINE Ω",
-110 | |             "prefix": "[ODIN]",
+109 | |             "title": "Ω O.D.I.N. ENGINE Ω",
+110 | |             "prefix": "[O.D.I.N.]",
 111 | |             "war_title": "THE WAR ROOM (CONFLICT RADAR)",
 112 | |             "trace_label": "TRACE (LIES)",
 113 | |             "truth_label": "TRUTH (LAW)",
@@ -6732,7 +6732,7 @@ ANN201 Missing return type annotation for public function `generate_simulation`
 254 | def generate_simulation(query, context):
     |     ^^^^^^^^^^^^^^^^^^^
 255 |     """Deterministic responses for testing without credentials."""
-256 |     persona = context.get("persona", "ODIN")
+256 |     persona = context.get("persona", "O.D.I.N.")
     |
 help: Add return type annotation
 
@@ -6742,7 +6742,7 @@ ANN001 Missing type annotation for function argument `query`
 254 | def generate_simulation(query, context):
     |                         ^^^^^
 255 |     """Deterministic responses for testing without credentials."""
-256 |     persona = context.get("persona", "ODIN")
+256 |     persona = context.get("persona", "O.D.I.N.")
     |
 
 ANN001 Missing type annotation for function argument `context`
@@ -6751,7 +6751,7 @@ ANN001 Missing type annotation for function argument `context`
 254 | def generate_simulation(query, context):
     |                                ^^^^^^^
 255 |     """Deterministic responses for testing without credentials."""
-256 |     persona = context.get("persona", "ODIN")
+256 |     persona = context.get("persona", "O.D.I.N.")
     |
 
 E501 Line too long (136 > 100)
@@ -7810,7 +7810,7 @@ W293 [*] Blank line contains whitespace
 188 |     
     | ^^^^
 189 |     if score < CONFIDENCE_THRESHOLD or input_str in ["ask", "brain", "uplink"]:
-190 |         uplink_response = await UPLINK.send_payload(query, {"cwd": cwd, "persona": "ODIN", "traces": SESSION_TRACES[-5:]})
+190 |         uplink_response = await UPLINK.send_payload(query, {"cwd": cwd, "persona": "O.D.I.N.", "traces": SESSION_TRACES[-5:]})
     |
 help: Remove whitespace from blank line
 
@@ -7818,7 +7818,7 @@ E501 Line too long (122 > 100)
    --> src\cstar\core\daemon.py:190:101
     |
 189 |     if score < CONFIDENCE_THRESHOLD or input_str in ["ask", "brain", "uplink"]:
-190 |         uplink_response = await UPLINK.send_payload(query, {"cwd": cwd, "persona": "ODIN", "traces": SESSION_TRACES[-5:]})
+190 |         uplink_response = await UPLINK.send_payload(query, {"cwd": cwd, "persona": "O.D.I.N.", "traces": SESSION_TRACES[-5:]})
     |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^
 191 |         return {"status": "uplink_success", "type": "uplink", "data": uplink_response}
     |
@@ -7826,7 +7826,7 @@ E501 Line too long (122 > 100)
 W293 [*] Blank line contains whitespace
    --> src\cstar\core\daemon.py:192:1
     |
-190 |         uplink_response = await UPLINK.send_payload(query, {"cwd": cwd, "persona": "ODIN", "traces": SESSION_TRACES[-5:]})
+190 |         uplink_response = await UPLINK.send_payload(query, {"cwd": cwd, "persona": "O.D.I.N.", "traces": SESSION_TRACES[-5:]})
 191 |         return {"status": "uplink_success", "type": "uplink", "data": uplink_response}
 192 |     
     | ^^^^
@@ -8067,7 +8067,7 @@ E501 Line too long (123 > 100)
   --> src\cstar\core\forge.py:51:101
    |
 50 |         if not target_path.exists():
-51 |             yield {"type": "ui", "persona": "ODIN", "msg": f"Target file {target_path.name} does not exist. Creating new."}
+51 |             yield {"type": "ui", "persona": "O.D.I.N.", "msg": f"Target file {target_path.name} does not exist. Creating new."}
    |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^
 52 |             target_path.parent.mkdir(parents=True, exist_ok=True)
 53 |             target_path.touch()
@@ -8098,7 +8098,7 @@ E501 Line too long (128 > 100)
   --> src\cstar\core\forge.py:79:101
    |
 78 |             if "warnings" in response:
-79 |                 yield {"type": "ui", "persona": "ODIN", "msg": "Gungnir Calculus detected dissonance. Self-correction applied."}
+79 |                 yield {"type": "ui", "persona": "O.D.I.N.", "msg": "Gungnir Calculus detected dissonance. Self-correction applied."}
    |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 80 |
 81 |             new_code = response.get("data", {}).get("code")
@@ -8109,9 +8109,9 @@ E501 Line too long (104 > 100)
    |
 81 |             new_code = response.get("data", {}).get("code")
 82 |             if not new_code:
-83 |                 yield {"type": "ui", "persona": "ODIN", "msg": "The void returned silence. Retrying..."}
+83 |                 yield {"type": "ui", "persona": "O.D.I.N.", "msg": "The void returned silence. Retrying..."}
    |                                                                                                     ^^^^
-84 |                 context["error"] = "No code received from ODIN."
+84 |                 context["error"] = "No code received from O.D.I.N.."
 85 |                 continue
    |
 
@@ -8260,13 +8260,13 @@ E501 Line too long (105 > 100)
 171 |                         test_stdout, test_stderr = await asyncio.wait_for(ep.communicate(), timeout=15.0)
     |                                                                                                     ^^^^^
 172 |
-173 |                         # Save logs to feed back to ODIN in case of logic rejection
+173 |                         # Save logs to feed back to O.D.I.N. in case of logic rejection
     |
 
 E501 Line too long (104 > 100)
    --> src\cstar\core\forge.py:174:101
     |
-173 |                         # Save logs to feed back to ODIN in case of logic rejection
+173 |                         # Save logs to feed back to O.D.I.N. in case of logic rejection
 174 |                         verification_logs = (test_stdout.decode() + "\n" + test_stderr.decode()).strip()
     |                                                                                                     ^^^^
 175 |                     except asyncio.TimeoutError:
@@ -8308,7 +8308,7 @@ E501 Line too long (123 > 100)
    --> src\cstar\core\forge.py:201:101
     |
 200 |             if not alfred_success:
-201 |                 yield {"type": "ui", "persona": "ODIN", "msg": "ALFRED failed to provide valid constraints. Rolling back."}
+201 |                 yield {"type": "ui", "persona": "O.D.I.N.", "msg": "ALFRED failed to provide valid constraints. Rolling back."}
     |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^
 202 |                 shutil.copy(backup_path, target_path)
 203 |                 backup_path.unlink()
@@ -8328,7 +8328,7 @@ E501 Line too long (116 > 100)
    --> src\cstar\core\forge.py:222:101
     |
 221 |             if decision == "Accept":
-222 |                 yield {"type": "ui", "persona": "ODIN", "msg": f"Gungnir Verdict: ACCEPT (LLR: {llr:.2f}). Stable."}
+222 |                 yield {"type": "ui", "persona": "O.D.I.N.", "msg": f"Gungnir Verdict: ACCEPT (LLR: {llr:.2f}). Stable."}
     |                                                                                                     ^^^^^^^^^^^^^^^^
 223 |                 backup_path.unlink()
 224 |                 gc.collect()
@@ -8349,8 +8349,8 @@ E501 Line too long (134 > 100)
    --> src\cstar\core\forge.py:229:101
     |
 227 |             else:
-228 |                 # Logical Failure: Penalize ODIN
-229 |                 yield {"type": "ui", "persona": "ODIN", "msg": f"Gungnir Verdict: {decision.upper()} (LLR: {llr:.2f}). Logic Breach."}
+228 |                 # Logical Failure: Penalize O.D.I.N.
+229 |                 yield {"type": "ui", "persona": "O.D.I.N.", "msg": f"Gungnir Verdict: {decision.upper()} (LLR: {llr:.2f}). Logic Breach."}
     |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 230 |                 shutil.copy(backup_path, target_path) # Rollback
 231 |                 backup_path.unlink()
@@ -8359,7 +8359,7 @@ E501 Line too long (134 > 100)
 E501 Line too long (118 > 100)
    --> src\cstar\core\forge.py:234:101
     |
-233 |                 # Inject traceback for ODIN so it isn't guessing blindly
+233 |                 # Inject traceback for O.D.I.N. so it isn't guessing blindly
 234 |                 context["error"] = f"Logic Verification Failed (LLR: {llr}).\nTest Logs:\n{verification_logs[-2000:]}"
     |                                                                                                     ^^^^^^^^^^^^^^^^^^
 235 |                 context["previous_attempt"] = new_code
@@ -9088,7 +9088,7 @@ W293 [*] Blank line contains whitespace
 65 |         
    | ^^^^^^^^
 66 |         # Determine Spinner Message based on Persona
-67 |         msg = "ODIN: Communing with the void..." if context.get("persona") == "ODIN" else "ALFRED: Consulting the Archives, sir..."
+67 |         msg = "O.D.I.N.: Communing with the void..." if context.get("persona") == "O.D.I.N." else "ALFRED: Consulting the Archives, sir..."
    |
 help: Remove whitespace from blank line
 
@@ -9096,7 +9096,7 @@ E501 Line too long (131 > 100)
   --> src\cstar\core\uplink.py:67:101
    |
 66 |         # Determine Spinner Message based on Persona
-67 |         msg = "ODIN: Communing with the void..." if context.get("persona") == "ODIN" else "ALFRED: Consulting the Archives, sir..."
+67 |         msg = "O.D.I.N.: Communing with the void..." if context.get("persona") == "O.D.I.N." else "ALFRED: Consulting the Archives, sir..."
    |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 68 |         
 69 |         # Start the task
@@ -9106,7 +9106,7 @@ W293 [*] Blank line contains whitespace
   --> src\cstar\core\uplink.py:68:1
    |
 66 |         # Determine Spinner Message based on Persona
-67 |         msg = "ODIN: Communing with the void..." if context.get("persona") == "ODIN" else "ALFRED: Consulting the Archives, sir..."
+67 |         msg = "O.D.I.N.: Communing with the void..." if context.get("persona") == "O.D.I.N." else "ALFRED: Consulting the Archives, sir..."
 68 |         
    | ^^^^^^^^
 69 |         # Start the task
@@ -9301,7 +9301,7 @@ E501 Line too long (104 > 100)
     |
 143 |         uplink = AntigravityUplink()
 144 |         print("Testing Uplink...")
-145 |         res = await uplink.send_payload("What is the speed of an unladen swallow?", {"persona": "ODIN"})
+145 |         res = await uplink.send_payload("What is the speed of an unladen swallow?", {"persona": "O.D.I.N."})
     |                                                                                                     ^^^^
 146 |         print(json.dumps(res, indent=2))
     |
@@ -9309,7 +9309,7 @@ E501 Line too long (104 > 100)
 W293 [*] Blank line contains whitespace
    --> src\cstar\core\uplink.py:147:1
     |
-145 |         res = await uplink.send_payload("What is the speed of an unladen swallow?", {"persona": "ODIN"})
+145 |         res = await uplink.send_payload("What is the speed of an unladen swallow?", {"persona": "O.D.I.N."})
 146 |         print(json.dumps(res, indent=2))
 147 |         
     | ^^^^^^^^
@@ -9421,7 +9421,7 @@ W293 [*] Blank line contains whitespace
 27 |     
    | ^^^^
 28 |     # Scenario: 
-29 |     # 1. ODIN returns code.
+29 |     # 1. O.D.I.N. returns code.
    |
 help: Remove whitespace from blank line
 
@@ -9432,7 +9432,7 @@ W291 [*] Trailing whitespace
 27 |     
 28 |     # Scenario: 
    |                ^
-29 |     # 1. ODIN returns code.
+29 |     # 1. O.D.I.N. returns code.
 30 |     # 2. ALFRED returns valid test JSON.
    |
 help: Remove trailing whitespace
@@ -9457,7 +9457,7 @@ ANN202 Missing return type annotation for private function `mock_send_payload`
 34 |     async def mock_send_payload(query, context):
    |               ^^^^^^^^^^^^^^^^^
 35 |         if "FORGE:" in query:
-36 |             print(f"[MOCK ODIN] Generating component code...")
+36 |             print(f"[MOCK O.D.I.N.] Generating component code...")
    |
 help: Add return type annotation
 
@@ -9469,7 +9469,7 @@ ANN001 Missing type annotation for function argument `query`
 34 |     async def mock_send_payload(query, context):
    |                                 ^^^^^
 35 |         if "FORGE:" in query:
-36 |             print(f"[MOCK ODIN] Generating component code...")
+36 |             print(f"[MOCK O.D.I.N.] Generating component code...")
    |
 
 ANN001 Missing type annotation for function argument `context`
@@ -9480,7 +9480,7 @@ ANN001 Missing type annotation for function argument `context`
 34 |     async def mock_send_payload(query, context):
    |                                        ^^^^^^^
 35 |         if "FORGE:" in query:
-36 |             print(f"[MOCK ODIN] Generating component code...")
+36 |             print(f"[MOCK O.D.I.N.] Generating component code...")
    |
 
 F541 [*] f-string without any placeholders
@@ -9488,7 +9488,7 @@ F541 [*] f-string without any placeholders
    |
 34 |     async def mock_send_payload(query, context):
 35 |         if "FORGE:" in query:
-36 |             print(f"[MOCK ODIN] Generating component code...")
+36 |             print(f"[MOCK O.D.I.N.] Generating component code...")
    |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 37 |             return {
 38 |                 "status": "success",
@@ -9932,7 +9932,7 @@ S603 `subprocess` call: check for execution of untrusted input
   --> src\games\odin_protocol\engine\persistence.py:81:13
    |
 79 |         try:
-80 |             # Stage only the Odin Protocol files to avoid accidental commits of project code
+80 |             # Stage only the O.D.I.N. Protocol files to avoid accidental commits of project code
 81 |             subprocess.run(["git", "add", self.save_path, self.worlds_dir],
    |             ^^^^^^^^^^^^^^
 82 |                            cwd=self.project_root, check=True, capture_output=True)
@@ -9942,7 +9942,7 @@ S607 Starting a process with a partial executable path
   --> src\games\odin_protocol\engine\persistence.py:81:28
    |
 79 |         try:
-80 |             # Stage only the Odin Protocol files to avoid accidental commits of project code
+80 |             # Stage only the O.D.I.N. Protocol files to avoid accidental commits of project code
 81 |             subprocess.run(["git", "add", self.save_path, self.worlds_dir],
    |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 82 |                            cwd=self.project_root, check=True, capture_output=True)
@@ -10856,7 +10856,7 @@ RUF012 Mutable class attributes should be annotated with `typing.ClassVar`
 171 | |     }
     | |_____^
 172 |
-173 |       def generate_scenario(self, stats: dict[str, float], seed: str = "C*DEFAULT", turn_id: int = 0, player_name: str = "Odin", campai…
+173 |       def generate_scenario(self, stats: dict[str, float], seed: str = "C*DEFAULT", turn_id: int = 0, player_name: str = "O.D.I.N.", campai…
     |
 
 E501 Line too long (196 > 100)
@@ -10864,7 +10864,7 @@ E501 Line too long (196 > 100)
     |
 171 | …
 172 | …
-173 | …turn_id: int = 0, player_name: str = "Odin", campaign_data: dict = None, node_type: str = None) -> dict[str, Any]:
+173 | …turn_id: int = 0, player_name: str = "O.D.I.N.", campaign_data: dict = None, node_type: str = None) -> dict[str, Any]:
     |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 174 | …tep."""
 175 | …_data, node_type)
@@ -10875,7 +10875,7 @@ RUF013 PEP 484 prohibits implicit `Optional`
     |
 171 | …
 172 | …
-173 | …T", turn_id: int = 0, player_name: str = "Odin", campaign_data: dict = None, node_type: str = None) -> dict[str, Any]:
+173 | …T", turn_id: int = 0, player_name: str = "O.D.I.N.", campaign_data: dict = None, node_type: str = None) -> dict[str, Any]:
     |                                                                  ^^^^
 174 | …gn Step."""
 175 | …aign_data, node_type)
@@ -10887,7 +10887,7 @@ RUF013 PEP 484 prohibits implicit `Optional`
     |
 171 | …
 172 | …
-173 | …ayer_name: str = "Odin", campaign_data: dict = None, node_type: str = None) -> dict[str, Any]:
+173 | …ayer_name: str = "O.D.I.N.", campaign_data: dict = None, node_type: str = None) -> dict[str, Any]:
     |                                                                  ^^^
 174 | …
 175 | …
@@ -10933,7 +10933,7 @@ E501 Line too long (197 > 100)
     |
 179 | …
 180 | …
-181 | …turn_id: int = 0, player_name: str = "Odin", campaign_data: dict = None, node_type: str = None) -> dict[str, Any]:
+181 | …turn_id: int = 0, player_name: str = "O.D.I.N.", campaign_data: dict = None, node_type: str = None) -> dict[str, Any]:
     |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 182 | …
 183 | …
@@ -10944,7 +10944,7 @@ RUF013 PEP 484 prohibits implicit `Optional`
     |
 179 | …
 180 | …
-181 | …T", turn_id: int = 0, player_name: str = "Odin", campaign_data: dict = None, node_type: str = None) -> dict[str, Any]:
+181 | …T", turn_id: int = 0, player_name: str = "O.D.I.N.", campaign_data: dict = None, node_type: str = None) -> dict[str, Any]:
     |                                                                  ^^^^
 182 | …
 183 | …
@@ -10956,7 +10956,7 @@ RUF013 PEP 484 prohibits implicit `Optional`
     |
 179 | …
 180 | …
-181 | …ayer_name: str = "Odin", campaign_data: dict = None, node_type: str = None) -> dict[str, Any]:
+181 | …ayer_name: str = "O.D.I.N.", campaign_data: dict = None, node_type: str = None) -> dict[str, Any]:
     |                                                                  ^^^
 182 | …
 183 | …
@@ -11987,7 +11987,7 @@ E701 Multiple statements on one line (colon)
 366 |             if cmd == 'Q': sys.exit(0)
     |                          ^
 367 |             if cmd == 'P':
-368 |                 HUD.PERSONA = "ODIN" if HUD.PERSONA == "ALFRED" else "ALFRED"
+368 |                 HUD.PERSONA = "O.D.I.N." if HUD.PERSONA == "ALFRED" else "ALFRED"
     |
 
 E501 Line too long (103 > 100)
@@ -12228,7 +12228,7 @@ E501 Line too long (103 > 100)
     |
 563 |     except Exception:
 564 |         print(f"\n{HUD.RED}[SYSTEM FAILURE] Cortex Daemon Offline.{HUD.RESET}")
-565 |         print(f"{HUD.DIM}The Sovereign Engine must be running to engage the Odin Protocol.{HUD.RESET}")
+565 |         print(f"{HUD.DIM}The Sovereign Engine must be running to engage the O.D.I.N. Protocol.{HUD.RESET}")
     |                                                                                                     ^^^
 566 |         sys.exit(1)
     |
@@ -12239,7 +12239,7 @@ S605 Starting a process with a shell, possible injection detected
 570 |     # Startup Sequence
 571 |     os.system('cls' if os.name == 'nt' else 'clear')
     |     ^^^^^^^^^
-572 |     HUD.divider("AWAKENING ODIN")
+572 |     HUD.divider("AWAKENING O.D.I.N.")
 573 |     print(f"\n{HUD.BOLD}{HUD.CYAN}Hi. Would you like to play a game?{HUD.RESET}")
     |
 
@@ -12508,14 +12508,14 @@ ANN201 Missing return type annotation for public function `harvest`
 77 | def harvest(cycles: int = 5):
    |     ^^^^^^^
 78 |     """
-79 |     [ODIN] Run N cycles of SovereignFish against CorvusStar with recording.
+79 |     [O.D.I.N.] Run N cycles of SovereignFish against CorvusStar with recording.
    |
 help: Add return type annotation
 
 W293 Blank line contains whitespace
   --> src\sentinel\harvest_responses.py:81:1
    |
-79 |     [ODIN] Run N cycles of SovereignFish against CorvusStar with recording.
+79 |     [O.D.I.N.] Run N cycles of SovereignFish against CorvusStar with recording.
 80 |     Captures prompt/response pairs for offline verification and hardening.
 81 |     
    | ^^^^
@@ -13263,7 +13263,7 @@ E501 Line too long (104 > 100)
     |
 670 |         directives_path.write_text(md_content, encoding='utf-8')
 671 |
-672 |         print(f"ODIN: 'The ledger has been read. The Runes of Wisdom are carved at {directives_path}.'")
+672 |         print(f"O.D.I.N.: 'The ledger has been read. The Runes of Wisdom are carved at {directives_path}.'")
     |                                                                                                     ^^^^
 673 |
 674 |     def _select_breach_target(self, breaches: list) -> dict:
@@ -14996,7 +14996,7 @@ W293 [*] Blank line contains whitespace
 53 |         
    | ^^^^^^^^
 54 |         # Step 3: Gemini Synthesis
-55 |         prompt = f"""You are Odin's Knowledge Hunter. 
+55 |         prompt = f"""You are O.D.I.N.'s Knowledge Hunter. 
    |
 help: Remove whitespace from blank line
 
@@ -15004,7 +15004,7 @@ W291 Trailing whitespace
   --> src\skills\local\KnowledgeHunter\hunter.py:55:54
    |
 54 |         # Step 3: Gemini Synthesis
-55 |         prompt = f"""You are Odin's Knowledge Hunter. 
+55 |         prompt = f"""You are O.D.I.N.'s Knowledge Hunter. 
    |                                                      ^
 56 |         Synthesize the following web search results into a comprehensive, professional Markdown report.
    |
@@ -15014,7 +15014,7 @@ E501 Line too long (103 > 100)
   --> src\skills\local\KnowledgeHunter\hunter.py:56:101
    |
 54 |         # Step 3: Gemini Synthesis
-55 |         prompt = f"""You are Odin's Knowledge Hunter. 
+55 |         prompt = f"""You are O.D.I.N.'s Knowledge Hunter. 
 56 |         Synthesize the following web search results into a comprehensive, professional Markdown report.
    |                                                                                                     ^^^
 57 |         
@@ -15024,7 +15024,7 @@ E501 Line too long (103 > 100)
 W293 Blank line contains whitespace
   --> src\skills\local\KnowledgeHunter\hunter.py:57:1
    |
-55 |         prompt = f"""You are Odin's Knowledge Hunter. 
+55 |         prompt = f"""You are O.D.I.N.'s Knowledge Hunter. 
 56 |         Synthesize the following web search results into a comprehensive, professional Markdown report.
 57 |         
    | ^^^^^^^^
@@ -17125,7 +17125,7 @@ UP006 [*] Use `dict` instead of `Dict` for type annotation
 198 |
 199 |     def _load_config(self) -> Dict[str, Any]:
     |                               ^^^^
-200 |         # [ODIN] Config is in .agent/config.json
+200 |         # [O.D.I.N.] Config is in .agent/config.json
 201 |         config_path = self.project_root / ".agent" / "config.json"
     |
 help: Replace with `dict`
@@ -18356,7 +18356,7 @@ RUF012 Mutable class attributes should be annotated with `typing.ClassVar`
 37 |
 38 |       TEXT_MAP = {
    |  ________________^
-39 | |         "ODIN": {
+39 | |         "O.D.I.N.": {
 40 | |             "TITLE": "[Ω] HEIMDALL SECURITY SCAN",
 41 | |             "PASS": "SECTOR SECURE. NO ANOMALIES.",
 42 | |             "FAIL": "CONTAINMENT BREACH DETECTED.",
@@ -18411,7 +18411,7 @@ E501 Line too long (116 > 100)
 65 |         HUD.PERSONA = persona_override.upper() if persona_override else self.config.get("Persona", "ALFRED").upper()
    |                                                                                                     ^^^^^^^^^^^^^^^^
 66 |         if HUD.PERSONA == "GOD":
-67 |             HUD.PERSONA = "ODIN"
+67 |             HUD.PERSONA = "O.D.I.N."
    |
 
 PTH123 `open()` should be replaced by `Path.open()`
@@ -21073,7 +21073,7 @@ help: Remove whitespace from blank line
 W293 [*] Blank line contains whitespace
   --> src\tools\debug\audit_dialogue.py:47:1
    |
-45 |         voice_file = ("odin" if self.persona in ["GOD", "ODIN"] else "alfred") + ".qmd"
+45 |         voice_file = ("O.D.I.N." if self.persona in ["GOD", "O.D.I.N."] else "alfred") + ".qmd"
 46 |         dialogue_path = self._resolve(self.project_root, voice_file, "dialogue_db")
 47 |         
    | ^^^^^^^^
@@ -21114,7 +21114,7 @@ W293 [*] Blank line contains whitespace
 62 |         
    | ^^^^^^^^
 63 |         if score > 0.4:
-64 |             msg = "SOUL ALIGNMENT: STABLE" if self.persona in ["GOD", "ODIN"] else "Fidelity check passed, sir."
+64 |             msg = "SOUL ALIGNMENT: STABLE" if self.persona in ["GOD", "O.D.I.N."] else "Fidelity check passed, sir."
    |
 help: Remove whitespace from blank line
 
@@ -21122,7 +21122,7 @@ E501 Line too long (112 > 100)
   --> src\tools\debug\audit_dialogue.py:64:101
    |
 63 |         if score > 0.4:
-64 |             msg = "SOUL ALIGNMENT: STABLE" if self.persona in ["GOD", "ODIN"] else "Fidelity check passed, sir."
+64 |             msg = "SOUL ALIGNMENT: STABLE" if self.persona in ["GOD", "O.D.I.N."] else "Fidelity check passed, sir."
    |                                                                                                     ^^^^^^^^^^^^
 65 |             HUD.persona_log("SUCCESS", msg)
 66 |         else:
@@ -21133,7 +21133,7 @@ E501 Line too long (141 > 100)
    |
 65 | …
 66 | …
-67 | … if self.persona in ["GOD", "ODIN"] else "I'm concerned about our tone stability, sir."
+67 | … if self.persona in ["GOD", "O.D.I.N."] else "I'm concerned about our tone stability, sir."
    |                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 68 | …
    |
@@ -21141,7 +21141,7 @@ E501 Line too long (141 > 100)
 W293 [*] Blank line contains whitespace
   --> src\tools\debug\audit_dialogue.py:69:1
    |
-67 | …         msg = "DEVIANCE DETECTED. PURGE ENHANCED." if self.persona in ["GOD", "ODIN"] else "I'm concerned about our tone stability, …
+67 | …         msg = "DEVIANCE DETECTED. PURGE ENHANCED." if self.persona in ["GOD", "O.D.I.N."] else "I'm concerned about our tone stability, …
 68 | …         HUD.persona_log("FAIL", msg)
 69 | …     
    ^^^^^^^^
@@ -22938,7 +22938,7 @@ help: Remove whitespace from blank line
 W293 [*] Blank line contains whitespace
   --> src\tools\loop.py:57:1
    |
-56 |         HUD.persona_log("ODIN", f"Target Locked: {target_file}")
+56 |         HUD.persona_log("O.D.I.N.", f"Target Locked: {target_file}")
 57 |         
    | ^^^^^^^^
 58 |         # 2. The Loop (Edit -> Verify)
@@ -22950,7 +22950,7 @@ W293 [*] Blank line contains whitespace
   --> src\tools\loop.py:61:1
    |
 59 |         for attempt in range(1, self.max_retries + 1):
-60 |             HUD.persona_log("ODIN", f"Attempt {attempt}/{self.max_retries}: Forging Code...")
+60 |             HUD.persona_log("O.D.I.N.", f"Attempt {attempt}/{self.max_retries}: Forging Code...")
 61 |             
    | ^^^^^^^^^^^^
 62 |             # Backup
@@ -23044,7 +23044,7 @@ W293 [*] Blank line contains whitespace
    --> src\tools\loop.py:118:1
     |
 116 |         """
-117 |         HUD.persona_log("ODIN", f"Transmitting objective to Antigravity (Attempt {attempt})...")
+117 |         HUD.persona_log("O.D.I.N.", f"Transmitting objective to Antigravity (Attempt {attempt})...")
 118 |         
     | ^^^^^^^^
 119 |         # Read content for context
@@ -23078,7 +23078,7 @@ W293 [*] Blank line contains whitespace
    --> src\tools\loop.py:147:1
     |
 145 |             timestamp = time.strftime("%H:%M:%S")
-146 |             new_code = content + f"\n# [ODIN] Forged Update ({timestamp}): {task}\n"
+146 |             new_code = content + f"\n# [O.D.I.N.] Forged Update ({timestamp}): {task}\n"
 147 |         
     | ^^^^^^^^
 148 |         if new_code:
@@ -23293,7 +23293,7 @@ help: Remove trailing whitespace
 W293 [*] Blank line contains whitespace
    --> src\tools\loop.py:214:1
     |
-212 |             HUD.persona_log("ODIN", "No active tasks in queue. The Cycle pauses.")
+212 |             HUD.persona_log("O.D.I.N.", "No active tasks in queue. The Cycle pauses.")
 213 |             break
 214 |         
     | ^^^^^^^^
@@ -24853,7 +24853,7 @@ E501 Line too long (121 > 100)
    |
 31 |                     cases = json.load(f).get("test_cases", [])
 32 |                     stats["cases"] = len(cases)
-33 |                     stats["war_zones"] = sum(1 for c in cases if all(p in c.get("tags", []) for p in ["ODIN", "ALFRED"]))
+33 |                     stats["war_zones"] = sum(1 for c in cases if all(p in c.get("tags", []) for p in ["O.D.I.N.", "ALFRED"]))
    |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^
 34 |             
 35 |             if os.path.exists(self.rej_path):
@@ -24863,7 +24863,7 @@ W293 [*] Blank line contains whitespace
   --> src\tools\overwatch.py:34:1
    |
 32 |                     stats["cases"] = len(cases)
-33 |                     stats["war_zones"] = sum(1 for c in cases if all(p in c.get("tags", []) for p in ["ODIN", "ALFRED"]))
+33 |                     stats["war_zones"] = sum(1 for c in cases if all(p in c.get("tags", []) for p in ["O.D.I.N.", "ALFRED"]))
 34 |             
    | ^^^^^^^^^^^^
 35 |             if os.path.exists(self.rej_path):
@@ -24874,7 +24874,7 @@ help: Remove whitespace from blank line
 PTH110 `os.path.exists()` should be replaced by `Path.exists()`
   --> src\tools\overwatch.py:35:16
    |
-33 |                     stats["war_zones"] = sum(1 for c in cases if all(p in c.get("tags", []) for p in ["ODIN", "ALFRED"]))
+33 |                     stats["war_zones"] = sum(1 for c in cases if all(p in c.get("tags", []) for p in ["O.D.I.N.", "ALFRED"]))
 34 |             
 35 |             if os.path.exists(self.rej_path):
    |                ^^^^^^^^^^^^^^
@@ -25434,7 +25434,7 @@ UP006 [*] Use `list` instead of `List` for type annotation
 146 |
 147 |     def _update_heatmap(self) -> List[float]:
     |                                  ^^^^
-148 |         """[ODIN] Scan core scripts for vulnerabilities to populate matrix."""
+148 |         """[O.D.I.N.] Scan core scripts for vulnerabilities to populate matrix."""
 149 |         from security_scan import SecurityScanner
     |
 help: Replace with `list`
@@ -25442,7 +25442,7 @@ help: Replace with `list`
 PTH118 `os.path.join()` should be replaced by `Path` with `/` operator
    --> src\tools\overwatch.py:150:23
     |
-148 |         """[ODIN] Scan core scripts for vulnerabilities to populate matrix."""
+148 |         """[O.D.I.N.] Scan core scripts for vulnerabilities to populate matrix."""
 149 |         from security_scan import SecurityScanner
 150 |         scripts_dir = os.path.join(self.base, "scripts")
     |                       ^^^^^^^^^^^^
@@ -27507,7 +27507,7 @@ W293 Blank line contains whitespace
 92 |         
    | ^^^^^^^^
 93 |         Args:
-94 |             target_persona: The name of the persona to use for styling (e.g., 'ALFRED', 'ODIN').
+94 |             target_persona: The name of the persona to use for styling (e.g., 'ALFRED', 'O.D.I.N.').
    |
 help: Remove whitespace from blank line
 
@@ -27714,7 +27714,7 @@ W293 [*] Blank line contains whitespace
 155 |         
     | ^^^^^^^^
 156 |         # Scanline Effect (Simulated)
-157 |         if self.target_persona in ["ODIN", "GOD"]:
+157 |         if self.target_persona in ["O.D.I.N.", "GOD"]:
     |
 help: Remove whitespace from blank line
 
@@ -27927,15 +27927,15 @@ ANN201 Missing return type annotation for public function `mode_war_room`
 249 |
 250 | def mode_war_room():
     |     ^^^^^^^^^^^^^
-251 |     # War Room is ODIN'S DOMAIN
-252 |     renderer = TraceRenderer("ODIN")
+251 |     # War Room is O.D.I.N.'S DOMAIN
+252 |     renderer = TraceRenderer("O.D.I.N.")
     |
 help: Add return type annotation: `None`
 
 W293 [*] Blank line contains whitespace
    --> src\tools\trace_viz.py:255:1
     |
-253 |     HUD.PERSONA = "ODIN" # Enforce globally for direct log calls
+253 |     HUD.PERSONA = "O.D.I.N." # Enforce globally for direct log calls
 254 |     theme = HUD.get_theme()
 255 |     
     | ^^^^
@@ -29108,7 +29108,7 @@ F541 [*] f-string without any placeholders
    |
 69 |         f"- **Project Root**: `{root}`",
 70 |         f"- **Persona Strategy**: `personas.py -> {persona.lower()}`",
-71 |         f"- **Framework Port**: 3000 (Odin Dashboard)\n",
+71 |         f"- **Framework Port**: 3000 (O.D.I.N. Dashboard)\n",
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 72 |         "## ⏭️ Priority Directives",
 73 |         get_task_status(),
@@ -29866,8 +29866,8 @@ W293 [*] Blank line contains whitespace
 30 |         self.root = PROJECT_ROOT
 31 |         
    | ^^^^^^^^
-32 |         # Enforce ODIN persona for the Wrap-Up Protocol
-33 |         HUD.PERSONA = "ODIN"
+32 |         # Enforce O.D.I.N. persona for the Wrap-Up Protocol
+33 |         HUD.PERSONA = "O.D.I.N."
    |
 help: Remove whitespace from blank line
 
@@ -30194,7 +30194,7 @@ ANN201 Missing return type annotation for public function `sovereign_commit`
 135 |     def sovereign_commit(self, stats):
     |         ^^^^^^^^^^^^^^^^
 136 |         """Generates commit message and pushes."""
-137 |         HUD.persona_log("ODIN", "Initiating Sovereign Commit Protocol...")
+137 |         HUD.persona_log("O.D.I.N.", "Initiating Sovereign Commit Protocol...")
     |
 help: Add return type annotation: `None`
 
@@ -30206,14 +30206,14 @@ ANN001 Missing type annotation for function argument `stats`
 135 |     def sovereign_commit(self, stats):
     |                                ^^^^^
 136 |         """Generates commit message and pushes."""
-137 |         HUD.persona_log("ODIN", "Initiating Sovereign Commit Protocol...")
+137 |         HUD.persona_log("O.D.I.N.", "Initiating Sovereign Commit Protocol...")
     |
 
 W293 [*] Blank line contains whitespace
    --> src\tools\wrap_it_up.py:138:1
     |
 136 |         """Generates commit message and pushes."""
-137 |         HUD.persona_log("ODIN", "Initiating Sovereign Commit Protocol...")
+137 |         HUD.persona_log("O.D.I.N.", "Initiating Sovereign Commit Protocol...")
 138 |         
     | ^^^^^^^^
 139 |         # Check for clean state

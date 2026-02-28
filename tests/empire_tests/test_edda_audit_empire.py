@@ -7,9 +7,7 @@ import pytest
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(PROJECT_ROOT))
 
-from src.sentinel.muninn import EddaWarden
-
-
+from src.sentinel.wardens.edda import EddaWarden
 class TestEddaWarden:
     @pytest.fixture
     def warden(self, tmp_path):

@@ -1,0 +1,38 @@
+---
+title: "index.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/index.ts"
+loc: 59
+complexity: 6
+logic_score: 6.10
+style_score: 4.07
+intel_score: 6.75
+overall_score: 5.64
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.1/10
+- **Style [S]**: 4.1/10
+- **Intel [I]**: 6.7/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://./crawler.js)
+- [*](file://./analyzer.js)
+- [*](file://./intel/writer.js)
+- [*](file://./intel/compiler.js)
+- [*](file://./intel/llm.js)
+- [*](file://./intel/database.js)
+- [*](file://fs/promises)
+- [*](file://path)
+- [*](file://node:crypto)
+- [*](file://./pathRegistry.js)
+
+### Exports
+- `runScan`

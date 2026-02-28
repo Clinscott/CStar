@@ -1,0 +1,31 @@
+---
+title: "PanelTabBar.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/src/components/layout/PanelTabBar.tsx"
+loc: 80
+complexity: 4
+logic_score: 7.70
+style_score: 1.00
+intel_score: 2.00
+overall_score: 3.57
+---
+
+## Intent
+React component rendering PanelTabBar with 4 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.7/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 2.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [*](file://react)
+- [cn](file://@/lib/utils)
+- [LucideIcon](file://lucide-react)
+- [Sparkles](file://lucide-react)
+
+### Exports
+- `PanelTabBar`
+- `PanelTabBar`

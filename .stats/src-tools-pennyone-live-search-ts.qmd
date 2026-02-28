@@ -1,0 +1,32 @@
+---
+title: "search.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/live/search.ts"
+loc: 48
+complexity: 7
+logic_score: 5.75
+style_score: 3.86
+intel_score: 3.67
+overall_score: 4.43
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 5.8/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 3.7/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://node:fs/promises)
+- [*](file://node:path)
+- [*](file://chalk)
+- [*](file://../pathRegistry.js)
+
+### Exports
+- `searchMatrix`

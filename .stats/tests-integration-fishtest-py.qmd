@@ -1,0 +1,58 @@
+---
+title: "fishtest.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/integration/fishtest.py"
+loc: 179
+complexity: 26
+logic_score: 1.45
+style_score: 3.75
+intel_score: 5.87
+overall_score: 3.69
+---
+
+## Intent
+Python module facilitating SovereignHUD, box_top.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.4/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 5.9/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [math](file://math)
+- [os](file://os)
+- [sys](file://sys)
+- [time](file://time)
+- [typing](file://typing)
+- [src.core](file://src.core)
+- [src.core.engine.vector](file://src.core.engine.vector)
+- [src.core.report_engine](file://src.core.report_engine)
+- [src.tools.brave_search](file://src.tools.brave_search)
+- [core](file://core)
+- [core.engine.vector](file://core.engine.vector)
+- [core.report_engine](file://core.report_engine)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+
+### Exports
+- `SovereignHUD`
+- `box_top`
+- `box_row`
+- `box_separator`
+- `box_bottom`
+- `log`
+- `progress_bar`
+- `SPRT`
+- `__init__`
+- `evaluate`
+- `FishtestRunner`
+- `__init__`
+- `_initialize_engine`
+- `run_case`
+- `_investigate_failure`
+- `execute_suite`
+- `main`

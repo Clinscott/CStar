@@ -1,0 +1,43 @@
+---
+title: "test_muninn.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/unit/test_muninn.py"
+loc: 84
+complexity: 2
+logic_score: 8.40
+style_score: 3.61
+intel_score: 6.16
+overall_score: 6.06
+---
+
+## Intent
+Python module facilitating mock_hud, muninn_instance.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.4/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 6.2/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [os](file://os)
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [unittest.mock](file://unittest.mock)
+- [pytest](file://pytest)
+- [src.sentinel.muninn](file://src.sentinel.muninn)
+- [tests.harness.manual_learn](file://tests.harness.manual_learn)
+- [tests.harness.raven_proxy](file://tests.harness.raven_proxy)
+
+### Exports
+- `mock_hud`
+- `muninn_instance`
+- `test_muninn_api_key_priority`
+- `test_muninn_anti_oscillation`
+- `test_muninn_crucible_rollback`
+- `test_muninn_learning_cycle`
+- `test_raven_proxy_injection`

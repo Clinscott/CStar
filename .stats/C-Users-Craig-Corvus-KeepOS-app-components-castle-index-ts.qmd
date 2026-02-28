@@ -1,0 +1,32 @@
+---
+title: "index.ts"
+path: "C:/Users/Craig/Corvus/KeepOS/app/components/castle/index.ts"
+loc: 7
+complexity: 1
+logic_score: 9.65
+style_score: 9.81
+intel_score: 7.71
+overall_score: 9.06
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.6/10
+- **Style [S]**: 9.8/10
+- **Intel [I]**: 7.7/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+Minimal internal dependencies.
+
+### Exports
+- `CastleView`
+- `Room`
+- `ResourceBar`
+- `HeroPanel`
+- `ActionBar`
+- `MiniMap`

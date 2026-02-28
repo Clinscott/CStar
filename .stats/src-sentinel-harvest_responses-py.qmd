@@ -1,0 +1,42 @@
+---
+title: "harvest_responses.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/sentinel/harvest_responses.py"
+loc: 76
+complexity: 4
+logic_score: 7.25
+style_score: 3.78
+intel_score: 6.66
+overall_score: 5.90
+---
+
+## Intent
+Python module facilitating ResponseRecorder, __init__.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.3/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 6.7/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [argparse](file://argparse)
+- [json](file://json)
+- [os](file://os)
+- [sys](file://sys)
+- [time](file://time)
+- [pathlib](file://pathlib)
+- [unittest.mock](file://unittest.mock)
+- [src.sentinel._bootstrap](file://src.sentinel._bootstrap)
+- [src.sentinel.muninn](file://src.sentinel.muninn)
+- [google](file://google)
+
+### Exports
+- `ResponseRecorder`
+- `__init__`
+- `record_call`
+- `save`
+- `harvest`

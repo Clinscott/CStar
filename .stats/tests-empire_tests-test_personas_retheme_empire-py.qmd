@@ -1,0 +1,30 @@
+---
+title: "test_personas_retheme_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_personas_retheme_empire.py"
+loc: 14
+complexity: 2
+logic_score: 8.85
+style_score: 4.05
+intel_score: 1.40
+overall_score: 4.77
+---
+
+## Intent
+Python module facilitating test_odin_retheme_docs_creates_dir.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [src.core.personas](file://src.core.personas)
+- [pytest](file://pytest)
+
+### Exports
+- `test_odin_retheme_docs_creates_dir`

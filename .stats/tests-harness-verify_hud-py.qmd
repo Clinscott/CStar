@@ -1,0 +1,30 @@
+---
+title: "verify_hud.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/harness/verify_hud.py"
+loc: 5
+complexity: 1
+logic_score: 9.65
+style_score: 9.33
+intel_score: 1.40
+overall_score: 6.79
+---
+
+## Intent
+Python module facilitating internal logic.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.6/10
+- **Style [S]**: 9.3/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [src.sentinel._bootstrap](file://src.sentinel._bootstrap)
+
+### Exports
+Internal logic only.

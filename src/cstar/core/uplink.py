@@ -143,6 +143,22 @@ class AntigravityUplink:
 
     async def _transmit_with_backoff(self, payload: dict) -> dict:
         """Internal transmission logic with exponential backoff."""
+        # [Ω] Gemini CLI Integration: If running under Gemini CLI, bypass direct SDK calls
+        if os.getenv("GEMINI_CLI_ACTIVE") == "true":
+            directive = {
+                "type": "LLM_REQUEST",
+                "persona": payload["context"].get("persona", "ALFRED"),
+                "query": payload["query"],
+                "system_prompt": payload["context"].get("system_prompt"),
+                "history": payload["context"].get("history", [])
+            }
+            # Output for Gemini CLI to intercept
+            print(f"\n[GEMINI_DIRECTIVE]\n{json.dumps(directive)}\n[/GEMINI_DIRECTIVE]")
+            
+            # Since this is a decoupling step, we return a pending status.
+            # In a full integration, the CLI would provide the response.
+            return {"status": "pending", "message": "Directive emitted to Gemini CLI."}
+
         max_retries = 3
         base_delay = 2
 

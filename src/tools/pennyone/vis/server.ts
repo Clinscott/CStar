@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import fs from 'fs/promises';
+import fsSync from 'fs';
 import chalk from 'chalk';
 import { createServer } from 'http';
 import { SubspaceRelay } from '../live/socket.js';
@@ -8,8 +9,10 @@ import { startWatcher } from '../live/watcher.js';
 import { handleTelemetryPing } from '../live/telemetry.js';
 import bodyParser from 'body-parser';
 import crypto from 'crypto';
-
+import os from 'os';
+import { getSessionsWithSummaries, getSessionPings } from '../intel/database.js';
 import { fileURLToPath } from 'url';
+import { activePersona } from '../personaRegistry.js';
 
 /**
  * PennyOne Bridge Server
@@ -18,9 +21,9 @@ import { fileURLToPath } from 'url';
 export function startBridge(targetPath: string, port: number = 4000) {
     const app = express();
     const server = createServer(app);
-    const statsDir = path.join(targetPath, '.stats');
+    const statsDir = path.join(process.cwd(), '.stats');
 
-    // Generate ephemeral token for this session
+    // [Ω] Security: Generate ephemeral token
     const token = crypto.randomBytes(16).toString('hex');
 
     // ESM __dirname replacement
@@ -28,15 +31,31 @@ export function startBridge(targetPath: string, port: number = 4000) {
     const __dirname = path.dirname(__filename);
     const distDir = path.resolve(__dirname, '../../../../dist/pennyone-vis');
 
+    console.log(chalk.dim(`[DEBUG] Bridge Dist Directory: ${distDir}`));
+    if (!fsSync.existsSync(distDir)) {
+        console.error(chalk.red(`[CRITICAL] Distribution directory missing: ${distDir}`));
+    } else {
+        const files = fsSync.readdirSync(distDir);
+        console.log(chalk.dim(`[DEBUG] Dist files: ${files.join(', ')}`));
+    }
+
     // Security Middleware: Bearer Auth
     const bearerAuth = (req: Request, res: Response, next: NextFunction) => {
         const authHeader = req.headers.authorization;
-        if (authHeader === `Bearer ${token}` || req.query.token === token) {
+        const queryToken = req.query.token;
+        if (authHeader === `Bearer ${token}` || queryToken === token) {
+            console.log(chalk.dim(`[DEBUG] Authorized request: ${req.method} ${req.url}`));
             return next();
         }
-        console.warn(chalk.red(`[ODIN]: "Unauthorized access attempt blocked from ${req.ip}. Perimeter intact."`));
-        res.status(401).json({ error: "Unauthorized. Valid Bearer token required." });
+        console.warn(chalk.red(`${activePersona.prefix}: "Unauthorized access attempt blocked. Perimeter intact."`));
+        console.warn(chalk.dim(`[DEBUG] Method: ${req.method} | URL: ${req.url} | Token: ${queryToken ? 'Present' : 'Missing'}`));
+        res.status(401).json({ error: "Unauthorized. Valid token required." });
     };
+
+    app.use((req, res, next) => {
+        console.log(chalk.dim(`[DEBUG] Request: ${req.method} ${req.url}`));
+        next();
+    });
 
     // 0. Initialize Live Loop
     const relay = new SubspaceRelay(server);
@@ -44,13 +63,25 @@ export function startBridge(targetPath: string, port: number = 4000) {
 
     app.use(bodyParser.json());
 
-    // 1. Serve Matrix Graph API (Protected)
+    // 1. Core APIs
     app.get('/api/matrix', bearerAuth, async (req: Request, res: Response) => {
         try {
-            const graphData = await fs.readFile(path.join(statsDir, 'matrix-graph.json'), 'utf-8');
+            const graphPath = path.join(statsDir, 'matrix-graph.json');
+            console.log(chalk.dim(`[DEBUG] Reading matrix graph: ${graphPath}`));
+            const graphData = await fs.readFile(graphPath, 'utf-8');
             res.json(JSON.parse(graphData));
         } catch (err) {
-            res.status(404).json({ error: "Matrix graph not found. Run 'pennyone scan' first." });
+            console.error(chalk.red(`[DEBUG] Matrix Error: ${err}`));
+            res.status(404).json({ error: "Matrix graph not found." });
+        }
+    });
+
+    app.get('/api/gravity', bearerAuth, async (req: Request, res: Response) => {
+        try {
+            const gravityData = await fs.readFile(path.join(statsDir, 'gravity.json'), 'utf-8');
+            res.json(JSON.parse(gravityData));
+        } catch (err) {
+            res.json({});
         }
     });
 
@@ -58,19 +89,75 @@ export function startBridge(targetPath: string, port: number = 4000) {
         handleTelemetryPing(req, res, relay, targetPath);
     });
 
-    // 2. Serve Static Frontend (Unprotected)
-    app.use(express.static(distDir));
+    app.post('/api/log', bearerAuth, async (req: Request, res: Response) => {
+        try {
+            const { type, message, stack } = req.body;
+            const logEntry = `[${new Date().toISOString()}] [${type}] ${message}\n${stack ? stack + '\n' : ''}`;
+            await fs.appendFile(path.join(statsDir, 'client_logs.txt'), logEntry);
+            res.json({ status: "logged" });
+        } catch (err) {
+            res.status(500).json({ error: "Logging failed" });
+        }
+    });
 
-    // Fallback for SPA routing
+    // --- [Ω] OPERATION CHRONICLE PLAYBACK ---
+
+    app.get('/api/chronicle/sessions', bearerAuth, async (req: Request, res: Response) => {
+        try {
+            const sessions = getSessionsWithSummaries(targetPath);
+            res.json(sessions);
+        } catch (err) {
+            res.status(500).json({ error: "Failed to retrieve archives." });
+        }
+    });
+
+    app.post('/api/chronicle/playback/:id', bearerAuth, async (req: Request, res: Response) => {
+        try {
+            const sessionId = parseInt(req.params.id);
+            const pings = getSessionPings(sessionId, targetPath);
+            if (pings.length === 0) return res.status(404).json({ error: "Empty session." });
+            relay.startPlayback(pings, req.body.speed || 2.0);
+            res.json({ status: "Playback initiated" });
+        } catch (err) {
+            res.status(500).json({ error: "Playback failure." });
+        }
+    });
+
+    app.get('/api/chronicle/download/:id', bearerAuth, async (req: Request, res: Response) => {
+        try {
+            const sessionId = parseInt(req.params.id);
+            const pings = getSessionPings(sessionId, targetPath);
+            const sessions = getSessionsWithSummaries(targetPath);
+            const session = sessions.find(s => s.id === sessionId);
+            if (!session) return res.status(404).json({ error: "Not found." });
+
+            const downloadDir = path.join(os.homedir(), 'Downloads');
+            const destPath = path.join(downloadDir, `CSTAR_CHRONICLE_${sessionId}.json`);
+            await fs.writeFile(destPath, JSON.stringify({ metadata: session, pings }, null, 2));
+            res.json({ status: "Downloaded", path: destPath });
+        } catch (err) {
+            res.status(500).json({ error: "Download failed." });
+        }
+    });
+
+    app.use(express.static(distDir));
     app.get('*', (req: Request, res: Response) => {
         res.sendFile(path.join(distDir, 'index.html'));
     });
 
-    // Bind strictly to 127.0.0.1
     server.listen(port, '127.0.0.1', () => {
-        console.log(chalk.cyan(`\n[ALFRED]: "Bridge established, sir. The Matrix is accessible at:"`));
-        console.log(chalk.bold.green(`http://127.0.0.1:${port}/?token=${token}`));
-        console.log(chalk.cyan(`[ALFRED]: "Monitoring telemetry from: ${targetPath}"\n`));
+        const url = `http://127.0.0.1:${port}/?token=${token}`;
+
+        // [Ω] The Signet: Write active URL to file for background retrieval
+        try {
+            if (!fsSync.existsSync(statsDir)) fsSync.mkdirSync(statsDir, { recursive: true });
+            fsSync.writeFileSync(path.join(statsDir, 'signet.url'), url, 'utf-8');
+        } catch (e) {
+            console.error("Failed to write signet file.");
+        }
+
+        console.log(chalk.cyan(`\n${activePersona.prefix}: "Bridge established, sir. The Matrix is accessible via the Signet."`));
+        console.log(chalk.bold.green(url));
+        console.log(chalk.dim(`[SIGNET]: Written to .stats/signet.url\n`));
     });
 }
-

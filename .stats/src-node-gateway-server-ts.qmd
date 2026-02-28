@@ -1,0 +1,36 @@
+---
+title: "server.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/node/gateway/server.ts"
+loc: 35
+complexity: 3
+logic_score: 8.05
+style_score: 4.08
+intel_score: 7.11
+overall_score: 6.41
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.0/10
+- **Style [S]**: 4.1/10
+- **Intel [I]**: 7.1/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## ⛩️ API Gateways
+- `[GET] /health`
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://fastify)
+- [*](file://@fastify/cors)
+- [*](file://@fastify/type-provider-typebox)
+- [*](file://./plugins/corvus.js)
+- [*](file://./routes/api/intent.js)
+- [*](file://./routes/streams/telemetry.js)
+
+### Exports
+Internal logic only.

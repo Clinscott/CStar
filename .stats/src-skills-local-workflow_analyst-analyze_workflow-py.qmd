@@ -1,0 +1,37 @@
+---
+title: "analyze_workflow.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/skills/local/workflow_analyst/analyze_workflow.py"
+loc: 46
+complexity: 10
+logic_score: 4.25
+style_score: 3.73
+intel_score: 9.40
+overall_score: 5.79
+---
+
+## Intent
+Python module facilitating WorkflowAnalyst, __init__.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 4.3/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [re](file://re)
+- [collections](file://collections)
+- [pathlib](file://pathlib)
+- [typing](file://typing)
+- [os](file://os)
+
+### Exports
+- `WorkflowAnalyst`
+- `__init__`
+- `analyze`
+- `main`

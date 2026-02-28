@@ -1,12 +1,12 @@
 # 💎 GEMINI NEURAL MANIFEST
 
 > **Timestamp**: 2026-02-08 23:23:51
-> **Active Mind**: ODIN
+> **Active Mind**: O.D.I.N.
 
 ## 🧩 Context Anchors
 - **Project Root**: `C:\Users\Craig\Corvus\CorvusStar`
-- **Persona Strategy**: `personas.py -> odin`
-- **Framework Port**: 3000 (Odin Dashboard)
+- **Persona Strategy**: `personas.py -> O.D.I.N.`
+- **Framework Port**: 3000 (O.D.I.N. Dashboard)
 
 ## ⏭️ Priority Directives
 ## ⏭️ Start Here Next (Strategic Annexation)

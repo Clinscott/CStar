@@ -1,0 +1,63 @@
+---
+title: "sv_engine.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/core/sv_engine.py"
+loc: 294
+complexity: 41
+logic_score: 1.00
+style_score: 3.72
+intel_score: 5.75
+overall_score: 3.49
+---
+
+## Intent
+Core semantic routing engine for intent resolution.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.0/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 5.8/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [argparse](file://argparse)
+- [json](file://json)
+- [os](file://os)
+- [re](file://re)
+- [subprocess](file://subprocess)
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [typing](file://typing)
+- [src.sentinel._bootstrap](file://src.sentinel._bootstrap)
+- [src.core](file://src.core)
+- [src.core.engine.cortex](file://src.core.engine.cortex)
+- [src.core.engine.instruction_loader](file://src.core.engine.instruction_loader)
+- [src.core.engine.memory_db](file://src.core.engine.memory_db)
+- [src.core.engine.vector](file://src.core.engine.vector)
+- [src.core.payload](file://src.core.payload)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [src.tools.brave_search](file://src.tools.brave_search)
+- [src.tools.gemini_search](file://src.tools.gemini_search)
+- [src.tools.compile_session_traces](file://src.tools.compile_session_traces)
+- [gc](file://gc)
+
+### Exports
+- `SovereignEngine`
+- `__init__`
+- `_load_feedback_context`
+- `_init_hud_dialogue`
+- `_init_vector_engine`
+- `_render_hud`
+- `record_trace`
+- `handle_cortex_query`
+- `_handle_proactive`
+- `run`
+- `_suggest_forge`
+- `teardown`
+- `json_mode`
+- `search`
+- `_proactive_lexicon_lift`
+- `main`

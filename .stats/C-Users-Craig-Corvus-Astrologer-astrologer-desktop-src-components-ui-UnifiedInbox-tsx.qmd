@@ -1,0 +1,34 @@
+---
+title: "UnifiedInbox.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/src/components/ui/UnifiedInbox.tsx"
+loc: 63
+complexity: 3
+logic_score: 8.05
+style_score: 1.00
+intel_score: 2.00
+overall_score: 3.68
+---
+
+## Intent
+React component rendering UnifiedInbox with 3 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.0/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 2.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [*](file://react)
+- [AlertCircle](file://lucide-react)
+- [Loader2](file://lucide-react)
+- [useUnifiedInbox](file://@/hooks/useUnifiedInbox)
+- [InboxHeader](file://./inbox/InboxHeader)
+- [InboxMessageList](file://./inbox/InboxMessageList)
+- [InboxInput](file://./inbox/InboxInput)
+
+### Exports
+- `UnifiedInbox`
+- `UnifiedInbox`

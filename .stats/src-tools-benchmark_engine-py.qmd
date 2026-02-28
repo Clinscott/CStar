@@ -1,0 +1,34 @@
+---
+title: "benchmark_engine.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/benchmark_engine.py"
+loc: 40
+complexity: 6
+logic_score: 6.55
+style_score: 3.94
+intel_score: 5.40
+overall_score: 5.30
+---
+
+## Intent
+Python module facilitating benchmark.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.5/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 5.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [statistics](file://statistics)
+- [subprocess](file://subprocess)
+- [sys](file://sys)
+- [time](file://time)
+- [pathlib](file://pathlib)
+- [src.core.report_engine](file://src.core.report_engine)
+
+### Exports
+- `benchmark`

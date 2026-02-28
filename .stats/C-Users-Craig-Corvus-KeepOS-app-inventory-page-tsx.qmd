@@ -1,0 +1,31 @@
+---
+title: "page.tsx"
+path: "C:/Users/Craig/Corvus/KeepOS/app/inventory/page.tsx"
+loc: 168
+complexity: 11
+logic_score: 4.80
+style_score: 1.00
+intel_score: 3.43
+overall_score: 3.08
+---
+
+## Intent
+React component rendering page with 11 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 4.8/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 3.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [useState](file://react)
+- [useEffect](file://react)
+- [invoke](file://@tauri-apps/api/core)
+- [uuidv4](file://uuid)
+
+### Exports
+- `InventoryPage`
+- `InventoryPage`

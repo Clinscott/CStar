@@ -44,6 +44,6 @@ To verify the security state of your local installation:
 ## 🚩 Reporting Vulnerabilities
 If you identify a security weakness in the Corvus Star shields, do not broadcast it in the clear. Report it via the secure "Pennyworth" channel or standard Git issue reporting protocols for your local instance.
 
-`[Odin's Decree]: THE GATE IS SEALED. THE PASSWORDS ARE CHANGED. ONLY THE WORTHY SHALL ENTER.`
+`[O.D.I.N.'s Decree]: THE GATE IS SEALED. THE PASSWORDS ARE CHANGED. ONLY THE WORTHY SHALL ENTER.`
 
 `[Alfred's Whisper]: "Sir, I have fortified the manor. Shall I continue monitoring the perimeter?"`

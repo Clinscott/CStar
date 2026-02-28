@@ -1,0 +1,30 @@
+---
+title: "StarChart.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/src/components/ui/StarChart.tsx"
+loc: 110
+complexity: 13
+logic_score: 3.65
+style_score: 1.00
+intel_score: 7.09
+overall_score: 3.91
+---
+
+## Intent
+React component rendering StarChart with 13 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 3.6/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 7.1/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [useMemo](file://react)
+- [memo](file://react)
+- [Message](file://@/lib/types/message)
+- [cn](file://@/lib/utils)
+
+### Exports
+- `StarChart`

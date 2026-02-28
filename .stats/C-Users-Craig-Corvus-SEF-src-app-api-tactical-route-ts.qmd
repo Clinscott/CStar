@@ -1,0 +1,32 @@
+---
+title: "route.ts"
+path: "C:/Users/Craig/Corvus/SEF/src/app/api/tactical/route.ts"
+loc: 69
+complexity: 5
+logic_score: 6.90
+style_score: 3.68
+intel_score: 4.90
+overall_score: 5.16
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.9/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 4.9/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [NextRequest](file://next/server)
+- [NextResponse](file://next/server)
+- [*](file://better-sqlite3)
+- [resolve](file://path)
+- [TACTICAL_SYSTEM_PROMPT](file://@/agent/prompts/tactical-verdict)
+
+### Exports
+- `POST`
+- `POST`

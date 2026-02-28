@@ -1,0 +1,30 @@
+---
+title: "cjk_check.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/debug/cjk_check.py"
+loc: 24
+complexity: 3
+logic_score: 8.05
+style_score: 4.01
+intel_score: 1.40
+overall_score: 4.49
+---
+
+## Intent
+Python module facilitating search_and_print.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.0/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [engine.vector](file://engine.vector)
+
+### Exports
+- `search_and_print`

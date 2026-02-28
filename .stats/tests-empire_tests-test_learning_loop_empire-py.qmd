@@ -1,0 +1,49 @@
+---
+title: "test_learning_loop_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_learning_loop_empire.py"
+loc: 127
+complexity: 6
+logic_score: 5.20
+style_score: 3.61
+intel_score: 6.44
+overall_score: 5.08
+---
+
+## Intent
+Python module facilitating TestLearningLoopEmpire, test_log_feedback_persistence.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 5.2/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 6.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [os](file://os)
+- [sys](file://sys)
+- [json](file://json)
+- [asyncio](file://asyncio)
+- [pathlib](file://pathlib)
+- [unittest.mock](file://unittest.mock)
+- [pytest](file://pytest)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [src.sentinel.muninn](file://src.sentinel.muninn)
+- [src.core.engine.vector](file://src.core.engine.vector)
+- [src.tools.user_feedback](file://src.tools.user_feedback)
+- [src.cstar.core.forge](file://src.cstar.core.forge)
+- [src.cstar.core.uplink](file://src.cstar.core.uplink)
+- [src.core.sv_engine](file://src.core.sv_engine)
+- [src.core.sv_engine](file://src.core.sv_engine)
+
+### Exports
+- `TestLearningLoopEmpire`
+- `test_log_feedback_persistence`
+- `test_muninn_feedback_prioritization`
+- `test_forge_brave_integration`
+- `test_uplink_search_augmentation`
+- `test_sv_engine_teardown_learning`
+- `test_persistent_thesaurus_update`

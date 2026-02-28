@@ -1,0 +1,44 @@
+---
+title: "stability.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/sentinel/stability.py"
+loc: 88
+complexity: 12
+logic_score: 4.00
+style_score: 3.78
+intel_score: 9.40
+overall_score: 5.73
+---
+
+## Intent
+Python module facilitating GungnirValidator, __init__.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 4.0/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [hashlib](file://hashlib)
+- [json](file://json)
+- [math](file://math)
+- [time](file://time)
+- [pathlib](file://pathlib)
+- [typing](file://typing)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+
+### Exports
+- `GungnirValidator`
+- `__init__`
+- `record_trial`
+- `status`
+- `TheWatcher`
+- `__init__`
+- `_load_state`
+- `_save_state`
+- `is_locked`
+- `record_edit`

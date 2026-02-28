@@ -1,0 +1,38 @@
+---
+title: "ConversationListPanel.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/src/components/layout/ConversationListPanel.tsx"
+loc: 181
+complexity: 14
+logic_score: 2.85
+style_score: 1.00
+intel_score: 4.21
+overall_score: 2.69
+---
+
+## Intent
+React component rendering ConversationListPanel with 14 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 2.8/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 4.2/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [useMemo](file://react)
+- [cn](file://@/lib/utils)
+- [PanelTabBar](file://./PanelTabBar)
+- [PanelTab](file://./PanelTabBar)
+- [Message](file://@/lib/types/message)
+- [BridgePlatform](file://@/lib/types/bridge)
+- [MessageSquare](file://lucide-react)
+- [Users](file://lucide-react)
+- [Hash](file://lucide-react)
+- [Search](file://lucide-react)
+- [MoreHorizontal](file://lucide-react)
+
+### Exports
+- `ConversationListPanel`
+- `ConversationListPanel`

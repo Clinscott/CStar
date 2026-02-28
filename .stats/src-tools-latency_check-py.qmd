@@ -1,0 +1,37 @@
+---
+title: "latency_check.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/latency_check.py"
+loc: 61
+complexity: 6
+logic_score: 6.10
+style_score: 3.89
+intel_score: 7.96
+overall_score: 5.98
+---
+
+## Intent
+Python module facilitating LatencyProfiler, __init__.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.1/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 8.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [contextlib](file://contextlib)
+- [os](file://os)
+- [subprocess](file://subprocess)
+- [sys](file://sys)
+- [time](file://time)
+
+### Exports
+- `LatencyProfiler`
+- `__init__`
+- `measure_startup`
+- `measure_search`
+- `main`

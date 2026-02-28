@@ -1,0 +1,31 @@
+---
+title: "ActionBar.tsx"
+path: "C:/Users/Craig/Corvus/KeepOS/app/components/castle/HUD/ActionBar.tsx"
+loc: 60
+complexity: 1
+logic_score: 9.20
+style_score: 1.00
+intel_score: 2.67
+overall_score: 4.29
+---
+
+## Intent
+React component rendering ActionBar with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 2.7/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [motion](file://framer-motion)
+- [Plus](file://lucide-react)
+- [Utensils](file://lucide-react)
+- [Radio](file://lucide-react)
+
+### Exports
+- `ActionBar`
+- `ActionBar`

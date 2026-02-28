@@ -1,0 +1,32 @@
+---
+title: "warden_latency.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/benchmarks/warden_latency.py"
+loc: 53
+complexity: 5
+logic_score: 7.35
+style_score: 3.76
+intel_score: 1.40
+overall_score: 4.17
+---
+
+## Intent
+Python module facilitating run_benchmark.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.3/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [time](file://time)
+- [pathlib](file://pathlib)
+- [src.core.engine.atomic_gpt](file://src.core.engine.atomic_gpt)
+
+### Exports
+- `run_benchmark`

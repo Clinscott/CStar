@@ -1,0 +1,38 @@
+---
+title: "test_warden.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/unit/test_warden.py"
+loc: 65
+complexity: 3
+logic_score: 6.70
+style_score: 3.52
+intel_score: 3.86
+overall_score: 4.70
+---
+
+## Intent
+Autonomous neural guardian monitoring system drift and anomalies.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.7/10
+- **Style [S]**: 3.5/10
+- **Intel [I]**: 3.9/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [uuid](file://uuid)
+- [unittest.mock](file://unittest.mock)
+- [pytest](file://pytest)
+- [src.core.engine.atomic_gpt](file://src.core.engine.atomic_gpt)
+- [src.core.payload](file://src.core.payload)
+- [src.cstar.core.forge](file://src.cstar.core.forge)
+
+### Exports
+- `TestWardenDrift`
+- `test_burn_in_and_zscore_drift`
+- `TestHallucinationCircuitBreaker`
+- `test_forge_rollback_on_circuit_breaker`

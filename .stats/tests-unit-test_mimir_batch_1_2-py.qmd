@@ -1,0 +1,42 @@
+---
+title: "test_mimir_batch_1_2.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/unit/test_mimir_batch_1_2.py"
+loc: 71
+complexity: 1
+logic_score: 8.75
+style_score: 3.71
+intel_score: 8.16
+overall_score: 6.87
+---
+
+## Intent
+Python module facilitating project_root, test_muninn_refactor_calls.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 8.2/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [unittest.mock](file://unittest.mock)
+- [pytest](file://pytest)
+- [src.core.engine.dialogue](file://src.core.engine.dialogue)
+- [src.games.odin_protocol.engine.scenarios](file://src.games.odin_protocol.engine.scenarios)
+- [src.sentinel.code_sanitizer](file://src.sentinel.code_sanitizer)
+- [src.sentinel.muninn](file://src.sentinel.muninn)
+- [src.sentinel.wardens.norn](file://src.sentinel.wardens.norn)
+- [src.skills.install_skill](file://src.skills.install_skill)
+
+### Exports
+- `project_root`
+- `test_muninn_refactor_calls`
+- `test_code_sanitizer_imports`
+- `test_norn_task_parsing`
+- `test_dialogue_engine_scoring`
+- `test_scenario_generation_parity`
+- `test_install_skill_interface`

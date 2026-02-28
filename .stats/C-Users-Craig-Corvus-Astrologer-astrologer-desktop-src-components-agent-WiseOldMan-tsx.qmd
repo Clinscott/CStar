@@ -1,0 +1,35 @@
+---
+title: "WiseOldMan.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/src/components/agent/WiseOldMan.tsx"
+loc: 156
+complexity: 9
+logic_score: 4.60
+style_score: 1.00
+intel_score: 4.31
+overall_score: 3.30
+---
+
+## Intent
+React component rendering WiseOldMan with 9 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 4.6/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 4.3/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [useEffect](file://react)
+- [useState](file://react)
+- [X](file://lucide-react)
+- [Sparkles](file://lucide-react)
+- [ScrollText](file://lucide-react)
+- [LucideMap](file://lucide-react)
+- [cn](file://@/lib/utils)
+- [isTauri](file://@/lib/utils)
+
+### Exports
+- `WiseOldMan`
+- `WiseOldMan`

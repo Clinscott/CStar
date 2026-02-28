@@ -175,21 +175,33 @@ class CorvusDispatcher:
         self.show_help()
 
     def _record_heartbeat(self, latency: float, tokens: int, loops: float, error: float) -> None:
-        """Feeding the Warden."""
+        """Feeding the Warden and calculating Gungnir Anomaly."""
         if not self.warden:
             return
 
         features = [latency, float(tokens), loops, error]
 
-        # Inference
+        # 1. Inference
         anomaly_prob = self.warden.forward(features)
 
-        # Training (Self-Supervised on success)
-        # In Burn-In, we assume Healthy (0.0). Post Burn-In, we only train on successes.
+        # 2. Training (Self-Supervised on success)
         if self.warden.burn_in_cycles > 0 or error == 0.0:
             self.warden.train_step(features, 0.0)
 
-        # Alerting
+        # 3. Persistence: Store anomaly score for PennyOne to consume
+        try:
+            state_path = self.project_root / ".agent" / "sovereign_state.json"
+            import json
+            state = {}
+            if state_path.exists():
+                state = json.loads(state_path.read_text(encoding='utf-8'))
+            
+            state["last_anomaly_score"] = anomaly_prob
+            state_path.write_text(json.dumps(state, indent=2), encoding='utf-8')
+        except Exception:
+            pass
+
+        # 4. Alerting
         if self.warden.burn_in_cycles == 0 and anomaly_prob > 0.8:
             SovereignHUD.persona_log("CRITICAL", f"Anomaly Detected: {anomaly_prob:.2f} (Heartbeat: {features})")
 

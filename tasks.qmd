@@ -40,7 +40,7 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Mimir's Boost**: Achieved 0.06ms search latency via LRU caching. [x]
 - [x] **Heimdall Vigil**: Implemented SHA-256 challenge-response and security scanning. [x]
 - [x] **Sterile Seed**: Verified replicability via `sterileAgent` template. [x]
-- [x] **The Great Duality**: Implemented asymmetric ODIN/A.L.F.R.E.D. persona support. [x]
+- [x] **The Great Duality**: Implemented asymmetric O.D.I.N./A.L.F.R.E.D. persona support. [x]
 
 ### 16-19. Campaign N=1000 (Saturation)
 - [x] **Phase 1 (Saturation)**: Achieved 100.0% accuracy on N=1000 benchmark cases. [x]
@@ -57,14 +57,14 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Hybrid Calibration**: Restored .md for workflows; verified Persona sync and SovereignHUD aesthetics. [x]
 - [x] **SPRT Calibration**: Adjusted integrity threshold to 90% and hardened adversarial testing. [x]
 
-### 21. Odin Protocol Strategic Depth
+### 21. O.D.I.N. Protocol Strategic Depth
 - [x] **Genetic Ripple Effect**: Implemented `SYNERGY_MAP` and interference logic for 24 traits. [x]
 - [x] **Federated Seeding**: Seeded scenario generation with Git hash for unique deterministic universes. [x]
 - [x] **A.L.F.R.E.D.'s Briefing**: Added infrequent tactical scans with turn-based cooldown protocol. [x]
 - [x] **Immutable History**: Finalized Git-based persistence with state-hash commit records. [x]
 - [x] **Linscott Compliance**: Refactored logic/persistence to strict typing and docstring standards. [x]
 
-### 21. Odin Protocol Phase 9: Tactical Adjudication & Nodal Campaigns
+### 21. O.D.I.N. Protocol Phase 9: Tactical Adjudication & Nodal Campaigns
 - [x] **Weighted Die Cast**: Implemented probabilistic tactical adjudication based on Warlord rating. [x]
 - [x] **Nodal Persistence**: Locked players into campaign nodes with retreat penalties (50%). [x]
 - [x] **Dynamic Attrition**: Tied Force costs and Domination gains to choice difficulty. [x]
@@ -72,7 +72,7 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Baseline Remediation**: Closed all audit findings from Baseline Audit (Structural, Neural, Complexity). [x]
 
 
-### 22. Odin Protocol Phase 10: Total Annexation (Coverage)
+### 22. O.D.I.N. Protocol Phase 10: Total Annexation (Coverage)
 - [x] **Structural Remediation**: Pathlib migration for `sv_engine.py` and TacticalRNG for `logic.py`. [x]
 - [x] **Sentinel CLI**: Implemented `c* sentinel [-status|-end]` for daemon management. [x]
 - [x] **Configuration Safety**: Added `.gitignore` and removed `.env.local` from tracking. [x]
@@ -100,7 +100,7 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Sentinel Audit**: Fixed 169 I001 breaches (import sorting), 4 issues in `compiler.py`. [x]
 - [x] **Terminal Encoding**: Permanent UTF-8 fix in PowerShell profile, `cstar.ps1`, and `ui.py`. [x]
 
-### 26. The Odin Lore Restoration (Session 44)
+### 26. The O.D.I.N. Lore Restoration (Session 44)
 - [x] **Lore Rebranding**: Replaced "Sentinel" and "Sovereign Fish" with **Huginn & Muninn** (Daemon) and **Heimdall** (Auditor). [x]
 - [x] **Dispatcher Sync**: Updated `cstar` dispatcher to handle `ravens`, `huginn`, and `heimdall` commands. [x]
 - [x] **Logic Polishing**: Renamed `SovereignFish` class in `sovereign_fish.py` to `Muninn` for architectural consistency. [x]
@@ -238,13 +238,13 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Linscott Compliance**: Standardized TUI module with strict typing, docstrings, and graceful connection handling. [x]
 
 ### 48. Operation Ragnarök: DOOM Aesthetic & WAR ROOM (Session 62)
-- [x] **DOOM Chrome**: Overhauled ODIN CSS with `heavy #cc2200` borders, bright amber text, and aggressive red header bar. [x]
+- [x] **DOOM Chrome**: Overhauled O.D.I.N. CSS with `heavy #cc2200` borders, bright amber text, and aggressive red header bar. [x]
 - [x] **WAR ROOM Redesign**: Restructured sidebar into 3 battle briefing sections (Active Objectives, Forge Status, Intel Feed). [x]
 - [x] **Crash Fix**: Resolved `NoMatches: No nodes match 'Input'` by using `message.input` instead of `self.query_one(Input)`. [x]
 - [x] **Quit Fix**: Replaced default `Ctrl+Q` quit (which conflicted with IDE) with `Escape` keybinding + `exit`/`quit` typed commands. [x]
 - [x] **ALFRED CSS**: Updated theme selectors from generic types to panel IDs (`#console`, `#gphs_bar`). [x]
 - [x] **Dynamic Forge**: Added `update_forge_status()` method to SidebarWidget for real-time build state. [x]
-- [x] **Lore Panels**: Implemented persona-aware border-titles (WAR ROOM, THE WELL OF MIMIR, ODIN'S EYE) via `_apply_panel_lore()`. [x]
+- [x] **Lore Panels**: Implemented persona-aware border-titles (WAR ROOM, THE WELL OF MIMIR, O.D.I.N.'S EYE) via `_apply_panel_lore()`. [x]
 - [x] **Verification**: 25/25 TUI tests passing, lint clean. [x]
 
 ### 49. The Node.js Control Plane & Final Purge (Session 63)
@@ -257,7 +257,7 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **The Final Purge**: Eradicated all 9 remaining `.ps1` files. C* is 100% Node/Python. [x]
 
 ### 50. Quota Isolation & Ravens Control Plane (Session 65)
-- [x] **Quota Isolation**: Implemented isolated API key routing for Daemon (ODIN) and Muninn (Raven) via `AntigravityUplink`. [x]
+- [x] **Quota Isolation**: Implemented isolated API key routing for Daemon (O.D.I.N.) and Muninn (Raven) via `AntigravityUplink`. [x]
 - [x] **Model Harmonization**: Updated all systems to `gemini-3-flash-preview` and `gemini-3.1-pro-preview`. [x]
 - [x] **Network Standard**: Harmonized all internal communication to `127.0.0.1` and port 50052. [x]
 - [x] **Deterministic Status**: Refactored `ravens --status` into a local, daemon-independent Node.js command in `bin/cstar.js`. [x]
@@ -305,7 +305,7 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 
 ### 57. UI Client Logic & Warden Hardening (Session 72)
 - [x] **IPC Fragmentation**: Resolved TCP payload truncation between `cortex_link.js` and `daemon.py` by implementing newline delimiter streaming. [x]
-- [x] **Path Resolution**: Fixed ODIN protocol daemon client pathing to prevent blind import crashes. [x]
+- [x] **Path Resolution**: Fixed O.D.I.N. protocol daemon client pathing to prevent blind import crashes. [x]
 - [x] **Linscott Exceptions Purge**: Eliminated ubiquitous bare exceptions (`except Exception: pass`) across `tui.py` and `src/sentinel/wardens/`, using `contextlib.suppress`. [x]
 - [x] **Math Measure Fix**: Corrected Birkhoff's Measure calculation in the Freya Warden to properly score harmonious tailwind classes. [x]
 - [x] **Verification**: 100% test integrity maintained post-refactor. [x]
@@ -321,7 +321,7 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Daemon Rebirth**: Refactored `daemon.py` from archaic raw sockets to a high-performance `websockets` Python server.
 - [x] **Decoupled TUI**: Transformed `tui.py` into a purely reactive client driven by the Daemon's Pub/Sub state broadcasts.
 - [x] **Async Boundaries**: Isolated blocking search engine calls in the daemon using `asyncio.to_thread` to preserve 60FPS UI polling.
-- [x] **CRT Glitch Aesthetics**: Implemented a visceral ASCII matrix wipe animation during ODIN/ALFRED persona toggles.
+- [x] **CRT Glitch Aesthetics**: Implemented a visceral ASCII matrix wipe animation during O.D.I.N./ALFRED persona toggles.
 - [x] **Ephemeral Context**: Integrated `CURRENT_SESSION_CONTEXT` inside A.L.F.R.E.D. for short-term memory, instantly purged via Vanguard overrides or dismissal.
 - [x] **Verification**: 100% green pass rate across `test_tui_empire.py`, `test_tui_client.py`, and `test_daemon_singleton_empire.py`.
 
@@ -406,9 +406,9 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Verification**: 100% pass on V4 EMPIRE TDD suite (Determinism, Concurrency, Purge). [x]
 
 ### 72. Genesis Persona Alignment & Sentinel Restoration (Session 85)
-- [x] **Persona Symmetry**: Refactored `src/node/setup.js` to dynamically load and honor the active persona (ODIN/ALFRED). [x]
+- [x] **Persona Symmetry**: Refactored `src/node/setup.js` to dynamically load and honor the active persona (O.D.I.N./ALFRED). [x]
 - [x] **JS Sentinel (Heimdall JS)**: Integrated ESLint and created `js_sentinel.js` for themed JS linting reports. [x]
-- [x] **Execution Fortification**: Enhanced `npm link` diagnostic reporting for the ODIN persona. [x]
+- [x] **Execution Fortification**: Enhanced `npm link` diagnostic reporting for the O.D.I.N. persona. [x]
 - [x] **Verification**: 100% pass on Genesis Node.js tests and JS Sentinel scan. [x]
 
 ### 73. SovereignFish: Benchmark Hardening (Session 86)
@@ -419,7 +419,7 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 ### 74. Scaffold Campaign: Securing the ANNEX (Session 87)
 - [x] **Dominion Expanded**: Refactored 29 core components to the Linscott Standard (strict typing, docstrings, Pathlib).
 - [x] **Neural Engine**: Modernized `vector.py`, `cortex.py`, `dialogue.py`, and `alfred_observer.py`.
-- [x] **Odin Protocol**: Refactored the entire game engine (`main.py`, `logic.py`, `models.py`, `persistence.py`, `rng.py`, `scenarios.py`).
+- [x] **O.D.I.N. Protocol**: Refactored the entire game engine (`main.py`, `logic.py`, `models.py`, `persistence.py`, `rng.py`, `scenarios.py`).
 - [x] **Wardens**: Refactored `base.py` and `freya.py`.
 - [x] **Verification**: Created 20+ new test suites ensuring 100% pass rate across the secured realms.
 - [x] **Shadow Purge**: Removed legacy relative path hacks and brittle string formatting.
@@ -449,14 +449,13 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Empire TDD Hardening**: Created `test_universal_gungnir.py` verifying 100% domain coverage. [x]
 - [x] **Aesthetic Floor**: Standardized aesthetic scoring for non-Python file formats (CSS/JSON/MD). [x]
 
-### 79. Operation PennyOne: The Ghost in the Matrix (Session 94)
-- [x] **Polyglot Matrix**: Implemented universal AST mapping (JS/TS/PY) via WASM Tree-sitter. [x]
-- [x] **3D Neural Graph**: Developed high-performance R3F visualization with logarithmic scaling. [x]
-- [x] **Pathway Restoration**: Resolved dependency resolution bugs to restore neural connectivity. [x]
-- [x] **Agent Telemetry**: Implemented `POST /api/telemetry/ping` and broadcast relay. [x]
-- [x] **Ghost Trace**: Visualized AI logic paths using arcing `CatmullRomCurve3` splines. [x]
-- [x] **Session DVR**: Built chronological recording and playback HUD for 3D traversal audits. [x]
-- [x] **Verification**: 100% pass on PennyOne EMPIRE tests and path normalization audit. [x]
+### 79. Operation PennyOne: Phase 5.2 & 9 (Session 97)
+- [x] **Aesthetic Overhaul**: Implemented "Ghost in the Machine" cinematic effects (Bloom, Chromatic Aberration). [x]
+- [x] **Gungnir Lattice**: Developed animated, dashed neural pathways with real-time data flow. [x]
+- [x] **Gravity Protocol**: Implemented Massive Scale (LOC-driven), Gravitational Distortion, and Pulse Overload. [x]
+- [x] **Telemetry Hardening**: Applied scorched-earth guards to resolve `TypeError` and WebGL context loss. [x]
+- [x] **Orbital Stability**: Calibrated Utility Ring velocity to 0.002 for precise manual auditing. [x]
+- [x] **Verification**: Passed EMPIRE TDD and Gherkin browser verification (Linscott Standard). [x]
 
 ### 80. A.L.F.R.E.D. Lore & Global Rebranding (Session 95)
 - [x] **Lore Enrichment**: Integrated SAS, Combat Medic, and Theatrical background into core persona. [x]
@@ -471,7 +470,13 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Persistent Knowledge**: Updated `_proactive_lexicon_lift` to persistently expand `thesaurus.qmd`. [x]
 - [x] **Verification**: Achieved 100% pass rate on `test_learning_loop_empire.py` (Linscott Standard). [x]
 
-## ⏭️ Start Here Next (Phase 82)
-- [ ] **Adaptive Campaigning**: Implement turn-based campaign updates in Odin Protocol based on Agent session successes.
+### 82. Configuration-Driven Persona Registry (Session 98)
+- [x] **Registry Implementation**: Created `src/tools/pennyone/personaRegistry.ts` for dynamic persona hydration from `config.json`.
+- [x] **Theme Synchronization**: Implemented dynamic ANSI log coloring and status markers based on active persona configuration.
+- [x] **Global Constant Replacement**: Removed static `[ODIN]` and `[ALFRED]` string references across Python and TypeScript modules.
+- [x] **Verification**: Patched 5 `test_muninn_naming_empire.py` assertion errors and achieved 100% (328/328) test stability.
+
+## ⏭️ Start Here Next (Phase 83)
 - [ ] **Neural Graph Depth**: Enhance PennyOne to visualize multi-session learning trajectories.
+- [ ] **Adaptive Campaigning**: Implement turn-based campaign updates in O.D.I.N. Protocol based on Agent session successes.
 

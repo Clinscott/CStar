@@ -1,0 +1,54 @@
+---
+title: "forge.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/cstar/core/forge.py"
+loc: 240
+complexity: 26
+logic_score: 1.00
+style_score: 3.69
+intel_score: 2.73
+overall_score: 2.48
+---
+
+## Intent
+Python module facilitating Forge, __init__.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.0/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 2.7/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [ast](file://ast)
+- [asyncio](file://asyncio)
+- [contextlib](file://contextlib)
+- [gc](file://gc)
+- [json](file://json)
+- [os](file://os)
+- [re](file://re)
+- [shutil](file://shutil)
+- [sys](file://sys)
+- [time](file://time)
+- [uuid](file://uuid)
+- [pathlib](file://pathlib)
+- [typing](file://typing)
+- [src.core.engine.atomic_gpt](file://src.core.engine.atomic_gpt)
+- [src.core.engine.gungnir.universal](file://src.core.engine.gungnir.universal)
+- [src.core.payload](file://src.core.payload)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [src.cstar.core.sprt](file://src.cstar.core.sprt)
+- [src.cstar.core.uplink](file://src.cstar.core.uplink)
+- [src.sentinel._bootstrap](file://src.sentinel._bootstrap)
+- [src.tools.brave_search](file://src.tools.brave_search)
+
+### Exports
+- `Forge`
+- `__init__`
+- `__repr__`
+- `execute`
+- `_generate_with_calculus`
+- `_pulse_warden`

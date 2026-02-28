@@ -1,0 +1,29 @@
+---
+title: "shims.d.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/types/shims.d.ts"
+loc: 12
+complexity: 1
+logic_score: 9.20
+style_score: 7.33
+intel_score: 2.00
+overall_score: 6.18
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 7.3/10
+- **Intel [I]**: 2.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+Minimal internal dependencies.
+
+### Exports
+Internal logic only.

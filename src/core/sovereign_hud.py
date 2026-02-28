@@ -111,8 +111,8 @@ class SovereignHUD:
             "success": "\033[32m",
             "warning": "\033[33m",
             "error": "\033[31m",
-            "title": "Ω ODIN ENGINE Ω",
-            "prefix": "[ODIN]",
+            "title": "Ω O.D.I.N. ENGINE Ω",
+            "prefix": "[O.D.I.N.]",
             "war_title": "THE WAR ROOM (CONFLICT RADAR)",
             "trace_label": "TRACE (LIES)",
             "truth_label": "TRUTH (LAW)",
@@ -145,8 +145,8 @@ class SovereignHUD:
         """Returns the comprehensive color palette for the active Persona."""
         SovereignHUD._ensure_persona()
         p = SovereignHUD.PERSONA.upper()
-        # GOD is an alias for ODIN
-        if p == "GOD":
+        # GOD and O.D.I.N. are aliases for the internal ODIN theme
+        if p in ("GOD", "O.D.I.N."):
             p = "ODIN"
         return SovereignHUD._THEME_REGISTRY.get(p, SovereignHUD._THEME_REGISTRY["ALFRED"])
 
@@ -500,7 +500,7 @@ class SovereignHUD:
             out.write("\n")
             out.flush()
         finally:
-            # [ODIN] ALWAYS restore cursor. If interrupted mid-stream,
+            # [O.D.I.N.] ALWAYS restore cursor. If interrupted mid-stream,
             # inject a newline first so the terminal prompt lands on a clean line.
             if interrupted:
                 out.write("\n")

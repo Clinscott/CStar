@@ -1,0 +1,50 @@
+---
+title: "ravens_harness.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/ravens_harness.py"
+loc: 337
+complexity: 31
+logic_score: 1.45
+style_score: 3.69
+intel_score: 3.77
+overall_score: 2.97
+---
+
+## Intent
+Python module facilitating load_mock_responses, generate_synthetic_responses.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.4/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 3.8/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [argparse](file://argparse)
+- [json](file://json)
+- [os](file://os)
+- [sys](file://sys)
+- [time](file://time)
+- [pathlib](file://pathlib)
+- [src.core.annex](file://src.core.annex)
+- [src.sentinel.code_sanitizer](file://src.sentinel.code_sanitizer)
+- [src.sentinel.wardens.edda](file://src.sentinel.wardens.edda)
+- [src.sentinel.wardens.mimir](file://src.sentinel.wardens.mimir)
+- [src.sentinel.wardens.runecaster](file://src.sentinel.wardens.runecaster)
+- [src.sentinel.wardens.valkyrie](file://src.sentinel.wardens.valkyrie)
+- [subprocess](file://subprocess)
+- [tempfile](file://tempfile)
+
+### Exports
+- `load_mock_responses`
+- `generate_synthetic_responses`
+- `RavensHarness`
+- `__init__`
+- `run`
+- `_get_real_targets`
+- `_run_sanitizer_pipeline`
+- `_save_results`
+- `_print_summary`

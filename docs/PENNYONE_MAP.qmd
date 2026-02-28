@@ -1,0 +1,39 @@
+---
+title: "PennyOne Navigational Map"
+subtitle: "The Primary Cortex for Agent Reconnaissance"
+format: html
+---
+
+# ◤ THE COMPASS OF ASGARD ◢
+
+> [!IMPORTANT]
+> **MANDATE**: All agents MUST consult this map before performing deep file reads or wide searches in the source code.
+
+## ◈ Purpose
+The PennyOne system converts raw code into high-fidelity intelligence. Instead of reading thousands of lines of raw code, agents should query the `.stats/` directory first to identify targets by **Intent**, **Complexity**, and **Gravity**.
+
+## ◈ The Hall of Records (`.stats/`)
+Every file in the repository has a corresponding `.qmd` report in the `.stats/` directory. These reports are named using a flattened path:
+- Source: `src/core/sv_engine.py`
+- Report: `.stats/src-core-sv_engine-py.qmd`
+
+## ◈ Searching the Matrix
+Agents should use the following tools to find their path:
+
+### 1. Unified Search (Cross-Platform)
+Run `cstar p1 --search <query>` to perform a platform-aware search through the intent summaries and metadata. This replaces raw `grep` and ensures consistent results on Windows, Linux, and Unix.
+
+### 2. Identifying Hotspots
+Consult `cstar p1 --stats` to find "High Gravity" files where agents frequently interact or get stuck in logic loops.
+
+### 3. API Discovery
+Look for files tagged with `## API Endpoints` in their reports. These are the gateways of the system.
+
+## ◈ Metadata Definitions
+- **Logic [L]**: Structural branching density. Lower is more linear; higher is more complex.
+- **Style [S]**: Aesthetic symmetry and naming purity.
+- **Intel [I]**: Documentation density and transparency.
+- **Gravity [G]**: Real-time agent interaction frequency. High gravity indicates a "Sector of Interest."
+
+---
+[ALFRED]: "Follow the map, sir. It is much safer than wandering the void."

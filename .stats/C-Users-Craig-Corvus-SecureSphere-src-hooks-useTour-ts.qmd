@@ -1,0 +1,30 @@
+---
+title: "useTour.ts"
+path: "C:/Users/Craig/Corvus/SecureSphere/src/hooks/useTour.ts"
+loc: 50
+complexity: 4
+logic_score: 7.25
+style_score: 3.96
+intel_score: 3.60
+overall_score: 4.94
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.3/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 3.6/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [useState](file://react)
+- [useEffect](file://react)
+- [CYBER_CURRICULUM](file://../data/cyber_curriculum)
+
+### Exports
+- `useTour`
+- `useTour`

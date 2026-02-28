@@ -1,0 +1,29 @@
+---
+title: "pathRegistry.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/pathRegistry.ts"
+loc: 31
+complexity: 4
+logic_score: 7.70
+style_score: 4.02
+intel_score: 7.16
+overall_score: 6.29
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.7/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 7.2/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://path)
+
+### Exports
+- `PathRegistry`

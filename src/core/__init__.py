@@ -1,5 +1,5 @@
 """
-[ODIN] Core Initialization & Environment Patching.
+[O.D.I.N.] Core Initialization & Environment Patching.
 Formalizes the Python 3.14 / Pydantic v1 compatibility hook.
 """
 import logging

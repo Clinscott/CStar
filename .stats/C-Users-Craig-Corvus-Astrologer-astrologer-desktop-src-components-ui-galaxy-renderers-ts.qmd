@@ -1,0 +1,44 @@
+---
+title: "renderers.ts"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/src/components/ui/galaxy/renderers.ts"
+loc: 403
+complexity: 31
+logic_score: 1.45
+style_score: 4.02
+intel_score: 10.00
+overall_score: 5.16
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.4/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 10.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [ASTRAL_PALETTES](file://@/lib/astronomy)
+- [getAstralColor](file://@/lib/astronomy)
+- [GalaxyNode](file://@/lib/types/galaxy)
+
+### Exports
+- `getNodeColor`
+- `getNodeColor`
+- `calculateOrbitalPositions`
+- `calculateOrbitalPositions`
+- `drawTacticalMoon`
+- `drawTacticalMoon`
+- `drawTacticalPlanet`
+- `drawTacticalPlanet`
+- `drawTacticalSun`
+- `drawTacticalSun`
+- `drawPhaseLane`
+- `drawPhaseLane`
+- `drawLabel`
+- `drawLabel`
+- `drawTacticalBackground`
+- `drawTacticalBackground`

@@ -1,0 +1,30 @@
+---
+title: "test_chroma_config.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/test_chroma_config.py"
+loc: 8
+complexity: 1
+logic_score: 9.20
+style_score: 9.59
+intel_score: 1.40
+overall_score: 6.73
+---
+
+## Intent
+Python module facilitating internal logic.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 9.6/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [chromadb.config](file://chromadb.config)
+- [traceback](file://traceback)
+
+### Exports
+Internal logic only.

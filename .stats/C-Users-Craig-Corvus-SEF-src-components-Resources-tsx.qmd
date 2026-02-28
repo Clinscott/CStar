@@ -1,0 +1,28 @@
+---
+title: "Resources.tsx"
+path: "C:/Users/Craig/Corvus/SEF/src/components/Resources.tsx"
+loc: 73
+complexity: 9
+logic_score: 6.40
+style_score: 1.00
+intel_score: 3.64
+overall_score: 3.68
+---
+
+## Intent
+React component rendering Resources with 9 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.4/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 3.6/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [*](file://react)
+- [*](file://@/app/Aureate.module.css)
+
+### Exports
+- `Resources`

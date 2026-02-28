@@ -1,0 +1,34 @@
+---
+title: "ResourceBar.tsx"
+path: "C:/Users/Craig/Corvus/KeepOS/app/components/castle/HUD/ResourceBar.tsx"
+loc: 63
+complexity: 1
+logic_score: 9.20
+style_score: 1.00
+intel_score: 5.81
+overall_score: 5.34
+---
+
+## Intent
+React component rendering ResourceBar with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 5.8/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [Coins](file://lucide-react)
+- [Wheat](file://lucide-react)
+- [Zap](file://lucide-react)
+- [Heart](file://lucide-react)
+- [FlaskConical](file://lucide-react)
+- [motion](file://framer-motion)
+- [KingdomResources](file://../types)
+
+### Exports
+- `ResourceBar`
+- `ResourceBar`

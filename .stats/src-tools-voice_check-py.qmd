@@ -1,0 +1,33 @@
+---
+title: "voice_check.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/voice_check.py"
+loc: 28
+complexity: 3
+logic_score: 8.05
+style_score: 3.87
+intel_score: 9.40
+overall_score: 7.11
+---
+
+## Intent
+Python module facilitating run_voice_diagnostic, main.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.0/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [typing](file://typing)
+- [src.core.engine.dialogue](file://src.core.engine.dialogue)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+
+### Exports
+- `run_voice_diagnostic`
+- `main`

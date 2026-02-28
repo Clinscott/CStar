@@ -1,0 +1,28 @@
+---
+title: "NetworkCard.tsx"
+path: "C:/Users/Craig/Corvus/SecureSphere/src/components/dashboard/NetworkCard.tsx"
+loc: 63
+complexity: 7
+logic_score: 6.65
+style_score: 1.00
+intel_score: 2.63
+overall_score: 3.43
+---
+
+## Intent
+React component rendering NetworkCard with 7 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.7/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 2.6/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [*](file://react)
+- [useNetworkStatus](file://@/hooks/useNetworkStatus)
+
+### Exports
+- `NetworkCard`

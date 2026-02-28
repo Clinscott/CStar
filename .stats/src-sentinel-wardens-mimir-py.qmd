@@ -1,0 +1,35 @@
+---
+title: "mimir.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/sentinel/wardens/mimir.py"
+loc: 76
+complexity: 15
+logic_score: 2.05
+style_score: 3.74
+intel_score: 2.45
+overall_score: 2.75
+---
+
+## Intent
+Autonomous neural guardian monitoring system drift and anomalies.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 2.0/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 2.5/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [contextlib](file://contextlib)
+- [typing](file://typing)
+- [radon.complexity](file://radon.complexity)
+- [radon.metrics](file://radon.metrics)
+- [src.sentinel.wardens.base](file://src.sentinel.wardens.base)
+- [ast](file://ast)
+
+### Exports
+- `MimirWarden`
+- `scan`

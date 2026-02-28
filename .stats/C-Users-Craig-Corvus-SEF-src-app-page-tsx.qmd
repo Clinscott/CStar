@@ -1,0 +1,36 @@
+---
+title: "page.tsx"
+path: "C:/Users/Craig/Corvus/SEF/src/app/page.tsx"
+loc: 125
+complexity: 1
+logic_score: 8.30
+style_score: 1.00
+intel_score: 3.60
+overall_score: 4.30
+---
+
+## Intent
+React component rendering page with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.3/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 3.6/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [useState](file://react)
+- [useEffect](file://react)
+- [*](file://./Aureate.module.css)
+- [VitalsData](file://@/components/Vitals)
+- [*](file://@/components/Resources)
+- [*](file://@/components/JuristBook)
+- [*](file://@/components/CommandConsole)
+- [*](file://@/components/CommunionAnvil)
+- [motion](file://framer-motion)
+
+### Exports
+- `Home`
+- `Home`

@@ -1,0 +1,31 @@
+---
+title: "test_muninn_real_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_muninn_real_empire.py"
+loc: 15
+complexity: 3
+logic_score: 8.05
+style_score: 4.04
+intel_score: 1.40
+overall_score: 4.50
+---
+
+## Intent
+Python module facilitating test_sprt_validator_stable, test_sprt_validator_flaky.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.0/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [src.sentinel.muninn](file://src.sentinel.muninn)
+
+### Exports
+- `test_sprt_validator_stable`
+- `test_sprt_validator_flaky`
+- `test_sprt_validator_continue`

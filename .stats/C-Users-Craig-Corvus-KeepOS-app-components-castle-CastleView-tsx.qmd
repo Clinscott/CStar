@@ -1,0 +1,40 @@
+---
+title: "CastleView.tsx"
+path: "C:/Users/Craig/Corvus/KeepOS/app/components/castle/CastleView.tsx"
+loc: 138
+complexity: 3
+logic_score: 6.70
+style_score: 1.00
+intel_score: 7.51
+overall_score: 5.07
+---
+
+## Intent
+React component rendering CastleView with 3 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.7/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 7.5/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [useState](file://react)
+- [useEffect](file://react)
+- [motion](file://framer-motion)
+- [*](file://next/image)
+- [Room](file://./Room)
+- [ResourceBar](file://./HUD/ResourceBar)
+- [HeroPanel](file://./HUD/HeroPanel)
+- [ActionBar](file://./HUD/ActionBar)
+- [MiniMap](file://./HUD/MiniMap)
+- [ROOM_CONFIGS](file://./types)
+- [CastleState](file://./types)
+- [RoomId](file://./types)
+- [invoke](file://../../../lib/tauri)
+
+### Exports
+- `CastleView`
+- `CastleView`

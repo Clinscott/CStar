@@ -1,0 +1,46 @@
+---
+title: "turbopack-5992e03a432478fe.js"
+path: "C:/Users/Craig/Corvus/KeepOS/out/_next/static/chunks/turbopack-5992e03a432478fe.js"
+loc: 4
+complexity: 70
+logic_score: 1.00
+style_score: 8.18
+intel_score: 1.40
+overall_score: 3.53
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.0/10
+- **Style [S]**: 8.2/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+Minimal internal dependencies.
+
+### Exports
+- `o`
+- `u`
+- `a`
+- `c`
+- `f`
+- `d`
+- `m`
+- `b`
+- `y`
+- `t`
+- `C`
+- `u`
+- `R`
+- `S`
+- `E`
+- `K`
+- `M`
+- `q`
+- `I`
+- `H`

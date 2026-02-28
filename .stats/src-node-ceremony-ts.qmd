@@ -1,0 +1,42 @@
+---
+title: "ceremony.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/node/ceremony.ts"
+loc: 180
+complexity: 29
+logic_score: 1.90
+style_score: 3.81
+intel_score: 3.56
+overall_score: 3.09
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.9/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 3.6/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://chalk)
+- [*](file://node:fs)
+- [*](file://node:path)
+- [*](file://node:url)
+- [*](file://../tools/pennyone/personaRegistry.js)
+
+### Exports
+- `sleep`
+- `getStatusColor`
+- `getRavensStatus`
+- `getPerimeterStatus`
+- `getPennyOneStatus`
+- `getForgeStatus`
+- `getFishtestStatus`
+- `getWardenStatus`
+- `getVaultStatus`
+- `runStartupCeremony`

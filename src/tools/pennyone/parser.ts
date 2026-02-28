@@ -27,7 +27,7 @@ export async function getParser(filepath: string): Promise<{ parser: any, lang: 
     if (ext === '.py') {
         langPath = 'node_modules/tree-sitter-python/tree-sitter-python.wasm';
         languageName = 'python';
-    } else if (ext === '.ts' || ext === '.tg') {
+    } else if (ext === '.ts') {
         langPath = 'node_modules/tree-sitter-typescript/tree-sitter-typescript.wasm';
         languageName = 'typescript';
     } else if (ext === '.tsx') {

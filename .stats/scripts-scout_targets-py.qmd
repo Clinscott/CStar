@@ -1,0 +1,39 @@
+---
+title: "scout_targets.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/scripts/scout_targets.py"
+loc: 77
+complexity: 4
+logic_score: 7.70
+style_score: 4.01
+intel_score: 1.40
+overall_score: 4.37
+---
+
+## Intent
+Python module facilitating scout.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.7/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [src.core.annex](file://src.core.annex)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [src.sentinel.wardens.edda](file://src.sentinel.wardens.edda)
+- [src.sentinel.wardens.freya](file://src.sentinel.wardens.freya)
+- [src.sentinel.wardens.huginn](file://src.sentinel.wardens.huginn)
+- [src.sentinel.wardens.mimir](file://src.sentinel.wardens.mimir)
+- [src.sentinel.wardens.runecaster](file://src.sentinel.wardens.runecaster)
+- [src.sentinel.wardens.valkyrie](file://src.sentinel.wardens.valkyrie)
+
+### Exports
+- `scout`

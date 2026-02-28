@@ -1,0 +1,48 @@
+---
+title: "archive_consolidator.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/archive_consolidator.py"
+loc: 161
+complexity: 21
+logic_score: 1.00
+style_score: 3.73
+intel_score: 5.87
+overall_score: 3.53
+---
+
+## Intent
+Python module facilitating get_complexity, get_complexity.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.0/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 5.9/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [argparse](file://argparse)
+- [ast](file://ast)
+- [json](file://json)
+- [logging](file://logging)
+- [subprocess](file://subprocess)
+- [sys](file://sys)
+- [collections](file://collections)
+- [pathlib](file://pathlib)
+- [typing](file://typing)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [radon.complexity](file://radon.complexity)
+
+### Exports
+- `get_complexity`
+- `get_complexity`
+- `ArchiveConsolidator`
+- `__init__`
+- `_get_git_churn`
+- `_has_test_coverage`
+- `analyze`
+- `_write_ledger`
+- `_render_report`
+- `main`

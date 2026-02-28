@@ -1,0 +1,32 @@
+---
+title: "layout.tsx"
+path: "C:/Users/Craig/Corvus/CorvusEye/src/app/layout.tsx"
+loc: 30
+complexity: 1
+logic_score: 9.20
+style_score: 1.12
+intel_score: 2.00
+overall_score: 4.11
+---
+
+## Intent
+React component rendering layout with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 1.1/10
+- **Intel [I]**: 2.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [Metadata](file://next)
+- [Geist](file://next/font/google)
+- [Geist_Mono](file://next/font/google)
+- [*](file://./globals.css)
+
+### Exports
+- `metadata`
+- `RootLayout`
+- `RootLayout`

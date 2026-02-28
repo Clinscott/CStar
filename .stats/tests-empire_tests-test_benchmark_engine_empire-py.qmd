@@ -1,0 +1,29 @@
+---
+title: "test_benchmark_engine_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_benchmark_engine_empire.py"
+loc: 11
+complexity: 1
+logic_score: 8.30
+style_score: 4.41
+intel_score: 1.40
+overall_score: 4.70
+---
+
+## Intent
+Python module facilitating test_benchmark_logic.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.3/10
+- **Style [S]**: 4.4/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [src.tools.benchmark_engine](file://src.tools.benchmark_engine)
+
+### Exports
+- `test_benchmark_logic`

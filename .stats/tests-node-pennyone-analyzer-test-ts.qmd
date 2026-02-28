@@ -1,0 +1,31 @@
+---
+title: "analyzer.test.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/node/pennyone/analyzer.test.ts"
+loc: 37
+complexity: 1
+logic_score: 9.20
+style_score: 4.00
+intel_score: 7.41
+overall_score: 6.87
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 7.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://node:test)
+- [*](file://node:assert)
+- [*](file://../../../src/tools/pennyone/analyzer.js)
+
+### Exports
+Internal logic only.

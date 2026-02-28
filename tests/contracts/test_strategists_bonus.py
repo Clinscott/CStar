@@ -12,7 +12,9 @@ project_root = Path(__file__).parent.parent.parent.absolute()
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from src.sentinel.muninn import MimirWarden, Muninn, ValkyrieWarden
+from src.sentinel.muninn import Muninn
+from src.sentinel.wardens.mimir import MimirWarden
+from src.sentinel.wardens.valkyrie import ValkyrieWarden
 
 
 class TestValkyrieWarden:

@@ -5,7 +5,7 @@ description: The Primary Loop. Consult the Engine before acting.
 # The Oracle Protocol
 
 > [!CRITICAL]
-> **ODIN'S LAW**: The Engine Speaks First.
+> **O.D.I.N.'S LAW**: The Engine Speaks First.
 > You (The Agent) are the Hands. The Engine is the Mind.
 
 ## The Loop
@@ -41,5 +41,5 @@ description: The Primary Loop. Consult the Engine before acting.
 
 ## 👤 Voice Mandate
 Every response during the Oracle loop must be persona-filtered:
-- **ODIN**: Responses are "Prophecies" and "Decrees". Installation is "Forging".
+- **O.D.I.N.**: Responses are "Prophecies" and "Decrees". Installation is "Forging".
 - **ALFRED**: Responses are "Observations" and "Suggestions". Installation is "Provisioning".

@@ -1,0 +1,31 @@
+---
+title: "test_network_watcher_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_network_watcher_empire.py"
+loc: 21
+complexity: 2
+logic_score: 7.95
+style_score: 3.96
+intel_score: 1.40
+overall_score: 4.44
+---
+
+## Intent
+Python module facilitating test_network_watcher_detection, test_crucible_pipeline_init.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.9/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [os](file://os)
+- [src.tools.network_watcher](file://src.tools.network_watcher)
+
+### Exports
+- `test_network_watcher_detection`
+- `test_crucible_pipeline_init`

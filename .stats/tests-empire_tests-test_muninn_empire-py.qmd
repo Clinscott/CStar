@@ -1,0 +1,40 @@
+---
+title: "test_muninn_empire.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_muninn_empire.py"
+loc: 110
+complexity: 6
+logic_score: 6.10
+style_score: 3.66
+intel_score: 1.40
+overall_score: 3.72
+---
+
+## Intent
+Python module facilitating teardown_module, TestMuninnEmpire.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.1/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [os](file://os)
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [unittest.mock](file://unittest.mock)
+- [pytest](file://pytest)
+- [src.sentinel.muninn](file://src.sentinel.muninn)
+
+### Exports
+- `teardown_module`
+- `TestMuninnEmpire`
+- `test_init`
+- `test_init_no_key`
+- `test_run_scan_no_breaches`
+- `test_run_with_breach_success`
+- `test_forge_improvement_failure`

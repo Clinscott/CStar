@@ -1,0 +1,29 @@
+---
+title: "runner.ts"
+path: "C:/Users/Craig/Corvus/SEF/src/ingestion/runner.ts"
+loc: 19
+complexity: 2
+logic_score: 8.40
+style_score: 9.45
+intel_score: 7.72
+overall_score: 8.52
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.4/10
+- **Style [S]**: 9.4/10
+- **Intel [I]**: 7.7/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [initializeDatabase](file://./database)
+- [loadPHBRuleset](file://./phb-loader)
+- [ingestCharacterData](file://./character-ingester)
+
+### Exports
+- `main`

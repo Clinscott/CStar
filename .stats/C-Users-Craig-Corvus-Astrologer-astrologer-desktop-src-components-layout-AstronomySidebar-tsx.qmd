@@ -1,0 +1,35 @@
+---
+title: "AstronomySidebar.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/src/components/layout/AstronomySidebar.tsx"
+loc: 114
+complexity: 14
+logic_score: 4.20
+style_score: 1.00
+intel_score: 3.40
+overall_score: 2.87
+---
+
+## Intent
+React component rendering AstronomySidebar with 14 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 4.2/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 3.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [useState](file://react)
+- [CelestialIcon](file://@/components/ui/CelestialIcon)
+- [MessageSquare](file://lucide-react)
+- [Settings](file://lucide-react)
+- [Book](file://lucide-react)
+- [ChevronLeft](file://lucide-react)
+- [ChevronRight](file://lucide-react)
+- [cn](file://@/lib/utils)
+
+### Exports
+- `AstronomySidebar`
+- `AstronomySidebar`

@@ -1,0 +1,35 @@
+---
+title: "usePeripheralAudit.ts"
+path: "C:/Users/Craig/Corvus/SecureSphere/src/hooks/usePeripheralAudit.ts"
+loc: 69
+complexity: 8
+logic_score: 5.40
+style_score: 3.84
+intel_score: 8.96
+overall_score: 6.07
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 5.4/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 9.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [useState](file://react)
+- [useCallback](file://react)
+- [invoke](file://@tauri-apps/api/core)
+- [PeripheralDevice](file://@/types/network)
+- [generateMockPeripherals](file://@/data/mockPeripheralData)
+- [MOCK_SCAN_DELAY_MS](file://@/data/mockPeripheralData)
+
+### Exports
+- `PeripheralDevice`
+- `USE_MOCK_DATA`
+- `usePeripheralAudit`
+- `usePeripheralAudit`

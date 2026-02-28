@@ -1,0 +1,31 @@
+---
+title: "CorvusProcess.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/node/core/CorvusProcess.ts"
+loc: 173
+complexity: 11
+logic_score: 4.35
+style_score: 4.07
+intel_score: 5.24
+overall_score: 4.55
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 4.3/10
+- **Style [S]**: 4.1/10
+- **Intel [I]**: 5.2/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://child_process)
+- [*](file://readline)
+- [*](file://events)
+
+### Exports
+- `CorvusProcess`

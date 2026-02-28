@@ -1,0 +1,51 @@
+---
+title: "trace_viz.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/trace_viz.py"
+loc: 214
+complexity: 27
+logic_score: 1.45
+style_score: 3.65
+intel_score: 4.39
+overall_score: 3.16
+---
+
+## Intent
+Python module facilitating load_json, get_engine.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.4/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 4.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [argparse](file://argparse)
+- [glob](file://glob)
+- [json](file://json)
+- [math](file://math)
+- [os](file://os)
+- [sys](file://sys)
+- [collections](file://collections)
+- [vector](file://vector)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [typing](file://typing)
+
+### Exports
+- `load_json`
+- `get_engine`
+- `_res`
+- `TraceRenderer`
+- `__init__`
+- `box_top`
+- `box_row`
+- `box_separator`
+- `box_bottom`
+- `render_neural_path`
+- `render_analysis`
+- `mode_live`
+- `mode_file`
+- `mode_war_room`

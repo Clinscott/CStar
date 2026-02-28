@@ -1,0 +1,44 @@
+---
+title: "install_skill.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/skills/install_skill.py"
+loc: 93
+complexity: 22
+logic_score: 1.45
+style_score: 3.82
+intel_score: 5.70
+overall_score: 3.66
+---
+
+## Intent
+Python module facilitating _sanitize_skill_name, _validate_path.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.4/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 5.7/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [os](file://os)
+- [re](file://re)
+- [shutil](file://shutil)
+- [subprocess](file://subprocess)
+- [sys](file://sys)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [src.core.promotion_registry](file://src.core.promotion_registry)
+
+### Exports
+- `_sanitize_skill_name`
+- `_validate_path`
+- `_get_config`
+- `_verify_integrity`
+- `_run_security_scan`
+- `_promote_skill`
+- `_setup_install_paths`
+- `_execute_installation_logic`
+- `install_skill`

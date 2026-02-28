@@ -1,0 +1,32 @@
+---
+title: "renderers.test.ts"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/test/renderers.test.ts"
+loc: 74
+complexity: 1
+logic_score: 8.75
+style_score: 8.24
+intel_score: 9.40
+overall_score: 8.80
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 8.2/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [describe](file://vitest)
+- [it](file://vitest)
+- [expect](file://vitest)
+- [calculateOrbitalPositions](file://@/components/ui/galaxy/renderers)
+- [getNodeColor](file://@/components/ui/galaxy/renderers)
+- [GalaxyNode](file://@/lib/types/galaxy)
+
+### Exports
+Internal logic only.

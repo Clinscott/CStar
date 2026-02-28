@@ -1,0 +1,27 @@
+---
+title: "check-pdf.js"
+path: "C:/Users/Craig/Corvus/SEF/check-pdf.js"
+loc: 23
+complexity: 4
+logic_score: 6.80
+style_score: 4.15
+intel_score: 1.40
+overall_score: 4.12
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.8/10
+- **Style [S]**: 4.2/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+Minimal internal dependencies.
+
+### Exports
+- `checkPdf`

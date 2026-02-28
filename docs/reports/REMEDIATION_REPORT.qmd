@@ -1,7 +1,7 @@
 ---
 title: "Corvus Star: Baseline Remediation Report"
 date: "2026-02-06"
-author: "ODIN System"
+author: "O.D.I.N. System"
 status: "COMPLETED"
 ---
 

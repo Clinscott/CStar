@@ -1,0 +1,29 @@
+---
+title: "read-lore.ts"
+path: "C:/Users/Craig/Corvus/SEF/src/agent/tools/read-lore.ts"
+loc: 13
+complexity: 2
+logic_score: 8.40
+style_score: 5.74
+intel_score: 2.00
+overall_score: 5.38
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.4/10
+- **Style [S]**: 5.7/10
+- **Intel [I]**: 2.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [readFile](file://fs/promises)
+- [resolve](file://path)
+
+### Exports
+- `readLore`
+- `readLore`

@@ -9,7 +9,7 @@ from typing import Any
 
 class MemoryDB:
     """
-    [ODIN] The Semantic Brain of Corvus Star.
+    [O.D.I.N.] The Semantic Brain of Corvus Star.
     Wraps ChromaDB with strict Multi-Tenant partitioning.
     """
     def __init__(self, project_root: str):

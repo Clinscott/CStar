@@ -1,0 +1,34 @@
+---
+title: "CelestialHeader.test.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/test/CelestialHeader.test.tsx"
+loc: 33
+complexity: 1
+logic_score: 8.75
+style_score: 3.97
+intel_score: 5.04
+overall_score: 5.92
+---
+
+## Intent
+React component rendering CelestialHeader with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.8/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 5.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [render](file://@testing-library/react)
+- [screen](file://@testing-library/react)
+- [fireEvent](file://@testing-library/react)
+- [describe](file://vitest)
+- [it](file://vitest)
+- [expect](file://vitest)
+- [vi](file://vitest)
+- [CelestialHeader](file://@/components/layout/CelestialHeader)
+
+### Exports
+Internal logic only.

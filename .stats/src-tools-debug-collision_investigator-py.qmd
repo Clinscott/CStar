@@ -1,0 +1,32 @@
+---
+title: "collision_investigator.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/debug/collision_investigator.py"
+loc: 43
+complexity: 6
+logic_score: 6.10
+style_score: 3.97
+intel_score: 3.26
+overall_score: 4.44
+---
+
+## Intent
+Python module facilitating run_collision_investigation.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.1/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 3.3/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [os](file://os)
+- [sys](file://sys)
+- [engine.vector](file://engine.vector)
+
+### Exports
+- `run_collision_investigation`

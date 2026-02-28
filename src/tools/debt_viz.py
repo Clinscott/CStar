@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-[ODIN] Structural Debt Visualizer (debt_viz.py)
+[O.D.I.N.] Structural Debt Visualizer (debt_viz.py)
 Uses Radon to map code complexity and identifies "War Zones".
 Strictly encapsulated for the Linscott Standard (Pathlib).
 """

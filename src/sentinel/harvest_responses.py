@@ -76,7 +76,7 @@ class ResponseRecorder:
 
 def harvest(cycles: int = 5):
     """
-    [ODIN] Run N cycles of SovereignFish against CorvusStar with recording.
+    [O.D.I.N.] Run N cycles of SovereignFish against CorvusStar with recording.
     Captures prompt/response pairs for offline verification and hardening.
 
     Args:

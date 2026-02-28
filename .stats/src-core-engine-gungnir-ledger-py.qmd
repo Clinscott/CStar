@@ -1,0 +1,33 @@
+---
+title: "ledger.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/core/engine/gungnir/ledger.py"
+loc: 41
+complexity: 4
+logic_score: 7.25
+style_score: 3.61
+intel_score: 3.35
+overall_score: 4.74
+---
+
+## Intent
+Python module facilitating manage_ledger.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.3/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 3.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [argparse](file://argparse)
+- [json](file://json)
+- [os](file://os)
+- [uuid](file://uuid)
+- [datetime](file://datetime)
+
+### Exports
+- `manage_ledger`

@@ -1,0 +1,60 @@
+---
+title: "Integrated API Ledger"
+subtitle: "Gungnir Control Plane Gateways"
+format: html
+---
+
+# ◤ THE GATEWAYS OF ASGARD ◢
+
+This document maps the Integrated API endpoints used by Operation PennyOne and the Corvus Star Control Plane.
+
+## ◈ Core Bridge API
+**Base URL**: `http://127.0.0.1:4000`
+**Protocol**: REST / WebSocket
+**Security**: Bearer Token required (generated per session).
+
+### 1. Matrix Graph
+- **Endpoint**: `GET /api/matrix`
+- **Purpose**: Returns the complete `matrix-graph.json` including all file nodes, Gungnir scores, and dependencies.
+- **Consumption**: Used by the 3D Frontend to render the constellation.
+
+### 2. Gravity Data
+- **Endpoint**: `GET /api/gravity`
+- **Purpose**: Returns aggregated agent interaction counts for all files.
+- **Consumption**: Used to scale node "heat" and size in the Matrix.
+
+### 3. Telemetry Ping
+- **Endpoint**: `POST /api/telemetry/ping`
+- **Payload**: `AgentPing` (agent_id, action, target_path, timestamp).
+- **Purpose**: Reports real-time agent activity.
+- **Action**: Broadcasts to WebSocket and writes to Hall of Records (SQLite).
+
+## ◈ Operation Chronicle (DVR)
+Access the historical records of past campaigns.
+
+### 1. Session List
+- **Endpoint**: `GET /api/chronicle/sessions`
+- **Returns**: Array of session summaries.
+- **Fields**: `agent_id`, `start_timestamp`, `primary_target`, `total_pings`.
+
+### 2. Playback Control
+- **Endpoint**: `POST /api/chronicle/playback/:id`
+- **Purpose**: Commands the Subspace Relay to replay a past session at high speed.
+
+### 3. Archive Download
+- **Endpoint**: `GET /api/chronicle/download/:id`
+- **Purpose**: Bundles session data and saves it to the host system's `/Downloads` folder.
+
+---
+
+## ◈ System Gateways (Detected)
+PennyOne automatically tags files that serve as system gateways.
+
+### ⛩️ Primary Entry Points
+- **TypeScript Gateway**: `src/node/gateway/routes/api/intent.ts`
+  - `[POST] /intent`
+- **Telemetry Stream**: `src/node/gateway/routes/streams/telemetry.ts`
+  - `[GET] /telemetry`
+
+---
+[ALFRED]: "The pathways are documented, sir. Programmatic navigation is now fully supported."

@@ -1,0 +1,47 @@
+---
+title: "GalaxyView.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/src/components/ui/GalaxyView.tsx"
+loc: 397
+complexity: 35
+logic_score: 1.00
+style_score: 1.00
+intel_score: 10.00
+overall_score: 4.00
+---
+
+## Intent
+React component rendering GalaxyView with 35 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.0/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 10.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [useRef](file://react)
+- [useEffect](file://react)
+- [useCallback](file://react)
+- [useState](file://react)
+- [memo](file://react)
+- [useGalaxyView](file://@/hooks/useGalaxyView)
+- [GalaxyNode](file://@/lib/types/galaxy)
+- [cn](file://@/lib/utils)
+- [Loader2](file://lucide-react)
+- [Maximize2](file://lucide-react)
+- [Minimize2](file://lucide-react)
+- [RefreshCw](file://lucide-react)
+- [drawTacticalMoon](file://@/components/ui/galaxy/renderers)
+- [drawTacticalPlanet](file://@/components/ui/galaxy/renderers)
+- [drawTacticalSun](file://@/components/ui/galaxy/renderers)
+- [drawPhaseLane](file://@/components/ui/galaxy/renderers)
+- [drawLabel](file://@/components/ui/galaxy/renderers)
+- [drawTacticalBackground](file://@/components/ui/galaxy/renderers)
+- [getNodeColor](file://@/components/ui/galaxy/renderers)
+- [calculateOrbitalPositions](file://@/components/ui/galaxy/renderers)
+
+### Exports
+- `GalaxyViewComponent`
+- `GalaxyView`

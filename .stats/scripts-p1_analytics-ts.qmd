@@ -1,0 +1,32 @@
+---
+title: "p1_analytics.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/scripts/p1_analytics.ts"
+loc: 59
+complexity: 4
+logic_score: 6.80
+style_score: 3.74
+intel_score: 4.11
+overall_score: 4.88
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.8/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 4.1/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://../src/tools/pennyone/intel/database.js)
+- [*](file://node:path)
+- [*](file://node:url)
+- [*](file://chalk)
+
+### Exports
+- `runAnalytics`

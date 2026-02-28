@@ -1,0 +1,36 @@
+---
+title: "SettingsView.test.tsx"
+path: "C:/Users/Craig/Corvus/Astrologer/astrologer-desktop/test/SettingsView.test.tsx"
+loc: 60
+complexity: 1
+logic_score: 8.30
+style_score: 3.96
+intel_score: 4.73
+overall_score: 5.66
+---
+
+## Intent
+React component rendering SettingsView with 1 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.3/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 4.7/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## Neural Pathways
+
+### Imports
+- [render](file://@testing-library/react)
+- [screen](file://@testing-library/react)
+- [fireEvent](file://@testing-library/react)
+- [waitFor](file://@testing-library/react)
+- [describe](file://vitest)
+- [it](file://vitest)
+- [expect](file://vitest)
+- [vi](file://vitest)
+- [beforeEach](file://vitest)
+- [SettingsView](file://@/components/views/SettingsView)
+
+### Exports
+Internal logic only.

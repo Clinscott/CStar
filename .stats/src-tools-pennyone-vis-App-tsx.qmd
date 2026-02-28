@@ -1,0 +1,34 @@
+---
+title: "App.tsx"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/App.tsx"
+loc: 146
+complexity: 11
+logic_score: 3.90
+style_score: 1.00
+intel_score: 2.00
+overall_score: 2.30
+---
+
+## Intent
+React component rendering App with 11 logic branches.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 3.9/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 2.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://react)
+- [*](file://@react-three/fiber)
+- [*](file://@react-three/drei)
+- [*](file://./components/NeuralGraph.js)
+- [*](file://./components/PlaybackHUD.js)
+- [*](file://three)
+
+### Exports
+- `MatrixErrorBoundary`

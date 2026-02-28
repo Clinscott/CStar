@@ -16,7 +16,7 @@ class HostCapability(Enum):
 
 class EnvAdapter:
     """
-    [ODIN] The All-Seeing Eye.
+    [O.D.I.N.] The All-Seeing Eye.
     Detects the capabilities of the Manor's host environment.
     """
     def __init__(self):
