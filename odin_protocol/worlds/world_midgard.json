@@ -1,16 +1,16 @@
 {
     "world_name": "Midgard",
-    "outcome": "Neural Alignment Sync. Gained 1.25% domination.",
+    "outcome": "Neural Alignment Sync. Gained 2.05% domination.",
     "final_state": {
         "seed": "TEST_SEED",
         "player_name": "Odin",
-        "domination_percent": 11.25,
-        "max_percent_reached": 11.25,
+        "domination_percent": 12.05,
+        "max_percent_reached": 12.05,
         "total_worlds_conquered": 0,
         "planets_dominated": 0,
         "mutation_charges": 0,
         "total_turns_played": 0,
-        "last_processed_trace_id": 4,
+        "last_processed_trace_id": 6,
         "force": 100.0,
         "current_planet_name": null,
         "current_planet_progress": 0.0,
@@ -29,6 +29,6 @@
         "inventory": {},
         "items": [],
         "conquests": [],
-        "last_updated": 1772388526.7451665
+        "last_updated": 1772388527.1002376
     }
 }
