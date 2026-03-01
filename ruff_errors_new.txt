@@ -1,0 +1,327 @@
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:26:1
+   |
+25 | # Shared Bootstrap
+26 | import sys
+   | ^^^^^^^^^^
+27 |
+28 | project_root = Path(__file__).resolve().parent.parent.parent
+   |
+
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:32:1
+   |
+30 |     sys.path.append(str(project_root))
+31 |
+32 | from src.sentinel._bootstrap import bootstrap
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+33 |
+34 | bootstrap()
+   |
+
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:37:1
+   |
+36 | # Core Imports
+37 | from src.core.annex import HeimdallWarden
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+38 | from src.core.engine.alfred_observer import AlfredOverwatch
+39 | from src.core.engine.atomic_gpt import AnomalyWarden
+   |
+
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:38:1
+   |
+36 | # Core Imports
+37 | from src.core.annex import HeimdallWarden
+38 | from src.core.engine.alfred_observer import AlfredOverwatch
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+39 | from src.core.engine.atomic_gpt import AnomalyWarden
+   |
+
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:39:1
+   |
+37 | from src.core.annex import HeimdallWarden
+38 | from src.core.engine.alfred_observer import AlfredOverwatch
+39 | from src.core.engine.atomic_gpt import AnomalyWarden
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+40 |
+41 | # Gungnir Engine Imports
+   |
+
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:42:1
+   |
+41 | # Gungnir Engine Imports
+42 | from src.core.metrics import ProjectMetricsEngine
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+43 | from src.core.sovereign_hud import SovereignHUD
+44 | from src.cstar.core.uplink import AntigravityUplink
+   |
+
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:43:1
+   |
+41 | # Gungnir Engine Imports
+42 | from src.core.metrics import ProjectMetricsEngine
+43 | from src.core.sovereign_hud import SovereignHUD
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+44 | from src.cstar.core.uplink import AntigravityUplink
+45 | from src.sentinel.code_sanitizer import (
+   |
+
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:44:1
+   |
+42 | from src.core.metrics import ProjectMetricsEngine
+43 | from src.core.sovereign_hud import SovereignHUD
+44 | from src.cstar.core.uplink import AntigravityUplink
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+45 | from src.sentinel.code_sanitizer import (
+46 |     sanitize_code,
+   |
+
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:45:1
+   |
+43 |   from src.core.sovereign_hud import SovereignHUD
+44 |   from src.cstar.core.uplink import AntigravityUplink
+45 | / from src.sentinel.code_sanitizer import (
+46 | |     sanitize_code,
+47 | |     sanitize_test,
+48 | |     scan_and_enrich_imports,
+49 | | )
+   | |_^
+50 |
+51 |   # Stability Modules
+   |
+
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:52:1
+   |
+51 | # Stability Modules
+52 | from src.sentinel.stability import GungnirValidator, TheWatcher
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+53 |
+54 | # Warden Modules
+   |
+
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:55:1
+   |
+54 | # Warden Modules
+55 | from src.sentinel.wardens.base import BaseWarden
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+56 | from src.sentinel.wardens.norn import NornWarden
+57 | from src.tools.brave_search import BraveSearch
+   |
+
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:56:1
+   |
+54 | # Warden Modules
+55 | from src.sentinel.wardens.base import BaseWarden
+56 | from src.sentinel.wardens.norn import NornWarden
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+57 | from src.tools.brave_search import BraveSearch
+58 | from src.tools.gemini_search import GeminiSearch
+   |
+
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:57:1
+   |
+55 | from src.sentinel.wardens.base import BaseWarden
+56 | from src.sentinel.wardens.norn import NornWarden
+57 | from src.tools.brave_search import BraveSearch
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+58 | from src.tools.gemini_search import GeminiSearch
+59 | from tests.integration.project_fishtest import GungnirSPRT
+   |
+
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:58:1
+   |
+56 | from src.sentinel.wardens.norn import NornWarden
+57 | from src.tools.brave_search import BraveSearch
+58 | from src.tools.gemini_search import GeminiSearch
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+59 | from tests.integration.project_fishtest import GungnirSPRT
+   |
+
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:59:1
+   |
+57 | from src.tools.brave_search import BraveSearch
+58 | from src.tools.gemini_search import GeminiSearch
+59 | from tests.integration.project_fishtest import GungnirSPRT
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+60 |
+61 | # Configure Logging
+   |
+
+S108 Probable insecure usage of temporary file or directory: "/tmp"
+  --> src\sentinel\muninn.py:64:25
+   |
+62 | log_file = "sovereign_activity.log"
+63 | if os.getenv("SHADOW_FORGE_WORKER") == "true":
+64 |     log_file = str(Path("/tmp") / log_file)
+   |                         ^^^^^^
+65 |
+66 | logging.basicConfig(
+   |
+
+ANN401 Dynamically typed expressions (typing.Any) are disallowed in `client`
+  --> src\sentinel\muninn.py:78:17
+   |
+76 |         self,
+77 |         target_path: str | None = None,
+78 |         client: Any | None = None,
+   |                 ^^^^^^^^^^
+79 |         use_bridge: bool = False,
+80 |         use_docker: bool = False,
+   |
+
+ANN401 Dynamically typed expressions (typing.Any) are disallowed in `_sync_send`
+   --> src\sentinel\muninn.py:226:57
+    |
+224 |         return content
+225 |
+226 |     def _sync_send(self, prompt: str, context: dict) -> Any:
+    |                                                         ^^^
+227 |         """Safely executes the async uplink payload from a synchronous flow."""
+228 |         return asyncio.run(self.uplink.send_payload(prompt, context))
+    |
+
+S110 `try`-`except`-`pass` detected, consider logging the exception
+   --> src\sentinel\muninn.py:250:13
+    |
+248 |                               if target and target != "unknown":
+249 |                                   poor_files.append(target)
+250 | /             except Exception:
+251 | |                 pass
+    | |____________________^
+252 |           return list(set(poor_files))
+    |
+
+SIM108 Use ternary operator `original_content = file_path.read_text(encoding="utf-8") if file_path.exists() else ""` instead of `if`-`else`-block
+   --> src\sentinel\muninn.py:583:9
+    |
+582 |           # Reading File Content
+583 | /         if file_path.exists():
+584 | |             original_content = file_path.read_text(encoding="utf-8")
+585 | |         else:
+586 | |             original_content = ""  # New file creation
+    | |_________________________________^
+587 |
+588 |           SovereignHUD.persona_log("INFO", "Forging improvement...")
+    |
+help: Replace `if`-`else`-block with `original_content = file_path.read_text(encoding="utf-8") if file_path.exists() else ""`
+
+E501 Line too long (142 > 100)
+   --> src\sentinel\muninn.py:650:101
+    |
+648 | …
+649 | …
+650 | …ipt for: {target['action']} in {target['file']}.{search_str}\nContext:\n{code_context}"
+    |                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+651 | …
+652 | …
+    |
+
+E501 Line too long (142 > 100)
+   --> src\sentinel\muninn.py:709:101
+    |
+707 | …
+708 | …
+709 | …}.{search_str}\nFile: {target['file']}\nCode:\n{augmented_code}\nTest:\n{test_content}"
+    |                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+710 | …
+711 | …
+    |
+
+S603 `subprocess` call: check for execution of untrusted input
+   --> src\sentinel\muninn.py:770:22
+    |
+769 |         try:
+770 |             result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    |                      ^^^^^^^^^^^^^^
+771 |             if result.returncode != 0:
+772 |                 SovereignHUD.persona_log("FAIL", "Gauntlet Verification Failed.")
+    |
+
+S603 `subprocess` call: check for execution of untrusted input
+   --> src\sentinel\muninn.py:791:26
+    |
+790 |         try:
+791 |             reg_result = subprocess.run(cmd_reg, capture_output=True, text=True, check=False)
+    |                          ^^^^^^^^^^^^^^
+792 |             if reg_result.returncode != 0:
+793 |                 SovereignHUD.persona_log("WARN", f"Regression flagged: {target_stem}")
+    |
+
+S603 `subprocess` call: check for execution of untrusted input
+   --> src\sentinel\muninn.py:810:23
+    |
+808 |             cmd = [sys.executable, "-m", "pytest", str(self.root / "tests" / "gauntlet"), "-q"]
+809 |             try:
+810 |                 res = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    |                       ^^^^^^^^^^^^^^
+811 |                 success = res.returncode == 0
+812 |             except Exception as e:
+    |
+
+S603 `subprocess` call: check for execution of untrusted input
+   --> src\sentinel\muninn.py:863:25
+    |
+862 |         try:
+863 |             check_img = subprocess.run(
+    |                         ^^^^^^^^^^^^^^
+864 |                 [docker_exe, "image", "inspect", image_name], capture_output=True, check=False
+865 |             )
+    |
+
+S603 `subprocess` call: check for execution of untrusted input
+   --> src\sentinel\muninn.py:902:22
+    |
+900 |                 "INFO", f"[ORCHESTRATOR] Starting transient worker {container_name}..."
+901 |             )
+902 |             result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    |                      ^^^^^^^^^^^^^^
+903 |
+904 |             if result.returncode == 0:
+    |
+
+S603 `subprocess` call: check for execution of untrusted input
+   --> src\sentinel\muninn.py:917:13
+    |
+915 |                 return False
+916 |         finally:
+917 |             subprocess.run(
+    |             ^^^^^^^^^^^^^^
+918 |                 [docker_exe, "rm", "-f", container_name], capture_output=True, check=False
+919 |             )
+    |
+
+S603 `subprocess` call: check for execution of untrusted input
+   --> src\sentinel\muninn.py:938:13
+    |
+936 |             dest = self.root / target_clean
+937 |             SovereignHUD.persona_log("INFO", f"[ORCHESTRATOR] Promoting {target_clean} to host...")
+938 |             subprocess.run(
+    |             ^^^^^^^^^^^^^^
+939 |                 [docker_exe, "cp", f"{container_name}:/app/{target_clean}", str(dest)], check=True
+940 |             )
+    |
+
+E501 Line too long (101 > 100)
+    --> src\sentinel\muninn.py:1015:101
+     |
+1013 |         directives_path.write_text(md_content, encoding="utf-8")
+1014 |         print(
+1015 |             f"ODIN: 'The ledger has been read. The Runes of Wisdom are carved at {directives_path}.'"
+     |                                                                                                     ^
+1016 |         )
+     |
+
+Found 30 errors.

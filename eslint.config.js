@@ -1,11 +1,16 @@
 import js from "@eslint/js";
 import jsdoc from "eslint-plugin-jsdoc";
+import tseslint from "typescript-eslint";
 
-export default [
-    js.configs.recommended,
-    jsdoc.configs['flat/recommended'],
+export default tseslint.config(
     {
-        files: ["**/*.js", "**/*.ts"],
+        ignores: [".stats/**", ".agent/**", "node_modules/**"]
+    },
+    js.configs.recommended,
+    ...tseslint.configs.strict,
+    jsdoc.configs["flat/recommended"],
+    {
+        files: ["**/*.js", "**/*.ts", "**/*.tsx"],
         plugins: {
             jsdoc,
         },
@@ -35,4 +40,4 @@ export default [
             "jsdoc/reject-function-type": "off",
         },
     }
-];
+);

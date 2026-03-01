@@ -4,9 +4,9 @@ path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/live/telemetry.ts"
 loc: 17
 complexity: 2
 logic_score: 8.40
-style_score: 6.78
-intel_score: 9.06
-overall_score: 6.85
+style_score: 5.69
+intel_score: 10.00
+overall_score: 8.03
 ---
 
 ## Intent
@@ -14,8 +14,8 @@ A functional component of the Corvus Star static analysis matrix.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 8.4/10
-- **Style [S]**: 6.8/10
-- **Intel [I]**: 9.1/10
+- **Style [S]**: 5.7/10
+- **Intel [I]**: 10.0/10
 - **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
 
 
@@ -23,15 +23,11 @@ A functional component of the Corvus Star static analysis matrix.
 ## Neural Pathways
 
 ### Imports
-- [Request](file://express)
-- [Response](file://express)
-- [SubspaceRelay](file://./socket.js)
-- [recordPing](file://./recorder.js)
-- [AgentPing](file://../types.js)
+- [*](file://express)
+- [*](file://./socket.js)
+- [*](file://./recorder.js)
+- [*](file://../types.js)
 
 ### Exports
 - `normalizePath`
-- `normalizePath`
 - `handleTelemetryPing`
-- `handleTelemetryPing`
-- `ping`

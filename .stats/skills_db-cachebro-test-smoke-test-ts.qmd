@@ -6,26 +6,45 @@ complexity: 1
 logic_score: 9.65
 style_score: 8.18
 intel_score: 7.80
-overall_score: 7.31
+overall_score: 8.54
 ---
 
 ## Intent
-A functional component of the Corvus Star static analysis matrix.
+A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 9.6/10
 - **Style [S]**: 8.2/10
 - **Intel [I]**: 7.8/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 1 interactions (Agent Activity Hotspot)
 
 
 
 ## Neural Pathways
 
 ### Imports
-- [*](file://@turso/cachebro)
-- [*](file://fs)
-- [*](file://path)
+- [createCache](file://@turso/cachebro)
+- [writeFileSync](file://fs)
+- [mkdirSync](file://fs)
+- [rmSync](file://fs)
+- [join](file://path)
 
 ### Exports
-Internal logic only.
+- `TEST_DIR`
+- `DB_PATH`
+- `FILE_PATH`
+- `createCache`
+- `r1`
+- `r2`
+- `r3`
+- `stats`
+- `cache2`
+- `r5`
+- `r5b`
+- `LONG_FILE`
+- `longContent`
+- `r6`
+- `r7`
+- `modifiedLines`
+- `r8`
+- `r9`

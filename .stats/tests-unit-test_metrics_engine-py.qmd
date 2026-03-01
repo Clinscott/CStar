@@ -6,17 +6,17 @@ complexity: 2
 logic_score: 7.95
 style_score: 4.08
 intel_score: 1.40
-overall_score: 3.25
+overall_score: 4.48
 ---
 
 ## Intent
-Core semantic routing engine for intent resolution.
+Core semantic routing engine for intent resolution. It exists to map unstructured user inputs to distinct execution pathways. Its role in the system is to serve as the primary cognitive junction between natural language and operational logic.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 7.9/10
 - **Style [S]**: 4.1/10
 - **Intel [I]**: 1.4/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 2 interactions (Agent Activity Hotspot)
 
 
 

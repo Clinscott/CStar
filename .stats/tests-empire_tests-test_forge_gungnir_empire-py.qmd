@@ -1,22 +1,22 @@
 ---
 title: "test_forge_gungnir_empire.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_forge_gungnir_empire.py"
-loc: 27
+loc: 30
 complexity: 1
 logic_score: 8.75
 style_score: 1.00
 intel_score: 9.40
-overall_score: 5.15
+overall_score: 6.38
 ---
 
 ## Intent
-Python module facilitating TestForgeGungnirCalculus, forge.
+Python module facilitating TestForgeGungnirCalculus, gungnir. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 8.8/10
 - **Style [S]**: 1.0/10
 - **Intel [I]**: 9.4/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 7 interactions (Agent Activity Hotspot)
 
 
 
@@ -24,11 +24,11 @@ Python module facilitating TestForgeGungnirCalculus, forge.
 
 ### Imports
 - [pytest](file://pytest)
-- [src.cstar.core.forge](file://src.cstar.core.forge)
+- [src.core.engine.gungnir.universal](file://src.core.engine.gungnir.universal)
 
 ### Exports
 - `TestForgeGungnirCalculus`
-- `forge`
+- `gungnir`
 - `test_forge_detects_claustrophobic_python`
 - `test_forge_detects_top_heavy_python`
 - `test_forge_detects_ugly_react`

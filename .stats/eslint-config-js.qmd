@@ -1,22 +1,22 @@
 ---
 title: "eslint.config.js"
 path: "C:/Users/Craig/Corvus/CorvusStar/eslint.config.js"
-loc: 37
+loc: 36
 complexity: 1
 logic_score: 9.65
-style_score: 4.16
-intel_score: 4.16
-overall_score: 4.76
+style_score: 4.11
+intel_score: 8.67
+overall_score: 7.48
 ---
 
 ## Intent
-A functional component of the Corvus Star static analysis matrix.
+A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 9.6/10
-- **Style [S]**: 4.2/10
-- **Intel [I]**: 4.2/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Style [S]**: 4.1/10
+- **Intel [I]**: 8.7/10
+- **Gravity [G]**: 1 interactions (Agent Activity Hotspot)
 
 
 
@@ -25,6 +25,7 @@ A functional component of the Corvus Star static analysis matrix.
 ### Imports
 - [*](file://@eslint/js)
 - [*](file://eslint-plugin-jsdoc)
+- [*](file://typescript-eslint)
 
 ### Exports
-- `js`
+- `tseslint`

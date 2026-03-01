@@ -5,6 +5,8 @@ import path from 'node:path';
 import { calculateLogicScore } from './calculus/logic.js';
 import { calculateStyleScore } from './calculus/style.js';
 import { calculateIntelScore } from './calculus/intel.js';
+import { getFileGravity } from './intel/gravity_db.js';
+import { registry } from './pathRegistry.js';
 
 export interface GungnirMatrix {
     logic: number;
@@ -28,10 +30,16 @@ export interface FileData {
     cachedDependencies?: string[];
 }
 
+/**
+ * Analyzes code and returns FileData
+ * @param {string} code - The source code
+ * @param {string} filepath - The file path
+ * @returns {Promise<FileData>} Promisified FileData
+ */
 export async function analyzeFile(code: string, filepath: string): Promise<FileData> {
     const loc = calculateLOC(code, filepath);
     const hash = crypto.createHash('md5').update(code).digest('hex');
-    
+
     const endpoints = detectEndpoints(code, filepath);
     const isApi = endpoints.length > 0;
 
@@ -50,7 +58,7 @@ export async function analyzeFile(code: string, filepath: string): Promise<FileD
     const imports: FileData['imports'] = [];
     const exports: string[] = [];
 
-    let complexityQuerySource = '';
+    let complexityQuerySource: string;
     if (languageName === 'python') {
         complexityQuerySource = `
             (if_statement) @c
@@ -72,8 +80,9 @@ export async function analyzeFile(code: string, filepath: string): Promise<FileD
         const complexityQuery = new TreeSitter.Query(lang, complexityQuerySource);
         const matches = complexityQuery.matches(tree.rootNode);
         complexity += matches.length;
-    } catch (e) {}
+    } catch { /* ignore */ }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const traverse = (node: any, depth: number) => {
         if (node.type === 'statement_block' || node.type === 'block' || node.type === 'suite') {
             depth++;
@@ -94,7 +103,9 @@ export async function analyzeFile(code: string, filepath: string): Promise<FileD
             (class_definition name: (identifier) @class)
         `);
         const pyMatches = pyQuery.matches(tree.rootNode);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         pyMatches.forEach((m: any) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             m.captures.forEach((c: any) => {
                 const node = c.node;
                 if (c.name === 'module' || c.name === 'name') {
@@ -114,7 +125,9 @@ export async function analyzeFile(code: string, filepath: string): Promise<FileD
             (class_declaration) @class
         `);
         const jsMatches = jsQuery.matches(tree.rootNode);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         jsMatches.forEach((m: any) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             m.captures.forEach((c: any) => {
                 const node = c.node;
                 if (c.name === 'import') {
@@ -123,6 +136,7 @@ export async function analyzeFile(code: string, filepath: string): Promise<FileD
                         const src = sourceNodes[0].text.replace(/['"]/g, '');
                         const specifiers = node.descendantsOfType('import_specifier');
                         if (specifiers.length > 0) {
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                             specifiers.forEach((s: any) => {
                                 const importedNode = s.childForFieldName('name');
                                 const aliasNode = s.childForFieldName('alias');
@@ -142,6 +156,7 @@ export async function analyzeFile(code: string, filepath: string): Promise<FileD
                         // Support for const/let exports
                         const idNodes = node.descendantsOfType('identifier');
                         if (idNodes.length > 0) {
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                             const filtered = idNodes.filter((id: any) => !['const', 'let', 'var', 'async', 'function', 'class'].includes(id.text));
                             if (filtered.length > 0) exports.push(filtered[0].text);
                         }
@@ -174,6 +189,12 @@ export async function analyzeFile(code: string, filepath: string): Promise<FileD
     };
 }
 
+/**
+ * Detect endpoints in the code
+ * @param {string} code - Source code
+ * @param {string} filepath - File path
+ * @returns {string[]} Endpoints detected
+ */
 function detectEndpoints(code: string, filepath: string): string[] {
     const endpoints: string[] = [];
     const routeRegex = /\.(get|post|put|delete|patch)(?:<.*?>)?\s*\(\s*['"](\/.*?)['"]/g;
@@ -195,25 +216,27 @@ function detectEndpoints(code: string, filepath: string): string[] {
     return [...new Set(endpoints)];
 }
 
+/**
+ * Get system anomaly from sovereign state
+ * @returns {Promise<number>} Anomaly score
+ */
 async function getSystemAnomaly(): Promise<number> {
-    const statePath = path.join(process.cwd(), '.agent', 'sovereign_state.json');
+    const statePath = path.join(registry.getRoot(), '.agent', 'sovereign_state.json');
     try {
         const raw = await fs.readFile(statePath, 'utf-8');
         const data = JSON.parse(raw);
         return data.last_anomaly_score || 0;
-    } catch (e) { return 0; }
+    } catch { return 0; }
 }
 
-async function getFileGravity(filepath: string): Promise<number> {
-    const gravityPath = path.join(process.cwd(), '.stats', 'gravity.json');
-    try {
-        const raw = await fs.readFile(gravityPath, 'utf-8');
-        const data = JSON.parse(raw);
-        const normalized = filepath.replace(/\\/g, '/');
-        return data[normalized] || 0;
-    } catch (e) { return 0; }
-}
-
+/**
+ * Analyzes markdown documents
+ * @param {string} code - Source code
+ * @param {string} filepath - Path to file
+ * @param {string} hash - File hash
+ * @param {number} loc - Lines of code
+ * @returns {FileData} Extracted file data
+ */
 function analyzeMarkdown(code: string, filepath: string, hash: string, loc: number): FileData {
     const imports: FileData['imports'] = [];
     const exports: string[] = [];
@@ -224,16 +247,22 @@ function analyzeMarkdown(code: string, filepath: string, hash: string, loc: numb
     if (nameMatch) exports.push(nameMatch[1]);
 
     return {
-        path: filepath, loc, complexity: 1, 
+        path: filepath, loc, complexity: 1,
         matrix: { logic: 10, style: 10, intel: 10, overall: 10, gravity: 0 },
         imports, exports, intent: undefined, hash
     };
 }
 
+/**
+ * Calculates Lines of Code (LOC)
+ * @param {string} code - Source code
+ * @param {string} filepath - File path
+ * @returns {number} Lines of code
+ */
 function calculateLOC(code: string, filepath: string): number {
     const isPython = filepath.endsWith('.py');
     const commentRegex = isPython ? /(?<!:)#/ : /(?<!:)\/\//;
-    let cleanCode = isPython ? code.replace(/'''[\s\S]*?'''|"""[\s\S]*?"""/g, '') : code.replace(/\/\*[\s\S]*?\*\//g, '');
+    const cleanCode = isPython ? code.replace(/'''[\s\S]*?'''|"""[\s\S]*?"""/g, '') : code.replace(/\/\*[\s\S]*?\*\//g, '');
     return cleanCode.split('\n').map(line => {
         const content = line.split(commentRegex)[0];
         return content ? content.trim() : '';

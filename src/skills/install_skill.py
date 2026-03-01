@@ -66,7 +66,7 @@ def _setup_install_paths(base: str, config: dict, name: str) -> tuple[str, str, 
     dst = os.path.join(base, "skills_db", name)
     return src, qua, dst
 
-def _execute_installation_logic(src, qua, dst):
+def _execute_installation_logic(src, qua, dst, framework_root):
     """Sub-phase for the actual file operations and validations."""
     if os.path.exists(qua): shutil.rmtree(qua)
     os.makedirs(os.path.dirname(qua), exist_ok=True)
@@ -85,7 +85,7 @@ def _execute_installation_logic(src, qua, dst):
     # Promote
     if _promote_skill(qua, dst):
         from src.core.promotion_registry import PromotionRegistry
-        registry = PromotionRegistry(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        registry = PromotionRegistry(framework_root)
         
         # Collect all files in the promoted skill
         promoted_files = []
@@ -123,11 +123,15 @@ def install_skill(skill_name, target_root=None) -> None:
         SovereignHUD.log("FAIL", f"Skill '{name}' not found"); return
 
     try:
-        _execute_installation_logic(src, qua, dst)
+        _execute_installation_logic(src, qua, dst, framework_root)
     except Exception as e:
         SovereignHUD.log("FAIL", f"Install Crash: {str(e)[:40]}")
         if os.path.exists(qua): shutil.rmtree(qua)
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1: install_skill(sys.argv[1])
-    else: print("Usage: python install_skill.py <skill>")
+    if len(sys.argv) > 2:
+        install_skill(sys.argv[1], target_root=sys.argv[2])
+    elif len(sys.argv) > 1:
+        install_skill(sys.argv[1])
+    else:
+        print("Usage: python install_skill.py <skill> [target_root]")

@@ -40,3 +40,6 @@ ANNEXATION_PLAN.qmd
 # Node.js
 node_modules/
 .stats/signet.url
+
+/.quarto/
+**/*.quarto_ipynb

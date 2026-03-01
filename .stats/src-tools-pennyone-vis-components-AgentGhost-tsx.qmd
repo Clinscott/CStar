@@ -4,9 +4,9 @@ path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/components/AgentG
 loc: 67
 complexity: 4
 logic_score: 7.25
-style_score: 4.08
-intel_score: 6.18
-overall_score: 4.61
+style_score: 4.09
+intel_score: 6.78
+overall_score: 6.04
 ---
 
 ## Intent
@@ -15,7 +15,7 @@ React component rendering AgentGhost with 4 logic branches.
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 7.3/10
 - **Style [S]**: 4.1/10
-- **Intel [I]**: 6.2/10
+- **Intel [I]**: 6.8/10
 - **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
 
 

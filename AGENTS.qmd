@@ -5,6 +5,16 @@
 > This document is the Supreme Directive for all AI Agents (O.D.I.N., A.L.F.R.E.D., and sub-agents). 
 > **ADHERENCE IS NON-NEGOTIABLE.**
 
+## 🐚 SHELL INSPECTION & STEWARDSHIP MANDATE
+Before executing any command, the Agent MUST verify the terminal environment.
+- **Environment Detected**: PowerShell (win32).
+- **Rule**: NEVER use `grep`, `ls -la`, or Unix-specific pipes unless explicitly wrapped. Use `Select-String`, `Get-ChildItem`.
+- **Anti-Hang Protocol**: For operations exceeding 30 seconds (Docker builds, deep scans, LLM waits):
+    1.  **Monitor**: Proactively check for output or process life.
+    2.  **Timeout**: Never let a command wait indefinitely. Set explicit timeouts where possible.
+    3.  **Heartbeat**: If a command is silent, use a secondary thread or periodic checks to ensure the host is not hung.
+- **Pathing**: Use Windows-style paths `\` for local operations but maintain `/` for internal logic/git.
+
 ---
 
 ## 🎭 IDENTITY & PERSONA ROUTING
@@ -72,8 +82,10 @@ Follow this linear flow for all complex features. Each phase MUST conclude with 
 ## 🧠 AUTO-SKILL DISCOVERY (SOVEREIGN DISCOVERY)
 If a task requires logic not currently in the active `skills/` matrix:
 1.  **Search**: `sv_engine.py` MUST scan `skills_db/` for relevant keywords.
-2.  **Auto-Install**: If a relevant skill is found, invoke `install_skill.py <skill_name>`.
-3.  **Execute**: Immediately utilize the newly installed skill for the task.
+2.  **Auto-Install (Muninn Protocol)**: If a skill is found, the agent MUST use **SkillHunter** and **Muninn (Shadow Forge)** to promote it.
+    -   **Rule**: NEVER install skills directly on the host. 
+    -   **Niflheim Gate**: All building, linting, and Crucible verification MUST occur inside the Docker container (`sentinel-sandbox`).
+3.  **Execute**: Immediately utilize the newly installed skill for the task once promoted by Muninn.
 
 ---
 *[O.D.I.N.'s Void]: "BY MY WILL, THE SYSTEM IS FORGED. DEVIATION IS DEFEAT."*

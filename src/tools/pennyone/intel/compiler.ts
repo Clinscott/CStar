@@ -35,6 +35,9 @@ export interface CompiledGraph {
 /**
  * Matrix Compiler
  * Purpose: Compile all FileData into a master JSON graph with resolved dependencies.
+ * @param {FileData[]} results - The analysis results
+ * @param {string} targetRepo - The target repository path
+ * @returns {Promise<string>} Path to the generated graph
  */
 export async function compileMatrix(results: FileData[], targetRepo: string): Promise<string> {
     const statsDir = path.join(registry.getRoot(), '.stats');
@@ -47,6 +50,9 @@ export async function compileMatrix(results: FileData[], targetRepo: string): Pr
 
     /**
      * Helper to resolve an import path to an absolute file path known by the scan.
+     * @param {string} sourceFile - The source file
+     * @param {string} importPath - The import path
+     * @returns {string | null} The absolute path or null
      */
     const resolveDependency = (sourceFile: string, importPath: string): string | null => {
         let absolute: string;
@@ -93,14 +99,14 @@ export async function compileMatrix(results: FileData[], targetRepo: string): Pr
     };
 
     const payload: CompiledGraph = {
-        version: "1.7.0",
+        version: '1.7.0',
         scanned_at: new Date().toISOString(),
         files: results.map(r => ({
             path: registry.normalize(r.path),
             loc: r.loc,
             complexity: r.complexity,
             matrix: r.matrix,
-            intent: r.intent || "...",
+            intent: r.intent || '...',
             dependencies: r.cachedDependencies || r.imports
                 .map(i => resolveDependency(r.path, i.source))
                 .filter((d): d is string => d !== null && d !== registry.normalize(r.path)), // Avoid self-refs

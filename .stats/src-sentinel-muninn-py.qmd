@@ -1,22 +1,22 @@
 ---
 title: "muninn.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/sentinel/muninn.py"
-loc: 628
-complexity: 90
+loc: 708
+complexity: 92
 logic_score: 1.00
-style_score: 3.67
-intel_score: 6.11
-overall_score: 2.37
+style_score: 3.68
+intel_score: 6.15
+overall_score: 3.11
 ---
 
 ## Intent
-Python module facilitating Muninn, __init__.
+Python module facilitating Muninn, __init__. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 1.0/10
 - **Style [S]**: 3.7/10
 - **Intel [I]**: 6.1/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 151 interactions (Agent Activity Hotspot)
 
 
 
@@ -31,8 +31,8 @@ Python module facilitating Muninn, __init__.
 - [subprocess](file://subprocess)
 - [time](file://time)
 - [pathlib](file://pathlib)
+- [typing](file://typing)
 - [colorama](file://colorama)
-- [google](file://google)
 - [sys](file://sys)
 - [src.sentinel._bootstrap](file://src.sentinel._bootstrap)
 - [src.core.annex](file://src.core.annex)
@@ -50,12 +50,12 @@ Python module facilitating Muninn, __init__.
 - [tests.integration.project_fishtest](file://tests.integration.project_fishtest)
 - [tests.harness.raven_proxy](file://tests.harness.raven_proxy)
 - [src.cstar.core.antigravity_bridge](file://src.cstar.core.antigravity_bridge)
+- [src.sentinel.wardens.shadow_forge](file://src.sentinel.wardens.shadow_forge)
 - [importlib](file://importlib)
 - [inspect](file://inspect)
 - [src.sentinel.sandbox_warden](file://src.sentinel.sandbox_warden)
 - [sys](file://sys)
 - [sys](file://sys)
-- [re](file://re)
 - [argparse](file://argparse)
 - [tests.harness.raven_proxy](file://tests.harness.raven_proxy)
 
@@ -64,6 +64,7 @@ Python module facilitating Muninn, __init__.
 - `__init__`
 - `_write_pid`
 - `_clear_pid`
+- `_pulse_heartbeat`
 - `_check_agent_active`
 - `_get_model`
 - `_setup_shadow_workspace`
@@ -83,6 +84,9 @@ Python module facilitating Muninn, __init__.
 - `_evolve_neural_warden`
 - `run`
 - `_emit_metrics_summary`
+- `_init_heimdall`
+- `_discover_wardens`
+- `_dispatch_warden_scans`
 - `_execute_hunt_async`
 - `_forge_improvement`
 - `_run_gauntlet`
@@ -95,7 +99,9 @@ Python module facilitating Muninn, __init__.
 - `_verify_performance`
 - `_rollback`
 - `_record_metric`
-- `_orchestrate_shadow_forge`
-- `_promote_from_container`
+- `_parse_ledger`
+- `_identify_cursed_files`
+- `_identify_blessed_precedents`
+- `_write_directives`
 - `_distill_knowledge`
 - `_select_breach_target`

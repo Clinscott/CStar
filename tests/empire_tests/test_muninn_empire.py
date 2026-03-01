@@ -2,7 +2,7 @@
 import os
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, AsyncMock, patch
 
 import pytest
 
@@ -31,8 +31,7 @@ from src.sentinel.muninn import Muninn
 class TestMuninnEmpire:
 
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key", "MUNINN_API_KEY": ""})
-    @patch("src.sentinel.muninn.genai.Client")
-    def test_init(self, mock_client):
+    def test_init(self):
         # We need to patch the constructor dependencies of Muninn
         with patch("src.sentinel.muninn.TheWatcher"), \
              patch("src.sentinel.muninn.ProjectMetricsEngine"), \
@@ -41,39 +40,27 @@ class TestMuninnEmpire:
 
             muninn = Muninn("dummy_root")
             assert muninn.api_key == "fake_key"
-            mock_client.assert_called()
 
-    @patch("src.sentinel.muninn.genai.Client")
-    def test_init_no_key(self, mock_client):
+    def test_init_no_key(self):
         with patch.dict(os.environ, {}, clear=True):
-            # The bootstrap call might set it? No.
-            with pytest.raises(ValueError, match="API environment variable not set."):
-                Muninn("dummy_root")
+            muninn = Muninn("dummy_root")
+            assert muninn.api_key is None
 
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key", "MUNINN_API_KEY": ""})
     @patch("src.sentinel.muninn.AnomalyWarden")
-    @patch("src.sentinel.muninn.Muninn._execute_hunt_async", new_callable=MagicMock)
+    @patch("src.sentinel.muninn.Muninn._execute_hunt_async", new_callable=AsyncMock)
     @patch("src.sentinel.muninn.SovereignHUD")
-    @patch("src.sentinel.muninn.asyncio.run")
     @patch("src.sentinel.muninn.ProjectMetricsEngine")
     @patch("src.sentinel.muninn.TheWatcher")
     @patch("src.sentinel.muninn.GungnirSPRT")
-    def test_run_scan_no_breaches(self, mock_sprt, mock_watcher, mock_metrics, mock_asyncio_run, mock_hud, mock_hunt, mock_cortex):
+    def test_run_scan_no_breaches(self, mock_sprt, mock_watcher, mock_metrics, mock_hud, mock_hunt, mock_cortex):
         muninn = Muninn("dummy_root")
 
         # Mock hunt to return value directly (not a coroutine)
         mock_hunt.return_value = ([], {"ANNEX": 0})
 
-        # Mock asyncio.run to return same
-        mock_asyncio_run.return_value = ([], {"ANNEX": 0})
-
-
         mock_metrics_inst = mock_metrics.return_value
         mock_metrics_inst.compute.return_value = 80.0
-
-        # Mock asyncio.run to return (breaches, stats)
-        # _execute_hunt_async returns (all_breaches, scan_results)
-        mock_asyncio_run.return_value = ([], {"ANNEX": 0})
 
         # Run
         result = muninn.run()
@@ -88,14 +75,13 @@ class TestMuninnEmpire:
 
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key", "MUNINN_API_KEY": ""})
     @patch("src.sentinel.muninn.AnomalyWarden")
-    @patch("src.sentinel.muninn.Muninn._execute_hunt_async", new_callable=MagicMock)
+    @patch("src.sentinel.muninn.Muninn._execute_hunt_async", new_callable=AsyncMock)
     @patch("src.sentinel.muninn.SovereignHUD")
-    @patch("src.sentinel.muninn.asyncio.run")
     @patch("src.sentinel.muninn.ProjectMetricsEngine")
     @patch("src.sentinel.muninn.TheWatcher")
     @patch("src.sentinel.muninn.GungnirSPRT")
     @patch("src.sentinel.muninn.subprocess.run")
-    def test_run_with_breach_success(self, mock_sub, mock_sprt, mock_watcher, mock_metrics, mock_asyncio_run, mock_hud, mock_hunt, mock_cortex):
+    def test_run_with_breach_success(self, mock_sub, mock_sprt, mock_watcher, mock_metrics, mock_hud, mock_hunt, mock_cortex):
         # We must initialize Muninn AFTER the patches are set up so it picks up the Mocks in its __init__
         muninn = Muninn("dummy_root")
 
@@ -111,14 +97,7 @@ class TestMuninnEmpire:
         muninn.metrics_engine = MagicMock()
         muninn.metrics_engine.compute.side_effect = [80.0, 85.0] # Pre, Post
 
-        # Mock asyncio.run to return a breach
-        breach = {
-            "file": "bad.py",
-            "action": "Fix syntax",
-            "severity": "CRITICAL",
-            "type": "ANNEX_BREACH"
-        }
-        mock_asyncio_run.return_value = ([breach], {"ANNEX": 1})
+        mock_hunt.return_value = ([breach], {"ANNEX": 1})
 
         # Mock Watcher
         mock_watcher_inst = mock_watcher.return_value

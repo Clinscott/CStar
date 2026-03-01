@@ -1,19 +1,21 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import Database from 'better-sqlite3';
 import path from 'node:path';
 import fs from 'node:fs';
 import { AgentPing } from '../types.js';
+import { registry } from '../pathRegistry.js';
+
+let db: Database.Database | undefined;
 
 /**
- * [O.D.I.N.]: "The Hall of Records is now forged in stone (SQLite)."
+ * @param {string} _targetRepo - The target repository path
+ * @returns {Database.Database} The db instance
  */
-
-let db: Database.Database | null = null;
-
-export function getDb(targetRepo: string): Database.Database {
+export function getDb(_targetRepo?: string): Database.Database {
     if (db) return db;
 
     // [Ω] Centralized Database: Always in the Axis (CorvusStar root)
-    const statsDir = path.join(process.cwd(), '.stats');
+    const statsDir = path.join(registry.getRoot(), '.stats');
     if (!fs.existsSync(statsDir)) {
         fs.mkdirSync(statsDir, { recursive: true });
     }
@@ -60,13 +62,15 @@ export function getDb(targetRepo: string): Database.Database {
 
 /**
  * Registers a spoke in the database if it doesn't exist.
+ * @param {string} targetRepo - The target repository path
+ * @returns {number} The spoke ID
  */
 export function registerSpoke(targetRepo: string): number {
     const database = getDb(targetRepo);
     const normalizedRepo = path.resolve(targetRepo).replace(/\\/g, '/');
     const spokeName = path.basename(normalizedRepo);
     
-    let spoke = database.prepare('SELECT id FROM spokes WHERE root_path = ?').get(normalizedRepo) as { id: number } | undefined;
+    const spoke = database.prepare('SELECT id FROM spokes WHERE root_path = ?').get(normalizedRepo) as { id: number } | undefined;
     
     if (!spoke) {
         const stmt = database.prepare('INSERT INTO spokes (name, root_path) VALUES (?, ?)');
@@ -78,6 +82,8 @@ export function registerSpoke(targetRepo: string): number {
 
 /**
  * Persists an AgentPing to the SQLite database.
+ * @param {AgentPing} ping - The ping object
+ * @param {string} targetRepo - The target repository path
  */
 export async function savePing(ping: AgentPing, targetRepo: string) {
     // [Ω] Gungnir Security: Anti-Injection Sanitization
@@ -111,6 +117,8 @@ export async function savePing(ping: AgentPing, targetRepo: string) {
 
 /**
  * [O.D.I.N.]: "Retrieving the scrolls of past campaigns."
+ * @param {string} targetRepo - The target repository path
+ * @returns {any[]} The session summaries
  */
 export function getSessionsWithSummaries(targetRepo: string) {
     const database = getDb(targetRepo);
@@ -123,11 +131,11 @@ export function getSessionsWithSummaries(targetRepo: string) {
         JOIN spokes sp ON s.spoke_id = sp.id
         WHERE sp.root_path = ?
         ORDER BY s.start_timestamp DESC
-    `).all(normalizedRepo) as any[];
+    `).all(normalizedRepo) as Record<string, unknown>[];
 
     return sessions.map(s => {
         const duration = s.end_timestamp ? Math.round((s.end_timestamp - s.start_timestamp) / 1000) : 0;
-        const targetFile = s.primary_target ? path.basename(s.primary_target) : "unknown";
+        const targetFile = s.primary_target ? path.basename(s.primary_target) : 'unknown';
         
         return {
             ...s,
@@ -138,6 +146,9 @@ export function getSessionsWithSummaries(targetRepo: string) {
 
 /**
  * Retrieves all pings for a specific session in chronological order.
+ * @param {number} sessionId - The session ID
+ * @param {string} targetRepo - The target repository path
+ * @returns {AgentPing[]} The pings
  */
 export function getSessionPings(sessionId: number, targetRepo: string): AgentPing[] {
     const database = getDb(targetRepo);

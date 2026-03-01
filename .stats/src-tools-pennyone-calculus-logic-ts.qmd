@@ -4,9 +4,9 @@ path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/calculus/logic.ts"
 loc: 7
 complexity: 2
 logic_score: 8.85
-style_score: 9.30
+style_score: 9.35
 intel_score: 10.00
-overall_score: 8.15
+overall_score: 9.40
 ---
 
 ## Intent

@@ -6,17 +6,17 @@ complexity: 5
 logic_score: 7.80
 style_score: 1.00
 intel_score: 4.18
-overall_score: 3.10
+overall_score: 4.33
 ---
 
 ## Intent
-A functional component of the Corvus Star static analysis matrix.
+A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 7.8/10
 - **Style [S]**: 1.0/10
 - **Intel [I]**: 4.2/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 1 interactions (Agent Activity Hotspot)
 
 
 

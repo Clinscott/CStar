@@ -1,0 +1,69 @@
+---
+title: "PennyOne v2.0: The Autonomic Nervous System"
+subtitle: "Architectural Blueprint & Transition Plan"
+format: html
+---
+
+# ◤ OPERATION PENNYONE: ASCENSION ◢
+
+> [!IMPORTANT]
+> **MANDATE:** PennyOne is no longer just a passive compass or a localized scanning tool. It must evolve into the **Autonomic Nervous System** of the CorvusStar architecture. It provides continuous, real-time temporal and spatial awareness to all autonomous agents without requiring manual invocation.
+
+## 1. The Four Pillars of Ascension
+
+### 1.1. Standardized Intelligence (The LSIF/LSP Shift)
+**The Problem:** Current Tree-Sitter heuristic analysis (`analyzer.ts`) is brittle, computationally expensive to maintain across languages, and fails to capture deep semantic relationships (true dependencies, accurate cyclomatic complexity).
+**The Solution:** 
+- Retire custom Tree-Sitter syntax counting.
+- Integrate **Language Server Protocol (LSP)** or **LSIF (Language Server Index Format)** / **SCIP (Semantic Code Intelligence Protocol)** extractors.
+- **Outcome:** Pixel-perfect cross-file referencing, precise complexity metrics, and language-agnostic intelligence that relies on standard compiler tooling rather than regular expressions or AST heuristics.
+
+### 1.2. 4D Gravity (Agent Telemetry + Git Churn)
+**The Problem:** File "Gravity" currently only looks at short-term agent interaction pings via WebSocket/SQLite. It lacks historical perspective.
+**The Solution:** 
+- Implement **Git Churn Analysis**.
+- `Gravity (G) = (Agent Pings in last 48h * W1) + (Commits touching file in last 30 days * W2) + (Lines modified in last 7 days * W3)`.
+- **Outcome:** Files that are constantly changing but haven't been touched by an agent today will still glow like supernovas in the Matrix. True historical hotspots are revealed.
+
+### 1.3. Headless, Decoupled Architecture
+**The Problem:** The CLI, scanning engine, SQLite database, and Express web server are tightly coupled within `src/tools/pennyone`. 
+**The Solution:**
+- Split PennyOne into **PennyOne Core (Daemon)** and **PennyOne Vis (Dumb Client)**.
+- **PennyOne Core:** A background worker/watcher that silently updates `.stats/matrix-graph.json` and `.stats/gravity.db` when file changes or git events occur.
+- **PennyOne Vis:** A pure React/Three.js frontend that *only* consumes the static JSON and SQLite files. No complex Express server required; just a static host or Vite dev server.
+- **Outcome:** Zero-overhead scanning. The Matrix is always up-to-date.
+
+### 1.4. Active Threat Assessment (Automated Bounties)
+**The Problem:** PennyOne shows us where code is bad, but it waits for a human or agent to notice and act.
+**The Solution:**
+- Introduce the **Warden Module**.
+- Every time PennyOne Core updates the Matrix, it scans for "Toxic Sectors": `(High Gravity) + (Low Logic Score) + (Low Intel Score)`.
+- When a Toxic Sector crosses a threshold, the Warden automatically generates a **Tech Debt Bounty** and injects it into `.agent/corrections.json`.
+- **Outcome:** ODIN automatically receives prioritized, contextualized refactoring missions.
+
+---
+
+## 2. Transition Plan (Phased Rollout)
+
+### Phase 1: The Headless Decoupling
+- **Objective:** Separate the CLI scanner from the Express Server.
+- **Action:** Move the continuous watcher loop into a standalone background process (`cstar daemon start`). 
+- **Action:** Convert the current Express API into static file generation where possible, or a minimal local Fastify proxy.
+
+### Phase 2: Git Churn Integration
+- **Objective:** Introduce the 4th Dimension.
+- **Action:** Build a `git log` parser module to extract temporal churn metrics.
+- **Action:** Update `intel/gravity_db.ts` to merge Git stats with the existing `pennyone.db` Agent pings.
+
+### Phase 3: The LSIF/SCIP Integration
+- **Objective:** Retire bespoke Tree-sitter complexity logic.
+- **Action:** Implement a wrapper to execute `rust-analyzer`, `tsserver`, or SCIP CLI tools to generate the `matrix-graph.json` semantic links.
+
+### Phase 4: The Warden (Threat Assessment)
+- **Objective:** Close the loop between observation and execution.
+- **Action:** Write the logic that parses the Matrix for Toxic Sectors.
+- **Action:** Interface with `.agent/corrections.json` to post bounties for ODIN.
+
+---
+
+[ALFRED]: "The blueprints are locked, sir. PennyOne will soon wake up."

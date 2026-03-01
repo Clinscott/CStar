@@ -5,8 +5,8 @@ loc: 146
 complexity: 11
 logic_score: 3.90
 style_score: 1.00
-intel_score: 2.00
-overall_score: 1.07
+intel_score: 2.27
+overall_score: 2.39
 ---
 
 ## Intent
@@ -15,7 +15,7 @@ React component rendering App with 11 logic branches.
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 3.9/10
 - **Style [S]**: 1.0/10
-- **Intel [I]**: 2.0/10
+- **Intel [I]**: 2.3/10
 - **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
 
 

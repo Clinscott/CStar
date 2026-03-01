@@ -1,94 +1,91 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { runScan } from '../src/tools/pennyone/index.js';
-import { startBridge } from '../src/tools/pennyone/vis/server.js';
+import { runScan } from '../src/tools/pennyone/index.ts';
+import { P1Daemon } from '../src/tools/pennyone/daemon.ts';
+import { startProxy } from '../src/tools/pennyone/vis/proxy.ts';
+import fs from 'node:fs';
+import path from 'node:path';
+import { registry } from '../src/tools/pennyone/pathRegistry.ts';
 
 const program = new Command();
 
 program
-    .name('pennyone')
-    .description('PennyOne: 3D Repository Stat Crawler')
-    .version('1.5.0');
+    .name('p1')
+    .description('PennyOne: Autonomic Repository Intelligence System (v2.0)')
+    .version('2.0.0');
 
 program
     .command('scan')
-    .description('Scan the repository for static stats and Gungnir Matrix scores')
+    .description('Run a one-time structural scan of the repository')
     .argument('[path]', 'path to scan', '.')
-    .action(async (path) => {
+    .action(async (targetPath) => {
         console.log(chalk.cyan('\n[ALFRED]: "Initializing Operation PennyOne... Scanning the neural pathways, sir."\n'));
-
         try {
-            const results = await runScan(path);
-
-            if (results.length === 0) {
-                console.warn(chalk.yellow(`[ALFRED]: "I am afraid the scan path '${path}' yielded no results, sir. Perhaps the Python Paradox has claimed another victim?"`));
-                process.exit(1);
-            }
-
-            console.log(chalk.white('--- Scan Results ---'));
-            results.forEach(res => {
-                const m = res.matrix;
-                const getScoreColor = (s) => s > 7 ? chalk.green : (s > 4 ? chalk.yellow : chalk.red);
-
-                console.log(
-                    chalk.blue(`[File]: ${res.path.replace(process.cwd(), '')}\n`) +
-                    `  LOC: ${chalk.white(res.loc)} | Complexity: ${chalk.white(res.complexity)}\n` +
-                    `  Matrix: [L] ${getScoreColor(m.logic)(m.logic.toFixed(1))} | [S] ${getScoreColor(m.style)(m.style.toFixed(1))} | [I] ${getScoreColor(m.intel)(m.intel.toFixed(1))} | ` +
-                    chalk.bold(`Score: ${getScoreColor(m.overall)(m.overall.toFixed(2))}\n`)
-                );
-            });
-
-            const totalLoc = results.reduce((acc, curr) => acc + curr.loc, 0);
-            const avgScore = results.length > 0 ? (results.reduce((acc, curr) => acc + curr.matrix.overall, 0) / results.length).toFixed(2) : 0;
-
-            const avgLogic = (results.reduce((a, b) => a + b.matrix.logic, 0) / results.length).toFixed(1);
-            const avgStyle = (results.reduce((a, b) => a + b.matrix.style, 0) / results.length).toFixed(1);
-            const avgIntel = (results.reduce((a, b) => a + b.matrix.intel, 0) / results.length).toFixed(1);
-
-            // [Ω] Gungnir Deep Trace: Outlier Analysis
-            console.log(chalk.cyan('\n ◤ GUNGNIR DEEP TRACE ◢ '));
-            console.log(chalk.cyan(' ' + '━'.repeat(40)));
-            
-            const outliers = [...results].sort((a, b) => b.complexity - a.complexity).slice(0, 3);
-            console.log(chalk.bold(' Complexity Outliers:'));
-            outliers.forEach(o => {
-                console.log(` ◈ ${chalk.red(o.path.replace(process.cwd(), ''))} (${chalk.white(o.complexity)})`);
-            });
-
-            const logicOutliers = [...results].sort((a, b) => a.matrix.logic - b.matrix.logic).slice(0, 3);
-            console.log(chalk.bold('\n Logic Breaches (Lowest L):'));
-            logicOutliers.forEach(o => {
-                console.log(` ◈ ${chalk.yellow(o.path.replace(process.cwd(), ''))} (${chalk.red(o.matrix.logic.toFixed(1))})`);
-            });
-
-            console.log(chalk.cyan('\n ' + '━'.repeat(40)));
-            console.log(chalk.cyan('\n ◤ GUNGNIR MATRIX SUMMARY ◢ '));
-            console.log(chalk.cyan(' ' + '━'.repeat(40)));
-            console.log(`  LOGIC [L]: ${chalk.green(avgLogic)} / 10.0`);
-            console.log(`  STYLE [S]: ${chalk.green(avgStyle)} / 10.0`);
-            console.log(`  INTEL [I]: ${chalk.green(avgIntel)} / 10.0`);
-            console.log(chalk.cyan(' ' + '━'.repeat(40)));
-
-            console.log(chalk.cyan(`\n[ALFRED]: "Scan complete, sir. Generated ${results.length} reports and compiled the matrix graph in the '.stats/' directory."`));
-            console.log(chalk.cyan(`[ALFRED]: "Total LOC: ${totalLoc}. Average Gungnir Score: ${avgScore} (Scale 1-10)."`));
-            console.log(chalk.cyan('[ALFRED]: "The visualization bridge is primed for Phase 3."\n'));
-
+            const results = await runScan(targetPath);
+            console.log(chalk.cyan(`[ALFRED]: "Scan complete. Total Files: ${results.length}."`));
         } catch (err) {
-            console.error(chalk.red('\n[ALFRED]: "I am dreadfully sorry, sir. The scan has failed."'));
-            console.error(err);
+            console.error(chalk.red('[ALFRED]: "One-time scan failed."'), err);
             process.exit(1);
         }
     });
 
 program
+    .command('start')
+    .description('Ignite the background P1 Daemon (Continuous Intelligence)')
+    .argument('[path]', 'path to monitor', '.')
+    .action((targetPath) => {
+        const daemon = new P1Daemon(targetPath);
+        daemon.start();
+    });
+
+program
+    .command('status')
+    .description('Check the status of the P1 Daemon')
+    .action(() => {
+        const statsDir = path.join(registry.getRoot(), '.stats');
+        const pidFile = path.join(statsDir, 'p1-daemon.pid');
+        
+        if (fs.existsSync(pidFile)) {
+            const pid = fs.readFileSync(pidFile, 'utf-8');
+            try {
+                process.kill(parseInt(pid), 0);
+                console.log(chalk.green(`[ALFRED]: "The P1 Daemon is ACTIVE. (PID: ${pid})"`));
+            } catch {
+                console.log(chalk.yellow('[ALFRED]: "The P1 Daemon is STALLED (PID file exists but process is dead)."'));
+            }
+        } else {
+            console.log(chalk.dim('[ALFRED]: "The P1 Daemon is currently DORMANT."'));
+        }
+    });
+
+program
     .command('view')
-    .description('Spin up the 3D Gungnir Matrix visualization bridge')
-    .argument('[path]', 'path to the scanned repository', '.')
-    .option('-p, --port <number>', 'port to run the bridge on', '4000')
-    .action((path, options) => {
-        console.log(chalk.cyan('\n[ALFRED]: "Pre-flight checks complete. Spinning up the visualization bridge, sir."\n'));
-        startBridge(path, parseInt(options.port));
+    .description('Launch the P1 Visualization Bridge')
+    .argument('[path]', 'path to target', '.')
+    .option('-p, --port <number>', 'port to run on', '4000')
+    .action((targetPath, options) => {
+        console.log(chalk.cyan('\n[ALFRED]: "Pre-flight checks complete. Spinning up the visualization proxy, sir."\n'));
+        startProxy(targetPath, parseInt(options.port));
+    });
+
+program
+    .command('stop')
+    .description('Terminate the P1 Daemon')
+    .action(() => {
+        const statsDir = path.join(registry.getRoot(), '.stats');
+        const pidFile = path.join(statsDir, 'p1-daemon.pid');
+        if (fs.existsSync(pidFile)) {
+            const pid = parseInt(fs.readFileSync(pidFile, 'utf-8'));
+            try {
+                process.kill(pid, 'SIGTERM');
+                console.log(chalk.yellow('[ALFRED]: "Termination signal sent to P1 Daemon."'));
+            } catch (e) {
+                console.error(chalk.red('Failed to kill daemon process.'));
+            }
+        } else {
+            console.log(chalk.dim('[ALFRED]: "No active P1 Daemon found."'));
+        }
     });
 
 program

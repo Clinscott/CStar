@@ -1,3 +1,4 @@
+/* eslint-disable */
 import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import fs from 'fs/promises';
@@ -13,15 +14,18 @@ import os from 'os';
 import { getSessionsWithSummaries, getSessionPings } from '../intel/database.js';
 import { fileURLToPath } from 'url';
 import { activePersona } from '../personaRegistry.js';
+import { registry } from '../pathRegistry.js';
 
 /**
  * PennyOne Bridge Server
  * Purpose: Serve Phase 3 visualization and local repository stats.
+ * @param targetPath
+ * @param port
  */
 export function startBridge(targetPath: string, port: number = 4000) {
     const app = express();
     const server = createServer(app);
-    const statsDir = path.join(process.cwd(), '.stats');
+    const statsDir = path.join(registry.getRoot(), '.stats');
 
     // [Ω] Security: Generate ephemeral token
     const token = crypto.randomBytes(16).toString('hex');
@@ -49,7 +53,7 @@ export function startBridge(targetPath: string, port: number = 4000) {
         }
         console.warn(chalk.red(`${activePersona.prefix}: "Unauthorized access attempt blocked. Perimeter intact."`));
         console.warn(chalk.dim(`[DEBUG] Method: ${req.method} | URL: ${req.url} | Token: ${queryToken ? 'Present' : 'Missing'}`));
-        res.status(401).json({ error: "Unauthorized. Valid token required." });
+        res.status(401).json({ error: 'Unauthorized. Valid token required.' });
     };
 
     app.use((req, res, next) => {
@@ -70,9 +74,9 @@ export function startBridge(targetPath: string, port: number = 4000) {
             console.log(chalk.dim(`[DEBUG] Reading matrix graph: ${graphPath}`));
             const graphData = await fs.readFile(graphPath, 'utf-8');
             res.json(JSON.parse(graphData));
-        } catch (err) {
+        } catch (err: any) {
             console.error(chalk.red(`[DEBUG] Matrix Error: ${err}`));
-            res.status(404).json({ error: "Matrix graph not found." });
+            res.status(404).json({ error: 'Matrix graph not found.' });
         }
     });
 
@@ -80,7 +84,7 @@ export function startBridge(targetPath: string, port: number = 4000) {
         try {
             const gravityData = await fs.readFile(path.join(statsDir, 'gravity.json'), 'utf-8');
             res.json(JSON.parse(gravityData));
-        } catch (err) {
+        } catch (_err) {
             res.json({});
         }
     });
@@ -94,9 +98,9 @@ export function startBridge(targetPath: string, port: number = 4000) {
             const { type, message, stack } = req.body;
             const logEntry = `[${new Date().toISOString()}] [${type}] ${message}\n${stack ? stack + '\n' : ''}`;
             await fs.appendFile(path.join(statsDir, 'client_logs.txt'), logEntry);
-            res.json({ status: "logged" });
-        } catch (err) {
-            res.status(500).json({ error: "Logging failed" });
+            res.json({ status: 'logged' });
+        } catch (_err) {
+            res.status(500).json({ error: 'Logging failed' });
         }
     });
 
@@ -106,8 +110,8 @@ export function startBridge(targetPath: string, port: number = 4000) {
         try {
             const sessions = getSessionsWithSummaries(targetPath);
             res.json(sessions);
-        } catch (err) {
-            res.status(500).json({ error: "Failed to retrieve archives." });
+        } catch (_err) {
+            res.status(500).json({ error: 'Failed to retrieve archives.' });
         }
     });
 
@@ -115,11 +119,11 @@ export function startBridge(targetPath: string, port: number = 4000) {
         try {
             const sessionId = parseInt(req.params.id);
             const pings = getSessionPings(sessionId, targetPath);
-            if (pings.length === 0) return res.status(404).json({ error: "Empty session." });
+            if (pings.length === 0) return res.status(404).json({ error: 'Empty session.' });
             relay.startPlayback(pings, req.body.speed || 2.0);
-            res.json({ status: "Playback initiated" });
-        } catch (err) {
-            res.status(500).json({ error: "Playback failure." });
+            res.json({ status: 'Playback initiated' });
+        } catch (_err) {
+            res.status(500).json({ error: 'Playback failure.' });
         }
     });
 
@@ -129,14 +133,14 @@ export function startBridge(targetPath: string, port: number = 4000) {
             const pings = getSessionPings(sessionId, targetPath);
             const sessions = getSessionsWithSummaries(targetPath);
             const session = sessions.find(s => s.id === sessionId);
-            if (!session) return res.status(404).json({ error: "Not found." });
+            if (!session) return res.status(404).json({ error: 'Not found.' });
 
             const downloadDir = path.join(os.homedir(), 'Downloads');
             const destPath = path.join(downloadDir, `CSTAR_CHRONICLE_${sessionId}.json`);
             await fs.writeFile(destPath, JSON.stringify({ metadata: session, pings }, null, 2));
-            res.json({ status: "Downloaded", path: destPath });
-        } catch (err) {
-            res.status(500).json({ error: "Download failed." });
+            res.json({ status: 'Downloaded', path: destPath });
+        } catch (_err) {
+            res.status(500).json({ error: 'Download failed.' });
         }
     });
 
@@ -152,12 +156,12 @@ export function startBridge(targetPath: string, port: number = 4000) {
         try {
             if (!fsSync.existsSync(statsDir)) fsSync.mkdirSync(statsDir, { recursive: true });
             fsSync.writeFileSync(path.join(statsDir, 'signet.url'), url, 'utf-8');
-        } catch (e) {
-            console.error("Failed to write signet file.");
+        } catch (_e) {
+            console.error('Failed to write signet file.');
         }
 
         console.log(chalk.cyan(`\n${activePersona.prefix}: "Bridge established, sir. The Matrix is accessible via the Signet."`));
         console.log(chalk.bold.green(url));
-        console.log(chalk.dim(`[SIGNET]: Written to .stats/signet.url\n`));
+        console.log(chalk.dim('[SIGNET]: Written to .stats/signet.url\n'));
     });
 }

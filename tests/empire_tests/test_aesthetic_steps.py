@@ -1,5 +1,6 @@
 import pytest
 import asyncio
+import os
 from playwright.async_api import async_playwright, expect
 from pytest_bdd import scenario, given, when, then, parsers
 from pathlib import Path
@@ -19,19 +20,42 @@ def test_data_pulse():
 def test_iconography():
     pass
 
+# Note: Some features might be in ../features/ or ../scenario/
+# The scenario decorator will find them if they exist.
+
 @pytest.fixture
 async def shared_state():
+    # Attempt to read the Signet URL (which contains the ephemeral token)
+    signet_path = Path(".stats/signet.url")
+    base_url = "http://127.0.0.1:4000"
+    token = "2c1e729d6ce35a3b12e4caf9fbff197e" # Fallback
+
+    if signet_path.exists():
+        try:
+            url_content = signet_path.read_text(encoding='utf-8').strip()
+            if "?token=" in url_content:
+                base_url = url_content.split("?token=")[0]
+                token = url_content.split("?token=")[1]
+        except Exception:
+            pass
+
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         context = await browser.new_context()
         page = await context.new_page()
-        # Initial navigation to set context
-        token = "2c1e729d6ce35a3b12e4caf9fbff197e"
+        
         try:
-            await page.goto(f"http://127.0.0.1:4000/?token={token}")
+            # Navigate to the bridge (either via Signet or fallback)
+            target_url = f"{base_url}/?token={token}"
+            await page.goto(target_url)
+            
             # Wait for the HUD to appear as proxy for 'loaded'
-            await expect(page.locator(".glass-hud")).to_be_visible(timeout=15000)
+            # We use a generous timeout because the server might just be starting
+            await expect(page.locator(".glass-hud")).to_be_visible(timeout=30000)
             yield {"page": page}
+        except Exception as e:
+            # If we fail to connect, we yield a dummy or fail gracefully
+            pytest.fail(f"Could not connect to PennyOne Bridge at {base_url}. Is the server running? Error: {e}")
         finally:
             await browser.close()
 

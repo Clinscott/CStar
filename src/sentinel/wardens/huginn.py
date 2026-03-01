@@ -44,6 +44,43 @@ class HuginnWarden(BaseWarden):
 
         return targets
 
+    def _scan_regex(self) -> list[dict[str, Any]]:
+        """Fast regex-based scanning for obvious hallucinations and deviance."""
+        targets = []
+        for trace_file in self.trace_dir.glob("*.md"):
+            try:
+                content = trace_file.read_text(encoding='utf-8')
+                lines = content.split('\n')
+
+                # Detect repeated headers (hallucination)
+                headers = [line.strip() for line in lines if line.strip().startswith('# ')]
+                for header in set(headers):
+                    if headers.count(header) >= 3:
+                        targets.append({
+                            "type": "HALLUCINATION_REPEATED_HEADER",
+                            "file": str(trace_file.relative_to(self.root)),
+                            "action": f"Repeated header detected: '{header}'",
+                            "severity": "MEDIUM",
+                            "line": 1
+                        })
+                        break
+
+                # Detect suspicious temporary paths (deviance)
+                temp_paths = re.findall(r'(/tmp/[a-zA-Z0-9_\-./]+|C:\\Users\\.*\\AppData\\Local\\Temp\\[a-zA-Z0-9_\-./]+)', content)
+                for path in temp_paths:
+                    if "pytest" not in path: # Ignore pytest temps
+                        targets.append({
+                            "type": "DEVIANCE_TEMP_PATH",
+                            "file": str(trace_file.relative_to(self.root)),
+                            "action": f"Suspicious temporary path detected: {path}",
+                            "severity": "HIGH",
+                            "line": 1
+                        })
+
+            except Exception:
+                continue
+        return targets
+
     async def _scan_neural_async(self, trace_file: Path) -> list[dict[str, Any]]:
         targets = []
         with contextlib.suppress(Exception):

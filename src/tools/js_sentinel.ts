@@ -97,7 +97,8 @@ async function runSentinel(target: string = '.'): Promise<void> {
             violations.slice(0, 15).forEach(v => {
                 const color = v.severity === 'ERROR' ? chalk.red : chalk.yellow;
                 const loc = `${v.file}:${v.line}:${v.col}`;
-                console.log(`  ${color(text.PREFIX)} ${chalk.bold(v.rule.padEnd(20))} ${chalk.dim(loc)} - ${v.message}`);
+                const ruleName = v.rule || 'parse-error';
+                console.log(`  ${color(text.PREFIX)} ${chalk.bold(ruleName.padEnd(20))} ${chalk.dim(loc)} - ${v.message}`);
             });
 
             if (totalViolations > 15) {

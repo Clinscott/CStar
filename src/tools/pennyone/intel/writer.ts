@@ -7,6 +7,10 @@ import { registry } from '../pathRegistry.js';
 /**
  * QMD Writer
  * Purpose: Generate Quarto reports in a flattened .stats/ directory.
+ * @param {FileData} file - The file data
+ * @param {string} targetRepo - The target repository path
+ * @param {string} code - The source code
+ * @returns {Promise<{ qmdPath: string, intent: string }>} Path and intent
  */
 export async function writeReport(file: FileData, targetRepo: string, code: string): Promise<{ qmdPath: string, intent: string }> {
     const statsDir = path.join(registry.getRoot(), '.stats');
@@ -19,7 +23,7 @@ export async function writeReport(file: FileData, targetRepo: string, code: stri
     let relativePath = absoluteFile.replace(absoluteRoot, '').replace(/^\//, '');
     relativePath = relativePath.replace(/:/g, '');
 
-    const flattenedName = relativePath.replace(/[\/\\]/g, '-').replace(/\./g, '-');
+    const flattenedName = relativePath.replace(/[\\/]/g, '-').replace(/\./g, '-');
     const qmdPath = path.join(statsDir, `${flattenedName}.qmd`);
 
     const m = file.matrix;
@@ -49,10 +53,10 @@ ${file.endpoints && file.endpoints.length > 0 ? `## ⛩️ API Gateways\n${file.
 ## Neural Pathways
 
 ### Imports
-${file.imports.length > 0 ? file.imports.map(i => `- [${i.local}](file://${i.source})`).join('\n') : "Minimal internal dependencies."}
+${file.imports.length > 0 ? file.imports.map(i => `- [${i.local}](file://${i.source})`).join('\n') : 'Minimal internal dependencies.'}
 
 ### Exports
-${file.exports.length > 0 ? file.exports.map(e => `- \`${e}\``).join('\n') : "Internal logic only."}
+${file.exports.length > 0 ? file.exports.map(e => `- \`${e}\``).join('\n') : 'Internal logic only.'}
 `;
 
     await fs.writeFile(qmdPath, content, 'utf-8');

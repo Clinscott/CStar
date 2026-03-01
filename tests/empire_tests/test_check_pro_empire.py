@@ -46,7 +46,7 @@ def test_script_checks_model_availability(mock_genai_client_class, mock_getenv, 
     assert "Initializing google.genai Client..." in output
 
     # AND: The script attempts to generate content with each model in the candidate list.
-    expected_candidates = ["gemini-2.0-flash", "gemini-2.5-pro", "gemini-2.0-flash-lite-preview-02-05"]
+    expected_candidates = ["gemini-3.1-flash-preview", "gemini-3.1-pro-preview", "gemini-3-flash-preview"]
     expected_calls = [
         call(model=model_name, contents="Hello, are you online?")
         for model_name in expected_candidates

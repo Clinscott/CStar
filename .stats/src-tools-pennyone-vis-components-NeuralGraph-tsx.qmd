@@ -5,8 +5,8 @@ loc: 280
 complexity: 31
 logic_score: 1.00
 style_score: 1.00
-intel_score: 2.71
-overall_score: 1.00
+intel_score: 2.86
+overall_score: 1.62
 ---
 
 ## Intent
@@ -15,7 +15,7 @@ React component rendering NeuralGraph with 31 logic branches.
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 1.0/10
 - **Style [S]**: 1.0/10
-- **Intel [I]**: 2.7/10
+- **Intel [I]**: 2.9/10
 - **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
 
 

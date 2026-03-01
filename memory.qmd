@@ -1,5 +1,12 @@
 # Corvus Star Memory
 
+## 2026-03-01: Session 101 (Muninn Resilience & Shadow Forge)
+- **Heartbeat Telemetry**: In long-running autonomous tasks (like LLM container generation), establishing a PID at the beginning and clearing it at the end is insufficient if the main routine crashes or hangs silently. Injecting an explicit "pulse" (`Path.touch(exist_ok=True)`) during intensive nested loops guarantees the system monitor retains an accurate lock on the cycle's health.
+- **Subprocess Vulnerability Isolation**: Subprocess executions embedded deep within autonomous background agents (e.g. Docker commands) must have logic to explicitly discard ANSI terminal code manipulation. Forcing the subprocess target to emit strictly formatted JSON payloads instead of regex-targeted strings prevents violent exceptions when standard out is polluted.
+
+## 2026-03-01: Session 100 (PennyOne TS/ESLint Remediation)
+- **Automated Refactoring Tools vs Regex**: Relying entirely on `--fix` for ESLint or standard formatters can lead to stripped overrides and nested JSDoc block corruption. In the absolute final stages of TS compliance, utilizing targeted node-based regex scripts to manipulate string edge-cases ensures zero-regression while respecting exact formatting requirements.
+- **Sentinel Compliance**: Strict typing and comprehensive JSDoc annotations are non-negotiable under the Linscott Standard. Implicit `any` types and unused variables act as structural vulnerabilities; neutralizing them solidifies the component architecture before future expansion.
 ## 2026-02-28: Session 99 (Path Sovereignty & Workflow Surveillance)
 - **Directory Ascension over CWD**: Relying on `process.cwd()` in CLI tooling is an anti-pattern that binds execution to the user's current terminal location, creating "Split-Brain" routing failures if invoked from a subdirectory. True Path Sovereignty requires using `import.meta.dirname` (or `__dirname` in CJS) to physically ascend the component tree until a known root anchor (like `package.json` or `.agent/config.json`) is struck.
 - **Caching High-IO Traversal**: Directory ascension involves continuous `fs.existsSync` checks which throttle performance in deep/recursive file-tree scans. Always encapsulate this execution behind a Singleton or internal cache (e.g., `this.root = findProjectRoot()`) and expose a simple `getRoot()` accessor to ensure $O(1)$ path resolution after the initial boot.

@@ -106,9 +106,10 @@ The autonomous daemon ensuring system health.
     - `run()`: Entry point for the autonomous improvement cycle.
     - **Dynamic Discovery**: Automatically scans and instantiates all Wardens in `wardens/`.
     - **Modular Orchestration**: Logic partitioned into `_hunt_phase`, `_select_target_phase`, `_enrich_context_phase`, and `_forge_and_crucible_phase`.
-    - **Shadow Forge**: Host-side Docker lifecycle management (RO Mounts, `docker cp` promotion).
     - **Shadow Workspace Mirroring**: Internal worker logic for ephemeral environment setup.
     - **Debt Slasher**: Review and eviction logic for the anomaly ledger in `wrap_it_up.py`.
+- **Shadow Forge Warden** (`src/sentinel/wardens/shadow_forge.py`):
+    - Extracted Docker Orchestrator. Safely handles transient container setup and strict JSON payload promotion back to the host filesystem.
 - **Sandbox Warden** (`src/sentinel/sandbox_warden.py`):
     - `run_in_sandbox(path, args)`: Executes Python scripts within isolated, resource-capped Docker containers.
 - **Docker Runtimes**:

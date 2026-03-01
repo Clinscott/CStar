@@ -4,11 +4,14 @@ import chalk from 'chalk';
 import { registry } from '../pathRegistry.js';
 
 /**
- * [O.D.I.N.]: "The Gungnir Compass searches through the Hall of Records."
+ * Search matrix
+ * @param {string} query - The search query
+ * @param {string} _targetPath - Optional path to target
+ * @returns {Promise<void>} The search results
  */
-
-export async function searchMatrix(query: string, targetPath: string = '.') {
-    const statsDir = path.join(process.cwd(), '.stats');
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function searchMatrix(query: string, _targetPath: string = '.'): Promise<void> {
+    const statsDir = path.join(registry.getRoot(), '.stats');
     const graphPath = path.join(statsDir, 'matrix-graph.json');
 
     try {
@@ -20,7 +23,7 @@ export async function searchMatrix(query: string, targetPath: string = '.') {
 
         for (const file of graph.files) {
             const relPath = registry.getRelative(file.path);
-            const intentText = file.intent || "";
+            const intentText = file.intent || '';
             const matchesIntent = intentText.toLowerCase().includes(lowerQuery);
             const matchesPath = relPath.toLowerCase().includes(lowerQuery);
             const matchesEndpoints = file.endpoints?.some((e: string) => e.toLowerCase().includes(lowerQuery));
@@ -41,7 +44,7 @@ export async function searchMatrix(query: string, targetPath: string = '.') {
 
         results.forEach(r => {
             console.log(` ◈ ${chalk.blue(registry.getRelative(r.path))}`);
-            console.log(`   ${chalk.white('Intent:')} ${chalk.italic(r.intent || "...")}`);
+            console.log(`   ${chalk.white('Intent:')} ${chalk.italic(r.intent || '...')}`);
             if (r.endpoints?.length > 0) {
                 console.log(`   ${chalk.magenta('Gateways:')} ${r.endpoints.slice(0, 2).join(', ')}`);
             }
@@ -52,7 +55,7 @@ export async function searchMatrix(query: string, targetPath: string = '.') {
         console.log(chalk.cyan(' ' + '━'.repeat(45)));
         console.log(chalk.cyan(` Found ${results.length} relevant sectors.\n`));
 
-    } catch (err) {
+    } catch {
         console.error(chalk.red('[ALFRED]: "I am afraid the Hall of Records is currently inaccessible, sir."'));
     }
 }

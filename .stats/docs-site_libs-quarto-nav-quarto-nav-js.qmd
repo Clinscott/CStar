@@ -1,0 +1,82 @@
+---
+title: "quarto-nav.js"
+path: "C:/Users/Craig/Corvus/CorvusStar/docs/site_libs/quarto-nav/quarto-nav.js"
+loc: 273
+complexity: 36
+logic_score: 1.00
+style_score: 4.05
+intel_score: 4.77
+overall_score: 3.27
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.0/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 4.8/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+Minimal internal dependencies.
+
+### Exports
+- `headroomChanged`
+- `announceDismiss`
+- `annEl`
+- `annId`
+- `announceRegister`
+- `annEl`
+- `annId`
+- `isDismissed`
+- `actionEl`
+- `init`
+- `lastScrollTop`
+- `scrollDownBuffer`
+- `scrollUpBuffer`
+- `btn`
+- `hideBackToTop`
+- `showBackToTop`
+- `currentScrollTop`
+- `throttle`
+- `timeout`
+- `context`
+- `args`
+- `later`
+- `headerOffset`
+- `headerEl`
+- `footerOffset`
+- `footerEl`
+- `dashboardOffset`
+- `dashboardNavEl`
+- `updateDocumentOffsetWithoutAnimation`
+- `updateDocumentOffset`
+- `topOffset`
+- `bodyOffset`
+- `bodyEl`
+- `sidebars`
+- `mainContainer`
+- `linkStyle`
+- `header`
+- `headroom`
+- `sidebars`
+- `sidebars`
+- `frozen`
+- `headerEl`
+- `observer`
+- `links`
+- `i`
+- `sharingLinks`
+- `i`
+- `sharingLink`
+- `href`
+- `navSidebar`
+- `activeItem`
+- `resizeObserver`
+- `elBottom`
+- `viewBottom`

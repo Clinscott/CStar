@@ -99,6 +99,7 @@ Maintain a searchable, accurate map of the project's UI and service architecture
     - `compiler.ts`: Resolves polyglot dependencies into a unified Gungnir Matrix JSON.
     - `telemetry.ts`: Express endpoint for real-time agent tracking and broadcast.
     - `recorder.ts`: Chronological session ledger for 3D DVR playback.
+    - `git_trainer.ts`: Seeds the SQLite gravity vault with historical Git edit frequencies.
 
 ## 🏁 SovereighFish Campaign (N=1000)
 - **Roadmap**: `c:/Users/Craig/Corvus/CorvusStar/.agent/CAMPAIGN_IMPLEMENTATION_PLAN.qmd`.

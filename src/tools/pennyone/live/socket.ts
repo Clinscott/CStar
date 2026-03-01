@@ -25,16 +25,18 @@ export class SubspaceRelay {
 
     /**
      * Start a chronological playback of an old session.
+     * @param {unknown[]} pings - Pings to play back
+     * @param {number} speed - Playback speed
      */
-    public async startPlayback(pings: any[], speed: number = 2.0) {
+    public async startPlayback(pings: unknown[], speed = 2.0) {
         console.log(chalk.magenta(`[ALFRED]: "Initiating Chronicle Playback. Replaying ${pings.length} actions at ${speed}x speed."`));
         
         for (let i = 0; i < pings.length; i++) {
-            const ping = pings[i];
+            const ping = pings[i] as { timestamp: number };
             this.broadcast('AGENT_TRACE', ping);
 
             if (i < pings.length - 1) {
-                const nextPing = pings[i + 1];
+                const nextPing = pings[i + 1] as { timestamp: number };
                 const delay = (nextPing.timestamp - ping.timestamp) / speed;
                 
                 // Cap delay at 2s for playback fluidity
@@ -43,13 +45,15 @@ export class SubspaceRelay {
             }
         }
         
-        console.log(chalk.magenta(`[ALFRED]: "Chronicle Playback complete."`));
+        console.log(chalk.magenta('[ALFRED]: "Chronicle Playback complete."'));
     }
 
     /**
      * Broadcast a message to all connected visualizers
+     * @param {"NODE_UPDATED" | "GRAPH_REBUILT" | "AGENT_TRACE"} type - Event type
+     * @param {unknown} payload - Event payload
      */
-    public broadcast(type: 'NODE_UPDATED' | 'GRAPH_REBUILT' | 'AGENT_TRACE', payload: any) {
+    public broadcast(type: 'NODE_UPDATED' | 'GRAPH_REBUILT' | 'AGENT_TRACE', payload: unknown) {
         const message = JSON.stringify({ type, payload });
         this.clients.forEach(client => {
             if (client.readyState === WebSocket.OPEN) {

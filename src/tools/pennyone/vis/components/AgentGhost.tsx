@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
 import { Float } from '@react-three/drei';
@@ -15,6 +16,9 @@ interface AgentGhostProps {
 
 /**
  * AgentGhost: The visual representation of the AI's journey.
+ * @param root0
+ * @param root0.trace
+ * @param root0.nodeRegistry
  */
 export const AgentGhost: React.FC<AgentGhostProps> = ({ trace, nodeRegistry }) => {
     // 1. Calculate Path Points

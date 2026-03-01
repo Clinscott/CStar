@@ -1,12 +1,12 @@
 ---
 title: "database.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/intel/database.ts"
-loc: 100
+loc: 101
 complexity: 8
 logic_score: 6.30
-style_score: 3.60
-intel_score: 6.40
-overall_score: 4.20
+style_score: 3.65
+intel_score: 6.75
+overall_score: 5.57
 ---
 
 ## Intent
@@ -15,7 +15,7 @@ A functional component of the Corvus Star static analysis matrix.
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 6.3/10
 - **Style [S]**: 3.6/10
-- **Intel [I]**: 6.4/10
+- **Intel [I]**: 6.8/10
 - **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
 
 
@@ -27,6 +27,7 @@ A functional component of the Corvus Star static analysis matrix.
 - [*](file://node:path)
 - [*](file://node:fs)
 - [AgentPing](file://../types.js)
+- [registry](file://../pathRegistry.js)
 
 ### Exports
 - `db`

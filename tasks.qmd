@@ -482,7 +482,17 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **TypeScript Surveillance**: Injected `js_sentinel.ts` execution into the structural integrity node of the `/investigate` workflow.
 - [x] **Verification**: Created `test_pathRegistry.ts` and achieved 100% pass on TDD and execution validation (Linscott Standard).
 
-## ⏭️ Start Here Next (Phase 84)
+### 84. TS/ESLint Remediation (Session 100)
+- [x] **TS Remediation**: Fixed all TS Violations in `src/tools/pennyone` achieving 0 errors. [x]
+- [x] **Verification**: Handled missing JSDoc properties, unused variables, and explicit `any` types. [x]
+
+### 85. Operation Shadow Forge & Muninn Resilience (Session 101)
+- [x] **Shadow Forge Orchestrator**: Extracted Docker lifecycle logic from `muninn.py` into a strict `shadow_forge.py` Warden.
+- [x] **Heartbeat Pulse**: Implemented `_pulse_heartbeat` within `muninn.py` to prevent execution stalling and guarantee telemetry locks.
+- [x] **Secure Container Promotion**: Hardened Docker extraction logic to parse strictly structured JSON payloads against ANSI Terminal corruption.
+- [x] **Ruff Validation**: Resolved S603 safety vulnerabilities and E501 line lengths in subprocess execution blocks.
+- [x] **Verification**: Maintained 100% stable execution across all Python Empire tests.
+
+## ⏭️ Start Here Next (Phase 86)
 - [ ] **Neural Graph Depth**: Enhance PennyOne to visualize multi-session learning trajectories.
 - [ ] **Adaptive Campaigning**: Implement turn-based campaign updates in O.D.I.N. Protocol based on Agent session successes.
-

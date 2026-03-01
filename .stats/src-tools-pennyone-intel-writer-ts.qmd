@@ -4,9 +4,9 @@ path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/intel/writer.ts"
 loc: 43
 complexity: 4
 logic_score: 8.15
-style_score: 3.75
+style_score: 3.78
 intel_score: 4.79
-overall_score: 4.33
+overall_score: 5.57
 ---
 
 ## Intent

@@ -6,17 +6,17 @@ complexity: 10
 logic_score: 5.60
 style_score: 2.78
 intel_score: 7.22
-overall_score: 3.97
+overall_score: 5.20
 ---
 
 ## Intent
-Orchestrates Babel AST parsing for the static analysis engine.
+Orchestrates Babel AST parsing for the static analysis engine. It exists to decompose raw source files into measurable syntactic graphs. Its role in the system is to feed analytical telemetry to the PennyOne intelligence layer.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 5.6/10
 - **Style [S]**: 2.8/10
 - **Intel [I]**: 7.2/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 3 interactions (Agent Activity Hotspot)
 
 
 

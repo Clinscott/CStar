@@ -11,7 +11,7 @@ def test_muninn_run_instantiation():
     """
     target_path = "."
 
-    with patch("src.sentinel.muninn.genai.Client"), \
+    with patch("src.sentinel.muninn.AntigravityUplink"), \
          patch("src.sentinel.muninn.bootstrap"), \
          patch("src.sentinel.muninn.TheWatcher"), \
          patch("src.sentinel.muninn.ProjectMetricsEngine") as MockMetricsEngine, \
@@ -46,5 +46,3 @@ def test_muninn_run_instantiation():
 
             # Just verify it ran without errors
             assert result is False or result is True
-
-

@@ -1,0 +1,57 @@
+---
+title: "proxy.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/proxy.ts"
+loc: 68
+complexity: 6
+logic_score: 6.10
+style_score: 6.95
+intel_score: 8.47
+overall_score: 7.17
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.1/10
+- **Style [S]**: 7.0/10
+- **Intel [I]**: 8.5/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+## ⛩️ API Gateways
+- `[GET] /api/config`
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://fastify)
+- [*](file://@fastify/static)
+- [*](file://@fastify/cors)
+- [WebSocketServer](file://ws)
+- [WebSocket](file://ws)
+- [*](file://node:path)
+- [*](file://node:fs)
+- [*](file://chalk)
+- [registry](file://../pathRegistry.js)
+- [activePersona](file://../personaRegistry.js)
+- [fileURLToPath](file://node:url)
+- [*](file://node:crypto)
+
+### Exports
+- `startProxy`
+- `startProxy`
+- `server`
+- `statsDir`
+- `token`
+- `__filename`
+- `__dirname`
+- `distDir`
+- `queryToken`
+- `authHeader`
+- `wss`
+- `clients`
+- `signalFile`
+- `signal`
+- `message`
+- `url`

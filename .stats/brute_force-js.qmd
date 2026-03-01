@@ -1,0 +1,35 @@
+---
+title: "brute_force.js"
+path: "C:/Users/Craig/Corvus/CorvusStar/brute_force.js"
+loc: 32
+complexity: 5
+logic_score: 7.35
+style_score: 8.95
+intel_score: 10.00
+overall_score: 8.77
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.3/10
+- **Style [S]**: 9.0/10
+- **Intel [I]**: 10.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://fs)
+
+### Exports
+- `forceFix`
+- `content`
+- `gravity`
+- `search`
+- `socket`
+- `parser`
+- `pathReg`

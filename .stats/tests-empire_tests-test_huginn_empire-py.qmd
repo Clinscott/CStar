@@ -1,22 +1,22 @@
 ---
 title: "test_huginn_empire.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_huginn_empire.py"
-loc: 57
-complexity: 3
-logic_score: 8.05
-style_score: 3.77
-intel_score: 8.42
-overall_score: 5.52
+loc: 62
+complexity: 2
+logic_score: 7.95
+style_score: 3.72
+intel_score: 7.85
+overall_score: 6.51
 ---
 
 ## Intent
-Python module facilitating TestHuginnEmpire, mock_root.
+Python module facilitating TestHuginnEmpire, mock_root. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 8.0/10
-- **Style [S]**: 3.8/10
-- **Intel [I]**: 8.4/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Logic [L]**: 7.9/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 7.9/10
+- **Gravity [G]**: 8 interactions (Agent Activity Hotspot)
 
 
 
@@ -36,3 +36,4 @@ Python module facilitating TestHuginnEmpire, mock_root.
 - `test_scan_regex_hallucination`
 - `test_scan_regex_deviance`
 - `test_scan_neural_audit`
+- `mock_send`

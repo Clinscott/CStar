@@ -3,9 +3,12 @@ from src.core.engine.gungnir.universal import UniversalGungnir
 
 class TestUniversalGungnir:
 
+    def setup_method(self):
+        self.gungnir = UniversalGungnir()
+
     def test_logic_python_claustrophobia(self):
         bad_py = "x = 1\n" * 15 # Over 12 lines without whitespace
-        breaches = UniversalGungnir.audit(bad_py, ".py")
+        breaches = self.gungnir.audit(bad_py, ".py")
         assert any("Claustrophobic" in b for b in breaches)
 
     def test_logic_typescript_birkhoff(self):
@@ -22,7 +25,7 @@ class TestUniversalGungnir:
             </div>
         );
         """
-        breaches = UniversalGungnir.audit(bad_ts, ".tsx")
+        breaches = self.gungnir.audit(bad_ts, ".tsx")
         assert any("Birkhoff Measure" in b for b in breaches)
 
     def test_style_css_dissonance(self):
@@ -41,28 +44,28 @@ class TestUniversalGungnir:
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         """
-        breaches = UniversalGungnir.audit(bad_css, ".css")
+        breaches = self.gungnir.audit(bad_css, ".css")
         assert any("GUNGNIR_STYLE_BREACH" in b for b in breaches)
 
     def test_data_json_nesting(self):
         bad_json = '{"a": {"b": {"c": {"d": {"e": {"f": {"g": "too deep"}}}}}}}'
-        breaches = UniversalGungnir.audit(bad_json, ".json")
+        breaches = self.gungnir.audit(bad_json, ".json")
         assert any("Excessive data nesting" in b for b in breaches)
 
     def test_structure_markdown_density(self):
         bad_md = "This is a line without any headers or alerts.\n" * 60
-        breaches = UniversalGungnir.audit(bad_md, ".md")
+        breaches = self.gungnir.audit(bad_md, ".md")
         assert any("GUNGNIR_DOCS_BREACH" in b for b in breaches)
 
     def test_harmony_pass(self):
         # Beautiful Python
         good_py = "def test():\n    # Setup\n    x = 1\n\n    # Exec\n    return x\n"
-        assert len(UniversalGungnir.audit(good_py, ".py")) == 0
+        assert len(self.gungnir.audit(good_py, ".py")) == 0
 
         # Symmetrical TSX
         good_tsx = '<div className="flex items-center justify-center p-8 mx-auto"></div>'
-        assert len(UniversalGungnir.audit(good_tsx, ".tsx")) == 0
+        assert len(self.gungnir.audit(good_tsx, ".tsx")) == 0
 
         # Tokenized CSS
         good_css = ".card { color: var(--text-primary); margin: var(--space-2); }"
-        assert len(UniversalGungnir.audit(good_css, ".css")) == 0
+        assert len(self.gungnir.audit(good_css, ".css")) == 0

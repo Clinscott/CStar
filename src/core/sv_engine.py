@@ -168,12 +168,13 @@ class SovereignEngine:
         results = engine.search(query)
         top = results[0] if results else None
 
-        if not top or top['score'] < self.THRESHOLDS["REC"]:
-            # Secondary Scan: Auto-Skill Discovery
+        # [Ω] Sovereign Discovery: Always check skills_db if local confidence is not absolute (1.9)
+        if not top or top['score'] < 1.9:
             discovery = self._proactive_discovery(query)
-            if discovery:
+            # If discovery finds a better match, or if local was weak, swap it
+            if discovery and (not top or discovery['score'] > top['score']):
                 top = discovery
-            else:
+            elif not top or top['score'] < self.THRESHOLDS["REC"]:
                 # Zero-Hit Fallback: Integrated Search
                 SovereignHUD.persona_log("INFO", "SovereignEngine: No matching skills found. Fallback...")
                 
@@ -243,6 +244,83 @@ class SovereignEngine:
         # [Ω] Proactive Forge Suggestion
         if not payload or payload.system_meta['confidence'] < 0.5:
             self._suggest_forge(query)
+
+    def _render_hud(self, payload: IntentPayload | None, query: str) -> None:
+        """Renders the semantic result to the HUD."""
+        if not payload:
+            SovereignHUD.persona_log("WARN", f"Dissonance detected: '{query}' remains elusive.")
+            results = self.engine.search(query)
+            if not results:
+                SovereignHUD.persona_log("INFO", "The Well of Mimir is silent.")
+            else:
+                for r in results[:3]:
+                    is_good = r['score'] > self.THRESHOLDS["REC"]
+                    color = SovereignHUD.GREEN if is_good else SovereignHUD.YELLOW
+                    SovereignHUD.box_row("SOURCE", r.get('trigger', 'unknown'),
+                                         SovereignHUD.MAGENTA, dim_label=True)
+                    SovereignHUD.box_row("RELEVANCE", f"{r['score']:.2f}", color, dim_label=True)
+                    SovereignHUD.box_separator()
+            return
+
+        SovereignHUD.box_top("GUNGNIR IMPACT")
+        SovereignHUD.box_row("Intent", query, SovereignHUD.CYAN)
+
+        if payload:
+            confidence = payload.system_meta['confidence']
+            is_acc = confidence > self.THRESHOLDS["ACCURACY"]
+            color = SovereignHUD.GREEN if is_acc else SovereignHUD.YELLOW
+            is_global = payload.system_meta.get('is_global', False)
+            match_str = f"{'[G] ' if is_global else ''}{payload.target_workflow}"
+            SovereignHUD.box_row("Match", match_str, SovereignHUD.DIM)
+            prog = SovereignHUD.progress_bar(confidence)
+            SovereignHUD.box_row("Confidence", f"{prog} {confidence:.2f}", color)
+
+            if payload.target_workflow == 'WEB_FALLBACK':
+                SovereignHUD.box_separator()
+                SovereignHUD.box_row("WEB RESULTS", "", SovereignHUD.CYAN)
+                web_results = payload.extracted_entities.get('web_results', [])
+                for i, r in enumerate(web_results[:3]):
+                    SovereignHUD.box_row(f"[{i+1}]", r['title'], SovereignHUD.BOLD)
+                    SovereignHUD.box_row("   ", r['url'], SovereignHUD.DIM)
+
+        SovereignHUD.box_bottom()
+
+    def record_trace(self, payload: IntentPayload) -> None:
+        """Persists the neural trace for later analysis."""
+        tdir = self.base_path / "traces"
+        tdir.mkdir(exist_ok=True)
+        conf = payload.system_meta['confidence']
+        tid = re.sub(r'\W+', '_', payload.intent_raw[:20]) + f"_{conf:.2f}"
+        trace_file = tdir / f"{tid}.json"
+
+        with trace_file.open("w", encoding="utf-8") as f:
+            json.dump(payload.to_dict(), f, indent=2)
+
+    def handle_cortex_query(self, query: str) -> None:
+        """Direct search against the Knowledge Graph."""
+        cortex = Cortex(str(self.project_root), str(self.base_path))
+        results = cortex.search(query)
+
+        SovereignHUD.box_top("CORTEX KNOWLEDGE")
+        if not results:
+            SovereignHUD.box_row("Result", "No documentation matches found.", SovereignHUD.RED)
+        else:
+            for r in results[:5]:
+                SovereignHUD.box_row("SOURCE", r['source'], SovereignHUD.MAGENTA, dim_label=True)
+                SovereignHUD.box_row("DOC", r['doc'][:200] + "...", SovereignHUD.DIM)
+                SovereignHUD.box_separator()
+        SovereignHUD.box_bottom()
+
+    def _handle_proactive(self, payload: IntentPayload) -> None:
+        """Executes automated tasks based on payload triggers."""
+        if payload.target_workflow == "AUTO_INSTALL":
+            skill_name = payload.extracted_entities.get("skill_name")
+            if skill_name:
+                # Strip GLOBAL: prefix if present
+                clean_name = skill_name.replace("GLOBAL:", "")
+                install_script = self.project_root / "src" / "skills" / "install_skill.py"
+                command = f"{sys.executable} {install_script} {clean_name} {self.base_path}"
+                subprocess.run(command, shell=True, cwd=str(self.project_root))  # noqa: S602
 
     def _suggest_forge(self, query: str) -> None:
         """Suggests running SkillForge if no good match is found."""

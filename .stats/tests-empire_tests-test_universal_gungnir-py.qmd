@@ -1,22 +1,22 @@
 ---
 title: "test_universal_gungnir.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_universal_gungnir.py"
-loc: 29
+loc: 31
 complexity: 1
 logic_score: 8.75
 style_score: 1.00
-intel_score: 6.92
-overall_score: 4.33
+intel_score: 6.56
+overall_score: 4.94
 ---
 
 ## Intent
-Python module facilitating TestUniversalGungnir, test_logic_python_claustrophobia.
+Python module facilitating TestUniversalGungnir, setup_method. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 8.8/10
 - **Style [S]**: 1.0/10
-- **Intel [I]**: 6.9/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Intel [I]**: 6.6/10
+- **Gravity [G]**: 12 interactions (Agent Activity Hotspot)
 
 
 
@@ -27,6 +27,7 @@ Python module facilitating TestUniversalGungnir, test_logic_python_claustrophobi
 
 ### Exports
 - `TestUniversalGungnir`
+- `setup_method`
 - `test_logic_python_claustrophobia`
 - `test_logic_typescript_birkhoff`
 - `test_style_css_dissonance`

@@ -4,6 +4,11 @@
  * Scale: 1 (Chaos) to 10 (Harmonious).
  */
 
+/**
+ * Evaluate structural symmetry and naming purity.
+ * @param {string} code - Source code
+ * @returns {number} Score from 1 to 10
+ */
 export function calculateStyleScore(code: string): number {
     const lines = code.split('\n').filter(l => l.trim().length > 0);
     if (lines.length === 0) return 10;

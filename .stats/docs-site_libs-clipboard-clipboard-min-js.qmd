@@ -1,0 +1,76 @@
+---
+title: "clipboard.min.js"
+path: "C:/Users/Craig/Corvus/CorvusStar/docs/site_libs/clipboard/clipboard.min.js"
+loc: 1
+complexity: 64
+logic_score: 1.00
+style_score: 8.19
+intel_score: 9.40
+overall_score: 6.20
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.0/10
+- **Style [S]**: 8.2/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+Minimal internal dependencies.
+
+### Exports
+- `e`
+- `c`
+- `a`
+- `o`
+- `n`
+- `f`
+- `e`
+- `l`
+- `s`
+- `t`
+- `p`
+- `d`
+- `n`
+- `o`
+- `y`
+- `h`
+- `o`
+- `t`
+- `v`
+- `m`
+- `b`
+- `t`
+- `r`
+- `n`
+- `e`
+- `t`
+- `t`
+- `e`
+- `e`
+- `e`
+- `u`
+- `i`
+- `i`
+- `e`
+- `f`
+- `o`
+- `e`
+- `e`
+- `o`
+- `o`
+- `r`
+- `e`
+- `n`
+- `i`
+- `e`
+- `o`
+- `e`
+- `n`

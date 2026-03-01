@@ -4,9 +4,9 @@ path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/components/Playba
 loc: 103
 complexity: 6
 logic_score: 7.45
-style_score: 2.74
-intel_score: 2.39
-overall_score: 2.96
+style_score: 2.75
+intel_score: 2.78
+overall_score: 4.33
 ---
 
 ## Intent
@@ -14,8 +14,8 @@ React component rendering PlaybackHUD with 6 logic branches.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 7.4/10
-- **Style [S]**: 2.7/10
-- **Intel [I]**: 2.4/10
+- **Style [S]**: 2.8/10
+- **Intel [I]**: 2.8/10
 - **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
 
 

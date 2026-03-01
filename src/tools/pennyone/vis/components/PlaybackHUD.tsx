@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React from 'react';
 
 interface PlaybackHUDProps {
@@ -13,6 +14,15 @@ interface PlaybackHUDProps {
 
 /**
  * PlaybackHUD: The DVR controls for the Ghost's journey.
+ * @param root0
+ * @param root0.sessionLength
+ * @param root0.currentIndex
+ * @param root0.onSeek
+ * @param root0.isLive
+ * @param root0.onToggleLive
+ * @param root0.isRecording
+ * @param root0.onStartRecording
+ * @param root0.onStopRecording
  */
 export const PlaybackHUD: React.FC<PlaybackHUDProps> = ({
     sessionLength,

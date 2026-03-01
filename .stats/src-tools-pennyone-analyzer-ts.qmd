@@ -1,12 +1,12 @@
 ---
 title: "analyzer.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/analyzer.ts"
-loc: 217
-complexity: 31
+loc: 210
+complexity: 30
 logic_score: 1.00
-style_score: 3.89
-intel_score: 3.47
-overall_score: 1.56
+style_score: 3.91
+intel_score: 6.00
+overall_score: 3.64
 ---
 
 ## Intent
@@ -15,7 +15,7 @@ Calculates structural logic density using CC and nesting metrics.
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 1.0/10
 - **Style [S]**: 3.9/10
-- **Intel [I]**: 3.5/10
+- **Intel [I]**: 6.0/10
 - **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
 
 
@@ -23,83 +23,19 @@ Calculates structural logic density using CC and nesting metrics.
 ## Neural Pathways
 
 ### Imports
-- [getParser](file://./parser.js)
-- [TreeSitter](file://./parser.js)
+- [*](file://./parser.js)
 - [*](file://node:crypto)
 - [*](file://node:fs/promises)
 - [*](file://node:path)
-- [calculateLogicScore](file://./calculus/logic.js)
-- [calculateStyleScore](file://./calculus/style.js)
-- [calculateIntelScore](file://./calculus/intel.js)
+- [*](file://./calculus/logic.js)
+- [*](file://./calculus/style.js)
+- [*](file://./calculus/intel.js)
+- [*](file://./intel/gravity_db.js)
+- [*](file://./pathRegistry.js)
 
 ### Exports
 - `analyzeFile`
-- `analyzeFile`
-- `loc`
-- `hash`
-- `endpoints`
-- `isApi`
-- `docResult`
-- `gravity`
-- `getParser`
-- `tree`
-- `complexity`
-- `maxNesting`
-- `imports`
-- `exports`
-- `complexityQuerySource`
-- `complexityQuery`
-- `matches`
-- `traverse`
-- `i`
-- `child`
-- `pyQuery`
-- `pyMatches`
-- `node`
-- `jsQuery`
-- `jsMatches`
-- `node`
-- `sourceNodes`
-- `src`
-- `specifiers`
-- `importedNode`
-- `aliasNode`
-- `imported`
-- `local`
-- `idNode`
-- `idNodes`
-- `filtered`
-- `logicValue`
-- `style`
-- `intel`
-- `gravity`
-- `anomalyScore`
-- `penalty`
-- `overall`
 - `detectEndpoints`
-- `endpoints`
-- `routeRegex`
-- `nextJsRegex`
-- `fastapiRegex`
-- `match`
-- `rel`
 - `getSystemAnomaly`
-- `statePath`
-- `raw`
-- `data`
-- `getFileGravity`
-- `gravityPath`
-- `raw`
-- `data`
-- `normalized`
 - `analyzeMarkdown`
-- `imports`
-- `exports`
-- `linkRegex`
-- `match`
-- `nameMatch`
 - `calculateLOC`
-- `isPython`
-- `commentRegex`
-- `cleanCode`
-- `content`

@@ -1,8 +1,8 @@
+ 
 import { crawlRepository } from './crawler.js';
 import { analyzeFile, FileData } from './analyzer.js';
 import { writeReport } from './intel/writer.js';
 import { compileMatrix, CompiledGraph } from './intel/compiler.js';
-import { defaultProvider } from './intel/llm.js';
 import { registerSpoke } from './intel/database.js';
 import fs from 'fs/promises';
 import path from 'path';
@@ -11,6 +11,8 @@ import { registry } from './pathRegistry.js';
 
 /**
  * Main Execution Entry Point (Operation PennyOne)
+ * @param {string} targetPath - Target path
+ * @returns {Promise<FileData[]>} Scanned files
  */
 export async function runScan(targetPath: string): Promise<FileData[]> {
     // [Ω] Register this spoke in the central database
@@ -26,10 +28,11 @@ export async function runScan(targetPath: string): Promise<FileData[]> {
     try {
         const raw = await fs.readFile(graphPath, 'utf-8');
         existingGraph = JSON.parse(raw);
-    } catch (e) {
+    } catch {
         // No existing graph, full scan
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const hashMap = new Map<string, any>();
     if (existingGraph) {
         existingGraph.files.forEach(f => hashMap.set(f.path, f));
@@ -65,8 +68,8 @@ export async function runScan(targetPath: string): Promise<FileData[]> {
             data.intent = intent;
 
             results.push(data);
-        } catch (error) {
-            console.warn(`[WARNING] Failed to analyze ${file}:`, error);
+        } catch (error: unknown) {
+            console.warn(`[WARNING] Failed to analyze ${file}:`, error instanceof Error ? error.message : String(error));
         }
     }
 

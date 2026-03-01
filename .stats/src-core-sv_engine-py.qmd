@@ -1,22 +1,22 @@
 ---
 title: "sv_engine.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/core/sv_engine.py"
-loc: 265
-complexity: 35
+loc: 327
+complexity: 45
 logic_score: 1.00
-style_score: 3.72
-intel_score: 5.32
-overall_score: 2.12
+style_score: 3.71
+intel_score: 5.56
+overall_score: 2.92
 ---
 
 ## Intent
-Core semantic routing engine for intent resolution.
+Core semantic routing engine for intent resolution. It exists to map unstructured user inputs to distinct execution pathways. Its role in the system is to serve as the primary cognitive junction between natural language and operational logic.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 1.0/10
 - **Style [S]**: 3.7/10
-- **Intel [I]**: 5.3/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Intel [I]**: 5.6/10
+- **Gravity [G]**: 19 interactions (Agent Activity Hotspot)
 
 
 
@@ -52,6 +52,10 @@ Core semantic routing engine for intent resolution.
 - `_init_vector_engine`
 - `_proactive_discovery`
 - `run`
+- `_render_hud`
+- `record_trace`
+- `handle_cortex_query`
+- `_handle_proactive`
 - `_suggest_forge`
 - `teardown`
 - `json_mode`

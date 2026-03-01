@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/require-param-description */
 import path from 'path';
 
 import fs from 'fs';
@@ -38,7 +39,7 @@ export class PathRegistry {
                 previousDir = currentDir;
                 currentDir = path.dirname(currentDir);
             }
-        } catch (error) {
+        } catch {
             // Suppress and fallback
         }
 
@@ -48,11 +49,16 @@ export class PathRegistry {
 
     /**
      * Retrieves the cached, mathematically proven project root.
+     * @returns {string} The root path
      */
     public getRoot(): string {
         return this.root;
     }
 
+    /**
+     * Get the singleton instance.
+     * @returns {PathRegistry} The instance
+     */
     public static getInstance(): PathRegistry {
         if (!PathRegistry.instance) {
             PathRegistry.instance = new PathRegistry();
@@ -62,6 +68,8 @@ export class PathRegistry {
 
     /**
      * Standardize a path to forward-slash absolute format.
+     * @param {string} p - The path
+     * @returns {string} Normalized path
      */
     public normalize(p: string): string {
         if (!p) return '';
@@ -74,6 +82,9 @@ export class PathRegistry {
 
     /**
      * Resolve a relative path from a source file.
+     * @param {string} sourceFile - Source file
+     * @param {string} relativePath - Relative path
+     * @returns {string} Resolved path
      */
     public resolve(sourceFile: string, relativePath: string): string {
         const dir = path.dirname(sourceFile);
@@ -82,6 +93,8 @@ export class PathRegistry {
 
     /**
      * Get the relative path from the project root.
+     * @param {string} p - The absolute path
+     * @returns {string} Relative path
      */
     public getRelative(p: string): string {
         const abs = this.normalize(p);
