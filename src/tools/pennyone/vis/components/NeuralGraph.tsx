@@ -1,29 +1,11 @@
 import React, { useMemo, useRef, useState, useEffect } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree, extend } from '@react-three/fiber';
-import { Html, useTexture, shaderMaterial } from '@react-three/drei';
+import { Html, shaderMaterial, Line, Text } from '@react-three/drei';
 import * as d3 from 'd3-force-3d';
 import gsap from 'gsap';
 
-// [Ω] Custom Shaders from ThreeJS-Skills Codex
-const PulseMaterial = shaderMaterial(
-    { time: 0, color: new THREE.Color('#00f2ff') },
-    // Vertex
-    `varying vec2 vUv;
-     void main() {
-       vUv = uv;
-       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-     }`,
-    // Fragment
-    `uniform float time;
-     uniform vec3 color;
-     varying vec2 vUv;
-     void main() {
-       float dash = sin(vUv.x * 20.0 - time * 10.0);
-       if (dash < 0.0) discard;
-       gl_FragColor = vec4(color, 1.0);
-     }`
-);
+// Removed PulseMaterial in favor of Drei Line
 
 const FresnelMaterial = shaderMaterial(
     { time: 0, color: new THREE.Color('#ff4d4d'), glowColor: new THREE.Color('#ff0000') },
@@ -49,7 +31,7 @@ const FresnelMaterial = shaderMaterial(
      }`
 );
 
-extend({ PulseMaterial, FresnelMaterial });
+extend({ FresnelMaterial });
 
 interface Node extends d3.SimulationNodeDatum {
     id: string;
@@ -81,7 +63,7 @@ const SelectionHighlight: React.FC<{ node: Node }> = ({ node }) => {
     return (
         <mesh position={[node.x || 0, node.y || 0, node.z || 0]} raycast={() => null}>
             <boxGeometry args={[40, 40, 40]} />
-            <pulseMaterial ref={materialRef} transparent color="#ffffff" />
+            <meshStandardMaterial color="#ffffff" transparent opacity={0.3} wireframe />
         </mesh>
     );
 };
@@ -110,49 +92,77 @@ const FresnelAura: React.FC<{ node: Node }> = ({ node }) => {
     );
 };
 
-const NeuralLink: React.FC<{ start: [number, number, number], end: [number, number, number] }> = ({ start, end }) => {
-    const materialRef = useRef<THREE.ShaderMaterial & { time: number }>(null);
-    useFrame((state) => {
-        if (materialRef.current) materialRef.current.time = state.clock.getElapsedTime();
+const NeuralLink: React.FC<{ start: [number, number, number], end: [number, number, number], highlighted?: boolean }> = ({ start, end, highlighted }) => {
+    const lineRef = useRef<any>(null);
+    useFrame((state, delta) => {
+        if (lineRef.current?.material) {
+            // Negative offset makes the dashes flow from start to end
+            lineRef.current.material.dashOffset -= delta * 2.0;
+        }
     });
 
-    const points = useMemo(() => [new THREE.Vector3(...start), new THREE.Vector3(...end)], [start, end]);
-    const geometry = useMemo(() => {
-        const geo = new THREE.BufferGeometry().setFromPoints(points);
-        geo.setAttribute('uv', new THREE.Float32BufferAttribute([0, 0, 1, 0], 2));
-        return geo;
-    }, [points]);
-
     return (
-        <line geometry={geometry}>
-            <pulseMaterial ref={materialRef} transparent opacity={0.4} color="#00f2ff" />
-        </line>
+        <Line
+            ref={lineRef}
+            points={[start, end]}
+            color="#00f2ff"
+            lineWidth={highlighted ? 2 : 0.1}
+            transparent
+            opacity={highlighted ? 0.9 : 0.05}
+            dashed={true}
+            dashSize={20}
+            dashScale={2}
+            gapSize={30}
+            raycast={() => null}
+        />
     );
 };
 
-const SpriteIcon: React.FC<{ node: Node }> = ({ node }) => {
-    const odinTexture = useTexture('/assets/odin-core.png');
-    const alfredTexture = useTexture('/assets/alfred-core.png');
-    const orphanTexture = useTexture('/assets/orphan.png');
+const STELLAR_MAP: Record<string, [number, number, number]> = {
+    gamma: [-2000, 1500, 0],   // src/sentinel
+    delta: [1500, 1800, 0],    // src/tools
+    beta: [-1500, -2000, 0],   // tests
+    epsilon: [3000, 800, 0],   // src/tools/pennyone/vis
+    alpha: [1800, -2500, 0],   // base src/ and root
+};
 
-    const texture = useMemo(() => {
-        if (!node?.path) return orphanTexture;
-        const p = node.path.toLowerCase();
-        if (p.includes('agent') || p.includes('core')) return odinTexture;
-        if (p.includes('tool') || p.includes('scanner')) return alfredTexture;
-        return orphanTexture;
-    }, [node?.path, odinTexture, alfredTexture, orphanTexture]);
+const getStar = (path: string): [number, number, number] => {
+    if (!path) return STELLAR_MAP.alpha;
+    const p = path.replace(/\\/g, '/').toLowerCase();
+    if (p.includes('src/sentinel')) return STELLAR_MAP.gamma;
+    if (p.includes('src/tools/pennyone/vis')) return STELLAR_MAP.epsilon;
+    if (p.includes('src/tools')) return STELLAR_MAP.delta;
+    if (p.includes('tests/')) return STELLAR_MAP.beta;
+    return STELLAR_MAP.alpha;
+};
 
-    const spriteRef = useRef<THREE.Sprite>(null);
+const TextLabel: React.FC<{ node: Node }> = ({ node }) => {
+    const textRef = useRef<THREE.Mesh>(null);
     useFrame(() => {
-        if (!spriteRef.current || !node) return;
-        spriteRef.current.position.set(node.x || 0, node.y || 0, node.z || 0);
+        if (!textRef.current || !node) return;
+        textRef.current.position.set((node.x || 0), (node.y || 0) + 20, (node.z || 0));
     });
 
+    if (!node?.path) return null;
+    const filename = node.path.split(/[\/\\]/).pop() || '';
+
     return (
-        <sprite ref={spriteRef} scale={[25, 25, 1]} raycast={() => null}>
-            <spriteMaterial map={texture} transparent opacity={0.9} depthTest={false} color={node?.path?.endsWith('.py') ? '#ff9900' : '#00f2ff'} />
-        </sprite>
+        <Text
+            ref={textRef}
+            color="#ffffff"
+            fontSize={8}
+            maxWidth={200}
+            lineHeight={1}
+            letterSpacing={0.02}
+            textAlign="center"
+            anchorX="center"
+            anchorY="middle"
+            raycast={() => null}
+            outlineWidth={0.5}
+            outlineColor="#000000"
+        >
+            {filename}
+        </Text>
     );
 };
 
@@ -219,7 +229,17 @@ export const NeuralGraph: React.FC<{
         }
     }, [initialData, gravityData]);
 
-    const getLogScale = (loc: number) => Math.max(0.8, Math.log10(loc || 1) * 1.2);
+    const getVisScale = (loc: number) => Math.max(0.5, Math.sqrt(loc || 1) * 0.08);
+
+    const getStarColor = (path: string): string => {
+        if (!path) return '#444444';
+        const p = path.replace(/\\/g, '/').toLowerCase();
+        if (p.includes('src/sentinel')) return '#00f2ff'; // Gamma (Cyan)
+        if (p.includes('src/tools/pennyone/vis')) return '#ff00ff'; // Epsilon (Magenta)
+        if (p.includes('src/tools')) return '#ff9900'; // Delta (Orange)
+        if (p.includes('tests/')) return '#00ff66'; // Beta (Green)
+        return '#aaaaaa'; // Alpha (Base)
+    };
 
     // 2. Trajectory Fetching
     useEffect(() => {
@@ -250,10 +270,12 @@ export const NeuralGraph: React.FC<{
 
         try {
             (d3 as typeof import('d3-force-3d')).forceSimulation(allNodes, 3)
-                .force('link', (d3 as typeof import('d3-force-3d')).forceLink(links || []).id((d: unknown) => (d as Node).id).distance(300))
-                .force('charge', (d3 as typeof import('d3-force-3d')).forceManyBody().strength((d: unknown) => -1000 - (((d as Node).gravity as number) || 0) * 150))
-                .force('collide', (d3 as typeof import('d3-force-3d')).forceCollide().radius((d: unknown) => getLogScale(((d as Node).loc as number) || 1) * 80))
-                .force('center', (d3 as typeof import('d3-force-3d')).forceCenter(0, 0, 0));
+                .force('link', (d3 as typeof import('d3-force-3d')).forceLink(links || []).id((d: unknown) => (d as Node).id).distance(1200))
+                .force('charge', (d3 as typeof import('d3-force-3d')).forceManyBody().strength((d: unknown) => -8000 - (((d as Node).gravity as number) || 0) * 150))
+                .force('collide', (d3 as typeof import('d3-force-3d')).forceCollide().radius((d: unknown) => getVisScale(((d as Node).loc as number) || 1) * 60))
+                .force('x', (d3 as typeof import('d3-force-3d')).forceX().x((d: unknown) => getStar((d as Node).path)[0]).strength(0.3))
+                .force('y', (d3 as typeof import('d3-force-3d')).forceY().y((d: unknown) => getStar((d as Node).path)[1]).strength(0.3))
+                .force('z', (d3 as typeof import('d3-force-3d')).forceZ().z((d: unknown) => getStar((d as Node).path)[2]).strength(0.3));
 
             const orphans = allNodes.filter(n => orphanSet.has(n.id));
             const radius = 1000;
@@ -284,6 +306,8 @@ export const NeuralGraph: React.FC<{
             { mesh: tetraMeshRef, nodes: pyNodes || [], type: 'PYTHON' }
         ];
 
+        const activeNodeId = selectedNode?.id || (hovered ? layers.find(l => l.type === hovered.type)?.nodes[hovered.id]?.id : null);
+
         layers.forEach(({ mesh, nodes, type }) => {
             const currentMesh = mesh.current;
             if (!currentMesh || !nodes) return;
@@ -292,31 +316,34 @@ export const NeuralGraph: React.FC<{
                 tempObject.matrix.identity();
                 tempObject.position.set(node.x || 0, node.y || 0, node.z || 0);
 
-                let scale = getLogScale(node.loc);
+                let isNeighbor = false;
+                if (activeNodeId) {
+                    isNeighbor = !!(links || []).find(l => {
+                        const sId = (l.source as unknown as Node).id;
+                        const tId = (l.target as unknown as Node).id;
+                        return (sId === activeNodeId && tId === node.id) || (tId === activeNodeId && sId === node.id);
+                    });
+                }
+
+                let scale = getVisScale(node.loc); // Base visually distinct scale
                 const isHovered = hovered?.type === type && hovered?.id === i;
                 const isSelected = selectedNode?.id === node.id;
 
                 if (isHovered) scale *= 1.5;
-                if (isSelected) scale *= 1.8;
+                else if (isSelected) scale *= 1.8;
+                else if (isNeighbor) scale *= 1.2;
 
                 tempObject.scale.set(scale, scale, scale);
                 tempObject.updateMatrix();
                 currentMesh.setMatrixAt(i, tempObject.matrix);
 
-                const p = (node.path || '').toLowerCase();
                 const nodeMatrix = node.matrix as Record<string, number>;
                 if (isHovered || isSelected) {
-                    tempColor.set('#ffffff');
-                } else if (p.includes('agent') || p.includes('core')) {
-                    tempColor.set('#ff9900');
-                } else if (p.includes('tool') || p.includes('scanner')) {
-                    tempColor.set('#00f2ff');
-                } else if ((nodeMatrix?.overall || 5) > 8) {
-                    tempColor.set('#ffffff');
-                } else if ((nodeMatrix?.overall || 5) < 5) {
-                    tempColor.set('#ff4d4d');
+                    tempColor.set('#ffffff'); // High focus
+                } else if ((nodeMatrix?.logic || 10) < 4.0) {
+                    tempColor.set('#ff4d4d'); // Toxic alert logic
                 } else {
-                    tempColor.set('#444444');
+                    tempColor.set(getStarColor(node.path)); // Constellation color
                 }
                 currentMesh.setColorAt(i, tempColor);
             });
@@ -338,15 +365,23 @@ export const NeuralGraph: React.FC<{
 
     const validLinks = (links || []).filter(l => l.source && l.target && typeof (l.source as unknown as Node).x === 'number' && typeof (l.target as unknown as Node).x === 'number');
 
+    const activeNodeId = selectedNode?.id || (hovered ? (hovered.type === 'PYTHON' ? pyNodes : logicNodes)?.[hovered.id]?.id : null);
+
     return (
         <group>
-            {validLinks.length > 0 && validLinks.map((link, i) => (
-                <NeuralLink
-                    key={`link-${i}`}
-                    start={[(link.source as unknown as Node).x || 0, (link.source as unknown as Node).y || 0, (link.source as unknown as Node).z || 0]}
-                    end={[(link.target as unknown as Node).x || 0, (link.target as unknown as Node).y || 0, (link.target as unknown as Node).z || 0]}
-                />
-            ))}
+            {validLinks.length > 0 && validLinks.map((link, i) => {
+                const sNode = link.source as unknown as Node;
+                const tNode = link.target as unknown as Node;
+                const isHighlighted = activeNodeId && (sNode.id === activeNodeId || tNode.id === activeNodeId);
+                return (
+                    <NeuralLink
+                        key={`link-${i}`}
+                        start={[sNode.x || 0, sNode.y || 0, sNode.z || 0]}
+                        end={[tNode.x || 0, tNode.y || 0, tNode.z || 0]}
+                        highlighted={!!isHighlighted}
+                    />
+                );
+            })}
 
             {(allNodes || []).filter(n => (n.gravity || 0) > 50 || (Number((n.matrix as Record<string, number>)?.logic) || 10) < 4.0).map((node, i) => (
                 <FresnelAura key={`aura-${i}`} node={node} />
@@ -369,13 +404,13 @@ export const NeuralGraph: React.FC<{
             </instancedMesh>
 
             <React.Suspense fallback={null}>
-                {(allNodes || []).map((node, i) => <SpriteIcon key={`sprite-${i}`} node={node} />)}
+                {(allNodes || []).map((node, i) => <TextLabel key={`text-${i}`} node={node} />)}
             </React.Suspense>
 
             {selectedNode && <SelectionHighlight node={selectedNode} />}
 
             {selectedNode && (
-                <Html>
+                <Html wrapperClass="interactive-html-wrapper" style={{ pointerEvents: 'none' }}>
                     <div className="glass-panel-wrapper" onPointerDown={(e) => e.stopPropagation()}>
                         <div className="glass-panel">
                             <div className="panel-header">

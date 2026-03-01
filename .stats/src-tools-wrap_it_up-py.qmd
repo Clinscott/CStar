@@ -1,12 +1,12 @@
 ---
 title: "wrap_it_up.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/wrap_it_up.py"
-loc: 176
-complexity: 21
+loc: 169
+complexity: 20
 logic_score: 0.50
-style_score: 3.72
-intel_score: 4.58
-overall_score: 2.60
+style_score: 3.76
+intel_score: 4.71
+overall_score: 2.66
 ---
 
 ## Intent
@@ -14,8 +14,8 @@ Python module facilitating SovereignWrapper, __init__. It exists to support broa
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 0.5/10
-- **Style [S]**: 3.7/10
-- **Intel [I]**: 4.6/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 4.7/10
 - **Gravity [G]**: 61 interactions (Agent Activity Hotspot)
 
 

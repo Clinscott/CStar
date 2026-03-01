@@ -3,7 +3,7 @@ title: "test_diag_engine.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_diag_engine.py"
 loc: 12
 complexity: 1
-logic_score: 5.88
+logic_score: 5.85
 style_score: 4.43
 intel_score: 8.07
 overall_score: 6.93
@@ -13,7 +13,7 @@ overall_score: 6.93
 Core semantic routing engine for intent resolution. It exists to map unstructured user inputs to distinct execution pathways. Its role in the system is to serve as the primary cognitive junction between natural language and operational logic.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 5.9/10
+- **Logic [L]**: 5.8/10
 - **Style [S]**: 4.4/10
 - **Intel [I]**: 8.1/10
 - **Gravity [G]**: 4 interactions (Agent Activity Hotspot)

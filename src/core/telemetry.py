@@ -1,8 +1,9 @@
 import json
 import os
 import time
+
 import requests
-from typing import Optional
+
 
 class SubspaceTelemetry:
     """
@@ -69,7 +70,7 @@ class SubspaceTelemetry:
         Connects to the Python Daemon and triggers a real-time security alert.
         """
         from pathlib import Path
-        import json
+
         from websockets.sync.client import connect
         
         # [A.L.F.R.E.D.] Find project root and auth key

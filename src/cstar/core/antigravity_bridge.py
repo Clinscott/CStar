@@ -7,11 +7,9 @@ Mandate: NO TERMINAL OUTPUT. NO TUI. NO EXCEPTIONS.
 import asyncio
 import json
 import logging
-import re
-import subprocess
-import sys
-import tempfile
 import os
+import re
+import tempfile
 from pathlib import Path
 
 # Constants
@@ -75,7 +73,7 @@ async def process_request(query: str, persona: str) -> dict:
         )
         await asyncio.wait_for(proc.wait(), timeout=90.0)
         
-        with open(path, "r", encoding="utf-8", errors="replace") as f:
+        with open(path, encoding="utf-8", errors="replace") as f:
             raw = f.read()
             
         json_str = clean_cli_output(raw)

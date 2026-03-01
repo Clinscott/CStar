@@ -3,7 +3,7 @@ title: "test_odin_main.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_odin_main.py"
 loc: 20
 complexity: 1
-logic_score: 7.92
+logic_score: 7.90
 style_score: 3.76
 intel_score: 9.40
 overall_score: 7.30

@@ -3,7 +3,7 @@ title: "env_adapter.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/core/engine/env_adapter.py"
 loc: 32
 complexity: 4
-logic_score: 6.63
+logic_score: 6.60
 style_score: 3.79
 intel_score: 8.90
 overall_score: 6.15

@@ -33,8 +33,8 @@ from src.core.engine.vector import SovereignVector
 from src.core.payload import IntentPayload
 from src.core.sovereign_hud import SovereignHUD
 from src.tools.brave_search import BraveSearch
-from src.tools.gemini_search import GeminiSearch
 from src.tools.compile_session_traces import compile_traces
+from src.tools.gemini_search import GeminiSearch
 
 
 class SovereignEngine:

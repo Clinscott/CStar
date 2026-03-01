@@ -1,21 +1,21 @@
 ---
 title: "daemon.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/cstar/core/daemon.py"
-loc: 290
-complexity: 38
-logic_score: 0.50
-style_score: 3.69
-intel_score: 4.71
-overall_score: 2.63
+loc: 116
+complexity: 14
+logic_score: 1.42
+style_score: 3.74
+intel_score: 5.19
+overall_score: 3.43
 ---
 
 ## Intent
-Python module facilitating generate_or_load_key, load_engine. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating engine_search_sync, process_command. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 0.5/10
+- **Logic [L]**: 1.4/10
 - **Style [S]**: 3.7/10
-- **Intel [I]**: 4.7/10
+- **Intel [I]**: 5.2/10
 - **Gravity [G]**: 41 interactions (Agent Activity Hotspot)
 
 
@@ -36,25 +36,15 @@ Python module facilitating generate_or_load_key, load_engine. It exists to suppo
 - [typing](file://typing)
 - [psutil](file://psutil)
 - [websockets](file://websockets)
-- [contextlib](file://contextlib)
-- [src.core.engine.vector](file://src.core.engine.vector)
-- [src.core.payload](file://src.core.payload)
-- [src.cstar.core.forge](file://src.cstar.core.forge)
-- [src.cstar.core.rpc](file://src.cstar.core.rpc)
+- [websockets.server](file://websockets.server)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [src.core.sv_engine](file://src.core.sv_engine)
 - [src.cstar.core.uplink](file://src.cstar.core.uplink)
-- [src.sentinel._bootstrap](file://src.sentinel._bootstrap)
-- [src.core.engine.atomic_gpt](file://src.core.engine.atomic_gpt)
 
 ### Exports
-- `generate_or_load_key`
-- `load_engine`
-- `get_memory_usage_mb`
-- `check_memory_and_restart`
-- `broadcast_state`
-- `handle_client`
 - `engine_search_sync`
 - `process_command`
-- `process_forge_stream`
+- `handle_client`
 - `execute_sleep_protocol`
 - `async_start_daemon`
 - `start_daemon`

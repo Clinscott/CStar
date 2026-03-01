@@ -69,10 +69,9 @@ export async function runScan(targetPath: string): Promise<FileData[]> {
 
             const data = await analyzeFile(code, file);
 
-            // Merge semantic logic score and dependencies
+            // Merge semantic logic score (but NOT dependencies, which cause hyper-connectivity)
             if (semanticData) {
                 data.matrix.logic = (data.matrix.logic + semanticData.logic) / 2;
-                data.cachedDependencies = semanticData.dependencies;
             }
 
             const { intent } = await writeReport(data, targetPath, code);

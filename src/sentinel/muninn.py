@@ -6,16 +6,16 @@ Purpose: Execute the Ravens Protocol autonomously via Antigravity Uplink.
 
 import asyncio
 import json
-import logging
 import os
 import shutil
 import subprocess
+
+# [Ω] BOOTSTRAP: Add project root to sys.path
+import sys
 import time
 from pathlib import Path
 from typing import Any
 
-# [Ω] BOOTSTRAP: Add project root to sys.path
-import sys
 project_root = Path(__file__).resolve().parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
@@ -25,11 +25,12 @@ from src.core.sovereign_hud import SovereignHUD
 from src.core.telemetry import SubspaceTelemetry
 from src.cstar.core.uplink import AntigravityUplink
 from src.sentinel.code_sanitizer import sanitize_code, sanitize_test
+from src.sentinel.coordinator import MissionCoordinator
 from src.sentinel.stability import TheWatcher
 from src.sentinel.wardens.base import BaseWarden
 from src.sentinel.wardens.norn import NornWarden
-from src.sentinel.coordinator import MissionCoordinator
 from tests.integration.project_fishtest import GungnirSPRT
+
 
 class Muninn:
     """
@@ -129,19 +130,19 @@ class Muninn:
         file_path = self.root / target["file"]
         original = file_path.read_text(encoding="utf-8") if file_path.exists() else ""
         
-        SovereignHUD.persona_log("INFO", f"Step 1/3: Generating Gauntlet (Reproduction Test)...")
+        SovereignHUD.persona_log("INFO", "Step 1/3: Generating Gauntlet (Reproduction Test)...")
         test_path = await self._generate_gauntlet(target, original)
         if not test_path: 
             SovereignHUD.persona_log("ERROR", "Gauntlet generation failed.")
             return False
         
-        SovereignHUD.persona_log("INFO", f"Step 2/3: Forging Steel (Code Fix)...")
+        SovereignHUD.persona_log("INFO", "Step 2/3: Forging Steel (Code Fix)...")
         new_content = await self._generate_steel(target, original, test_path)
         if not new_content: 
             SovereignHUD.persona_log("ERROR", "Steel forging failed.")
             return False
         
-        SovereignHUD.persona_log("INFO", f"Step 3/3: Applying Fix and Recording Edit...")
+        SovereignHUD.persona_log("INFO", "Step 3/3: Applying Fix and Recording Edit...")
         if file_path.exists(): shutil.copy(file_path, str(file_path) + ".bak")
         file_path.write_text(new_content, encoding="utf-8")
         return self.watcher.record_edit(target["file"], new_content)

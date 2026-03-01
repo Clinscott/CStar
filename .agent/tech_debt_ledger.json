@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-03-01T22:22:46.819Z",
+  "timestamp": "2026-03-01T22:54:59.273Z",
   "top_targets": [
     {
       "file": "C:/Users/Craig/Corvus/CorvusStar/src/core/sovereign_hud.py",
@@ -85,10 +85,10 @@
     {
       "file": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/analyzer.ts",
       "priority": "HIGH",
-      "justification": "[ALFRED]: \"Structural Warning. Module influence outpaces its maintainability. Gravity: 53, Logic: 0.50.\"",
+      "justification": "[ALFRED]: \"Structural Warning. Module influence outpaces its maintainability. Gravity: 53, Logic: 1.98.\"",
       "metrics": {
         "gravity": 53,
-        "logic": 0.5
+        "logic": 1.975
       }
     },
     {

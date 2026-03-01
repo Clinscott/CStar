@@ -3,7 +3,7 @@ title: "llm.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/intel/llm.ts"
 loc: 46
 complexity: 10
-logic_score: 2.80
+logic_score: 4.47
 style_score: 2.78
 intel_score: 7.22
 overall_score: 4.70
@@ -13,7 +13,7 @@ overall_score: 4.70
 Orchestrates Babel AST parsing for the static analysis engine. It exists to decompose raw source files into measurable syntactic graphs. Its role in the system is to feed analytical telemetry to the PennyOne intelligence layer.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 2.8/10
+- **Logic [L]**: 4.5/10
 - **Style [S]**: 2.8/10
 - **Intel [I]**: 7.2/10
 - **Gravity [G]**: 22 interactions (Agent Activity Hotspot)

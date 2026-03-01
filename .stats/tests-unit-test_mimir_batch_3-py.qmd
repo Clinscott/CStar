@@ -3,7 +3,7 @@ title: "test_mimir_batch_3.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/unit/test_mimir_batch_3.py"
 loc: 72
 complexity: 1
-logic_score: 4.40
+logic_score: 4.38
 style_score: 3.62
 intel_score: 5.84
 overall_score: 5.57

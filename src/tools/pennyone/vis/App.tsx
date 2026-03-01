@@ -119,10 +119,7 @@ export const App: React.FC = () => {
                                     onNodesMapped={setNodeMap}
                                 />
                             </React.Suspense>
-
-
-
-                            <OrbitControls makeDefault enableDamping maxDistance={10000} minDistance={50} />
+                            <OrbitControls makeDefault enableDamping maxDistance={30000} minDistance={50} />
                         </Canvas>
 
                         <div className="glass-hud">

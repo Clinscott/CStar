@@ -6,13 +6,11 @@ Purpose: Optimizes token usage by caching file contents and returning diffs for 
 Inspired by: glommer/cachebro
 """
 
+import difflib
 import hashlib
 import json
-import difflib
 import sys
-import os
 from pathlib import Path
-from typing import Optional
 
 # [ALFRED] Ensure environment is loaded
 try:
@@ -24,6 +22,7 @@ except (ImportError, ValueError, IndexError):
     pass
 
 from src.core.sovereign_hud import SovereignHUD
+
 
 class CacheBro:
     def __init__(self):

@@ -3,7 +3,7 @@ title: "test_network_contracts.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/contracts/test_network_contracts.py"
 loc: 43
 complexity: 2
-logic_score: 4.70
+logic_score: 4.67
 style_score: 3.84
 intel_score: 1.40
 overall_score: 3.90

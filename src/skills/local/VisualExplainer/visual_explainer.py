@@ -6,12 +6,9 @@ Purpose: Generates rich HTML reports from terminal output, featuring Mermaid dia
 Inspired by: nicobailon/visual-explainer
 """
 
-import os
 import sys
-import json
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 # [ALFRED] Ensure environment is loaded
 try:
@@ -24,6 +21,7 @@ except (ImportError, ValueError, IndexError):
 
 from src.core.sovereign_hud import SovereignHUD
 
+
 class VisualExplainer:
     def __init__(self):
         self.root = Path(__file__).resolve().parents[4]
@@ -31,7 +29,7 @@ class VisualExplainer:
         self.output_dir = self.root / "docs" / "visuals"
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-    def generate_report(self, title: str, content_markdown: str, diagram_mermaid: Optional[str] = None) -> Path:
+    def generate_report(self, title: str, content_markdown: str, diagram_mermaid: str | None = None) -> Path:
         """
         Generates a standalone HTML report.
         """

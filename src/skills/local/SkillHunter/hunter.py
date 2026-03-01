@@ -6,10 +6,10 @@ Purpose: Ingests GitHub repos into skills_db using secure containerized processi
 """
 
 import os
-import sys
-import subprocess
 import shutil
 import stat
+import subprocess
+import sys
 from pathlib import Path
 
 # [ALFRED] Ensure environment is loaded

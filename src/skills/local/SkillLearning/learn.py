@@ -5,7 +5,6 @@ Mandate: ALFRED (Automated Logic & File Repository Evaluation Dashboard)
 Purpose: Interactive dialogue for proactive skill acquisition.
 """
 
-import os
 import sys
 from pathlib import Path
 

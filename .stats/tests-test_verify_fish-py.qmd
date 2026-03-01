@@ -3,7 +3,7 @@ title: "test_verify_fish.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_verify_fish.py"
 loc: 7
 complexity: 1
-logic_score: 6.42
+logic_score: 6.40
 style_score: 6.97
 intel_score: 9.40
 overall_score: 8.22

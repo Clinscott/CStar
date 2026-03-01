@@ -1,21 +1,21 @@
 ---
 title: "test_phase_89_verification.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_phase_89_verification.py"
-loc: 57
+loc: 39
 complexity: 1
-logic_score: 6.42
-style_score: 3.70
-intel_score: 7.01
-overall_score: 6.34
+logic_score: 4.95
+style_score: 3.73
+intel_score: 9.40
+overall_score: 7.29
 ---
 
 ## Intent
-Python module facilitating mock_db, test_heimdall_ward_broadcast_trigger. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating mock_db, test_mimir_aesthetic_breach. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 6.4/10
+- **Logic [L]**: 5.0/10
 - **Style [S]**: 3.7/10
-- **Intel [I]**: 7.0/10
+- **Intel [I]**: 9.4/10
 - **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
 
 
@@ -23,18 +23,14 @@ Python module facilitating mock_db, test_heimdall_ward_broadcast_trigger. It exi
 ## Neural Pathways
 
 ### Imports
-- [json](file://json)
-- [os](file://os)
-- [sqlite3](file://sqlite3)
-- [time](file://time)
+- [pytest](file://pytest)
 - [pathlib](file://pathlib)
 - [unittest.mock](file://unittest.mock)
-- [pytest](file://pytest)
-- [src.core.telemetry](file://src.core.telemetry)
-- [src.cstar.core.rpc](file://src.cstar.core.rpc)
 - [src.sentinel.wardens.mimir](file://src.sentinel.wardens.mimir)
 
 ### Exports
 - `mock_db`
-- `test_heimdall_ward_broadcast_trigger`
-- `test_mimir_feedback_generation`
+- `test_mimir_aesthetic_breach`
+- `test_mimir_structural_breach`
+- `test_mimir_maintainability_suggestion`
+- `test_rpc_suggestion_retrieval`

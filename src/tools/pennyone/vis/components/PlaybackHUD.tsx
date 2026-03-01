@@ -61,10 +61,9 @@ export const PlaybackHUD: React.FC<PlaybackHUDProps> = ({
                     onClick={isRecording ? onStopRecording : onStartRecording}
                     className={isRecording ? 'rec-btn active' : 'rec-btn'}
                 >
-                    {isRecording ? '■ STOP' : '● REC'}
+                    {isRecording ? '● REC' : 'REC'}
                 </button>
             </div>
-
             <style>{`
                 .playback-hud {
                     position: absolute;
@@ -79,8 +78,9 @@ export const PlaybackHUD: React.FC<PlaybackHUDProps> = ({
                     font-family: monospace;
                     backdrop-filter: blur(8px);
                     box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
+                    pointer-events: none;
                 }
-                .controls { display: flex; align-items: center; gap: 20px; }
+                .controls { display: flex; align-items: center; gap: 20px; pointer-events: auto; }
                 .live-btn, .rec-btn {
                     background: transparent;
                     border: 1px solid #00f2ff;

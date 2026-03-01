@@ -1,5 +1,6 @@
-import { test, expect } from 'vitest';
-import { getTracesForFile, saveTrace } from '../src/tools/pennyone/intel/database.js';
+import test from 'node:test';
+import assert from 'node:assert';
+import { getTracesForFile, saveTrace } from '../src/tools/pennyone/intel/database';
 
 test('Path Sovereignty: Cross-OS Path Matching', async () => {
     const unixPath = 'src/core/utils.py';
@@ -20,11 +21,11 @@ test('Path Sovereignty: Cross-OS Path Matching', async () => {
 
     // 2. Query with Windows style
     const winResults = getTracesForFile(winPath);
-    expect(winResults.some(t => t.mission_id === missionId)).toBe(true);
+    assert.ok(winResults.some(t => t.mission_id === missionId), 'Should find trace with Windows path');
 
     // 3. Query with Unix style
     const unixResults = getTracesForFile(unixPath);
-    expect(unixResults.some(t => t.mission_id === missionId)).toBe(true);
+    assert.ok(unixResults.some(t => t.mission_id === missionId), 'Should find trace with Unix path');
 });
 
 test('SQL Injection Resilience: mission_traces', async () => {
@@ -33,6 +34,6 @@ test('SQL Injection Resilience: mission_traces', async () => {
     
     // This should just return 0 results, NOT crash or drop the table.
     const results = getTracesForFile(maliciousPath);
-    expect(Array.isArray(results)).toBe(true);
-    expect(results.length).toBe(0);
+    assert.ok(Array.isArray(results), 'Results should be an array');
+    assert.strictEqual(results.length, 0, 'Should return 0 results for malicious path');
 });

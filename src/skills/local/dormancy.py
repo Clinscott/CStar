@@ -15,6 +15,7 @@ if str(project_root) not in sys.path:
 
 from src.core.sovereign_hud import SovereignHUD
 
+
 def main():
     SovereignHUD.persona_log("INFO", "Initiating Dormancy Protocol...")
     

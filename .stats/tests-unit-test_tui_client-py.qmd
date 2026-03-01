@@ -3,7 +3,7 @@ title: "test_tui_client.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/unit/test_tui_client.py"
 loc: 28
 complexity: 2
-logic_score: 7.15
+logic_score: 7.13
 style_score: 3.62
 intel_score: 9.40
 overall_score: 6.99

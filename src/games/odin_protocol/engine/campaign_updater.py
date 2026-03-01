@@ -4,13 +4,13 @@ Lore: "Mimir's wisdom fuels the war effort."
 Purpose: Bridges PennyOne mission successes to O.D.I.N. Protocol campaign updates.
 """
 
-import sqlite3
 import logging
+import sqlite3
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Any
 
-from src.games.odin_protocol.engine.persistence import OdinPersistence
 from src.games.odin_protocol.engine.models import UniverseState
+from src.games.odin_protocol.engine.persistence import OdinPersistence
 
 
 class CampaignUpdater:
@@ -23,7 +23,7 @@ class CampaignUpdater:
         self.persistence = OdinPersistence(self.project_root)
         self.db_path = self.project_root / ".stats" / "pennyone.db"
 
-    def update_campaign(self) -> Dict[str, Any]:
+    def update_campaign(self) -> dict[str, Any]:
         """
         Processes new mission traces and updates the universe state.
         """
@@ -79,7 +79,7 @@ class CampaignUpdater:
             "new_percent": round(state_obj.domination_percent, 2)
         }
 
-    def _get_new_traces(self, last_id: int) -> List[Dict[str, Any]]:
+    def _get_new_traces(self, last_id: int) -> list[dict[str, Any]]:
         """
         Retrieves unprocessed mission traces from PennyOne DB.
         """
@@ -107,7 +107,6 @@ class CampaignUpdater:
 
 if __name__ == "__main__":
     # Self-execution for testing/manual sync
-    import sys
     root = Path(__file__).resolve().parents[4]
     updater = CampaignUpdater(root)
     result = updater.update_campaign()

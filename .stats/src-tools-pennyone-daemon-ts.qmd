@@ -3,7 +3,7 @@ title: "daemon.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/daemon.ts"
 loc: 81
 complexity: 11
-logic_score: 2.40
+logic_score: 5.78
 style_score: 3.94
 intel_score: 9.41
 overall_score: 5.55
@@ -13,7 +13,7 @@ overall_score: 5.55
 A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 2.4/10
+- **Logic [L]**: 5.8/10
 - **Style [S]**: 3.9/10
 - **Intel [I]**: 9.4/10
 - **Gravity [G]**: 15 interactions (Agent Activity Hotspot)

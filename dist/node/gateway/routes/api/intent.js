@@ -25,13 +25,17 @@ export default async function (fastify) {
             return reply.code(503).send({ error: 'Daemon offline' });
         }
         try {
-            corvus.dispatchIntent(request.body);
+            const { CognitiveRouter } = await import('../../../core/CognitiveRouter.js');
+            const router = CognitiveRouter.getInstance();
+            // [TIERED ROUTING] Pass intent to the controller for cognitive evaluation
+            await router.routeIntent(request.body, corvus);
             return reply.code(202).send({
                 status: 'accepted',
-                message: `Intent ${request.body.intent_normalized} dispatched to core.`
+                message: `Intent ${request.body.intent_normalized} routed via CognitiveRouter.`
             });
         }
         catch (err) {
+            fastify.log.error(`[IntentRoute] Routing Error: ${err.message}`);
             return reply.code(500).send({ error: err.message });
         }
     });

@@ -2,9 +2,7 @@
 [O.D.I.N.] Core Initialization & Environment Patching.
 Formalizes the Python 3.14 / Pydantic v1 compatibility hook.
 """
-import logging
 import sys
-
 
 def apply_pydantic_v1_patch() -> None:
     """
@@ -31,13 +29,11 @@ def apply_pydantic_v1_patch() -> None:
 
             def patched_set_default(self) -> None:
                 # Import errors here to avoid early dependency on pydantic
-                from pydantic import v1 as pydantic_v1
                 try:
                     original_set_default(self)
                 except Exception as e:
                     # If it's a ConfigError about type inference, bypass it
                     if "unable to infer type" in str(e):
-                        # logging.debug(f"[ALFRED] Patching Pydantic Type Inference for: {self.name}")
                         self.type_ = Any
                         self.outer_type_ = Any
                         self.annotation = Any
@@ -48,7 +44,6 @@ def apply_pydantic_v1_patch() -> None:
             if not hasattr(ModelField, "_is_cstar_patched"):
                 ModelField._set_default_and_type = patched_set_default
                 ModelField._is_cstar_patched = True
-                # print("[ALFRED] Pydantic v1 Compatibility Patch Applied for Python 3.14")
 
         except (ImportError, AttributeError):
             pass # Pydantic not installed or structure differs

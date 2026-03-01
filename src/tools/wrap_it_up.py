@@ -34,46 +34,36 @@ class SovereignWrapper:
         return self.engine
 
     def run_gungnir_gate(self) -> None:
-        """Executes the Gungnir validation gate (Ruff + Pytest)."""
+        """Executes the Gungnir validation gate (Ruff + NPM Test)."""
         SovereignHUD.box_top("GUNGNIR GATE")
 
-        if os.environ.get("GUNGNIR_BYPASS_LINT") == "1":
-            SovereignHUD.box_row("STEP 1", "Ruff Linting (BYPASSED)", SovereignHUD.YELLOW)
-        else:
-            SovereignHUD.box_row("STEP 1", "Ruff Linting", SovereignHUD.CYAN)
-            try:
-                subprocess.run(
-                    [sys.executable, "-m", "ruff", "check", ".", "--select", "E9,F63,F7,F82"],
-                    cwd=str(self.root), check=True, capture_output=True
-                )
-                SovereignHUD.box_row("STATUS", "PASS", SovereignHUD.GREEN)
-            except subprocess.CalledProcessError as e:
-                SovereignHUD.box_row("STATUS", "FAIL", SovereignHUD.RED)
-                SovereignHUD.persona_log("HEIMDALL", f"BREACH: Linting failure detected.\n{e.stderr.decode()}")
-                sys.exit(1)
-
-        SovereignHUD.box_separator()
-
-        SovereignHUD.box_row("STEP 2", "Gungnir Crucible", SovereignHUD.CYAN)
+        # 1. Comprehensive Ruff Linting
+        SovereignHUD.box_row("STEP 1", "Ruff Linting", SovereignHUD.CYAN)
         try:
-            # Run the modern Crucible tests verified in this session
-            crucible_tests = [
-                "tests/crucible/test_bridge.py",
-                "tests/crucible/test_uplink.py",
-                "tests/crucible/test_muninn.py"
-            ]
-            subprocess.run([sys.executable, "-m", "unittest", *crucible_tests], cwd=str(self.root), check=True)
+            # We specifically select Logic Errors (F) to ensure zero structural breaches
+            # Stylistic debt (E) is acknowledged but does not block the gate.
+            subprocess.run(
+                [sys.executable, "-m", "ruff", "check", ".", "--select", "F", "--no-cache"],
+                cwd=str(self.root), check=True, capture_output=True
+            )
             SovereignHUD.box_row("STATUS", "PASS", SovereignHUD.GREEN)
-        except subprocess.CalledProcessError:
+        except subprocess.CalledProcessError as e:
             SovereignHUD.box_row("STATUS", "FAIL", SovereignHUD.RED)
-            SovereignHUD.persona_log("HEIMDALL", "BREACH: Gungnir Matrix failure.")
+            SovereignHUD.persona_log("HEIMDALL", f"BREACH: Linting failure detected.\n{e.stderr.decode()}")
             sys.exit(1)
 
         SovereignHUD.box_separator()
 
-        SovereignHUD.box_row("STEP 3", "Full Pytest Suite", SovereignHUD.CYAN)
-        # Bypassing full suite as it was manually verified in this session to ensure 100% stability.
-        SovereignHUD.box_row("STATUS", "VERIFIED", SovereignHUD.GREEN)
+        # 2. Project-wide NPM Test Suite
+        SovereignHUD.box_row("STEP 2", "NPM Test Suite", SovereignHUD.CYAN)
+        try:
+            # Runs both Node and Python tests as defined in package.json
+            subprocess.run(["npm", "test"], cwd=str(self.root), check=True, shell=True)
+            SovereignHUD.box_row("STATUS", "PASS", SovereignHUD.GREEN)
+        except subprocess.CalledProcessError:
+            SovereignHUD.box_row("STATUS", "FAIL", SovereignHUD.RED)
+            SovereignHUD.persona_log("HEIMDALL", "BREACH: Test suite failure detected.")
+            sys.exit(1)
 
         SovereignHUD.box_bottom()
 

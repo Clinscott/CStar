@@ -1,12 +1,12 @@
 ---
 title: "mimir.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/sentinel/wardens/mimir.py"
-loc: 86
+loc: 87
 complexity: 16
 logic_score: 1.70
 style_score: 3.70
-intel_score: 2.33
-overall_score: 2.58
+intel_score: 2.32
+overall_score: 2.57
 ---
 
 ## Intent
@@ -24,6 +24,7 @@ Autonomous neural guardian monitoring system drift and anomalies. It exists to e
 
 ### Imports
 - [contextlib](file://contextlib)
+- [time](file://time)
 - [typing](file://typing)
 - [radon.complexity](file://radon.complexity)
 - [radon.metrics](file://radon.metrics)

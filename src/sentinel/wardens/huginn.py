@@ -11,8 +11,8 @@ import re
 from pathlib import Path
 from typing import Any
 
-from src.sentinel.wardens.base import BaseWarden
 from src.cstar.core.uplink import AntigravityUplink
+from src.sentinel.wardens.base import BaseWarden
 
 
 class HuginnWarden(BaseWarden):

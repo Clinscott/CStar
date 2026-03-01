@@ -3,7 +3,7 @@ title: "test_quick_check.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_quick_check.py"
 loc: 10
 complexity: 1
-logic_score: 6.22
+logic_score: 6.20
 style_score: 7.99
 intel_score: 9.40
 overall_score: 8.56

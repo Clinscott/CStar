@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 /**
- * [ODIN] Rigid Input Boundary Schema
+ * [O.D.I.N.] Rigid Input Boundary Schema
  */
 export interface IntentPayload {
     system_meta: Record<string, any>;

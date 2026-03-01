@@ -1,4 +1,4 @@
-import ast
+﻿import ast
 import re
 from typing import Any
 
@@ -33,10 +33,9 @@ class UniversalGungnir:
 
     def _audit_logic_rules(self, code: str, ext: str) -> list[dict[str, Any]]:
         breaches = []
-        lines = [l for l in code.split('\n') if l.strip()]
-        C = len(lines) if lines else 1
 
         # Structure Check
+
         if ext == '.py':
             # Claustrophobia check
             consecutive = 0

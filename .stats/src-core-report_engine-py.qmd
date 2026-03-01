@@ -3,7 +3,7 @@ title: "report_engine.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/core/report_engine.py"
 loc: 43
 complexity: 6
-logic_score: 3.75
+logic_score: 3.72
 style_score: 3.93
 intel_score: 9.40
 overall_score: 6.13

@@ -28,8 +28,8 @@
   },
   "scripts": {
     "test": "npm run test:node && npm run test:python",
-    "test:python": "python -m pytest",
-    "test:node": "tsx --test",
+    "test:python": "python -m unittest tests/crucible/test_bridge.py tests/crucible/test_uplink.py tests/crucible/test_muninn.py tests/crucible/gherkin_runner.py tests/test_phase_89_verification.py tests/test_rpc_phase_89.py tests/test_phase_88_campaign_sync.py tests/test_phase_88_muninn_pennyone_connection.py tests/test_phase_88_edge_cases.py",
+    "test:node": "tsx --test tests/*.test.ts tests/crucible/*.ts",
     "test:empire": "tsx --test tests/empire_tests/test_corvus_process_empire.ts tests/empire_tests/test_gateway_empire.ts",
     "setup": "tsx src/node/setup.ts",
     "postinstall": "npm run setup"

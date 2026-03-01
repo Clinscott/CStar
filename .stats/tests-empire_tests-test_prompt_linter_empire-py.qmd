@@ -3,7 +3,7 @@ title: "test_prompt_linter_empire.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_prompt_linter_empire.py"
 loc: 49
 complexity: 2
-logic_score: 7.42
+logic_score: 7.40
 style_score: 3.55
 intel_score: 1.40
 overall_score: 4.30

@@ -1,6 +1,5 @@
 import asyncio
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -11,9 +10,10 @@ if str(script_dir) not in sys.path:
 
 from src.cstar.core.uplink import AntigravityUplink
 
+
 async def test_uplink():
     print("--- ANTIGRAVITY UPLINK TEST ---")
-    print(f"Target Port: 50052 (Bridge)")
+    print("Target Port: 50052 (Bridge)")
     
     uplink = AntigravityUplink()
     query = "ALFRED, are you there? Identify your current uplink status."

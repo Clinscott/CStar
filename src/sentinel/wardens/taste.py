@@ -6,7 +6,6 @@ Inspired by: Leonxlnx/taste-skill
 """
 
 import re
-from pathlib import Path
 from typing import Any
 
 from src.sentinel.wardens.base import BaseWarden

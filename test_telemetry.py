@@ -1,6 +1,7 @@
-import requests
-import json
 import time
+
+import requests
+
 
 def test_trace():
     payload = {

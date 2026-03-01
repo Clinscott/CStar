@@ -3,7 +3,7 @@ title: "raven_proxy.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/harness/raven_proxy.py"
 loc: 23
 complexity: 2
-logic_score: 4.67
+logic_score: 4.63
 style_score: 3.70
 intel_score: 8.36
 overall_score: 6.17
@@ -13,7 +13,7 @@ overall_score: 6.17
 Python module facilitating RavenProxy, __init__. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 4.7/10
+- **Logic [L]**: 4.6/10
 - **Style [S]**: 3.7/10
 - **Intel [I]**: 8.4/10
 - **Gravity [G]**: 17 interactions (Agent Activity Hotspot)

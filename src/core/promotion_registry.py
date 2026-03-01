@@ -1,8 +1,8 @@
-import json
-import os
 import hashlib
+import json
 from datetime import datetime
 from pathlib import Path
+
 
 class PromotionRegistry:
     def __init__(self, root_path: str):
@@ -13,7 +13,7 @@ class PromotionRegistry:
     def _load_registry(self) -> dict:
         if self.registry_path.exists():
             try:
-                with open(self.registry_path, "r", encoding="utf-8") as f:
+                with open(self.registry_path, encoding="utf-8") as f:
                     return json.load(f)
             except json.JSONDecodeError:
                 return {}

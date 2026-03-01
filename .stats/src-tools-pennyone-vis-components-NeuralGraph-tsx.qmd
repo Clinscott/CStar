@@ -1,22 +1,22 @@
 ---
 title: "NeuralGraph.tsx"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/components/NeuralGraph.tsx"
-loc: 400
-complexity: 43
-logic_score: 0.50
+loc: 432
+complexity: 54
+logic_score: 1.00
 style_score: 1.00
-intel_score: 3.10
-overall_score: 1.20
+intel_score: 4.22
+overall_score: 2.07
 ---
 
 ## Intent
-React component rendering NeuralGraph with 43 logic branches. It exists to provide a responsive interface element for real-time telemetry. Its role in the system is to project background Daemon activity into the visual Sovereign HUD plane.
+React component rendering NeuralGraph with 54 logic branches.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 0.5/10
+- **Logic [L]**: 1.0/10
 - **Style [S]**: 1.0/10
-- **Intel [I]**: 3.1/10
-- **Gravity [G]**: 111 interactions (Agent Activity Hotspot)
+- **Intel [I]**: 4.2/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
 
 
 
@@ -32,13 +32,13 @@ React component rendering NeuralGraph with 43 logic branches. It exists to provi
 - [useThree](file://@react-three/fiber)
 - [extend](file://@react-three/fiber)
 - [Html](file://@react-three/drei)
-- [useTexture](file://@react-three/drei)
 - [shaderMaterial](file://@react-three/drei)
+- [Line](file://@react-three/drei)
+- [Text](file://@react-three/drei)
 - [*](file://d3-force-3d)
 - [*](file://gsap)
 
 ### Exports
-- `PulseMaterial`
 - `FresnelMaterial`
 - `tempObject`
 - `tempColor`
@@ -49,17 +49,13 @@ React component rendering NeuralGraph with 43 logic branches. It exists to provi
 - `logicVal`
 - `isToxic`
 - `NeuralLink`
-- `materialRef`
-- `points`
-- `geometry`
-- `geo`
-- `SpriteIcon`
-- `odinTexture`
-- `alfredTexture`
-- `orphanTexture`
-- `texture`
+- `lineRef`
+- `STELLAR_MAP`
+- `getStar`
 - `p`
-- `spriteRef`
+- `TextLabel`
+- `textRef`
+- `filename`
 - `NeuralGraph`
 - `NeuralGraph`
 - `useThree`
@@ -78,7 +74,9 @@ React component rendering NeuralGraph with 43 logic branches. It exists to provi
 - `usedIds`
 - `pathStr`
 - `orphans`
-- `getLogScale`
+- `getVisScale`
+- `getStarColor`
+- `p`
 - `fetchTrajectories`
 - `res`
 - `data`
@@ -88,12 +86,19 @@ React component rendering NeuralGraph with 43 logic branches. It exists to provi
 - `theta`
 - `map`
 - `layers`
+- `activeNodeId`
 - `currentMesh`
+- `isNeighbor`
+- `sId`
+- `tId`
 - `scale`
 - `isHovered`
 - `isSelected`
-- `p`
 - `nodeMatrix`
 - `handleNodeClick`
 - `targetPos`
 - `validLinks`
+- `activeNodeId`
+- `sNode`
+- `tNode`
+- `isHighlighted`

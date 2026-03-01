@@ -3,7 +3,7 @@ title: "database.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/intel/database.ts"
 loc: 139
 complexity: 8
-logic_score: 3.15
+logic_score: 5.67
 style_score: 3.68
 intel_score: 6.32
 overall_score: 4.93
@@ -13,7 +13,7 @@ overall_score: 4.93
 A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 3.1/10
+- **Logic [L]**: 5.7/10
 - **Style [S]**: 3.7/10
 - **Intel [I]**: 6.3/10
 - **Gravity [G]**: 22 interactions (Agent Activity Hotspot)

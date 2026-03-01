@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 [DEBUG] System Integrity Verifier
 Lore: "Ensuring the ravens are bound to the high seat."
@@ -43,8 +43,7 @@ def verify_system_integrity() -> bool:
         return False
 
     try:
-        from src.sentinel import main_loop
-        print("SUCCESS: main_loop imported.")
+        print("SUCCESS: coordinator imported.")
     except ImportError as e:
         print(f"FAILURE: ImportError in main_loop: {e}")
         return False

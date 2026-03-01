@@ -9,7 +9,6 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Any
 
 # Add project root to sys.path
 project_root = Path(__file__).resolve().parents[2]
@@ -17,6 +16,7 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 from src.core.sovereign_hud import SovereignHUD
+
 
 class GeminiSearch:
     """
