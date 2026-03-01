@@ -3,20 +3,20 @@ title: "overwatch.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/overwatch.py"
 loc: 147
 complexity: 26
-logic_score: 1.00
+logic_score: 0.50
 style_score: 3.75
 intel_score: 5.75
-overall_score: 3.50
+overall_score: 3.00
 ---
 
 ## Intent
 Python module facilitating StatsCollector, __init__. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 1.0/10
+- **Logic [L]**: 0.5/10
 - **Style [S]**: 3.8/10
 - **Intel [I]**: 5.8/10
-- **Gravity [G]**: 9 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 29 interactions (Agent Activity Hotspot)
 
 
 

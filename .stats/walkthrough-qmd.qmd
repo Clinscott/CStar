@@ -1,7 +1,7 @@
 ---
 title: "walkthrough.qmd"
 path: "C:/Users/Craig/Corvus/CorvusStar/walkthrough.qmd"
-loc: 150
+loc: 169
 complexity: 1
 logic_score: 10.00
 style_score: 10.00
@@ -10,13 +10,13 @@ overall_score: 10.00
 ---
 
 ## Intent
-Documentation scroll or workflow directive for the Gungnir Calculus.
+Documentation scroll or workflow directive for the Gungnir Calculus. It exists to codify system lore, architectural constraints, and standard operating procedures. Its role in the system is to provide persistent context to autonomous agents like ALFRED and ODIN.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 10.0/10
 - **Style [S]**: 10.0/10
 - **Intel [I]**: 10.0/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 295 interactions (Agent Activity Hotspot)
 
 
 

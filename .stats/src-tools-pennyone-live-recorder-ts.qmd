@@ -1,30 +1,34 @@
 ---
 title: "recorder.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/live/recorder.ts"
-loc: 9
-complexity: 2
-logic_score: 8.40
-style_score: 9.30
-intel_score: 10.00
-overall_score: 9.23
+loc: 16
+complexity: 3
+logic_score: 8.72
+style_score: 9.33
+intel_score: 9.50
+overall_score: 8.46
 ---
 
 ## Intent
-A functional component of the Corvus Star static analysis matrix.
+A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 8.4/10
+- **Logic [L]**: 8.7/10
 - **Style [S]**: 9.3/10
-- **Intel [I]**: 10.0/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Intel [I]**: 9.5/10
+- **Gravity [G]**: 24 interactions (Agent Activity Hotspot)
 
 
 
 ## Neural Pathways
 
 ### Imports
-- [*](file://../types.js)
-- [*](file://../intel/database.js)
+- [AgentPing](file://../types.js)
+- [savePing](file://../intel/database.js)
+- [saveTrace](file://../intel/database.js)
 
 ### Exports
 - `recordPing`
+- `recordPing`
+- `recordTrace`
+- `recordTrace`

@@ -3,20 +3,20 @@ title: "__init__.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/core/__init__.py"
 loc: 31
 complexity: 4
-logic_score: 5.90
+logic_score: 7.20
 style_score: 3.86
 intel_score: 6.56
-overall_score: 5.44
+overall_score: 4.94
 ---
 
 ## Intent
 Python module facilitating apply_pydantic_v1_patch, patched_set_default. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 5.9/10
+- **Logic [L]**: 7.2/10
 - **Style [S]**: 3.9/10
 - **Intel [I]**: 6.6/10
-- **Gravity [G]**: 6 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 14 interactions (Agent Activity Hotspot)
 
 
 

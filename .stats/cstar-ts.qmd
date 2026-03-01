@@ -3,20 +3,20 @@ title: "cstar.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/cstar.ts"
 loc: 270
 complexity: 32
-logic_score: 1.00
+logic_score: 0.50
 style_score: 3.80
 intel_score: 2.88
-overall_score: 2.56
+overall_score: 2.06
 ---
 
 ## Intent
 A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 1.0/10
+- **Logic [L]**: 0.5/10
 - **Style [S]**: 3.8/10
 - **Intel [I]**: 2.9/10
-- **Gravity [G]**: 5 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 43 interactions (Agent Activity Hotspot)
 
 
 

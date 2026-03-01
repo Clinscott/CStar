@@ -1,22 +1,22 @@
 ---
 title: "stability.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/sentinel/stability.py"
-loc: 88
-complexity: 12
-logic_score: 4.00
-style_score: 3.78
+loc: 112
+complexity: 17
+logic_score: 0.67
+style_score: 3.75
 intel_score: 9.40
-overall_score: 5.73
+overall_score: 4.33
 ---
 
 ## Intent
 Python module facilitating GungnirValidator, __init__. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 4.0/10
-- **Style [S]**: 3.8/10
+- **Logic [L]**: 0.7/10
+- **Style [S]**: 3.7/10
 - **Intel [I]**: 9.4/10
-- **Gravity [G]**: 6 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 21 interactions (Agent Activity Hotspot)
 
 
 
@@ -42,3 +42,5 @@ Python module facilitating GungnirValidator, __init__. It exists to support broa
 - `_save_state`
 - `is_locked`
 - `record_edit`
+- `get_last_edit_time`
+- `record_failure`

@@ -14,6 +14,19 @@ Preserve the "why" behind technical decisions and provide a narrative history of
 
 # Developer Journal
 
+## 2026-03-01 - Session 103: Operation PennyOne - Structural Rectification
+- **Accomplishments**:
+    - **Thread Containment**: Shifted `NeuralGraph` D3 force calculations to organic asynchronous execution inside `useFrame`, eradicating synchronous blocking loops.
+    - **Layout Sovereignty**: Purged `Html` absolute position bounds and `fullscreen` hacks in favor of strict Flexbox constraints in the HUD.
+    - **Type Cowardice Purge**: Eradicated `/* eslint-disable */` directives, explicitly mapped D3 generic types, and banished non-null TS assertions across PennyOne.
+    - **CortexLink WebSocket Bridge**: Decoupled `p1-daemon` from `.signal` file writes, broadcasting `MATRIX_UPDATED` payloads actively over WebSockets for real-time visualization updates.
+    - **CLI Bootloader Resolution**: Refactored `cstar.ts` subprocess delegation to leverage `npx tsx` instead of raw `node` execution, repairing ES module imports for PennyOne.
+- **Git State**: 100% Empire Test Pass Rate. Zero Cowardice Types.
+- **Decisions**:
+    - **Organic Ticks over WebWorkers**: Bypassed shuttling complex D3 state objects across WebWorker boundaries. Instead, permitting organic layout tick resolution inside the `useFrame` loop offers maximum visual fidelity as nodes gradually float into their stable positions via physics integration.
+    - **Bootloader TypeScript Safety**: Raw Node `execa` calls fail to accurately execute TypeScript CLI entry points containing explicit `.ts` relative module imports. Leveraging `npx tsx` is critical to ensuring sub-process TypeScript tools launch harmoniously.
+- **Current State**: PennyOne UI is highly performant, type-safe, and real-time reactive.
+
 ## 2026-03-01 - Session 101: Operation Shadow Forge 
 - **Accomplishments**: 
     - **Shadow Forge Orchestrator**: Extracted the core container building logic from `muninn.py` into a specialized Warden (`src/sentinel/wardens/shadow_forge.py`) for enhanced isolation and testability.

@@ -3,7 +3,7 @@ title: "cstar_dispatcher.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/core/cstar_dispatcher.py"
 loc: 153
 complexity: 30
-logic_score: 1.00
+logic_score: 0.50
 style_score: 3.71
 intel_score: 4.54
 overall_score: 2.58
@@ -13,10 +13,10 @@ overall_score: 2.58
 Python module facilitating CorvusDispatcher, __init__. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 1.0/10
+- **Logic [L]**: 0.5/10
 - **Style [S]**: 3.7/10
 - **Intel [I]**: 4.5/10
-- **Gravity [G]**: 19 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 49 interactions (Agent Activity Hotspot)
 
 
 

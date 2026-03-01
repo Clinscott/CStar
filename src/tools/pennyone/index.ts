@@ -1,13 +1,15 @@
- 
-import { crawlRepository } from './crawler.js';
-import { analyzeFile, FileData } from './analyzer.js';
-import { writeReport } from './intel/writer.js';
-import { compileMatrix, CompiledGraph } from './intel/compiler.js';
-import { registerSpoke } from './intel/database.js';
+
+import { crawlRepository } from './crawler';
+import { analyzeFile, FileData } from './analyzer';
+import { writeReport } from './intel/writer';
+import { compileMatrix, CompiledGraph } from './intel/compiler';
+import { registerSpoke } from './intel/database';
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'node:crypto';
-import { registry } from './pathRegistry.js';
+import { registry } from './pathRegistry';
+import { SemanticIndexer } from './intel/semantic';
+import { Warden } from './intel/warden';
 
 /**
  * Main Execution Entry Point (Operation PennyOne)
@@ -18,21 +20,22 @@ export async function runScan(targetPath: string): Promise<FileData[]> {
     // [Ω] Register this spoke in the central database
     registerSpoke(targetPath);
 
+    // Phase 3: Semantic Pass (Global Registry)
+    const indexer = new SemanticIndexer(targetPath);
+    const semanticGraph = await indexer.index();
+
     const files = await crawlRepository(targetPath);
     const results: FileData[] = [];
 
-    // Load existing matrix for incremental check (Always in project root .stats)
+    // Load existing matrix for incremental check
     let existingGraph: CompiledGraph | null = null;
     const statsDir = path.join(registry.getRoot(), '.stats');
     const graphPath = path.join(statsDir, 'matrix-graph.json');
     try {
         const raw = await fs.readFile(graphPath, 'utf-8');
         existingGraph = JSON.parse(raw);
-    } catch {
-        // No existing graph, full scan
-    }
+    } catch { }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const hashMap = new Map<string, any>();
     if (existingGraph) {
         existingGraph.files.forEach(f => hashMap.set(f.path, f));
@@ -44,9 +47,11 @@ export async function runScan(targetPath: string): Promise<FileData[]> {
             const currentHash = crypto.createHash('md5').update(code).digest('hex');
             const normalizedPath = registry.normalize(file);
 
+            // Get semantic data for this file
+            const semanticData = semanticGraph.files.find(f => registry.normalize(f.path) === normalizedPath);
+
             const existing = hashMap.get(normalizedPath);
             if (existing && existing.hash === currentHash) {
-                // Skip analysis, but keep the data for recompilation
                 results.push({
                     path: file,
                     loc: existing.loc,
@@ -56,14 +61,20 @@ export async function runScan(targetPath: string): Promise<FileData[]> {
                     exports: [],
                     intent: existing.intent,
                     hash: currentHash,
-                    cachedDependencies: existing.dependencies || []
+                    // Use semantic dependencies if available
+                    cachedDependencies: semanticData ? semanticData.dependencies : (existing.dependencies || [])
                 });
                 continue;
             }
 
             const data = await analyzeFile(code, file);
 
-            // Phase 2: Intelligence Generation (Only for new/changed files)
+            // Merge semantic logic score and dependencies
+            if (semanticData) {
+                data.matrix.logic = (data.matrix.logic + semanticData.logic) / 2;
+                data.cachedDependencies = semanticData.dependencies;
+            }
+
             const { intent } = await writeReport(data, targetPath, code);
             data.intent = intent;
 
@@ -73,9 +84,18 @@ export async function runScan(targetPath: string): Promise<FileData[]> {
         }
     }
 
-    // Phase 2: Matrix Compilation
     if (results.length > 0) {
-        await compileMatrix(results, targetPath);
+        const graphPath = await compileMatrix(results, targetPath);
+
+        // Phase 4: Active Threat Assessment (The Warden)
+        try {
+            const raw = await fs.readFile(graphPath, 'utf-8');
+            const graph = JSON.parse(raw);
+            const warden = new Warden();
+            await warden.evaluate(graph);
+        } catch (e: any) {
+            console.warn(`[WARNING] Warden evaluation failed: ${e.message}`);
+        }
     }
 
     return results;

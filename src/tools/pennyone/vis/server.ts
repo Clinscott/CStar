@@ -93,6 +93,11 @@ export function startBridge(targetPath: string, port: number = 4000) {
         handleTelemetryPing(req, res, relay, targetPath);
     });
 
+    app.post('/api/telemetry/trace', bearerAuth, (req: Request, res: Response) => {
+        const { handleTelemetryTrace } = require('../live/telemetry.js');
+        handleTelemetryTrace(req, res, relay);
+    });
+
     app.post('/api/log', bearerAuth, async (req: Request, res: Response) => {
         try {
             const { type, message, stack } = req.body;

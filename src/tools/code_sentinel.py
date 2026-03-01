@@ -199,6 +199,11 @@ class Heimdall:
             for py_file in self.target.rglob("*.py"):
                 violations.extend(self.scan_for_orphans(py_file))
 
+        # [Ω] HEIMDALL SECURITY INTEGRATION: Record violations as traces
+        for v in violations:
+            msg = f"BREACH: {v['message']} in {v['filename']}:{v['location']['row']}"
+            SovereignHUD.persona_log("HEIMDALL", msg)
+
         self.format_results(violations)
         return len(violations) == 0
 

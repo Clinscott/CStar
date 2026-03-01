@@ -3,20 +3,20 @@ title: "test_memory_partitioning.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/unit/test_memory_partitioning.py"
 loc: 41
 complexity: 4
-logic_score: 6.80
+logic_score: 3.40
 style_score: 3.67
 intel_score: 5.30
-overall_score: 5.26
+overall_score: 4.76
 ---
 
 ## Intent
 Python module facilitating TestMemoryPartitioning, setUp. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 6.8/10
+- **Logic [L]**: 3.4/10
 - **Style [S]**: 3.7/10
 - **Intel [I]**: 5.3/10
-- **Gravity [G]**: 2 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 11 interactions (Agent Activity Hotspot)
 
 
 

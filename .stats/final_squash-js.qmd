@@ -3,7 +3,7 @@ title: "final_squash.js"
 path: "C:/Users/Craig/Corvus/CorvusStar/final_squash.js"
 loc: 65
 complexity: 6
-logic_score: 6.55
+logic_score: 3.27
 style_score: 2.78
 intel_score: 10.00
 overall_score: 6.44
@@ -13,10 +13,10 @@ overall_score: 6.44
 A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 6.5/10
+- **Logic [L]**: 3.3/10
 - **Style [S]**: 2.8/10
 - **Intel [I]**: 10.0/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 10 interactions (Agent Activity Hotspot)
 
 
 

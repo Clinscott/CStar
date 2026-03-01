@@ -3,7 +3,7 @@ title: "corvus.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/node/gateway/plugins/corvus.ts"
 loc: 24
 complexity: 1
-logic_score: 8.75
+logic_score: 8.55
 style_score: 9.42
 intel_score: 7.00
 overall_score: 8.39
@@ -13,10 +13,10 @@ overall_score: 8.39
 A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 8.8/10
+- **Logic [L]**: 8.6/10
 - **Style [S]**: 9.4/10
 - **Intel [I]**: 7.0/10
-- **Gravity [G]**: 1 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 5 interactions (Agent Activity Hotspot)
 
 
 

@@ -1,0 +1,38 @@
+---
+title: "test_phase_88_path_sovereignty.test.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_phase_88_path_sovereignty.test.ts"
+loc: 27
+complexity: 1
+logic_score: 7.47
+style_score: 9.35
+intel_score: 8.81
+overall_score: 9.12
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.5/10
+- **Style [S]**: 9.3/10
+- **Intel [I]**: 8.8/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [test](file://vitest)
+- [expect](file://vitest)
+- [getTracesForFile](file://../src/tools/pennyone/intel/database.js)
+- [saveTrace](file://../src/tools/pennyone/intel/database.js)
+
+### Exports
+- `unixPath`
+- `winPath`
+- `missionId`
+- `winResults`
+- `unixResults`
+- `maliciousPath`
+- `results`

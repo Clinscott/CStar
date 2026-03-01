@@ -3,7 +3,7 @@ title: "test_freya_aesthetics_empire.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_freya_aesthetics_empire.py"
 loc: 54
 complexity: 1
-logic_score: 8.75
+logic_score: 4.38
 style_score: 1.00
 intel_score: 5.84
 overall_score: 5.20
@@ -13,10 +13,10 @@ overall_score: 5.20
 Autonomous neural guardian monitoring system drift and anomalies. It exists to enforce strict operational parameters and prevent structural decay. Its role in the system is to act as an automated oversight mechanism during flight cycles.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 8.8/10
+- **Logic [L]**: 4.4/10
 - **Style [S]**: 1.0/10
 - **Intel [I]**: 5.8/10
-- **Gravity [G]**: 4 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 10 interactions (Agent Activity Hotspot)
 
 
 

@@ -107,7 +107,7 @@ export async function compileMatrix(results: FileData[], targetRepo: string): Pr
             complexity: r.complexity,
             matrix: r.matrix,
             intent: r.intent || '...',
-            dependencies: r.cachedDependencies || r.imports
+            dependencies: (r.cachedDependencies ? r.cachedDependencies.map(d => registry.normalize(d)) : null) || r.imports
                 .map(i => resolveDependency(r.path, i.source))
                 .filter((d): d is string => d !== null && d !== registry.normalize(r.path)), // Avoid self-refs
             hash: r.hash,

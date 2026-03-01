@@ -3,20 +3,20 @@ title: "scout_targets.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/scripts/scout_targets.py"
 loc: 77
 complexity: 4
-logic_score: 7.70
+logic_score: 3.85
 style_score: 4.01
 intel_score: 1.40
-overall_score: 4.37
+overall_score: 3.87
 ---
 
 ## Intent
 Python module facilitating scout. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 7.7/10
+- **Logic [L]**: 3.8/10
 - **Style [S]**: 4.0/10
 - **Intel [I]**: 1.4/10
-- **Gravity [G]**: 5 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 17 interactions (Agent Activity Hotspot)
 
 
 

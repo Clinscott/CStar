@@ -3,7 +3,7 @@ title: "verify_hud.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/harness/verify_hud.py"
 loc: 5
 complexity: 1
-logic_score: 9.65
+logic_score: 9.15
 style_score: 9.33
 intel_score: 1.40
 overall_score: 6.79
@@ -13,10 +13,10 @@ overall_score: 6.79
 Python module facilitating internal logic. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 9.6/10
+- **Logic [L]**: 9.1/10
 - **Style [S]**: 9.3/10
 - **Intel [I]**: 1.4/10
-- **Gravity [G]**: 2 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 5 interactions (Agent Activity Hotspot)
 
 
 

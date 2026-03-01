@@ -3,20 +3,20 @@ title: "graph_integrity.test.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/node/pennyone/graph_integrity.test.ts"
 loc: 56
 complexity: 4
-logic_score: 6.35
+logic_score: 3.17
 style_score: 5.64
 intel_score: 9.26
-overall_score: 7.08
+overall_score: 6.58
 ---
 
 ## Intent
 A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 6.3/10
+- **Logic [L]**: 3.2/10
 - **Style [S]**: 5.6/10
 - **Intel [I]**: 9.3/10
-- **Gravity [G]**: 1 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 11 interactions (Agent Activity Hotspot)
 
 
 

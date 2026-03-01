@@ -3,7 +3,7 @@ title: "git_monitor.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/intel/git_monitor.ts"
 loc: 58
 complexity: 5
-logic_score: 6.45
+logic_score: 4.05
 style_score: 4.00
 intel_score: 6.14
 overall_score: 5.53
@@ -13,10 +13,10 @@ overall_score: 5.53
 A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 6.5/10
+- **Logic [L]**: 4.1/10
 - **Style [S]**: 4.0/10
 - **Intel [I]**: 6.1/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 10 interactions (Agent Activity Hotspot)
 
 
 

@@ -1,0 +1,30 @@
+---
+title: "test_bridge_direct.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_bridge_direct.py"
+loc: 21
+complexity: 2
+logic_score: 7.38
+style_score: 4.00
+intel_score: 1.40
+overall_score: 4.60
+---
+
+## Intent
+Python module facilitating test. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.4/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [asyncio](file://asyncio)
+- [json](file://json)
+
+### Exports
+- `test`

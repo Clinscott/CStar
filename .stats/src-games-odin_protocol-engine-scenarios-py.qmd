@@ -3,20 +3,20 @@ title: "scenarios.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/games/odin_protocol/engine/scenarios.py"
 loc: 332
 complexity: 17
-logic_score: 2.25
+logic_score: 1.13
 style_score: 3.42
 intel_score: 4.53
-overall_score: 3.40
+overall_score: 2.90
 ---
 
 ## Intent
 Core semantic routing engine for intent resolution. It exists to map unstructured user inputs to distinct execution pathways. Its role in the system is to serve as the primary cognitive junction between natural language and operational logic.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 2.3/10
+- **Logic [L]**: 1.1/10
 - **Style [S]**: 3.4/10
 - **Intel [I]**: 4.5/10
-- **Gravity [G]**: 3 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 38 interactions (Agent Activity Hotspot)
 
 
 

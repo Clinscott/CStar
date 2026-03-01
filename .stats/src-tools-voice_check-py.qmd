@@ -3,20 +3,20 @@ title: "voice_check.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/voice_check.py"
 loc: 28
 complexity: 3
-logic_score: 8.05
+logic_score: 4.72
 style_score: 3.87
 intel_score: 9.40
-overall_score: 7.11
+overall_score: 6.61
 ---
 
 ## Intent
 Python module facilitating run_voice_diagnostic, main. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 8.0/10
+- **Logic [L]**: 4.7/10
 - **Style [S]**: 3.9/10
 - **Intel [I]**: 9.4/10
-- **Gravity [G]**: 4 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 15 interactions (Agent Activity Hotspot)
 
 
 

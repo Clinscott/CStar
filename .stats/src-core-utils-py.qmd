@@ -3,20 +3,20 @@ title: "utils.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/core/utils.py"
 loc: 53
 complexity: 4
-logic_score: 6.35
+logic_score: 3.17
 style_score: 3.98
 intel_score: 9.40
-overall_score: 6.58
+overall_score: 6.08
 ---
 
 ## Intent
 Python module facilitating load_config, safe_read_json. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 6.3/10
+- **Logic [L]**: 3.2/10
 - **Style [S]**: 4.0/10
 - **Intel [I]**: 9.4/10
-- **Gravity [G]**: 9 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 21 interactions (Agent Activity Hotspot)
 
 
 

@@ -1,22 +1,22 @@
 ---
 title: "raven_proxy.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/harness/raven_proxy.py"
-loc: 101
-complexity: 12
-logic_score: 3.10
-style_score: 3.69
-intel_score: 4.57
-overall_score: 3.78
+loc: 23
+complexity: 2
+logic_score: 4.67
+style_score: 3.70
+intel_score: 8.36
+overall_score: 6.17
 ---
 
 ## Intent
 Python module facilitating RavenProxy, __init__. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 3.1/10
+- **Logic [L]**: 4.7/10
 - **Style [S]**: 3.7/10
-- **Intel [I]**: 4.6/10
-- **Gravity [G]**: 4 interactions (Agent Activity Hotspot)
+- **Intel [I]**: 8.4/10
+- **Gravity [G]**: 17 interactions (Agent Activity Hotspot)
 
 
 
@@ -27,14 +27,8 @@ Python module facilitating RavenProxy, __init__. It exists to support broader Py
 - [os](file://os)
 - [time](file://time)
 - [pathlib](file://pathlib)
-- [google](file://google)
-- [unittest.mock](file://unittest.mock)
-- [src.core.sovereign_hud](file://src.core.sovereign_hud)
 
 ### Exports
 - `RavenProxy`
 - `__init__`
-- `models`
-- `generate_content`
-- `_inject_lessons`
-- `_generate_mock_response`
+- `send_payload`

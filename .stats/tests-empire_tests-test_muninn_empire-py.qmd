@@ -3,7 +3,7 @@ title: "test_muninn_empire.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_muninn_empire.py"
 loc: 97
 complexity: 6
-logic_score: 6.10
+logic_score: 3.05
 style_score: 3.66
 intel_score: 1.40
 overall_score: 3.22
@@ -13,10 +13,10 @@ overall_score: 3.22
 Python module facilitating teardown_module, TestMuninnEmpire. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 6.1/10
+- **Logic [L]**: 3.0/10
 - **Style [S]**: 3.7/10
 - **Intel [I]**: 1.4/10
-- **Gravity [G]**: 11 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 35 interactions (Agent Activity Hotspot)
 
 
 

@@ -16,7 +16,7 @@ const logToServer = async (type: string, message: string, stack?: string) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ type, message, stack })
         });
-    } catch (_e) {}
+    } catch (_e) { }
 };
 
 class MatrixErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean, error: any }> {
@@ -25,8 +25,8 @@ class MatrixErrorBoundary extends Component<{ children: ReactNode }, { hasError:
         this.state = { hasError: false, error: null };
     }
     static getDerivedStateFromError(error: any) { return { hasError: true, error }; }
-    componentDidCatch(error: any, info: any) { 
-        console.error('Matrix Crash:', error, info); 
+    componentDidCatch(error: any, info: any) {
+        console.error('Matrix Crash:', error, info);
         logToServer('CRASH', error.message, error.stack);
     }
     render() {
@@ -35,7 +35,9 @@ class MatrixErrorBoundary extends Component<{ children: ReactNode }, { hasError:
                 <div style={{ color: '#ff4d4d', padding: '40px', fontFamily: 'monospace', textAlign: 'center', background: '#050000', height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                     <h1>[O.D.I.N.]: CRITICAL RUNTIME EXCEPTION</h1>
                     <p style={{ opacity: 0.6 }}>The neural graph has collapsed under its own gravity.</p>
-                    <pre style={{ fontSize: '10px', marginTop: '20px', color: '#666' }}>{this.state.error?.message}</pre>
+                    <pre style={{ fontSize: '12px', marginTop: '20px', color: '#ffaaaa', textAlign: 'left', whiteSpace: 'pre-wrap', maxHeight: '50vh', overflow: 'auto' }}>
+                        {this.state.error?.stack || this.state.error?.message}
+                    </pre>
                     <button onClick={() => window.location.reload()} style={{ marginTop: '20px', padding: '10px', background: '#ff4d4d', color: '#000', border: 'none', cursor: 'pointer' }}>REBOOT MATRIX</button>
                 </div>
             );
@@ -102,7 +104,7 @@ export const App: React.FC = () => {
             <MatrixErrorBoundary>
                 {matrixData ? (
                     <>
-                        <Canvas shadows gl={{ antialias: true, alpha: true }}>
+                        <Canvas shadows gl={{ antialias: false, alpha: true, stencil: false, depth: true }} dpr={[1, 2]}>
                             <PerspectiveCamera makeDefault position={[0, 300, 800]} fov={60} far={20000} />
                             <color attach="background" args={['#00050a']} />
                             <fogExp2 attach="fog" args={['#00050a', 0.0001]} />
@@ -117,6 +119,8 @@ export const App: React.FC = () => {
                                     onNodesMapped={setNodeMap}
                                 />
                             </React.Suspense>
+
+
 
                             <OrbitControls makeDefault enableDamping maxDistance={10000} minDistance={50} />
                         </Canvas>
@@ -133,8 +137,8 @@ export const App: React.FC = () => {
                             isLive={isLive}
                             onToggleLive={() => setIsLive(!isLive)}
                             isRecording={false}
-                            onStartRecording={() => {}}
-                            onStopRecording={() => {}}
+                            onStartRecording={() => { }}
+                            onStopRecording={() => { }}
                         />
                     </>
                 ) : (

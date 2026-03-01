@@ -90,6 +90,7 @@ class UniverseState:
     planets_dominated: int = 0          # New metric for total conquest
     mutation_charges: int = 0           # Capacity based on conquest
     total_turns_played: int = 0         # Monotonically increasing counter
+    last_processed_trace_id: int = 0    # Tracking PennyOne successes
 
     # Resources
     force: float = 100.0                # Tactical resource
@@ -129,6 +130,7 @@ class UniverseState:
             "planets_dominated": self.planets_dominated,
             "mutation_charges": self.mutation_charges,
             "total_turns_played": self.total_turns_played,
+            "last_processed_trace_id": self.last_processed_trace_id,
             "force": self.force,
             "current_planet_name": self.current_planet_name,
             "current_planet_progress": self.current_planet_progress,
@@ -154,5 +156,9 @@ class UniverseState:
 
         items_data = data.pop("items", [])
         items = [Item.from_dict(i) for i in items_data]
+
+        # Handle legacy or partial states missing seed
+        if "seed" not in data:
+            data["seed"] = "C*FALLBACK_GENESIS"
 
         return cls(inventory=inventory, items=items, **data)

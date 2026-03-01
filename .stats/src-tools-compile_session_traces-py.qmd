@@ -3,20 +3,20 @@ title: "compile_session_traces.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/compile_session_traces.py"
 loc: 102
 complexity: 21
-logic_score: 1.45
+logic_score: 0.72
 style_score: 3.83
 intel_score: 3.75
-overall_score: 3.01
+overall_score: 2.51
 ---
 
 ## Intent
 Python module facilitating TraceAnalyzer, __init__. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 1.4/10
+- **Logic [L]**: 0.7/10
 - **Style [S]**: 3.8/10
 - **Intel [I]**: 3.8/10
-- **Gravity [G]**: 8 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 19 interactions (Agent Activity Hotspot)
 
 
 

@@ -3,7 +3,7 @@ title: "test_mimir_empire.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_mimir_empire.py"
 loc: 47
 complexity: 4
-logic_score: 7.25
+logic_score: 3.63
 style_score: 3.91
 intel_score: 8.21
 overall_score: 6.45
@@ -13,10 +13,10 @@ overall_score: 6.45
 Python module facilitating TestMimirEmpire, mock_root. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 7.3/10
+- **Logic [L]**: 3.6/10
 - **Style [S]**: 3.9/10
 - **Intel [I]**: 8.2/10
-- **Gravity [G]**: 2 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 7 interactions (Agent Activity Hotspot)
 
 
 

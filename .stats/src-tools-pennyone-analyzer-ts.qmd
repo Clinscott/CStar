@@ -3,39 +3,100 @@ title: "analyzer.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/analyzer.ts"
 loc: 210
 complexity: 30
-logic_score: 1.00
+logic_score: 0.50
 style_score: 3.91
 intel_score: 6.00
-overall_score: 3.64
+overall_score: 3.14
 ---
 
 ## Intent
-Calculates structural logic density using CC and nesting metrics.
+Calculates structural logic density using CC and nesting metrics. It exists to quantify the cognitive load required to maintain specific modules. Its role in the system is to drive the architectural discipline enforced by the Linscott Standard.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 1.0/10
+- **Logic [L]**: 0.5/10
 - **Style [S]**: 3.9/10
 - **Intel [I]**: 6.0/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 53 interactions (Agent Activity Hotspot)
 
 
 
 ## Neural Pathways
 
 ### Imports
-- [*](file://./parser.js)
+- [getParser](file://./parser.js)
+- [TreeSitter](file://./parser.js)
 - [*](file://node:crypto)
 - [*](file://node:fs/promises)
 - [*](file://node:path)
-- [*](file://./calculus/logic.js)
-- [*](file://./calculus/style.js)
-- [*](file://./calculus/intel.js)
-- [*](file://./intel/gravity_db.js)
-- [*](file://./pathRegistry.js)
+- [calculateLogicScore](file://./calculus/logic.js)
+- [calculateStyleScore](file://./calculus/style.js)
+- [calculateIntelScore](file://./calculus/intel.js)
+- [getFileGravity](file://./intel/gravity_db.js)
+- [registry](file://./pathRegistry.js)
 
 ### Exports
 - `analyzeFile`
+- `analyzeFile`
+- `loc`
+- `hash`
+- `endpoints`
+- `isApi`
+- `docResult`
+- `gravity`
+- `getParser`
+- `tree`
+- `complexity`
+- `maxNesting`
+- `imports`
+- `exports`
+- `complexityQuerySource`
+- `complexityQuery`
+- `matches`
+- `traverse`
+- `i`
+- `child`
+- `pyQuery`
+- `pyMatches`
+- `node`
+- `jsQuery`
+- `jsMatches`
+- `node`
+- `sourceNodes`
+- `src`
+- `specifiers`
+- `importedNode`
+- `aliasNode`
+- `imported`
+- `local`
+- `idNode`
+- `idNodes`
+- `filtered`
+- `logicValue`
+- `style`
+- `intel`
+- `gravity`
+- `anomalyScore`
+- `penalty`
+- `overall`
 - `detectEndpoints`
+- `endpoints`
+- `routeRegex`
+- `nextJsRegex`
+- `fastapiRegex`
+- `match`
+- `rel`
 - `getSystemAnomaly`
+- `statePath`
+- `raw`
+- `data`
 - `analyzeMarkdown`
+- `imports`
+- `exports`
+- `linkRegex`
+- `match`
+- `nameMatch`
 - `calculateLOC`
+- `isPython`
+- `commentRegex`
+- `cleanCode`
+- `content`

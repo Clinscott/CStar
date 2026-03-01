@@ -1,0 +1,43 @@
+---
+title: "test_pennyone_warden_empire.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_pennyone_warden_empire.ts"
+loc: 72
+complexity: 4
+logic_score: 4.80
+style_score: 3.84
+intel_score: 6.40
+overall_score: 5.68
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 4.8/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 6.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [describe](file://node:test)
+- [it](file://node:test)
+- [before](file://node:test)
+- [after](file://node:test)
+- [*](file://node:assert)
+- [*](file://node:path)
+- [*](file://node:fs)
+- [Warden](file://../../src/tools/pennyone/intel/warden.js)
+- [CompiledGraph](file://../../src/tools/pennyone/intel/compiler.js)
+
+### Exports
+- `agentDir`
+- `ledgerPath`
+- `mockGraph`
+- `warden`
+- `ledger`
+- `bounty`
+- `healthy`

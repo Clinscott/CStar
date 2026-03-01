@@ -26,13 +26,15 @@ test('◤ EMPIRE: P1 DAEMON LIFECYCLE ◢', async (t) => {
         }
     });
 
-    await t.test('Signal File Generation', () => {
+    await t.test('Signal Archive Verification (CortexLink Upgrade)', () => {
         const signalFile = path.join(statsDir, 'p1-refresh.signal');
-        // We simulate a scan trigger or check for current file
-        if (fs.existsSync(signalFile)) {
-            const content = fs.readFileSync(signalFile, 'utf-8');
-            assert.ok(/^\d+$/.test(content), 'Signal file must contain a valid timestamp.');
-        }
+        assert.ok(!fs.existsSync(signalFile), 'The legacy p1-refresh.signal file must no longer be generated.');
+    });
+
+    await t.test('CortexLink Broadcast Implementation', async () => {
+        // Here we ensure CortexLink is exposed, in reality the daemon executes it as a client broadcast
+        const { CortexLink } = await import('../../src/node/cortex_link.js');
+        assert.ok(typeof CortexLink === 'function', 'CortexLink bridge must be accessible to Daemon');
     });
 });
 
@@ -40,16 +42,16 @@ test('◤ EMPIRE: TEMPORAL CHRONOGRAPH ◢', async (t) => {
     await t.test('Git Churn Extraction', async () => {
         const currentFile = path.join(registry.getRoot(), 'package.json');
         const churn = await GitChronograph.getFileChurn(currentFile);
-        
-        assert.ok(churn.commitCount >= 0, 'Commit count must be a non-negative integer.');
-        assert.ok(typeof churn.linesChanged === 'number', 'Lines changed should be a number.');
+
+        assert.ok(churn.commits30d >= 0, 'Commit count must be a non-negative integer.');
+        assert.ok(typeof churn.lines7d === 'number', 'Lines changed should be a number.');
         assert.ok(churn.lastModified > 0, 'Last modified should be a valid epoch.');
     });
 
     await t.test('Gravity Fusion Calculation', async () => {
         const testFile = path.join(registry.getRoot(), 'cstar.ts');
         const gravity = await getFileGravity(testFile);
-        
+
         assert.ok(gravity >= 0, 'Fused gravity must be non-negative.');
         // If it's a known file with history, gravity should be > 0
         assert.ok(gravity > 0, 'Gungnir Matrix: cstar.ts should have historical gravity.');

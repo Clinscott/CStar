@@ -3,7 +3,7 @@ title: "test_expand_thesaurus_empire.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_expand_thesaurus_empire.py"
 loc: 23
 complexity: 6
-logic_score: 5.65
+logic_score: 4.90
 style_score: 4.06
 intel_score: 1.40
 overall_score: 3.70
@@ -13,10 +13,10 @@ overall_score: 3.70
 Python module facilitating test_thesaurus_expansion_logic, test_thesaurus_script_execution. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 5.6/10
+- **Logic [L]**: 4.9/10
 - **Style [S]**: 4.1/10
 - **Intel [I]**: 1.4/10
-- **Gravity [G]**: 2 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 5 interactions (Agent Activity Hotspot)
 
 
 

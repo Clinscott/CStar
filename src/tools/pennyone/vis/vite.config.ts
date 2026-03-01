@@ -18,6 +18,6 @@ export default defineConfig({
     },
     build: {
         outDir: '../../../../dist/pennyone-vis',
-        emptyOutDir: true
+        emptyOutDir: true, sourcemap: true
     }
 });

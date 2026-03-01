@@ -3,7 +3,7 @@ title: "warden_latency.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/benchmarks/warden_latency.py"
 loc: 53
 complexity: 5
-logic_score: 7.35
+logic_score: 6.60
 style_score: 3.76
 intel_score: 1.40
 overall_score: 4.17
@@ -13,10 +13,10 @@ overall_score: 4.17
 Python module facilitating run_benchmark. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 7.3/10
+- **Logic [L]**: 6.6/10
 - **Style [S]**: 3.8/10
 - **Intel [I]**: 1.4/10
-- **Gravity [G]**: 2 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 6 interactions (Agent Activity Hotspot)
 
 
 

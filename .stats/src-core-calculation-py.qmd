@@ -1,0 +1,29 @@
+---
+title: "calculation.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/core/calculation.py"
+loc: 2
+complexity: 1
+logic_score: 8.95
+style_score: 9.19
+intel_score: 9.40
+overall_score: 9.26
+---
+
+## Intent
+Python module facilitating add_numbers. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.9/10
+- **Style [S]**: 9.2/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+Minimal internal dependencies.
+
+### Exports
+- `add_numbers`

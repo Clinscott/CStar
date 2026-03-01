@@ -1,0 +1,25 @@
+# [Ω] SOVEREIGN CONTRACT: PENNYONE_INDEXING
+## Behavioral Specification (Gherkin)
+
+**Feature**: PennyOne Chronicler Indexing
+  As the system's Hall of Records
+  I must crawl the repository and generate semantic intelligence
+  So that the collective has a complete and accurate understanding of the workspace.
+
+  **Scenario**: Repository Crawling and File Identification
+    Given a target repository path containing files
+    When the PennyOne crawler is executed
+    Then it must identify all files within the target path
+    And it must generate a metadata report for each file.
+
+  **Scenario**: Incremental Analysis with Hash Matching
+    Given an existing file matrix with file hashes
+    When a file hash matches the current hash during a scan
+    Then the file's metadata should be retrieved from the cache
+    And the file should not be re-analyzed.
+
+  **Scenario**: .stats Directory Generation
+    Given a successful repository scan
+    When the compiler processes the scan results
+    Then it must generate or update the .stats directory
+    And the matrix-graph.json must be correctly updated.

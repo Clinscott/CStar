@@ -3,20 +3,20 @@ title: "agent_loop.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/node/agent_loop.ts"
 loc: 49
 complexity: 7
-logic_score: 6.65
+logic_score: 4.95
 style_score: 3.73
 intel_score: 10.00
-overall_score: 6.79
+overall_score: 6.29
 ---
 
 ## Intent
 A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 6.7/10
+- **Logic [L]**: 5.0/10
 - **Style [S]**: 3.7/10
 - **Intel [I]**: 10.0/10
-- **Gravity [G]**: 2 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 13 interactions (Agent Activity Hotspot)
 
 
 

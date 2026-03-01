@@ -3,20 +3,20 @@ title: "test_decoupling_empire.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_decoupling_empire.py"
 loc: 50
 complexity: 3
-logic_score: 7.60
+logic_score: 3.88
 style_score: 3.79
 intel_score: 7.80
-overall_score: 6.40
+overall_score: 5.90
 ---
 
 ## Intent
 Python module facilitating test_uplink_emits_directive_in_gemini_mode, test_muninn_initialization_decoupled. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 7.6/10
+- **Logic [L]**: 3.9/10
 - **Style [S]**: 3.8/10
 - **Intel [I]**: 7.8/10
-- **Gravity [G]**: 1 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 12 interactions (Agent Activity Hotspot)
 
 
 

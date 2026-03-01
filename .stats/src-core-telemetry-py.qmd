@@ -1,0 +1,38 @@
+---
+title: "telemetry.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/core/telemetry.py"
+loc: 64
+complexity: 3
+logic_score: 5.22
+style_score: 3.62
+intel_score: 8.28
+overall_score: 6.35
+---
+
+## Intent
+Python module facilitating SubspaceTelemetry, flare. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 5.2/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 8.3/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [time](file://time)
+- [requests](file://requests)
+- [typing](file://typing)
+- [pathlib](file://pathlib)
+- [json](file://json)
+- [websockets.sync.client](file://websockets.sync.client)
+
+### Exports
+- `SubspaceTelemetry`
+- `flare`
+- `log_trace`
+- `broadcast_alert_to_daemon`

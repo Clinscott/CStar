@@ -1,0 +1,27 @@
+# [Ω] SOVEREIGN CONTRACT: MUNINN_ORCHESTRATION
+## Behavioral Specification (Gherkin)
+
+**Feature**: Muninn Intelligence Orchestrator
+  As the central daemon of the CorvusStar collective
+  I must route queries between deterministic commands and the Antigravity Uplink
+  So that the system remains responsive and context-aware.
+
+  **Scenario**: Routing Deterministic Commands
+    Given a query that matches a registered command in the registry
+    When the daemon's routing engine processes the query
+    Then the status must be "success"
+    And the type must be "deterministic"
+    And the target path must be correctly identified.
+
+  **Scenario**: Routing Low-Confidence Queries (Alfred Uplink)
+    Given a query that does not match any deterministic command (Low Score)
+    When the daemon's routing engine processes the query
+    Then the system must trigger the Antigravity Uplink
+    And the response type must be "uplink"
+    And the persona must default to "ALFRED".
+
+  **Scenario**: Sleep Protocol Persistence
+    Given an active session with traces in memory
+    When the sleep protocol is executed
+    Then all session traces must be persisted to the filesystem
+    And the session context must be cleared.

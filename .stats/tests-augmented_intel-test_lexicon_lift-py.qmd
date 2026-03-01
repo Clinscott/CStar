@@ -3,20 +3,20 @@ title: "test_lexicon_lift.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/augmented_intel/test_lexicon_lift.py"
 loc: 26
 complexity: 1
-logic_score: 7.85
+logic_score: 3.92
 style_score: 3.90
 intel_score: 4.48
-overall_score: 5.41
+overall_score: 4.91
 ---
 
 ## Intent
 Python module facilitating TestLexiconLift, test_lexicon_lift_trigger. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 7.8/10
+- **Logic [L]**: 3.9/10
 - **Style [S]**: 3.9/10
 - **Intel [I]**: 4.5/10
-- **Gravity [G]**: 4 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 11 interactions (Agent Activity Hotspot)
 
 
 

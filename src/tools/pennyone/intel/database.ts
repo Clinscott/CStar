@@ -55,9 +55,45 @@ export function getDb(_targetRepo?: string): Database.Database {
         CREATE INDEX IF NOT EXISTS idx_pings_session ON pings(session_id);
         CREATE INDEX IF NOT EXISTS idx_pings_path ON pings(target_path);
         CREATE INDEX IF NOT EXISTS idx_sessions_spoke ON sessions(spoke_id);
+
+        CREATE TABLE IF NOT EXISTS mission_traces (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            mission_id TEXT,
+            file_path TEXT,
+            target_metric TEXT,
+            initial_score REAL,
+            final_score REAL,
+            justification TEXT,
+            status TEXT,
+            timestamp INTEGER
+        );
     `);
 
     return db;
+}
+
+/**
+ * Persists a Mission Trace to the database.
+ * @param {any} trace - The trace data
+ */
+export async function saveTrace(trace: any) {
+    const database = getDb();
+    const stmt = database.prepare(`
+        INSERT INTO mission_traces (
+            mission_id, file_path, target_metric, initial_score, final_score, justification, status, timestamp
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    
+    stmt.run(
+        trace.mission_id,
+        trace.file_path,
+        trace.target_metric,
+        trace.initial_score,
+        trace.final_score || 0,
+        trace.justification,
+        trace.status,
+        trace.timestamp || Date.now()
+    );
 }
 
 /**
@@ -142,6 +178,22 @@ export function getSessionsWithSummaries(targetRepo: string) {
             summary: `Agent ${s.agent_id} performed ${s.total_pings} actions over ${duration}s. Primary focus: ${targetFile}.`
         };
     });
+}
+
+/**
+ * Retrieves mission traces for a specific file in chronological order.
+ * @param {string} filePath - The file path to query
+ * @returns {any[]} The traces
+ */
+export function getTracesForFile(filePath: string): any[] {
+    const database = getDb();
+    // Use like matching to handle absolute/relative path variations
+    const normalizedPath = filePath.replace(/\\/g, '/');
+    return database.prepare(`
+        SELECT * FROM mission_traces 
+        WHERE file_path LIKE ? 
+        ORDER BY timestamp ASC
+    `).all(`%${normalizedPath}%`) as any[];
 }
 
 /**

@@ -1,5 +1,14 @@
 # Corvus Star Memory
 
+## 2026-03-01: Session 103 (PennyOne Structural Rectification & Engine Subprocessing)
+- **Non-Blocking D3 Physics**: Shuttling deeply nested D3 force layout nodes across a WebWorker boundary in React Three Fiber is a serialization bottleneck. Allowing D3 to tick organically via `force.tick()` inside the `useFrame` render loop prevents main-thread lockups and yields visually pleasing, float-in physics initialization.
+- **CLI Subprocess Bootstrapping**: Spawning a raw `node` child process via `execa` to execute a TypeScript CLI script bypasses loader enhancements, creating catastrophic `ERR_MODULE_NOT_FOUND` errors for explicit `.js` or `.ts` local imports. Dispatchers must utilize `npx tsx` (or equivalent execution TS loaders) to maintain module resolution parity for child-process TS binaries.
+- **Signal Files vs WebSocket Streams**: Relying on archaic file-watcher polling (`.signal` files) to trigger client HUD updates leads to visual jitter and high I/O latency. Integrating a native `WebSocket` stream (`MATRIX_UPDATED`) via `CortexLink` establishes true real-time declarative sync for graph hydration without file-system tax.
+
+## 2026-03-01: Session 102 (Muninn Continuous Ledger Refactor & Watcher Integration)
+- **Environmental Awareness via `.mtime`**: Relying on PID files to determine if the repository is "active" is insufficient; a developer might be actively writing code without triggering a specific CLI task. Checking the `st_mtime` recursively across source directories (`src/`, `tests/`) provides a foolproof "Silence Protocol" to prevent autonomous agents from mutating files underneath the operator.
+- **Escalation over Oscillation**: Autonomous repair agents must have a failure threshold. Allowing an agent to infinitely retry a complex refactor wastes LLM tokens and pollutes the git history. Implementing a strict 3-strike rule that escalates state to `BLOCKED_STUCK` in a centralized ledger protects the system and surfaces the hardest problems directly to the human architect.
+
 ## 2026-03-01: Session 101 (Muninn Resilience & Shadow Forge)
 - **Heartbeat Telemetry**: In long-running autonomous tasks (like LLM container generation), establishing a PID at the beginning and clearing it at the end is insufficient if the main routine crashes or hangs silently. Injecting an explicit "pulse" (`Path.touch(exist_ok=True)`) during intensive nested loops guarantees the system monitor retains an accurate lock on the cycle's health.
 - **Subprocess Vulnerability Isolation**: Subprocess executions embedded deep within autonomous background agents (e.g. Docker commands) must have logic to explicitly discard ANSI terminal code manipulation. Forcing the subprocess target to emit strictly formatted JSON payloads instead of regex-targeted strings prevents violent exceptions when standard out is polluted.

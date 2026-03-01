@@ -3,20 +3,20 @@ title: "shadow_forge.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/sentinel/wardens/shadow_forge.py"
 loc: 146
 complexity: 11
-logic_score: 3.90
+logic_score: 1.95
 style_score: 3.71
 intel_score: 4.14
-overall_score: 3.92
+overall_score: 3.42
 ---
 
 ## Intent
 Autonomous neural guardian monitoring system drift and anomalies. It exists to enforce strict operational parameters and prevent structural decay. Its role in the system is to act as an automated oversight mechanism during flight cycles.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 3.9/10
+- **Logic [L]**: 1.9/10
 - **Style [S]**: 3.7/10
 - **Intel [I]**: 4.1/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 20 interactions (Agent Activity Hotspot)
 
 
 

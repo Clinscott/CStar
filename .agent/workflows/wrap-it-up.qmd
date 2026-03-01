@@ -8,7 +8,7 @@ description: The Sovereign Commit & Dynamic Sync. Finalizes session, syncs state
    - Update `walkthrough.qmd` (Session accomplishments).
    - Update `dev_journal.qmd` (Reflections).
    - Update `memory.qmd` (Lessons learned).
-3. **Shutdown Dev Servers**: Kill any dev servers running from the current project directory.
+3. **Shutdown Dev Servers**: Kill any dev servers running from the current project directory, EXCLUDING the Sovereign core nodes (PennyOne, Bridge, Ravens).
    ```powershell
    # Find and stop node/python processes whose working directory is under this project
    $projectRoot = (Get-Location).Path
@@ -16,8 +16,15 @@ description: The Sovereign Commit & Dynamic Sync. Finalizes session, syncs state
      Where-Object { try { (Get-Process -Id $_.Id).Path -and $_.MainModule.FileName } catch { $false } } |
      ForEach-Object {
        $cmdLine = (Get-CimInstance Win32_Process -Filter "ProcessId=$($_.Id)").CommandLine
-       if ($cmdLine -match [regex]::Escape($projectRoot)) {
-         Write-Host "Stopping $($_.ProcessName) (PID: $($_.Id))"
+       
+       # MANDATE: Do not shut down the Sovereign Collective's vital organs.
+       $isCoreNode = $cmdLine -match "pennyone" -or 
+                     $cmdLine -match "antigravity_bridge" -or 
+                     $cmdLine -match "src\.cstar\.core\.daemon" -or
+                     $cmdLine -match "daemon\.py"
+
+       if ($cmdLine -match [regex]::Escape($projectRoot) -and -not $isCoreNode) {
+         Write-Host "Stopping dev server: $($_.ProcessName) (PID: $($_.Id))"
          Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue
        }
      }

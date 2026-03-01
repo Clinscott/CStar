@@ -3,20 +3,20 @@ title: "axe-check.js"
 path: "C:/Users/Craig/Corvus/CorvusStar/docs/site_libs/quarto-html/axe/axe-check.js"
 loc: 128
 complexity: 6
-logic_score: 5.20
+logic_score: 2.60
 style_score: 1.00
 intel_score: 3.56
-overall_score: 3.25
+overall_score: 2.75
 ---
 
 ## Intent
 A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 5.2/10
+- **Logic [L]**: 2.6/10
 - **Style [S]**: 1.0/10
 - **Intel [I]**: 3.6/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 17 interactions (Agent Activity Hotspot)
 
 
 

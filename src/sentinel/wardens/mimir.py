@@ -5,6 +5,7 @@ Purpose: Identify cyclomatic complexity and maintainability issues.
 """
 
 import contextlib
+import time
 from typing import Any
 
 from radon.complexity import cc_visit
@@ -97,5 +98,16 @@ class MimirWarden(BaseWarden):
                             "line": 1
                         })
 
+                # --- [Ω] PROACTIVE ARCHITECTURAL FEEDBACK (Phase 89) ---
+                if mi_score < 60: # Suggestion threshold (higher than breach)
+                    from src.core.telemetry import SubspaceTelemetry
+                    SubspaceTelemetry.log_trace(
+                        mission_id=f"MIMIR-{int(time.time())}",
+                        file_path=rel_path,
+                        target_metric="SUGGESTION",
+                        initial_score=mi_score,
+                        justification=f"Refactoring of '{py_file.name}' suggested to improve maintainability (MI: {mi_score:.2f}).",
+                        status="ADVICE"
+                    )
 
         return targets

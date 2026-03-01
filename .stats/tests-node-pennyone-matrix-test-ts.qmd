@@ -3,7 +3,7 @@ title: "matrix.test.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/node/pennyone/matrix.test.ts"
 loc: 29
 complexity: 1
-logic_score: 9.20
+logic_score: 8.85
 style_score: 9.40
 intel_score: 6.92
 overall_score: 8.50
@@ -13,10 +13,10 @@ overall_score: 8.50
 Calculates structural logic density using CC and nesting metrics. It exists to quantify the cognitive load required to maintain specific modules. Its role in the system is to drive the architectural discipline enforced by the Linscott Standard.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 9.2/10
+- **Logic [L]**: 8.8/10
 - **Style [S]**: 9.4/10
 - **Intel [I]**: 6.9/10
-- **Gravity [G]**: 1 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 6 interactions (Agent Activity Hotspot)
 
 
 

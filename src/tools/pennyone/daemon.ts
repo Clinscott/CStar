@@ -5,6 +5,7 @@ import { runScan } from './index.js';
 import { registry } from './pathRegistry.js';
 import chalk from 'chalk';
 import { activePersona } from './personaRegistry.js';
+import { CortexLink } from '../../node/cortex_link.js';
 
 /**
  * P1 Daemon: The Autonomic Nervous System
@@ -83,11 +84,15 @@ ${activePersona.prefix}: "P1 Daemon ignited. Monitoring neural pathways in ${thi
             console.log(chalk.blue(`${activePersona.prefix}: "Structural shift detected. Recompiling the Gungnir Matrix..."`));
             await runScan(this.targetPath);
             console.log(chalk.green(`${activePersona.prefix}: "Matrix recompiled successfully."`));
-            
-            // Signal to the proxy if it's running (via a simple signal file for now)
-            const signalFile = path.join(this.statsDir, 'p1-refresh.signal');
-            fs.writeFileSync(signalFile, Date.now().toString(), 'utf-8');
-            
+
+            // Broadcast to the React Frontend via CortexLink
+            try {
+                const link = new CortexLink();
+                await link.sendCommand('MATRIX_UPDATED');
+            } catch (broadcastError) {
+                console.warn(chalk.dim(`${activePersona.prefix}: WebSocket broadcast offline. Proceeding autonomously.`));
+            }
+
         } catch (error) {
             console.error(chalk.red(`${activePersona.prefix}: "Scan failed during background operation."`), error);
         } finally {

@@ -72,5 +72,13 @@
     ],
     "status": "ACTIVE"
   },
-  "last_anomaly_score": 7.124576406741285e-218
+  "last_anomaly_score": 7.124576406741285e-218,
+  "src/core/utils.py": {
+    "last_edited": 1772386478.2602162,
+    "edit_count_24h": 1,
+    "content_hashes": [
+      "04f1089251a830760777427f5af4f79b"
+    ],
+    "status": "ACTIVE"
+  }
 }

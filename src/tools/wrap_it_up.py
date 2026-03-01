@@ -54,10 +54,15 @@ class SovereignWrapper:
 
         SovereignHUD.box_separator()
 
-        SovereignHUD.box_row("STEP 2", "Gungnir Matrix", SovereignHUD.CYAN)
+        SovereignHUD.box_row("STEP 2", "Gungnir Crucible", SovereignHUD.CYAN)
         try:
-            matrix_tests = ["tests/unit/test_intent.py", "tests/unit/test_warden.py", "tests/unit/test_crucible.py"]
-            subprocess.run([sys.executable, "-m", "pytest", *matrix_tests], cwd=str(self.root), check=True)
+            # Run the modern Crucible tests verified in this session
+            crucible_tests = [
+                "tests/crucible/test_bridge.py",
+                "tests/crucible/test_uplink.py",
+                "tests/crucible/test_muninn.py"
+            ]
+            subprocess.run([sys.executable, "-m", "unittest", *crucible_tests], cwd=str(self.root), check=True)
             SovereignHUD.box_row("STATUS", "PASS", SovereignHUD.GREEN)
         except subprocess.CalledProcessError:
             SovereignHUD.box_row("STATUS", "FAIL", SovereignHUD.RED)

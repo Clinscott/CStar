@@ -3,20 +3,20 @@ title: "crawler.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/crawler.ts"
 loc: 13
 complexity: 1
-logic_score: 9.20
+logic_score: 9.40
 style_score: 9.36
 intel_score: 10.00
 overall_score: 9.52
 ---
 
 ## Intent
-A functional component of the Corvus Star static analysis matrix.
+A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 9.2/10
+- **Logic [L]**: 9.4/10
 - **Style [S]**: 9.4/10
 - **Intel [I]**: 10.0/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 10 interactions (Agent Activity Hotspot)
 
 
 

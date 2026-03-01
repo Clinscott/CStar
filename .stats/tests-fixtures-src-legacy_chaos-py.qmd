@@ -3,7 +3,7 @@ title: "legacy_chaos.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/fixtures/src/legacy_chaos.py"
 loc: 5
 complexity: 1
-logic_score: 8.75
+logic_score: 9.38
 style_score: 9.58
 intel_score: 1.40
 overall_score: 6.58
@@ -13,10 +13,10 @@ overall_score: 6.58
 Python module facilitating legacy_function. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 8.8/10
+- **Logic [L]**: 9.4/10
 - **Style [S]**: 9.6/10
 - **Intel [I]**: 1.4/10
-- **Gravity [G]**: 1 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 2 interactions (Agent Activity Hotspot)
 
 
 

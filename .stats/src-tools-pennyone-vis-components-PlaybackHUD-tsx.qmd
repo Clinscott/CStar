@@ -3,20 +3,20 @@ title: "PlaybackHUD.tsx"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/components/PlaybackHUD.tsx"
 loc: 103
 complexity: 6
-logic_score: 7.45
+logic_score: 7.88
 style_score: 2.75
 intel_score: 2.78
-overall_score: 4.33
+overall_score: 3.83
 ---
 
 ## Intent
-React component rendering PlaybackHUD with 6 logic branches.
+React component rendering PlaybackHUD with 6 logic branches. It exists to provide a responsive interface element for real-time telemetry. Its role in the system is to project background Daemon activity into the visual Sovereign HUD plane.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 7.4/10
+- **Logic [L]**: 7.9/10
 - **Style [S]**: 2.8/10
 - **Intel [I]**: 2.8/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 19 interactions (Agent Activity Hotspot)
 
 
 

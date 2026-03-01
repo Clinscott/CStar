@@ -3,7 +3,7 @@ title: "test_pathRegistry.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_pathRegistry.ts"
 loc: 28
 complexity: 1
-logic_score: 8.75
+logic_score: 8.30
 style_score: 7.04
 intel_score: 8.54
 overall_score: 8.11
@@ -13,10 +13,10 @@ overall_score: 8.11
 A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 8.8/10
+- **Logic [L]**: 8.3/10
 - **Style [S]**: 7.0/10
 - **Intel [I]**: 8.5/10
-- **Gravity [G]**: 1 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 6 interactions (Agent Activity Hotspot)
 
 
 

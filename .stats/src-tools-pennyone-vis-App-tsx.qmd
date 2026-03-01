@@ -1,22 +1,22 @@
 ---
 title: "App.tsx"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/App.tsx"
-loc: 146
+loc: 148
 complexity: 11
-logic_score: 3.90
+logic_score: 1.95
 style_score: 1.00
 intel_score: 2.27
-overall_score: 2.39
+overall_score: 1.89
 ---
 
 ## Intent
-React component rendering App with 11 logic branches.
+React component rendering App with 11 logic branches. It exists to provide a responsive interface element for real-time telemetry. Its role in the system is to project background Daemon activity into the visual Sovereign HUD plane.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 3.9/10
+- **Logic [L]**: 1.9/10
 - **Style [S]**: 1.0/10
 - **Intel [I]**: 2.3/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 49 interactions (Agent Activity Hotspot)
 
 
 

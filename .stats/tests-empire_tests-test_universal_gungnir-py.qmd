@@ -3,7 +3,7 @@ title: "test_universal_gungnir.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_universal_gungnir.py"
 loc: 31
 complexity: 1
-logic_score: 8.75
+logic_score: 7.08
 style_score: 1.00
 intel_score: 6.56
 overall_score: 4.94
@@ -13,10 +13,10 @@ overall_score: 4.94
 Python module facilitating TestUniversalGungnir, setup_method. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 8.8/10
+- **Logic [L]**: 7.1/10
 - **Style [S]**: 1.0/10
 - **Intel [I]**: 6.6/10
-- **Gravity [G]**: 12 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 16 interactions (Agent Activity Hotspot)
 
 
 

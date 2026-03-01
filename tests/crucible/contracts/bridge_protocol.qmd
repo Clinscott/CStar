@@ -1,0 +1,25 @@
+# [Ω] SOVEREIGN CONTRACT: ANTIGRAVITY_BRIDGE
+## Behavioral Specification (Gherkin)
+
+**Feature**: Antigravity Bridge CLI Proxy
+  As the Sovereign System's intelligence gateway
+  I must proxy requests to the Gemini CLI and return clean JSON
+  So that the Muninn daemon can operate using Google OAuth without direct SDK keys.
+
+  **Scenario**: Successful ANSI Scrubbing and JSON Extraction
+    Given a raw CLI output containing ANSI escape sequences and status noise
+    When the bridge's cleaning logic is applied to the output
+    Then all ANSI codes must be removed
+    And the valid JSON payload must be extracted from the surrounding text.
+
+  **Scenario**: Handling Malformed Output
+    Given a CLI output that contains no JSON structure
+    When the bridge's cleaning logic is applied
+    Then it should return an empty result
+    And the bridge should log a parsing error.
+
+  **Scenario**: Handling Non-ASCII Characters (The erroré Case)
+    Given a CLI output containing UTF-8 characters like 'é'
+    When the bridge's cleaning logic is applied
+    Then it should preserve the character integrity
+    And the JSON parsing should succeed without encoding errors.

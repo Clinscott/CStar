@@ -1,0 +1,28 @@
+---
+title: "muninn_continuous.qmd"
+---
+
+# Feature: Muninn Continuous Ledger Refactor
+In order to reduce friction and allow Muninn to repair Tech Debt silently without interrupting active engineering
+As an AI Agent Operator
+I want Muninn to respect repository silence, prioritize targets from a Ledger, and escalate stuck repairs.
+
+## Scenario: Muninn waits for repository silence before auditing
+  Given Muninn is deployed in continuous shadow mode
+  When the repository's last edit was less than 5 minutes ago
+  Then Muninn should block execution and wait
+  And When the repository is silent for over 5 minutes
+  Then Muninn should commence the hunt
+
+## Scenario: Muninn selects targets from the Tech Debt Ledger
+  Given a Tech Debt Ledger exists with prioritized targets
+  When Muninn enters the target selection phase
+  Then it should read the ledger and acquire the UNBLOCKED target with the highest priority
+  And format it as a valid Muninn breach target
+
+## Scenario: Muninn flags a file as blocked if the Crucible fails three times
+  Given a target file that constantly fails the Crucible verification
+  When Muninn attempts to repair it
+  And the failure count reaches 3
+  Then Muninn should flag the file as "BLOCKED_STUCK" within the Tech Debt Ledger
+  And escalate the failure message to ODIN

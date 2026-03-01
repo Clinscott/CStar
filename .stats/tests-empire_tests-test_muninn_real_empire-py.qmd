@@ -3,7 +3,7 @@ title: "test_muninn_real_empire.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_muninn_real_empire.py"
 loc: 15
 complexity: 3
-logic_score: 8.05
+logic_score: 8.30
 style_score: 4.04
 intel_score: 1.40
 overall_score: 4.50
@@ -13,10 +13,10 @@ overall_score: 4.50
 Python module facilitating test_sprt_validator_stable, test_sprt_validator_flaky. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 8.0/10
+- **Logic [L]**: 8.3/10
 - **Style [S]**: 4.0/10
 - **Intel [I]**: 1.4/10
-- **Gravity [G]**: 3 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 7 interactions (Agent Activity Hotspot)
 
 
 

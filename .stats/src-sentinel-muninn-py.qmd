@@ -1,22 +1,22 @@
 ---
 title: "muninn.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/sentinel/muninn.py"
-loc: 708
-complexity: 92
-logic_score: 1.00
-style_score: 3.68
-intel_score: 6.15
-overall_score: 3.11
+loc: 217
+complexity: 34
+logic_score: 0.50
+style_score: 3.64
+intel_score: 3.24
+overall_score: 2.13
 ---
 
 ## Intent
 Python module facilitating Muninn, __init__. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 1.0/10
-- **Style [S]**: 3.7/10
-- **Intel [I]**: 6.1/10
-- **Gravity [G]**: 151 interactions (Agent Activity Hotspot)
+- **Logic [L]**: 0.5/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 3.2/10
+- **Gravity [G]**: 213 interactions (Agent Activity Hotspot)
 
 
 
@@ -32,76 +32,35 @@ Python module facilitating Muninn, __init__. It exists to support broader Python
 - [time](file://time)
 - [pathlib](file://pathlib)
 - [typing](file://typing)
-- [colorama](file://colorama)
 - [sys](file://sys)
-- [src.sentinel._bootstrap](file://src.sentinel._bootstrap)
-- [src.core.annex](file://src.core.annex)
-- [src.core.engine.alfred_observer](file://src.core.engine.alfred_observer)
-- [src.core.engine.atomic_gpt](file://src.core.engine.atomic_gpt)
 - [src.core.metrics](file://src.core.metrics)
 - [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [src.core.telemetry](file://src.core.telemetry)
 - [src.cstar.core.uplink](file://src.cstar.core.uplink)
 - [src.sentinel.code_sanitizer](file://src.sentinel.code_sanitizer)
 - [src.sentinel.stability](file://src.sentinel.stability)
 - [src.sentinel.wardens.base](file://src.sentinel.wardens.base)
 - [src.sentinel.wardens.norn](file://src.sentinel.wardens.norn)
-- [src.tools.brave_search](file://src.tools.brave_search)
-- [src.tools.gemini_search](file://src.tools.gemini_search)
+- [src.sentinel.coordinator](file://src.sentinel.coordinator)
 - [tests.integration.project_fishtest](file://tests.integration.project_fishtest)
 - [tests.harness.raven_proxy](file://tests.harness.raven_proxy)
-- [src.cstar.core.antigravity_bridge](file://src.cstar.core.antigravity_bridge)
-- [src.sentinel.wardens.shadow_forge](file://src.sentinel.wardens.shadow_forge)
 - [importlib](file://importlib)
 - [inspect](file://inspect)
-- [src.sentinel.sandbox_warden](file://src.sentinel.sandbox_warden)
 - [sys](file://sys)
-- [sys](file://sys)
-- [argparse](file://argparse)
-- [tests.harness.raven_proxy](file://tests.harness.raven_proxy)
 
 ### Exports
 - `Muninn`
 - `__init__`
-- `_write_pid`
-- `_clear_pid`
-- `_pulse_heartbeat`
-- `_check_agent_active`
-- `_get_model`
-- `_setup_shadow_workspace`
-- `_resolve_model`
-- `_load_prompt`
-- `_sync_send`
-- `_get_alfred_suggestions`
-- `_check_user_feedback`
-- `_hunt_phase`
-- `_select_target_phase`
-- `get_score`
-- `_enrich_context_phase`
-- `_forge_and_crucible_phase`
-- `_finalize_success`
-- `_handle_verification_failure`
-- `_handle_gphs_regression`
-- `_evolve_neural_warden`
-- `run`
-- `_emit_metrics_summary`
-- `_init_heimdall`
-- `_discover_wardens`
-- `_dispatch_warden_scans`
-- `_execute_hunt_async`
+- `_is_repo_silent`
+- `_wait_for_silence`
+- `run_cycle`
+- `_execute_mission`
 - `_forge_improvement`
-- `_run_gauntlet`
-- `_generate_implementation`
+- `_generate_gauntlet`
+- `_generate_steel`
 - `_verify_fix`
-- `_verify_in_docker`
-- `_verify_locally`
-- `_check_unit_regressions`
-- `_verify_sprt_stability`
-- `_verify_performance`
+- `_finalize_success`
+- `_handle_failure`
 - `_rollback`
-- `_record_metric`
-- `_parse_ledger`
-- `_identify_cursed_files`
-- `_identify_blessed_precedents`
-- `_write_directives`
-- `_distill_knowledge`
-- `_select_breach_target`
+- `_flag_blocked`
+- `_execute_hunt_async`

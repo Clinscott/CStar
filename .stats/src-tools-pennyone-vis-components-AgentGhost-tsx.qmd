@@ -3,20 +3,20 @@ title: "AgentGhost.tsx"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/components/AgentGhost.tsx"
 loc: 67
 complexity: 4
-logic_score: 7.25
+logic_score: 3.90
 style_score: 4.09
 intel_score: 6.78
-overall_score: 6.04
+overall_score: 5.54
 ---
 
 ## Intent
-React component rendering AgentGhost with 4 logic branches.
+React component rendering AgentGhost with 4 logic branches. It exists to provide a responsive interface element for real-time telemetry. Its role in the system is to project background Daemon activity into the visual Sovereign HUD plane.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 7.3/10
+- **Logic [L]**: 3.9/10
 - **Style [S]**: 4.1/10
 - **Intel [I]**: 6.8/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 13 interactions (Agent Activity Hotspot)
 
 
 

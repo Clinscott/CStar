@@ -1,0 +1,30 @@
+---
+title: "core.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/tmp_gravity_test/core.ts"
+loc: 1
+complexity: 1
+logic_score: 9.67
+style_score: 10.00
+intel_score: 2.00
+overall_score: 7.22
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.7/10
+- **Style [S]**: 10.0/10
+- **Intel [I]**: 2.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+Minimal internal dependencies.
+
+### Exports
+- `x`
+- `x`

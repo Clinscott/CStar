@@ -1,1 +1,104 @@
-{"timestamp": "Now", "top_targets": [{"file": "src/tools/perimeter_sweep.py", "coverage": false}]}
+{
+  "timestamp": "2026-03-01T22:22:46.819Z",
+  "top_targets": [
+    {
+      "file": "C:/Users/Craig/Corvus/CorvusStar/src/core/sovereign_hud.py",
+      "priority": "HIGH",
+      "justification": "[ALFRED]: \"Structural Warning. Module influence outpaces its maintainability. Gravity: 67, Logic: 0.72.\"",
+      "metrics": {
+        "gravity": 67,
+        "logic": 0.725
+      }
+    },
+    {
+      "file": "C:/Users/Craig/Corvus/CorvusStar/src/core/sv_engine.py",
+      "priority": "CRITICAL",
+      "justification": "[ALFRED]: \"Atomic Alert! High influence module with failing logic score. Gravity: 123, Logic: 0.50. Immediate refactoring mandated.\"",
+      "metrics": {
+        "gravity": 123,
+        "logic": 0.5
+      }
+    },
+    {
+      "file": "C:/Users/Craig/Corvus/CorvusStar/src/sentinel/muninn.py",
+      "priority": "CRITICAL",
+      "justification": "[ALFRED]: \"Atomic Alert! High influence module with failing logic score. Gravity: 213, Logic: 0.50. Immediate refactoring mandated.\"",
+      "metrics": {
+        "gravity": 213,
+        "logic": 0.5
+      }
+    },
+    {
+      "file": "C:/Users/Craig/Corvus/CorvusStar/src/tools/wrap_it_up.py",
+      "priority": "HIGH",
+      "justification": "[ALFRED]: \"Structural Warning. Module influence outpaces its maintainability. Gravity: 61, Logic: 0.50.\"",
+      "metrics": {
+        "gravity": 61,
+        "logic": 0.5
+      }
+    },
+    {
+      "file": "C:/Users/Craig/Corvus/CorvusStar/docs/site_libs/quarto-html/quarto.js",
+      "priority": "HIGH",
+      "justification": "[ALFRED]: \"Structural Warning. Module influence outpaces its maintainability. Gravity: 87, Logic: 0.50.\"",
+      "metrics": {
+        "gravity": 87,
+        "logic": 0.5
+      }
+    },
+    {
+      "file": "C:/Users/Craig/Corvus/CorvusStar/docs/site_libs/quarto-search/quarto-search.js",
+      "priority": "CRITICAL",
+      "justification": "[ALFRED]: \"Atomic Alert! High influence module with failing logic score. Gravity: 131, Logic: 0.50. Immediate refactoring mandated.\"",
+      "metrics": {
+        "gravity": 131,
+        "logic": 0.5
+      }
+    },
+    {
+      "file": "C:/Users/Craig/Corvus/CorvusStar/src/core/engine/atomic_gpt.py",
+      "priority": "HIGH",
+      "justification": "[ALFRED]: \"Structural Warning. Module influence outpaces its maintainability. Gravity: 59, Logic: 1.60.\"",
+      "metrics": {
+        "gravity": 59,
+        "logic": 1.5999999999999999
+      }
+    },
+    {
+      "file": "C:/Users/Craig/Corvus/CorvusStar/src/core/engine/vector.py",
+      "priority": "CRITICAL",
+      "justification": "[ALFRED]: \"Atomic Alert! High influence module with failing logic score. Gravity: 159, Logic: 0.50. Immediate refactoring mandated.\"",
+      "metrics": {
+        "gravity": 159,
+        "logic": 0.5
+      }
+    },
+    {
+      "file": "C:/Users/Craig/Corvus/CorvusStar/src/games/odin_protocol/main.py",
+      "priority": "HIGH",
+      "justification": "[ALFRED]: \"Structural Warning. Module influence outpaces its maintainability. Gravity: 94, Logic: 0.72.\"",
+      "metrics": {
+        "gravity": 94,
+        "logic": 0.725
+      }
+    },
+    {
+      "file": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/analyzer.ts",
+      "priority": "HIGH",
+      "justification": "[ALFRED]: \"Structural Warning. Module influence outpaces its maintainability. Gravity: 53, Logic: 0.50.\"",
+      "metrics": {
+        "gravity": 53,
+        "logic": 0.5
+      }
+    },
+    {
+      "file": "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/components/NeuralGraph.tsx",
+      "priority": "CRITICAL",
+      "justification": "[ALFRED]: \"Atomic Alert! High influence module with failing logic score. Gravity: 111, Logic: 0.50. Immediate refactoring mandated.\"",
+      "metrics": {
+        "gravity": 111,
+        "logic": 0.5
+      }
+    }
+  ]
+}

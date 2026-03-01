@@ -3,7 +3,7 @@ title: "test_verify_fish.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_verify_fish.py"
 loc: 7
 complexity: 1
-logic_score: 8.30
+logic_score: 6.42
 style_score: 6.97
 intel_score: 9.40
 overall_score: 8.22
@@ -13,10 +13,10 @@ overall_score: 8.22
 Python module facilitating test_verify_system_integrity, MockMuninn. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 8.3/10
+- **Logic [L]**: 6.4/10
 - **Style [S]**: 7.0/10
 - **Intel [I]**: 9.4/10
-- **Gravity [G]**: 1 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 4 interactions (Agent Activity Hotspot)
 
 
 

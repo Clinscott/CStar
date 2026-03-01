@@ -3,7 +3,7 @@ title: "test_skill_forge_empire.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_skill_forge_empire.py"
 loc: 20
 complexity: 1
-logic_score: 9.20
+logic_score: 8.65
 style_score: 3.55
 intel_score: 1.40
 overall_score: 4.72
@@ -13,10 +13,10 @@ overall_score: 4.72
 Python module facilitating test_select_archetype, test_extract_subject. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 9.2/10
+- **Logic [L]**: 8.6/10
 - **Style [S]**: 3.6/10
 - **Intel [I]**: 1.4/10
-- **Gravity [G]**: 3 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 7 interactions (Agent Activity Hotspot)
 
 
 

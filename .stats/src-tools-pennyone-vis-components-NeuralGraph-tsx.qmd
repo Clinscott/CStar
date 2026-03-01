@@ -1,22 +1,22 @@
 ---
 title: "NeuralGraph.tsx"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/components/NeuralGraph.tsx"
-loc: 280
-complexity: 31
-logic_score: 1.00
+loc: 400
+complexity: 43
+logic_score: 0.50
 style_score: 1.00
-intel_score: 2.86
-overall_score: 1.62
+intel_score: 3.10
+overall_score: 1.20
 ---
 
 ## Intent
-React component rendering NeuralGraph with 31 logic branches.
+React component rendering NeuralGraph with 43 logic branches. It exists to provide a responsive interface element for real-time telemetry. Its role in the system is to project background Daemon activity into the visual Sovereign HUD plane.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 1.0/10
+- **Logic [L]**: 0.5/10
 - **Style [S]**: 1.0/10
-- **Intel [I]**: 2.9/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Intel [I]**: 3.1/10
+- **Gravity [G]**: 111 interactions (Agent Activity Hotspot)
 
 
 
@@ -30,20 +30,29 @@ React component rendering NeuralGraph with 31 logic branches.
 - [*](file://three)
 - [useFrame](file://@react-three/fiber)
 - [useThree](file://@react-three/fiber)
+- [extend](file://@react-three/fiber)
 - [Html](file://@react-three/drei)
 - [useTexture](file://@react-three/drei)
-- [Segments](file://@react-three/drei)
-- [Segment](file://@react-three/drei)
+- [shaderMaterial](file://@react-three/drei)
 - [*](file://d3-force-3d)
 - [*](file://gsap)
 
 ### Exports
+- `PulseMaterial`
+- `FresnelMaterial`
 - `tempObject`
 - `tempColor`
 - `SelectionHighlight`
-- `meshRef`
-- `time`
-- `scale`
+- `materialRef`
+- `FresnelAura`
+- `materialRef`
+- `logicVal`
+- `isToxic`
+- `NeuralLink`
+- `materialRef`
+- `points`
+- `geometry`
+- `geo`
 - `SpriteIcon`
 - `odinTexture`
 - `alfredTexture`
@@ -59,26 +68,32 @@ React component rendering NeuralGraph with 31 logic branches.
 - `simReady`
 - `hovered`
 - `selectedNode`
+- `trajectories`
 - `useMemo`
 - `fallback`
+- `files`
 - `nodes`
 - `nodeMap`
 - `linkList`
 - `usedIds`
+- `pathStr`
 - `orphans`
 - `getLogScale`
-- `simulation`
-- `i`
+- `fetchTrajectories`
+- `res`
+- `data`
 - `orphans`
 - `radius`
 - `oCount`
 - `theta`
 - `map`
 - `layers`
+- `currentMesh`
 - `scale`
 - `isHovered`
 - `isSelected`
 - `p`
+- `nodeMatrix`
 - `handleNodeClick`
 - `targetPos`
 - `validLinks`

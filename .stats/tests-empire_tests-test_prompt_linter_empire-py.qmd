@@ -3,7 +3,7 @@ title: "test_prompt_linter_empire.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_prompt_linter_empire.py"
 loc: 49
 complexity: 2
-logic_score: 7.95
+logic_score: 7.42
 style_score: 3.55
 intel_score: 1.40
 overall_score: 4.30
@@ -13,10 +13,10 @@ overall_score: 4.30
 Python module facilitating TestPromptLinterEmpire, test_parse_prompty_vars. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 7.9/10
+- **Logic [L]**: 7.4/10
 - **Style [S]**: 3.5/10
 - **Intel [I]**: 1.4/10
-- **Gravity [G]**: 3 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 10 interactions (Agent Activity Hotspot)
 
 
 

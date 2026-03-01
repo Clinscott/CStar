@@ -3,20 +3,20 @@ title: "test_mimir_batch_1_2.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/unit/test_mimir_batch_1_2.py"
 loc: 71
 complexity: 1
-logic_score: 8.75
+logic_score: 4.75
 style_score: 3.71
 intel_score: 8.16
-overall_score: 6.87
+overall_score: 6.37
 ---
 
 ## Intent
 Python module facilitating project_root, test_muninn_refactor_calls. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 8.8/10
+- **Logic [L]**: 4.8/10
 - **Style [S]**: 3.7/10
 - **Intel [I]**: 8.2/10
-- **Gravity [G]**: 1 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 12 interactions (Agent Activity Hotspot)
 
 
 

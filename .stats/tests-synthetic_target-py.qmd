@@ -3,7 +3,7 @@ title: "synthetic_target.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/synthetic_target.py"
 loc: 26
 complexity: 2
-logic_score: 8.85
+logic_score: 8.82
 style_score: 4.09
 intel_score: 4.48
 overall_score: 5.81
@@ -16,7 +16,7 @@ Python module facilitating square. It exists to support broader Python integrati
 - **Logic [L]**: 8.8/10
 - **Style [S]**: 4.1/10
 - **Intel [I]**: 4.5/10
-- **Gravity [G]**: 2 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 10 interactions (Agent Activity Hotspot)
 
 
 

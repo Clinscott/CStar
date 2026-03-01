@@ -15,7 +15,7 @@ REQUIRED_DIRS = [
 ]
 REQUIRED_FILES = [
     ".agent/corrections.json",
-    "src/cstar/CorvusStar.psm1"
+    "bin/cstar.js"
 ]
 
 def check_daemon_running() -> bool:
@@ -25,8 +25,8 @@ def check_daemon_running() -> bool:
             cmd = proc.info['cmdline']
             mem = proc.info['memory_info'].rss / (1024 * 1024)
 
-            # Simple heuristic: look for "main_loop.py" or "muninn"
-            if cmd and any("src/sentinel/main_loop.py" in c for c in cmd):
+            # Simple heuristic: look for "daemon.py" or "cstar.core.daemon"
+            if cmd and any("src/cstar/core/daemon.py" in c or "src.cstar.core.daemon" in c for c in cmd):
                 print(f"  [PASS] Oracle (Daemon) active (PID: {proc.info['pid']})")
                 print(f"  [METRIC] Oracle Memory: {mem:.2f} MB")
 

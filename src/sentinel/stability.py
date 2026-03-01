@@ -181,3 +181,38 @@ class TheWatcher:
 
         self._save_state()
         return True
+
+    def get_last_edit_time(self) -> float:
+        """
+        Returns the timestamp of the most recently modified code file in the repository.
+        Used by the Silence Protocol to ensure Muninn does not interrupt active development.
+        """
+        latest = 0.0
+        for directory in [self.root / "src", self.root / "tests", self.root / ".agent"]:
+            if not directory.exists(): continue
+            for file_path in directory.rglob("*"):
+                if file_path.is_file() and file_path.suffix in [".py", ".ts", ".js", ".tsx", ".json"]:
+                    try:
+                        latest = max(latest, file_path.stat().st_mtime)
+                    except OSError:
+                        pass
+        return latest
+
+    def record_failure(self, rel_path: str) -> int:
+        """
+        Records a validation failure for the file.
+        Returns the cumulative number of failures.
+        """
+        if rel_path not in self.state:
+            self.state[rel_path] = {
+                "last_edited": 0,
+                "edit_count_24h": 0,
+                "content_hashes": [],
+                "status": "ACTIVE",
+                "fail_count": 0
+            }
+        
+        file_state = self.state[rel_path]
+        file_state["fail_count"] = file_state.get("fail_count", 0) + 1
+        self._save_state()
+        return file_state["fail_count"]

@@ -3,7 +3,7 @@ title: "test_utils_empire.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_utils_empire.py"
 loc: 13
 complexity: 1
-logic_score: 9.20
+logic_score: 9.18
 style_score: 4.15
 intel_score: 1.40
 overall_score: 4.92
@@ -16,7 +16,7 @@ Python module facilitating test_load_config_missing, test_load_config_valid. It 
 - **Logic [L]**: 9.2/10
 - **Style [S]**: 4.2/10
 - **Intel [I]**: 1.4/10
-- **Gravity [G]**: 2 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 4 interactions (Agent Activity Hotspot)
 
 
 

@@ -1,6 +1,7 @@
 import asyncio
 import contextlib
 import os
+import re
 import sys
 import time
 from datetime import datetime
@@ -197,18 +198,41 @@ class SovereignHUD:
         Log with persona prefix for major announcements.
 
         Args:
-            level: The severity level (INFO, SUCCESS, WARN, ERROR).
+            level: The severity level (INFO, SUCCESS, WARN, ERROR, HEIMDALL).
             msg: The message to log.
         """
         theme = SovereignHUD.get_theme()
         prefix = theme["prefix"]
 
-        color = {
-            "INFO": theme["main"],
-            "SUCCESS": theme["success"],
-            "WARN": theme["warning"],
-            "ERROR": theme["error"]
-        }.get(level.upper(), theme["main"])
+        # [Ω] HEIMDALL SECURITY INTEGRATION
+        if level.upper() == "HEIMDALL":
+            # Piercing Red for Heimdall breaches
+            color = theme["error"]
+            # Record as a security trace in the background (Hall of Records)
+            try:
+                from src.core.telemetry import SubspaceTelemetry
+                # Extract file path if possible from message: "BREACH in file.py: ..."
+                file_match = re.search(r"in ([\w\-/.]+\.\w+)", msg)
+                target_file = file_match.group(1) if file_match else "SYSTEM"
+                
+                # We use log_trace to ensure it appears in the TUI's trace list
+                SubspaceTelemetry.log_trace(
+                    mission_id=f"SEC-{int(time.time())}",
+                    file_path=target_file,
+                    target_metric="SECURITY",
+                    initial_score=0.0,
+                    justification=msg,
+                    status="BREACH"
+                )
+            except Exception:
+                pass # Security must not crash the messenger
+        else:
+            color = {
+                "INFO": theme["main"],
+                "SUCCESS": theme["success"],
+                "WARN": theme["warning"],
+                "ERROR": theme["error"]
+            }.get(level.upper(), theme["main"])
 
         # [Ω] Automatic Redaction
         from src.core.redactor import redact_text

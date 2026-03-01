@@ -1,22 +1,22 @@
 ---
 title: "daemon.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/daemon.ts"
-loc: 76
-complexity: 10
-logic_score: 5.60
-style_score: 3.95
-intel_score: 9.89
-overall_score: 6.48
+loc: 81
+complexity: 11
+logic_score: 2.40
+style_score: 3.94
+intel_score: 9.41
+overall_score: 5.55
 ---
 
 ## Intent
 A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 5.6/10
-- **Style [S]**: 4.0/10
-- **Intel [I]**: 9.9/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Logic [L]**: 2.4/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 15 interactions (Agent Activity Hotspot)
 
 
 
@@ -30,12 +30,13 @@ A functional component of the Corvus Star static analysis matrix. It exists to s
 - [registry](file://./pathRegistry.js)
 - [*](file://chalk)
 - [activePersona](file://./personaRegistry.js)
+- [CortexLink](file://../../node/cortex_link.js)
 
 ### Exports
 - `chokidar`
 - `P1Daemon`
 - `relPath`
-- `signalFile`
+- `link`
 - `pid`
 - `target`
 - `daemon`
