@@ -1,15 +1,15 @@
 
-import { crawlRepository } from './crawler';
-import { analyzeFile, FileData } from './analyzer';
-import { writeReport } from './intel/writer';
-import { compileMatrix, CompiledGraph } from './intel/compiler';
-import { registerSpoke } from './intel/database';
+import { crawlRepository } from './crawler.ts';
+import { analyzeFile, FileData } from './analyzer.ts';
+import { writeReport } from './intel/writer.ts';
+import { compileMatrix, CompiledGraph } from './intel/compiler.ts';
+import { registerSpoke } from './intel/database.ts';
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'node:crypto';
-import { registry } from './pathRegistry';
-import { SemanticIndexer } from './intel/semantic';
-import { Warden } from './intel/warden';
+import { registry } from './pathRegistry.ts';
+import { SemanticIndexer } from './intel/semantic.ts';
+import { Warden } from './intel/warden.ts';
 
 /**
  * Main Execution Entry Point (Operation PennyOne)
@@ -34,11 +34,18 @@ export async function runScan(targetPath: string): Promise<FileData[]> {
     try {
         const raw = await fs.readFile(graphPath, 'utf-8');
         existingGraph = JSON.parse(raw);
-    } catch { }
+    } catch {
+        // Ignore missing or corrupt graph
+    }
 
-    const hashMap = new Map<string, any>();
+    const hashMap = new Map<string, FileData>();
     if (existingGraph) {
-        existingGraph.files.forEach(f => hashMap.set(f.path, f));
+        existingGraph.files.forEach(f => {
+            const data = f as any;
+            if (!data.imports) data.imports = [];
+            if (!data.exports) data.exports = [];
+            hashMap.set(f.path, data as FileData);
+        });
     }
 
     for (const file of files) {
@@ -60,6 +67,7 @@ export async function runScan(targetPath: string): Promise<FileData[]> {
                     imports: [],
                     exports: [],
                     intent: existing.intent,
+                    interaction_protocol: existing.interaction_protocol,
                     hash: currentHash,
                     // Use semantic dependencies if available
                     cachedDependencies: semanticData ? semanticData.dependencies : (existing.dependencies || [])
@@ -74,8 +82,9 @@ export async function runScan(targetPath: string): Promise<FileData[]> {
                 data.matrix.logic = (data.matrix.logic + semanticData.logic) / 2;
             }
 
-            const { intent } = await writeReport(data, targetPath, code);
+            const { intent, interaction } = await writeReport(data, targetPath, code);
             data.intent = intent;
+            data.interaction_protocol = interaction;
 
             results.push(data);
         } catch (error: unknown) {
@@ -92,10 +101,11 @@ export async function runScan(targetPath: string): Promise<FileData[]> {
             const graph = JSON.parse(raw);
             const warden = new Warden();
             await warden.evaluate(graph);
-        } catch (e: any) {
-            console.warn(`[WARNING] Warden evaluation failed: ${e.message}`);
+        } catch (e: unknown) {
+            console.warn(`[WARNING] Warden evaluation failed: ${e instanceof Error ? e.message : String(e)}`);
         }
     }
 
     return results;
 }
+

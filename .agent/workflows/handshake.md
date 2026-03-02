@@ -8,4 +8,9 @@ description: A lightweight session finalization protocol that updates core docum
 3. **Update Walkthrough**: Add a "Session Handshake" section to `walkthrough.qmd` summarizing the "Session Delta" (what changed).
 4. **Update Dev Journal**: Log the session's achievements and architectural decisions in `dev_journal.qmd`.
 5. **Update Memory**: Record new patterns or critical context in `memory.qmd`.
-6. **Generate Commit**: Output a ready-to-copy git commit message.
+6. **Ghost Sweep**: Execute a manual or automated sweep of the staged diff to ensure NO secrets (API keys, tokens, URLs) are present.
+7. **Gungnir Trajectory**: 
+    - Compare the PRE-FORGE Gungnir Matrix with the POST-FORGE Matrix.
+    - Record the delta in the session summary.
+    - **Sovereignty Check**: If the Sovereignty [Ω] score has decreased, you MUST explain the regression or roll back.
+8. **Generate Commit**: Output a ready-to-copy git commit message.

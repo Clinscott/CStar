@@ -514,7 +514,27 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Persistence Tracking**: Added `last_processed_trace_id` to `UniverseState` for robust session-to-campaign handshakes. [x]
 - [x] **Verification**: Validated end-to-end trajectory fetching and campaign domination gains (50.0% -> 50.45%). [x]
 
-## ⏭️ Start Here Next (Phase 89)
-- [x] **Heimdall's Ward**: Implement real-time security alerts in the TUI based on active `mission_traces`. [x]
-- [x] **Mimir's Feedback**: Add proactive architectural suggestions to the PennyOne HUD based on logic trends. [x]
+### 89. Neural Matrix Decomposition & Crash Resolution (Session 105)
+- [x] **Neural Matrix Decomposition**: Decomposed `NeuralGraph.tsx` into modular layers and components (`NodeLayer`, `ConnectionLayer`, `AuraLayers`, `TextLabel`, `SelectionPanelShell`) for enhanced maintainability. [x]
+- [x] **Host Indexer Shield**: Deployed `.geminiignore` to suppress host-level workspace indexing of redundant dependency trees, resolving Gemini CLI crashes. [x]
+- [x] **AST Recursion Neutralization**: Re-implemented the iterative stack walker in the `SemanticIndexer` to eliminate stack overflow crashes on deep or minified artifacts. [x]
+- [x] **Crawler Evasion**: Hardened the repository crawler to explicitly ignore minified build artifacts and optimize indexing performance. [x]
+- [x] **Linscott Type Restoration**: Re-asserted zero-fault typing and resolved `.ts` import extension conflicts to maintain standard compliance. [x]
+
+### 90. PennyOne Sanitization Strike (Session 106)
+- [x] **Core Logic Remediation**: Fixed critical export-alias bug in `analyzer.ts` causing analysis crashes. [x]
+- [x] **Automated Sanitization**: Implemented `--fix` in `js_sentinel.ts` and reduced anomalies from 162 to 112. [x]
+- [x] **Infrastructure Hardening**: Sanitized `daemon.ts`, `index.ts`, `parser.ts`, and the `intel/` module (database, git, semantic). [x]
+- [x] **Functional Refactor**: Converted `GitChronograph` from a class to a functional object to eliminate lint warnings. [x]
+- [x] **Verification**: 100% pass on `test_pennyone_empire.ts` and `js_sentinel` baseline established. [x]
+### 91. PennyOne Integration & First Principles Realignment (Session 108)
+- [x] **PennyOne Synthesis**: Repaired systemic syntax errors in command spokes (`pennyone.ts`, `ravens.ts`, `start.ts`, `dispatcher.ts`) unblocking Gungnir scans. [x]
+- [x] **Interaction Protocol Persistence**: Enhanced `writer.ts`, `index.ts`, and `compiler.ts` to capture and persist `interaction_protocol` in `matrix-graph.json`. [x]
+- [x] **Workflow Realignment**: Updated all core workflows (`plan.md`, `execute.md`, `investigate.md`, `handshake.md`, `oracle.md`, `lets-go.md`) to enforce Gungnir metrics and Interaction Protocols. [x]
+- [x] **Omniscience Verified**: Successfully performed a protocol-aware scan of 681 files and verified search results. [x]
+
+## ⏭️ Start Here Next (Phase 92)
+- [ ] **Operation Ironclad**: Security hardening of `.env.local` and regular API key rotation logic.
+- [ ] **TUI Content Polish**: Add high-fidelity ASCII art and RUNE separators to the WAR ROOM sections.
+- [ ] **UI/Socket Sanitization**: Address the remaining 112 `js_sentinel` anomalies in the `vis/` and `live/` layers.
 

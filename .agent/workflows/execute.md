@@ -17,12 +17,17 @@ description: The Standard Protocol for turning a generic Plan into concrete Code
 Execute the plan step-by-step.
 
 ### 🛠️ The Rules of Construction
-1.  **Atomic Units**: Create one component at a time.
-2.  **Linscott Standard**:
-    -   **IF** you create a file logic file (e.g., `utils.py`),
-    -   **THEN** you MUST immediately create its verifier (e.g., `tests/test_utils.py`).
-    -   *Do not wait for the `/test` phase to create the file. Create it now.*
-3.  **Persona Voice**:
+1.  **Interaction Strictness**: Every modification MUST respect the **Interaction Protocol** retrieved during the planning phase.
+2.  **Spoke Architecture (Sovereignty Rule)**:
+    -   **Hubs** (e.g., `cstar.ts`, `sv_engine.py`) MUST NOT contain business logic.
+    -   **Spokes** (e.g., `src/tools/pennyone/live/search.ts`) MUST contain the core logic.
+    -   If your task adds logic, create a new Spoke and only update the Hub for registration.
+3.  **Atomic Units**: Create one component at a time.
+4.  **Linscott Standard (Vigilance Mandate)**:
+    -   **IF** a target file has **Vigil [V] < 100%**,
+    -   **THEN** you MUST write the test file or append to the existing suite **BEFORE** modifying the logic.
+    -   Verification is the only path to Sovereignty.
+5.  **Persona Voice**:
     -   **ODIN**: "I am forging the spine of the system." (Strict, Robust, Typed).
     -   **ALFRED**: "I am crafting a tool for the Master." (Clean, Documented, Helpful).
 

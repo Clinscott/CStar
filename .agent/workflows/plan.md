@@ -24,7 +24,9 @@ Check your Active Persona (`config.json`).
 **Rule**: You generally CANNOT proceed to Phase 2 immediately. You MUST enter a definition loop.
 
 1.  **Analyze**: Read the user's request and project context (`memories.qmd`, `wireframe.qmd`).
-2.  **Iterate**: Formulate 3-5 clarifying questions.
+2.  **Search the Matrix**: Run `cstar p1 --search "[Query]"` to identify relevant code sectors and existing patterns.
+3.  **Omniscience**: For every relevant file identified, call `get_file_intent` (MCP) or read its `.stats/` QMD. You MUST ingest both **🎯 INTENT** and **🕹️ INTERACTION PROTOCOL**.
+4.  **Iterate**: Formulate 3-5 clarifying questions.
     -   *Scope*: What is strictly IN vs OUT?
     -   *Components*: Which `wireframe.qmd` items are touched?
     -   *Triple Threat*: Does this need Trace Viz, Global Skills, or Fishtest?
@@ -36,8 +38,10 @@ Check your Active Persona (`config.json`).
 Once scope is locked:
 
 1.  **Wireframe Mapping**: Explicitly list which components in `wireframe.qmd` will be [MODIFIED], [CREATED], or [DELETED].
-2.  **Skill Check**: Scan `skills_db/` for Global Skills (`git-assistant`, `codestats`) that should be installed or used.
-3.  **Trace Analysis**: Consult `TRACE_REPORT.qmd` (if exists) for historical pitfalls.
+2.  **High-Gravity Check**: If a target file has **Gravity > 80**, you MUST explicitly document its historical context fetched from `get_file_intent`.
+3.  **Skill Check**: Scan `skills_db/` for Global Skills (`git-assistant`, `codestats`) that should be installed or used.
+4.  **Trace Analysis**: Consult `TRACE_REPORT.qmd` (if exists) for historical pitfalls.
+5.  **Contract-First Defense**: If creating a new feature, you MUST define the behavior in a **Gherkin Contract** (`.qmd`) within `tests/contracts/` before writing any logic.
 
 ## 3. **Phase 3: The Future (Prophecy / Preparation)**
 

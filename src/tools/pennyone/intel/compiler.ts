@@ -1,7 +1,7 @@
-import { FileData } from '../analyzer.js';
+import { FileData } from '../analyzer.ts';
 import fs from 'fs/promises';
 import path from 'path';
-import { registry } from '../pathRegistry.js';
+import { registry } from '../pathRegistry.ts';
 
 export interface GungnirMatrix {
     logic: number;
@@ -20,6 +20,7 @@ export interface CompiledGraph {
         complexity: number;
         matrix: GungnirMatrix;
         intent: string;
+        interaction_protocol?: string;
         dependencies: string[];
         hash: string;
         endpoints?: string[];
@@ -107,6 +108,7 @@ export async function compileMatrix(results: FileData[], targetRepo: string): Pr
             complexity: r.complexity,
             matrix: r.matrix,
             intent: r.intent || '...',
+            interaction_protocol: r.interaction_protocol,
             dependencies: r.imports
                 .map(i => resolveDependency(r.path, i.source))
                 .filter((d): d is string => d !== null && d !== registry.normalize(r.path)), // Avoid self-refs
@@ -131,3 +133,4 @@ export async function compileMatrix(results: FileData[], targetRepo: string): Pr
     await fs.writeFile(graphPath, JSON.stringify(payload, null, 2), 'utf-8');
     return graphPath;
 }
+

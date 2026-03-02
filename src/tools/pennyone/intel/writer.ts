@@ -1,8 +1,8 @@
-import { FileData } from '../analyzer.js';
-import { defaultProvider } from './llm.js';
+import { FileData } from '../analyzer.ts';
+import { defaultProvider } from './llm.ts';
 import fs from 'fs/promises';
 import path from 'path';
-import { registry } from '../pathRegistry.js';
+import { registry } from '../pathRegistry.ts';
 
 /**
  * QMD Writer
@@ -10,13 +10,14 @@ import { registry } from '../pathRegistry.js';
  * @param {FileData} file - The file data
  * @param {string} targetRepo - The target repository path
  * @param {string} code - The source code
- * @returns {Promise<{ qmdPath: string, intent: string }>} Path and intent
+ * @returns {Promise<{ qmdPath: string, intent: string, interaction: string }>} Path, intent, and interaction
  */
-export async function writeReport(file: FileData, targetRepo: string, code: string): Promise<{ qmdPath: string, intent: string }> {
+export async function writeReport(file: FileData, targetRepo: string, code: string): Promise<{ qmdPath: string, intent: string, interaction: string }> {
     const statsDir = path.join(registry.getRoot(), '.stats');
     await fs.mkdir(statsDir, { recursive: true });
 
-    const intent = await defaultProvider.getIntent(code, file);
+    const { intent, interaction } = await defaultProvider.getIntent(code, file);
+    file.interaction_protocol = interaction;
 
     const absoluteRoot = registry.getRoot();
     const absoluteFile = path.resolve(file.path).replace(/\\/g, '/');
@@ -42,6 +43,9 @@ overall_score: ${m.overall.toFixed(2)}
 ## Intent
 ${intent}
 
+## Interaction Protocol
+${interaction}
+
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: ${m.logic.toFixed(1)}/10
 - **Style [S]**: ${m.style.toFixed(1)}/10
@@ -60,5 +64,6 @@ ${file.exports.length > 0 ? file.exports.map(e => `- \`${e}\``).join('\n') : 'In
 `;
 
     await fs.writeFile(qmdPath, content, 'utf-8');
-    return { qmdPath, intent };
+    return { qmdPath, intent, interaction };
 }
+

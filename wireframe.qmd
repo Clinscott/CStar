@@ -2,7 +2,7 @@
 
 ## 🗺️ Navigation
 - **Structure Map**: [docs/architecture/FOLDER_MAP.qmd](docs/architecture/FOLDER_MAP.qmd)
-- **Task List**: [.gemini/brain/.../task.md](task.md)
+- **Task List**: [tasks.qmd](tasks.qmd)
 
 ## 📂 System Architecture
 
@@ -16,7 +16,35 @@ The decision-making brain of Corvus Star.
     - `_shadow_search(query)`: TF-IDF lexical search (Modularized).
     - `_get_top_domain(query)`: Contextual domain routing.
 
-## 2026-03-01: Session 102 (Muninn Continuous Ledger Refactor)
+## 2026-03-02: Session 108 (PennyOne Integration & First Principles Realignment)
+- **Protocol Persistence**: Enhanced the PennyOne matrix (`writer.ts`, `index.ts`, `compiler.ts`) to capture and save **Interaction Protocols** in the global `matrix-graph.json`.
+- **Workflow Realignment**: Updated all `.agent/workflows/` to enforce **Gungnir Matrix** and **Protocol** compliance.
+- **Systemic Repairs**: Sanitized syntax errors in the Node/TS command hub spokes.
+- **Search UX**: Modified `search.ts` to display protocols in CLI search results.
+
+## 2026-03-02: Session 107 (Antigravity Bridge & Uplink Hardening)
+- **Bridge Resiliency**: Overhauled `antigravity_bridge.py` with exponential backoff (max 3 attempts) and brace-matching JSON extraction fallback for conversational noise.
+- **Uplink Strategy**: Implemented "CLI Native first, Env Var last" precedence. The Bridge now explicitly unsets environment variables to force CLI internal config usage.
+- **Robust Protocol**: Added 10s socket timeouts and schema validation to `uplink.py`.
+- **Verification**: Established `test_api_precedence.py` and `test_bridge_integration.py`; achieved 11/11 pass rate on core intelligence routing.
+
+## 2026-03-02: Session 106 (PennyOne Sanitization Strike)
+- **Engine Sanitization**: Purged 50+ anomalies and corrected the critical export-alias regression in `analyzer.ts`.
+- **Infrastructure**: Sanitized `daemon.ts`, `index.ts`, `parser.ts`, and the `intel/` module.
+- **Functional Refactor**: Converted `GitChronograph` from a class to a functional object for AST efficiency.
+- **Verification**: Zero-fault core engine achieved; established 112 baseline for remaining UI/Socket debt.
+
+## 2026-03-01: Session 105 (Neural Matrix Decomposition & Crash Resolution)
+- **Modular components**: Decomposed `NeuralGraph.tsx` into atomic layers:
+    - `NodeLayer.tsx`: Instanced rendering of Python and Logic nodes.
+    - `ConnectionLayer.tsx`: Animated, dashed neural pathways for data flow.
+    - `AuraLayers.tsx`: `FresnelAura` and `SelectionHighlight` visuals.
+    - `TextLabel.tsx`: Billboarding filenames with optimized render logic.
+    - `SelectionPanelShell.tsx`: High-fidelity HUD for file intents and GPHS scores.
+- **Structural Integrity**: 
+    - `SemanticIndexer.ts`: Re-implemented iterative stack-based AST traversal to eliminate Host `RangeError` (Stack Overflow).
+    - `crawler.ts`: Injected explicit `.min.js` and `.bundle.js` evasion patterns.
+    - `.geminiignore`: Deployed host-level indexing shield to protect Gemini CLI from dependency bloat.
 - **Silence Protocol**: `TheWatcher` directly monitors `.mtime` to ensure absolute repository silence before triggering background audits.
 - **Ledger Synchronization**: Muninn directly ingests the `tech_debt_ledger.json` from PennyOne to prioritize repairs based on actual topological debt rather than naive random hunting.
 - **Escalation Protocol**: `Muninn` tracks failed fixes and automatically escalates stubborn files to `BLOCKED_STUCK` within the Ledger.
@@ -79,7 +107,11 @@ Complexity is the silence where bugs grow. By decomposing "God Methods" into sem
     - Native Python Bernoulli SPRT math engine.
 - **Antigravity Bridge** (`src/cstar/core/antigravity_bridge.py`):
     - **Dynamic Discovery**: Auto-routes workloads to optimal Gemini models.
-    - **Ghost Protocol**: Resilient exponential backoff for API stability.
+    - **Ghost Protocol**: Resilient exponential backoff and model rotation for API stability.
+    - **Extraction Fallback**: Brace-counting logic to recover JSON from noisy LLM streams.
+- **Antigravity Uplink** (`src/cstar/core/uplink.py`):
+    - **Socket Resilience**: High-fidelity transmission with 10s timeouts and schema validation.
+    - **Fallback Logic**: Automatic retry using `GEMINI_API_KEY` environment variable if CLI-native auth fails.
 - **Muninn** (`src/sentinel/muninn.py`): Memory ledger with HEARTBEAT tracking (`.agent/muninn.pid`).
 - **Genesis Bootstrapper** (`src/node/setup.js`):
     - Zero-touch cross-platform installation.

@@ -5,12 +5,14 @@ description: Prompts the agent to resume work from tasks.qmd by identifying curr
 1. Read the latest `tasks.qmd` to identify the current priority and "Next Steps".
 2. Check `memory.qmd` for long-term context, architectural rules, and past decisions.
 3. If the task involves UI, check `wireframe.qmd` for existing components. **CRITICAL:** Ensure any new page is planned to be wrapped in `DashboardLayout` (SovereignHUD). Standalone pages are strictly prohibited for core features.
-4. **Locate Files**: Consult the "Project Directory Structure" in `wireframe.qmd` to instantly find relevant API routes and components.
+4. **Locate Files & Intelligence**: 
+    -   Consult the "Project Directory Structure" in `wireframe.qmd` to find relevant sectors.
+    -   **Omniscience**: For every relevant file, call `get_file_intent` (MCP) or read its `.stats/` QMD. You MUST ingest both **🎯 INTENT** and **🕹️ INTERACTION PROTOCOL**.
 5.  **Verify Existing Architecture**:
-    -   **STOP**: Does this task imply replacing an existing page?
-    -   **CHECK**: Why is the current one there? Can it be improved instead of deleted?
-    -   **RULE**: "Improvement" means keeping the spirit of the current structure while fixing the bugs/issues.
-6.  Analyze dependencies and examine relevant files to understand the current state.
+    -   **STOP**: Does this task imply replacing an existing page or logic spoke?
+    -   **CHECK**: Why is the current one there (Consult Intent)? Can it be improved instead of deleted?
+    -   **RULE**: "Improvement" means keeping the spirit of the current structure (Respecting the Protocol) while fixing the issues.
+6.  Analyze dependencies and examine relevant files using `get_semantic_symbols` to understand the current state.
 7.  **Check for ambiguity:** Ensure dialogue happens if answers are needed. Do not make assumptions. Make informed decisions based on current principles but ask clarifying questions when needed.
 15. 7. Provide **three (3)** distinct proposals for the immediate implementation approach. Output MUST be persona-filtered:
     - **ODIN**: Present as "Grand Decrees". Proposals are paths to dominion.

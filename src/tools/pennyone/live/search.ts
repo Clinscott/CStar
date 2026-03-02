@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import chalk from 'chalk';
-import { registry } from '../pathRegistry.js';
+import { registry } from '../pathRegistry.ts';
 
 /**
  * Search matrix
@@ -45,6 +45,9 @@ export async function searchMatrix(query: string, _targetPath: string = '.'): Pr
         results.forEach(r => {
             console.log(` ◈ ${chalk.blue(registry.getRelative(r.path))}`);
             console.log(`   ${chalk.white('Intent:')} ${chalk.italic(r.intent || '...')}`);
+            if (r.interaction_protocol) {
+                console.log(`   ${chalk.yellow('Protocol:')} ${chalk.dim(r.interaction_protocol)}`);
+            }
             if (r.endpoints?.length > 0) {
                 console.log(`   ${chalk.magenta('Gateways:')} ${r.endpoints.slice(0, 2).join(', ')}`);
             }
@@ -67,3 +70,4 @@ if (process.argv[1].includes('search')) {
     const q = process.argv.slice(2).join(' ');
     if (q) searchMatrix(q);
 }
+

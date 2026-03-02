@@ -34,7 +34,8 @@ description: The Primary Loop. Consult the Engine before acting.
 
 5.  **The Scout Protocol (If Score < 0.60)**:
     -   **Acknowledge**: "The Archives are incomplete. Initiating Search Protocol."
-    -   **Search**: Use `search_web` to find the CLI command or library needed.
+    -   **Internal Search**: Run `cstar p1 --search "[Query]"` to check the **Hall of Records** (.stats/) for existing logic or similar features.
+    -   **External Search**: IF internal search yields no relevant sectors, use `search_web` to find the CLI command or library needed.
     -   **Synthesize**: Create a new Skill in `.agent/skills/`.
     -   **Verify**: Run `sv_engine.py` again.
     -   **Execute**: Run the newly forged skill.

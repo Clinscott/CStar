@@ -1,3 +1,77 @@
+# Walkthrough: Session 108 - PennyOne Integration & First Principles Realignment
+
+## 🎯 Goal
+Synchronize the Corvus Star workflows with the Gungnir First Principles and ensure the holistic persistence of Interaction Protocols in the Hall of Records.
+
+## 🏆 Results
+| Metric | Value |
+| :--- | :--- |
+| **Verification Scan** | **681 Files Resolved** |
+| **Systemic Repairs** | **4 Spoke Files Sanitized** |
+| **Persistence** | **Interaction Protocols Logged** |
+| **Workflow Alignment** | **100% (6/6 Core Workflows)** |
+
+## 🛠️ Key Changes
+- **Omniscience Matrix**: Updated `writer.ts`, `index.ts`, and `compiler.ts` to ensure **Interaction Protocols** are captured and persisted in [matrix-graph.json](file:///c:/Users/Craig/Corvus/CorvusStar/.stats/matrix-graph.json).
+- **Spoke Sanitization**: Fixed systemic template literal syntax errors in `pennyone.ts`, `ravens.ts`, `start.ts`, and `dispatcher.ts`.
+- **Sovereign Workflows**: Realigned all core workflows in `.agent/workflows/` to mandate Gungnir Matrix audits and Protocol-aware ingestion.
+- **Search UX**: Enhanced `search.ts` to surface the **Protocol** alongside the **Intent** for immediate tactical awareness.
+
+## 🤝 Session Handshake
+**Session Delta**:
+- The system is now physically aligned with the **Omniscience Mandate**.
+- All future agent actions are now governed by the **Gungnir Calculus** and **Interaction Protocols**.
+
+**Resume Directive**:
+- Proceed to Phase 92 in `tasks.qmd` (Operation Ironclad).
+
+
+## 🎯 Goal
+Implement robust API key precedence ("CLI Native first, Env Var last") and enhance the resiliency of the Antigravity intelligence routing layer.
+
+## 🏆 Results
+| Metric | Value |
+| :--- | :--- |
+| **Precedence** | **CLI-Native > Env Var** |
+| **Success Rate** | **11/11 Tests Passed** |
+| **Resiliency** | **Exponential Backoff Active** |
+| **Safety** | **10s Socket Timeouts** |
+
+## 🛠️ Key Changes
+- **Auth Sovereignty**: Modified `antigravity_bridge.py` to explicitly unset environment variables when no key is provided, forcing the Gemini CLI to use its internal configuration.
+- **Fail-Safe Uplink**: Enhanced `uplink.py` to automatically fallback to the local `GEMINI_API_KEY` only after a confirmed `AUTH_REQUIRED` failure from the Bridge.
+- **Robust Extraction**: Implemented balanced-brace JSON recovery in the Bridge to handle conversational or noisy LLM outputs.
+- **Circuit Protection**: Added strict 10s timeouts and schema validation to the Uplink socket transmission to prevent hanging.
+
+## 🤝 Session Handshake
+**Session Delta**:
+- The "CLI First" mandate is now physically enforced by environment isolation.
+- Intelligence routing is significantly more resilient to transient API flakiness and high-latency cycles.
+
+**Resume Directive**:
+- Proceed to Phase 92 in `tasks.qmd` (Operation Ironclad).
+
+# Walkthrough: Session 106 - PennyOne Sanitization Strike
+
+## Goal
+Finalize the investigation into Gemini CLI/Crawler crashes and execute a comprehensive refactoring of the PennyOne visualization matrix.
+
+## Results
+| Metric | Value |
+| :--- | :--- |
+| **Stability** | **Iterative Stack Active (Zero Stack Overflow)** |
+| **Indexing Shield** | **.geminiignore Deployed** |
+| **PennyOne Matrix** | **Fully Decomposed (5+ Layers)** |
+| **Vitals** | **100% Type Safe / Linscott Standard** |
+
+## Key Changes
+- **Structural Integrity**: Re-implemented `SemanticIndexer` iterative stack-based AST walker.
+- **Indexing Shield**: Created `.geminiignore` to suppress host-level recursive indexing.
+- **Matrix Decomposition**: Decomposed `NeuralGraph.tsx` into `NodeLayer`, `ConnectionLayer`, `AuraLayers`, `TextLabel`, `SelectionPanelShell`.
+- **Evasion Protocol**: Hardened `crawler.ts` to skip `.min.js` and `.bundle.js` artifacts.
+
+## Session Handshake
+- Resume Directive: Proceed to Phase 90 in `tasks.qmd` (Heimdall's Ward).
 # Walkthrough: Session 102 - Muninn Continuous Ledger Refactor
 
 ## 🎯 Goal

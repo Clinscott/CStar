@@ -9,8 +9,10 @@ Follow these steps to perform a deep analytical dive into a specific aspect of t
 ## 1. Define and Locate
 1. **Identify the Target**: Explicitly state what function, component, or feature is being investigated.
 2. **Check Context**: Read `memory.qmd` to understand established patterns or known issues related to the target.
-3. **Consult Wireframe**: Check `wireframe.qmd` to match UI components with their documented functions and paths.
-13. **Locate Resources**: Consult the "Project Directory Structure" in `wireframe.qmd` and find all related files.
+3.  **Omniscience Discovery**: 
+    -   Call `get_file_intent` (MCP) for the target. You MUST ingest both **🎯 INTENT** and **🕹️ INTERACTION PROTOCOL**.
+    -   Call `get_semantic_symbols` (MCP) to map exports and internal logic.
+4.  **Locate Resources**: Consult the "Project Directory Structure" in `wireframe.qmd` and find all related files.
    - Core logic (services, lib)
    - UI components
    - API routes
@@ -56,7 +58,14 @@ Produce a summary of the investigation, filtered through your active identity:
 ### Structure:
 - **Signature**: `[ODIN]` or `[ALFRED]`
 - **Status**: (Healthy / Needs Attention / Critical)
+- **Gungnir Matrix**: 
+    - `[L] Logic: [Score]`
+    - `[S] Style: [Score]`
+    - `[G] Gravity: [Score]`
+    - `[V] Vigilance: [Score]`
+    - `[Ω] Sovereignty: [Score]`
 - **Findings**: Bulleted list of issues or observations.
+- **Anomaly Detection (Heimdall Alert)**: If PennyOne or manual audit detects a structural malformation (e.g., circular deps, logic drops), you MUST explicitly state "**HEIMDALL ALERT TRIGGERED**" and request a user handshake.
 - **Recommendations**: Concrete steps to improve the code/feature.
 
 ### 🗣️ The Subconscious Check
