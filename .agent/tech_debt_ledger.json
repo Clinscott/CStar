@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-03-03T03:05:31.825Z",
+  "timestamp": "2026-03-03T09:48:28.134Z",
   "top_targets": [
     {
       "file": "C:/Users/Craig/Corvus/CorvusStar/cstar.ts",
@@ -137,15 +137,6 @@
       }
     },
     {
-      "file": "C:/Users/Craig/Corvus/CorvusStar/src/games/odin_protocol/main.py",
-      "priority": "HIGH",
-      "justification": "[ALFRED]: \"Structural Warning. Module influence outpaces its maintainability. Gravity: 96, Logic: 0.72.\"",
-      "metrics": {
-        "gravity": 96,
-        "logic": 0.725
-      }
-    },
-    {
       "file": "C:/Users/Craig/Corvus/CorvusStar/src/cstar/core/antigravity_bridge.py",
       "priority": "CRITICAL",
       "justification": "[ALFRED]: \"Atomic Alert! High influence module with failing logic score. Gravity: 102, Logic: 0.50. Immediate refactoring mandated.\"",
@@ -170,6 +161,15 @@
       "metrics": {
         "gravity": 74,
         "logic": 2.35
+      }
+    },
+    {
+      "file": "C:/Users/Craig/Corvus/CorvusStar/src/games/odin_protocol/main.py",
+      "priority": "HIGH",
+      "justification": "[ALFRED]: \"Structural Warning. Module influence outpaces its maintainability. Gravity: 96, Logic: 0.72.\"",
+      "metrics": {
+        "gravity": 96,
+        "logic": 0.725
       }
     },
     {

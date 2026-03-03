@@ -68,6 +68,26 @@ export function registerRavenCommand(program: Command, PROJECT_ROOT: string) {
             }
         });
 
+    ravens
+        .command('stop')
+        .description('Recall the Ravens (Stop Muninn Daemon)')
+        .action(async () => {
+            try {
+                const muninnPidPath = join(PROJECT_ROOT, '.agent', 'muninn.pid');
+                if (!fs.existsSync(muninnPidPath)) {
+                    console.log(chalk.yellow('[ALFRED]: "The Ravens are already nesting, sir."'));
+                    return;
+                }
+
+                const pid = parseInt(fs.readFileSync(muninnPidPath, 'utf-8').trim());
+                process.kill(pid, 'SIGTERM');
+                fs.unlinkSync(muninnPidPath);
+                console.log(chalk.green(`[ALFRED]: "Muninn Daemon (PID: ${pid}) has been silenced."`));
+            } catch (err: any) {
+                console.error(chalk.red(`[ALFRED]: "I encountered resistance while recalling the ravens: ${err.message}"`));
+            }
+        });
+
     // Default to status if no subcommand
     ravens.action(() => {
         displayStatus(PROJECT_ROOT);

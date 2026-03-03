@@ -1,12 +1,12 @@
 ---
 title: "ravens.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/node/core/commands/ravens.ts"
-loc: 110
-complexity: 15
-logic_score: 1.25
+loc: 128
+complexity: 17
+logic_score: 0.90
 style_score: 3.79
-intel_score: 4.18
-overall_score: 2.99
+intel_score: 3.88
+overall_score: 2.65
 ---
 
 ## Intent
@@ -16,9 +16,9 @@ A functional component of the Corvus Star static analysis matrix.
 Import and utilize via the standard project structure.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 1.3/10
+- **Logic [L]**: 0.9/10
 - **Style [S]**: 3.8/10
-- **Intel [I]**: 4.2/10
+- **Intel [I]**: 3.9/10
 - **Gravity [G]**: 19 interactions (Agent Activity Hotspot)
 
 
@@ -42,6 +42,8 @@ Import and utilize via the standard project structure.
 - `mainLoopScript`
 - `args`
 - `child`
+- `muninnPidPath`
+- `pid`
 - `displayStatus`
 - `muninnPidPath`
 - `muninnStatus`

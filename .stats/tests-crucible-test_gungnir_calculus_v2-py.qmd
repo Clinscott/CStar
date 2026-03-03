@@ -1,0 +1,44 @@
+---
+title: "test_gungnir_calculus_v2.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/crucible/test_gungnir_calculus_v2.py"
+loc: 90
+complexity: 4
+logic_score: 3.40
+style_score: 3.88
+intel_score: 4.96
+overall_score: 4.71
+---
+
+## Intent
+Python module facilitating TestGungnirCrucibleV2, setUp.
+
+## Interaction Protocol
+Import TestGungnirCrucibleV2 and call its primary methods.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 3.4/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 5.0/10
+- **Gravity [G]**: 14 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [unittest](file://unittest)
+- [json](file://json)
+- [os](file://os)
+- [sys](file://sys)
+- [asyncio](file://asyncio)
+- [pathlib](file://pathlib)
+- [unittest.mock](file://unittest.mock)
+- [src.sentinel.coordinator](file://src.sentinel.coordinator)
+- [src.cstar.core.antigravity_bridge](file://src.cstar.core.antigravity_bridge)
+
+### Exports
+- `TestGungnirCrucibleV2`
+- `setUp`
+- `test_calculus_10_metric_schema`
+- `test_bridge_hybrid_decision_logic`
+- `test_visual_mapping_fidelity`
