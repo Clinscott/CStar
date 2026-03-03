@@ -28,7 +28,10 @@ jobs:
         python-version: ${{ matrix.python-version }}
         
     - name: Execute Genesis Sequence (Install & Bootstrap)
-      run: npm install
+      run: |
+        npm install --legacy-peer-deps
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
         
     - name: Add Virtual Environment to Path (Unix)
       if: runner.os != 'Windows'
