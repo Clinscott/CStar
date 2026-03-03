@@ -1,17 +1,16 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import Database from 'better-sqlite3';
 import path from 'node:path';
 import fs from 'node:fs';
-import { AgentPing } from '../types.js';
-import { registry } from '../pathRegistry.js';
+import { AgentPing } from '../types.ts';
+import { registry } from '../pathRegistry.ts';
 
 let db: Database.Database | undefined;
 
 /**
- * @param {string} _targetRepo - The target repository path
+ * Get the database instance.
  * @returns {Database.Database} The db instance
  */
-export function getDb(_targetRepo?: string): Database.Database {
+export function getDb(): Database.Database {
     if (db) return db;
 
     // [Ω] Centralized Database: Always in the Axis (CorvusStar root)
@@ -72,18 +71,29 @@ export function getDb(_targetRepo?: string): Database.Database {
     return db;
 }
 
+export interface MissionTrace {
+    mission_id: string;
+    file_path: string;
+    target_metric: string;
+    initial_score: number;
+    final_score?: number;
+    justification: string;
+    status: string;
+    timestamp?: number;
+}
+
 /**
  * Persists a Mission Trace to the database.
- * @param {any} trace - The trace data
+ * @param {MissionTrace} trace - The trace data
  */
-export async function saveTrace(trace: any) {
+export async function saveTrace(trace: MissionTrace) {
     const database = getDb();
     const stmt = database.prepare(`
         INSERT INTO mission_traces (
             mission_id, file_path, target_metric, initial_score, final_score, justification, status, timestamp
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
-    
+
     stmt.run(
         trace.mission_id,
         trace.file_path,
@@ -102,15 +112,23 @@ export async function saveTrace(trace: any) {
  * @returns {number} The spoke ID
  */
 export function registerSpoke(targetRepo: string): number {
-    const database = getDb(targetRepo);
+    const database = getDb();
     const normalizedRepo = path.resolve(targetRepo).replace(/\\/g, '/');
     const spokeName = path.basename(normalizedRepo);
-    
-    const spoke = database.prepare('SELECT id FROM spokes WHERE root_path = ?').get(normalizedRepo) as { id: number } | undefined;
-    
+
+    // Check if spoke already exists by path or name
+    const spoke = database.prepare('SELECT id FROM spokes WHERE root_path = ? OR name = ?').get(normalizedRepo, spokeName) as { id: number } | undefined;
+
     if (!spoke) {
-        const stmt = database.prepare('INSERT INTO spokes (name, root_path) VALUES (?, ?)');
+        // Use INSERT OR IGNORE just in case of race conditions
+        const stmt = database.prepare('INSERT OR IGNORE INTO spokes (name, root_path) VALUES (?, ?)');
         const result = stmt.run(spokeName, normalizedRepo);
+        
+        if (result.changes === 0) {
+            // If nothing inserted, it existed (race condition), fetch it
+            const existing = database.prepare('SELECT id FROM spokes WHERE root_path = ? OR name = ?').get(normalizedRepo, spokeName) as { id: number };
+            return existing.id;
+        }
         return result.lastInsertRowid as number;
     }
     return spoke.id;
@@ -128,11 +146,11 @@ export async function savePing(ping: AgentPing, targetRepo: string) {
     const sanitizedAction = validActions.includes(ping.action) ? ping.action : 'THINK';
 
     const spokeId = registerSpoke(targetRepo);
-    const database = getDb(targetRepo);
+    const database = getDb();
 
     // 1. Find or create the current active session for this agent in this spoke
     const oneHourAgo = Date.now() - (60 * 60 * 1000);
-    
+
     let session = database.prepare('SELECT id FROM sessions WHERE agent_id = ? AND spoke_id = ? AND start_timestamp > ? ORDER BY id DESC LIMIT 1')
         .get(sanitizedAgentId, spokeId, oneHourAgo) as { id: number } | undefined;
 
@@ -154,12 +172,12 @@ export async function savePing(ping: AgentPing, targetRepo: string) {
 /**
  * [O.D.I.N.]: "Retrieving the scrolls of past campaigns."
  * @param {string} targetRepo - The target repository path
- * @returns {any[]} The session summaries
+ * @returns {Record<string, unknown>[]} The session summaries
  */
-export function getSessionsWithSummaries(targetRepo: string) {
-    const database = getDb(targetRepo);
+export function getSessionsWithSummaries(targetRepo: string): Record<string, unknown>[] {
+    const database = getDb();
     const normalizedRepo = path.resolve(targetRepo).replace(/\\/g, '/');
-    
+
     const sessions = database.prepare(`
         SELECT s.*, sp.name as spoke_name,
         (SELECT target_path FROM pings WHERE session_id = s.id GROUP BY target_path ORDER BY COUNT(*) DESC LIMIT 1) as primary_target
@@ -170,9 +188,12 @@ export function getSessionsWithSummaries(targetRepo: string) {
     `).all(normalizedRepo) as Record<string, unknown>[];
 
     return sessions.map(s => {
-        const duration = s.end_timestamp ? Math.round((s.end_timestamp - s.start_timestamp) / 1000) : 0;
-        const targetFile = s.primary_target ? path.basename(s.primary_target) : 'unknown';
-        
+        const start = s.start_timestamp as number;
+        const end = s.end_timestamp as number | null;
+        const duration = end ? Math.round((end - start) / 1000) : 0;
+        const primaryTarget = s.primary_target as string | undefined;
+        const targetFile = primaryTarget ? path.basename(primaryTarget) : 'unknown';
+
         return {
             ...s,
             summary: `Agent ${s.agent_id} performed ${s.total_pings} actions over ${duration}s. Primary focus: ${targetFile}.`
@@ -183,9 +204,9 @@ export function getSessionsWithSummaries(targetRepo: string) {
 /**
  * Retrieves mission traces for a specific file in chronological order.
  * @param {string} filePath - The file path to query
- * @returns {any[]} The traces
+ * @returns {MissionTrace[]} The traces
  */
-export function getTracesForFile(filePath: string): any[] {
+export function getTracesForFile(filePath: string): MissionTrace[] {
     const database = getDb();
     // Use like matching to handle absolute/relative path variations
     const normalizedPath = filePath.replace(/\\/g, '/');
@@ -193,17 +214,19 @@ export function getTracesForFile(filePath: string): any[] {
         SELECT * FROM mission_traces 
         WHERE file_path LIKE ? 
         ORDER BY timestamp ASC
-    `).all(`%${normalizedPath}%`) as any[];
+    `).all(`%${normalizedPath}%`) as MissionTrace[];
 }
 
 /**
  * Retrieves all pings for a specific session in chronological order.
  * @param {number} sessionId - The session ID
  * @param {string} targetRepo - The target repository path
+ * @param _targetRepo
  * @returns {AgentPing[]} The pings
  */
-export function getSessionPings(sessionId: number, targetRepo: string): AgentPing[] {
-    const database = getDb(targetRepo);
+export function getSessionPings(sessionId: number, _targetRepo: string): AgentPing[] {
+    const database = getDb();
     return database.prepare('SELECT agent_id, action, target_path, timestamp FROM pings WHERE session_id = ? ORDER BY timestamp ASC')
         .all(sessionId) as AgentPing[];
 }
+
