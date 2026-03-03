@@ -3,7 +3,7 @@ title: "test_dedupe_corrections_empire.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_dedupe_corrections_empire.py"
 loc: 16
 complexity: 1
-logic_score: 7.22
+logic_score: 7.15
 style_score: 3.84
 intel_score: 1.40
 overall_score: 4.66

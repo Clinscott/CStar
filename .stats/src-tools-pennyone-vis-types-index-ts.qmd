@@ -3,7 +3,7 @@ title: "index.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/types/index.ts"
 loc: 30
 complexity: 1
-logic_score: 8.97
+logic_score: 9.02
 style_score: 4.20
 intel_score: 2.00
 overall_score: 5.28
@@ -19,7 +19,7 @@ Import and utilize via the standard project structure.
 - **Logic [L]**: 9.0/10
 - **Style [S]**: 4.2/10
 - **Intel [I]**: 2.0/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 5 interactions (Agent Activity Hotspot)
 
 
 

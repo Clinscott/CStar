@@ -3,7 +3,7 @@ title: "test_stability.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_stability.py"
 loc: 48
 complexity: 4
-logic_score: 6.70
+logic_score: 6.52
 style_score: 3.71
 intel_score: 9.40
 overall_score: 6.94
@@ -16,7 +16,7 @@ Python module facilitating test_gungnir_validator_stable, test_gungnir_validator
 Import test_gungnir_validator_stable and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 6.7/10
+- **Logic [L]**: 6.5/10
 - **Style [S]**: 3.7/10
 - **Intel [I]**: 9.4/10
 - **Gravity [G]**: 10 interactions (Agent Activity Hotspot)

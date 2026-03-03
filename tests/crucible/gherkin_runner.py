@@ -50,13 +50,13 @@ class EmpireGherkinCrucible(unittest.IsolatedAsyncioTestCase):
 
     async def test_muninn_deterministic_routing_contract(self):
         """Scenario: Routing Deterministic Commands"""
-        # GIVEN: A query that matches a registered command
-        registry = {'ping': 'ping_workflow.py'}
+        from src.cstar.core.daemon import get_daemon
+        daemon = get_daemon()
+        daemon.command_registry = {'ping': 'ping_workflow.py'}
         
         # WHEN: The routing engine processes the query
-        with patch('src.cstar.core.daemon.COMMAND_REGISTRY', registry), \
-             patch('src.cstar.core.daemon.ENGINE') as mock_engine:
-            res, top, score = engine_search_sync("ping")
+        with patch.object(daemon, 'engine') as mock_engine:
+            res, top, score = daemon.engine_search_sync("ping")
             
             # THEN: The target must be correctly identified
             self.assertEqual(res["status"], "success")
@@ -64,13 +64,13 @@ class EmpireGherkinCrucible(unittest.IsolatedAsyncioTestCase):
 
     async def test_muninn_low_confidence_uplink_contract(self):
         """Scenario: Routing Low-Confidence Queries (Alfred Uplink)"""
-        # GIVEN: A query that does not match any deterministic command (Low Score)
+        from src.cstar.core.daemon import get_daemon, process_command
+        daemon = get_daemon()
         query = "Who built the CorvusStar?"
         
         # WHEN: The daemon's routing engine processes the query
-        with patch('src.cstar.core.daemon.engine_search_sync', return_value=(None, None, 0.1)), \
-             patch('src.cstar.core.antigravity_bridge.AntigravityBridge.clean_cli_output', return_value='{"status": "success", "response": "ok"}'), \
-             patch('src.cstar.core.daemon.UPLINK.send_payload', new_callable=AsyncMock) as mock_uplink:
+        with patch.object(daemon, 'engine_search_sync', return_value=(None, None, 0.1)), \
+             patch.object(daemon.uplink, 'send_payload', new_callable=AsyncMock) as mock_uplink:
             
             mock_uplink.return_value = {"status": "success", "data": {"raw": "Master Craig."}}
             response = await process_command(query, [], ".")

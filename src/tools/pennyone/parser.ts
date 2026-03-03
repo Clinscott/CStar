@@ -50,7 +50,13 @@ export async function getParser(filepath: string): Promise<{ parser: TreeSitter.
     }
 
     if (!parsers[languageName]) {
-        const fullWasmPath = path.resolve(registry.getRoot(), langPath);
+        // [Ω] BIFROST FIX: Resolve WASM paths relative to THIS file to prevent 
+        // test isolation from breaking tree-sitter loading.
+        const currentDir = import.meta.dirname;
+        // From src/tools/pennyone/parser.ts to root is 3 levels up
+        const projectRoot = path.resolve(currentDir, '../../..');
+        const fullWasmPath = path.resolve(projectRoot, langPath);
+        
         const lang = await TreeSitter.Language.load(fullWasmPath);
         const parser = new TreeSitter.Parser();
         parser.setLanguage(lang);

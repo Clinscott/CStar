@@ -19,10 +19,11 @@ program
     .command('scan')
     .description('Run a one-time structural scan of the repository')
     .argument('[path]', 'path to scan', '.')
-    .action(async (targetPath) => {
+    .option('-f, --force', 'force re-analysis of all files', false)
+    .action(async (targetPath, options) => {
         console.log(chalk.cyan('\n[ALFRED]: "Initializing Operation PennyOne... Scanning the neural pathways, sir."\n'));
         try {
-            const results = await runScan(targetPath);
+            const results = await runScan(targetPath, options.force);
             console.log(chalk.cyan(`[ALFRED]: "Scan complete. Total Files: ${results.length}."`));
         } catch (err) {
             console.error(chalk.red('[ALFRED]: "One-time scan failed."'), err);

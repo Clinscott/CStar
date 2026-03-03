@@ -1,7 +1,7 @@
 ---
 title: "wireframe.qmd"
 path: "C:/Users/Craig/Corvus/CorvusStar/wireframe.qmd"
-loc: 188
+loc: 191
 complexity: 1
 logic_score: 10.00
 style_score: 10.00
@@ -19,7 +19,7 @@ Import and utilize via the standard project structure.
 - **Logic [L]**: 10.0/10
 - **Style [S]**: 10.0/10
 - **Intel [I]**: 10.0/10
-- **Gravity [G]**: 90 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 93 interactions (Agent Activity Hotspot)
 
 
 

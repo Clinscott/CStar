@@ -6,7 +6,7 @@ complexity: 9
 logic_score: 2.30
 style_score: 4.55
 intel_score: 8.81
-overall_score: 5.99
+overall_score: 5.49
 ---
 
 ## Intent
@@ -19,7 +19,7 @@ Import and utilize via the standard project structure.
 - **Logic [L]**: 2.3/10
 - **Style [S]**: 4.6/10
 - **Intel [I]**: 8.8/10
-- **Gravity [G]**: 9 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 12 interactions (Agent Activity Hotspot)
 
 
 

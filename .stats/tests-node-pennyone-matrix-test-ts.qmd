@@ -19,7 +19,7 @@ Import and utilize via the standard project structure.
 - **Logic [L]**: 8.8/10
 - **Style [S]**: 9.4/10
 - **Intel [I]**: 6.9/10
-- **Gravity [G]**: 6 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 8 interactions (Agent Activity Hotspot)
 
 
 

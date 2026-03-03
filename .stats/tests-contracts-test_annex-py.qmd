@@ -3,7 +3,7 @@ title: "test_annex.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/contracts/test_annex.py"
 loc: 35
 complexity: 1
-logic_score: 5.45
+logic_score: 5.15
 style_score: 3.91
 intel_score: 8.26
 overall_score: 6.62
@@ -16,7 +16,7 @@ Python module facilitating mock_dominion, test_annex_scan.
 Import mock_dominion and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 5.4/10
+- **Logic [L]**: 5.1/10
 - **Style [S]**: 3.9/10
 - **Intel [I]**: 8.3/10
 - **Gravity [G]**: 13 interactions (Agent Activity Hotspot)

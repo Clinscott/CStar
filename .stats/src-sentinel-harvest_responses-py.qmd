@@ -19,7 +19,7 @@ Import ResponseRecorder and call its primary methods.
 - **Logic [L]**: 3.4/10
 - **Style [S]**: 3.8/10
 - **Intel [I]**: 7.6/10
-- **Gravity [G]**: 15 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 26 interactions (Agent Activity Hotspot)
 
 
 

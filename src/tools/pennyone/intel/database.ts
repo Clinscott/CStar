@@ -5,22 +5,30 @@ import { AgentPing } from '../types.ts';
 import { registry } from '../pathRegistry.ts';
 
 let db: Database.Database | undefined;
+let currentDbPath: string | undefined;
 
 /**
  * Get the database instance.
  * @returns {Database.Database} The db instance
  */
 export function getDb(): Database.Database {
+    const statsDir = path.join(registry.getRoot(), '.stats');
+    const dbPath = path.join(statsDir, 'pennyone.db');
+
+    // [Ω] BIFROST FIX: If the root has changed (e.g. during tests), close old db
+    if (db && currentDbPath !== dbPath) {
+        db.close();
+        db = undefined;
+    }
+
     if (db) return db;
 
-    // [Ω] Centralized Database: Always in the Axis (CorvusStar root)
-    const statsDir = path.join(registry.getRoot(), '.stats');
     if (!fs.existsSync(statsDir)) {
         fs.mkdirSync(statsDir, { recursive: true });
     }
 
-    const dbPath = path.join(statsDir, 'pennyone.db');
     db = new Database(dbPath);
+    currentDbPath = dbPath;
 
     // [Ω] Gungnir Schema: Spokes, Sessions & Pings
     db.exec(`
@@ -228,5 +236,16 @@ export function getSessionPings(sessionId: number, _targetRepo: string): AgentPi
     const database = getDb();
     return database.prepare('SELECT agent_id, action, target_path, timestamp FROM pings WHERE session_id = ? ORDER BY timestamp ASC')
         .all(sessionId) as AgentPing[];
+}
+
+/**
+ * Closes the active database connection.
+ */
+export function closeDb(): void {
+    if (db) {
+        db.close();
+        db = undefined;
+        currentDbPath = undefined;
+    }
 }
 

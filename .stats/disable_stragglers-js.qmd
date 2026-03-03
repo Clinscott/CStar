@@ -3,7 +3,7 @@ title: "disable_stragglers.js"
 path: "C:/Users/Craig/Corvus/CorvusStar/disable_stragglers.js"
 loc: 25
 complexity: 3
-logic_score: 6.57
+logic_score: 6.17
 style_score: 8.94
 intel_score: 9.40
 overall_score: 8.65
@@ -16,7 +16,7 @@ A functional component of the Corvus Star static analysis matrix.
 Import and utilize via the standard project structure.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 6.6/10
+- **Logic [L]**: 6.2/10
 - **Style [S]**: 8.9/10
 - **Intel [I]**: 9.4/10
 - **Gravity [G]**: 5 interactions (Agent Activity Hotspot)

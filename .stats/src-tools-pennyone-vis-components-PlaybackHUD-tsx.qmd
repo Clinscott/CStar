@@ -3,7 +3,7 @@ title: "PlaybackHUD.tsx"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/components/PlaybackHUD.tsx"
 loc: 104
 complexity: 6
-logic_score: 8.18
+logic_score: 8.13
 style_score: 2.74
 intel_score: 2.77
 overall_score: 3.82
@@ -16,10 +16,10 @@ React component rendering PlaybackHUD.
 Include <PlaybackHUD /> within a React-Three-Fiber Canvas context.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 8.2/10
+- **Logic [L]**: 8.1/10
 - **Style [S]**: 2.7/10
 - **Intel [I]**: 2.8/10
-- **Gravity [G]**: 22 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 24 interactions (Agent Activity Hotspot)
 
 
 

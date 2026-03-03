@@ -3,7 +3,7 @@ title: "test_personas_empire.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_personas_empire.py"
 loc: 56
 complexity: 3
-logic_score: 4.13
+logic_score: 3.92
 style_score: 3.70
 intel_score: 1.40
 overall_score: 4.08
@@ -16,7 +16,7 @@ Python module facilitating TestPersonasEmpire, test_get_strategy_resolution.
 Import TestPersonasEmpire and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 4.1/10
+- **Logic [L]**: 3.9/10
 - **Style [S]**: 3.7/10
 - **Intel [I]**: 1.4/10
 - **Gravity [G]**: 7 interactions (Agent Activity Hotspot)

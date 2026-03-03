@@ -3,7 +3,7 @@ title: "test_contextual_persona.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_contextual_persona.py"
 loc: 49
 complexity: 1
-logic_score: 7.92
+logic_score: 7.95
 style_score: 3.64
 intel_score: 6.30
 overall_score: 6.08

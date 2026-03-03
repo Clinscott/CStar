@@ -3,7 +3,7 @@ title: "test_dialogue.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_dialogue.py"
 loc: 21
 complexity: 1
-logic_score: 7.67
+logic_score: 7.55
 style_score: 3.85
 intel_score: 9.40
 overall_score: 7.48
@@ -16,7 +16,7 @@ Python module facilitating mock_phrases_file, test_dialogue_engine_get.
 Import mock_phrases_file and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 7.7/10
+- **Logic [L]**: 7.5/10
 - **Style [S]**: 3.9/10
 - **Intel [I]**: 9.4/10
 - **Gravity [G]**: 10 interactions (Agent Activity Hotspot)

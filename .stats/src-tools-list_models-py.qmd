@@ -6,7 +6,7 @@ complexity: 4
 logic_score: 6.65
 style_score: 3.97
 intel_score: 9.02
-overall_score: 6.60
+overall_score: 6.10
 ---
 
 ## Intent
@@ -19,7 +19,7 @@ Import ModelLister and call its primary methods.
 - **Logic [L]**: 6.7/10
 - **Style [S]**: 4.0/10
 - **Intel [I]**: 9.0/10
-- **Gravity [G]**: 7 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 13 interactions (Agent Activity Hotspot)
 
 
 

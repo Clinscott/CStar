@@ -3,7 +3,7 @@ title: "test_freya_warden.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_freya_warden.py"
 loc: 13
 complexity: 1
-logic_score: 7.15
+logic_score: 7.05
 style_score: 1.00
 intel_score: 9.40
 overall_score: 6.53
@@ -16,7 +16,7 @@ Python module facilitating mock_project, test_freya_warden_scan.
 Import mock_project and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 7.1/10
+- **Logic [L]**: 7.0/10
 - **Style [S]**: 1.0/10
 - **Intel [I]**: 9.4/10
 - **Gravity [G]**: 4 interactions (Agent Activity Hotspot)

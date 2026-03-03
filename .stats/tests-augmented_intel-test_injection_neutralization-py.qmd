@@ -19,7 +19,7 @@ Import TestInjectionNeutralization and call its primary methods.
 - **Logic [L]**: 9.2/10
 - **Style [S]**: 4.1/10
 - **Intel [I]**: 9.4/10
-- **Gravity [G]**: 4 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 7 interactions (Agent Activity Hotspot)
 
 
 

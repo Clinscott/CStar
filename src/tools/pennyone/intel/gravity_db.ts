@@ -6,21 +6,29 @@ import { registry } from '../pathRegistry.ts';
 import { GitChronograph } from './git_monitor.ts';
 
 let db: Database.Database | null = null;
+let currentDbPath: string | undefined;
 
 /**
  * Get Gravity DB instance
  * @returns {Database.Database} The db instance
  */
 export function getGravityDb(): Database.Database {
+    const statsDir = path.join(registry.getRoot(), '.stats');
+    const dbPath = path.join(statsDir, 'gravity.db');
+
+    if (db && currentDbPath !== dbPath) {
+        db.close();
+        db = null;
+    }
+
     if (db) return db;
 
-    const statsDir = path.join(registry.getRoot(), '.stats');
     if (!fs.existsSync(statsDir)) {
         fs.mkdirSync(statsDir, { recursive: true });
     }
 
-    const dbPath = path.join(statsDir, 'gravity.db');
     db = new Database(dbPath);
+    currentDbPath = dbPath;
 
     db.exec(`
         CREATE TABLE IF NOT EXISTS file_gravity (
@@ -130,5 +138,16 @@ export function setFileGravity(filepath: string, weight: number): void {
         VALUES (?, ?) 
         ON CONFLICT(path) DO UPDATE SET weight = ?
     `).run(normalized, weight, weight);
+}
+
+/**
+ * Closes the active gravity database connection.
+ */
+export function closeGravityDb(): void {
+    if (db) {
+        db.close();
+        db = null;
+        currentDbPath = undefined;
+    }
 }
 

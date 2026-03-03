@@ -3,10 +3,10 @@ title: "git_monitor.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/intel/git_monitor.ts"
 loc: 58
 complexity: 5
-logic_score: 4.80
+logic_score: 4.68
 style_score: 4.01
 intel_score: 6.14
-overall_score: 5.53
+overall_score: 5.03
 ---
 
 ## Intent
@@ -16,10 +16,10 @@ A functional component of the Corvus Star static analysis matrix.
 Import and utilize via the standard project structure.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 4.8/10
+- **Logic [L]**: 4.7/10
 - **Style [S]**: 4.0/10
 - **Intel [I]**: 6.1/10
-- **Gravity [G]**: 10 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 14 interactions (Agent Activity Hotspot)
 
 
 

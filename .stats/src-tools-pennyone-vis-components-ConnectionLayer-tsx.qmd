@@ -6,7 +6,7 @@ complexity: 6
 logic_score: 3.05
 style_score: 4.01
 intel_score: 6.68
-overall_score: 5.60
+overall_score: 5.10
 ---
 
 ## Intent
@@ -19,7 +19,7 @@ Include <ConnectionLayer /> within a React-Three-Fiber Canvas context.
 - **Logic [L]**: 3.0/10
 - **Style [S]**: 4.0/10
 - **Intel [I]**: 6.7/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 14 interactions (Agent Activity Hotspot)
 
 
 

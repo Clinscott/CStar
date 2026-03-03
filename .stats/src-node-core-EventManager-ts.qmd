@@ -3,7 +3,7 @@ title: "EventManager.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/node/core/EventManager.ts"
 loc: 37
 complexity: 7
-logic_score: 7.30
+logic_score: 6.10
 style_score: 4.09
 intel_score: 4.16
 overall_score: 4.82
@@ -16,10 +16,10 @@ A functional component of the Corvus Star static analysis matrix.
 Import and utilize via the standard project structure.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 7.3/10
+- **Logic [L]**: 6.1/10
 - **Style [S]**: 4.1/10
 - **Intel [I]**: 4.2/10
-- **Gravity [G]**: 9 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 7 interactions (Agent Activity Hotspot)
 
 
 

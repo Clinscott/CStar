@@ -19,7 +19,7 @@ Import SovereignContext and call its primary methods.
 - **Logic [L]**: 2.6/10
 - **Style [S]**: 3.7/10
 - **Intel [I]**: 6.3/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 9 interactions (Agent Activity Hotspot)
 
 
 

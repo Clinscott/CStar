@@ -3,7 +3,7 @@ title: "eslint.config.js"
 path: "C:/Users/Craig/Corvus/CorvusStar/eslint.config.js"
 loc: 36
 complexity: 1
-logic_score: 8.82
+logic_score: 8.85
 style_score: 4.11
 intel_score: 8.67
 overall_score: 7.48

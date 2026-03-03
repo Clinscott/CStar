@@ -1,12 +1,12 @@
 ---
 title: "NeuralGraph.tsx"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/components/NeuralGraph.tsx"
-loc: 414
-complexity: 52
-logic_score: 0.50
-style_score: 1.00
-intel_score: 2.77
-overall_score: 1.09
+loc: 159
+complexity: 17
+logic_score: 0.67
+style_score: 3.74
+intel_score: 5.52
+overall_score: 3.04
 ---
 
 ## Intent
@@ -16,10 +16,10 @@ React component rendering NeuralGraph.
 Include <NeuralGraph /> within a React-Three-Fiber Canvas context.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 0.5/10
-- **Style [S]**: 1.0/10
-- **Intel [I]**: 2.8/10
-- **Gravity [G]**: 166 interactions (Agent Activity Hotspot)
+- **Logic [L]**: 0.7/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 5.5/10
+- **Gravity [G]**: 226 interactions (Agent Activity Hotspot)
 
 
 
@@ -30,81 +30,48 @@ Include <NeuralGraph /> within a React-Three-Fiber Canvas context.
 - [useRef](file://react)
 - [useState](file://react)
 - [useEffect](file://react)
+- [useCallback](file://react)
 - [*](file://three)
 - [useFrame](file://@react-three/fiber)
 - [useThree](file://@react-three/fiber)
-- [extend](file://@react-three/fiber)
 - [Html](file://@react-three/drei)
-- [shaderMaterial](file://@react-three/drei)
-- [Line](file://@react-three/drei)
-- [Text](file://@react-three/drei)
 - [*](file://d3-force-3d)
 - [*](file://gsap)
+- [Node](file://../types/index.ts)
+- [Link](file://../types/index.ts)
 - [Trajectory](file://../types/index.ts)
+- [GhostTrace](file://../types/index.ts)
+- [NodeLayer](file://./NodeLayer.ts)
+- [ConnectionLayer](file://./ConnectionLayer.ts)
+- [FresnelAura](file://./AuraLayers.ts)
+- [SelectionHighlight](file://./AuraLayers.ts)
+- [TextLabel](file://./TextLabel.ts)
+- [SelectionPanelShell](file://./SelectionPanelShell.ts)
+- [GhostTraceLayer](file://./GhostTraceLayer.ts)
+- [useNeuralData](file://../logic/useNeuralData.ts)
+- [getStar](file://../logic/useNeuralData.ts)
 
 ### Exports
-- `FresnelMaterial`
-- `tempObject`
-- `tempColor`
-- `SelectionHighlight`
-- `FresnelAura`
-- `materialRef`
-- `logicVal`
-- `isToxic`
-- `NeuralLink`
-- `lineRef`
-- `STELLAR_MAP`
-- `getStar`
-- `p`
-- `TextLabel`
-- `textRef`
-- `filename`
 - `NeuralGraph`
 - `NeuralGraph`
 - `useThree`
-- `sphereMeshRef`
-- `tetraMeshRef`
 - `simReady`
 - `hovered`
 - `selectedNode`
 - `trajectories`
-- `useMemo`
-- `fallback`
-- `files`
-- `nodes`
-- `nodeMap`
-- `linkList`
-- `usedIds`
-- `pathStr`
-- `orphansArr`
-- `getVisScale`
-- `getStarColor`
-- `p`
-- `fetchTrajectories`
-- `res`
-- `trajData`
-- `d3v3`
+- `ghostTraces`
+- `useNeuralData`
 - `simulation`
-- `orphans`
-- `radius`
-- `oCount`
-- `theta`
-- `mapArr`
-- `layersArr`
-- `activeNodeId`
-- `currentMesh`
-- `isNeighbor`
-- `sId`
-- `tId`
-- `scale`
-- `isHoveredNode`
-- `isSelectedNode`
-- `nodeMatrix`
+- `i`
+- `map`
+- `protocol`
+- `ws`
+- `msg`
+- `ping`
+- `targetNode`
+- `lastTrace`
+- `newPoint`
 - `handleNodeClick`
 - `targetPos`
-- `ctrl`
-- `vLinksArr`
-- `activeIdVal`
-- `sNode`
-- `tNode`
-- `isHL`
+- `activeNodeIdFromHover`
+- `activeNodeId`

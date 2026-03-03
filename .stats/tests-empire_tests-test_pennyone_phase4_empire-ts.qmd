@@ -3,7 +3,7 @@ title: "test_pennyone_phase4_empire.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_pennyone_phase4_empire.ts"
 loc: 78
 complexity: 3
-logic_score: 4.78
+logic_score: 4.25
 style_score: 4.01
 intel_score: 4.56
 overall_score: 4.74
@@ -16,7 +16,7 @@ A functional component of the Corvus Star static analysis matrix.
 Import and utilize via the standard project structure.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 4.8/10
+- **Logic [L]**: 4.3/10
 - **Style [S]**: 4.0/10
 - **Intel [I]**: 4.6/10
 - **Gravity [G]**: 12 interactions (Agent Activity Hotspot)

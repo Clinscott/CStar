@@ -1,14 +1,38 @@
 {
-  "timestamp": "2026-03-02 13:53:50",
-  "total_iterations": 1,
+  "timestamp": "2026-03-02 20:34:40",
+  "total_iterations": 5,
   "passed": 0,
-  "failed": 1,
+  "failed": 5,
   "results": [
     {
       "iteration": 1,
       "passed": false,
-      "duration": 102.32310771942139,
-      "timestamp": "13:53:50"
+      "duration": 441.16646003723145,
+      "timestamp": "20:11:19"
+    },
+    {
+      "iteration": 2,
+      "passed": false,
+      "duration": 350.1561758518219,
+      "timestamp": "20:17:09"
+    },
+    {
+      "iteration": 3,
+      "passed": false,
+      "duration": 350.2141115665436,
+      "timestamp": "20:23:00"
+    },
+    {
+      "iteration": 4,
+      "passed": false,
+      "duration": 350.0677719116211,
+      "timestamp": "20:28:50"
+    },
+    {
+      "iteration": 5,
+      "passed": false,
+      "duration": 350.0251817703247,
+      "timestamp": "20:34:40"
     }
   ]
 }

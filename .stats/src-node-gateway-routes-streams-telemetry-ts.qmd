@@ -3,7 +3,7 @@ title: "telemetry.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/node/gateway/routes/streams/telemetry.ts"
 loc: 31
 complexity: 3
-logic_score: 8.13
+logic_score: 5.82
 style_score: 8.34
 intel_score: 10.00
 overall_score: 8.35
@@ -16,10 +16,10 @@ A functional component of the Corvus Star static analysis matrix.
 Import and utilize via the standard project structure.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 8.1/10
+- **Logic [L]**: 5.8/10
 - **Style [S]**: 8.3/10
 - **Intel [I]**: 10.0/10
-- **Gravity [G]**: 7 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 5 interactions (Agent Activity Hotspot)
 
 ## ⛩️ API Gateways
 - `[GET] /telemetry`

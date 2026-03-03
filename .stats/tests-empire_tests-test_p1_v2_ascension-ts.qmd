@@ -3,7 +3,7 @@ title: "test_p1_v2_ascension.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_p1_v2_ascension.ts"
 loc: 50
 complexity: 2
-logic_score: 5.05
+logic_score: 4.97
 style_score: 3.80
 intel_score: 4.60
 overall_score: 4.95

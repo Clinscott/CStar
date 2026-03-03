@@ -3,7 +3,7 @@ title: "test_sanitize_thesaurus.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_sanitize_thesaurus.py"
 loc: 20
 complexity: 1
-logic_score: 7.40
+logic_score: 7.20
 style_score: 3.85
 intel_score: 9.40
 overall_score: 7.48
@@ -16,7 +16,7 @@ Python module facilitating test_sanitize_clusters_logic, test_sanitize_file_oper
 Import test_sanitize_clusters_logic and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 7.4/10
+- **Logic [L]**: 7.2/10
 - **Style [S]**: 3.8/10
 - **Intel [I]**: 9.4/10
 - **Gravity [G]**: 5 interactions (Agent Activity Hotspot)

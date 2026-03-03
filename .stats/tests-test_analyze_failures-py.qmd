@@ -3,7 +3,7 @@ title: "test_analyze_failures.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_analyze_failures.py"
 loc: 26
 complexity: 2
-logic_score: 6.88
+logic_score: 6.85
 style_score: 3.76
 intel_score: 7.55
 overall_score: 6.27
@@ -16,7 +16,7 @@ Python module facilitating test_analyze_benchmarks_logic, MockVector.
 Import test_analyze_benchmarks_logic and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 6.9/10
+- **Logic [L]**: 6.8/10
 - **Style [S]**: 3.8/10
 - **Intel [I]**: 7.6/10
 - **Gravity [G]**: 6 interactions (Agent Activity Hotspot)

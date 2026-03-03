@@ -6,7 +6,7 @@ complexity: 7
 logic_score: 2.88
 style_score: 3.79
 intel_score: 4.67
-overall_score: 4.74
+overall_score: 4.24
 ---
 
 ## Intent
@@ -19,7 +19,7 @@ Import CorrectionOptimizer and call its primary methods.
 - **Logic [L]**: 2.9/10
 - **Style [S]**: 3.8/10
 - **Intel [I]**: 4.7/10
-- **Gravity [G]**: 9 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 21 interactions (Agent Activity Hotspot)
 
 
 

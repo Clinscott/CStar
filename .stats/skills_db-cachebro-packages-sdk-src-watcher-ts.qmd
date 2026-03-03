@@ -3,7 +3,7 @@ title: "watcher.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/skills_db/cachebro/packages/sdk/src/watcher.ts"
 loc: 56
 complexity: 6
-logic_score: 5.97
+logic_score: 5.72
 style_score: 4.06
 intel_score: 4.14
 overall_score: 4.77
@@ -16,7 +16,7 @@ A functional component of the Corvus Star static analysis matrix.
 Import and utilize via the standard project structure.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 6.0/10
+- **Logic [L]**: 5.7/10
 - **Style [S]**: 4.1/10
 - **Intel [I]**: 4.1/10
 - **Gravity [G]**: 9 interactions (Agent Activity Hotspot)

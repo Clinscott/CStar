@@ -1,12 +1,12 @@
 ---
 title: "SectorMetrics.tsx"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/components/SectorMetrics.tsx"
-loc: 20
-complexity: 1
-logic_score: 8.43
-style_score: 3.78
-intel_score: 2.00
-overall_score: 4.99
+loc: 44
+complexity: 8
+logic_score: 4.72
+style_score: 3.59
+intel_score: 5.64
+overall_score: 5.33
 ---
 
 ## Intent
@@ -16,10 +16,10 @@ React component rendering SectorMetrics.
 Include <SectorMetrics /> within a React-Three-Fiber Canvas context.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 8.4/10
-- **Style [S]**: 3.8/10
-- **Intel [I]**: 2.0/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Logic [L]**: 4.7/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 5.6/10
+- **Gravity [G]**: 4 interactions (Agent Activity Hotspot)
 
 
 
@@ -32,4 +32,15 @@ Include <SectorMetrics /> within a React-Three-Fiber Canvas context.
 ### Exports
 - `SectorMetrics`
 - `SectorMetrics`
-- `overallScore`
+- `matrix`
+- `overall`
+- `logic`
+- `style`
+- `intel`
+- `aesthetic`
+- `stability`
+- `coupling`
+- `sovereignty`
+- `anomaly`
+- `gravity`
+- `Metric`

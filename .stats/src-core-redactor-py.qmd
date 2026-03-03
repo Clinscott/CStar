@@ -19,7 +19,7 @@ Import Redactor and call its primary methods.
 - **Logic [L]**: 7.3/10
 - **Style [S]**: 3.7/10
 - **Intel [I]**: 9.4/10
-- **Gravity [G]**: 14 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 17 interactions (Agent Activity Hotspot)
 
 
 

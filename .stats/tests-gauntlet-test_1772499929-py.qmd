@@ -1,0 +1,33 @@
+---
+title: "test_1772499929.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/gauntlet/test_1772499929.py"
+loc: 6
+complexity: 2
+logic_score: 9.20
+style_score: 8.00
+intel_score: 1.40
+overall_score: 6.08
+---
+
+## Intent
+Python module facilitating internal logic.
+
+## Interaction Protocol
+Import module and call its primary methods.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 8.0/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 3 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+
+### Exports
+Internal logic only.

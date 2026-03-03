@@ -3,7 +3,7 @@ title: "test_pathRegistry.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_pathRegistry.ts"
 loc: 28
 complexity: 1
-logic_score: 8.53
+logic_score: 8.50
 style_score: 7.04
 intel_score: 8.54
 overall_score: 8.11

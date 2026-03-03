@@ -19,7 +19,7 @@ Instantiate SovereignEngine and invoke run(query) to process natural language di
 - **Logic [L]**: 3.5/10
 - **Style [S]**: 3.7/10
 - **Intel [I]**: 5.8/10
-- **Gravity [G]**: 125 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 171 interactions (Agent Activity Hotspot)
 
 
 

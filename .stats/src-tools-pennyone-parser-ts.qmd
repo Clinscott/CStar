@@ -1,12 +1,12 @@
 ---
 title: "parser.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/parser.ts"
-loc: 44
+loc: 46
 complexity: 7
-logic_score: 7.42
-style_score: 3.84
-intel_score: 5.64
-overall_score: 4.88
+logic_score: 7.40
+style_score: 3.86
+intel_score: 8.09
+overall_score: 5.70
 ---
 
 ## Intent
@@ -17,9 +17,9 @@ Import and utilize via the standard project structure.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 7.4/10
-- **Style [S]**: 3.8/10
-- **Intel [I]**: 5.6/10
-- **Gravity [G]**: 15 interactions (Agent Activity Hotspot)
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 8.1/10
+- **Gravity [G]**: 19 interactions (Agent Activity Hotspot)
 
 
 
@@ -41,6 +41,8 @@ Import and utilize via the standard project structure.
 - `ext`
 - `langPath`
 - `languageName`
+- `currentDir`
+- `projectRoot`
 - `fullWasmPath`
 - `lang`
 - `parser`

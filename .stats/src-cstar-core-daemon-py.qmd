@@ -1,25 +1,25 @@
 ---
 title: "daemon.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/cstar/core/daemon.py"
-loc: 149
-complexity: 21
+loc: 168
+complexity: 22
 logic_score: 0.50
-style_score: 3.65
-intel_score: 5.43
-overall_score: 2.86
+style_score: 3.63
+intel_score: 4.97
+overall_score: 2.70
 ---
 
 ## Intent
-Python module facilitating CStarDaemon, __init__.
+Python module facilitating get_daemon, engine_search_sync.
 
 ## Interaction Protocol
-Import CStarDaemon and call its primary methods.
+Import get_daemon and call its primary methods.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 0.5/10
 - **Style [S]**: 3.6/10
-- **Intel [I]**: 5.4/10
-- **Gravity [G]**: 91 interactions (Agent Activity Hotspot)
+- **Intel [I]**: 5.0/10
+- **Gravity [G]**: 124 interactions (Agent Activity Hotspot)
 
 
 
@@ -43,6 +43,10 @@ Import CStarDaemon and call its primary methods.
 - [src.sentinel.muninn](file://src.sentinel.muninn)
 
 ### Exports
+- `get_daemon`
+- `engine_search_sync`
+- `process_command`
+- `execute_sleep_protocol`
 - `CStarDaemon`
 - `__init__`
 - `engine_search_sync`

@@ -3,7 +3,7 @@ title: "prompt_linter.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/core/prompt_linter.py"
 loc: 48
 complexity: 16
-logic_score: 3.68
+logic_score: 3.58
 style_score: 3.81
 intel_score: 6.40
 overall_score: 3.97
@@ -16,7 +16,7 @@ Python module facilitating PromptLinter, parse_prompty_vars.
 Import PromptLinter and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 3.7/10
+- **Logic [L]**: 3.6/10
 - **Style [S]**: 3.8/10
 - **Intel [I]**: 6.4/10
 - **Gravity [G]**: 9 interactions (Agent Activity Hotspot)

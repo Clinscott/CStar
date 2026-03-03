@@ -3,7 +3,7 @@ title: "test_daemon_singleton_empire.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_daemon_singleton_empire.py"
 loc: 32
 complexity: 1
-logic_score: 8.10
+logic_score: 8.07
 style_score: 3.61
 intel_score: 6.40
 overall_score: 5.60

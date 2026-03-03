@@ -3,7 +3,7 @@ title: "dialogue.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/core/engine/dialogue.py"
 loc: 59
 complexity: 12
-logic_score: 2.20
+logic_score: 2.28
 style_score: 3.80
 intel_score: 9.40
 overall_score: 5.23
@@ -16,7 +16,7 @@ Core semantic routing engine for intent resolution.
 Instantiate SovereignEngine and invoke run(query) to process natural language directives.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 2.2/10
+- **Logic [L]**: 2.3/10
 - **Style [S]**: 3.8/10
 - **Intel [I]**: 9.4/10
 - **Gravity [G]**: 30 interactions (Agent Activity Hotspot)

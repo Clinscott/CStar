@@ -3,7 +3,7 @@ title: "rot13_encoder.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/skills_db/rot13_encoder/rot13_encoder.py"
 loc: 14
 complexity: 5
-logic_score: 6.20
+logic_score: 6.08
 style_score: 4.72
 intel_score: 1.40
 overall_score: 4.34
@@ -16,7 +16,7 @@ Python module facilitating rot13.
 Import rot13 and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 6.2/10
+- **Logic [L]**: 6.1/10
 - **Style [S]**: 4.7/10
 - **Intel [I]**: 1.4/10
 - **Gravity [G]**: 4 interactions (Agent Activity Hotspot)

@@ -3,7 +3,7 @@ title: "useNodeEffects.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/logic/useNodeEffects.ts"
 loc: 52
 complexity: 18
-logic_score: 2.30
+logic_score: 2.95
 style_score: 4.01
 intel_score: 5.85
 overall_score: 3.92
@@ -16,10 +16,10 @@ A functional component of the Corvus Star static analysis matrix.
 Import and utilize via the standard project structure.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 2.3/10
+- **Logic [L]**: 3.0/10
 - **Style [S]**: 4.0/10
 - **Intel [I]**: 5.8/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 9 interactions (Agent Activity Hotspot)
 
 
 

@@ -19,7 +19,7 @@ Import VisualExplainer and call its primary methods.
 - **Logic [L]**: 2.9/10
 - **Style [S]**: 3.6/10
 - **Intel [I]**: 4.4/10
-- **Gravity [G]**: 14 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 16 interactions (Agent Activity Hotspot)
 
 
 

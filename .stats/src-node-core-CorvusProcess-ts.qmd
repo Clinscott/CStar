@@ -3,10 +3,10 @@ title: "CorvusProcess.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/node/core/CorvusProcess.ts"
 loc: 173
 complexity: 11
-logic_score: 6.58
+logic_score: 2.17
 style_score: 4.07
 intel_score: 5.24
-overall_score: 4.05
+overall_score: 4.55
 ---
 
 ## Intent
@@ -16,10 +16,10 @@ A functional component of the Corvus Star static analysis matrix.
 Import and utilize via the standard project structure.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 6.6/10
+- **Logic [L]**: 2.2/10
 - **Style [S]**: 4.1/10
 - **Intel [I]**: 5.2/10
-- **Gravity [G]**: 29 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 9 interactions (Agent Activity Hotspot)
 
 
 

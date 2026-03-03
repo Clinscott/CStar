@@ -3,7 +3,7 @@ title: "CognitiveRouter.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/node/core/CognitiveRouter.ts"
 loc: 59
 complexity: 5
-logic_score: 7.25
+logic_score: 3.90
 style_score: 3.84
 intel_score: 6.07
 overall_score: 5.10
@@ -16,10 +16,10 @@ A functional component of the Corvus Star static analysis matrix.
 Import and utilize via the standard project structure.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 7.3/10
+- **Logic [L]**: 3.9/10
 - **Style [S]**: 3.8/10
 - **Intel [I]**: 6.1/10
-- **Gravity [G]**: 11 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 13 interactions (Agent Activity Hotspot)
 
 
 

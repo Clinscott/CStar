@@ -3,7 +3,7 @@ title: "types.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/skills_db/cachebro/packages/sdk/src/types.ts"
 loc: 18
 complexity: 1
-logic_score: 9.17
+logic_score: 9.13
 style_score: 9.54
 intel_score: 10.00
 overall_score: 9.73
@@ -16,7 +16,7 @@ A functional component of the Corvus Star static analysis matrix.
 Import and utilize via the standard project structure.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 9.2/10
+- **Logic [L]**: 9.1/10
 - **Style [S]**: 9.5/10
 - **Intel [I]**: 10.0/10
 - **Gravity [G]**: 5 interactions (Agent Activity Hotspot)

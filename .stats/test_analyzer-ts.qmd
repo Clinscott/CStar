@@ -3,7 +3,7 @@ title: "test_analyzer.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/test_analyzer.ts"
 loc: 18
 complexity: 2
-logic_score: 7.75
+logic_score: 7.80
 style_score: 4.11
 intel_score: 1.40
 overall_score: 4.49

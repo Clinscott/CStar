@@ -3,7 +3,7 @@ title: "cortex_link.test.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/node/cortex_link.test.ts"
 loc: 110
 complexity: 10
-logic_score: 2.63
+logic_score: 2.57
 style_score: 4.08
 intel_score: 2.85
 overall_score: 3.38

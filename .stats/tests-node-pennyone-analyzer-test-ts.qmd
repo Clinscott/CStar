@@ -3,7 +3,7 @@ title: "analyzer.test.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/node/pennyone/analyzer.test.ts"
 loc: 37
 complexity: 1
-logic_score: 5.40
+logic_score: 5.07
 style_score: 4.00
 intel_score: 7.41
 overall_score: 6.37
@@ -16,10 +16,10 @@ A functional component of the Corvus Star static analysis matrix.
 Import and utilize via the standard project structure.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 5.4/10
+- **Logic [L]**: 5.1/10
 - **Style [S]**: 4.0/10
 - **Intel [I]**: 7.4/10
-- **Gravity [G]**: 12 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 17 interactions (Agent Activity Hotspot)
 
 
 

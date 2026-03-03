@@ -3,10 +3,10 @@ title: "auth.test.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/node/pennyone/auth.test.ts"
 loc: 49
 complexity: 7
-logic_score: 2.87
+logic_score: 2.75
 style_score: 4.54
 intel_score: 7.93
-overall_score: 5.92
+overall_score: 5.42
 ---
 
 ## Intent
@@ -16,10 +16,10 @@ A functional component of the Corvus Star static analysis matrix.
 Import and utilize via the standard project structure.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 2.9/10
+- **Logic [L]**: 2.7/10
 - **Style [S]**: 4.5/10
 - **Intel [I]**: 7.9/10
-- **Gravity [G]**: 8 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 11 interactions (Agent Activity Hotspot)
 
 
 

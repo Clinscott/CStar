@@ -6,7 +6,7 @@ complexity: 5
 logic_score: 3.45
 style_score: 3.82
 intel_score: 6.85
-overall_score: 5.86
+overall_score: 5.36
 ---
 
 ## Intent
@@ -19,7 +19,7 @@ Import PerformanceProfiler and call its primary methods.
 - **Logic [L]**: 3.5/10
 - **Style [S]**: 3.8/10
 - **Intel [I]**: 6.9/10
-- **Gravity [G]**: 9 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 21 interactions (Agent Activity Hotspot)
 
 
 

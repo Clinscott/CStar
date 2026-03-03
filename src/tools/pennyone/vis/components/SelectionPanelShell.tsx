@@ -29,7 +29,19 @@ export const SelectionPanelShell: React.FC<SelectionPanelShellProps> = ({ select
                 {selectedNode.path}
             </div>
             
-            <p style={{ color: '#eee', fontSize: '0.9rem', lineHeight: '1.4' }}>{selectedNode.intent}</p>
+            <div style={{ marginBottom: '15px' }}>
+                <strong style={{ color: '#fff', fontSize: '0.8rem', textTransform: 'uppercase' }}>Intent</strong>
+                <p style={{ color: '#eee', fontSize: '0.9rem', lineHeight: '1.4', marginTop: '4px' }}>{selectedNode.intent}</p>
+            </div>
+
+            {selectedNode.matrix?.interaction_protocol && (
+                <div style={{ marginBottom: '15px', padding: '10px', background: 'rgba(0, 242, 255, 0.05)', borderLeft: '2px solid #00f2ff' }}>
+                    <strong style={{ color: '#00f2ff', fontSize: '0.8rem', textTransform: 'uppercase' }}>Interaction Protocol</strong>
+                    <p style={{ color: '#ddd', fontSize: '0.85rem', lineHeight: '1.4', marginTop: '4px' }}>
+                        {selectedNode.matrix.interaction_protocol as string}
+                    </p>
+                </div>
+            )}
             
             <SectorMetrics node={selectedNode} />
             <TrajectoryList trajectories={trajectories} />

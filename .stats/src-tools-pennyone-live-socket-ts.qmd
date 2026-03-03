@@ -3,7 +3,7 @@ title: "socket.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/live/socket.ts"
 loc: 40
 complexity: 4
-logic_score: 3.95
+logic_score: 3.63
 style_score: 3.77
 intel_score: 6.00
 overall_score: 5.17
@@ -16,10 +16,10 @@ A functional component of the Corvus Star static analysis matrix.
 Import and utilize via the standard project structure.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 4.0/10
+- **Logic [L]**: 3.6/10
 - **Style [S]**: 3.8/10
 - **Intel [I]**: 6.0/10
-- **Gravity [G]**: 13 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 16 interactions (Agent Activity Hotspot)
 
 
 

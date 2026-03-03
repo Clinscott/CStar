@@ -3,7 +3,7 @@ title: "interaction.test.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/node/pennyone/interaction.test.ts"
 loc: 48
 complexity: 4
-logic_score: 5.78
+logic_score: 5.47
 style_score: 3.86
 intel_score: 7.83
 overall_score: 6.31
@@ -16,10 +16,10 @@ A functional component of the Corvus Star static analysis matrix.
 Import and utilize via the standard project structure.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 5.8/10
+- **Logic [L]**: 5.5/10
 - **Style [S]**: 3.9/10
 - **Intel [I]**: 7.8/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 9 interactions (Agent Activity Hotspot)
 
 
 

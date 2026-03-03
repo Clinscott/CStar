@@ -3,7 +3,7 @@ title: "test_debug_fishtest.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_debug_fishtest.py"
 loc: 29
 complexity: 2
-logic_score: 4.40
+logic_score: 4.38
 style_score: 3.76
 intel_score: 6.92
 overall_score: 6.06

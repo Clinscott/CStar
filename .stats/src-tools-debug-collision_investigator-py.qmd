@@ -6,7 +6,7 @@ complexity: 8
 logic_score: 2.47
 style_score: 3.89
 intel_score: 4.31
-overall_score: 4.38
+overall_score: 3.88
 ---
 
 ## Intent
@@ -19,7 +19,7 @@ Import CollisionInvestigator and call its primary methods.
 - **Logic [L]**: 2.5/10
 - **Style [S]**: 3.9/10
 - **Intel [I]**: 4.3/10
-- **Gravity [G]**: 9 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 23 interactions (Agent Activity Hotspot)
 
 
 

@@ -19,7 +19,7 @@ Import KnowledgeHunter and call its primary methods.
 - **Logic [L]**: 3.3/10
 - **Style [S]**: 3.8/10
 - **Intel [I]**: 4.3/10
-- **Gravity [G]**: 16 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 18 interactions (Agent Activity Hotspot)
 
 
 

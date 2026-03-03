@@ -3,7 +3,7 @@ title: "test_harvest_responses_empire.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_harvest_responses_empire.py"
 loc: 23
 complexity: 1
-logic_score: 7.52
+logic_score: 7.55
 style_score: 3.77
 intel_score: 1.40
 overall_score: 4.79

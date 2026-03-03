@@ -19,7 +19,7 @@ Import SovereignHUD and call its primary methods.
 - **Logic [L]**: 2.9/10
 - **Style [S]**: 3.8/10
 - **Intel [I]**: 4.3/10
-- **Gravity [G]**: 14 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 24 interactions (Agent Activity Hotspot)
 
 
 

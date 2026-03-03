@@ -1,25 +1,25 @@
 ---
 title: "antigravity_bridge.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/cstar/core/antigravity_bridge.py"
-loc: 138
-complexity: 16
-logic_score: 1.30
-style_score: 3.82
-intel_score: 3.72
-overall_score: 2.88
+loc: 141
+complexity: 19
+logic_score: 0.50
+style_score: 3.72
+intel_score: 5.37
+overall_score: 2.86
 ---
 
 ## Intent
-Python module facilitating clean_cli_output, process_request.
+Python module facilitating clean_cli_output, AntigravityBridge.
 
 ## Interaction Protocol
 Import clean_cli_output and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 1.3/10
-- **Style [S]**: 3.8/10
-- **Intel [I]**: 3.7/10
-- **Gravity [G]**: 86 interactions (Agent Activity Hotspot)
+- **Logic [L]**: 0.5/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 5.4/10
+- **Gravity [G]**: 102 interactions (Agent Activity Hotspot)
 
 
 
@@ -30,16 +30,19 @@ Import clean_cli_output and call its primary methods.
 - [json](file://json)
 - [logging](file://logging)
 - [os](file://os)
+- [uuid](file://uuid)
 - [re](file://re)
 - [tempfile](file://tempfile)
 - [logging.handlers](file://logging.handlers)
 - [typing](file://typing)
 - [pathlib](file://pathlib)
 - [sys](file://sys)
-- [sys](file://sys)
 
 ### Exports
 - `clean_cli_output`
+- `AntigravityBridge`
+- `clean_cli_output`
+- `_fast_path_intelligence`
 - `process_request`
 - `process_request_with_retry`
 - `handle_client`

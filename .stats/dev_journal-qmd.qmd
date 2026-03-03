@@ -1,7 +1,7 @@
 ---
 title: "dev_journal.qmd"
 path: "C:/Users/Craig/Corvus/CorvusStar/dev_journal.qmd"
-loc: 478
+loc: 471
 complexity: 1
 logic_score: 10.00
 style_score: 10.00
@@ -19,7 +19,7 @@ Import and utilize via the standard project structure.
 - **Logic [L]**: 10.0/10
 - **Style [S]**: 10.0/10
 - **Intel [I]**: 10.0/10
-- **Gravity [G]**: 113 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 119 interactions (Agent Activity Hotspot)
 
 
 

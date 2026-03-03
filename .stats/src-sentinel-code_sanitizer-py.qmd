@@ -19,7 +19,7 @@ Import QuarantineFailure and call its primary methods.
 - **Logic [L]**: 0.5/10
 - **Style [S]**: 3.8/10
 - **Intel [I]**: 6.8/10
-- **Gravity [G]**: 46 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 155 interactions (Agent Activity Hotspot)
 
 
 

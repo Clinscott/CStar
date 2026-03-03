@@ -19,7 +19,7 @@ Import ManifestOrchestrator and call its primary methods.
 - **Logic [L]**: 1.7/10
 - **Style [S]**: 4.1/10
 - **Intel [I]**: 3.3/10
-- **Gravity [G]**: 19 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 36 interactions (Agent Activity Hotspot)
 
 
 

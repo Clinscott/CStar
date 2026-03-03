@@ -19,7 +19,7 @@ Include <main /> within a React-Three-Fiber Canvas context.
 - **Logic [L]**: 9.6/10
 - **Style [S]**: 9.5/10
 - **Intel [I]**: 8.1/10
-- **Gravity [G]**: 8 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 10 interactions (Agent Activity Hotspot)
 
 
 

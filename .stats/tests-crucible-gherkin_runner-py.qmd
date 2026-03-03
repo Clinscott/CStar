@@ -1,12 +1,12 @@
 ---
 title: "gherkin_runner.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/crucible/gherkin_runner.py"
-loc: 45
+loc: 47
 complexity: 3
 logic_score: 3.80
-style_score: 3.81
+style_score: 3.87
 intel_score: 9.40
-overall_score: 6.94
+overall_score: 6.46
 ---
 
 ## Intent
@@ -17,9 +17,9 @@ Import EmpireGherkinCrucible and call its primary methods.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 3.8/10
-- **Style [S]**: 3.8/10
+- **Style [S]**: 3.9/10
 - **Intel [I]**: 9.4/10
-- **Gravity [G]**: 10 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 13 interactions (Agent Activity Hotspot)
 
 
 
@@ -34,6 +34,8 @@ Import EmpireGherkinCrucible and call its primary methods.
 - [pathlib](file://pathlib)
 - [unittest.mock](file://unittest.mock)
 - [src.cstar.core.antigravity_bridge](file://src.cstar.core.antigravity_bridge)
+- [src.cstar.core.daemon](file://src.cstar.core.daemon)
+- [src.cstar.core.daemon](file://src.cstar.core.daemon)
 - [src.cstar.core.daemon](file://src.cstar.core.daemon)
 
 ### Exports

@@ -155,7 +155,26 @@ Before any action, you must determine your active persona.
 
 ---
 
-## 9. THE INTERPRETATION TRACE
+## 10. THE CRUCIBLE MANDATE (MOCK-DRIVEN VERIFICATION)
+*   **No Live Fire for Validation**: Agents **MUST NOT** rely on live manual execution or interactive shells to verify core logic.
+*   **Mock-First Integrity**: All complex workflows (Bridge, Calculus, Spoke synchronization) must have a corresponding test that mocks the "Live" state with high fidelity.
+*   **Verbose Logging**: Silence is a failure. Every test and logic gate must emit clear `[INFO]`, `[SUCCESS]`, or `[ERROR]` traces to the standard output.
+*   **Anti-Hang Protocol**: Tests must be non-interactive. Any logic waiting for a bash prompt that "never comes" is a violation of the mandate.
+
+```gherkin
+Feature: Logic Validation (Crucible Standard)
+  Scenario: An agent is implementing a new core feature
+    Given a complex architectural logic gate is being forged
+    When the agent seeks to verify the implementation
+    Then the agent MUST create a mock-based test suite that simulates the live environment
+    And the agent MUST ensure the test suite is non-interactive and automated
+    And the agent MUST implement verbose logging for every state transition
+    And the agent MUST NOT consider the task complete until the mock-driven test is green
+```
+
+---
+
+## 11. THE INTERPRETATION TRACE
 Every prompt response MUST begin with a structured Trace. This is the "Neural Firing" of the agent.
 ```text
 // Corvus Star Trace

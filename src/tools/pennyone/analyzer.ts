@@ -16,6 +16,9 @@ export interface GungnirMatrix {
     gravity: number;
     stability: number; // 0.0 to 1.0 (1.0 = highly stable)
     coupling: number;  // 0.0 to 1.0 (1.0 = highly coupled)
+    aesthetic: number; // Raw score before penalties
+    anomaly: number;   // System drift score
+    sovereignty: number; // Mathematical proof of compliance
 }
 
 export interface FileData {
@@ -184,20 +187,31 @@ export async function analyzeFile(code: string, filepath: string): Promise<FileD
     const gravity = await getFileGravity(filepath);
     const anomalyScore = await getSystemAnomaly();
 
+    const aesthetic = (logicValue + style + intel) / 3;
     const penalty = (gravity > 10 ? 0.5 : 0) + (anomalyScore * 1.5);
-    const overall = Math.min(Math.max(((logicValue + style + intel) / 3) - penalty, 1), 10);
+    const overall = Math.min(Math.max(aesthetic - penalty, 1), 10);
 
-    // [Ω] FIRST PRINCIPLES: New metrics for Agent/User insight
-    // Stability: How often this file changes (Simulated: 1.0 - (complexity / 50))
+    // [Ω] FIRST PRINCIPLES: Deep metrics for Agent/User insight
     const stability = Math.max(0.1, 1.0 - (complexity / 50));
-    // Coupling: Ratio of outbound dependencies
     const coupling = Math.min(1.0, imports.length / 10);
+    const sovereignty = overall >= 8.5 ? 1.0 : (overall / 10);
 
     return {
         path: filepath,
         loc,
         complexity,
-        matrix: { logic: logicValue, style, intel, overall, gravity, stability, coupling },
+        matrix: { 
+            logic: logicValue, 
+            style, 
+            intel, 
+            overall, 
+            gravity, 
+            stability, 
+            coupling,
+            aesthetic,
+            anomaly: anomalyScore,
+            sovereignty
+        },
         imports,
         exports,
         intent: undefined,

@@ -19,7 +19,7 @@ Instantiate the Warden class and call evaluate(graph) with a compiled matrix gra
 - **Logic [L]**: 4.2/10
 - **Style [S]**: 3.7/10
 - **Intel [I]**: 7.3/10
-- **Gravity [G]**: 16 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 43 interactions (Agent Activity Hotspot)
 
 
 

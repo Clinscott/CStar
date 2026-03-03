@@ -1,12 +1,12 @@
 ---
 title: "test_muninn.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/crucible/test_muninn.py"
-loc: 38
+loc: 41
 complexity: 3
-logic_score: 5.17
-style_score: 3.73
-intel_score: 9.40
-overall_score: 6.91
+logic_score: 3.80
+style_score: 3.67
+intel_score: 9.20
+overall_score: 6.83
 ---
 
 ## Intent
@@ -16,9 +16,9 @@ Python module facilitating TestMuninnDaemon, test_deterministic_command_routing.
 Import TestMuninnDaemon and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 5.2/10
+- **Logic [L]**: 3.8/10
 - **Style [S]**: 3.7/10
-- **Intel [I]**: 9.4/10
+- **Intel [I]**: 9.2/10
 - **Gravity [G]**: 8 interactions (Agent Activity Hotspot)
 
 
@@ -33,6 +33,8 @@ Import TestMuninnDaemon and call its primary methods.
 - [sys](file://sys)
 - [pathlib](file://pathlib)
 - [unittest.mock](file://unittest.mock)
+- [src.cstar.core.daemon](file://src.cstar.core.daemon)
+- [src.cstar.core.daemon](file://src.cstar.core.daemon)
 - [src.cstar.core.daemon](file://src.cstar.core.daemon)
 - [src.cstar.core.daemon](file://src.cstar.core.daemon)
 

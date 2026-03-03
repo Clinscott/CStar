@@ -8,6 +8,7 @@ import { CortexLink } from '../../../node/cortex_link.ts';
 
 export interface IntelProvider {
     getIntent(code: string, data: FileData): Promise<{ intent: string; interaction: string }>;
+    getBatchIntent(items: { code: string, data: FileData }[]): Promise<{ intent: string; interaction: string }[]>;
 }
 
 export class MockProvider implements IntelProvider {
@@ -34,6 +35,10 @@ export class MockProvider implements IntelProvider {
 
         return { intent, interaction };
     }
+
+    async getBatchIntent(items: { code: string, data: FileData }[]): Promise<{ intent: string; interaction: string }[]> {
+        return Promise.all(items.map(i => this.getIntent(i.code, i.data)));
+    }
 }
 
 export class GeminiProvider implements IntelProvider {
@@ -44,39 +49,46 @@ export class GeminiProvider implements IntelProvider {
     }
 
     async getIntent(code: string, data: FileData): Promise<{ intent: string; interaction: string }> {
-        if (process.env.GEMINI_CLI_ACTIVE === 'true') {
-            const query = `Analyze '${data.path}' and provide:
-                        1. INTENT: 2-3 sentences on what it does, why it exists, and its architectural role.
-                        2. INTERACTION: 1-2 sentences on how an agent or another module should interact with it (entry points, required context, calling conventions).
-                        
-                        Exports: ${data.exports.join(', ')}. 
-                        Complexity: ${data.complexity}.
-                        Code Preview: ${code.slice(0, 800)}`;
+        return (await this.getBatchIntent([{ code, data }]))[0];
+    }
+
+    async getBatchIntent(items: { code: string, data: FileData }[]): Promise<{ intent: string; interaction: string }[]> {
+        if (process.env.GEMINI_CLI_ACTIVE === 'true' && items.length > 0) {
+            const batchQuery = items.map((item, idx) => `
+                FILE ${idx}: '${item.data.path}'
+                Exports: ${item.data.exports.join(', ')}
+                Complexity: ${item.data.complexity}
+                Preview: ${item.code.slice(0, 300)}
+            `).join('\n---\n');
+
+            const query = `Analyze the following ${items.length} files and provide a JSON array of objects, each with "intent" (2-3 sentences) and "interaction" (1-2 sentences) fields. Match the order of the input files exactly.
+            
+            FILES:
+            ${batchQuery}`;
 
             try {
-                // [Ω] Use the Oracle Handshake for intelligence
-                const res = await this.cortex.sendCommand('ask', [query, data.path]);
-                
-                // If it's a structural scan, the Oracle might want to handle this differently.
-                // For now, we attempt to parse the response as JSON.
+                const res = await this.cortex.sendCommand('ask', [query, 'BATCH_ANALYSIS']);
                 if (res && res.status === 'success') {
                     const raw = (res.data as any)?.raw || '';
                     try {
-                        const parsed = JSON.parse(raw);
-                        return { 
-                            intent: parsed.intent || 'Archived intelligence.', 
-                            interaction: parsed.interaction || 'Standard operational protocols apply.' 
-                        };
-                    } catch {
-                        return { intent: raw, interaction: 'Analyze source for calling conventions.' };
+                        const parsed = JSON.parse(raw.substring(raw.indexOf('['), raw.lastIndexOf(']') + 1));
+                        if (Array.isArray(parsed)) {
+                            return parsed.map(p => ({
+                                intent: p.intent || 'Archived intelligence.',
+                                interaction: p.interaction || 'Standard operational protocols apply.'
+                            }));
+                        }
+                    } catch (e) {
+                        console.warn('[PENNYONE] Batch JSON parse failed, falling back to individual mocks.');
                     }
                 }
             } catch (err) {
-                console.warn(`[PENNYONE] Oracle uplink failed for ${data.path}. Falling back to mocks.`);
+                console.warn(`[PENNYONE] Batch Oracle uplink failed. Falling back to mocks.`);
             }
         }
 
-        return new MockProvider().getIntent(code, data);
+        const mock = new MockProvider();
+        return Promise.all(items.map(i => mock.getIntent(i.code, i.data)));
     }
 }
 

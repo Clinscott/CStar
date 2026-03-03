@@ -3,7 +3,7 @@ title: "test_check_pro_empire.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_check_pro_empire.py"
 loc: 40
 complexity: 1
-logic_score: 7.22
+logic_score: 7.20
 style_score: 3.69
 intel_score: 5.40
 overall_score: 5.60

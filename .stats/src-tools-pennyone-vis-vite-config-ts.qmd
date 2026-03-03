@@ -3,10 +3,10 @@ title: "vite.config.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/vite.config.ts"
 loc: 20
 complexity: 1
-logic_score: 9.27
+logic_score: 9.25
 style_score: 9.64
 intel_score: 6.00
-overall_score: 8.43
+overall_score: 7.93
 ---
 
 ## Intent
@@ -19,7 +19,7 @@ Import and utilize via the standard project structure.
 - **Logic [L]**: 9.3/10
 - **Style [S]**: 9.6/10
 - **Intel [I]**: 6.0/10
-- **Gravity [G]**: 9 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 11 interactions (Agent Activity Hotspot)
 
 
 

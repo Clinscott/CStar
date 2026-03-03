@@ -1,12 +1,12 @@
 ---
 title: "gravity_db.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/intel/gravity_db.ts"
-loc: 83
-complexity: 11
-logic_score: 2.17
-style_score: 3.64
-intel_score: 9.23
-overall_score: 5.24
+loc: 96
+complexity: 13
+logic_score: 1.82
+style_score: 3.68
+intel_score: 8.67
+overall_score: 4.83
 ---
 
 ## Intent
@@ -16,10 +16,10 @@ A functional component of the Corvus Star static analysis matrix.
 Import and utilize via the standard project structure.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 2.2/10
-- **Style [S]**: 3.6/10
-- **Intel [I]**: 9.2/10
-- **Gravity [G]**: 15 interactions (Agent Activity Hotspot)
+- **Logic [L]**: 1.8/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 8.7/10
+- **Gravity [G]**: 18 interactions (Agent Activity Hotspot)
 
 
 
@@ -34,6 +34,7 @@ Import and utilize via the standard project structure.
 
 ### Exports
 - `db`
+- `currentDbPath`
 - `getGravityDb`
 - `getGravityDb`
 - `statsDir`
@@ -65,3 +66,5 @@ Import and utilize via the standard project structure.
 - `setFileGravity`
 - `database`
 - `normalized`
+- `closeGravityDb`
+- `closeGravityDb`

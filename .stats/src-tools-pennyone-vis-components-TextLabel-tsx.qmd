@@ -3,7 +3,7 @@ title: "TextLabel.tsx"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/components/TextLabel.tsx"
 loc: 32
 complexity: 3
-logic_score: 7.80
+logic_score: 8.02
 style_score: 4.13
 intel_score: 3.25
 overall_score: 5.14
@@ -16,10 +16,10 @@ React component rendering TextLabel.
 Include <TextLabel /> within a React-Three-Fiber Canvas context.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 7.8/10
+- **Logic [L]**: 8.0/10
 - **Style [S]**: 4.1/10
 - **Intel [I]**: 3.3/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 6 interactions (Agent Activity Hotspot)
 
 
 

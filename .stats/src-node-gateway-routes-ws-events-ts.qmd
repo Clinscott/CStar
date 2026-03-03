@@ -3,7 +3,7 @@ title: "events.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/node/gateway/routes/ws/events.ts"
 loc: 38
 complexity: 3
-logic_score: 7.70
+logic_score: 5.88
 style_score: 4.00
 intel_score: 6.21
 overall_score: 5.79
@@ -16,10 +16,10 @@ A functional component of the Corvus Star static analysis matrix.
 Import and utilize via the standard project structure.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 7.7/10
+- **Logic [L]**: 5.9/10
 - **Style [S]**: 4.0/10
 - **Intel [I]**: 6.2/10
-- **Gravity [G]**: 10 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 7 interactions (Agent Activity Hotspot)
 
 ## ⛩️ API Gateways
 - `[GET] /connect`

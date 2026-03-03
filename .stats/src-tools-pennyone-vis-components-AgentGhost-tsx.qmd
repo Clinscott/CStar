@@ -3,7 +3,7 @@ title: "AgentGhost.tsx"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/components/AgentGhost.tsx"
 loc: 67
 complexity: 4
-logic_score: 5.38
+logic_score: 4.88
 style_score: 4.08
 intel_score: 6.18
 overall_score: 5.34
@@ -16,10 +16,10 @@ React component rendering AgentGhost.
 Include <AgentGhost /> within a React-Three-Fiber Canvas context.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 5.4/10
+- **Logic [L]**: 4.9/10
 - **Style [S]**: 4.1/10
 - **Intel [I]**: 6.2/10
-- **Gravity [G]**: 13 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 16 interactions (Agent Activity Hotspot)
 
 
 

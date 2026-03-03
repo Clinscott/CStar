@@ -3,7 +3,7 @@ title: "recorder.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/live/recorder.ts"
 loc: 16
 complexity: 3
-logic_score: 8.72
+logic_score: 8.68
 style_score: 9.33
 intel_score: 9.50
 overall_score: 8.46
@@ -19,7 +19,7 @@ Import and utilize via the standard project structure.
 - **Logic [L]**: 8.7/10
 - **Style [S]**: 9.3/10
 - **Intel [I]**: 9.5/10
-- **Gravity [G]**: 28 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 30 interactions (Agent Activity Hotspot)
 
 
 

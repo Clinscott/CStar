@@ -56,6 +56,14 @@ export class PathRegistry {
     }
 
     /**
+     * Explicitly sets the project root. Primarily used for test isolation.
+     * @param {string} newRoot - The new root path
+     */
+    public setRoot(newRoot: string): void {
+        this.root = path.resolve(newRoot).replace(/\\/g, '/');
+    }
+
+    /**
      * Get the singleton instance.
      * @returns {PathRegistry} The instance
      */

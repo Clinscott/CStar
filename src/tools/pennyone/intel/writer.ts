@@ -10,13 +10,27 @@ import { registry } from '../pathRegistry.ts';
  * @param {FileData} file - The file data
  * @param {string} targetRepo - The target repository path
  * @param {string} code - The source code
+ * @param {Object} [intentData] - Optional pre-generated intent and interaction
  * @returns {Promise<{ qmdPath: string, intent: string, interaction: string }>} Path, intent, and interaction
  */
-export async function writeReport(file: FileData, targetRepo: string, code: string): Promise<{ qmdPath: string, intent: string, interaction: string }> {
+export async function writeReport(
+    file: FileData, 
+    targetRepo: string, 
+    code: string,
+    intentData?: { intent: string; interaction: string }
+): Promise<{ qmdPath: string, intent: string, interaction: string }> {
     const statsDir = path.join(registry.getRoot(), '.stats');
     await fs.mkdir(statsDir, { recursive: true });
 
-    const { intent, interaction } = await defaultProvider.getIntent(code, file);
+    let intent = intentData?.intent;
+    let interaction = intentData?.interaction;
+
+    if (!intent || !interaction) {
+        const result = await defaultProvider.getIntent(code, file);
+        intent = result.intent;
+        interaction = result.interaction;
+    }
+    
     file.interaction_protocol = interaction;
 
     const absoluteRoot = registry.getRoot();
