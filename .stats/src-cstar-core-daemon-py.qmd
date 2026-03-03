@@ -1,22 +1,25 @@
 ---
 title: "daemon.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/cstar/core/daemon.py"
-loc: 116
-complexity: 14
-logic_score: 1.42
-style_score: 3.74
-intel_score: 5.19
-overall_score: 3.43
+loc: 149
+complexity: 21
+logic_score: 0.50
+style_score: 3.65
+intel_score: 5.43
+overall_score: 2.86
 ---
 
 ## Intent
-Python module facilitating engine_search_sync, process_command. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating CStarDaemon, __init__.
+
+## Interaction Protocol
+Import CStarDaemon and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 1.4/10
-- **Style [S]**: 3.7/10
-- **Intel [I]**: 5.2/10
-- **Gravity [G]**: 41 interactions (Agent Activity Hotspot)
+- **Logic [L]**: 0.5/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 5.4/10
+- **Gravity [G]**: 91 interactions (Agent Activity Hotspot)
 
 
 
@@ -24,27 +27,28 @@ Python module facilitating engine_search_sync, process_command. It exists to sup
 
 ### Imports
 - [asyncio](file://asyncio)
-- [gc](file://gc)
 - [json](file://json)
 - [os](file://os)
-- [re](file://re)
 - [secrets](file://secrets)
 - [subprocess](file://subprocess)
 - [sys](file://sys)
 - [time](file://time)
 - [pathlib](file://pathlib)
-- [typing](file://typing)
-- [psutil](file://psutil)
 - [websockets](file://websockets)
 - [websockets.server](file://websockets.server)
 - [src.core.sovereign_hud](file://src.core.sovereign_hud)
 - [src.core.sv_engine](file://src.core.sv_engine)
 - [src.cstar.core.uplink](file://src.cstar.core.uplink)
+- [src.sentinel.coordinator](file://src.sentinel.coordinator)
+- [src.sentinel.muninn](file://src.sentinel.muninn)
 
 ### Exports
+- `CStarDaemon`
+- `__init__`
 - `engine_search_sync`
+- `broadcast_event`
 - `process_command`
 - `handle_client`
 - `execute_sleep_protocol`
 - `async_start_daemon`
-- `start_daemon`
+- `start`

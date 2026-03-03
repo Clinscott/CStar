@@ -16,6 +16,26 @@ The decision-making brain of Corvus Star.
     - `_shadow_search(query)`: TF-IDF lexical search (Modularized).
     - `_get_top_domain(query)`: Contextual domain routing.
 
+## 2026-03-02: Session 110 (TypeScript Systemic Stabilization)
+- **Zero-Breach Type Safety**: Eliminated all 119 TypeScript errors project-wide, achieving 100% `tsc` compliance.
+- **Bifrost Configuration**: Updated `tsconfig.json` with `allowImportingTsExtensions` and `noEmit` to support `tsx`-native source resolution.
+- **Universal ID Standard**: Harmonized `Node` and `SimulationNode` ID types to `string | number` for seamless D3 force-simulation integration.
+- **Interface Expansion**: Strengthened `FileData` and `ScanResult` to support cross-language dependency tracking and mission telemetry.
+- **CI/CD Stabilization**: Resolved npm peer dependency conflicts in the CI pipeline via `--legacy-peer-deps`.
+
+## 2026-03-02: Session 110 (TypeScript Systemic Stabilization)
+- **Zero-Breach Type Safety**: Eliminated all 119 TypeScript errors project-wide, achieving 100% `tsc` compliance.
+- **Bifrost Configuration**: Updated `tsconfig.json` with `allowImportingTsExtensions` and `noEmit` to support `tsx`-native source resolution.
+- **Universal ID Standard**: Harmonized `Node` and `SimulationNode` ID types to `string | number` for seamless D3 force-simulation integration.
+- **Interface Expansion**: Strengthened `FileData` and `ScanResult` to support cross-language dependency tracking and mission telemetry.
+- **CI/CD Stabilization**: Resolved npm peer dependency conflicts in the CI pipeline via `--legacy-peer-deps`.
+
+## 2026-03-02: Session 109 (The Active Oracle & Architectural Stabilization)
+- **The Oracle Handshake**: Refactored `AntigravityBridge` to implement a state-based file handshake (`oracle_inbox.json` / `oracle_outbox.json`), promoting the Active Agent to the primary intelligence provider for Muninn.
+- **Bifrost Stabilization**: Resolved ESM module resolution conflicts by standardizing on `.ts` extensions, bypassing the Node.js `.js` workaround via `tsx`.
+- **Heavy Typing Mandate**: Purged all `any` usage from the Node.js flight deck and established strict interface contracts (`CortexResponse`, `CortexAskPayload`).
+- **Live Harness Evolution**: Upgraded `ravens_harness.py` to orchestrate real-time, cross-language repair cycles against live targets.
+
 ## 2026-03-02: Session 108 (PennyOne Integration & First Principles Realignment)
 - **Protocol Persistence**: Enhanced the PennyOne matrix (`writer.ts`, `index.ts`, `compiler.ts`) to capture and save **Interaction Protocols** in the global `matrix-graph.json`.
 - **Workflow Realignment**: Updated all `.agent/workflows/` to enforce **Gungnir Matrix** and **Protocol** compliance.

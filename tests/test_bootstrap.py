@@ -1,7 +1,8 @@
+```python
 import os
 import sys
 
-from src.sentinel._bootstrap import PROJECT_ROOT, bootstrap
+from src.sentinel._bootstrap import PROJECT_ROOT, SovereignBootstrap
 
 
 def test_project_root_resolution():
@@ -14,7 +15,7 @@ def test_project_root_resolution():
 def test_bootstrap_sys_path():
     """Verifies that bootstrap adds PROJECT_ROOT to sys.path."""
     # Reset bootstrapped state for test if possible (or just check existence)
-    bootstrap()
+    bootstrap.execute()
     assert str(PROJECT_ROOT) in sys.path
     # Check that it's at the front
     assert sys.path[0] == str(PROJECT_ROOT)
@@ -31,7 +32,7 @@ def test_bootstrap_env_loading(tmp_path, monkeypatch):
     monkeypatch.setattr(src.sentinel._bootstrap, "PROJECT_ROOT", mock_root)
     monkeypatch.setattr(src.sentinel._bootstrap, "_BOOTSTRAPPED", False)
 
-    bootstrap()
+    bootstrap.execute()
 
     assert os.getenv("MOCK_KEY") == "MOCK_VALUE"
 
@@ -52,6 +53,6 @@ def test_bootstrap_persona_sync(tmp_path, monkeypatch):
     monkeypatch.setattr(src.sentinel._bootstrap, "PROJECT_ROOT", mock_root)
     monkeypatch.setattr(src.sentinel._bootstrap, "_BOOTSTRAPPED", False)
 
-    bootstrap()
+    bootstrap.execute()
 
     assert SovereignHUD.PERSONA == "ODIN"

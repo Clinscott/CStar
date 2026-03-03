@@ -1,11 +1,11 @@
 /* eslint-disable no-useless-escape */
 import chokidar from 'chokidar';
 import path from 'path';
-import { runScan } from '../index.js';
-import { compileMatrix } from '../intel/compiler.js';
-import { SubspaceRelay } from './socket.js';
+import { runScan } from '../index.ts';
+import { compileMatrix } from '../intel/compiler.ts';
+import { SubspaceRelay } from './socket.ts';
 import chalk from 'chalk';
-import { activePersona } from '../personaRegistry.js';
+import { activePersona } from '../personaRegistry.ts';
 
 /**
  * RepositoryWatcher: Monitors files and triggers delta analysis
@@ -47,7 +47,7 @@ export function startWatcher(targetPath: string, relay: SubspaceRelay) {
                         intent: data.intent || '...'
                     });
                 }
-            } catch {
+            } catch (err: any) {
                 console.error(chalk.red(`[ERROR] Failed to process delta for ${filePath}:`), err);
             }
         }, 500);
@@ -65,7 +65,7 @@ export function startWatcher(targetPath: string, relay: SubspaceRelay) {
                 const results = await runScan(targetPath);
                 await compileMatrix(results, targetPath);
                 relay.broadcast('GRAPH_REBUILT', {});
-            } catch {
+            } catch (err: any) {
                 console.error(chalk.red('[ERROR] Failed to rebuild matrix: '), err);
             }
         }, 500);
@@ -76,4 +76,5 @@ export function startWatcher(targetPath: string, relay: SubspaceRelay) {
 
     return watcher;
 }
+
 

@@ -2,26 +2,10 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import React, { useMemo, useRef, useState, useEffect } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree, extend } from '@react-three/fiber';
-import { Html, useTexture, shaderMaterial } from '@react-three/drei';
+import { Html, shaderMaterial, Line, Text } from '@react-three/drei';
 import * as d3 from 'd3-force-3d';
 import gsap from 'gsap';
-// [Ω] Custom Shaders from ThreeJS-Skills Codex
-const PulseMaterial = shaderMaterial({ time: 0, color: new THREE.Color('#00f2ff') }, 
-// Vertex
-`varying vec2 vUv;
-     void main() {
-       vUv = uv;
-       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-     }`, 
-// Fragment
-`uniform float time;
-     uniform vec3 color;
-     varying vec2 vUv;
-     void main() {
-       float dash = sin(vUv.x * 20.0 - time * 10.0);
-       if (dash < 0.0) discard;
-       gl_FragColor = vec4(color, 1.0);
-     }`);
+// Removed PulseMaterial in favor of Drei Line
 const FresnelMaterial = shaderMaterial({ time: 0, color: new THREE.Color('#ff4d4d'), glowColor: new THREE.Color('#ff0000') }, 
 // Vertex
 `varying vec3 vNormal;
@@ -43,7 +27,7 @@ const FresnelMaterial = shaderMaterial({ time: 0, color: new THREE.Color('#ff4d4
        float pulse = 0.8 + 0.2 * sin(time * 2.0);
        gl_FragColor = vec4(mix(color, glowColor, fresnel * pulse), 1.0);
      }`);
-extend({ PulseMaterial, FresnelMaterial });
+extend({ FresnelMaterial });
 const tempObject = new THREE.Object3D();
 const tempColor = new THREE.Color();
 const SelectionHighlight = ({ node }) => {
@@ -53,7 +37,7 @@ const SelectionHighlight = ({ node }) => {
             return;
         materialRef.current.time = state.clock.getElapsedTime();
     });
-    return (_jsxs("mesh", { position: [node.x || 0, node.y || 0, node.z || 0], raycast: () => null, children: [_jsx("boxGeometry", { args: [40, 40, 40] }), _jsx("pulseMaterial", { ref: materialRef, transparent: true, color: "#ffffff" })] }));
+    return (_jsxs("mesh", { position: [node.x || 0, node.y || 0, node.z || 0], raycast: () => null, children: [_jsx("boxGeometry", { args: [40, 40, 40] }), _jsx("meshStandardMaterial", { color: "#ffffff", transparent: true, opacity: 0.3, wireframe: true })] }));
 };
 const FresnelAura = ({ node }) => {
     const materialRef = useRef(null);
@@ -67,18 +51,14 @@ const FresnelAura = ({ node }) => {
     return (_jsxs("mesh", { position: [node.x || 0, node.y || 0, node.z || 0], scale: [2.2, 2.2, 2.2], raycast: () => null, children: [_jsx("icosahedronGeometry", { args: [15, 2] }), _jsx("fresnelMaterial", { ref: materialRef, transparent: true, color: isToxic ? '#ff0000' : '#00f2ff', glowColor: isToxic ? '#ff4d4d' : '#ffffff', blending: THREE.AdditiveBlending })] }));
 };
 const NeuralLink = ({ start, end, highlighted }) => {
-    const materialRef = useRef(null);
-    useFrame((state) => {
-        if (materialRef.current)
-            materialRef.current.time = state.clock.getElapsedTime();
+    const lineRef = useRef(null);
+    useFrame((state, delta) => {
+        if (lineRef.current?.material) {
+            // Negative offset makes the dashes flow from start to end
+            lineRef.current.material.dashOffset -= delta * 2.0;
+        }
     });
-    const points = useMemo(() => [new THREE.Vector3(...start), new THREE.Vector3(...end)], [start, end]);
-    const geometry = useMemo(() => {
-        const geo = new THREE.BufferGeometry().setFromPoints(points);
-        geo.setAttribute('uv', new THREE.Float32BufferAttribute([0, 0, 1, 0], 2));
-        return geo;
-    }, [points]);
-    return (_jsx("line", { geometry: geometry, children: _jsx("pulseMaterial", { ref: materialRef, transparent: true, opacity: highlighted ? 0.9 : 0.05, color: "#00f2ff" }) }));
+    return (_jsx(Line, { ref: lineRef, points: [start, end], color: "#00f2ff", lineWidth: highlighted ? 2 : 0.1, transparent: true, opacity: highlighted ? 0.9 : 0.05, dashed: true, dashSize: 20, dashScale: 2, gapSize: 30, raycast: () => null }));
 };
 const STELLAR_MAP = {
     gamma: [-2000, 1500, 0], // src/sentinel
@@ -101,27 +81,17 @@ const getStar = (path) => {
         return STELLAR_MAP.beta;
     return STELLAR_MAP.alpha;
 };
-const SpriteIcon = ({ node }) => {
-    const odinTexture = useTexture('/assets/odin-core.png');
-    const alfredTexture = useTexture('/assets/alfred-core.png');
-    const orphanTexture = useTexture('/assets/orphan.png');
-    const texture = useMemo(() => {
-        if (!node?.path)
-            return orphanTexture;
-        const p = node.path.toLowerCase();
-        if (p.includes('agent') || p.includes('core'))
-            return odinTexture;
-        if (p.includes('tool') || p.includes('scanner'))
-            return alfredTexture;
-        return orphanTexture;
-    }, [node?.path, odinTexture, alfredTexture, orphanTexture]);
-    const spriteRef = useRef(null);
+const TextLabel = ({ node }) => {
+    const textRef = useRef(null);
     useFrame(() => {
-        if (!spriteRef.current || !node)
+        if (!textRef.current || !node)
             return;
-        spriteRef.current.position.set(node.x || 0, node.y || 0, node.z || 0);
+        textRef.current.position.set((node.x || 0), (node.y || 0) + 20, (node.z || 0));
     });
-    return (_jsx("sprite", { ref: spriteRef, scale: [25, 25, 1], raycast: () => null, children: _jsx("spriteMaterial", { map: texture, transparent: true, opacity: 0.9, depthTest: false, color: node?.path?.endsWith('.py') ? '#ff9900' : '#00f2ff' }) }));
+    if (!node?.path)
+        return null;
+    const filename = node.path.split(/[\/\\]/).pop() || '';
+    return (_jsx(Text, { ref: textRef, color: "#ffffff", fontSize: 8, maxWidth: 200, lineHeight: 1, letterSpacing: 0.02, textAlign: "center", anchorX: "center", anchorY: "middle", raycast: () => null, outlineWidth: 0.5, outlineColor: "#000000", children: filename }));
 };
 export const NeuralGraph = ({ data: initialData, gravityData, token, onNodesMapped }) => {
     const { camera, controls } = useThree();
@@ -177,7 +147,21 @@ export const NeuralGraph = ({ data: initialData, gravityData, token, onNodesMapp
             return fallback;
         }
     }, [initialData, gravityData]);
-    const getLogScale = (loc) => Math.max(0.8, Math.log10(loc || 1) * 1.2);
+    const getVisScale = (loc) => Math.max(0.5, Math.sqrt(loc || 1) * 0.08);
+    const getStarColor = (path) => {
+        if (!path)
+            return '#444444';
+        const p = path.replace(/\\/g, '/').toLowerCase();
+        if (p.includes('src/sentinel'))
+            return '#00f2ff'; // Gamma (Cyan)
+        if (p.includes('src/tools/pennyone/vis'))
+            return '#ff00ff'; // Epsilon (Magenta)
+        if (p.includes('src/tools'))
+            return '#ff9900'; // Delta (Orange)
+        if (p.includes('tests/'))
+            return '#00ff66'; // Beta (Green)
+        return '#aaaaaa'; // Alpha (Base)
+    };
     // 2. Trajectory Fetching
     useEffect(() => {
         if (!selectedNode || !token) {
@@ -208,7 +192,7 @@ export const NeuralGraph = ({ data: initialData, gravityData, token, onNodesMapp
             d3.forceSimulation(allNodes, 3)
                 .force('link', d3.forceLink(links || []).id((d) => d.id).distance(1200))
                 .force('charge', d3.forceManyBody().strength((d) => -8000 - (d.gravity || 0) * 150))
-                .force('collide', d3.forceCollide().radius((d) => getLogScale(d.loc || 1) * 80))
+                .force('collide', d3.forceCollide().radius((d) => getVisScale(d.loc || 1) * 60))
                 .force('x', d3.forceX().x((d) => getStar(d.path)[0]).strength(0.3))
                 .force('y', d3.forceY().y((d) => getStar(d.path)[1]).strength(0.3))
                 .force('z', d3.forceZ().z((d) => getStar(d.path)[2]).strength(0.3));
@@ -256,37 +240,27 @@ export const NeuralGraph = ({ data: initialData, gravityData, token, onNodesMapp
                         return (sId === activeNodeId && tId === node.id) || (tId === activeNodeId && sId === node.id);
                     });
                 }
-                let scale = getLogScale(node.loc) * 0.15; // Unselected distant star scaling
+                let scale = getVisScale(node.loc); // Base visually distinct scale
                 const isHovered = hovered?.type === type && hovered?.id === i;
                 const isSelected = selectedNode?.id === node.id;
                 if (isHovered)
-                    scale = getLogScale(node.loc) * 1.5;
+                    scale *= 1.5;
                 else if (isSelected)
-                    scale = getLogScale(node.loc) * 1.8;
+                    scale *= 1.8;
                 else if (isNeighbor)
-                    scale = getLogScale(node.loc) * 1.2;
+                    scale *= 1.2;
                 tempObject.scale.set(scale, scale, scale);
                 tempObject.updateMatrix();
                 currentMesh.setMatrixAt(i, tempObject.matrix);
-                const p = (node.path || '').toLowerCase();
                 const nodeMatrix = node.matrix;
                 if (isHovered || isSelected) {
-                    tempColor.set('#ffffff');
+                    tempColor.set('#ffffff'); // High focus
                 }
-                else if (p.includes('agent') || p.includes('core')) {
-                    tempColor.set('#ff9900');
-                }
-                else if (p.includes('tool') || p.includes('scanner')) {
-                    tempColor.set('#00f2ff');
-                }
-                else if ((nodeMatrix?.overall || 5) > 8) {
-                    tempColor.set('#ffffff');
-                }
-                else if ((nodeMatrix?.overall || 5) < 5) {
-                    tempColor.set('#ff4d4d');
+                else if ((nodeMatrix?.logic || 10) < 4.0) {
+                    tempColor.set('#ff4d4d'); // Toxic alert logic
                 }
                 else {
-                    tempColor.set('#444444');
+                    tempColor.set(getStarColor(node.path)); // Constellation color
                 }
                 currentMesh.setColorAt(i, tempColor);
             });
@@ -316,7 +290,7 @@ export const NeuralGraph = ({ data: initialData, gravityData, token, onNodesMapp
                 return (_jsx(NeuralLink, { start: [sNode.x || 0, sNode.y || 0, sNode.z || 0], end: [tNode.x || 0, tNode.y || 0, tNode.z || 0], highlighted: !!isHighlighted }, `link-${i}`));
             }), (allNodes || []).filter(n => (n.gravity || 0) > 50 || (Number(n.matrix?.logic) || 10) < 4.0).map((node, i) => (_jsx(FresnelAura, { node: node }, `aura-${i}`))), _jsxs("instancedMesh", { ref: sphereMeshRef, args: [null, null, (logicNodes || []).length], frustumCulled: false, onPointerOver: (e) => { e.stopPropagation(); setHovered({ type: 'LOGIC', id: e.instanceId }); document.body.style.cursor = 'pointer'; }, onPointerOut: () => { setHovered(null); document.body.style.cursor = 'auto'; }, onPointerDown: (e) => { e.stopPropagation(); if (logicNodes?.[e.instanceId])
                     handleNodeClick(logicNodes[e.instanceId]); }, children: [_jsx("icosahedronGeometry", { args: [15, 2] }), _jsx("meshStandardMaterial", { emissive: "#111", emissiveIntensity: 2 })] }), _jsxs("instancedMesh", { ref: tetraMeshRef, args: [null, null, (pyNodes || []).length], frustumCulled: false, onPointerOver: (e) => { e.stopPropagation(); setHovered({ type: 'PYTHON', id: e.instanceId }); document.body.style.cursor = 'pointer'; }, onPointerOut: () => { setHovered(null); document.body.style.cursor = 'auto'; }, onPointerDown: (e) => { e.stopPropagation(); if (pyNodes?.[e.instanceId])
-                    handleNodeClick(pyNodes[e.instanceId]); }, children: [_jsx("tetrahedronGeometry", { args: [18] }), _jsx("meshStandardMaterial", { emissive: "#111", emissiveIntensity: 10, toneMapped: false })] }), _jsx(React.Suspense, { fallback: null, children: (allNodes || []).map((node, i) => _jsx(SpriteIcon, { node: node }, `sprite-${i}`)) }), selectedNode && _jsx(SelectionHighlight, { node: selectedNode }), selectedNode && (_jsxs(Html, { children: [_jsx("div", { className: "glass-panel-wrapper", onPointerDown: (e) => e.stopPropagation(), children: _jsxs("div", { className: "glass-panel", children: [_jsxs("div", { className: "panel-header", children: [_jsxs("span", { children: ["SECTOR: ", selectedNode.type] }), _jsx("button", { onPointerDown: (e) => { e.stopPropagation(); setSelectedNode(null); }, children: "\u00D7" })] }), _jsxs("div", { className: "panel-content", children: [_jsx("h1", { style: { color: '#00f2ff', margin: '0 0 10px 0', fontSize: '1.4rem' }, children: (selectedNode.path || '').split('/').pop() }), _jsx("div", { className: "path-label", style: { color: '#aaa', fontSize: '10px', marginBottom: '20px' }, children: selectedNode.path }), _jsx("p", { style: { color: '#eee', fontSize: '0.9rem', lineHeight: '1.4' }, children: selectedNode.intent }), _jsxs("div", { className: "stats-grid", style: { display: 'flex', gap: '30px', margin: '20px 0' }, children: [_jsxs("div", { children: [_jsx("label", { style: { display: 'block', color: '#00f2ff', fontSize: '10px' }, children: "LOC" }), _jsx("span", { style: { color: '#fff' }, children: selectedNode.loc })] }), _jsxs("div", { children: [_jsx("label", { style: { display: 'block', color: '#00f2ff', fontSize: '10px' }, children: "GUNGNIR" }), _jsx("span", { style: { color: '#fff' }, children: (Number(selectedNode.matrix?.overall) || 0).toFixed(2) })] })] }), trajectories.length > 0 && (_jsxs("div", { className: "trajectory-log", style: { marginTop: '20px', borderTop: '1px solid #333', paddingTop: '15px' }, children: [_jsx("label", { style: { display: 'block', color: '#00f2ff', fontSize: '10px', marginBottom: '10px' }, children: "NEURAL TRAJECTORIES" }), _jsx("div", { style: { maxHeight: '150px', overflowY: 'auto', fontSize: '0.8rem' }, children: trajectories.map((t, i) => (_jsxs("div", { style: { marginBottom: '10px', padding: '5px', background: '#1a1a1a', borderLeft: `2px solid ${t.final_score > t.initial_score ? '#00ff00' : '#ff4d4d'}` }, children: [_jsxs("div", { style: { display: 'flex', justifyContent: 'space-between' }, children: [_jsx("span", { style: { color: '#888' }, children: new Date(t.timestamp).toLocaleDateString() }), _jsxs("span", { style: { color: t.final_score > t.initial_score ? '#00ff00' : '#ff4d4d' }, children: [t.initial_score.toFixed(1), " \u2192 ", t.final_score.toFixed(1)] })] }), _jsx("div", { style: { fontSize: '0.7rem', color: '#aaa', marginTop: '3px' }, children: t.justification })] }, i))) })] })), _jsx("button", { className: "scan-btn", style: { marginTop: '20px' }, onPointerDown: (e) => { e.stopPropagation(); window.open(`file://${selectedNode.path}`); }, children: "EXTRACT LOGIC" })] })] }) }), _jsx("style", { children: `
+                    handleNodeClick(pyNodes[e.instanceId]); }, children: [_jsx("tetrahedronGeometry", { args: [18] }), _jsx("meshStandardMaterial", { emissive: "#111", emissiveIntensity: 10, toneMapped: false })] }), _jsx(React.Suspense, { fallback: null, children: (allNodes || []).map((node, i) => _jsx(TextLabel, { node: node }, `text-${i}`)) }), selectedNode && _jsx(SelectionHighlight, { node: selectedNode }), selectedNode && (_jsxs(Html, { wrapperClass: "interactive-html-wrapper", style: { pointerEvents: 'none' }, children: [_jsx("div", { className: "glass-panel-wrapper", onPointerDown: (e) => e.stopPropagation(), children: _jsxs("div", { className: "glass-panel", children: [_jsxs("div", { className: "panel-header", children: [_jsxs("span", { children: ["SECTOR: ", selectedNode.type] }), _jsx("button", { onPointerDown: (e) => { e.stopPropagation(); setSelectedNode(null); }, children: "\u00D7" })] }), _jsxs("div", { className: "panel-content", children: [_jsx("h1", { style: { color: '#00f2ff', margin: '0 0 10px 0', fontSize: '1.4rem' }, children: (selectedNode.path || '').split('/').pop() }), _jsx("div", { className: "path-label", style: { color: '#aaa', fontSize: '10px', marginBottom: '20px' }, children: selectedNode.path }), _jsx("p", { style: { color: '#eee', fontSize: '0.9rem', lineHeight: '1.4' }, children: selectedNode.intent }), _jsxs("div", { className: "stats-grid", style: { display: 'flex', gap: '30px', margin: '20px 0' }, children: [_jsxs("div", { children: [_jsx("label", { style: { display: 'block', color: '#00f2ff', fontSize: '10px' }, children: "LOC" }), _jsx("span", { style: { color: '#fff' }, children: selectedNode.loc })] }), _jsxs("div", { children: [_jsx("label", { style: { display: 'block', color: '#00f2ff', fontSize: '10px' }, children: "GUNGNIR" }), _jsx("span", { style: { color: '#fff' }, children: (Number(selectedNode.matrix?.overall) || 0).toFixed(2) })] })] }), trajectories.length > 0 && (_jsxs("div", { className: "trajectory-log", style: { marginTop: '20px', borderTop: '1px solid #333', paddingTop: '15px' }, children: [_jsx("label", { style: { display: 'block', color: '#00f2ff', fontSize: '10px', marginBottom: '10px' }, children: "NEURAL TRAJECTORIES" }), _jsx("div", { style: { maxHeight: '150px', overflowY: 'auto', fontSize: '0.8rem' }, children: trajectories.map((t, i) => (_jsxs("div", { style: { marginBottom: '10px', padding: '5px', background: '#1a1a1a', borderLeft: `2px solid ${t.final_score > t.initial_score ? '#00ff00' : '#ff4d4d'}` }, children: [_jsxs("div", { style: { display: 'flex', justifyContent: 'space-between' }, children: [_jsx("span", { style: { color: '#888' }, children: new Date(t.timestamp).toLocaleDateString() }), _jsxs("span", { style: { color: t.final_score > t.initial_score ? '#00ff00' : '#ff4d4d' }, children: [t.initial_score.toFixed(1), " \u2192 ", t.final_score.toFixed(1)] })] }), _jsx("div", { style: { fontSize: '0.7rem', color: '#aaa', marginTop: '3px' }, children: t.justification })] }, i))) })] })), _jsx("button", { className: "scan-btn", style: { marginTop: '20px' }, onPointerDown: (e) => { e.stopPropagation(); window.open(`file://${selectedNode.path}`); }, children: "EXTRACT LOGIC" })] })] }) }), _jsx("style", { children: `
                         .glass-panel-wrapper {
                             display: flex;
                             align-items: center;

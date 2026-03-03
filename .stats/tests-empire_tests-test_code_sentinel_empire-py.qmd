@@ -10,7 +10,10 @@ overall_score: 4.77
 ---
 
 ## Intent
-Python module facilitating test_heimdall_scan_orphans, test_heimdall_ignore_main. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating test_heimdall_scan_orphans, test_heimdall_ignore_main.
+
+## Interaction Protocol
+Import test_heimdall_scan_orphans and call its primary methods.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 8.5/10

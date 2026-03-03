@@ -1,6 +1,6 @@
 import { execa } from 'execa';
-import { registry } from '../pathRegistry.js';
-import { setFileGravity } from './gravity_db.js';
+import { registry } from '../pathRegistry.ts';
+import { setFileGravity } from './gravity_db.ts';
 import chalk from 'chalk';
 import path from 'path';
 
@@ -39,7 +39,7 @@ export async function seedGitGravity(): Promise<void> {
 
         console.log(chalk.green(`[O.D.I.N.]: "Matrix seeded. ${seededCount} artifacts imbued with deep historical gravity."`));
 
-    } catch {
+    } catch (err: any) {
         console.error(chalk.red(`[ERROR] Failed to seed Git gravity: ${err.message}`));
     }
 }
@@ -49,3 +49,4 @@ const isMain = import.meta.url.endsWith(process.argv[1]?.replace(/\\/g, '/')) ||
 if (isMain) {
     seedGitGravity();
 }
+

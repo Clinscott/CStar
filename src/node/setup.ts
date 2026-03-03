@@ -141,3 +141,4 @@ export async function executeGenesisSequence(
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
     executeGenesisSequence().catch(() => process.exit(1));
 }
+

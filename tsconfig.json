@@ -11,7 +11,9 @@
         "forceConsistentCasingInFileNames": true,
         "resolveJsonModule": true,
         "declaration": true,
-        "jsx": "react-jsx"
+        "jsx": "react-jsx",
+        "allowImportingTsExtensions": true,
+        "noEmit": true
     },
     "include": [
         "src/**/*.ts",

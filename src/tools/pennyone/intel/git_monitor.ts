@@ -1,5 +1,5 @@
 import { execa } from 'execa';
-import { registry } from '../pathRegistry.js';
+import { registry } from '../pathRegistry.ts';
 import path from 'node:path';
 
 export interface GitChurn {
@@ -12,13 +12,13 @@ export interface GitChurn {
  * Git Chronograph
  * Purpose: Extract temporal telemetry from the repository history.
  */
-export class GitChronograph {
+export const GitChronograph = {
     /**
      * Get churn metrics for a specific file
      * @param {string} filepath - The file to analyze
      * @returns {Promise<GitChurn>} Churn data
      */
-    public static async getFileChurn(filepath: string): Promise<GitChurn> {
+    async getFileChurn(filepath: string): Promise<GitChurn> {
         const root = registry.getRoot();
         const relPath = path.relative(root, filepath).replace(/\\/g, '/');
 
@@ -55,12 +55,14 @@ export class GitChronograph {
         } catch {
             return { commits30d: 0, lines7d: 0, lastModified: 0 };
         }
-    }
+    },
 
     /**
      * Identify the top "Temporal Hotspots" (high churn files)
+     * @param {number} limit - The maximum number of hotspots to return
+     * @returns {Promise<{ path: string, churn: number }[]>} High churn files
      */
-    public static async getHotspots(limit: number = 10): Promise<{ path: string, churn: number }[]> {
+    async getHotspots(limit: number = 10): Promise<{ path: string, churn: number }[]> {
         const root = registry.getRoot();
         try {
             const { stdout } = await execa('git', [
@@ -80,4 +82,5 @@ export class GitChronograph {
             return [];
         }
     }
-}
+};
+

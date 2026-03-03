@@ -4,119 +4,43 @@ import json
 import math
 import os
 import sys
+from pathlib import Path
 from collections import defaultdict
-
-# Add core directories to path for shared imports
-current_dir = os.path.dirname(os.path.abspath(__file__))
-_core_dir = os.path.join(os.path.dirname(current_dir), "core")
-_engine_dir = os.path.join(_core_dir, "engine")
-sys.path.insert(0, _core_dir)
-sys.path.insert(0, _engine_dir)
-
-from vector import SovereignVector
-
-from src.core.sovereign_hud import SovereignHUD
-
-# --- CONFIGURATION (SYMMETRY MANDATE) ---
-# Themes are now handled by ui.SovereignHUD based on SovereignHUD.PERSONA setting
-
-# --- UTILITIES ---
-
-def load_json(path, max_size_mb: int = 10):
-    """[ALFRED] Secure JSON loader with size-gating for trace artifacts."""
-    if not os.path.exists(path): return {}
-    try:
-        # [ALFRED] DoS Protection: Prevent loading massive artifacts
-        file_size = os.path.getsize(path)
-        if file_size > max_size_mb * 1024 * 1024:
-            SovereignHUD.log("WARN", "Trace Integrity", f"Artifact too large: {os.path.basename(path)}")
-            return {}
-
-        with open(path, encoding='utf-8') as f:
-            return json.load(f)
-    except (OSError, json.JSONDecodeError, PermissionError) as e:
-        SovereignHUD.log("FAIL", "Replay Error", f"{os.path.basename(path)} ({e!s})")
-        return {}
-
-def get_engine():
-    # Setup Paths
-    base_path = os.path.dirname(current_dir) # .agent
-    project_root = os.path.dirname(base_path) # Project Root
-
-    # Load Config for Framework Root
-    config = load_json(os.path.join(base_path, "config.json"))
-
-    # [ALFRED] Staged Symbiosis: Support .qmd or .md
-    def _res(fname):
-        qmd = os.path.join(project_root, fname.replace('.md', '.qmd'))
-        md = os.path.join(project_root, fname)
-        return qmd if os.path.exists(qmd) else md
-
-    engine = SovereignVector(
-        thesaurus_path=_res("thesaurus.qmd"),
-        corrections_path=os.path.join(base_path, "corrections.json"),
-        stopwords_path=os.path.join(base_path, "scripts", "stopwords.json")
-    )
-
-    # Load Skills
-    if hasattr(engine, 'load_core_skills'):
-        engine.load_core_skills()
-    else:
-        engine.add_skill("/lets-go", "start resume begin")
-
-    engine.load_skills_from_dir(os.path.join(base_path, "skills"))
-
-    # Global Skills
-    framework_root = config.get("FrameworkRoot")
-    if framework_root:
-        global_path = os.path.join(framework_root, "skills_db")
-        if os.path.exists(global_path):
-            engine.load_skills_from_dir(global_path, prefix="GLOBAL:")
-
-    engine.build_index()
-    return engine
-
-
 from typing import Any
 
+# Add core project root to path for shared imports
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.append(str(PROJECT_ROOT))
 
-# --- RENDERER (IDENTITY ISOLATION) ---
+from src.core.engine.vector import SovereignVector
+from src.core.sovereign_hud import SovereignHUD
+
 class TraceRenderer:
     """
     [ALFRED] Decoupled renderer that enforces a specific theme for neural replay.
     Ensures ODIN can view ALFRED'S traces in their native Cyan without persona leakage.
     """
     def __init__(self, target_persona: str) -> None:
-        """
-        Initializes the renderer with a target persona theme.
-
-        Args:
-            target_persona: The name of the persona to use for styling (e.g., 'ALFRED', 'ODIN').
-        """
         self.target_persona = target_persona
-        # Temporarily switch global SovereignHUD persona to get theme colors
         self.original_persona = SovereignHUD.PERSONA
         SovereignHUD.PERSONA = target_persona
         self.theme = SovereignHUD.get_theme()
         SovereignHUD.PERSONA = self.original_persona # Restore
 
     def box_top(self, title: str) -> None:
-        """Renders the top bar of a themed log box."""
         SovereignHUD.PERSONA = self.target_persona
         SovereignHUD.box_top(title)
 
     def box_row(self, label: str, value: Any, value_color: str | None = None, dim_label: bool = False) -> None:
-        """Renders a labeled data row in the current theme."""
         SovereignHUD.PERSONA = self.target_persona
         SovereignHUD.box_row(label, value, value_color, dim_label)
 
     def box_separator(self) -> None:
-        """Renders a horizontal separator line within the log box."""
         SovereignHUD.PERSONA = self.target_persona
         SovereignHUD.box_separator()
 
     def box_bottom(self) -> None:
-        """Closes the current log box and restores character context."""
         SovereignHUD.PERSONA = self.target_persona
         SovereignHUD.box_bottom()
         SovereignHUD.PERSONA = self.original_persona
@@ -145,25 +69,19 @@ class TraceRenderer:
 
         self.box_bottom()
 
-    def render_analysis(self, query, trigger, score, is_global, engine_instance=None) -> None:
-        # Set Persona Context
+    def render_analysis(self, query: str, trigger: str, score: float, is_global: bool, engine_instance=None) -> None:
         SovereignHUD.PERSONA = self.target_persona
         theme = SovereignHUD.get_theme()
 
-        # Header
         print("\n")
-
-        # Scanline Effect (Simulated)
         if self.target_persona in ["ODIN", "GOD"]:
              print(f"{theme['dim']}>> INITIATING WAR PROTOCOL...{SovereignHUD.RESET}")
         else:
              print(f"{theme['dim']}>> DECRYPTING LOG...{SovereignHUD.RESET}")
 
         self.box_top(theme["war_title"])
-
         self.box_row("Query", query, dim_label=True)
 
-        # Score Color Logic (Relative to Theme)
         match_color = SovereignHUD.GREEN if score > 0.8 else SovereignHUD.YELLOW
         if self.target_persona in ["ODIN", "GOD"]:
              match_color = SovereignHUD.RED if score > 0.8 else SovereignHUD.YELLOW
@@ -174,7 +92,6 @@ class TraceRenderer:
 
         self.box_separator()
 
-        # Forensics
         if engine_instance:
             q_tokens = engine_instance.expand_query(query)
             skill_text = engine_instance.skills.get(trigger, "")
@@ -192,7 +109,6 @@ class TraceRenderer:
 
             for token, weight, count, idf in overlaps[:5]:
                 signal_strength = weight * idf * math.log(1 + count)
-                # Bar is always main theme color
                 print(f"{theme['dim']}│{SovereignHUD.RESET} {token:<15} {weight:<10.2f} {idf:<10.2f} {theme['main']}{'█' * int(signal_strength * 2)}{SovereignHUD.RESET}")
         else:
             self.box_row("Status", "Offline (No Engine)", SovereignHUD.YELLOW)
@@ -200,107 +116,135 @@ class TraceRenderer:
         self.box_bottom()
         print("\n")
 
-# --- MODES ---
 
-def mode_live(query) -> None:
-    engine = get_engine()
-    results = engine.search(query)
-    top_match = results[0] if results else None
+class TraceVisualizer:
+    """[O.D.I.N.] Orchestration logic for neural trace visualization."""
 
-    # Live always uses CURRENT Identity
-    # Live always uses CURRENT Identity
-    p = SovereignHUD.PERSONA
-    renderer = TraceRenderer(p)
+    @staticmethod
+    def load_json(path: str, max_size_mb: int = 10) -> dict:
+        """[ALFRED] Secure JSON loader with size-gating for trace artifacts."""
+        if not os.path.exists(path): return {}
+        try:
+            file_size = os.path.getsize(path)
+            if file_size > max_size_mb * 1024 * 1024:
+                SovereignHUD.log("WARN", "Trace Integrity", f"Artifact too large: {os.path.basename(path)}")
+                return {}
+            with open(path, encoding='utf-8') as f:
+                return json.load(f)
+        except (OSError, json.JSONDecodeError, PermissionError) as e:
+            SovereignHUD.log("FAIL", "Replay Error", f"{os.path.basename(path)} ({e!s})")
+            return {}
 
-    trigger = top_match['trigger'] if top_match else "NONE"
-    score = top_match['score'] if top_match else 0.0
-    is_global = top_match.get('is_global', False)
+    @staticmethod
+    def get_engine():
+        base_path = PROJECT_ROOT / ".agent"
+        config = TraceVisualizer.load_json(str(base_path / "config.json"))
 
-    renderer.render_analysis(query, trigger, score, is_global, engine)
+        def _res(fname):
+            qmd = PROJECT_ROOT / fname.replace('.md', '.qmd')
+            md = PROJECT_ROOT / fname
+            return str(qmd if qmd.exists() else md)
 
-def mode_file(file_path) -> None:
-    data = load_json(file_path)
-    if not data:
-        print(f"Failed to load trace: {file_path}")
-        return
+        engine = SovereignVector(
+            thesaurus_path=_res("thesaurus.qmd"),
+            corrections_path=str(base_path / "corrections.json"),
+            stopwords_path=str(base_path / "scripts" / "stopwords.json")
+        )
 
-    # Identity Rendering: Respect the ORIGIN SOUL
-    # Identity Rendering: Respect the ORIGIN SOUL
-    stored_persona = data.get("persona", "ALFRED").upper()
-    renderer = TraceRenderer(stored_persona)
+        if hasattr(engine, 'load_core_skills'):
+            engine.load_core_skills()
+        engine.load_skills_from_dir(str(base_path / "skills"))
 
-    # Get Theme for message (temp switch)
-    original = SovereignHUD.PERSONA
-    SovereignHUD.PERSONA = stored_persona
-    theme = SovereignHUD.get_theme()
-    SovereignHUD.PERSONA = original # Restore
+        framework_root = config.get("FrameworkRoot")
+        if framework_root:
+            global_path = Path(framework_root) / "skills_db"
+            if global_path.exists():
+                engine.load_skills_from_dir(str(global_path), prefix="GLOBAL:")
 
-    print(f"{theme['dim']}>> REPLAYING ARTIFACT: {file_path} [{stored_persona}]{SovereignHUD.RESET}")
+        engine.build_index()
+        return engine
 
-    engine = get_engine() # For token analysis
+    @staticmethod
+    def mode_live(query: str) -> None:
+        engine = TraceVisualizer.get_engine()
+        results = engine.search(query)
+        top_match = results[0] if results else None
+        renderer = TraceRenderer(SovereignHUD.PERSONA)
+        renderer.render_analysis(
+            query,
+            top_match['trigger'] if top_match else "NONE",
+            top_match['score'] if top_match else 0.0,
+            top_match.get('is_global', False),
+            engine
+        )
 
-    renderer.render_analysis(
-        data.get("query"),
-        data.get("match", "UNKNOWN"),
-        data.get("score", 0.0),
-        data.get("is_global", False),
-        engine
-    )
+    @staticmethod
+    def mode_file(file_path: str) -> None:
+        data = TraceVisualizer.load_json(file_path)
+        if not data: return
+        stored_persona = data.get("persona", "ALFRED").upper()
+        renderer = TraceRenderer(stored_persona)
+        engine = TraceVisualizer.get_engine()
+        renderer.render_analysis(
+            data.get("query"),
+            data.get("match", "UNKNOWN"),
+            data.get("score", 0.0),
+            data.get("is_global", False),
+            engine
+        )
 
-def mode_war_room() -> None:
-    # War Room is ODIN'S DOMAIN
-    renderer = TraceRenderer("ODIN")
-    SovereignHUD.PERSONA = "ODIN" # Enforce globally for direct log calls
-    theme = SovereignHUD.get_theme()
+    @staticmethod
+    def mode_war_room() -> None:
+        renderer = TraceRenderer("ODIN")
+        SovereignHUD.PERSONA = "ODIN"
+        theme = SovereignHUD.get_theme()
 
-    print("\n")
-    renderer.box_top("⚔️  THE WAR ROOM  ⚔️")
+        print("\n")
+        renderer.box_top("⚔️  THE WAR ROOM  ⚔️")
 
-    base_path = os.path.dirname(current_dir)
-    traces_dir = os.path.join(base_path, "traces")
-    trace_files = glob.glob(os.path.join(traces_dir, "*.json"))
+        base_path = PROJECT_ROOT / ".agent"
+        traces_dir = base_path / "traces"
+        trace_files = list(traces_dir.glob("*.json"))
 
-    query_map = defaultdict(list)
-    for tf in trace_files:
-        t_data = load_json(tf)
-        q = t_data.get("query")
-        if q:
-            t_data['_filename'] = os.path.basename(tf)
-            query_map[q].append(t_data)
+        query_map = defaultdict(list)
+        for tf in trace_files:
+            t_data = TraceVisualizer.load_json(str(tf))
+            q = t_data.get("query")
+            if q:
+                t_data['_filename'] = tf.name
+                query_map[q].append(t_data)
 
-    conflicts = []
-    print(f"{theme['dim']}>> SCANNING {len(trace_files)} SECTORS...{SovereignHUD.RESET}")
+        conflicts = []
+        print(f"{theme['dim']}>> SCANNING {len(trace_files)} SECTORS...{SovereignHUD.RESET}")
 
-    for query, traces in query_map.items():
-        matches = set()
-        personas_involved = set()
-        for t in traces:
-            matches.add(t.get("match"))
-            personas_involved.add(t.get("persona", "ALFRED"))
+        for query, traces in query_map.items():
+            matches = set()
+            personas_involved = set()
+            for t in traces:
+                matches.add(t.get("match"))
+                personas_involved.add(t.get("persona", "ALFRED"))
 
-        if len(matches) > 1 and len(personas_involved) > 1:
-            conflicts.append({
-                "query": query,
-                "factions": list(personas_involved),
-                "outcomes": list(matches)
-            })
+            if len(matches) > 1 and len(personas_involved) > 1:
+                conflicts.append({
+                    "query": query,
+                    "factions": list(personas_involved),
+                    "outcomes": list(matches)
+                })
 
-    if not conflicts:
-        renderer.box_row("STATUS", "PACIFIED", SovereignHUD.GREEN)
-    else:
-        renderer.box_row("STATUS", f"{len(conflicts)} ACTIVE CONFLICTS", SovereignHUD.RED)
-        renderer.box_separator()
+        if not conflicts:
+            renderer.box_row("STATUS", "PACIFIED", SovereignHUD.GREEN)
+        else:
+            renderer.box_row("STATUS", f"{len(conflicts)} ACTIVE CONFLICTS", SovereignHUD.RED)
+            renderer.box_separator()
+            print(f"{theme['dim']}│{SovereignHUD.RESET} {theme['main']}{'QUERY':<25} {'FACTIONS':<20} {'CONFLICTING OUTCOMES'}{SovereignHUD.RESET}")
+            for c in conflicts:
+                q_short = (c['query'][:22] + '..') if len(c['query']) > 22 else c['query']
+                f_str = ",".join(c['factions'])
+                o_str = " vs ".join([str(o) for o in c['outcomes']])
+                print(f"{theme['dim']}│{SovereignHUD.RESET} {q_short:<25} {f_str:<20} {o_str}")
 
-        print(f"{theme['dim']}│{SovereignHUD.RESET} {theme['main']}{'QUERY':<25} {'FACTIONS':<20} {'CONFLICTING OUTCOMES'}{SovereignHUD.RESET}")
-
-        for c in conflicts:
-            q_short = (c['query'][:22] + '..') if len(c['query']) > 22 else c['query']
-            f_str = ",".join(c['factions'])
-            o_str = " vs ".join([str(o) for o in c['outcomes']])
-            print(f"{theme['dim']}│{SovereignHUD.RESET} {q_short:<25} {f_str:<20} {o_str}")
-
-    renderer.box_bottom()
-    print("\n")
+        renderer.box_bottom()
+        print("\n")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Neural Trace Visualizer & War Room")
@@ -309,13 +253,7 @@ if __name__ == "__main__":
     parser.add_argument("--war-room", "-w", action="store_true", help="Enter Conflict Analysis Mode")
 
     args = parser.parse_args()
-
-    # Determine Mode
-    if args.war_room:
-        mode_war_room()
-    elif args.file:
-        mode_file(args.file)
-    elif args.query:
-        mode_live(args.query)
-    else:
-        parser.print_help()
+    if args.war_room: TraceVisualizer.mode_war_room()
+    elif args.file: TraceVisualizer.mode_file(args.file)
+    elif args.query: TraceVisualizer.mode_live(args.query)
+    else: parser.print_help()

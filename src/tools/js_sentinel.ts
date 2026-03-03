@@ -59,9 +59,10 @@ interface Violation {
 
 /**
  * Main execution loop for the JS Sentinel.
- * @param target - Path to scan
+ * @param {string} target - Path to scan
+ * @param {boolean} fix - Whether to auto-fix violations
  */
-async function runSentinel(target: string = '.'): Promise<void> {
+async function runSentinel(target: string = '.', fix: boolean = false): Promise<void> {
     const persona = await getActivePersona();
     const text = TEXT_MAP[persona] || TEXT_MAP.ALFRED;
 
@@ -70,7 +71,9 @@ async function runSentinel(target: string = '.'): Promise<void> {
     console.log(chalk.cyan(`  ${text.SCAN_TARGET.padEnd(15)}: ${target}`));
 
     try {
-        const { stdout } = await execa('npx', ['eslint', target, '--format', 'json'], { cwd: PROJECT_ROOT, reject: false });
+        const args = ['eslint', target, '--format', 'json'];
+        if (fix) args.push('--fix');
+        const { stdout } = await execa('npx', args, { cwd: PROJECT_ROOT, reject: false });
         const results = JSON.parse(stdout);
 
         let totalViolations = 0;
@@ -116,5 +119,7 @@ async function runSentinel(target: string = '.'): Promise<void> {
     }
 }
 
-const target = process.argv[2] || '.';
-runSentinel(target);
+const args = process.argv.slice(2);
+const fix = args.includes('--fix');
+const target = args.find(a => !a.startsWith('--')) || '.';
+runSentinel(target, fix);

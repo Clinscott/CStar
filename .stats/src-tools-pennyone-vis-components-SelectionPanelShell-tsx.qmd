@@ -1,0 +1,39 @@
+---
+title: "SelectionPanelShell.tsx"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/components/SelectionPanelShell.tsx"
+loc: 31
+complexity: 1
+logic_score: 7.90
+style_score: 1.00
+intel_score: 4.58
+overall_score: 4.78
+---
+
+## Intent
+React component rendering SelectionPanelShell.
+
+## Interaction Protocol
+Include <SelectionPanelShell /> within a React-Three-Fiber Canvas context.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.9/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 4.6/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://react)
+- [SelectionPanel](file://./SelectionPanel.tsx)
+- [TrajectoryList](file://./TrajectoryList.tsx)
+- [SectorMetrics](file://./SectorMetrics.tsx)
+- [Node](file://../types/index.ts)
+- [Trajectory](file://../types/index.ts)
+
+### Exports
+- `SelectionPanelShell`
+- `SelectionPanelShell`
+- `filename`

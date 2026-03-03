@@ -1,22 +1,25 @@
 ---
 title: "sv_engine.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/core/sv_engine.py"
-loc: 327
-complexity: 45
-logic_score: 0.50
-style_score: 3.71
-intel_score: 5.56
-overall_score: 2.92
+loc: 90
+complexity: 5
+logic_score: 3.45
+style_score: 3.75
+intel_score: 5.84
+overall_score: 5.00
 ---
 
 ## Intent
-Core semantic routing engine for intent resolution. It exists to map unstructured user inputs to distinct execution pathways. Its role in the system is to serve as the primary cognitive junction between natural language and operational logic.
+Core semantic routing engine for intent resolution.
+
+## Interaction Protocol
+Instantiate SovereignEngine and invoke run(query) to process natural language directives.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 0.5/10
+- **Logic [L]**: 3.5/10
 - **Style [S]**: 3.7/10
-- **Intel [I]**: 5.6/10
-- **Gravity [G]**: 123 interactions (Agent Activity Hotspot)
+- **Intel [I]**: 5.8/10
+- **Gravity [G]**: 125 interactions (Agent Activity Hotspot)
 
 
 
@@ -24,41 +27,22 @@ Core semantic routing engine for intent resolution. It exists to map unstructure
 
 ### Imports
 - [argparse](file://argparse)
-- [json](file://json)
 - [os](file://os)
-- [re](file://re)
-- [subprocess](file://subprocess)
 - [sys](file://sys)
 - [pathlib](file://pathlib)
-- [typing](file://typing)
 - [src.sentinel._bootstrap](file://src.sentinel._bootstrap)
 - [src.core](file://src.core)
-- [src.core.engine.cortex](file://src.core.engine.cortex)
-- [src.core.engine.instruction_loader](file://src.core.engine.instruction_loader)
-- [src.core.engine.memory_db](file://src.core.engine.memory_db)
-- [src.core.engine.vector](file://src.core.engine.vector)
-- [src.core.payload](file://src.core.payload)
 - [src.core.sovereign_hud](file://src.core.sovereign_hud)
-- [src.tools.brave_search](file://src.tools.brave_search)
-- [src.tools.gemini_search](file://src.tools.gemini_search)
-- [src.tools.compile_session_traces](file://src.tools.compile_session_traces)
-- [gc](file://gc)
+- [src.core.engine.context](file://src.core.engine.context)
+- [src.core.engine.injector](file://src.core.engine.injector)
+- [src.core.engine.executor](file://src.core.engine.executor)
+- [src.core.engine.reporter](file://src.core.engine.reporter)
+- [src.core.engine.builder](file://src.core.engine.builder)
+- [src.core.engine.orchestrator](file://src.core.engine.orchestrator)
 
 ### Exports
 - `SovereignEngine`
 - `__init__`
-- `_load_feedback_context`
-- `_init_hud_dialogue`
-- `_init_vector_engine`
-- `_proactive_discovery`
 - `run`
-- `_render_hud`
-- `record_trace`
-- `handle_cortex_query`
-- `_handle_proactive`
-- `_suggest_forge`
 - `teardown`
-- `json_mode`
-- `search`
-- `_proactive_lexicon_lift`
 - `main`

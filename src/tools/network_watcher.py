@@ -12,21 +12,6 @@ THEMES = {
     "ALFRED": {"TITLE": "C* THE CRUCIBLE (SYNC)", "DETECTED": "Trace Detected", "PASS": "Ingested", "FAIL": "Rejected", "COLOR_MAIN": SovereignHUD.CYAN}
 }
 
-def get_theme():
-    """Module-level theme retriever for legacy tests."""
-    return THEMES.get(SovereignHUD.PERSONA, THEMES["ALFRED"])
-
-def log_rejection(filename: str, reason: str) -> None:
-    """Module-level rejection log."""
-    SovereignHUD.log_rejection(SovereignHUD.PERSONA, reason, filename)
-
-def process_file(file_path: str) -> None:
-    """Module-level process alias."""
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    base = os.path.dirname(script_dir)
-    root = os.path.dirname(base)
-    CruciblePipeline(root, base).process(file_path)
-
 class CruciblePipeline:
     """[ALFRED] Secure ingestion pipeline for the Federated Crucible."""
     def __init__(self, root: str, base: str) -> None:
@@ -35,6 +20,16 @@ class CruciblePipeline:
         self.proc = os.path.join(base, "traces", "processed")
         self.quar = os.path.join(base, "traces", "quarantine")
         self.db = os.path.join(root, "fishtest_data.json")
+
+    @staticmethod
+    def get_theme():
+        """Class-level theme retriever."""
+        return THEMES.get(SovereignHUD.PERSONA, THEMES["ALFRED"])
+
+    @staticmethod
+    def log_rejection(filename: str, reason: str) -> None:
+        """Class-level rejection log."""
+        SovereignHUD.log_rejection(SovereignHUD.PERSONA, reason, filename)
 
     def process(self, file_path: str) -> None:
         name = os.path.basename(file_path)
@@ -50,6 +45,7 @@ class CruciblePipeline:
             backup = self.db + ".bak"
             shutil.copy2(self.db, backup)
 
+            # [ALFRED] Note: We call merge_traces via secondary process to avoid path conflicts
             m_script = os.path.join(os.path.dirname(__file__), "merge_traces.py")
             res = subprocess.run([sys.executable, m_script, self.stage, self.db], capture_output=True)
 

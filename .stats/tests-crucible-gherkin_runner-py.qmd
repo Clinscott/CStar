@@ -1,22 +1,25 @@
 ---
 title: "gherkin_runner.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/crucible/gherkin_runner.py"
-loc: 44
+loc: 45
 complexity: 3
 logic_score: 3.80
-style_score: 3.88
+style_score: 3.81
 intel_score: 9.40
-overall_score: 6.96
+overall_score: 6.94
 ---
 
 ## Intent
-Python module facilitating EmpireGherkinCrucible, test_bridge_protocol_contract. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating EmpireGherkinCrucible, test_bridge_protocol_contract.
+
+## Interaction Protocol
+Import EmpireGherkinCrucible and call its primary methods.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 3.8/10
-- **Style [S]**: 3.9/10
+- **Style [S]**: 3.8/10
 - **Intel [I]**: 9.4/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 10 interactions (Agent Activity Hotspot)
 
 
 

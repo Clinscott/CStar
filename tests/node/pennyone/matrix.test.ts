@@ -22,12 +22,12 @@ test('calculateStyleScore detects claustrophobia', () => {
   `;
     assert.strictEqual(calculateStyleScore(goodCode), 10);
 
-    const badCode = "x = 1;\n".repeat(15);
+    const badCode = 'x = 1;\n'.repeat(15);
     assert.strictEqual(calculateStyleScore(badCode), 4); // Three lines of breach (13,14,15) = -6
 });
 
 test('calculateIntelScore rewards documentation', () => {
-    const opaqueCode = "const x = 1;";
+    const opaqueCode = 'const x = 1;';
     const lowScore = calculateIntelScore(opaqueCode, 1);
 
     const transparentCode = `

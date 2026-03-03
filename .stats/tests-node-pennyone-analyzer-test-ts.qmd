@@ -3,17 +3,20 @@ title: "analyzer.test.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/node/pennyone/analyzer.test.ts"
 loc: 37
 complexity: 1
-logic_score: 5.22
+logic_score: 5.40
 style_score: 4.00
 intel_score: 7.41
 overall_score: 6.37
 ---
 
 ## Intent
-A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
+A functional component of the Corvus Star static analysis matrix.
+
+## Interaction Protocol
+Import and utilize via the standard project structure.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 5.2/10
+- **Logic [L]**: 5.4/10
 - **Style [S]**: 4.0/10
 - **Intel [I]**: 7.4/10
 - **Gravity [G]**: 12 interactions (Agent Activity Hotspot)

@@ -3,17 +3,20 @@ title: "logic.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/calculus/logic.ts"
 loc: 7
 complexity: 2
-logic_score: 9.22
+logic_score: 8.85
 style_score: 9.35
 intel_score: 10.00
 overall_score: 9.40
 ---
 
 ## Intent
-Calculates structural logic density using CC and nesting metrics. It exists to quantify the cognitive load required to maintain specific modules. Its role in the system is to drive the architectural discipline enforced by the Linscott Standard.
+A functional component of the Corvus Star static analysis matrix.
+
+## Interaction Protocol
+Import and utilize via the standard project structure.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 9.2/10
+- **Logic [L]**: 8.8/10
 - **Style [S]**: 9.3/10
 - **Intel [I]**: 10.0/10
 - **Gravity [G]**: 7 interactions (Agent Activity Hotspot)

@@ -10,7 +10,10 @@ overall_score: 2.93
 ---
 
 ## Intent
-Python module facilitating UtilityBelt, __init__. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating UtilityBelt, __init__.
+
+## Interaction Protocol
+Import UtilityBelt and call its primary methods.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 0.5/10

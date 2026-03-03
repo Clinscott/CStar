@@ -10,7 +10,10 @@ overall_score: 4.42
 ---
 
 ## Intent
-Python module facilitating TestCortex_contracts, setUp. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating TestCortex_contracts, setUp.
+
+## Interaction Protocol
+Import TestCortex_contracts and call its primary methods.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 4.0/10

@@ -1,22 +1,25 @@
 ---
 title: "taste.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/sentinel/wardens/taste.py"
-loc: 56
+loc: 55
 complexity: 10
 logic_score: 1.90
-style_score: 3.79
-intel_score: 5.69
-overall_score: 3.92
+style_score: 3.78
+intel_score: 5.76
+overall_score: 3.95
 ---
 
 ## Intent
-Autonomous neural guardian monitoring system drift and anomalies. It exists to enforce strict operational parameters and prevent structural decay. Its role in the system is to act as an automated oversight mechanism during flight cycles.
+Autonomous neural guardian monitoring system drift and anomalies.
+
+## Interaction Protocol
+Instantiate the Warden class and call evaluate(graph) with a compiled matrix graph.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 1.9/10
 - **Style [S]**: 3.8/10
-- **Intel [I]**: 5.7/10
-- **Gravity [G]**: 11 interactions (Agent Activity Hotspot)
+- **Intel [I]**: 5.8/10
+- **Gravity [G]**: 13 interactions (Agent Activity Hotspot)
 
 
 
@@ -24,7 +27,6 @@ Autonomous neural guardian monitoring system drift and anomalies. It exists to e
 
 ### Imports
 - [re](file://re)
-- [pathlib](file://pathlib)
 - [typing](file://typing)
 - [src.sentinel.wardens.base](file://src.sentinel.wardens.base)
 

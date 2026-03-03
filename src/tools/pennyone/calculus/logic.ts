@@ -26,3 +26,4 @@ export function calculateLogicScore(complexity: number, maxNesting: number, loc:
     const rawScore = (complexityScore * 0.7) + (nestingScore * 0.3);
     return Math.min(Math.max(rawScore, 1), 10);
 }
+

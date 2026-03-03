@@ -10,7 +10,10 @@ overall_score: 3.17
 ---
 
 ## Intent
-Python module facilitating SovereignHUD, box_top. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating SovereignHUD, box_top.
+
+## Interaction Protocol
+Import SovereignHUD and call its primary methods.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 0.7/10

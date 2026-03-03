@@ -2,8 +2,8 @@
 import React, { useState, useEffect, Component, ReactNode } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
-import { NeuralGraph } from './components/NeuralGraph.js';
-import { PlaybackHUD } from './components/PlaybackHUD.js';
+import { NeuralGraph } from './components/NeuralGraph.tsx';
+import { PlaybackHUD } from './components/PlaybackHUD.tsx';
 import * as THREE from 'three';
 
 const logToServer = async (type: string, message: string, stack?: string) => {
@@ -119,7 +119,7 @@ export const App: React.FC = () => {
                                     onNodesMapped={setNodeMap}
                                 />
                             </React.Suspense>
-                            <OrbitControls makeDefault enableDamping maxDistance={30000} minDistance={50} />
+                            <OrbitControls makeDefault enableDamping />
                         </Canvas>
 
                         <div className="glass-hud">
@@ -159,3 +159,4 @@ export const App: React.FC = () => {
         </div>
     );
 };
+

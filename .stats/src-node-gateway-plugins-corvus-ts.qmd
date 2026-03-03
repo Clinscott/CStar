@@ -3,17 +3,20 @@ title: "corvus.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/node/gateway/plugins/corvus.ts"
 loc: 24
 complexity: 1
-logic_score: 8.55
+logic_score: 9.15
 style_score: 9.42
 intel_score: 7.00
 overall_score: 8.39
 ---
 
 ## Intent
-A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
+A functional component of the Corvus Star static analysis matrix.
+
+## Interaction Protocol
+Import and utilize via the standard project structure.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 8.6/10
+- **Logic [L]**: 9.2/10
 - **Style [S]**: 9.4/10
 - **Intel [I]**: 7.0/10
 - **Gravity [G]**: 5 interactions (Agent Activity Hotspot)
@@ -26,7 +29,7 @@ A functional component of the Corvus Star static analysis matrix. It exists to s
 - [FastifyInstance](file://fastify)
 - [FastifyPluginAsync](file://fastify)
 - [*](file://fastify-plugin)
-- [CorvusProcess](file://../../core/CorvusProcess.js)
+- [CorvusProcess](file://../../core/CorvusProcess.ts)
 
 ### Exports
 - `corvusPlugin`

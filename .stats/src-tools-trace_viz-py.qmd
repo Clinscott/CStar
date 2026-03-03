@@ -1,21 +1,24 @@
 ---
 title: "trace_viz.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/trace_viz.py"
-loc: 214
-complexity: 27
+loc: 207
+complexity: 28
 logic_score: 0.72
-style_score: 3.65
-intel_score: 4.39
-overall_score: 2.66
+style_score: 3.59
+intel_score: 2.95
+overall_score: 2.16
 ---
 
 ## Intent
-Python module facilitating load_json, get_engine. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating TraceRenderer, __init__.
+
+## Interaction Protocol
+Import TraceRenderer and call its primary methods.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 0.7/10
 - **Style [S]**: 3.6/10
-- **Intel [I]**: 4.4/10
+- **Intel [I]**: 2.9/10
 - **Gravity [G]**: 35 interactions (Agent Activity Hotspot)
 
 
@@ -29,15 +32,13 @@ Python module facilitating load_json, get_engine. It exists to support broader P
 - [math](file://math)
 - [os](file://os)
 - [sys](file://sys)
+- [pathlib](file://pathlib)
 - [collections](file://collections)
-- [vector](file://vector)
-- [src.core.sovereign_hud](file://src.core.sovereign_hud)
 - [typing](file://typing)
+- [src.core.engine.vector](file://src.core.engine.vector)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
 
 ### Exports
-- `load_json`
-- `get_engine`
-- `_res`
 - `TraceRenderer`
 - `__init__`
 - `box_top`
@@ -46,6 +47,10 @@ Python module facilitating load_json, get_engine. It exists to support broader P
 - `box_bottom`
 - `render_neural_path`
 - `render_analysis`
+- `TraceVisualizer`
+- `load_json`
+- `get_engine`
+- `_res`
 - `mode_live`
 - `mode_file`
 - `mode_war_room`

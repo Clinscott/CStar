@@ -53,7 +53,8 @@
     "content_hashes": [
       "f908661f1a5cdcfd95caeed4a3b3d3d5"
     ],
-    "status": "ACTIVE"
+    "status": "ACTIVE",
+    "fail_count": 1
   },
   "debug_env.py": {
     "last_edited": 1771558564.7233617,
@@ -80,5 +81,12 @@
       "04f1089251a830760777427f5af4f79b"
     ],
     "status": "ACTIVE"
+  },
+  "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/components/NeuralGraph.tsx": {
+    "last_edited": 0,
+    "edit_count_24h": 0,
+    "content_hashes": [],
+    "status": "ACTIVE",
+    "fail_count": 1
   }
 }

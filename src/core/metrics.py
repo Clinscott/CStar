@@ -59,29 +59,30 @@ class ExecutionTracker:
             "memory_delta_mb": round(self.mem_delta_mb, 2)
         }
 
-def track_execution(name: str | None = None):
-    """
-    Decorator to easily track execution metrics for a function without polluting its logic.
-    """
-    def decorator(func: Callable):
-        def wrapper(*args, **kwargs):
-            op_name = name or func.__name__
-            with ExecutionTracker(op_name) as tracker:
-                result = func(*args, **kwargs)
+    @staticmethod
+    def track(name: str | None = None):
+        """
+        Decorator to easily track execution metrics for a function without polluting its logic.
+        """
+        def decorator(func: Callable):
+            def wrapper(*args, **kwargs):
+                op_name = name or func.__name__
+                with ExecutionTracker(op_name) as tracker:
+                    result = func(*args, **kwargs)
 
-            # Log or store the metrics
-            try:
-                from src.core.sovereign_hud import SovereignHUD
-                # Only log if it's a significant operation (>50ms) to avoid spam
-                if tracker.latency_ms > 50:
-                    delta_str = f"+{tracker.mem_delta_mb}MB" if tracker.mem_delta_mb >= 0 else f"{tracker.mem_delta_mb}MB"
-                    SovereignHUD.persona_log("INFO", f"[{op_name}] Latency: {tracker.latency_ms:.2f}ms | Mem: {delta_str}")
-            except Exception:
-                pass
+                # Log or store the metrics
+                try:
+                    from src.core.sovereign_hud import SovereignHUD
+                    # Only log if it's a significant operation (>50ms) to avoid spam
+                    if tracker.latency_ms > 50:
+                        delta_str = f"+{tracker.mem_delta_mb}MB" if tracker.mem_delta_mb >= 0 else f"{tracker.mem_delta_mb}MB"
+                        SovereignHUD.persona_log("INFO", f"[{op_name}] Latency: {tracker.latency_ms:.2f}ms | Mem: {delta_str}")
+                except Exception:
+                    pass
 
-            return result
-        return wrapper
-    return decorator
+                return result
+            return wrapper
+        return decorator
 
 class ProjectMetricsEngine:
     """
@@ -134,7 +135,9 @@ class ProjectMetricsEngine:
         complexity_score = 70.0 # Default
         try:
             # We check if radon is available
-            result = subprocess.run([sys.executable, "-m", "radon", "cc", project_root, "-s", "-a"], capture_output=True, text=True)
+            print(f"[PULSE] Metrics: Running radon CC on {project_root}...")
+            result = subprocess.run([sys.executable, "-m", "radon", "cc", project_root, "-s", "-a"], capture_output=True, text=True, timeout=120)
+            print(f"[PULSE] Metrics: radon CC complete (Return Code: {result.returncode})")
             if result.returncode == 0:
                 # Basic parsing to find average complexity
                 # This is a simplification

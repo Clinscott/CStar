@@ -3,14 +3,17 @@ title: "test_mimir_remediation.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/unit/test_mimir_remediation.py"
 loc: 35
 complexity: 1
-logic_score: 5.22
+logic_score: 5.15
 style_score: 3.92
 intel_score: 1.40
 overall_score: 4.69
 ---
 
 ## Intent
-Python module facilitating project_root, test_vector_search_parity. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating project_root, test_vector_search_parity.
+
+## Interaction Protocol
+Import project_root and call its primary methods.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 5.2/10

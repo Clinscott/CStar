@@ -1,16 +1,19 @@
 ---
 title: "personas.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/core/personas.py"
-loc: 157
+loc: 159
 complexity: 21
 logic_score: 0.50
-style_score: 3.81
+style_score: 3.82
 intel_score: 9.40
 overall_score: 4.24
 ---
 
 ## Intent
-Python module facilitating PersonaStrategy, __init__. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating PersonaStrategy, __init__.
+
+## Interaction Protocol
+Import PersonaStrategy and call its primary methods.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 0.5/10
@@ -53,4 +56,5 @@ Python module facilitating PersonaStrategy, __init__. It exists to support broad
 - `enforce_policy`
 - `_create_cursor_rules`
 - `_create_minimal_agents`
+- `PersonaRegistry`
 - `get_strategy`

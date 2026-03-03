@@ -55,3 +55,4 @@ export function calculateStyleScore(code: string): number {
 
     return Math.min(Math.max(finalScore, 1), 10);
 }
+

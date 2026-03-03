@@ -16,8 +16,8 @@ from pathlib import Path
 try:
     project_root = Path(__file__).resolve().parents[4]
     sys.path.append(str(project_root))
-    from src.sentinel._bootstrap import bootstrap
-    bootstrap()
+    from src.sentinel._bootstrap import SovereignBootstrap
+    SovereignBootstrap.execute()
 except (ImportError, ValueError, IndexError):
     pass
 

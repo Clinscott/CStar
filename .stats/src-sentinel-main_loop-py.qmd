@@ -1,22 +1,25 @@
 ---
 title: "main_loop.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/sentinel/main_loop.py"
-loc: 186
-complexity: 24
-logic_score: 0.72
-style_score: 3.62
-intel_score: 7.42
-overall_score: 3.66
+loc: 134
+complexity: 20
+logic_score: 0.50
+style_score: 3.61
+intel_score: 7.37
+overall_score: 3.49
 ---
 
 ## Intent
-Python module facilitating _ensure_bootstrapped, ShutdownHandler. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating ShutdownHandler, __init__.
+
+## Interaction Protocol
+Import ShutdownHandler and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 0.7/10
+- **Logic [L]**: 0.5/10
 - **Style [S]**: 3.6/10
 - **Intel [I]**: 7.4/10
-- **Gravity [G]**: 40 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 39 interactions (Agent Activity Hotspot)
 
 
 
@@ -27,7 +30,6 @@ Python module facilitating _ensure_bootstrapped, ShutdownHandler. It exists to s
 - [logging](file://logging)
 - [os](file://os)
 - [signal](file://signal)
-- [subprocess](file://subprocess)
 - [time](file://time)
 - [pathlib](file://pathlib)
 - [typing](file://typing)
@@ -35,22 +37,20 @@ Python module facilitating _ensure_bootstrapped, ShutdownHandler. It exists to s
 - [colorama](file://colorama)
 - [src.sentinel._bootstrap](file://src.sentinel._bootstrap)
 - [src.core.sovereign_hud](file://src.core.sovereign_hud)
-- [src.sentinel.muninn](file://src.sentinel.muninn)
+- [src.sentinel.repo_spoke](file://src.sentinel.repo_spoke)
+- [src.core.utils](file://src.core.utils)
 - [argparse](file://argparse)
+- [asyncio](file://asyncio)
 
 ### Exports
-- `_ensure_bootstrapped`
 - `ShutdownHandler`
 - `__init__`
 - `shutdown`
+- `DaemonOrchestrator`
+- `ensure_bootstrapped`
 - `load_config`
 - `load_target_repos`
 - `get_interval`
-- `git_cmd`
-- `is_clean`
-- `ensure_branch`
-- `restore_branch`
 - `load_persona`
-- `process_repo`
-- `highlander_check`
+- `_highlander_check`
 - `daemon_loop`

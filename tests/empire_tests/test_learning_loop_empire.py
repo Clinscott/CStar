@@ -126,7 +126,7 @@ class TestLearningLoopEmpire:
 
     # --- 3. SYSTEM LEARNING LOOP TESTS ---
 
-    @patch("src.core.sv_engine.compile_traces")
+    @patch("src.tools.compile_session_traces.TraceCompiler.execute")
     def test_sv_engine_teardown_learning(self, mock_compile, tmp_path):
         """Ensures SovereignEngine triggers trace compilation on teardown."""
         agent_dir = tmp_path / ".agent"

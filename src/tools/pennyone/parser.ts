@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, no-useless-assignment, jsdoc/require-param-description, jsdoc/require-returns-description */
 export * as TreeSitter from 'web-tree-sitter';
 import * as TreeSitter from 'web-tree-sitter';
 import path from 'path';
-import { registry } from './pathRegistry.js';
+import { registry } from './pathRegistry.ts';
 
 /**
  * [ALFRED]: "The sensors have been upgraded to the WASM standard, sir. 
@@ -14,19 +13,18 @@ const parsers: Record<string, { parser: TreeSitter.Parser, lang: TreeSitter.Lang
 
 /**
  * Initialize parsers
- * @returns {Promise<void>}
+ * @returns {Promise<void>} Resolves when initialized
  */
 export async function initParsers(): Promise<void> {
     if (isInitialized) return;
-    // @ts-expect-error - TreeSitter types are incomplete in this bundle
     await TreeSitter.Parser.init();
     isInitialized = true;
 }
 
 /**
  * Get parser for filepath
- * @param {string} filepath - Path to file
- * @returns {Promise<{ parser: TreeSitter.Parser, lang: TreeSitter.Language, languageName: string }>} Parser object
+ * @param {string} filepath - Path to file to parse
+ * @returns {Promise<{ parser: TreeSitter.Parser, lang: TreeSitter.Language, languageName: string }>} Parser configuration object
  */
 export async function getParser(filepath: string): Promise<{ parser: TreeSitter.Parser, lang: TreeSitter.Language, languageName: string }> {
     await initParsers();
@@ -53,9 +51,7 @@ export async function getParser(filepath: string): Promise<{ parser: TreeSitter.
 
     if (!parsers[languageName]) {
         const fullWasmPath = path.resolve(registry.getRoot(), langPath);
-        // @ts-expect-error - TreeSitter types are incomplete in this bundle
         const lang = await TreeSitter.Language.load(fullWasmPath);
-        // @ts-expect-error - TreeSitter types are incomplete in this bundle
         const parser = new TreeSitter.Parser();
         parser.setLanguage(lang);
         parsers[languageName] = { parser, lang };
@@ -74,3 +70,4 @@ export async function parseCode(code: string, filepath: string) {
     const { parser } = await getParser(filepath);
     return parser.parse(code);
 }
+

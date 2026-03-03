@@ -181,7 +181,7 @@ class PersonaManager:
     def _apply_policy(self, persona: str) -> None:
         """Integrates with the persona policy engine."""
         try:
-            strategy = personas.get_strategy(persona, str(self.project_root))
+            strategy = personas.PersonaRegistry.get_strategy(persona, str(self.project_root))
 
             # documentation re-theme for ODIN
             if self.old_persona == "ALFRED" and persona == "ODIN":
@@ -198,10 +198,11 @@ class PersonaManager:
         except Exception as e:
             print(f"⚠️ Policy enforcement warning: {e}")
 
-def set_persona(persona: str, root: str | None = None) -> None:
-    """Convenience function for external callers (e.g. tests, ravens)."""
-    manager = PersonaManager(target_root=Path(root) if root else None)
-    manager.switch(persona)
+    @staticmethod
+    def set_persona(persona: str, root: str | None = None) -> None:
+        """Convenience function for external callers (e.g. tests, ravens)."""
+        manager = PersonaManager(target_root=Path(root) if root else None)
+        manager.switch(persona)
 
 def main() -> None:
     """Entry point for the persona switcher."""

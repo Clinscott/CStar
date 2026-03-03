@@ -19,7 +19,8 @@
   "author": "Craig Linscott",
   "type": "module",
   "bin": {
-    "cstar": "./bin/cstar.js"
+    "cstar": "./bin/cstar.js",
+    "pennyone-mcp": "./bin/pennyone-mcp.js"
   },
   "main": "cstar.ts",
   "directories": {
@@ -42,6 +43,7 @@
     "@fastify/static": "^9.0.0",
     "@fastify/type-provider-typebox": "^5.1.0",
     "@fastify/websocket": "^11.2.0",
+    "@modelcontextprotocol/sdk": "^1.27.1",
     "@react-three/drei": "^9.122.0",
     "@react-three/fiber": "^8.18.0",
     "@react-three/postprocessing": "^3.0.4",
@@ -66,7 +68,8 @@
     "tree-sitter-python": "^0.25.0",
     "tree-sitter-typescript": "^0.23.2",
     "web-tree-sitter": "^0.26.6",
-    "ws": "^8.19.0"
+    "ws": "^8.19.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

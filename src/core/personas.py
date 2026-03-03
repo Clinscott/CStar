@@ -289,6 +289,13 @@ _PERSONA_REGISTRY: dict[str, type[PersonaStrategy]] = {
 
 
 def get_strategy(name: str, root: str) -> PersonaStrategy:
-    """[A.L.F.R.E.D.] Look up the persona strategy from the registry, defaulting to ALFRED."""
-    strategy_cls = _PERSONA_REGISTRY.get(name.upper(), AlfredStrategy)
-    return strategy_cls(root)
+    return PersonaRegistry.get_strategy(name, root)
+
+class PersonaRegistry:
+    """[A.L.F.R.E.D.] Orchestration hub for persona strategies."""
+    
+    @staticmethod
+    def get_strategy(name: str, root: str) -> PersonaStrategy:
+        """Look up the persona strategy from the registry, defaulting to ALFRED."""
+        strategy_cls = _PERSONA_REGISTRY.get(name.upper(), AlfredStrategy)
+        return strategy_cls(root)

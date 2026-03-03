@@ -1,10 +1,11 @@
+import asyncio
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from src.core.engine.dialogue import DialogueEngine
 from src.games.odin_protocol.engine.scenarios import SovereignScenarioEngine
-from src.sentinel.code_sanitizer import repair_imports, validate_imports
+from src.sentinel.code_sanitizer import BifrostGate
 from src.sentinel.muninn import Muninn
 from src.sentinel.wardens.norn import NornWarden
 from src.skills.install_skill import install_skill
@@ -17,30 +18,33 @@ def project_root(tmp_path):
     (tmp_path / "src" / "core" / "__init__.py").touch()
     return tmp_path
 
-def test_muninn_refactor_calls(project_root):
+@pytest.mark.asyncio
+async def test_muninn_refactor_calls(project_root):
     """Verify Muninn.run still executes phases correctly."""
-    with patch("src.sentinel.muninn.asyncio.run") as mock_async_run, \
-         patch("src.sentinel.muninn.SovereignHUD.persona_log"), \
-         patch("src.sentinel.muninn.Muninn._emit_metrics_summary"), \
+    with patch("src.core.sovereign_hud.SovereignHUD.persona_log"), \
          patch.dict("os.environ", {"GOOGLE_API_KEY": "MOCK_KEY"}):
 
-        mock_async_run.return_value = ([], {}) # No breaches found
-        muninn = Muninn(project_root)
-        muninn.metrics_engine = MagicMock()
-        muninn.metrics_engine.compute.return_value = 100.0
 
-        result = muninn.run()
+        muninn = Muninn(project_root)
+
+        # Mock the heart to avoid actual execution
+        muninn.heart = MagicMock()
+        muninn.heart.execute_cycle = MagicMock(return_value=asyncio.Future())
+        muninn.heart.execute_cycle.return_value.set_result(False)
+
+        result = await muninn.run_cycle()
         assert result is False
-        mock_async_run.assert_called_once()
+        muninn.heart.execute_cycle.assert_called_once()
 
 def test_code_sanitizer_imports(project_root):
     """Verify import validation and repair still work."""
+    gate = BifrostGate(project_root)
     code = "import non_existent_mod\nimport os"
-    bad_imports = validate_imports(code, project_root)
+    bad_imports = gate.validate_imports(code)
     assert any("non_existent_mod" in b for b in bad_imports)
     assert not any("import os" in b for b in bad_imports)
 
-    repaired = repair_imports(code, project_root)
+    repaired = gate.repair_imports(code)
     assert "# [BIFROST REMOVED] import non_existent_mod" in repaired
     assert "non_existent_mod = MagicMock" in repaired
     assert "import os" in repaired

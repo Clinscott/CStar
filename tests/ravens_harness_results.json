@@ -1,22 +1,14 @@
 {
-  "timestamp": "2026-02-14 11:10:36",
+  "timestamp": "2026-03-02 13:53:50",
   "total_iterations": 1,
-  "dry_run": true,
-  "passed": 1,
-  "failed": 0,
-  "failure_breakdown": {},
+  "passed": 0,
+  "failed": 1,
   "results": [
     {
-      "target_file": "scripts/validate_phrases.py",
-      "target_type": "LINSCOTT_BREACH",
-      "response_type": "GOOD",
-      "passed": true,
-      "failure_class": "NONE",
-      "failure_detail": "",
-      "sanitizer_actions": [
-        "DRYRUN_PASS"
-      ],
-      "iteration": 1
+      "iteration": 1,
+      "passed": false,
+      "duration": 102.32310771942139,
+      "timestamp": "13:53:50"
     }
   ]
 }

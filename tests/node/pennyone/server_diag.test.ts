@@ -6,7 +6,7 @@ import fs from 'fs';
 import path from 'path';
 
 describe('PennyOne Bridge Diagnostics', () => {
-    const PORT = 4120;
+    const PORT = 4140;
     const statsDir = path.join(process.cwd(), '.stats');
     const signetPath = path.join(statsDir, 'signet.url');
 
@@ -14,9 +14,9 @@ describe('PennyOne Bridge Diagnostics', () => {
         // 0. Pre-test: clear stale state
         if (!fs.existsSync(statsDir)) fs.mkdirSync(statsDir);
         if (fs.existsSync(signetPath)) fs.unlinkSync(signetPath);
-        
+
         // 1. Start server
-        startBridge(process.cwd(), PORT);
+        const bridge = startBridge(process.cwd(), PORT);
 
         // 2. Wait for server to spin up and write signet
         let token = '';
@@ -61,7 +61,14 @@ describe('PennyOne Bridge Diagnostics', () => {
         const statusAuth = await fetchMatrix(true);
         // Can be 200 (if scan ran) or 404 (if no graph), but 401 is failure.
         assert.ok(statusAuth === 200 || statusAuth === 404, `Should allow authorized API access (Got ${statusAuth})`);
-        
+
         console.log(`[DIAG] Server diagnostic successful on port ${PORT}`);
+
+        // 5. Teardown
+        if (bridge?.watcher) await bridge.watcher.close();
+        if (bridge?.server) await new Promise<void>(resolve => {
+            bridge.server.close(() => resolve());
+            bridge.server.closeAllConnections();
+        });
     });
 });

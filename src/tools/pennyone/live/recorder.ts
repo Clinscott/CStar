@@ -1,5 +1,5 @@
-import { AgentPing } from '../types.js';
-import { savePing, saveTrace } from '../intel/database.js';
+import { AgentPing } from '../types.ts';
+import { savePing, saveTrace } from '../intel/database.ts';
 
 /**
  * Record a ping to the chronological session ledger (SQLite).
@@ -26,3 +26,4 @@ export async function recordTrace(trace: any) {
         console.error('[ALFRED]: "Failed to record mission trace, sir."', err);
     }
 }
+

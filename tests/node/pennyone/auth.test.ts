@@ -6,7 +6,7 @@ import fs from 'fs';
 import path from 'path';
 
 describe('PennyOne Server Authentication', () => {
-    const PORT = 4110;
+    const PORT = 4130;
     const statsDir = path.join(process.cwd(), '.stats');
     const signetPath = path.join(statsDir, 'signet.url');
 
@@ -15,8 +15,8 @@ describe('PennyOne Server Authentication', () => {
         if (fs.existsSync(signetPath)) fs.unlinkSync(signetPath);
 
         // 1. Start server
-        startBridge('src/tools/pennyone', PORT);
-        
+        const bridge = startBridge('src/tools/pennyone', PORT);
+
         // Wait for signet.url to be written
         let token = '';
         for (let i = 0; i < 20; i++) {
@@ -47,11 +47,18 @@ describe('PennyOne Server Authentication', () => {
                 resolve(res.statusCode || 0);
             });
             req.on('error', (e) => {
-                console.error("Request error:", e);
+                console.error('Request error:', e);
                 resolve(500);
             });
         });
-        
+
         assert.ok(resAuthorized === 200 || resAuthorized === 404, `Should allow access with valid token (Got ${resAuthorized})`);
+
+        // 4. Teardown
+        if (bridge?.watcher) await bridge.watcher.close();
+        if (bridge?.server) await new Promise<void>(resolve => {
+            bridge.server.close(() => resolve());
+            bridge.server.closeAllConnections();
+        });
     });
 });

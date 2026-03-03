@@ -50,10 +50,10 @@ export class SubspaceRelay {
 
     /**
      * Broadcast a message to all connected visualizers
-     * @param {"NODE_UPDATED" | "GRAPH_REBUILT" | "AGENT_TRACE"} type - Event type
+     * @param {"NODE_UPDATED" | "GRAPH_REBUILT" | "AGENT_TRACE" | "MISSION_TRACE"} type - Event type
      * @param {unknown} payload - Event payload
      */
-    public broadcast(type: 'NODE_UPDATED' | 'GRAPH_REBUILT' | 'AGENT_TRACE', payload: unknown) {
+    public broadcast(type: 'NODE_UPDATED' | 'GRAPH_REBUILT' | 'AGENT_TRACE' | 'MISSION_TRACE', payload: unknown) {
         const message = JSON.stringify({ type, payload });
         this.clients.forEach(client => {
             if (client.readyState === WebSocket.OPEN) {
@@ -62,3 +62,4 @@ export class SubspaceRelay {
         });
     }
 }
+

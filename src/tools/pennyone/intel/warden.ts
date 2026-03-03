@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { CompiledGraph } from './compiler.js';
-import { registry } from '../pathRegistry.js';
+import { CompiledGraph } from './compiler.ts';
+import { registry } from '../pathRegistry.ts';
 
 export interface TechDebtBounty {
     file: string;
@@ -65,7 +65,7 @@ export class Warden {
     }
 
     private async updateLedger(bounties: TechDebtBounty[]): Promise<void> {
-        let ledger: TechDebtLedger = {
+        const ledger: TechDebtLedger = {
             timestamp: new Date().toISOString(),
             top_targets: []
         };
@@ -88,3 +88,4 @@ export class Warden {
         }
     }
 }
+

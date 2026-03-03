@@ -3,20 +3,23 @@ title: "manual_learn.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/harness/manual_learn.py"
 loc: 44
 complexity: 8
-logic_score: 3.00
+logic_score: 4.57
 style_score: 3.78
 intel_score: 1.40
 overall_score: 2.88
 ---
 
 ## Intent
-Python module facilitating run_learning_cycle. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating run_learning_cycle.
+
+## Interaction Protocol
+Import run_learning_cycle and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 3.0/10
+- **Logic [L]**: 4.6/10
 - **Style [S]**: 3.8/10
 - **Intel [I]**: 1.4/10
-- **Gravity [G]**: 17 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 16 interactions (Agent Activity Hotspot)
 
 
 

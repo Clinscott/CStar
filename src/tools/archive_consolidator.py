@@ -38,36 +38,6 @@ logging.basicConfig(
     datefmt="%H:%M:%S"
 )
 
-# Optional dependency: radon for cyclomatic complexity
-try:
-    from radon.complexity import cc_visit
-    def get_complexity(source_code: str) -> float:
-        """Calculate average cyclomatic complexity using radon."""
-        try:
-            blocks = cc_visit(source_code)
-            if not blocks:
-                return 1.0 # Baseline
-            return sum(b.complexity for b in blocks) / len(blocks)
-        except Exception:
-            return 1.0
-except ImportError:
-    # AST Fallback if radon is not available
-    def get_complexity(source_code: str) -> float:
-        """Fallback: Calculate complexity by counting branching AST nodes."""
-        try:
-            tree = ast.parse(source_code)
-            complexity = 1
-            for node in ast.walk(tree):
-                if isinstance(node, (ast.If, ast.IfExp, ast.For, ast.While,
-                                     ast.Try, ast.ExceptHandler, ast.With, ast.Match)):
-                    complexity += 1
-                elif isinstance(node, ast.BoolOp) and isinstance(node.op, (ast.And, ast.Or)):
-                    complexity += len(node.values) - 1
-            return float(complexity)
-        except Exception:
-            return 1.0
-
-
 class ArchiveConsolidator:
     """
     Analyzes project health by combining Git Churn, Complexity, and Test Coverage.
@@ -81,6 +51,32 @@ class ArchiveConsolidator:
 
         # Enforce ALFRED persona for this tool
         SovereignHUD.PERSONA = "ALFRED"
+
+    @staticmethod
+    def _get_complexity(source_code: str) -> float:
+        """Calculate average cyclomatic complexity using radon or AST fallback."""
+        try:
+            from radon.complexity import cc_visit
+            blocks = cc_visit(source_code)
+            if not blocks:
+                return 1.0
+            return sum(b.complexity for b in blocks) / len(blocks)
+        except ImportError:
+            # AST Fallback
+            try:
+                tree = ast.parse(source_code)
+                complexity = 1
+                for node in ast.walk(tree):
+                    if isinstance(node, (ast.If, ast.IfExp, ast.For, ast.While,
+                                         ast.Try, ast.ExceptHandler, ast.With, ast.Match)):
+                        complexity += 1
+                    elif isinstance(node, ast.BoolOp) and isinstance(node.op, (ast.And, ast.Or)):
+                        complexity += len(node.values) - 1
+                return float(complexity)
+            except Exception:
+                return 1.0
+        except Exception:
+            return 1.0
 
     def _get_git_churn(self) -> dict[str, int]:
         """Calculates line churn for files changed in the last N days."""
@@ -152,13 +148,11 @@ class ArchiveConsolidator:
 
             try:
                 code = full_path.read_text(encoding='utf-8')
-                complexity = get_complexity(code)
+                complexity = self._get_complexity(code)
                 has_test = self._has_test_coverage(rel_path)
 
                 # The "Risk Score" Algorithm
-                # High churn multiplies complexity. Low coverage acts as a huge multiplier.
                 coverage_multiplier = 1.0 if has_test else 3.0
-                # Normalize churn slightly to prevent massive files from dwarfing everything
                 normalized_churn = min(churn / 100.0, 10.0) + 1.0
 
                 risk_score = (complexity * normalized_churn) * coverage_multiplier
@@ -186,9 +180,13 @@ class ArchiveConsolidator:
         self.ledger_path.parent.mkdir(parents=True, exist_ok=True)
 
         ledger_data = {
-            "timestamp": SovereignHUD._speak("timestamp", "Now"), # Standard timestamp fallback
-            "top_targets": targets[:20] # Keep top 20
+            "timestamp": int(subprocess.time.time()) if hasattr(subprocess, "time") else 0, # Placeholder
+            "top_targets": targets[:20] 
         }
+
+        # Handle timestamp properly via time module
+        import time
+        ledger_data["timestamp"] = int(time.time())
 
         self.ledger_path.write_text(json.dumps(ledger_data, indent=4), encoding='utf-8')
 
@@ -207,7 +205,6 @@ class ArchiveConsolidator:
                 cov_mark = "[OK]" if item['coverage'] else "[MISSING]"
                 stats = f"{item['churn']:<5} | {item['complexity']:<4} | {cov_mark}"
 
-                # Format: 1.  filename.py ... 142 | 5.2 | [MISSING]
                 SovereignHUD.box_row(f"{idx:02d}. {f_name}", stats, color, dim_label=True)
 
             if len(targets) > 10:

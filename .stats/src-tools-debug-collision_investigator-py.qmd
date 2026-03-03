@@ -1,21 +1,24 @@
 ---
 title: "collision_investigator.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/debug/collision_investigator.py"
-loc: 43
-complexity: 6
-logic_score: 3.05
-style_score: 3.97
-intel_score: 3.26
-overall_score: 4.44
+loc: 55
+complexity: 8
+logic_score: 2.47
+style_score: 3.89
+intel_score: 4.31
+overall_score: 4.38
 ---
 
 ## Intent
-Python module facilitating run_collision_investigation. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating CollisionInvestigator, execute.
+
+## Interaction Protocol
+Import CollisionInvestigator and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 3.0/10
-- **Style [S]**: 4.0/10
-- **Intel [I]**: 3.3/10
+- **Logic [L]**: 2.5/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 4.3/10
 - **Gravity [G]**: 9 interactions (Agent Activity Hotspot)
 
 
@@ -26,7 +29,9 @@ Python module facilitating run_collision_investigation. It exists to support bro
 - [json](file://json)
 - [os](file://os)
 - [sys](file://sys)
-- [engine.vector](file://engine.vector)
+- [pathlib](file://pathlib)
+- [src.core.engine.vector](file://src.core.engine.vector)
 
 ### Exports
-- `run_collision_investigation`
+- `CollisionInvestigator`
+- `execute`

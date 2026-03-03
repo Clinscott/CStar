@@ -15,6 +15,10 @@ const IntentSchema = Type.Object({
 
 type IntentType = Static<typeof IntentSchema>;
 
+/**
+ *
+ * @param fastify
+ */
 export default async function (fastify: FastifyInstance) {
     fastify.post<{ Body: IntentType }>(
         '/intent',
@@ -52,3 +56,4 @@ export default async function (fastify: FastifyInstance) {
         }
     );
 }
+

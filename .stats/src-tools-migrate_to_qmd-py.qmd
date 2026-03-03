@@ -1,21 +1,24 @@
 ---
 title: "migrate_to_qmd.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/migrate_to_qmd.py"
-loc: 53
+loc: 56
 complexity: 11
-logic_score: 2.17
-style_score: 3.74
-intel_score: 5.93
-overall_score: 4.17
+logic_score: 2.40
+style_score: 3.75
+intel_score: 7.11
+overall_score: 4.57
 ---
 
 ## Intent
-Python module facilitating get_checksum, migrate_file. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Core semantic routing engine for intent resolution.
+
+## Interaction Protocol
+Instantiate SovereignEngine and invoke run(query) to process natural language directives.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 2.2/10
-- **Style [S]**: 3.7/10
-- **Intel [I]**: 5.9/10
+- **Logic [L]**: 2.4/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 7.1/10
 - **Gravity [G]**: 12 interactions (Agent Activity Hotspot)
 
 
@@ -29,6 +32,7 @@ Python module facilitating get_checksum, migrate_file. It exists to support broa
 - [pathlib](file://pathlib)
 
 ### Exports
+- `MigrationEngine`
 - `get_checksum`
 - `migrate_file`
 - `main`

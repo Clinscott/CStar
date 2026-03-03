@@ -1,0 +1,47 @@
+---
+title: "test_1772470743.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/tests/gauntlet/test_1772470743.py"
+loc: 54
+complexity: 2
+logic_score: 4.20
+style_score: 3.44
+intel_score: 9.40
+overall_score: 7.08
+---
+
+## Intent
+Core semantic routing engine for intent resolution.
+
+## Interaction Protocol
+Instantiate SovereignEngine and invoke run(query) to process natural language directives.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 4.2/10
+- **Style [S]**: 3.4/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [inspect](file://inspect)
+- [pytest](file://pytest)
+- [json](file://json)
+
+### Exports
+- `test_module_has_docstring`
+- `test_execution_tracker_members_have_docstrings`
+- `test_project_metrics_engine_members_have_docstrings`
+- `ExecutionTracker`
+- `__init__`
+- `__enter__`
+- `__exit__`
+- `latency_ms`
+- `mem_delta_mb`
+- `report`
+- `ProjectMetricsEngine`
+- `__init__`

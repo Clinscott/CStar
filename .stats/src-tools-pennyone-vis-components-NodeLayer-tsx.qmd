@@ -1,0 +1,51 @@
+---
+title: "NodeLayer.tsx"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/components/NodeLayer.tsx"
+loc: 80
+complexity: 6
+logic_score: 3.27
+style_score: 4.00
+intel_score: 2.00
+overall_score: 4.18
+---
+
+## Intent
+React component rendering NodeLayer.
+
+## Interaction Protocol
+Include <NodeLayer /> within a React-Three-Fiber Canvas context.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 3.3/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 2.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [useRef](file://react)
+- [useMemo](file://react)
+- [*](file://three)
+- [useFrame](file://@react-three/fiber)
+- [Node](file://../types/index.ts)
+- [Link](file://../types/index.ts)
+- [useNodeEffects](file://../logic/useNodeEffects.ts)
+
+### Exports
+- `tempObject`
+- `tempColor`
+- `NodeTier`
+- `meshRef`
+- `useNodeEffects`
+- `currentMesh`
+- `calculateEffect`
+- `NodeLayer`
+- `NodeLayer`
+- `useNodeEffects`
+- `nodesByDetail`
+- `tiers`
+- `calculateEffect`
+- `tierIdx`

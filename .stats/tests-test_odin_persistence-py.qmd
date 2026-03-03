@@ -10,7 +10,10 @@ overall_score: 7.42
 ---
 
 ## Intent
-Python module facilitating mock_persistence, test_persistence_save_load. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating mock_persistence, test_persistence_save_load.
+
+## Interaction Protocol
+Import mock_persistence and call its primary methods.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 9.3/10

@@ -10,7 +10,10 @@ overall_score: 6.58
 ---
 
 ## Intent
-Python module facilitating legacy_function. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating legacy_function.
+
+## Interaction Protocol
+Import legacy_function and call its primary methods.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 9.4/10

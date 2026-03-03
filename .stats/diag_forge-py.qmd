@@ -3,20 +3,23 @@ title: "diag_forge.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/diag_forge.py"
 loc: 52
 complexity: 3
-logic_score: 4.57
+logic_score: 3.92
 style_score: 3.54
 intel_score: 1.40
-overall_score: 3.88
+overall_score: 3.38
 ---
 
 ## Intent
-Python module facilitating diag. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating diag.
+
+## Interaction Protocol
+Import diag and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 4.6/10
+- **Logic [L]**: 3.9/10
 - **Style [S]**: 3.5/10
 - **Intel [I]**: 1.4/10
-- **Gravity [G]**: 8 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 11 interactions (Agent Activity Hotspot)
 
 
 
@@ -28,8 +31,8 @@ Python module facilitating diag. It exists to support broader Python integration
 - [uuid](file://uuid)
 - [pathlib](file://pathlib)
 - [unittest.mock](file://unittest.mock)
-- [src.core.payload](file://src.core.payload)
 - [src.cstar.core.forge](file://src.cstar.core.forge)
+- [src.core.payload](file://src.core.payload)
 
 ### Exports
 - `diag`

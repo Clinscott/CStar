@@ -3,17 +3,20 @@ title: "test_debt_viz_empire.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_debt_viz_empire.py"
 loc: 25
 complexity: 1
-logic_score: 8.13
+logic_score: 8.55
 style_score: 3.98
 intel_score: 4.60
 overall_score: 5.93
 ---
 
 ## Intent
-Python module facilitating test_debt_analyzer_files, test_debt_analyzer_logic. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating test_debt_analyzer_files, test_debt_analyzer_logic.
+
+## Interaction Protocol
+Import test_debt_analyzer_files and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 8.1/10
+- **Logic [L]**: 8.6/10
 - **Style [S]**: 4.0/10
 - **Intel [I]**: 4.6/10
 - **Gravity [G]**: 5 interactions (Agent Activity Hotspot)

@@ -27,3 +27,4 @@ export function calculateIntelScore(code: string, loc: number): number {
     const rawScore = (docScore * 0.8) + (exportScore * 0.2);
     return Math.max(1, rawScore);
 }
+

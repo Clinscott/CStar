@@ -1,0 +1,50 @@
+---
+title: "useNodeEffects.ts"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/logic/useNodeEffects.ts"
+loc: 52
+complexity: 18
+logic_score: 2.30
+style_score: 4.01
+intel_score: 5.85
+overall_score: 3.92
+---
+
+## Intent
+A functional component of the Corvus Star static analysis matrix.
+
+## Interaction Protocol
+Import and utilize via the standard project structure.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 2.3/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 5.8/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [Node](file://../types/index.ts)
+
+### Exports
+- `useNodeEffects`
+- `useNodeEffects`
+- `getVisScale`
+- `getStarColor`
+- `p`
+- `calculateEffect`
+- `activeNodeId`
+- `isNeighbor`
+- `sId`
+- `tId`
+- `targetId`
+- `scale`
+- `isHovered`
+- `isSelected`
+- `color`
+- `nodeMatrix`
+- `gungnirScore`
+- `complexity`
+- `detail`

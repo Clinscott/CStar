@@ -3,17 +3,20 @@ title: "debug_discovery.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/fixtures/debug_discovery.py"
 loc: 29
 complexity: 6
-logic_score: 4.32
+logic_score: 5.25
 style_score: 3.94
 intel_score: 1.40
 overall_score: 3.66
 ---
 
 ## Intent
-Python module facilitating tokenize. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating tokenize.
+
+## Interaction Protocol
+Import tokenize and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 4.3/10
+- **Logic [L]**: 5.3/10
 - **Style [S]**: 3.9/10
 - **Intel [I]**: 1.4/10
 - **Gravity [G]**: 6 interactions (Agent Activity Hotspot)

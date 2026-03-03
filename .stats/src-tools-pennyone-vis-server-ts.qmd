@@ -3,20 +3,23 @@ title: "server.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/server.ts"
 loc: 136
 complexity: 15
-logic_score: 2.45
+logic_score: 1.70
 style_score: 3.84
 intel_score: 4.94
 overall_score: 3.56
 ---
 
 ## Intent
-A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
+A functional component of the Corvus Star static analysis matrix.
+
+## Interaction Protocol
+Import and utilize via the standard project structure.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 2.5/10
+- **Logic [L]**: 1.7/10
 - **Style [S]**: 3.8/10
 - **Intel [I]**: 4.9/10
-- **Gravity [G]**: 34 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 36 interactions (Agent Activity Hotspot)
 
 ## ⛩️ API Gateways
 - `[GET] /api/matrix`
@@ -40,17 +43,17 @@ A functional component of the Corvus Star static analysis matrix. It exists to s
 - [*](file://fs)
 - [*](file://chalk)
 - [createServer](file://http)
-- [SubspaceRelay](file://../live/socket.js)
-- [startWatcher](file://../live/watcher.js)
-- [handleTelemetryPing](file://../live/telemetry.js)
+- [SubspaceRelay](file://../live/socket.ts)
+- [startWatcher](file://../live/watcher.ts)
+- [handleTelemetryPing](file://../live/telemetry.ts)
 - [*](file://body-parser)
 - [*](file://crypto)
 - [*](file://os)
-- [getSessionsWithSummaries](file://../intel/database.js)
-- [getSessionPings](file://../intel/database.js)
+- [getSessionsWithSummaries](file://../intel/database.ts)
+- [getSessionPings](file://../intel/database.ts)
 - [fileURLToPath](file://url)
-- [activePersona](file://../personaRegistry.js)
-- [registry](file://../pathRegistry.js)
+- [activePersona](file://../personaRegistry.ts)
+- [registry](file://../pathRegistry.ts)
 
 ### Exports
 - `startBridge`

@@ -1,22 +1,25 @@
 ---
 title: "verify_fish.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/debug/verify_fish.py"
-loc: 34
-complexity: 3
-logic_score: 7.22
+loc: 31
+complexity: 4
+logic_score: 7.03
 style_score: 3.98
-intel_score: 6.11
-overall_score: 5.54
+intel_score: 9.14
+overall_score: 6.29
 ---
 
 ## Intent
-Python module facilitating verify_system_integrity. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating IntegrityVerifier, verify.
+
+## Interaction Protocol
+Import IntegrityVerifier and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 7.2/10
+- **Logic [L]**: 7.0/10
 - **Style [S]**: 4.0/10
-- **Intel [I]**: 6.1/10
-- **Gravity [G]**: 20 interactions (Agent Activity Hotspot)
+- **Intel [I]**: 9.1/10
+- **Gravity [G]**: 23 interactions (Agent Activity Hotspot)
 
 
 
@@ -26,8 +29,9 @@ Python module facilitating verify_system_integrity. It exists to support broader
 - [os](file://os)
 - [sys](file://sys)
 - [unittest.mock](file://unittest.mock)
+- [pathlib](file://pathlib)
 - [src.sentinel.muninn](file://src.sentinel.muninn)
-- [src.sentinel](file://src.sentinel)
 
 ### Exports
-- `verify_system_integrity`
+- `IntegrityVerifier`
+- `verify`

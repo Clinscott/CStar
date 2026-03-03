@@ -1,0 +1,41 @@
+---
+title: "context.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/core/engine/context.py"
+loc: 49
+complexity: 6
+logic_score: 2.60
+style_score: 3.69
+intel_score: 6.30
+overall_score: 5.06
+---
+
+## Intent
+Python module facilitating SovereignContext, __init__.
+
+## Interaction Protocol
+Import SovereignContext and call its primary methods.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 2.6/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 6.3/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [os](file://os)
+- [gc](file://gc)
+- [pathlib](file://pathlib)
+- [src.core](file://src.core)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [src.tools.compile_session_traces](file://src.tools.compile_session_traces)
+
+### Exports
+- `SovereignContext`
+- `__init__`
+- `_load_feedback_context`
+- `teardown`

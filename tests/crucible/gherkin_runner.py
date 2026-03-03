@@ -12,7 +12,7 @@ project_root = script_dir.parent.parent
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
-from src.cstar.core.antigravity_bridge import clean_cli_output
+from src.cstar.core.antigravity_bridge import AntigravityBridge as bridge
 from src.cstar.core.daemon import process_command, engine_search_sync
 
 class EmpireGherkinCrucible(unittest.IsolatedAsyncioTestCase):
@@ -26,7 +26,7 @@ class EmpireGherkinCrucible(unittest.IsolatedAsyncioTestCase):
         raw_output = "\x1B[31mError:\x1B[0m {\"status\": \"success\"} \x1B[?25l|"
         
         # WHEN: The bridge's cleaning logic is applied
-        result = clean_cli_output(raw_output)
+        result = bridge.clean_cli_output(raw_output)
         
         # THEN: All ANSI codes must be removed and JSON extracted
         self.assertEqual(result.strip(), "{\"status\": \"success\"}")
@@ -40,7 +40,7 @@ class EmpireGherkinCrucible(unittest.IsolatedAsyncioTestCase):
         )
         
         # WHEN: The bridge's cleaning logic is applied
-        result = clean_cli_output(raw_output)
+        result = bridge.clean_cli_output(raw_output)
         
         # THEN: JSON parsing should succeed
         data = json.loads(result)
@@ -69,6 +69,7 @@ class EmpireGherkinCrucible(unittest.IsolatedAsyncioTestCase):
         
         # WHEN: The daemon's routing engine processes the query
         with patch('src.cstar.core.daemon.engine_search_sync', return_value=(None, None, 0.1)), \
+             patch('src.cstar.core.antigravity_bridge.AntigravityBridge.clean_cli_output', return_value='{"status": "success", "response": "ok"}'), \
              patch('src.cstar.core.daemon.UPLINK.send_payload', new_callable=AsyncMock) as mock_uplink:
             
             mock_uplink.return_value = {"status": "success", "data": {"raw": "Master Craig."}}

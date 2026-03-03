@@ -2,6 +2,12 @@ import json
 import os
 import sys
 from collections import defaultdict
+from pathlib import Path
+
+# Add core project root to path for shared imports
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.append(str(PROJECT_ROOT))
 
 from src.core.engine.vector import SovereignVector
 from src.core.sovereign_hud import SovereignHUD
@@ -55,17 +61,11 @@ class MetaLearner:
             new_lines = []
             updated_tokens = set()
 
-            # Regex to parse "- word: synonym:weight, synonym:weight"
-            # We assume we are updating the weight of the word itself (word:word:weight)
-            # or adding it if missing?
-            # For simplicity in this architectural fix, we update existing entries.
-
             for line in lines:
                 if not line.strip().startswith("- "):
                     new_lines.append(line)
                     continue
 
-                # Parse key
                 parts = line.split(":", 1)
                 if len(parts) < 2:
                     new_lines.append(line)
@@ -74,9 +74,6 @@ class MetaLearner:
                 key = parts[0].strip("- ").strip().lower()
 
                 if key in self.updates:
-                    # Reconstruct the line with new weight for the self-referential synonym
-                    # This is a simplification. Real implementation might need robust parsing.
-                    # Current format: - word: synonym:weight, synonym:weight
                     rest = parts[1].strip()
                     syns = [s.strip() for s in rest.split(",")]
                     new_syns = []
@@ -86,7 +83,8 @@ class MetaLearner:
 
                     for s in syns:
                         if ":" in s:
-                            s_key, _s_w = s.split(":")[:2]
+                            s_parts = s.split(":")
+                            s_key = s_parts[0]
                             if s_key.strip().lower() == key:
                                 new_syns.append(f"{s_key}:{target_weight:.2f}")
                                 found_self = True
@@ -103,7 +101,6 @@ class MetaLearner:
                 else:
                     new_lines.append(line)
 
-            # Append new keys if needed (optional, but good for learning loop)
             for t, w in self.updates.items():
                 if t not in updated_tokens:
                     new_lines.append(f"- {t}: {t}:{w:.2f}\n")
@@ -116,44 +113,46 @@ class MetaLearner:
         except Exception as e:
             SovereignHUD.log("ERROR", f"Failed to persist weights: {e}")
 
-def tune_weights(project_root: str) -> None:
-    """[ALFRED] Refactored tuning loop with encapsulated MetaLearner."""
-    SovereignHUD.box_top("SOVEREIGN CYCLE: WEIGHT TUNING")
-    db_path = os.path.join(project_root, "fishtest_data.json")
-    if not os.path.exists(db_path): return
+class WeightTuner:
+    """[O.D.I.N.] Orchestration logic for neural weight tuning."""
 
-    def _res(fname):
-        candidates = [
-            os.path.join(project_root, fname.replace('.md', '.qmd')),
-            os.path.join(project_root, fname),
-            os.path.join(project_root, "src", "data", fname.replace('.md', '.qmd')),
-            os.path.join(project_root, "src", "data", fname)
-        ]
-        for c in candidates:
-            if os.path.exists(c): return c
-        return candidates[1] # Default to root md if nothing found
+    @staticmethod
+    def execute(project_root: str) -> None:
+        """[ALFRED] Refactored tuning loop with encapsulated MetaLearner."""
+        SovereignHUD.box_top("SOVEREIGN CYCLE: WEIGHT TUNING")
+        db_path = os.path.join(project_root, "fishtest_data.json")
+        if not os.path.exists(db_path): return
 
-    engine = SovereignVector(_res("thesaurus.qmd"))
-    engine.load_core_skills()
-    engine.load_skills_from_dir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "skills"))
-    engine.build_index()
+        def _res(fname):
+            candidates = [
+                os.path.join(project_root, fname.replace('.md', '.qmd')),
+                os.path.join(project_root, fname),
+                os.path.join(project_root, "src", "data", fname.replace('.md', '.qmd')),
+                os.path.join(project_root, "src", "data", fname)
+            ]
+            for c in candidates:
+                if os.path.exists(c): return c
+            return candidates[1]
 
-    with open(db_path, encoding='utf-8') as f: data = json.load(f)
-    learner = MetaLearner(engine)
+        engine = SovereignVector(_res("thesaurus.qmd"))
+        engine.load_core_skills()
+        engine.load_skills_from_dir(os.path.join(os.path.dirname(os.path.dirname(__file__)), "skills"))
+        engine.build_index()
 
-    for case in data.get('test_cases', []):
-        res = engine.search(case['query'])
-        top = res[0] if res else None
-        if not top or top['trigger'] != case['expected'] or top['score'] < 0.85:
-            if top: learner.analyze_failure(case['query'], case['expected'], top)
+        with open(db_path, encoding='utf-8') as f: data = json.load(f)
+        learner = MetaLearner(engine)
 
-    learner.report()
+        for case in data.get('test_cases', []):
+            res = engine.search(case['query'])
+            top = res[0] if res else None
+            if not top or top['trigger'] != case['expected'] or top['score'] < 0.85:
+                if top: learner.analyze_failure(case['query'], case['expected'], top)
 
-    # Close the loop
-    if learner.updates:
-        t_path = _res("thesaurus.qmd")
-        learner.apply_updates(t_path)
+        learner.report()
+        if learner.updates:
+            t_path = _res("thesaurus.qmd")
+            learner.apply_updates(t_path)
 
 if __name__ == "__main__":
     rt = sys.argv[1] if len(sys.argv) > 1 else os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    tune_weights(rt)
+    WeightTuner.execute(rt)

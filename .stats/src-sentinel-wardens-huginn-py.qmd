@@ -10,13 +10,16 @@ overall_score: 3.17
 ---
 
 ## Intent
-Autonomous neural guardian monitoring system drift and anomalies. It exists to enforce strict operational parameters and prevent structural decay. Its role in the system is to act as an automated oversight mechanism during flight cycles.
+Autonomous neural guardian monitoring system drift and anomalies.
+
+## Interaction Protocol
+Instantiate the Warden class and call evaluate(graph) with a compiled matrix graph.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 1.4/10
 - **Style [S]**: 3.8/10
 - **Intel [I]**: 4.4/10
-- **Gravity [G]**: 29 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 31 interactions (Agent Activity Hotspot)
 
 
 
@@ -28,8 +31,8 @@ Autonomous neural guardian monitoring system drift and anomalies. It exists to e
 - [re](file://re)
 - [pathlib](file://pathlib)
 - [typing](file://typing)
-- [src.sentinel.wardens.base](file://src.sentinel.wardens.base)
 - [src.cstar.core.uplink](file://src.cstar.core.uplink)
+- [src.sentinel.wardens.base](file://src.sentinel.wardens.base)
 - [asyncio](file://asyncio)
 - [json](file://json)
 

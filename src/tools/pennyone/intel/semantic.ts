@@ -1,5 +1,5 @@
-import { getParser, TreeSitter } from '../parser.js';
-import { crawlRepository } from '../crawler.js';
+import { getParser, TreeSitter } from '../parser.ts';
+import { crawlRepository } from '../crawler.ts';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
@@ -68,7 +68,7 @@ export class SemanticIndexer {
 
         const { parser, lang, languageName } = await getParser(absPath);
         const tree = parser.parse(code);
-        
+
         const symbols: SemanticSymbol[] = [];
         const patterns = languageName === 'python'
             ? ['(function_definition name: (identifier) @name)', '(class_definition name: (identifier) @name)']
@@ -77,8 +77,9 @@ export class SemanticIndexer {
                 '(function_declaration name: (identifier) @name)',
                 '(class_declaration name: (identifier) @name)',
                 '(interface_declaration name: (type_identifier) @name)'
-              ];
+            ];
 
+        if (!tree) return [];
         for (const p of patterns) {
             try {
                 const query = new TreeSitter.Query(lang, p);
@@ -103,11 +104,17 @@ export class SemanticIndexer {
         const code = await fs.readFile(absPath, 'utf-8');
         const { parser } = await getParser(absPath);
         const tree = parser.parse(code);
-        
+
         const dependencies = new Set<string>();
         const symbolsOccurred: any[] = [];
 
-        const walk = (node: any) => {
+        if (!tree) return { path: absPath, dependencies: [], symbols: [], logic: 10 };
+        const stack = [tree.rootNode];
+
+        while (stack.length > 0) {
+            const node = stack.pop();
+            if (!node) continue;
+
             if (node.text && node.childCount === 0) {
                 const paths = this.symbolRegistry.get(node.text);
                 if (paths) {
@@ -119,17 +126,19 @@ export class SemanticIndexer {
                     });
                 }
             }
-            for (let i = 0; i < node.childCount; i++) {
-                walk(node.child(i));
+
+            for (let i = node.childCount - 1; i >= 0; i--) {
+                const child = node.child(i);
+                if (child) stack.push(child);
             }
-        };
-        walk(tree.rootNode);
+        }
 
         return {
             path: absPath,
             dependencies: Array.from(dependencies),
             symbols: symbolsOccurred,
-            logic: Math.max(0, Math.min(10, 10 - (symbolsOccurred.length / 20))) 
+            logic: Math.max(0, Math.min(10, 10 - (symbolsOccurred.length / 20)))
         };
     }
 }
+

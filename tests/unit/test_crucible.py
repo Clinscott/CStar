@@ -4,12 +4,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.sentinel.code_sanitizer import neuter_qmd_document, perform_quarantine_scan
+from src.sentinel.code_sanitizer import BifrostGate
 from src.sentinel.sandbox_warden import SandboxWarden
 
 # ==============================================================================
 # Suite 3: Crucible Lockdown
 # ==============================================================================
+
+gate = BifrostGate()
 
 class TestCrucibleSecurity:
     """[ODIN] Verifies the Bifrost Gate's ability to halt advanced exploits."""
@@ -23,7 +25,7 @@ class TestCrucibleSecurity:
     ])
     def test_deep_ast_bypass_prevention(self, payload):
         """Assert that advanced and obfuscated payloads are caught by the AST walker."""
-        ok, msg = perform_quarantine_scan(payload)
+        ok, msg = gate.perform_quarantine_scan(payload)
         assert ok is False
         assert any(term in msg.lower() for term in ["forbidden", "dangerous", "access"])
 
@@ -37,7 +39,7 @@ class TestQMDNeutering:
         content = "# Simple Document\n\nprint('hello')"
         qmd_file.write_text(content)
 
-        neuter_qmd_document(qmd_file)
+        BifrostGate.neuter_qmd_document(qmd_file)
 
         updated = qmd_file.read_text()
         assert updated.startswith("---\nexecute: false\n---")

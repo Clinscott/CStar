@@ -1,22 +1,25 @@
 ---
 title: "universal.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/core/engine/gungnir/universal.py"
-loc: 109
+loc: 107
 complexity: 17
 logic_score: 0.67
 style_score: 1.00
-intel_score: 3.60
-overall_score: 1.48
+intel_score: 3.64
+overall_score: 1.50
 ---
 
 ## Intent
-Python module facilitating UniversalGungnir, audit. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating UniversalGungnir, audit.
+
+## Interaction Protocol
+Import UniversalGungnir and call its primary methods.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 0.7/10
 - **Style [S]**: 1.0/10
 - **Intel [I]**: 3.6/10
-- **Gravity [G]**: 35 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 38 interactions (Agent Activity Hotspot)
 
 
 

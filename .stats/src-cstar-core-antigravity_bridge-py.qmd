@@ -1,22 +1,25 @@
 ---
 title: "antigravity_bridge.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/cstar/core/antigravity_bridge.py"
-loc: 84
-complexity: 9
-logic_score: 2.75
-style_score: 3.87
-intel_score: 4.26
-overall_score: 4.04
+loc: 138
+complexity: 16
+logic_score: 1.30
+style_score: 3.82
+intel_score: 3.72
+overall_score: 2.88
 ---
 
 ## Intent
-Python module facilitating clean_cli_output, process_request. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating clean_cli_output, process_request.
+
+## Interaction Protocol
+Import clean_cli_output and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 2.8/10
-- **Style [S]**: 3.9/10
-- **Intel [I]**: 4.3/10
-- **Gravity [G]**: 19 interactions (Agent Activity Hotspot)
+- **Logic [L]**: 1.3/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 3.7/10
+- **Gravity [G]**: 86 interactions (Agent Activity Hotspot)
 
 
 
@@ -26,15 +29,18 @@ Python module facilitating clean_cli_output, process_request. It exists to suppo
 - [asyncio](file://asyncio)
 - [json](file://json)
 - [logging](file://logging)
-- [re](file://re)
-- [subprocess](file://subprocess)
-- [sys](file://sys)
-- [tempfile](file://tempfile)
 - [os](file://os)
+- [re](file://re)
+- [tempfile](file://tempfile)
+- [logging.handlers](file://logging.handlers)
+- [typing](file://typing)
 - [pathlib](file://pathlib)
+- [sys](file://sys)
+- [sys](file://sys)
 
 ### Exports
 - `clean_cli_output`
 - `process_request`
+- `process_request_with_retry`
 - `handle_client`
 - `main`

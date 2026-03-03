@@ -10,9 +10,9 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 from src.core.sovereign_hud import SovereignHUD
-from src.sentinel._bootstrap import PROJECT_ROOT, bootstrap
+from src.sentinel._bootstrap import PROJECT_ROOT, SovereignBootstrap
 
-bootstrap()
+SovereignBootstrap.execute()
 
 class CorvusDispatcher:
     """

@@ -3,17 +3,20 @@ title: "rng.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/games/odin_protocol/engine/rng.py"
 loc: 21
 complexity: 1
-logic_score: 7.33
+logic_score: 9.03
 style_score: 4.10
 intel_score: 9.40
 overall_score: 6.92
 ---
 
 ## Intent
-Python module facilitating TacticalRNG, random. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating TacticalRNG, random.
+
+## Interaction Protocol
+Import TacticalRNG and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 7.3/10
+- **Logic [L]**: 9.0/10
 - **Style [S]**: 4.1/10
 - **Intel [I]**: 9.4/10
 - **Gravity [G]**: 13 interactions (Agent Activity Hotspot)

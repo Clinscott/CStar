@@ -1,12 +1,12 @@
-import { getParser, TreeSitter } from './parser.js';
+import { getParser, TreeSitter } from './parser.ts';
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { calculateLogicScore } from './calculus/logic.js';
-import { calculateStyleScore } from './calculus/style.js';
-import { calculateIntelScore } from './calculus/intel.js';
-import { getFileGravity } from './intel/gravity_db.js';
-import { registry } from './pathRegistry.js';
+import { calculateLogicScore } from './calculus/logic.ts';
+import { calculateStyleScore } from './calculus/style.ts';
+import { calculateIntelScore } from './calculus/intel.ts';
+import { getFileGravity } from './intel/gravity_db.ts';
+import { registry } from './pathRegistry.ts';
 
 export interface GungnirMatrix {
     logic: number;
@@ -14,6 +14,8 @@ export interface GungnirMatrix {
     intel: number;
     overall: number;
     gravity: number;
+    stability: number; // 0.0 to 1.0 (1.0 = highly stable)
+    coupling: number;  // 0.0 to 1.0 (1.0 = highly coupled)
 }
 
 export interface FileData {
@@ -24,10 +26,13 @@ export interface FileData {
     imports: { source: string; local: string; imported: string }[];
     exports: string[];
     intent?: string;
+    interaction_protocol?: string;
     hash: string;
     endpoints?: string[];
     is_api?: boolean;
     cachedDependencies?: string[];
+    dependencies?: string[];
+    justification?: string;
 }
 
 /**
@@ -52,6 +57,7 @@ export async function analyzeFile(code: string, filepath: string): Promise<FileD
 
     const { parser, lang, languageName } = await getParser(filepath);
     const tree = parser.parse(code);
+    if (!tree) throw new Error(`Failed to parse ${filepath}`);
 
     let complexity = 1;
     let maxNesting = 0;
@@ -103,10 +109,8 @@ export async function analyzeFile(code: string, filepath: string): Promise<FileD
             (class_definition name: (identifier) @class)
         `);
         const pyMatches = pyQuery.matches(tree.rootNode);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        pyMatches.forEach((m: any) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            m.captures.forEach((c: any) => {
+        pyMatches.forEach((m) => {
+            m.captures.forEach((c) => {
                 const node = c.node;
                 if (c.name === 'module' || c.name === 'name') {
                     imports.push({ source: node.text, local: node.text, imported: '*' });
@@ -125,10 +129,9 @@ export async function analyzeFile(code: string, filepath: string): Promise<FileD
             (class_declaration) @class
         `);
         const jsMatches = jsQuery.matches(tree.rootNode);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        jsMatches.forEach((m: any) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            m.captures.forEach((c: any) => {
+         
+        jsMatches.forEach((m) => {
+            m.captures.forEach((c) => {
                 const node = c.node;
                 if (c.name === 'import') {
                     const sourceNodes = node.descendantsOfType('string');
@@ -136,8 +139,7 @@ export async function analyzeFile(code: string, filepath: string): Promise<FileD
                         const src = sourceNodes[0].text.replace(/['"]/g, '');
                         const specifiers = node.descendantsOfType('import_specifier');
                         if (specifiers.length > 0) {
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            specifiers.forEach((s: any) => {
+                            specifiers.forEach((s) => {
                                 const importedNode = s.childForFieldName('name');
                                 const aliasNode = s.childForFieldName('alias');
                                 const imported = importedNode ? importedNode.text : s.text;
@@ -149,16 +151,26 @@ export async function analyzeFile(code: string, filepath: string): Promise<FileD
                         }
                     }
                 } else if (c.name === 'func' || c.name === 'class' || c.name === 'export') {
-                    const idNode = node.childForFieldName ? node.childForFieldName('name') : null;
-                    if (idNode) {
-                        exports.push(idNode.text);
+                    const specifiers = node.descendantsOfType('export_specifier');
+                    if (specifiers.length > 0) {
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        specifiers.forEach((s: any) => {
+                            const aliasNode = s.childForFieldName('alias');
+                            const nameNode = s.childForFieldName('name');
+                            const exported = aliasNode ? aliasNode.text : (nameNode ? nameNode.text : s.text);
+                            exports.push(exported);
+                        });
                     } else {
-                        // Support for const/let exports
-                        const idNodes = node.descendantsOfType('identifier');
-                        if (idNodes.length > 0) {
-                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                            const filtered = idNodes.filter((id: any) => !['const', 'let', 'var', 'async', 'function', 'class'].includes(id.text));
-                            if (filtered.length > 0) exports.push(filtered[0].text);
+                        const idNode = node.childForFieldName ? node.childForFieldName('name') : null;
+                        if (idNode) {
+                            exports.push(idNode.text);
+                        } else {
+                            // Support for const/let exports
+                            const idNodes = node.descendantsOfType('identifier');
+                            if (idNodes.length > 0) {
+                                const filtered = idNodes.filter((id) => !['const', 'let', 'var', 'async', 'function', 'class'].includes(id.text));
+                                if (filtered.length > 0) exports.push(filtered[0].text);
+                            }
                         }
                     }
                 }
@@ -175,11 +187,17 @@ export async function analyzeFile(code: string, filepath: string): Promise<FileD
     const penalty = (gravity > 10 ? 0.5 : 0) + (anomalyScore * 1.5);
     const overall = Math.min(Math.max(((logicValue + style + intel) / 3) - penalty, 1), 10);
 
+    // [Ω] FIRST PRINCIPLES: New metrics for Agent/User insight
+    // Stability: How often this file changes (Simulated: 1.0 - (complexity / 50))
+    const stability = Math.max(0.1, 1.0 - (complexity / 50));
+    // Coupling: Ratio of outbound dependencies
+    const coupling = Math.min(1.0, imports.length / 10);
+
     return {
         path: filepath,
         loc,
         complexity,
-        matrix: { logic: logicValue, style, intel, overall, gravity },
+        matrix: { logic: logicValue, style, intel, overall, gravity, stability, coupling },
         imports,
         exports,
         intent: undefined,
@@ -268,3 +286,4 @@ function calculateLOC(code: string, filepath: string): number {
         return content ? content.trim() : '';
     }).filter(line => line.length > 0).length;
 }
+

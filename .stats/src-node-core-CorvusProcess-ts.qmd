@@ -3,17 +3,20 @@ title: "CorvusProcess.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/node/core/CorvusProcess.ts"
 loc: 173
 complexity: 11
-logic_score: 2.17
+logic_score: 6.58
 style_score: 4.07
 intel_score: 5.24
 overall_score: 4.05
 ---
 
 ## Intent
-A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
+A functional component of the Corvus Star static analysis matrix.
+
+## Interaction Protocol
+Import and utilize via the standard project structure.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 2.2/10
+- **Logic [L]**: 6.6/10
 - **Style [S]**: 4.1/10
 - **Intel [I]**: 5.2/10
 - **Gravity [G]**: 29 interactions (Agent Activity Hotspot)

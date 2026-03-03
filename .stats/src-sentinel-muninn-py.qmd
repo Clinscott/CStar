@@ -1,22 +1,25 @@
 ---
 title: "muninn.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/sentinel/muninn.py"
-loc: 217
-complexity: 34
-logic_score: 0.50
-style_score: 3.64
-intel_score: 3.24
-overall_score: 2.13
+loc: 28
+complexity: 2
+logic_score: 5.63
+style_score: 3.93
+intel_score: 9.40
+overall_score: 6.74
 ---
 
 ## Intent
-Python module facilitating Muninn, __init__. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating Muninn, __init__.
+
+## Interaction Protocol
+Import Muninn and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 0.5/10
-- **Style [S]**: 3.6/10
-- **Intel [I]**: 3.2/10
-- **Gravity [G]**: 213 interactions (Agent Activity Hotspot)
+- **Logic [L]**: 5.6/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 330 interactions (Agent Activity Hotspot)
 
 
 
@@ -24,43 +27,16 @@ Python module facilitating Muninn, __init__. It exists to support broader Python
 
 ### Imports
 - [asyncio](file://asyncio)
-- [json](file://json)
-- [logging](file://logging)
 - [os](file://os)
-- [shutil](file://shutil)
-- [subprocess](file://subprocess)
-- [time](file://time)
+- [sys](file://sys)
 - [pathlib](file://pathlib)
 - [typing](file://typing)
-- [sys](file://sys)
-- [src.core.metrics](file://src.core.metrics)
 - [src.core.sovereign_hud](file://src.core.sovereign_hud)
-- [src.core.telemetry](file://src.core.telemetry)
 - [src.cstar.core.uplink](file://src.cstar.core.uplink)
-- [src.sentinel.code_sanitizer](file://src.sentinel.code_sanitizer)
-- [src.sentinel.stability](file://src.sentinel.stability)
-- [src.sentinel.wardens.base](file://src.sentinel.wardens.base)
-- [src.sentinel.wardens.norn](file://src.sentinel.wardens.norn)
-- [src.sentinel.coordinator](file://src.sentinel.coordinator)
-- [tests.integration.project_fishtest](file://tests.integration.project_fishtest)
-- [tests.harness.raven_proxy](file://tests.harness.raven_proxy)
-- [importlib](file://importlib)
-- [inspect](file://inspect)
-- [sys](file://sys)
+- [src.sentinel.muninn_heart](file://src.sentinel.muninn_heart)
+- [traceback](file://traceback)
 
 ### Exports
 - `Muninn`
 - `__init__`
-- `_is_repo_silent`
-- `_wait_for_silence`
 - `run_cycle`
-- `_execute_mission`
-- `_forge_improvement`
-- `_generate_gauntlet`
-- `_generate_steel`
-- `_verify_fix`
-- `_finalize_success`
-- `_handle_failure`
-- `_rollback`
-- `_flag_blocked`
-- `_execute_hunt_async`

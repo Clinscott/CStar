@@ -1,0 +1,39 @@
+---
+title: "TextLabel.tsx"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/components/TextLabel.tsx"
+loc: 32
+complexity: 3
+logic_score: 7.80
+style_score: 4.13
+intel_score: 3.25
+overall_score: 5.14
+---
+
+## Intent
+React component rendering TextLabel.
+
+## Interaction Protocol
+Include <TextLabel /> within a React-Three-Fiber Canvas context.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.8/10
+- **Style [S]**: 4.1/10
+- **Intel [I]**: 3.3/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [useRef](file://react)
+- [*](file://three)
+- [useFrame](file://@react-three/fiber)
+- [Text](file://@react-three/drei)
+- [Node](file://../types/index.ts)
+
+### Exports
+- `TextLabel`
+- `TextLabel`
+- `textRef`
+- `filename`

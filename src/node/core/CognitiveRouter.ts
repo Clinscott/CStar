@@ -1,5 +1,5 @@
-import { IntentPayload, CorvusProcess } from './CorvusProcess.js';
-import { EventManager } from './EventManager.js';
+import { IntentPayload, CorvusProcess } from './CorvusProcess.ts';
+import { EventManager } from './EventManager.ts';
 
 /**
  * [TIERED BRAIN] Cognitive Router
@@ -22,6 +22,8 @@ export class CognitiveRouter {
     /**
      * [Ω] Orchestration Entrypoint
      * Routes intents based on the 'requires_core' flag in system_meta.
+     * @param payload
+     * @param corvus
      */
     public async routeIntent(payload: IntentPayload, corvus: CorvusProcess): Promise<void> {
         const appId = payload.system_meta?.app_id || 'unknown';
@@ -39,6 +41,8 @@ export class CognitiveRouter {
     /**
      * Tier 1: The Edge (Ollama native REST)
      * Hardcoded to llama3.1 for current Windows hardware stopgap.
+     * @param payload
+     * @param appId
      */
     private async routeToOllama(payload: IntentPayload, appId: string): Promise<void> {
         const eventManager = EventManager.getInstance();
@@ -83,3 +87,4 @@ export class CognitiveRouter {
         }
     }
 }
+

@@ -235,8 +235,8 @@ class SovereignHUD:
             }.get(level.upper(), theme["main"])
 
         # [Ω] Automatic Redaction
-        from src.core.redactor import redact_text
-        safe_msg = redact_text(msg)
+        from src.core.redactor import Redactor
+        safe_msg = Redactor.redact_shorthand(msg)
 
         print(f"{color}{prefix}{SovereignHUD.RESET} {safe_msg}")
 
@@ -306,8 +306,8 @@ class SovereignHUD:
         lbl_color = theme['dim'] if dim_label else theme['main']
 
         # [Ω] Automatic Redaction
-        from src.core.redactor import redact_text
-        safe_val = redact_text(str(value))
+        from src.core.redactor import Redactor
+        safe_val = Redactor.redact_shorthand(str(value))
 
         # Calculate spacing
         # Structure: "│ Label      Value │"

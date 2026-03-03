@@ -51,13 +51,14 @@ class Redactor:
 
         return redacted_text
 
-def redact_text(text: str) -> str:
-    """Shorthand helper to access the Redactor singleton."""
-    return Redactor().redact(text)
+    @staticmethod
+    def redact_shorthand(text: str) -> str:
+        """Shorthand helper to access the Redactor singleton."""
+        return Redactor().redact(text)
 
 if __name__ == "__main__":
     # Test Logic
     sample = "My key is AIzaSyD-fake-key and my brave key is 12345-brave."
     # For testing, we'd need to mock the vault or have a real .env.local
     print(f"Original: {sample}")
-    print(f"Redacted: {redact_text(sample)}")
+    print(f"Redacted: {Redactor.redact_shorthand(sample)}")

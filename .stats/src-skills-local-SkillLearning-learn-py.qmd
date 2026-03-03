@@ -1,33 +1,37 @@
 ---
 title: "learn.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/skills/local/SkillLearning/learn.py"
-loc: 38
+loc: 43
 complexity: 6
-logic_score: 3.75
+logic_score: 3.05
 style_score: 3.86
-intel_score: 5.61
-overall_score: 5.34
+intel_score: 6.98
+overall_score: 5.15
 ---
 
 ## Intent
-Python module facilitating learn_skill. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating SkillLearner, execute.
+
+## Interaction Protocol
+Import SkillLearner and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 3.7/10
+- **Logic [L]**: 3.0/10
 - **Style [S]**: 3.9/10
-- **Intel [I]**: 5.6/10
-- **Gravity [G]**: 8 interactions (Agent Activity Hotspot)
+- **Intel [I]**: 7.0/10
+- **Gravity [G]**: 11 interactions (Agent Activity Hotspot)
 
 
 
 ## Neural Pathways
 
 ### Imports
-- [os](file://os)
 - [sys](file://sys)
 - [pathlib](file://pathlib)
+- [src.sentinel._bootstrap](file://src.sentinel._bootstrap)
 - [src.core.sovereign_hud](file://src.core.sovereign_hud)
 - [src.skills.local.SkillHunter.hunter](file://src.skills.local.SkillHunter.hunter)
 
 ### Exports
-- `learn_skill`
+- `SkillLearner`
+- `execute`

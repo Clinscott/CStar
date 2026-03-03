@@ -7,6 +7,8 @@ import { execa } from 'execa';
 /**
  * [GUNGNIR] Raven Command Spoke
  * Purpose: Monitor and Orchestrate the Raven Wardens (Muninn).
+ * @param program
+ * @param PROJECT_ROOT
  */
 export function registerRavenCommand(program: Command, PROJECT_ROOT: string) {
     const ravens = program
@@ -72,6 +74,10 @@ export function registerRavenCommand(program: Command, PROJECT_ROOT: string) {
     });
 }
 
+/**
+ *
+ * @param PROJECT_ROOT
+ */
 async function displayStatus(PROJECT_ROOT: string) {
     try {
         console.log(chalk.bgCyan.black.bold(' ◤ MUNINN MONITOR ◢ '));
@@ -92,7 +98,7 @@ async function displayStatus(PROJECT_ROOT: string) {
         console.log(`${chalk.bold(' Raven Status:')}     ${muninnStatus}`);
 
         const envPath = join(PROJECT_ROOT, '.env.local');
-        let envContent = "";
+        let envContent = '';
         if (fs.existsSync(envPath)) {
             envContent = fs.readFileSync(envPath, 'utf-8');
         }
@@ -118,7 +124,7 @@ async function displayStatus(PROJECT_ROOT: string) {
             const displayWardens = active_wardens.map(w => w.charAt(0).toUpperCase() + w.slice(1));
             for (let i = 0; i < displayWardens.length; i += 2) {
                 const w1 = displayWardens[i];
-                const w2 = displayWardens[i + 1] || "";
+                const w2 = displayWardens[i + 1] || '';
                 console.log(` ◈ ${chalk.bold(w1.padEnd(15))}   ${w2 ? '◈ ' + chalk.bold(w2) : ''}`);
             }
         } else {
@@ -127,9 +133,9 @@ async function displayStatus(PROJECT_ROOT: string) {
 
         console.log(chalk.cyan('━'.repeat(40)));
         if (muninnStatus.includes('ACTIVE')) {
-            console.log(chalk.green(` Muninn reports nominal operation.`));
+            console.log(chalk.green(' Muninn reports nominal operation.'));
         } else {
-            console.log(chalk.yellow(` Muninn is idle. Invoke 'cstar ravens start' to release the ravens.`));
+            console.log(chalk.yellow(' Muninn is idle. Invoke \'cstar ravens start\' to release the ravens.'));
         }
         console.log();
 

@@ -3,20 +3,23 @@ title: "test_muninn_sync_empire.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_muninn_sync_empire.py"
 loc: 60
 complexity: 1
-logic_score: 4.60
+logic_score: 5.58
 style_score: 3.68
 intel_score: 8.07
-overall_score: 6.83
+overall_score: 6.33
 ---
 
 ## Intent
-Python module facilitating mock_root, test_coordinator_prioritizes_critical_ledger_missions. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating mock_root, test_coordinator_prioritizes_critical_ledger_missions.
+
+## Interaction Protocol
+Import mock_root and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 4.6/10
+- **Logic [L]**: 5.6/10
 - **Style [S]**: 3.7/10
 - **Intel [I]**: 8.1/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 12 interactions (Agent Activity Hotspot)
 
 
 

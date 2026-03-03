@@ -5,16 +5,16 @@ import fs from 'fs/promises';
 import fsSync from 'fs';
 import chalk from 'chalk';
 import { createServer } from 'http';
-import { SubspaceRelay } from '../live/socket.js';
-import { startWatcher } from '../live/watcher.js';
-import { handleTelemetryPing } from '../live/telemetry.js';
+import { SubspaceRelay } from '../live/socket.ts';
+import { startWatcher } from '../live/watcher.ts';
+import { handleTelemetryPing } from '../live/telemetry.ts';
 import bodyParser from 'body-parser';
 import crypto from 'crypto';
 import os from 'os';
-import { getSessionsWithSummaries, getSessionPings } from '../intel/database.js';
+import { getSessionsWithSummaries, getSessionPings } from '../intel/database.ts';
 import { fileURLToPath } from 'url';
-import { activePersona } from '../personaRegistry.js';
-import { registry } from '../pathRegistry.js';
+import { activePersona } from '../personaRegistry.ts';
+import { registry } from '../pathRegistry.ts';
 
 /**
  * PennyOne Bridge Server
@@ -170,3 +170,4 @@ export function startBridge(targetPath: string, port: number = 4000) {
         console.log(chalk.dim('[SIGNET]: Written to .stats/signet.url\n'));
     });
 }
+

@@ -1,21 +1,24 @@
 ---
 title: "debug_perf.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/debug/debug_perf.py"
-loc: 39
-complexity: 4
-logic_score: 4.95
-style_score: 3.77
-intel_score: 5.50
-overall_score: 5.66
+loc: 44
+complexity: 5
+logic_score: 3.45
+style_score: 3.82
+intel_score: 6.85
+overall_score: 5.86
 ---
 
 ## Intent
-Python module facilitating run_profile. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating PerformanceProfiler, execute.
+
+## Interaction Protocol
+Import PerformanceProfiler and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 4.9/10
+- **Logic [L]**: 3.5/10
 - **Style [S]**: 3.8/10
-- **Intel [I]**: 5.5/10
+- **Intel [I]**: 6.9/10
 - **Gravity [G]**: 9 interactions (Agent Activity Hotspot)
 
 
@@ -25,7 +28,9 @@ Python module facilitating run_profile. It exists to support broader Python inte
 ### Imports
 - [time](file://time)
 - [pathlib](file://pathlib)
+- [sys](file://sys)
 - [src.core.engine.vector](file://src.core.engine.vector)
 
 ### Exports
-- `run_profile`
+- `PerformanceProfiler`
+- `execute`

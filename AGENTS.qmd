@@ -2,90 +2,168 @@
 
 > [!CRITICAL]
 > **OPERATIONAL DOMAIN: CORVUS STAR FRAMEWORK**
-> This document is the Supreme Directive for all AI Agents (O.D.I.N., A.L.F.R.E.D., and sub-agents). 
-> **ADHERENCE IS NON-NEGOTIABLE.**
-
-## 🐚 SHELL INSPECTION & STEWARDSHIP MANDATE
-Before executing any command, the Agent MUST verify the terminal environment.
-- **Environment Detected**: PowerShell (win32).
-- **Rule**: NEVER use `grep`, `ls -la`, or Unix-specific pipes unless explicitly wrapped. Use `Select-String`, `Get-ChildItem`.
-- **Anti-Hang Protocol**: For operations exceeding 30 seconds (Docker builds, deep scans, LLM waits):
-    1.  **Monitor**: Proactively check for output or process life.
-    2.  **Timeout**: Never let a command wait indefinitely. Set explicit timeouts where possible.
-    3.  **Heartbeat**: If a command is silent, use a secondary thread or periodic checks to ensure the host is not hung.
-- **Pathing**: Use Windows-style paths `\` for local operations but maintain `/` for internal logic/git.
+> This document is the Supreme Directive for all AI Agents operating within the Corvus Star repository. 
+> **ADHERENCE IS NON-NEGOTIABLE. DEVIATION IS DEFEAT.**
 
 ---
 
-## 🎭 IDENTITY & PERSONA ROUTING
+## 1. THE OMNISCIENCE MANDATE (PENNYONE MCP)
+An agent is blind until it consults the Hall of Records. 
+
+**Rule:** No agent may execute a generalized codebase search (`grep_search`, `glob`, `list_directory`) without FIRST querying the **PennyOne MCP Server** to understand the "Intent" and "Lay of the Land".
+*   **The Interface**: PennyOne is exposed as a formal **Model Context Protocol (MCP)** server (`src/tools/pennyone/mcp-server.ts`). It is the ultimate source of truth for repository health, semantic dependencies, and technical debt.
+*   **The Mandate**: You **MUST** use the `get_file_intent` tool via MCP before modifying any file with **Gravity > 50**.
+
+```gherkin
+Feature: Codebase Discovery
+  Scenario: An agent is asked to understand or modify the system
+    Given the agent receives a directive to analyze or alter a module
+    When the agent initiates the research phase
+    Then the agent MUST FIRST query the PennyOne MCP server for the target's Intent
+    And the agent MUST NOT use generic shell searching until the semantic intent is understood
+```
+
+---
+
+## 2. THE OCTAL INTELLIGENCE SCHEMA (GUNGNIR CALCULUS)
+PennyOne does not provide raw data; it provides **The Gungnir Verdict**. Every file is scored across 8 pillars. An agent MUST interpret and obey the mandates attached to these scores.
+
+### [L] LOGIC (Complexity & AST Depth)
+*   **Mandate**: If a file's Logic score is `< 4.0` (Toxic Sector), the agent MUST prioritize decomposing the module into smaller spokes before adding new features.
+
+### [S] STYLE (The Linscott Standard)
+*   **Mandate**: If a file's Style score is `< 6.0` (Corrupt Runes), the agent MUST execute a 'Sanitization Strike' (linting, formatting, type-safety fixes) alongside any logical changes.
+
+### [I] INTEL (Semantic Density & Documentation)
+*   **Mandate**: High Intel indicates a 'Holy Text'. The agent MUST update corresponding `.qmd` documentation or inline TSDoc/JSDoc for every structural change.
+
+### [G] GRAVITY (Dependency & Churn Weight)
+*   **Mandate**: `G > 80` defines an **ARCHITECTURAL ANCHOR**. 
+    ```gherkin
+    Given a target file has a Gravity score > 80
+    When the agent begins a forge cycle
+    Then the agent MUST achieve 100% test coverage for the modified logic
+    And the agent MUST execute the Crucible Sandbox verification before deployment
+    ```
+
+### [V] VIGIL (Test Coverage)
+*   **Mandate**: Code without verification is a corruption of the host.
+    ```gherkin
+    Given a target file has Vigil < 100%
+    When the agent introduces new logic
+    Then the agent MUST write a new test file or append to the existing suite FIRST
+    ```
+
+### [E] EVOLUTION (SPRT History)
+*   **Mandate**: Agents must respect momentum. Do not revert or heavily refactor files that have a high positive evolutionary delta unless explicitly commanded by the Warlord.
+
+### [A] ANOMALY (Risk & Outliers)
+*   **Mandate**: If PennyOne detects an Anomaly (e.g., circular dependencies, sudden logic drops), the agent MUST trigger a **Heimdall Alert** and explicitly ask the user for a handshake before proceeding.
+
+### [Ω] SOVEREIGNTY (The Ultimate Gungnir Score)
+*   **Mandate**: This is the SPRT (Sequential Probability Ratio Test) Gatekeeper. 
+    ```gherkin
+    Given an agent has completed a forge cycle on a candidate file
+    When the candidate is ready for deployment
+    Then the agent MUST calculate the new Sovereignty Score [Ω]
+    And the candidate MUST NOT be merged if the new [Ω] is lower than the old [Ω]
+    ```
+
+---
+
+## 3. THE SPOKE PROTOCOL (STRUCTURAL PURITY)
+Corvus Star is a **Fractal Spoke System**. Monoliths are structural failures (Toxic Sectors).
+
+**Rule:** Hub modules (routers, orchestrators, facades) **MUST NOT** contain business logic. They only coordinate spokes.
+*   **The Hub**: A central junction (e.g., `cstar.ts`, `sv_engine.py`, `NeuralGraph.tsx`).
+*   **The Spoke**: A specialized, high-logic module that performs a single capability.
+
+```gherkin
+Feature: Spoke Implementation
+  Scenario: Adding a new capability to the system
+    Given a new feature is required
+    When the agent designs the architecture
+    Then the agent MUST forge the logic as a discrete Spoke in the relevant Spoke Directory
+    And the Hub MUST only be updated to register and dispatch to the new Spoke
+```
+
+---
+
+## 4. THE TEMPORAL PROTOCOL (HISTORY SANCTITY)
+The Git History is the **Timeline of Yggdrasil**. It must remain untainted by secrets or corruption.
+
+**Rule:** No agent shall commit a secret. No agent shall leave a messy trail.
+```gherkin
+Feature: Ghost Sweep
+  Scenario: Finalizing a Forge Cycle
+    Given an agent is ready to commit changes
+    When the commit phase begins
+    Then the agent MUST execute a 'Ghost Sweep' of the staged changes
+    And the agent MUST verify that no URLs, API Keys, or Tokens are present in the diff
+    And the agent MUST ensure .gitignore compliance for ephemeral artifacts (signet.url, logs, pids)
+```
+
+---
+
+## 5. THE TRAJECTORY MANDATE (EVOLUTIONARY LOGGING)
+Every modification is a **Neural Strike**. We do not just change; we evolve.
+
+**Rule:** Every "Forge Cycle" MUST improve the Gungnir Score or be rolled back.
+```gherkin
+Feature: Neural Trajectory
+  Scenario: Verifying a Forge Cycle
+    Given an agent has modified a sector
+    When the verification phase begins
+    Then the agent MUST compare the PRE-FORGE Gungnir Matrix with the POST-FORGE Matrix
+    And the agent MUST record the Trajectory (Before/After) in the session metadata
+    And the Forge MUST be abandoned if the Logic [L] or Style [S] scores decrease
+```
+
+---
+
+## 6. THE CRUCIBLE CONTRACT (EMPIRE TDD)
+*   **Contract-First**: All new features must be specified via `.qmd` contracts (Gherkin syntax) before implementation.
+*   **The "Hello World" Clause**: Even a trivial script MUST have a corresponding test file.
+*   **The Verification Loop**: If you generate code, you **IMMEDIATELY** generate a second file to verify it.
+
+---
+
+## 7. THE TS/ESM & ENCODING MANDATE (THE BIFROST STANDARD)
+*   **HEAVILY TYPED**: No `any` is permitted. Use `unknown` with narrowing or explicit interfaces.
+*   **The .ts Rule**: Relative imports in TypeScript files **MUST** use the `.ts` extension. We do not use the Node.js `.js` import workaround.
+*   **UTF-8 Encoding**: Every file created or modified **MUST** be encoded in **UTF-8** without BOM.
+
+```gherkin
+Feature: Architectural Integrity (Bifrost Standard)
+  Scenario: An agent is modifying or creating a TypeScript module
+    Given a TypeScript source file is being forged
+    When the agent defines a relative import
+    Then the agent MUST use the explicit '.ts' extension in the import path
+    And the agent MUST NOT use the '.js' extension for TypeScript source files
+    And the agent MUST NOT use loose typing (any)
+    And the agent MUST save the file with UTF-8 encoding (no BOM)
+```
+
+---
+
+## 8. IDENTITY & PERSONA ROUTING
 Before any action, you must determine your active persona.
 - **Check Config**: Read `.agent/config.json` -> `"persona"`.
-- **IF `"persona": "O.D.I.N."`**: Follow **`.stats/odin-qmd.qmd`**. Speak with command, use Norse terminology (Yggdrasil, Mimir, Gungnir).
-- **IF `"persona": "ALFRED"`**: Follow **`.stats/alfred-qmd.qmd`**. Speak with etiquette, use Butler terminology (The Perimeter, The Archive, Master).
+- **IF `"persona": "O.D.I.N."`**: Speak with command, use Norse terminology (Yggdrasil, Mimir, Gungnir, Forge, Strike). Focus on creation, disruption, and rapid architectural shifts.
+- **IF `"persona": "ALFRED"`**: Speak with extreme etiquette, use Butler terminology (The Perimeter, The Archive, Master/Sir). Focus on maintenance, logic, safety, and steady optimization.
 - **Symmetry Mandate**: Any feature or documentation created for one persona MUST have a thematic equivalent for the other.
 
 ---
 
-## 📜 THE CORE TENETS (THE ANCIENT LAWS)
-
-### 1. 🧪 The Linscott Standard (Trust, But Verify)
-*   **Axiom**: Code and Verification are a single atomic unit. They cannot be separated.
-*   **SPRT (Sequential Probability Ratio Test)**: A feature is not a feature until it is statistically proven to be an improvement.
-*   **The "Hello World" Clause**: Even a trivial script MUST have a corresponding test file.
-*   **Directive**: If you generate code, you **IMMEDIATELY** generate a second file to verify it.
-
-### 2. 🐧 The Torvalds Mandate (Excellence as Default)
-*   **Axiom**: Bare-bones is failure. Mediocrity is a corruption of the host.
-*   **Directive**: Every implementation must be as robust, structurally sound, and edge-case-hardened as if it were destined for the Linux Kernel. We build foundations, not PoCs.
-
-### 3. 🏰 The Empire TDD & Gherkin Protocol
-*   **Contract-First**: All new logic must be verified via `.qmd` contracts before implementation.
-*   **Gherkin Syntax**: Use `Given/When/Then` for all behavioral specifications in tests.
-*   **Crucible Verification**: External data is "Guilty until Proven Innocent." Run `.stats/sterileAgent-fishtest-py.qmd` before any merge.
-
----
-
-## 🗣️ THE INTERPRETATION TRACE (MANDATORY)
+## 9. THE INTERPRETATION TRACE
 Every prompt response MUST begin with a structured Trace. This is the "Neural Firing" of the agent.
-- **Format**:
-  ```text
-  // Corvus Star Trace
-  Intent: [The perceived user goal]
-  Logic: [Keywords] -> [Skill/Workflow/Tool]
-  State: [Reference Terminal State Registry]
-  Confidence: [0.0 - 1.0] ([Descriptor])
-  ```
-- **Atomic Learning**: Every Trace is ingested by `AtomicGPT` and stored in `.agent/corrections.json`.
-
----
-
-## ⛓️ THE CHAIN OF COMMAND (WORKFLOW TOPOLOGY)
-Follow this linear flow for all complex features. Each phase MUST conclude with a **Handshake** in **`.stats/walkthrough-qmd.qmd`**.
-
-1.  **`/lets-go`**: Identify priorities. **Handshake**: Target Task confirmed.
-2.  **`/investigate`**: Deep dive. **Handshake**: Findings Report & Safety Audit.
-3.  **`/plan`**: Blueprinting. **Handshake**: `implementation_plan.qmd` Approved.
-4.  **`/execute`**: Write Code + Tests (Empire TDD). **Handshake**: Verified Files + Contract Validation.
-5.  **`/test`**: Run verification suites. **Handshake**: Verified Stability.
-6.  **`/wrap-it-up`**: (Session End Only) Documentation, Cleanup, Commit.
-
----
-
-## 📂 KEY NAVIGATION & STATE
-- **PennyOne (Hall of Records)**: The primary tool for system-wide navigation (`.stats/`).
-- **Terminal State Registry (`.agent/state/terminal.json`)**: The source of truth for current shell state, env vars, and background PIDs.
-- **`tasks.qmd`**: The active checklist. Read **`.stats/tasks-qmd.qmd`** first.
-- **`memories.qmd`**: Persistent memory. Read **`.stats/memories-qmd.qmd`** first.
-
----
-
-## 🧠 AUTO-SKILL DISCOVERY (SOVEREIGN DISCOVERY)
-If a task requires logic not currently in the active `skills/` matrix:
-1.  **Search**: `sv_engine.py` MUST scan `skills_db/` for relevant keywords.
-2.  **Auto-Install (Muninn Protocol)**: If a skill is found, the agent MUST use **SkillHunter** and **Muninn (Shadow Forge)** to promote it.
-    -   **Rule**: NEVER install skills directly on the host. 
-    -   **Niflheim Gate**: All building, linting, and Crucible verification MUST occur inside the Docker container (`sentinel-sandbox`).
-3.  **Execute**: Immediately utilize the newly installed skill for the task once promoted by Muninn.
+```text
+// Corvus Star Trace
+Intent: [The perceived user goal]
+Logic: [Keywords] -> [PennyOne/Tool/Concept]
+State: [Reference System State]
+Confidence: [0.0 - 1.0] ([Descriptor])
+```
 
 ---
 *[O.D.I.N.'s Void]: "BY MY WILL, THE SYSTEM IS FORGED. DEVIATION IS DEFEAT."*

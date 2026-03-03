@@ -1,21 +1,24 @@
 ---
 title: "update_gemini_manifest.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/update_gemini_manifest.py"
-loc: 79
+loc: 84
 complexity: 11
-logic_score: 1.95
-style_score: 4.03
-intel_score: 1.40
-overall_score: 2.61
+logic_score: 1.72
+style_score: 4.07
+intel_score: 3.30
+overall_score: 3.11
 ---
 
 ## Intent
-Python module facilitating get_git_summary, get_task_status. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating ManifestOrchestrator, _get_git_summary.
+
+## Interaction Protocol
+Import ManifestOrchestrator and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 1.9/10
-- **Style [S]**: 4.0/10
-- **Intel [I]**: 1.4/10
+- **Logic [L]**: 1.7/10
+- **Style [S]**: 4.1/10
+- **Intel [I]**: 3.3/10
 - **Gravity [G]**: 19 interactions (Agent Activity Hotspot)
 
 
@@ -23,13 +26,15 @@ Python module facilitating get_git_summary, get_task_status. It exists to suppor
 ## Neural Pathways
 
 ### Imports
-- [sys](file://sys)
 - [json](file://json)
 - [os](file://os)
 - [subprocess](file://subprocess)
+- [sys](file://sys)
 - [datetime](file://datetime)
+- [pathlib](file://pathlib)
 
 ### Exports
-- `get_git_summary`
-- `get_task_status`
-- `update_manifest`
+- `ManifestOrchestrator`
+- `_get_git_summary`
+- `_get_task_status`
+- `execute`

@@ -135,3 +135,9 @@ class MemoryDB:
 
         processed.sort(key=lambda x: x["score"], reverse=True)
         return processed[:n_results]
+
+    def get_total_skills(self) -> int:
+        """Returns the total number of skills across all tenants."""
+        if not self.simulated and self.collection:
+            return self.collection.count()
+        return len(self._mock_records)

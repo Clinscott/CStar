@@ -10,7 +10,10 @@ overall_score: 4.91
 ---
 
 ## Intent
-Python module facilitating TestLexiconLift, test_lexicon_lift_trigger. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating TestLexiconLift, test_lexicon_lift_trigger.
+
+## Interaction Protocol
+Import TestLexiconLift and call its primary methods.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 3.9/10

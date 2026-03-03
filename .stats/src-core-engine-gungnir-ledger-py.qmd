@@ -1,21 +1,24 @@
 ---
 title: "ledger.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/core/engine/gungnir/ledger.py"
-loc: 41
+loc: 44
 complexity: 4
-logic_score: 3.63
+logic_score: 3.40
 style_score: 3.61
-intel_score: 3.35
-overall_score: 4.24
+intel_score: 6.85
+overall_score: 5.26
 ---
 
 ## Intent
-Python module facilitating manage_ledger. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating LedgerManager, execute.
+
+## Interaction Protocol
+Import LedgerManager and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 3.6/10
+- **Logic [L]**: 3.4/10
 - **Style [S]**: 3.6/10
-- **Intel [I]**: 3.4/10
+- **Intel [I]**: 6.9/10
 - **Gravity [G]**: 15 interactions (Agent Activity Hotspot)
 
 
@@ -28,6 +31,8 @@ Python module facilitating manage_ledger. It exists to support broader Python in
 - [os](file://os)
 - [uuid](file://uuid)
 - [datetime](file://datetime)
+- [pathlib](file://pathlib)
 
 ### Exports
-- `manage_ledger`
+- `LedgerManager`
+- `execute`

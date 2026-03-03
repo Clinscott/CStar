@@ -7,57 +7,50 @@ Purpose: Inverts intent clusters into a bidirectional synonym map for vector exp
 
 from pathlib import Path
 
+class ThesaurusSanitizer:
+    """[ALFRED] Orchestration logic for thesaurus lexical purification."""
 
-def sanitize_clusters(clusters: dict[str, list[str]]) -> dict[str, set[str]]:
-    """
-    Inverts a cluster dictionary into a bidirectional synonym map.
+    @staticmethod
+    def sanitize_clusters(clusters: dict[str, list[str]]) -> dict[str, set[str]]:
+        """
+        Inverts a cluster dictionary into a bidirectional synonym map.
+        """
+        inverted: dict[str, set[str]] = {}
+        for head, syns in clusters.items():
+            words = [*syns, head]
+            for w in set(words):
+                w = w.lower().strip()
+                if not w:
+                    continue
+                if w not in inverted:
+                    inverted[w] = set()
+                for other in words:
+                    other = other.lower().strip()
+                    if w != other and other:
+                        inverted[w].add(other)
+        return inverted
 
-    Args:
-        clusters: A dictionary mapping headwords to a list of synonyms.
+    @staticmethod
+    def execute(clusters: dict[str, list[str]], output_path: Path) -> None:
+        """
+        Writes the sanitized clusters to a markdown file.
+        """
+        inverted = ThesaurusSanitizer.sanitize_clusters(clusters)
+        lines = [
+            "# Corvus Star Thesaurus (Sanitized Expanded Version)",
+            "",
+            "## 🌊 Expanded Intent Clusters",
+            ""
+        ]
+        for w in sorted(inverted.keys()):
+            syns = sorted(inverted[w])
+            lines.append(f"- **{w}**: {', '.join(syns)}")
 
-    Returns:
-        An inverted dictionary mapping every word to its set of synonyms.
-    """
-    inverted: dict[str, set[str]] = {}
-    for head, syns in clusters.items():
-        words = [*syns, head]
-        for w in set(words):
-            w = w.lower().strip()
-            if not w:
-                continue
-            if w not in inverted:
-                inverted[w] = set()
-            for other in words:
-                other = other.lower().strip()
-                if w != other and other:
-                    inverted[w].add(other)
-    return inverted
-
-def write_thesaurus(clusters: dict[str, list[str]], output_path: Path) -> None:
-    """
-    Writes the sanitized clusters to a markdown file.
-
-    Args:
-        clusters: The raw cluster dictionary.
-        output_path: The file path to write to.
-    """
-    inverted = sanitize_clusters(clusters)
-    lines = [
-        "# Corvus Star Thesaurus (Sanitized Expanded Version)",
-        "",
-        "## 🌊 Expanded Intent Clusters",
-        ""
-    ]
-    for w in sorted(inverted.keys()):
-        syns = sorted(inverted[w])
-        lines.append(f"- **{w}**: {', '.join(syns)}")
-
-    output_path.write_text('\n'.join(lines), encoding='utf-8')
-    print(f"Sanitized thesaurus with {len(inverted)} keys written to {output_path}.")
+        output_path.write_text('\n'.join(lines), encoding='utf-8')
+        print(f"Sanitized thesaurus with {len(inverted)} keys written to {output_path}.")
 
 def main() -> None:
     """CLI entry point for thesaurus sanitization."""
-    # Hardcoded clusters for legacy support, though future versions should read from thesaurus.qmd
     clusters = {
         "start": ["begin", "initiate", "resume", "lets-go", "kick-off", "fire-up", "boot", "spin-up"],
         "finish": ["close", "complete", "done", "end", "exit", "finalize", "finish", "pack-up", "quit", "stop", "wind-down", "wrap", "wrap-it-up"],
@@ -76,7 +69,7 @@ def main() -> None:
     }
 
     output = Path("thesaurus.md")
-    write_thesaurus(clusters, output)
+    ThesaurusSanitizer.execute(clusters, output)
 
 if __name__ == "__main__":
     main()

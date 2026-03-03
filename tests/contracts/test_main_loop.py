@@ -1,110 +1,112 @@
 """
-Main Loop Contract Tests
-Verifies: process_repo, load_persona, load_target_repos.
-All tests use mocked git/sovereign_fish — zero side effects.
+Main Loop Contract Tests (v5.0)
+Verifies: DaemonOrchestrator, RepoSpoke.
+All tests use mocked git/muninn — zero side effects.
 """
 import json
+import os
 import sys
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, AsyncMock, patch
 
 project_root = Path(__file__).parent.parent.parent.absolute()
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from src.sentinel.main_loop import load_persona, load_target_repos, process_repo
+from src.sentinel.main_loop import DaemonOrchestrator
+from src.sentinel.repo_spoke import RepoSpoke
 
 
-class TestProcessRepoSkipsDirty:
+class TestRepoSpokeSkipsDirty:
     """Dirty working tree -> returns False, no commit."""
 
     @patch("src.sentinel.muninn.Muninn")
-    @patch("src.sentinel.main_loop.is_clean", return_value=False)
-    def test_dirty_repo_returns_false(self, mock_clean, mock_fish, tmp_path):
-        result = process_repo(tmp_path, "ODIN")
+    @patch("src.sentinel.repo_spoke.GitSpoke")
+    def test_dirty_repo_returns_false(self, mock_git_cls, mock_muninn_cls, tmp_path):
+        mock_git = MagicMock()
+        mock_git.is_clean.return_value = False
+        mock_git_cls.return_value = mock_git
+        
+        spoke = RepoSpoke(tmp_path, "ODIN")
+        # We need a mock for the bootstrap_fn
+        mock_bootstrap = MagicMock()
+        
+        # RepoSpoke.process is async
+        import asyncio
+        result = asyncio.run(spoke.process(mock_bootstrap))
+        
         assert result is False
-        mock_fish.run.assert_not_called()
+        mock_muninn_cls.assert_not_called()
 
 
-class TestProcessRepoCommitsOnChange:
-    """sovereign_fish.run() returns True -> git add + commit called."""
+class TestRepoSpokeCommitsOnChange:
+    """Muninn.run_cycle() returns True -> git.commit_changes called."""
 
-    @patch("src.sentinel.main_loop.restore_branch")
-    @patch("src.sentinel.main_loop.git_cmd")
     @patch("src.sentinel.muninn.Muninn")
-    @patch("src.sentinel.main_loop.ensure_branch", return_value="main")
-    @patch("src.sentinel.main_loop.is_clean", return_value=True)
-    def test_commit_on_change(
-        self, mock_clean, mock_branch, mock_fish, mock_git, mock_restore, tmp_path
-    ):
-        mock_fish.return_value.run.return_value = True
-
-        result = process_repo(tmp_path, "ODIN")
+    @patch("src.sentinel.repo_spoke.GitSpoke")
+    def test_commit_on_change(self, mock_git_cls, mock_muninn_cls, tmp_path):
+        mock_git = MagicMock()
+        mock_git.is_clean.return_value = True
+        mock_git.ensure_branch.return_value = "main"
+        mock_git_cls.return_value = mock_git
+        
+        mock_muninn = MagicMock()
+        mock_muninn.run_cycle = AsyncMock(return_value=True)
+        mock_muninn_cls.return_value = mock_muninn
+        
+        spoke = RepoSpoke(tmp_path, "ODIN")
+        mock_bootstrap = MagicMock()
+        
+        import asyncio
+        result = asyncio.run(spoke.process(mock_bootstrap))
 
         assert result is True
-        # Verify git add -A was called (not git add .)
-        calls = [str(c) for c in mock_git.call_args_list]
-        add_call = [c for c in calls if "add" in c and "-A" in c]
-        assert len(add_call) > 0, "Expected 'git add -A' to be called"
-        # Verify commit was called
-        commit_call = [c for c in calls if "commit" in c]
-        assert len(commit_call) > 0, "Expected 'git commit' to be called"
+        mock_git.commit_changes.assert_called()
 
-    @patch("src.sentinel.main_loop.restore_branch")
-    @patch("src.sentinel.main_loop.git_cmd")
     @patch("src.sentinel.muninn.Muninn")
-    @patch("src.sentinel.main_loop.ensure_branch", return_value="main")
-    @patch("src.sentinel.main_loop.is_clean", return_value=True)
-    def test_no_commit_when_no_change(
-        self, mock_clean, mock_branch, mock_fish, mock_git, mock_restore, tmp_path
-    ):
-        mock_fish.return_value.run.return_value = False
-
-        result = process_repo(tmp_path, "ODIN")
+    @patch("src.sentinel.repo_spoke.GitSpoke")
+    def test_no_commit_when_no_change(self, mock_git_cls, mock_muninn_cls, tmp_path):
+        mock_git = MagicMock()
+        mock_git.is_clean.return_value = True
+        mock_git.ensure_branch.return_value = "main"
+        mock_git_cls.return_value = mock_git
+        
+        mock_muninn = MagicMock()
+        mock_muninn.run_cycle = AsyncMock(return_value=False)
+        mock_muninn_cls.return_value = mock_muninn
+        
+        spoke = RepoSpoke(tmp_path, "ODIN")
+        mock_bootstrap = MagicMock()
+        
+        import asyncio
+        result = asyncio.run(spoke.process(mock_bootstrap))
 
         assert result is False
-        # git_cmd should only be called for ensure_branch, not for add/commit
-        for call in mock_git.call_args_list:
-            args = call[0] if call[0] else call[1].get("args", [])
-            if len(args) >= 2:
-                assert "commit" not in str(args[1]), "Should not commit when no changes"
+        mock_git.commit_changes.assert_not_called()
 
 
-class TestLoadPersona:
-    """Missing config -> returns 'ODIN'."""
-
-    def test_defaults_to_odin(self):
-        # load_persona reads config.json — when it doesn't provide a persona,
-        # or when config is missing, it defaults to ODIN.
-        result = load_persona()
-        # It should always return one of the two valid personas
-        assert result in ("ODIN", "ALFRED")
 
 
-class TestLoadTargetRepos:
-    """Config file with target_repos overrides defaults."""
+class TestDaemonOrchestrator:
+    """Verifies configuration loading logic."""
 
-    def test_returns_defaults_when_no_config(self):
-        # When config doesn't specify target_repos, returns defaults
-        repos = load_target_repos()
-        assert isinstance(repos, list)
-        assert len(repos) > 0
+    @patch("src.sentinel.main_loop.SovereignUtils.safe_read_json")
+    def test_load_persona_defaults_to_odin(self, mock_read):
+        mock_read.return_value = {}
+        result = DaemonOrchestrator.load_persona()
+        assert result == "ODIN"
 
-    def test_loads_from_config(self, tmp_path):
-        """Config with target_repos key overrides defaults."""
+    @patch("src.sentinel.main_loop.SovereignUtils.safe_read_json")
+    def test_load_persona_from_config(self, mock_read):
+        mock_read.return_value = {"persona": "ALFRED"}
+        result = DaemonOrchestrator.load_persona()
+        assert result == "ALFRED"
+
+    @patch("src.sentinel.main_loop.SovereignUtils.safe_read_json")
+    def test_load_target_repos_defaults_to_root(self, mock_read):
+        mock_read.return_value = {}
+        repos = DaemonOrchestrator.load_target_repos()
+        assert len(repos) == 1
+        # Should contain the PROJECT_ROOT
         from src.sentinel._bootstrap import PROJECT_ROOT
-
-        config_path = PROJECT_ROOT / ".agent" / "config.json"
-        if config_path.exists():
-            original = config_path.read_text(encoding="utf-8")
-            json.loads(original)
-        else:
-            original = None
-
-        try:
-            # If the config already has target_repos, verify it loads
-            repos = load_target_repos()
-            assert isinstance(repos, list)
-        finally:
-            # Don't modify the actual config — just verify the function works
-            pass
+        assert str(PROJECT_ROOT) in repos[0]

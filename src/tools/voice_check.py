@@ -11,31 +11,26 @@ from typing import Any
 from src.core.engine.dialogue import DialogueEngine
 from src.core.sovereign_hud import SovereignHUD
 
+class VoiceDiagnostic:
+    """[ALFRED] Orchestration logic for persona-aware dialogue diagnostics."""
 
-def run_voice_diagnostic(persona: str, intent: str, tags: list[str]) -> str:
-    """
-    Retrieves a phrase from the dialogue engine and prints it to the HUD.
+    @staticmethod
+    def execute(persona: str, intent: str, tags: list[str]) -> str:
+        """
+        Retrieves a phrase from the dialogue engine and prints it to the HUD.
+        """
+        hud = SovereignHUD()
+        engine = DialogueEngine("src/data/dialogue/phrases.yaml")
 
-    Args:
-        persona: The active persona (ODIN/ALFRED).
-        intent: The dialogue intent (e.g., TASK_FAILED).
-        tags: Contextual tags for scoring.
+        context: dict[str, Any] = {"error_type": tags[0]} if tags else {}
 
-    Returns:
-        The retrieved phrase.
-    """
-    hud = SovereignHUD()
-    engine = DialogueEngine("src/data/dialogue/phrases.yaml")
+        hud.box_top(f"VOICE CHECK: {persona} [{intent}]")
+        hud.box_row("Context Tags", str(tags))
 
-    context: dict[str, Any] = {"error_type": tags[0]} if tags else {}
-
-    hud.box_top(f"VOICE CHECK: {persona} [{intent}]")
-    hud.box_row("Context Tags", str(tags))
-
-    phrase: str = engine.get(persona, intent, context=context)
-    hud.box_row("Result", phrase)
-    hud.box_top("END DIAGNOSTIC")
-    return phrase
+        phrase: str = engine.get(persona, intent, context=context)
+        hud.box_row("Result", phrase)
+        hud.box_top("END DIAGNOSTIC")
+        return phrase
 
 def main() -> None:
     """CLI entry point for the voice checker."""
@@ -52,7 +47,7 @@ def main() -> None:
     intent: str = sys.argv[2].upper()
     tags: list[str] = sys.argv[3].split(",") if len(sys.argv) > 3 else []
 
-    run_voice_diagnostic(persona, intent, tags)
+    VoiceDiagnostic.execute(persona, intent, tags)
 
 if __name__ == "__main__":
     main()

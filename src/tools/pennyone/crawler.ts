@@ -24,6 +24,8 @@ export async function crawlRepository(targetPath: string): Promise<string[]> {
         '**/.quarto/**',
         '**/.agent/vault/**',
         '**/*.stats.qmd',
+        '**/*.min.js',
+        '**/*.bundle.js',
     ];
 
     const patterns = [
@@ -35,3 +37,4 @@ export async function crawlRepository(targetPath: string): Promise<string[]> {
         absolute: true,
     });
 }
+

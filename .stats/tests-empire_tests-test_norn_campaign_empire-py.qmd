@@ -3,14 +3,17 @@ title: "test_norn_campaign_empire.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_norn_campaign_empire.py"
 loc: 30
 complexity: 1
-logic_score: 5.35
+logic_score: 5.28
 style_score: 3.85
 intel_score: 4.07
 overall_score: 5.56
 ---
 
 ## Intent
-Autonomous neural guardian monitoring system drift and anomalies. It exists to enforce strict operational parameters and prevent structural decay. Its role in the system is to act as an automated oversight mechanism during flight cycles.
+Autonomous neural guardian monitoring system drift and anomalies.
+
+## Interaction Protocol
+Instantiate the Warden class and call evaluate(graph) with a compiled matrix graph.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 5.3/10

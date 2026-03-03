@@ -7,6 +7,7 @@ import { executeCycle } from '../../agent_loop.ts';
 /**
  * [GUNGNIR] Start Command Spoke
  * Purpose: Initiate the Agent Loop and bind the Gungnir-Cortex link.
+ * @param program
  */
 export function registerStartCommand(program: Command) {
     program

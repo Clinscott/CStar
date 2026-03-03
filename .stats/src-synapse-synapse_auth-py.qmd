@@ -1,16 +1,19 @@
 ---
 title: "synapse_auth.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/synapse/synapse_auth.py"
-loc: 39
+loc: 41
 complexity: 4
 logic_score: 3.40
-style_score: 3.85
+style_score: 3.86
 intel_score: 9.40
-overall_score: 6.18
+overall_score: 6.19
 ---
 
 ## Intent
-Python module facilitating PersonaVerifier, __init__. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating PersonaVerifier, __init__.
+
+## Interaction Protocol
+Import PersonaVerifier and call its primary methods.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 3.4/10
@@ -36,4 +39,5 @@ Python module facilitating PersonaVerifier, __init__. It exists to support broad
 - `generate_challenge`
 - `solve_challenge`
 - `verify_response`
+- `SynapseAuthenticator`
 - `authenticate_sync`

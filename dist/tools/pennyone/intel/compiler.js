@@ -67,9 +67,11 @@ export async function compileMatrix(results, targetRepo) {
             complexity: r.complexity,
             matrix: r.matrix,
             intent: r.intent || '...',
-            dependencies: r.imports
-                .map(i => resolveDependency(r.path, i.source))
-                .filter((d) => d !== null && d !== registry.normalize(r.path)), // Avoid self-refs
+            dependencies: (r.imports && r.imports.length > 0)
+                ? r.imports
+                    .map(i => resolveDependency(r.path, i.source))
+                    .filter((d) => d !== null && d !== registry.normalize(r.path)) // Avoid self-refs
+                : (r.cachedDependencies || []), // Fallback to explicitly saved AST dependencies if cached
             hash: r.hash,
             endpoints: r.endpoints,
             is_api: r.is_api

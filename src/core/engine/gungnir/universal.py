@@ -1,4 +1,4 @@
-﻿import ast
+import ast
 import re
 from typing import Any
 

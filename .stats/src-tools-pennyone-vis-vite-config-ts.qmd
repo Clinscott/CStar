@@ -3,20 +3,23 @@ title: "vite.config.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/vite.config.ts"
 loc: 20
 complexity: 1
-logic_score: 9.67
+logic_score: 9.27
 style_score: 9.64
 intel_score: 6.00
 overall_score: 8.43
 ---
 
 ## Intent
-A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
+A functional component of the Corvus Star static analysis matrix.
+
+## Interaction Protocol
+Import and utilize via the standard project structure.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 9.7/10
+- **Logic [L]**: 9.3/10
 - **Style [S]**: 9.6/10
 - **Intel [I]**: 6.0/10
-- **Gravity [G]**: 6 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 9 interactions (Agent Activity Hotspot)
 
 
 

@@ -1,21 +1,24 @@
 ---
 title: "debug_fishtest.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/debug/debug_fishtest.py"
-loc: 39
-complexity: 6
-logic_score: 5.00
-style_score: 3.87
-intel_score: 5.50
-overall_score: 4.81
+loc: 45
+complexity: 7
+logic_score: 2.88
+style_score: 3.81
+intel_score: 6.73
+overall_score: 4.93
 ---
 
 ## Intent
-Python module facilitating run_debug_fishtest. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating FishtestLegacyDiagnostic, execute.
+
+## Interaction Protocol
+Import FishtestLegacyDiagnostic and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 5.0/10
-- **Style [S]**: 3.9/10
-- **Intel [I]**: 5.5/10
+- **Logic [L]**: 2.9/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 6.7/10
 - **Gravity [G]**: 18 interactions (Agent Activity Hotspot)
 
 
@@ -25,7 +28,9 @@ Python module facilitating run_debug_fishtest. It exists to support broader Pyth
 ### Imports
 - [json](file://json)
 - [pathlib](file://pathlib)
+- [sys](file://sys)
 - [src.core.engine.vector](file://src.core.engine.vector)
 
 ### Exports
-- `run_debug_fishtest`
+- `FishtestLegacyDiagnostic`
+- `execute`

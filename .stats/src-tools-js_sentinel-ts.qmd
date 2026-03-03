@@ -1,19 +1,22 @@
 ---
 title: "js_sentinel.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/js_sentinel.ts"
-loc: 97
-complexity: 8
-logic_score: 2.70
-style_score: 3.92
-intel_score: 2.22
-overall_score: 3.35
+loc: 101
+complexity: 9
+logic_score: 2.52
+style_score: 3.95
+intel_score: 2.19
+overall_score: 3.23
 ---
 
 ## Intent
-A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
+A functional component of the Corvus Star static analysis matrix.
+
+## Interaction Protocol
+Import and utilize via the standard project structure.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 2.7/10
+- **Logic [L]**: 2.5/10
 - **Style [S]**: 3.9/10
 - **Intel [I]**: 2.2/10
 - **Gravity [G]**: 16 interactions (Agent Activity Hotspot)
@@ -41,6 +44,7 @@ A functional component of the Corvus Star static analysis matrix. It exists to s
 - `runSentinel`
 - `persona`
 - `text`
+- `args`
 - `execa`
 - `results`
 - `totalViolations`
@@ -48,4 +52,6 @@ A functional component of the Corvus Star static analysis matrix. It exists to s
 - `color`
 - `loc`
 - `ruleName`
+- `args`
+- `fix`
 - `target`

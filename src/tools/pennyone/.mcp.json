@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "pennyone": {
+      "command": "npx",
+      "args": [
+        "tsx",
+        "src/tools/pennyone/mcp-server.ts"
+      ],
+      "env": {
+        "GEMINI_CLI_ACTIVE": "true"
+      }
+    }
+  }
+}

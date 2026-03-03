@@ -26,6 +26,8 @@ export class EventManager {
 
     /**
      * [CRITICAL] Memory Leak Protection - Ghost Key Removal
+     * @param appId
+     * @param ws
      */
     public unsubscribe(appId: string, ws: WebSocket): void {
         const clients = this.subscriptions.get(appId);
@@ -49,3 +51,4 @@ export class EventManager {
         }
     }
 }
+

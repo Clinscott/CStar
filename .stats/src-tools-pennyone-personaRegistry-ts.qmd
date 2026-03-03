@@ -3,17 +3,20 @@ title: "personaRegistry.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/personaRegistry.ts"
 loc: 56
 complexity: 6
-logic_score: 7.47
+logic_score: 5.32
 style_score: 4.04
 intel_score: 4.86
 overall_score: 4.65
 ---
 
 ## Intent
-A functional component of the Corvus Star static analysis matrix. It exists to support the broader ecosystem of system telemetry. Its role in the system is to provide foundational operational logic.
+A functional component of the Corvus Star static analysis matrix.
+
+## Interaction Protocol
+Import and utilize via the standard project structure.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 7.5/10
+- **Logic [L]**: 5.3/10
 - **Style [S]**: 4.0/10
 - **Intel [I]**: 4.9/10
 - **Gravity [G]**: 12 interactions (Agent Activity Hotspot)
@@ -25,7 +28,7 @@ A functional component of the Corvus Star static analysis matrix. It exists to s
 ### Imports
 - [*](file://fs)
 - [*](file://path)
-- [registry](file://./pathRegistry.js)
+- [registry](file://./pathRegistry.ts)
 
 ### Exports
 - `PersonaRegistry`

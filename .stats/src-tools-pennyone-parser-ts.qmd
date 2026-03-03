@@ -3,19 +3,22 @@ title: "parser.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/parser.ts"
 loc: 44
 complexity: 7
-logic_score: 8.18
-style_score: 3.79
-intel_score: 9.27
-overall_score: 6.07
+logic_score: 7.42
+style_score: 3.84
+intel_score: 5.64
+overall_score: 4.88
 ---
 
 ## Intent
-Orchestrates Babel AST parsing for the static analysis engine. It exists to decompose raw source files into measurable syntactic graphs. Its role in the system is to feed analytical telemetry to the PennyOne intelligence layer.
+A functional component of the Corvus Star static analysis matrix.
+
+## Interaction Protocol
+Import and utilize via the standard project structure.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 8.2/10
+- **Logic [L]**: 7.4/10
 - **Style [S]**: 3.8/10
-- **Intel [I]**: 9.3/10
+- **Intel [I]**: 5.6/10
 - **Gravity [G]**: 15 interactions (Agent Activity Hotspot)
 
 
@@ -25,7 +28,7 @@ Orchestrates Babel AST parsing for the static analysis engine. It exists to deco
 ### Imports
 - [*](file://web-tree-sitter)
 - [*](file://path)
-- [registry](file://./pathRegistry.js)
+- [registry](file://./pathRegistry.ts)
 
 ### Exports
 - `TreeSitter`

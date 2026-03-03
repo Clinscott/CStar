@@ -1,11 +1,11 @@
-import chokidar from 'chokidar';
+import * as chokidar from 'chokidar';
 import path from 'node:path';
 import fs from 'node:fs';
-import { runScan } from './index.js';
-import { registry } from './pathRegistry.js';
+import { runScan } from './index.ts';
+import { registry } from './pathRegistry.ts';
 import chalk from 'chalk';
-import { activePersona } from './personaRegistry.js';
-import { CortexLink } from '../../node/cortex_link.js';
+import { activePersona } from './personaRegistry.ts';
+import { CortexLink } from '../../node/cortex_link.ts';
 
 /**
  * P1 Daemon: The Autonomic Nervous System
@@ -48,7 +48,7 @@ ${activePersona.prefix}: "P1 Daemon ignited. Monitoring neural pathways in ${thi
         // Initialize Watcher
         this.watcher = chokidar.watch(this.targetPath, {
             ignored: [
-                /(^|[\/\\])\../, // ignore dotfiles
+                /(^|[/\\])\../, // ignore dotfiles
                 '**/node_modules/**',
                 '**/.stats/**',
                 '**/dist/**',
@@ -62,7 +62,7 @@ ${activePersona.prefix}: "P1 Daemon ignited. Monitoring neural pathways in ${thi
             }
         });
 
-        this.watcher.on('all', async (event, filePath) => {
+        this.watcher.on('all', async (event: string, filePath: string) => {
             const relPath = path.relative(this.targetPath, filePath);
             console.log(chalk.dim(`[P1 EVENT]: ${event.toUpperCase()} ${relPath}`));
             await this.triggerScan();
@@ -89,7 +89,7 @@ ${activePersona.prefix}: "P1 Daemon ignited. Monitoring neural pathways in ${thi
             try {
                 const link = new CortexLink();
                 await link.sendCommand('MATRIX_UPDATED');
-            } catch (broadcastError) {
+            } catch (_broadcastError) {
                 console.warn(chalk.dim(`${activePersona.prefix}: WebSocket broadcast offline. Proceeding autonomously.`));
             }
 
@@ -117,6 +117,7 @@ ${activePersona.prefix}: "P1 Daemon terminated. The Matrix is now static."`));
 
     /**
      * Check if the daemon is already running
+     * @returns {boolean} True if running
      */
     public isRunning(): boolean {
         if (!fs.existsSync(this.pidFile)) return false;
@@ -136,3 +137,4 @@ if (process.argv[1].endsWith('daemon.ts') || process.argv[1].endsWith('daemon.js
     const daemon = new P1Daemon(target);
     daemon.start();
 }
+

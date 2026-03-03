@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 [DEBUG] System Integrity Verifier
 Lore: "Ensuring the ravens are bound to the high seat."
@@ -8,52 +8,52 @@ Purpose: Verifies that core Sentinel modules can be imported and initialized.
 import os
 import sys
 from unittest.mock import MagicMock
+from pathlib import Path
 
+# Add core project root to path for shared imports
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.append(str(PROJECT_ROOT))
 
-def verify_system_integrity() -> bool:
-    """
-    Verifies that Muninn and the main loop can be imported and initialized.
-    Mocks external dependencies (like Google GenAI) for safety.
+class IntegrityVerifier:
+    """[O.D.I.N.] Orchestration logic for system integrity verification."""
 
-    Returns:
-        True if the system is verified, False otherwise.
-    """
-    # 1. Mock external dependencies
-    mock_google = MagicMock()
-    sys.modules["google"] = mock_google
-    sys.modules["google.generativeai"] = mock_google.generativeai
+    @staticmethod
+    def verify() -> bool:
+        """
+        Verifies that Muninn and the main loop can be imported and initialized.
+        Mocks external dependencies (like Google GenAI) for safety.
 
-    print("--- VERIFYING SYSTEM INTEGRITY ---")
-    try:
-        from src.sentinel.muninn import Muninn
-        print("SUCCESS: Muninn imported.")
+        Returns:
+            True if the system is verified, False otherwise.
+        """
+        # 1. Mock external dependencies
+        mock_google = MagicMock()
+        sys.modules["google"] = mock_google
+        sys.modules["google.generativeai"] = mock_google.generativeai
 
-        # Mock environment for initialization
-        os.environ["GOOGLE_API_KEY"] = "TEST_KEY"
+        print("--- VERIFYING SYSTEM INTEGRITY ---")
+        try:
+            from src.sentinel.muninn import Muninn
+            print("SUCCESS: Muninn imported.")
 
-        # Initialize Muninn with current project root
-        _ = Muninn(".")
-        print("SUCCESS: Muninn initialized.")
+            # Mock environment for initialization
+            os.environ["GOOGLE_API_KEY"] = "TEST_KEY"
 
-    except ImportError as e:
-        print(f"FAILURE: ImportError in Muninn: {e}")
-        return False
-    except Exception as e:
-        print(f"FAILURE: Exception during Muninn verification: {e}")
-        return False
+            # Initialize Muninn with current project root
+            _ = Muninn(str(PROJECT_ROOT))
+            print("SUCCESS: Muninn initialized.")
 
-    try:
-        print("SUCCESS: coordinator imported.")
-    except ImportError as e:
-        print(f"FAILURE: ImportError in main_loop: {e}")
-        return False
-    except Exception as e:
-        print(f"FAILURE: Exception during main_loop verification: {e}")
-        return False
+        except ImportError as e:
+            print(f"FAILURE: ImportError in Muninn: {e}")
+            return False
+        except Exception as e:
+            print(f"FAILURE: Exception during Muninn verification: {e}")
+            return False
 
-    print("\nSYSTEM VERIFIED.")
-    return True
+        print("\nSYSTEM VERIFIED.")
+        return True
 
 if __name__ == "__main__":
-    if not verify_system_integrity():
+    if not IntegrityVerifier.verify():
         sys.exit(1)

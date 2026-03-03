@@ -10,13 +10,16 @@ overall_score: 10.00
 ---
 
 ## Intent
-Documentation scroll or workflow directive for the Gungnir Calculus. It exists to codify system lore, architectural constraints, and standard operating procedures. Its role in the system is to provide persistent context to autonomous agents like ALFRED and ODIN.
+A functional component of the Corvus Star static analysis matrix.
+
+## Interaction Protocol
+Import and utilize via the standard project structure.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 10.0/10
 - **Style [S]**: 10.0/10
 - **Intel [I]**: 10.0/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 64 interactions (Agent Activity Hotspot)
 
 
 

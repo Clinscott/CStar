@@ -1,22 +1,25 @@
 ---
 title: "NeuralGraph.tsx"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/components/NeuralGraph.tsx"
-loc: 432
-complexity: 54
-logic_score: 1.00
+loc: 414
+complexity: 52
+logic_score: 0.50
 style_score: 1.00
-intel_score: 4.22
-overall_score: 2.07
+intel_score: 2.77
+overall_score: 1.09
 ---
 
 ## Intent
-React component rendering NeuralGraph with 54 logic branches.
+React component rendering NeuralGraph.
+
+## Interaction Protocol
+Include <NeuralGraph /> within a React-Three-Fiber Canvas context.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 1.0/10
+- **Logic [L]**: 0.5/10
 - **Style [S]**: 1.0/10
-- **Intel [I]**: 4.2/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Intel [I]**: 2.8/10
+- **Gravity [G]**: 166 interactions (Agent Activity Hotspot)
 
 
 
@@ -37,13 +40,13 @@ React component rendering NeuralGraph with 54 logic branches.
 - [Text](file://@react-three/drei)
 - [*](file://d3-force-3d)
 - [*](file://gsap)
+- [Trajectory](file://../types/index.ts)
 
 ### Exports
 - `FresnelMaterial`
 - `tempObject`
 - `tempColor`
 - `SelectionHighlight`
-- `materialRef`
 - `FresnelAura`
 - `materialRef`
 - `logicVal`
@@ -73,32 +76,35 @@ React component rendering NeuralGraph with 54 logic branches.
 - `linkList`
 - `usedIds`
 - `pathStr`
-- `orphans`
+- `orphansArr`
 - `getVisScale`
 - `getStarColor`
 - `p`
 - `fetchTrajectories`
 - `res`
-- `data`
+- `trajData`
+- `d3v3`
+- `simulation`
 - `orphans`
 - `radius`
 - `oCount`
 - `theta`
-- `map`
-- `layers`
+- `mapArr`
+- `layersArr`
 - `activeNodeId`
 - `currentMesh`
 - `isNeighbor`
 - `sId`
 - `tId`
 - `scale`
-- `isHovered`
-- `isSelected`
+- `isHoveredNode`
+- `isSelectedNode`
 - `nodeMatrix`
 - `handleNodeClick`
 - `targetPos`
-- `validLinks`
-- `activeNodeId`
+- `ctrl`
+- `vLinksArr`
+- `activeIdVal`
 - `sNode`
 - `tNode`
-- `isHighlighted`
+- `isHL`

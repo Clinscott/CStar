@@ -3,17 +3,20 @@ title: "test_atomic_gpt.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_atomic_gpt.py"
 loc: 23
 complexity: 2
-logic_score: 5.50
+logic_score: 6.65
 style_score: 4.05
 intel_score: 9.40
 overall_score: 7.28
 ---
 
 ## Intent
-Python module facilitating test_anomaly_warden_forward, test_anomaly_warden_train_step. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating test_anomaly_warden_forward, test_anomaly_warden_train_step.
+
+## Interaction Protocol
+Import test_anomaly_warden_forward and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 5.5/10
+- **Logic [L]**: 6.7/10
 - **Style [S]**: 4.0/10
 - **Intel [I]**: 9.4/10
 - **Gravity [G]**: 8 interactions (Agent Activity Hotspot)

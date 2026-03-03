@@ -1,0 +1,35 @@
+---
+title: "vector_shadow.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/core/engine/vector_shadow.py"
+loc: 11
+complexity: 1
+logic_score: 5.83
+style_score: 3.73
+intel_score: 9.40
+overall_score: 7.29
+---
+
+## Intent
+Python module facilitating VectorShadow, __init__.
+
+## Interaction Protocol
+Import VectorShadow and call its primary methods.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 5.8/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [typing](file://typing)
+
+### Exports
+- `VectorShadow`
+- `__init__`
+- `search`
+- `build_index`

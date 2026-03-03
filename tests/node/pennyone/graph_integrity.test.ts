@@ -44,7 +44,7 @@ describe('PennyOne Graph Integrity', () => {
             assert.ok(file.path.includes('/'), 'Path should use forward-slashes (normalized)');
             
             // Check intent (should not be empty or "..." if scan was deep)
-            if (file.intent && file.intent !== "..." && file.intent.length > 5) {
+            if (file.intent && file.intent !== '...' && file.intent.length > 5) {
                 foundIntent = true;
             }
 

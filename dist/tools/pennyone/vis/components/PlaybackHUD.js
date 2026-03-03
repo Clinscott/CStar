@@ -12,7 +12,7 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
  * @param root0.onStopRecording
  */
 export const PlaybackHUD = ({ sessionLength, currentIndex, onSeek, isLive, onToggleLive, isRecording, onStartRecording, onStopRecording }) => {
-    return (_jsxs("div", { className: "playback-hud", children: [_jsxs("div", { className: "controls", children: [_jsx("button", { onClick: onToggleLive, className: isLive ? 'live-btn active' : 'live-btn', children: isLive ? '● LIVE' : 'PLAYBACK' }), _jsx("input", { type: "range", min: 0, max: Math.max(0, sessionLength - 1), value: currentIndex, onChange: (e) => onSeek(parseInt(e.target.value)), disabled: isLive }), _jsxs("span", { className: "timestamp", children: [currentIndex + 1, " / ", sessionLength] }), _jsx("button", { onClick: isRecording ? onStopRecording : onStartRecording, className: isRecording ? 'rec-btn active' : 'rec-btn', children: isRecording ? '■ STOP' : '● REC' })] }), _jsx("style", { children: `
+    return (_jsxs("div", { className: "playback-hud", children: [_jsxs("div", { className: "controls", children: [_jsx("button", { onClick: onToggleLive, className: isLive ? 'live-btn active' : 'live-btn', children: isLive ? '● LIVE' : 'PLAYBACK' }), _jsx("input", { type: "range", min: 0, max: Math.max(0, sessionLength - 1), value: currentIndex, onChange: (e) => onSeek(parseInt(e.target.value)), disabled: isLive }), _jsxs("span", { className: "timestamp", children: [currentIndex + 1, " / ", sessionLength] }), _jsx("button", { onClick: isRecording ? onStopRecording : onStartRecording, className: isRecording ? 'rec-btn active' : 'rec-btn', children: isRecording ? '● REC' : 'REC' })] }), _jsx("style", { children: `
                 .playback-hud {
                     position: absolute;
                     bottom: 40px;
@@ -26,8 +26,9 @@ export const PlaybackHUD = ({ sessionLength, currentIndex, onSeek, isLive, onTog
                     font-family: monospace;
                     backdrop-filter: blur(8px);
                     box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
+                    pointer-events: none;
                 }
-                .controls { display: flex; align-items: center; gap: 20px; }
+                .controls { display: flex; align-items: center; gap: 20px; pointer-events: auto; }
                 .live-btn, .rec-btn {
                     background: transparent;
                     border: 1px solid #00f2ff;

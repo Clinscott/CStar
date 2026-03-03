@@ -10,7 +10,10 @@ overall_score: 7.43
 ---
 
 ## Intent
-Python module facilitating test_generate_scenario_deterministic, test_generate_scenario_different_turn. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating test_generate_scenario_deterministic, test_generate_scenario_different_turn.
+
+## Interaction Protocol
+Import test_generate_scenario_deterministic and call its primary methods.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 8.5/10

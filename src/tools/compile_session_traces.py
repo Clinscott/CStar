@@ -79,58 +79,56 @@ class ReportRenderer:
 
         with open(self.path, "w", encoding="utf-8") as f: f.write("\n".join(lines))
 
-def compile_traces(tdir: str | None = None, rpath: str | None = None):
-    """[ALFRED] Restored trace compiler with persona-awareness and identity-theming."""
-    base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    tdir = tdir or os.path.join(base, "traces")
-    rpath = rpath or os.path.join(base, "TRACE_REPORT.qmd")
+class TraceCompiler:
+    """[ALFRED] Orchestration logic for neural trace compilation."""
 
-    if not os.path.exists(tdir): return [], {}
-    files = glob.glob(os.path.join(tdir, "*.json"))
-    if not files: return [], {}
+    @staticmethod
+    def execute(tdir: str | None = None, rpath: str | None = None):
+        """[ALFRED] Restored trace compiler with persona-awareness and identity-theming."""
+        base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        tdir = tdir or os.path.join(base, "traces")
+        rpath = rpath or os.path.join(base, "TRACE_REPORT.qmd")
 
-    raw_traces = []
-    for f in files:
-        try:
-            with open(f) as j: raw_traces.append(json.load(j))
-        except (json.JSONDecodeError, OSError): pass
+        if not os.path.exists(tdir): return [], {}
+        files = glob.glob(os.path.join(tdir, "*.json"))
+        if not files: return [], {}
 
-    analyzer = TraceAnalyzer(raw_traces)
-    stats = analyzer.get_summary()
-    ReportRenderer(rpath).render(raw_traces, stats)
+        raw_traces = []
+        for f in files:
+            try:
+                with open(f) as j: raw_traces.append(json.load(j))
+            except (json.JSONDecodeError, OSError): pass
 
-    # Auto-Corrections
-    if stats.get('critical_fails'):
-        corrections_path = os.path.join(base, ".agent", "corrections.json")
-        try:
-            data = {}
-            if os.path.exists(corrections_path):
-                with open(corrections_path) as f: data = json.load(f)
+        analyzer = TraceAnalyzer(raw_traces)
+        stats = analyzer.get_summary()
+        ReportRenderer(rpath).render(raw_traces, stats)
 
-            mappings = data.get("phrase_mappings", {})
-            for fail in stats['critical_fails']:
-                # Auto-map query to expected trigger if available
-                # In traces, we might not have 'expected' unless it was a test case.
-                # But if we have a match that was weak, maybe we confirm it?
-                # The user requirement says: "finding critical_fails ... write these failed query -> expected pairs"
-                # If the trace doesn't have 'expected', we can't map it.
-                # Assuming traces might come from fishtest or have 'expected' field.
-                if 'expected' in fail and 'query' in fail:
-                    mappings[fail['query']] = fail['expected']
+        # Auto-Corrections
+        if stats.get('critical_fails'):
+            corrections_path = os.path.join(base, ".agent", "corrections.json")
+            try:
+                data = {}
+                if os.path.exists(corrections_path):
+                    with open(corrections_path) as f: data = json.load(f)
 
-            data["phrase_mappings"] = mappings
-            with open(corrections_path, 'w') as f: json.dump(data, f, indent=2)
-            print(f"Applied {len(stats['critical_fails'])} corrections to {corrections_path}")
-        except Exception as e:
-            print(f"Failed to apply corrections: {e}")
+                mappings = data.get("phrase_mappings", {})
+                for fail in stats['critical_fails']:
+                    if 'expected' in fail and 'query' in fail:
+                        mappings[fail['query']] = fail['expected']
 
-    # Archival
-    archive = os.path.join(tdir, "archive")
-    os.makedirs(archive, exist_ok=True)
-    for f in files: shutil.move(f, os.path.join(archive, os.path.basename(f)))
-    print(f"Report generated: {rpath}")
+                data["phrase_mappings"] = mappings
+                with open(corrections_path, 'w') as f: json.dump(data, f, indent=2)
+                print(f"Applied {len(stats['critical_fails'])} corrections to {corrections_path}")
+            except Exception as e:
+                print(f"Failed to apply corrections: {e}")
 
-    return raw_traces, stats
+        # Archival
+        archive = os.path.join(tdir, "archive")
+        os.makedirs(archive, exist_ok=True)
+        for f in files: shutil.move(f, os.path.join(archive, os.path.basename(f)))
+        print(f"Report generated: {rpath}")
+
+        return raw_traces, stats
 
 if __name__ == "__main__":
-    compile_traces()
+    TraceCompiler.execute()

@@ -1,4 +1,3 @@
-
 import asyncio
 import gc
 import logging
@@ -102,10 +101,6 @@ class SovereignForge:
         """
         Asks LLM to identify the target file from the task description.
         """
-        # Simulation Logic for Activation Phase
-        # If we can't really call LLM, we default to a safe scratch file for testing the loop.
-
-        # Try simplistic extraction
         if "(Target: " in task:
             try:
                 start = task.index("(Target: ") + 9
@@ -115,7 +110,6 @@ class SovereignForge:
             except:
                 pass
 
-        # Fallback for verification/scaffold
         SovereignHUD.persona_log("ALFRED", "Orientation Simulation: Defaulting to scratch_forge.py")
         scratch = self.root / "scratch_forge.py"
         if not scratch.exists():
@@ -153,7 +147,6 @@ class SovereignForge:
 
         if not new_code and "[SIMULATION]" in msg:
             SovereignHUD.persona_log("ALFRED", "Uplink is in Simulation Mode. Applying heuristic patch.")
-            # Heuristic: Just append a comment to verify loop cycle
             timestamp = time.strftime("%H:%M:%S")
             new_code = content + f"\n# [O.D.I.N.] Forged Update ({timestamp}): {task}\n"
 
@@ -176,15 +169,12 @@ class SovereignForge:
             if res_lint.returncode != 0: return False
 
             # 2. Empire TDD: Contract Validation
-            # Search for a .qmd contract associated with the target file
             contract_path = target_file.with_suffix(".qmd")
             if not contract_path.exists():
-                # Check in tests/contracts
                 contract_path = self.root / "tests" / "contracts" / f"{target_file.stem}_contracts.qmd"
             
             if contract_path.exists():
                 SovereignHUD.persona_log("INFO", f"Empire TDD: Validating against contract {contract_path.name}")
-                # Simple integrity check: ensure the contract isn't empty and has required sections
                 contract_content = contract_path.read_text(encoding='utf-8')
                 if "Given" not in contract_content or "Then" not in contract_content:
                     SovereignHUD.persona_log("WARN", "Contract missing Gherkin syntax.")
@@ -211,58 +201,53 @@ class SovereignForge:
             os.remove(bak)
 
 
-def sovereign_lifecycle() -> None:
-    """
-    The Main Loop.
-    Observe -> Orient -> Act -> Verify -> Finalize -> Handshake.
-    """
-    root = PROJECT_ROOT
-    wrapper = SovereignWrapper()
-    norn = NornWarden(root)
-    forge = SovereignForge(root)
+class SovereignLifecycle:
+    """[O.D.I.N.] Orchestration logic for the Sovereign Loop lifecycle."""
 
-    while True:
-        # 1. Observe (Norn)
-        SovereignHUD.box_top("SOVEREIGN OBSERVE")
-        task = norn.scan()
-        # Norn.scan() returns a list of breaches. For Campaign, it returns one object.
-        if not task:
-            SovereignHUD.persona_log("ODIN", "No active tasks in queue. The Cycle pauses.")
-            break
+    @staticmethod
+    def execute() -> None:
+        """
+        The Main Loop.
+        Observe -> Orient -> Act -> Verify -> Finalize -> Handshake.
+        """
+        root = PROJECT_ROOT
+        wrapper = SovereignWrapper()
+        norn = NornWarden(root)
+        forge = SovereignForge(root)
 
-        target_task = task[0] # The breach object
+        while True:
+            # 1. Observe (Norn)
+            SovereignHUD.box_top("SOVEREIGN OBSERVE")
+            task = norn.scan()
+            if not task:
+                SovereignHUD.persona_log("ODIN", "No active tasks in queue. The Cycle pauses.")
+                break
 
-        # 2. Act (Forge)
-        # Note: 'task' is a Campaign Task breach.
-        success = forge.forge_task(target_task)
+            target_task = task[0] # The breach object
 
-        if success:
-            # 3. Finalize
-            SovereignHUD.box_top("SOVEREIGN FINALIZE")
-            # Mark complete in tasks.qmd
-            norn.mark_complete(target_task)
+            # 2. Act (Forge)
+            success = forge.forge_task(target_task)
 
-            # Commit & Push
-            # Wrapper sovereign_commit computes stats. We can run compile_traces or just pass empty stats
-            wrapper.sovereign_commit({}) # We arguably should compile traces first
+            if success:
+                # 3. Finalize
+                SovereignHUD.box_top("SOVEREIGN FINALIZE")
+                norn.mark_complete(target_task)
+                wrapper.sovereign_commit({})
 
-            # 4. Handshake (Nuke Context)
-            SovereignHUD.persona_log("ALFRED", "Purging memory context for next cycle.")
-            del task
-            del target_task
-            gc.collect()
+                # 4. Handshake (Nuke Context)
+                SovereignHUD.persona_log("ALFRED", "Purging memory context for next cycle.")
+                del task
+                del target_task
+                gc.collect()
 
-            # In a real agentic loop, we might restart the script or just clear the LLM client.
-            # forge.uplink should be reset in next iteration if needed.
+            else:
+                # Kill Switch
+                SovereignHUD.persona_log("ODIN", "Task failed after max retries. Intervention required.")
+                SovereignHUD.persona_log("HEIMDALL", "BREACH: Loop Halted - " + target_task['action'])
+                break
 
-        else:
-            # Kill Switch
-            SovereignHUD.persona_log("ODIN", "Task failed after max retries. Intervention required.")
-            SovereignHUD.persona_log("HEIMDALL", "BREACH: Loop Halted - " + target_task['action'])
-            break
-
-        # Wait a moment before next cycle
-        time.sleep(2)
+            # Wait a moment before next cycle
+            time.sleep(2)
 
 if __name__ == "__main__":
-    sovereign_lifecycle()
+    SovereignLifecycle.execute()

@@ -10,7 +10,10 @@ overall_score: 4.37
 ---
 
 ## Intent
-Python module facilitating InstructionLoader, __init__. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating InstructionLoader, __init__.
+
+## Interaction Protocol
+Import InstructionLoader and call its primary methods.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 1.2/10

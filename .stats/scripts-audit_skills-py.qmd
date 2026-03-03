@@ -3,17 +3,20 @@ title: "audit_skills.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/scripts/audit_skills.py"
 loc: 34
 complexity: 8
-logic_score: 2.82
+logic_score: 3.25
 style_score: 3.80
 intel_score: 6.11
 overall_score: 4.60
 ---
 
 ## Intent
-Python module facilitating audit_manor_skills. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating audit_manor_skills.
+
+## Interaction Protocol
+Import audit_manor_skills and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 2.8/10
+- **Logic [L]**: 3.2/10
 - **Style [S]**: 3.8/10
 - **Intel [I]**: 6.1/10
 - **Gravity [G]**: 15 interactions (Agent Activity Hotspot)

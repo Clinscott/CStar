@@ -42,23 +42,27 @@ class PersonaVerifier:
         expected = self.solve_challenge(challenge, persona)
         return response == expected
 
-def authenticate_sync(persona: str) -> bool:
-    """[ALFRED] High-level authentication helper for synapse_sync."""
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    config_path = os.path.join(os.path.dirname(script_dir), "config.json")
+class SynapseAuthenticator:
+    """[ALFRED] Orchestration logic for neural authentication handshakes."""
 
-    verifier = PersonaVerifier(config_path)
-    challenge = verifier.generate_challenge()
-    # In a real federated system, the challenge would come from the remote server.
-    # Here, we simulate a 'local handshake' for security hardening.
-    response = verifier.solve_challenge(challenge, persona)
+    @staticmethod
+    def authenticate_sync(persona: str) -> bool:
+        """[ALFRED] High-level authentication helper for synapse_sync."""
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        config_path = os.path.join(os.path.dirname(script_dir), "config.json")
 
-    return verifier.verify_response(challenge, response, persona)
+        verifier = PersonaVerifier(config_path)
+        challenge = verifier.generate_challenge()
+        # In a real federated system, the challenge would come from the remote server.
+        # Here, we simulate a 'local handshake' for security hardening.
+        response = verifier.solve_challenge(challenge, persona)
+
+        return verifier.verify_response(challenge, response, persona)
 
 if __name__ == "__main__":
     import sys
     p = sys.argv[1] if len(sys.argv) > 1 else "ALFRED"
-    if authenticate_sync(p):
+    if SynapseAuthenticator.authenticate_sync(p):
         print(f"AUTHENTICATED: {p}")
         sys.exit(0)
 

@@ -3,17 +3,20 @@ title: "test_network_watcher_empire.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_network_watcher_empire.py"
 loc: 21
 complexity: 2
-logic_score: 7.00
+logic_score: 7.75
 style_score: 3.96
 intel_score: 1.40
 overall_score: 4.44
 ---
 
 ## Intent
-Python module facilitating test_network_watcher_detection, test_crucible_pipeline_init. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating test_network_watcher_detection, test_crucible_pipeline_init.
+
+## Interaction Protocol
+Import test_network_watcher_detection and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 7.0/10
+- **Logic [L]**: 7.8/10
 - **Style [S]**: 4.0/10
 - **Intel [I]**: 1.4/10
 - **Gravity [G]**: 6 interactions (Agent Activity Hotspot)

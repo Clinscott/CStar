@@ -4,12 +4,15 @@ import { analyzeFile, FileData } from './analyzer.ts';
 import { writeReport } from './intel/writer.ts';
 import { compileMatrix, CompiledGraph } from './intel/compiler.ts';
 import { registerSpoke } from './intel/database.ts';
+import { SemanticIndexer } from './intel/semantic.ts';
+import { Warden } from './intel/warden.ts';
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'node:crypto';
 import { registry } from './pathRegistry.ts';
-import { SemanticIndexer } from './intel/semantic.ts';
-import { Warden } from './intel/warden.ts';
+import { activePersona } from './personaRegistry.ts';
+import { ScanResult } from './types.ts';
+
 
 /**
  * Main Execution Entry Point (Operation PennyOne)
@@ -41,10 +44,10 @@ export async function runScan(targetPath: string): Promise<FileData[]> {
     const hashMap = new Map<string, FileData>();
     if (existingGraph) {
         existingGraph.files.forEach(f => {
-            const data = f as any;
+            const data = f as unknown as FileData;
             if (!data.imports) data.imports = [];
             if (!data.exports) data.exports = [];
-            hashMap.set(f.path, data as FileData);
+            hashMap.set(data.path, data);
         });
     }
 

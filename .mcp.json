@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "pennyone": {
+      "command": "node",
+      "args": [
+        "C:/Users/Craig/Corvus/CorvusStar/bin/pennyone-mcp.js"
+      ],
+      "env": {
+        "GEMINI_CLI_ACTIVE": "true"
+      }
+    }
+  }
+}

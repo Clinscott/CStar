@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { registry } from './pathRegistry.js';
+import { registry } from './pathRegistry.ts';
 
 /**
  * Operation PennyOne: Configuration-Driven Persona Registry
@@ -73,3 +73,4 @@ export class PersonaRegistry {
 }
 
 export const activePersona = PersonaRegistry.getInstance().getPersona();
+

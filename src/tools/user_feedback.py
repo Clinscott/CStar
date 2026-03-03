@@ -9,24 +9,28 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+class FeedbackOrchestrator:
+    """[O.D.I.N.] Orchestration logic for user-driven logic feedback and regression capture."""
 
-def log_feedback(score: int, comment: str, target_file: str = "unknown") -> None:
-    """Logs user feedback to a JSONL file for Muninn to ingest."""
-    project_root = Path(__file__).resolve().parents[2]
-    feedback_path = project_root / ".agent" / "feedback.jsonl"
+    @staticmethod
+    def execute(score: int, comment: str, target_file: str = "unknown") -> None:
+        """Logs user feedback to a JSONL file for Muninn to ingest."""
+        # Resolve project root (script is in src/tools/)
+        project_root = Path(__file__).resolve().parents[2]
+        feedback_path = project_root / ".agent" / "feedback.jsonl"
+        feedback_path.parent.mkdir(parents=True, exist_ok=True)
 
-    entry = {
-        "timestamp": datetime.now().isoformat(),
-        "score": score,  # 1 (Poor) to 5 (Excellent)
-        "comment": comment,
-        "target_file": target_file
-    }
+        entry = {
+            "timestamp": datetime.now().isoformat(),
+            "score": score,  # 1 (Poor) to 5 (Excellent)
+            "comment": comment,
+            "target_file": target_file
+        }
 
-    with feedback_path.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(entry) + "\n")
+        with feedback_path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(entry) + "\n")
 
-    print(f"Feedback recorded: {score}/5 - {comment}")
-
+        print(f"Feedback recorded: {score}/5 - {comment}")
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
@@ -37,7 +41,7 @@ if __name__ == "__main__":
         score_val = int(sys.argv[1])
         comment_val = sys.argv[2]
         target_val = sys.argv[3] if len(sys.argv) > 3 else "unknown"
-        log_feedback(score_val, comment_val, target_val)
+        FeedbackOrchestrator.execute(score_val, comment_val, target_val)
     except Exception as e:
         print(f"Error logging feedback: {e}")
         sys.exit(1)

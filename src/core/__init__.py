@@ -4,7 +4,7 @@ Formalizes the Python 3.14 / Pydantic v1 compatibility hook.
 """
 import sys
 
-def apply_pydantic_v1_patch() -> None:
+def _apply_pydantic_v1_patch() -> None:
     """
     [ALFRED] Surgical Monkeypatch for Pydantic v1 / Python 3.14 compatibility.
     Bypasses 'unable to infer type for attribute "X"' errors in ChromaDB configuration.
@@ -49,4 +49,4 @@ def apply_pydantic_v1_patch() -> None:
             pass # Pydantic not installed or structure differs
 
 # Apply the patch immediately upon core import
-apply_pydantic_v1_patch()
+_apply_pydantic_v1_patch()

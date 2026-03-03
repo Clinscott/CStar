@@ -10,7 +10,10 @@ overall_score: 6.83
 ---
 
 ## Intent
-Core semantic routing engine for intent resolution. It exists to map unstructured user inputs to distinct execution pathways. Its role in the system is to serve as the primary cognitive junction between natural language and operational logic.
+Core semantic routing engine for intent resolution.
+
+## Interaction Protocol
+Instantiate SovereignEngine and invoke run(query) to process natural language directives.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 7.3/10

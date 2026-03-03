@@ -1,21 +1,24 @@
 ---
 title: "test_muninn.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/contracts/test_muninn.py"
-loc: 146
-complexity: 3
-logic_score: 3.57
+loc: 81
+complexity: 2
+logic_score: 4.20
 style_score: 3.70
-intel_score: 7.43
-overall_score: 5.59
+intel_score: 7.33
+overall_score: 5.98
 ---
 
 ## Intent
-Autonomous neural guardian monitoring system drift and anomalies. It exists to enforce strict operational parameters and prevent structural decay. Its role in the system is to act as an automated oversight mechanism during flight cycles.
+Autonomous neural guardian monitoring system drift and anomalies.
+
+## Interaction Protocol
+Instantiate the Warden class and call evaluate(graph) with a compiled matrix graph.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 3.6/10
+- **Logic [L]**: 4.2/10
 - **Style [S]**: 3.7/10
-- **Intel [I]**: 7.4/10
+- **Intel [I]**: 7.3/10
 - **Gravity [G]**: 16 interactions (Agent Activity Hotspot)
 
 
@@ -23,30 +26,29 @@ Autonomous neural guardian monitoring system drift and anomalies. It exists to e
 ## Neural Pathways
 
 ### Imports
+- [asyncio](file://asyncio)
 - [json](file://json)
 - [os](file://os)
 - [sys](file://sys)
 - [pathlib](file://pathlib)
 - [unittest.mock](file://unittest.mock)
 - [src.sentinel.muninn](file://src.sentinel.muninn)
+- [src.sentinel.muninn_heart](file://src.sentinel.muninn_heart)
+- [src.sentinel.muninn_crucible](file://src.sentinel.muninn_crucible)
+- [src.sentinel.stability](file://src.sentinel.stability)
+- [src.sentinel.wardens.norn](file://src.sentinel.wardens.norn)
 - [src.sentinel.wardens.edda](file://src.sentinel.wardens.edda)
+- [time](file://time)
 
 ### Exports
 - `TestWatcherOscillationLock`
 - `test_echo_detection_locks_file`
-- `TestWatcherFatigueLock`
-- `test_fatigue_locks_after_threshold`
 - `TestNornWarden`
 - `test_get_next_target_finds_first_actionable`
-- `test_get_next_target_skips_completed_items`
-- `test_mark_complete_checks_box`
-- `test_returns_none_when_no_plan`
 - `TestEddaWarden`
 - `test_detects_missing_docstrings`
-- `TestMuninnScanCycle`
-- `test_no_breaches_returns_false`
-- `TestRollback`
+- `TestMuninnCrucible`
 - `test_rollback_restores_backup`
-- `TestGauntletEscalation`
-- `test_escalates_to_pro_on_final_attempt`
-- `track_model_call`
+- `test_generate_gauntlet_calls_uplink`
+- `TestMuninnHeartEndurance`
+- `test_endurance_limit_stop`

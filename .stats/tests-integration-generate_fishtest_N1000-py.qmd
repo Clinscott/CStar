@@ -10,7 +10,10 @@ overall_score: 3.07
 ---
 
 ## Intent
-Python module facilitating generate_n1000. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating generate_n1000.
+
+## Interaction Protocol
+Import generate_n1000 and call its primary methods.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 2.0/10

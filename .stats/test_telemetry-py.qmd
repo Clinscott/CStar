@@ -1,31 +1,33 @@
 ---
 title: "test_telemetry.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/test_telemetry.py"
-loc: 24
+loc: 23
 complexity: 2
-logic_score: 7.50
-style_score: 4.54
-intel_score: 3.07
-overall_score: 5.34
+logic_score: 7.80
+style_score: 5.73
+intel_score: 3.14
+overall_score: 5.76
 ---
 
 ## Intent
-Python module facilitating test_trace. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating test_trace.
+
+## Interaction Protocol
+Import test_trace and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 7.5/10
-- **Style [S]**: 4.5/10
+- **Logic [L]**: 7.8/10
+- **Style [S]**: 5.7/10
 - **Intel [I]**: 3.1/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 7 interactions (Agent Activity Hotspot)
 
 
 
 ## Neural Pathways
 
 ### Imports
-- [requests](file://requests)
-- [json](file://json)
 - [time](file://time)
+- [requests](file://requests)
 
 ### Exports
 - `test_trace`

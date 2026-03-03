@@ -4,7 +4,7 @@ import chalk from 'chalk';
 import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { activePersona } from '../tools/pennyone/personaRegistry.js';
+import { activePersona } from '../tools/pennyone/personaRegistry.ts';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const PROJECT_ROOT = path.resolve(__dirname, '../../');
@@ -13,7 +13,7 @@ const KEY_FILE = path.join(PROJECT_ROOT, '.agent', 'daemon.key');
 
 export interface CortexResponse {
     type: string;
-    data: any;
+    data: unknown;
     status: string;
 }
 
@@ -22,9 +22,9 @@ export class CortexLink {
     private host: string;
     private wsUrl: string;
 
-    private wsImpl: any;
+    private wsImpl: typeof WebSocket;
 
-    constructor(port = 50051, host = '127.0.0.1', wsImpl = WebSocket) {
+    constructor(port = 50051, host = '127.0.0.1', wsImpl: typeof WebSocket = WebSocket) {
         this.port = port;
         this.host = host;
         this.wsUrl = `ws://${this.host}:${this.port}`;
@@ -81,8 +81,11 @@ export class CortexLink {
 
     /**
      * Sends a command payload to the Python Daemon via WebSockets.
+     * @param command
+     * @param args
+     * @param cwd
      */
-    async sendCommand(command: string, args: string[] = [], cwd = process.cwd()): Promise<any> {
+    async sendCommand(command: string, args: string[] = [], cwd = process.cwd()): Promise<CortexResponse> {
         const authKey = fs.readFileSync(KEY_FILE, 'utf8').trim();
         const payload = {
             command,
@@ -110,11 +113,11 @@ export class CortexLink {
 
             ws.on('message', (data: Buffer) => {
                 try {
-                    const response = JSON.parse(data.toString());
-                    if (response.type === 'result') {
+                    const response = JSON.parse(data.toString()) as CortexResponse;
+                    if (response && response.type === 'result') {
                         clearTimeout(timeout);
                         ws.close();
-                        resolve(response.data);
+                        resolve(response.data as CortexResponse);
                     }
                 } catch (err) {
                     clearTimeout(timeout);
@@ -136,3 +139,4 @@ export class CortexLink {
         });
     }
 }
+

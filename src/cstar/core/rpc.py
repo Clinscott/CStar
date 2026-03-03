@@ -7,7 +7,7 @@ Purpose: Logic for aggregating system state, traces, and suggestions for the HUD
 import json
 import sqlite3
 from pathlib import Path
-from typing import Any, List, Dict
+from typing import Any
 
 class SovereignRPC:
     def __init__(self, root_path: Path):
@@ -16,7 +16,7 @@ class SovereignRPC:
         self.ledger_path = self.root / ".agent" / "tech_debt_ledger.json"
         self.tasks_path = self.root / "tasks.qmd"
 
-    def get_recent_traces(self, limit: int = 5) -> List[Dict[str, Any]]:
+    def get_recent_traces(self, limit: int = 5) -> list[dict[str, Any]]:
         """Queries the PennyOne database for recent mission traces."""
         if not self.db_path.exists():
             return []
@@ -35,13 +35,13 @@ class SovereignRPC:
         except Exception:
             return []
 
-    def get_architectural_suggestions(self) -> List[str]:
+    def get_architectural_suggestions(self) -> list[str]:
         """Reads and formats suggestions from the tech debt ledger."""
         if not self.ledger_path.exists():
             return []
         
         try:
-            with open(self.ledger_path, "r", encoding="utf-8") as f:
+            with open(self.ledger_path, encoding="utf-8") as f:
                 data = json.load(f)
             
             targets = data.get("top_targets", [])
@@ -56,7 +56,7 @@ class SovereignRPC:
         except Exception:
             return []
 
-    def get_dashboard_state(self) -> Dict[str, Any]:
+    def get_dashboard_state(self) -> dict[str, Any]:
         """Aggregates the full system state for the Sovereign HUD."""
         return {
             "vitals": {
@@ -69,7 +69,7 @@ class SovereignRPC:
             "persona": "ALFRED"
         }
 
-    def _parse_tasks(self) -> List[str]:
+    def _parse_tasks(self) -> list[str]:
         """Simple parser for tasks.qmd to extract pending items."""
         if not self.tasks_path.exists():
             return []
@@ -78,6 +78,6 @@ class SovereignRPC:
             content = self.tasks_path.read_text(encoding="utf-8")
             lines = content.split('\n')
             # Extract unchecked items
-            return [l.strip("- [ ] ").strip() for l in lines if l.strip().startswith("- [ ]")]
+            return [l.replace("- [ ]", "").strip() for l in lines if l.strip().startswith("- [ ]")]
         except Exception:
             return []

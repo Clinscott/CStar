@@ -53,8 +53,8 @@ export async function runScan(targetPath) {
                     exports: [],
                     intent: existing.intent,
                     hash: currentHash,
-                    // Use semantic dependencies if available
-                    cachedDependencies: semanticData ? semanticData.dependencies : (existing.dependencies || [])
+                    // Preserve the previously calculated true AST dependencies
+                    cachedDependencies: existing.dependencies || []
                 });
                 continue;
             }

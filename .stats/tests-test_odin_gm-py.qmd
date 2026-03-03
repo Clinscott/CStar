@@ -3,17 +3,20 @@ title: "test_odin_gm.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/test_odin_gm.py"
 loc: 13
 complexity: 1
-logic_score: 8.95
+logic_score: 9.10
 style_score: 3.89
 intel_score: 9.40
 overall_score: 7.50
 ---
 
 ## Intent
-Python module facilitating test_odin_gm_offline_fallback, test_odin_gm_describe_outcome_offline. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating test_odin_gm_offline_fallback, test_odin_gm_describe_outcome_offline.
+
+## Interaction Protocol
+Import test_odin_gm_offline_fallback and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 8.9/10
+- **Logic [L]**: 9.1/10
 - **Style [S]**: 3.9/10
 - **Intel [I]**: 9.4/10
 - **Gravity [G]**: 4 interactions (Agent Activity Hotspot)

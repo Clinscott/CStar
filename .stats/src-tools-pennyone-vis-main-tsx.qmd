@@ -3,20 +3,23 @@ title: "main.tsx"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/main.tsx"
 loc: 6
 complexity: 1
-logic_score: 9.70
+logic_score: 9.57
 style_score: 9.54
 intel_score: 8.07
 overall_score: 9.08
 ---
 
 ## Intent
-React component rendering main with 1 logic branches. It exists to provide a responsive interface element for real-time telemetry. Its role in the system is to project background Daemon activity into the visual Sovereign HUD plane.
+React component rendering main.
+
+## Interaction Protocol
+Include <main /> within a React-Three-Fiber Canvas context.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 9.7/10
+- **Logic [L]**: 9.6/10
 - **Style [S]**: 9.5/10
 - **Intel [I]**: 8.1/10
-- **Gravity [G]**: 5 interactions (Agent Activity Hotspot)
+- **Gravity [G]**: 8 interactions (Agent Activity Hotspot)
 
 
 
@@ -25,7 +28,7 @@ React component rendering main with 1 logic branches. It exists to provide a res
 ### Imports
 - [*](file://react)
 - [*](file://react-dom/client)
-- [App](file://./App.js)
+- [App](file://./App.ts)
 
 ### Exports
 Internal logic only.

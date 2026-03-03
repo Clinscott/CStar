@@ -16,33 +16,37 @@ from pathlib import Path
 try:
     project_root = Path(__file__).resolve().parents[4]
     sys.path.append(str(project_root))
-    from src.sentinel._bootstrap import bootstrap
-    bootstrap()
+    from src.sentinel._bootstrap import SovereignBootstrap
+    SovereignBootstrap.execute()
 except (ImportError, ValueError, IndexError):
     pass
 
 from src.core.sovereign_hud import SovereignHUD
 
-
-def remove_readonly(func, path, excinfo) -> None:
-    """Clear the readonly bit and reattempt the removal."""
-    os.chmod(path, stat.S_IWRITE)
-    func(path)
-
-
 class SkillHunter:
+    """[O.D.I.N.] Orchestration logic for autonomous skill acquisition and promotion."""
+
     def __init__(self) -> None:
         self.root = Path(__file__).resolve().parents[4]
         self.skills_db_source = self.root / "skills_db"
 
+    @staticmethod
+    def _remove_readonly(func, path, excinfo) -> None:
+        """Clear the readonly bit and reattempt the removal."""
+        os.chmod(path, stat.S_IWRITE)
+        func(path)
+
     def ingest(self, url: str, skill_name: str) -> None:
+        """
+        Clones a repository, analyzes its content, and promotes it to the Smart Registry.
+        """
         SovereignHUD.box_top(f"SKILL HUNTER: INGESTING {skill_name}")
         SovereignHUD.box_row("URL", url)
 
         # 1. Create temporary staging area in skills_db
         staging_dir = self.root / "skills_db" / skill_name
         if staging_dir.exists():
-            shutil.rmtree(staging_dir, onexc=remove_readonly)
+            shutil.rmtree(staging_dir, onerror=self._remove_readonly)
         staging_dir.mkdir(parents=True)
 
         try:

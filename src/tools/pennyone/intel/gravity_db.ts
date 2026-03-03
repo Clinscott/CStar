@@ -1,4 +1,4 @@
-/* eslint-disable jsdoc/require-param-description, jsdoc/require-returns-description */
+ 
 import Database from 'better-sqlite3';
 import path from 'node:path';
 import fs from 'node:fs';
@@ -131,3 +131,4 @@ export function setFileGravity(filepath: string, weight: number): void {
         ON CONFLICT(path) DO UPDATE SET weight = ?
     `).run(normalized, weight, weight);
 }
+

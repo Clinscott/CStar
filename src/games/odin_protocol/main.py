@@ -25,7 +25,7 @@ from src.games.odin_protocol.engine import (
     get_federated_seed,
 )
 
-from .ui import OdinUI
+from src.games.odin_protocol.ui import OdinUI
 
 
 class OdinAdventure:

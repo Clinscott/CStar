@@ -17,9 +17,9 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 # Bootstrap
-from src.sentinel._bootstrap import bootstrap
+from src.sentinel._bootstrap import SovereignBootstrap
 
-bootstrap()
+SovereignBootstrap.execute()
 
 from src.sentinel.muninn import Muninn
 
@@ -74,60 +74,58 @@ class ResponseRecorder:
         print(f"[HARVEST] Saved {len(self.recordings)} recordings to {path}")
 
 
-def harvest(cycles: int = 5):
-    """
-    [O.D.I.N.] Run N cycles of SovereignFish against CorvusStar with recording.
-    Captures prompt/response pairs for offline verification and hardening.
+class Harvester:
+    """[O.D.I.N.] Orchestration logic for AI response harvesting."""
 
-    Args:
-        cycles: Number of autonomous learning cycles to trigger.
+    @staticmethod
+    def execute(cycles: int = 5):
+        """
+        Run N cycles of SovereignFish against CorvusStar with recording.
+        Captures prompt/response pairs for offline verification and hardening.
+        """
+        project_root = Path(__file__).parent.parent.parent.resolve()
+        output_path = FIXTURES_DIR / "mock_responses.json"
 
-    Returns:
-        A list of captured response dictionaries.
-    """
-    project_root = Path(__file__).parent.parent.parent.resolve()
-    output_path = FIXTURES_DIR / "mock_responses.json"
+        # Verify API key
+        api_key = os.environ.get("GOOGLE_API_KEY")
+        if not api_key:
+            print("[HARVEST] ERROR: GOOGLE_API_KEY not set. Cannot harvest.")
+            sys.exit(1)
 
-    # Verify API key
-    api_key = os.environ.get("GOOGLE_API_KEY")
-    if not api_key:
-        print("[HARVEST] ERROR: GOOGLE_API_KEY not set. Cannot harvest.")
-        sys.exit(1)
+        # Create real client
+        from google import genai
+        real_client = genai.Client(api_key=api_key)
 
-    # Create real client
-    from google import genai
-    real_client = genai.Client(api_key=api_key)
+        # Wrap with recorder
+        recorder = ResponseRecorder(real_client)
 
-    # Wrap with recorder
-    recorder = ResponseRecorder(real_client)
+        # Create a proxy client that looks like the real one
+        proxy_client = MagicMock(wraps=real_client)
+        proxy_client.models.generate_content.side_effect = recorder.record_call
 
-    # Create a proxy client that looks like the real one
-    proxy_client = MagicMock(wraps=real_client)
-    proxy_client.models.generate_content.side_effect = recorder.record_call
+        print(f"[HARVEST] Starting {cycles} cycles against {project_root.name}")
+        print(f"[HARVEST] Output: {output_path}")
 
-    print(f"[HARVEST] Starting {cycles} cycles against {project_root.name}")
-    print(f"[HARVEST] Output: {output_path}")
+        for cycle in range(cycles):
+            print(f"\n{'='*60}")
+            print(f"[HARVEST] Cycle {cycle + 1}/{cycles}")
+            print(f"{'='*60}")
 
-    for cycle in range(cycles):
-        print(f"\n{'='*60}")
-        print(f"[HARVEST] Cycle {cycle + 1}/{cycles}")
-        print(f"{'='*60}")
+            try:
+                fish = Muninn(str(project_root), client=proxy_client)
+                fish.run()
+            except Exception as e:
+                print(f"[HARVEST] Cycle {cycle + 1} crashed: {e}")
 
-        try:
-            fish = Muninn(str(project_root), client=proxy_client)
-            fish.run()
-        except Exception as e:
-            print(f"[HARVEST] Cycle {cycle + 1} crashed: {e}")
+            # Save after each cycle (in case of crash)
+            recorder.save(output_path)
 
-        # Save after each cycle (in case of crash)
-        recorder.save(output_path)
-
-    print(f"\n[HARVEST] Complete. {len(recorder.recordings)} total responses captured.")
-    return recorder.recordings
+        print(f"\n[HARVEST] Complete. {len(recorder.recordings)} total responses captured.")
+        return recorder.recordings
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Harvest live AI responses for mock bank")
     parser.add_argument("--cycles", type=int, default=5, help="Number of cycles to run")
     args = parser.parse_args()
-    harvest(args.cycles)
+    Harvester.execute(args.cycles)

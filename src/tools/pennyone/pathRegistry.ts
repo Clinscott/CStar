@@ -1,4 +1,4 @@
-/* eslint-disable jsdoc/require-param-description */
+ 
 import path from 'path';
 
 import fs from 'fs';
@@ -103,3 +103,4 @@ export class PathRegistry {
 }
 
 export const registry = PathRegistry.getInstance();
+

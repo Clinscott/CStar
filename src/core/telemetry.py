@@ -31,7 +31,8 @@ class SubspaceTelemetry:
         url = f"http://localhost:{SubspaceTelemetry.DEFAULT_PORT}{SubspaceTelemetry.PING_ENDPOINT}"
         
         try:
-            response = requests.post(url, json=payload, timeout=1.0)
+            # [A.L.F.R.E.D.] Ultra-short timeout for local telemetry (0.2s)
+            response = requests.post(url, json=payload, timeout=0.2)
             return response.status_code == 200
         except Exception:
             return False
@@ -59,13 +60,15 @@ class SubspaceTelemetry:
         url = f"http://localhost:{SubspaceTelemetry.DEFAULT_PORT}{SubspaceTelemetry.TRACE_ENDPOINT}"
         
         try:
-            response = requests.post(url, json=payload, timeout=2.0)
+            # [A.L.F.R.E.D.] Ultra-short timeout for local telemetry (0.5s)
+            # [A.L.F.R.E.D.] Ultra-short timeout for local telemetry (0.2s)
+            response = requests.post(url, json=payload, timeout=0.2)
             return response.status_code == 200
         except Exception:
             return False
 
     @staticmethod
-    def broadcast_alert_to_daemon(message: str, file_path: str) -> None:
+    def broadcast_alert_to_daemon(message: str, file_path: str) -> None: # [Ω] Phase 2.1 Complete: Legacy bootstrap purged.
         """
         Connects to the Python Daemon and triggers a real-time security alert.
         """

@@ -1,21 +1,24 @@
 ---
 title: "code_sanitizer.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/sentinel/code_sanitizer.py"
-loc: 418
-complexity: 109
-logic_score: 0.72
+loc: 411
+complexity: 107
+logic_score: 0.50
 style_score: 3.85
-intel_score: 6.47
-overall_score: 3.42
+intel_score: 6.75
+overall_score: 3.37
 ---
 
 ## Intent
-Python module facilitating QuarantineFailure, validate_syntax. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating QuarantineFailure, BifrostGate.
+
+## Interaction Protocol
+Import QuarantineFailure and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 0.7/10
+- **Logic [L]**: 0.5/10
 - **Style [S]**: 3.8/10
-- **Intel [I]**: 6.5/10
+- **Intel [I]**: 6.8/10
 - **Gravity [G]**: 46 interactions (Agent Activity Hotspot)
 
 
@@ -33,6 +36,8 @@ Python module facilitating QuarantineFailure, validate_syntax. It exists to supp
 
 ### Exports
 - `QuarantineFailure`
+- `BifrostGate`
+- `__init__`
 - `validate_syntax`
 - `_get_project_modules`
 - `_check_import_node`

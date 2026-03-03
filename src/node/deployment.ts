@@ -4,7 +4,6 @@ import chalk from 'chalk';
 
 /**
  * Overwrites a target file with the verified candidate and stages/commits it to Git.
- * 
  * @param targetFile - The original file to overwrite.
  * @param candidateFile - The newly generated and verified candidate file.
  * @param commitMessage - Git commit message.
@@ -16,7 +15,7 @@ export async function deployCandidate(
     commitMessage: string,
     execFunction: any = execa
 ): Promise<void> {
-    console.log(chalk.magenta("ALFRED: 'Deploying candidate to mainline...'"));
+    console.log(chalk.magenta('ALFRED: \'Deploying candidate to mainline...\''));
 
     try {
         // Step 1: Overwrite target with candidate
@@ -35,3 +34,4 @@ export async function deployCandidate(
         throw new Error(`Deployment Failed during Git Operations. Details: ${err.message}`);
     }
 }
+

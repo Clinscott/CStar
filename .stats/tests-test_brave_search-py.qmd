@@ -10,7 +10,10 @@ overall_score: 6.63
 ---
 
 ## Intent
-Python module facilitating mock_brave_search, test_ensure_quota_ledger. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating mock_brave_search, test_ensure_quota_ledger.
+
+## Interaction Protocol
+Import mock_brave_search and call its primary methods.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 4.1/10

@@ -1,0 +1,51 @@
+---
+title: "ConnectionLayer.tsx"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/components/ConnectionLayer.tsx"
+loc: 94
+complexity: 6
+logic_score: 3.05
+style_score: 4.01
+intel_score: 6.68
+overall_score: 5.60
+---
+
+## Intent
+React component rendering ConnectionLayer.
+
+## Interaction Protocol
+Include <ConnectionLayer /> within a React-Three-Fiber Canvas context.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 3.0/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 6.7/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [useMemo](file://react)
+- [useRef](file://react)
+- [*](file://three)
+- [useFrame](file://@react-three/fiber)
+- [Line](file://@react-three/drei)
+- [Node](file://../types/index.ts)
+- [Link](file://../types/index.ts)
+
+### Exports
+- `NeuralLink`
+- `lineRef`
+- `ConnectionLayer`
+- `ConnectionLayer`
+- `validLinks`
+- `useMemo`
+- `bgPoints`
+- `hl`
+- `sNode`
+- `tNode`
+- `isHighlighted`
+- `geo`
+- `sNode`
+- `tNode`

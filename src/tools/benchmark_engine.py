@@ -12,36 +12,39 @@ if str(project_root) not in sys.path:
 
 from src.core.report_engine import ReportEngine
 
+class BenchmarkOrchestrator:
+    """[O.D.I.N.] Orchestration logic for Corvus Star performance benchmarking."""
 
-def benchmark(n=100) -> None:
-    """
-    Executes a performance trial of the sv_engine.py startup latency.
+    @staticmethod
+    def execute(n: int = 100) -> None:
+        """
+        Executes a performance trial of the sv_engine.py startup latency.
 
-    Args:
-        n: The number of trials to execute for statistical significance.
-    """
-    cmd = ["python", ".agent/scripts/sv_engine.py", "--benchmark"]
-    times = []
+        Args:
+            n: The number of trials to execute for statistical significance.
+        """
+        cmd = ["python", ".agent/scripts/sv_engine.py", "--benchmark"]
+        times = []
 
-    print(f"Executing {n} trials of sv_engine.py startup...")
+        print(f"Executing {n} trials of sv_engine.py startup...")
 
-    for i in range(n):
-        start = time.perf_counter()
-        subprocess.run(cmd, capture_output=True, check=True)
-        end = time.perf_counter()
-        times.append((end - start) * 1000) # ms
+        for i in range(n):
+            start = time.perf_counter()
+            subprocess.run(cmd, capture_output=True, check=True)
+            end = time.perf_counter()
+            times.append((end - start) * 1000) # ms
 
-        if (i+1) % 10 == 0:
-            print(f"Completed {i+1}/{n} trials...")
+            if (i+1) % 10 == 0:
+                print(f"Completed {i+1}/{n} trials...")
 
-    min_t = min(times)
-    max_t = max(times)
-    avg_t = statistics.mean(times)
-    stdev = statistics.stdev(times)
+        min_t = min(times)
+        max_t = max(times)
+        avg_t = statistics.mean(times)
+        stdev = statistics.stdev(times)
 
-    engine = ReportEngine()
+        engine = ReportEngine()
 
-    body = f"""
+        body = f"""
 | Metric | Result |
 | :--- | :--- |
 | **Trials** | {n} |
@@ -51,18 +54,18 @@ def benchmark(n=100) -> None:
 | **Std Dev** | {stdev:.2f} ms |
 """
 
-    if avg_t < 100:
-        verdict = "HIGHLY VIABLE"
-        detail = "System operating at peak efficiency."
-    elif avg_t < 500:
-        verdict = "VIABLE"
-        detail = "Standard operation."
-    else:
-        verdict = "WARNING"
-        detail = "Performance optimization recommended."
+        if avg_t < 100:
+            verdict = "HIGHLY VIABLE"
+            detail = "System operating at peak efficiency."
+        elif avg_t < 500:
+            verdict = "VIABLE"
+            detail = "Standard operation."
+        else:
+            verdict = "WARNING"
+            detail = "Performance optimization recommended."
 
-    body += engine.verdict(verdict, detail)
-    print(engine.generate_report("CORVUS STAR PERFORMANCE REPORT", body))
+        body += engine.verdict(verdict, detail)
+        print(engine.generate_report("CORVUS STAR PERFORMANCE REPORT", body))
 
 if __name__ == "__main__":
-    benchmark()
+    BenchmarkOrchestrator.execute()

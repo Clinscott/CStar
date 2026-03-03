@@ -1,0 +1,36 @@
+---
+title: "vector_ingest.py"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/core/engine/vector_ingest.py"
+loc: 15
+complexity: 4
+logic_score: 4.97
+style_score: 3.83
+intel_score: 9.40
+overall_score: 6.68
+---
+
+## Intent
+Python module facilitating VectorIngest, __init__.
+
+## Interaction Protocol
+Import VectorIngest and call its primary methods.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 5.0/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [pathlib](file://pathlib)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+
+### Exports
+- `VectorIngest`
+- `__init__`
+- `add_skill`
+- `load_skills_from_dir`

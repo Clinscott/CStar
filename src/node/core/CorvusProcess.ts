@@ -173,6 +173,7 @@ export class CorvusProcess extends EventEmitter {
 
     /**
      * Injects rigid JSON payloads into standard input.
+     * @param payload
      */
     public dispatchIntent(payload: IntentPayload): void {
         if (!this.daemon || !this.isRunning) {
@@ -227,3 +228,4 @@ export class CorvusProcess extends EventEmitter {
         return this.isRunning;
     }
 }
+

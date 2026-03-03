@@ -2,40 +2,27 @@
 Huginn & Muninn: The Twin Ravens (Daemon)
 Identity: ODIN
 Purpose: Orchestrate the Ravens agents across the Corvus Cluster.
-
-Huginn (Thought) gathers intel. Muninn (Memory) persists it.
-Together they fly across the Nine Realms, reporting all to the All-Father.
 """
 
 import json
 import logging
 import os
 import signal
-import subprocess
 import time
 from pathlib import Path
 from typing import Any
 
 import psutil
-from colorama import Fore, init
+from colorama import init
 
 # Initialize Colorama
 init(autoreset=True)
 
 # Shared Bootstrap (env-loading + sys.path) — deferred to avoid import-time side effects
-from src.sentinel._bootstrap import PROJECT_ROOT, bootstrap
-
-_bootstrapped = False
-
-def _ensure_bootstrapped() -> None:
-    """Lazily run bootstrap() on first use, not at import time."""
-    global _bootstrapped
-    if not _bootstrapped:
-        bootstrap()
-        _bootstrapped = True
-
+from src.sentinel._bootstrap import PROJECT_ROOT, SovereignBootstrap
 from src.core.sovereign_hud import SovereignHUD
-
+from src.sentinel.repo_spoke import RepoSpoke
+from src.core.utils import SovereignUtils
 
 # --- GRACEFUL SHUTDOWN ---
 class ShutdownHandler:
@@ -45,37 +32,144 @@ class ShutdownHandler:
         signal.signal(signal.SIGINT, self.shutdown)
         signal.signal(signal.SIGTERM, self.shutdown)
 
-    def shutdown(self, signum, frame) -> None:
-        SovereignHUD.persona_log("WARN", f"Signal {signum} received. Closing all realms...")
+    def shutdown(self, _signum, _frame) -> None:
+        SovereignHUD.persona_log("WARN", "Signal received. Closing all realms...")
         self.active = False
 
 SHUTDOWN = ShutdownHandler()
 
-# Configuration
-def load_config() -> dict[str, Any]:
-    """Load configuration from .agent/config.json."""
-    config_path = PROJECT_ROOT / ".agent" / "config.json"
-    if config_path.exists():
+class DaemonOrchestrator:
+    """[O.D.I.N.] The Master Orchestrator of the Ravens Daemon."""
+    
+    _bootstrapped = False
+
+    @staticmethod
+    def ensure_bootstrapped() -> None:
+        """Lazily run SovereignBootstrap on first use, not at import time."""
+        if not DaemonOrchestrator._bootstrapped:
+            SovereignBootstrap.execute()
+            DaemonOrchestrator._bootstrapped = True
+
+    @staticmethod
+    def load_config() -> dict[str, Any]:
+        """Load configuration from .agent/config.json."""
+        config_path = PROJECT_ROOT / ".agent" / "config.json"
+        return SovereignUtils.safe_read_json(config_path)
+
+    @staticmethod
+    def load_target_repos() -> list[str]:
+        """Load target repos from config."""
+        cfg = DaemonOrchestrator.load_config()
+        repos = cfg.get("target_repos")
+        if isinstance(repos, list) and repos:
+            return [str(p) for p in repos]
+        return [str(PROJECT_ROOT)]
+
+    @staticmethod
+    def get_interval() -> int:
+        """Get cycle interval from config."""
+        cfg = DaemonOrchestrator.load_config()
+        return cfg.get("interval_seconds", 900)
+
+    @staticmethod
+    def load_persona() -> str:
+        """Determines the active persona from config."""
+        cfg = DaemonOrchestrator.load_config()
+        p = cfg.get("persona") or cfg.get("Persona")
+        return p.upper() if p else "ODIN"
+
+    @staticmethod
+    def _highlander_check(lock_file: Path) -> bool:
+        """THERE CAN BE ONLY ONE. Check if we still hold the mandate."""
+        if not lock_file.exists():
+            return False
         try:
-            return json.loads(config_path.read_text(encoding='utf-8'))
-        except (json.JSONDecodeError, OSError):
+            owner_pid = int(lock_file.read_text().strip())
+            if owner_pid != os.getpid():
+                if psutil.pid_exists(owner_pid):
+                    SovereignHUD.persona_log("WARNING", f"Highlander Protocol: PID {owner_pid} holds the Mandate. Terminating.")
+                    return False
+        except (OSError, ValueError):
             pass
-    return {}
+        return True
 
-def load_target_repos() -> list[str]:
-    """Load target repos from config."""
-    cfg = load_config()
-    repos = cfg.get("target_repos")
-    if isinstance(repos, list) and repos:
-        return [str(p) for p in repos]
-    return [str(PROJECT_ROOT)]
+    @staticmethod
+    async def daemon_loop(use_docker: bool = False, lock_file_path: Path | None = None) -> None:
+        """Main daemon loop orchestrating Ravens across the Corvus Cluster with 6-hour endurance."""
+        _ensure_bootstrapped = DaemonOrchestrator.ensure_bootstrapped
+        LOCK_FILE = lock_file_path or (PROJECT_ROOT / ".agent" / "muninn.pid")
+        
+        # 6-Hour Guard
+        DAEMON_START = time.time()
+        MAX_DURATION = 21600 # 6 hours
 
-def get_interval() -> int:
-    """Get cycle interval from config."""
-    cfg = load_config()
-    return cfg.get("interval_seconds", 900)
+        if LOCK_FILE.exists():
+            try:
+                old_pid = int(LOCK_FILE.read_text().strip())
+                if psutil.pid_exists(old_pid):
+                    print(f"[ERROR] The Ravens are already in flight (PID: {old_pid}). Exiting.")
+                    return
+            except (ValueError, psutil.Error):
+                pass
 
-# Logging handled by sovereign_fish logging config (shared file)
+        LOCK_FILE.parent.mkdir(parents=True, exist_ok=True)
+        LOCK_FILE.write_text(str(os.getpid()), encoding='utf-8')
+
+        # Initialize
+        SovereignHUD.PERSONA = DaemonOrchestrator.load_persona()
+        SovereignHUD.persona_log("INFO", "Ravens Endurance Automaton Initialized.")
+        SovereignHUD.persona_log("INFO", f"Identity: {SovereignHUD.PERSONA}")
+        SovereignHUD.persona_log("INFO", f"Endurance Limit: 6 Hours (Target: {time.ctime(DAEMON_START + MAX_DURATION)})")
+
+        interval = DaemonOrchestrator.get_interval()
+        TARGET_REPOS = DaemonOrchestrator.load_target_repos()
+
+        try:
+            while SHUTDOWN.active:
+                # Check Endurance
+                if time.time() - DAEMON_START > MAX_DURATION:
+                    SovereignHUD.persona_log("SUCCESS", "Endurance Mission Complete. 6 hours achieved. Returning to Asgard.")
+                    break
+
+                if not DaemonOrchestrator._highlander_check(LOCK_FILE):
+                    break
+
+                # Hot-Swap Persona
+                prev_persona = SovereignHUD.PERSONA
+                SovereignHUD.PERSONA = DaemonOrchestrator.load_persona()
+                if prev_persona != SovereignHUD.PERSONA:
+                    SovereignHUD.persona_log("INFO", f"Persona Shift Detected: {prev_persona} -> {SovereignHUD.PERSONA}")
+
+                cycle_start = time.time()
+                SovereignHUD.persona_log("INFO", f"--- FLIGHT CYCLE START: {time.strftime('%H:%M:%S')} ---")
+
+                for repo_str in TARGET_REPOS:
+                    if not SHUTDOWN.active: break
+                    spoke = RepoSpoke(Path(repo_str), SovereignHUD.PERSONA, use_docker=use_docker)
+                    await spoke.process(_ensure_bootstrapped)
+
+                # Sleep with frequent checks
+                sleep_time = max(0, interval - (time.time() - cycle_start))
+                SovereignHUD.persona_log("INFO", f"--- CYCLE END. Recovery: {int(sleep_time)}s ---")
+
+                slept = 0
+                while slept < sleep_time and SHUTDOWN.active:
+                    if time.time() - DAEMON_START > MAX_DURATION: break
+                    if not DaemonOrchestrator._highlander_check(LOCK_FILE):
+                        SHUTDOWN.active = False
+                        break
+                    time.sleep(min(5, sleep_time - slept))
+                    slept += 5
+        finally:
+            if LOCK_FILE.exists():
+                try:
+                    if LOCK_FILE.read_text().strip() == str(os.getpid()):
+                        LOCK_FILE.unlink()
+                        SovereignHUD.persona_log("SUCCESS", "Mandate returned to the All-Father. (Lock Cleared)")
+                except (OSError, ValueError):
+                    pass
+
+# Logging
 logging.basicConfig(
     filename="sovereign_activity.log",
     level=logging.INFO,
@@ -83,183 +177,12 @@ logging.basicConfig(
     datefmt="%H:%M:%S"
 )
 
-def git_cmd(repo_path: str | Path, args: list[str]) -> str | None:
-    """Executes a git command in the target repo."""
-    try:
-        result = subprocess.run(
-            ["git", *args],
-            cwd=str(repo_path),
-            capture_output=True,
-            text=True,
-            encoding='utf-8',
-            errors='replace',
-            check=True
-        )
-        return result.stdout.strip()
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return None
-
-def is_clean(repo_path: str | Path) -> bool:
-    """Checks if the repo is clean."""
-    status = git_cmd(repo_path, ["status", "--porcelain"])
-    return status == ""
-
-def ensure_branch(repo_path: str | Path, branch_name: str = "sovereign-fish-auto") -> str | None:
-    """Switches to the dedicated automation branch."""
-    current = git_cmd(repo_path, ["branch", "--show-current"])
-    branches = git_cmd(repo_path, ["branch", "--list", branch_name])
-
-    if not branches:
-        git_cmd(repo_path, ["checkout", "-b", branch_name])
-    else:
-        git_cmd(repo_path, ["checkout", branch_name])
-
-    return current
-
-def restore_branch(repo_path: str | Path, original_branch: str | None) -> None:
-    """Restores the original branch."""
-    if original_branch:
-        git_cmd(repo_path, ["checkout", original_branch])
-
-def load_persona() -> str:
-    """Determines the active persona from config."""
-    cfg = load_config()
-    p = cfg.get("persona") or cfg.get("Persona")
-    return p.upper() if p else "ODIN"
-
-def process_repo(repo_path: Path, persona: str, use_docker: bool = False) -> bool:
-    """Performs a single cleanup cycle on a repo."""
-    repo_name = repo_path.name
-    SovereignHUD.persona_log("INFO", f"Engaging Jurisdiction: {repo_name} {' (DOCKER SANDBOX)' if use_docker else ''}")
-    if not repo_path.exists():
-        logging.warning(f"[{repo_name}] [SKIP] Path not found.")
-        return False
-
-    SovereignHUD.persona_log("INFO", f"Auditing {repo_name}...")
-
-    # 1. Dirty Check
-    if not is_clean(repo_path):
-        SovereignHUD.persona_log("WARN", f"{repo_name}: Dirty tree. Skipping to preserve user state.")
-        logging.info(f"[{repo_name}] [SKIP] Dirty working tree.")
-        return False
-
-    # 2. Isolation
-    original_branch = ensure_branch(repo_path)
-
-    try:
-        # 3. Execution — lazy imports to avoid import-time side effects
-        # 3. RUN RAVENS
-        SovereignHUD.persona_log("INFO", f"Running Ravens Protocol: {repo_name}...")
-        _ensure_bootstrapped()
-        from src.sentinel.muninn import Muninn
-        raven = Muninn(str(repo_path), use_docker=use_docker)
-        changed = raven.run()
-
-        # 4. Commit (If changed)
-        if changed:
-            ts = time.strftime("%Y-%m-%d %H:%M")
-            commit_msg = (
-                f"🧹 A.L.F.R.E.D.: Tying up loose ends [{ts}]"
-                if persona == "ALFRED"
-                else f"🦅 Ravens: Auto-improvement [{ts}]"
-            )
-
-            git_cmd(repo_path, ["add", "-A"])
-            git_cmd(repo_path, ["commit", "-m", commit_msg])
-            SovereignHUD.persona_log("SUCCESS", f"Changes Committed: {commit_msg}")
-            logging.info(f"[{repo_name}] [COMMIT] {commit_msg}")
-            return True
-        else:
-            return False
-
-    except Exception as e:
-        SovereignHUD.persona_log("ERROR", f"EXECUTION ERROR: {e}")
-        logging.error(f"[{repo_name}] [EXEC_ERROR] {e}")
-        return False
-    finally:
-        # 5. Cleanup
-        restore_branch(repo_path, original_branch)
-
-def highlander_check(lock_file: Path) -> bool:
-    """THERE CAN BE ONLY ONE. Check if we still hold the mandate."""
-    if not lock_file.exists():
-        return False
-    try:
-        owner_pid = int(lock_file.read_text().strip())
-        if owner_pid != os.getpid():
-            if psutil.pid_exists(owner_pid):
-                SovereignHUD.persona_log("WARNING", f"Highlander Protocol: PID {owner_pid} holds the Mandate. Terminating.")
-                return False
-    except (OSError, ValueError):
-        pass
-    return True
-
-def daemon_loop(lock_file_path: Path | None = None) -> None:
-    """Main daemon loop orchestrating Ravens across the Corvus Cluster."""
-    LOCK_FILE = lock_file_path or (Path(__file__).parent / "ravens.lock")
-
-    if LOCK_FILE.exists():
-        try:
-            old_pid = int(LOCK_FILE.read_text().strip())
-            if psutil.pid_exists(old_pid):
-                print(f"{Fore.RED}[ERROR] The Ravens are already in flight (PID: {old_pid}). Exiting.")
-                return
-        except (ValueError, psutil.Error):
-            pass
-
-    LOCK_FILE.write_text(str(os.getpid()), encoding='utf-8')
-
-    # Initialize
-    SovereignHUD.PERSONA = load_persona()
-    SovereignHUD.persona_log("INFO", "Ravens Automaton Initialized.")
-    SovereignHUD.persona_log("INFO", f"Identity: {SovereignHUD.PERSONA}")
-
-    interval = get_interval()
-    TARGET_REPOS = load_target_repos()
-
-    try:
-        while SHUTDOWN.active:
-            if not highlander_check(LOCK_FILE):
-                break
-
-            # Hot-Swap Persona
-            prev_persona = SovereignHUD.PERSONA
-            SovereignHUD.PERSONA = load_persona()
-            if prev_persona != SovereignHUD.PERSONA:
-                SovereignHUD.persona_log("INFO", f"Persona Shift Detected: {prev_persona} -> {SovereignHUD.PERSONA}")
-
-            cycle_start = time.time()
-            SovereignHUD.persona_log("INFO", f"--- CYCLE START: {time.strftime('%H:%M:%S')} ---")
-
-            for repo_str in TARGET_REPOS:
-                if not SHUTDOWN.active: break
-                process_repo(Path(repo_str), SovereignHUD.PERSONA, use_docker=args.docker)
-
-            # Sleep with frequent checks
-            sleep_time = max(0, interval - (time.time() - cycle_start))
-            SovereignHUD.persona_log("INFO", f"--- CYCLE END. Sleeping for {int(sleep_time)}s ---")
-
-            slept = 0
-            while slept < sleep_time and SHUTDOWN.active:
-                if not highlander_check(LOCK_FILE):
-                    SHUTDOWN.active = False
-                    break
-                time.sleep(min(5, sleep_time - slept))
-                slept += 5
-    finally:
-        if LOCK_FILE.exists():
-            try:
-                if LOCK_FILE.read_text().strip() == str(os.getpid()):
-                    LOCK_FILE.unlink()
-                    SovereignHUD.persona_log("SUCCESS", "Mandate returned to the All-Father. (Lock Cleared)")
-            except (OSError, ValueError):
-                pass
-
 if __name__ == "__main__":
     import argparse
+    import asyncio
     parser = argparse.ArgumentParser()
-    parser.add_argument("--shadow-forge", "--docker", action="store_true", help="Execute the full Ravens cycle (Hunt -> Forge -> Crucible) inside a sandboxed Docker container.")
+    parser.add_argument("--shadow-forge", "--docker", action="store_true", help="Execute the full Ravens cycle in a sandboxed Docker container.")
     args = parser.parse_args()
 
-    _LOCK_PATH = Path(__file__).parent / "ravens.lock"
-    daemon_loop(_LOCK_PATH)
+    _LOCK_PATH = PROJECT_ROOT / ".agent" / "muninn.pid"
+    asyncio.run(DaemonOrchestrator.daemon_loop(use_docker=args.shadow_forge, lock_file_path=_LOCK_PATH))

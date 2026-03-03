@@ -1,0 +1,34 @@
+---
+title: "TrajectoryList.tsx"
+path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/vis/components/TrajectoryList.tsx"
+loc: 26
+complexity: 4
+logic_score: 6.90
+style_score: 3.39
+intel_score: 2.00
+overall_score: 4.51
+---
+
+## Intent
+React component rendering TrajectoryList.
+
+## Interaction Protocol
+Include <TrajectoryList /> within a React-Three-Fiber Canvas context.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.9/10
+- **Style [S]**: 3.4/10
+- **Intel [I]**: 2.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://react)
+- [Trajectory](file://../types/index.ts)
+
+### Exports
+- `TrajectoryList`
+- `TrajectoryList`

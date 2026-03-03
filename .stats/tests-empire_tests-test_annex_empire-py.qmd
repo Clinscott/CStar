@@ -3,17 +3,20 @@ title: "test_annex_empire.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/tests/empire_tests/test_annex_empire.py"
 loc: 8
 complexity: 1
-logic_score: 8.15
+logic_score: 8.40
 style_score: 8.14
 intel_score: 1.40
 overall_score: 6.25
 ---
 
 ## Intent
-Python module facilitating test_annex_scan. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating test_annex_scan.
+
+## Interaction Protocol
+Import test_annex_scan and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 8.1/10
+- **Logic [L]**: 8.4/10
 - **Style [S]**: 8.1/10
 - **Intel [I]**: 1.4/10
 - **Gravity [G]**: 5 interactions (Agent Activity Hotspot)

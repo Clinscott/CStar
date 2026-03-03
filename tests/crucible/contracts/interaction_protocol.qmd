@@ -1,0 +1,7 @@
+Feature: Interaction Protocol
+  Scenario: PennyOne extracts interaction guidance
+    Given a Python module with complex logic
+    When the analyzer generates a report
+    Then the report MUST include an 'Interaction Protocol' section
+    And the protocol MUST provide specific instantiation guidance
+    And the guidance MUST be served via the MCP 'get_file_intent' tool

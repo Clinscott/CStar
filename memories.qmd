@@ -1,11 +1,15 @@
 ```yaml
 saved_memory:
   version: 1
-  updated: 2026-02-08
+  updated: 2026-03-02
   settings:
     enabled: true
     announce_writes: true
   items:
+    - PennyOne Sanitization: Removal of global `eslint-disable` headers is mandatory for "Signal Unmasking". Suppressing debt is not solving it.
+    - Functional Utility Standard: Prefer functional objects with async methods over utility classes to reduce AST complexity and lint friction.
+    - Tree-Sitter Precision: When analyzing polyglot exports, use precise child-field extraction to handle aliased names correctly.
+    - Anomaly Baselining: Establishing a numerical "Anomaly Baseline" (e.g., 112) provides a measurable target for autonomous repair cycles when 100% remediation is deferred.
     - Corvus Star (C*): Formerly AgLng. Plain-English-to-Workflow mapping using SovereignVector.
     - Aesthetic Standard: CLI tools must use the `SovereignHUD` class for Box-Drawing/Color/Progress output. "Text is User Interface."
     - Smart-Merge 2.0: Installation script supports section-aware merging and automatic backups.

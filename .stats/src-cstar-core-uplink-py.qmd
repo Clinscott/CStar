@@ -1,22 +1,25 @@
 ---
 title: "uplink.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/cstar/core/uplink.py"
-loc: 66
-complexity: 5
-logic_score: 3.23
-style_score: 3.90
-intel_score: 6.25
-overall_score: 5.03
+loc: 90
+complexity: 10
+logic_score: 2.35
+style_score: 3.78
+intel_score: 5.84
+overall_score: 4.28
 ---
 
 ## Intent
-Python module facilitating AntigravityUplink, __init__. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating AntigravityUplink, __init__.
+
+## Interaction Protocol
+Import AntigravityUplink and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 3.2/10
-- **Style [S]**: 3.9/10
-- **Intel [I]**: 6.2/10
-- **Gravity [G]**: 49 interactions (Agent Activity Hotspot)
+- **Logic [L]**: 2.4/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 5.8/10
+- **Gravity [G]**: 63 interactions (Agent Activity Hotspot)
 
 
 
@@ -25,10 +28,10 @@ Python module facilitating AntigravityUplink, __init__. It exists to support bro
 ### Imports
 - [asyncio](file://asyncio)
 - [json](file://json)
-- [logging](file://logging)
 - [os](file://os)
 - [sys](file://sys)
 - [time](file://time)
+- [logging](file://logging)
 - [pathlib](file://pathlib)
 - [typing](file://typing)
 
@@ -36,6 +39,7 @@ Python module facilitating AntigravityUplink, __init__. It exists to support bro
 - `AntigravityUplink`
 - `__init__`
 - `send_payload`
+- `create_payload`
 - `_transmit_socket`
 - `_spinner`
 - `query_bridge`

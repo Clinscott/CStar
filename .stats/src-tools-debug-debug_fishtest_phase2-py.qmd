@@ -1,21 +1,24 @@
 ---
 title: "debug_fishtest_phase2.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/debug/debug_fishtest_phase2.py"
-loc: 48
-complexity: 7
-logic_score: 3.82
-style_score: 3.89
-intel_score: 4.73
-overall_score: 4.44
+loc: 54
+complexity: 8
+logic_score: 2.70
+style_score: 3.83
+intel_score: 5.84
+overall_score: 4.53
 ---
 
 ## Intent
-Python module facilitating run_debug_phase2. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating FishtestDiagnostic, execute.
+
+## Interaction Protocol
+Import FishtestDiagnostic and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 3.8/10
-- **Style [S]**: 3.9/10
-- **Intel [I]**: 4.7/10
+- **Logic [L]**: 2.7/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 5.8/10
 - **Gravity [G]**: 15 interactions (Agent Activity Hotspot)
 
 
@@ -26,7 +29,9 @@ Python module facilitating run_debug_phase2. It exists to support broader Python
 - [json](file://json)
 - [pathlib](file://pathlib)
 - [typing](file://typing)
+- [sys](file://sys)
 - [src.core.engine.vector](file://src.core.engine.vector)
 
 ### Exports
-- `run_debug_phase2`
+- `FishtestDiagnostic`
+- `execute`

@@ -1,22 +1,25 @@
 ---
 title: "telemetry.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/core/telemetry.py"
-loc: 65
+loc: 63
 complexity: 3
-logic_score: 5.20
-style_score: 3.63
-intel_score: 8.17
-overall_score: 6.32
+logic_score: 5.30
+style_score: 3.61
+intel_score: 8.38
+overall_score: 5.88
 ---
 
 ## Intent
-Python module facilitating SubspaceTelemetry, flare. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating SubspaceTelemetry, flare.
+
+## Interaction Protocol
+Import SubspaceTelemetry and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 5.2/10
+- **Logic [L]**: 5.3/10
 - **Style [S]**: 3.6/10
-- **Intel [I]**: 8.2/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Intel [I]**: 8.4/10
+- **Gravity [G]**: 14 interactions (Agent Activity Hotspot)
 
 
 
@@ -27,9 +30,7 @@ Python module facilitating SubspaceTelemetry, flare. It exists to support broade
 - [os](file://os)
 - [time](file://time)
 - [requests](file://requests)
-- [typing](file://typing)
 - [pathlib](file://pathlib)
-- [json](file://json)
 - [websockets.sync.client](file://websockets.sync.client)
 
 ### Exports

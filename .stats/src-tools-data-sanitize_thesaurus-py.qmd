@@ -1,21 +1,24 @@
 ---
 title: "sanitize_thesaurus.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/data/sanitize_thesaurus.py"
-loc: 50
+loc: 53
 complexity: 9
-logic_score: 2.75
-style_score: 3.34
-intel_score: 7.80
-overall_score: 4.75
+logic_score: 2.12
+style_score: 3.33
+intel_score: 8.95
+overall_score: 4.98
 ---
 
 ## Intent
-Python module facilitating sanitize_clusters, write_thesaurus. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating ThesaurusSanitizer, sanitize_clusters.
+
+## Interaction Protocol
+Import ThesaurusSanitizer and call its primary methods.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 2.8/10
+- **Logic [L]**: 2.1/10
 - **Style [S]**: 3.3/10
-- **Intel [I]**: 7.8/10
+- **Intel [I]**: 8.9/10
 - **Gravity [G]**: 20 interactions (Agent Activity Hotspot)
 
 
@@ -26,6 +29,7 @@ Python module facilitating sanitize_clusters, write_thesaurus. It exists to supp
 - [pathlib](file://pathlib)
 
 ### Exports
+- `ThesaurusSanitizer`
 - `sanitize_clusters`
-- `write_thesaurus`
+- `execute`
 - `main`

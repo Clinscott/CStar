@@ -6,6 +6,8 @@ import { execa } from 'execa';
 /**
  * [GUNGNIR] PennyOne Command Spoke
  * Purpose: Repository intelligence, 3D visualization, and intent search.
+ * @param program
+ * @param PROJECT_ROOT
  */
 export function registerPennyOneCommand(program: Command, PROJECT_ROOT: string) {
     program

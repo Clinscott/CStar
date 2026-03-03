@@ -27,7 +27,7 @@ def main():
         print("              Rest well. The archive remains under my watch.")
 
     # A brief pause to simulate "going to sleep"
-    for i in range(3):
+    for _i in range(3):
         time.sleep(0.5)
         sys.stdout.write(".")
         sys.stdout.flush()

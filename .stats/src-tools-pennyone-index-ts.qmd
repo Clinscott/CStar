@@ -1,41 +1,46 @@
 ---
 title: "index.ts"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/pennyone/index.ts"
-loc: 73
-complexity: 10
-logic_score: 4.70
-style_score: 4.00
-intel_score: 6.38
-overall_score: 5.03
+loc: 83
+complexity: 13
+logic_score: 1.82
+style_score: 3.98
+intel_score: 6.34
+overall_score: 4.16
 ---
 
 ## Intent
 A functional component of the Corvus Star static analysis matrix.
 
+## Interaction Protocol
+Import and utilize via the standard project structure.
+
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 4.7/10
+- **Logic [L]**: 1.8/10
 - **Style [S]**: 4.0/10
-- **Intel [I]**: 6.4/10
-- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+- **Intel [I]**: 6.3/10
+- **Gravity [G]**: 34 interactions (Agent Activity Hotspot)
 
 
 
 ## Neural Pathways
 
 ### Imports
-- [crawlRepository](file://./crawler)
-- [analyzeFile](file://./analyzer)
-- [FileData](file://./analyzer)
-- [writeReport](file://./intel/writer)
-- [compileMatrix](file://./intel/compiler)
-- [CompiledGraph](file://./intel/compiler)
-- [registerSpoke](file://./intel/database)
+- [crawlRepository](file://./crawler.ts)
+- [analyzeFile](file://./analyzer.ts)
+- [FileData](file://./analyzer.ts)
+- [writeReport](file://./intel/writer.ts)
+- [compileMatrix](file://./intel/compiler.ts)
+- [CompiledGraph](file://./intel/compiler.ts)
+- [registerSpoke](file://./intel/database.ts)
+- [SemanticIndexer](file://./intel/semantic.ts)
+- [Warden](file://./intel/warden.ts)
 - [*](file://fs/promises)
 - [*](file://path)
 - [*](file://node:crypto)
-- [registry](file://./pathRegistry)
-- [SemanticIndexer](file://./intel/semantic)
-- [Warden](file://./intel/warden)
+- [registry](file://./pathRegistry.ts)
+- [activePersona](file://./personaRegistry.ts)
+- [ScanResult](file://./types.ts)
 
 ### Exports
 - `runScan`
@@ -49,6 +54,7 @@ A functional component of the Corvus Star static analysis matrix.
 - `graphPath`
 - `raw`
 - `hashMap`
+- `data`
 - `code`
 - `currentHash`
 - `normalizedPath`

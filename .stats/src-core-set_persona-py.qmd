@@ -1,16 +1,19 @@
 ---
 title: "set_persona.py"
 path: "C:/Users/Craig/Corvus/CorvusStar/src/core/set_persona.py"
-loc: 155
+loc: 156
 complexity: 22
 logic_score: 0.50
-style_score: 3.91
-intel_score: 8.11
-overall_score: 3.84
+style_score: 3.90
+intel_score: 8.07
+overall_score: 3.82
 ---
 
 ## Intent
-Python module facilitating PersonaManager, __init__. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating PersonaManager, __init__.
+
+## Interaction Protocol
+Import PersonaManager and call its primary methods.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 0.5/10

@@ -16,6 +16,16 @@ export type TraceEvent = {
     type: 'AGENT_TRACE';
     payload: AgentPing;
 } | {
-    type: 'NODE_UPDATED' | 'GRAPH_REBUILT';
+    type: 'NODE_UPDATED' | 'GRAPH_REBUILT' | 'MISSION_TRACE';
     payload: unknown;
 };
+
+export interface ScanResult {
+    path: string;
+    loc: number;
+    complexity: number;
+    matrix: unknown;
+    intent: string;
+    hash: string;
+}
+

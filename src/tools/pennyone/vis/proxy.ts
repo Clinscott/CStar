@@ -5,16 +5,18 @@ import { WebSocketServer, WebSocket } from 'ws';
 import path from 'node:path';
 import fs from 'node:fs';
 import chalk from 'chalk';
-import { registry } from '../pathRegistry.js';
-import { activePersona } from '../personaRegistry.js';
+import { registry } from '../pathRegistry.ts';
+import { activePersona } from '../personaRegistry.ts';
 import { fileURLToPath } from 'node:url';
 import crypto from 'node:crypto';
-import { savePing, saveTrace, getTracesForFile } from '../intel/database.js';
+import { savePing, saveTrace, getTracesForFile } from '../intel/database.ts';
 
 /**
  * P1 Visualization Proxy (v2.0)
  * Purpose: Lightweight static file server and WebSocket bridge for the P1 Dumb Client.
  * Mandate: Act as the "Eyes" for Muninn and other Ravens.
+ * @param targetPath
+ * @param port
  */
 export async function startProxy(targetPath: string, port: number = 4000) {
     const server = fastify({ logger: false });
@@ -141,3 +143,4 @@ export async function startProxy(targetPath: string, port: number = 4000) {
         process.exit(1);
     }
 }
+

@@ -6,6 +6,8 @@ import { execa } from 'execa';
 /**
  * [GUNGNIR] Dispatcher Spoke
  * Purpose: Handle dynamic workflow and skill discovery via Python Dispatcher.
+ * @param program
+ * @param PROJECT_ROOT
  */
 export function registerDispatcher(program: Command, PROJECT_ROOT: string) {
     const discoverAll = (): Map<string, string> => {

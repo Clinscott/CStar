@@ -1,5 +1,4 @@
 import json
-
 try:
     import msvcrt
 except ImportError:
@@ -8,13 +7,14 @@ import os
 import subprocess
 import sys
 import time
-
-# Resolve shared UI from src/core/
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "core"))
 import contextlib
 
-from src.core.sovereign_hud import SovereignHUD
+# Resolve shared UI from src/core/
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
+from src.core.sovereign_hud import SovereignHUD
 
 class StatsCollector:
     """[ALFRED] Secure statistics accumulator for federated monitoring."""
@@ -38,6 +38,13 @@ class StatsCollector:
                     stats["rejections"] = max(0, len(f.readlines()) - 3)
         except (json.JSONDecodeError, OSError): pass
         return stats
+
+    @staticmethod
+    def get_stats() -> dict[str, int]:
+        """[ALFRED] Compatibility wrapper for the test suite."""
+        base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        root = os.path.dirname(base)
+        return StatsCollector(root, base).collect()
 
 class OverwatchRenderer:
     """[ALFRED] Dashboard renderer for the Neural Overwatch TUI."""
@@ -95,7 +102,6 @@ class Overwatch:
 
     def run(self) -> None:
         self.renderer.render_header()
-        # Initial scan
         threats = self._update_heatmap()
         pulse_logs = []
         while True:
@@ -146,16 +152,19 @@ class Overwatch:
 
     def _update_heatmap(self) -> list[float]:
         """[O.D.I.N.] Scan core scripts for vulnerabilities to populate matrix."""
-        from security_scan import SecurityScanner
-        scripts_dir = os.path.join(self.base, "scripts")
-        files = [f for f in os.listdir(scripts_dir) if f.endswith(".py")][:25]
+        try:
+            from security_scan import SecurityScanner
+            scripts_dir = os.path.join(self.base, "scripts")
+            files = [f for f in os.listdir(scripts_dir) if f.endswith(".py")][:25]
 
-        matrix = [0.0] * 25
-        for i, f in enumerate(files):
-            scanner = SecurityScanner(os.path.join(scripts_dir, f))
-            scanner.scan()
-            matrix[i] = scanner.threat_score / 10.0 # Normalize 0-1
-        return matrix
+            matrix = [0.0] * 25
+            for i, f in enumerate(files):
+                scanner = SecurityScanner(os.path.join(scripts_dir, f))
+                scanner.scan()
+                matrix[i] = scanner.threat_score / 10.0 # Normalize 0-1
+            return matrix
+        except ImportError:
+            return [0.1] * 25
 
     def _get_latest_pulses(self) -> list[str]:
         """[ALFRED] Extract most recent triggers from trace artifacts."""
@@ -171,12 +180,6 @@ class Overwatch:
                     if "trigger" in data: triggers.append(data["trigger"])
             except (json.JSONDecodeError, OSError): pass
         return triggers
-
-def get_stats() -> dict[str, int]:
-    """[ALFRED] Compatibility wrapper for the test suite."""
-    base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    root = os.path.dirname(base)
-    return StatsCollector(root, base).collect()
 
 if __name__ == "__main__":
     Overwatch().run()

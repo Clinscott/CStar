@@ -4,13 +4,16 @@ path: "C:/Users/Craig/Corvus/CorvusStar/src/tools/brave_search.py"
 loc: 116
 complexity: 14
 logic_score: 1.42
-style_score: 3.85
+style_score: 3.86
 intel_score: 9.33
 overall_score: 4.85
 ---
 
 ## Intent
-Python module facilitating BraveSearch, __init__. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating BraveSearch, __init__.
+
+## Interaction Protocol
+Import BraveSearch and call its primary methods.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 1.4/10

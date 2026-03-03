@@ -143,8 +143,8 @@ def main() -> None:
 
     # [ALFRED] Ensure environment is loaded (e.g. .env.local)
     try:
-        from src.sentinel._bootstrap import bootstrap
-        bootstrap()
+        from src.sentinel._bootstrap import SovereignBootstrap
+        SovereignBootstrap.execute()
     except ImportError:
         pass
 

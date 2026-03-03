@@ -10,7 +10,10 @@ overall_score: 3.14
 ---
 
 ## Intent
-Python module facilitating OdinAdventure, __init__. It exists to support broader Python integration routines. Its role in the system is to provide foundational utilities for script execution.
+Python module facilitating OdinAdventure, __init__.
+
+## Interaction Protocol
+Import OdinAdventure and call its primary methods.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 0.7/10
@@ -33,6 +36,7 @@ Python module facilitating OdinAdventure, __init__. It exists to support broader
 - [typing](file://typing)
 - [src.core.sovereign_hud](file://src.core.sovereign_hud)
 - [src.games.odin_protocol.engine](file://src.games.odin_protocol.engine)
+- [src.games.odin_protocol.ui](file://src.games.odin_protocol.ui)
 - [src.games.odin_protocol.engine.logic](file://src.games.odin_protocol.engine.logic)
 - [odin_protocol.engine.logic](file://odin_protocol.engine.logic)
 - [src.cstar.core.client](file://src.cstar.core.client)

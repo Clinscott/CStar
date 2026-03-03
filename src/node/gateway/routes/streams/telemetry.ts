@@ -1,6 +1,10 @@
 import { FastifyInstance } from 'fastify';
 import { Transform } from 'stream';
 
+/**
+ *
+ * @param fastify
+ */
 export default async function (fastify: FastifyInstance) {
     fastify.get('/telemetry', (request, reply) => {
         const { corvus } = fastify;
@@ -43,3 +47,4 @@ export default async function (fastify: FastifyInstance) {
         reply.send(sseStream);
     });
 }
+
