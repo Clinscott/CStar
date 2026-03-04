@@ -1,13 +1,13 @@
 {
-    "seed": "EDGE_TEST",
+    "seed": "TEST_SEED",
     "player_name": "Odin",
-    "domination_percent": 100.0,
-    "max_percent_reached": 100.0,
+    "domination_percent": 10.8,
+    "max_percent_reached": 10.8,
     "total_worlds_conquered": 0,
     "planets_dominated": 0,
     "mutation_charges": 0,
     "total_turns_played": 0,
-    "last_processed_trace_id": 128,
+    "last_processed_trace_id": 139,
     "force": 100.0,
     "current_planet_name": null,
     "current_planet_progress": 0.0,
@@ -26,5 +26,5 @@
     "inventory": {},
     "items": [],
     "conquests": [],
-    "last_updated": 1772538887.225801
+    "last_updated": 1772621302.0841048
 }
