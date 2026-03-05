@@ -1,8 +1,0 @@
-{
-  "query": "play the game",
-  "match": "python odin_protocol/main.py",
-  "score": 1.1,
-  "is_global": false,
-  "persona": "ALFRED",
-  "timestamp": "unknown"
-}
