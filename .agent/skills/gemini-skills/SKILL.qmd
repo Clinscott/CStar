@@ -1,0 +1,7 @@
+---
+name: gemini-skills
+description: A library of skills for the Gemini API, SDK and model interactions.
+---
+# gemini-skills
+
+Imported from https://github.com/google-gemini/gemini-skills
