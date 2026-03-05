@@ -20,11 +20,16 @@ export async function crawlRepository(targetPath: string): Promise<string[]> {
         '.agent' + path.sep + 'temp_hunt',
         '.agent' + path.sep + 'vault',
         '.agent' + path.sep + 'traces',
+        '.agent' + path.sep + 'memory',
         'tests' + path.sep + 'gauntlet',
         '.stats',
         '.quarto',
         '__pycache__',
         '.git',
+        '.pytest_cache',
+        '.ruff_cache',
+        'dist',
+        'build',
         'skills_db'
     ];
 

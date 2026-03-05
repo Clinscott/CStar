@@ -119,15 +119,16 @@ server.tool(
 
 server.tool(
     'scan_repository',
-    'Perform a full structural scan of the repository. Returns Gungnir scores and file metadata.',
+    'Perform a structural scan of the repository. Returns Gungnir scores and file metadata.',
     {
         path: z.string().optional().default('.').describe('The root path to scan'),
+        incremental: z.boolean().optional().default(true).describe('Only scan modified files (MD5 check)'),
     },
-    async ({ path: scanPath }) => {
+    async ({ path: scanPath, incremental }) => {
         const missionId = `P1-SCAN-${Date.now()}`;
-        await logTrace(missionId, 'ORCHESTRATION', 'STARTED', `Scanning repository at ${scanPath}.`);
+        await logTrace(missionId, 'ORCHESTRATION', 'STARTED', `Scanning repository at ${scanPath} (Incremental: ${incremental}).`);
         try {
-            const results = await runScan(scanPath);
+            const results = await runScan(scanPath, !incremental);
             await logTrace(missionId, 'ORCHESTRATION', 'SUCCESS', `Repository scan complete.`);
             return {
                 content: [{ 
