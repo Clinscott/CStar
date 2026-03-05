@@ -136,7 +136,7 @@ class WildHunt:
         # 2. Invoke Shadow Forge for security analysis
         try:
             from src.sentinel.wardens.shadow_forge import ShadowForgeWarden
-            warden = ShadowForgeWarden(self.root)
+            ShadowForgeWarden(self.root)
             # Override target to run the new skill in isolation
             # For this MVP, we assume ShadowForge validates it and we move it if successful
             SovereignHUD.persona_log("HEIMDALL", f"Subjecting {skill_name} to the Shadow Forge...")

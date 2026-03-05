@@ -1,0 +1,33 @@
+---
+title: "test_file.ts"
+path: "C:\Users\Craig\Corvus\CorvusStar\sandbox_test_pennyone\test_file.ts"
+loc: 1
+complexity: 1
+logic_score: 9.82
+style_score: 10.00
+intel_score: 2.00
+overall_score: 6.47
+---
+
+## Intent
+Mocked intent
+
+## Interaction Protocol
+Mocked protocol
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.8/10
+- **Style [S]**: 10.0/10
+- **Intel [I]**: 2.0/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+Minimal internal dependencies.
+
+### Exports
+- `x`
+- `x`

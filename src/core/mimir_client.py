@@ -60,7 +60,7 @@ class MimirClient:
             print(f"[ERROR] Mimir Client failed to call {server}.{tool}: {e}", file=sys.stderr)
             return None
 
-    async def get_file_intent(self, filepath: str) -> Optional[str]:
+    async def get_file_intent(self, filepath: str) -> str | None:
         """Convenience method to fulfill the Omniscience Mandate."""
         res = await self.call_tool("pennyone", "get_file_intent", {"filepath": filepath})
         if res and not res.isError:
@@ -68,7 +68,7 @@ class MimirClient:
             return res.content[0].text
         return None
 
-    async def search_well(self, query: str) -> Optional[str]:
+    async def search_well(self, query: str) -> str | None:
         """Queries Mimir's Well for ranked intents."""
         res = await self.call_tool("pennyone", "search_by_intent", {"query": query})
         if res and not res.isError:
@@ -80,7 +80,7 @@ class MimirClient:
         res = await self.call_tool("pennyone", "index_sector", {"filepath": filepath})
         return res and not res.isError
 
-    async def think(self, query: str, system_prompt: Optional[str] = None) -> Optional[str]:
+    async def think(self, query: str, system_prompt: str | None = None) -> str | None:
         """Delegates high-fidelity thinking to the Host Oracle via MCP Sampling."""
         args = {"query": query}
         if system_prompt:

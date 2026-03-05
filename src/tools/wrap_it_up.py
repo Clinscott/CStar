@@ -302,7 +302,7 @@ def main() -> None:
         # 4. (Ravens update attributes during their run)
         
         # 5. Test Suite & Fixes
-        success = wrapper.run_gungnir_gate()
+        wrapper.run_gungnir_gate()
         
         # 6. Ingest & Final Scan
         stats = wrapper.synchronize_state()

@@ -63,7 +63,7 @@ class GhostWarden(BaseWarden):
                 
                 if loose_lines / len(lines) > 0.4:
                     score -= 0.2
-                    reasons.append(f"Low Semicolon Density (Loose Heuristic)")
+                    reasons.append("Low Semicolon Density (Loose Heuristic)")
 
         # 3. Indentation Complexity (Python/TS)
         # Deeply nested code is often a sign of agent hallucinations or "nesting-collapse"
