@@ -1,7 +1,7 @@
 import sqlite3
 import re
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional, Any
 
 class NornCoordinator:
     """
@@ -59,7 +59,7 @@ class NornCoordinator:
             conn.commit()
         return inserted
 
-    def get_next_bead(self, agent_id: str) -> Optional[Dict[str, Any]]:
+    def get_next_bead(self, agent_id: str) -> dict[str, Any] | None:
         """Claims the highest priority OPEN bead for the given agent."""
         self._init_db()
         with self._get_conn() as conn:

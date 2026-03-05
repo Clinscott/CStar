@@ -2,7 +2,7 @@ import asyncio
 import json
 import os
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Any
 
 import sys
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
@@ -26,12 +26,12 @@ class RecreateChapterPipeline:
                 bible_content.append(f.read_text(encoding='utf-8'))
         return "\n\n".join(bible_content)
 
-    def load_state(self) -> Dict[str, Any]:
+    def load_state(self) -> dict[str, Any]:
         if self.state_file.exists():
             return json.loads(self.state_file.read_text(encoding='utf-8'))
         return {}
 
-    def save_state(self, state: Dict[str, Any]):
+    def save_state(self, state: dict[str, Any]):
         self.state_file.write_text(json.dumps(state, indent=2), encoding='utf-8')
 
     def load_character_contract(self, character_name: str) -> str:
@@ -40,7 +40,7 @@ class RecreateChapterPipeline:
             return contract_path.read_text(encoding='utf-8')
         return ""
 
-    async def step_1_director(self, scenario: str, details: str, conclusion: str, state: Dict[str, Any]) -> str:
+    async def step_1_director(self, scenario: str, details: str, conclusion: str, state: dict[str, Any]) -> str:
         """The Director outlines the physical blocking and turn order."""
         SovereignHUD.persona_log("INFO", "[DIRECTOR] Blocking the scene...")
         prompt = (
@@ -55,7 +55,7 @@ class RecreateChapterPipeline:
         response = await self.uplink.send_payload(prompt, {"persona": "ODIN"})
         return response.get("data", {}).get("raw", "") if response.get("status") == "success" else ""
 
-    async def step_2_characters(self, blocking: str, characters_involved: List[str]) -> Dict[str, str]:
+    async def step_2_characters(self, blocking: str, characters_involved: list[str]) -> dict[str, str]:
         """Ask each character how they react based on their Gherkin contract."""
         SovereignHUD.persona_log("INFO", "[ACTORS] Generating independent character reactions...")
         reactions = {}
@@ -74,7 +74,7 @@ class RecreateChapterPipeline:
                 reactions[char] = response["data"]["raw"]
         return reactions
 
-    async def step_3_narrator(self, scenario: str, blocking: str, reactions: Dict[str, str], world_bible: str) -> str:
+    async def step_3_narrator(self, scenario: str, blocking: str, reactions: dict[str, str], world_bible: str) -> str:
         """The Narrator weaves the blocking and independent reactions into mythic prose."""
         SovereignHUD.persona_log("INFO", "[NARRATOR] Weaving prose...")
         narrator_contract = (self.voices_dir / "narrator.feature").read_text(encoding='utf-8')
@@ -93,7 +93,7 @@ class RecreateChapterPipeline:
         response = await self.uplink.send_payload(prompt, {"persona": "TALIESIN"})
         return response.get("data", {}).get("raw", "") if response.get("status") == "success" else ""
 
-    async def step_4_auditor(self, prose: str, characters_involved: List[str]) -> bool:
+    async def step_4_auditor(self, prose: str, characters_involved: list[str]) -> bool:
         """The Auditor checks if the prose violated any character contracts."""
         SovereignHUD.persona_log("INFO", "[AUDITOR] Checking cohesion...")
         contracts = "\n".join([self.load_character_contract(c) for c in characters_involved])
@@ -116,7 +116,7 @@ class RecreateChapterPipeline:
                 return False
         return False
 
-    async def step_5_update_state(self, prose: str, state: Dict[str, Any]) -> Dict[str, Any]:
+    async def step_5_update_state(self, prose: str, state: dict[str, Any]) -> dict[str, Any]:
         """Update the JSON state tracker based on the events in the prose."""
         SovereignHUD.persona_log("INFO", "[MATRIX] Updating Synaptic State...")
         prompt = (
@@ -136,7 +136,7 @@ class RecreateChapterPipeline:
             except: pass
         return state
 
-    async def run_pipeline(self, scenario: str, details: str, conclusion: str, characters_involved: List[str]):
+    async def run_pipeline(self, scenario: str, details: str, conclusion: str, characters_involved: list[str]):
         SovereignHUD.box_top("🎭 AUTONOMIC NARRATIVE ENGINE")
         
         world_bible = self.load_world_bible()

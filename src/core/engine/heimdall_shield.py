@@ -1,6 +1,9 @@
 import re
 import shlex
-from typing import List, Tuple
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    pass
+# Standard library built-ins list and tuple are used for type hinting.
 
 class ShieldTrip(Exception):
     """Raised when Heimdall's Shield detects a destructive command."""
@@ -33,7 +36,7 @@ class HeimdallShield:
     def __init__(self):
         self.compiled_patterns = [re.compile(p) for p in self.DESTRUCTIVE_PATTERNS]
 
-    def evaluate_command(self, cmd: str | List[str]) -> Tuple[bool, str]:
+    def evaluate_command(self, cmd: str | list[str]) -> tuple[bool, str]:
         """
         Evaluates a shell command against the destructive patterns.
         Returns (is_safe, reason).
@@ -47,7 +50,7 @@ class HeimdallShield:
                 
         return True, "Command is safe."
 
-    def enforce(self, cmd: str | List[str]) -> None:
+    def enforce(self, cmd: str | list[str]) -> None:
         """
         Evaluates the command and raises ShieldTrip if it is destructive.
         """

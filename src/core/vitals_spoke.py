@@ -7,7 +7,7 @@ Purpose: Aggregates system health, traces, and suggestions for the HUD.
 import json
 import sys
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any
 
 # Bootstrap pathing
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
@@ -16,7 +16,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from src.cstar.core.rpc import SovereignRPC
 
-def get_vitals() -> Dict[str, Any]:
+def get_vitals() -> dict[str, Any]:
     """Retrieves the current system vitals from the RPC engine."""
     rpc = SovereignRPC(PROJECT_ROOT)
     try:

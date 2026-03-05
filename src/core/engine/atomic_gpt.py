@@ -9,7 +9,7 @@ import json
 import asyncio
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 import numpy as np
 from src.core.mimir_client import mimir
@@ -57,7 +57,7 @@ class BaseWarden:
         except:
             return 0.5
 
-    def forward(self, x: List[float]) -> float:
+    def forward(self, x: list[float]) -> float:
         raise NotImplementedError
 
 
@@ -87,7 +87,7 @@ class AnomalyWarden(BaseWarden):
 
         self.load()
 
-    def forward(self, x: List[float]) -> float:
+    def forward(self, x: list[float]) -> float:
         x_raw = np.array(x, dtype=float).reshape(1, -1)
         x_norm = self._normalize(x_raw)
         h = self.relu(x_norm @ self.W1 + self.b1)
@@ -98,7 +98,7 @@ class AnomalyWarden(BaseWarden):
         out = self.sigmoid(h @ self.W2 + self.b2)
         return float(out[0, 0])
 
-    def train_step(self, x: List[float], y: float, lr: float = 0.01) -> None:
+    def train_step(self, x: list[float], y: float, lr: float = 0.01) -> None:
         if not self.is_training: return
 
         x_raw = np.array(x, dtype=float).reshape(1, -1)

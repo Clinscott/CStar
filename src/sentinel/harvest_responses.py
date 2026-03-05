@@ -14,7 +14,7 @@ import os
 import sys
 import time
 from pathlib import Path
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 # Bootstrap
 from src.sentinel._bootstrap import SovereignBootstrap

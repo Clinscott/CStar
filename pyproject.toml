@@ -56,7 +56,8 @@ exclude = [
     "tmp_diag",
     "mock_project",
     "sterileAgent",
-    ".corvus_quarantine"
+    ".corvus_quarantine",
+    "skills_db"
 ]
 
 [tool.ruff.lint]

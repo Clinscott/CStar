@@ -8,7 +8,7 @@ import os
 import sys
 import json
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any
 
 class SterlingAuditor:
     """Orchestrates the verification of the Sterling Mandate Triad."""
@@ -19,14 +19,13 @@ class SterlingAuditor:
         self.unit_dir_py = self.root / "tests" / "unit"
         self.unit_dir_ts = self.root / "tests" / "node"
 
-    def audit_file(self, file_path: str) -> Dict[str, Any]:
+    def audit_file(self, file_path: str) -> dict[str, Any]:
         """Performs a multi-tiered audit on a single source file."""
         abs_path = Path(file_path).resolve()
         if not abs_path.exists():
             return {"error": f"File not found: {file_path}"}
 
         rel_path = abs_path.relative_to(self.root)
-        file_name = abs_path.name
         is_ts = abs_path.suffix in [".ts", ".tsx"]
         is_py = abs_path.suffix == ".py"
 

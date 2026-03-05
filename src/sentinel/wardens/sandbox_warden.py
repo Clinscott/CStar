@@ -86,8 +86,7 @@ class SandboxWarden:
                 return True
                 
         except subprocess.CalledProcessError as e:
-            SovereignHUD.persona_log("HEIMDALL", f"Sandbox Execution Failed (Exit Code: {e.returncode})
-{e.stderr}")
+            SovereignHUD.persona_log("HEIMDALL", f"Sandbox Execution Failed (Exit Code: {e.returncode})\n{e.stderr}")
             return False
         finally:
             # Cleanup shadow workspace
@@ -104,8 +103,7 @@ class SandboxWarden:
             self._promote_skill(skill_path)
             return True
         except subprocess.CalledProcessError as e:
-            SovereignHUD.persona_log("HEIMDALL", f"3-Way Patching Failed due to codebase drift. Conflict resolution required.
-{e.stderr}")
+            SovereignHUD.persona_log("HEIMDALL", f"3-Way Patching Failed due to codebase drift. Conflict resolution required.\n{e.stderr}")
             return False
         finally:
             if patch_file.exists():
