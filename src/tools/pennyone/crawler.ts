@@ -24,7 +24,8 @@ export async function crawlRepository(targetPath: string): Promise<string[]> {
         '.stats',
         '.quarto',
         '__pycache__',
-        '.git'
+        '.git',
+        'skills_db'
     ];
 
     try {
