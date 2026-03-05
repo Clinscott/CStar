@@ -15,6 +15,9 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
+def verify_system_integrity() -> bool:
+    return IntegrityVerifier.verify()
+
 class IntegrityVerifier:
     """[O.D.I.N.] Orchestration logic for system integrity verification."""
 

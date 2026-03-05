@@ -2,8 +2,9 @@ import { crawlRepository } from './crawler.ts';
 import { analyzeFile, FileData } from './analyzer.ts';
 import { writeReport } from './intel/writer.ts';
 import { compileMatrix, CompiledGraph } from './intel/compiler.ts';
-import { registerSpoke } from './intel/database.ts';
+import { registerSpoke, updateFtsIndex } from './intel/database.ts';
 import { SemanticIndexer } from './intel/semantic.ts';
+import { ChronicleIndexer } from './intel/chronicle.ts';
 import { Warden } from './intel/warden.ts';
 import fs from 'fs/promises';
 import path from 'path';
@@ -12,7 +13,71 @@ import { registry } from './pathRegistry.ts';
 import { activePersona } from './personaRegistry.ts';
 import { ScanResult } from './types.ts';
 import { defaultProvider } from './intel/llm.ts';
+import chalk from 'chalk';
 
+
+/**
+ * Targeted Incremental Scan (The Sector Strike)
+ * Purpose: Re-analyze a single file and update the global matrix.
+ * @param {string} filePath - Path to the file to re-index
+ * @returns {Promise<FileData | null>} The analyzed data
+ */
+export async function indexSector(filePath: string): Promise<FileData | null> {
+    try {
+        const absolutePath = path.resolve(filePath);
+        const normalizedPath = registry.normalize(absolutePath);
+        const code = await fs.readFile(absolutePath, 'utf-8');
+        const currentHash = crypto.createHash('md5').update(code).digest('hex');
+
+        // 1. Local Analysis
+        const data = await analyzeFile(code, absolutePath);
+        
+        // 2. Semantic Analysis (Targeted)
+        const indexer = new SemanticIndexer(path.dirname(absolutePath));
+        const semanticGraph = await indexer.index();
+        const semanticData = semanticGraph.files.find(f => registry.normalize(f.path) === normalizedPath);
+        
+        if (semanticData) {
+            data.matrix.logic = (data.matrix.logic + semanticData.logic) / 2;
+            data.dependencies = semanticData.dependencies;
+        }
+
+        // 3. Intelligence (Intent)
+        console.error(`[ALFRED] Analyzing intelligence for sector ${normalizedPath}...`);
+        const [{ intent, interaction }] = await defaultProvider.getBatchIntent([{ code, data }]);
+        data.intent = intent;
+        data.interaction_protocol = interaction;
+        data.hash = currentHash;
+
+        // 4. Global Memory Update (SQLite)
+        updateFtsIndex(absolutePath, intent, interaction);
+
+        // 5. Hot-patch matrix-graph.json
+        const statsDir = path.join(registry.getRoot(), '.stats');
+        const graphPath = path.join(statsDir, 'matrix-graph.json');
+        
+        try {
+            const raw = await fs.readFile(graphPath, 'utf-8');
+            const graph: CompiledGraph = JSON.parse(raw);
+            const index = graph.files.findIndex(f => registry.normalize(f.path) === normalizedPath);
+            
+            if (index !== -1) {
+                graph.files[index] = data as any;
+            } else {
+                graph.files.push(data as any);
+            }
+            
+            await fs.writeFile(graphPath, JSON.stringify(graph, null, 2));
+        } catch (e) {
+            console.warn(`[WARNING] Failed to hot-patch matrix-graph.json: ${e}`);
+        }
+
+        return data;
+    } catch (error) {
+        console.error(`[ERROR] Failed to index sector ${filePath}:`, error);
+        return null;
+    }
+}
 
 /**
  * Main Execution Entry Point (Operation PennyOne)
@@ -23,6 +88,10 @@ import { defaultProvider } from './intel/llm.ts';
 export async function runScan(targetPath: string, force = false): Promise<FileData[]> {
     // [Ω] Register this spoke in the central database
     registerSpoke(targetPath);
+
+    // Phase 0: Chronicle Ingestion (One Mind)
+    const chronicles = new ChronicleIndexer();
+    await chronicles.index();
 
     // Phase 3: Semantic Pass (Global Registry)
     const indexer = new SemanticIndexer(targetPath);
@@ -65,6 +134,9 @@ export async function runScan(targetPath: string, force = false): Promise<FileDa
 
             const existing = hashMap.get(normalizedPath);
             if (!force && existing && existing.hash === currentHash) {
+                // [🔱] Sync cached intent to FTS
+                updateFtsIndex(file, existing.intent || '...', existing.interaction_protocol || 'Standard');
+
                 analyzedFiles.push({
                     code,
                     data: {
@@ -94,13 +166,13 @@ export async function runScan(targetPath: string, force = false): Promise<FileDa
         }
     }
 
-    // Phase 2: Batch Intelligence (Optimized for 600+ files)
+    // Phase 2: High-Fidelity Intelligence (Batch Size 5 for balanced reliability)
     const filesNeedingIntent = analyzedFiles.filter(af => af.needsIntent);
-    const BATCH_SIZE = 10;
+    const BATCH_SIZE = 5;
 
     for (let i = 0; i < filesNeedingIntent.length; i += BATCH_SIZE) {
         const batch = filesNeedingIntent.slice(i, i + BATCH_SIZE);
-        console.log(`[ALFRED] Analyzing intelligence for batch ${Math.floor(i/BATCH_SIZE) + 1} of ${Math.ceil(filesNeedingIntent.length/BATCH_SIZE)}...`);
+        console.error(`[ALFRED] Analyzing intelligence for batch ${Math.floor(i/BATCH_SIZE) + 1} of ${Math.ceil(filesNeedingIntent.length/BATCH_SIZE)}...`);
         
         try {
             const batchIntents = await defaultProvider.getBatchIntent(batch.map(b => ({ code: b.code, data: b.data })));
@@ -112,9 +184,14 @@ export async function runScan(targetPath: string, force = false): Promise<FileDa
                 const { intent, interaction } = await writeReport(fileData, targetPath, batch[j].code, intentData);
                 fileData.intent = intent;
                 fileData.interaction_protocol = interaction;
+
+                // [🔱] WELL OF MIMIR: Update FTS Index
+                updateFtsIndex(fileData.path, intent, interaction);
             }
-        } catch (e) {
-            console.error(`[ERROR] Batch processing failed: ${e}`);
+        } catch (e: any) {
+            console.error(chalk.red(`[CRITICAL FAILURE] Intelligence scan aborted: ${e.message}`));
+            // Re-throw to halt the entire scan process as per mandate
+            throw e;
         }
     }
 

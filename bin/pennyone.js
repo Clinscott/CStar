@@ -4,9 +4,11 @@ import chalk from 'chalk';
 import { runScan } from '../src/tools/pennyone/index.ts';
 import { P1Daemon } from '../src/tools/pennyone/daemon.ts';
 import { startProxy } from '../src/tools/pennyone/vis/proxy.ts';
+import { searchMatrix } from '../src/tools/pennyone/live/search.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import { registry } from '../src/tools/pennyone/pathRegistry.ts';
+import { ANS } from '../src/node/core/ans.ts';
 
 const program = new Command();
 
@@ -130,6 +132,33 @@ program
             console.error(chalk.red('[ALFRED]: "I am afraid I could not complete the cleaning, sir."'), err);
         }
     });
+
+program
+    .command('search')
+    .description('Query the Well of Mimir for repository intelligence')
+    .argument('<query>', 'Search query')
+    .argument('[path]', 'Target directory', '.')
+    .action(async (query, target) => {
+        await searchMatrix(query, target);
+    });
+
+program
+    .command('mcp')
+    .description('Explain the Model Context Protocol (MCP) integration')
+    .action(() => {
+        console.log(chalk.cyan('\n ◤ THE BIFROST BRIDGE: MCP DOCUMENTATION ◢ '));
+        console.log(chalk.white(' PennyOne is exposed via the "pennyone" MCP server.'));
+        console.log(chalk.white('\n Available Tools:'));
+        console.log(chalk.yellow('  ◈ search_by_intent: ') + chalk.dim('High-fidelity FTS5 search of Mimir\'s Well.'));
+        console.log(chalk.yellow('  ◈ get_file_intent:  ') + chalk.dim('Retrieve the intent and protocol for a specific file.'));
+        console.log(chalk.yellow('  ◈ index_sector:     ') + chalk.dim('Trigger an incremental scan of a single file.'));
+        console.log(chalk.yellow('  ◈ get_technical_debt: ') + chalk.dim('Retrieve the current Sterling Mandate ledger.'));
+        console.log(chalk.cyan('\n [MANDATE]: Agents MUST use these tools before performing generic shell searches.\n'));
+    });
+
+program.hook('preAction', async () => {
+    await ANS.wake();
+});
 
 program.parse();
 

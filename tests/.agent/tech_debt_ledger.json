@@ -1,0 +1,1 @@
+{"top_targets": [{"file": "src/core/test_connection.py", "priority": "CRITICAL", "justification": "[TEST] Connection Verification", "target_metric": "LOGIC", "metrics": {"gravity": 100, "logic": 2.5}}]}

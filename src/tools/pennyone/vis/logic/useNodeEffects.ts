@@ -23,17 +23,19 @@ export function useNodeEffects() {
         hovered: { type: string, id: number } | null, 
         selectedNode: Node | null, 
         links: any[],
-        index: number
+        index: number,
+        allNodesOfType: Node[] // Pass in the array of nodes to resolve instanceId
     ) => {
-        const activeNodeId = selectedNode?.id || (hovered ? (hovered.type === type ? hovered.id : null) : null);
+        // Resolve the hovered node's actual ID (path) from its instanceId
+        const hoveredNodeId = hovered && hovered.type === type ? allNodesOfType[hovered.id]?.id : null;
+        const activeNodeId = selectedNode?.id || hoveredNodeId;
         
         let isNeighbor = false;
-        if (activeNodeId !== null) {
+        if (activeNodeId) {
             isNeighbor = !!(links || []).find(l => {
                 const sId = (l.source as any).id || (l.source as string);
                 const tId = (l.target as any).id || (l.target as string);
-                const targetId = typeof activeNodeId === 'number' ? 'PENDING' : activeNodeId; 
-                return (sId === targetId && tId === node.id) || (tId === targetId && sId === node.id);
+                return (sId === activeNodeId && tId === node.id) || (tId === activeNodeId && sId === node.id);
             });
         }
 

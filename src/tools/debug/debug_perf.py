@@ -16,6 +16,9 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from src.core.engine.vector import SovereignVector
 
+def run_profile() -> None:
+    return PerformanceProfiler.execute()
+
 class PerformanceProfiler:
     """[O.D.I.N.] Orchestration logic for neural engine performance profiling."""
 

@@ -26,6 +26,9 @@ except ImportError:
         @staticmethod
         def box_bottom() -> None: print("------")
 
+def optimize_file(file_path: str) -> None:
+    return LightningOrchestrator.execute(file_path)
+
 class LightningOrchestrator:
     """[ALFRED] Orchestration logic for file optimization diagnostics."""
 

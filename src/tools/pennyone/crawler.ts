@@ -1,40 +1,62 @@
-import glob from 'fast-glob';
+import { execa } from 'execa';
+import path from 'node:path';
+import * as fsSync from 'node:fs';
 
 /**
- * [ALFRED]: "The crawler is calibrated to ignore the Python Paradox, sir. 
- * We now observe the polyglot landscape, including documentation and workflows, 
- * while maintaining a strict perimeter around our own telemetry."
+ * [ALFRED]: "The crawler is now calibrated for high-fidelity intelligence, sir.
+ * We prioritize the Neural Matrix: Core Source, Mechanical Tools, and Validating Tests.
+ * We surgically excise the 'Ephemeral Bloat'—transient memory, caches, and side-effects."
  * @param {string} targetPath - Path to crawl
  * @returns {Promise<string[]>} File paths
  */
 export async function crawlRepository(targetPath: string): Promise<string[]> {
-    const ignore = [
-        '**/node_modules/**',
-        '**/.git/**',
-        '**/dist/**',
-        '**/build/**',
-        '**/.next/**',
-        '**/coverage/**',
-        '**/.venv/**',
-        '**/__pycache__/**',
-        '**/.tox/**',
-        '**/.pytest_cache/**',
-        '**/.ruff_cache/**',
-        '**/.stats/**',
-        '**/.quarto/**',
-        '**/.agent/vault/**',
-        '**/*.stats.qmd',
-        '**/*.min.js',
-        '**/*.bundle.js',
+    const allowedExtensions = new Set(['.js', '.ts', '.jsx', '.tsx', '.py', '.md', '.qmd']);
+
+    // Patterns that signify transient/bloat data
+    const bloatPatterns = [
+        `${path.sep}tmp_`,
+        `${path.sep}temp_`,
+        'node_modules',
+        '.agent' + path.sep + 'temp_hunt',
+        '.agent' + path.sep + 'vault',
+        '.agent' + path.sep + 'traces',
+        'tests' + path.sep + 'gauntlet',
+        '.stats',
+        '.quarto',
+        '__pycache__',
+        '.git'
     ];
 
-    const patterns = [
-        `${targetPath.replace(/\\/g, '/')}/**/*.{js,ts,jsx,tsx,py,md,qmd}`,
-    ];
+    try {
+        const { stdout } = await execa('git', [
+            'ls-files',
+            '--cached',
+            '--others',
+            '--exclude-standard',
+            targetPath
+        ]);
 
-    return glob(patterns, {
-        ignore,
-        absolute: true,
-    });
+        const files = stdout.split('\n')
+            .filter(f => f.trim() !== '')
+            .map(f => f.trim())
+            .map(f => path.resolve(process.cwd(), f))
+            .filter(f => {
+                // 1. Check Extension
+                const ext = path.extname(f).toLowerCase();
+                if (!allowedExtensions.has(ext)) return false;
+
+                // 2. Check for bloat patterns
+                const isBloat = bloatPatterns.some(p => f.includes(p));
+                if (isBloat) return false;
+
+                // 3. Verify physical existence (Git index might be stale)
+                return fsSync.existsSync(f);
+            });
+
+        return files;
+    } catch (error) {
+        console.warn('[ALFRED]: "Git integration failed. Operation PennyOne standing down on crawl."');
+        return [];
+    }
 }
 

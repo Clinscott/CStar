@@ -9,6 +9,9 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+def log_feedback(score: int, comment: str, target_file: str = "unknown") -> None:
+    return FeedbackOrchestrator.execute(score, comment, target_file)
+
 class FeedbackOrchestrator:
     """[O.D.I.N.] Orchestration logic for user-driven logic feedback and regression capture."""
 

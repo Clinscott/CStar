@@ -1,7 +1,7 @@
 import * as chokidar from 'chokidar';
 import path from 'node:path';
 import fs from 'node:fs';
-import { runScan } from './index.ts';
+import { runScan, indexSector } from './index.ts';
 import { registry } from './pathRegistry.ts';
 import chalk from 'chalk';
 import { activePersona } from './personaRegistry.ts';
@@ -17,6 +17,8 @@ export class P1Daemon {
     private statsDir: string;
     private pidFile: string;
     private isScanning: boolean = false;
+    private debounceTimer: NodeJS.Timeout | null = null;
+    private pendingChanges: Set<string> = new Set();
 
     constructor(targetPath: string) {
         this.targetPath = path.resolve(targetPath);
@@ -42,7 +44,7 @@ export class P1Daemon {
         console.log(chalk.cyan(`
 ${activePersona.prefix}: "P1 Daemon ignited. Monitoring neural pathways in ${this.targetPath}..."`));
 
-        // Initial Scan
+        // Initial Full Scan
         await this.triggerScan();
 
         // Initialize Watcher
@@ -52,7 +54,9 @@ ${activePersona.prefix}: "P1 Daemon ignited. Monitoring neural pathways in ${thi
                 '**/node_modules/**',
                 '**/.stats/**',
                 '**/dist/**',
-                '**/build/**'
+                '**/build/**',
+                '**/.agent/traces/**',
+                '**/.agent/vault/**'
             ],
             persistent: true,
             ignoreInitial: true,
@@ -64,13 +68,62 @@ ${activePersona.prefix}: "P1 Daemon ignited. Monitoring neural pathways in ${thi
 
         this.watcher.on('all', async (event: string, filePath: string) => {
             const relPath = path.relative(this.targetPath, filePath);
-            console.log(chalk.dim(`[P1 EVENT]: ${event.toUpperCase()} ${relPath}`));
-            await this.triggerScan();
+            const allowedExts = ['.js', '.ts', '.jsx', '.tsx', '.py', '.md', '.qmd'];
+            const ext = path.extname(filePath).toLowerCase();
+
+            if (!allowedExts.includes(ext)) return;
+
+            if (event === 'unlink') {
+                console.log(chalk.dim(`[P1 EVENT]: ${event.toUpperCase()} ${relPath}`));
+                await this.triggerScan(); // Full scan to clean up graph on delete
+                return;
+            }
+
+            if (event === 'change' || event === 'add') {
+                this.pendingChanges.add(filePath);
+                
+                if (this.debounceTimer) clearTimeout(this.debounceTimer);
+                
+                this.debounceTimer = setTimeout(async () => {
+                    const changes = Array.from(this.pendingChanges);
+                    this.pendingChanges.clear();
+                    
+                    console.log(chalk.dim(`[P1 EVENT]: Processing batch of ${changes.length} changes...`));
+                    for (const fp of changes) {
+                        await this.triggerSectorIndex(fp);
+                    }
+                }, 2000);
+            }
         });
 
         // Handle process termination
         process.on('SIGINT', () => this.stop());
         process.on('SIGTERM', () => this.stop());
+    }
+
+    /**
+     * Targeted indexing of a single modified sector
+     */
+    private async triggerSectorIndex(filePath: string) {
+        try {
+            const result = await indexSector(filePath);
+            if (result) {
+                const link = new CortexLink();
+                await link.sendCommand('MATRIX_UPDATED');
+
+                // [🔱] THE BRAIN: Heimdall Reflex
+                if (result.matrix.overall < 4.0) {
+                    console.log(chalk.red(`[HEIMDALL ALERT] Sector ${path.basename(filePath)} is TOXIC (${result.matrix.overall.toFixed(2)}).`));
+                    await link.sendCommand('HEIMDALL_ALERT', {
+                        file: filePath,
+                        score: result.matrix.overall,
+                        justification: "Logic corruption detected during autonomic reflex."
+                    });
+                }
+            }
+        } catch (e) {
+            console.warn(`[WARNING] Autonomic indexing failed for ${filePath}: ${e}`);
+        }
     }
 
     /**

@@ -64,24 +64,43 @@ export async function startProxy(targetPath: string, port: number = 4000) {
     // 4. WebSocket Relay
     const wss = new WebSocketServer({ server: server.server as any });
     const clients = new Set<WebSocket>();
+    
+    // Lazy-load CortexLink when needed
+    let cortexLink: any = null;
+
     wss.on('connection', (ws) => {
         clients.add(ws);
+        
+        ws.on('message', async (data: Buffer) => {
+            try {
+                const msg = JSON.parse(data.toString());
+                if (msg.type === 'ARCHITECT_NODE_MOVED') {
+                    if (!cortexLink) {
+                        const { CortexLink } = await import('../../../node/cortex_link.ts');
+                        cortexLink = new CortexLink();
+                    }
+                    const sourcePath = msg.payload.sourcePath;
+                    const targetPath = msg.payload.targetPath;
+                    console.log(chalk.cyan(`[SENSORY MATRIX] Received UI architect intent: Move ${sourcePath} to ${targetPath}`));
+                    await cortexLink.handleArchitectMove(sourcePath, targetPath);
+                    broadcast({ type: 'MATRIX_UPDATED', timestamp: Date.now() });
+                }
+            } catch (err) {
+                console.error(chalk.red(`[SENSORY MATRIX] WebSocket message error: ${err}`));
+            }
+        });
+
         ws.on('close', () => clients.delete(ws));
     });
 
-    // 5. Signal Watcher
-    const signalFile = path.join(statsDir, 'p1-refresh.signal');
-    fs.watch(statsDir, (event, filename) => {
-        if (filename === 'p1-refresh.signal' && fs.existsSync(signalFile)) {
-            const signal = fs.readFileSync(signalFile, 'utf-8');
-            const message = JSON.stringify({ type: 'MATRIX_UPDATED', timestamp: signal });
-            clients.forEach(client => {
-                if (client.readyState === WebSocket.OPEN) client.send(message);
-            });
-        }
-    });
+    const broadcast = (message: any) => {
+        const data = JSON.stringify(message);
+        clients.forEach(client => {
+            if (client.readyState === WebSocket.OPEN) client.send(data);
+        });
+    };
 
-    // 6. API Routes
+    // 5. API Routes
     server.get('/api/matrix', async (request, reply) => {
         try {
             const graphPath = path.join(statsDir, 'matrix-graph.json');
@@ -104,9 +123,40 @@ export async function startProxy(targetPath: string, port: number = 4000) {
 
     server.get('/api/config', async () => ({ token, port }));
 
+    interface TelemetryPing {
+        agent_id: string;
+        action: string;
+        target_path: string;
+        timestamp: number;
+    }
+
+    interface TelemetryTrace {
+        mission_id: string;
+        file_path: string;
+        target_metric: string;
+        initial_score: number;
+        final_score: number;
+        justification: string;
+        status: string;
+        timestamp: number;
+    }
+
     server.post('/api/telemetry/ping', async (request, reply) => {
         try {
-            await savePing(request.body as any, targetPath);
+            const ping = request.body as TelemetryPing;
+            await savePing(ping, targetPath);
+            
+            // [🔱] THE SYNAPTIC LINK: Instant Relay
+            broadcast({ type: 'AGENT_TRACE', payload: ping });
+            broadcast({ type: 'MATRIX_UPDATED', timestamp: Date.now() });
+
+            // Trigger re-index if this was a mutation/repair
+            if (['REPAIR', 'FIX', 'MUTATE'].includes(ping.action?.toUpperCase())) {
+                const { indexSector } = await import('../index.ts');
+                const absPath = path.resolve(registry.getRoot(), ping.target_path);
+                await indexSector(absPath);
+            }
+
             return { status: 'success' };
         } catch (err) {
             return reply.status(500).send({ status: 'error' });
@@ -115,7 +165,13 @@ export async function startProxy(targetPath: string, port: number = 4000) {
 
     server.post('/api/telemetry/trace', async (request, reply) => {
         try {
-            await saveTrace(request.body as any);
+            const trace = request.body as TelemetryTrace;
+            await saveTrace(trace);
+            
+            // [🔱] THE SYNAPTIC LINK: Instant Relay
+            broadcast({ type: 'MISSION_TRACE', payload: trace });
+            broadcast({ type: 'MATRIX_UPDATED', timestamp: Date.now() });
+
             return { status: 'success' };
         } catch (err) {
             return reply.status(500).send({ status: 'error' });
@@ -124,12 +180,60 @@ export async function startProxy(targetPath: string, port: number = 4000) {
 
     server.get('/api/matrix/trajectories', async (request, reply) => {
         try {
-            const filePath = (request.query as any).file;
+            const filePath = (request.query as { file: string }).file;
             if (!filePath) return reply.status(400).send({ error: 'File path required.' });
             const traces = getTracesForFile(filePath);
             return traces;
         } catch (err) {
             return reply.status(500).send({ error: 'Failed to retrieve trajectories.' });
+        }
+    });
+
+    server.get('/api/matrix/sessions', async (request, reply) => {
+        try {
+            const { getRecentSessions } = await import('../intel/database.ts');
+            const sessions = getRecentSessions(20); // Last 20 sessions
+            return sessions;
+        } catch (err) {
+            return reply.status(500).send({ error: 'Failed to retrieve sessions.' });
+        }
+    });
+
+    server.get('/api/matrix/session-pings', async (request, reply) => {
+        try {
+            const sessionId = (request.query as { id: string }).id;
+            if (!sessionId) return reply.status(400).send({ error: 'Session ID required.' });
+            const { getPingsForSession } = await import('../intel/database.ts');
+            const pings = getPingsForSession(parseInt(sessionId));
+            return pings;
+        } catch (err) {
+            return reply.status(500).send({ error: 'Failed to retrieve session pings.' });
+        }
+    });
+
+    server.post('/api/matrix/dispatch', async (request, reply) => {
+        try {
+            const { agent, target } = request.body as { agent: string, target: string };
+            if (!target) return reply.status(400).send({ error: 'Target sector required.' });
+
+            console.error(chalk.cyan(`\n[SENSORY MATRIX] Dispatching ${agent || 'Agent'} to sector ${target}...`));
+            
+            const { execa } = await import('execa');
+            const projectRoot = registry.getRoot();
+            const cstarPath = path.join(projectRoot, 'bin/cstar.js');
+            
+            const result = await execa('node', [
+                cstarPath, 
+                'skill', 
+                'run-task', 
+                `Sanitize and document ${target}`,
+                target
+            ]);
+
+            return { status: 'success', output: result.stdout };
+        } catch (err: any) {
+            console.error(`[ERROR] Dispatch failed: ${err.message}`);
+            return reply.status(500).send({ error: 'Dispatch failed.', message: err.message });
         }
     });
 

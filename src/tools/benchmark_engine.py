@@ -12,6 +12,9 @@ if str(project_root) not in sys.path:
 
 from src.core.report_engine import ReportEngine
 
+def benchmark(n: int = 100) -> None:
+    return BenchmarkOrchestrator.execute(n)
+
 class BenchmarkOrchestrator:
     """[O.D.I.N.] Orchestration logic for Corvus Star performance benchmarking."""
 

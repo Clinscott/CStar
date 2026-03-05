@@ -8,6 +8,15 @@ from pathlib import Path
 
 from src.core.sovereign_hud import SovereignHUD
 
+def install_skill(skill_name: str, target_root: str | Path | None = None) -> None:
+    return SkillInstaller.install(skill_name, target_root)
+
+def _get_config(base_path: str | Path) -> tuple[dict | None, str | None]:
+    return SkillInstaller._get_config(base_path)
+
+def _sanitize_skill_name(name: str) -> str | None:
+    return SkillInstaller._sanitize_name(name)
+
 class SkillInstaller:
     """[A.L.F.R.E.D.] Orchestration logic for Corvus Star skill installation."""
 

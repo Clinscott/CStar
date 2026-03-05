@@ -22,43 +22,41 @@ from src.sentinel._bootstrap import SovereignBootstrap
 SovereignBootstrap.execute()
 
 from src.sentinel.muninn import Muninn
+from src.cstar.core.uplink import AntigravityUplink
 
 FIXTURES_DIR = Path(__file__).parent.parent.parent / "tests" / "fixtures" / "ravens_responses"
 
 
 class ResponseRecorder:
     """
-    Wraps a real genai client and records every generate_content call.
+    Wraps an AntigravityUplink and records every send_payload call.
     """
 
-    def __init__(self, real_client) -> None:
-        self.real_client = real_client
+    def __init__(self, real_uplink: AntigravityUplink) -> None:
+        self.real_uplink = real_uplink
         self.recordings = []
 
-    def record_call(self, *args, **kwargs):
-        """Intercept generate_content, record request+response."""
-        model = kwargs.get("model") or (args[0] if args else "unknown")
-        prompt = kwargs.get("contents") or (args[1] if len(args) > 1 else "")
-
+    async def record_call(self, query: str, context: dict = None):
+        """Intercept send_payload, record request+response."""
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
 
         try:
-            response = self.real_client.models.generate_content(*args, **kwargs)
-            response_text = response.text if response and response.text else ""
+            response = await self.real_uplink.send_payload(query, context)
+            response_text = response.get("data", {}).get("raw", "")
 
             self.recordings.append({
                 "timestamp": timestamp,
-                "model": model,
-                "prompt_preview": str(prompt)[:500],
+                "persona": (context or {}).get("persona", "unknown"),
+                "prompt_preview": str(query)[:500],
                 "response_text": response_text,
-                "success": True,
+                "success": response.get("status") == "success",
             })
             return response
         except Exception as e:
             self.recordings.append({
                 "timestamp": timestamp,
-                "model": model,
-                "prompt_preview": str(prompt)[:500],
+                "persona": (context or {}).get("persona", "unknown"),
+                "prompt_preview": str(query)[:500],
                 "response_text": "",
                 "success": False,
                 "error": str(e),
@@ -78,30 +76,24 @@ class Harvester:
     """[O.D.I.N.] Orchestration logic for AI response harvesting."""
 
     @staticmethod
-    def execute(cycles: int = 5):
+    async def execute(cycles: int = 5):
         """
-        Run N cycles of SovereignFish against CorvusStar with recording.
+        Run N cycles of Muninn against CorvusStar with recording.
         Captures prompt/response pairs for offline verification and hardening.
         """
         project_root = Path(__file__).parent.parent.parent.resolve()
         output_path = FIXTURES_DIR / "mock_responses.json"
 
-        # Verify API key
-        api_key = os.environ.get("GOOGLE_API_KEY")
-        if not api_key:
-            print("[HARVEST] ERROR: GOOGLE_API_KEY not set. Cannot harvest.")
-            sys.exit(1)
-
-        # Create real client
-        from google import genai
-        real_client = genai.Client(api_key=api_key)
+        # Create real uplink
+        real_uplink = AntigravityUplink()
 
         # Wrap with recorder
-        recorder = ResponseRecorder(real_client)
+        recorder = ResponseRecorder(real_uplink)
 
-        # Create a proxy client that looks like the real one
-        proxy_client = MagicMock(wraps=real_client)
-        proxy_client.models.generate_content.side_effect = recorder.record_call
+        # Create a proxy uplink that looks like the real one
+        from unittest.mock import AsyncMock
+        proxy_uplink = AsyncMock(wraps=real_uplink)
+        proxy_uplink.send_payload.side_effect = recorder.record_call
 
         print(f"[HARVEST] Starting {cycles} cycles against {project_root.name}")
         print(f"[HARVEST] Output: {output_path}")
@@ -112,8 +104,10 @@ class Harvester:
             print(f"{'='*60}")
 
             try:
-                fish = Muninn(str(project_root), client=proxy_client)
-                fish.run()
+                # We patch Muninn's uplink with our proxy
+                with patch("src.sentinel.muninn.AntigravityUplink", return_value=proxy_uplink):
+                    raven = Muninn(str(project_root))
+                    await raven.run_cycle()
             except Exception as e:
                 print(f"[HARVEST] Cycle {cycle + 1} crashed: {e}")
 
@@ -125,7 +119,8 @@ class Harvester:
 
 
 if __name__ == "__main__":
+    import asyncio
     parser = argparse.ArgumentParser(description="Harvest live AI responses for mock bank")
     parser.add_argument("--cycles", type=int, default=5, help="Number of cycles to run")
     args = parser.parse_args()
-    Harvester.execute(args.cycles)
+    asyncio.run(Harvester.execute(args.cycles))

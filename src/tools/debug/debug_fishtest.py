@@ -16,6 +16,9 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from src.core.engine.vector import SovereignVector
 
+def run_debug_fishtest(data_path: str = "fishtest_data.json") -> tuple[int, int]:
+    return FishtestLegacyDiagnostic.execute(data_path)
+
 class FishtestLegacyDiagnostic:
     """[O.D.I.N.] Orchestration logic for legacy fishtest accuracy check."""
 

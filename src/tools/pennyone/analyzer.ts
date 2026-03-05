@@ -1,6 +1,7 @@
 import { getParser, TreeSitter } from './parser.ts';
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
+import * as fsSync from 'node:fs';
 import path from 'node:path';
 import { calculateLogicScore } from './calculus/logic.ts';
 import { calculateStyleScore } from './calculus/style.ts';
@@ -186,10 +187,17 @@ export async function analyzeFile(code: string, filepath: string): Promise<FileD
     const intel = calculateIntelScore(code, loc);
     const gravity = await getFileGravity(filepath);
     const anomalyScore = await getSystemAnomaly();
+    const vigilScore = calculateVigilScore(filepath);
 
     const aesthetic = (logicValue + style + intel) / 3;
     const penalty = (gravity > 10 ? 0.5 : 0) + (anomalyScore * 1.5);
-    const overall = Math.min(Math.max(aesthetic - penalty, 1), 10);
+    let overall = Math.min(Math.max(aesthetic - penalty, 1), 10);
+
+    // [🛡️] THE STERLING MANDATE: Cap overall score if Vigil is missing.
+    // If we have no unit test or no feature contract, the sector is Tarnished.
+    if (vigilScore < 5.0 && gravity > 20) {
+        overall = Math.min(overall, 5.0);
+    }
 
     // [Ω] FIRST PRINCIPLES: Deep metrics for Agent/User insight
     const stability = Math.max(0.1, 1.0 - (complexity / 50));
@@ -209,6 +217,7 @@ export async function analyzeFile(code: string, filepath: string): Promise<FileD
             stability, 
             coupling,
             aesthetic,
+            vigil: vigilScore,
             anomaly: anomalyScore,
             sovereignty
         },
@@ -219,6 +228,45 @@ export async function analyzeFile(code: string, filepath: string): Promise<FileD
         endpoints,
         is_api: isApi
     };
+}
+
+/**
+ * [🛡️] THE STERLING MANDATE: Vigil Calculus
+ * Purpose: Verifies the existence of Unit Tests and Feature Contracts.
+ * @param filepath 
+ * @returns {number} Vigil Score (0-10)
+ */
+function calculateVigilScore(filepath: string): number {
+    const root = registry.getRoot();
+    const absPath = path.resolve(filepath);
+    const stem = path.basename(absPath, path.extname(absPath));
+    const isPy = absPath.endsWith('.py');
+    const isTs = absPath.endsWith('.ts') || absPath.endsWith('.tsx');
+
+    let score = 0;
+
+    // 1. Tier 1: Lore Check (.feature)
+    const featurePath = path.join(root, 'tests', 'features', `${stem}.feature`);
+    const groupFeaturePath = path.join(root, 'tests', 'features', `${path.basename(path.dirname(absPath))}.feature`);
+    
+    // Using synchronous checks here for the high-speed scan loop
+    const hasLore = fsSync.existsSync(featurePath) || fsSync.existsSync(groupFeaturePath);
+    if (hasLore) score += 5;
+
+    // 2. Tier 2: Isolation Check (Unit Test)
+    let hasTest = false;
+    if (isPy) {
+        const testPath = path.join(root, 'tests', 'unit', `test_${stem}.py`);
+        hasTest = fsSync.existsSync(testPath);
+    } else if (isTs) {
+        const testPath = path.join(root, 'tests', 'node', `${stem}.test.ts`);
+        const altTestPath = path.join(root, 'tests', 'node', `${path.basename(absPath)}`);
+        hasTest = fsSync.existsSync(testPath) || fsSync.existsSync(altTestPath);
+    }
+
+    if (hasTest) score += 5;
+
+    return score;
 }
 
 /**

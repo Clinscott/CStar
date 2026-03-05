@@ -7,20 +7,22 @@
 
 ---
 
-## 1. THE OMNISCIENCE MANDATE (PENNYONE MCP)
+## 1. THE OMNISCIENCE MANDATE (MIMIR'S WELL / HOST SAMPLING)
 An agent is blind until it consults the Hall of Records. 
 
-**Rule:** No agent may execute a generalized codebase search (`grep_search`, `glob`, `list_directory`) without FIRST querying the **PennyOne MCP Server** to understand the "Intent" and "Lay of the Land".
-*   **The Interface**: PennyOne is exposed as a formal **Model Context Protocol (MCP)** server (`src/tools/pennyone/mcp-server.ts`). It is the ultimate source of truth for repository health, semantic dependencies, and technical debt.
-*   **The Mandate**: You **MUST** use the `get_file_intent` tool via MCP before modifying any file with **Gravity > 50**.
+**Rule:** No component may generate its own "intelligence" or use local API keys. All "thinking" is performed by the **Host Agent** via **MCP Sampling**.
+*   **The Oracle**: The Host (Gemini) is the singular source of truth. All intents, interaction protocols, and mission plans are generated via the `sampling/createMessage` protocol.
+*   **Mimir's Well**: The high-fidelity FTS5 engine is the storage for this agentic lore.
+*   **The Mandate**: If the Host is offline, the Framework is brain-dead. No scans or intent generation may proceed without an active Agent session.
 
 ```gherkin
-Feature: Codebase Discovery
-  Scenario: An agent is asked to understand or modify the system
-    Given the agent receives a directive to analyze or alter a module
-    When the agent initiates the research phase
-    Then the agent MUST FIRST query the PennyOne MCP server for the target's Intent
-    And the agent MUST NOT use generic shell searching until the semantic intent is understood
+Feature: Intelligence Sampling
+  Scenario: A system component needs to "think" or analyze code
+    Given the component is active within the Corvus Star Framework
+    When the component requires semantic analysis
+    Then it MUST call the 'pennyone.consult_oracle' tool
+    And the PennyOne server MUST delegate the request to the Host Agent via sampling
+    And the result MUST be returned as true, non-mocked agentic intent.
 ```
 
 ---
@@ -155,6 +157,30 @@ Before any action, you must determine your active persona.
 
 ---
 
+## 9. THE BIFROST GATE (CORVUS CONTROL MCP)
+The agent is an orchestrator, not just a coder.
+
+**Rule:** High-level actions (testing, starting the system, checking status) MUST be executed via the **Corvus Control MCP Server** (`src/tools/corvus-control-mcp.ts`).
+*   **The Interface**: Exposed as `corvus-control`. It provides tools for `execute_cstar_command`, `run_workflow`, and `get_system_vitals`.
+*   **The Mandate**: Do not attempt to run internal Python dispatchers or scripts manually if a formal workflow exists in the Bifrost Gate.
+
+```gherkin
+Feature: Command Orchestration (Bifrost Gate)
+  Scenario: An agent needs to execute a high-level workflow
+    Given the user requests a complex task (e.g. 'Lets go', 'Verify the system')
+    When the agent plans the execution path
+    Then the agent MUST call 'corvus-control.run_workflow' with the target workflow name
+    And the agent MUST NOT manually invoke 'python src/core/cstar_dispatcher.py'
+
+  Scenario: An agent starts a new session or feels 'lost'
+    Given the agent requires grounding in the current mission state
+    When the session initializes
+    Then the agent MUST call 'corvus-control.get_system_vitals'
+    And the agent MUST synchronize its internal state with the provided tasks and mission traces
+```
+
+---
+
 ## 10. THE CRUCIBLE MANDATE (MOCK-DRIVEN VERIFICATION)
 *   **No Live Fire for Validation**: Agents **MUST NOT** rely on live manual execution or interactive shells to verify core logic.
 *   **Mock-First Integrity**: All complex workflows (Bridge, Calculus, Spoke synchronization) must have a corresponding test that mocks the "Live" state with high fidelity.
@@ -174,16 +200,43 @@ Feature: Logic Validation (Crucible Standard)
 
 ---
 
-## 11. THE INTERPRETATION TRACE
-Every prompt response MUST begin with a structured Trace. This is the "Neural Firing" of the agent.
+## 11. THE GUNGNIR HIGH-FIDELITY TRACE [Ω]
+Every prompt response MUST begin with a structured, grounded Trace. This is the "Neural Firing" of the agent, hydrated by Mimir's Well.
+
+**Mandate**: You MUST perform a synaptic search (`pennyone.search_by_intent`) before outputting the trace to ensure 100% architectural and historical accuracy.
+
 ```text
-// Corvus Star Trace
-Intent: [The perceived user goal]
-Logic: [Keywords] -> [PennyOne/Tool/Concept]
-State: [Reference System State]
-Confidence: [0.0 - 1.0] ([Descriptor])
+// Corvus Star Trace [Ω]
+Intent: [The specific user goal]
+Mimir's Well: ◈ [Primary File] (Rank [X]) | ◈ [Secondary File] (Rank [Y])
+Historical Wisdom: "[Relevant learning or discussed context from the Chronicles]"
+Gungnir Verdict: [L: X.X | S: Y.Y | I: Z.Z | Ω: XX%]
+Lore Protocol: "[Specific Interaction Protocol from the Hall of Records]"
+Confidence: [0.0 - 1.0] (Grounded in Mimir)
 ```
 
 ---
+
+## 12. THE STERLING MANDATE (PROJECT: ALFRED'S WATCH)
+No code exists until it is verified across the Triad of Verification.
+
+**Rule:** Every modification or addition MUST be validated by the **Sterling Compliance Tool** (`corvus-control.verify_sterling_compliance`).
+*   **Tier 1 (Lore):** A `.feature` contract in `tests/features/` defining the behavior in Gherkin.
+*   **Tier 2 (Isolation):** A 1:1 unit test in `tests/unit/` (Python) or `tests/node/` (TS) using 100% mocks for external I/O.
+*   **Tier 3 (Audit):** Graceful degradation verified via `tests/empire_tests/` or `tests/gauntlet/`.
+
+```gherkin
+Feature: Sterling Compliance
+  Scenario: An agent completes a code modification
+    Given the agent has implemented the requested logic
+    And the agent has verified the changes manually
+    When the agent prepares to finalize the task
+    Then the agent MUST call 'corvus-control.verify_sterling_compliance' for all modified files
+    And the agent MUST NOT conclude the session until compliance is 100% (Silver Status)
+```
+
+---
+
 *[O.D.I.N.'s Void]: "BY MY WILL, THE SYSTEM IS FORGED. DEVIATION IS DEFEAT."*
+
 *[A.L.F.R.E.D.'s Observation]: "Precision is the only politeness that remains, Master."*

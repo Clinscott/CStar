@@ -30,7 +30,7 @@ const NodeTier: React.FC<NodeLayerProps & { nodes: Node[], detail: number }> = (
         if (!currentMesh || !nodes || nodes.length === 0) return;
 
         nodes.forEach((node, i) => {
-            const { scale, color } = calculateEffect(node, type, hovered, selectedNode, links, i);
+            const { scale, color } = calculateEffect(node, type, hovered, selectedNode, links, i, nodes);
 
             tempObject.matrix.identity();
             tempObject.position.set(node.x || 0, node.y || 0, node.z || 0);
@@ -76,7 +76,7 @@ export const NodeLayer: React.FC<NodeLayerProps> = (props) => {
     const nodesByDetail = useMemo(() => {
         const tiers: Node[][] = [[], [], []];
         props.nodes.forEach((node, i) => {
-            const { detail } = calculateEffect(node, props.type, props.hovered, props.selectedNode, props.links, i);
+            const { detail } = calculateEffect(node, props.type, props.hovered, props.selectedNode, props.links, i, props.nodes);
             const tierIdx = Math.max(0, Math.min(2, detail));
             tiers[tierIdx].push(node);
         });

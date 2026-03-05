@@ -56,7 +56,7 @@ describe('Gungnir Flight - The Agent Loop Takeover', () => {
         mock.restoreAll();
     });
 
-    it('Executes the 7-step cycle in chronological order successfully', async () => {
+    it('Executes the 9-step cycle in chronological order successfully', async () => {
         const cortexLink = new MockCortexLink() as any;
         const mockFnDeploy = mock.fn();
 
@@ -67,9 +67,11 @@ describe('Gungnir Flight - The Agent Loop Takeover', () => {
         assert.equal(mockWriteFile.mock.callCount(), 1); // Write candidate
 
         // Verify Cortex Network mocking calls
-        assert.equal(cortexLink.calledCommands.length, 2);
+        // Now 3: ask, verify, verify_sterling_compliance
+        assert.equal(cortexLink.calledCommands.length, 3);
         assert.equal(cortexLink.calledCommands[0].cmd, 'ask');
         assert.equal(cortexLink.calledCommands[1].cmd, 'verify');
+        assert.equal(cortexLink.calledCommands[2].cmd, 'verify_sterling_compliance');
 
         // Check the explicit ALFRED logs
         const output = loggedMessages.join(' | ');
@@ -77,7 +79,8 @@ describe('Gungnir Flight - The Agent Loop Takeover', () => {
         assert.ok(output.includes('Transmitting constraints...'), 'Missing Step 4');
         assert.ok(output.includes('Candidate forged...'), 'Missing Step 5');
         assert.ok(output.includes('Summoning the Raven for judgment...'), 'Missing Step 6');
-        assert.ok(output.includes('Cycle complete. The stars await...'), 'Missing Step 7/9');
+        assert.ok(output.includes('Performing Sterling Audit...'), 'Missing Step 8');
+        assert.ok(output.includes('Cycle complete. The stars await...'), 'Missing Step 9');
     });
 
     it('Fails gracefully, triggering SYSTEM FAILURE, if target file is missing', async () => {

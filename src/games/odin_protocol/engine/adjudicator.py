@@ -25,6 +25,9 @@ from src.games.odin_protocol.engine.logic import adjudicate_choice
 from src.games.odin_protocol.engine.models import UniverseState
 from src.games.odin_protocol.engine.scenarios import SovereignScenarioEngine
 
+def process_queue(project_root: Path) -> list[dict[str, Any]] | None:
+    return ActionAdjudicator.execute(project_root)
+
 class ActionAdjudicator:
     """[O.D.I.N.] Orchestration logic for tactical action adjudication and state persistence."""
 

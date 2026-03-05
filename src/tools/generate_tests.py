@@ -2,6 +2,9 @@ import argparse
 import json
 import random
 
+def generate_cases(n: int = 1000, threshold: float = 0.3) -> dict:
+    return TestCaseGenerator.generate(n, threshold)
+
 class TestCaseGenerator:
     """[O.D.I.N.] Orchestration logic for synthetic fishtest data generation."""
 

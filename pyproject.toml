@@ -26,7 +26,9 @@ dependencies = [
     "google-generativeai",
     "colorama",
     "radon",
-    "chromadb"
+    "chromadb",
+    "mcp",
+    "pytest-xdist"
 ]
 
 [project.scripts]
@@ -36,7 +38,7 @@ cstar = "src.core.cstar_dispatcher:main"
 where = ["src"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests/unit", "tests/integration", "tests/empire_tests", "tests/crucible"]
 asyncio_mode = "auto"
 
 [tool.ruff]

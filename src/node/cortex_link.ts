@@ -5,6 +5,9 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { activePersona } from '../tools/pennyone/personaRegistry.ts';
+import { Project } from 'ts-morph';
+
+import { getPythonPath } from './core/python_utils.ts';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const PROJECT_ROOT = path.resolve(__dirname, '../../');
@@ -24,6 +27,9 @@ export class CortexLink {
 
     private wsImpl: typeof WebSocket;
 
+    private daemonChild: any = null;
+    private activeSocket: WebSocket | null = null;
+
     constructor(port = 50051, host = '127.0.0.1', wsImpl: typeof WebSocket = WebSocket) {
         this.port = port;
         this.host = host;
@@ -32,20 +38,123 @@ export class CortexLink {
     }
 
     /**
+     * Handles the Two-Phase Commit for moving physical files and updating AST.
+     * @param sourcePath Original file path relative to root
+     * @param targetPath Target file path relative to root
+     */
+    async handleArchitectMove(sourcePath: string, targetPath: string): Promise<boolean> {
+        console.log(chalk.cyan(`[CORTEX] Initiating AST Two-Phase Commit: ${sourcePath} -> ${targetPath}`));
+        
+        // Phase 1: AST Instantiation (In-Memory)
+        const project = new Project({
+            tsConfigFilePath: path.join(PROJECT_ROOT, 'tsconfig.json'),
+            skipAddingFilesFromTsConfig: false,
+        });
+
+        const absSource = path.join(PROJECT_ROOT, sourcePath);
+        const absTarget = path.join(PROJECT_ROOT, targetPath);
+
+        const sourceFile = project.getSourceFile(absSource);
+        if (sourceFile) {
+            // This updates the imports across the project in-memory
+            sourceFile.move(absTarget);
+            console.log(chalk.dim(`[CORTEX] AST mutations staged for ${sourcePath}.`));
+        } else {
+            console.warn(chalk.yellow(`[CORTEX] File not found in AST: ${sourcePath}. Proceeding with physical move only.`));
+        }
+
+        // Phase 2: Physical Move Request (Python Daemon)
+        try {
+            const response = await this.sendCommand('PHYSICAL_MOVE_REQUEST', [sourcePath, targetPath]);
+
+            if (response.status === 'success' && (response.data as any)?.status === 'MOVE_SUCCESS') {
+                console.log(chalk.green(`[CORTEX] Daemon confirmed physical move. Flushing AST...`));
+                try {
+                    // Flush AST mutations to disk
+                    await project.save();
+                    console.log(chalk.green(`[CORTEX] AST flush complete. Sync locked.`));
+                    return true;
+                } catch (saveError) {
+                    console.error(chalk.red(`[CORTEX] AST flush failed! Triggering FATAL_ROLLBACK.`));
+                    await this.sendCommand('FATAL_ROLLBACK', [sourcePath, targetPath]);
+                    return false;
+                }
+            } else {
+                console.warn(chalk.yellow(`[CORTEX] Daemon rejected move. Discarding AST mutations.`));
+                // project.save() is never called, so changes are discarded.
+                return false;
+            }
+        } catch (err: any) {
+            console.error(chalk.red(`[CORTEX] Physical move request failed: ${err.message}`));
+            return false;
+        }
+    }
+
+    /**
+     * Intercepts a file write intent and performs pre-disk adjudication via the Ghost Warden.
+     * @param filePath Target file path
+     * @param content Proposed content string
+     * @returns Promise resolving to the verified content if cleared
+     * @throws Error if Ghost Warden issues a PRECOGNITIVE_WARNING
+     */
+    async interceptWrite(filePath: string, content: string): Promise<string> {
+        console.log(chalk.cyan(`[CORTEX] Ghost Pulse Emission: Adjudicating mutation for ${filePath}...`));
+        
+        try {
+            const response = await this.sendCommand('GHOST_PULSE', [filePath, content]);
+            
+            if (response.status === 'success') {
+                const result = response.data as { status: string, score: number, reasons: string[] };
+                
+                if (result.status === 'PULSE_CLEARED') {
+                    console.log(chalk.green(`[CORTEX] Ghost Pulse Cleared (Score: ${result.score}). Allowing write.`));
+                    return content;
+                } else {
+                    const reasonStr = result.reasons.join(' | ');
+                    console.error(chalk.bgRed.white.bold(' [PRECOGNITIVE WARNING] '));
+                    console.error(chalk.red(`Ghost Warden Rejected Mutation: ${reasonStr} (Score: ${result.score})`));
+                    throw new Error(`[PRECOGNITIVE_WARNING] ${reasonStr}`);
+                }
+            } else {
+                console.warn(chalk.yellow(`[CORTEX] Ghost Warden communication failure. Falling back to optimistic write.`));
+                return content;
+            }
+        } catch (err: any) {
+            if (err.message.includes('[PRECOGNITIVE_WARNING]')) throw err;
+            console.warn(chalk.yellow(`[CORTEX] Ghost Pulse failed: ${err.message}. Proceeding cautiously.`));
+            return content;
+        }
+    }
+
+    /**
      * Checks if the daemon port is listening. If not, spawns the python daemon
-     * as a detached background process and waits for the port to open.
+     * as a background process and waits for the port to open.
+     * In test mode, the process is attached so it dies with the test runner.
      */
     async ensureDaemon(): Promise<void> {
         const isUp = await this._checkPort();
         if (isUp) return;
 
         console.log(chalk.dim(`${activePersona.prefix} 'Awakening the Oracle...'`));
+        
+        const isTestEnv = process.env.NODE_ENV === 'test';
+        
         // Port is down, start daemon
-        execa('python', [DAEMON_ENTRYPOINT], {
+        const child = execa(getPythonPath(), [DAEMON_ENTRYPOINT], {
             cwd: PROJECT_ROOT,
-            detached: true,
-            stdio: 'ignore'
-        }).unref();
+            detached: !isTestEnv, // Do NOT detach during tests to prevent ghost processes
+            stdio: 'ignore',
+            env: {
+                ...process.env,
+                CSTAR_DAEMON_PORT: this.port.toString()
+            }
+        });
+        
+        this.daemonChild = child;
+        
+        if (!isTestEnv) {
+            child.unref();
+        }
 
         // Poll until the port opens (max 30 seconds)
         const maxRetries = 60;
@@ -60,7 +169,7 @@ export class CortexLink {
             }
         }
 
-        throw new Error('Daemon failed to start or bind to port within 10 seconds.');
+        throw new Error('Daemon failed to start or bind to port within 30 seconds.');
     }
 
     /**
@@ -96,17 +205,20 @@ export class CortexLink {
         return new Promise((resolve, reject) => {
             const ws = new this.wsImpl(this.wsUrl);
 
-            // Timeout after 30 seconds (longer for inference)
+            // Timeout after 300 seconds (longer for inference)
             const timeout = setTimeout(() => {
                 ws.terminate();
                 console.error(chalk.bgRed.white.bold(' [SYSTEM FAILURE] '));
                 console.error(chalk.red('Critical Failure: Oracle unresponsive (Inference Timeout).\n'));
                 reject(new Error('Oracle unresponsive.'));
-            }, 30000);
+            }, 300000);
 
             ws.on('open', () => {
+                // Store active socket for explicit client-side teardown
+                this.activeSocket = ws;
+                
                 // Step 1: Authentication Handshake
-                ws.send(JSON.stringify({ auth_key: authKey }));
+                ws.send(JSON.stringify({ type: 'auth', auth_key: authKey }));
                 // Step 2: Send Command
                 ws.send(JSON.stringify(payload));
             });
@@ -138,5 +250,34 @@ export class CortexLink {
             });
         });
     }
-}
 
+    /**
+     * Sends a shutdown signal to the daemon and forces process death if attached.
+     */
+    async shutdownDaemon(): Promise<void> {
+        try {
+            await this.sendCommand('shutdown');
+        } catch (err) {
+            // Silently fail if already down
+        }
+        
+        // Sever the client-side socket to break any hanging promises from the server
+        if (this.activeSocket && this.activeSocket.readyState === WebSocket.OPEN) {
+            this.activeSocket.terminate();
+        }
+        
+        // If we spawned it and it's attached (test mode), force kill it to free the event loop
+        if (this.daemonChild && this.daemonChild.pid) {
+            try {
+                if (process.platform === 'win32') {
+                    // Hard OS-level kill on Windows to prevent IPC deadlocks
+                    execa('taskkill', ['/F', '/T', '/PID', this.daemonChild.pid.toString()]).unref();
+                } else {
+                    this.daemonChild.kill('SIGKILL');
+                }
+            } catch (e) {
+                // Ignore
+            }
+        }
+    }
+}

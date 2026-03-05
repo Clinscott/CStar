@@ -38,6 +38,12 @@ class ShutdownHandler:
 
 SHUTDOWN = ShutdownHandler()
 
+async def daemon_loop(use_docker: bool = False, lock_file_path: Path | None = None) -> None:
+    return await DaemonOrchestrator.daemon_loop(use_docker, lock_file_path)
+
+def highlander_check(lock_file: Path) -> bool:
+    return DaemonOrchestrator._highlander_check(lock_file)
+
 class DaemonOrchestrator:
     """[O.D.I.N.] The Master Orchestrator of the Ravens Daemon."""
     

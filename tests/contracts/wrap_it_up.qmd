@@ -1,0 +1,95 @@
+---
+title: Wrap-It-Up Workflow Contracts
+scope: src/tools/wrap_it_up.py
+---
+
+# Wrap-It-Up Workflow — Behavioral Contracts
+
+## SovereignWrapper Lifecycle
+
+### Initial Structural Scan
+```
+Feature: Initial System Awareness
+  Scenario: Wrap-up begins with a full system scan
+    Given the wrap_it_up workflow is commanded
+    When SovereignWrapper.initial_scan() executes
+    Then cstar pennyone --scan is triggered
+    And the current state of the system is cached in .stats/
+```
+
+### Release the Ravens
+```
+Feature: Autonomous Improvement Phase
+  Scenario: Ravens are set free to stabilize the system
+    Given the initial scan is complete
+    When SovereignWrapper.release_ravens() executes
+    Then cstar ravens start is triggered
+    And Muninn begins its autonomous flight across the matrix
+```
+
+### Wait for Completion
+```
+Feature: Flight Synchronization
+  Scenario: System waits for Ravens to finish their mission
+    Given the Ravens have been released
+    When SovereignWrapper.wait_for_ravens() executes
+    Then it monitors .agent/muninn.pid
+    And it blocks until the PID file is cleared or timeout is reached
+    And it prints "Muninn is done flying" upon landing
+```
+
+### Test Suite & Auto-Fix
+```
+Feature: Gungnir Gate & Stability Verification
+  Scenario: Test suite identifies and fixes regressions
+    Given the Ravens have finished their flight
+    When SovereignWrapper.run_gungnir_gate() executes
+    Then it runs Ruff and NPM test suites
+    And if tests fail, it triggers a recursive Raven fix cycle (up to 3 attempts)
+    And it returns success only if the final state is green
+```
+
+### Final Ingestion & Scan
+```
+Feature: Final System Synchronization
+  Scenario: Recent work is ingested and documented
+    Given the test suite is green
+    When SovereignWrapper.synchronize_state() executes
+    Then it runs a final PennyOne scan
+    And it compiles neural traces into TRACE_REPORT.qmd
+    And it updates the Gemini Neural Manifest
+    And it syncs walkthrough.qmd with new capabilities
+```
+
+### Learning Pulse (Atomic GPT)
+```
+Feature: Neural Learning Pulse
+  Scenario: Session results are fed back into the Warden
+    Given the synchronization is complete
+    When SovereignWrapper.review_technical_debt() executes
+    Then it processes the anomalies queue
+    And it triggers a SessionWarden learning pulse with session metrics
+    And the Atomic GPT model is updated with session intelligence
+```
+
+### Sovereign Commit
+```
+Feature: Final System Commit
+  Scenario: Session work is committed with a decree
+    Given all previous steps are successful
+    When SovereignWrapper.sovereign_commit() executes
+    Then it stages all changes in git
+    And it generates a commit message with the "Dominion Expanded" decree
+    And it pushes the changes to the remote repository
+```
+
+### Global Dormancy
+```
+Feature: Resource Reclamation
+  Scenario: System enters a secure dormancy state
+    Given the commit is complete
+    When SovereignWrapper.teardown() executes
+    Then it triggers cstar sleep
+    And all daemons (Oracle, PennyOne) are silenced
+    And memory is reclaimed via garbage collection
+```

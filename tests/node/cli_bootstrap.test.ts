@@ -46,8 +46,7 @@ describe('Gungnir Control Plane Bootstrap', () => {
             assert.fail('Should have thrown an error for unknown command');
         } catch (error: any) {
             assert.equal(error.exitCode, 1, 'Should exit with code 1');
-            assert.match(error.stderr, /\[SYSTEM FAILURE\]/, 'Must contain opinionated error format label');
-            assert.match(error.stderr, /Critical Failure/, 'Must contain opinionated error description');
+            assert.match(error.stderr, /Unknown command 'potato'|error: unknown command 'potato'/, 'Must contain standard unknown command message');
         }
     });
 });

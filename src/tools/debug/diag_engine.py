@@ -15,6 +15,9 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from src.core.engine.vector import SovereignVector
 
+def run_diag() -> None:
+    return DiagnosticEngine.execute()
+
 class DiagnosticEngine:
     """[O.D.I.N.] Orchestration logic for neural engine keyword diagnostics."""
 

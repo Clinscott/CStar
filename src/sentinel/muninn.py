@@ -10,6 +10,16 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from src.sentinel.muninn_heart import MuninnHeart
+from src.sentinel.muninn_hunter import MuninnHunter
+from src.sentinel.muninn_crucible import MuninnCrucible
+from src.sentinel.wardens.norn import NornWarden
+
+# Alias for legacy test compatibility
+GungnirValidator = MuninnCrucible
+NornWarden = NornWarden
+TheWatcher = MuninnHunter
+
 class Muninn:
     """
     [Ω] Muninn Facade (v5.0).
@@ -23,7 +33,6 @@ class Muninn:
         # Lazy Imports
         from src.core.sovereign_hud import SovereignHUD
         from src.cstar.core.uplink import AntigravityUplink
-        from src.sentinel.muninn_heart import MuninnHeart
         
         # Initialize Uplink
         self.uplink = AntigravityUplink()

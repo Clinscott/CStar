@@ -10,6 +10,9 @@ from pathlib import Path
 
 PROJECT_ROOT = Path("c:/Users/Craig/Corvus/CorvusStar")
 
+def get_checksum(path: Path) -> str:
+    return MigrationEngine.get_checksum(path)
+
 class MigrationEngine:
     """[O.D.I.N.] Orchestration logic for QMD migrations."""
 

@@ -26,14 +26,24 @@ class SovereignExecutor:
                 subprocess.run(command, shell=True, cwd=str(self.project_root))  # noqa: S602
 
     def suggest_forge(self, query: str) -> None:
-        """Suggests running SkillForge if no good match is found."""
+        """Autonomously triggers JIT Skill Forging if no good match is found."""
         if len(query.split()) < 2:
             return
 
-        msg = f"Raven's Insight: No existing skill matches '{query}'. Shall I forge a new one?"
+        msg = f"Raven's Insight: No existing skill matches '{query}'. Igniting the Forge..."
         SovereignHUD.persona_log("INFO", msg)
-        cmd_msg = f'To create this skill, run: cstar skill-forge -q "{query}"'
-        SovereignHUD.persona_log("INFO", cmd_msg)
+        
+        from src.core.engine.skill_forger import SkillForger
+        forger = SkillForger(self.project_root)
+        
+        # We run this sync or handle event loop since we are in sync land here
+        import asyncio
+        try:
+            asyncio.run(forger.sv_forge_skill(query))
+        except RuntimeError:
+            # If loop already running
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(forger.sv_forge_skill(query))
 
     def handle_cortex_query(self, query: str) -> None:
         """Direct search against the Knowledge Graph."""

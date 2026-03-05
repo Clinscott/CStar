@@ -69,7 +69,7 @@ class SovereignOrchestrator:
             # Automated Actions
             executor.handle_proactive(payload)
 
-        # Forge Suggestion
+        # Forge Suggestion (Autonomous JIT Tool Forging)
         if not payload or payload.system_meta['confidence'] < 0.5:
             executor.suggest_forge(query)
 

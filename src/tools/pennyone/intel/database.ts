@@ -74,6 +74,30 @@ export function getDb(): Database.Database {
             status TEXT,
             timestamp INTEGER
         );
+
+        -- [🔱] THE WELL OF MIMIR: FTS5 Engine for Sovereign Search
+        CREATE VIRTUAL TABLE IF NOT EXISTS intents_fts USING fts5(
+            path,
+            intent,
+            interaction_protocol,
+            tokenize='porter unicode61'
+        );
+
+        -- [📜] THE CHRONICLES: Historical Memory & Dev Journal
+        CREATE VIRTUAL TABLE IF NOT EXISTS chronicles_fts USING fts5(
+            source_file,
+            header,
+            content,
+            timestamp,
+            tokenize='porter unicode61'
+        );
+
+        -- [🔒] THE FLOCK OF MUNINN: Task Leases for Concurrent Agent Execution
+        CREATE TABLE IF NOT EXISTS task_leases (
+            target_path TEXT PRIMARY KEY,
+            agent_id TEXT NOT NULL,
+            lease_expiry INTEGER NOT NULL
+        );
     `);
 
     return db;
@@ -88,6 +112,53 @@ export interface MissionTrace {
     justification: string;
     status: string;
     timestamp?: number;
+}
+
+/**
+ * Attempts to acquire an exclusive task lease for a target file.
+ * @param {string} targetPath - The file to lock
+ * @param {string} agentId - The ID of the agent requesting the lease
+ * @param {number} durationMs - How long the lease is valid (default 5 mins)
+ * @returns {boolean} True if lease acquired, false if held by another agent
+ */
+export function acquireLease(targetPath: string, agentId: string, durationMs: number = 300000): boolean {
+    const database = getDb();
+    const now = Date.now();
+    const expiry = now + durationMs;
+    const normalizedPath = targetPath.replace(/\\/g, '/');
+
+    try {
+        // Clean up expired leases first
+        database.prepare('DELETE FROM task_leases WHERE lease_expiry < ?').run(now);
+
+        // Attempt to insert a new lease
+        database.prepare('INSERT INTO task_leases (target_path, agent_id, lease_expiry) VALUES (?, ?, ?)')
+            .run(normalizedPath, agentId, expiry);
+        return true;
+    } catch (err: any) {
+        // If constraint fails, it means an active lease exists
+        if (err.code === 'SQLITE_CONSTRAINT_PRIMARYKEY') {
+            // Check if WE already hold the lease and just need to renew it
+            const existing = database.prepare('SELECT agent_id FROM task_leases WHERE target_path = ?').get(normalizedPath) as { agent_id: string };
+            if (existing && existing.agent_id === agentId) {
+                database.prepare('UPDATE task_leases SET lease_expiry = ? WHERE target_path = ?').run(expiry, normalizedPath);
+                return true;
+            }
+            return false;
+        }
+        throw err;
+    }
+}
+
+/**
+ * Releases a task lease.
+ * @param {string} targetPath - The file to unlock
+ * @param {string} agentId - The ID of the agent releasing the lease
+ */
+export function releaseLease(targetPath: string, agentId: string): void {
+    const database = getDb();
+    const normalizedPath = targetPath.replace(/\\/g, '/');
+    database.prepare('DELETE FROM task_leases WHERE target_path = ? AND agent_id = ?').run(normalizedPath, agentId);
 }
 
 /**
@@ -236,6 +307,99 @@ export function getSessionPings(sessionId: number, _targetRepo: string): AgentPi
     const database = getDb();
     return database.prepare('SELECT agent_id, action, target_path, timestamp FROM pings WHERE session_id = ? ORDER BY timestamp ASC')
         .all(sessionId) as AgentPing[];
+}
+
+/**
+ * Updates the FTS index for a file's intent.
+ * @param {string} filePath - The file path
+ * @param {string} intent - The analyzed intent
+ * @param {string} protocol - The interaction protocol
+ */
+export function updateFtsIndex(filePath: string, intent: string, protocol: string) {
+    const database = getDb();
+    const normalizedPath = filePath.replace(/\\/g, '/');
+
+    // UPSERT pattern for FTS5 (Delete then Insert is safest for FTS)
+    database.prepare('DELETE FROM intents_fts WHERE path = ?').run(normalizedPath);
+    database.prepare('INSERT INTO intents_fts (path, intent, interaction_protocol) VALUES (?, ?, ?)')
+        .run(normalizedPath, intent, protocol);
+}
+
+/**
+ * Updates the Chronicle index for a specific lore chunk.
+ * @param {string} sourceFile - The source file (dev_journal.qmd, memory.qmd)
+ * @param {string} header - The header/date of the entry
+ * @param {string} content - The entry content
+ * @param {string} timestamp - Optional timestamp string
+ */
+export function updateChronicleIndex(sourceFile: string, header: string, content: string, timestamp: string = '') {
+    const database = getDb();
+    // We use a simple hash of source+header to prevent duplicates for the same entry
+    const entryId = `${sourceFile}#${header}`;
+    database.prepare('DELETE FROM chronicles_fts WHERE source_file = ? AND header = ?').run(sourceFile, header);
+    database.prepare('INSERT INTO chronicles_fts (source_file, header, content, timestamp) VALUES (?, ?, ?, ?)')
+        .run(sourceFile, header, content, timestamp);
+}
+
+/**
+ * Performs a high-fidelity FTS5 search across file intents and chronicles.
+ * @param {string} query - The search query
+ * @returns {any[]} The matching results
+ */
+export function searchIntents(query: string): any[] {
+    const database = getDb();
+    
+    // Sanitize query for FTS5 (escape single quotes)
+    const safeQuery = query.replace(/'/g, ' ');
+
+    // 1. Search Code Intents
+    const codeResults = database.prepare(`
+        SELECT path, intent, interaction_protocol, rank, 'CODE' as type
+        FROM intents_fts 
+        WHERE intents_fts MATCH ? 
+        ORDER BY rank
+    `).all(safeQuery) as any[];
+
+    // 2. Search Chronicles
+    const loreResults = database.prepare(`
+        SELECT source_file as path, header as intent, content as interaction_protocol, rank, 'LORE' as type
+        FROM chronicles_fts 
+        WHERE chronicles_fts MATCH ? 
+        ORDER BY rank
+    `).all(safeQuery) as any[];
+
+    // 3. Unify and Sort by Rank
+    return [...codeResults, ...loreResults].sort((a, b) => a.rank - b.rank);
+}
+
+/**
+ * Retrieves the most recent sessions across all spokes.
+ * @param {number} limit - The number of sessions to retrieve
+ * @returns {any[]} The recent sessions
+ */
+export function getRecentSessions(limit: number = 20): any[] {
+    const database = getDb();
+    return database.prepare(`
+        SELECT s.*, sp.name as spoke_name, sp.root_path as spoke_path
+        FROM sessions s
+        JOIN spokes sp ON s.spoke_id = sp.id
+        ORDER BY s.start_timestamp DESC
+        LIMIT ?
+    `).all(limit);
+}
+
+/**
+ * Retrieves all pings for a specific session.
+ * @param {number} sessionId - The session ID
+ * @returns {any[]} The pings in chronological order
+ */
+export function getPingsForSession(sessionId: number): any[] {
+    const database = getDb();
+    return database.prepare(`
+        SELECT * FROM pings 
+        WHERE session_id = ? 
+        ORDER BY timestamp ASC
+    `).all(sessionId);
 }
 
 /**

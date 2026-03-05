@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { activePersona } from '../tools/pennyone/personaRegistry.ts';
+import { ANS } from './core/ans.ts';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const PROJECT_ROOT = join(__dirname, '..', '..');
@@ -192,6 +193,9 @@ function getVaultStatus(): string {
  *
  */
 export async function runStartupCeremony() {
+    // [🔱] THE BRAIN: Wake the entire framework organism
+    await ANS.wake();
+
     const persona = activePersona.name;
 
     const theme = THEMES[persona] || THEMES['A.L.F.R.E.D.'];

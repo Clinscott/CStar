@@ -11,6 +11,12 @@ except ImportError:
     sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "core"))
     from src.core.sovereign_hud import SovereignHUD
 
+def _save_dataset(dataset: dict, target_path: Path) -> bool:
+    return TraceMerger._save_dataset(dataset, target_path)
+
+def _process_single_trace(trace: dict, existing_queries: dict, dataset: dict):
+    return TraceMerger._process_single_trace(trace, existing_queries, dataset)
+
 class TraceMerger:
     """[ALFRED] Orchestration logic for neural trace consolidation."""
 

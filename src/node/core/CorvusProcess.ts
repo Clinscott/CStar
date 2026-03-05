@@ -1,6 +1,7 @@
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 import * as readline from 'readline';
 import { EventEmitter } from 'events';
+import { getPythonPath } from './python_utils.ts';
 
 /**
  * [O.D.I.N.] Rigid Input Boundary Schema
@@ -46,7 +47,7 @@ export class CorvusProcess extends EventEmitter {
     private _spawn(): void {
         // Spawn the hardened Python core
         // [Ω] Using 'python' or 'python3' based on environment
-        this.daemon = spawn('python', [this.entrypoint]);
+        this.daemon = spawn(getPythonPath(), [this.entrypoint]);
         this.isRunning = true;
 
         this.setupOutputBoundary();

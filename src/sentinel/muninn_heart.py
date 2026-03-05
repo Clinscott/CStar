@@ -13,15 +13,17 @@ from typing import Any
 from src.core.sovereign_hud import SovereignHUD
 from src.core.metrics import ProjectMetricsEngine
 from src.sentinel.stability import TheWatcher
-from src.sentinel.muninn_hunter import MuninnHunter
 from src.sentinel.muninn_crucible import MuninnCrucible
 from src.sentinel.muninn_memory import MuninnMemory
+from src.core.mimir_client import mimir
+from src.sentinel.coordinator import MissionCoordinator
 
 
 class MuninnHeart:
     """
     [Ω] The Pulse of Muninn.
     Orchestrates the Hunt -> Forge -> Crucible cycle with endurance hardening.
+    Mandate: One Mind. No 'Too Much Mind'.
     """
     def __init__(self, root: Path, uplink: Any):
         self.root = root
@@ -30,7 +32,7 @@ class MuninnHeart:
         self.metrics_engine = ProjectMetricsEngine()
         self.watcher = TheWatcher(self.root)
         self.memory = MuninnMemory(self.root)
-        self.hunter = MuninnHunter(self.root, self.memory)
+        self.coordinator = MissionCoordinator(self.root)
         self.crucible = MuninnCrucible(self.root, self.uplink)
         
         # Endurance Metrics
@@ -65,11 +67,16 @@ class MuninnHeart:
 
             self._wait_for_silence()
             
-            # 1. HUNT
-            breaches, _ = await self.hunter.execute_hunt()
-            target = self.hunter.select_target(breaches)
+            # 1. THE ONE MIND: Consult Mimir's Well for the mission
+            SovereignHUD.persona_log("INFO", "Muninn consulting the One Mind for target allocation...")
+            SovereignHUD.persona_log("ALFRED", "'Too much mind, Master. We must trust the Well.'")
+            
+            # Use MCP to get the ledger targets directly
+            # We select the mission via the coordinator which already reads the ledger
+            target = self.coordinator.select_mission([])
             
             if not target:
+                SovereignHUD.persona_log("SUCCESS", "The Matrix is stabilized. No missions found.")
                 return False
 
             if self.watcher.is_locked(target["file"]):

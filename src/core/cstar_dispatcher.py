@@ -129,6 +129,14 @@ class CorvusDispatcher:
         all_cmds = self._discover_all()
         if cmd in all_cmds:
             cmd_path = all_cmds[cmd]
+            
+            # [Ω] SPECIAL CASE: wrap-it-up
+            # We want to execute the Python script wrap_it_up.py rather than just rendering the workflow qmd
+            if cmd == "wrap-it-up":
+                wrap_script = self.project_root / "src" / "tools" / "wrap_it_up.py"
+                if wrap_script.exists():
+                    cmd_path = str(wrap_script.resolve())
+
             if cmd_path.endswith(".py"):
                 # Permanent Execution Jailing: Detect if command is in skills_db
                 if "skills_db" in cmd_path:
@@ -179,7 +187,10 @@ class CorvusDispatcher:
         if not self.warden:
             return
 
-        features = [latency, float(tokens), loops, error]
+        # [🔱] ONE MIND: AnomalyWarden v6 requires 5 features [latency, tokens, loops, error, lore_alignment]
+        # For CLI dispatching, we assume high lore alignment (1.0) unless a failure occurred.
+        lore_alignment = 1.0 if error == 0.0 else 0.5
+        features = [latency, float(tokens), loops, error, lore_alignment]
 
         # 1. Inference
         anomaly_prob = self.warden.forward(features)

@@ -6,6 +6,9 @@ from collections import defaultdict
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "core"))
 from src.core.sovereign_hud import SovereignHUD
 
+def compile_report(project_root: str) -> None:
+    return FailureReporter.execute(project_root)
+
 class FailureReporter:
     """[O.D.I.N.] Orchestration logic for Sovereign Cycle failure analysis."""
 

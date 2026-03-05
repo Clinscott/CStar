@@ -12,6 +12,8 @@ import { execa } from 'execa';
 export function registerDispatcher(program: Command, PROJECT_ROOT: string) {
     const discoverAll = (): Map<string, string> => {
         const commands = new Map<string, string>();
+        
+        // 1. Python Skills (.py)
         const scriptDirs = [
             join(PROJECT_ROOT, '.agent', 'skills'),
             join(PROJECT_ROOT, 'src', 'tools'),
@@ -26,11 +28,23 @@ export function registerDispatcher(program: Command, PROJECT_ROOT: string) {
                 fs.readdirSync(d).forEach(f => {
                     if (f.endsWith('.py') && !f.startsWith('_')) {
                         const name = parse(f).name;
-                        commands.set(name, join(d, f));
+                        commands.set(name.toLowerCase(), join(d, f));
                     }
                 });
             }
         });
+
+        // 2. Workflows (.md / .qmd)
+        const workflowDir = join(PROJECT_ROOT, '.agent', 'workflows');
+        if (fs.existsSync(workflowDir)) {
+            fs.readdirSync(workflowDir).forEach(f => {
+                if ((f.endsWith('.md') || f.endsWith('.qmd')) && !f.startsWith('_')) {
+                    const name = parse(f).name;
+                    commands.set(name.toLowerCase(), join(workflowDir, f));
+                }
+            });
+        }
+
         return commands;
     };
 

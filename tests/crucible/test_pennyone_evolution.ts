@@ -7,6 +7,8 @@ import { registry } from '../../src/tools/pennyone/pathRegistry.ts';
 import { closeDb } from '../../src/tools/pennyone/intel/database.ts';
 import { closeGravityDb } from '../../src/tools/pennyone/intel/gravity_db.ts';
 
+import { defaultProvider } from '../../src/tools/pennyone/intel/llm.ts';
+
 /**
  * 🧬 PENNYONE EVOLUTION TEST
  * Purpose: Verify that PennyOne correctly handles cache invalidation and the --force flag.
@@ -16,9 +18,17 @@ import { closeGravityDb } from '../../src/tools/pennyone/intel/gravity_db.ts';
  * 3. Warm Scan (Force) -> Bypasses Cache (Deep Re-analysis)
  */
 async function runEvolutionTest() {
-    const testDir = path.resolve(process.cwd(), 'tmp_evolution_test');
+    // Mock the provider to test offline logic
+    const mockProvider = test.mock.method(defaultProvider, 'getBatchIntent', async (batch: any[]) => {
+        return batch.map(b => ({
+            intent: `Mocked intent for ${b.data.path}`,
+            interaction: 'Mocked protocol'
+        }));
+    });
+
+    const testDir = path.resolve(process.cwd(), 'sandbox_evolution_test');
     await fs.mkdir(testDir, { recursive: true });
-    
+
     // Set registry root to our temp dir for isolation
     registry.setRoot(testDir);
 
@@ -42,10 +52,10 @@ async function runEvolutionTest() {
     console.log('[EVOLUTION] Phase 3: Warm Scan (Force)...');
     // We modify the file content to change the hash, but --force should re-analyze regardless
     await fs.writeFile(filePath, 'export const state = "evolved";');
-    
+
     const scan3 = await runScan(testDir, true); // force = true
     assert.strictEqual(scan3.length, 1, 'Should still find the file');
-    
+
     // In force mode, we expect deep re-analysis. 
     // Since we are using MockProvider in tests, we verify by checking if it attempted re-analysis.
     // The real validation is that the logic flow reaches the analyzeFile and getIntent steps.
@@ -54,7 +64,23 @@ async function runEvolutionTest() {
     // Cleanup
     closeDb();
     closeGravityDb();
-    await fs.rm(testDir, { recursive: true, force: true });
+
+    // Windows OS-level file lock delay mitigation
+    async function safeRm(dir: string, retries = 5) {
+        for (let i = 0; i < retries; i++) {
+            try {
+                await fs.rm(dir, { recursive: true, force: true });
+                return;
+            } catch (e: any) {
+                if (e.code === 'EBUSY' && i < retries - 1) {
+                    await new Promise(r => setTimeout(r, 200));
+                } else {
+                    throw e;
+                }
+            }
+        }
+    }
+    await safeRm(testDir);
     console.log('[EVOLUTION] Test Passed.');
 }
 

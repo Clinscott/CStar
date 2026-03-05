@@ -170,6 +170,11 @@ The autonomous daemon ensuring system health.
     - **Debt Slasher**: Review and eviction logic for the anomaly ledger in `wrap_it_up.py`.
 - **Shadow Forge Warden** (`src/sentinel/wardens/shadow_forge.py`):
     - Extracted Docker Orchestrator. Safely handles transient container setup and strict JSON payload promotion back to the host filesystem.
+- **TALIESIN Spoke** (`src/sentinel/taliesin.py`):
+    - **Lore Engine**: Orchestrates style ingestion, data gathering, and content generation for X.
+    - **Autonomic Narrative Engine** (`recreate_chapter.py`): Multi-agent pipeline (Director -> Actors -> Narrator) orchestrating character reactions over the Synaptic State Tracker.
+    - **Cohesion Auditing** (`score_cohesion.py`): Evaluates generated prose for Lexical accuracy and Intent alignment against True Text baselines.
+    - **BDD Voice Framework** (`extract_character_voices.py`): Compiles character lore into structured Gherkin (`.feature`) behavioral contracts.
 - **Sandbox Warden** (`src/sentinel/sandbox_warden.py`):
     - `run_in_sandbox(path, args)`: Executes Python scripts within isolated, resource-capped Docker containers.
 - **Docker Runtimes**:

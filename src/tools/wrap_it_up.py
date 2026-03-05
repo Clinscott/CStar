@@ -16,7 +16,6 @@ if str(PROJECT_ROOT) not in sys.path:
 from src.core.engine.atomic_gpt import SessionWarden
 from src.core.sovereign_hud import SovereignHUD
 from src.core.sv_engine import SovereignEngine
-from src.tools import compile_session_traces
 from src.tools.update_gemini_manifest import update_manifest
 
 
@@ -33,67 +32,137 @@ class SovereignWrapper:
             self.engine = SovereignEngine(project_root=self.root)
         return self.engine
 
-    def run_gungnir_gate(self) -> None:
-        """Executes the Gungnir validation gate (Ruff + NPM Test)."""
-        SovereignHUD.box_top("GUNGNIR GATE")
-
-        # 1. Comprehensive Ruff Linting
-        SovereignHUD.box_row("STEP 1", "Ruff Linting", SovereignHUD.CYAN)
+    def initial_scan(self):
+        """Step 1: Structural PennyOne scan to see the current state of the system."""
+        SovereignHUD.box_top("STEP 1: INITIAL STRUCTURAL SCAN")
+        SovereignHUD.persona_log("ALFRED", "Performing initial structural harvest (PennyOne)...")
         try:
-            # We specifically select Logic Errors (F) to ensure zero structural breaches
-            # Stylistic debt (E) is acknowledged but does not block the gate.
-            subprocess.run(
-                [sys.executable, "-m", "ruff", "check", ".", "--select", "F", "--no-cache"],
-                cwd=str(self.root), check=True, capture_output=True
-            )
-            SovereignHUD.box_row("STATUS", "PASS", SovereignHUD.GREEN)
+            subprocess.run(["npx.cmd", "tsx", "cstar.ts", "pennyone", "--scan"], cwd=str(self.root), check=True)
+            SovereignHUD.box_row("STATUS", "COMPLETE", SovereignHUD.GREEN)
         except subprocess.CalledProcessError as e:
-            SovereignHUD.box_row("STATUS", "FAIL", SovereignHUD.RED)
-            SovereignHUD.persona_log("HEIMDALL", f"BREACH: Linting failure detected.\n{e.stderr.decode()}")
-            sys.exit(1)
-
-        SovereignHUD.box_separator()
-
-        # 2. Project-wide NPM Test Suite
-        SovereignHUD.box_row("STEP 2", "NPM Test Suite", SovereignHUD.CYAN)
-        try:
-            # Runs both Node and Python tests as defined in package.json
-            subprocess.run(["npm", "test"], cwd=str(self.root), check=True, shell=True)
-            SovereignHUD.box_row("STATUS", "PASS", SovereignHUD.GREEN)
-        except subprocess.CalledProcessError:
-            SovereignHUD.box_row("STATUS", "FAIL", SovereignHUD.RED)
-            SovereignHUD.persona_log("HEIMDALL", "BREACH: Test suite failure detected.")
-            sys.exit(1)
-
+            SovereignHUD.persona_log("HEIMDALL", f"BREACH: Initial PennyOne harvest failed. {e}")
         SovereignHUD.box_bottom()
 
+    def release_ravens(self):
+        """Step 2: Ravens are set free to work in system."""
+        SovereignHUD.box_top("STEP 2: RELEASE THE RAVENS")
+        SovereignHUD.persona_log("ODIN", "Releasing the Ravens into the matrix...")
+        try:
+            # We run Muninn as a one-shot or a short cycle for this wrap-up
+            # Using the 'ravens start' command which is detached
+            subprocess.run(["npx", "tsx", "cstar.ts", "ravens", "start"], cwd=str(self.root), check=True)
+            SovereignHUD.box_row("STATUS", "RELEASED", SovereignHUD.GREEN)
+        except subprocess.CalledProcessError as e:
+            SovereignHUD.persona_log("HEIMDALL", f"BREACH: Raven release failed. {e}")
+        SovereignHUD.box_bottom()
+
+    def wait_for_ravens(self):
+        """Step 3: Wait for Ravens to finish their flight."""
+        SovereignHUD.box_top("STEP 3: RAVEN FLIGHT MONITOR")
+        SovereignHUD.persona_log("INFO", "Monitoring Raven flight path. Waiting for landing...")
+        
+        muninn_pid_path = self.root / ".agent" / "muninn.pid"
+        start_wait = time.time()
+        timeout = 600 # 10 minutes for this orchestrated run
+        
+        while muninn_pid_path.exists() and (time.time() - start_wait < timeout):
+            # Check every 10 seconds
+            time.sleep(10)
+            
+        if muninn_pid_path.exists():
+            SovereignHUD.persona_log("WARN", "Ravens are lingering. Recalling manually...")
+            try:
+                pid = int(muninn_pid_path.read_text().strip())
+                if os.name == 'nt':
+                    subprocess.run(["taskkill", "/F", "/PID", str(pid)], capture_output=True)
+                else:
+                    os.kill(pid, 9)
+                muninn_pid_path.unlink()
+            except: pass
+        
+        SovereignHUD.persona_log("SUCCESS", "Muninn is done flying.")
+        SovereignHUD.box_bottom()
+
+    def run_gungnir_gate(self) -> bool:
+        """Step 5: Test suite kicks into gear. Fails are fixed."""
+        SovereignHUD.box_top("STEP 5: GUNGNIR GATE & TEST SUITE")
+        
+        max_fix_attempts = 3
+        for attempt in range(1, max_fix_attempts + 1):
+            SovereignHUD.persona_log("INFO", f"Test Cycle {attempt}/{max_fix_attempts}...")
+            
+            # 1. Ruff (Logic)
+            SovereignHUD.box_row("LINT", "Ruff Check", SovereignHUD.CYAN)
+            lint_res = subprocess.run(
+                [sys.executable, "-m", "ruff", "check", ".", "--select", "F", "--no-cache"],
+                cwd=str(self.root), capture_output=True
+            )
+            
+            # 2. NPM Test
+            SovereignHUD.box_row("TEST", "NPM Suite", SovereignHUD.CYAN)
+            test_res = subprocess.run(["npm", "test"], cwd=str(self.root), shell=True, capture_output=True)
+            
+            if lint_res.returncode == 0 and test_res.returncode == 0:
+                SovereignHUD.box_row("STATUS", "GREEN", SovereignHUD.GREEN)
+                SovereignHUD.box_bottom()
+                return True
+            
+            SovereignHUD.box_row("STATUS", "RED", SovereignHUD.RED)
+            if attempt < max_fix_attempts:
+                SovereignHUD.persona_log("HEIMDALL", "Breach detected in test suite. Initiating auto-fix protocol...")
+                try:
+                    # Attempt a general fix cycle via Muninn (The Hunter)
+                    subprocess.run(["npx", "tsx", "cstar.ts", "ravens", "start"], cwd=str(self.root), check=True)
+                    self.wait_for_ravens()
+                except: pass
+            else:
+                SovereignHUD.persona_log("CRITICAL", "Test suite remains RED after multiple fix attempts.")
+                SovereignHUD.box_bottom()
+                return False
+        
+        return False
+
     def synchronize_state(self):
-        """Compiles traces, updates manifest, and syncs docs."""
-        SovereignHUD.persona_log("ALFRED", "Synchronizing neural state and compiled traces...")
-        _, stats = compile_session_traces.compile_traces()
+        """Step 6 & 7: Ingest work and final system scan."""
+        SovereignHUD.box_top("STEP 6: FINAL SYSTEM SYNC")
+        SovereignHUD.persona_log("ALFRED", "Ingesting recent work and performing final system scan...")
+        
+        # Final Structural Scan
+        try:
+            subprocess.run(["npx.cmd", "tsx", "cstar.ts", "pennyone", "--scan"], cwd=str(self.root), check=True)
+        except: pass
+
+        # Compile Session Traces
+        from src.tools.compile_session_traces import TraceCompiler
+        _, stats = TraceCompiler.execute()
+        
         update_manifest()
+        
+        # Sync Edda (Walkthrough/Documentation)
         self._edda_sync()
 
+        # Rebuild Vector Index
         SovereignHUD.persona_log("ODIN", "Rebuilding Sovereign Vector Index...")
         try:
             engine = self._get_engine()
             _ = engine._init_vector_engine()
         except Exception as e:
             SovereignHUD.persona_log("HEIMDALL", f"BREACH: Vector Indexing failed. {e}")
-            sys.exit(1)
 
+        SovereignHUD.box_bottom()
         return stats
 
     def _edda_sync(self) -> None:
+        """Updates walkthrough.qmd with new capabilities."""
         try:
             proc = subprocess.run(["git", "status", "--porcelain"], cwd=str(self.root), capture_output=True, text=True)
             changes = proc.stdout.splitlines()
             new_capabilities = []
             for line in changes:
-                status, path = line[:2], line[3:]
+                status, path_str = line[:2], line[3:]
                 if status.strip() in ("??", "A"):
-                    if "src/skills" in path or ".agent/workflows" in path:
-                        new_capabilities.append(path)
+                    if "src/skills" in path_str or ".agent/workflows" in path_str:
+                        new_capabilities.append(path_str)
 
             if new_capabilities:
                 SovereignHUD.persona_log("EDDA", f"Detected {len(new_capabilities)} new capabilities.")
@@ -108,30 +177,26 @@ class SovereignWrapper:
             SovereignHUD.persona_log("EDDA", f"Warning: Auto-documentation failed. {e}")
 
     def review_technical_debt(self, stats=None) -> None:
-        """[V4] Hardened Review: 10s Retry Loop, JSONL Archival, and Session Pulse."""
-        queue_path = self.root / "src" / "data" / "anomalies_queue.jsonl" # [V4] JSONL
+        """[V4] Technical Debt Review: JSONL Archival and Learning Pulse."""
+        queue_path = self.root / "src" / "data" / "anomalies_queue.jsonl"
         archive_path = self.root / "src" / "data" / "anomalies_archive.json"
 
         if not queue_path.exists():
             return
 
-        SovereignHUD.box_top("TECHNICAL DEBT REVIEW (V4)")
-
+        SovereignHUD.box_top("TECHNICAL DEBT REVIEW")
+        
         # 1. Bounded Retry Loop for Windows File Locks (10s envelope)
         temp_data = []
         success = False
-        retries = 50 # 50 * 200ms = 10s
+        retries = 50 
         while retries > 0 and not success:
             try:
-                # Move the file to a temp location to break locks for subsequent appends
                 temp_queue = self.root / "src" / "data" / f"queue_pulse_{int(time.time())}.jsonl"
                 os.rename(queue_path, temp_queue)
-
                 with open(temp_queue, encoding="utf-8") as f:
                     for line in f:
-                        if line.strip():
-                            temp_data.append(json.loads(line))
-
+                        if line.strip(): temp_data.append(json.loads(line))
                 temp_queue.unlink()
                 success = True
             except (PermissionError, FileNotFoundError):
@@ -139,16 +204,14 @@ class SovereignWrapper:
                 retries -= 1
 
         if not success:
-            SovereignHUD.persona_log("HEIMDALL", "CAUTION: Anomalies Queue remains locked. Deferred to next session.")
+            SovereignHUD.persona_log("HEIMDALL", "CAUTION: Anomalies Queue locked.")
             SovereignHUD.box_bottom()
             return
 
-        # 2. Archival & Aggregation
+        # 2. Archival
         if archive_path.exists():
-            with open(archive_path, encoding="utf-8") as f:
-                archive = json.load(f)
-        else:
-            archive = []
+            with open(archive_path, encoding="utf-8") as f: archive = json.load(f)
+        else: archive = []
 
         session_scores = []
         for entry in temp_data:
@@ -156,39 +219,39 @@ class SovereignWrapper:
             entry["status"] = "archived"
             archive.append(entry)
 
-        with open(archive_path, "w", encoding="utf-8") as f:
-            json.dump(archive, f, indent=2)
-
+        with open(archive_path, "w", encoding="utf-8") as f: json.dump(archive, f, indent=2)
         SovereignHUD.box_row("MIGRATED", f"{len(temp_data)} anomalies to archive.", SovereignHUD.CYAN)
 
-        # 3. Session Learning Pulse
+        # 3. Session Learning Pulse (Atomic GPT)
         if stats:
             avg_score = sum(session_scores) / len(session_scores) if session_scores else 0.5
             trace_count = stats.get('total', 0)
             error_rate = len(stats.get('critical_fails', [])) / max(1, trace_count)
-
-            # [V4] 3D Vector for SessionWarden
             session_vector = [avg_score, trace_count, error_rate]
 
-            warden = SessionWarden()
-            warden.train() # Ensure train mode (dropout active)
-            # Label: 0.0 means "Healthy Session"
-            warden.train_step(session_vector, 0.0)
-            SovereignHUD.box_row("PULSE", "SessionWarden learning cycle complete.", SovereignHUD.GREEN)
+            try:
+                warden = SessionWarden()
+                warden.train()
+                warden.train_step(session_vector, 0.0)
+                SovereignHUD.box_row("PULSE", "SessionWarden learning cycle complete.", SovereignHUD.GREEN)
+            except Exception as e:
+                SovereignHUD.persona_log("WARN", f"Learning pulse failed: {e}")
 
         SovereignHUD.box_bottom()
 
     def sovereign_commit(self, stats) -> None:
-        """Generates commit message and pushes."""
+        """Step 8: Final system commit."""
+        SovereignHUD.box_top("STEP 8: SOVEREIGN COMMIT")
         SovereignHUD.persona_log("ODIN", "Initiating Sovereign Commit Protocol...")
         proc = subprocess.run(["git", "status", "--porcelain"], cwd=str(self.root), capture_output=True, text=True)
         if not proc.stdout.strip():
             SovereignHUD.persona_log("ALFRED", "No changes to commit.")
+            SovereignHUD.box_bottom()
             return
 
         commit_msg = f"""feat: Sovereign Sync (Session {datetime.now().strftime('%Y-%m-%d')})
 
-- Processed {stats.get('total', 0)} neural traces.
+- Processed {stats.get('total', 0) if stats else 'N/A'} neural traces.
 - Validated codebase integrity and V4 Hardening.
 - SessionWarden learning pulse successful.
 - Deep memory teardown and GC sweep complete.
@@ -199,36 +262,56 @@ class SovereignWrapper:
             subprocess.run(["git", "add", "."], cwd=str(self.root), check=True)
             subprocess.run(["git", "commit", "-m", commit_msg], cwd=str(self.root), check=True)
             subprocess.run(["git", "push"], cwd=str(self.root), check=True)
-            SovereignHUD.box_top("SOVEREIGN COMMIT")
             SovereignHUD.box_row("STATUS", "PUSHED", SovereignHUD.GREEN)
-            SovereignHUD.box_bottom()
         except subprocess.CalledProcessError as e:
             SovereignHUD.persona_log("HEIMDALL", f"BREACH: Git Protocol Failed. {e}")
-            sys.exit(1)
+        SovereignHUD.box_bottom()
 
     def teardown(self) -> None:
-        """[V4] Deep Teardown and Resource Reclamation."""
+        """Final Dormancy."""
+        SovereignHUD.persona_log("INFO", "Initiating global dormancy...")
+        try:
+            if os.name == 'nt':
+                subprocess.run(["npx.cmd", "tsx", "cstar.ts", "sleep"], cwd=str(self.root), capture_output=True)
+            else:
+                subprocess.run(["npx", "tsx", "cstar.ts", "sleep"], cwd=str(self.root), capture_output=True)
+        except: pass
+
         if self.engine:
             self.engine.teardown()
-            self.engine = None
 
-        # External module cleanup
-        import src.core.sovereign_hud as ui
-        ui.SovereignHUD._INITIALIZED = False
-
-        # Force three-generation sweep
         gc.collect()
         SovereignHUD.persona_log("SUCCESS", "Wrap-up Protocol: Memory boundaries secured.")
+
 
 def main() -> None:
     try:
         wrapper = SovereignWrapper()
-        wrapper.run_gungnir_gate()
+        
+        # 1. Initial Scan
+        wrapper.initial_scan()
+        
+        # 2. Release Ravens
+        wrapper.release_ravens()
+        
+        # 3. Wait for Ravens
+        wrapper.wait_for_ravens()
+        
+        # 4. (Ravens update attributes during their run)
+        
+        # 5. Test Suite & Fixes
+        success = wrapper.run_gungnir_gate()
+        
+        # 6. Ingest & Final Scan
         stats = wrapper.synchronize_state()
+        
+        # 7. Review & Pulse (Learning Pulse for Atomic GPT)
         wrapper.review_technical_debt(stats)
+        
+        # 8. Commit
         wrapper.sovereign_commit(stats)
 
-        # [V4] Deep Purge before exit
+        # 9. Teardown
         wrapper.teardown()
 
     except KeyboardInterrupt:

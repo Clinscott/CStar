@@ -46,6 +46,31 @@ def temp_project(tmp_path):
     return tmp_path
 
 
+@pytest.fixture
+def isolate_workspace(tmp_path, monkeypatch):
+    """
+    [Ω] ADAMANT ISOLATION: Provides a pristine, ephemeral workspace.
+    Redirects CWD to a temporary directory to prevent state pollution.
+    """
+    # Create standard directory structure
+    (tmp_path / "src").mkdir(exist_ok=True)
+    (tmp_path / "tests").mkdir(exist_ok=True)
+    (tmp_path / ".agent").mkdir(exist_ok=True)
+    
+    # Mock environment variables to point to the temporary path
+    monkeypatch.setenv("PROJECT_ROOT", str(tmp_path))
+    
+    # Change current working directory
+    import os
+    old_cwd = os.getcwd()
+    os.chdir(tmp_path)
+    
+    yield tmp_path
+    
+    # Restore original CWD
+    os.chdir(old_cwd)
+
+
 @pytest.fixture(autouse=True)
 def prevent_api_key_leak(monkeypatch):
     """

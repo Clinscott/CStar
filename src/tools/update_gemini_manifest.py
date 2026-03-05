@@ -14,6 +14,9 @@ try:
 except Exception:
     pass
 
+def update_manifest() -> None:
+    return ManifestOrchestrator.execute()
+
 class ManifestOrchestrator:
     """[O.D.I.N.] Orchestration logic for Gemini Neural Manifest updates."""
 

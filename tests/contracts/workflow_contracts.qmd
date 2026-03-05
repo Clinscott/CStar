@@ -1,0 +1,108 @@
+---
+title: Core Workflow Contracts
+scope: .agent/workflows/
+---
+
+# Core Workflows — Behavioral Contracts
+
+## Handshake Workflow
+
+### Documentation Sync
+```
+Feature: Session Finalization
+  Scenario: Handshake updates core project documentation
+    Given the handshake workflow is commanded
+    When the workflow executes
+    Then tasks.qmd is updated with completed items
+    And wireframe.qmd is updated with structural changes
+    And walkthrough.qmd is updated with the session delta
+    And dev_journal.qmd and memory.qmd are updated with session context
+```
+
+### Security Sweep
+```
+Feature: Ghost Sweep
+  Scenario: Handshake ensures no secrets are committed
+    Given a session with code changes
+    When the Ghost Sweep step executes
+    Then the staged diff is scanned for API keys, tokens, and URLs
+    And a warning is issued if potential breaches are found
+```
+
+## Lets-Go Workflow
+
+### Context Ingestion
+```
+Feature: Session Resumption
+  Scenario: Lets-Go builds a mental model of the current priority
+    Given the lets-go workflow is commanded
+    When the workflow executes
+    Then tasks.qmd is read for the current priority
+    And memory.qmd is read for architectural context
+    And wireframe.qmd is read for UI components
+```
+
+### Strategic Proposal
+```
+Feature: Actionable Planning
+  Scenario: Agent provides multiple paths for implementation
+    Given context ingestion is complete
+    When the workflow generates proposals
+    Then 3 distinct proposals are presented with trade-offs
+    And the output is persona-filtered (ODIN or ALFRED)
+```
+
+### Transition to Action
+```
+Feature: Workflow Chain
+  Scenario: User selects a proposal to begin investigation
+    Given 3 proposals have been presented
+    When the user selects a path
+    Then the investigate workflow is triggered for that path
+    And tasks.qmd is updated with a detailed implementation breakdown
+```
+
+## Investigate Workflow
+
+### Target Acquisition
+```
+Feature: Deep Analysis Initiation
+  Scenario: Investigation begins with intent discovery
+    Given the investigate workflow is commanded for a target
+    When the workflow executes
+    Then get_file_intent is called to retrieve intent and protocol
+    And get_semantic_symbols is called to map the logic
+```
+
+### Raven Synchronization
+```
+Feature: Autonomous Repair Alignment
+  Scenario: Investigation waits for autonomous background work
+    Given an autonomous repair was triggered during investigation
+    When the findings report is being finalized
+    Then the system must wait for the "Muninn is done flying" status
+    And the final Gungnir Matrix scores must be updated
+```
+
+## Plan Workflow
+
+### The Recursive Loop
+```
+Feature: Strategic Definition
+  Scenario: Plan enters a definition loop to resolve ambiguity
+    Given the plan workflow is commanded
+    When the agent identifies gaps in the request
+    Then a recursive loop is entered
+    And the system identifies relevant code sectors via pennyone search
+    And clarifying questions are presented to the user
+```
+
+### Contract-First Defense
+```
+Feature: Architectural Blueprinting
+  Scenario: New features require behavioral contracts
+    Given the plan scope is locked
+    When a new feature or major refactor is planned
+    Then a Gherkin Contract (.qmd) must be created in tests/contracts/
+    And the implementation plan must reference the contract
+```

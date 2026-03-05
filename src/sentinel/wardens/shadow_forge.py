@@ -35,6 +35,13 @@ class ShadowForgeWarden(BaseWarden):
             )
         return self.docker_exe
 
+    def scan(self) -> list[dict[str, Any]]:
+        """
+        Implementation of BaseWarden abstract method.
+        Shadow Forge is an execution sandbox, not a static analyzer, so it returns an empty breach list.
+        """
+        return []
+
     def execute_cycle(self) -> bool:
         """Host-side orchestration of the Shadow Forge cycle."""
         docker_exe = self._get_docker_executable()

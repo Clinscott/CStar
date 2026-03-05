@@ -13,7 +13,7 @@ class TestLexiconLift:
             def search(self, query):
                 return [{"description": "A fictional term for testing Bifröst integration."}]
 
-        monkeypatch.setattr("src.core.sv_engine.BraveSearch", MockBraveSearch)
+        monkeypatch.setattr("src.core.engine.orchestrator.BraveSearch", MockBraveSearch)
 
         # Mock Cortex to check if add_node is called
         added_nodes = []
@@ -22,7 +22,7 @@ class TestLexiconLift:
             def add_node(self, term, data):
                 added_nodes.append((term, data))
 
-        monkeypatch.setattr("src.core.sv_engine.Cortex", MockCortex)
+        monkeypatch.setattr("src.core.engine.orchestrator.Cortex", MockCortex)
 
         # Create engine
         engine = SovereignEngine()

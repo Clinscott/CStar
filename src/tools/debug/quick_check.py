@@ -15,6 +15,9 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from src.core.engine.vector import SovereignVector
 
+def run_quick_check() -> None:
+    return QuickCheck.execute()
+
 class QuickCheck:
     """[O.D.I.N.] Orchestration logic for neural engine baseline readiness check."""
 

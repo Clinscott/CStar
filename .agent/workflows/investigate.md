@@ -43,6 +43,7 @@ Read the files and analyze for:
 - **Optimization**: Can it be faster or lighter?
 - **UX/DX**: Can the user experience or developer experience be improved?
 - **Refactoring**: Are there larger structural improvements needed?
+- **Raven Status Check**: If an autonomous repair was triggered during investigation (e.g. via Muninn), you MUST wait for the "Muninn is done flying" confirmation before finalizing the report.
 
 ## 5. Report Findings (Persona Enforced)
 
@@ -65,8 +66,10 @@ Produce a summary of the investigation, filtered through your active identity:
     - `[V] Vigilance: [Score]`
     - `[Ω] Sovereignty: [Score]`
 - **Findings**: Bulleted list of issues or observations.
+- **Verification**: If code was changed during investigation, you MUST run the **Gungnir Gate** (Ruff + NPM Test) and report the results.
 - **Anomaly Detection (Heimdall Alert)**: If PennyOne or manual audit detects a structural malformation (e.g., circular deps, logic drops), you MUST explicitly state "**HEIMDALL ALERT TRIGGERED**" and request a user handshake.
 - **Recommendations**: Concrete steps to improve the code/feature.
+
 
 ### 🗣️ The Subconscious Check
 The report MUST include the "Inactive Voice" analysis:

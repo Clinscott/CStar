@@ -67,13 +67,6 @@ export const ConnectionLayer: React.FC<ConnectionLayerProps> = ({ links, activeN
             } else {
                 bgPoints.push(sNode.x || 0, sNode.y || 0, sNode.z || 0);
                 bgPoints.push(tNode.x || 0, tNode.y || 0, tNode.z || 0);
-                bgPoints.push(sNode.x || 0, sNode.y || 0, sNode.z || 0); // Correct for line segments? No, segment needs 2 points.
-                // Wait, backgroundGeometry needs PAIRS of points.
-                // Each link is one segment (2 points).
-                // My previous code:
-                // bgPoints.push(sNode.x || 0, sNode.y || 0, sNode.z || 0);
-                // bgPoints.push(tNode.x || 0, tNode.y || 0, tNode.z || 0);
-                // This is correct for LineSegments (pairs).
             }
         });
 

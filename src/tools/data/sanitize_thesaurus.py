@@ -7,6 +7,9 @@ Purpose: Inverts intent clusters into a bidirectional synonym map for vector exp
 
 from pathlib import Path
 
+def sanitize_clusters(clusters: dict[str, list[str]]) -> dict[str, set[str]]:
+    return ThesaurusSanitizer.sanitize_clusters(clusters)
+
 class ThesaurusSanitizer:
     """[ALFRED] Orchestration logic for thesaurus lexical purification."""
 

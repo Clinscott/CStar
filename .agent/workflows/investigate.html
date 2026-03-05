@@ -57,7 +57,11 @@ ul.task-list li input[type="checkbox"] {
 <ol type="1">
 <li><strong>Identify the Target</strong>: Explicitly state what function, component, or feature is being investigated.</li>
 <li><strong>Check Context</strong>: Read <code>memory.qmd</code> to understand established patterns or known issues related to the target.</li>
-<li><strong>Consult Wireframe</strong>: Check <code>wireframe.qmd</code> to match UI components with their documented functions and paths.</li>
+<li><strong>Omniscience Discovery</strong>:
+<ul>
+<li>Call <code>get_file_intent</code> (MCP) for the target. You MUST ingest both <strong>🎯 INTENT</strong> and <strong>🕹️ INTERACTION PROTOCOL</strong>.</li>
+<li>Call <code>get_semantic_symbols</code> (MCP) to map exports and internal logic.</li>
+</ul></li>
 <li><strong>Locate Resources</strong>: Consult the “Project Directory Structure” in <code>wireframe.qmd</code> and find all related files.</li>
 </ol>
 <ul>
@@ -70,7 +74,8 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="deep-code-analysis" class="level2">
 <h2 class="anchored" data-anchor-id="deep-code-analysis">2. Deep Code Analysis</h2>
-<p>Read the files and analyze for: - <strong>Code Quality</strong>: Adherence to patterns, DRY principles, and readability. - <strong>Functionality</strong>: strict verification that the code performs its intended purpose. - <strong>Missing Counterparts</strong>: Look for logical gaps (e.g., Login exists but Logout is missing; Create exists but Delete is missing). - <strong>Security &amp; Safety</strong>: proper validation, error handling, and authorization checking. - <strong>Layout Integration</strong>: Does this component/page respect the global <strong>DashboardLayout</strong>? Is it trying to break out of the SovereignHUD? (This is strictly forbidden for core feature pages). - <strong>Structural Integrity Scan (Sentinel)</strong>: // turbo <code>python .agent/scripts/code_sentinel.py &lt;target_path&gt;</code> Run the Ruff linter to detect code smells, typing issues, and structural malformations. Use <code>--fix</code> to attempt automated repair.</p>
+<p>Read the files and analyze for: - <strong>Code Quality</strong>: Adherence to patterns, DRY principles, and readability. - <strong>Functionality</strong>: strict verification that the code performs its intended purpose. - <strong>Missing Counterparts</strong>: Look for logical gaps (e.g., Login exists but Logout is missing; Create exists but Delete is missing). - <strong>Security &amp; Safety</strong>: proper validation, error handling, and authorization checking. - <strong>Layout Integration</strong>: Does this component/page respect the global <strong>DashboardLayout</strong>? Is it trying to break out of the SovereignHUD? (This is strictly forbidden for core feature pages). - <strong>Structural Integrity Scan (Sentinel)</strong>: // turbo-all <code>python .agent/scripts/code_sentinel.py &lt;target_path&gt;</code> Run the Ruff linter to detect code smells, typing issues, and structural malformations. Use <code>--fix</code> to attempt automated repair.</p>
+<p><code>tsx src/tools/js_sentinel.ts &lt;target_path&gt;</code> Enforce strict TypeScript surveillance across the entire Node.js operational domain.</p>
 </section>
 <section id="system-interaction-check" class="level2">
 <h2 class="anchored" data-anchor-id="system-interaction-check">3. System Interaction Check</h2>
@@ -86,6 +91,7 @@ ul.task-list li input[type="checkbox"] {
 <li><strong>Optimization</strong>: Can it be faster or lighter?</li>
 <li><strong>UX/DX</strong>: Can the user experience or developer experience be improved?</li>
 <li><strong>Refactoring</strong>: Are there larger structural improvements needed?</li>
+<li><strong>Raven Status Check</strong>: If an autonomous repair was triggered during investigation (e.g.&nbsp;via Muninn), you MUST wait for the “Muninn is done flying” confirmation before finalizing the report.</li>
 </ul>
 </section>
 <section id="report-findings-persona-enforced" class="level2">
@@ -99,7 +105,17 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>Signature</strong>: <code>[ODIN]</code> or <code>[ALFRED]</code></li>
 <li><strong>Status</strong>: (Healthy / Needs Attention / Critical)</li>
+<li><strong>Gungnir Matrix</strong>:
+<ul>
+<li><code>[L] Logic: [Score]</code></li>
+<li><code>[S] Style: [Score]</code></li>
+<li><code>[G] Gravity: [Score]</code></li>
+<li><code>[V] Vigilance: [Score]</code></li>
+<li><code>[Ω] Sovereignty: [Score]</code></li>
+</ul></li>
 <li><strong>Findings</strong>: Bulleted list of issues or observations.</li>
+<li><strong>Verification</strong>: If code was changed during investigation, you MUST run the <strong>Gungnir Gate</strong> (Ruff + NPM Test) and report the results.</li>
+<li><strong>Anomaly Detection (Heimdall Alert)</strong>: If PennyOne or manual audit detects a structural malformation (e.g., circular deps, logic drops), you MUST explicitly state “<strong>HEIMDALL ALERT TRIGGERED</strong>” and request a user handshake.</li>
 <li><strong>Recommendations</strong>: Concrete steps to improve the code/feature.</li>
 </ul>
 </section>

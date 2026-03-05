@@ -1,133 +1,109 @@
 """
-[ENGINE] Atomic Neural Wardens
-Lore: "The digital nerves of the All-Father."
-Purpose: Implements lightweight MLP models for metadata anomaly detection and session monitoring.
+[ENGINE] Sovereign Neural Wardens
+Lore: "The nerves of the All-Father should not just feel the pain; they should understand the cause."
+Purpose: Implements lore-aware MLP models for anomaly detection, grounded in Mimir's Well.
 """
 
 import pickle
+import json
+import asyncio
 from datetime import datetime
 from pathlib import Path
+from typing import List, Optional
 
 import numpy as np
-
+from src.core.mimir_client import mimir
 
 class WardenCircuitBreaker(Exception):
-    """Raised when the AnomalyWarden detects a critical system drift."""
+    """Raised when a Warden detects critical system drift or lore violation."""
     pass
 
 class BaseWarden:
-    """Base class for Wardens providing common neural operations and mode toggling."""
+    """Base class for Sovereign Wardens providing neural operations and lore grounding."""
     def __init__(self) -> None:
-        """Initializes the warden in training mode."""
         self.is_training: bool = True
-        # Running stats placeholders
         self.running_mean: np.ndarray = np.zeros(1)
         self.running_var: np.ndarray = np.ones(1)
 
-    def train(self) -> None:
-        """Enable dropout and weight updates."""
-        self.is_training = True
-
-    def eval(self) -> None:
-        """Disable dropout for deterministic inference."""
-        self.is_training = False
+    def train(self) -> None: self.is_training = True
+    def eval(self) -> None: self.is_training = False
 
     def sigmoid(self, x: np.ndarray) -> np.ndarray:
-        """Sigmoid activation function."""
         return 1 / (1 + np.exp(-np.clip(x, -500, 500)))
 
     def relu(self, x: np.ndarray) -> np.ndarray:
-        """ReLU activation function."""
         return np.maximum(0, x)
 
     def _normalize(self, x: np.ndarray) -> np.ndarray:
-        """Perform Z-Score standardization."""
         std = np.sqrt(self.running_var + 1e-8)
         return (x - self.running_mean) / std
 
-    def predict(self, x: list[float]) -> float:
-        """Alias for forward pass to satisfy EMPIRE contracts."""
-        return self.forward(x)
+    async def get_lore_alignment(self, file_path: str, action_desc: str) -> float:
+        """
+        [🔱] THE ONE MIND: Measures alignment between action and intent.
+        Returns a score from 0.0 (Violation) to 1.0 (Aligned).
+        """
+        try:
+            intent = await mimir.get_file_intent(file_path)
+            if not intent: return 0.5 # Neutral if lore is missing
+            
+            # Simple heuristic: Check if keywords from action exist in intent
+            # In a full upgrade, this would use a local embedding cosine similarity
+            action_keywords = set(action_desc.lower().split())
+            intent_keywords = set(intent.lower().split())
+            
+            intersection = action_keywords.intersection(intent_keywords)
+            return min(1.0, (len(intersection) + 1) / (len(action_keywords) + 1))
+        except:
+            return 0.5
 
-    def forward(self, x: list[float]) -> float:
-        """Abstract forward pass."""
+    def forward(self, x: List[float]) -> float:
         raise NotImplementedError
 
 
 class AnomalyWarden(BaseWarden):
     """
-    [THE SYSTEM CANARY]
-    A lightweight NumPy MLP for Metadata Anomaly Detection.
-    Monitors: [latency_ms, token_count, loop_iterations, error_rate]
+    [THE LORE-AWARE CANARY]
+    Monitors: [latency, tokens, loops, errors, lore_alignment]
     """
     def __init__(self, model_path: str | Path | None = None, ledger_path: str | Path | None = None) -> None:
-        """Initializes the AnomalyWarden with local state paths."""
         super().__init__()
         self.model_path = Path(model_path) if model_path else Path(".agent/warden.pkl")
         self.ledger_path = Path(ledger_path) if ledger_path else Path("src/data/anomalies_queue.jsonl")
 
-        # Hyperparameters
-        self.input_dim = 4
+        self.input_dim = 5 # Upgraded from 4 to include Lore Alignment
         self.hidden_dim = 16
         self.output_dim = 1
 
-        # State: Weights & Biases
         self.W1 = np.random.randn(self.input_dim, self.hidden_dim) * 0.01
         self.b1 = np.zeros((1, self.hidden_dim))
         self.W2 = np.random.randn(self.hidden_dim, self.output_dim) * 0.01
         self.b2 = np.zeros((1, self.output_dim))
 
-        # Z-Score Running Stats
         self.running_mean = np.zeros(self.input_dim)
         self.running_var = np.ones(self.input_dim)
         self.count = 0
         self.burn_in_cycles = 100
 
-        # Internal state for backprop
-        self.h = np.zeros((1, self.hidden_dim))
-        self.out = np.zeros((1, self.output_dim))
-
         self.load()
 
-    def forward(self, x: list[float]) -> float:
-        """
-        Inference pass with dropout logic.
-
-        Args:
-            x: List of 4 features [latency, tokens, loops, errors].
-
-        Returns:
-            Anomaly probability score (0.0 to 1.0).
-        """
+    def forward(self, x: List[float]) -> float:
         x_raw = np.array(x, dtype=float).reshape(1, -1)
         x_norm = self._normalize(x_raw)
-
-        self.h = self.relu(x_norm @ self.W1 + self.b1)
-
-        # [V4] 10% Dropout simulation during training
+        h = self.relu(x_norm @ self.W1 + self.b1)
+        
         if self.is_training:
-            mask = (np.random.rand(*self.h.shape) > 0.1).astype(float)
-            self.h *= mask
+            h *= (np.random.rand(*h.shape) > 0.1).astype(float)
 
-        self.out = self.sigmoid(self.h @ self.W2 + self.b2)
-        return float(self.out[0, 0])
+        out = self.sigmoid(h @ self.W2 + self.b2)
+        return float(out[0, 0])
 
-    def train_step(self, x: list[float], y: float, lr: float = 0.01) -> None:
-        """
-        Vectorized backpropagation step.
-
-        Args:
-            x: Input feature vector.
-            y: Target label (1.0 for anomaly, 0.0 for normal).
-            lr: Learning rate.
-        """
-        if not self.is_training:
-            return
+    def train_step(self, x: List[float], y: float, lr: float = 0.01) -> None:
+        if not self.is_training: return
 
         x_raw = np.array(x, dtype=float).reshape(1, -1)
         y_true = np.array(y, dtype=float).reshape(1, -1)
 
-        # Update normalization stats
         delta = x_raw.flatten() - self.running_mean
         self.count += 1
         self.running_mean += delta / self.count
@@ -136,28 +112,17 @@ class AnomalyWarden(BaseWarden):
         prob = self.forward(x)
         x_norm = self._normalize(x_raw)
 
-        # Backprop (MSE Loss)
-        d_out = (prob - y_true) * (prob * (1 - prob)) # Sigmoid derivative
-        d_W2 = self.h.T @ d_out
-        d_b2 = np.sum(d_out, axis=0, keepdims=True)
-
-        d_h = (d_out @ self.W2.T) * (self.h > 0) # ReLU derivative
+        # Backprop
+        d_out = (prob - y_true) * (prob * (1 - prob))
+        d_W2 = (self.relu(x_norm @ self.W1 + self.b1)).T @ d_out
+        
+        # Note: h was used in forward but not stored, we recompute for backprop
+        h = self.relu(x_norm @ self.W1 + self.b1)
+        d_h = (d_out @ self.W2.T) * (h > 0)
         d_W1 = x_norm.T @ d_h
-        d_b1 = np.sum(d_h, axis=0, keepdims=True)
 
-        # Update weights
         self.W1 -= lr * d_W1
-        self.b1 -= lr * d_b1
         self.W2 -= lr * d_W2
-        self.b2 -= lr * d_b2
-
-        if self.burn_in_cycles > 0:
-            self.burn_in_cycles -= 1
-
-        # High-probability anomaly logging
-        if prob > 0.85:
-            self.log_anomaly(x_raw.flatten(), prob)
-
         self.save()
 
     def log_anomaly(self, metadata: np.ndarray | list[float], prob: float) -> None:

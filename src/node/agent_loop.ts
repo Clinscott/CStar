@@ -28,7 +28,8 @@ export async function executeCycle(
     ledgerDirectory: string,
     taskDescription: string,
     cortexLink: CortexLink,
-    deployExec: (_target: string, _candidate: string, _msg: string) => Promise<void> = deployCandidate
+    deployExec: (_target: string, _candidate: string, _msg: string) => Promise<void> = deployCandidate,
+    isLoki: boolean = false
 ): Promise<void> {
     // 1. Extract Directives
     console.log(chalk.cyan(`${activePersona.prefix} 'Consulting the Archives...'`));
@@ -36,6 +37,10 @@ export async function executeCycle(
         await fs.readFile(path.join(ledgerDirectory, 'ledger.json'), 'utf8');
     } catch {
         // Fallback to empty context if no explicit ledger config exists
+    }
+
+    if (isLoki) {
+        console.log(chalk.red.bold(`\n[HEIMDALL] LOKI MODE ENGAGED. AUTONOMOUS VELOCITY ACTIVE.\n`));
     }
 
     // 2. Read Target Code
@@ -51,7 +56,10 @@ export async function executeCycle(
 
     // 4. Agent Call
     console.log(chalk.cyan(`${activePersona.prefix} 'Transmitting constraints...'`));
-    const response = await cortexLink.sendCommand('ask', [taskDescription, targetFile]);
+    
+    // Pass LOKI mode explicitly in the ask payload args
+    const payloadArgs = [taskDescription, targetFile, isLoki ? 'LOKI_MODE' : 'STANDARD'];
+    const response = await cortexLink.sendCommand('ask', payloadArgs);
     const askPayload = response as unknown as CortexAskPayload;
 
     if (!askPayload || (askPayload.status !== 'success' && askPayload.status !== 'uplink_success')) {
@@ -73,6 +81,9 @@ export async function executeCycle(
         ? forgedCode.split('```python')[1].split('```')[0].trim()
         : forgedCode.trim();
 
+    // [🔱] PRECOGNITIVE VIGILANCE: Intercept mutation before disk-commit
+    await cortexLink.interceptWrite(targetFile, cleanCode);
+
     await fs.writeFile(candidatePath, cleanCode, 'utf8');
 
     // 6. Invoke Gungnir Strike
@@ -87,6 +98,13 @@ export async function executeCycle(
     // 7. Deploy to Mainline
     await deployExec(targetFile, candidatePath, 'C* Auto-Refactor: ' + taskDescription);
 
-    // 8. Complete
+    // 8. Sterling Verification (PROJECT: ALFRED'S WATCH)
+    console.log(chalk.cyan(`${activePersona.prefix} 'Performing Sterling Audit...'`));
+    console.log(chalk.dim(`${activePersona.prefix} 'Too much mind, Master. Trust the standard.'`));
+    
+    const auditRes = await cortexLink.sendCommand('verify_sterling_compliance', { filepaths: [targetFile] });
+    console.log(auditRes.data?.raw || JSON.stringify(auditRes));
+
+    // 9. Complete
     console.log(chalk.green(`${activePersona.prefix} 'Cycle complete. The stars await...'`));
 }

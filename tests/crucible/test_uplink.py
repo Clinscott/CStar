@@ -1,4 +1,3 @@
-
 import unittest
 import asyncio
 import json
@@ -13,37 +12,58 @@ project_root = script_dir.parent.parent
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
-from src.cstar.core.uplink import AntigravityUplink
+from src.cstar.core.uplink import AntigravityUplink, clean_cli_output
 
 class TestAntigravityUplink(unittest.IsolatedAsyncioTestCase):
     """Tier 1: Antigravity Uplink Protocol"""
 
-    async def test_payload_structure(self):
-        """Verify the uplink correctly formats the outgoing JSON payload."""
-        uplink = AntigravityUplink(api_key="test_key")
-        query = "Identify yourself."
-        context = {"persona": "ODIN"}
-        
-        # We mock the actual transmission to check the payload
-        with patch.object(uplink, '_transmit_socket', new_callable=AsyncMock) as mock_transmit:
-            mock_transmit.return_value = {"status": "success"}
-            await uplink.send_payload(query, context)
-            
-            payload = mock_transmit.call_args[0][0]
-            self.assertEqual(payload["query"], query)
-            self.assertEqual(payload["context"]["persona"], "ODIN")
-            self.assertEqual(payload["api_key"], "test_key")
-            self.assertEqual(payload["source"], "cstar_cli")
+    def test_ansi_stripping(self):
+        """Verify that ANSI codes and spinners are removed correctly."""
+        raw_input = "\x1B[31mError:\x1B[0m {\"response\": \"OK\"} \x1B[?25l|"
+        expected = "{\"response\": \"OK\"}"
+        self.assertEqual(clean_cli_output(raw_input).strip(), expected)
 
-    async def test_bridge_offline_fallback(self):
-        """Verify the uplink returns a graceful fallback when the bridge is offline."""
+    def test_json_extraction_with_noise(self):
+        """Verify that JSON can be extracted from surrounding CLI chatter."""
+        chatter = (
+            "Loaded cached credentials.\n"
+            "Checking for updates...\n"
+            "{\"status\": \"success\", \"response\": \"Hello\"}\n"
+            "Finalizing session..."
+        )
+        expected = "{\"status\": \"success\", \"response\": \"Hello\"}"
+        self.assertEqual(clean_cli_output(chatter).strip(), expected)
+
+    async def test_payload_transmission(self):
+        """Verify the uplink correctly transmits a query and parses the result."""
+        uplink = AntigravityUplink()
+        query = "Identify yourself."
+        
+        # We mock the entire shell execution since it relies on node/npm
+        with patch('asyncio.create_subprocess_shell') as mock_proc:
+            mock_sub = AsyncMock()
+            mock_sub.wait = AsyncMock(return_value=0)
+            mock_proc.return_value = mock_sub
+            
+            # Mock the output file reading
+            with patch('src.cstar.core.uplink.Path.read_text', return_value='{"response": "I am ODIN"}'):
+                response = await uplink.send_payload(query)
+                self.assertEqual(response["status"], "success")
+                self.assertEqual(response["data"]["raw"], "I am ODIN")
+
+    async def test_uplink_silence_fallback(self):
+        """Verify the uplink returns a graceful failure when no JSON is detected."""
         uplink = AntigravityUplink()
         
-        # Simulate a connection refusal
-        with patch('asyncio.open_connection', side_effect=ConnectionRefusedError()):
-            response = await uplink.send_payload("Hello")
-            self.assertEqual(response["status"], "error")
-            self.assertIn("Bridge Offline", response["message"])
+        with patch('asyncio.create_subprocess_shell') as mock_proc:
+            mock_sub = AsyncMock()
+            mock_sub.wait = AsyncMock(return_value=0)
+            mock_proc.return_value = mock_sub
+            
+            with patch('src.cstar.core.uplink.Path.read_text', return_value='The void is silent.'):
+                response = await uplink.send_payload("Hello")
+                self.assertEqual(response["status"], "error")
+                self.assertIn("Oracle Silence", response["message"])
 
 if __name__ == '__main__':
     unittest.main()

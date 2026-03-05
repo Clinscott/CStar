@@ -1,9 +1,11 @@
 import { FileData } from '../analyzer.ts';
 import { CortexLink } from '../../../node/cortex_link.ts';
+import chalk from 'chalk';
 
 /**
  * LLM Provider Abstraction
- * Purpose: Generate one-sentence file intents.
+ * Purpose: Generate high-fidelity, agentic file intents.
+ * Mandate: No Mocking. No Fallback.
  */
 
 export interface IntelProvider {
@@ -11,41 +13,15 @@ export interface IntelProvider {
     getBatchIntent(items: { code: string, data: FileData }[]): Promise<{ intent: string; interaction: string }[]>;
 }
 
-export class MockProvider implements IntelProvider {
-    async getIntent(code: string, data: FileData): Promise<{ intent: string; interaction: string }> {
-        const filename = data.path.split(/[\\/]/).pop() || '';
-        let intent = 'A functional component of the Corvus Star static analysis matrix.';
-        let interaction = 'Import and utilize via the standard project structure.';
+/**
+ * SamplingProvider: Leverages the MCP Host (the active LLM) directly.
+ * This is the "One Mind" standard.
+ */
+export class SamplingProvider implements IntelProvider {
+    private static mcpServer: any = null;
 
-        if (data.path.endsWith('.py')) {
-            if (data.exports.some(e => e.includes('Warden'))) {
-                intent = 'Autonomous neural guardian monitoring system drift and anomalies.';
-                interaction = 'Instantiate the Warden class and call evaluate(graph) with a compiled matrix graph.';
-            } else if (data.exports.some(e => e.includes('Engine'))) {
-                intent = 'Core semantic routing engine for intent resolution.';
-                interaction = 'Instantiate SovereignEngine and invoke run(query) to process natural language directives.';
-            } else {
-                intent = `Python module facilitating ${data.exports.slice(0, 2).join(', ') || 'internal logic'}.`;
-                interaction = `Import ${data.exports[0] || 'module'} and call its primary methods.`;
-            }
-        } else if (data.path.endsWith('.tsx') || data.path.endsWith('.jsx')) {
-            intent = `React component rendering ${filename.replace(/\..*$/, '')}.`;
-            interaction = `Include <${filename.replace(/\..*$/, '')} /> within a React-Three-Fiber Canvas context.`;
-        }
-
-        return { intent, interaction };
-    }
-
-    async getBatchIntent(items: { code: string, data: FileData }[]): Promise<{ intent: string; interaction: string }[]> {
-        return Promise.all(items.map(i => this.getIntent(i.code, i.data)));
-    }
-}
-
-export class GeminiProvider implements IntelProvider {
-    private cortex: CortexLink;
-
-    constructor() {
-        this.cortex = new CortexLink();
+    static registerServer(server: any) {
+        this.mcpServer = server;
     }
 
     async getIntent(code: string, data: FileData): Promise<{ intent: string; interaction: string }> {
@@ -53,47 +29,108 @@ export class GeminiProvider implements IntelProvider {
     }
 
     async getBatchIntent(items: { code: string, data: FileData }[]): Promise<{ intent: string; interaction: string }[]> {
-        if (process.env.GEMINI_CLI_ACTIVE === 'true' && items.length > 0) {
-            const batchQuery = items.map((item, idx) => `
+        if (items.length === 0) return [];
+
+        // [🔱] THE ONE MIND: If we are running inside an MCP server, use Sampling
+        if (SamplingProvider.mcpServer) {
+            const batchQuery = items.map((item, idx) => {
+                const isDoc = item.data.path.endsWith('.md') || item.data.path.endsWith('.qmd');
+                const previewLen = isDoc ? 2000 : 500;
+                return `
                 FILE ${idx}: '${item.data.path}'
+                Type: ${isDoc ? 'Documentation/Workflow' : 'Source Code'}
                 Exports: ${item.data.exports.join(', ')}
                 Complexity: ${item.data.complexity}
-                Preview: ${item.code.slice(0, 300)}
-            `).join('\n---\n');
+                Preview: ${item.code.slice(0, previewLen)}
+                `;
+            }).join('\n---\n');
 
-            const query = `Analyze the following ${items.length} files and provide a JSON array of objects, each with "intent" (2-3 sentences) and "interaction" (1-2 sentences) fields. Match the order of the input files exactly.
+            const prompt = `Analyze the following ${items.length} files and provide a JSON array of objects, each with "intent" (2-3 sentences) and "interaction" (1-2 sentences) fields. Match the order of the input files exactly.
+            
+            For Source Code: Explain what the code does and its API/interaction model.
+            For Documentation/Workflows (.md/.qmd): Summarize the workflow's purpose, what triggers it, and the overarching goal.
             
             FILES:
             ${batchQuery}`;
 
             try {
-                const res = await this.cortex.sendCommand('ask', [query, 'BATCH_ANALYSIS']);
-                if (res && res.status === 'success') {
-                    const raw = (res.data as any)?.raw || '';
-                    try {
-                        const parsed = JSON.parse(raw.substring(raw.indexOf('['), raw.lastIndexOf(']') + 1));
-                        if (Array.isArray(parsed)) {
-                            return parsed.map(p => ({
-                                intent: p.intent || 'Archived intelligence.',
-                                interaction: p.interaction || 'Standard operational protocols apply.'
-                            }));
-                        }
-                    } catch (e) {
-                        console.warn('[PENNYONE] Batch JSON parse failed, falling back to individual mocks.');
-                    }
-                }
-            } catch (err) {
-                console.warn(`[PENNYONE] Batch Oracle uplink failed. Falling back to mocks.`);
+                console.error(chalk.cyan(`[ALFRED] Requesting sampling from Host for ${items.length} sectors...`));
+                const response = await SamplingProvider.mcpServer.server.createMessage({
+                    messages: [{ role: 'user', content: { type: 'text', text: prompt } }],
+                    systemPrompt: "You are the Corvus Star Intelligence Oracle. Analyze code structure and workflows, then provide semantic intents as a raw JSON array."
+                });
+
+                const raw = response.content.text || '';
+                return this.parseResponse(raw, items);
+            } catch (err: any) {
+                console.error(chalk.yellow(`[WARNING] Sampling failed: ${err.message}. Falling back to Synaptic Link.`));
             }
         }
 
-        const mock = new MockProvider();
-        return Promise.all(items.map(i => mock.getIntent(i.code, i.data)));
+        // [🔱] THE SYNAPTIC LINK: Fallback to Python Daemon (Oracle)
+        return await this.consultDaemon(items);
+    }
+
+    private async consultDaemon(items: { code: string, data: FileData }[]): Promise<{ intent: string; interaction: string }[]> {
+        if (process.env.GEMINI_CLI_ACTIVE !== 'true') {
+            throw new Error('[ALFRED]: "Intelligence Mandate Breach: Agent is offline. Intent generation cannot proceed."');
+        }
+
+        const cortex = new CortexLink();
+        const batchQuery = items.map((item, idx) => {
+            const isDoc = item.data.path.endsWith('.md') || item.data.path.endsWith('.qmd');
+            const previewLen = isDoc ? 2000 : 500;
+            return `
+            FILE ${idx}: '${item.data.path}'
+            Type: ${isDoc ? 'Documentation/Workflow' : 'Source Code'}
+            Exports: ${item.data.exports.join(', ')}
+            Preview: ${item.code.slice(0, previewLen)}
+            `;
+        }).join('\n---\n');
+
+        const query = `Analyze the following ${items.length} files and provide a JSON array of objects, each with "intent" and "interaction" fields. For documentation/workflows, summarize their purpose.\n\nFILES:\n${batchQuery}`;
+
+        try {
+            console.error(chalk.cyan(`[ALFRED] Consulting the Oracle for ${items.length} sectors...`));
+            const res = await cortex.sendCommand('ask', [query, 'BATCH_ANALYSIS']);
+            
+            if (res && res.status === 'success') {
+                const raw = (res.data as any)?.raw || '';
+                return this.parseResponse(raw, items);
+            }
+            throw new Error((res as any)?.message || 'Oracle communication failure.');
+        } catch (err: any) {
+            throw new Error(`[CRITICAL FAILURE] Agentic scan failed: ${err.message}`);
+        }
+    }
+
+    private parseResponse(raw: string, items: any[]): { intent: string; interaction: string }[] {
+        const start = raw.indexOf('[');
+        const end = raw.lastIndexOf(']');
+        
+        if (start === -1 || end === -1 || end < start) {
+            throw new Error('No JSON array found in Oracle response.');
+        }
+
+        const jsonStr = raw.substring(start, end + 1);
+        const parsed = JSON.parse(jsonStr);
+        
+        if (Array.isArray(parsed) && parsed.length === items.length) {
+            return parsed.map((p, idx) => {
+                const intent = p.intent || '';
+                const interaction = p.interaction || '';
+                const genericPhrases = ['facilitates internal logic', 'functional component', 'standard project structure', 'internal logic'];
+                const isGeneric = genericPhrases.some(phrase => intent.toLowerCase().includes(phrase));
+                
+                if (intent.length < 30 || isGeneric) {
+                    return { intent: `[SHALLOW LORE]: ${intent}`, interaction };
+                }
+                return { intent, interaction };
+            });
+        }
+        throw new Error('Malformed JSON array in response.');
     }
 }
 
-// Prioritize GeminiProvider if integrated
-export const defaultProvider: IntelProvider = process.env.GEMINI_CLI_ACTIVE === 'true'
-    ? new GeminiProvider()
-    : new MockProvider();
-
+// Global Intelligence Provider (Context-aware Sampling)
+export const defaultProvider: IntelProvider = new SamplingProvider();

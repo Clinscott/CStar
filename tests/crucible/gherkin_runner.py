@@ -1,3 +1,4 @@
+
 import unittest
 import json
 import os
@@ -12,26 +13,26 @@ project_root = script_dir.parent.parent
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
-from src.cstar.core.antigravity_bridge import AntigravityBridge as bridge
+from src.cstar.core.uplink import clean_cli_output as uplink_utils
 from src.cstar.core.daemon import process_command, engine_search_sync
 
 class EmpireGherkinCrucible(unittest.IsolatedAsyncioTestCase):
     """[Ω] THE EMPIRE GHERKIN CRUCIBLE (Sovereign Verification Suite)"""
 
-    # --- TIER 0: ANTIGRAVITY_BRIDGE ---
+    # --- TIER 0: UPLINK_CORE ---
 
-    async def test_bridge_protocol_contract(self):
+    async def test_uplink_utility_contract(self):
         """Scenario: Successful ANSI Scrubbing and JSON Extraction"""
         # GIVEN: A raw CLI output containing ANSI escape sequences and status noise
         raw_output = "\x1B[31mError:\x1B[0m {\"status\": \"success\"} \x1B[?25l|"
         
-        # WHEN: The bridge's cleaning logic is applied
-        result = bridge.clean_cli_output(raw_output)
+        # WHEN: The uplink's cleaning logic is applied
+        result = uplink_utils(raw_output)
         
         # THEN: All ANSI codes must be removed and JSON extracted
         self.assertEqual(result.strip(), "{\"status\": \"success\"}")
 
-    async def test_bridge_non_ascii_contract(self):
+    async def test_uplink_non_ascii_contract(self):
         """Scenario: Handling Non-ASCII Characters (The erroré Case)"""
         # GIVEN: A CLI output containing UTF-8 characters like 'é'
         raw_output = (
@@ -39,8 +40,8 @@ class EmpireGherkinCrucible(unittest.IsolatedAsyncioTestCase):
             "{\"message\": \"erroré\"}"
         )
         
-        # WHEN: The bridge's cleaning logic is applied
-        result = bridge.clean_cli_output(raw_output)
+        # WHEN: The uplink's cleaning logic is applied
+        result = uplink_utils(raw_output)
         
         # THEN: JSON parsing should succeed
         data = json.loads(result)

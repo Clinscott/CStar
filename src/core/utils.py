@@ -18,6 +18,9 @@ def load_config(root_path: str | Path) -> dict:
 def safe_read_json(path: Path | str) -> dict:
     return SovereignUtils.safe_read_json(path)
 
+def sanitize_query(query: str) -> str:
+    return SovereignUtils.sanitize_query(query)
+
 class SovereignUtils:
     """[A.L.F.R.E.D.] Unified Utility Hub for Corvus Star."""
 

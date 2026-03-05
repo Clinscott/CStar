@@ -1,3 +1,30 @@
+# Walkthrough: Session 114 - The Autonomic Narrative Engine
+
+## 🎯 Goal
+Implement a Behavior-Driven Development (BDD) voice framework and a multi-agent orchestrated pipeline to recreate *Fallows Hallow* chapter by chapter with high narrative cohesion.
+
+## 🏆 Results
+| Metric | Value |
+| :--- | :--- |
+| **Generative Phase** | **Chapter 1 (Prologue) Authored** |
+| **Voice Fidelity** | **Gherkin (.feature) Contracts** |
+| **Continuity** | **fallows_hallow_state.json** |
+| **Audit Protocol** | **Lexical and Intent Scoring Active** |
+
+## 🛠️ Key Changes
+- **BDD Voice Framework**: Established strict Gherkin contracts for character behaviors (Matthias, Roan, John, Nicci).
+- **Synaptic State**: Implemented continuous persistence logic to track world and character state.
+- **Sovereign Orchestration**: Deployed `recreate_chapter.py`, decoupling generation into Director, Actor, and Narrator roles.
+- **Cohesion Scoring**: Wrote `score_cohesion.py` to evaluate the True Text against generated chapters for Lexical % and Intent.
+
+## 🤝 Session Handshake
+**Session Delta**:
+- The Corvus Star framework is now capable of multi-agent narrative orchestration guided by BDD behavioral contracts.
+- Successfully migrated to Iterative Cohesion Loop (Phase 6).
+
+**Resume Directive**:
+- Proceed to Phase 97 in `tasks.qmd` (Iterative Cohesion Polish).
+
 # Walkthrough: Session 111 - Corvus Star Maturation Strike
 
 ## 🎯 Goal
