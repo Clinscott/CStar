@@ -108,6 +108,26 @@ def isolate_warden_state():
 
 
 @pytest.fixture(autouse=True)
+def mock_mimir_globally():
+    """
+    [Ω] SYNAPSE BLOCKADE: Prevents real mimir client from starting MCP servers during tests.
+    Every test gets a pre-mocked mimir singleton.
+    """
+    from unittest.mock import AsyncMock
+    from src.core.mimir_client import mimir
+    
+    # Replace methods with AsyncMocks
+    mimir.call_tool = AsyncMock(return_value=None)
+    mimir.get_file_intent = AsyncMock(return_value="Mock Intent")
+    mimir.search_well = AsyncMock(return_value="Mock Well Results")
+    mimir.index_sector = AsyncMock(return_value=True)
+    mimir.think = AsyncMock(return_value="Mocked Oracle Response")
+    mimir.close = AsyncMock()
+    
+    yield mimir
+
+
+@pytest.fixture(autouse=True)
 def reset_hud_singleton():
     """
     [ALFRED] Multi-targeted reset of the SovereignHUD singleton class.

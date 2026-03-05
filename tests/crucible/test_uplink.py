@@ -39,31 +39,33 @@ class TestAntigravityUplink(unittest.IsolatedAsyncioTestCase):
         uplink = AntigravityUplink()
         query = "Identify yourself."
         
-        # We mock the entire shell execution since it relies on node/npm
-        with patch('asyncio.create_subprocess_shell') as mock_proc:
-            mock_sub = AsyncMock()
-            mock_sub.wait = AsyncMock(return_value=0)
-            mock_proc.return_value = mock_sub
+        # We mock mimir.think to avoid real MCP calls
+        with patch('src.cstar.core.uplink.mimir.think', new_callable=AsyncMock) as mock_think:
+            mock_think.return_value = "I am ODIN"
             
-            # Mock the output file reading
-            with patch('src.cstar.core.uplink.Path.read_text', return_value='{"response": "I am ODIN"}'):
-                response = await uplink.send_payload(query)
-                self.assertEqual(response["status"], "success")
-                self.assertEqual(response["data"]["raw"], "I am ODIN")
+            response = await uplink.send_payload(query)
+            self.assertEqual(response["status"], "success")
+            self.assertEqual(response["data"]["raw"], "I am ODIN")
+            mock_think.assert_called_once()
 
     async def test_uplink_silence_fallback(self):
         """Verify the uplink returns a graceful failure when no JSON is detected."""
         uplink = AntigravityUplink()
         
-        with patch('asyncio.create_subprocess_shell') as mock_proc:
-            mock_sub = AsyncMock()
-            mock_sub.wait = AsyncMock(return_value=0)
-            mock_proc.return_value = mock_sub
+        # We mock mimir.think to return None to trigger the Direct Strike fallback
+        with patch('src.cstar.core.uplink.mimir.think', new_callable=AsyncMock) as mock_think:
+            mock_think.return_value = None
             
-            with patch('src.cstar.core.uplink.Path.read_text', return_value='The void is silent.'):
-                response = await uplink.send_payload("Hello")
-                self.assertEqual(response["status"], "error")
-                self.assertIn("Oracle Silence", response["message"])
+            # Now mock the entire shell execution for fallback
+            with patch('asyncio.create_subprocess_shell') as mock_proc:
+                mock_sub = AsyncMock()
+                mock_sub.wait = AsyncMock(return_value=0)
+                mock_proc.return_value = mock_sub
+                
+                with patch('src.cstar.core.uplink.Path.read_text', return_value='The void is silent.'):
+                    response = await uplink.send_payload("Hello")
+                    self.assertEqual(response["status"], "error")
+                    self.assertIn("Oracle Silence", response["message"])
 
 if __name__ == '__main__':
     unittest.main()

@@ -29,11 +29,11 @@ class MimirClient:
             return self.sessions[server_name]
 
         # 1. Resolve Server Command
+        command = "npx.cmd" if os.name == "nt" else "npx"
+        
         if server_name == "pennyone":
-            command = "npx"
             args = ["tsx", str(self.project_root / "src" / "tools" / "pennyone" / "mcp-server.ts")]
         elif server_name == "corvus-control":
-            command = "npx"
             args = ["tsx", str(self.project_root / "src" / "tools" / "corvus-control-mcp.ts")]
         else:
             raise ValueError(f"Unknown MCP server: {server_name}")
