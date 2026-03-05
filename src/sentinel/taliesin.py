@@ -7,8 +7,8 @@ Purpose: Analyze user style, gather project context, and generate X content.
 import asyncio
 import json
 import os
+import time
 from pathlib import Path
-from typing import Optional, Dict, Any
 
 from src.core.sovereign_hud import SovereignHUD
 from src.cstar.core.uplink import AntigravityUplink
@@ -46,7 +46,7 @@ class TaliesinSpoke:
                 # Clean up multiple spaces left behind
                 text = re.sub(r'\s+', ' ', text)
                 return text.strip()
-            except:
+            except Exception:
                 return ""
 
         def extract_docx_text(docx_path: Path) -> str:
@@ -57,7 +57,7 @@ class TaliesinSpoke:
                     # Strip XML tags
                     text = re.sub(r'<[^>]+>', '', xml_content)
                     return text
-            except:
+            except Exception:
                 return ""
 
         def process_directory(directory: Path):
@@ -68,7 +68,7 @@ class TaliesinSpoke:
                 if f.suffix in ['.txt', '.md', '.qmd', '.bak'] and f.name != "style_template.json":
                     try:
                         samples.append(f.read_text(encoding='utf-8', errors='ignore'))
-                    except: pass
+                    except Exception: pass
                 
                 # 2. Scrivener Backups (ZIP)
                 elif f.suffix == '.zip':
@@ -80,7 +80,7 @@ class TaliesinSpoke:
                                     text = extract_rtf_text(rtf_content)
                                     if len(text) > 100: # Filter out tiny meta-docs
                                         samples.append(text)
-                    except: pass
+                    except Exception: pass
                 
                 # 3. Word Documents
                 elif f.suffix == '.docx':
@@ -118,7 +118,7 @@ class TaliesinSpoke:
                 self.style_file.write_text(style_data, encoding='utf-8')
                 SovereignHUD.persona_log("SUCCESS", "Style Template forged and locked in .lore/")
                 return True
-            except:
+            except Exception:
                 # Fallback if LLM just returns text
                 template = {"description": style_data}
                 self.style_file.write_text(json.dumps(template), encoding='utf-8')
@@ -149,7 +149,7 @@ class TaliesinSpoke:
             
         return "\n\n".join(context_parts)
 
-    async def generate_post(self, mode: str = "article", character: str = "narrator") -> Optional[str]:
+    async def generate_post(self, mode: str = "article", character: str = "narrator") -> str | None:
         """Generates an X post based on context and BDD feature contracts."""
         voices_dir = self.lore_dir / "voices"
         
@@ -186,13 +186,37 @@ class TaliesinSpoke:
         return None
 
     def staging_gate(self, draft: str) -> bool:
-        """Terminal prompt interaction for review."""
+        """Dual-mode staging gate: JSON queue for agent orchestration, input() for terminal.
+
+        When TALIESIN_AGENT_MODE is set, the draft is written to .lore/staging_queue.json
+        for the Gemini CLI agent to review asynchronously. Otherwise, falls back to the
+        original interactive terminal prompt.
+        """
+        if os.environ.get("TALIESIN_AGENT_MODE"):
+            return self._staging_gate_agent(draft)
+        return self._staging_gate_terminal(draft)
+
+    def _staging_gate_agent(self, draft: str) -> bool:
+        """Agent-mode gate: write draft to JSON staging queue for async review."""
+        staging_file = self.lore_dir / "staging_queue.json"
+        payload = {
+            "draft": draft,
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
+            "status": "pending_review",
+            "source": "taliesin",
+        }
+        staging_file.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        SovereignHUD.persona_log("INFO", f"Draft staged for agent review at {staging_file.name}")
+        return True
+
+    def _staging_gate_terminal(self, draft: str) -> bool:
+        """Terminal-mode gate: interactive input() review loop."""
         SovereignHUD.box_top("🔱 TALIESIN STAGING GATE")
         print(f"\n{draft}\n")
         SovereignHUD.box_separator()
-        
+
         choice = input("Approve post to X? (y/n/edit): ").lower().strip()
-        
+
         if choice == 'y':
             return self.x_api.post_article(draft)
         elif choice == 'edit':
@@ -207,13 +231,13 @@ class TaliesinSpoke:
                 except EOFError:
                     break
             new_draft = "\n".join(lines)
-            
+
             # Save for reinforcement
             timestamp = time.strftime("%Y%m%d_%H%M%S")
             reinforcement_file = self.lore_dir / f"reinforcement_{timestamp}.md"
             reinforcement_file.write_text(new_draft, encoding='utf-8')
             SovereignHUD.persona_log("INFO", "Correction saved for reinforcement.")
-            
+
             return self.x_api.post_article(new_draft)
         else:
             SovereignHUD.persona_log("INFO", "Post discarded.")
@@ -221,7 +245,6 @@ class TaliesinSpoke:
 
 async def main():
     import argparse
-    import time
     
     parser = argparse.ArgumentParser(description="TALIESIN: Lore Ingestion & Social Interface Engine")
     parser.add_argument("--ingest", action="store_true", help="Scan .lore/ and extract style motifs (deprecated for BDD)")
@@ -244,5 +267,4 @@ async def main():
             SovereignHUD.persona_log("FAIL", "Lore generation failed.")
 
 if __name__ == "__main__":
-    import time
     asyncio.run(main())

@@ -1,0 +1,7 @@
+---
+name: qmd
+description: An on-device search engine for everything you need to remember. Index your markdown notes, meeting t
+---
+# qmd
+
+Imported from https://github.com/tobi/qmd
