@@ -46,3 +46,6 @@ node_modules/
 
 .gemini/
 gha-creds-*.json
+
+# [TALIESIN] Lore Corpus
+.lore/

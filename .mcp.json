@@ -8,6 +8,16 @@
       "env": {
         "GEMINI_CLI_ACTIVE": "true"
       }
+    },
+    "corvus-control": {
+      "command": "npx",
+      "args": [
+        "tsx",
+        "C:/Users/Craig/Corvus/CorvusStar/src/tools/corvus-control-mcp.ts"
+      ],
+      "env": {
+        "GEMINI_CLI_ACTIVE": "true"
+      }
     }
   }
 }
