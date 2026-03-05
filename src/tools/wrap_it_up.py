@@ -47,10 +47,11 @@ class SovereignWrapper:
         """Step 2: Ravens are set free to work in system."""
         SovereignHUD.box_top("STEP 2: RELEASE THE RAVENS")
         SovereignHUD.persona_log("ODIN", "Releasing the Ravens into the matrix...")
+        npx_cmd = "npx.cmd" if os.name == 'nt' else "npx"
         try:
             # We run Muninn as a one-shot or a short cycle for this wrap-up
             # Using the 'ravens start' command which is detached
-            subprocess.run(["npx", "tsx", "cstar.ts", "ravens", "start"], cwd=str(self.root), check=True)
+            subprocess.run([npx_cmd, "tsx", "cstar.ts", "ravens", "start"], cwd=str(self.root), check=True)
             SovereignHUD.box_row("STATUS", "RELEASED", SovereignHUD.GREEN)
         except subprocess.CalledProcessError as e:
             SovereignHUD.persona_log("HEIMDALL", f"BREACH: Raven release failed. {e}")
@@ -87,6 +88,7 @@ class SovereignWrapper:
         """Step 5: Test suite kicks into gear. Fails are fixed."""
         SovereignHUD.box_top("STEP 5: GUNGNIR GATE & TEST SUITE")
         
+        npx_cmd = "npx.cmd" if os.name == 'nt' else "npx"
         max_fix_attempts = 3
         for attempt in range(1, max_fix_attempts + 1):
             SovereignHUD.persona_log("INFO", f"Test Cycle {attempt}/{max_fix_attempts}...")
@@ -112,7 +114,7 @@ class SovereignWrapper:
                 SovereignHUD.persona_log("HEIMDALL", "Breach detected in test suite. Initiating auto-fix protocol...")
                 try:
                     # Attempt a general fix cycle via Muninn (The Hunter)
-                    subprocess.run(["npx", "tsx", "cstar.ts", "ravens", "start"], cwd=str(self.root), check=True)
+                    subprocess.run([npx_cmd, "tsx", "cstar.ts", "ravens", "start"], cwd=str(self.root), check=True)
                     self.wait_for_ravens()
                 except: pass
             else:

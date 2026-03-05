@@ -81,9 +81,10 @@ ${activePersona.prefix}: "Initiating global dormancy protocol..."`));
         if (!isRunning) {
             console.error(chalk.dim(`${activePersona.prefix} 'Igniting PennyOne...'`));
             const p1Entry = path.join(registry.getRoot(), 'src', 'tools', 'pennyone', 'daemon.ts');
+            const npxCmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
             
             // Spawn detached tsx process for the daemon
-            execa('npx', ['tsx', p1Entry], {
+            execa(npxCmd, ['tsx', p1Entry], {
                 detached: true,
                 stdio: 'ignore',
                 cwd: registry.getRoot()

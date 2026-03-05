@@ -73,7 +73,8 @@ async function runSentinel(target: string = '.', fix: boolean = false): Promise<
     try {
         const args = ['eslint', target, '--format', 'json'];
         if (fix) args.push('--fix');
-        const { stdout } = await execa('npx', args, { cwd: PROJECT_ROOT, reject: false });
+        const npxCmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+        const { stdout } = await execa(npxCmd, args, { cwd: PROJECT_ROOT, reject: false });
         const results = JSON.parse(stdout);
 
         let totalViolations = 0;

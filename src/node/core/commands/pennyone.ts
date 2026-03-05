@@ -22,26 +22,27 @@ export function registerPennyOneCommand(program: Command, PROJECT_ROOT: string) 
         .action(async (options: { scan?: string | boolean; view?: boolean; clean?: boolean; stats?: boolean; search?: string }) => {
             try {
                 const pennyoneBin = join(PROJECT_ROOT, 'bin', 'pennyone.js');
+                const npxCmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
 
                 if (options.search) {
                     const searchScript = join(PROJECT_ROOT, 'src/tools/pennyone/live/search.ts');
-                    await execa('npx', ['tsx', searchScript, options.search], { stdio: 'inherit' });
+                    await execa(npxCmd, ['tsx', searchScript, options.search], { stdio: 'inherit' });
                     return;
                 }
 
                 if (options.stats) {
                     const analyticsScript = join(PROJECT_ROOT, 'scripts', 'p1_analytics.ts');
-                    await execa('npx', ['tsx', analyticsScript], { stdio: 'inherit' });
+                    await execa(npxCmd, ['tsx', analyticsScript], { stdio: 'inherit' });
                     return;
                 }
 
                 if (options.view) {
-                    await execa('npx', ['tsx', pennyoneBin, 'view'], { stdio: 'inherit' });
+                    await execa(npxCmd, ['tsx', pennyoneBin, 'view'], { stdio: 'inherit' });
                     return;
                 }
 
                 const scanPath = typeof options.scan === 'string' ? options.scan : '.';
-                await execa('npx', ['tsx', pennyoneBin, 'scan', scanPath], { stdio: 'inherit' });
+                await execa(npxCmd, ['tsx', pennyoneBin, 'scan', scanPath], { stdio: 'inherit' });
 
             } catch (err) {
                 console.error(chalk.red('[ALFRED]: "Operation PennyOne interrupted or failed."'));
