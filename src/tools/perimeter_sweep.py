@@ -15,6 +15,7 @@ import json
 import logging
 import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
@@ -53,7 +54,7 @@ class PerimeterSweep:
 
     def _run_pip_audit(self) -> dict[str, Any]:
         """Runs pip-audit to check for Python CVEs."""
-        SovereignHUD.persona_log("INFO", "Executing pip-audit for Python dependencies...")
+        SovereignHUD.log("INFO", "Executing pip-audit for Python dependencies...")
         report = {"status": "success", "vulnerabilities": 0, "details": []}
 
         try:
@@ -102,7 +103,7 @@ class PerimeterSweep:
 
     def _run_npm_audit(self) -> dict[str, Any]:
         """Runs npm audit to check for JS CVEs."""
-        SovereignHUD.persona_log("INFO", "Executing npm audit for Node.js dependencies...")
+        SovereignHUD.log("INFO", "Executing npm audit for Node.js dependencies...")
         report = {"status": "success", "vulnerabilities": 0, "details": []}
 
         if not (self.target_dir / "package.json").exists():
@@ -147,7 +148,7 @@ class PerimeterSweep:
 
     def _manor_cleanup(self) -> dict[str, Any]:
         """Sweeps for temporary, orphaned, or log files."""
-        SovereignHUD.persona_log("INFO", "Sweeping the manor for temporary files...")
+        SovereignHUD.log("INFO", "Sweeping the manor for temporary files...")
         report = {"status": "success", "files_found": 0, "purged": False, "details": []}
 
         targets = []
@@ -199,7 +200,7 @@ class PerimeterSweep:
         """Writes the sweep report to disk."""
         self.report_path.parent.mkdir(parents=True, exist_ok=True)
         report_data = {
-            "timestamp": SovereignHUD._speak("timestamp", "Now"),
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
             "results": results
         }
         self.report_path.write_text(json.dumps(report_data, indent=4), encoding='utf-8')
@@ -265,10 +266,10 @@ def main() -> int | None:
         sweep.analyze()
         return 0
     except KeyboardInterrupt:
-        SovereignHUD.persona_log("WARN", "Sweep aborted by user.")
+        SovereignHUD.log("WARN", "Sweep aborted by user.")
         return 1
     except Exception as e:
-        SovereignHUD.persona_log("ERROR", f"Sweep failed: {e}")
+        SovereignHUD.log("ERROR", f"Sweep failed: {e}")
         return 1
 
 if __name__ == "__main__":

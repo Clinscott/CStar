@@ -25,7 +25,7 @@ class SandboxWarden:
         try:
             subprocess.run(["docker", "--version"], capture_output=True, check=True)
         except (subprocess.CalledProcessError, FileNotFoundError):
-            SovereignHUD.persona_log("WARN", "Docker CLI not found. Physical isolation will be simulated.")
+            SovereignHUD.log("WARN", "Docker CLI not found. Physical isolation will be simulated.")
             self.docker_available = False
 
     def run_in_sandbox(self, file_path: Path, args: list[str] | None = None, hunting: bool = False) -> dict:
@@ -47,7 +47,7 @@ class SandboxWarden:
         try:
             check_img = subprocess.run(["docker", "image", "inspect", image_name], capture_output=True)
             if check_img.returncode != 0:
-                SovereignHUD.persona_log("WARN", f"Image {image_name} not found. Falling back to python:3.14-alpine.")
+                SovereignHUD.log("WARN", f"Image {image_name} not found. Falling back to python:3.14-alpine.")
                 image_name = "python:3.14-alpine"
         except Exception:
             image_name = "python:3.14-alpine"
@@ -68,7 +68,7 @@ class SandboxWarden:
         if args:
             cmd.extend(args)
 
-        SovereignHUD.persona_log("HEIMDALL", f"Isolating specimen in container '{container_name}'...")
+        SovereignHUD.log("HEIMDALL", f"Isolating specimen in container '{container_name}'...")
 
         result = {
             "stdout": "",
@@ -93,12 +93,12 @@ class SandboxWarden:
                          raise OSError(proc.stderr)
 
                 except (subprocess.CalledProcessError, OSError):
-                    SovereignHUD.persona_log("WARN", "Docker Engine connection failed. Falling back to SIMULATED_JAIL.")
+                    SovereignHUD.log("WARN", "Docker Engine connection failed. Falling back to SIMULATED_JAIL.")
                     self.docker_available = False # Set for current session
                     result["simulated"] = True
 
             if not self.docker_available:
-                SovereignHUD.persona_log("HEIMDALL", "[SIMULATION] Applying namespace constraints purely via OS handles...")
+                SovereignHUD.log("HEIMDALL", "[SIMULATION] Applying namespace constraints purely via OS handles...")
                 native_cmd = [sys.executable, str(abs_path)] + (args or [])
                 proc = subprocess.run(
                     native_cmd,
@@ -112,19 +112,19 @@ class SandboxWarden:
             result["exit_code"] = proc.returncode
 
         except subprocess.TimeoutExpired as e:
-            SovereignHUD.persona_log("WARNING", f"Specimen exceeded time limit ({self.timeout}s). Terminating.")
+            SovereignHUD.log("WARNING", f"Specimen exceeded time limit ({self.timeout}s). Terminating.")
             result["timed_out"] = True
             result["stdout"] = e.stdout.decode() if e.stdout else ""
             result["stderr"] = e.stderr.decode() if e.stderr else ""
 
         except Exception as e:
-            SovereignHUD.persona_log("ERROR", f"Sandbox Breach: {e!s}")
+            SovereignHUD.log("ERROR", f"Sandbox Breach: {e!s}")
             result["stderr"] = str(e)
 
         finally:
             # 5. [CRITICAL] Zombie Containment
             # Brute-force removal to prevent resource leaks from background container spin
-            SovereignHUD.persona_log("ODIN", f"Purging container {container_name}...")
+            SovereignHUD.log("ODIN", f"Purging container {container_name}...")
             subprocess.run(["docker", "rm", "-f", container_name], capture_output=True)
 
         return result

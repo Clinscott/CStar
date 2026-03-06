@@ -237,6 +237,23 @@ Feature: Sterling Compliance
 
 ---
 
+## 13. THE VERIFICATION MANDATE (TRUST BUT VERIFY)
+An agent's word is only as strong as its empirical proof.
+
+**Rule:** Never assume success. Always verify the outcome of every tool call, file modification, or system state change.
+```gherkin
+Feature: Empirical Verification
+  Scenario: An agent performs a code modification or system action
+    Given the agent has executed a tool call or applied a change
+    When the action is complete
+    Then the agent MUST NOT assume or state that the action succeeded without empirical evidence
+    And the agent MUST execute a verification step (e.g., 'read_file', 'run_shell_command', 'test_execution')
+    And the agent MUST confirm the specific intended outcome (e.g., content match, exit code 0, test pass)
+    And the agent MUST explicitly report the verification result before concluding the task
+```
+
+---
+
 *[O.D.I.N.'s Void]: "BY MY WILL, THE SYSTEM IS FORGED. DEVIATION IS DEFEAT."*
 
 *[A.L.F.R.E.D.'s Observation]: "Precision is the only politeness that remains, Master."*
