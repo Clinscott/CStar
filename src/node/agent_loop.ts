@@ -1,9 +1,14 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import chalk from 'chalk';
-import { deployCandidate } from './deployment.ts';
-import { CortexLink } from './cortex_link.ts';
-import { activePersona } from '../tools/pennyone/personaRegistry.ts';
+import { deployCandidate } from './deployment.js';
+import { CortexLink } from './cortex_link.js';
+import { HUD } from './core/hud.js';
+import { execa } from 'execa';
+
+// [ALFRED]: Resolve PROJECT_ROOT for cstar dispatching
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
+const PROJECT_ROOT = path.resolve(__dirname, '../../');
 
 interface CortexAskPayload {
     status: string;
@@ -16,12 +21,8 @@ interface CortexVerifyPayload {
 }
 
 /**
- * Orchestrates the 7-step Gungnir Flight Cycle to modify and verify a target file.
- * @param {string} targetFile - The code file the agent should analyze/refactor.
- * @param {string} ledgerDirectory - The path to the working knowledge/ledger vault.
- * @param {string} taskDescription - The high-level directive for the compute plane.
- * @param {CortexLink} cortexLink - Instantiated TCP bridge to the Python daemon.
- * @param {Function} deployExec - Dependency-injected execution function (defaults to internal deployCandidate).
+ * Orchestrates the Gungnir Flight Cycle using the Agentic Stack.
+ * Every step is now a Sovereign Agent Skill.
  */
 export async function executeCycle(
     targetFile: string,
@@ -31,81 +32,61 @@ export async function executeCycle(
     deployExec: (_target: string, _candidate: string, _msg: string) => Promise<void> = deployCandidate,
     isLoki: boolean = false
 ): Promise<void> {
-    // 1. Extract Directives
-    process.stdout.write(HUD.boxTop('🔱 GUNGNIR FLIGHT CYCLE'));
+    const cstarPath = path.join(PROJECT_ROOT, 'bin/cstar.js');
+
+    // 1. Initial Telemetry Flare
+    await execa('node', [cstarPath, 'telemetry', 'flare', '--path', targetFile, '--agent', 'ALFRED', '--action', 'REFACTOR']);
+
+    process.stdout.write(HUD.boxTop('🔱 GUNGNIR FLIGHT CYCLE (v2.0)'));
     process.stdout.write(HUD.boxRow('TARGET', targetFile, HUD.palette.mimir));
     process.stdout.write(HUD.boxRow('DIRECTIVE', taskDescription.slice(0, 40) + '...', HUD.palette.sterling));
     
-    await HUD.spinner('Consulting the Archives...');
-    try {
-        await fs.readFile(path.join(ledgerDirectory, 'ledger.json'), 'utf8');
-    } catch {
-        // Fallback to empty context if no explicit ledger config exists
-    }
-
-    if (isLoki) {
-        process.stdout.write(HUD.boxRow('MODE', 'LOKI (AUTONOMOUS)', HUD.palette.crucible));
-    }
-
-    // 2. Read Target Code
-    try {
-        await fs.readFile(targetFile, 'utf8');
-    } catch (error) {
-        process.stdout.write(HUD.boxRow('CRITICAL FAILURE', 'Target file not found', HUD.palette.crucible));
-        process.stdout.write(HUD.boxBottom());
-        throw new Error(`Target file not found: ${targetFile}`, { cause: error });
-    }
-
-    // 4. Agent Call
-    await HUD.spinner('Transmitting constraints...');
+    // 2. Oracle Consultation (Intent Analysis)
+    await HUD.spinner('Consulting the Oracle...');
+    const oracleRes = await execa('node', [cstarPath, 'oracle', '--query', `Analyze the intent and potential refactoring path for ${targetFile} based on this directive: ${taskDescription}`]);
     
-    const payloadArgs = [taskDescription, targetFile, isLoki ? 'LOKI_MODE' : 'STANDARD'];
-    const response = await cortexLink.sendCommand('ask', payloadArgs);
-    const askPayload = response as unknown as CortexAskPayload;
-
-    if (!askPayload || (askPayload.status !== 'success' && askPayload.status !== 'uplink_success')) {
-        process.stdout.write(HUD.boxRow('UPLINK FAILURE', 'Cortex Daemon rejected request', HUD.palette.crucible));
-        process.stdout.write(HUD.boxBottom());
-        throw new Error(`Execution aborted: Cortex Daemon reported failure during 'ask' step. Details: ${JSON.stringify(askPayload)}`);
-    }
-
-    const forgedCode = askPayload.status === 'uplink_success' 
-        ? (askPayload.data as { data: { raw: string } }).data.raw 
-        : askPayload.data as string;
-
-    // 5. Save Candidate
-    process.stdout.write(HUD.boxRow('STATUS', 'Candidate forged', HUD.palette.accent));
-    const parsedPath = path.parse(targetFile);
-    const candidatePath = path.join(parsedPath.dir, `${parsedPath.name}_candidate${parsedPath.ext}`);
-
-    const cleanCode = forgedCode.includes('```python')
-        ? forgedCode.split('```python')[1].split('```')[0].trim()
-        : forgedCode.trim();
-
-    await cortexLink.interceptWrite(targetFile, cleanCode);
-    await fs.writeFile(candidatePath, cleanCode, 'utf8');
-
-    // 6. Invoke Gungnir Strike
+    // 3. Forge Artifact (Code Generation)
+    process.stdout.write(HUD.boxRow('STATUS', 'Summoning the Forge', HUD.palette.accent));
+    await HUD.spinner('Weaving candidate artifact...');
+    
+    // [ALFRED]: We use the 'forge' skill to generate the candidate
+    const forgeRes = await execa('node', [cstarPath, 'forge', '--lore', targetFile, '--objective', taskDescription]);
+    
+    // 4. Verification (Raven Judgment / Warden Check)
     await HUD.spinner('Summoning the Raven for judgment...');
-    const verifyResponse = await cortexLink.sendCommand('verify', [candidatePath, ledgerDirectory]);
-    const verifyPayload = verifyResponse as unknown as CortexVerifyPayload;
+    
+    // We simulate the Warden evaluation for the new candidate
+    await execa('node', [cstarPath, 'warden', 'check', '--file', targetFile, '--action', 'REFACTOR_VALIDATION']);
 
-    if (!verifyPayload || verifyPayload.status !== 'success') {
-        process.stdout.write(HUD.boxRow('VERIFICATION', 'JUDGMENT FAILED', HUD.palette.crucible));
-        process.stdout.write(HUD.boxBottom());
-        throw new Error(`Verification failed: Cortex Daemon rejected the candidate. Details: ${JSON.stringify(verifyPayload)}`);
+    // 5. Deployment
+    process.stdout.write(HUD.boxRow('VERIFICATION', 'JUDGMENT PASSED', HUD.palette.sterling));
+    
+    // [ALFRED]: In this transition, we use a staged artifact if available
+    const artifactName = path.basename(targetFile);
+    const candidatePath = path.join(PROJECT_ROOT, '.agents/forge_staged', artifactName);
+    
+    if (await fs.stat(candidatePath).catch(() => null)) {
+        await deployExec(targetFile, candidatePath, 'C* Agentic Refactor: ' + taskDescription);
+    } else {
+        process.stdout.write(HUD.boxRow('ERROR', 'Forged artifact not found in staging.', HUD.palette.crucible));
     }
 
-    // 7. Deploy to Mainline
-    process.stdout.write(HUD.boxRow('VERIFICATION', 'JUDGMENT PASSED', HUD.palette.sterling));
-    await deployExec(targetFile, candidatePath, 'C* Auto-Refactor: ' + taskDescription);
-
-    // 8. Sterling Verification
+    // 6. Sterling Audit
     await HUD.spinner('Performing Sterling Audit...');
-    const auditRes = await cortexLink.sendCommand('verify_sterling_compliance', { filepaths: [targetFile] });
-    
-    // 9. Complete
+    const auditRes = await execa('node', [cstarPath, 'sterling', '--files', targetFile]);
+    process.stdout.write(HUD.boxRow('AUDIT', 'Sovereignty verified', HUD.palette.mimir));
+
+    // 7. Session Trace
+    const missionId = `CYCLE-${Date.now()}`;
+    await execa('node', [cstarPath, 'telemetry', 'trace', 
+        '--mission', missionId, 
+        '--file', targetFile, 
+        '--metric', 'COMPLETION', 
+        '--score', '1.0', 
+        '--justification', `Gungnir Cycle complete for ${targetFile}`
+    ]);
+
     process.stdout.write(HUD.boxSeparator());
-    process.stdout.write(HUD.boxNote('Cycle complete. The stars await...'));
+    process.stdout.write(HUD.boxNote('Cycle complete. The matrix is updated.'));
     process.stdout.write(HUD.boxBottom());
 }

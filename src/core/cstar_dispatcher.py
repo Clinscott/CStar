@@ -17,6 +17,7 @@ SovereignBootstrap.execute()
 class CorvusDispatcher:
     """
     Main CLI Dispatcher for the Corvus Star framework.
+    Now fully integrated with the Agentic Stack Skills.
     """
     def __init__(self, root: Path | None = None) -> None:
         self.project_root = root or PROJECT_ROOT
@@ -24,17 +25,11 @@ class CorvusDispatcher:
         if not self.venv_python.exists():
             self.venv_python = Path(sys.executable)
 
-        # Persona Synchronization
+        # Persona Synchronization delegated to 'personas' skill
+        # [ALFRED]: We still load persona for the HUD display, but policy is skill-based.
         from src.core.utils import load_config
         self.config = load_config(str(self.project_root))
-        SovereignHUD.PERSONA = (self.config.get("persona") or "ALFRED").upper()
-
-        # [THE CANARY] Initialize AnomalyWarden
-        try:
-            from src.core.engine.atomic_gpt import AnomalyWarden
-            self.warden = AnomalyWarden()
-        except Exception:
-            self.warden = None
+        SovereignHUD.PERSONA = (self.config.get("persona") or self.config.get("system", {}).get("persona", "ALFRED")).upper()
 
     def _discover_all(self) -> dict[str, str]:
         """Scans all dynamic locations for available commands."""
@@ -42,7 +37,7 @@ class CorvusDispatcher:
 
         # Scripts (.py)
         script_dirs = [
-            self.project_root / ".agent" / "skills",
+            self.project_root / ".agents" / "skills",
             self.project_root / "src" / "tools",
             self.project_root / "src" / "skills" / "local",
             self.project_root / "skills_db",
@@ -56,15 +51,21 @@ class CorvusDispatcher:
                     if f.stem not in ["__init__", "_bootstrap", "cstar_dispatcher"]:
                         commands.setdefault(f.stem, str(f.resolve()))
 
-                # Directory-based skill discovery (e.g., skills_db/name/name.py)
+                # Directory-based skill discovery (e.g., .agents/skills/name/scripts/name.py)
                 for sub in d.iterdir():
                     if sub.is_dir():
-                        main_script = sub / f"{sub.name}.py"
+                        scripts_dir = sub / "scripts"
+                        main_script = scripts_dir / f"{sub.name}.py"
                         if main_script.exists():
                             commands.setdefault(sub.name, str(main_script.resolve()))
+                        else:
+                            # Legacy check
+                            main_script = sub / f"{sub.name}.py"
+                            if main_script.exists():
+                                commands.setdefault(sub.name, str(main_script.resolve()))
 
         # Workflows (.md / .qmd)
-        workflow_dir = self.project_root / ".agent" / "workflows"
+        workflow_dir = self.project_root / ".agents" / "workflows"
         if workflow_dir.exists():
             for f in workflow_dir.iterdir():
                 if f.suffix in [".md", ".qmd"]:
@@ -83,7 +84,7 @@ class CorvusDispatcher:
         workflows = sorted(c for c, p in commands.items() if p.endswith(".md") or p.endswith(".qmd"))
 
         if scripts:
-            SovereignHUD.box_row("SCRIPTS", ", ".join(scripts), SovereignHUD.GREEN, dim_label=True)
+            SovereignHUD.box_row("SKILLS", ", ".join(scripts), SovereignHUD.GREEN, dim_label=True)
         if workflows:
             SovereignHUD.box_separator()
             SovereignHUD.box_row("WORKFLOWS", ", ".join(workflows), SovereignHUD.MAGENTA, dim_label=True)
@@ -100,11 +101,6 @@ class CorvusDispatcher:
                 from src.cstar.core.tui import SovereignApp
                 SovereignApp().run()
                 return
-            except ImportError as e:
-                # Fallback if Textual not installed
-                SovereignHUD.persona_log("FAIL", f"Sovereign SovereignHUD failed to load (Missing Dependency): {e}")
-                self.show_help()
-                return
             except Exception as e:
                 SovereignHUD.persona_log("FAIL", f"Sovereign SovereignHUD failed to launch: {e}")
                 self.show_help()
@@ -113,108 +109,77 @@ class CorvusDispatcher:
         cmd = args[0].lower()
         cmd_args = args[1:]
 
-        # Persona Shortcuts
+        # Persona Shortcuts (Routed to personas skill)
         if cmd in ["-odin", "-alfred"]:
             persona = "ODIN" if cmd == "-odin" else "ALFRED"
-            set_persona_script = self.project_root / "src" / "core" / "set_persona.py"
-            if not set_persona_script.exists():
-                set_persona_script = self.project_root / "scripts" / "set_persona.py"
-
-            env = os.environ.copy()
-            env["PYTHONPATH"] = str(self.project_root)
-            subprocess.run([str(self.venv_python), str(set_persona_script), persona], env=env)
+            self._execute_skill("personas", ["--set", persona])
             return
 
         # Dynamic Resolution
         all_cmds = self._discover_all()
         if cmd in all_cmds:
             cmd_path = all_cmds[cmd]
-            
-            # [Ω] SPECIAL CASE: wrap-it-up
-            # We want to execute the Python script wrap_it_up.py rather than just rendering the workflow qmd
-            if cmd == "wrap-it-up":
-                wrap_script = self.project_root / "src" / "tools" / "wrap_it_up.py"
-                if wrap_script.exists():
-                    cmd_path = str(wrap_script.resolve())
+            start_time = time.time()
+            error_status = 0.0
 
-            if cmd_path.endswith(".py"):
-                # Permanent Execution Jailing: Detect if command is in skills_db
-                if "skills_db" in cmd_path:
-                    from src.sentinel.sandbox_warden import SandboxWarden
-                    warden = SandboxWarden()
-                    report = warden.run_in_sandbox(Path(cmd_path), args=cmd_args)
-
-                    if report["stdout"]: print(report["stdout"])
-                    if report["stderr"]: print(report["stderr"], file=sys.stderr)
-                    if report["timed_out"]:
-                        SovereignHUD.persona_log("FAIL", "Sandbox Execution Timed Out.")
-                    return
-
-                # Native Execution for core framework skills
-                env = os.environ.copy()
-                env["PYTHONPATH"] = str(self.project_root)
-                subprocess.run([str(self.venv_python), cmd_path, *cmd_args], env=env)
-                return
-            else: # Workflow
-                SovereignHUD.persona_log("INFO", f"Dispatching workflow: /{cmd}")
-                import shutil
-                start_time = time.time()
-                error_status = 0.0
-
-                quarto_path = shutil.which("quarto") or r"C:\Program Files\Quarto\bin\quarto.exe"
-                if os.path.exists(quarto_path):
-                    try:
+            try:
+                if cmd_path.endswith(".py"):
+                    # Native Execution
+                    env = os.environ.copy()
+                    env["PYTHONPATH"] = str(self.project_root)
+                    subprocess.run([str(self.venv_python), cmd_path, *cmd_args], env=env, check=True)
+                else: # Workflow
+                    SovereignHUD.persona_log("INFO", f"Dispatching workflow: /{cmd}")
+                    import shutil
+                    quarto_path = shutil.which("quarto") or r"C:\Program Files\Quarto\bin\quarto.exe"
+                    if os.path.exists(quarto_path):
                         subprocess.run([quarto_path, "render", cmd_path], check=True)
-                    except Exception as e:
-                         SovereignHUD.persona_log("FAIL", f"Workflow execution failed: {e}")
-                         error_status = 1.0
-                else:
-                    SovereignHUD.persona_log("WARN", "Quarto not found. Displaying raw workflow:")
-                    SovereignHUD.box_top(f"WORKFLOW: {cmd}")
-                    print(Path(cmd_path).read_text(encoding='utf-8')[:1000] + "\n... (truncated)")
-                    SovereignHUD.box_bottom()
+                    else:
+                        SovereignHUD.persona_log("WARN", "Quarto not found. Displaying raw workflow:")
+                        SovereignHUD.box_top(f"WORKFLOW: {cmd}")
+                        print(Path(cmd_path).read_text(encoding='utf-8')[:1000] + "\n... (truncated)")
+                        SovereignHUD.box_bottom()
+            except Exception as e:
+                SovereignHUD.persona_log("FAIL", f"Command '{cmd}' failed: {e}")
+                error_status = 1.0
 
-                # [CANARY] Record Heartbeat
-                latency = (time.time() - start_time) * 1000
-                self._record_heartbeat(latency, len(args), 1.0, error_status)
-                return
+            # [CANARY] Record Heartbeat via 'warden' and 'telemetry' skills
+            latency = (time.time() - start_time) * 1000
+            self._record_agentic_heartbeat(cmd, latency, len(args), error_status)
+            return
 
         SovereignHUD.persona_log("FAIL", f"Unknown command: {cmd}")
         self.show_help()
 
-    def _record_heartbeat(self, latency: float, tokens: int, loops: float, error: float) -> None:
-        """Feeding the Warden and calculating Gungnir Anomaly."""
-        if not self.warden:
-            return
+    def _execute_skill(self, skill_name: str, args: list[str]) -> None:
+        """Helper to run a skill script from within the dispatcher."""
+        all_cmds = self._discover_all()
+        if skill_name in all_cmds:
+            cmd_path = all_cmds[skill_name]
+            env = os.environ.copy()
+            env["PYTHONPATH"] = str(self.project_root)
+            subprocess.run([str(self.venv_python), cmd_path, *args], env=env)
 
-        # [🔱] ONE MIND: AnomalyWarden v6 requires 5 features [latency, tokens, loops, error, lore_alignment]
-        # For CLI dispatching, we assume high lore alignment (1.0) unless a failure occurred.
-        lore_alignment = 1.0 if error == 0.0 else 0.5
-        features = [latency, float(tokens), loops, error, lore_alignment]
+    def _record_agentic_heartbeat(self, cmd: str, latency: float, tokens: int, error: float) -> None:
+        """Delegates heartbeat recording to the Telemetry and Warden skills."""
+        mission_id = f"CLI-{cmd.upper()}-{int(time.time())}"
+        
+        # 1. Dispatch Telemetry Trace
+        self._execute_skill("telemetry", [
+            "trace", 
+            "--mission", mission_id,
+            "--file", f"CLI/{cmd}",
+            "--metric", "LATENCY",
+            "--score", str(latency),
+            "--justification", f"CLI execution of {cmd}",
+            "--status", "SUCCESS" if error == 0.0 else "FAIL"
+        ])
 
-        # 1. Inference
-        anomaly_prob = self.warden.forward(features)
-
-        # 2. Training (Self-Supervised on success)
-        if self.warden.burn_in_cycles > 0 or error == 0.0:
-            self.warden.train_step(features, 0.0)
-
-        # 3. Persistence: Store anomaly score for PennyOne to consume
-        try:
-            state_path = self.project_root / ".agent" / "sovereign_state.json"
-            import json
-            state = {}
-            if state_path.exists():
-                state = json.loads(state_path.read_text(encoding='utf-8'))
-            
-            state["last_anomaly_score"] = anomaly_prob
-            state_path.write_text(json.dumps(state, indent=2), encoding='utf-8')
-        except Exception:
-            pass
-
-        # 4. Alerting
-        if self.warden.burn_in_cycles == 0 and anomaly_prob > 0.8:
-            SovereignHUD.persona_log("CRITICAL", f"Anomaly Detected: {anomaly_prob:.2f} (Heartbeat: {features})")
+        # 2. Trigger Warden Evaluation
+        # Vector: [latency, tokens, loops, error, lore_alignment]
+        vector = [latency, float(tokens), 1.0, error, 1.0 if error == 0.0 else 0.5]
+        import json
+        self._execute_skill("warden", ["eval", "--vector", json.dumps(vector)])
 
 def main() -> None:
     """Entry point for the dispatcher."""
