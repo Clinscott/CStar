@@ -24,26 +24,32 @@ class TaliesinSpoke:
         
         # Ensure lore directory exists
         self.lore_dir.mkdir(exist_ok=True)
+        
+        # Load exemplars if they exist (Phase 8: EAS/NDS)
+        self.exemplars = {}
+        exemplar_path = self.lore_dir / "exemplars.json"
+        if exemplar_path.exists():
+            try:
+                self.exemplars = json.loads(exemplar_path.read_text(encoding='utf-8'))
+            except Exception:
+                pass
 
     async def ingest_style(self) -> bool:
-        """Scan .lore/ for writing samples and extract style motifs (Supporting ZIP, RTF, DOCX)."""
-        SovereignHUD.persona_log("INFO", "Scanning the Lore Corpus (Recursive) for style motifs...")
-        
+        """Scan .lore/ for writing samples and update BDD voice contracts in .lore/voices/."""
+        SovereignHUD.log("INFO", "Scanning the Lore Corpus for voice contract refinement...")
+
         import zipfile
         import re
-        
+
         samples = []
-        
+
         def extract_rtf_text(rtf_bytes: bytes) -> str:
             """Rough RTF to text extraction."""
             try:
                 rtf_text = rtf_bytes.decode('utf-8', errors='ignore')
-                # Simple regex to strip RTF control codes
                 text = re.sub(r'\\[a-zA-Z*]{1,32}(-?\d{1,10})?[ ]?', '', rtf_text)
                 text = re.sub(r'\{|\}', '', text)
-                # Strip long hexadecimal/binary dumps (images, OLE objects, etc.)
                 text = re.sub(r'[a-fA-F0-9]{30,}', '', text)
-                # Clean up multiple spaces left behind
                 text = re.sub(r'\s+', ' ', text)
                 return text.strip()
             except Exception:
@@ -54,23 +60,27 @@ class TaliesinSpoke:
             try:
                 with zipfile.ZipFile(docx_path) as z:
                     xml_content = z.read('word/document.xml').decode('utf-8')
-                    # Strip XML tags
                     text = re.sub(r'<[^>]+>', '', xml_content)
                     return text
             except Exception:
                 return ""
 
         def process_directory(directory: Path):
+            voices_dir = directory / "voices"
             for f in directory.rglob("*"):
-                if f.is_dir(): continue
-                
-                # 1. Plain Text / Markdown
-                if f.suffix in ['.txt', '.md', '.qmd', '.bak'] and f.name != "style_template.json":
+                if f.is_dir():
+                    continue
+                # Skip voice contracts and style template
+                if voices_dir.exists() and str(f).startswith(str(voices_dir)):
+                    continue
+                if f.name == "style_template.json" or f.name == "staging_queue.json":
+                    continue
+
+                if f.suffix in ['.txt', '.md', '.qmd', '.bak']:
                     try:
                         samples.append(f.read_text(encoding='utf-8', errors='ignore'))
-                    except Exception: pass
-                
-                # 2. Scrivener Backups (ZIP)
+                    except Exception:
+                        pass
                 elif f.suffix == '.zip':
                     try:
                         with zipfile.ZipFile(f) as z:
@@ -78,59 +88,98 @@ class TaliesinSpoke:
                                 if 'Files/Data/' in name and name.endswith('.rtf'):
                                     rtf_content = z.read(name)
                                     text = extract_rtf_text(rtf_content)
-                                    if len(text) > 100: # Filter out tiny meta-docs
+                                    if len(text) > 100:
                                         samples.append(text)
-                    except Exception: pass
-                
-                # 3. Word Documents
+                    except Exception:
+                        pass
                 elif f.suffix == '.docx':
                     text = extract_docx_text(f)
-                    if text: samples.append(text)
+                    if text:
+                        samples.append(text)
 
         process_directory(self.lore_dir)
-        
+
         if not samples:
-            SovereignHUD.persona_log("WARN", "Lore Corpus is empty or formats unreadable. Please add writing samples.")
+            SovereignHUD.log("WARN", "Lore Corpus is empty or formats unreadable. Please add writing samples.")
             return False
 
-        # Sort by length and take a representative slice to stay under context limits
+        # Sort by length and take best samples under context limits
         samples.sort(key=len, reverse=True)
-        representative_samples = samples[:15] # Take the top 15 longest samples
-        full_corpus = "\n\n---\n\n".join(representative_samples)[:15000] # Cap at 15k
+        representative_samples = samples[:5]
+        full_corpus = "\n\n---\n\n".join(representative_samples)[:30000]
+
+        # Read existing voice contracts for reference
+        voices_dir = self.lore_dir / "voices"
+        existing_contracts = {}
+        if voices_dir.exists():
+            for feature_file in voices_dir.rglob("*.feature"):
+                rel = feature_file.relative_to(voices_dir)
+                existing_contracts[str(rel)] = feature_file.read_text(encoding='utf-8')
+
+        updated_count = 0
         
-        prompt = (
-            "Analyze the following writing samples. Identify the cadence, tone, typical vocabulary, "
-            "punctuation patterns, and formatting quirks. Return a JSON object representing this 'Style Template'.\n\n"
-            f"SAMPLES:\n{full_corpus}"
-        )
-        
-        response = await self.uplink.send_payload(prompt, {"persona": "ODIN"})
-        
-        if response.get("status") == "success":
-            style_data = response.get("data", {}).get("raw", "{}")
-            # Attempt to extract JSON from markdown if needed
-            if "```json" in style_data:
-                style_data = style_data.split("```json")[1].split("```")[0].strip()
+        for rel_path, content in existing_contracts.items():
+            SovereignHUD.log("INFO", f"Analyzing voice contract: {rel_path}...")
             
-            try:
-                 # Verify it's valid JSON
-                json.loads(style_data)
-                self.style_file.write_text(style_data, encoding='utf-8')
-                SovereignHUD.persona_log("SUCCESS", "Style Template forged and locked in .lore/")
-                return True
-            except Exception:
-                # Fallback if LLM just returns text
-                template = {"description": style_data}
-                self.style_file.write_text(json.dumps(template), encoding='utf-8')
-                SovereignHUD.persona_log("SUCCESS", "Style Template (Textual) captured in .lore/")
-                return True
-        
-        SovereignHUD.persona_log("ERROR", f"Uplink failed to analyze style: {response.get('message', 'Unknown Error')}")
-        return False
+            prompt = (
+                "You are a narrative voice analyst. Analyze the following manuscript and update the "
+                f"BDD Gherkin voice contract for '{rel_path}' to accurately reflect the writing style found in the text.\n\n"
+                "Analyze:\n"
+                "- Cadence, sentence structure, and rhythm patterns\n"
+                "- Vocabulary choices and recurring words\n"
+                "- Punctuation patterns and formatting quirks\n"
+                "- Character-specific speech patterns and emotional signatures\n\n"
+                "EXISTING CONTRACT (use as a structural template, refine based on the manuscript):\n"
+                f"```gherkin\n{content}\n```\n\n"
+                "MANUSCRIPT EXCERPTS:\n"
+                f"{full_corpus}\n\n"
+                "MANDATE: Return ONLY the updated Gherkin feature file content. "
+                "Do not include any other text or headers. Preserve the existing Given/When/Then "
+                "structure but enrich the rules with specific examples, quotes, and patterns drawn directly from the manuscript."
+            )
+            
+            response = await self.uplink._direct_strike(prompt, {"persona": "ODIN"})
+            
+            if response.get("status") != "success":
+                SovereignHUD.log("WARN", f"Skipping {rel_path} due to uplink failure.")
+                continue
+                
+            raw_output = response.get("data", {}).get("raw", "")
+            if not raw_output:
+                continue
+                
+            # Strip markdown code fences if present
+            if raw_output.startswith('```gherkin'):
+                raw_output = raw_output[len('```gherkin'):].strip()
+            elif raw_output.startswith('```'):
+                raw_output = raw_output[3:].strip()
+            if raw_output.endswith('```'):
+                raw_output = raw_output[:-3].strip()
+                
+            target_path = voices_dir / rel_path
+            
+            # Backup existing contract
+            if target_path.exists():
+                backup = target_path.with_suffix('.feature.bak')
+                backup.write_text(target_path.read_text(encoding='utf-8'), encoding='utf-8')
+                
+            target_path.write_text(raw_output, encoding='utf-8')
+            updated_count += 1
+            SovereignHUD.log("SUCCESS", f"Voice contract updated: {rel_path}")
+
+        if updated_count == 0:
+            SovereignHUD.log("WARN", "No voice contracts were parsed from the analysis.")
+            return False
+
+        SovereignHUD.log(
+            "SUCCESS",
+            f"Ingestion complete. {updated_count} voice contract(s) updated in .lore/voices/"
+        )
+        return True
 
     async def gather_context(self) -> str:
         """Pulls latest entries from dev journal and memory."""
-        SovereignHUD.persona_log("INFO", "Consulting Mimir's Well for project context...")
+        SovereignHUD.log("INFO", "Consulting Mimir's Well for project context...")
         
         context_parts = []
         
@@ -163,7 +212,7 @@ class TaliesinSpoke:
                 contract_path = voices_dir / "lore" / "characters" / f"{character.lower()}.feature"
                 
         if not contract_path.exists():
-            SovereignHUD.persona_log("WARN", f"Voice contract {contract_path.name} missing. Please ensure it exists.")
+            SovereignHUD.log("WARN", f"Voice contract {contract_path.name} missing. Please ensure it exists.")
             return None
                 
         voice_contract = contract_path.read_text(encoding='utf-8')
@@ -184,6 +233,95 @@ class TaliesinSpoke:
             return response.get("data", {}).get("raw")
         
         return None
+
+    async def generate_scene(self, characters: list[str]) -> str | None:
+        """Generates a cohesive scene involving the narrator and multiple characters."""
+        voices_dir = self.lore_dir / "voices"
+        contracts = []
+        
+        # Always include narrator
+        narrator_path = voices_dir / "lore" / "narrator.feature"
+        if narrator_path.exists():
+            contracts.append(f"NARRATOR:\n{narrator_path.read_text(encoding='utf-8')}")
+            
+        for char in characters:
+            path = voices_dir / "lore" / "characters" / f"{char.lower()}.feature"
+            if path.exists():
+                contracts.append(f"CHARACTER ({char.upper()}):\n{path.read_text(encoding='utf-8')}")
+                
+        if not contracts:
+            SovereignHUD.log("WARN", "No voice contracts found for scene generation.")
+            return None
+            
+        project_context = await self.gather_context()
+        
+        # Prepare Exemplars and Negative Directives (EAS/NDS)
+        exemplar_str = ""
+        if self.exemplars:
+            narrator_exemplars = self.exemplars.get("narrator", [])
+            char_exemplars = []
+            for char in characters:
+                char_exemplars.extend(self.exemplars.get(char.lower(), []))
+            
+            exemplar_str = "\n\n### EXEMPLAR SOURCE (Raw Manuscript Fragments for Style Anchor)\n"
+            if narrator_exemplars:
+                exemplar_str += "NARRATOR PROSE PATTERNS:\n- " + "\n- ".join(narrator_exemplars) + "\n"
+            if char_exemplars:
+                exemplar_str += "CHARACTER DIALOGUE/BEHAVIOR PATTERNS:\n- " + "\n- ".join(char_exemplars) + "\n"
+            
+            forbidden = self.exemplars.get("forbidden", [])
+            if forbidden:
+                exemplar_str += "\n### NEGATIVE DIRECTIVES (Strictly FORBIDDEN AI-isms/Modernisms)\n"
+                exemplar_str += "- NEVER use modern tactical or logistical terminology: " + ", ".join(forbidden) + "\n"
+                exemplar_str += "- AVOID modern psychological or sociological framing (e.g., 'collecting himself', 'social cues').\n"
+                exemplar_str += "- ARREST Narrative Acceleration: Do not name characters not present in the reference segment.\n"
+
+        prompt = (
+            "You are TALIESIN. Generate a narrative scene segment involving the following personas. "
+            "You MUST strictly adhere to the linguistic patterns, metaphors, and behaviors in their respective contracts.\n\n"
+            "VOICE CONTRACTS:\n" + "\n\n".join(contracts) + "\n\n"
+            f"CONTEXT:\n{project_context}\n"
+            f"{exemplar_str}\n"
+            "MANDATE: Write a 500-800 word scene segment. Ensure character dialogue and narrator prose "
+            "are distinct, heavy with sensory detail, and strictly follow the EXEMPLAR style over generic AI storytelling."
+        )
+        
+        # Use direct strike to avoid Mimir cancel scope task bleed
+        response = await self.uplink._direct_strike(prompt, {"persona": "TALIESIN"})
+        if response.get("status") == "success":
+            return response.get("data", {}).get("raw")
+        return None
+
+    async def calculate_cohesion(self, generated_text: str, reference_text: str) -> dict:
+        """Analyze generated prose against a reference manuscript for linguistic resonance."""
+        prompt = (
+            "Analyze the following GENERATED TEXT against the REFERENCE MANUSCRIPT. "
+            "Score the cohesion across three dimensions (0-100) and provide qualitative feedback.\n\n"
+            f"REFERENCE MANUSCRIPT:\n{reference_text[:15000]}\n\n"
+            f"GENERATED TEXT:\n{generated_text}\n\n"
+            "Output the analysis in JSON format with these keys:\n"
+            "- lexical_accuracy: score and specific word-choice feedback\n"
+            "- syntactic_rhythm: score and sentence structure/cadence feedback\n"
+            "- narrative_resonance: score and voice/tone consistency feedback\n"
+            "- overall_score: average of the three\n"
+            "- critical_delta: what is the most significant deviation from the source style?\n"
+            "- forbidden_lexeme_count: how many forbidden modernisms (e.g., tactical/logistical terms) were found?"
+        )
+        
+        # Use send_payload to leverage Mimir/Synaptic Link (or gemini-2.5-flash fallback)
+        response = await self.uplink.send_payload(prompt, {"persona": "ODIN", "model": "gemini-3.1-flash-lite"})
+        if response.get("status") == "success":
+            raw = response.get("data", {}).get("raw", "")
+            # Basic JSON extraction from markdown if necessary
+            if "```json" in raw:
+                raw = raw.split("```json")[1].split("```")[0].strip()
+            try:
+                # Remove any leading/trailing whitespace or non-JSON artifacts
+                raw = raw.strip()
+                return json.loads(raw)
+            except Exception:
+                return {"error": "Failed to parse cohesion JSON", "raw": raw}
+        return {"error": "Uplink failed", "message": response.get("message", "Unknown error")}
 
     def staging_gate(self, draft: str) -> bool:
         """Dual-mode staging gate: JSON queue for agent orchestration, input() for terminal.
@@ -206,7 +344,7 @@ class TaliesinSpoke:
             "source": "taliesin",
         }
         staging_file.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-        SovereignHUD.persona_log("INFO", f"Draft staged for agent review at {staging_file.name}")
+        SovereignHUD.log("INFO", f"Draft staged for agent review at {staging_file.name}")
         return True
 
     def _staging_gate_terminal(self, draft: str) -> bool:
@@ -236,20 +374,23 @@ class TaliesinSpoke:
             timestamp = time.strftime("%Y%m%d_%H%M%S")
             reinforcement_file = self.lore_dir / f"reinforcement_{timestamp}.md"
             reinforcement_file.write_text(new_draft, encoding='utf-8')
-            SovereignHUD.persona_log("INFO", "Correction saved for reinforcement.")
+            SovereignHUD.log("INFO", "Correction saved for reinforcement.")
 
             return self.x_api.post_article(new_draft)
         else:
-            SovereignHUD.persona_log("INFO", "Post discarded.")
+            SovereignHUD.log("INFO", "Post discarded.")
             return False
 
 async def main():
     import argparse
     
     parser = argparse.ArgumentParser(description="TALIESIN: Lore Ingestion & Social Interface Engine")
-    parser.add_argument("--ingest", action="store_true", help="Scan .lore/ and extract style motifs (deprecated for BDD)")
+    parser.add_argument("--ingest", action="store_true", help="Scan .lore/ and update BDD voice contracts")
     parser.add_argument("--mode", choices=["article", "story"], default="article", help="Generation mode")
-    parser.add_argument("--character", type=str, default="narrator", help="Specific character to roleplay in story mode (e.g. Roan, Nicci)")
+    parser.add_argument("--character", type=str, default="narrator", help="Specific character to roleplay")
+    parser.add_argument("--scene", type=str, help="Comma-separated list of characters for ensemble scene generation")
+    parser.add_argument("--score", type=str, help="Path to a draft to score for cohesion")
+    parser.add_argument("--reference", type=str, help="Path to reference manuscript for scoring")
     parser.add_argument("--post", action="store_true", help="Generate and enter staging gate")
     
     args = parser.parse_args()
@@ -259,12 +400,50 @@ async def main():
     
     if args.ingest:
         await taliesin.ingest_style()
+    elif args.score:
+        draft_path = Path(args.score)
+        ref_path = Path(args.reference) if args.reference else taliesin.lore_dir / "Fallows Hallow - TALIESIN.txt"
+        
+        if not draft_path.exists():
+            SovereignHUD.log("FAIL", f"Draft file {args.score} not found.")
+            return
+        if not ref_path.exists():
+            SovereignHUD.log("FAIL", "Reference manuscript not found. Use --reference.")
+            return
+            
+        draft = draft_path.read_text(encoding='utf-8')
+        reference = ref_path.read_text(encoding='utf-8')
+        
+        SovereignHUD.log("INFO", f"Calculating cohesion score for {args.score}...")
+        result = await taliesin.calculate_cohesion(draft, reference)
+        
+        SovereignHUD.box_top("Linguistic Cohesion Analysis")
+        for key, val in result.items():
+            if isinstance(val, dict):
+                SovereignHUD.box_row(key.replace('_', ' ').title(), f"{val.get('score', 0)}% - {val.get('feedback', '')[:60]}...")
+            else:
+                SovereignHUD.box_row(key.replace('_', ' ').title(), val)
+        SovereignHUD.box_bottom()
+        
+    elif args.scene:
+        chars = [c.strip() for c in args.scene.split(",")]
+        SovereignHUD.log("INFO", f"Generating ensemble scene for: Narrator, {', '.join(chars)}...")
+        scene = await taliesin.generate_scene(chars)
+        if scene:
+            if args.post:
+                taliesin.staging_gate(scene)
+            else:
+                print("\n" + "="*40 + "\nGENERATED SCENE:\n" + "="*40 + "\n")
+                await SovereignHUD.stream_text(scene)
+        else:
+            SovereignHUD.log("FAIL", "Scene generation failed.")
+            
     elif args.post or (not args.ingest):
         draft = await taliesin.generate_post(args.mode, args.character)
         if draft:
             taliesin.staging_gate(draft)
         else:
-            SovereignHUD.persona_log("FAIL", "Lore generation failed.")
+            SovereignHUD.log("FAIL", "Lore generation failed.")
 
 if __name__ == "__main__":
     asyncio.run(main())

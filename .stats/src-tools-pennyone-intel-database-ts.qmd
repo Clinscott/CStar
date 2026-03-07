@@ -1,0 +1,116 @@
+---
+title: "database.ts"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\intel\database.ts"
+loc: 266
+complexity: 14
+logic_score: 1.65
+style_score: 3.70
+intel_score: 7.26
+overall_score: 4.25
+---
+
+## Intent
+The `database.ts` module manages 'Mimir's Well', the persistent SQLite storage for repository intelligence. It handles full-text search (FTS) indexing for file intents, session trace logging, heartbeat persistence, and lease management for distributed agent coordination.
+
+## Interaction Protocol
+Use the exported utility functions such as `updateFtsIndex`, `saveTrace`, and `registerSpoke` to persist architectural intelligence and operational metrics to the central repository database.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.6/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 7.3/10
+- **Gravity [G]**: 61 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://better-sqlite3)
+- [*](file://node:path)
+- [*](file://node:fs)
+- [AgentPing](file://../types.ts)
+- [registry](file://../pathRegistry.ts)
+
+### Exports
+- `db`
+- `currentDbPath`
+- `getDb`
+- `getDb`
+- `statsDir`
+- `dbPath`
+- `acquireLease`
+- `acquireLease`
+- `database`
+- `now`
+- `expiry`
+- `normalizedPath`
+- `existing`
+- `releaseLease`
+- `releaseLease`
+- `database`
+- `normalizedPath`
+- `saveTrace`
+- `saveTrace`
+- `database`
+- `stmt`
+- `registerSpoke`
+- `registerSpoke`
+- `database`
+- `normalizedRepo`
+- `spokeName`
+- `spoke`
+- `stmt`
+- `result`
+- `existing`
+- `savePing`
+- `savePing`
+- `sanitizedAgentId`
+- `validActions`
+- `sanitizedAction`
+- `spokeId`
+- `database`
+- `oneHourAgo`
+- `session`
+- `stmt`
+- `result`
+- `insertPing`
+- `getSessionsWithSummaries`
+- `getSessionsWithSummaries`
+- `database`
+- `normalizedRepo`
+- `sessions`
+- `start`
+- `end`
+- `duration`
+- `primaryTarget`
+- `targetFile`
+- `getTracesForFile`
+- `getTracesForFile`
+- `database`
+- `normalizedPath`
+- `getSessionPings`
+- `getSessionPings`
+- `database`
+- `updateFtsIndex`
+- `updateFtsIndex`
+- `database`
+- `normalizedPath`
+- `updateChronicleIndex`
+- `updateChronicleIndex`
+- `database`
+- `entryId`
+- `searchIntents`
+- `searchIntents`
+- `database`
+- `safeQuery`
+- `codeResults`
+- `loreResults`
+- `getRecentSessions`
+- `getRecentSessions`
+- `database`
+- `getPingsForSession`
+- `getPingsForSession`
+- `database`
+- `closeDb`
+- `closeDb`

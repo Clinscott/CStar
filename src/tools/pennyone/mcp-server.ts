@@ -89,60 +89,49 @@ server.tool(
         filepath: z.string().describe('The path to the file to re-index'),
     },
     async ({ filepath }) => {
-        const missionId = `P1-INDEX-${Date.now()}`;
-        await logTrace(missionId, 'ORCHESTRATION', 'STARTED', `Indexing sector: ${filepath}`);
-        try {
-            const result = await indexSector(filepath);
-            if (result) {
-                await logTrace(missionId, 'ORCHESTRATION', 'SUCCESS', `Sector indexed successfully.`);
-                return {
-                    content: [{ 
-                        type: 'text', 
-                        text: `[ALFRED]: "Sector ${filepath} re-indexed successfully. Gungnir Score: ${result.matrix.overall.toFixed(2)}. Hall of Records synchronized."` 
-                    }],
-                };
+        const missionId = `P1-INDEX-ASYNC-${Date.now()}`;
+        await logTrace(missionId, 'ORCHESTRATION', 'STARTED', `Incremental scan initiated for: ${filepath}`);
+        
+        // [🔱] THE ASYNCHRONOUS PULSE: Initiate in background and return immediately
+        (async () => {
+            try {
+                await indexSector(filepath);
+                await logTrace(missionId, 'ORCHESTRATION', 'SUCCESS', `Incremental scan complete for ${filepath}.`);
+            } catch (error: any) {
+                await logTrace(missionId, 'ORCHESTRATION', 'ERROR', `Background incremental scan failed: ${error.message}`);
             }
-            await logTrace(missionId, 'ORCHESTRATION', 'ERROR', `Failed to index sector.`);
-            return {
-                content: [{ type: 'text', text: `[ALFRED]: "I am afraid I could not re-index sector ${filepath}. Check the logs for corruption."` }],
-                isError: true,
-            };
-        } catch (error: any) {
-            await logTrace(missionId, 'ORCHESTRATION', 'ERROR', `Error during sector indexing.`);
-            return {
-                content: [{ type: 'text', text: `Error during sector indexing: ${error.message}` }],
-                isError: true,
-            };
-        }
+        })();
+
+        return {
+            content: [{ type: 'text', text: `[ALFRED]: "Incremental scan for \`${filepath}\` has been initiated in the background, sir. I am now free to continue our session while the matrix synchronizes."` }],
+        };
     }
 );
 
 server.tool(
     'scan_repository',
-    'Perform a structural scan of the repository. Returns Gungnir scores and file metadata.',
+    'Perform a full structural and intelligence scan of the repository. Populates the Gungnir Matrix and Mimir\'s Well.',
     {
         path: z.string().optional().default('.').describe('The root path to scan'),
-        incremental: z.boolean().optional().default(true).describe('Only scan modified files (MD5 check)'),
+        force: z.boolean().optional().default(true).describe('Force re-analysis of all files'),
     },
-    async ({ path: scanPath, incremental }) => {
-        const missionId = `P1-SCAN-${Date.now()}`;
-        await logTrace(missionId, 'ORCHESTRATION', 'STARTED', `Scanning repository at ${scanPath} (Incremental: ${incremental}).`);
-        try {
-            const results = await runScan(scanPath, !incremental);
-            await logTrace(missionId, 'ORCHESTRATION', 'SUCCESS', `Repository scan complete.`);
-            return {
-                content: [{ 
-                    type: 'text', 
-                    text: `[ALFRED]: "Scan complete. Analyzed ${results.length} files. Hall of Records updated."` 
-                }],
-            };
-        } catch (error: any) {
-            await logTrace(missionId, 'ORCHESTRATION', 'ERROR', `Error during repository scan.`);
-            return {
-                content: [{ type: 'text', text: `Error during scan: ${error.message}` }],
-                isError: true,
-            };
-        }
+    async ({ path: scanPath, force }) => {
+        const missionId = `P1-SCAN-ASYNC-${Date.now()}`;
+        await logTrace(missionId, 'ORCHESTRATION', 'STARTED', `Full repository scan initiated for: ${scanPath}`);
+        
+        // [🔱] THE ASYNCHRONOUS PULSE: Initiate in background and return immediately
+        (async () => {
+            try {
+                await runScan(scanPath || '.', force || false);
+                await logTrace(missionId, 'ORCHESTRATION', 'SUCCESS', `Full background scan complete.`);
+            } catch (error: any) {
+                await logTrace(missionId, 'ORCHESTRATION', 'ERROR', `Full background scan failed: ${error.message}`);
+            }
+        })();
+
+        return {
+            content: [{ type: 'text', text: `[ALFRED]: "The full structural scan has been initiated in the background, sir. The One Mind remains responsive. I shall notify you through the visual matrix as the batches complete."` }],
+        };
     }
 );
 

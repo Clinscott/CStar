@@ -11,14 +11,17 @@ The decision-making brain of Corvus Star.
 - **Sovereign Engine** (`sv_engine.py`):
     - `run(query)`: Main execution loop for intent resolution.
     - `_init_vector_engine()`: Loads skills and knowledge.
-- **Vector Engine** (`src/core/engine/vector.py`):
-    - `search(query)`: Finds best matching skill/intent. (Modularized CC < 15).
-    - `_shadow_search(query)`: TF-IDF lexical search (Modularized).
-    - `_get_top_domain(query)`: Contextual domain routing.
-- **Sovereign Orchestration**:
-    - `DaemonOrchestrator` (`main_loop.py`): Encapsulated main daemon cycle.
-    - `Harvester` (`harvest_responses.py`): Sovereign response recording logic.
-    - `SkillInstaller` (`install_skill.py`): Encapsulated JIT installation.
+- **TALIESIN Spoke** (`src/sentinel/taliesin.py`):
+    - `generate_scene()`: EAS/NDS-enabled scene synthesis. (Phase 8).
+    - `calculate_cohesion()`: Quantifiable style-matching analyzer.
+- **Exemplars** (`.lore/exemplars.json`): Stylistic anchors and forbidden lexemes.
+
+## 2026-03-05: Session 115 (TALIESIN Phase 8 — The 90% Threshold)
+- **90% Threshold Achieved**: Verified 91.33% cohesion via EAS (Exemplar-Augmented Synthesis) and NDS (Negative Directive Synthesis).
+- **Linguistic Grounding**: Integrated `exemplars.json` to anchor narrator and character voices to the raw manuscript.
+- **Negative Directives**: Hardened voice contracts to explicitly forbid modern tactical lexemes and AI-isms.
+- **Quota Resilience**: Updated `uplink.py` to support dynamic model rotation (Gemini 2.5 series) and handle 429 Resource Exhausted states.
+- **Autonomous Mandate**: Enforced strict "No Autonomous API" rule for generation/scoring.
 
 ## 2026-03-02: Session 111 (Corvus Star Maturation Strike)
 - **Zero-Breach Certification**: Achieved 100% Heimdall (Python) and Sentinel (TS) pass across the core.

@@ -32,7 +32,11 @@ export async function executeCycle(
     isLoki: boolean = false
 ): Promise<void> {
     // 1. Extract Directives
-    console.log(chalk.cyan(`${activePersona.prefix} 'Consulting the Archives...'`));
+    process.stdout.write(HUD.boxTop('🔱 GUNGNIR FLIGHT CYCLE'));
+    process.stdout.write(HUD.boxRow('TARGET', targetFile, HUD.palette.mimir));
+    process.stdout.write(HUD.boxRow('DIRECTIVE', taskDescription.slice(0, 40) + '...', HUD.palette.sterling));
+    
+    await HUD.spinner('Consulting the Archives...');
     try {
         await fs.readFile(path.join(ledgerDirectory, 'ledger.json'), 'utf8');
     } catch {
@@ -40,71 +44,68 @@ export async function executeCycle(
     }
 
     if (isLoki) {
-        console.log(chalk.red.bold(`\n[HEIMDALL] LOKI MODE ENGAGED. AUTONOMOUS VELOCITY ACTIVE.\n`));
+        process.stdout.write(HUD.boxRow('MODE', 'LOKI (AUTONOMOUS)', HUD.palette.crucible));
     }
 
     // 2. Read Target Code
     try {
         await fs.readFile(targetFile, 'utf8');
     } catch (error) {
-        console.error(chalk.bgRed.white.bold(' [SYSTEM FAILURE] '));
-        console.error(chalk.red(`Critical Failure: Target file not found: ${targetFile}\n`));
+        process.stdout.write(HUD.boxRow('CRITICAL FAILURE', 'Target file not found', HUD.palette.crucible));
+        process.stdout.write(HUD.boxBottom());
         throw new Error(`Target file not found: ${targetFile}`, { cause: error });
     }
 
-    // 3. Construct Prompt -> Handled automatically by Daemon orchestration
-
     // 4. Agent Call
-    console.log(chalk.cyan(`${activePersona.prefix} 'Transmitting constraints...'`));
+    await HUD.spinner('Transmitting constraints...');
     
-    // Pass LOKI mode explicitly in the ask payload args
     const payloadArgs = [taskDescription, targetFile, isLoki ? 'LOKI_MODE' : 'STANDARD'];
     const response = await cortexLink.sendCommand('ask', payloadArgs);
     const askPayload = response as unknown as CortexAskPayload;
 
     if (!askPayload || (askPayload.status !== 'success' && askPayload.status !== 'uplink_success')) {
+        process.stdout.write(HUD.boxRow('UPLINK FAILURE', 'Cortex Daemon rejected request', HUD.palette.crucible));
+        process.stdout.write(HUD.boxBottom());
         throw new Error(`Execution aborted: Cortex Daemon reported failure during 'ask' step. Details: ${JSON.stringify(askPayload)}`);
     }
 
-    // [Ω] Normalize data extraction (handle nested 'uplink' payloads)
     const forgedCode = askPayload.status === 'uplink_success' 
         ? (askPayload.data as { data: { raw: string } }).data.raw 
         : askPayload.data as string;
 
     // 5. Save Candidate
-    console.log(chalk.cyan(`${activePersona.prefix} 'Candidate forged...'`));
+    process.stdout.write(HUD.boxRow('STATUS', 'Candidate forged', HUD.palette.accent));
     const parsedPath = path.parse(targetFile);
     const candidatePath = path.join(parsedPath.dir, `${parsedPath.name}_candidate${parsedPath.ext}`);
 
-    // [Ω] Extract code from markdown block if present
     const cleanCode = forgedCode.includes('```python')
         ? forgedCode.split('```python')[1].split('```')[0].trim()
         : forgedCode.trim();
 
-    // [🔱] PRECOGNITIVE VIGILANCE: Intercept mutation before disk-commit
     await cortexLink.interceptWrite(targetFile, cleanCode);
-
     await fs.writeFile(candidatePath, cleanCode, 'utf8');
 
     // 6. Invoke Gungnir Strike
-    console.log(chalk.cyan(`${activePersona.prefix} 'Summoning the Raven for judgment...'`));
+    await HUD.spinner('Summoning the Raven for judgment...');
     const verifyResponse = await cortexLink.sendCommand('verify', [candidatePath, ledgerDirectory]);
     const verifyPayload = verifyResponse as unknown as CortexVerifyPayload;
 
     if (!verifyPayload || verifyPayload.status !== 'success') {
+        process.stdout.write(HUD.boxRow('VERIFICATION', 'JUDGMENT FAILED', HUD.palette.crucible));
+        process.stdout.write(HUD.boxBottom());
         throw new Error(`Verification failed: Cortex Daemon rejected the candidate. Details: ${JSON.stringify(verifyPayload)}`);
     }
 
     // 7. Deploy to Mainline
+    process.stdout.write(HUD.boxRow('VERIFICATION', 'JUDGMENT PASSED', HUD.palette.sterling));
     await deployExec(targetFile, candidatePath, 'C* Auto-Refactor: ' + taskDescription);
 
-    // 8. Sterling Verification (PROJECT: ALFRED'S WATCH)
-    console.log(chalk.cyan(`${activePersona.prefix} 'Performing Sterling Audit...'`));
-    console.log(chalk.dim(`${activePersona.prefix} 'Too much mind, Master. Trust the standard.'`));
-    
+    // 8. Sterling Verification
+    await HUD.spinner('Performing Sterling Audit...');
     const auditRes = await cortexLink.sendCommand('verify_sterling_compliance', { filepaths: [targetFile] });
-    console.log(auditRes.data?.raw || JSON.stringify(auditRes));
-
+    
     // 9. Complete
-    console.log(chalk.green(`${activePersona.prefix} 'Cycle complete. The stars await...'`));
+    process.stdout.write(HUD.boxSeparator());
+    process.stdout.write(HUD.boxNote('Cycle complete. The stars await...'));
+    process.stdout.write(HUD.boxBottom());
 }

@@ -1,3 +1,8 @@
+## 2026-03-05: TALIESIN PHASE 8 (The 90% Threshold)
+- **Constraint: No Autonomous API Usage**: Never execute background generation or scoring trials via the Gemini/Bifrost API without explicit, per-execution approval from the user. This preserves quota and ensures human-in-the-loop oversight for high-token tasks.
+- **Pattern: Exemplar Grounding (EAS)**: For high-fidelity literary recreation, few-shotting with raw manuscript excerpts (exemplars) provides a superior stylistic anchor compared to abstract Gherkin behavioral instructions alone.
+- **Pattern: Negative Directives (NDS)**: Hardening voice contracts with explicit bans on modern "AI-isms" (tactical lexemes, meta-explanations) is mandatory for achieving >90% cohesion and maintaining deep narrative immersion.
+
 ## 2026-03-05: THE AUTONOMIC NARRATIVE (Behavior-Driven Generation)
 - **Voice as a Contract**: Replaced loose prompting with strict Gherkin (`.feature`) contracts for character behavior. This shifts the LLM from "acting like a character" to "satisfying a behavioral test," ensuring long-term narrative consistency.
 - **The Synaptic State Anchor**: Narrative coherence requires persistence. Implementing `fallows_hallow_state.json` provides a ground-truth document for world states, character vitals, and inventory, preventing the LLM from hallucinating dead characters back to life.

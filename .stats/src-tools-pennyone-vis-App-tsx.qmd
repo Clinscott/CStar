@@ -1,0 +1,60 @@
+---
+title: "App.tsx"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\vis\App.tsx"
+loc: 148
+complexity: 11
+logic_score: 4.67
+style_score: 1.00
+intel_score: 2.27
+overall_score: 1.89
+---
+
+## Intent
+The `App.tsx` module is the entry point for the PennyOne 3D Visual Cortex. It initializes the React Three Fiber environment, manages the global state for the neural graph and telemetry playback, and coordinates the fetching of matrix and gravity data from the backend proxy.
+
+## Interaction Protocol
+The application is rendered in the browser. It reacts to URL parameters (like `token`) for authentication and provides the primary UI container for the 3D neural map and the Playback HUD.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 4.7/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 2.3/10
+- **Gravity [G]**: 36 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [useState](file://react)
+- [useEffect](file://react)
+- [Component](file://react)
+- [ReactNode](file://react)
+- [Canvas](file://@react-three/fiber)
+- [OrbitControls](file://@react-three/drei)
+- [PerspectiveCamera](file://@react-three/drei)
+- [NeuralGraph](file://./components/NeuralGraph.tsx)
+- [PlaybackHUD](file://./components/PlaybackHUD.tsx)
+- [*](file://three)
+
+### Exports
+- `logToServer`
+- `params`
+- `token`
+- `MatrixErrorBoundary`
+- `App`
+- `App`
+- `token`
+- `matrixData`
+- `gravityData`
+- `nodeMap`
+- `isLive`
+- `currentIndex`
+- `sessionHistory`
+- `params`
+- `t`
+- `handleError`
+- `fetchData`
+- `matrixRes`
+- `mData`
+- `gData`

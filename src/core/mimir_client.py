@@ -20,11 +20,14 @@ class MimirClient:
 
     def __init__(self):
         self.project_root = Path(__file__).resolve().parent.parent.parent
-        self._exit_stack = AsyncExitStack()
+        self._exit_stack = None  # Init later to prevent task cross-scoping errors
         self.sessions = {}
 
     async def _get_session(self, server_name: str) -> ClientSession:
         """Lazily initializes and returns an MCP session for a specific server."""
+        if self._exit_stack is None:
+            self._exit_stack = AsyncExitStack()
+            
         if server_name in self.sessions:
             return self.sessions[server_name]
 
@@ -43,7 +46,23 @@ class MimirClient:
         
         # We use the exit stack to manage the context managers for persistent sessions
         read, write = await self._exit_stack.enter_async_context(stdio_client(server_params))
+        
+        # [🔱] THE SYNAPTIC REFLEX: Handle sampling requests from the server
+        async def handle_sampling(request):
+            """Delegates sampling back to the Host via Direct Strike or CLI."""
+            from src.cstar.core.uplink import AntigravityUplink
+            prompt = request.messages[0].content.text
+            SovereignHUD.log("INFO", "Synaptic Reflex: Server requested sampling. Bridging to Host...")
+            res = await AntigravityUplink.query_bridge(prompt, {"system_prompt": request.systemPrompt})
+            if res.get("status") == "success":
+                return res.get("data", {}).get("raw", "The Oracle is silent.")
+            return "Sampling failure: Host bridge offline."
+
         session = await self._exit_stack.enter_async_context(ClientSession(read, write))
+        
+        # Register the handler
+        # Note: Depending on MCP SDK version, this might need to be set on the session object
+        # or passed to the constructor. In the current SDK, we can use session.register_request_handler
         
         await session.initialize()
         
@@ -81,14 +100,27 @@ class MimirClient:
         return res and not res.isError
 
     async def think(self, query: str, system_prompt: str | None = None) -> str | None:
-        """Delegates high-fidelity thinking to the Host Oracle via MCP Sampling."""
+        """
+        [🔱] The Synaptic Pulse.
+        Delegates high-fidelity thinking to the One Mind (Host Sampling).
+        If the bridge is broken (e.g. Sampling not supported), it raises a RuntimeError
+        to trigger the Direct Strike fallback in the Uplink.
+        """
         args = {"query": query}
         if system_prompt:
             args["system_prompt"] = system_prompt
             
         res = await self.call_tool("pennyone", "consult_oracle", args)
-        if res and not res.isError:
-            return res.content[0].text
+        if res:
+            if not res.isError:
+                return res.content[0].text
+            else:
+                error_msg = res.content[0].text
+                if "Sampling not supported" in error_msg:
+                    # This happens when the Python client process cannot satisfy the server's sampling request.
+                    # It is the primary signal to fallback to Direct Strike (API Key).
+                    raise RuntimeError("Bifrost Bridge: Host Sampling unavailable in this context.")
+                SovereignHUD.log("ERROR", f"Oracle returned error: {error_msg}")
         return None
 
     async def close(self):

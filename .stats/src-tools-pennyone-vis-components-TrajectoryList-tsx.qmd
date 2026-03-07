@@ -1,0 +1,34 @@
+---
+title: "TrajectoryList.tsx"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\vis\components\TrajectoryList.tsx"
+loc: 26
+complexity: 4
+logic_score: 7.90
+style_score: 3.39
+intel_score: 2.00
+overall_score: 4.51
+---
+
+## Intent
+The `TrajectoryList.tsx` module displays a chronological log of agent movements (trajectories) within the neural graph. It provides a visual history of file mutations and system interactions, allowing architects to track the path of autonomous operations.
+
+## Interaction Protocol
+This component is rendered within the selection or playback panels. It receives an array of `Trajectory` objects and renders them as a stylized, scrollable list of historical agent activities.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.9/10
+- **Style [S]**: 3.4/10
+- **Intel [I]**: 2.0/10
+- **Gravity [G]**: 5 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://react)
+- [Trajectory](file://../types/index.ts)
+
+### Exports
+- `TrajectoryList`
+- `TrajectoryList`

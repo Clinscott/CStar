@@ -69,60 +69,88 @@ class AntigravityUplink:
         except Exception as e:
             # Only log warning if not in test env
             if os.getenv("NODE_ENV") != "test":
-                SovereignHUD.persona_log("WARN", f"Synaptic Link failure: {e}. Attempting Direct Strike fallback...")
+                SovereignHUD.log("WARN", f"Synaptic Link failure: {e}. Attempting Direct Strike fallback...")
 
         # [🔱] TIER 2: Direct Strike (CLI Fallback)
         # This is the recursive-prone method, used only if Mimir is unavailable.
         return await self._direct_strike(query, context)
 
     async def _direct_strike(self, query: str, context: dict[str, Any] | None = None) -> dict[str, Any]:
-        """Legacy fallback using recursive CLI spawning."""
-        out_fd, out_path = tempfile.mkstemp(suffix=".out")
-        in_fd, in_path = tempfile.mkstemp(suffix=".in")
-        os.close(out_fd)
-        os.close(in_fd)
-        
-        with open(in_path, "w", encoding="utf-8") as f:
-            f.write(query)
-
-        env = os.environ.copy()
-        env["TERM"] = "dumb"
-        env["PYTHONIOENCODING"] = "utf-8"
-
+        """Robust fallback using direct HTTP to Google Generative Language API."""
         try:
-            # [🔱] DYNAMIC CLI RESOLUTION
-            entry_point = os.getenv("GEMINI_CLI_PATH", "npx -y @google/gemini-cli")
+            from dotenv import load_dotenv
+            import pathlib
+            root = pathlib.Path(__file__).parent.parent.parent.parent
+            load_dotenv(root / ".env.local")
+            load_dotenv(root / ".env")
+        except ImportError:
+            pass
             
-            # Use --prompt for headless execution
-            if "npx" in entry_point:
-                cmd = f'{entry_point} --prompt "{query}" --output-format json'
-            else:
-                cmd = f'node --no-warnings "{entry_point}" --prompt "{query}" --output-format json'
+        api_key = self.api_key or os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        if not api_key:
+            return {"status": "error", "message": "Direct Strike failed: No API key found in environment."}
             
-            # Redirect to out_path for parsing
-            redirect = '2> NUL' if os.name == 'nt' else '2> /dev/null'
-            cmd = f'{cmd} > "{out_path}" {redirect}'
+        import urllib.request
+        import urllib.error
+        
+        model = context.get("model", "gemini-3-flash-preview") if context else "gemini-3-flash-preview"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+        
+        system_instruction = None
+        if context and context.get("system_prompt"):
+            system_instruction = {
+                "role": "user",
+                "parts": [{"text": context["system_prompt"]}]
+            }
             
-            proc = await asyncio.create_subprocess_shell(cmd, env=env)
-            await asyncio.wait_for(proc.wait(), timeout=180.0)
+        payload = {
+            "contents": [{"parts": [{"text": query}]}]
+        }
+        
+        if system_instruction:
+            payload["system_instruction"] = system_instruction
             
-            raw = Path(out_path).read_text(encoding="utf-8", errors="replace")
-            json_str = clean_cli_output(raw)
+        data = json.dumps(payload).encode('utf-8')
+        req = urllib.request.Request(url, data=data, method="POST")
+        req.add_header("Content-Type", "application/json")
+        
+        try:
+            # We must run blocking I/O in a thread to keep asyncio healthy
+            loop = asyncio.get_running_loop()
+            import concurrent.futures
             
-            if not json_str:
-                return {"status": "error", "message": "Oracle Silence (Empty Response)"}
+            def make_request():
+                with urllib.request.urlopen(req, timeout=120) as response:
+                    return response.read()
+                    
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                response_body = await loop.run_in_executor(pool, make_request)
+                
+            res_json = json.loads(response_body.decode('utf-8'))
             
-            data = json.loads(json_str)
-            response_text = data.get("response") or data.get("content") or str(data)
-            return {"status": "success", "data": {"raw": response_text}}
-
+            # Extract the text from the Gemini API response structure
+            try:
+                candidate = res_json['candidates'][0]
+                text = ""
+                for part in candidate.get('content', {}).get('parts', []):
+                    if 'text' in part:
+                        text += part['text']
+                return {"status": "success", "data": {"raw": text}}
+            except (KeyError, IndexError):
+                return {"status": "error", "message": "Direct Strike failed: Unrecognized API response structure."}
+                
+        except urllib.error.URLError as e:
+            err_msg = str(e)
+            if hasattr(e, 'read'):
+                try:
+                    err_msg = e.read().decode('utf-8')
+                except Exception:
+                    pass
+            SovereignHUD.log("ERROR", f"Direct Strike HTTP failure: {err_msg}")
+            return {"status": "error", "message": f"Direct Strike HTTP failure: {err_msg}"}
         except Exception as e:
+            SovereignHUD.log("ERROR", f"Direct Strike failure: {str(e)}")
             return {"status": "error", "message": f"Direct Strike failure: {str(e)}"}
-        finally:
-            for p in [out_path, in_path]:
-                if os.path.exists(p):
-                    try: os.remove(p)
-                    except: pass
 
     @staticmethod
     async def query_bridge(query: str, context: dict[str, Any] | None = None) -> dict[str, Any]:

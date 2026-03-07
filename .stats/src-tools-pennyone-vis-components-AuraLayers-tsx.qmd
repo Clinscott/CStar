@@ -1,0 +1,48 @@
+---
+title: "AuraLayers.tsx"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\vis\components\AuraLayers.tsx"
+loc: 76
+complexity: 8
+logic_score: 6.82
+style_score: 3.97
+intel_score: 4.63
+overall_score: 4.47
+---
+
+## Intent
+The `AuraLayers.tsx` module implements the visual 'Aura' system for the 3D neural graph. It uses Fresnel shaders to render high-fidelity glow effects around nodes, visually signaling 'Toxic Sectors' (red auras for high complexity) or 'Golden Sectors' (cyan auras for pure logic).
+
+## Interaction Protocol
+This component is rendered as a child of individual nodes. It dynamically updates its shader properties based on the node's Gungnir metrics, providing immediate visual feedback on the health and gravity of specific code sectors.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.8/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 4.6/10
+- **Gravity [G]**: 12 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [useRef](file://react)
+- [*](file://three)
+- [useFrame](file://@react-three/fiber)
+- [extend](file://@react-three/fiber)
+- [shaderMaterial](file://@react-three/drei)
+- [Node](file://../types/index.ts)
+
+### Exports
+- `FresnelMaterial`
+- `FresnelMaterial`
+- `SelectionHighlight`
+- `SelectionHighlight`
+- `meshRef`
+- `FresnelAura`
+- `FresnelAura`
+- `materialRef`
+- `logicVal`
+- `isToxic`
+- `gungnir`
+- `isGold`

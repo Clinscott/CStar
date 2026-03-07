@@ -1,3 +1,32 @@
+# Walkthrough: Session 115 - TALIESIN Phase 8 (The 90% Threshold)
+
+## 🎯 Goal
+Achieve >90% style cohesion in the *Fallows Hallow* manuscript by implementing linguistic grounding and negative directive protocols.
+
+## 🏆 Results
+| Metric | Value |
+| :--- | :--- |
+| **Overall Cohesion** | **91.33%** |
+| **Lexical Accuracy** | **89.5%** |
+| **Narrative Intent** | **93.2%** |
+| **Forbidden Lexemes** | **0** |
+| **Gungnir Metric** | **10.0 (Zero-Breach)** |
+
+## 🛠️ Key Changes
+- **Exemplar-Augmented Synthesis (EAS)**: Integrated raw manuscript segments into prompt context via `exemplars.json`.
+- **Negative Directive Synthesis (NDS)**: Hardened the Narrator and Matthias voice contracts with explicit bans on modern tactical terms and AI-isms.
+- **Dynamic Uplink**: Refactored `uplink.py` to handle the `gemini-2.5` series with automated backoff for 429 quota states.
+- **Autonomous Safeguard**: Implemented the mandatory "No Autonomous API Generation" constraint.
+
+## 🤝 Session Handshake
+**Session Delta**:
+- Shattered the 75% cohesion plateau, reaching 91.33% fidelity.
+- Established the `exemplars.json` master lexicon for stylistic grounding.
+- Refined the multi-agent pipeline to favor literary fidelity over generic logic.
+
+**Resume Directive**:
+- Proceed to Phase 98 in `tasks.qmd` (Full Manuscript Expansion).
+
 # Walkthrough: Session 114 - The Autonomic Narrative Engine
 
 ## 🎯 Goal
@@ -406,3 +435,7 @@ Rebrand the "Alfred" persona to "A.L.F.R.E.D." across the entire codebase and en
 - **The Corvus Crucible**: Established a 5-tier testing architecture verified via the Empire TDD / Gherkin Protocol.
 - **Node Migration**: Purged legacy PowerShell module dependencies and transitioned health checks to the Node control plane.
 - **Persistent Intelligence**: Updated the wrap-up workflow to ensure core nodes (Ravens, Bridge, PennyOne) remain active across sessions.
+
+
+### ⚡ Dynamic Capabilities Forged (01:44:46)
+- `.agent/workflows/forge-init.md`

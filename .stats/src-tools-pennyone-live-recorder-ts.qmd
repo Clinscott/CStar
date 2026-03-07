@@ -1,0 +1,37 @@
+---
+title: "recorder.ts"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\live\recorder.ts"
+loc: 16
+complexity: 3
+logic_score: 8.63
+style_score: 9.33
+intel_score: 9.50
+overall_score: 5.00
+---
+
+## Intent
+The `recorder.ts` module manages the live persistence of agent activity. It records heartbeats (pings) and detailed mission traces directly into 'Mimir's Well' (SQLite), providing a high-fidelity chronological ledger of all autonomous operations.
+
+## Interaction Protocol
+Use the `recordPing` and `recordTrace` functions to log agent events in real-time. These functions ensure that telemetry is persisted and available for the HUD and visualization layers.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.6/10
+- **Style [S]**: 9.3/10
+- **Intel [I]**: 9.5/10
+- **Gravity [G]**: 24 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [AgentPing](file://../types.ts)
+- [savePing](file://../intel/database.ts)
+- [saveTrace](file://../intel/database.ts)
+
+### Exports
+- `recordPing`
+- `recordPing`
+- `recordTrace`
+- `recordTrace`

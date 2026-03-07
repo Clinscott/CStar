@@ -1,5 +1,5 @@
 {
-    "timestamp": "Now",
+    "timestamp": "2026-03-06 07:45:36",
     "results": {
         "pip_audit": {
             "status": "success",
@@ -7,21 +7,121 @@
             "details": []
         },
         "npm_audit": {
-            "status": "success",
-            "vulnerabilities": 0,
-            "details": []
+            "status": "vulnerable",
+            "vulnerabilities": 6,
+            "details": [
+                {
+                    "package": "@hono/node-server",
+                    "severity": "high",
+                    "via": [
+                        {
+                            "source": 1113974,
+                            "name": "@hono/node-server",
+                            "dependency": "@hono/node-server",
+                            "title": "@hono/node-server has authorization bypass for protected static paths via encoded slashes in Serve Static Middleware",
+                            "url": "https://github.com/advisories/GHSA-wc8c-qw6v-h7f6",
+                            "severity": "high",
+                            "cwe": [
+                                "CWE-863"
+                            ],
+                            "cvss": {
+                                "score": 7.5,
+                                "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+                            },
+                            "range": "<1.19.10"
+                        }
+                    ]
+                },
+                {
+                    "package": "fastify",
+                    "severity": "moderate",
+                    "via": [
+                        {
+                            "source": 1114021,
+                            "name": "fastify",
+                            "dependency": "fastify",
+                            "title": "Fastify's Missing End Anchor in \"subtypeNameReg\" Allows Malformed Content-Types to Pass Validation",
+                            "url": "https://github.com/advisories/GHSA-573f-x89g-hqp9",
+                            "severity": "moderate",
+                            "cwe": [
+                                "CWE-185"
+                            ],
+                            "cvss": {
+                                "score": 5.3,
+                                "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:N"
+                            },
+                            "range": ">=5.7.2 <=5.8.0"
+                        }
+                    ]
+                },
+                {
+                    "package": "hono",
+                    "severity": "high",
+                    "via": [
+                        {
+                            "source": 1114004,
+                            "name": "hono",
+                            "dependency": "hono",
+                            "title": "Hono Vulnerable to Cookie Attribute Injection via Unsanitized domain and path in setCookie()",
+                            "url": "https://github.com/advisories/GHSA-5pq2-9x2x-5p6w",
+                            "severity": "moderate",
+                            "cwe": [
+                                "CWE-113",
+                                "CWE-1113"
+                            ],
+                            "cvss": {
+                                "score": 5.4,
+                                "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:L/I:L/A:N"
+                            },
+                            "range": "<4.12.4"
+                        },
+                        {
+                            "source": 1114005,
+                            "name": "hono",
+                            "dependency": "hono",
+                            "title": "Hono Vulnerable to SSE Control Field Injection via CR/LF in writeSSE()",
+                            "url": "https://github.com/advisories/GHSA-p6xx-57qc-3wxr",
+                            "severity": "moderate",
+                            "cwe": [
+                                "CWE-74"
+                            ],
+                            "cvss": {
+                                "score": 6.5,
+                                "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:N"
+                            },
+                            "range": "<4.12.4"
+                        },
+                        {
+                            "source": 1114006,
+                            "name": "hono",
+                            "dependency": "hono",
+                            "title": "Hono vulnerable to arbitrary file access via serveStatic vulnerability ",
+                            "url": "https://github.com/advisories/GHSA-q5qw-h33p-qvwr",
+                            "severity": "high",
+                            "cwe": [
+                                "CWE-177"
+                            ],
+                            "cvss": {
+                                "score": 7.5,
+                                "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+                            },
+                            "range": "<4.12.4"
+                        }
+                    ]
+                }
+            ]
         },
         "cleanup": {
             "status": "success",
             "files_found": 7,
             "purged": false,
             "details": [
-                "debug_env.py.bak",
-                "scripts\\verify_valkyrie_real.py.bak",
-                "src\\scratch_forge.py.bak",
-                "src\\scratch_plan_b.py.bak",
-                "src\\__init__.py.bak",
-                "src\\core\\metrics.py.bak",
+                ".lore\\voices\\article.feature.bak",
+                ".lore\\voices\\lore\\narrator.feature.bak",
+                ".lore\\voices\\lore\\characters\\john.feature.bak",
+                ".lore\\voices\\lore\\characters\\matthias.feature.bak",
+                ".lore\\voices\\lore\\characters\\nicci.feature.bak",
+                ".lore\\voices\\lore\\characters\\roan.feature.bak",
                 ".agent\\daemon.pid"
             ]
         }

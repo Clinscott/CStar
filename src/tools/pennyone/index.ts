@@ -166,13 +166,27 @@ export async function runScan(targetPath: string, force = false): Promise<FileDa
         }
     }
 
-    // Phase 2: High-Fidelity Intelligence (Batch Size 5 for balanced reliability)
+    // Phase 2: High-Fidelity Intelligence (Batch Size 3 for balanced reliability)
     const filesNeedingIntent = analyzedFiles.filter(af => af.needsIntent);
-    const BATCH_SIZE = 5;
+    const BATCH_SIZE = 3;
 
     for (let i = 0; i < filesNeedingIntent.length; i += BATCH_SIZE) {
         const batch = filesNeedingIntent.slice(i, i + BATCH_SIZE);
-        console.error(`[ALFRED] Analyzing intelligence for batch ${Math.floor(i/BATCH_SIZE) + 1} of ${Math.ceil(filesNeedingIntent.length/BATCH_SIZE)}...`);
+        const batchNum = Math.floor(i/BATCH_SIZE) + 1;
+        const totalBatches = Math.ceil(filesNeedingIntent.length/BATCH_SIZE);
+        
+        // [🔱] THE HEARTBEAT: Explicit progress logs and telemetry
+        const status = {
+            batch: batchNum,
+            total_batches: totalBatches,
+            last_update: Date.now(),
+            status: 'PROCESSING'
+        };
+        try {
+            fsSync.writeFileSync(path.join(registry.getRoot(), '.agent', 'scan_heartbeat.json'), JSON.stringify(status, null, 2));
+        } catch { /* Ignore telemetry errors */ }
+
+        console.log(chalk.cyan(` ◈ [HEARTBEAT] Processing Intelligence Batch ${batchNum}/${totalBatches}...`));
         
         try {
             const batchIntents = await defaultProvider.getBatchIntent(batch.map(b => ({ code: b.code, data: b.data })));
@@ -188,6 +202,18 @@ export async function runScan(targetPath: string, force = false): Promise<FileDa
                 // [🔱] WELL OF MIMIR: Update FTS Index
                 updateFtsIndex(fileData.path, intent, interaction);
             }
+            
+            console.log(chalk.dim(` ✔ Batch ${batchNum} finalized.`));
+            
+            // Update heartbeat to idle between batches
+            status.status = 'WAITING';
+            status.last_update = Date.now();
+            try {
+                fsSync.writeFileSync(path.join(registry.getRoot(), '.agent', 'scan_heartbeat.json'), JSON.stringify(status, null, 2));
+            } catch { }
+
+            // [Ω] ANTI-HANG: Brief delay between batches to allow the Host to breathe
+            await new Promise(resolve => setTimeout(resolve, 1000));
         } catch (e: any) {
             console.error(chalk.red(`[CRITICAL FAILURE] Intelligence scan aborted: ${e.message}`));
             // Re-throw to halt the entire scan process as per mandate

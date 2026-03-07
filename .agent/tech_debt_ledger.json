@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-03-05T14:05:17.271Z",
+  "timestamp": "2026-03-07T06:44:11.372Z",
   "top_targets": [
     {
       "file": "C:/Users/Craig/Corvus/CorvusStar/sandbox_test_pennyone/test_file.ts",
@@ -13,22 +13,7 @@
         "intel": 2,
         "stability": 0.98,
         "coupling": 0,
-        "anomaly": 0.5000084107229432
-      }
-    },
-    {
-      "file": "C:/Users/Craig/Corvus/CorvusStar/sandbox_test_pennyone/test_file.ts",
-      "priority": "MEDIUM",
-      "target_metric": "ANOMALY",
-      "justification": "System Drift: Sector shows signs of architectural divergence.",
-      "metrics": {
-        "gravity": 0,
-        "logic": 9.825,
-        "style": 10,
-        "intel": 2,
-        "stability": 0.98,
-        "coupling": 0,
-        "anomaly": 0.5000084107229432
+        "anomaly": 7.124576406741285e-218
       }
     }
   ]

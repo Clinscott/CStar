@@ -1,0 +1,42 @@
+---
+title: "warden.ts"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\intel\warden.ts"
+loc: 94
+complexity: 14
+logic_score: 3.13
+style_score: 3.52
+intel_score: 5.83
+overall_score: 3.87
+---
+
+## Intent
+The `warden.ts` module implements the 'Active Threat Assessment' system. It analyzes the compiled repository graph to identify 'Toxic Sectors'—modules with high gravity and poor logic scores—and logs them as Tech Debt Bounties in the centralized ledger.
+
+## Interaction Protocol
+Integrate by instantiating the `Warden` class and calling the `evaluate` method with a `CompiledGraph`. It automatically updates the `.agent/tech_debt_ledger.json` with prioritised remediation targets.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 3.1/10
+- **Style [S]**: 3.5/10
+- **Intel [I]**: 5.8/10
+- **Gravity [G]**: 24 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://node:fs/promises)
+- [*](file://node:path)
+- [CompiledGraph](file://../types.ts)
+- [registry](file://../pathRegistry.ts)
+
+### Exports
+- `customLedgerPath`
+- `Warden`
+- `bounties`
+- `m`
+- `gravity`
+- `priorityMap`
+- `ledger`
+- `dir`

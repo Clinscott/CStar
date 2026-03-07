@@ -9,23 +9,16 @@ from pathlib import Path
 from typing import Any
 
 # [Ω] PERMANENT UTF-8 ENFORCEMENT (Windows Console Mode)
-# This ensures box-drawing characters (│, ─, ┌, └) render correctly on Windows.
 if sys.platform == "win32":
-    # Set environment variable for any child processes
     os.environ["PYTHONIOENCODING"] = "utf-8"
-
-    # Reconfigure stdout/stderr for UTF-8
     for stream in [sys.stdout, sys.stderr]:
         if stream and hasattr(stream, "reconfigure"):
             with contextlib.suppress(OSError, AttributeError):
                 stream.reconfigure(encoding="utf-8", errors="replace")
-
-    # Enable Windows Console Virtual Terminal Processing (ANSI support)
     try:
         import ctypes
         kernel32 = ctypes.windll.kernel32
-        # Enable ANSI escape sequences on Windows 10+
-        kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)  # STD_OUTPUT_HANDLE, ENABLE_VT
+        kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
     except (AttributeError, OSError):
         pass
 
@@ -33,52 +26,37 @@ if sys.platform == "win32":
 class SovereignHUD:
     """
     Hyper-Refined User Interface (SovereignHUD) Class.
-
-    Provides ANSI-colored terminal output primitives for the Corvus Star framework.
-    Strictly follows the Linscott Standard for "Iron Clad" reliability.
+    Standard: Linscott Protocol ([L] > 4.0 Compliance).
     """
 
-    # "Glow" Palette - Standard ANSI
-    CYAN: str = "\033[36m"
-    CYAN_DIM: str = "\033[2;36m"
-    GREEN: str = "\033[32m"
-    GREEN_DIM: str = "\033[2;32m"
-    YELLOW: str = "\033[33m"
-    MAGENTA: str = "\033[35m"
-    RED: str = "\033[31m"
-    RESET: str = "\033[0m"
-    BOLD: str = "\033[1m"
-    DIM: str = "\033[2m"
+    _COLORS_DISABLED: bool = os.environ.get("NO_COLOR") == "true" or not sys.stdout.isatty()
 
-    # State
-    PERSONA: str = "ALFRED" # Default
+    CYAN: str = "\033[36m" if not _COLORS_DISABLED else ""
+    CYAN_DIM: str = "\033[2;36m" if not _COLORS_DISABLED else ""
+    GREEN: str = "\033[32m" if not _COLORS_DISABLED else ""
+    GREEN_DIM: str = "\033[2;32m" if not _COLORS_DISABLED else ""
+    YELLOW: str = "\033[33m" if not _COLORS_DISABLED else ""
+    MAGENTA: str = "\033[35m" if not _COLORS_DISABLED else ""
+    RED: str = "\033[31m" if not _COLORS_DISABLED else ""
+    RESET: str = "\033[0m" if not _COLORS_DISABLED else ""
+    BOLD: str = "\033[1m" if not _COLORS_DISABLED else ""
+    DIM: str = "\033[2m" if not _COLORS_DISABLED else ""
+
+    PERSONA: str = "ALFRED"
     _INITIALIZED: bool = False
-    DIALOGUE: Any | None = None # Instance of DialogueRetriever
+    _last_width: int = 64
 
     @staticmethod
     def _ensure_persona() -> None:
-        """[A.L.F.R.E.D.] Lazy-load the persona from config if not already set."""
         if SovereignHUD._INITIALIZED:
             return
-
-        # If PERSONA was set manually before initialization, respect it.
-        # But how do we know if it was "manual"?
-        # Default is "ALFRED". If it's something else, maybe it was manual.
-        # For simplicity, if we are initializing, we load if config exists.
-
         try:
             import json
-            from pathlib import Path
-
-            # [A.L.F.R.E.D.] Robust root resolution: check CWD first (standard for CLI), then relative to file.
             root = Path.cwd()
             config_path = root / ".agent" / "config.json"
-
             if not config_path.exists():
-                # Fallback: src/core/sovereign_hud.py -> project_root
                 root = Path(__file__).parent.parent.parent.resolve()
                 config_path = root / ".agent" / "config.json"
-
             if config_path.exists():
                 with config_path.open("r", encoding="utf-8") as f:
                     data = json.load(f)
@@ -86,448 +64,110 @@ class SovereignHUD:
                     persona = data.get("system", {}).get("persona", legacy_persona)
                     SovereignHUD.PERSONA = str(persona).upper()
         except Exception:
-            pass # Stay as ALFRED
+            pass
         finally:
             SovereignHUD._INITIALIZED = True
 
-    @staticmethod
-    def _speak(intent: str, fallback: str) -> str:
-        """
-        Retrieves dialogue from the vector DB or returns fallback.
-
-        Args:
-            intent: The semantic intent key to look up.
-            fallback: The string to return if the intent is not found.
-        """
-        if SovereignHUD.DIALOGUE:
-            return SovereignHUD.DIALOGUE.get(SovereignHUD.PERSONA, intent) or fallback
-        return fallback
-
-    # [A.L.F.R.E.D.] Theme Registry: Add new persona themes by adding an entry here.
     _THEME_REGISTRY: dict[str, dict[str, str]] = {
         "ODIN": {
             "main": "\033[31m",   # RED
             "dim": "\033[35m",    # MAGENTA
             "accent": "\033[33m", # YELLOW
-            "success": "\033[32m",
-            "warning": "\033[33m",
-            "error": "\033[31m",
-            "title": "Ω O.D.I.N. ENGINE Ω",
+            "title": "Ω O.D.I.N. GUNGNIR CONTROL Ω",
             "prefix": "[O.D.I.N.]",
-            "war_title": "THE WAR ROOM (CONFLICT RADAR)",
-            "trace_label": "TRACE (LIES)",
-            "truth_label": "TRUTH (LAW)",
             "greeting": "Speak, wanderer. The Hooded One listens.",
-            "success_msg": "It is done. The rune is carved in stone.",
-            "error_msg": "The thread snaps. Fate denies this path.",
-            "warning_msg": "Gjallarhorn sounds low. Heed this omen."
         },
         "ALFRED": {
             "main": "\033[36m",   # CYAN
             "dim": "\033[2;36m",  # CYAN_DIM
             "accent": "\033[32m", # GREEN
-            "success": "\033[32m",
-            "warning": "\033[33m",
-            "error": "\033[31m",
-            "title": "C* BUTLER INTERFACE",
+            "title": "C* A.L.F.R.E.D. DASHBOARD",
             "prefix": "[A.L.F.R.E.D.]",
-            "war_title": "THE BATCAVE (ANOMALY DETECTOR)",
-            "trace_label": "EVENT LOG",
-            "truth_label": "KNOWN TRUTH",
             "greeting": "Good day, sir. How may I be of service?",
-            "success_msg": "The task is complete, sir. Everything is in order.",
-            "error_msg": "I'm afraid we've encountered a difficulty, sir.",
-            "warning_msg": "A word of caution, sir, if I may."
         },
     }
 
     @staticmethod
     def get_theme() -> dict[str, str]:
-        """Returns the comprehensive color palette for the active Persona."""
         SovereignHUD._ensure_persona()
         p = SovereignHUD.PERSONA.upper()
-        # GOD and O.D.I.N. are aliases for the internal ODIN theme
-        if p in ("GOD", "O.D.I.N."):
-            p = "ODIN"
+        if p in ("GOD", "O.D.I.N."): p = "ODIN"
         return SovereignHUD._THEME_REGISTRY.get(p, SovereignHUD._THEME_REGISTRY["ALFRED"])
-
-    @classmethod
-    def transition_ceremony(cls, old_persona: str, new_persona: str) -> None:
-        """[A.L.F.R.E.D.] Render a dramatic visual ceremony on persona switch."""
-        theme = cls._THEME_REGISTRY.get(new_persona.upper(), cls._THEME_REGISTRY["ALFRED"])
-        main = theme["main"]
-        dim = theme["dim"]
-        accent = theme["accent"]
-        rst = cls.RESET
-        bold = cls.BOLD
-
-        width = 60
-        bar = "─" * width
-
-        # Phase 1: Fade-out old persona
-        print(f"\n{cls.DIM}{bar}{rst}")
-        print(f"{cls.DIM}  ◈  {old_persona.upper()} releasing control...{rst}")
-        sys.stdout.flush()
-        time.sleep(0.3)
-
-        # Phase 2: Transition flash
-        for char in "⟡ ⟡ ⟡ ⟡ ⟡":
-            print(f"\r  {accent}{char}{rst}", end="", flush=True)
-            time.sleep(0.08)
-        print()
-
-        # Phase 3: New persona entrance
-        title = theme.get("title", new_persona.upper())
-        greeting = theme.get("greeting", "")
-        t_len = len(title)
-        pad = max(0, (width - t_len - 4) // 2)
-
-        print(f"{main}┌{'─'*pad} {bold}{title}{rst}{main} {'─'*pad}┐{rst}")
-        print(f"{main}│{' '*(width-2)}│{rst}")
-        if greeting:
-            g_pad = max(0, width - 4 - len(greeting))
-            print(f"{main}│{rst}  {dim}{greeting}{' '*g_pad}{main}│{rst}")
-        print(f"{main}│{' '*(width-2)}│{rst}")
-        print(f"{main}└{'─'*(width-2)}┘{rst}")
-        print(f"{cls.DIM}{bar}{rst}\n")
-        sys.stdout.flush()
-
-    @staticmethod
-    def persona_log(level: str, msg: str) -> None:
-        """
-        Log with persona prefix for major announcements.
-
-        Args:
-            level: The severity level (INFO, SUCCESS, WARN, ERROR, HEIMDALL).
-            msg: The message to log.
-        """
-        theme = SovereignHUD.get_theme()
-        prefix = theme["prefix"]
-
-        # [Ω] HEIMDALL SECURITY INTEGRATION
-        if level.upper() == "HEIMDALL":
-            # Piercing Red for Heimdall breaches
-            color = theme["error"]
-            # Record as a security trace in the background (Hall of Records)
-            try:
-                from src.core.telemetry import SubspaceTelemetry
-                # Extract file path if possible from message: "BREACH in file.py: ..."
-                file_match = re.search(r"in ([\w\-/.]+\.\w+)", msg)
-                target_file = file_match.group(1) if file_match else "SYSTEM"
-                
-                # We use log_trace to ensure it appears in the TUI's trace list
-                SubspaceTelemetry.log_trace(
-                    mission_id=f"SEC-{int(time.time())}",
-                    file_path=target_file,
-                    target_metric="SECURITY",
-                    initial_score=0.0,
-                    justification=msg,
-                    status="BREACH"
-                )
-            except Exception:
-                pass # Security must not crash the messenger
-        else:
-            color = {
-                "INFO": theme["main"],
-                "SUCCESS": theme["success"],
-                "WARN": theme["warning"],
-                "ERROR": theme["error"]
-            }.get(level.upper(), theme["main"])
-
-        # [Ω] Automatic Redaction
-        from src.core.redactor import Redactor
-        safe_msg = Redactor.redact_shorthand(msg)
-
-        print(f"{color}{prefix}{SovereignHUD.RESET} {safe_msg}")
 
     @staticmethod
     def _get_width() -> int:
-        """Dynamically calculates the optimal SovereignHUD width (40-120 range)."""
         try:
-            # [A.L.F.R.E.D.] Attempt to get terminal size, fallback to 60
-            width = os.get_terminal_size().columns - 2
-            return max(40, min(120, width))
+            width = os.get_terminal_size().columns - 4
+            return max(40, min(100, width))
         except (OSError, AttributeError):
-            # [A.L.F.R.E.D.] Robust environment parsing
-            val = os.environ.get("HUD_WIDTH", "60")
-            try:
-                return max(10, int(val))
-            except (ValueError, TypeError):
-                return 60
+            return 64
 
     @staticmethod
-    def box_top(title: str = "", color: str | None = None, width: int | None = None) -> None:
-        """
-        Renders the top implementation of a box with a title.
-
-        Args:
-            title: The text to display in the center header.
-            color: Optional override for the main color.
-            width: Override width. Defaults to auto-calculated width.
-        """
-        if width is None:
-            width = SovereignHUD._get_width()
-        if not isinstance(width, int):
-            width = 60
+    def box_top(title: str = "") -> None:
+        width = SovereignHUD._get_width()
         SovereignHUD._last_width = width
-
         theme = SovereignHUD.get_theme()
         display_title = title if title else theme["title"]
-        main_color = color if color else theme['main']
-        dim_color = color if color else theme['dim']
-
-        # Calculate padding
+        main_color = theme['main']
+        
         t_len = len(display_title)
-        total_padding = max(0, width - t_len - 4) # -4 for corners and spaces
-        pad_l = total_padding // 2
-        pad_r = total_padding - pad_l
-
-        # Glow effect
-        print(f"{dim_color}┌{'─'*pad_l} {main_color}{SovereignHUD.BOLD}{display_title}{SovereignHUD.RESET}{dim_color} {'─'*pad_r}┐{SovereignHUD.RESET}")
+        pad = max(0, (width - t_len - 4) // 2)
+        r_pad = width - t_len - 4 - pad
+        
+        print(f"{main_color}+{'='*pad} {SovereignHUD.BOLD}{display_title}{SovereignHUD.RESET}{main_color} {'='*r_pad}+{SovereignHUD.RESET}")
 
     @staticmethod
-    def box_row(label: str, value: Any, color: str | None = None, dim_label: bool = False, width: int | None = None) -> None:
-        """
-        Renders a row within a box.
-
-        Args:
-            label: The key string (left side).
-            value: The value string (right side).
-            color: Optional color for the value.
-            dim_label: Whether to dim the label color.
-            width: Override width.
-        """
-        if width is None:
-            width = getattr(SovereignHUD, "_last_width", 60)
-        if not isinstance(width, int):
-            width = 60
+    def box_row(label: str, value: Any, color: str | None = None, dim_label: bool = True) -> None:
+        width = SovereignHUD._last_width
         theme = SovereignHUD.get_theme()
+        main_color = theme['main']
         val_color = color if color else theme['main']
         lbl_color = theme['dim'] if dim_label else theme['main']
 
-        # [Ω] Automatic Redaction
-        from src.core.redactor import Redactor
-        safe_val = Redactor.redact_shorthand(str(value))
-
-        # Calculate spacing
-        # Structure: "│ Label      Value │"
-        # Border(1) + Label(20) + Space(1) + Value(N) + Border(1)
-        # For now, we keep the fixed label width of 20 for alignment,
-        # but ensure the box closes at 'width'
-
-        # Safe string conversion and multi-line handling
-        try:
-            str_val = safe_val.replace("\n", " ")
-            str_lbl = str(label)
-        except Exception:
-            str_val = "[TYPE ERROR]"
-            str_lbl = "[TYPE ERROR]"
-
-        # Truncate if too long (Defensive)
-        max_val_len = width - 24 # 1(L) + 20(Lbl) + 1(Space) + 1(Space) + 1(R)
-        if len(str_val) > max_val_len:
-            str_val = str_val[:max_val_len-3] + "..."
-        inner_content = f"{lbl_color}{str_lbl:<20}{SovereignHUD.RESET} {val_color}{str_val}{SovereignHUD.RESET}"
-        # We need to calculate spaces based on RAW text length to avoid ANSI code interference
-        raw_len = 1 + 20 + 1 + len(str_val)
-        padding = max(0, width - 2 - raw_len)
-
-        print(f"{theme['dim']}│{SovereignHUD.RESET} {inner_content}{' '*padding} {theme['dim']}│{SovereignHUD.RESET}")
+        str_val = str(value).replace("\n", " ")
+        str_lbl = str(label).ljust(20)
+        
+        # Calculate padding based on raw length
+        raw_len = 2 + 20 + 2 + len(str_val)
+        padding = max(0, width - raw_len - 2)
+        
+        print(f"{main_color}|{SovereignHUD.RESET}  {lbl_color}{str_lbl}{SovereignHUD.RESET}  {val_color}{str_val}{SovereignHUD.RESET}{' '*padding} {main_color}|{SovereignHUD.RESET}")
 
     @staticmethod
-    def box_separator(color: str | None = None, width: int | None = None) -> None:
-        """Renders a middle separator line."""
-        if width is None:
-            width = getattr(SovereignHUD, "_last_width", 60)
-        if not isinstance(width, int):
-            width = 60
-        theme = SovereignHUD.get_theme()
-        dim_color = color if color else theme['dim']
-        inner_width = width - 2
-        print(f"{dim_color}├{'─'*inner_width}┤{SovereignHUD.RESET}")
+    def box_separator() -> None:
+        width = SovereignHUD._last_width
+        main_color = SovereignHUD.get_theme()['main']
+        print(f"{main_color}+{'='*(width-2)}+{SovereignHUD.RESET}")
 
     @staticmethod
-    def box_bottom(color: str | None = None, width: int | None = None) -> None:
-        """Renders the bottom closure of a box."""
-        if width is None:
-            width = getattr(SovereignHUD, "_last_width", 60)
-        if not isinstance(width, int):
-            width = 60
-        theme = SovereignHUD.get_theme()
-        dim_color = color if color else theme['dim']
-        inner_width = width - 2
-        print(f"{dim_color}└{'─'*inner_width}┘{SovereignHUD.RESET}")
+    def box_bottom() -> None:
+        width = SovereignHUD._last_width
+        main_color = SovereignHUD.get_theme()['main']
+        print(f"{main_color}+{'='*(width-2)}+{SovereignHUD.RESET}")
 
     @staticmethod
-    def progress_bar(val: float, width: int = 10) -> str:
-        """
-        Generates a progress bar string.
-
-        Args:
-            val: Float between 0.0 and 1.0.
-            width: Number of characters for the bar.
-        """
-        # [||||||....] with subtle coloring
-        safe_val = max(0.0, min(1.0, val))
-        blocks = int(safe_val * width)
-        bar = f"{SovereignHUD.GREEN}" + "█" * blocks + f"{SovereignHUD.GREEN_DIM}" + "░" * (width - blocks) + f"{SovereignHUD.RESET}"
-        return bar
-
-    @staticmethod
-    def render_sparkline(data: list[float], max_points: int = 20) -> str:
-        """
-        Generates an ASCII Sparkline.
-
-        Args:
-            data: List of float values.
-            max_points: Maximum characters to render.
-        """
-        BARS = " ▂▃▄▅▆▇█"
-        if not data: return ""
-
-        try:
-            # [A.L.F.R.E.D.] Filter non-numeric to prevent crashes
-            visible = [float(x) for x in data[-max_points:] if isinstance(x, (int, float, str))]
-            if not visible: return ""
-
-            min_val = min(visible)
-            max_val = max(visible)
-            range_val = max_val - min_val
-
-            if range_val == 0:
-                return BARS[0] * len(visible)
-
-            line = ""
-            for x in visible:
-                normalized = (x - min_val) / range_val
-                index = int(normalized * (len(BARS) - 1))
-                line += BARS[index]
-            return line
-        except (ValueError, TypeError, ZeroDivisionError):
-            return "ERR"
+    def persona_log(persona: str, msg: str, detail: str = "") -> None:
+        ts = datetime.now().strftime("%H:%M:%S")
+        theme = SovereignHUD._THEME_REGISTRY.get(persona.upper(), SovereignHUD._THEME_REGISTRY["ALFRED"])
+        color = theme["main"] if not SovereignHUD._COLORS_DISABLED else ""
+        reset = SovereignHUD.RESET if not SovereignHUD._COLORS_DISABLED else ""
+        dim = SovereignHUD.DIM if not SovereignHUD._COLORS_DISABLED else ""
+        prefix = theme["prefix"]
+        print(f"{dim}[{ts}]{reset} {color}{prefix}{reset} {msg} {dim}{detail}{reset}")
 
     @staticmethod
     def log(level: str, msg: str, detail: str = "") -> None:
-        """Standardized Logging to Terminal (Persona-Aware)."""
         ts = datetime.now().strftime("%H:%M:%S")
         theme = SovereignHUD.get_theme()
-
         color = theme["main"]
-        if level == "WARN": color = theme["warning"]
-        if level == "FAIL": color = theme["error"]
-        if level == "PASS": color = theme["success"]
-        if level == "CRITICAL": color = theme["error"] # Default to error for critical
-
+        if level == "WARN": color = SovereignHUD.YELLOW
+        if level == "FAIL": color = SovereignHUD.RED
         print(f"{SovereignHUD.DIM}[{ts}]{SovereignHUD.RESET} {color}[{level}]{SovereignHUD.RESET} {msg} {SovereignHUD.DIM}{detail}{SovereignHUD.RESET}")
 
-    @staticmethod
-    def warning(msg: str) -> None:
-        """
-        Shorthand for a yellow warning log.
-
-        Args:
-            msg: The warning message as a string.
-        """
-        SovereignHUD.log("WARN", msg)
-
-    @staticmethod
-    def divider(label: str = "") -> None:
-        """Prints a visual divider line."""
-        theme = SovereignHUD.get_theme()
-        width = 60
-        if label:
-            print(f"{theme['dim']}── {theme['accent']}{label}{theme['dim']} {'─'*(width-len(label)-4)}{SovereignHUD.RESET}")
-        else:
-            print(f"{theme['dim']}{'─'*width}{SovereignHUD.RESET}")
-
-    @staticmethod
-    def log_rejection(persona: str, reason: str, details: str) -> None:
-        """Logs a rejected attempt to the rejection ledger using Pathlib."""
-        ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        entry = f"| {ts} | {persona} | {reason} | {details} |\n"
-        # We target a specific ledger path: .agent/traces/quarantine/REJECTIONS.qmd
-        ledger_path = Path.cwd() / ".agent" / "traces" / "quarantine" / "REJECTIONS.qmd"
-        try:
-            ledger_path.parent.mkdir(parents=True, exist_ok=True)
-            if not ledger_path.exists():
-                ledger_path.write_text("# 🧪 The Crucible: Rejection Ledger\n\n| Timestamp | Persona | Reason | Details |\n| :--- | :--- | :--- | :--- |\n", encoding='utf-8')
-            with ledger_path.open("a", encoding="utf-8") as f:
-                f.write(entry)
-        except (OSError, PermissionError):
-            pass
-
-    # ──────────────────────────────────────────────────────────────────────
-    # [Ω] ASYNC RENDERING LAYER — Suite 6: Sovereign SovereignHUD
-    # Provides an async message queue for multi-daemon broadcasts and a
-    # typewriter stream with cancellation-safe cursor restoration.
-    # ──────────────────────────────────────────────────────────────────────
-
-    # Class-level async primitives (lazily initialized)
-    _render_queue: asyncio.Queue | None = None
-    _render_lock: asyncio.Lock | None = None
-
-    # ANSI cursor control sequences
-    CURSOR_HIDE: str = "\033[?25l"
-    CURSOR_SHOW: str = "\033[?25h"
-
     @classmethod
-    def get_render_queue(cls) -> asyncio.Queue:
-        """Lazily initialize and return the singleton render queue."""
-        if cls._render_queue is None:
-            cls._render_queue = asyncio.Queue()
-        return cls._render_queue
-
-    @classmethod
-    def get_render_lock(cls) -> asyncio.Lock:
-        """Lazily initialize and return the singleton render lock."""
-        if cls._render_lock is None:
-            cls._render_lock = asyncio.Lock()
-        return cls._render_lock
-
-    @classmethod
-    async def broadcast(cls, source: str, message: str) -> None:
-        """Enqueue a message from any daemon source for sequential rendering."""
-        queue = cls.get_render_queue()
-        await queue.put({"source": source, "message": message, "ts": time.time()})
-
-    @classmethod
-    async def render_loop(cls, output_stream: Any = None) -> None:
-        """Drain the render queue sequentially under lock. Safe for concurrent producers."""
-        queue = cls.get_render_queue()
-        lock = cls.get_render_lock()
-        out = output_stream or sys.stdout
-
-        while True:
-            item = await queue.get()
-            if item is None:  # Poison pill — graceful shutdown
-                queue.task_done()
-                break
-            async with lock:
-                line = f"[{item['source']}] {item['message']}"
-                out.write(line + "\n")
-                out.flush()
-            queue.task_done()
-
-    @classmethod
-    async def stream_text(cls, text: str, delay: float = 0.02, output_stream: Any = None) -> None:
-        """Typewriter-style streaming with cancellation-safe cursor restoration."""
-        out = output_stream or sys.stdout
-        interrupted = True
-        out.write(cls.CURSOR_HIDE)
-        out.flush()
-        try:
-            for char in text:
-                out.write(char)
-                out.flush()
-                await asyncio.sleep(delay)
-            interrupted = False
-            out.write("\n")
-            out.flush()
-        finally:
-            # [O.D.I.N.] ALWAYS restore cursor. If interrupted mid-stream,
-            # inject a newline first so the terminal prompt lands on a clean line.
-            if interrupted:
-                out.write("\n")
-            out.write(cls.CURSOR_SHOW)
-            out.flush()
-
+    async def stream_text(cls, text: str, delay: float = 0.015) -> None:
+        for char in text:
+            sys.stdout.write(char)
+            sys.stdout.flush()
+            await asyncio.sleep(delay)
+        sys.stdout.write("\n")

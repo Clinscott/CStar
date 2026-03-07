@@ -1,0 +1,36 @@
+---
+title: "types.ts"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\types.ts"
+loc: 60
+complexity: 1
+logic_score: 8.40
+style_score: 4.16
+intel_score: 2.00
+overall_score: 5.27
+---
+
+## Intent
+The `types.ts` module defines the core data structures and interfaces for the PennyOne engine. It establishes the mathematical schema for the Gungnir Matrix, the `FileData` container for sector metrics, and the telemetry structures used for real-time agent tracking.
+
+## Interaction Protocol
+Import the classes and interfaces (e.g., `GungnirMatrix`, `FileData`) to ensure type safety and schema consistency across the analysis and visualization layers of the framework.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.4/10
+- **Style [S]**: 4.2/10
+- **Intel [I]**: 2.0/10
+- **Gravity [G]**: 8 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+Minimal internal dependencies.
+
+### Exports
+- `GungnirMatrix`
+- `FileData`
+- `AgentPing`
+- `ScanResult`
+- `CompiledGraph`

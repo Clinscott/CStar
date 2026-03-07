@@ -1,0 +1,33 @@
+---
+title: "vite.config.ts"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\vis\vite.config.ts"
+loc: 20
+complexity: 1
+logic_score: 9.60
+style_score: 9.64
+intel_score: 6.00
+overall_score: 8.43
+---
+
+## Intent
+The `vite.config.ts` module configures the build and development environment for the PennyOne visualization application. It manages the React plugin integration, defines the project root within the tools directory, and sets up proxy rules to bridge the frontend with the Fastify backend.
+
+## Interaction Protocol
+This configuration is used by the Vite CLI during development (`npm run dev`) and production builds (`npm run build`). It ensures that static assets are correctly bundled into the `dist/pennyone-vis` directory.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.6/10
+- **Style [S]**: 9.6/10
+- **Intel [I]**: 6.0/10
+- **Gravity [G]**: 9 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [defineConfig](file://vite)
+- [*](file://@vitejs/plugin-react)
+
+### Exports
+- `defineConfig`

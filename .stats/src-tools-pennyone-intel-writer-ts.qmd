@@ -1,0 +1,48 @@
+---
+title: "writer.ts"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\intel\writer.ts"
+loc: 57
+complexity: 5
+logic_score: 3.85
+style_score: 3.86
+intel_score: 4.11
+overall_score: 4.60
+---
+
+## Intent
+The `writer.ts` module is responsible for persisting individual sector reports during the analysis phase. It transforms raw `FileData` into human-readable and machine-indexable Lore files, ensuring that intelligence is physically mirrored in the repository.
+
+## Interaction Protocol
+Call the `writeReport` function during the scanning loop. It handles the creation of documentation artifacts and ensures that intents and protocols are correctly synchronized with the filesystem.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 3.8/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 4.1/10
+- **Gravity [G]**: 20 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [FileData](file://../types.ts)
+- [defaultProvider](file://./llm.ts)
+- [*](file://fs/promises)
+- [*](file://path)
+- [registry](file://../pathRegistry.ts)
+
+### Exports
+- `writeReport`
+- `writeReport`
+- `statsDir`
+- `intent`
+- `interaction`
+- `result`
+- `absoluteRoot`
+- `absoluteFile`
+- `relativePath`
+- `flattenedName`
+- `qmdPath`
+- `m`
+- `content`

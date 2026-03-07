@@ -59,6 +59,52 @@ export class SemanticIndexer {
         };
     }
 
+    public async focusSymbol(filepath: string, symbol_name: string): Promise<string | null> {
+        const absPath = path.resolve(filepath);
+        let code = '';
+        try {
+            code = await fs.readFile(absPath, 'utf-8');
+        } catch { return null; }
+
+        const { parser, lang, languageName } = await getParser(absPath);
+        const tree = parser.parse(code);
+
+        // Define patterns that capture the ENTIRE definition node, not just the name
+        const patterns = languageName === 'python'
+            ? [
+                '(function_definition name: (identifier) @name) @symbol',
+                '(class_definition name: (identifier) @name) @symbol'
+              ]
+            : [
+                '(variable_declarator name: (identifier) @name) @symbol',
+                '(function_declaration name: (identifier) @name) @symbol',
+                '(class_declaration name: (identifier) @name) @symbol',
+                '(interface_declaration name: (type_identifier) @name) @symbol',
+                '(lexical_declaration (variable_declarator name: (identifier) @name) @symbol)',
+                '(export_statement declaration: (function_declaration name: (identifier) @name) @symbol)',
+                '(export_statement declaration: (class_declaration name: (identifier) @name) @symbol)'
+              ];
+
+        if (!tree) return null;
+        for (const p of patterns) {
+            try {
+                const query = new TreeSitter.Query(lang, p);
+                const matches = query.matches(tree.rootNode);
+                for (const m of matches) {
+                    const nameCapture = m.captures.find(c => c.name === 'name');
+                    const symbolCapture = m.captures.find(c => c.name === 'symbol');
+                    
+                    if (nameCapture && nameCapture.node.text === symbol_name && symbolCapture) {
+                        return symbolCapture.node.text;
+                    }
+                }
+            } catch (e) { 
+                // console.error(`Query error for pattern ${p}:`, e);
+            }
+        }
+        return null;
+    }
+
     private async extractDefinitions(filepath: string): Promise<SemanticSymbol[]> {
         const absPath = path.resolve(filepath);
         let code = '';

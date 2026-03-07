@@ -1,0 +1,42 @@
+---
+title: "socket.ts"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\live\socket.ts"
+loc: 40
+complexity: 4
+logic_score: 6.65
+style_score: 3.77
+intel_score: 6.00
+overall_score: 5.17
+---
+
+## Intent
+The `socket.ts` module provides the real-time communication layer for the PennyOne engine. It establishes a WebSocket server that broadcasts matrix updates and agent telemetry, enabling live synchronization between the backend analysis and the 3D visual cortex.
+
+## Interaction Protocol
+Initialize the socket server by calling the `startSocketServer` function. It manages client connections and handles the `MATRIX_UPDATED` signal to ensure all observers have the latest repository state.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.7/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 6.0/10
+- **Gravity [G]**: 12 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [WebSocketServer](file://ws)
+- [WebSocket](file://ws)
+- [Server](file://http)
+- [*](file://chalk)
+
+### Exports
+- `Set`
+- `SubspaceRelay`
+- `i`
+- `ping`
+- `nextPing`
+- `delay`
+- `actualDelay`
+- `message`

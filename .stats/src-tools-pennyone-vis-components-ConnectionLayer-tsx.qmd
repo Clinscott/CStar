@@ -1,0 +1,51 @@
+---
+title: "ConnectionLayer.tsx"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\vis\components\ConnectionLayer.tsx"
+loc: 93
+complexity: 6
+logic_score: 6.13
+style_score: 4.04
+intel_score: 3.72
+overall_score: 4.12
+---
+
+## Intent
+The `ConnectionLayer.tsx` module manages the visual links between nodes in the neural graph. It renders the repository's dependency structure as dynamic lines, highlighting active logic trails and providing a physical representation of module coupling.
+
+## Interaction Protocol
+This layer receives an array of link data and renders them using React Three Fiber. It automatically updates line positions as the D3 force simulation moves the nodes, maintaining the integrity of the visual network.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.1/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 3.7/10
+- **Gravity [G]**: 17 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [useMemo](file://react)
+- [useRef](file://react)
+- [*](file://three)
+- [useFrame](file://@react-three/fiber)
+- [Line](file://@react-three/drei)
+- [Node](file://../types/index.ts)
+- [Link](file://../types/index.ts)
+
+### Exports
+- `NeuralLink`
+- `lineRef`
+- `ConnectionLayer`
+- `ConnectionLayer`
+- `validLinks`
+- `useMemo`
+- `bgPoints`
+- `hl`
+- `sNode`
+- `tNode`
+- `isHighlighted`
+- `geo`
+- `sNode`
+- `tNode`

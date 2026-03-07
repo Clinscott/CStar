@@ -1,0 +1,46 @@
+---
+title: "SectorMetrics.tsx"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\vis\components\SectorMetrics.tsx"
+loc: 44
+complexity: 8
+logic_score: 6.55
+style_score: 3.59
+intel_score: 5.64
+overall_score: 4.83
+---
+
+## Intent
+The `SectorMetrics.tsx` module implements the visual representation of Gungnir Matrix scores for a specific file. It renders a structured list of performance indicators—including Logic, Style, Intelligence, and Anomaly scores—providing a granular breakdown of a sector's technical health.
+
+## Interaction Protocol
+This component is rendered within the selection panels. It receives a `Node` object and extracts the matrix metrics to display them as formatted, color-coded values according to the Linscott Standard.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.5/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 5.6/10
+- **Gravity [G]**: 11 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://react)
+- [Node](file://../types/index.ts)
+
+### Exports
+- `SectorMetrics`
+- `SectorMetrics`
+- `matrix`
+- `overall`
+- `logic`
+- `style`
+- `intel`
+- `aesthetic`
+- `stability`
+- `coupling`
+- `sovereignty`
+- `anomaly`
+- `gravity`
+- `Metric`

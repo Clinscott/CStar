@@ -1,0 +1,68 @@
+---
+title: "llm.ts"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\intel\llm.ts"
+loc: 131
+complexity: 18
+logic_score: 0.72
+style_score: 3.65
+intel_score: 5.66
+overall_score: 3.09
+---
+
+## Intent
+The `git_monitor.ts` module implements the 'Git Chronograph', which tracks near-real-time file activity within the git index. It provides temporal metadata such as the last modified timestamp and recent edit counts, which are used to modulate gravitational pull in the neural graph.
+
+## Interaction Protocol
+Integrate by instantiating `GitChronograph` and calling methods like `getFileActivity`. It abstracts raw git commands into clean, asynchronous data structures for the PennyOne engine.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 0.7/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 5.7/10
+- **Gravity [G]**: 57 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [FileData](file://../analyzer.ts)
+- [CortexLink](file://../../../node/cortex_link.ts)
+- [*](file://chalk)
+- [*](file://node:path)
+- [*](file://node:fs)
+
+### Exports
+- `code`
+- `server`
+- `SamplingProvider`
+- `batchQuery`
+- `isDoc`
+- `previewLen`
+- `prompt`
+- `timeout`
+- `sampling`
+- `response`
+- `raw`
+- `batchQuery`
+- `isDoc`
+- `previewLen`
+- `query`
+- `inboxPath`
+- `outboxPath`
+- `payload`
+- `i`
+- `res`
+- `cortex`
+- `res`
+- `raw`
+- `start`
+- `end`
+- `jsonStr`
+- `parsed`
+- `intent`
+- `interaction`
+- `genericPhrases`
+- `isGeneric`
+- `defaultProvider`
+- `defaultProvider`

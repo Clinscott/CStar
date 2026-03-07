@@ -1,6 +1,6 @@
 {
   "version": "1.7.0",
-  "scanned_at": "2026-03-05T14:05:17.269Z",
+  "scanned_at": "2026-03-07T06:44:11.369Z",
   "files": [
     {
       "path": "C:/Users/Craig/Corvus/CorvusStar/sandbox_test_pennyone/test_file.ts",
@@ -10,14 +10,14 @@
         "logic": 9.825,
         "style": 10,
         "intel": 2,
-        "overall": 6.466654050582251,
+        "overall": 7.216666666666666,
         "gravity": 0,
         "stability": 0.98,
         "coupling": 0,
         "aesthetic": 7.216666666666666,
         "vigil": 0,
-        "anomaly": 0.5000084107229432,
-        "sovereignty": 0.6466654050582251
+        "anomaly": 7.124576406741285e-218,
+        "sovereignty": 0.7216666666666666
       },
       "intent": "Mocked intent",
       "interaction_protocol": "Mocked protocol",
@@ -28,6 +28,6 @@
   "summary": {
     "total_files": 1,
     "total_loc": 1,
-    "average_score": 6.466654050582251
+    "average_score": 7.216666666666666
   }
 }

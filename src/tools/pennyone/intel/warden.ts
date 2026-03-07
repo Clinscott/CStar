@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { CompiledGraph } from './compiler.ts';
+import { CompiledGraph } from '../types.ts';
 import { registry } from '../pathRegistry.ts';
 
 export interface TechDebtBounty {

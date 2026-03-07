@@ -8,36 +8,7 @@ import { calculateStyleScore } from './calculus/style.ts';
 import { calculateIntelScore } from './calculus/intel.ts';
 import { getFileGravity } from './intel/gravity_db.ts';
 import { registry } from './pathRegistry.ts';
-
-export interface GungnirMatrix {
-    logic: number;
-    style: number;
-    intel: number;
-    overall: number;
-    gravity: number;
-    stability: number; // 0.0 to 1.0 (1.0 = highly stable)
-    coupling: number;  // 0.0 to 1.0 (1.0 = highly coupled)
-    aesthetic: number; // Raw score before penalties
-    anomaly: number;   // System drift score
-    sovereignty: number; // Mathematical proof of compliance
-}
-
-export interface FileData {
-    path: string;
-    loc: number;
-    complexity: number;
-    matrix: GungnirMatrix;
-    imports: { source: string; local: string; imported: string }[];
-    exports: string[];
-    intent?: string;
-    interaction_protocol?: string;
-    hash: string;
-    endpoints?: string[];
-    is_api?: boolean;
-    cachedDependencies?: string[];
-    dependencies?: string[];
-    justification?: string;
-}
+import { GungnirMatrix, FileData } from './types.ts';
 
 /**
  * Analyzes code and returns FileData

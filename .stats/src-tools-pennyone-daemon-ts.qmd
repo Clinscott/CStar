@@ -1,0 +1,51 @@
+---
+title: "daemon.ts"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\daemon.ts"
+loc: 102
+complexity: 18
+logic_score: 2.48
+style_score: 3.92
+intel_score: 9.84
+overall_score: 4.57
+---
+
+## Intent
+The `daemon.ts` module implements the 'Autonomic Nervous System' of the PennyOne engine. It manages background file watching (via Chokidar) and triggers incremental scans to ensure the Gungnir Matrix and Mimir's Well are always synchronized with the latest physical file changes.
+
+## Interaction Protocol
+Start the daemon by instantiating the `P1Daemon` class and calling its `start` method. It will then automatically handle file events and maintain the system's structural integrity.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 2.5/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 9.8/10
+- **Gravity [G]**: 31 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://chokidar)
+- [*](file://node:path)
+- [*](file://node:fs)
+- [runScan](file://./index.ts)
+- [indexSector](file://./index.ts)
+- [registry](file://./pathRegistry.ts)
+- [*](file://chalk)
+- [activePersona](file://./personaRegistry.ts)
+- [CortexLink](file://../../node/cortex_link.ts)
+
+### Exports
+- `chokidar`
+- `P1Daemon`
+- `relPath`
+- `allowedExts`
+- `ext`
+- `changes`
+- `result`
+- `link`
+- `link`
+- `pid`
+- `target`
+- `daemon`

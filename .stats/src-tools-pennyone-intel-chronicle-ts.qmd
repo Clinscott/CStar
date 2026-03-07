@@ -1,0 +1,47 @@
+---
+title: "chronicle.ts"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\intel\chronicle.ts"
+loc: 40
+complexity: 5
+logic_score: 6.95
+style_score: 4.64
+intel_score: 8.00
+overall_score: 6.51
+---
+
+## Intent
+The `mcp-server.ts` module exposes the PennyOne engine's capabilities to the Model Context Protocol (MCP). It allows external agents (the One Mind) to perform repository scans, search for intents, and focus on specific code symbols via a standardized tool interface.
+
+## Interaction Protocol
+The server is initialized by calling its `main` function. Once online, it responds to standardized MCP tool requests such as `scan_repository`, `get_file_intent`, and `mimir_focus` via the Bifrost Gate.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.0/10
+- **Style [S]**: 4.6/10
+- **Intel [I]**: 8.0/10
+- **Gravity [G]**: 9 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://node:fs/promises)
+- [*](file://node:path)
+- [updateChronicleIndex](file://./database.ts)
+- [registry](file://../pathRegistry.ts)
+- [*](file://chalk)
+
+### Exports
+- `root`
+- `ChronicleIndexer`
+- `root`
+- `stats`
+- `content`
+- `relPath`
+- `sections`
+- `lines`
+- `header`
+- `body`
+- `dateMatch`
+- `timestamp`

@@ -217,68 +217,80 @@ class TestGeneratePost:
 
 
 class TestIngestStyle:
-    """Tests for TaliesinSpoke.ingest_style."""
+    """Tests for TaliesinSpoke.ingest_style (Gherkin contract update)."""
 
     @pytest.mark.asyncio
-    async def test_ingest_style_success_with_valid_json(self, taliesin_root: Path):
-        """Uplink returns valid JSON → style_template.json is written."""
+    async def test_ingest_updates_voice_contracts(self, taliesin_root: Path):
+        """Uplink returns a Gherkin block → individual .feature files are written."""
         spoke, mock_uplink, _, _ = create_spoke(taliesin_root)
-        style_json = json.dumps({"cadence": "staccato", "tone": "grim"})
+        raw_response = "Feature: Refined Voice\n  Scenario: Draft\n"
         mock_uplink.send_payload.return_value = {
             "status": "success",
-            "data": {"raw": style_json},
+            "data": {"raw": raw_response},
         }
 
         result = await spoke.ingest_style()
 
         assert result is True
-        assert spoke.style_file.exists()
-        saved = json.loads(spoke.style_file.read_text(encoding="utf-8"))
-        assert saved["cadence"] == "staccato"
+        voices_dir = spoke.lore_dir / "voices"
+        article = voices_dir / "article.feature"
+        narrator = voices_dir / "lore" / "narrator.feature"
+        assert article.exists()
+        assert narrator.exists()
+        
+        # Both files get the mocked return value
+        assert "Feature: Refined Voice" in article.read_text(encoding="utf-8")
+        assert "Feature: Refined Voice" in narrator.read_text(encoding="utf-8")
+        assert mock_uplink.send_payload.call_count >= 2
 
     @pytest.mark.asyncio
-    async def test_ingest_style_extracts_json_from_markdown(self, taliesin_root: Path):
-        """Uplink wraps JSON in markdown code fence → extraction succeeds."""
+    async def test_ingest_strips_markdown_fences(self, taliesin_root: Path):
+        """Markdown code fences around Gherkin blocks are stripped."""
         spoke, mock_uplink, _, _ = create_spoke(taliesin_root)
-        raw = '```json\n{"tone": "epic"}\n```'
+        raw_response = "```gherkin\nFeature: Clean Article\n```\n"
         mock_uplink.send_payload.return_value = {
             "status": "success",
-            "data": {"raw": raw},
+            "data": {"raw": raw_response},
         }
 
         result = await spoke.ingest_style()
 
         assert result is True
-        saved = json.loads(spoke.style_file.read_text(encoding="utf-8"))
-        assert saved["tone"] == "epic"
+        content = (spoke.lore_dir / "voices" / "article.feature").read_text(encoding="utf-8")
+        assert not content.startswith("```")
+        assert "Feature: Clean Article" in content
 
     @pytest.mark.asyncio
-    async def test_ingest_style_fallback_on_non_json(self, taliesin_root: Path):
-        """Uplink returns plain text → saved as {"description": ...} fallback."""
+    async def test_ingest_backs_up_existing_contracts(self, taliesin_root: Path):
+        """Existing contracts get a .bak backup before being overwritten."""
         spoke, mock_uplink, _, _ = create_spoke(taliesin_root)
+        original_article = (spoke.lore_dir / "voices" / "article.feature")
+        original_content = original_article.read_text(encoding="utf-8")
+
         mock_uplink.send_payload.return_value = {
             "status": "success",
-            "data": {"raw": "Staccato prose with dark undertones"},
+            "data": {"raw": "Feature: Updated Article\n"},
         }
 
         result = await spoke.ingest_style()
 
         assert result is True
-        saved = json.loads(spoke.style_file.read_text(encoding="utf-8"))
-        assert "description" in saved
+        backup = spoke.lore_dir / "voices" / "article.feature.bak"
+        assert backup.exists()
+        assert backup.read_text(encoding="utf-8") == original_content
 
     @pytest.mark.asyncio
-    async def test_ingest_style_empty_corpus_returns_false(self, tmp_path: Path):
+    async def test_ingest_empty_corpus_returns_false(self, tmp_path: Path):
         """Empty .lore/ directory returns False."""
         (tmp_path / ".lore").mkdir()
-        spoke, _, _, mock_hud = create_spoke(tmp_path)
+        spoke, _, _, _ = create_spoke(tmp_path)
 
         result = await spoke.ingest_style()
 
         assert result is False
 
     @pytest.mark.asyncio
-    async def test_ingest_style_uplink_failure_returns_false(self, taliesin_root: Path):
+    async def test_ingest_uplink_failure_returns_false(self, taliesin_root: Path):
         """Uplink failure returns False."""
         spoke, mock_uplink, _, _ = create_spoke(taliesin_root)
         mock_uplink.send_payload.return_value = {

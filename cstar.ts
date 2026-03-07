@@ -13,6 +13,9 @@ import { registerPythonSpokes } from './src/node/core/commands/python.ts';
 import { registerPennyOneCommand } from './src/node/core/commands/pennyone.ts';
 import { registerRavenCommand } from './src/node/core/commands/ravens.ts';
 import { registerDispatcher } from './src/node/core/commands/dispatcher.ts';
+import { registerVitalsCommand } from './src/node/core/commands/vitals.ts';
+
+import { registerMcpCommand } from './src/node/core/commands/mcp.ts';
 
 /**
  * 🔱 GUNGNIR CONTROL PLANE (v2.0)
@@ -29,8 +32,9 @@ const program = new Command();
 
 (async () => {
     const isHelpOrVersion = process.argv.includes('--help') || process.argv.includes('-h') || process.argv.includes('--version') || process.argv.includes('-V');
+    const isStart = process.argv.includes('start');
 
-    if (!isHelpOrVersion) {
+    if (!isHelpOrVersion && isStart) {
         await runStartupCeremony();
     }
 
@@ -50,28 +54,8 @@ const program = new Command();
     registerPennyOneCommand(program, PROJECT_ROOT);
     registerRavenCommand(program, PROJECT_ROOT);
     registerDispatcher(program, PROJECT_ROOT);
-
-    program
-        .command('mcp')
-        .description('Explain the Model Context Protocol (MCP) / Bifrost Bridge integration')
-        .action(() => {
-            console.log(chalk.cyan('\n ◤ THE BIFROST BRIDGE: MCP DOCUMENTATION ◢ '));
-            console.log(chalk.white(' Corvus Star is exposed via two primary MCP servers:'));
-            
-            console.log(chalk.magenta('\n 1. pennyone (The Brain)'));
-            console.log(chalk.yellow('  ◈ search_by_intent: ') + chalk.dim('High-fidelity FTS5 search of Mimir\'s Well.'));
-            console.log(chalk.yellow('  ◈ get_file_intent:  ') + chalk.dim('Retrieve intent and protocol for a file.'));
-            console.log(chalk.yellow('  ◈ index_sector:     ') + chalk.dim('Trigger an incremental scan.'));
-            console.log(chalk.yellow('  ◈ get_technical_debt: ') + chalk.dim('Retrieve the technical debt ledger.'));
-
-            console.log(chalk.magenta('\n 2. corvus-control (The Bridge)'));
-            console.log(chalk.yellow('  ◈ execute_cstar_command: ') + chalk.dim('Run core cstar commands (start, odin).'));
-            console.log(chalk.yellow('  ◈ run_workflow:          ') + chalk.dim('Trigger complex workflows (fish, lets-go).'));
-            console.log(chalk.yellow('  ◈ get_system_vitals:     ') + chalk.dim('Check system health and mission traces.'));
-            console.log(chalk.yellow('  ◈ verify_sterling_compliance: ') + chalk.dim('Audit files for testing gaps.'));
-
-            console.log(chalk.cyan('\n [MANDATE]: Agents MUST prioritize these tools over manual CLI execution.\n'));
-        });
+    registerVitalsCommand(program);
+    registerMcpCommand(program);
 
     try {
         program.parse(process.argv);

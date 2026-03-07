@@ -3,6 +3,7 @@ import chalk from 'chalk';
 import fs from 'node:fs';
 import { join } from 'node:path';
 import { execa } from 'execa';
+import { HUD } from '../hud.ts';
 
 /**
  * [GUNGNIR] Raven Command Spoke
@@ -100,22 +101,24 @@ export function registerRavenCommand(program: Command, PROJECT_ROOT: string) {
  */
 async function displayStatus(PROJECT_ROOT: string) {
     try {
-        console.log(chalk.bgCyan.black.bold(' ◤ MUNINN MONITOR ◢ '));
-        console.log(chalk.cyan(' ' + '━'.repeat(40)));
+        const palette = HUD.palette;
+        process.stdout.write(HUD.boxTop('◤ MUNINN MONITOR ◢'));
 
         const muninnPidPath = join(PROJECT_ROOT, '.agent', 'muninn.pid');
-        let muninnStatus = chalk.red.bold('OFFLINE');
+        let muninnStatus = 'OFFLINE';
+        let sColor = palette.crucible;
 
         if (fs.existsSync(muninnPidPath)) {
             try {
                 const pid = parseInt(fs.readFileSync(muninnPidPath, 'utf-8').trim());
                 process.kill(pid, 0);
-                muninnStatus = chalk.green.bold('ACTIVE');
+                muninnStatus = 'ACTIVE';
+                sColor = palette.sterling;
             } catch (e) {
-                muninnStatus = chalk.red.bold('OFFLINE (STALE)');
+                muninnStatus = 'OFFLINE (STALE)';
             }
         }
-        console.log(`${chalk.bold(' Raven Status:')}     ${muninnStatus}`);
+        process.stdout.write(HUD.boxRow('RAVEN STATUS', muninnStatus, sColor.bold));
 
         const envPath = join(PROJECT_ROOT, '.env.local');
         let envContent = '';
@@ -123,15 +126,15 @@ async function displayStatus(PROJECT_ROOT: string) {
             envContent = fs.readFileSync(envPath, 'utf-8');
         }
 
-        const isSet = (key: string) => (process.env[key] || new RegExp('^\s*' + key + '\s*=', 'm').test(envContent)) ? chalk.green('SECURED') : chalk.red('FALLBACK');
+        const isSet = (key: string) => (process.env[key] || new RegExp('^\\s*' + key + '\\s*=', 'm').test(envContent)) ? palette.sterling('SECURED') : palette.crucible('FALLBACK');
 
-        console.log(chalk.cyan(' ◤ QUOTA ISOLATION ◢ '));
-        console.log(` MUNINN_KEY:     ${isSet('MUNINN_API_KEY')}`);
-        console.log(` DAEMON_KEY:     ${isSet('GOOGLE_API_DAEMON_KEY')}`);
-        console.log(` BRAVE_KEY:      ${isSet('BRAVE_API_KEY')}`);
-        console.log(` SHARED_KEY:     ${isSet('GOOGLE_API_KEY')}`);
+        process.stdout.write(HUD.boxSeparator());
+        process.stdout.write(HUD.boxRow('MUNINN_KEY', isSet('MUNINN_API_KEY')));
+        process.stdout.write(HUD.boxRow('DAEMON_KEY', isSet('GOOGLE_API_DAEMON_KEY')));
+        process.stdout.write(HUD.boxRow('BRAVE_KEY', isSet('BRAVE_API_KEY')));
+        process.stdout.write(HUD.boxRow('SHARED_KEY', isSet('GOOGLE_API_KEY')));
 
-        console.log(chalk.cyan(' ◤ ACTIVE RAVENS ◢ '));
+        process.stdout.write(HUD.boxSeparator());
         const wardenDir = join(PROJECT_ROOT, 'src', 'sentinel', 'wardens');
         let active_wardens: string[] = [];
         if (fs.existsSync(wardenDir)) {
@@ -141,23 +144,18 @@ async function displayStatus(PROJECT_ROOT: string) {
         }
 
         if (active_wardens.length > 0) {
-            const displayWardens = active_wardens.map(w => w.charAt(0).toUpperCase() + w.slice(1));
-            for (let i = 0; i < displayWardens.length; i += 2) {
-                const w1 = displayWardens[i];
-                const w2 = displayWardens[i + 1] || '';
-                console.log(` ◈ ${chalk.bold(w1.padEnd(15))}   ${w2 ? '◈ ' + chalk.bold(w2) : ''}`);
-            }
+            process.stdout.write(HUD.boxRow('ACTIVE WARDENS', active_wardens.length));
+            active_wardens.forEach(w => {
+                const name = w.charAt(0).toUpperCase() + w.slice(1);
+                process.stdout.write(HUD.boxRow('  ◈', name, chalk.bold));
+            });
         } else {
-            console.log(chalk.yellow(' No wardens detected in src/sentinel/wardens.'));
+            process.stdout.write(HUD.boxRow('WARDENS', 'NONE DETECTED', chalk.yellow));
         }
 
-        console.log(chalk.cyan('━'.repeat(40)));
-        if (muninnStatus.includes('ACTIVE')) {
-            console.log(chalk.green(' Muninn reports nominal operation.'));
-        } else {
-            console.log(chalk.yellow(' Muninn is idle. Invoke \'cstar ravens start\' to release the ravens.'));
-        }
-        console.log();
+        process.stdout.write(HUD.boxSeparator());
+        process.stdout.write(HUD.boxNote());
+        process.stdout.write(HUD.boxBottom());
 
     } catch (err: any) {
         process.exit(1);

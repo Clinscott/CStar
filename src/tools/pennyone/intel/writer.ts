@@ -1,4 +1,4 @@
-import { FileData } from '../analyzer.ts';
+import { FileData } from '../types.ts';
 import { defaultProvider } from './llm.ts';
 import fs from 'fs/promises';
 import path from 'path';

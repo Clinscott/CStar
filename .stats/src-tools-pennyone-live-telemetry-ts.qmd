@@ -1,0 +1,44 @@
+---
+title: "telemetry.ts"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\live\telemetry.ts"
+loc: 27
+complexity: 3
+logic_score: 7.82
+style_score: 3.87
+intel_score: 10.00
+overall_score: 6.81
+---
+
+## Intent
+The `telemetry.ts` module implements the HTTP endpoints for agent telemetry. It handles incoming pings and mission traces, normalizes file paths for cross-platform consistency, and coordinates with the recorder and socket relay to ensure live data is persisted and broadcast.
+
+## Interaction Protocol
+Integrate by registering the `handleTelemetryPing` and `handleTelemetryTrace` handlers with an Express application. These functions process incoming telemetry payloads and update the Gungnir Matrix state.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.8/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 10.0/10
+- **Gravity [G]**: 14 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [Request](file://express)
+- [Response](file://express)
+- [SubspaceRelay](file://./socket.ts)
+- [recordPing](file://./recorder.ts)
+- [recordTrace](file://./recorder.ts)
+- [AgentPing](file://../types.ts)
+
+### Exports
+- `normalizePath`
+- `normalizePath`
+- `handleTelemetryPing`
+- `handleTelemetryPing`
+- `ping`
+- `handleTelemetryTrace`
+- `handleTelemetryTrace`
+- `trace`

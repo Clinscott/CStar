@@ -22,10 +22,11 @@ program
     .description('Run a one-time structural scan of the repository')
     .argument('[path]', 'path to scan', '.')
     .option('-f, --force', 'force re-analysis of all files', false)
+    .option('-m, --mock', 'use mock intent generation (fast/offline)', false)
     .action(async (targetPath, options) => {
         console.log(chalk.cyan('\n[ALFRED]: "Initializing Operation PennyOne... Scanning the neural pathways, sir."\n'));
         try {
-            const results = await runScan(targetPath, options.force);
+            const results = await runScan(targetPath, options.force, options.mock);
             console.log(chalk.cyan(`[ALFRED]: "Scan complete. Total Files: ${results.length}."`));
         } catch (err) {
             console.error(chalk.red('[ALFRED]: "One-time scan failed."'), err);

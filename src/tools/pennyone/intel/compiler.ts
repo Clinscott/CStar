@@ -1,37 +1,7 @@
-import { FileData } from '../analyzer.ts';
+import { FileData, GungnirMatrix, CompiledGraph } from '../types.ts';
 import fs from 'fs/promises';
 import path from 'path';
 import { registry } from '../pathRegistry.ts';
-
-export interface GungnirMatrix {
-    logic: number;
-    style: number;
-    intel: number;
-    overall: number;
-    gravity: number;
-}
-
-export interface CompiledGraph {
-    version: string;
-    scanned_at: string;
-    files: Array<{
-        path: string;
-        loc: number;
-        complexity: number;
-        matrix: GungnirMatrix;
-        intent: string;
-        interaction_protocol?: string;
-        dependencies: string[];
-        hash: string;
-        endpoints?: string[];
-        is_api?: boolean;
-    }>;
-    summary: {
-        total_files: number;
-        total_loc: number;
-        average_score: number;
-    };
-}
 
 /**
  * Matrix Compiler

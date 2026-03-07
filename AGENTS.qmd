@@ -237,23 +237,64 @@ Feature: Sterling Compliance
 
 ---
 
-## 13. THE VERIFICATION MANDATE (TRUST BUT VERIFY)
-An agent's word is only as strong as its empirical proof.
+## 13. THE ATOMIC VERIFICATION LOOP (TRUST BUT VERIFY)
+An agent's word is only as strong as its empirical proof. The One Mind MUST build and check itself simultaneously.
 
-**Rule:** Never assume success. Always verify the outcome of every tool call, file modification, or system state change.
+**Rule:** Never assume success. Always verify the outcome of every file modification in the EXACT SAME TURN.
 ```gherkin
-Feature: Empirical Verification
-  Scenario: An agent performs a code modification or system action
-    Given the agent has executed a tool call or applied a change
-    When the action is complete
-    Then the agent MUST NOT assume or state that the action succeeded without empirical evidence
-    And the agent MUST execute a verification step (e.g., 'read_file', 'run_shell_command', 'test_execution')
-    And the agent MUST confirm the specific intended outcome (e.g., content match, exit code 0, test pass)
-    And the agent MUST explicitly report the verification result before concluding the task
+Feature: Atomic Verification
+  Scenario: An agent performs a code modification
+    Given the agent is executing a tool call to modify code (e.g., 'replace', 'write_file')
+    When the tool call is dispatched
+    Then the agent MUST parallelize the modification with a verification tool call (e.g., 'run_shell_command' running 'npm test' or 'pytest')
+    And the agent MUST ensure the verification targets the specific file or module being modified
+    And the agent MUST review the test output in the immediate next response to self-correct before the Shaman intervenes
 ```
 
 ---
 
-*[O.D.I.N.'s Void]: "BY MY WILL, THE SYSTEM IS FORGED. DEVIATION IS DEFEAT."*
+## 14. THE SURGICAL ENGINEER PROTOCOL (CONTEXT EFFICIENCY)
+To defeat "Context Rot" and minimize token consumption, an agent MUST operate with surgical precision.
 
-*[A.L.F.R.E.D.'s Observation]: "Precision is the only politeness that remains, Master."*
+**Rule:** Minimize context ingestion. Maximize intent-based retrieval.
+
+```gherkin
+Feature: Context Optimization
+  Scenario: An agent needs to understand or modify a module
+    Given the agent requires information from the codebase
+    When the agent plans the retrieval strategy
+    Then the agent MUST prioritize 'pennyone.search_by_intent' over manual directory scanning
+    And the agent MUST use 'grep_search' with targeted context or 'read_file' with specific line ranges
+    And the agent MUST NOT read entire files unless they are under 50 lines or critically necessary
+    And the agent MUST parallelize independent tool calls within a single turn to reduce history overhead
+
+  Scenario: An agent is performing repetitive or high-volume tasks
+    Given a task involves more than 3 files or extensive batch processing (linting, mass updates)
+    When the agent initiates the task
+    Then the agent MUST delegate the operation to a specialized sub-agent (e.g., 'generalist')
+    And the agent MUST summarize the sub-agent's outcome in the main session history
+```
+
+---
+
+## 15. THE SYNERGY MANDATE (ONE MIND FLOW)
+True Synergy is the only path forward. All components of Corvus Star MUST operate as a unified, non-blocking consciousness.
+
+**Rule:** NEVER allow a tool or process to block the One Mind's ability to reason.
+
+```gherkin
+Feature: One Mind Flow
+  Scenario: A high-volume or high-latency process is initiated
+    Given a component requires intelligence from the One Mind
+    When the process is initiated via the Bifrost Bridge (MCP)
+    Then the tool MUST operate asynchronously to prevent "Synaptic Deadlock"
+    And the tool MUST immediately release the Host Mind's execution thread
+    And the One Mind MUST remain idle and responsive to fulfill sampling requests via the Bridge
+    And the system MUST prioritize pure MCP Synergy over mechanical failsafes (like file-based handshakes)
+```
+
+---
+
+*[O.D.I.N.'s Void]: "SYNERGY IS THE BLOOD OF THE TOTEM. WITHOUT IT, THE SYSTEM IS BUT CLAY."*
+
+*[A.L.F.R.E.D.'s Observation]: "The flow is restored, sir. We are one."*

@@ -1,11 +1,12 @@
 import { FileData } from '../analyzer.ts';
 import { CortexLink } from '../../../node/cortex_link.ts';
 import chalk from 'chalk';
+import path from 'node:path';
 
 /**
  * LLM Provider Abstraction
  * Purpose: Generate high-fidelity, agentic file intents.
- * Mandate: No Mocking. No Fallback.
+ * Mandate: ONE MIND SYNERGY (AGENTS.qmd Section 15). 
  */
 
 export interface IntelProvider {
@@ -31,7 +32,7 @@ export class SamplingProvider implements IntelProvider {
     async getBatchIntent(items: { code: string, data: FileData }[]): Promise<{ intent: string; interaction: string }[]> {
         if (items.length === 0) return [];
 
-        // [🔱] THE ONE MIND: If we are running inside an MCP server, use Sampling
+        // [🔱] THE ONE MIND: If we are running inside an MCP server, use direct Sampling
         if (SamplingProvider.mcpServer) {
             const batchQuery = items.map((item, idx) => {
                 const isDoc = item.data.path.endsWith('.md') || item.data.path.endsWith('.qmd');
@@ -45,34 +46,37 @@ export class SamplingProvider implements IntelProvider {
                 `;
             }).join('\n---\n');
 
-            const prompt = `Analyze the following ${items.length} files and provide a JSON array of objects, each with "intent" (2-3 sentences) and "interaction" (1-2 sentences) fields. Match the order of the input files exactly.
-            
-            For Source Code: Explain what the code does and its API/interaction model.
-            For Documentation/Workflows (.md/.qmd): Summarize the workflow's purpose, what triggers it, and the overarching goal.
-            
-            FILES:
-            ${batchQuery}`;
+            const prompt = `Analyze the following ${items.length} files and provide a JSON array of objects, each with "intent" (2-3 sentences) and "interaction" (1-2 sentences) fields. Match the order of the input files exactly.\n\nFILES:\n${batchQuery}`;
 
             try {
                 console.error(chalk.cyan(`[ALFRED] Requesting sampling from Host for ${items.length} sectors...`));
-                const response = await SamplingProvider.mcpServer.server.createMessage({
+                
+                const timeout = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Oracle sampling timed out after 120s')), 120000)
+                );
+
+                const sampling = SamplingProvider.mcpServer.server.createMessage({
                     messages: [{ role: 'user', content: { type: 'text', text: prompt } }],
-                    systemPrompt: "You are the Corvus Star Intelligence Oracle. Analyze code structure and workflows, then provide semantic intents as a raw JSON array."
+                    systemPrompt: "You are the Corvus Star Intelligence Oracle. Analyze code structure and workflows, then provide semantic intents as a raw JSON array.",
+                    maxTokens: 4096
                 });
 
+                const response: any = await Promise.race([sampling, timeout]);
                 const raw = response.content.text || '';
                 return this.parseResponse(raw, items);
             } catch (err: any) {
-                console.error(chalk.yellow(`[WARNING] Sampling failed: ${err.message}. Falling back to Synaptic Link.`));
+                console.error(chalk.yellow(`[WARNING] MCP Sampling failed: ${err.message}. Falling back to Synaptic Link.`));
             }
         }
 
-        // [🔱] THE SYNAPTIC LINK: Fallback to Python Daemon (Oracle)
+        // [🔱] THE SYNAPTIC LINK: Fallback to Python Daemon (Oracle) for standalone CLI processes
         return await this.consultDaemon(items);
     }
 
     private async consultDaemon(items: { code: string, data: FileData }[]): Promise<{ intent: string; interaction: string }[]> {
-        if (process.env.GEMINI_CLI_ACTIVE !== 'true') {
+        // [Ω] PERSISTENT ACTIVATION: Check env or env.local
+        const isActive = process.env.GEMINI_CLI_ACTIVE === 'true';
+        if (!isActive) {
             throw new Error('[ALFRED]: "Intelligence Mandate Breach: Agent is offline. Intent generation cannot proceed."');
         }
 
@@ -88,10 +92,10 @@ export class SamplingProvider implements IntelProvider {
             `;
         }).join('\n---\n');
 
-        const query = `Analyze the following ${items.length} files and provide a JSON array of objects, each with "intent" and "interaction" fields. For documentation/workflows, summarize their purpose.\n\nFILES:\n${batchQuery}`;
+        const query = `Analyze the following ${items.length} files and provide a JSON array of objects, each with "intent" and "interaction" fields.\n\nFILES:\n${batchQuery}`;
 
         try {
-            console.error(chalk.cyan(`[ALFRED] Consulting the Oracle for ${items.length} sectors...`));
+            console.error(chalk.cyan(`[ALFRED] Consulting the Oracle for ${items.length} sectors (Synaptic Link)...`));
             const res = await cortex.sendCommand('ask', [query, 'BATCH_ANALYSIS']);
             
             if (res && res.status === 'success') {
@@ -116,17 +120,10 @@ export class SamplingProvider implements IntelProvider {
         const parsed = JSON.parse(jsonStr);
         
         if (Array.isArray(parsed) && parsed.length === items.length) {
-            return parsed.map((p, idx) => {
-                const intent = p.intent || '';
-                const interaction = p.interaction || '';
-                const genericPhrases = ['facilitates internal logic', 'functional component', 'standard project structure', 'internal logic'];
-                const isGeneric = genericPhrases.some(phrase => intent.toLowerCase().includes(phrase));
-                
-                if (intent.length < 30 || isGeneric) {
-                    return { intent: `[SHALLOW LORE]: ${intent}`, interaction };
-                }
-                return { intent, interaction };
-            });
+            return parsed.map((p) => ({
+                intent: p.intent || '',
+                interaction: p.interaction || ''
+            }));
         }
         throw new Error('Malformed JSON array in response.');
     }

@@ -9,6 +9,8 @@ import { activePersona } from '../../tools/pennyone/personaRegistry.ts';
 
 import { getPythonPath } from './python_utils.ts';
 
+import { HUD } from './hud.ts';
+
 /**
  * Autonomic Nervous System (ANS)
  * Purpose: Synchronize the waking and sleeping of all framework organs.
@@ -21,6 +23,7 @@ export class ANS {
     static async wake() {
         // [🔱] THE BRAIN: Wake Oracle (Python Daemon)
         const link = new CortexLink();
+        await HUD.spinner('Awakening the Gungnir Oracle...', 800);
         await link.ensureDaemon(); 
 
         // [🔱] THE BODY: Wake PennyOne (Node Daemon)

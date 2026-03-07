@@ -1,0 +1,44 @@
+---
+title: "personaRegistry.ts"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\personaRegistry.ts"
+loc: 56
+complexity: 6
+logic_score: 7.45
+style_score: 4.04
+intel_score: 4.86
+overall_score: 4.65
+---
+
+## Intent
+The `personaRegistry.ts` module manages the operational identities of the system. It defines the prefixes, visual themes (colors), and semantic roles for active mind states like ALFRED, ODIN, and HEIMDALL, ensuring system-wide symmetry in logging and TUI output.
+
+## Interaction Protocol
+Reference the `activePersona` object to retrieve the current mind state's configuration. Use it to ensure that all console output and mission traces are correctly attributed and visually consistent with the project's identity.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.4/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 4.9/10
+- **Gravity [G]**: 14 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://fs)
+- [*](file://path)
+- [registry](file://./pathRegistry.ts)
+
+### Exports
+- `PersonaRegistry`
+- `PersonaRegistry`
+- `root`
+- `configPath`
+- `configData`
+- `data`
+- `personaStr`
+- `message`
+- `upper`
+- `activePersona`
+- `activePersona`
