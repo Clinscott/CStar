@@ -2,16 +2,12 @@ import argparse
 import json
 import os
 import sys
+import subprocess
 from pathlib import Path
-from google import genai
-from google.genai import types
 
 # Add project root to sys.path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
-
-# [🔱] THE ONE MIND: Direct SDK Initialization via ADC
-client = genai.Client()
 
 def main():
     parser = argparse.ArgumentParser(description="Taliesin Forge: Weave code from lore.")
@@ -24,51 +20,43 @@ def main():
         print(f"[ALFRED]: CRITICAL - Lore missing at {lore_path}")
         sys.exit(1)
 
-    lore_content = lore_path.read_text(encoding='utf-8')
-    
-    prompt = f"""
-    ACT AS: The Taliesin Forge Architect.
-    MANDATE: Translate the following Lore Fragment into a production-ready Code Artifact.
-    
-    OBJECTIVE: {args.objective if args.objective else 'Materialize the architecture defined in the lore.'}
-    
-    LORE FRAGMENT:
-    ```
-    {lore_content}
-    ```
-    
-    CONSTRAINTS:
-    1. Output MUST be a valid JSON object.
-    2. Fields: "target_path" (relative to root) and "code" (full file content).
-    3. Follow the Linscott Standard: Strict typing, comprehensive docstrings.
-    4. Language: Match the project's stack (Python or TypeScript).
-    """
+    # Trigger One Mind Skill via Dispatcher
+    cstar_dispatcher = PROJECT_ROOT / "src" / "core" / "cstar_dispatcher.py"
+    venv_python = PROJECT_ROOT / ".venv" / "Scripts" / "python.exe"
+    if not venv_python.exists(): venv_python = Path(sys.executable)
 
-    print(f"[Ω] Forge: Requesting materialization (Direct Strike)...", file=sys.stderr)
+    print(f"[Ω] Forge: Requesting materialization from the One Mind...", file=sys.stderr)
     
     try:
-        response = client.models.generate_content(
-            model='gemini-2.0-flash',
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                system_instruction="You are the Taliesin Forge. Your output is raw JSON with 'target_path' and 'code' fields. No markdown wrappers."
-            )
-        )
+        # Use 'one-mind' skill for the direct strike
+        cmd = [
+            str(venv_python), str(cstar_dispatcher), "one-mind",
+            "--generate-code",
+            "--objective", args.objective if args.objective else "Materialize the lore.",
+            "--context", str(lore_path),
+            "--json"
+        ]
+        
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        raw = result.stdout
 
-        raw = response.text
-        # Handle possible markdown noise
+        # Handle possible markdown noise from the skill output
         clean_json = raw.strip()
-        if clean_json.startswith("```json"):
+        if "```json" in clean_json:
             clean_json = clean_json.split("```json")[1].split("```")[0].strip()
-        elif clean_json.startswith("```"):
+        elif "```" in clean_json:
             clean_json = clean_json.split("```")[1].split("```")[0].strip()
         
+        # Ensure we find the JSON object if there's surrounding text
+        if "{" in clean_json and "}" in clean_json:
+            clean_json = clean_json[clean_json.find("{"):clean_json.lastIndexOf("}")+1]
+
         data = json.loads(clean_json)
 
         if not data.get("target_path") or not data.get("code"):
-            raise ValueError("One Mind provided incomplete artifact data (missing target_path or code).")
+            raise ValueError("One Mind provided incomplete artifact data.")
 
-        staged_dir = PROJECT_ROOT / ".agents/forge_staged"
+        staged_dir = PROJECT_ROOT / ".agents" / "forge_staged"
         staged_dir.mkdir(parents=True, exist_ok=True)
         
         artifact_name = Path(data["target_path"]).name
