@@ -32,16 +32,25 @@ def log_to_sqlite(skill: str, observation: str):
     conn.commit()
     conn.close()
 
-def evolve_contract(skill: str, observation: str):
-    """Use the One Mind to update the skill's Gherkin contract."""
-    skill_dir = PROJECT_ROOT / ".agents" / "skills" / skill
-    contract_path = skill_dir / f"{skill}.feature"
-    
-    if not contract_path.exists():
-        # Baseline contract if it doesn't exist
-        current_contract = f"Feature: {skill.capitalize()} Skill Behavior\n\n  Scenario: Baseline execution\n    Given the skill is triggered\n    Then it should perform its mandate\n"
+def evolve_contract(skill: str, observation: str, is_root: bool = False):
+    """Use the One Mind to update the skill's Gherkin contract or the root AGENTS contract."""
+    if is_root:
+        contract_path = PROJECT_ROOT / ".agents" / "AGENTS.feature"
+        skill_name_display = "Global System (AGENTS.feature)"
+        if not contract_path.exists():
+            current_contract = "Feature: Global System Behaviors\n\n  Scenario: Baseline execution\n    Given the system is active\n    Then it maintains the Pact\n"
+        else:
+            current_contract = contract_path.read_text(encoding='utf-8')
     else:
-        current_contract = contract_path.read_text(encoding='utf-8')
+        skill_dir = PROJECT_ROOT / ".agents" / "skills" / skill
+        contract_path = skill_dir / f"{skill}.feature"
+        skill_name_display = f"'{skill}' skill"
+        
+        if not contract_path.exists():
+            # Baseline contract if it doesn't exist
+            current_contract = f"Feature: {skill.capitalize()} Skill Behavior\n\n  Scenario: Baseline execution\n    Given the skill is triggered\n    Then it should perform its mandate\n"
+        else:
+            current_contract = contract_path.read_text(encoding='utf-8')
 
     cstar_dispatcher = PROJECT_ROOT / "src" / "core" / "cstar_dispatcher.py"
     venv_python = PROJECT_ROOT / ".venv" / "Scripts" / "python.exe"
@@ -49,7 +58,7 @@ def evolve_contract(skill: str, observation: str):
 
     prompt = f"""
     You are the Corvus Star Memory Scribe. 
-    A new observation has been witnessed for the '{skill}' skill: "{observation}"
+    A new observation has been witnessed for the {skill_name_display}: "{observation}"
     
     Update the following Gherkin BDD contract to include a new Scenario that codifies this learning. 
     Ensure the Gherkin syntax is perfectly valid.
@@ -69,7 +78,7 @@ def evolve_contract(skill: str, observation: str):
     ]
     
     try:
-        print(f"[🔱] Scribe: Weaving new neural pathways into {skill}.feature...", file=sys.stderr)
+        print(f"[🔱] Scribe: Weaving new neural pathways into {contract_path.name}...", file=sys.stderr)
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         raw_output = result.stdout.strip()
         
@@ -82,7 +91,7 @@ def evolve_contract(skill: str, observation: str):
             raw_output = raw_output[:-3].strip()
 
         contract_path.write_text(raw_output, encoding='utf-8')
-        print(f"[SUCCESS] The {skill} contract has evolved.")
+        print(f"[SUCCESS] The {contract_path.name} contract has evolved.")
     except Exception as e:
          print(f"[ERROR] Failed to evolve contract: {e}", file=sys.stderr)
 
@@ -90,14 +99,15 @@ def evolve_contract(skill: str, observation: str):
 def main():
     parser = argparse.ArgumentParser(description="Memory: Recursive Learning & Contract Evolution.")
     parser.add_argument("--log-feedback", action="store_true", help="Log an observation")
-    parser.add_argument("--skill", required=True, help="Target skill name")
+    parser.add_argument("--skill", default="system", help="Target skill name")
     parser.add_argument("--observation", required=True, help="What was witnessed or misinterpreted")
+    parser.add_argument("--root", action="store_true", help="Update the global AGENTS.feature contract instead of a specific skill")
     
     args = parser.parse_args()
 
     if args.log_feedback:
         log_to_sqlite(args.skill, args.observation)
-        evolve_contract(args.skill, args.observation)
+        evolve_contract(args.skill, args.observation, is_root=args.root)
     else:
         parser.print_help()
 

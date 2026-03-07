@@ -87,12 +87,15 @@ def main():
     
     for skill_name, skill_args in plan:
         run_skill("ritual", ["--pulse", f"Executing {skill_name.upper()}"])
-        # We wrap execution to catch anomalies and learn
+        # We wrap execution to catch anomalies and learn, updating on BOTH success and failure
         output = run_skill(skill_name, skill_args, capture=True)
         if "ERROR" in output or "FAIL" in output:
             print(f"\n[ALFRED]: \"Anomaly detected during {skill_name}. Initiating neuroplastic memory update.\"")
             run_skill("memory", ["--log-feedback", "--skill", skill_name, "--observation", f"Execution failed during chant '{args.query}' with args {skill_args}. Error trace: {output[:100]}"])
             return
+        else:
+            # Positive reinforcement learning
+            run_skill("memory", ["--log-feedback", "--skill", skill_name, "--observation", f"Successfully executed during chant '{args.query}' with args {skill_args}. Outcome: {output[:100]}"])
 
     # 6. FINAL REPORT
     run_skill("report", ["--title", "CHANT MISSION COMPLETE", "--body", f"The Ravens have fulfilled the chant: {args.query}", "--status", "PASS"])
