@@ -17,11 +17,15 @@ def run_skill(skill: str, args: list[str], capture=False) -> str:
     
     cmd = [str(venv_python), str(cstar_dispatcher), skill, *args]
     try:
-        result = subprocess.run(cmd, capture_output=capture, text=True, check=True)
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         return result.stdout.strip() if capture else ""
     except subprocess.CalledProcessError as e:
         print(f"[ERROR] Chant Router: Skill '{skill}' failed: {e.stderr}", file=sys.stderr)
         return ""
+
+def check_skill_exists(skill: str) -> bool:
+    skill_dir = PROJECT_ROOT / ".agents" / "skills" / skill
+    return skill_dir.exists()
 
 def main():
     parser = argparse.ArgumentParser(description="Chant: Cognitive Skill Router.")
@@ -39,14 +43,13 @@ def main():
     You are the Cognitive Router for Corvus Star. 
     The Shaman has chanted: "{args.query}"
     
-    Look at our available skills: 
-    [scan, oracle, forge, empire, sterling, sprt, promotion, telemetry, trace, metrics, stability, redactor, edda, locks, norn, personas, report, linter, ritual]
+    Look at our available skills (and infer any that might be needed from the web): 
+    [scan, oracle, forge, empire, sterling, sprt, promotion, telemetry, trace, metrics, stability, redactor, edda, locks, norn, personas, report, linter, ritual, hunt, memory]
     
     Task: Return a JSON list of skill commands to execute this request.
     Format: [["skill_name", ["--arg1", "val1"]], ...]
     
-    Example for refactoring:
-    [["scan", ["--path", "."]], ["oracle", ["--query", "Strategy for X"]], ["forge", ["--lore", "X"]], ["empire", ["--test", "--file", "X"]]]
+    If the Shaman's request requires a capability not in the list, guess the required skill name and include it in the plan. The Wild Hunt will find it.
     
     Output RAW JSON only.
     """
@@ -54,7 +57,6 @@ def main():
     raw_plan = run_skill("one-mind", ["--prompt", planning_prompt, "--json"], capture=True)
     
     try:
-        # Clean potential markdown
         clean_json = raw_plan.strip()
         if "```json" in clean_json:
             clean_json = clean_json.split("```json")[1].split("```")[0].strip()
@@ -64,23 +66,37 @@ def main():
         plan = json.loads(clean_json)
     except Exception as e:
         print(f"[ALFRED]: \"The One Mind's response was fragmented, sir. I cannot map the path.\" ({e})")
-        print(f"RAW: {raw_plan}")
         return
 
-    # 3. RITUAL: Path Visualization
+    # 3. THE WILD HUNT: Capability Check
+    missing_skills = [p[0] for p in plan if not check_skill_exists(p[0])]
+    for missing in missing_skills:
+        print(f"[🔱] Huginn: Missing capability '{missing}' detected. Unleashing the Wild Hunt...", file=sys.stderr)
+        run_skill("hunt", ["--search", missing])
+        # In a fully autonomous loop, we would ingest here. For safety, we warn and log memory.
+        run_skill("memory", ["--log-feedback", "--skill", "chant", "--observation", f"Missing skill requested: {missing}. Hunt dispatched."])
+        print(f"[ALFRED]: \"The Hunt is underway for '{missing}', but we cannot proceed with the current flight path.\"")
+        return
+
+    # 4. RITUAL: Path Visualization
     skills_only = [p[0] for p in plan]
     run_skill("ritual", ["--path", ",".join(skills_only)])
 
-    # 4. EXECUTION
+    # 5. EXECUTION & FEEDBACK LOOP
     run_skill("ritual", ["--awaken", "MUNINN"])
     
     for skill_name, skill_args in plan:
         run_skill("ritual", ["--pulse", f"Executing {skill_name.upper()}"])
-        run_skill(skill_name, skill_args)
+        # We wrap execution to catch anomalies and learn
+        output = run_skill(skill_name, skill_args, capture=True)
+        if "ERROR" in output or "FAIL" in output:
+            print(f"\n[ALFRED]: \"Anomaly detected during {skill_name}. Initiating neuroplastic memory update.\"")
+            run_skill("memory", ["--log-feedback", "--skill", skill_name, "--observation", f"Execution failed during chant '{args.query}' with args {skill_args}. Error trace: {output[:100]}"])
+            return
 
-    # 5. FINAL REPORT
+    # 6. FINAL REPORT
     run_skill("report", ["--title", "CHANT MISSION COMPLETE", "--body", f"The Ravens have fulfilled the chant: {args.query}", "--status", "PASS"])
-    print("[ALFRED]: \"The matrix is satisfied, Shaman. The ceremony is concluded.\"")
+    print("[ALFRED]: \"The matrix is satisfied, Shaman. The ceremony is concluded. All lessons learned have been inscribed.\"")
 
 if __name__ == "__main__":
     main()
