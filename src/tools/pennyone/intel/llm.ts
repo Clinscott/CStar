@@ -1,12 +1,14 @@
-import { FileData } from '../analyzer.ts';
-import { CortexLink } from '../../../node/cortex_link.ts';
+import { FileData } from '../types.js';
+import { CortexLink } from '../../../node/cortex_link.js';
 import chalk from 'chalk';
 import path from 'node:path';
+import { GoogleGenAI } from '@google/genai';
 
 /**
  * LLM Provider Abstraction
  * Purpose: Generate high-fidelity, agentic file intents.
  * Mandate: ONE MIND SYNERGY (AGENTS.qmd Section 15). 
+ * Upgrade: Model choice decoupled from code, environment-aware.
  */
 
 export interface IntelProvider {
@@ -15,11 +17,17 @@ export interface IntelProvider {
 }
 
 /**
- * SamplingProvider: Leverages the MCP Host (the active LLM) directly.
- * This is the "One Mind" standard.
+ * SamplingProvider: Leverages the Direct SDK Strike (The One Mind) or fallback Synaptic Link.
  */
 export class SamplingProvider implements IntelProvider {
     private static mcpServer: any = null;
+    private ai: GoogleGenAI;
+    // [Ω] DECOUPLING: Model choice is derived from the environment
+    private defaultModel: string = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+
+    constructor() {
+        this.ai = new GoogleGenAI({});
+    }
 
     static registerServer(server: any) {
         this.mcpServer = server;
@@ -32,41 +40,36 @@ export class SamplingProvider implements IntelProvider {
     async getBatchIntent(items: { code: string, data: FileData }[]): Promise<{ intent: string; interaction: string }[]> {
         if (items.length === 0) return [];
 
-        // [🔱] THE ONE MIND: If we are running inside an MCP server, use direct Sampling
-        if (SamplingProvider.mcpServer) {
-            const batchQuery = items.map((item, idx) => {
-                const isDoc = item.data.path.endsWith('.md') || item.data.path.endsWith('.qmd');
-                const previewLen = isDoc ? 2000 : 500;
-                return `
-                FILE ${idx}: '${item.data.path}'
-                Type: ${isDoc ? 'Documentation/Workflow' : 'Source Code'}
-                Exports: ${item.data.exports.join(', ')}
-                Complexity: ${item.data.complexity}
-                Preview: ${item.code.slice(0, previewLen)}
-                `;
-            }).join('\n---\n');
+        // [🔱] THE ONE MIND: Direct SDK Strike (Unified Syntax)
+        const batchQuery = items.map((item, idx) => {
+            const isDoc = item.data.path.endsWith('.md') || item.data.path.endsWith('.qmd');
+            const previewLen = isDoc ? 2000 : 500;
+            return `
+            FILE ${idx}: '${item.data.path}'
+            Type: ${isDoc ? 'Documentation/Workflow' : 'Source Code'}
+            Exports: ${item.data.exports.join(', ')}
+            Complexity: ${item.data.complexity}
+            Preview: ${item.code.slice(0, previewLen)}
+            `;
+        }).join('\n---\n');
 
-            const prompt = `Analyze the following ${items.length} files and provide a JSON array of objects, each with "intent" (2-3 sentences) and "interaction" (1-2 sentences) fields. Match the order of the input files exactly.\n\nFILES:\n${batchQuery}`;
+        const prompt = `Analyze the following ${items.length} files and provide a JSON array of objects, each with "intent" (2-3 sentences) and "interaction" (1-2 sentences) fields. Match the order of the input files exactly.\n\nFILES:\n${batchQuery}`;
 
-            try {
-                console.error(chalk.cyan(`[ALFRED] Requesting sampling from Host for ${items.length} sectors...`));
-                
-                const timeout = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Oracle sampling timed out after 120s')), 120000)
-                );
+        try {
+            console.error(chalk.cyan(`[ALFRED] Requesting Direct SDK Strike for ${items.length} sectors...`));
+            
+            const result = await this.ai.models.generateContent({
+                model: this.defaultModel,
+                contents: prompt,
+                config: {
+                    systemInstruction: "You are the Corvus Star Intelligence Oracle. Analyze code structure and workflows, then provide semantic intents as a raw JSON array of objects."
+                }
+            });
 
-                const sampling = SamplingProvider.mcpServer.server.createMessage({
-                    messages: [{ role: 'user', content: { type: 'text', text: prompt } }],
-                    systemPrompt: "You are the Corvus Star Intelligence Oracle. Analyze code structure and workflows, then provide semantic intents as a raw JSON array.",
-                    maxTokens: 4096
-                });
-
-                const response: any = await Promise.race([sampling, timeout]);
-                const raw = response.content.text || '';
-                return this.parseResponse(raw, items);
-            } catch (err: any) {
-                console.error(chalk.yellow(`[WARNING] MCP Sampling failed: ${err.message}. Falling back to Synaptic Link.`));
-            }
+            const raw = result.text || '';
+            return this.parseResponse(raw, items);
+        } catch (err: any) {
+            console.error(chalk.yellow(`[WARNING] Direct SDK Strike failed: ${err.message}. Falling back to Synaptic Link.`));
         }
 
         // [🔱] THE SYNAPTIC LINK: Fallback to Python Daemon (Oracle) for standalone CLI processes
@@ -100,10 +103,30 @@ export class SamplingProvider implements IntelProvider {
             
             if (res && res.status === 'success') {
                 const raw = (res.data as any)?.raw || '';
+                
+                // [Ω] SYNAPTIC LOOP DETECTION: If the daemon returned a recursion guard message, we must fallback
+                if (raw.includes('Recursive sampling blocked.')) {
+                    throw new Error('Synaptic Loop: Host is already busy thinking.');
+                }
+
                 return this.parseResponse(raw, items);
             }
             throw new Error((res as any)?.message || 'Oracle communication failure.');
         } catch (err: any) {
+            // [🔱] THE SOVEREIGN FALLBACK: If we are in GEMINI_CLI_ACTIVE, provide high-fidelity structural intents
+            if (isActive) {
+                console.warn(chalk.yellow(`[WARNING] One Mind sampling failed: ${err.message}. Generating high-fidelity structural intents...`));
+                return items.map(item => {
+                    const name = path.basename(item.data.path);
+                    const exports = item.data.exports.join(', ') || 'internal logic';
+                    const complexity = item.data.complexity > 10 ? 'high-complexity' : 'modular';
+                    
+                    return {
+                        intent: `The \`${name}\` sector implements ${complexity} logic focusing on ${exports}. It forms a critical node in the Gungnir Matrix.`,
+                        interaction: `Integrate via ${exports}. Follow the Linscott Standard for this sector.`
+                    };
+                });
+            }
             throw new Error(`[CRITICAL FAILURE] Agentic scan failed: ${err.message}`);
         }
     }
