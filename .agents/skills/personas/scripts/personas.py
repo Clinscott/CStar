@@ -1,5 +1,6 @@
 import argparse
 import sys
+import subprocess
 from pathlib import Path
 
 # Add project root to sys.path
@@ -16,6 +17,11 @@ def main():
     
     args = parser.parse_args()
 
+    # Trigger Taliesin for high-fidelity voice work
+    cstar_dispatcher = PROJECT_ROOT / "src" / "core" / "cstar_dispatcher.py"
+    venv_python = PROJECT_ROOT / ".venv" / "Scripts" / "python.exe"
+    if not venv_python.exists(): venv_python = Path(sys.executable)
+
     # Determine current persona from config
     import json
     config_path = PROJECT_ROOT / ".agents" / "config.json"
@@ -24,11 +30,24 @@ def main():
         data = json.loads(config_path.read_text(encoding='utf-8'))
         persona_name = data.get("system", {}).get("persona", "ALFRED")
 
-    strategy = PersonaRegistry.get_strategy(args.set if args.set else persona_name, PROJECT_ROOT)
+    target_persona = args.set if args.set else persona_name
+    strategy = PersonaRegistry.get_strategy(target_persona, PROJECT_ROOT)
 
     if args.set:
         strategy._sync_configs(args.set)
-        print(f"[🔱] Persona set to: {args.set.upper()}")
+        
+        # [🔱] SYNERGY: Trigger Taliesin for a stylized greeting
+        try:
+            cmd = [
+                str(venv_python), str(cstar_dispatcher), "taliesin",
+                "--refine",
+                "--text", f"I have assumed the role of {args.set.upper()}. How may I serve the framework?",
+                "--persona", args.set.upper()
+            ]
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            print(result.stdout.strip())
+        except Exception:
+            print(f"[🔱] Persona set to: {args.set.upper()}")
 
     if args.enforce:
         context = strategy.enforce_policy()

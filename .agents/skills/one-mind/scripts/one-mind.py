@@ -2,6 +2,7 @@ import argparse
 import sys
 import json
 import os
+import subprocess
 from pathlib import Path
 from google import genai
 from google.genai import types
@@ -25,6 +26,7 @@ def main():
     parser.add_argument("--objective", help="Specific objective for code generation.")
     parser.add_argument("--context", help="Path to context file (lore or code).")
     parser.add_argument("--model", default=DEFAULT_MODEL, help="Override the default Gemini model.")
+    parser.add_argument("--refine-voice", action="store_true", help="Pass output through Taliesin for voice refinement.")
 
     args = parser.parse_args()
 
@@ -57,14 +59,40 @@ def main():
         if args.json:
             config.response_mime_type = "application/json"
 
-        # [🔱] THE DIRECT STRIKE: Using the environment-aware model choice
+        # [🔱] THE DIRECT STRIKE
         response = client.models.generate_content(
             model=args.model,
             contents=full_prompt,
             config=config
         )
         
-        print(response.text if response.text else "The One Mind is silent.")
+        raw_output = response.text if response.text else "The One Mind is silent."
+
+        # [🔱] SYNERGY: Optional Voice Refinement via Taliesin
+        if args.refine_voice and not args.json and not args.generate_code:
+            cstar_dispatcher = PROJECT_ROOT / "src" / "core" / "cstar_dispatcher.py"
+            venv_python = PROJECT_ROOT / ".venv" / "Scripts" / "python.exe"
+            if not venv_python.exists(): venv_python = Path(sys.executable)
+
+            # Determine active persona
+            persona_name = "ALFRED"
+            config_path = PROJECT_ROOT / ".agents" / "config.json"
+            if config_path.exists():
+                try:
+                    data = json.loads(config_path.read_text(encoding='utf-8'))
+                    persona_name = data.get("system", {}).get("persona", "ALFRED")
+                except Exception: pass
+
+            cmd = [
+                str(venv_python), str(cstar_dispatcher), "taliesin",
+                "--refine",
+                "--text", raw_output,
+                "--persona", persona_name
+            ]
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            print(result.stdout.strip())
+        else:
+            print(raw_output)
 
     except Exception as e:
         print(f"One Mind failed: {str(e)}", file=sys.stderr)
