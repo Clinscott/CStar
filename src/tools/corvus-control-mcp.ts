@@ -1,29 +1,28 @@
+import dotenv from 'dotenv';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+// [Ω] THE AWAKENING: Forcefully load local environment to survive host sanitization
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
+const PROJECT_ROOT = path.resolve(__dirname, '../../');
+dotenv.config({ path: path.join(PROJECT_ROOT, '.env') });
+
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 import { execa } from 'execa';
-import path from 'node:path';
-import fs from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
-import { HUD } from '../node/core/hud.ts';
+import { HUD } from '../node/core/hud.js';
 import chalk from 'chalk';
 
-const __dirname = fileURLToPath(new URL('.', import.meta.url));
-const PROJECT_ROOT = path.resolve(__dirname, '../../');
-
 /**
- * Corvus Control: MCP Bridge (v1.1)
+ * Corvus Control: MCP Bridge (v2.0)
  * Purpose: Orchestrate the Gungnir Control Plane via MCP tools.
- * Mandate: Full Synaptic Integration (No Isolation)
+ * Upgrade: Agentic Stack Restructuring - Delegating procedural logic to Agent Skills.
  */
 
 const server = new McpServer({
     name: 'corvus-control',
-    version: '1.1.0',
-}, {
-    capabilities: {
-        sampling: {}
-    }
+    version: '2.0.0',
 });
 
 // --- TELEMETRY ---
@@ -42,10 +41,10 @@ async function logTrace(missionId: string, metric: string, status: string, justi
                 status: status,
                 timestamp: Date.now()
             }),
-            signal: AbortSignal.timeout(500) // 500ms timeout
+            signal: AbortSignal.timeout(500)
         });
     } catch (err) {
-        // Fail silently to not block execution if telemetry is down
+        // Fail silently
     }
 }
 
@@ -63,66 +62,24 @@ server.tool(
         await logTrace(missionId, 'CREATION', 'STARTED', `Forging from: ${lorePath}`);
         
         try {
-            const absoluteLorePath = path.resolve(PROJECT_ROOT, lorePath);
-            const loreContent = await fs.readFile(absoluteLorePath, 'utf-8');
-            
-            const prompt = `
-            ACT AS: The Taliesin Forge Architect.
-            MANDATE: Translate the following Lore Fragment into a production-ready Code Artifact.
-            
-            OBJECTIVE: ${objective || 'Materialize the architecture defined in the lore.'}
-            
-            LORE FRAGMENT:
-            \`\`\`
-            ${loreContent}
-            \`\`\`
-            
-            CONSTRAINTS:
-            1. Output MUST be a valid JSON object.
-            2. Fields: "target_path" (relative to root) and "code" (full file content).
-            3. Follow the Linscott Standard: Strict typing, comprehensive docstrings.
-            4. Language: Match the project's stack (Python or TypeScript).
-            `;
-
-            console.error(chalk.magenta(`[Ω] Forge: Requesting materialization from the One Mind...`));
-            
-            const response = await server.server.createMessage({
-                messages: [{ role: 'user', content: { type: 'text', text: prompt } }],
-                systemPrompt: "You are the Taliesin Forge. Your output is raw JSON with 'target_path' and 'code' fields. No markdown wrappers.",
-                maxTokens: 8192
-            });
-
-            const raw = response.content.text || '';
-            let data;
-            
-            try {
-                // Handle possible markdown noise
-                const cleanJson = raw.includes('```json') 
-                    ? raw.split('```json')[1].split('```')[0].trim() 
-                    : (raw.includes('{') ? raw.substring(raw.indexOf('{'), raw.lastIndexOf('}') + 1) : raw);
-                
-                data = JSON.parse(cleanJson);
-            } catch (e) {
-                throw new Error(`One Mind provided malformed JSON: ${e instanceof Error ? e.message : String(e)}`);
+            /**
+             * [ALFRED]: Logic migrated to 'forge' Agent Skill.
+             * MCP server now acts as a strictly external gateway.
+             */
+            const cstarPath = path.join(PROJECT_ROOT, 'bin/cstar.js');
+            const args = ['forge', '--lore', lorePath];
+            if (objective) {
+                args.push('--objective', objective);
             }
 
-            if (!data.target_path || !data.code) {
-                throw new Error("One Mind provided incomplete artifact data (missing target_path or code).");
-            }
-
-            const stagedDir = path.join(PROJECT_ROOT, '.agent/forge_staged');
-            await fs.mkdir(stagedDir, { recursive: true });
+            const { stdout, stderr } = await execa('node', [cstarPath, ...args]);
             
-            const artifactName = path.basename(data.target_path);
-            const stagePath = path.join(stagedDir, artifactName);
-            await fs.writeFile(stagePath, data.code, 'utf-8');
-
-            await logTrace(missionId, 'CREATION', 'SUCCESS', `Artifact forged: ${data.target_path}`);
+            await logTrace(missionId, 'CREATION', 'SUCCESS', `Artifact forged: ${lorePath}`);
             
             return {
                 content: [{ 
                     type: 'text', 
-                    text: `[🔱] Artifact forged successfully: ${data.target_path}\n[ALFRED]: "Staged for review at .agent/forge_staged/${artifactName}"` 
+                    text: stdout || stderr
                 }],
             };
 
@@ -174,9 +131,8 @@ server.tool(
         const missionId = `MCP-WF-${Date.now()}`;
         await logTrace(missionId, 'WORKFLOW', 'STARTED', `Triggering workflow: ${workflow}`);
         try {
-            const dispatcherPath = path.join(PROJECT_ROOT, 'src/core/cstar_dispatcher.py');
-            const pythonPath = path.join(PROJECT_ROOT, '.venv/Scripts/python.exe');
-            const { stdout, stderr } = await execa(pythonPath, [dispatcherPath, workflow, ...args]);
+            const cstarPath = path.join(PROJECT_ROOT, 'bin/cstar.js');
+            const { stdout, stderr } = await execa('node', [cstarPath, workflow, ...args]);
             await logTrace(missionId, 'WORKFLOW', 'SUCCESS', `Workflow ${workflow} completed successfully.`);
             return {
                 content: [{ type: 'text', text: stdout || stderr }],
@@ -190,22 +146,6 @@ server.tool(
         }
     }
 );
-
-interface SterlingAuditTier {
-    status: string;
-    path: string | null;
-}
-
-interface SterlingAuditResult {
-    file: string;
-    status: 'SILVER' | 'POLISHED' | 'TARNISHED';
-    compliance_score: number;
-    tiers: {
-        tier1_lore: SterlingAuditTier;
-        tier2_isolation: SterlingAuditTier;
-        tier3_audit: SterlingAuditTier;
-    };
-}
 
 server.tool(
     'get_system_vitals',
@@ -278,30 +218,16 @@ server.tool(
         const missionId = `MCP-AUDIT-${Date.now()}`;
         await logTrace(missionId, 'AUDIT', 'STARTED', `Auditing ${filepaths.length} files for Sterling Compliance.`);
         try {
-            const auditorPath = path.join(PROJECT_ROOT, 'src/core/sterling_auditor.py');
-            const pythonPath = path.join(PROJECT_ROOT, '.venv/Scripts/python.exe');
-            const { stdout } = await execa(pythonPath, [auditorPath, ...filepaths]);
+            /**
+             * [ALFRED]: Logic migrated to 'sterling' Agent Skill.
+             * MCP server now acts as a strictly external gateway.
+             */
+            const cstarPath = path.join(PROJECT_ROOT, 'bin/cstar.js');
+            const { stdout, stderr } = await execa('node', [cstarPath, 'sterling', '--files', ...filepaths]);
             
-            const results: SterlingAuditResult[] = JSON.parse(stdout);
-            let output = '[ALFRED]: "Sterling Compliance Report:"\n\n';
-            
-            results.forEach((r) => {
-                const statusEmoji = r.status === 'SILVER' ? '🛡️' : (r.status === 'POLISHED' ? '✨' : '⚠️');
-                output += `${statusEmoji} **${r.file}** [${r.status} - ${r.compliance_score.toFixed(0)}%]\n`;
-                output += `   - Tier 1 (Lore): ${r.tiers.tier1_lore.status} ${r.tiers.tier1_lore.path ? `(${r.tiers.tier1_lore.path})` : ''}\n`;
-                output += `   - Tier 2 (Isolation): ${r.tiers.tier2_isolation.status} ${r.tiers.tier2_isolation.path ? `(${r.tiers.tier2_isolation.path})` : ''}\n`;
-                output += `   - Tier 3 (Audit): ${r.tiers.tier3_audit.status} ${r.tiers.tier3_audit.path ? `(${r.tiers.tier3_audit.path})` : ''}\n\n`;
-            });
-
-            if (results.every((r) => r.status === 'SILVER')) {
-                output += '[ALFRED]: "The silver is pure, Master. Sovereignty confirmed."';
-            } else {
-                output += '[ALFRED]: "The blade requires further polishing, sir. Gaps identified in the triad."';
-            }
-
             await logTrace(missionId, 'AUDIT', 'SUCCESS', `Sterling Compliance audit complete.`);
             return {
-                content: [{ type: 'text', text: output }],
+                content: [{ type: 'text', text: stdout || stderr }],
             };
         } catch (error: unknown) {
             await logTrace(missionId, 'AUDIT', 'ERROR', `Sterling Compliance audit failed.`);
@@ -330,13 +256,14 @@ Corvus Star uses the Model Context Protocol (MCP) to unify Node.js intelligence 
    - get_file_intent: Retrieve the purpose and interaction protocol for a specific file.
    - index_sector: Perform a high-speed incremental scan of a single file.
    - get_technical_debt: Access the Sterling Mandate ledger for refactoring targets.
+   - consult_oracle: (SKILL) Consult Gungnir Oracle for deep analysis.
 
 2. corvus-control (The Bridge)
-   - taliesin_forge: Weave code artifacts directly from lore using the One Mind.
+   - taliesin_forge: (SKILL) Weave code artifacts from lore.
    - execute_cstar_command: Run core CLI commands (start, odin, ravens).
-   - run_workflow: Execute high-level Sovereign workflows (lets-go, fish, investigate).
-   - get_system_vitals: Monitor system health, mission traces, and suggestions.
-   - verify_sterling_compliance: Audit files for Unit Test and Gherkin contract gaps.
+   - run_workflow: Execute high-level Sovereign workflows.
+   - get_system_vitals: Monitor system health and suggestions.
+   - verify_sterling_compliance: (SKILL) Audit files for Sovereignty.
    - get_mcp_documentation: (Self) Retrieve this manual.
 
 [MANDATE]: Consult PennyOne for understanding; use Corvus Control for action.
@@ -350,35 +277,6 @@ Corvus Star uses the Model Context Protocol (MCP) to unify Node.js intelligence 
 // --- MAIN ---
 
 async function main() {
-    // [🔱] CLI Testing Entry Point
-    if (process.argv[2] === 'taliesin_forge') {
-        let lorePath = process.argv[3];
-        if (lorePath === '--lorePath') lorePath = process.argv[4];
-        
-        if (!lorePath) {
-            console.error('Usage: tsx corvus-control-mcp.ts taliesin_forge <lorePath>');
-            process.exit(1);
-        }
-        
-        console.error(chalk.cyan(`[TEST] Manually invoking Taliesin Forge for: ${lorePath}`));
-        
-        try {
-            const absoluteLorePath = path.resolve(PROJECT_ROOT, lorePath);
-            const loreContent = await fs.readFile(absoluteLorePath, 'utf-8');
-            
-            console.error(chalk.magenta(`[Ω] Forge: Simulation starting for materialization...`));
-            console.error(chalk.yellow('[!] CLI test mode bypasses synaptic sampling. Please use the MCP tool via the CLI host for full integration.'));
-            
-            // Log the prompt that would have been sent
-            console.error(chalk.dim(`Lore content detected (${loreContent.length} bytes). Ready for Forge.`));
-            
-            process.exit(0);
-        } catch (e: any) {
-            console.error(chalk.red(`[ERROR] Test failed: ${e.message}`));
-            process.exit(1);
-        }
-    }
-
     const transport = new StdioServerTransport();
     await server.connect(transport);
     console.error('[Ω]: "Corvus Control MCP Server online. Bifrost Gate established."');

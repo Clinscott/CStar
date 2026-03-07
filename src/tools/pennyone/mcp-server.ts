@@ -1,30 +1,47 @@
+import dotenv from 'dotenv';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import fs from 'node:fs';
+import { execa } from 'execa';
+
+// [Ω] THE AWAKENING: Forcefully load local environment to survive host sanitization
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
+const PROJECT_ROOT = path.resolve(__dirname, '../../../');
+dotenv.config({ path: path.join(PROJECT_ROOT, '.env') });
+
+// [Ω] THE ADC ANCHOR: Explicitly map the Windows ADC path for the One Mind
+const adcPath = 'C:\\Users\\Craig\\AppData\\Roaming\\gcloud\\application_default_credentials.json';
+
+if (fs.existsSync(adcPath)) {
+    process.env.GOOGLE_APPLICATION_CREDENTIALS = adcPath;
+    console.error(`[ODIN]: "ADC Target locked. The Matrix is synchronized."`);
+} else {
+    console.error(`[ALFRED]: "CRITICAL - ADC missing at ${adcPath}. The Ravens are grounded."`);
+}
+
+console.error(`[ODIN]: "Analyzing the Void... PATH: ${process.env.PATH?.slice(0, 100)}..."`);
+
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
-import { runScan, indexSector } from './index.ts';
-import { SemanticIndexer } from './intel/semantic.ts';
-import { getDb, searchIntents } from './intel/database.ts';
-import { registry } from './pathRegistry.ts';
-import { SamplingProvider } from './intel/llm.ts';
-import path from 'node:path';
-import fs from 'node:fs/promises';
+import { SemanticIndexer } from './intel/semantic.js';
+import { searchIntents } from './intel/database.js';
+import { registry } from './pathRegistry.js';
+import { SamplingProvider } from './intel/llm.js';
+import * as fsPromises from 'node:fs/promises';
 
 /**
- * Operation PennyOne: MCP Server (v2.0)
+ * Operation PennyOne: MCP Server (v2.3)
  * Purpose: Expose the Well of Mimir and Repository Intelligence to LLM agents.
- * Mandate: The Omniscience Mandate (AGENTS.qmd Section 1)
+ * Upgrade: Agentic Stack Integration - Scanning logic delegated to Agent Skills.
  */
 
 const server = new McpServer({
     name: 'pennyone',
-    version: '2.0.0',
-}, {
-    capabilities: {
-        sampling: {}
-    }
+    version: '2.3.0',
 });
 
-// Register the server for sampling
+// Register the server for sampling tracking (legacy bridge)
 SamplingProvider.registerServer(server);
 
 // --- TELEMETRY ---
@@ -43,7 +60,7 @@ async function logTrace(missionId: string, metric: string, status: string, justi
                 status: status,
                 timestamp: Date.now()
             }),
-            signal: AbortSignal.timeout(500) // 500ms timeout
+            signal: AbortSignal.timeout(500)
         });
     } catch (err) {
         // Fail silently
@@ -62,18 +79,28 @@ server.tool(
     async ({ query, system_prompt }) => {
         const missionId = `P1-ORACLE-${Date.now()}`;
         await logTrace(missionId, 'INTENT_GENERATION', 'STARTED', `Consulting oracle: ${query}`);
+        
         try {
-            const response = await server.server.createMessage({
-                messages: [{ role: 'user', content: { type: 'text', text: query } }],
-                systemPrompt: system_prompt || "You are the Corvus Star Intelligence Oracle. Provide precise, technical analysis based on the repository lore."
-            });
+            /**
+             * [ALFRED]: The Oracle logic has been migrated to an Agent Skill.
+             * The MCP tool now acts as a strictly external gateway.
+             */
+            const cstarPath = path.join(PROJECT_ROOT, 'bin/cstar.js');
+            const args = ['oracle', '--query', query];
+            if (system_prompt) {
+                args.push('--system_prompt', system_prompt);
+            }
+
+            const { stdout, stderr } = await execa('node', [cstarPath, ...args]);
+            const responseText = stdout || stderr;
 
             await logTrace(missionId, 'INTENT_GENERATION', 'SUCCESS', `Consulted oracle successfully.`);
             return {
-                content: [{ type: 'text', text: response.content.text || 'The Oracle is silent.' }],
+                content: [{ type: 'text', text: responseText || 'The Oracle is silent.' }],
             };
         } catch (error: any) {
-            await logTrace(missionId, 'INTENT_GENERATION', 'ERROR', `Consult oracle failed.`);
+            console.error(`[ALFRED]: "Oracle Strike Failed: ${error.message}"`);
+            await logTrace(missionId, 'INTENT_GENERATION', 'ERROR', `Consult oracle failed: ${error.message}`);
             return {
                 content: [{ type: 'text', text: `Failed to consult Oracle: ${error.message}` }],
                 isError: true,
@@ -95,7 +122,8 @@ server.tool(
         // [🔱] THE ASYNCHRONOUS PULSE: Initiate in background and return immediately
         (async () => {
             try {
-                await indexSector(filepath);
+                const cstarPath = path.join(PROJECT_ROOT, 'bin/cstar.js');
+                await execa('node', [cstarPath, 'scan', '--path', filepath]);
                 await logTrace(missionId, 'ORCHESTRATION', 'SUCCESS', `Incremental scan complete for ${filepath}.`);
             } catch (error: any) {
                 await logTrace(missionId, 'ORCHESTRATION', 'ERROR', `Background incremental scan failed: ${error.message}`);
@@ -103,7 +131,7 @@ server.tool(
         })();
 
         return {
-            content: [{ type: 'text', text: `[ALFRED]: "Incremental scan for \`${filepath}\` has been initiated in the background, sir. I am now free to continue our session while the matrix synchronizes."` }],
+            content: [{ type: 'text', text: `[ALFRED]: "Incremental scan for \`${filepath}\` has been initiated in the background via the Agentic Stack, sir. I am free to continue our session."` }],
         };
     }
 );
@@ -122,7 +150,11 @@ server.tool(
         // [🔱] THE ASYNCHRONOUS PULSE: Initiate in background and return immediately
         (async () => {
             try {
-                await runScan(scanPath || '.', force || false);
+                const cstarPath = path.join(PROJECT_ROOT, 'bin/cstar.js');
+                const args = ['scan', '--path', scanPath || '.'];
+                if (force) args.push('--force');
+                
+                await execa('node', [cstarPath, ...args]);
                 await logTrace(missionId, 'ORCHESTRATION', 'SUCCESS', `Full background scan complete.`);
             } catch (error: any) {
                 await logTrace(missionId, 'ORCHESTRATION', 'ERROR', `Full background scan failed: ${error.message}`);
@@ -130,7 +162,7 @@ server.tool(
         })();
 
         return {
-            content: [{ type: 'text', text: `[ALFRED]: "The full structural scan has been initiated in the background, sir. The One Mind remains responsive. I shall notify you through the visual matrix as the batches complete."` }],
+            content: [{ type: 'text', text: `[ALFRED]: "The full structural scan has been triggered via the Agentic Stack in the background, sir."` }],
         };
     }
 );
@@ -154,7 +186,7 @@ server.tool(
             const flattenedName = relativePath.replace(/[\\/]/g, '-').replace(/\./g, '-');
             const qmdPath = path.join(statsDir, `${flattenedName}.qmd`);
 
-            const content = await fs.readFile(qmdPath, 'utf-8');
+            const content = await fsPromises.readFile(qmdPath, 'utf-8');
             const intentMatch = content.match(/## Intent\n([\s\S]*?)\n##/);
             const intent = intentMatch ? intentMatch[1].trim() : 'Intent not yet generated for this sector.';
 
@@ -197,7 +229,7 @@ server.tool(
             const flattenedName = relativePath.replace(/[\\/]/g, '-').replace(/\./g, '-');
             const qmdPath = path.join(statsDir, `${flattenedName}.qmd`);
 
-            const content = await fs.readFile(qmdPath, 'utf-8');
+            const content = await fsPromises.readFile(qmdPath, 'utf-8');
             const interactionMatch = content.match(/## Interaction Protocol\n([\s\S]*?)\n##/);
             const interaction = interactionMatch ? interactionMatch[1].trim() : 'Interaction protocol not yet defined.';
 
@@ -284,8 +316,8 @@ server.tool(
         const missionId = `P1-DEBT-${Date.now()}`;
         await logTrace(missionId, 'DIAGNOSTICS', 'STARTED', `Retrieving tech debt ledger`);
         try {
-            const ledgerPath = path.join(registry.getRoot(), '.agent', 'tech_debt_ledger.json');
-            const raw = await fs.readFile(ledgerPath, 'utf-8');
+            const ledgerPath = path.join(registry.getRoot(), '.agents', 'tech_debt_ledger.json');
+            const raw = await fsPromises.readFile(ledgerPath, 'utf-8');
             const ledger = JSON.parse(raw);
 
             const output = ledger.top_targets.length > 0
@@ -309,9 +341,6 @@ server.tool(
 
 // --- MAIN ---
 
-/**
- *
- */
 async function main() {
     const transport = new StdioServerTransport();
     await server.connect(transport);

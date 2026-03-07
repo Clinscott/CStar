@@ -1,0 +1,27 @@
+{
+    "system": {
+        "framework_root": ".",
+        "persona": "ALFRED"
+    },
+    "knowledge": {
+        "active_core": "primary",
+        "cores": {
+            "primary": ".agents/knowledge/primary",
+            "secondary": ".agents/knowledge/secondary",
+            "archive": ".agents/knowledge/archive"
+        }
+    },
+    "security": {
+        "neural_secret": "VIGRID_SIGNAL_99"
+    },
+    "learning": {
+        "auto_extract": true,
+        "min_confidence_for_push": 0.9,
+        "extract_on_session_end": true,
+        "categories": [
+            "corrections",
+            "patterns",
+            "thesaurus"
+        ]
+    }
+}

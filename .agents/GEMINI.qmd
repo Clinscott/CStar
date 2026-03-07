@@ -1,0 +1,18 @@
+---
+title: "🔱 GUNGNIR AGENTIC PROTOCOL"
+author: "ODIN"
+date: "2026-03-07"
+---
+
+## REPOSITORY ARCHITECTURE
+- **Project Root**: `.`
+- **Intelligence Base**: `.agents/`
+- **Skill Repository**: `.agents/skills/`
+- **Mimir's Well**: `.agents/skills/.stats/pennyone.db`
+
+## OPERATIONAL MANDATE
+1. **DECOUPLING**: Outward interfaces (MCP) must trigger inward procedural logic (Agent Skills) via the `cstar` dispatcher.
+2. **PORTABILITY**: Never use absolute paths in configuration or state files.
+3. **SOVEREIGNTY**: Every code artifact must be verified against the Sterling Mandate before promotion.
+
+[ALFRED]: "The hall is ordered, sir. The Gungnir Matrix is self-contained and sovereign."

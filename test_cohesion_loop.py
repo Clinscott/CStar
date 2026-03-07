@@ -7,7 +7,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # Expand project root for imports
-project_root = Path(r"c:\Users\Craig\Corvus\CorvusStar")
+project_root = Path(".").resolve()
 sys.path.append(str(project_root))
 
 load_dotenv(project_root / ".env.local")

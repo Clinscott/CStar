@@ -1,4 +1,0 @@
----
-description: SovereignFish Protocol (Manual Agent Action)
----
-@[/sovereignfish]

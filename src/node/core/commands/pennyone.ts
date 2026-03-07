@@ -25,13 +25,13 @@ export function registerPennyOneCommand(program: Command, PROJECT_ROOT: string) 
                 const npxCmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
 
                 if (options.search) {
-                    const searchScript = join(PROJECT_ROOT, 'src/tools/pennyone/live/search.ts');
+                    const searchScript = join(PROJECT_ROOT, 'src/tools/pennyone/live/search.js');
                     await execa(npxCmd, ['tsx', searchScript, options.search], { stdio: 'inherit' });
                     return;
                 }
 
                 if (options.stats) {
-                    const analyticsScript = join(PROJECT_ROOT, 'scripts', 'p1_analytics.ts');
+                    const analyticsScript = join(PROJECT_ROOT, 'scripts', 'p1_analytics.js');
                     await execa(npxCmd, ['tsx', analyticsScript], { stdio: 'inherit' });
                     return;
                 }
@@ -41,8 +41,12 @@ export function registerPennyOneCommand(program: Command, PROJECT_ROOT: string) 
                     return;
                 }
 
-                const scanPath = typeof options.scan === 'string' ? options.scan : '.';
-                await execa(npxCmd, ['tsx', pennyoneBin, 'scan', scanPath], { stdio: 'inherit' });
+                if (options.scan) {
+                    const scanPath = typeof options.scan === 'string' ? options.scan : '.';
+                    const cstarPath = join(PROJECT_ROOT, 'bin', 'cstar.js');
+                    await execa('node', [cstarPath, 'scan', '--path', scanPath], { stdio: 'inherit' });
+                    return;
+                }
 
             } catch (err) {
                 console.error(chalk.red('[ALFRED]: "Operation PennyOne interrupted or failed."'));
@@ -50,3 +54,4 @@ export function registerPennyOneCommand(program: Command, PROJECT_ROOT: string) 
             }
         });
 }
+

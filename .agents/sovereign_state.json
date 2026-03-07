@@ -1,0 +1,92 @@
+{
+  "check_pro.py": {
+    "last_edited": 1770604690.846539,
+    "edit_count_24h": 1,
+    "content_hashes": [
+      "da7c7299993c9c339014a9de9e590569"
+    ],
+    "status": "ACTIVE"
+  },
+  "cjk_check.py": {
+    "last_edited": 1770605744.0768964,
+    "edit_count_24h": 1,
+    "content_hashes": [
+      "a040d3e284ad86bc51701ba3ba0861a4"
+    ],
+    "status": "ACTIVE"
+  },
+  "collision_investigator.py": {
+    "last_edited": 1770606690.215542,
+    "edit_count_24h": 1,
+    "content_hashes": [
+      "1f4837276834f2bdf9707e7949344b2d"
+    ],
+    "status": "ACTIVE"
+  },
+  "debug_engine.py": {
+    "last_edited": 1770610568.3571665,
+    "edit_count_24h": 1,
+    "content_hashes": [
+      "4b7a2c466f75897ace33dc7e70f83fac"
+    ],
+    "status": "ACTIVE"
+  },
+  "src/__init__.py": {
+    "last_edited": 1770685502.9697478,
+    "edit_count_24h": 1,
+    "content_hashes": [
+      "10caf97d3a1a195480b6709c2af1da41"
+    ],
+    "status": "ACTIVE"
+  },
+  "scripts/verify_valkyrie_real.py": {
+    "last_edited": 1770864468.114245,
+    "edit_count_24h": 1,
+    "content_hashes": [
+      "f908661f1a5cdcfd95caeed4a3b3d3d5"
+    ],
+    "status": "ACTIVE"
+  },
+  "src/core/metrics.py": {
+    "last_edited": 1771025949.591256,
+    "edit_count_24h": 1,
+    "content_hashes": [
+      "f908661f1a5cdcfd95caeed4a3b3d3d5"
+    ],
+    "status": "ACTIVE",
+    "fail_count": 1
+  },
+  "debug_env.py": {
+    "last_edited": 1771558564.7233617,
+    "edit_count_24h": 2,
+    "content_hashes": [
+      "1d76b985b49ed99c4743b634f30c335e",
+      "5264a0b736c82de7dbdefc07f64184b8"
+    ],
+    "status": "ACTIVE"
+  },
+  "analyze_failures.py": {
+    "last_edited": 1771991642.4552107,
+    "edit_count_24h": 1,
+    "content_hashes": [
+      "af1a1a01dda0db17d4ae017f90e69871"
+    ],
+    "status": "ACTIVE"
+  },
+  "last_anomaly_score": 0.5092860968590446,
+  "src/core/utils.py": {
+    "last_edited": 1772386478.2602162,
+    "edit_count_24h": 1,
+    "content_hashes": [
+      "04f1089251a830760777427f5af4f79b"
+    ],
+    "status": "ACTIVE"
+  },
+  "src/tools/pennyone/vis/components/NeuralGraph.tsx": {
+    "last_edited": 0,
+    "edit_count_24h": 0,
+    "content_hashes": [],
+    "status": "ACTIVE",
+    "fail_count": 1
+  }
+}
