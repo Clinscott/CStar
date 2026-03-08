@@ -11,4 +11,4 @@ This skill analyzes `tasks.qmd` and `dev_journal.qmd` to find:
 3. Discrepancies between planned work and executed work.
 
 ## Usage
-`python .agent/skills/workflow-analyst/analyze_workflow.py`
+`python .agents/skills/workflow-analyst/analyze_workflow.py`

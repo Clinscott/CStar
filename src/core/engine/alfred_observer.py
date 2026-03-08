@@ -36,7 +36,7 @@ class AlfredOverwatch:
 
         return "UnknownError", f"ALFRED: An unexpected error occurred in {target_file}. Trace analysis suggests careful review of recent permutations."
 
-    def write_suggestion(self, suggestion: str, file_path: str = ".agent/ALFRED_SUGGESTIONS.md") -> None:
+    def write_suggestion(self, suggestion: str, file_path: str = ".agents/ALFRED_SUGGESTIONS.md") -> None:
         """
         Writes guidance to a suggestion file for persistence.
 

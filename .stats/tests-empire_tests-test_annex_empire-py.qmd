@@ -1,0 +1,32 @@
+---
+title: "test_annex_empire.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\empire_tests\test_annex_empire.py"
+loc: 8
+complexity: 1
+logic_score: 7.52
+style_score: 8.14
+intel_score: 1.40
+overall_score: 4.75
+---
+
+## Intent
+The `test_annex_empire.py` sector implements modular logic focusing on test_annex_scan. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via test_annex_scan. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.5/10
+- **Style [S]**: 8.1/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 4 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [src.core.annex](file://src.core.annex)
+
+### Exports
+- `test_annex_scan`

@@ -15,9 +15,9 @@ from src.tools.debug import debug_engine
 
 # Mock data - replace with actual paths if needed for a full integration test
 THESAURUS_PATH = 'thesaurus.qmd'
-CORRECTIONS_PATH = os.path.join(SCRIPT_DIR, '.agent', 'corrections.json')
-STOPWORDS_PATH = os.path.join(SCRIPT_DIR, '.agent', 'scripts', 'stopwords.json')
-SKILLS_DIR = os.path.join(SCRIPT_DIR, '.agent', 'skills')
+CORRECTIONS_PATH = os.path.join(SCRIPT_DIR, '.agents', 'corrections.json')
+STOPWORDS_PATH = os.path.join(SCRIPT_DIR, '.agents', 'scripts', 'stopwords.json')
+SKILLS_DIR = os.path.join(SCRIPT_DIR, '.agents', 'skills')
 GLOBAL_SKILLS_DIR = os.path.join(SCRIPT_DIR, 'skills_db')
 
 @pytest.fixture

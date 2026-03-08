@@ -1,8 +1,8 @@
 import sys
 
 # 1. Path Setup: Inject the directory containing the engine module
-# This assumes the script is run from the directory where .agent/ resides.
-sys.path.insert(0, '.agent/scripts')
+# This assumes the script is run from the directory where .agents/ resides.
+sys.path.insert(0, '.agents/scripts')
 
 try:
     from engine.vector import SovereignVector
@@ -12,8 +12,8 @@ except ImportError:
 
 # Define paths for required resources
 THE_FILE = 'thesaurus.qmd'
-CORR_FILE = '.agent/corrections.json'
-STOP_FILE = '.agent/scripts/stopwords.json'
+CORR_FILE = '.agents/corrections.json'
+STOP_FILE = '.agents/scripts/stopwords.json'
 
 try:
     # 2. Engine Initialization

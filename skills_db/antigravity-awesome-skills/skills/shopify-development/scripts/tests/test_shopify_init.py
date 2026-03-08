@@ -74,7 +74,7 @@ ANOTHER_VALID=test
     def test_get_env_paths(self, tmp_path):
         """Test getting .env file paths from universal directory structure."""
         # Create directory structure (works with .agent, .claude, .gemini, .cursor)
-        agent_dir = tmp_path / ".agent"
+        agent_dir = tmp_path / ".agents"
         skills_dir = agent_dir / "skills"
         skill_dir = skills_dir / "shopify"
 

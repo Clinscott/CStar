@@ -4,7 +4,7 @@ import os
 import sys
 
 # Add script path for engine import
-sys.path.append(os.path.join(os.path.dirname(__file__), ".agent", "scripts"))
+sys.path.append(os.path.join(os.path.dirname(__file__), ".agents", "scripts"))
 try:
     from sv_engine import SovereignVector
 except ImportError:
@@ -91,7 +91,7 @@ def run_test_case(engine, case):
 def run_test():
     # Setup Paths
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    base_path = os.path.join(current_dir, ".agent")
+    base_path = os.path.join(current_dir, ".agents")
 
     # Load Config & Persona
     config = {}

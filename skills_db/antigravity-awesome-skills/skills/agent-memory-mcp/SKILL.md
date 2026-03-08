@@ -20,13 +20,13 @@ This skill provides a persistent, searchable memory bank that automatically sync
    Clone the `agentMemory` project into your agent's workspace or a parallel directory:
 
    ```bash
-   git clone https://github.com/webzler/agentMemory.git .agent/skills/agent-memory
+   git clone https://github.com/webzler/agentMemory.git .agents/skills/agent-memory
    ```
 
 2. **Install Dependencies**:
 
    ```bash
-   cd .agent/skills/agent-memory
+   cd .agents/skills/agent-memory
    npm install
    npm run compile
    ```

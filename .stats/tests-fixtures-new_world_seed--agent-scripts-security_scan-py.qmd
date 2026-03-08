@@ -1,0 +1,42 @@
+---
+title: "security_scan.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\fixtures\new_world_seed\.agents\scripts\security_scan.py"
+loc: 91
+complexity: 15
+logic_score: 1.02
+style_score: 3.98
+intel_score: 1.40
+overall_score: 1.00
+---
+
+## Intent
+The `security_scan.py` sector implements high-complexity logic focusing on SovereignHUD, box_top, box_row, box_bottom, SecurityScanner, __init__, scan, report. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via SovereignHUD, box_top, box_row, box_bottom, SecurityScanner, __init__, scan, report. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.0/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 8 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [os](file://os)
+- [re](file://re)
+- [sys](file://sys)
+- [sv_engine](file://sv_engine)
+
+### Exports
+- `SovereignHUD`
+- `box_top`
+- `box_row`
+- `box_bottom`
+- `SecurityScanner`
+- `__init__`
+- `scan`
+- `report`

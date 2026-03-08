@@ -1,5 +1,5 @@
 import { execa } from 'execa';
-import { registry } from '../pathRegistry.ts';
+import { registry } from '../pathRegistry.js';
 import path from 'node:path';
 
 export interface GitChurn {
@@ -83,4 +83,5 @@ export const GitChronograph = {
         }
     }
 };
+
 

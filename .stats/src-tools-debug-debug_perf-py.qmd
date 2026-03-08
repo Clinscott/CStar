@@ -1,0 +1,37 @@
+---
+title: "debug_perf.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\debug\debug_perf.py"
+loc: 46
+complexity: 5
+logic_score: 6.55
+style_score: 3.83
+intel_score: 6.62
+overall_score: 4.53
+---
+
+## Intent
+The `debug_perf.py` sector implements modular logic focusing on run_profile, PerformanceProfiler, execute. It forms a node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via run_profile, PerformanceProfiler, execute. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.6/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 6.6/10
+- **Gravity [G]**: 20 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [time](file://time)
+- [pathlib](file://pathlib)
+- [sys](file://sys)
+- [src.core.engine.vector](file://src.core.engine.vector)
+
+### Exports
+- `run_profile`
+- `PerformanceProfiler`
+- `execute`

@@ -205,7 +205,7 @@ if __name__ == "__main__":
         propose_install = None
         if top_match and top_match['is_global'] and top_match['score'] > 0.9:
             skill_name = top_match['trigger'].replace("GLOBAL:", "")
-            propose_install = f"powershell -Command \"& {{ python .agent/scripts/install_skill.py {skill_name} }}\""
+            propose_install = f"powershell -Command \"& {{ python .agents/scripts/install_skill.py {skill_name} }}\""
 
         trace = {
             "query": query,
@@ -247,7 +247,7 @@ if __name__ == "__main__":
                     print(f"\n{SovereignHUD.GREEN}>> ACCEL{SovereignHUD.RESET} Initiating deployment sequence...")
                     import subprocess
                     # Run the command
-                    subprocess.run(["powershell", "-Command", f"& {{ python .agent/scripts/install_skill.py {skill_name} }}"], check=False)
+                    subprocess.run(["powershell", "-Command", f"& {{ python .agents/scripts/install_skill.py {skill_name} }}"], check=False)
                 else:
                     print(f"\n{SovereignHUD.YELLOW}>> ABORT{SovereignHUD.RESET} Sequence cancelled.")
             except (EOFError, KeyboardInterrupt):

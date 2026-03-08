@@ -1,0 +1,36 @@
+---
+title: "test_web_enrichment.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\sentinel\test_web_enrichment.py"
+loc: 31
+complexity: 1
+logic_score: 5.65
+style_score: 4.33
+intel_score: 3.98
+overall_score: 4.34
+---
+
+## Intent
+The `test_web_enrichment.py` sector implements modular logic focusing on test_scan_and_enrich_imports_valid_code, test_scan_and_enrich_imports_invalid_import, test_quota_exhausted. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via test_scan_and_enrich_imports_valid_code, test_scan_and_enrich_imports_invalid_import, test_quota_exhausted. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 5.6/10
+- **Style [S]**: 4.3/10
+- **Intel [I]**: 4.0/10
+- **Gravity [G]**: 8 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [pathlib](file://pathlib)
+- [unittest.mock](file://unittest.mock)
+- [src.sentinel.code_sanitizer](file://src.sentinel.code_sanitizer)
+
+### Exports
+- `test_scan_and_enrich_imports_valid_code`
+- `test_scan_and_enrich_imports_invalid_import`
+- `test_quota_exhausted`

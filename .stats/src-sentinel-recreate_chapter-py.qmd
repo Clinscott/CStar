@@ -1,0 +1,52 @@
+---
+title: "recreate_chapter.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\sentinel\recreate_chapter.py"
+loc: 158
+complexity: 17
+logic_score: 5.35
+style_score: 3.59
+intel_score: 3.93
+overall_score: 2.01
+---
+
+## Intent
+The `recreate_chapter.py` sector implements high-complexity logic focusing on RecreateChapterPipeline, __init__, load_world_bible, load_state, save_state, load_character_contract, step_1_director, step_2_characters, step_3_narrator, step_4_auditor, step_5_update_state, run_pipeline, main. It forms a node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via RecreateChapterPipeline, __init__, load_world_bible, load_state, save_state, load_character_contract, step_1_director, step_2_characters, step_3_narrator, step_4_auditor, step_5_update_state, run_pipeline, main. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 5.3/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 3.9/10
+- **Gravity [G]**: 26 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [asyncio](file://asyncio)
+- [json](file://json)
+- [os](file://os)
+- [pathlib](file://pathlib)
+- [typing](file://typing)
+- [sys](file://sys)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [src.cstar.core.uplink](file://src.cstar.core.uplink)
+- [argparse](file://argparse)
+
+### Exports
+- `RecreateChapterPipeline`
+- `__init__`
+- `load_world_bible`
+- `load_state`
+- `save_state`
+- `load_character_contract`
+- `step_1_director`
+- `step_2_characters`
+- `step_3_narrator`
+- `step_4_auditor`
+- `step_5_update_state`
+- `run_pipeline`
+- `main`

@@ -85,7 +85,7 @@ async def consolidated_memory():
         })
         
         dream_manifested = False
-        staged_dir = project_root / ".agent" / "forge_staged"
+        staged_dir = project_root / ".agents" / "forge_staged"
         
         if response.get("status") == "success":
             try:
@@ -120,7 +120,7 @@ async def consolidated_memory():
                 SovereignHUD.log("WARN", f"The Dream was fragmented and lost to the void: {e}")
 
         # --- PHASE 3: MEMORY FORGE (Hippocampus) ---
-        memory_path = project_root / ".agent" / "memory.qmd"
+        memory_path = project_root / ".agents" / "memory.qmd"
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
         
         summary = f"\n### ◈ MISSION SUMMARY (DREAM CYCLE): {timestamp}\n"
@@ -130,7 +130,7 @@ async def consolidated_memory():
             summary += "- **Muninn's Flight:** No autonomous repairs required.\n"
         
         if dream_manifested:
-            summary += f"- **The Dream State:** Proactive architecture staged in `.agent/forge_staged/THE_DREAM.md`.\n"
+            summary += f"- **The Dream State:** Proactive architecture staged in `.agents/forge_staged/THE_DREAM.md`.\n"
             
         summary += "- **Sovereignty:** Neural Matrix stabilized and indexed in Mimir's Well.\n"
 

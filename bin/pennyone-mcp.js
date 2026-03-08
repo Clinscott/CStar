@@ -14,7 +14,7 @@ const ROOT = join(__dirname, '..');
 
 async function bootstrap() {
     try {
-        await execa('npx', ['tsx', join(ROOT, 'src/tools/pennyone/mcp-server.ts')], {
+        await execa('npx', ['tsx', join(ROOT, 'src/tools/pennyone/mcp-server.js')], {
             stdio: 'inherit',
             cwd: ROOT,
             env: { ...process.env, MCP_SERVER: '1' }
@@ -25,3 +25,4 @@ async function bootstrap() {
 }
 
 bootstrap();
+

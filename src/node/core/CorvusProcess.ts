@@ -1,7 +1,7 @@
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 import * as readline from 'readline';
 import { EventEmitter } from 'events';
-import { getPythonPath } from './python_utils.ts';
+import { getPythonPath } from './python_utils.js';
 
 /**
  * [O.D.I.N.] Rigid Input Boundary Schema
@@ -229,4 +229,5 @@ export class CorvusProcess extends EventEmitter {
         return this.isRunning;
     }
 }
+
 

@@ -12,7 +12,7 @@ async function testLoop() {
     // 2. Wait a moment then simulate a new chant being dropped
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    const testChantPath = path.join(process.cwd(), '.agent/lore/TEST_CHANT.qmd');
+    const testChantPath = path.join(process.cwd(), '.agents/lore/TEST_CHANT.qmd');
     console.log(`\n[!] Dropping test chant: TEST_CHANT.qmd`);
     
     await fs.writeFile(testChantPath, "# TEST CHANT\nMaterialize a simple test file.", 'utf-8');

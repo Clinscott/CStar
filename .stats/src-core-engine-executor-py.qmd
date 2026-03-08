@@ -1,0 +1,42 @@
+---
+title: "executor.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\core\engine\executor.py"
+loc: 42
+complexity: 6
+logic_score: 6.25
+style_score: 3.69
+intel_score: 9.02
+overall_score: 5.02
+---
+
+## Intent
+The `executor.py` sector implements modular logic focusing on SovereignExecutor, __init__, handle_proactive, suggest_forge, handle_cortex_query. It forms a node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via SovereignExecutor, __init__, handle_proactive, suggest_forge, handle_cortex_query. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.3/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 9.0/10
+- **Gravity [G]**: 11 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [subprocess](file://subprocess)
+- [pathlib](file://pathlib)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [src.core.engine.cortex](file://src.core.engine.cortex)
+- [src.core.engine.skill_forger](file://src.core.engine.skill_forger)
+- [asyncio](file://asyncio)
+
+### Exports
+- `SovereignExecutor`
+- `__init__`
+- `handle_proactive`
+- `suggest_forge`
+- `handle_cortex_query`

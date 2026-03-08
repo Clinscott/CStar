@@ -1,4 +1,8 @@
 import { Transform } from 'stream';
+/**
+ *
+ * @param fastify
+ */
 export default async function (fastify) {
     fastify.get('/telemetry', (request, reply) => {
         const { corvus } = fastify;

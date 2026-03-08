@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import { execa } from 'execa';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { HUD } from '../hud.ts';
+import { HUD } from '../hud.js';
 import chalk from 'chalk';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -72,3 +72,4 @@ export function registerVitalsCommand(program: Command) {
             }
         });
 }
+

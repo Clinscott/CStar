@@ -3,7 +3,7 @@ import chalk from 'chalk';
 import fs from 'node:fs';
 import { join } from 'node:path';
 import { execa } from 'execa';
-import { HUD } from '../hud.ts';
+import { HUD } from '../hud.js';
 
 /**
  * [GUNGNIR] Raven Command Spoke
@@ -29,7 +29,7 @@ export function registerRavenCommand(program: Command, PROJECT_ROOT: string) {
         .option('--shadow-forge', 'Execute in sandboxed Docker container')
         .action(async (options: { shadowForge?: boolean }) => {
             try {
-                const muninnPidPath = join(PROJECT_ROOT, '.agent', 'muninn.pid');
+                const muninnPidPath = join(PROJECT_ROOT, '.agents', 'muninn.pid');
 
                 // 1. Check if already active
                 if (fs.existsSync(muninnPidPath)) {
@@ -74,7 +74,7 @@ export function registerRavenCommand(program: Command, PROJECT_ROOT: string) {
         .description('Recall the Ravens (Stop Muninn Daemon)')
         .action(async () => {
             try {
-                const muninnPidPath = join(PROJECT_ROOT, '.agent', 'muninn.pid');
+                const muninnPidPath = join(PROJECT_ROOT, '.agents', 'muninn.pid');
                 if (!fs.existsSync(muninnPidPath)) {
                     console.log(chalk.yellow('[ALFRED]: "The Ravens are already nesting, sir."'));
                     return;
@@ -104,7 +104,7 @@ async function displayStatus(PROJECT_ROOT: string) {
         const palette = HUD.palette;
         process.stdout.write(HUD.boxTop('◤ MUNINN MONITOR ◢'));
 
-        const muninnPidPath = join(PROJECT_ROOT, '.agent', 'muninn.pid');
+        const muninnPidPath = join(PROJECT_ROOT, '.agents', 'muninn.pid');
         let muninnStatus = 'OFFLINE';
         let sColor = palette.crucible;
 
@@ -118,7 +118,7 @@ async function displayStatus(PROJECT_ROOT: string) {
                 muninnStatus = 'OFFLINE (STALE)';
             }
         }
-        process.stdout.write(HUD.boxRow('RAVEN STATUS', muninnStatus, sColor.bold));
+        process.stdout.write(HUD.boxRow('RAVEN STATUS', muninnStatus, sColor));
 
         const envPath = join(PROJECT_ROOT, '.env.local');
         let envContent = '';
@@ -161,3 +161,4 @@ async function displayStatus(PROJECT_ROOT: string) {
         process.exit(1);
     }
 }
+

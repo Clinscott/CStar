@@ -1,0 +1,39 @@
+---
+title: "bifrost.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\core\engine\bifrost.py"
+loc: 20
+complexity: 1
+logic_score: 8.22
+style_score: 3.76
+intel_score: 5.40
+overall_score: 5.07
+---
+
+## Intent
+The `bifrost.py` sector implements modular logic focusing on SkillForge, __init__, record_failure, analyze_voids, synthesize_bridge. It forms a node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via SkillForge, __init__, record_failure, analyze_voids, synthesize_bridge. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.2/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 5.4/10
+- **Gravity [G]**: 5 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [os](file://os)
+- [typing](file://typing)
+- [src.core.engine.vector](file://src.core.engine.vector)
+
+### Exports
+- `SkillForge`
+- `__init__`
+- `record_failure`
+- `analyze_voids`
+- `synthesize_bridge`

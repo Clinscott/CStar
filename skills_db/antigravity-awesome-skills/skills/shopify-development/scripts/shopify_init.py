@@ -60,7 +60,7 @@ class EnvLoader:
         Get list of .env file paths in priority order.
 
         Works with any AI tool directory structure:
-        - .agent/skills/ (universal)
+        - .agents/skills/ (universal)
         - .claude/skills/ (Claude Code)
         - .gemini/skills/ (Gemini CLI)
         - .cursor/skills/ (Cursor)

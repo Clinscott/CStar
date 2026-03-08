@@ -33,7 +33,7 @@ test('IPC Boundary: Mocked Python Daemon Handshake', async () => {
     const mockAuthKey = 'mock-secure-key-123';
     
     // Ensure the dummy key is available for CortexLink to read
-    const agentDir = path.resolve(process.cwd(), '.agent');
+    const agentDir = path.resolve(process.cwd(), '.agents');
     if (!fs.existsSync(agentDir)) fs.mkdirSync(agentDir, { recursive: true });
     fs.writeFileSync(path.join(agentDir, 'daemon.key'), mockAuthKey);
     fs.writeFileSync(path.join(agentDir, 'daemon.pid'), '99999');

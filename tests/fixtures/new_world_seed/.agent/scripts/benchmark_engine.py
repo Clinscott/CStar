@@ -4,7 +4,7 @@ import time
 
 
 def benchmark(n=100):
-    cmd = ["python", ".agent/scripts/sv_engine.py", "--benchmark"]
+    cmd = ["python", ".agents/scripts/sv_engine.py", "--benchmark"]
     times = []
 
     print(f"Executing {n} trials of sv_engine.py startup...")

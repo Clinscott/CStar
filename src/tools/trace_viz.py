@@ -137,7 +137,7 @@ class TraceVisualizer:
 
     @staticmethod
     def get_engine():
-        base_path = PROJECT_ROOT / ".agent"
+        base_path = PROJECT_ROOT / ".agents"
         config = TraceVisualizer.load_json(str(base_path / "config.json"))
 
         def _res(fname):
@@ -202,7 +202,7 @@ class TraceVisualizer:
         print("\n")
         renderer.box_top("⚔️  THE WAR ROOM  ⚔️")
 
-        base_path = PROJECT_ROOT / ".agent"
+        base_path = PROJECT_ROOT / ".agents"
         traces_dir = base_path / "traces"
         trace_files = list(traces_dir.glob("*.json"))
 

@@ -1,0 +1,46 @@
+---
+title: "test_muninn_crucible.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\crucible\test_muninn_crucible.py"
+loc: 61
+complexity: 3
+logic_score: 4.27
+style_score: 3.82
+intel_score: 6.65
+overall_score: 4.02
+---
+
+## Intent
+The `test_muninn_crucible.py` sector implements modular logic focusing on TestMuninnCrucible, setUp, test_hunter_breach_detection, test_crucible_forge_and_steel, test_heart_execution_cycle. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via TestMuninnCrucible, setUp, test_hunter_breach_detection, test_crucible_forge_and_steel, test_heart_execution_cycle. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 4.3/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 6.6/10
+- **Gravity [G]**: 16 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [unittest](file://unittest)
+- [json](file://json)
+- [os](file://os)
+- [sys](file://sys)
+- [asyncio](file://asyncio)
+- [pathlib](file://pathlib)
+- [unittest.mock](file://unittest.mock)
+- [src.sentinel.muninn_heart](file://src.sentinel.muninn_heart)
+- [src.sentinel.muninn_hunter](file://src.sentinel.muninn_hunter)
+- [src.sentinel.muninn_crucible](file://src.sentinel.muninn_crucible)
+- [src.cstar.core.uplink](file://src.cstar.core.uplink)
+
+### Exports
+- `TestMuninnCrucible`
+- `setUp`
+- `test_hunter_breach_detection`
+- `test_crucible_forge_and_steel`
+- `test_heart_execution_cycle`

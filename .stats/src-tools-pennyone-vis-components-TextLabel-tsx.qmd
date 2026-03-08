@@ -3,20 +3,20 @@ title: "TextLabel.tsx"
 path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\vis\components\TextLabel.tsx"
 loc: 32
 complexity: 3
-logic_score: 8.30
+logic_score: 8.95
 style_score: 4.13
 intel_score: 3.25
-overall_score: 5.14
+overall_score: 4.39
 ---
 
 ## Intent
-The `TextLabel.tsx` module implements the floating text labels for the 3D neural graph. It renders the filename above each active node using `@react-three/drei`'s `Text`, ensuring that the repository's structure is easily navigable and identifiable in the 3D environment.
+The `TextLabel.tsx` sector implements modular logic focusing on TextLabel, TextLabel, textRef, filename. It forms a node in the Gungnir Matrix.
 
 ## Interaction Protocol
-This component is rendered as a child of a node group. It automatically tracks the node's position in the 3D scene and billboarding its orientation to face the camera for maximum readability.
+Integrate via TextLabel, TextLabel, textRef, filename. Follow the Linscott Standard for this sector.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 8.3/10
+- **Logic [L]**: 8.9/10
 - **Style [S]**: 4.1/10
 - **Intel [I]**: 3.3/10
 - **Gravity [G]**: 6 interactions (Agent Activity Hotspot)

@@ -1,15 +1,15 @@
-import { CortexLink } from '../cortex_link.ts';
+import { CortexLink } from '../cortex_link.js';
 import { execa } from 'execa';
 import path from 'node:path';
 import fs from 'node:fs';
 import net from 'node:net';
-import { registry } from '../../tools/pennyone/pathRegistry.ts';
+import { registry } from '../../tools/pennyone/pathRegistry.js';
 import chalk from 'chalk';
-import { activePersona } from '../../tools/pennyone/personaRegistry.ts';
+import { activePersona } from '../../tools/pennyone/personaRegistry.js';
 
-import { getPythonPath } from './python_utils.ts';
+import { getPythonPath } from './python_utils.js';
 
-import { HUD } from './hud.ts';
+import { HUD } from './hud.js';
 
 /**
  * Autonomic Nervous System (ANS)
@@ -83,7 +83,7 @@ ${activePersona.prefix}: "Initiating global dormancy protocol..."`));
 
         if (!isRunning) {
             console.error(chalk.dim(`${activePersona.prefix} 'Igniting PennyOne...'`));
-            const p1Entry = path.join(registry.getRoot(), 'src', 'tools', 'pennyone', 'daemon.ts');
+            const p1Entry = path.join(registry.getRoot(), 'src', 'tools', 'pennyone', 'daemon.js');
             const npxCmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
             
             // Spawn detached tsx process for the daemon
@@ -114,3 +114,4 @@ ${activePersona.prefix}: "Initiating global dormancy protocol..."`));
         }
     }
 }
+

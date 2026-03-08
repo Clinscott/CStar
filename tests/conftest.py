@@ -39,7 +39,7 @@ def temp_project(tmp_path):
     """Creates a minimal project directory for testing."""
     (tmp_path / "src").mkdir()
     (tmp_path / "tests").mkdir()
-    (tmp_path / ".agent").mkdir()
+    (tmp_path / ".agents").mkdir()
     # Create a simple Python file to scan
     sample = tmp_path / "src" / "sample.py"
     sample.write_text("def hello():\n    print('hi')\n", encoding="utf-8")
@@ -55,7 +55,7 @@ def isolate_workspace(tmp_path, monkeypatch):
     # Create standard directory structure
     (tmp_path / "src").mkdir(exist_ok=True)
     (tmp_path / "tests").mkdir(exist_ok=True)
-    (tmp_path / ".agent").mkdir(exist_ok=True)
+    (tmp_path / ".agents").mkdir(exist_ok=True)
     
     # Mock environment variables to point to the temporary path
     monkeypatch.setenv("PROJECT_ROOT", str(tmp_path))
@@ -88,12 +88,12 @@ def prevent_api_key_leak(monkeypatch):
 def isolate_warden_state():
     """
     Prevent AnomalyWarden state files from leaking between tests.
-    Removes .agent/warden.pkl (and variants) before and after each test
+    Removes .agents/warden.pkl (and variants) before and after each test
     so no test inherits stale weights from a previous one.
     """
     warden_files = [
-        Path(".agent/warden.pkl"),
-        Path(".agent/warden_test.pkl"),
+        Path(".agents/warden.pkl"),
+        Path(".agents/warden_test.pkl"),
     ]
 
     def _cleanup():

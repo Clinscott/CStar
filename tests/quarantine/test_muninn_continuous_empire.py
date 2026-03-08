@@ -12,7 +12,7 @@ from src.sentinel.muninn import Muninn
 
 @pytest.fixture
 def test_root(tmp_path: Path):
-    agent_dir = tmp_path / ".agent"
+    agent_dir = tmp_path / ".agents"
     agent_dir.mkdir()
     
     # Mock Tech Debt Ledger
@@ -63,7 +63,7 @@ def test_muninn_escalate_stuck_target(test_root):
     muninn._handle_verification_failure(target, "MimirWarden")
     
     # Check ledger
-    ledger_path = test_root / ".agent" / "tech_debt_ledger.json"
+    ledger_path = test_root / ".agents" / "tech_debt_ledger.json"
     data = json.loads(ledger_path.read_text())
     
     flaky_target = [t for t in data["top_targets"] if t["file"] == "src/dummy/flaky.py"][0]

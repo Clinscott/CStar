@@ -1,5 +1,5 @@
-import { FileData } from '../types.ts';
-import { IntelProvider } from './llm.ts';
+import { FileData } from '../types.js';
+import { IntelProvider } from './llm.js';
 import path from 'node:path';
 
 /**
@@ -19,3 +19,4 @@ export class MockProvider implements IntelProvider {
         return Promise.all(items.map(item => this.getIntent(item.code, item.data)));
     }
 }
+

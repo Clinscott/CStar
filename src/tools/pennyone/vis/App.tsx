@@ -1,10 +1,11 @@
 /* eslint-disable */
-import React, { useState, useEffect, Component, ReactNode } from 'react';
+import React, { useEffect, Component, ReactNode } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
+import { OrbitControls, PerspectiveCamera, AdaptiveDpr } from '@react-three/drei';
 import { NeuralGraph } from './components/NeuralGraph.tsx';
 import { PlaybackHUD } from './components/PlaybackHUD.tsx';
-import * as THREE from 'three';
+import { SelectionPanelShell } from './components/SelectionPanelShell.tsx';
+import { useMatrixStore } from './store/useMatrixStore.js';
 
 const logToServer = async (type: string, message: string, stack?: string) => {
     const params = new URLSearchParams(window.location.search);
@@ -47,13 +48,15 @@ class MatrixErrorBoundary extends Component<{ children: ReactNode }, { hasError:
 }
 
 export const App: React.FC = () => {
-    const [token, setToken] = useState<string | null>(null);
-    const [matrixData, setMatrixData] = useState<any>(null);
-    const [gravityData, setGravityData] = useState<any>(null);
-    const [nodeMap, setNodeMap] = useState<Map<string, THREE.Vector3>>(new Map());
-    const [isLive, setIsLive] = useState(true);
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [sessionHistory, setSessionHistory] = useState<any[]>([]);
+    const { 
+        token, setToken, 
+        matrixData, setMatrixData, 
+        gravityData, setGravityData,
+        isLive, setIsLive,
+        currentIndex, setCurrentIndex,
+        selectedNode, setSelectedNode,
+        trajectories
+    } = useMatrixStore();
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -65,28 +68,36 @@ export const App: React.FC = () => {
         return () => window.removeEventListener('error', handleError);
     }, []);
 
-    useEffect(() => {
+    const fetchData = async () => {
         if (!token) return;
-        const fetchData = async () => {
-            try {
-                const [matrixRes, gravityRes] = await Promise.all([
-                    fetch(`/api/matrix?token=${token}`),
-                    fetch(`/api/gravity?token=${token}`)
-                ]);
-                if (matrixRes.ok) {
-                    const mData = await matrixRes.json();
-                    setMatrixData(mData);
-                }
-                if (gravityRes.ok) {
-                    const gData = await gravityRes.json();
-                    setGravityData(gData);
-                } else {
-                    setGravityData({});
-                }
-            } catch (error: any) {
-                logToServer('ERROR', `Synchronization failed: ${error.message}`);
+        try {
+            const ts = Date.now();
+            const [matrixRes, gravityRes] = await Promise.all([
+                fetch(`/api/matrix?token=${token}&_ts=${ts}`),
+                fetch(`/api/gravity?token=${token}&_ts=${ts}`)
+            ]);
+            
+            if (matrixRes.status === 401) {
+                logToServer('AUTH_ERROR', '401 Unauthorized - Token mismatch');
+                return;
             }
-        };
+
+            if (matrixRes.ok) {
+                const mData = await matrixRes.json();
+                setMatrixData(mData);
+            }
+            if (gravityRes.ok) {
+                const gData = await gravityRes.json();
+                setGravityData(gData);
+            } else {
+                setGravityData({});
+            }
+        } catch (error: any) {
+            logToServer('ERROR', `Synchronization failed: ${error.message}`);
+        }
+    };
+
+    useEffect(() => {
         fetchData();
     }, [token]);
 
@@ -100,7 +111,7 @@ export const App: React.FC = () => {
     }
 
     return (
-        <div style={{ width: '100vw', height: '100vh', background: '#00050a' }}>
+        <div style={{ width: '100vw', height: '100vh', background: '#00050a', position: 'relative', overflow: 'hidden' }}>
             <MatrixErrorBoundary>
                 {matrixData ? (
                     <>
@@ -112,14 +123,10 @@ export const App: React.FC = () => {
                             <directionalLight position={[100, 100, 100]} intensity={1.0} color="#00f2ff" />
 
                             <React.Suspense fallback={null}>
-                                <NeuralGraph
-                                    data={matrixData}
-                                    gravityData={gravityData || {}}
-                                    token={token}
-                                    onNodesMapped={setNodeMap}
-                                />
+                                <NeuralGraph onRefresh={fetchData} />
                             </React.Suspense>
                             <OrbitControls makeDefault enableDamping />
+                            <AdaptiveDpr pixelated />
                         </Canvas>
 
                         <div className="glass-hud">
@@ -127,8 +134,16 @@ export const App: React.FC = () => {
                             <div className="subtitle">Operation PennyOne | Lead Engineer Overhaul</div>
                         </div>
 
+                        {selectedNode && (
+                            <SelectionPanelShell 
+                                selectedNode={selectedNode} 
+                                trajectories={trajectories} 
+                                onClose={() => setSelectedNode(null)} 
+                            />
+                        )}
+
                         <PlaybackHUD
-                            sessionLength={sessionHistory?.length || 0}
+                            sessionLength={0}
                             currentIndex={currentIndex}
                             onSeek={setCurrentIndex}
                             isLive={isLive}
@@ -152,6 +167,7 @@ export const App: React.FC = () => {
                     background: rgba(0, 5, 10, 0.7); backdrop-filter: blur(10px);
                     border: 1px solid rgba(0, 242, 255, 0.3); padding: 20px;
                     color: #fff; font-family: 'Inter', sans-serif; border-radius: 4px; pointer-events: none;
+                    z-index: 100;
                 }
                 .title { font-size: 1.2rem; font-weight: bold; color: #00f2ff; letter-spacing: 2px; }
                 .subtitle { font-size: 0.7rem; color: #aaa; margin-top: 5px; text-transform: uppercase; }
@@ -159,4 +175,3 @@ export const App: React.FC = () => {
         </div>
     );
 };
-

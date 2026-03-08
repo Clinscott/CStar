@@ -27,7 +27,7 @@ from src.core.sovereign_hud import SovereignHUD
 class CacheBro:
     def __init__(self):
         self.root = Path(__file__).resolve().parents[4]
-        self.cache_file = self.root / ".agent" / "cachebro.json"
+        self.cache_file = self.root / ".agents" / "cachebro.json"
         self.cache = self._load_cache()
 
     def _load_cache(self) -> dict:

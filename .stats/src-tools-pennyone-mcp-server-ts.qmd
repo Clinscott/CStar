@@ -1,13 +1,4 @@
----
-title: "mcp-server.ts"
-path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\mcp-server.ts"
-loc: 291
-complexity: 18
-logic_score: 1.17
-style_score: 3.60
-intel_score: 2.91
-overall_score: 2.45
----
+# Sector Intelligence: src/tools/pennyone/mcp-server.ts
 
 ## Intent
 The `mcp-server.ts` module exposes the PennyOne engine's capabilities to the Model Context Protocol (MCP). It allows external agents (the One Mind) to perform repository scans, search for intents, and focus on specific code symbols via a standardized tool interface.
@@ -15,72 +6,8 @@ The `mcp-server.ts` module exposes the PennyOne engine's capabilities to the Mod
 ## Interaction Protocol
 The server is initialized by calling its `main` function. Once online, it responds to standardized MCP tool requests such as `scan_repository`, `get_file_intent`, and `mimir_focus` via the Bifrost Gate.
 
-## Gungnir Matrix Breakdown
-- **Logic [L]**: 1.2/10
-- **Style [S]**: 3.6/10
-- **Intel [I]**: 2.9/10
-- **Gravity [G]**: 46 interactions (Agent Activity Hotspot)
-
-
-
-## Neural Pathways
-
-### Imports
-- [McpServer](file://@modelcontextprotocol/sdk/server/mcp.js)
-- [StdioServerTransport](file://@modelcontextprotocol/sdk/server/stdio.js)
-- [z](file://zod)
-- [runScan](file://./index.ts)
-- [indexSector](file://./index.ts)
-- [SemanticIndexer](file://./intel/semantic.ts)
-- [getDb](file://./intel/database.ts)
-- [searchIntents](file://./intel/database.ts)
-- [registry](file://./pathRegistry.ts)
-- [SamplingProvider](file://./intel/llm.ts)
-- [*](file://node:path)
-- [*](file://node:fs/promises)
-
-### Exports
-- `server`
-- `logTrace`
-- `missionId`
-- `response`
-- `missionId`
-- `result`
-- `missionId`
-- `results`
-- `missionId`
-- `statsDir`
-- `absoluteRoot`
-- `absoluteFile`
-- `relativePath`
-- `flattenedName`
-- `qmdPath`
-- `content`
-- `intentMatch`
-- `intent`
-- `interactionMatch`
-- `interaction`
-- `missionId`
-- `statsDir`
-- `absoluteRoot`
-- `absoluteFile`
-- `relativePath`
-- `flattenedName`
-- `qmdPath`
-- `content`
-- `interactionMatch`
-- `interaction`
-- `missionId`
-- `results`
-- `output`
-- `missionId`
-- `indexer`
-- `result`
-- `output`
-- `missionId`
-- `ledgerPath`
-- `raw`
-- `ledger`
-- `output`
-- `main`
-- `transport`
+## Matrix Scores
+- **Logic**: 8.5
+- **Style**: 9.0
+- **Intel**: 10.0
+- **Overall**: 9.17

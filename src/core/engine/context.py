@@ -15,7 +15,7 @@ from src.tools.compile_session_traces import TraceCompiler
 class SovereignContext:
     def __init__(self, project_root: Path):
         self.project_root = project_root
-        self.base_path = self.project_root / ".agent"
+        self.base_path = self.project_root / ".agents"
         self.config = utils.load_config(str(self.project_root))
         
         # Persona Initialization

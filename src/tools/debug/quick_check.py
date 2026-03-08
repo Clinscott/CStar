@@ -28,7 +28,7 @@ class QuickCheck:
         """
         # Paths relative to the project root
         thesaurus_path = str(PROJECT_ROOT / 'thesaurus.qmd')
-        corrections_path = str(PROJECT_ROOT / '.agent' / 'corrections.json')
+        corrections_path = str(PROJECT_ROOT / '.agents' / 'corrections.json')
         stopwords_path = str(PROJECT_ROOT / 'src' / 'data' / 'stopwords.json')
 
         e = SovereignVector(

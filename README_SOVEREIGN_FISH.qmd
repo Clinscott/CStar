@@ -9,7 +9,7 @@ The Sovereign Fish Daemon (`main_loop.py`) is a background process that continuo
 ## 🎯 Features
 - **Auto-Discovery (Annex)**: Uses `annex.py` logic to find missing tests and code quality issues.
 - **Visual Polish (Beauty)**: Scans for UI imperfections (e.g., missing hover states in React/Tailwind).
-- **Campaign Execution**: Reads `.agent/CAMPAIGN_IMPLEMENTATION_PLAN.qmd` to autonomously execute the "N=1000 Campaign" roadmap.
+- **Campaign Execution**: Reads `.agents/CAMPAIGN_IMPLEMENTATION_PLAN.qmd` to autonomously execute the "N=1000 Campaign" roadmap.
 - **Fail-Safe**: Verifies all changes with `pytest`. If tests fail, it rolls back immediately.
 - **Non-Destructive**: skips any repo with uncommitted changes ("Dirty Check").
 - **Isolated**: Works on a dedicated branch `sovereign-fish-auto`.
@@ -51,7 +51,7 @@ python -m src.sentinel.main_loop
    ```
 
 ## 📂 Configuration
-The target repositories are defined in `.agent/config.json`:
+The target repositories are defined in `.agents/config.json`:
 - `Corvus Star`
 - `KeepOS`
 - `The Nexus`

@@ -1,0 +1,42 @@
+---
+title: "test_huginn_empire.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\empire_tests\test_huginn_empire.py"
+loc: 62
+complexity: 2
+logic_score: 3.97
+style_score: 3.72
+intel_score: 7.85
+overall_score: 4.51
+---
+
+## Intent
+The `test_huginn_empire.py` sector implements modular logic focusing on TestHuginnEmpire, mock_root, test_scan_no_traces, test_scan_regex_hallucination, test_scan_regex_deviance, test_scan_neural_audit, mock_send. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via TestHuginnEmpire, mock_root, test_scan_no_traces, test_scan_regex_hallucination, test_scan_regex_deviance, test_scan_neural_audit, mock_send. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 4.0/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 7.9/10
+- **Gravity [G]**: 13 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [unittest.mock](file://unittest.mock)
+- [pytest](file://pytest)
+- [src.sentinel.wardens.huginn](file://src.sentinel.wardens.huginn)
+
+### Exports
+- `TestHuginnEmpire`
+- `mock_root`
+- `test_scan_no_traces`
+- `test_scan_regex_hallucination`
+- `test_scan_regex_deviance`
+- `test_scan_neural_audit`
+- `mock_send`

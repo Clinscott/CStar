@@ -26,8 +26,8 @@ HOST = "127.0.0.1"
 PORT = int(os.getenv("CSTAR_DAEMON_PORT", "50051"))
 # If port is 0, we'll let the OS decide and we'll need to report it back or use a fixed one if 0 not supported by websockets serve easily
 # Actually websockets.serve(..., port=0) works and we can get the port from the server object.
-PID_FILE = PROJECT_ROOT / ".agent" / "daemon.pid"
-KEY_FILE = PROJECT_ROOT / ".agent" / "daemon.key"
+PID_FILE = PROJECT_ROOT / ".agents" / "daemon.pid"
+KEY_FILE = PROJECT_ROOT / ".agents" / "daemon.key"
 
 # Singleton for functional compatibility
 _daemon_singleton = None
@@ -327,7 +327,7 @@ class CStarDaemon:
             await mimir.close()
         except Exception: pass
 
-        trace_path = PROJECT_ROOT / ".agent" / "traces" / f"session_{int(time.time())}.json"
+        trace_path = PROJECT_ROOT / ".agents" / "traces" / f"session_{int(time.time())}.json"
         trace_path.parent.mkdir(parents=True, exist_ok=True)
         trace_path.write_text(json.dumps(self.session_traces, indent=2))
         
@@ -344,7 +344,6 @@ class CStarDaemon:
         KEY_FILE.write_text(self.auth_key)
         PID_FILE.write_text(str(os.getpid()))
         
-        SovereignHUD.transition_ceremony("SYSTEM", "MUNINN")
         SovereignHUD.persona_log("INFO", f"Muninn Daemon active on ws://{HOST}:{PORT}")
         
         async with serve(self.handle_client, HOST, PORT):

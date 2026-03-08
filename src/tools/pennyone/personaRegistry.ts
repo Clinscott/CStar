@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { registry } from './pathRegistry.ts';
+import { registry } from './pathRegistry.js';
 
 /**
  * Operation PennyOne: Configuration-Driven Persona Registry
@@ -34,7 +34,7 @@ export class PersonaRegistry {
     private loadConfig(): ActivePersona {
         try {
             const root = registry.getRoot();
-            const configPath = path.join(root, '.agent', 'config.json');
+            const configPath = path.join(root, '.agents', 'config.json');
             if (fs.existsSync(configPath)) {
                 const configData = fs.readFileSync(configPath, 'utf-8');
                 const data = JSON.parse(configData);
@@ -73,4 +73,5 @@ export class PersonaRegistry {
 }
 
 export const activePersona = PersonaRegistry.getInstance().getPersona();
+
 

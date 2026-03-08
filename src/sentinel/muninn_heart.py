@@ -28,7 +28,7 @@ class MuninnHeart:
     def __init__(self, root: Path, uplink: Any):
         self.root = root
         self.uplink = uplink
-        self.pid_file = self.root / ".agent" / "muninn.pid"
+        self.pid_file = self.root / ".agents" / "muninn.pid"
         self.metrics_engine = ProjectMetricsEngine()
         self.watcher = TheWatcher(self.root)
         self.memory = MuninnMemory(self.root)

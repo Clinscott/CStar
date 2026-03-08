@@ -1,14 +1,14 @@
 # Task: Corvus Star Framework Development
 
 ## ⚡ Sovereign Commands (Workflows)
-All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md` for Menu discovery).
-- `/lets-go` → [lets-go.md](.agent/workflows/lets-go.md): Resume state and identify priorities.
-- `/run-task` → [run-task.md](.agent/workflows/run-task.md): Targeted execution of user requests.
-- `/investigate` → [investigate.md](.agent/workflows/investigate.md): Deep code exploration and debugging.
-- `/plan` → [plan.md](.agent/workflows/plan.md): Blueprinting and architecture.
-- `/test` → [test.md](.agent/workflows/test.md): Integrity, regression, and performance validation.
-- `/wrap-it-up` → [wrap-it-up.md](.agent/workflows/wrap-it-up.md): Session cleanup and handshake.
-- `/sovereignfish` → [SovereignFish.qmd](.agent/workflows/SovereignFish.qmd): Self-improvement protocol.
+All commands call specific logic in `.agents/workflows/` (Hybrid Extension: `.md` for Menu discovery).
+- `/lets-go` → [lets-go.md](.agents/workflows/lets-go.md): Resume state and identify priorities.
+- `/run-task` → [run-task.md](.agents/workflows/run-task.md): Targeted execution of user requests.
+- `/investigate` → [investigate.md](.agents/workflows/investigate.md): Deep code exploration and debugging.
+- `/plan` → [plan.md](.agents/workflows/plan.md): Blueprinting and architecture.
+- `/test` → [test.md](.agents/workflows/test.md): Integrity, regression, and performance validation.
+- `/wrap-it-up` → [wrap-it-up.md](.agents/workflows/wrap-it-up.md): Session cleanup and handshake.
+- `/sovereignfish` → [SovereignFish.qmd](.agents/workflows/SovereignFish.qmd): Self-improvement protocol.
 
 ## 🗺️ Core Components
 - **The Sovereign Engine** (`src/core/engine/`):
@@ -24,7 +24,7 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [X] **Contextual Gravity**: Implemented path-aware domain boosting.
 - [X] **Honest Classifier**: established 0.80 score floor and "Unknown Intent" detection.
 - [X] **JIT Instruction Injection**: Optimized context window by loading skill data on-demand.
-- **The Workforce** (`skills/` and `.agent/skills/`): Project-specific automation logic.
+- **The Workforce** (`skills/` and `.agents/skills/`): Project-specific automation logic.
 
 ## ✅ Completed Phases
 
@@ -147,7 +147,7 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 
 ### 32. Dynamic CLI & Dynamic Discovery (Session 49)
 - [x] **Dynamic Dispatch**: Implemented file-system discovery in `cstar_dispatcher.py` for both `.py` (skills) and `.md/.qmd` (workflows). [x]
-- [x] **Registry Removal**: Decoupled the CLI from hardcoded maps; any file in `.agent/skills/` or `.agent/workflows/` is now an instant command. [x]
+- [x] **Registry Removal**: Decoupled the CLI from hardcoded maps; any file in `.agents/skills/` or `.agents/workflows/` is now an instant command. [x]
 - [x] **Proxy Skills**: Built 10 proxy scripts to preserve legacy commands (`ravens`, `trace`, `synapse`) and lore aliases. [x]
 - [x] **Dynamic Help**: Refactored `c*` help to list all discovered commands from the filesystem automatically. [x]
 
@@ -207,7 +207,7 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Neural Persistence**: Implemented `save_weights/load_weights` (pickle) in `AtomicCortex`. [x]
 - [x] **Weight Tuning**: Closed the feedback loop in `tune_weights.py` to persist learned weight adjustments to `thesaurus.qmd`. [x]
 - [x] **Web Integration**: Integrated `BraveSearch` into `Muninn` for context augmentation, optimized to 1 search/run. [x]
-- [x] **Trace Corrections**: Enabled `compile_session_traces.py` to auto-write `critical_fails` to `.agent/corrections.json`. [x]
+- [x] **Trace Corrections**: Enabled `compile_session_traces.py` to auto-write `critical_fails` to `.agents/corrections.json`. [x]
 
 ### 42. Web-Aware CLI Tools (Session 57)
 - [x] **Brave CLI**: Exposed `src/tools/brave_search.py` to the CLI for manual ad-hoc queries (`python -m src.tools.brave_search`). [x]
@@ -261,7 +261,7 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Model Harmonization**: Updated all systems to `gemini-3-flash-preview` and `gemini-3.1-pro-preview`. [x]
 - [x] **Network Standard**: Harmonized all internal communication to `127.0.0.1` and port 50052. [x]
 - [x] **Deterministic Status**: Refactored `ravens --status` into a local, daemon-independent Node.js command in `bin/cstar.js`. [x]
-- [x] **PID Heartbeat**: Implemented `.agent/muninn.pid` for high-fidelity health tracking in `muninn.py` and the CLI. [x]
+- [x] **PID Heartbeat**: Implemented `.agents/muninn.pid` for high-fidelity health tracking in `muninn.py` and the CLI. [x]
 - [x] **Boot Optimization**: Suppressed engine boot logs in `vector.py` to ensure instant CLI connectivity. [x]
 
 ### 51. Operation Ragnarök: Architectural Hardening (Session 66)
@@ -497,7 +497,7 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Silence Protocol**: Implemented `TheWatcher.get_last_edit_time()` to ensure `muninn.py` only audits the codebase after 5 minutes of inactivity.
 - [x] **Ledger Synchronization**: Rewrote target selection to parse `tech_debt_ledger.json` and prioritize files systematically over reactive hunting.
 - [x] **Escalation Protocol**: `muninn.py` flags failing files as `BLOCKED_STUCK` in the Tech Debt Ledger after 3 Crucible verification failures.
-- [x] **LookAhead**: Authored `cstar unblock <file>` (`.agent/skills/unblock.py`) utility for manual file recovery.
+- [x] **LookAhead**: Authored `cstar unblock <file>` (`.agents/skills/unblock.py`) utility for manual file recovery.
 - [x] **Verification**: Built and verified continuous loop via `tests/empire_tests/test_muninn_continuous_empire.py`.
 
 ### 87. PennyOne Structural Rectification & Strict TDD (Session 103)
@@ -571,10 +571,18 @@ All commands call specific logic in `.agent/workflows/` (Hybrid Extension: `.md`
 - [x] **Infrastructure Hardening**: Updated `taliesin.py` and `uplink.py` for dynamic `gemini-2.5` routing. [x]
 - [x] **Constraint Implementation**: Enforced "No Autonomous API Generation" mandate. [x]
 
-## ⏭️ Start Here Next (Phase 98)
+### 98. The Oracle Handshake & MCP Stabilization (Session 116)
+- [x] **Method not found Exorcism**: Fixed the recursive sampling crash in `mcp-server.ts` by implementing the **Direct SDK Strike** (Gemini 2.0 Flash) with the **ADC Payload**. [x]
+- [x] **PennyOne Core Stabilization**: Resolved critical `tsc` errors in `index.ts`, `llm.ts`, and `analyzer.ts`, achieving 100% server-side type safety. [x]
+- [x] **SovereignHUD Hardening**: Fixed `Chalk` type annotations and missing properties in `hud.ts` and `ceremony.ts`. [x]
+- [x] **Bifrost Bridge Fortification**: Updated `cortex_link.ts` to support complex payloads and corrected `raven` status logic in `ravens.ts`. [x]
+- [x] **One Mind Intent**: Refactored `SamplingProvider` to use Direct SDK Strike for consistent, high-fidelity intent generation. [x]
+
+## ⏭️ Start Here Next (Phase 99)
 - [ ] **Full Manuscript Expansion**: Generate Chapter 2 (The Arrival) using the Phase 8 EAS/NDS pipeline.
 - [ ] **Character Evolution**: Expand `exemplars.json` with Nicci's and Roan's specific manuscript rhythms.
-- [ ] **Autonomous Endurance**: Run a 10-iteration `ravens_harness` in YOLO mode to validate stability.
+- [ ] **Shadow Forge Resilience**: Conduct a 10-iteration `ravens_harness` in YOLO mode to validate stability under Shadow Forge conditions.
 - [ ] **Operation Ironclad**: Security hardening of `.env.local` and regular API key rotation logic.
+- [ ] **Visualization Polish**: Resolve remaining D3 and React-Three-Fiber type errors in the `vis/` sub-components.
 
 

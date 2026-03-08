@@ -1,0 +1,6 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+export const TrajectoryList = ({ trajectories }) => {
+    if (trajectories.length === 0)
+        return null;
+    return (_jsxs("div", { className: "trajectory-log", style: { marginTop: '20px', borderTop: '1px solid #333', paddingTop: '15px' }, children: [_jsx("label", { style: { display: 'block', color: '#00f2ff', fontSize: '10px', marginBottom: '10px' }, children: "NEURAL TRAJECTORIES" }), _jsx("div", { style: { maxHeight: '150px', overflowY: 'auto', fontSize: '0.8rem' }, children: trajectories.map((t, i) => (_jsxs("div", { style: { marginBottom: '10px', padding: '5px', background: '#1a1a1a', borderLeft: `2px solid ${t.final_score > t.initial_score ? '#00ff00' : '#ff4d4d'}` }, children: [_jsxs("div", { style: { display: 'flex', justifyContent: 'space-between' }, children: [_jsx("span", { style: { color: '#888' }, children: new Date(t.timestamp).toLocaleDateString() }), _jsxs("span", { style: { color: t.final_score > t.initial_score ? '#00ff00' : '#ff4d4d' }, children: [t.initial_score.toFixed(1), " \u2192 ", t.final_score.toFixed(1)] })] }), _jsx("div", { style: { fontSize: '0.7rem', color: '#aaa', marginTop: '3px' }, children: t.justification })] }, i))) })] }));
+};

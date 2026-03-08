@@ -298,8 +298,8 @@ class SovereignHUD:
         """Logs a rejected attempt to the rejection ledger."""
         ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         entry = f"| {ts} | {persona} | {reason} | {details} |\n"
-        # We target a specific ledger path: .agent/traces/quarantine/REJECTIONS.qmd
-        ledger_path = os.path.join(os.getcwd(), ".agent", "traces", "quarantine", "REJECTIONS.qmd")
+        # We target a specific ledger path: .agents/traces/quarantine/REJECTIONS.qmd
+        ledger_path = os.path.join(os.getcwd(), ".agents", "traces", "quarantine", "REJECTIONS.qmd")
         try:
             os.makedirs(os.path.dirname(ledger_path), exist_ok=True)
             if not os.path.exists(ledger_path):

@@ -1,6 +1,6 @@
 import path from 'node:path';
 import fs from 'node:fs';
-import { registry } from '../../tools/pennyone/pathRegistry.ts';
+import { registry } from '../../tools/pennyone/pathRegistry.js';
 
 /**
  * [GUNGNIR] Python Utility
@@ -20,3 +20,4 @@ export function getPythonPath(): string {
     // 3. Fallback to system python
     return 'python';
 }
+

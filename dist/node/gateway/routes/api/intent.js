@@ -10,6 +10,10 @@ const IntentSchema = Type.Object({
     target_workflow: Type.String(),
     extracted_entities: Type.Optional(Type.Record(Type.String(), Type.Any()))
 });
+/**
+ *
+ * @param fastify
+ */
 export default async function (fastify) {
     fastify.post('/intent', {
         schema: {

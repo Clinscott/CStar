@@ -13,7 +13,7 @@ from src.cstar.core.uplink import AntigravityUplink
 class SkillForger:
     def __init__(self, project_root: Path):
         self.project_root = project_root
-        self.staging_dir = self.project_root / ".agent" / "skills" / "staging"
+        self.staging_dir = self.project_root / ".agents" / "skills" / "staging"
         self.staging_dir.mkdir(parents=True, exist_ok=True)
         self.uplink = AntigravityUplink()
 

@@ -21,7 +21,7 @@ class PersonaManager:
 
     def __init__(self, target_root: Path | None = None):
         self.script_path = Path(__file__).absolute()
-        self.base_dir = self.script_path.parent.parent  # .agent/
+        self.base_dir = self.script_path.parent.parent  # .agents/
         self.project_root = target_root or self.base_dir.parent
         self.config_paths = [
             self.base_dir / "config.json",

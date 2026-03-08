@@ -38,7 +38,7 @@ class TestTheWatcher:
         assert watcher.is_locked(rel_path) is True
 
         # Manually manipulate state for cooldown (1 hour and 1 second ago)
-        state_file = tmp_path / ".agent" / "sovereign_state.json"
+        state_file = tmp_path / ".agents" / "sovereign_state.json"
         state = json.loads(state_file.read_text())
         state[rel_path]["last_edited"] = time.time() - 3601
         state_file.write_text(json.dumps(state))

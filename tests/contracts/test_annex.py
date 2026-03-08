@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 
-# Add .agent/scripts to sys.path to from src.core import annex and edda
-scripts_dir = Path(__file__).parents[2] / ".agent" / "scripts"
+# Add .agents/scripts to sys.path to from src.core import annex and edda
+scripts_dir = Path(__file__).parents[2] / ".agents" / "scripts"
 sys.path.append(str(scripts_dir))
 
 from src.core.annex import HeimdallWarden
@@ -30,7 +30,7 @@ def mock_dominion(tmp_path):
     (docs / "scroll.md").write_text("# Old Scroll", encoding="utf-8")
 
     # 4. Ignored Realm (Workflows)
-    workflows = root / ".agent" / "workflows"
+    workflows = root / ".agents" / "workflows"
     workflows.mkdir(parents=True)
     (workflows / "ignored.md").write_text("# Ignored", encoding="utf-8")
 

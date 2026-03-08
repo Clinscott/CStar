@@ -3,7 +3,7 @@
 [SKILL] Wild Hunt
 Lore: Scouring digital realms for techniques, forging them directly into the One Mind.
 Persona: ODIN
-Purpose: Ingests GitHub repos directly into active skills (.agent/skills).
+Purpose: Ingests GitHub repos directly into active skills (.agents/skills).
 Safeguard: Untrusted sources are processed via Shadow Forge (Docker sandbox).
 """
 
@@ -41,10 +41,10 @@ class WildHunt:
 
     def __init__(self) -> None:
         self.root = Path(__file__).resolve().parents[4]
-        if not (self.root / ".agent").exists():
+        if not (self.root / ".agents").exists():
             self.root = Path(__file__).resolve().parents[3]
             
-        self.active_skills = self.root / ".agent" / "skills"
+        self.active_skills = self.root / ".agents" / "skills"
         if not self.active_skills.exists():
             self.active_skills.mkdir(parents=True)
             
@@ -123,7 +123,7 @@ class WildHunt:
 
     def _sandbox_ingest(self, url: str, target_dir: Path, skill_name: str) -> None:
         # 1. Clone into a temporary external staging dir (not in the active matrix yet)
-        staging_dir = self.root / ".agent" / "temp_hunt" / skill_name
+        staging_dir = self.root / ".agents" / "temp_hunt" / skill_name
         if staging_dir.exists():
             shutil.rmtree(staging_dir, onerror=self._remove_readonly)
         staging_dir.mkdir(parents=True)

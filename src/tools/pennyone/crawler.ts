@@ -10,17 +10,17 @@ import * as fsSync from 'node:fs';
  * @returns {Promise<string[]>} File paths
  */
 export async function crawlRepository(targetPath: string): Promise<string[]> {
-    const allowedExtensions = new Set(['.js', '.ts', '.jsx', '.tsx', '.py', '.md', '.qmd']);
+    const allowedExtensions = new Set(['.js', '.js', '.jsx', '.tsx', '.py', '.md', '.qmd']);
 
     // Patterns that signify transient/bloat data
     const bloatPatterns = [
         `${path.sep}tmp_`,
         `${path.sep}temp_`,
         'node_modules',
-        '.agent' + path.sep + 'temp_hunt',
-        '.agent' + path.sep + 'vault',
-        '.agent' + path.sep + 'traces',
-        '.agent' + path.sep + 'memory',
+        '.agents' + path.sep + 'temp_hunt',
+        '.agents' + path.sep + 'vault',
+        '.agents' + path.sep + 'traces',
+        '.agents' + path.sep + 'memory',
         'tests' + path.sep + 'gauntlet',
         '.stats',
         '.quarto',
@@ -65,4 +65,5 @@ export async function crawlRepository(targetPath: string): Promise<string[]> {
         return [];
     }
 }
+
 

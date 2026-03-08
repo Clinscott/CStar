@@ -1,24 +1,24 @@
 ---
 title: "AuraLayers.tsx"
 path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\vis\components\AuraLayers.tsx"
-loc: 76
-complexity: 8
-logic_score: 6.82
-style_score: 3.97
-intel_score: 4.63
-overall_score: 4.47
+loc: 100
+complexity: 7
+logic_score: 7.75
+style_score: 4.04
+intel_score: 4.00
+overall_score: 3.50
 ---
 
 ## Intent
-The `AuraLayers.tsx` module implements the visual 'Aura' system for the 3D neural graph. It uses Fresnel shaders to render high-fidelity glow effects around nodes, visually signaling 'Toxic Sectors' (red auras for high complexity) or 'Golden Sectors' (cyan auras for pure logic).
+The `AuraLayers.tsx` sector implements modular logic focusing on GungnirAuraMaterial, FresnelAura, FresnelAura, materialRef, isToxic, isExcellence, gravity, scale, base, color, intensity, pulseSpeed, SelectionHighlight, SelectionHighlight, meshRef, s. It forms a node in the Gungnir Matrix.
 
 ## Interaction Protocol
-This component is rendered as a child of individual nodes. It dynamically updates its shader properties based on the node's Gungnir metrics, providing immediate visual feedback on the health and gravity of specific code sectors.
+Integrate via GungnirAuraMaterial, FresnelAura, FresnelAura, materialRef, isToxic, isExcellence, gravity, scale, base, color, intensity, pulseSpeed, SelectionHighlight, SelectionHighlight, meshRef, s. Follow the Linscott Standard for this sector.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 6.8/10
+- **Logic [L]**: 7.8/10
 - **Style [S]**: 4.0/10
-- **Intel [I]**: 4.6/10
+- **Intel [I]**: 4.0/10
 - **Gravity [G]**: 12 interactions (Agent Activity Hotspot)
 
 
@@ -27,22 +27,29 @@ This component is rendered as a child of individual nodes. It dynamically update
 
 ### Imports
 - [useRef](file://react)
+- [useMemo](file://react)
 - [*](file://three)
 - [useFrame](file://@react-three/fiber)
 - [extend](file://@react-three/fiber)
+- [ThreeElement](file://@react-three/fiber)
 - [shaderMaterial](file://@react-three/drei)
-- [Node](file://../types/index.ts)
+- [Node](file://../types/index.js)
+- [useMatrixStore](file://../store/useMatrixStore.js)
 
 ### Exports
-- `FresnelMaterial`
-- `FresnelMaterial`
-- `SelectionHighlight`
-- `SelectionHighlight`
-- `meshRef`
+- `GungnirAuraMaterial`
 - `FresnelAura`
 - `FresnelAura`
 - `materialRef`
-- `logicVal`
 - `isToxic`
-- `gungnir`
-- `isGold`
+- `isExcellence`
+- `gravity`
+- `scale`
+- `base`
+- `color`
+- `intensity`
+- `pulseSpeed`
+- `SelectionHighlight`
+- `SelectionHighlight`
+- `meshRef`
+- `s`

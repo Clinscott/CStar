@@ -1,0 +1,40 @@
+---
+title: "rng.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\games\odin_protocol\engine\rng.py"
+loc: 21
+complexity: 1
+logic_score: 4.38
+style_score: 4.10
+intel_score: 9.40
+overall_score: 5.92
+---
+
+## Intent
+The `rng.py` sector implements modular logic focusing on TacticalRNG, random, uniform, choice, randint, secure_choice. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via TacticalRNG, random, uniform, choice, randint, secure_choice. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 4.4/10
+- **Style [S]**: 4.1/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 8 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [random](file://random)
+- [secrets](file://secrets)
+- [collections.abc](file://collections.abc)
+- [typing](file://typing)
+
+### Exports
+- `TacticalRNG`
+- `random`
+- `uniform`
+- `choice`
+- `randint`
+- `secure_choice`

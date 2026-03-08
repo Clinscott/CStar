@@ -41,7 +41,7 @@ ON agent.spawn():
     agent.context.parent_id = spawner.agent_id
     agent.context.lineage = [...spawner.lineage, spawner.agent_id]
     agent.context.inherited_memory = spawner.memory.export()
-    WRITE .agent/sub-agents/${agent.agent_id}.json
+    WRITE .agents/sub-agents/${agent.agent_id}.json
 ```
 
 **Rationale:** Context drift kills multi-agent systems. Lineage is truth.
@@ -113,7 +113,7 @@ rules/
 
 **Context Obligations:**
 - MUST inherit parent agent's context
-- MUST log all decisions to .agent/sub-agents/${agent_id}.md
+- MUST log all decisions to .agents/sub-agents/${agent_id}.md
 - MUST reference spec in all implementation commits
 
 ### QA Swarm Agents
@@ -220,7 +220,7 @@ auto_review:
 **Update Frequency:** After significant events
 **Content:** Decisions, deployments, reviews
 
-### 5. .agent/sub-agents/*.json (Lineage Tracking)
+### 5. .agents/sub-agents/*.json (Lineage Tracking)
 **Purpose:** Who did what and why?
 **Update Frequency:** Agent lifecycle events
 **Content:** Agent context, decisions, inherited memory

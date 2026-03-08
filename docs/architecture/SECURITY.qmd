@@ -29,16 +29,16 @@ The `synapse_sync.py` utility enforces strict authentication for outbound synchr
 
 ### 3. Airlock Protocol (Skill Installation)
 The `install_skill.py` utility implements a multi-stage quarantine:
-1. **Isolation**: Skills are downloaded into a `.agent/quarantine` zone.
+1. **Isolation**: Skills are downloaded into a `.agents/quarantine` zone.
 2. **Integrity Check**: Mandatory metadata (`SKILL.qmd`) is verified.
 3. **Security Scan**: Every Python and Markdown file is scanned for dangerous patterns (OS manipulation, network escape) via `security_scan.py`.
-4. **Promotion**: Only verified items are promoted to the active `.agent/skills` folder.
+4. **Promotion**: Only verified items are promoted to the active `.agents/skills` folder.
 
 ## 🧪 Verification & Audit
 
 To verify the security state of your local installation:
-- Run `python .agent/scripts/sv_engine.py --benchmark` to check internal integrity.
-- Review `.agent/install.log` for setup transparency.
+- Run `python .agents/scripts/sv_engine.py --benchmark` to check internal integrity.
+- Review `.agents/install.log` for setup transparency.
 - Review the Synapse Audit Log in your Knowledge Core repository.
 
 ## 🚩 Reporting Vulnerabilities

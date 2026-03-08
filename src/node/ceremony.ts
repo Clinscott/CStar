@@ -1,18 +1,18 @@
-import chalk, { Chalk } from 'chalk';
+import chalk, { ChalkInstance } from 'chalk';
 import fs from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { activePersona } from '../tools/pennyone/personaRegistry.ts';
-import { ANS } from './core/ans.ts';
-import { HUD } from './core/hud.ts';
+import { activePersona } from '../tools/pennyone/personaRegistry.js';
+import { ANS } from './core/ans.js';
+import { HUD } from './core/hud.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const PROJECT_ROOT = join(__dirname, '..', '..');
 
 interface PersonaTheme {
-    main: Chalk;
-    dim: Chalk;
-    accent: Chalk;
+    main: ChalkInstance;
+    dim: ChalkInstance;
+    accent: ChalkInstance;
     title: string;
     greeting: string;
     bootMessages: string[];
@@ -75,7 +75,7 @@ async function sleep(ms: number) {
  *
  * @param status
  */
-function getStatusColor(status: string): Chalk {
+function getStatusColor(status: string): ChalkInstance {
     switch (status.toUpperCase()) {
     case 'ACTIVE':
     case 'SECURE':
@@ -102,7 +102,7 @@ function getStatusColor(status: string): Chalk {
  *
  */
 function getRavensStatus(): string {
-    const pidPath = join(PROJECT_ROOT, '.agent', 'muninn.pid');
+    const pidPath = join(PROJECT_ROOT, '.agents', 'muninn.pid');
     if (fs.existsSync(pidPath)) {
         try {
             const pid = parseInt(fs.readFileSync(pidPath, 'utf-8').trim());
@@ -119,7 +119,7 @@ function getRavensStatus(): string {
  *
  */
 function getPerimeterStatus(): string {
-    const reportPath = join(PROJECT_ROOT, '.agent', 'perimeter_report.json');
+    const reportPath = join(PROJECT_ROOT, '.agents', 'perimeter_report.json');
     if (fs.existsSync(reportPath)) {
         try {
             const report = JSON.parse(fs.readFileSync(reportPath, 'utf-8')) as PerimeterReport;
@@ -167,7 +167,7 @@ function getFishtestStatus(): string {
  */
 function getWardenStatus(): string {
     // Check if warden is active in state
-    const statePath = join(PROJECT_ROOT, '.agent', 'sovereign_state.json');
+    const statePath = join(PROJECT_ROOT, '.agents', 'sovereign_state.json');
     if (fs.existsSync(statePath)) {
         try {
             const state = JSON.parse(fs.readFileSync(statePath, 'utf-8')) as SovereignState;
@@ -181,7 +181,7 @@ function getWardenStatus(): string {
  *
  */
 function getVaultStatus(): string {
-    const vaultDir = join(PROJECT_ROOT, '.agent', 'vault');
+    const vaultDir = join(PROJECT_ROOT, '.agents', 'vault');
     const masterKey = join(vaultDir, 'master.key');
     const secretsBin = join(vaultDir, 'secrets.bin');
     if (fs.existsSync(masterKey) && fs.existsSync(secretsBin)) {
@@ -255,4 +255,5 @@ export async function runStartupCeremony() {
 
     process.stdout.write(HUD.boxBottom());
 }
+
 

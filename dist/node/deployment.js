@@ -3,14 +3,13 @@ import { execa } from 'execa';
 import chalk from 'chalk';
 /**
  * Overwrites a target file with the verified candidate and stages/commits it to Git.
- *
  * @param targetFile - The original file to overwrite.
  * @param candidateFile - The newly generated and verified candidate file.
  * @param commitMessage - Git commit message.
  * @param execFunction - Dependency-injected execution function (defaults to execa).
  */
 export async function deployCandidate(targetFile, candidateFile, commitMessage, execFunction = execa) {
-    console.log(chalk.magenta("ALFRED: 'Deploying candidate to mainline...'"));
+    console.log(chalk.magenta('ALFRED: \'Deploying candidate to mainline...\''));
     try {
         // Step 1: Overwrite target with candidate
         await fs.rename(candidateFile, targetFile);

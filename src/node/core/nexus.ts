@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { HUD } from './hud.ts';
+import { HUD } from './hud.js';
 
 /**
  * 🔱 Synaptic Nexus (v1.0)
@@ -75,3 +75,4 @@ export class SynapticNexus {
         return `[${bar}] ${this.neuralHealth.toFixed(0)}%`;
     }
 }
+

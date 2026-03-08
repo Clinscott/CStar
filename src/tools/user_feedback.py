@@ -20,7 +20,7 @@ class FeedbackOrchestrator:
         """Logs user feedback to a JSONL file for Muninn to ingest."""
         # Resolve project root (script is in src/tools/)
         project_root = Path(__file__).resolve().parents[2]
-        feedback_path = project_root / ".agent" / "feedback.jsonl"
+        feedback_path = project_root / ".agents" / "feedback.jsonl"
         feedback_path.parent.mkdir(parents=True, exist_ok=True)
 
         entry = {

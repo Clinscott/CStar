@@ -7,7 +7,7 @@ Purpose: Tech-Debt Analysis & Target Isolation.
 Analyzes the history (Git churn) and current coverage, identifying weak points
 by cross-referencing Complexity + Churn + Coverage.
 
-Outputs the top priority targets to .agent/tech_debt_ledger.json.
+Outputs the top priority targets to .agents/tech_debt_ledger.json.
 """
 
 import argparse
@@ -47,7 +47,7 @@ class ArchiveConsolidator:
     def __init__(self, target_dir: str = ".", days: int = 30):
         self.target_dir = Path(target_dir).resolve()
         self.days = days
-        self.ledger_path = project_root / ".agent" / "tech_debt_ledger.json"
+        self.ledger_path = project_root / ".agents" / "tech_debt_ledger.json"
 
         # Enforce ALFRED persona for this tool
         SovereignHUD.PERSONA = "ALFRED"

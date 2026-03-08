@@ -21,6 +21,8 @@ export class EventManager {
     }
     /**
      * [CRITICAL] Memory Leak Protection - Ghost Key Removal
+     * @param appId
+     * @param ws
      */
     unsubscribe(appId, ws) {
         const clients = this.subscriptions.get(appId);

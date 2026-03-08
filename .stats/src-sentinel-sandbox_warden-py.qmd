@@ -1,0 +1,38 @@
+---
+title: "sandbox_warden.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\sentinel\sandbox_warden.py"
+loc: 96
+complexity: 8
+logic_score: 6.65
+style_score: 3.70
+intel_score: 3.07
+overall_score: 2.51
+---
+
+## Intent
+The `sandbox_warden.py` sector implements modular logic focusing on SandboxWarden, __init__, run_in_sandbox. It forms a node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via SandboxWarden, __init__, run_in_sandbox. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.7/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 3.1/10
+- **Gravity [G]**: 14 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [subprocess](file://subprocess)
+- [sys](file://sys)
+- [uuid](file://uuid)
+- [pathlib](file://pathlib)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+
+### Exports
+- `SandboxWarden`
+- `__init__`
+- `run_in_sandbox`

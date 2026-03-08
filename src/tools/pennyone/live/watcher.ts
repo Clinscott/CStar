@@ -1,11 +1,11 @@
 /* eslint-disable no-useless-escape */
 import chokidar from 'chokidar';
 import path from 'path';
-import { runScan } from '../index.ts';
-import { compileMatrix } from '../intel/compiler.ts';
-import { SubspaceRelay } from './socket.ts';
+import { runScan } from '../index.js';
+import { compileMatrix } from '../intel/compiler.js';
+import { SubspaceRelay } from './socket.js';
 import chalk from 'chalk';
-import { activePersona } from '../personaRegistry.ts';
+import { activePersona } from '../personaRegistry.js';
 
 /**
  * RepositoryWatcher: Monitors files and triggers delta analysis
@@ -15,7 +15,7 @@ import { activePersona } from '../personaRegistry.ts';
  */
 export function startWatcher(targetPath: string, relay: SubspaceRelay) {
     const watcher = chokidar.watch(targetPath, {
-        ignored: [/(^|[\/\\])\../, '**/node_modules/**', '**/.stats/**', '**/.agent/**'],
+        ignored: [/(^|[\/\\])\../, '**/node_modules/**', '**/.stats/**', '**/.agents/**'],
         persistent: true,
         ignoreInitial: true
     });
@@ -76,5 +76,6 @@ export function startWatcher(targetPath: string, relay: SubspaceRelay) {
 
     return watcher;
 }
+
 
 

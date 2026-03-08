@@ -88,7 +88,7 @@ class TheWatcher:
             root: Path to the project root directory.
         """
         self.root = root
-        self.state_file = self.root / ".agent" / "sovereign_state.json"
+        self.state_file = self.root / ".agents" / "sovereign_state.json"
         self.state: dict[str, Any] = self._load_state()
 
     def _load_state(self) -> dict[str, Any]:
@@ -188,7 +188,7 @@ class TheWatcher:
         Used by the Silence Protocol to ensure Muninn does not interrupt active development.
         """
         latest = 0.0
-        for directory in [self.root / "src", self.root / "tests", self.root / ".agent"]:
+        for directory in [self.root / "src", self.root / "tests", self.root / ".agents"]:
             if not directory.exists(): continue
             for file_path in directory.rglob("*"):
                 if file_path.is_file() and file_path.suffix in [".py", ".ts", ".js", ".tsx", ".json"]:

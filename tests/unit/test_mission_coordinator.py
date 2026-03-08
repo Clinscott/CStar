@@ -9,13 +9,13 @@ from src.sentinel.coordinator import MissionCoordinator
 @pytest.fixture
 def coordinator(tmp_path):
     root = tmp_path
-    agent_dir = root / ".agent"
+    agent_dir = root / ".agents"
     agent_dir.mkdir()
     return MissionCoordinator(root)
 
 
 def test_select_mission_with_target_metrics(coordinator, tmp_path):
-    ledger_path = tmp_path / ".agent" / "tech_debt_ledger.json"
+    ledger_path = tmp_path / ".agents" / "tech_debt_ledger.json"
     
     # Mock ledger data with target_metrics
     ledger_data = {

@@ -46,7 +46,7 @@ Feature: No-Op Commit Safety
 ```
 Feature: Persona Fallback
   Scenario: Missing config → defaults to ODIN
-    Given no .agent/config.json exists
+    Given no .agents/config.json exists
     When load_persona() is called
     Then it returns "ODIN"
 ```

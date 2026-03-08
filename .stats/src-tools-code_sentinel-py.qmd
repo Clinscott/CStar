@@ -1,0 +1,46 @@
+---
+title: "code_sentinel.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\code_sentinel.py"
+loc: 161
+complexity: 23
+logic_score: 0.72
+style_score: 3.77
+intel_score: 4.88
+overall_score: 2.11
+---
+
+## Intent
+The `code_sentinel.py` sector implements high-complexity logic focusing on Heimdall, __init__, _load_config, scan_for_orphans, run_ruff, format_results, execute_audit, main. It forms a node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via Heimdall, __init__, _load_config, scan_for_orphans, run_ruff, format_results, execute_audit, main. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 0.7/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 4.9/10
+- **Gravity [G]**: 21 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [argparse](file://argparse)
+- [ast](file://ast)
+- [json](file://json)
+- [subprocess](file://subprocess)
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [typing](file://typing)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+
+### Exports
+- `Heimdall`
+- `__init__`
+- `_load_config`
+- `scan_for_orphans`
+- `run_ruff`
+- `format_results`
+- `execute_audit`
+- `main`

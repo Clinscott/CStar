@@ -20,7 +20,7 @@ class FailureReporter:
         SovereignHUD.box_top("SOVEREIGN CYCLE: FAILURE ANALYSIS")
 
         # Paths
-        base_dir = os.path.join(project_root, ".agent")
+        base_dir = os.path.join(project_root, ".agents")
         rej_path = os.path.join(base_dir, "traces", "quarantine", "REJECTIONS.qmd")
 
         rejections = []

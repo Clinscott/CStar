@@ -1,0 +1,37 @@
+---
+title: "dialogue.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\fixtures\security_verify\.agents\scripts\engine\dialogue.py"
+loc: 27
+complexity: 4
+logic_score: 3.40
+style_score: 4.03
+intel_score: 9.40
+overall_score: 5.24
+---
+
+## Intent
+The `dialogue.py` sector implements modular logic focusing on DialogueRetriever, __init__, _load, get, __repr__. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via DialogueRetriever, __init__, _load, get, __repr__. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 3.4/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 6 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [os](file://os)
+- [random](file://random)
+
+### Exports
+- `DialogueRetriever`
+- `__init__`
+- `_load`
+- `get`
+- `__repr__`

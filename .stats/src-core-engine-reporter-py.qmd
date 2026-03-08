@@ -1,0 +1,38 @@
+---
+title: "reporter.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\core\engine\reporter.py"
+loc: 50
+complexity: 7
+logic_score: 5.35
+style_score: 3.71
+intel_score: 6.20
+overall_score: 4.17
+---
+
+## Intent
+The `reporter.py` sector implements modular logic focusing on SovereignReporter, __init__, render_hud, record_trace. It forms a node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via SovereignReporter, __init__, render_hud, record_trace. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 5.3/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 6.2/10
+- **Gravity [G]**: 9 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [re](file://re)
+- [pathlib](file://pathlib)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+
+### Exports
+- `SovereignReporter`
+- `__init__`
+- `render_hud`
+- `record_trace`

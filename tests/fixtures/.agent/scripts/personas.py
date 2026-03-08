@@ -36,11 +36,11 @@ class PersonaStrategy:
         return quarantine_path
 
     def _sync_configs(self, persona):
-        """[ALFRED] Synchronize root config.json and .agent/config.json."""
+        """[ALFRED] Synchronize root config.json and .agents/config.json."""
         import json
         configs = [
             os.path.join(self.root, "config.json"),
-            os.path.join(self.root, ".agent", "config.json")
+            os.path.join(self.root, ".agents", "config.json")
         ]
         for path in configs:
             if os.path.exists(path):

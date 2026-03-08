@@ -10,8 +10,8 @@ from src.core.engine.heimdall_shield import ShieldTrip
 @pytest.fixture
 def mock_router(tmp_path):
     # Setup mock file structure so router doesn't fail on __init__
-    (tmp_path / ".agent" / "skills").mkdir(parents=True)
-    (tmp_path / ".agent" / "workflows").mkdir()
+    (tmp_path / ".agents" / "skills").mkdir(parents=True)
+    (tmp_path / ".agents" / "workflows").mkdir()
     hunt_dir = tmp_path / "src" / "skills" / "local" / "WildHunt"
     hunt_dir.mkdir(parents=True)
     

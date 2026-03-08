@@ -1,0 +1,36 @@
+---
+title: "analyze_failures.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\analyze_failures.py"
+loc: 43
+complexity: 7
+logic_score: 3.10
+style_score: 3.93
+intel_score: 5.12
+overall_score: 3.58
+---
+
+## Intent
+The `analyze_failures.py` sector implements modular logic focusing on analyze_benchmarks, main. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via analyze_benchmarks, main. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 3.1/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 5.1/10
+- **Gravity [G]**: 6 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [pathlib](file://pathlib)
+- [typing](file://typing)
+- [src.core.engine.vector](file://src.core.engine.vector)
+
+### Exports
+- `analyze_benchmarks`
+- `main`

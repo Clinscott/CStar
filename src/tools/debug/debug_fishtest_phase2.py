@@ -31,11 +31,11 @@ class FishtestDiagnostic:
         # Initialize engine with modern paths
         engine = SovereignVector(
             thesaurus_path=str(PROJECT_ROOT / 'thesaurus.qmd'),
-            corrections_path=str(PROJECT_ROOT / '.agent' / 'corrections.json'),
+            corrections_path=str(PROJECT_ROOT / '.agents' / 'corrections.json'),
             stopwords_path=str(PROJECT_ROOT / 'src' / 'data' / 'stopwords.json')
         )
         engine.load_core_skills()
-        engine.load_skills_from_dir(str(PROJECT_ROOT / '.agent' / 'skills'))
+        engine.load_skills_from_dir(str(PROJECT_ROOT / '.agents' / 'skills'))
         engine.load_skills_from_dir(str(PROJECT_ROOT / 'skills_db'), prefix='GLOBAL:')
         engine.build_index()
 

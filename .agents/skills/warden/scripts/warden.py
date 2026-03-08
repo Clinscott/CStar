@@ -40,18 +40,19 @@ def main():
     if args.command == "train":
         warden = AnomalyWarden()
         warden.train()
-        print(f"[🔱] Training Warden for {args.cycles} cycles...")
+        print(f"[🔱] Training Warden for {args.cycles} cycles...", file=sys.stderr)
         # ... existing training logic can be expanded here
-        print("Training complete.")
+        print("Training complete.", file=sys.stderr)
 
     elif args.command == "eval":
         warden = AnomalyWarden()
         warden.eval()
         vector = json.loads(args.vector)
         prob = warden.forward(vector)
-        print(f"[🔱] Anomaly Probability: {prob:.4f}")
+        # Print DATA to stderr to keep stdout pure for cognitive routing
+        print(f"[🔱] Anomaly Probability: {prob:.4f}", file=sys.stderr)
         if prob > 0.8:
-            print("[ALFRED]: ALERT - Anomaly detected. Circuit breaker primed.")
+            print("[ALFRED]: ALERT - Anomaly detected. Circuit breaker primed.", file=sys.stderr)
 
     elif args.command == "check":
         asyncio.run(check_alignment(args.file, args.action))

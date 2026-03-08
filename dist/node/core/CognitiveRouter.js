@@ -17,6 +17,8 @@ export class CognitiveRouter {
     /**
      * [Ω] Orchestration Entrypoint
      * Routes intents based on the 'requires_core' flag in system_meta.
+     * @param payload
+     * @param corvus
      */
     async routeIntent(payload, corvus) {
         const appId = payload.system_meta?.app_id || 'unknown';
@@ -33,6 +35,8 @@ export class CognitiveRouter {
     /**
      * Tier 1: The Edge (Ollama native REST)
      * Hardcoded to llama3.1 for current Windows hardware stopgap.
+     * @param payload
+     * @param appId
      */
     async routeToOllama(payload, appId) {
         const eventManager = EventManager.getInstance();

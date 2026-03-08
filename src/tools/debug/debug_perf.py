@@ -32,11 +32,11 @@ class PerformanceProfiler:
         t0 = time.time()
         engine = SovereignVector(
             thesaurus_path=str(PROJECT_ROOT / "thesaurus.qmd"),
-            corrections_path=str(PROJECT_ROOT / ".agent" / "corrections.json"),
+            corrections_path=str(PROJECT_ROOT / ".agents" / "corrections.json"),
             stopwords_path=str(PROJECT_ROOT / "src" / "data" / "stopwords.json")
         )
         engine.load_core_skills()
-        engine.load_skills_from_dir(str(PROJECT_ROOT / ".agent" / "skills"))
+        engine.load_skills_from_dir(str(PROJECT_ROOT / ".agents" / "skills"))
         engine.build_index()
         t1 = time.time()
         print(f"Init Time: {(t1-t0)*1000:.2f} ms")

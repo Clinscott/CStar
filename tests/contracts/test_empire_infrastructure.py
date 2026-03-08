@@ -4,7 +4,7 @@ import unittest
 
 # Add script paths
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-EMPIRE_DIR = os.path.join(BASE_DIR, ".agent", "scripts", "empire")
+EMPIRE_DIR = os.path.join(BASE_DIR, ".agents", "scripts", "empire")
 sys.path.append(EMPIRE_DIR)
 
 from compiler import EmpireCompiler

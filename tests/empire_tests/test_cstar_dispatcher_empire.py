@@ -7,7 +7,7 @@ def test_dispatcher_discovery(tmp_path):
     script_dir.mkdir()
     (script_dir / "test_cmd.py").write_text("print('hi')", encoding='utf-8')
 
-    workflow_dir = tmp_path / ".agent" / "workflows"
+    workflow_dir = tmp_path / ".agents" / "workflows"
     workflow_dir.mkdir(parents=True)
     (workflow_dir / "test_flow.md").write_text("# Flow", encoding='utf-8')
 

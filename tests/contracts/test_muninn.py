@@ -30,7 +30,7 @@ class TestWatcherOscillationLock:
     """Identical content hash submitted twice -> LOCKED status."""
 
     def test_echo_detection_locks_file(self, tmp_path):
-        (tmp_path / ".agent").mkdir()
+        (tmp_path / ".agents").mkdir()
         watcher = TheWatcher(tmp_path)
         rel = "src/sample.py"
         content = "print('hello')"

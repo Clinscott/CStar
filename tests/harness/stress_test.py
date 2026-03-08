@@ -32,7 +32,7 @@ class SovereignStressTest:
         self.pro_client = genai.Client(api_key=self.api_key)
         self.pro_model = "gemini-1.5-flash" # The Teacher (using Flash for stability)
         self.flash_model = "gemini-2.0-flash"      # The Student
-        self.corrections_path = Path(".agent/corrections.json")
+        self.corrections_path = Path(".agents/corrections.json")
         self.logs_dir = Path("tests/harness/logs")
 
     def log_teacher(self, message):

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Node, Link } from '../types/index.ts';
+import { Node, Link } from '../types/index.js';
 
 /**
  *
@@ -73,3 +73,4 @@ export const getStar = (path: string): [number, number, number] => {
     if (p.includes('tests/')) return STELLAR_MAP.beta;
     return STELLAR_MAP.alpha;
 };
+

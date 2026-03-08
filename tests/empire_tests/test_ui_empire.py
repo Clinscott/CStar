@@ -23,7 +23,7 @@ class TestUIEmpire:
 
     def test_ensure_persona(self, tmp_path):
         # Instead of mocking Path.open, we use a real temp file
-        agent_dir = tmp_path / ".agent"
+        agent_dir = tmp_path / ".agents"
         agent_dir.mkdir()
         config_file = agent_dir / "config.json"
         config_file.write_text('{"system": {"persona": "ODIN"}}', encoding='utf-8')
@@ -58,7 +58,7 @@ class TestUIEmpire:
             SovereignHUD.log_rejection("TEST_PERSONA", "Reason", "Details")
 
             # Check file exists in tmp_path
-            ledger = tmp_path / ".agent" / "traces" / "quarantine" / "REJECTIONS.qmd"
+            ledger = tmp_path / ".agents" / "traces" / "quarantine" / "REJECTIONS.qmd"
             assert ledger.exists()
             content = ledger.read_text(encoding='utf-8')
             assert "TEST_PERSONA" in content

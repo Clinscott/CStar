@@ -8,7 +8,7 @@
 - `src/`: Core source code (The Trunk)
 - `tests/`: Unified test suite (The Roots)
 - `docs/`: Documentation (The Leaves)
-- `.agent/`: Agent configuration and memory (The Mind)
+- `.agents/`: Agent configuration and memory (The Mind)
 - `.github/`: CI/CD workflows (The Guardians)
 - `pyproject.toml`: Central configuration (The Law)
 

@@ -15,8 +15,8 @@ def mock_warden(tmp_path):
     return ConcreteWarden(tmp_path)
 
 def test_base_warden_load_config(mock_warden, tmp_path):
-    """Verifies that BaseWarden loads config from .agent/config.json."""
-    agent_dir = tmp_path / ".agent"
+    """Verifies that BaseWarden loads config from .agents/config.json."""
+    agent_dir = tmp_path / ".agents"
     agent_dir.mkdir()
     (agent_dir / "config.json").write_text('{"test_key": "test_val"}', encoding='utf-8')
 

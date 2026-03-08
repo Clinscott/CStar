@@ -79,7 +79,7 @@ async def test_huginn_neural_audit_decoupled():
             warden = HuginnWarden(project_root)
             
             # Create a dummy trace file
-            trace_dir = project_root / ".agent" / "traces"
+            trace_dir = project_root / ".agents" / "traces"
             trace_dir.mkdir(parents=True, exist_ok=True)
             dummy_trace = trace_dir / "test_trace.md"
             dummy_trace.write_text("Dummy trace content", encoding='utf-8')

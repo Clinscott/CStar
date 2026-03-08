@@ -20,7 +20,7 @@ class RuneCasterAudit:
 
     def _should_ignore(self, path: Path) -> bool:
         """Standard filter for the watchtowers."""
-        ignored_dirs = {".git", ".venv", "node_modules", "__pycache__", ".agent", ".pytest_cache", "dist", "build"}
+        ignored_dirs = {".git", ".venv", "node_modules", "__pycache__", ".agents", ".pytest_cache", "dist", "build"}
         return any(part in ignored_dirs for part in path.parts)
 
     def run(self) -> list[dict[str, Any]]:

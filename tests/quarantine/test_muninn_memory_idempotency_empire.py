@@ -33,7 +33,7 @@ class TestMuninnMemoryIdempotency:
         muninn, _, _ = mock_muninn
 
         # Setup mock ledger
-        ledger_dir = tmp_path / ".agent"
+        ledger_dir = tmp_path / ".agents"
         ledger_dir.mkdir(exist_ok=True)
         ledger_path = ledger_dir / "ledger.json"
 

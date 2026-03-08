@@ -1,7 +1,7 @@
-import { FileData, GungnirMatrix, CompiledGraph } from '../types.ts';
+import { FileData, GungnirMatrix, CompiledGraph } from '../types.js';
 import fs from 'fs/promises';
 import path from 'path';
-import { registry } from '../pathRegistry.ts';
+import { registry } from '../pathRegistry.js';
 
 /**
  * Matrix Compiler
@@ -103,4 +103,5 @@ export async function compileMatrix(results: FileData[], targetRepo: string): Pr
     await fs.writeFile(graphPath, JSON.stringify(payload, null, 2), 'utf-8');
     return graphPath;
 }
+
 

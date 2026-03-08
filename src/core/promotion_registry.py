@@ -7,7 +7,7 @@ from pathlib import Path
 class PromotionRegistry:
     def __init__(self, root_path: str):
         self.root = Path(root_path)
-        self.registry_path = self.root / ".agent" / "promotion_registry.json"
+        self.registry_path = self.root / ".agents" / "promotion_registry.json"
         self.registry = self._load_registry()
 
     def _load_registry(self) -> dict:

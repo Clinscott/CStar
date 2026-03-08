@@ -16,7 +16,7 @@ description: Proactively searches the web to acquire new skills when the local e
 2.  **Action (Agent)**:
     -   **Search**: Perform `search_web` with the query (e.g., "CLI command to convert png to webp").
     -   **Analyze**: Identify the best tool (e.g., `ffmpeg`, `imagemagick`).
-    -   **Forge**: Create a new Skill Folder: `.agent/skills/<tool-name>`.
+    -   **Forge**: Create a new Skill Folder: `.agents/skills/<tool-name>`.
     -   **Template**:
         ```markdown
         ---

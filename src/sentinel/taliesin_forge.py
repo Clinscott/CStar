@@ -45,7 +45,7 @@ class TaliesinForge:
     def __init__(self, root_path: Path):
         self.root = root_path
         self.uplink = AntigravityUplink()
-        self.staged_dir = self.root / ".agent" / "forge_staged"
+        self.staged_dir = self.root / ".agents" / "forge_staged"
         self.staged_dir.mkdir(parents=True, exist_ok=True)
         
     async def weave_code_from_lore(self, lore_file_path: Path) -> bool:

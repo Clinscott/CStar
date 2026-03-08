@@ -1,0 +1,34 @@
+---
+title: "fix_muninn.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\scripts\fix_muninn.py"
+loc: 20
+complexity: 7
+logic_score: 8.32
+style_score: 3.88
+intel_score: 9.40
+overall_score: 5.89
+---
+
+## Intent
+The `fix_muninn.py` sector implements modular logic focusing on standardize_muninn. It forms a node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via standardize_muninn. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.3/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 8 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [re](file://re)
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+
+### Exports
+- `standardize_muninn`

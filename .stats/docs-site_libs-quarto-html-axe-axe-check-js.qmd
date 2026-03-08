@@ -1,0 +1,56 @@
+---
+title: "axe-check.js"
+path: "C:\Users\Craig\Corvus\CorvusStar\docs\site_libs\quarto-html\axe\axe-check.js"
+loc: 128
+complexity: 6
+logic_score: 2.60
+style_score: 1.00
+intel_score: 3.56
+overall_score: 1.25
+---
+
+## Intent
+The `axe-check.js` sector implements modular logic focusing on QuartoAxeReporter, QuartoAxeJsonReporter, QuartoAxeConsoleReporter, QuartoAxeDocumentReporter, violationElement, descriptionElement, helpElement, nodesElement, nodeElement, targetElement, element, element, violations, reportElement, noViolationsElement, reporters, QuartoAxeChecker, axe, result, reporter, init, init, opts, jsonOptions, checker. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via QuartoAxeReporter, QuartoAxeJsonReporter, QuartoAxeConsoleReporter, QuartoAxeDocumentReporter, violationElement, descriptionElement, helpElement, nodesElement, nodeElement, targetElement, element, element, violations, reportElement, noViolationsElement, reporters, QuartoAxeChecker, axe, result, reporter, init, init, opts, jsonOptions, checker. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 2.6/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 3.6/10
+- **Gravity [G]**: 17 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+Minimal internal dependencies.
+
+### Exports
+- `QuartoAxeReporter`
+- `QuartoAxeJsonReporter`
+- `QuartoAxeConsoleReporter`
+- `QuartoAxeDocumentReporter`
+- `violationElement`
+- `descriptionElement`
+- `helpElement`
+- `nodesElement`
+- `nodeElement`
+- `targetElement`
+- `element`
+- `element`
+- `violations`
+- `reportElement`
+- `noViolationsElement`
+- `reporters`
+- `QuartoAxeChecker`
+- `axe`
+- `result`
+- `reporter`
+- `init`
+- `init`
+- `opts`
+- `jsonOptions`
+- `checker`

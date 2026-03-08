@@ -20,7 +20,7 @@ class CognitiveRouter:
     """
     def __init__(self, project_root: Path):
         self.project_root = project_root
-        self.warden = AnomalyWarden(model_path=self.project_root / ".agent" / "warden.pkl")
+        self.warden = AnomalyWarden(model_path=self.project_root / ".agents" / "warden.pkl")
         self.warden.eval() # Ensure inference mode
         self.shield = HeimdallShield()
         self.lease_manager = LeaseManager(self.project_root)
@@ -54,13 +54,13 @@ class CognitiveRouter:
         missing_capabilities = []
         for tool in required_tools:
             # Check active skills
-            skill_path = self.project_root / ".agent" / "skills" / tool
+            skill_path = self.project_root / ".agents" / "skills" / tool
             if not skill_path.exists():
                 missing_capabilities.append(tool)
                 
         for wf in required_workflows:
-            wf_path = self.project_root / ".agent" / "workflows" / f"{wf}.md"
-            qmd_path = self.project_root / ".agent" / "workflows" / f"{wf}.qmd"
+            wf_path = self.project_root / ".agents" / "workflows" / f"{wf}.md"
+            qmd_path = self.project_root / ".agents" / "workflows" / f"{wf}.qmd"
             if not wf_path.exists() and not qmd_path.exists():
                 missing_capabilities.append(wf)
                 

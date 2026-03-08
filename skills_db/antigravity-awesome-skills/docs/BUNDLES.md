@@ -9,7 +9,7 @@
    ```bash
    npx antigravity-awesome-skills
    # or clone manually
-   git clone https://github.com/sickn33/antigravity-awesome-skills.git .agent/skills
+   git clone https://github.com/sickn33/antigravity-awesome-skills.git .agents/skills
    ```
 
 2. **Choose your bundle** from the list below based on your role or interests.

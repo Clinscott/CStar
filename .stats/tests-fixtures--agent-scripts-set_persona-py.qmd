@@ -1,0 +1,48 @@
+---
+title: "set_persona.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\fixtures\.agents\scripts\set_persona.py"
+loc: 145
+complexity: 20
+logic_score: 0.50
+style_score: 3.91
+intel_score: 8.02
+overall_score: 2.81
+---
+
+## Intent
+The `set_persona.py` sector implements high-complexity logic focusing on PersonaManager, __init__, _load_union_config, _extract_persona, _save_persona, _get_alfred_suggestion, _render_alfred_intro, _confirm_odin_switch, _log_audit, switch, _apply_policy, main. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via PersonaManager, __init__, _load_union_config, _extract_persona, _save_persona, _get_alfred_suggestion, _render_alfred_intro, _confirm_odin_switch, _log_audit, switch, _apply_policy, main. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 0.5/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 8.0/10
+- **Gravity [G]**: 6 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [sys](file://sys)
+- [datetime](file://datetime)
+- [pathlib](file://pathlib)
+- [typing](file://typing)
+- [personas](file://personas)
+
+### Exports
+- `PersonaManager`
+- `__init__`
+- `_load_union_config`
+- `_extract_persona`
+- `_save_persona`
+- `_get_alfred_suggestion`
+- `_render_alfred_intro`
+- `_confirm_odin_switch`
+- `_log_audit`
+- `switch`
+- `_apply_policy`
+- `main`

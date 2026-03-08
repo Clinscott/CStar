@@ -1,24 +1,24 @@
 ---
 title: "ConnectionLayer.tsx"
 path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\vis\components\ConnectionLayer.tsx"
-loc: 93
-complexity: 6
-logic_score: 6.13
-style_score: 4.04
-intel_score: 3.72
-overall_score: 4.12
+loc: 101
+complexity: 8
+logic_score: 7.00
+style_score: 4.03
+intel_score: 3.19
+overall_score: 2.95
 ---
 
 ## Intent
-The `ConnectionLayer.tsx` module manages the visual links between nodes in the neural graph. It renders the repository's dependency structure as dynamic lines, highlighting active logic trails and providing a physical representation of module coupling.
+The `ConnectionLayer.tsx` sector implements modular logic focusing on NeuralLink, lineRef, ConnectionLayer, ConnectionLayer, nodeMap, validLinks, source, target, useMemo, bgPoints, hl, sNode, tNode, isHighlighted, geo, sNode, tNode. It forms a node in the Gungnir Matrix.
 
 ## Interaction Protocol
-This layer receives an array of link data and renders them using React Three Fiber. It automatically updates line positions as the D3 force simulation moves the nodes, maintaining the integrity of the visual network.
+Integrate via NeuralLink, lineRef, ConnectionLayer, ConnectionLayer, nodeMap, validLinks, source, target, useMemo, bgPoints, hl, sNode, tNode, isHighlighted, geo, sNode, tNode. Follow the Linscott Standard for this sector.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 6.1/10
+- **Logic [L]**: 7.0/10
 - **Style [S]**: 4.0/10
-- **Intel [I]**: 3.7/10
+- **Intel [I]**: 3.2/10
 - **Gravity [G]**: 17 interactions (Agent Activity Hotspot)
 
 
@@ -39,7 +39,10 @@ This layer receives an array of link data and renders them using React Three Fib
 - `lineRef`
 - `ConnectionLayer`
 - `ConnectionLayer`
+- `nodeMap`
 - `validLinks`
+- `source`
+- `target`
 - `useMemo`
 - `bgPoints`
 - `hl`

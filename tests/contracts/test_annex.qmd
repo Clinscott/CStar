@@ -36,6 +36,6 @@ tags: [odin, annex, scanner, linscott, torvalds]
 - `[TRANSMUTE] docs/scroll.md → scroll.qmd`
 
 ### 5. The Ignore Protocol
-**GIVEN** a workflow file `mock_dominion/.agent/workflows/ignored.md`.
+**GIVEN** a workflow file `mock_dominion/.agents/workflows/ignored.md`.
 **WHEN** scanned.
 **THEN** it is NOT listed in the plan.

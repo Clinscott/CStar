@@ -11,6 +11,8 @@ export declare class EventManager {
     subscribe(appId: string, ws: WebSocket): void;
     /**
      * [CRITICAL] Memory Leak Protection - Ghost Key Removal
+     * @param appId
+     * @param ws
      */
     unsubscribe(appId: string, ws: WebSocket): void;
     broadcast(appId: string, payload: any): void;

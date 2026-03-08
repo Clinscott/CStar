@@ -11,8 +11,8 @@ Utilize this skill to verify that the agent's recent communication adheres to th
 audit, identity, purity, check voice, persona alignment
 
 ## Usage:
-1. **Audit String**: `python .agent/scripts/audit_dialogue.py "Your text here"`
-2. **Audit File**: `python .agent/scripts/audit_dialogue.py --file path/to/report.qmd`
+1. **Audit String**: `python .agents/scripts/audit_dialogue.py "Your text here"`
+2. **Audit File**: `python .agents/scripts/audit_dialogue.py --file path/to/report.qmd`
 
 ## Logic:
 The skill calculate the token overlap between the input and the persona's designated `dialogue_db` corpus.

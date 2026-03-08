@@ -4,15 +4,15 @@ import chalk from 'chalk';
 import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { activePersona } from '../tools/pennyone/personaRegistry.ts';
+import { activePersona } from '../tools/pennyone/personaRegistry.js';
 import { Project } from 'ts-morph';
 
-import { getPythonPath } from './core/python_utils.ts';
+import { getPythonPath } from './core/python_utils.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const PROJECT_ROOT = path.resolve(__dirname, '../../');
 const DAEMON_ENTRYPOINT = path.join(PROJECT_ROOT, 'src/cstar/core/daemon.py');
-const KEY_FILE = path.join(PROJECT_ROOT, '.agent', 'daemon.key');
+const KEY_FILE = path.join(PROJECT_ROOT, '.agents', 'daemon.key');
 
 export interface CortexResponse {
     type: string;
@@ -194,7 +194,7 @@ export class CortexLink {
      * @param args
      * @param cwd
      */
-    async sendCommand(command: string, args: string[] = [], cwd = process.cwd()): Promise<CortexResponse> {
+    async sendCommand(command: string, args: any = [], cwd = process.cwd()): Promise<CortexResponse> {
         const authKey = fs.readFileSync(KEY_FILE, 'utf8').trim();
         const payload = {
             command,
@@ -281,3 +281,4 @@ export class CortexLink {
         }
     }
 }
+

@@ -1,5 +1,4 @@
 import React from 'react';
-import { Html } from '@react-three/drei';
 import { Node } from '../types/index.ts';
 
 interface SelectionPanelProps {
@@ -8,42 +7,83 @@ interface SelectionPanelProps {
     children?: React.ReactNode;
 }
 
+/**
+ * [GUNGNIR] Selection Panel (v2.0)
+ * Purpose: Screen-space UI Overlay for Sector Detail.
+ * Fixes: No longer stuck in 3D space; always visible on selection.
+ */
 export const SelectionPanel: React.FC<SelectionPanelProps> = ({ selectedNode, onClose, children }) => {
     return (
-        <Html wrapperClass="interactive-html-wrapper" style={{ pointerEvents: 'none' }}>
-            <div className="glass-panel-wrapper" onPointerDown={(e) => e.stopPropagation()}>
-                <div className="glass-panel">
-                    <div className="panel-header">
-                        <span>SECTOR: {selectedNode.type}</span>
-                        <button onPointerDown={(e) => { e.stopPropagation(); onClose(); }}>×</button>
-                    </div>
-                    <div className="panel-content">
-                        {children}
-                    </div>
+        <div className="selection-panel-container">
+            <div className="glass-panel">
+                <div className="panel-header">
+                    <span className="sector-tag">SECTOR: {selectedNode.path.split('.').pop()?.toUpperCase()}</span>
+                    <button className="close-btn" onClick={onClose}>×</button>
+                </div>
+                <div className="panel-content">
+                    {children}
                 </div>
             </div>
             <style>{`
-                .glass-panel-wrapper { display: flex; align-items: center; justify-content: center; pointer-events: none; }
+                .selection-panel-container {
+                    position: absolute;
+                    top: 20px;
+                    right: 20px;
+                    bottom: 20px;
+                    width: 450px;
+                    z-index: 2000;
+                    display: flex;
+                    flex-direction: column;
+                    pointer-events: none;
+                }
                 .glass-panel { 
-                    display: flex; flex-direction: column; width: 400px; background: #111111; 
-                    border: 2px solid #00f2ff; color: #ffffff; font-family: 'Courier New', monospace; 
-                    box-shadow: 0 0 30px rgba(0, 242, 255, 0.4); pointer-events: auto; z-index: 1000;
+                    display: flex;
+                    flex-direction: column;
+                    height: 100%;
+                    background: rgba(0, 5, 10, 0.85);
+                    backdrop-filter: blur(20px);
+                    border: 1px solid rgba(0, 242, 255, 0.4);
+                    color: #ffffff;
+                    font-family: 'Inter', sans-serif;
+                    box-shadow: -10px 0 50px rgba(0, 0, 0, 0.5);
+                    pointer-events: auto;
+                    overflow: hidden;
+                    border-radius: 4px;
                 }
                 .panel-header { 
-                    display: flex; justify-content: space-between; align-items: center;
-                    padding: 8px 15px; background: #00f2ff; color: #000; font-weight: bold;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 15px 20px;
+                    background: rgba(0, 242, 255, 0.1);
+                    border-bottom: 1px solid rgba(0, 242, 255, 0.2);
                 }
-                .panel-header button { 
-                    background: #000; border: none; color: #00f2ff; cursor: pointer; 
-                    width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+                .sector-tag {
+                    color: #00f2ff;
+                    font-weight: bold;
+                    letter-spacing: 1px;
+                    font-size: 0.75rem;
                 }
-                .panel-content { padding: 25px; }
-                .scan-btn { 
-                    width: 100%; padding: 12px; background: #00f2ff; border: none; color: #000; 
-                    font-weight: bold; cursor: pointer; transition: all 0.2s; 
+                .close-btn { 
+                    background: transparent;
+                    border: none;
+                    color: rgba(255, 255, 255, 0.5);
+                    cursor: pointer; 
+                    font-size: 1.5rem;
+                    transition: all 0.2s;
                 }
-                .scan-btn:hover { background: #fff; box-shadow: 0 0 15px #fff; }
+                .close-btn:hover {
+                    color: #ff4d4d;
+                    transform: scale(1.1);
+                }
+                .panel-content { 
+                    padding: 30px;
+                    flex: 1;
+                    overflow-y: auto;
+                }
+                .panel-content::-webkit-scrollbar { width: 4px; }
+                .panel-content::-webkit-scrollbar-thumb { background: rgba(0, 242, 255, 0.3); }
             `}</style>
-        </Html>
+        </div>
     );
 };

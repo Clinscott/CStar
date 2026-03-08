@@ -1,0 +1,6 @@
+ACT AS: The Council.
+GHERKIN: {{gherkin_content}}
+CODE: {{code}}
+TEST: {{test}}
+CONTEXT: Passed Gauntlet unit tests.
+OUTPUT: JSON with status (APPROVED/DISAPPROVED) and reason.

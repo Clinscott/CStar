@@ -27,7 +27,7 @@ class SovereignUtils:
     @staticmethod
     def load_config(root_path: str | Path) -> dict:
         """Securely load the C* configuration using Pathlib."""
-        path = Path(root_path) / ".agent" / "config.json"
+        path = Path(root_path) / ".agents" / "config.json"
         return SovereignUtils.safe_read_json(path)
 
     @staticmethod

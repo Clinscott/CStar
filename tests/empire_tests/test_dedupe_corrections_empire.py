@@ -6,8 +6,8 @@ import unittest.mock as mock
 # For this cycle, I'll verify the regex logic which is the core of it.
 
 def test_dedupe_script_execution(tmp_path):
-    # Setup mock .agent/corrections.json
-    agent_dir = tmp_path / ".agent"
+    # Setup mock .agents/corrections.json
+    agent_dir = tmp_path / ".agents"
     agent_dir.mkdir()
     corr_path = agent_dir / "corrections.json"
     # Duplicate keys in raw string will be handled by json.load

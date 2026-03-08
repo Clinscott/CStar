@@ -4,7 +4,7 @@ Feature: Contextual Persona Dialogue Integration
   So that failure and recovery feel immersive and technically accurate
 
   Scenario: Odin reacts to system defiance
-    Given the file ".agent/sovereign_state.json" contains "status": "DEFIANCE"
+    Given the file ".agents/sovereign_state.json" contains "status": "DEFIANCE"
     When OdinStrategy enforces policy
     Then the dialogue context should contain "compliance_breach": true
     And the returned phrase should contain either "shatters" or "Hel"

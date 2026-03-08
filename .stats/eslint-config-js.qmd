@@ -1,0 +1,34 @@
+---
+title: "eslint.config.js"
+path: "C:\Users\Craig\Corvus\CorvusStar\eslint.config.js"
+loc: 36
+complexity: 1
+logic_score: 9.35
+style_score: 4.11
+intel_score: 8.67
+overall_score: 5.98
+---
+
+## Intent
+The `eslint.config.js` sector implements modular logic focusing on tseslint. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via tseslint. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.3/10
+- **Style [S]**: 4.1/10
+- **Intel [I]**: 8.7/10
+- **Gravity [G]**: 5 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://@eslint/js)
+- [*](file://eslint-plugin-jsdoc)
+- [*](file://typescript-eslint)
+
+### Exports
+- `tseslint`

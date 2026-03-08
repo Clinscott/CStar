@@ -68,7 +68,7 @@ class AnomalyWarden(BaseWarden):
     """
     def __init__(self, model_path: str | Path | None = None, ledger_path: str | Path | None = None) -> None:
         super().__init__()
-        self.model_path = Path(model_path) if model_path else Path(".agent/warden.pkl")
+        self.model_path = Path(model_path) if model_path else Path(".agents/warden.pkl")
         self.ledger_path = Path(ledger_path) if ledger_path else Path("src/data/anomalies_queue.jsonl")
 
         self.input_dim = 5 # Upgraded from 4 to include Lore Alignment
@@ -176,7 +176,7 @@ class SessionWarden(BaseWarden):
     def __init__(self, model_path: str | Path | None = None, input_dim: int = 3, hidden_dim: int = 4) -> None:
         """Initializes the SessionWarden."""
         super().__init__()
-        self.model_path = Path(model_path) if model_path else Path(".agent/session_warden.pkl")
+        self.model_path = Path(model_path) if model_path else Path(".agents/session_warden.pkl")
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
         self.output_dim = 1

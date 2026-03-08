@@ -1,0 +1,33 @@
+---
+title: "fix_ts_errors.js"
+path: "C:\Users\Craig\Corvus\CorvusStar\fix_ts_errors.js"
+loc: 101
+complexity: 2
+logic_score: 3.97
+style_score: 4.56
+intel_score: 10.00
+overall_score: 5.50
+---
+
+## Intent
+The `fix_ts_errors.js` sector implements modular logic focusing on fixFile, content. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via fixFile, content. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 4.0/10
+- **Style [S]**: 4.6/10
+- **Intel [I]**: 10.0/10
+- **Gravity [G]**: 16 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [*](file://fs)
+
+### Exports
+- `fixFile`
+- `content`

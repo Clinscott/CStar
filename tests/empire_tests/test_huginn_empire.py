@@ -20,8 +20,8 @@ class TestHuginnEmpire:
 
     @pytest.fixture
     def mock_root(self, tmp_path):
-        """Creates a mock project root with .agent/traces."""
-        traces_dir = tmp_path / ".agent" / "traces"
+        """Creates a mock project root with .agents/traces."""
+        traces_dir = tmp_path / ".agents" / "traces"
         traces_dir.mkdir(parents=True)
         return tmp_path
 
@@ -37,7 +37,7 @@ class TestHuginnEmpire:
 
     def test_scan_regex_hallucination(self, mock_root):
         """Test detection of repeated headers (hallucination)."""
-        trace_file = mock_root / ".agent" / "traces" / "session_hallucinate.md"
+        trace_file = mock_root / ".agents" / "traces" / "session_hallucinate.md"
         # Create content with repeated headers
         content = "# Header\n# Header\n# Header\n"
         trace_file.write_text(content, encoding='utf-8')
@@ -50,12 +50,12 @@ class TestHuginnEmpire:
             breach = next((b for b in results if b["type"] == "HALLUCINATION_REPEATED_HEADER"), None)
             assert breach is not None
             # Path might use backslashes on Windows, normalize for comparison
-            assert Path(breach["file"]).as_posix() == ".agent/traces/session_hallucinate.md"
+            assert Path(breach["file"]).as_posix() == ".agents/traces/session_hallucinate.md"
             assert "Header" in breach["action"]
 
     def test_scan_regex_deviance(self, mock_root):
         """Test detection of suspicious paths."""
-        trace_file = mock_root / ".agent" / "traces" / "session_deviance.md"
+        trace_file = mock_root / ".agents" / "traces" / "session_deviance.md"
         content = "Saving to /tmp/suspicious_file.txt"
         trace_file.write_text(content, encoding='utf-8')
 
@@ -70,7 +70,7 @@ class TestHuginnEmpire:
     @patch("src.sentinel.wardens.huginn.AntigravityUplink")
     def test_scan_neural_audit(self, mock_uplink_cls, mock_root):
         """Test neural audit invocation and parsing."""
-        trace_file = mock_root / ".agent" / "traces" / "session_latest.md"
+        trace_file = mock_root / ".agents" / "traces" / "session_latest.md"
         trace_file.write_text("Valid session content.", encoding='utf-8')
 
         # Setup mock uplink response

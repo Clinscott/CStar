@@ -78,7 +78,7 @@ class SubspaceTelemetry:
         
         # [A.L.F.R.E.D.] Find project root and auth key
         root = Path(__file__).resolve().parent.parent.parent
-        key_file = root / ".agent" / "daemon.key"
+        key_file = root / ".agents" / "daemon.key"
         
         if not key_file.exists():
             return

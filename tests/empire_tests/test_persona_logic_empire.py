@@ -4,7 +4,7 @@ from src.core.utils import load_config
 
 
 def test_persona_loading(tmp_path):
-    agent_dir = tmp_path / ".agent"
+    agent_dir = tmp_path / ".agents"
     agent_dir.mkdir()
     config_file = agent_dir / "config.json"
     config_file.write_text(json.dumps({"system": {"persona": "ODIN"}}), encoding='utf-8')

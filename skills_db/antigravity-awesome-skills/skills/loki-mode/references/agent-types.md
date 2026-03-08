@@ -181,7 +181,7 @@ SPAWN -> INITIALIZE -> POLL_QUEUE -> CLAIM_TASK -> EXECUTE -> REPORT -> POLL_QUE
 4. **Context Handoff:** When agent completes, context is archived but lineage preserved
 
 ### Preventing Context Drift
-1. Read `.agent/sub-agents/${parent_id}.json` before spawning
+1. Read `.agents/sub-agents/${parent_id}.json` before spawning
 2. Inherit immutable context (tech stack, constraints, decisions)
 3. Log all new decisions to own context file
 4. Reference lineage in all commits

@@ -14,7 +14,7 @@
 
 ### 🚩 Critical Breaches (STRUCT-001)
 The following sectors exhibit "Orphaned Logic" (Logic not encapsulated in Classes or privatized). This is a Class-A violation of the Linscott Standard.
-- **`.agent/scripts/`**: 39 Anomalies detected.
+- **`.agents/scripts/`**: 39 Anomalies detected.
   - `audit_dialogue.py`: `run_audit` is orphaned.
   - `benchmark_engine.py`: `benchmark` is orphaned.
   - `code_sentinel.py`: `run_ruff`/`format_results` are orphaned.
@@ -45,9 +45,9 @@ While 94.7% is mathematically high, it fails the "Zero Regression" mandate. Spec
 ## 🛡️ 3. Security Perimeter (Heimdall's Gate)
 **System Threat Score**: **Low (1.5/10)**
 
-- **`.agent/scripts/sv_engine.py`**: 0/10 (Secure).
-- **`.agent/scripts/cstar_dispatcher.py`**: 0/10 (Secure).
-- **`.agent/scripts/synapse_sync.py`**: 5/10 (Flagged: External Network/Socket imports. *Status: Authorized for Sync*).
+- **`.agents/scripts/sv_engine.py`**: 0/10 (Secure).
+- **`.agents/scripts/cstar_dispatcher.py`**: 0/10 (Secure).
+- **`.agents/scripts/synapse_sync.py`**: 5/10 (Flagged: External Network/Socket imports. *Status: Authorized for Sync*).
 
 ---
 

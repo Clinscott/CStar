@@ -12,8 +12,8 @@ from datetime import datetime
 class MuninnMemory:
     def __init__(self, root: Path):
         self.root = root
-        self.ledger_path = self.root / ".agent" / "tech_debt_ledger.json"
-        self.trace_dir = self.root / ".agent" / "traces"
+        self.ledger_path = self.root / ".agents" / "tech_debt_ledger.json"
+        self.trace_dir = self.root / ".agents" / "traces"
         self.trace_dir.mkdir(parents=True, exist_ok=True)
 
     def load_ledger(self) -> dict:

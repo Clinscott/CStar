@@ -1,0 +1,43 @@
+---
+title: "test_cognitive_router_empire.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\unit\test_cognitive_router_empire.py"
+loc: 55
+complexity: 1
+logic_score: 4.15
+style_score: 3.64
+intel_score: 7.22
+overall_score: 4.38
+---
+
+## Intent
+The `test_cognitive_router_empire.py` sector implements modular logic focusing on mock_router, test_route_intent_success, test_route_intent_loki_mode_override, test_route_intent_shield_trip, test_route_intent_lease_collision. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via mock_router, test_route_intent_success, test_route_intent_loki_mode_override, test_route_intent_shield_trip, test_route_intent_lease_collision. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 4.1/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 7.2/10
+- **Gravity [G]**: 12 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [pytest](file://pytest)
+- [asyncio](file://asyncio)
+- [unittest.mock](file://unittest.mock)
+- [pathlib](file://pathlib)
+- [src.core.engine.cognitive_router](file://src.core.engine.cognitive_router)
+- [src.core.engine.atomic_gpt](file://src.core.engine.atomic_gpt)
+- [src.core.engine.heimdall_shield](file://src.core.engine.heimdall_shield)
+- [src.core.mimir_client](file://src.core.mimir_client)
+
+### Exports
+- `mock_router`
+- `test_route_intent_success`
+- `test_route_intent_loki_mode_override`
+- `test_route_intent_shield_trip`
+- `test_route_intent_lease_collision`

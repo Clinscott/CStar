@@ -1,0 +1,38 @@
+---
+title: "merge_traces.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\fixtures\new_world_seed\.agents\scripts\merge_traces.py"
+loc: 83
+complexity: 11
+logic_score: 1.72
+style_score: 3.74
+intel_score: 2.36
+overall_score: 1.68
+---
+
+## Intent
+The `merge_traces.py` sector implements high-complexity logic focusing on merge_traces. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via merge_traces. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.7/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 2.4/10
+- **Gravity [G]**: 8 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [os](file://os)
+- [shutil](file://shutil)
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+
+### Exports
+- `merge_traces`

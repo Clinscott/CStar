@@ -105,7 +105,7 @@ class TraceCompiler:
 
         # Auto-Corrections
         if stats.get('critical_fails'):
-            corrections_path = os.path.join(base, ".agent", "corrections.json")
+            corrections_path = os.path.join(base, ".agents", "corrections.json")
             try:
                 data = {}
                 if os.path.exists(corrections_path):

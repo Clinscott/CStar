@@ -15,7 +15,7 @@ def debug():
 
     # Check if skills_db exists to load global skills
     import json
-    config_path = os.path.join(PROJECT_ROOT, ".agent", "config.json")
+    config_path = os.path.join(PROJECT_ROOT, ".agents", "config.json")
     try:
         with open(config_path) as f:
             config = json.load(f)

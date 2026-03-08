@@ -1,3 +1,10 @@
+## 2026-03-07: THE ORACLE HANDSHAKE (MCP Stabilization)
+- **Pattern: Direct SDK Strike (The One Mind)**: When an MCP server requires high-fidelity LLM sampling, bypassing the Host's recursive `sampling` capability in favor of a direct SDK strike (e.g., `google-genai`) eliminates "Split-Brain" deadlocks and `Method not found` errors. 
+- **Pattern: ADC Payload Enforcement**: To prevent the Gemini CLI Host from rejecting sampling requests, the MCP server must provide its own **Application Default Credentials (ADC)** or an API key. This ensures the server is sovereign and doesn't rely on the Host's identity for its internal "thinking" cycles.
+- **Pattern: tsc-Synchronized Forging**: In TypeScript-based MCP environments, source changes in `src/` must be forged into the active `tsx` or `node` execution path. Running a full `npx tsc` sweep is mandatory to catch import-path drift and interface mismatches that `tsx` might otherwise swallow, leading to silent runtime failures.
+- **Type Pattern: ChalkInstance over Chalk**: When using `chalk` for terminal UI components in a heavily-typed environment, always use `ChalkInstance` for type annotations. Using the value `Chalk` as a type triggers a compilation error in modern TypeScript versions.
+- **IPC Pattern: Complex Payload Support**: Bridge components (like `cortex_link.ts`) must support `any` or complex object types for command arguments. Restricting payloads to `string[]` prevents the transmission of rich metadata (like `filepaths` arrays) required for high-fidelity auditing.
+
 ## 2026-03-05: TALIESIN PHASE 8 (The 90% Threshold)
 - **Constraint: No Autonomous API Usage**: Never execute background generation or scoring trials via the Gemini/Bifrost API without explicit, per-execution approval from the user. This preserves quota and ensures human-in-the-loop oversight for high-token tasks.
 - **Pattern: Exemplar Grounding (EAS)**: For high-fidelity literary recreation, few-shotting with raw manuscript excerpts (exemplars) provides a superior stylistic anchor compared to abstract Gherkin behavioral instructions alone.
@@ -81,9 +88,9 @@
 - **Automated Refactoring Tools vs Regex**: Relying entirely on `--fix` for ESLint or standard formatters can lead to stripped overrides and nested JSDoc block corruption. In the absolute final stages of TS compliance, utilizing targeted node-based regex scripts to manipulate string edge-cases ensures zero-regression while respecting exact formatting requirements.
 - **Sentinel Compliance**: Strict typing and comprehensive JSDoc annotations are non-negotiable under the Linscott Standard. Implicit `any` types and unused variables act as structural vulnerabilities; neutralizing them solidifies the component architecture before future expansion.
 ## 2026-02-28: Session 99 (Path Sovereignty & Workflow Surveillance)
-- **Directory Ascension over CWD**: Relying on `process.cwd()` in CLI tooling is an anti-pattern that binds execution to the user's current terminal location, creating "Split-Brain" routing failures if invoked from a subdirectory. True Path Sovereignty requires using `import.meta.dirname` (or `__dirname` in CJS) to physically ascend the component tree until a known root anchor (like `package.json` or `.agent/config.json`) is struck.
+- **Directory Ascension over CWD**: Relying on `process.cwd()` in CLI tooling is an anti-pattern that binds execution to the user's current terminal location, creating "Split-Brain" routing failures if invoked from a subdirectory. True Path Sovereignty requires using `import.meta.dirname` (or `__dirname` in CJS) to physically ascend the component tree until a known root anchor (like `package.json` or `.agents/config.json`) is struck.
 - **Caching High-IO Traversal**: Directory ascension involves continuous `fs.existsSync` checks which throttle performance in deep/recursive file-tree scans. Always encapsulate this execution behind a Singleton or internal cache (e.g., `this.root = findProjectRoot()`) and expose a simple `getRoot()` accessor to ensure $O(1)$ path resolution after the initial boot.
-- **Workflow Surveillance Parity**: Cross-platform frameworks must have equivalent surveillance guardrails. If Python code is audited via `code_sentinel.py` in the `/investigate` mandate, failing to apply uniform scrutiny to the Node.js domain (via `js_sentinel.ts`) creates a Perimeter Blindspot. Integrating checks directly into the shared workflows `.agent/workflows/*.md` enforces consistent perimeter defense without cognitive load for the human operator.
+- **Workflow Surveillance Parity**: Cross-platform frameworks must have equivalent surveillance guardrails. If Python code is audited via `code_sentinel.py` in the `/investigate` mandate, failing to apply uniform scrutiny to the Node.js domain (via `js_sentinel.ts`) creates a Perimeter Blindspot. Integrating checks directly into the shared workflows `.agents/workflows/*.md` enforces consistent perimeter defense without cognitive load for the human operator.
 - **Intent Depth Mandates**: Simple one-line intent descriptions ("This file resolves paths") are insufficient for complex visual matrices like the Glass HUD. Altering Prompt structures (`llm.ts`) to explicitly demand the *what*, *why*, and *role* ensures nodes provide actionable narrative, transforming the graph from a simple map into an analytical dashboard.
 
 ## 2026-02-28: Session 98 (Configuration-Driven Persona Registry)
@@ -138,7 +145,7 @@
 
 ## 2026-02-26: Session 90 (Fishtest Regression & Vector Calibration)
 - **Engine Prefix Hardening**: Corrected the `SovereignVector` prefix joining logic to prevent "Double-Colon" errors (`GLOBAL::`). Prefixes that already contain a separator (like `GLOBAL:`) must be handled as suffixes to prevent search fragmentation.
-- **Ghost Data Purge**: When modifying composite IDs in ChromaDB (e.g., `system::GLOBAL:skill`), the old IDs persist in the index. A full `.agent/chroma_db` purge is required to eliminate "Ghost Data" that can pollute intent resolution accuracy.
+- **Ghost Data Purge**: When modifying composite IDs in ChromaDB (e.g., `system::GLOBAL:skill`), the old IDs persist in the index. A full `.agents/chroma_db` purge is required to eliminate "Ghost Data" that can pollute intent resolution accuracy.
 - **Greedy Intent Calibration**: Reduced the core trigger boost in `src/core/engine/vector.py` from 1.2 to 1.15 to prevent "Sovereign Triggers" from statistically bullying more specialized global skills.
 - **Operational Tool Restoration**: Repaired `sterileAgent/fishtest.py` by correcting its `PROJECT_ROOT` and configuration loading logic to support the new nested `system` domain.
 
@@ -335,7 +342,7 @@
 - **Pattern**: Localized neural alignment is superior to generic LLM advice for project-specific "lore" maintenance.
 - **Atomic Cortex**: Using byte-level tokenization and a scalar transformer allows for dependency-free code analysis without API costs.
 - **GPHS Utility**: A single Global Health Score provides a definitive "Go/No-Go" gauge for autonomous mutations, removing ambiguity from the Gauntlet.
-- **Alfred's Guidance**: Persistent guidance files (.agent/ALFRED_SUGGESTIONS.md) prevent "hallucination loops" where the agent tries the same failed fix repeatedly.
+- **Alfred's Guidance**: Persistent guidance files (.agents/ALFRED_SUGGESTIONS.md) prevent "hallucination loops" where the agent tries the same failed fix repeatedly.
 
 ## 2026-02-17: Session 65 (Async TUI)
 - **Async Generators**: For long-running TUI tasks (like Forge streaming), always use `async for` generators over `await`. This keeps the event loop alive and allows intermediate UI updates.
@@ -352,7 +359,7 @@
 - **Identity (O.D.I.N. Lore)**: Use **Huginn & Muninn** for the daemon loop, **Heimdall** for security/auditing, and **Muninn** for incremental improvements.
 
 ## Active Context
-- **Project Structure**: `src/` is the core. `.agent/` is configuration. `tests/` is verification.
+- **Project Structure**: `src/` is the core. `.agents/` is configuration. `tests/` is verification.
 - **Current Phase**: Post-Stabilization (Phase 5 Complete). Ready for new feature development.
 
 ## Lessons Learned
@@ -367,7 +374,7 @@
 - **The Harness Principle**: For non-deterministic systems like AI code generation, a 100-iteration harness against synthetic poison is the only way to verify architectural hardening.
 - **CI/CD Versioning**: Explicitly pin GitHub Actions versions (e.g., `@v4`) to avoid resolution errors.
 - **Protocol Integrity**: For complex state management tasks (like re-branding or documentation audits), execution via **Manual Agent Protocol** is superior to automation scripts due to better contextual awareness.
-- **Dynamic CLI Discovery**: Hardcoding registries is a technical debt magnet. Moving to a filesystem-based discovery engine (`.agent/skills/` -> `src/tools/`) ensures the CLI scales automatically as new tools are developed.
+- **Dynamic CLI Discovery**: Hardcoding registries is a technical debt magnet. Moving to a filesystem-based discovery engine (`.agents/skills/` -> `src/tools/`) ensures the CLI scales automatically as new tools are developed.
 - **Lore-Forward UX**: In thematic projects, using thin shims or proxies to map "functional" names (e.g., `audit`) to "thematic" names (e.g., `heimdall`) enhances immersion without sacrificing utility.
 - **Verification**: Learning loops require multi-cycle stability checks.
 - **Edit Stability**: Avoid large-block `replace_file_content` calls on complex markdown artifacts if the target content contains dynamic or sensitive formatting. Prefer `write_to_file` for total document state synchronization to ensure "Iron Clad" integrity and avoid malformed partial edits.
@@ -381,7 +388,7 @@
 - **Lazy Persona Synchronization (UI)**: Encapsulating persona loading within the SovereignHUD's lazy-initializer ensures that all terminal outputs correctly reflect the project's identity without requiring explicit setup in every script.
 - **Graceful Daemon Signaling (Daemon)**: Implementing standard signal handlers (SIGINT/SIGTERM) is critical for long-running processes (e.g., Ravens) to ensure lock files are purged and state is persisted during shutdown.
 - **SovereignHUD-ified Warden Output**: Migrating audit tools (e.g., `annex.py`) to the SovereignHUD box framework aligns technical reports with the project's immersion directives while providing a consistent visual standard for technical debt assessments.
-- **Pathlib Universality**: Absolute Pathlib resolution is the only reliable way to handle scripts that may be executed from different working directories (e.g., root, `src/`, or `.agent/`).
+- **Pathlib Universality**: Absolute Pathlib resolution is the only reliable way to handle scripts that may be executed from different working directories (e.g., root, `src/`, or `.agents/`).
 - **Empire Testing Protocol (N=40)**: Core infrastructure and tool-suite files must have a dedicated companion test in `tests/empire_tests/` following the Linscott Standard. This prevents regression during deep learning cycles.
 - **SovereignHUD Initialization Guard**: When testing UI-dependent modules, manually set `SovereignHUD._INITIALIZED = True` to prevent unintentional loading of local `config.json` state, ensuring environment isolation.
 - **Regex Boundary Anchors**: Security and intent patterns should use word boundaries (`\b`) to prevent false positives (e.g., matching 'exec' in 'executing').

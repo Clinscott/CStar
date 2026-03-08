@@ -1,0 +1,34 @@
+---
+title: "benchmark_engine.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\fixtures\new_world_seed\.agents\scripts\benchmark_engine.py"
+loc: 33
+complexity: 5
+logic_score: 3.45
+style_score: 4.00
+intel_score: 1.40
+overall_score: 2.60
+---
+
+## Intent
+The `benchmark_engine.py` sector implements modular logic focusing on benchmark. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via benchmark. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 3.5/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 6 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [statistics](file://statistics)
+- [subprocess](file://subprocess)
+- [time](file://time)
+
+### Exports
+- `benchmark`

@@ -3,20 +3,20 @@ title: "GhostTraceLayer.tsx"
 path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\vis\components\GhostTraceLayer.tsx"
 loc: 40
 complexity: 3
-logic_score: 8.20
+logic_score: 8.47
 style_score: 4.06
 intel_score: 3.00
-overall_score: 4.89
+overall_score: 4.14
 ---
 
 ## Intent
-The `HUDShell.tsx` module implements the 'Glass HUD' overlay for the PennyOne visualization. It provides the UI container for file metadata, Gungnir scores, and the interaction protocols of selected nodes, presented in a high-tech, semi-transparent aesthetic.
+The `GhostTraceLayer.tsx` sector implements modular logic focusing on TraceLine, lineRef, GhostTraceLayer, GhostTraceLayer. It forms a node in the Gungnir Matrix.
 
 ## Interaction Protocol
-The component is displayed when a user selects or hovers over a node. It receives the `FileData` for the target and renders the specific metrics, intents, and interaction protocols defined in the Gungnir Matrix.
+Integrate via TraceLine, lineRef, GhostTraceLayer, GhostTraceLayer. Follow the Linscott Standard for this sector.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 8.2/10
+- **Logic [L]**: 8.5/10
 - **Style [S]**: 4.1/10
 - **Intel [I]**: 3.0/10
 - **Gravity [G]**: 7 interactions (Agent Activity Hotspot)

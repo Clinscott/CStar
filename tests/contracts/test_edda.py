@@ -1,13 +1,13 @@
 
 # Import the script to test (assuming it's in the python path or we use subprocess)
 # For this test, we'll import the class directly if possible, or mock the environment
-# Add .agent/scripts to sys.path to from src.core import edda
+# Add .agents/scripts to sys.path to from src.core import edda
 import sys
 from pathlib import Path
 
 import pytest
 
-sys.path.append(str(Path(__file__).parents[2] / ".agent" / "scripts"))
+sys.path.append(str(Path(__file__).parents[2] / ".agents" / "scripts"))
 
 from src.core.edda import EddaWeaver
 
@@ -24,7 +24,7 @@ def mock_realm(tmp_path):
     (docs / "guide.md").write_text("# Old Guide\n> This is a note.", encoding="utf-8")
 
     # 2. Workflow (Should be ignored)
-    workflows = root / ".agent" / "workflows"
+    workflows = root / ".agents" / "workflows"
     workflows.mkdir(parents=True)
     (workflows / "plan.md").write_text("# Plan\nDo not touch.", encoding="utf-8")
 
@@ -67,9 +67,9 @@ def test_preservation_workflows(mock_realm):
     weaver.scan_and_transmute()
 
     # Verify workflow is untouched
-    workflow = root / ".agent" / "workflows" / "plan.md"
+    workflow = root / ".agents" / "workflows" / "plan.md"
     assert workflow.exists()
-    assert not (root / ".agent" / "workflows" / "plan.qmd").exists()
+    assert not (root / ".agents" / "workflows" / "plan.qmd").exists()
 
 def test_api_synthesis(mock_realm):
     """Scenario 4: API Synthesis"""

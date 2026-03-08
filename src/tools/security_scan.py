@@ -56,7 +56,7 @@ class SecurityScanner:
                 self.findings.append(f"[{cat}] Detected '{pat}'")
 
     def _regex_scan(self) -> None:
-        is_internal = "scripts" in self.path and ".agent" in self.path
+        is_internal = "scripts" in self.path and ".agents" in self.path
         for cat, patterns in self.RISK_VECTORS.items():
             for pat, weight in patterns:
                 if re.search(pat, self.content, re.IGNORECASE):

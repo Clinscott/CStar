@@ -3,20 +3,20 @@ title: "SelectionPanelShell.tsx"
 path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\vis\components\SelectionPanelShell.tsx"
 loc: 42
 complexity: 1
-logic_score: 7.92
+logic_score: 8.72
 style_score: 1.00
 intel_score: 3.90
-overall_score: 4.55
+overall_score: 3.80
 ---
 
 ## Intent
-The `SelectionPanelShell.tsx` module implements the aesthetic frame and layout for the file details view. It provides the high-tech 'Glass' styling, title bars, and action controls, serving as the primary interface for exploring a file's lore, metrics, and dependency trajectories.
+The `SelectionPanelShell.tsx` sector implements modular logic focusing on SelectionPanelShell, SelectionPanelShell, filename. It forms a node in the Gungnir Matrix.
 
 ## Interaction Protocol
-Use this component as the main wrapper for file-specific information in the 3D view. It receives the selected node data and coordinates the display of intents, protocols, and metrics within a cohesive visual structure.
+Integrate via SelectionPanelShell, SelectionPanelShell, filename. Follow the Linscott Standard for this sector.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 7.9/10
+- **Logic [L]**: 8.7/10
 - **Style [S]**: 1.0/10
 - **Intel [I]**: 3.9/10
 - **Gravity [G]**: 10 interactions (Agent Activity Hotspot)

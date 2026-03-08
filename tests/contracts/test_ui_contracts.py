@@ -6,8 +6,8 @@ import unittest
 # Add project root and empire scripts to path
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.append(PROJECT_ROOT)
-sys.path.append(os.path.join(PROJECT_ROOT, ".agent", "scripts"))
-sys.path.append(os.path.join(PROJECT_ROOT, ".agent", "scripts", "empire"))
+sys.path.append(os.path.join(PROJECT_ROOT, ".agents", "scripts"))
+sys.path.append(os.path.join(PROJECT_ROOT, ".agents", "scripts", "empire"))
 
 from src.core.sovereign_hud import SovereignHUD
 

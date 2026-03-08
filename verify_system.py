@@ -9,12 +9,12 @@ import psutil
 MAX_MEMORY_MB = 150.0
 DAEMON_PORT = 50051
 REQUIRED_DIRS = [
-    ".agent",
-    ".agent/memory",
-    ".agent/traces"
+    ".agents",
+    ".agents/memory",
+    ".agents/traces"
 ]
 REQUIRED_FILES = [
-    ".agent/corrections.json",
+    ".agents/corrections.json",
     "bin/cstar.js"
 ]
 

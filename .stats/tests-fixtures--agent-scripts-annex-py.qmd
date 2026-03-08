@@ -1,0 +1,41 @@
+---
+title: "annex.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\fixtures\.agents\scripts\annex.py"
+loc: 121
+complexity: 22
+logic_score: 0.72
+style_score: 3.77
+intel_score: 4.71
+overall_score: 1.81
+---
+
+## Intent
+The `annex.py` sector implements high-complexity logic focusing on AnnexStrategist, __init__, scan, _should_ignore, _audit_code, _generate_plan, main. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via AnnexStrategist, __init__, scan, _should_ignore, _audit_code, _generate_plan, main. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 0.7/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 4.7/10
+- **Gravity [G]**: 8 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [ast](file://ast)
+- [sys](file://sys)
+- [datetime](file://datetime)
+- [pathlib](file://pathlib)
+
+### Exports
+- `AnnexStrategist`
+- `__init__`
+- `scan`
+- `_should_ignore`
+- `_audit_code`
+- `_generate_plan`
+- `main`

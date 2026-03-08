@@ -1,0 +1,1138 @@
+{
+  "taste-skill": {
+    "timestamp": "2026-02-27T09:07:21.099173",
+    "status": "VERIFIED",
+    "files": [
+      {
+        "path": "skills_db\\taste-skill\\README.md",
+        "hash": "e92648e0555bc04adca5d7221f687ee5b4b33e430a9390f72cab661a82417647"
+      },
+      {
+        "path": "skills_db\\taste-skill\\SKILL.md",
+        "hash": "f3ea62aaeba2c5a44783ab18aa507ce0aa3fdbd1b5fd839e6b3bc5c50e2c1480"
+      },
+      {
+        "path": "skills_db\\taste-skill\\SKILL.qmd",
+        "hash": "c204f14f5c2a321d13b0be1f39aa68f360c47780f5c1e0a07d6c38aaccbae92d"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\config",
+        "hash": "b6d232648b203ecafb33f3ebe5caaad5458c217f3d880153d439ba9cb227273a"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\description",
+        "hash": "85ab6c163d43a17ea9cf7788308bca1466f1b0a8d1cc92e26e9bf63da4062aee"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\HEAD",
+        "hash": "28d25bf82af4c0e2b72f50959b2beb859e3e60b9630a5e8c603dad4ddb2b6e80"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\index",
+        "hash": "b53e9d8f91a35e3c5b2a54f6b48f54d04347c0c6799b56136a75e9873a297826"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\packed-refs",
+        "hash": "b761368a66af227a3d91bb7396fd48f02f9f53b452e107dae2d9d70ea26711d0"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\shallow",
+        "hash": "ac01f2399df96ab1285c1861412971ed8b683c05152674395e54ae7f7581feff"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\hooks\\applypatch-msg.sample",
+        "hash": "0223497a0b8b033aa58a3a521b8629869386cf7ab0e2f101963d328aa62193f7"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\hooks\\commit-msg.sample",
+        "hash": "1f74d5e9292979b573ebd59741d46cb93ff391acdd083d340b94370753d92437"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\hooks\\fsmonitor-watchman.sample",
+        "hash": "e0549964e93897b519bd8e333c037e51fff0f88ba13e086a331592bf801fa1d0"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\hooks\\post-update.sample",
+        "hash": "81765af2daef323061dcbc5e61fc16481cb74b3bac9ad8a174b186523586f6c5"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\hooks\\pre-applypatch.sample",
+        "hash": "e15c5b469ea3e0a695bea6f2c82bcf8e62821074939ddd85b77e0007ff165475"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\hooks\\pre-commit.sample",
+        "hash": "57185b7b9f05239d7ab52db045f5b89eb31348d7b2177eab214f5eb872e1971b"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\hooks\\pre-merge-commit.sample",
+        "hash": "d3825a70337940ebbd0a5c072984e13245920cdf8898bd225c8d27a6dfc9cb53"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\hooks\\pre-push.sample",
+        "hash": "ecce9c7e04d3f5dd9d8ada81753dd1d549a9634b26770042b58dda00217d086a"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\hooks\\pre-rebase.sample",
+        "hash": "4febce867790052338076f4e66cc47efb14879d18097d1d61c8261859eaaa7b3"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\hooks\\pre-receive.sample",
+        "hash": "a4c3d2b9c7bb3fd8d1441c31bd4ee71a595d66b44fcf49ddb310252320169989"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\hooks\\prepare-commit-msg.sample",
+        "hash": "e9ddcaa4189fddd25ed97fc8c789eca7b6ca16390b2392ae3276f0c8e1aa4619"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\hooks\\push-to-checkout.sample",
+        "hash": "a53d0741798b287c6dd7afa64aee473f305e65d3f49463bb9d7408ec3b12bf5f"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\hooks\\sendemail-validate.sample",
+        "hash": "44ebfc923dc5466bc009602f0ecf067b9c65459abfe8868ddc49b78e6ced7a92"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\hooks\\update.sample",
+        "hash": "8d5f2fa83e103cf08b57eaa67521df9194f45cbdbcb37da52ad586097a14d106"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\info\\exclude",
+        "hash": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\logs\\HEAD",
+        "hash": "e9c89611e8661a390fd153c949de60e17c8dbd6b5cf9ad34e78ef7ee8ab8d2d2"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\logs\\refs\\heads\\main",
+        "hash": "e9c89611e8661a390fd153c949de60e17c8dbd6b5cf9ad34e78ef7ee8ab8d2d2"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\logs\\refs\\remotes\\origin\\HEAD",
+        "hash": "e9c89611e8661a390fd153c949de60e17c8dbd6b5cf9ad34e78ef7ee8ab8d2d2"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\objects\\pack\\pack-05c47add8b97776892c140e4b9f6918ae9f04cf2.idx",
+        "hash": "9e831421ccacbd35c1eac45cef173ffba0b47c2d3682d5c3a97ace166860b47c"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\objects\\pack\\pack-05c47add8b97776892c140e4b9f6918ae9f04cf2.pack",
+        "hash": "a76a3dfd7d98e125fe6941db6fc5a286a41031fe8f3fdd107254354750bb552d"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\objects\\pack\\pack-05c47add8b97776892c140e4b9f6918ae9f04cf2.rev",
+        "hash": "ba9142497f8e6f0ea9cfc59518489f2c12c7f4cf95e5cc0b9112375930aa276a"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\refs\\heads\\main",
+        "hash": "ac01f2399df96ab1285c1861412971ed8b683c05152674395e54ae7f7581feff"
+      },
+      {
+        "path": "skills_db\\taste-skill\\.git\\refs\\remotes\\origin\\HEAD",
+        "hash": "2bb6a24aa0fc6c484100f5d51a29bbad841cd2c755f5d93faa204e5dbb4eb2b4"
+      }
+    ]
+  },
+  "cachebro": {
+    "timestamp": "2026-02-27T09:07:40.196077",
+    "status": "VERIFIED",
+    "files": [
+      {
+        "path": "skills_db\\cachebro\\.gitignore",
+        "hash": "b35898ebb7074cd60df83a65704243595a89a81297d0fa18e8ca13edad2ddfd4"
+      },
+      {
+        "path": "skills_db\\cachebro\\.mcp.json",
+        "hash": "1a3edb72172b963fc199dabc3b749ebbd9ec496acf10583833227f58d189a145"
+      },
+      {
+        "path": "skills_db\\cachebro\\bun.lock",
+        "hash": "222112c2215c0029c109cb4a73a644f510a8921ac3f96187ecee225f16a188dd"
+      },
+      {
+        "path": "skills_db\\cachebro\\LICENSE",
+        "hash": "6777aaf4129c48ed03d473d5b820b7b0abbf96ee1c055c6386c38a0c8124cff5"
+      },
+      {
+        "path": "skills_db\\cachebro\\logo.svg",
+        "hash": "14c222125a9aa034bd7d0e04190cf052b56ae2240b43f54baa97383f100da9cd"
+      },
+      {
+        "path": "skills_db\\cachebro\\package.json",
+        "hash": "7e41a701973aa84fa1fd3c7d4b62c2efe714350a13b4447d6109fdd941b9a06d"
+      },
+      {
+        "path": "skills_db\\cachebro\\README.md",
+        "hash": "ae36a2ba9078868b39c760c6bb56949d404ca08c3d09d38973dab340575e0751"
+      },
+      {
+        "path": "skills_db\\cachebro\\server.json",
+        "hash": "2813a518f5cce8b34af30b266adebe1016f49757b02c8ea619ae209a56a602a7"
+      },
+      {
+        "path": "skills_db\\cachebro\\SKILL.qmd",
+        "hash": "215f4932c3549abfe3836b8fe482f481fb2d657cb1b6de9b1ad2571620e705f3"
+      },
+      {
+        "path": "skills_db\\cachebro\\tsconfig.json",
+        "hash": "546c71eb72662bb2ae37340a6afde3499b1d8e4f887846b0454c89e0f8e40c4b"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\config",
+        "hash": "a1f47a869b34a8cd6918e0e01aab3170828fa91a08c2c778e1dd8bcda9432ead"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\description",
+        "hash": "85ab6c163d43a17ea9cf7788308bca1466f1b0a8d1cc92e26e9bf63da4062aee"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\HEAD",
+        "hash": "28d25bf82af4c0e2b72f50959b2beb859e3e60b9630a5e8c603dad4ddb2b6e80"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\index",
+        "hash": "ea897fd28dd907d2501ea8fd5118739e80b17990c91b9a882d11f68df9ff7778"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\packed-refs",
+        "hash": "d8e8ec51b139a14e4c09ce19170e41f056b8247507329e5aac7d1d46023617ab"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\shallow",
+        "hash": "ca1628a98cd6f968ff1ce0d29ca2f3c3568fa82d6131e615c8c6b2a7661cb9fd"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\hooks\\applypatch-msg.sample",
+        "hash": "0223497a0b8b033aa58a3a521b8629869386cf7ab0e2f101963d328aa62193f7"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\hooks\\commit-msg.sample",
+        "hash": "1f74d5e9292979b573ebd59741d46cb93ff391acdd083d340b94370753d92437"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\hooks\\fsmonitor-watchman.sample",
+        "hash": "e0549964e93897b519bd8e333c037e51fff0f88ba13e086a331592bf801fa1d0"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\hooks\\post-update.sample",
+        "hash": "81765af2daef323061dcbc5e61fc16481cb74b3bac9ad8a174b186523586f6c5"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\hooks\\pre-applypatch.sample",
+        "hash": "e15c5b469ea3e0a695bea6f2c82bcf8e62821074939ddd85b77e0007ff165475"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\hooks\\pre-commit.sample",
+        "hash": "57185b7b9f05239d7ab52db045f5b89eb31348d7b2177eab214f5eb872e1971b"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\hooks\\pre-merge-commit.sample",
+        "hash": "d3825a70337940ebbd0a5c072984e13245920cdf8898bd225c8d27a6dfc9cb53"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\hooks\\pre-push.sample",
+        "hash": "ecce9c7e04d3f5dd9d8ada81753dd1d549a9634b26770042b58dda00217d086a"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\hooks\\pre-rebase.sample",
+        "hash": "4febce867790052338076f4e66cc47efb14879d18097d1d61c8261859eaaa7b3"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\hooks\\pre-receive.sample",
+        "hash": "a4c3d2b9c7bb3fd8d1441c31bd4ee71a595d66b44fcf49ddb310252320169989"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\hooks\\prepare-commit-msg.sample",
+        "hash": "e9ddcaa4189fddd25ed97fc8c789eca7b6ca16390b2392ae3276f0c8e1aa4619"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\hooks\\push-to-checkout.sample",
+        "hash": "a53d0741798b287c6dd7afa64aee473f305e65d3f49463bb9d7408ec3b12bf5f"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\hooks\\sendemail-validate.sample",
+        "hash": "44ebfc923dc5466bc009602f0ecf067b9c65459abfe8868ddc49b78e6ced7a92"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\hooks\\update.sample",
+        "hash": "8d5f2fa83e103cf08b57eaa67521df9194f45cbdbcb37da52ad586097a14d106"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\info\\exclude",
+        "hash": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\logs\\HEAD",
+        "hash": "bb1345f1dabcb705534fc7b9e1ea1514a9f803b45e9b02ffeb12903fbf13b0ff"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\logs\\refs\\heads\\main",
+        "hash": "bb1345f1dabcb705534fc7b9e1ea1514a9f803b45e9b02ffeb12903fbf13b0ff"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\logs\\refs\\remotes\\origin\\HEAD",
+        "hash": "bb1345f1dabcb705534fc7b9e1ea1514a9f803b45e9b02ffeb12903fbf13b0ff"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\objects\\pack\\pack-bc7c60cc4fffec26e9d5edacebfe56c563fbcd18.idx",
+        "hash": "6ae5a9b9a0ea2a61982d2909d4cd608079d1accb2aa7d21ec8072f70ccc98f0f"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\objects\\pack\\pack-bc7c60cc4fffec26e9d5edacebfe56c563fbcd18.pack",
+        "hash": "0a369b2d28081ef1dc2cb378b13e97c3f4f99ece303b621e5c0a8c8d752c4ec7"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\objects\\pack\\pack-bc7c60cc4fffec26e9d5edacebfe56c563fbcd18.rev",
+        "hash": "26c313fc99a54773cb6ce25432e2af5f6e4832042128cd3e380764873d63d820"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\refs\\heads\\main",
+        "hash": "ca1628a98cd6f968ff1ce0d29ca2f3c3568fa82d6131e615c8c6b2a7661cb9fd"
+      },
+      {
+        "path": "skills_db\\cachebro\\.git\\refs\\remotes\\origin\\HEAD",
+        "hash": "2bb6a24aa0fc6c484100f5d51a29bbad841cd2c755f5d93faa204e5dbb4eb2b4"
+      },
+      {
+        "path": "skills_db\\cachebro\\.github\\workflows\\ci.yml",
+        "hash": "00470f505cadf28e19812e5c66a73a19c825bf8df908221e97490b2c5016f7d0"
+      },
+      {
+        "path": "skills_db\\cachebro\\.github\\workflows\\publish.yml",
+        "hash": "1850ede660dda17d53f13bb77e0c303ecfdf84dc4e055396b4a7ab6537e085dc"
+      },
+      {
+        "path": "skills_db\\cachebro\\packages\\cli\\package.json",
+        "hash": "374870bd1e0aba1ec781be1d3a5ddc410ba658192453105171765a602187c8f2"
+      },
+      {
+        "path": "skills_db\\cachebro\\packages\\cli\\src\\index.ts",
+        "hash": "61c6f35b831fabd18b602a61fbca462d3726d9dbf51f49b623ca6c4ea0669672"
+      },
+      {
+        "path": "skills_db\\cachebro\\packages\\cli\\src\\mcp.ts",
+        "hash": "138921f260c36312d5247d7e586a896ccbddd4f7852da317f926548725429547"
+      },
+      {
+        "path": "skills_db\\cachebro\\packages\\sdk\\package.json",
+        "hash": "4eaf31b8e1320effb93a4000bc55ce3ff40caea28ae4be4692a8efd3a35d69e2"
+      },
+      {
+        "path": "skills_db\\cachebro\\packages\\sdk\\src\\cache.ts",
+        "hash": "adec4d659956f383faa8597aa8c271dde43daeb421dcd085d26033e6ef7917f0"
+      },
+      {
+        "path": "skills_db\\cachebro\\packages\\sdk\\src\\differ.ts",
+        "hash": "b98ce2c7b7ab8d7019a90d73029c48049f0e39d11396615590be7bef2145dc08"
+      },
+      {
+        "path": "skills_db\\cachebro\\packages\\sdk\\src\\index.ts",
+        "hash": "05eec5062fc627de619ac6a20789a8ac69cfdee6c351822475d8ba62b9561648"
+      },
+      {
+        "path": "skills_db\\cachebro\\packages\\sdk\\src\\types.ts",
+        "hash": "7d7a0766d314320310cc865d8ffb79ba76e82de9188f85558bbde7ad72ae7e56"
+      },
+      {
+        "path": "skills_db\\cachebro\\packages\\sdk\\src\\watcher.ts",
+        "hash": "ece4a38e3de9df4a7b91f786c4eb69a65668c1388ba4e43d2397aca5dd3af47b"
+      },
+      {
+        "path": "skills_db\\cachebro\\test\\mcp-meta.test.ts",
+        "hash": "4b101d7aede3b1a0639cd3c4a8c3af28525ae57d4b6f5fa0a100a8cf68d9666f"
+      },
+      {
+        "path": "skills_db\\cachebro\\test\\smoke.test.ts",
+        "hash": "1dd73fbea304ded293185ee96a426a7af37f9bbd641439357d382cb7d84f72c5"
+      }
+    ]
+  },
+  "visual-explainer": {
+    "timestamp": "2026-02-27T09:07:41.638648",
+    "status": "VERIFIED",
+    "files": [
+      {
+        "path": "skills_db\\visual-explainer\\.gitignore",
+        "hash": "e48d69406979f6930a9a6135f795c482d5b78aaa99cce6b317ab40786ff41ecb"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\banner.png",
+        "hash": "64f5117cc927a568b5abbc92f6934647b899ba3cea99ea03925beb65c63f0a02"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\CHANGELOG.md",
+        "hash": "7c982bef7accb02e0465bf659f1eadbf5a7da8f3fb98e21cd8bfc672ada32b68"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\LICENSE",
+        "hash": "30050aede81d2b3c99737fb33d344e24067e46249fd6b0bff1d0ade0aa248437"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\package.json",
+        "hash": "b9296ff2b2b603062893fbe05bee88f0a92ef3d196c36799211d06fe6efb1bf9"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\README.md",
+        "hash": "26b050aa9e0137a801caa27856fd6133ee1a9bb421a3b775b7a1d9fa869ca810"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\SKILL.md",
+        "hash": "f14b303c79e3995e11ac4f6a7dc10884ae317b610f38cda236cb387c1019cecb"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\SKILL.qmd",
+        "hash": "bdc28fd987ad20dbac7a354f7a498d5e703e0b1c91e82811a6df3f5d7e1c6848"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\config",
+        "hash": "472af875a069db2ad150d74460813f41bdb6806d321014253e952d2b73ca8253"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\description",
+        "hash": "85ab6c163d43a17ea9cf7788308bca1466f1b0a8d1cc92e26e9bf63da4062aee"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\HEAD",
+        "hash": "28d25bf82af4c0e2b72f50959b2beb859e3e60b9630a5e8c603dad4ddb2b6e80"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\index",
+        "hash": "fce5b3495b4f08ec4ca6d8174736885af5a62796a25f3e6275913e2f077162f6"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\packed-refs",
+        "hash": "eb4b7f64c11d384fbeca3c9f230000c8bf7b9ca0ac5972c558f798d8b2c804b6"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\shallow",
+        "hash": "30704c60e7fbfbc5a86c1fd6ec05a4402cee736486a95b130973f2f2974bee41"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\hooks\\applypatch-msg.sample",
+        "hash": "0223497a0b8b033aa58a3a521b8629869386cf7ab0e2f101963d328aa62193f7"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\hooks\\commit-msg.sample",
+        "hash": "1f74d5e9292979b573ebd59741d46cb93ff391acdd083d340b94370753d92437"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\hooks\\fsmonitor-watchman.sample",
+        "hash": "e0549964e93897b519bd8e333c037e51fff0f88ba13e086a331592bf801fa1d0"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\hooks\\post-update.sample",
+        "hash": "81765af2daef323061dcbc5e61fc16481cb74b3bac9ad8a174b186523586f6c5"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\hooks\\pre-applypatch.sample",
+        "hash": "e15c5b469ea3e0a695bea6f2c82bcf8e62821074939ddd85b77e0007ff165475"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\hooks\\pre-commit.sample",
+        "hash": "57185b7b9f05239d7ab52db045f5b89eb31348d7b2177eab214f5eb872e1971b"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\hooks\\pre-merge-commit.sample",
+        "hash": "d3825a70337940ebbd0a5c072984e13245920cdf8898bd225c8d27a6dfc9cb53"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\hooks\\pre-push.sample",
+        "hash": "ecce9c7e04d3f5dd9d8ada81753dd1d549a9634b26770042b58dda00217d086a"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\hooks\\pre-rebase.sample",
+        "hash": "4febce867790052338076f4e66cc47efb14879d18097d1d61c8261859eaaa7b3"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\hooks\\pre-receive.sample",
+        "hash": "a4c3d2b9c7bb3fd8d1441c31bd4ee71a595d66b44fcf49ddb310252320169989"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\hooks\\prepare-commit-msg.sample",
+        "hash": "e9ddcaa4189fddd25ed97fc8c789eca7b6ca16390b2392ae3276f0c8e1aa4619"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\hooks\\push-to-checkout.sample",
+        "hash": "a53d0741798b287c6dd7afa64aee473f305e65d3f49463bb9d7408ec3b12bf5f"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\hooks\\sendemail-validate.sample",
+        "hash": "44ebfc923dc5466bc009602f0ecf067b9c65459abfe8868ddc49b78e6ced7a92"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\hooks\\update.sample",
+        "hash": "8d5f2fa83e103cf08b57eaa67521df9194f45cbdbcb37da52ad586097a14d106"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\info\\exclude",
+        "hash": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\logs\\HEAD",
+        "hash": "90325aefa65dcef3fe9bb9305f826ea274dbed11c75c51e35e40019157319b14"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\logs\\refs\\heads\\main",
+        "hash": "90325aefa65dcef3fe9bb9305f826ea274dbed11c75c51e35e40019157319b14"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\logs\\refs\\remotes\\origin\\HEAD",
+        "hash": "90325aefa65dcef3fe9bb9305f826ea274dbed11c75c51e35e40019157319b14"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\objects\\pack\\pack-0871bb9f630d69f241d9d5462676d69df8cde986.idx",
+        "hash": "0cd23b2ef91497362a009c230aec01838f2f1f07f9614818e3e919c071c83d2a"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\objects\\pack\\pack-0871bb9f630d69f241d9d5462676d69df8cde986.pack",
+        "hash": "75fe1f7719a8674126b65abd9c21962b0fd55fdc381845c5089feb94f5ccb6f3"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\objects\\pack\\pack-0871bb9f630d69f241d9d5462676d69df8cde986.rev",
+        "hash": "98fa0a25023729a038a39d70ea608daa5dc66533d9e57ddeffd3daddd5ffe0d9"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\refs\\heads\\main",
+        "hash": "30704c60e7fbfbc5a86c1fd6ec05a4402cee736486a95b130973f2f2974bee41"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\.git\\refs\\remotes\\origin\\HEAD",
+        "hash": "2bb6a24aa0fc6c484100f5d51a29bbad841cd2c755f5d93faa204e5dbb4eb2b4"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\prompts\\diff-review.md",
+        "hash": "e459a19891d9cd35e23b3a036bdbb11d5cff62fbbf87e62e31fe581fa2984547"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\prompts\\fact-check.md",
+        "hash": "9934f2519f5f34b1e1fc3765e2a5f4f3cee4852a026451891e44d45c83d644e4"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\prompts\\generate-slides.md",
+        "hash": "4baf932949e1e671cc788cbd8a38575ad1f8e9198224fcc081828f1dbeb4ea46"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\prompts\\generate-web-diagram.md",
+        "hash": "835d8e87546f8a89bfa3905f0bf287422b0cd3e2f1fe5d7ee13fc176a88698be"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\prompts\\plan-review.md",
+        "hash": "ab5d207a309bc61cb2c0d5b6742481050714beea79c45a522c02938c8c7383a3"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\prompts\\project-recap.md",
+        "hash": "fa9fa8712a04c11ed95a1e63b433096bbb600c8e490861810ac9be9ac635adef"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\references\\css-patterns.md",
+        "hash": "ea4050544ac22aaf8b425c03d8e418568e950313ae86d3d2fd70e2b509492196"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\references\\libraries.md",
+        "hash": "47d11b1c9431baf934de79ffd003b46b89cd61d9f2142c6e0c3c12b47c864942"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\references\\responsive-nav.md",
+        "hash": "538e58a1f346d119a9cbf86d1513254a09046fd0f1ee43f9fbfa7b467b0fb415"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\references\\slide-patterns.md",
+        "hash": "a7fd5421cd1816a0afec13b1bc10edb38f78372a52886cbafa6ea34976f5e1c0"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\templates\\architecture.html",
+        "hash": "895111ace67639c20c2edc4655c3f2f604dd7c884638afb32c840e64f6120708"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\templates\\data-table.html",
+        "hash": "4c31c29602ad950bc42ec65948eb2ae99f05a8dda3242e992ec51c8019fa9a03"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\templates\\mermaid-flowchart.html",
+        "hash": "78bc073238e6e02bd6f0ef9cf14522bcb350f03171d9fafa3a953917289ecf76"
+      },
+      {
+        "path": "skills_db\\visual-explainer\\templates\\slide-deck.html",
+        "hash": "1f5744b9df641f7e96ff3c9fbf3fb6d2839c0deb91bdf748f6e063a793862a22"
+      }
+    ]
+  },
+  "qmd": {
+    "timestamp": "2026-03-03T09:40:24.925387",
+    "status": "VERIFIED",
+    "files": [
+      {
+        "path": "skills_db\\qmd\\.gitattributes",
+        "hash": "39a5b38da96b198656f3c5b2e44ee531ecd765bd064f6c1be6db3e397cff623e"
+      },
+      {
+        "path": "skills_db\\qmd\\.gitignore",
+        "hash": "9ce3d5e81d92e2be2b5142fc882e0e85f5787c84764c859d9ac0a211c6caf4b0"
+      },
+      {
+        "path": "skills_db\\qmd\\bun.lock",
+        "hash": "f9d671a181cd87c45565311c7cb801c8f3eee222cf3d7c675970d9ebb44e4a5a"
+      },
+      {
+        "path": "skills_db\\qmd\\CHANGELOG.md",
+        "hash": "127408b97e328f20e7fd9b0f5b01770dadf920929448ae2f6141c35d122e5aaf"
+      },
+      {
+        "path": "skills_db\\qmd\\CLAUDE.md",
+        "hash": "7fd266b8f88ee2e2d8b8ed6570a5a5b1c6713a13c44a9a45dc817d875bdf239a"
+      },
+      {
+        "path": "skills_db\\qmd\\example-index.yml",
+        "hash": "276e6f1f64f7ecf7d4ad8714838b12471180c69dce6711acf40dac06ae66698a"
+      },
+      {
+        "path": "skills_db\\qmd\\flake.lock",
+        "hash": "0e6524c84f1c6e4b58f4f529e30b3e779f4ec1ed989c830d631bc2d047411ec5"
+      },
+      {
+        "path": "skills_db\\qmd\\flake.nix",
+        "hash": "b4b63f2a27b1be0e370084f4239489e423db0a9392bf56660d9d645a31eed9f4"
+      },
+      {
+        "path": "skills_db\\qmd\\LICENSE",
+        "hash": "3227f5ded795bce26054945467ff3c22f04a3d1d6a659e406fd8dfdd82d164a1"
+      },
+      {
+        "path": "skills_db\\qmd\\migrate-schema.ts",
+        "hash": "ed821d86ba073985f2f9af6b9603ae1326c92dfd2efc62fd27ab16c459e84e5c"
+      },
+      {
+        "path": "skills_db\\qmd\\package.json",
+        "hash": "c04756f422fb8e21ba96a8b92dd746eb6b5c349313ce1aba5c2c29cbbc2b29b9"
+      },
+      {
+        "path": "skills_db\\qmd\\README.md",
+        "hash": "7bb7fa061268678eb0a503d1ef9fbf79267c637fd86155563d0b57640d56db87"
+      },
+      {
+        "path": "skills_db\\qmd\\SKILL.qmd",
+        "hash": "7c81a4d010d9bdffea6d57370060e1e9c289ae0f7f318a0252a3e375b0798484"
+      },
+      {
+        "path": "skills_db\\qmd\\tsconfig.build.json",
+        "hash": "1e7d177dcd9e012bf71f8b6ab9f3338990f0fcad2d7be89567e75fb302f07781"
+      },
+      {
+        "path": "skills_db\\qmd\\tsconfig.json",
+        "hash": "5b3d85f5946a9f5ffd6e69aa6eb2ec5ad2c8fcba0ee4fd61a19ee366f2849591"
+      },
+      {
+        "path": "skills_db\\qmd\\vitest.config.ts",
+        "hash": "efeb376caab40022485d151a1c2e49df70d2f87cf8e7c356ab13be9a7ba22002"
+      },
+      {
+        "path": "skills_db\\qmd\\.claude-plugin\\marketplace.json",
+        "hash": "6603328ad7f79c6f0004c1fcb5e93c83bd43e4926365547cc715168b8b25a5d6"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\config",
+        "hash": "778367a4ee14fb0d41ddbed1f06fd99172e5080b8e214afc62b06a20a7773285"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\description",
+        "hash": "85ab6c163d43a17ea9cf7788308bca1466f1b0a8d1cc92e26e9bf63da4062aee"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\HEAD",
+        "hash": "28d25bf82af4c0e2b72f50959b2beb859e3e60b9630a5e8c603dad4ddb2b6e80"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\index",
+        "hash": "0af98e86e36f02be8b8bb1bb0672af46d9d69f3637e4e4a50d2566795bef2692"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\packed-refs",
+        "hash": "f43b5dda259a993b4c42ac127017bde94e73e1662bd5cc1330121418f4b4e154"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\shallow",
+        "hash": "af3ae8e74f4e1c1625497ce7db2aec8c0331fdcd48779c4e2c7a3fbe85eda671"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\hooks\\applypatch-msg.sample",
+        "hash": "0223497a0b8b033aa58a3a521b8629869386cf7ab0e2f101963d328aa62193f7"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\hooks\\commit-msg.sample",
+        "hash": "1f74d5e9292979b573ebd59741d46cb93ff391acdd083d340b94370753d92437"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\hooks\\fsmonitor-watchman.sample",
+        "hash": "e0549964e93897b519bd8e333c037e51fff0f88ba13e086a331592bf801fa1d0"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\hooks\\post-update.sample",
+        "hash": "81765af2daef323061dcbc5e61fc16481cb74b3bac9ad8a174b186523586f6c5"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\hooks\\pre-applypatch.sample",
+        "hash": "e15c5b469ea3e0a695bea6f2c82bcf8e62821074939ddd85b77e0007ff165475"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\hooks\\pre-commit.sample",
+        "hash": "57185b7b9f05239d7ab52db045f5b89eb31348d7b2177eab214f5eb872e1971b"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\hooks\\pre-merge-commit.sample",
+        "hash": "d3825a70337940ebbd0a5c072984e13245920cdf8898bd225c8d27a6dfc9cb53"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\hooks\\pre-push.sample",
+        "hash": "ecce9c7e04d3f5dd9d8ada81753dd1d549a9634b26770042b58dda00217d086a"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\hooks\\pre-rebase.sample",
+        "hash": "4febce867790052338076f4e66cc47efb14879d18097d1d61c8261859eaaa7b3"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\hooks\\pre-receive.sample",
+        "hash": "a4c3d2b9c7bb3fd8d1441c31bd4ee71a595d66b44fcf49ddb310252320169989"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\hooks\\prepare-commit-msg.sample",
+        "hash": "e9ddcaa4189fddd25ed97fc8c789eca7b6ca16390b2392ae3276f0c8e1aa4619"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\hooks\\push-to-checkout.sample",
+        "hash": "a53d0741798b287c6dd7afa64aee473f305e65d3f49463bb9d7408ec3b12bf5f"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\hooks\\sendemail-validate.sample",
+        "hash": "44ebfc923dc5466bc009602f0ecf067b9c65459abfe8868ddc49b78e6ced7a92"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\hooks\\update.sample",
+        "hash": "8d5f2fa83e103cf08b57eaa67521df9194f45cbdbcb37da52ad586097a14d106"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\info\\exclude",
+        "hash": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\logs\\HEAD",
+        "hash": "47546b5004757616fc6dc73dfeca8b7e296771528a7b7a8cc1828bf0f06dc992"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\logs\\refs\\heads\\main",
+        "hash": "47546b5004757616fc6dc73dfeca8b7e296771528a7b7a8cc1828bf0f06dc992"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\logs\\refs\\remotes\\origin\\HEAD",
+        "hash": "47546b5004757616fc6dc73dfeca8b7e296771528a7b7a8cc1828bf0f06dc992"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\objects\\pack\\pack-81ec4b915491259a8abb508ba616e9edfddf4936.idx",
+        "hash": "f11d8f8e279f95381fa9495f268d8a7f8b69ec66ebb60e6699558eb46b49f941"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\objects\\pack\\pack-81ec4b915491259a8abb508ba616e9edfddf4936.pack",
+        "hash": "cf9a69a239137c2d1138386735bd36362a690076fb02ffad5dac085cb5b3ff01"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\objects\\pack\\pack-81ec4b915491259a8abb508ba616e9edfddf4936.rev",
+        "hash": "cafdb999c6f83a2115b702fcf75f8ec816ef36d36f1ed4a06b928293aed15dcc"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\refs\\heads\\main",
+        "hash": "af3ae8e74f4e1c1625497ce7db2aec8c0331fdcd48779c4e2c7a3fbe85eda671"
+      },
+      {
+        "path": "skills_db\\qmd\\.git\\refs\\remotes\\origin\\HEAD",
+        "hash": "2bb6a24aa0fc6c484100f5d51a29bbad841cd2c755f5d93faa204e5dbb4eb2b4"
+      },
+      {
+        "path": "skills_db\\qmd\\.github\\workflows\\ci.yml",
+        "hash": "185a35f094e1304d885ebb08171871e9df45b66375fdf7e18fc8ebe5d0965267"
+      },
+      {
+        "path": "skills_db\\qmd\\.github\\workflows\\publish.yml",
+        "hash": "e7152f82e8674933921d435a8545d0c4820f9bbdc7d4ea591905ff881416ccff"
+      },
+      {
+        "path": "skills_db\\qmd\\.pi\\settings.json",
+        "hash": "1f0f4744fcadc59c697c6ae7cacf531a017365fa823acc8d2c7bb0cf3970b370"
+      },
+      {
+        "path": "skills_db\\qmd\\assets\\qmd-architecture.png",
+        "hash": "d179e799ba4f3553c9da53ce5bae5380203a629f3c41417a81173a0e4dd74126"
+      },
+      {
+        "path": "skills_db\\qmd\\docs\\SYNTAX.md",
+        "hash": "e10fb8b7f9d438669e70045d4a8cbb5eaf5ea47adb3b46b18a5a2453e5b554b4"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\.gitignore",
+        "hash": "80e90bcb6ba957b666154d15fbef358ca4acbeffd97cb4cf28497bdc3f9aec5b"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\CLAUDE.md",
+        "hash": "e4c5a08bafdd638adf7596c61dc12b503f82501a70a60193f1638aa2d4526065"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\convert_gguf.py",
+        "hash": "d0cd4abdc5dac99676a25380c816fbe50ca4b9c8801106228fedd89d7dcfeb2c"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\eval.py",
+        "hash": "56bfa17827970491ac80266ab4af962858e93502fc51de5662a15ae733a18e42"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\Justfile",
+        "hash": "46cea9f2b502764a9bddc5ccf8486e7ee5757792f365e160906d165477a1bea1"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\Modelfile",
+        "hash": "2acfa782f4e0f2322533f2a2e150de4199b7a52bd49cfd052a2bfe338e516bd2"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\pyproject.toml",
+        "hash": "69bda507c4b75751ba6724246df3b7413d666816107755516e0ba07e3863dfeb"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\README.md",
+        "hash": "a6c9b0d6def5fa6c85dc5ecf3d70a687b6b89f69616094851bc0c63e084343ff"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\reward.py",
+        "hash": "487e686f6a49b28e99bd21514955128ec4e8fdc4fa74559f097cb3bfd9d768e4"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\SCORING.md",
+        "hash": "64cc5e6336e2ca308587804bae3ef8d9cd861a0a46e13130bb754e17518f0801"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\train.py",
+        "hash": "d3bf7811412be07ba2ebb003d6cc038215d79fa80d3e4ca4f1e3995f5b8092be"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\uv.lock",
+        "hash": "a05a9d26c3395d03f3740976f5b676be3f407a5c00cd112904f8ac607c553b46"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\configs\\accelerate_multi_gpu.yaml",
+        "hash": "58d596495992e9edba7503ee34a242300d0a70996bad91380a617e93426d981b"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\configs\\sft.yaml",
+        "hash": "7ef1537f6b9d5d7b23da2034905c6fcb0225922c69eaaf01a139b12ccbf59cd4"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\configs\\sft_local.yaml",
+        "hash": "5d6a828b18e26fcdee727d5aa6ac421357dc2a479fb592c838551fe76e192bca"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\data\\qmd_expansion_balanced_deduped.jsonl",
+        "hash": "1b0a8895cd9476a4cb5eb7470fe846f4535492ce894e41aac41b739f94e071e7"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\data\\qmd_expansion_diverse_addon.jsonl",
+        "hash": "f8d317803daa414ba2a63976a289dbea765c77e27073182b512d63ceba63bd03"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\data\\qmd_expansion_handcrafted.jsonl",
+        "hash": "f63fe4457654737056cd14e1ff5856aeb66288557767fa2b06f46a61fa15d707"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\data\\qmd_expansion_handcrafted_only.jsonl",
+        "hash": "127889b067118a6f598fe1fafaf482dda4cadbae3764165c4e24bbf9855fff90"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\data\\qmd_expansion_lex_phrases_negation.jsonl",
+        "hash": "6e2da28516d2c01023e4ccc27c4fc55e1a413606616f9d06471e979f450e3d08"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\data\\qmd_expansion_locations.jsonl",
+        "hash": "4574b8a6f59ce029b5636a2f301ef2a4e3b8fc7c08012f8e7e4c728ff26496c0"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\data\\qmd_expansion_people.jsonl",
+        "hash": "792c7c7ff505f7b7af4857089f56839e087b313955bb8fc299c83df5a4f4fb4c"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\data\\qmd_expansion_personal_entities.jsonl",
+        "hash": "2e9f6b7d7f6dfc77598188ab0f175b68bb50d035cf03cb8145abdf55cace203c"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\data\\qmd_expansion_short_nontech.jsonl",
+        "hash": "dc0fa22b05fbcec96fa5229809245649c31ff29a99c61288c21d302fd25dbf7b"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\data\\qmd_expansion_sports.jsonl",
+        "hash": "aaffbd923e759c9a2254b3e2f0239f78c18e007e0cf6215874d126977effb3a7"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\data\\qmd_expansion_v3_structured.jsonl",
+        "hash": "55ba634012decdd828ae5e802037255e28da3375b1635d7d01a9c419e0109c25"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\data\\qmd_only_sampled.jsonl",
+        "hash": "9d5dd4a14d81b4ce60c290a36fa28d07b3b282b91efff7c823cf7c9d19267142"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\data\\train\\dataset_info.json",
+        "hash": "87bc36d4799846b3ef6b3a671decebf1e39298cbd6aab2d9afd2a3070326f1ba"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\dataset\\analyze_data.py",
+        "hash": "d252d49eb9cd35ac56fcd87ebb4ccfc62141ae22c93d08a49d465f2775305fd6"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\dataset\\prepare_data.py",
+        "hash": "97a0b64dc589e42d7f0f9145ff3b70a3a424d7d770fcc89d9e8f45daaf0cdd42"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\dataset\\schema.py",
+        "hash": "6dc05ff4b1a34f36c48937e3665eed63d6d2fe86795839534e885aa32b8fb5d9"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\dataset\\score_data.py",
+        "hash": "66b81b688be5b7c9c5d3e4569c28eaa41c0019d6a8931dca09e3e89f884218ba"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\dataset\\validate_schema.py",
+        "hash": "0f4205b0710333522b2e5d082b4958dcfb1aab49e11e9c4b9c1ac80f4479517c"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\evals\\.gitignore",
+        "hash": "5d40118010e280a04c05e2139562f4a0caf81b1b7cf509d82e6ccf7d435067de"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\evals\\queries.txt",
+        "hash": "3f476dfcf8738a0e1f7cdbb94788f67f1ef95e0757f7ac5d4dfe7c8944b8d701"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\experiments\\gepa\\best_prompt.txt",
+        "hash": "09438948752f6e820a13ede9ad36cad13a2c16911bdc1e4b94bd4bb6af7eb5e8"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\experiments\\gepa\\best_prompt_glm.txt",
+        "hash": "22c7ac3f90916c83b3ea57ec5c5331770cf87cdcd1a20be90a82c6b34bfe072f"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\experiments\\gepa\\dspy_gepa.py",
+        "hash": "418e0cb3680d5e85ad36e0ed589253cb66309379c0dcb3de9d93ebe376f04324"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\experiments\\gepa\\example.py",
+        "hash": "797d9f29f0c0987eddd75481d9bb6e6b78c9211de43a5d399009ccf3a15d075a"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\experiments\\gepa\\generate.py",
+        "hash": "ca7bea73c7a95aa587b8265ac79445755a5fa25cf30f9b25d99ebb4340de7fbb"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\experiments\\gepa\\gepa_outputs.jsonl",
+        "hash": "18eeaec9ea4e8ad1e9d80ffb096765502cae2b36b02a07a045a87434a5e825d5"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\experiments\\gepa\\gepa_outputs_glm.jsonl",
+        "hash": "931e0264eabb50ce420268e0bc066d48383f9fffc655e9dd73e20f65f682899c"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\experiments\\gepa\\model.json",
+        "hash": "ab8b1d9e18f61260ff66a5c7075fbc56e76478b682cfa5e95243a14b13e80842"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\experiments\\gepa\\optimizer.py",
+        "hash": "f85ba64bc1181c0304a7682d370fbdcf14e442b6a3d947a428644cb14400d32d"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\experiments\\gepa\\score.py",
+        "hash": "f21b304dc8f57c578b77b013f6f9bf0b3f11a19eda3a4d5b13efa91d02c548c2"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\experiments\\gepa\\__init__.py",
+        "hash": "f01bfb80a3a99e7688bad0e1a566769340b5fe57304f11995912c9a526c2a7c1"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\experiments\\grpo\\grpo.py",
+        "hash": "634fa217211e988e07c7f2457488c3763e48775dd28febb8020139f15d40a7a5"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\experiments\\grpo\\grpo.yaml",
+        "hash": "6aab8285a5094e902d76ca1b5f4e8d2cf09cb971b702b7125492536cd255338d"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\experiments\\grpo\\README.md",
+        "hash": "118feb46a3244251a555e386ff5fd4d26936548f07c54ce5a92bdc423a5c85e6"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\experiments\\lfm2\\sft_lfm2.py",
+        "hash": "c05b2cfbb6761602c4d90ea8d2bcfd37584fe4384dd12f3617763723149b6afd"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\experiments\\lfm2\\sft_lfm2.yaml",
+        "hash": "8d35fc86166f19f1657247466fa2bead58519c27aca72a1e170d75e216cb1622"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\jobs\\eval.py",
+        "hash": "7c2d9768d8e9b7e0e6eb8c10bd5e2fd59fcdad116247e6f9c48822a7af888ae6"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\jobs\\eval_common.py",
+        "hash": "b886010f8eabf2eecb1d4a4c7c4db50957d91af94fb00cb13fdd6f00804c1718"
+      },
+      {
+        "path": "skills_db\\qmd\\finetune\\jobs\\sft.py",
+        "hash": "99b5ce42942180c5019a6c15d8a6d0f1a01eccd94c90091e20d0b407b3bb68d1"
+      },
+      {
+        "path": "skills_db\\qmd\\scripts\\extract-changelog.sh",
+        "hash": "503f24700712c20453ac8f4ed09572b50c5b95dc2661a332a218268d230cc6c4"
+      },
+      {
+        "path": "skills_db\\qmd\\scripts\\install-hooks.sh",
+        "hash": "18695e1e1a5261ca878013b7dd2f654868ed7b64ebf671e0ab57d2343e3fb422"
+      },
+      {
+        "path": "skills_db\\qmd\\scripts\\pre-push",
+        "hash": "6f1cce87bf5971dd7ab15be83da1a739ef76f32d43c7a095f1acf281e0d66ed4"
+      },
+      {
+        "path": "skills_db\\qmd\\scripts\\release.sh",
+        "hash": "e5ffc0aa02f3e4151b20e56a940d5e37ed8b04fd9fbab65299400c42f3329d47"
+      },
+      {
+        "path": "skills_db\\qmd\\skills\\qmd\\SKILL.md",
+        "hash": "4f12c77d4f1d11918ba35ce802fcafac69eab84b532d28374a469b6bf6e0f9b1"
+      },
+      {
+        "path": "skills_db\\qmd\\skills\\qmd\\references\\mcp-setup.md",
+        "hash": "73aeb3079f684e97991260a5b57cfccf648f8dadedc71ce4077ae7574039d7a8"
+      },
+      {
+        "path": "skills_db\\qmd\\skills\\release\\SKILL.md",
+        "hash": "cd423f330d997fe694ad49bace4a9da3ec133b3f5a1043c8b1f558efad79a473"
+      },
+      {
+        "path": "skills_db\\qmd\\skills\\release\\scripts\\install-hooks.sh",
+        "hash": "eb3a60579175ce00516dfdfd082f94ab19f65c3c67d865f55dc58576c9599e1b"
+      },
+      {
+        "path": "skills_db\\qmd\\src\\bench-rerank.ts",
+        "hash": "4a1ba5b44aceda2a986df5fc424d478a7a2cf353050fefa7ec12f489d301f804"
+      },
+      {
+        "path": "skills_db\\qmd\\src\\collections.ts",
+        "hash": "bc35a0ea12b3afac3b3ce6ff7268d889d587b504efba2e88d3e407700928febf"
+      },
+      {
+        "path": "skills_db\\qmd\\src\\db.ts",
+        "hash": "fe8915ac4b7e332949232b4240fc6097ac222245dd42c87efed6734eda757848"
+      },
+      {
+        "path": "skills_db\\qmd\\src\\formatter.ts",
+        "hash": "1b2e0cceffbce4816e6a09f3f35b9a1ae6223d4de000638e36a2cc917ef40bb9"
+      },
+      {
+        "path": "skills_db\\qmd\\src\\llm.ts",
+        "hash": "397b7378a36346a2f9a6b796719cef07785d562b6c1a8536292ce9cfb575d495"
+      },
+      {
+        "path": "skills_db\\qmd\\src\\mcp.ts",
+        "hash": "937feaab122ff796208f1a6cd550aaa06cf12c9f5a80256e4c3028beb760ba8d"
+      },
+      {
+        "path": "skills_db\\qmd\\src\\qmd.ts",
+        "hash": "301e677dee9b3918f5c162a313bf788f8533d802bd2f46fff039e866e7a1a57b"
+      },
+      {
+        "path": "skills_db\\qmd\\src\\store.ts",
+        "hash": "34a74403ed3ce0c6c0f38e155300c3ed207de5329675dcb37209a55d2861cd35"
+      },
+      {
+        "path": "skills_db\\qmd\\src\\test-preload.ts",
+        "hash": "8973b4d5242f06273731ee74624cc8287a45dba9742fdfcc237d5b8f2f0b2fa8"
+      },
+      {
+        "path": "skills_db\\qmd\\test\\cli.test.ts",
+        "hash": "d34ce6511d85f9d150242cd4ddb276624f21bf014e9af3bf20ad10a3be24c4c6"
+      },
+      {
+        "path": "skills_db\\qmd\\test\\collections-config.test.ts",
+        "hash": "f5a1037679a34f916f4f68d10ec3bb963647af21b535676b75e3527893bd9ec5"
+      },
+      {
+        "path": "skills_db\\qmd\\test\\Containerfile",
+        "hash": "8439cb2ad3ad83775e82c76fc5a741d9fd8417bb49bae0faaeedb01fe2e03782"
+      },
+      {
+        "path": "skills_db\\qmd\\test\\eval-bm25.test.ts",
+        "hash": "9a369ba8f1bc9947a080dcd2f7145525e038a3645ec9f29178233026053f6c3e"
+      },
+      {
+        "path": "skills_db\\qmd\\test\\eval-harness.ts",
+        "hash": "8e94e6221769695ca66bab501882eeaf3d631b4aa6caf4e8e774070282ae76cd"
+      },
+      {
+        "path": "skills_db\\qmd\\test\\eval.test.ts",
+        "hash": "b939bec39758f0979ba73d807f86a9764ecf7ba939fe5f5593b9d95c65dec0c5"
+      },
+      {
+        "path": "skills_db\\qmd\\test\\formatter.test.ts",
+        "hash": "511b944f1a2ea42ca48e80def2c92237b1752102fdfb34e5c7d8c50e3bf54b36"
+      },
+      {
+        "path": "skills_db\\qmd\\test\\llm.test.ts",
+        "hash": "0fd9c8cc14589800939bd2257d3c9cc798a86dc6f8c57dea603deb3958c2cd53"
+      },
+      {
+        "path": "skills_db\\qmd\\test\\mcp.test.ts",
+        "hash": "879c07f7d5e5ef3adb59ef714c31d209c87dd6589974a5f42c34630e661a6120"
+      },
+      {
+        "path": "skills_db\\qmd\\test\\multi-collection-filter.test.ts",
+        "hash": "fb341b14906efb02491994d80db921a770160ce5073e1b58c834c41a72c9f00f"
+      },
+      {
+        "path": "skills_db\\qmd\\test\\smoke-install.sh",
+        "hash": "9dbc49396fcd0b4fa3032036c1570cdd412c92d7eba3647ae8e3fc9c8819d948"
+      },
+      {
+        "path": "skills_db\\qmd\\test\\store-paths.test.ts",
+        "hash": "37e32d41db6f2428311a9daa1823cc32c3ce725dd60d28bff0d272058857a856"
+      },
+      {
+        "path": "skills_db\\qmd\\test\\store.helpers.unit.test.ts",
+        "hash": "e905f617d3845e8e116901767f67f0a5d6240f256e519e2262768ccc10dd1af0"
+      },
+      {
+        "path": "skills_db\\qmd\\test\\store.test.ts",
+        "hash": "fcc6551dbc7c597ca99c1d8841b94019723cc5c5bef515d439564f0081322dbb"
+      },
+      {
+        "path": "skills_db\\qmd\\test\\structured-search.test.ts",
+        "hash": "6c5dc527ee0bf9ef8c2747c83f8e486b9c0e9512f74191194005e33c3eab9c21"
+      },
+      {
+        "path": "skills_db\\qmd\\test\\eval-docs\\api-design-principles.md",
+        "hash": "0f69869ec83812f5d14fa407487b84f5d1305fced650b0e4b4f47d074c678fc9"
+      },
+      {
+        "path": "skills_db\\qmd\\test\\eval-docs\\distributed-systems-overview.md",
+        "hash": "03451a69e34afe5bde6c2db6f9db9f3c8ae5dabc0ae5356b0eaaf15616319a62"
+      },
+      {
+        "path": "skills_db\\qmd\\test\\eval-docs\\machine-learning-primer.md",
+        "hash": "e7903d68358bf6071ee886df728c0da833c2f10a7318844de922c4e6f2d6dfa4"
+      },
+      {
+        "path": "skills_db\\qmd\\test\\eval-docs\\product-launch-retrospective.md",
+        "hash": "ca4a752f60bbdac4373ee24522ed7fbd5a0a8d37e2c610bf4d88a822d865fbe0"
+      },
+      {
+        "path": "skills_db\\qmd\\test\\eval-docs\\remote-work-policy.md",
+        "hash": "cdeb516a6dab879eabaf59bba01b36f3b145eda8b43cd13d21b6b1175ea3b8d6"
+      },
+      {
+        "path": "skills_db\\qmd\\test\\eval-docs\\startup-fundraising-memo.md",
+        "hash": "7949d12f8127295f2d96d05a0c41fb846cbf86c3fbcb4222fd20d541c3225df3"
+      }
+    ]
+  }
+}

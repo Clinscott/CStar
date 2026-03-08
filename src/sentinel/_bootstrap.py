@@ -33,12 +33,16 @@ class SovereignBootstrap:
         if str(PROJECT_ROOT) not in sys.path:
             sys.path.insert(0, str(PROJECT_ROOT))
 
-        # Environment Loading: Prioritize .env.local
-        env_local: Path = PROJECT_ROOT / ".env.local"
-        if env_local.exists():
-            load_dotenv(dotenv_path=env_local)
-        else:
-            load_dotenv()
+        # Environment Loading: Prioritize .env.local, then .env
+        env_files = [PROJECT_ROOT / ".env.local", PROJECT_ROOT / ".env"]
+        for env_path in env_files:
+            if env_path.exists():
+                load_dotenv(dotenv_path=env_path)
+
+        # [🔱] ONE MIND ANCHOR: Ensure the agent status is immutable across spokes
+        import os
+        if os.getenv("GEMINI_CLI_ACTIVE") == "true":
+            os.environ["GEMINI_CLI_ACTIVE"] = "true"
 
         _BOOTSTRAPPED = True
 

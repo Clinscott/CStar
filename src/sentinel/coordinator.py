@@ -14,7 +14,7 @@ class MissionCoordinator:
 
     def select_mission(self, runtime_breaches: list) -> dict | None:
         """Prioritizes missions from the Ledger and selects specific Gungnir targets."""
-        ledger_path = self.root / ".agent" / "tech_debt_ledger.json"
+        ledger_path = self.root / ".agents" / "tech_debt_ledger.json"
 
         if not ledger_path.exists():
             return self._legacy_sort(runtime_breaches)

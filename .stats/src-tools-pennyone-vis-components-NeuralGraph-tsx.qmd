@@ -1,25 +1,25 @@
 ---
 title: "NeuralGraph.tsx"
 path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\vis\components\NeuralGraph.tsx"
-loc: 213
-complexity: 29
-logic_score: 0.50
-style_score: 3.79
-intel_score: 4.25
-overall_score: 2.52
+loc: 177
+complexity: 12
+logic_score: 5.45
+style_score: 3.80
+intel_score: 3.81
+overall_score: 2.32
 ---
 
 ## Intent
-The `NeuralGraph.tsx` module implements the core 3D simulation and interaction logic for the PennyOne visualization. It uses D3-force-3d to simulate the repository's neural structure and provides high-fidelity interaction handlers for node selection, dragging, and real-time telemetry observation.
+The `NeuralGraph.tsx` sector implements high-complexity logic focusing on NeuralGraph, NeuralGraph, useThree, simReady, useMatrixStore, useNeuralData, odinTexture, alfredTexture, simulation, i, map, protocol, ws, msg, targetNode, handleNodeClick, targetPos, activeNodeId. It forms a node in the Gungnir Matrix.
 
 ## Interaction Protocol
-This is the primary scene component for the neural visualization. It manages the lifecycle of the force simulation and coordinates the rendering of nodes, links, and agent ghosts based on incoming data from the backend proxy.
+Integrate via NeuralGraph, NeuralGraph, useThree, simReady, useMatrixStore, useNeuralData, odinTexture, alfredTexture, simulation, i, map, protocol, ws, msg, targetNode, handleNodeClick, targetPos, activeNodeId. Follow the Linscott Standard for this sector.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 0.5/10
+- **Logic [L]**: 5.4/10
 - **Style [S]**: 3.8/10
-- **Intel [I]**: 4.3/10
-- **Gravity [G]**: 181 interactions (Agent Activity Hotspot)
+- **Intel [I]**: 3.8/10
+- **Gravity [G]**: 137 interactions (Agent Activity Hotspot)
 
 
 
@@ -34,7 +34,9 @@ This is the primary scene component for the neural visualization. It manages the
 - [*](file://three)
 - [useFrame](file://@react-three/fiber)
 - [useThree](file://@react-three/fiber)
-- [Html](file://@react-three/drei)
+- [useTexture](file://@react-three/drei)
+- [Instances](file://@react-three/drei)
+- [Instance](file://@react-three/drei)
 - [forceSimulation](file://d3-force-3d)
 - [forceLink](file://d3-force-3d)
 - [forceManyBody](file://d3-force-3d)
@@ -43,16 +45,15 @@ This is the primary scene component for the neural visualization. It manages the
 - [forceY](file://d3-force-3d)
 - [forceZ](file://d3-force-3d)
 - [*](file://gsap)
-- [Node](file://../types/index.ts)
-- [Link](file://../types/index.ts)
-- [Trajectory](file://../types/index.ts)
-- [GhostTrace](file://../types/index.ts)
-- [NodeLayer](file://./NodeLayer.tsx)
+- [Node](file://../types/index.js)
+- [Link](file://../types/index.js)
+- [Trajectory](file://../types/index.js)
+- [GhostTrace](file://../types/index.js)
+- [useMatrixStore](file://../store/useMatrixStore.js)
 - [ConnectionLayer](file://./ConnectionLayer.tsx)
 - [FresnelAura](file://./AuraLayers.tsx)
 - [SelectionHighlight](file://./AuraLayers.tsx)
 - [TextLabel](file://./TextLabel.tsx)
-- [SelectionPanelShell](file://./SelectionPanelShell.tsx)
 - [GhostTraceLayer](file://./GhostTraceLayer.tsx)
 - [useNeuralData](file://../logic/useNeuralData.ts)
 - [STELLAR_MAP](file://../logic/useNeuralData.ts)
@@ -63,39 +64,17 @@ This is the primary scene component for the neural visualization. It manages the
 - `NeuralGraph`
 - `useThree`
 - `simReady`
-- `hovered`
-- `selectedNode`
-- `trajectories`
-- `ghostTraces`
-- `wsRef`
-- `dragState`
+- `useMatrixStore`
 - `useNeuralData`
+- `odinTexture`
+- `alfredTexture`
 - `simulation`
 - `i`
 - `map`
 - `protocol`
 - `ws`
 - `msg`
-- `ping`
 - `targetNode`
-- `lastTrace`
-- `newPoint`
 - `handleNodeClick`
 - `targetPos`
-- `activeNodeIdFromHover`
 - `activeNodeId`
-- `handlePointerDown`
-- `node`
-- `startCluster`
-- `minDist`
-- `pos`
-- `dist`
-- `handlePointerMove`
-- `handlePointerUp`
-- `dropPoint`
-- `closestCluster`
-- `minDist`
-- `dist`
-- `targetDir`
-- `fileName`
-- `targetPath`

@@ -16,6 +16,13 @@ The decision-making brain of Corvus Star.
     - `calculate_cohesion()`: Quantifiable style-matching analyzer.
 - **Exemplars** (`.lore/exemplars.json`): Stylistic anchors and forbidden lexemes.
 
+## 2026-03-07: Session 116 (The Oracle Handshake & MCP Stabilization)
+- **Method not found Exorcism**: Fixed the recursive sampling crash in `mcp-server.ts` by implementing the **Direct SDK Strike** (Gemini 2.0 Flash) with the **ADC Payload**.
+- **PennyOne Core Stabilization**: Resolved critical `tsc` errors in `index.ts`, `llm.ts`, and `analyzer.ts`, achieving 100% server-side type safety.
+- **SovereignHUD Hardening**: Fixed `Chalk` type annotations and missing properties in `hud.ts` and `ceremony.ts`.
+- **Bifrost Bridge Fortification**: Updated `cortex_link.ts` to support complex payloads and corrected `raven` status logic in `ravens.ts`.
+- **One Mind Intent**: Refactored `SamplingProvider` to use Direct SDK Strike for consistent, high-fidelity intent generation.
+
 ## 2026-03-05: Session 115 (TALIESIN Phase 8 — The 90% Threshold)
 - **90% Threshold Achieved**: Verified 91.33% cohesion via EAS (Exemplar-Augmented Synthesis) and NDS (Negative Directive Synthesis).
 - **Linguistic Grounding**: Integrated `exemplars.json` to anchor narrator and character voices to the raw manuscript.
@@ -44,7 +51,7 @@ The decision-making brain of Corvus Star.
 
 ## 2026-03-02: Session 108 (PennyOne Integration & First Principles Realignment)
 - **Protocol Persistence**: Enhanced the PennyOne matrix (`writer.ts`, `index.ts`, `compiler.ts`) to capture and save **Interaction Protocols** in the global `matrix-graph.json`.
-- **Workflow Realignment**: Updated all `.agent/workflows/` to enforce **Gungnir Matrix** and **Protocol** compliance.
+- **Workflow Realignment**: Updated all `.agents/workflows/` to enforce **Gungnir Matrix** and **Protocol** compliance.
 - **Systemic Repairs**: Sanitized syntax errors in the Node/TS command hub spokes.
 - **Search UX**: Modified `search.ts` to display protocols in CLI search results.
 
@@ -138,7 +145,7 @@ Complexity is the silence where bugs grow. By decomposing "God Methods" into sem
 - **Antigravity Uplink** (`src/cstar/core/uplink.py`):
     - **Socket Resilience**: High-fidelity transmission with 10s timeouts and schema validation.
     - **Fallback Logic**: Automatic retry using `GEMINI_API_KEY` environment variable if CLI-native auth fails.
-- **Muninn** (`src/sentinel/muninn.py`): Memory ledger with HEARTBEAT tracking (`.agent/muninn.pid`).
+- **Muninn** (`src/sentinel/muninn.py`): Memory ledger with HEARTBEAT tracking (`.agents/muninn.pid`).
 - **Genesis Bootstrapper** (`src/node/setup.js`):
     - Zero-touch cross-platform installation.
     - **Persona Alignment**: Dynamically honors active persona logging (O.D.I.N./A.L.F.R.E.D.).
@@ -152,7 +159,7 @@ Complexity is the silence where bugs grow. By decomposing "God Methods" into sem
     - **A.L.F.R.E.D. Overwatch** (`src/core/engine/alfred_observer.py`): Failure pattern guidance daemon.
 - **SPRT Verification** (`tests/integration/project_fishtest.py`):
     - `GungnirSPRT`: Statistical significance testing for GPHS deltas.
-- **Proxy Skills** (`.agent/skills/`):
+- **Proxy Skills** (`.agents/skills/`):
     - `ravens.py`, `trace.py`, `heimdall.py`, etc. (Dynamic CLI Entry Points).
 
 ### 🦅 The Ravens (`src/sentinel/`)
@@ -222,4 +229,4 @@ Connection to the wider network (Knowledge Core).
 `Time Trigger` -> `Huginn & Muninn` -> `muninn.py` -> `Heimdall` -> `Report`
 
 ### 3. Skill Development
-`User Create` -> `.agent/skills/NEW_SKILL.py` -> `c* NEW_SKILL` -> `Available`
+`User Create` -> `.agents/skills/NEW_SKILL.py` -> `c* NEW_SKILL` -> `Available`

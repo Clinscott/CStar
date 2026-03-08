@@ -1,0 +1,34 @@
+---
+title: "debug_discovery.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\fixtures\debug_discovery.py"
+loc: 29
+complexity: 6
+logic_score: 2.82
+style_score: 3.94
+intel_score: 1.40
+overall_score: 2.16
+---
+
+## Intent
+The `debug_discovery.py` sector implements modular logic focusing on tokenize. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via tokenize. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 2.8/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 6 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [os](file://os)
+- [re](file://re)
+
+### Exports
+- `tokenize`

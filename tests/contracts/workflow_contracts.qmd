@@ -1,6 +1,6 @@
 ---
 title: Core Workflow Contracts
-scope: .agent/workflows/
+scope: .agents/workflows/
 ---
 
 # Core Workflows — Behavioral Contracts

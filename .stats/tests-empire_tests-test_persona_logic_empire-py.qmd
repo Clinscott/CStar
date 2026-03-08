@@ -1,0 +1,33 @@
+---
+title: "test_persona_logic_empire.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\empire_tests\test_persona_logic_empire.py"
+loc: 9
+complexity: 1
+logic_score: 9.15
+style_score: 8.99
+intel_score: 1.40
+overall_score: 5.03
+---
+
+## Intent
+The `test_persona_logic_empire.py` sector implements modular logic focusing on test_persona_loading. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via test_persona_loading. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.1/10
+- **Style [S]**: 9.0/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 6 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [src.core.utils](file://src.core.utils)
+
+### Exports
+- `test_persona_loading`

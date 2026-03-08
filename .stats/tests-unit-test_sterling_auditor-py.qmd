@@ -1,0 +1,38 @@
+---
+title: "test_sterling_auditor.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\unit\test_sterling_auditor.py"
+loc: 43
+complexity: 1
+logic_score: 7.65
+style_score: 3.64
+intel_score: 1.40
+overall_score: 3.25
+---
+
+## Intent
+The `test_sterling_auditor.py` sector implements modular logic focusing on auditor, test_audit_file_tarnished, test_audit_file_silver, test_audit_file_polished. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via auditor, test_audit_file_tarnished, test_audit_file_silver, test_audit_file_polished. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.6/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 8 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [pytest](file://pytest)
+- [json](file://json)
+- [pathlib](file://pathlib)
+- [src.core.sterling_auditor](file://src.core.sterling_auditor)
+
+### Exports
+- `auditor`
+- `test_audit_file_tarnished`
+- `test_audit_file_silver`
+- `test_audit_file_polished`

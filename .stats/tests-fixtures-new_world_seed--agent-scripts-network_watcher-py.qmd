@@ -1,0 +1,44 @@
+---
+title: "network_watcher.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\fixtures\new_world_seed\.agents\scripts\network_watcher.py"
+loc: 145
+complexity: 18
+logic_score: 0.72
+style_score: 3.69
+intel_score: 2.50
+overall_score: 1.05
+---
+
+## Intent
+The `network_watcher.py` sector implements high-complexity logic focusing on get_theme, run_fishtest, log_rejection, process_file, watch. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via get_theme, run_fishtest, log_rejection, process_file, watch. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 0.7/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 2.5/10
+- **Gravity [G]**: 8 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [os](file://os)
+- [shutil](file://shutil)
+- [subprocess](file://subprocess)
+- [sys](file://sys)
+- [time](file://time)
+- [sv_engine](file://sv_engine)
+- [latency_check](file://latency_check)
+- [merge_traces](file://merge_traces)
+
+### Exports
+- `get_theme`
+- `run_fishtest`
+- `log_rejection`
+- `process_file`
+- `watch`

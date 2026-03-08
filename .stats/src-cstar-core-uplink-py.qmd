@@ -1,0 +1,53 @@
+---
+title: "uplink.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\cstar\core\uplink.py"
+loc: 111
+complexity: 17
+logic_score: 0.67
+style_score: 3.75
+intel_score: 6.08
+overall_score: 1.73
+---
+
+## Intent
+The `uplink.py` sector implements high-complexity logic focusing on clean_cli_output, extract_balanced, AntigravityUplink, __init__, send_payload, _direct_strike, make_request, query_bridge. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via clean_cli_output, extract_balanced, AntigravityUplink, __init__, send_payload, _direct_strike, make_request, query_bridge. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 0.7/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 6.1/10
+- **Gravity [G]**: 101 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [asyncio](file://asyncio)
+- [json](file://json)
+- [os](file://os)
+- [sys](file://sys)
+- [tempfile](file://tempfile)
+- [re](file://re)
+- [pathlib](file://pathlib)
+- [typing](file://typing)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [src.core.mimir_client](file://src.core.mimir_client)
+- [dotenv](file://dotenv)
+- [pathlib](file://pathlib)
+- [urllib.request](file://urllib.request)
+- [urllib.error](file://urllib.error)
+- [concurrent.futures](file://concurrent.futures)
+
+### Exports
+- `clean_cli_output`
+- `extract_balanced`
+- `AntigravityUplink`
+- `__init__`
+- `send_payload`
+- `_direct_strike`
+- `make_request`
+- `query_bridge`

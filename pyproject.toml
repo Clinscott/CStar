@@ -50,7 +50,7 @@ exclude = [
     "node_modules",
     "dist",
     "bin",
-    ".agent",
+    ".agents",
     "scripts",
     "tests",
     "tmp_diag",

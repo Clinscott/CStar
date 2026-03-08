@@ -41,7 +41,7 @@ class SovereignVector:
         # Load Assets
         t_path = Path(thesaurus_path) if thesaurus_path else self.project_root / "src" / "data" / "thesaurus.qmd"
         s_path = Path(stopwords_path) if stopwords_path else self.project_root / "src" / "data" / "stopwords.json"
-        c_path = Path(corrections_path) if corrections_path else self.project_root / ".agent" / "corrections.json"
+        c_path = Path(corrections_path) if corrections_path else self.project_root / ".agents" / "corrections.json"
 
         self.stopwords = self.config_spoke.load_stopwords(s_path)
         self.thesaurus = self.config_spoke.load_thesaurus(t_path)

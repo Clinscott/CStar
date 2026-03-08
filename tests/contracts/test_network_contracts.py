@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.append(PROJECT_ROOT)
-sys.path.append(os.path.join(PROJECT_ROOT, ".agent", "scripts"))
+sys.path.append(os.path.join(PROJECT_ROOT, ".agents", "scripts"))
 
 from src.tools.network_watcher import CruciblePipeline
 
@@ -15,7 +15,7 @@ class TestNetwork_contracts(unittest.TestCase):
     def setUp(self):
         self.captured_output = io.StringIO()
         sys.stdout = self.captured_output
-        self.pipeline = CruciblePipeline(PROJECT_ROOT, os.path.join(PROJECT_ROOT, ".agent"))
+        self.pipeline = CruciblePipeline(PROJECT_ROOT, os.path.join(PROJECT_ROOT, ".agents"))
 
     def tearDown(self):
         sys.stdout = sys.__stdout__

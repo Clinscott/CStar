@@ -1,5 +1,5 @@
-import { IntentPayload, CorvusProcess } from './CorvusProcess.ts';
-import { EventManager } from './EventManager.ts';
+import { IntentPayload, CorvusProcess } from './CorvusProcess.js';
+import { EventManager } from './EventManager.js';
 
 /**
  * [TIERED BRAIN] Cognitive Router
@@ -87,4 +87,5 @@ export class CognitiveRouter {
         }
     }
 }
+
 

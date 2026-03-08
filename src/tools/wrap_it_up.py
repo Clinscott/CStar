@@ -62,7 +62,7 @@ class SovereignWrapper:
         SovereignHUD.box_top("STEP 3: RAVEN FLIGHT MONITOR")
         SovereignHUD.persona_log("INFO", "Monitoring Raven flight path. Waiting for landing...")
         
-        muninn_pid_path = self.root / ".agent" / "muninn.pid"
+        muninn_pid_path = self.root / ".agents" / "muninn.pid"
         start_wait = time.time()
         timeout = 600 # 10 minutes for this orchestrated run
         
@@ -129,14 +129,17 @@ class SovereignWrapper:
         SovereignHUD.box_top("STEP 6: FINAL SYSTEM SYNC")
         SovereignHUD.persona_log("ALFRED", "Ingesting recent work and performing final system scan...")
         
+        npx_cmd = "npx.cmd" if os.name == 'nt' else "npx"
         # Final Structural Scan
         try:
-            subprocess.run(["npx.cmd", "tsx", "cstar.ts", "pennyone", "--scan"], cwd=str(self.root), check=True)
+            subprocess.run([npx_cmd, "tsx", "cstar.ts", "pennyone", "--scan"], cwd=str(self.root), check=True)
         except: pass
 
         # Compile Session Traces
         from src.tools.compile_session_traces import TraceCompiler
-        _, stats = TraceCompiler.execute()
+        tdir = self.root / ".agents" / "traces"
+        rpath = self.root / ".agents" / "TRACE_REPORT.qmd"
+        _, stats = TraceCompiler.execute(tdir=str(tdir), rpath=str(rpath))
         
         update_manifest()
         
@@ -147,7 +150,8 @@ class SovereignWrapper:
         SovereignHUD.persona_log("ODIN", "Rebuilding Sovereign Vector Index...")
         try:
             engine = self._get_engine()
-            _ = engine._init_vector_engine()
+            # V6 Spoke-based rebuild
+            engine.engine = engine.builder.build_vector_engine(engine.injector.skills_db_path)
         except Exception as e:
             SovereignHUD.persona_log("HEIMDALL", f"BREACH: Vector Indexing failed. {e}")
 
@@ -163,7 +167,7 @@ class SovereignWrapper:
             for line in changes:
                 status, path_str = line[:2], line[3:]
                 if status.strip() in ("??", "A"):
-                    if "src/skills" in path_str or ".agent/workflows" in path_str:
+                    if "src/skills" in path_str or ".agents/workflows" in path_str:
                         new_capabilities.append(path_str)
 
             if new_capabilities:
@@ -180,8 +184,8 @@ class SovereignWrapper:
 
     def review_technical_debt(self, stats=None) -> None:
         """[V4] Technical Debt Review: JSONL Archival and Learning Pulse."""
-        queue_path = self.root / "src" / "data" / "anomalies_queue.jsonl"
-        archive_path = self.root / "src" / "data" / "anomalies_archive.json"
+        queue_path = self.root / ".agents" / "anomalies_queue.jsonl"
+        archive_path = self.root / ".agents" / "anomalies_archive.json"
 
         if not queue_path.exists():
             return
@@ -194,7 +198,7 @@ class SovereignWrapper:
         retries = 50 
         while retries > 0 and not success:
             try:
-                temp_queue = self.root / "src" / "data" / f"queue_pulse_{int(time.time())}.jsonl"
+                temp_queue = self.root / ".agents" / f"queue_pulse_{int(time.time())}.jsonl"
                 os.rename(queue_path, temp_queue)
                 with open(temp_queue, encoding="utf-8") as f:
                     for line in f:
@@ -263,8 +267,9 @@ class SovereignWrapper:
         try:
             subprocess.run(["git", "add", "."], cwd=str(self.root), check=True)
             subprocess.run(["git", "commit", "-m", commit_msg], cwd=str(self.root), check=True)
-            subprocess.run(["git", "push"], cwd=str(self.root), check=True)
-            SovereignHUD.box_row("STATUS", "PUSHED", SovereignHUD.GREEN)
+            # [MANDATE]: NEVER push without explicit user request.
+            # subprocess.run(["git", "push"], cwd=str(self.root), check=True)
+            SovereignHUD.box_row("STATUS", "COMMITTED", SovereignHUD.GREEN)
         except subprocess.CalledProcessError as e:
             SovereignHUD.persona_log("HEIMDALL", f"BREACH: Git Protocol Failed. {e}")
         SovereignHUD.box_bottom()

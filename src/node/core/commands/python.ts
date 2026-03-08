@@ -1,9 +1,9 @@
 import { Command } from 'commander';
 import { join } from 'node:path';
 import { execa } from 'execa';
-import { ANS } from '../ans.ts';
+import { ANS } from '../ans.js';
 
-import { getPythonPath } from '../python_utils.ts';
+import { getPythonPath } from '../python_utils.js';
 
 /**
  * [GUNGNIR] Domain & Protocol Command Spokes
@@ -115,3 +115,4 @@ export function registerPythonSpokes(program: Command, PROJECT_ROOT: string) {
             }
         });
 }
+

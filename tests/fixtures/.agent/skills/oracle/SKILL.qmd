@@ -7,4 +7,4 @@ description: The Primary Loop. Analyzes project state, identifies stalled tasks,
 Activation Words: oracle prophecy future next-move analyst
 
 ## Usage
-`python .agent/skills/workflow-analyst/analyze_workflow.py`
+`python .agents/skills/workflow-analyst/analyze_workflow.py`

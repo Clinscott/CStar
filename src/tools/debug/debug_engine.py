@@ -7,8 +7,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
-# Also add the .agent/scripts for legacy engine imports
-SCRIPTS_DIR = PROJECT_ROOT / ".agent" / "scripts"
+# Also add the .agents/scripts for legacy engine imports
+SCRIPTS_DIR = PROJECT_ROOT / ".agents" / "scripts"
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.append(str(SCRIPTS_DIR))
 
@@ -25,9 +25,9 @@ class DebugEngine:
         """
         # Paths relative to the project root
         thesaurus_path = str(PROJECT_ROOT / "thesaurus.qmd")
-        corrections_path = str(PROJECT_ROOT / ".agent" / "corrections.json")
-        stopwords_path = str(PROJECT_ROOT / ".agent" / "scripts" / "stopwords.json")
-        skills_dir = str(PROJECT_ROOT / ".agent" / "skills")
+        corrections_path = str(PROJECT_ROOT / ".agents" / "corrections.json")
+        stopwords_path = str(PROJECT_ROOT / ".agents" / "scripts" / "stopwords.json")
+        skills_dir = str(PROJECT_ROOT / ".agents" / "skills")
         global_skills_db = str(PROJECT_ROOT / "skills_db")
 
         engine = SovereignVector(

@@ -1,0 +1,39 @@
+---
+title: "test_dormancy_rem.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\unit\test_dormancy_rem.py"
+loc: 50
+complexity: 2
+logic_score: 7.10
+style_score: 3.67
+intel_score: 3.00
+overall_score: 3.37
+---
+
+## Intent
+The `test_dormancy_rem.py` sector implements modular logic focusing on mock_mimir, test_consolidated_memory_no_debt, test_consolidated_memory_with_debt, call_tool_side_effect. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via mock_mimir, test_consolidated_memory_no_debt, test_consolidated_memory_with_debt, call_tool_side_effect. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.1/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 3.0/10
+- **Gravity [G]**: 10 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [pytest](file://pytest)
+- [asyncio](file://asyncio)
+- [json](file://json)
+- [unittest.mock](file://unittest.mock)
+- [src.skills.local.dormancy](file://src.skills.local.dormancy)
+
+### Exports
+- `mock_mimir`
+- `test_consolidated_memory_no_debt`
+- `test_consolidated_memory_with_debt`
+- `call_tool_side_effect`

@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import fp from 'fastify-plugin';
-import { CorvusProcess } from '../../core/CorvusProcess.ts';
+import { CorvusProcess } from '../../core/CorvusProcess.js';
 
 declare module 'fastify' {
     interface FastifyInstance {
@@ -30,4 +30,5 @@ export default fp(corvusPlugin, {
     name: 'corvus',
     fastify: '5.x' // Assuming Fastify 5 for alignment with current standards
 });
+
 

@@ -73,14 +73,14 @@ _Always check the Risk label and review the code._
 
 ### Where should I install the skills?
 
-The universal path that works with most tools is `.agent/skills/`.
+The universal path that works with most tools is `.agents/skills/`.
 
 **Using npx:** `npx antigravity-awesome-skills` (or `npx github:sickn33/antigravity-awesome-skills` if you get a 404).
 
 **Using git clone:**
 
 ```bash
-git clone https://github.com/sickn33/antigravity-awesome-skills.git .agent/skills
+git clone https://github.com/sickn33/antigravity-awesome-skills.git .agents/skills
 ```
 
 **Tool-specific paths:**
@@ -96,7 +96,7 @@ git clone https://github.com/sickn33/antigravity-awesome-skills.git .agent/skill
 Run git with:
 
 ```bash
-git clone -c core.symlinks=true https://github.com/sickn33/antigravity-awesome-skills.git .agent/skills
+git clone -c core.symlinks=true https://github.com/sickn33/antigravity-awesome-skills.git .agents/skills
 ```
 
 Or enable "Developer Mode" in Windows Settings.
@@ -106,7 +106,7 @@ Or enable "Developer Mode" in Windows Settings.
 Navigate to your skills directory and pull the latest changes:
 
 ```bash
-cd .agent/skills
+cd .agents/skills
 git pull origin main
 ```
 
@@ -146,7 +146,7 @@ Use the `@` symbol followed by the skill name:
 
 **Possible causes:**
 
-1. **Wrong installation path**: Check your tool's docs. Try `.agent/skills/`.
+1. **Wrong installation path**: Check your tool's docs. Try `.agents/skills/`.
 2. **Restart Needed**: Restart your AI/IDE after installing.
 3. **Typos**: Did you type `@brain-storming` instead of `@brainstorming`?
 

@@ -8,7 +8,7 @@ import { execa } from 'execa';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.resolve(__dirname, '../../');
-const CONFIG_PATH = path.join(PROJECT_ROOT, '.agent', 'config.json');
+const CONFIG_PATH = path.join(PROJECT_ROOT, '.agents', 'config.json');
 
 /**
  * Loads the active persona from the config file.

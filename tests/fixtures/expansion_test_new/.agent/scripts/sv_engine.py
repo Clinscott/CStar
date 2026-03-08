@@ -29,7 +29,7 @@ if __name__ == "__main__":
     # Path Setup
     script_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.dirname(os.path.dirname(script_dir))
-    base_path = os.path.join(project_root, ".agent")
+    base_path = os.path.join(project_root, ".agents")
 
     # Load Config
     config = {}
@@ -161,7 +161,7 @@ if __name__ == "__main__":
         if top_match and top_match['is_global'] and top_match['score'] > THRESHOLDS["INSTALL"]:
             skill_name = top_match['trigger'].replace("GLOBAL:", "")
             # Windows/PowerShell specific command
-            propose_install = f"powershell -Command \"& {{ python .agent/scripts/install_skill.py {skill_name} }}\""
+            propose_install = f"powershell -Command \"& {{ python .agents/scripts/install_skill.py {skill_name} }}\""
 
         # Trace Recording (Normal Mode Only)
         if args.record and top_match:
@@ -250,7 +250,7 @@ if __name__ == "__main__":
                         print(f"\n{SovereignHUD.GREEN}>> ACCEL{SovereignHUD.RESET} Initiating deployment sequence...")
 
                     import subprocess
-                    subprocess.run(["powershell", "-Command", f"& {{ python .agent/scripts/install_skill.py {skill_short} }}"], check=False)
+                    subprocess.run(["powershell", "-Command", f"& {{ python .agents/scripts/install_skill.py {skill_short} }}"], check=False)
                 else:
                     msg = "DISSENT RECORDED" if "ODIN" in SovereignHUD.PERSONA else "ABORT"
                     color = SovereignHUD.YELLOW

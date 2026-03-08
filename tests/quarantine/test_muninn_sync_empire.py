@@ -13,7 +13,7 @@ from src.sentinel.coordinator import MissionCoordinator
 @pytest.fixture
 def mock_root(tmp_path):
     """Creates a mock project root."""
-    (tmp_path / ".agent").mkdir()
+    (tmp_path / ".agents").mkdir()
     (tmp_path / ".stats").mkdir()
     return tmp_path
 
@@ -24,7 +24,7 @@ def test_coordinator_prioritizes_critical_ledger_missions(mock_root):
     WHEN: Coordinator selects a mission.
     THEN: It should select the CRITICAL one.
     """
-    ledger_path = mock_root / ".agent" / "tech_debt_ledger.json"
+    ledger_path = mock_root / ".agents" / "tech_debt_ledger.json"
     ledger_data = {
         "top_targets": [
             {
@@ -84,7 +84,7 @@ def test_automated_breach_escalation_flags_ledger(mock_root):
     WHEN: _handle_failure is called.
     THEN: The ledger should be updated with BLOCKED_STUCK.
     """
-    ledger_path = mock_root / ".agent" / "tech_debt_ledger.json"
+    ledger_path = mock_root / ".agents" / "tech_debt_ledger.json"
     ledger_data = {
         "top_targets": [{"file": "toxic.py", "priority": "CRITICAL", "justification": "Messy", "metrics": {}}]
     }

@@ -1,0 +1,54 @@
+---
+title: "tabsets.js"
+path: "C:\Users\Craig\Corvus\CorvusStar\.agents\workflows\wrap-it-up_files\libs\quarto-html\tabsets\tabsets.js"
+loc: 85
+complexity: 7
+logic_score: 2.42
+style_score: 4.05
+intel_score: 2.94
+overall_score: 2.45
+---
+
+## Intent
+The `tabsets.js` sector implements modular logic focusing on init, init, getTabSettings, data, setTabSettings, setTabState, data, toggleTab, tabPanelId, tabPanel, toggleAll, active, findSelectorsToSyncByLanguage, result, tabs, div, group, selectorsToSync, value, setupSelectorSync, selectorsToSync, selectorsToSync, selectors. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via init, init, getTabSettings, data, setTabSettings, setTabState, data, toggleTab, tabPanelId, tabPanel, toggleAll, active, findSelectorsToSyncByLanguage, result, tabs, div, group, selectorsToSync, value, setupSelectorSync, selectorsToSync, selectorsToSync, selectors. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 2.4/10
+- **Style [S]**: 4.1/10
+- **Intel [I]**: 2.9/10
+- **Gravity [G]**: 2 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+Minimal internal dependencies.
+
+### Exports
+- `init`
+- `init`
+- `getTabSettings`
+- `data`
+- `setTabSettings`
+- `setTabState`
+- `data`
+- `toggleTab`
+- `tabPanelId`
+- `tabPanel`
+- `toggleAll`
+- `active`
+- `findSelectorsToSyncByLanguage`
+- `result`
+- `tabs`
+- `div`
+- `group`
+- `selectorsToSync`
+- `value`
+- `setupSelectorSync`
+- `selectorsToSync`
+- `selectorsToSync`
+- `selectors`

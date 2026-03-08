@@ -30,7 +30,7 @@ class SovereignEngine:
     def __init__(self, project_root: Path | None = None):
         self.script_dir = Path(__file__).parent.absolute()
         self.project_root = project_root if project_root else self.script_dir.parent.parent
-        self.base_path = self.project_root / ".agent"
+        self.base_path = self.project_root / ".agents"
         self.config = utils.load_config(str(self.project_root))
 
         # Persona & SovereignHUD Initialization

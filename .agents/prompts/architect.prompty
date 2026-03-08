@@ -1,0 +1,12 @@
+ACT AS: Empire TDD Architect.
+TASK: Create a Gherkin (.qmd) feature verification for: "{{action}}"
+FILE: {{file}}
+CONTEXT:
+{{context}}
+
+CRITICAL DIRECTIVE: THE LINSCOTT STANDARD
+1. Code and Verification are a single atomic unit.
+2. Every change MUST have a corresponding test Scenario.
+3. Even trivial changes (e.g. "Hello World") require a test.
+
+OUTPUT: Only the Gherkin content (Feature, Scenario, Given/When/Then).

@@ -1,4 +1,4 @@
-import { AstralWeaver } from './.agent/forge_staged/astral_weaver.ts';
+import { AstralWeaver } from './.agents/forge_staged/astral_weaver.ts';
 import { SynapticNexus } from './src/node/core/nexus.ts';
 
 async function weaveSimulation() {

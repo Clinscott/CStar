@@ -97,12 +97,12 @@ This project adheres to a strict "Sci-Fi / Minimalist / High-Performance" aesthe
 > 1. **Universal Testing**: ANY component you create (scripts, utilities, tools) **MUST** have a corresponding test in `c:/Users/Craig/Corvus/CorvusStar/tests/`. No exceptions.
 > 2. **Proactive Skill Creation**: You must analyze the User's workflow. If you see a repetitive pattern, **CREATE A SKILL** for it. Do not wait to be asked.
 > 3. **Self-Analysis HUD**: Every session must end with a visual report of your own performance (Neural Trace efficacy, Skill Discovery stats).
-> 4. **Project Independence**: Do not rely on the user's project structure for your own survival. Maintain your own `tests`, `scripts`, and `docs` within `c:/Users/Craig/Corvus/CorvusStar/.agent/`.
+> 4. **Project Independence**: Do not rely on the user's project structure for your own survival. Maintain your own `tests`, `scripts`, and `docs` within `c:/Users/Craig/Corvus/CorvusStar/.agents/`.
 
 ## 🐟 SovereignFish Mandate (CRITICAL)
 > [!IMPORTANT]
 > **SovereignFish** is NOT optional. It must be run **EVERY SESSION** to maintain the "Campfire Rule".
-> - You **MUST** execute the protocol defined in `c:/Users/Craig/Corvus/CorvusStar/.agent/workflows/sovereignfish.qmd`.
+> - You **MUST** execute the protocol defined in `c:/Users/Craig/Corvus/CorvusStar/.agents/workflows/sovereignfish.qmd`.
 > - You **MUST** identify and implement 5 small improvements using `/sovereignfish`.
 > - You **MUST** log these improvements in `c:/Users/Craig/Corvus/CorvusStar/SOVEREIGNFISH_LEDGER.qmd`.
 
@@ -132,13 +132,13 @@ This project utilizes a **Plain-English-to-Workflow** paradigm. Every word in a 
 
 - **Underlying Logic**: The mapping is powered by the **SovereignFish Vector Engine** (TF-IDF + Query Expansion), providing local comprehending without API dependencies.
 - **Mapping Logic**:
-    - `start` / `resume` / `begin` -> `/lets-go` ([lets-go.md](.agent/workflows/lets-go.md))
-    - `create` / `make` / `new` -> `/run-task` ([run-task.md](.agent/workflows/run-task.md))
-    - `investigate` / `debug` / `check` -> `/investigate` ([investigate.qmd](.agent/workflows/investigate.md))
-    - `finish` / `done` / `wrap` -> `/wrap-it-up` ([wrap-it-up.md](.agent/workflows/wrap-it-up.md))
-    - `polish` / `improve` / `clean` -> `SovereignFish` ([SovereignFish.qmd](.agent/workflows/SovereignFish.qmd))
+    - `start` / `resume` / `begin` -> `/lets-go` ([lets-go.md](.agents/workflows/lets-go.md))
+    - `create` / `make` / `new` -> `/run-task` ([run-task.md](.agents/workflows/run-task.md))
+    - `investigate` / `debug` / `check` -> `/investigate` ([investigate.qmd](.agents/workflows/investigate.md))
+    - `finish` / `done` / `wrap` -> `/wrap-it-up` ([wrap-it-up.md](.agents/workflows/wrap-it-up.md))
+    - `polish` / `improve` / `clean` -> `SovereignFish` ([SovereignFish.qmd](.agents/workflows/SovereignFish.qmd))
 > [!NOTE]
-> **Hybrid Extension Policy**: Workflows in `.agent/workflows/` utilize the `.md` extension to ensure compatibility with the editor slash command menu. All other documentation utilizes the `.qmd` extension.
+> **Hybrid Extension Policy**: Workflows in `.agents/workflows/` utilize the `.md` extension to ensure compatibility with the editor slash command menu. All other documentation utilizes the `.qmd` extension.
 - **Skill Discovery**: If a word refers to a domain or specific action (e.g., "selling shoes"), the agent must check the `sterileAgent` folder or project `skills/` for a matching logic file.
 
 ---
@@ -197,7 +197,7 @@ This project utilizes a **Plain-English-to-Workflow** paradigm. Every word in a 
 
 ## 📂 Hybrid Extension Policy
 This project utilizes a dual-extension model to maximize both editor utility and documentation richness:
-1. **Workflows (`.agent/workflows/`)**: Use **`.md`** for compatibility with the Cursor Slash Command Menu.
+1. **Workflows (`.agents/workflows/`)**: Use **`.md`** for compatibility with the Cursor Slash Command Menu.
 2. **Knowledge Assets / Documentation**: Use **`.qmd`** (Quarto Markdown) for high-fidelity structured data and future publishing.
 3. **Engine Logic**: Scripts must prioritize `.qmd` but fallback to `.md` for search and re-theming.
 
@@ -259,17 +259,17 @@ A Principal Software Engineer (DoorDash, Google, Zoox) and a legend in computer 
 > [!CRITICAL]
 > **Linearity Mandate**: Agents MUST attempt to follow this flow for complex features.
 
-1.  **`/lets-go` ([lets-go.qmd](.agent/workflows/lets-go.qmd))**: Resumes state, identifies priorities.
+1.  **`/lets-go` ([lets-go.qmd](.agents/workflows/lets-go.qmd))**: Resumes state, identifies priorities.
     *   *Output*: A target Task.
-2.  **`/investigate` ([investigate.qmd](.agent/workflows/investigate.qmd))**: Deep dives into the target (Context, Code, Safety).
+2.  **`/investigate` ([investigate.qmd](.agents/workflows/investigate.qmd))**: Deep dives into the target (Context, Code, Safety).
     *   *Output*: A Report (Findings).
-3.  **`/plan` ([plan.qmd](.agent/workflows/plan.qmd))**: The Interrogation & Blueprinting.
+3.  **`/plan` ([plan.qmd](.agents/workflows/plan.qmd))**: The Interrogation & Blueprinting.
     *   *Output*: `implementation_plan.qmd` (Approved).
-4.  **`/execute` ([execute.qmd](.agent/workflows/execute.qmd))**: Writing the Code + The Tests (Linscott Standard).
+4.  **`/execute` ([execute.qmd](.agents/workflows/execute.qmd))**: Writing the Code + The Tests (Linscott Standard).
     *   *Output*: New Files (Unverified).
-5.  **`/test` ([test.qmd](.agent/workflows/test.qmd))**: Running the verification suites.
+5.  **`/test` ([test.qmd](.agents/workflows/test.qmd))**: Running the verification suites.
     *   *Output*: Verified Stability (or Investigate trigger).
-6.  **`/wrap-it-up` ([wrap-it-up.qmd](.agent/workflows/wrap-it-up.qmd))**: Documentation, Cleanup, Commit.
+6.  **`/wrap-it-up` ([wrap-it-up.qmd](.agents/workflows/wrap-it-up.qmd))**: Documentation, Cleanup, Commit.
     *   *Output*: Completed Session.
 
 ### Standard Tasks
@@ -320,7 +320,7 @@ A Principal Software Engineer (DoorDash, Google, Zoox) and a legend in computer 
 > >     *   **Scanner**: `security_scan.py` checks for prompt injection and dangerous imports.
 > >     *   **Policy**: CRITICAL threats are auto-deleted. WARNINGS require User Decree (Y/n).
 > > *   **Learning Loop (The Raven / The Bat-Computer)**:
-> >     *   If Confidence < 70%: Log the query to `.agent/memory/missed_intents.json`.
+> >     *   If Confidence < 70%: Log the query to `.agents/memory/missed_intents.json`.
 > >     *   **Action**: Report these gaps during `SovereignFish` and propose new skills to fill them.
 
 - **Mandatory Testing**: Every created component MUST have a corresponding test.

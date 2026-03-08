@@ -8,8 +8,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
-# Also add the .agent/scripts for legacy engine imports
-SCRIPTS_DIR = PROJECT_ROOT / ".agent" / "scripts"
+# Also add the .agents/scripts for legacy engine imports
+SCRIPTS_DIR = PROJECT_ROOT / ".agents" / "scripts"
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.append(str(SCRIPTS_DIR))
 
@@ -26,9 +26,9 @@ class CollisionInvestigator:
         """
         # Paths relative to the project root
         thesaurus = str(PROJECT_ROOT / 'thesaurus.qmd')
-        corrections = str(PROJECT_ROOT / '.agent' / 'corrections.json')
-        stopwords = str(PROJECT_ROOT / '.agent' / 'scripts' / 'stopwords.json')
-        config_path = str(PROJECT_ROOT / '.agent' / 'config.json')
+        corrections = str(PROJECT_ROOT / '.agents' / 'corrections.json')
+        stopwords = str(PROJECT_ROOT / '.agents' / 'scripts' / 'stopwords.json')
+        config_path = str(PROJECT_ROOT / '.agents' / 'config.json')
 
         e = SovereignVector(
             thesaurus,
@@ -45,7 +45,7 @@ class CollisionInvestigator:
 
         print("Loading skills...")
         e.load_core_skills()
-        e.load_skills_from_dir(str(PROJECT_ROOT / '.agent' / 'skills'))
+        e.load_skills_from_dir(str(PROJECT_ROOT / '.agents' / 'skills'))
         
         root = config.get("FrameworkRoot")
         if root and os.path.exists(os.path.join(root, "skills_db")):

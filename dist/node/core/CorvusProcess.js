@@ -1,6 +1,7 @@
 import { spawn } from 'child_process';
 import * as readline from 'readline';
 import { EventEmitter } from 'events';
+import { getPythonPath } from './python_utils.js';
 export class CorvusProcess extends EventEmitter {
     entrypoint;
     daemon = null;
@@ -21,7 +22,7 @@ export class CorvusProcess extends EventEmitter {
     _spawn() {
         // Spawn the hardened Python core
         // [Ω] Using 'python' or 'python3' based on environment
-        this.daemon = spawn('python', [this.entrypoint]);
+        this.daemon = spawn(getPythonPath(), [this.entrypoint]);
         this.isRunning = true;
         this.setupOutputBoundary();
         this.setupFaultTolerance();
@@ -133,6 +134,7 @@ export class CorvusProcess extends EventEmitter {
     }
     /**
      * Injects rigid JSON payloads into standard input.
+     * @param payload
      */
     dispatchIntent(payload) {
         if (!this.daemon || !this.isRunning) {

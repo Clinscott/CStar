@@ -99,10 +99,10 @@ If you don't have live agent data yet, you can use the test data provided in thi
 ```bash
 # Create test agent data
 cd /Users/lokesh/git/jobman  # or any test project
-mkdir -p .agent/sub-agents .loki/state .loki/queue
+mkdir -p .agents/sub-agents .loki/state .loki/queue
 
 # Copy test data from Loki Mode repo
-cp ~/git/loki-mode/tests/fixtures/agents/*.json .agent/sub-agents/
+cp ~/git/loki-mode/tests/fixtures/agents/*.json .agents/sub-agents/
 cp ~/git/loki-mode/tests/fixtures/queue/*.json .loki/queue/
 
 # Generate dashboard

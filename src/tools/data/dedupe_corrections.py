@@ -1,7 +1,7 @@
 import json
 import os
 
-path = '.agent/corrections.json'
+path = '.agents/corrections.json'
 if not os.path.exists(path):
     print(f"File not found: {path}")
     exit(0)

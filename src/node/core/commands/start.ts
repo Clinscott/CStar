@@ -1,10 +1,10 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { join } from 'node:path';
-import { CortexLink } from '../../cortex_link.ts';
-import { executeCycle } from '../../agent_loop.ts';
-import { ANS } from '../ans.ts';
-import { runScan } from '../../../tools/pennyone/index.ts';
+import { CortexLink } from '../../cortex_link.js';
+import { executeCycle } from '../../agent_loop.js';
+import { ANS } from '../ans.js';
+import { runScan } from '../../../tools/pennyone/index.js';
 
 /**
  * [GUNGNIR] Start Command Spoke
@@ -74,3 +74,4 @@ export function registerStartCommand(program: Command) {
             }
         });
 }
+

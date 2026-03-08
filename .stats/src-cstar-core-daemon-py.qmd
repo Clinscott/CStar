@@ -1,0 +1,65 @@
+---
+title: "daemon.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\cstar\core\daemon.py"
+loc: 261
+complexity: 33
+logic_score: 0.50
+style_score: 3.59
+intel_score: 3.70
+overall_score: 1.00
+---
+
+## Intent
+The `daemon.py` sector implements high-complexity logic focusing on get_daemon, engine_search_sync, process_command, execute_sleep_protocol, CStarDaemon, __init__, engine_search_sync, broadcast_event, process_command, handle_client, execute_sleep_protocol, async_start_daemon, start. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via get_daemon, engine_search_sync, process_command, execute_sleep_protocol, CStarDaemon, __init__, engine_search_sync, broadcast_event, process_command, handle_client, execute_sleep_protocol, async_start_daemon, start. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 0.5/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 3.7/10
+- **Gravity [G]**: 118 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [asyncio](file://asyncio)
+- [json](file://json)
+- [os](file://os)
+- [secrets](file://secrets)
+- [subprocess](file://subprocess)
+- [sys](file://sys)
+- [time](file://time)
+- [pathlib](file://pathlib)
+- [websockets](file://websockets)
+- [websockets.server](file://websockets.server)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [src.core.sv_engine](file://src.core.sv_engine)
+- [src.cstar.core.uplink](file://src.cstar.core.uplink)
+- [src.core.mimir_client](file://src.core.mimir_client)
+- [src.core.norn_coordinator](file://src.core.norn_coordinator)
+- [src.core.engine.cognitive_router](file://src.core.engine.cognitive_router)
+- [src.core.engine.cognitive_router](file://src.core.engine.cognitive_router)
+- [src.core.telemetry](file://src.core.telemetry)
+- [src.sentinel.muninn](file://src.sentinel.muninn)
+- [shutil](file://shutil)
+- [shutil](file://shutil)
+- [src.sentinel.wardens.ghost_warden](file://src.sentinel.wardens.ghost_warden)
+
+### Exports
+- `get_daemon`
+- `engine_search_sync`
+- `process_command`
+- `execute_sleep_protocol`
+- `CStarDaemon`
+- `__init__`
+- `engine_search_sync`
+- `broadcast_event`
+- `process_command`
+- `handle_client`
+- `execute_sleep_protocol`
+- `async_start_daemon`
+- `start`

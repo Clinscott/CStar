@@ -34,5 +34,5 @@ radon cc . -a -s
 
 ### Script Execution
 ```powershell
-python .agent/scripts/debt_viz.py
+python .agents/scripts/debt_viz.py
 ```

@@ -1,0 +1,32 @@
+---
+title: "backup_sequence_steps.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\fixtures\.agents\skills\drafts\workflow_backup_sequence_steps_gen\backup_sequence_steps.py"
+loc: 10
+complexity: 2
+logic_score: 6.67
+style_score: 3.71
+intel_score: 1.40
+overall_score: 3.15
+---
+
+## Intent
+The `backup_sequence_steps.py` sector implements modular logic focusing on main. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via main. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.7/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 6 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [argparse](file://argparse)
+
+### Exports
+- `main`

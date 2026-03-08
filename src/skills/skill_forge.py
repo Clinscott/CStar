@@ -73,7 +73,7 @@ class SkillForge:
 
     def __init__(self, project_root: str) -> None:
         self.project_root = project_root
-        self.base_dir = os.path.join(project_root, ".agent")
+        self.base_dir = os.path.join(project_root, ".agents")
         self.drafts_dir = os.path.join(self.base_dir, "skills", "drafts")
 
         # Initialize Cortex for RAG

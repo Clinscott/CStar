@@ -114,14 +114,14 @@ These skills follow the universal **SKILL.md** format and work with any AI codin
 | **Codex CLI**   | CLI  | `(User Prompt) Use skill-name...` | `.codex/skills/`                                                      |
 | **Kiro CLI**    | CLI  | `(Auto) Skills load on-demand`    | Global: `~/.kiro/skills/` · Workspace: `.kiro/skills/`                |
 | **Kiro IDE**    | IDE  | `/skill-name or (Auto)`           | Global: `~/.kiro/skills/` · Workspace: `.kiro/skills/`                |
-| **Antigravity** | IDE  | `(Agent Mode) Use skill...`       | Global: `~/.gemini/antigravity/skills/` · Workspace: `.agent/skills/` |
+| **Antigravity** | IDE  | `(Agent Mode) Use skill...`       | Global: `~/.gemini/antigravity/skills/` · Workspace: `.agents/skills/` |
 | **Cursor**      | IDE  | `@skill-name (in Chat)`           | `.cursor/skills/`                                                     |
 | **Copilot**     | Ext  | `(Paste content manually)`        | N/A                                                                   |
 | **OpenCode**    | CLI  | `opencode run @skill-name`        | `.agents/skills/`                                                     |
 | **AdaL CLI**    | CLI  | `(Auto) Skills load on-demand`    | `.adal/skills/`                                                       |
 
 > [!TIP]
-> **Default installer path**: `~/.gemini/antigravity/skills` (Antigravity global). Use `--path ~/.agent/skills` for workspace-specific install. For manual clone, `.agent/skills/` works as workspace path for Antigravity.
+> **Default installer path**: `~/.gemini/antigravity/skills` (Antigravity global). Use `--path ~/.agents/skills` for workspace-specific install. For manual clone, `.agents/skills/` works as workspace path for Antigravity.
 > **OpenCode Path Update**: opencode path is changed to `.agents/skills` for global skills. See [Place Files](https://opencode.ai/docs/skills/#place-files) directive on OpenCode Docs.
 
 > [!WARNING]
@@ -170,8 +170,8 @@ npx antigravity-awesome-skills --path .agents/skills
 # AdaL CLI
 npx antigravity-awesome-skills --path .adal/skills
 
-# Workspace-specific (e.g. .agent/skills for Antigravity workspace)
-npx antigravity-awesome-skills --path ~/.agent/skills
+# Workspace-specific (e.g. .agents/skills for Antigravity workspace)
+npx antigravity-awesome-skills --path ~/.agents/skills
 
 # Custom path
 npx antigravity-awesome-skills --path ./my-skills
@@ -181,14 +181,14 @@ Run `npx antigravity-awesome-skills --help` for all options. If the directory al
 
 ### Option B: git clone
 
-Without `--path`, the npx installer uses `~/.gemini/antigravity/skills`. For manual clone or a different path (e.g. workspace `.agent/skills`), use one of the following:
+Without `--path`, the npx installer uses `~/.gemini/antigravity/skills`. For manual clone or a different path (e.g. workspace `.agents/skills`), use one of the following:
 
 ```bash
 # Antigravity global (matches npx default)
 git clone https://github.com/sickn33/antigravity-awesome-skills.git ~/.gemini/antigravity/skills
 
-# Workspace-specific (e.g. .agent/skills in your project)
-git clone https://github.com/sickn33/antigravity-awesome-skills.git .agent/skills
+# Workspace-specific (e.g. .agents/skills in your project)
+git clone https://github.com/sickn33/antigravity-awesome-skills.git .agents/skills
 
 # Kiro CLI/IDE global
 git clone https://github.com/sickn33/antigravity-awesome-skills.git ~/.kiro/skills
@@ -240,12 +240,12 @@ npx github:sickn33/antigravity-awesome-skills
 This repository uses symlinks for official skills. Enable Developer Mode or run Git as Administrator, then clone with:
 
 ```bash
-git clone -c core.symlinks=true https://github.com/sickn33/antigravity-awesome-skills.git .agent/skills
+git clone -c core.symlinks=true https://github.com/sickn33/antigravity-awesome-skills.git .agents/skills
 ```
 
 ### Skills installed but not detected by your tool
 
-Install to the tool-specific path. Use installer flags: `--antigravity` (default), `--claude`, `--gemini`, `--codex`, `--cursor`, or `--path <dir>` for a custom location (e.g. `~/.agent/skills` for Antigravity workspace).
+Install to the tool-specific path. Use installer flags: `--antigravity` (default), `--claude`, `--gemini`, `--codex`, `--cursor`, or `--path <dir>` for a custom location (e.g. `~/.agents/skills` for Antigravity workspace).
 
 ### Update an existing installation
 

@@ -7,7 +7,7 @@ Purpose: Hygiene & Vulnerability Scanning.
 Executes battle-tested CLI wrappers (npm audit, pip-audit) to check dependencies.
 Sweeps the manor for lingering `.bak`, orphaned `.pid`, and old trace logs.
 
-Outputs a report to .agent/perimeter_report.json.
+Outputs a report to .agents/perimeter_report.json.
 """
 
 import argparse
@@ -47,7 +47,7 @@ class PerimeterSweep:
     def __init__(self, target_dir: str = ".", purge: bool = False):
         self.target_dir = Path(target_dir).resolve()
         self.purge = purge
-        self.report_path = project_root / ".agent" / "perimeter_report.json"
+        self.report_path = project_root / ".agents" / "perimeter_report.json"
 
         # Enforce ALFRED persona for this tool
         SovereignHUD.PERSONA = "ALFRED"
@@ -158,7 +158,7 @@ class PerimeterSweep:
              targets.extend(self.target_dir.rglob(ext))
 
         # 2. Orphans
-        agent_dir = self.target_dir / ".agent"
+        agent_dir = self.target_dir / ".agents"
         if agent_dir.exists():
             # Check pids
             for pid_file in agent_dir.rglob("*.pid"):

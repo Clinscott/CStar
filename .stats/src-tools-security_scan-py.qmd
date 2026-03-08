@@ -1,0 +1,48 @@
+---
+title: "security_scan.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\security_scan.py"
+loc: 97
+complexity: 21
+logic_score: 3.55
+style_score: 3.76
+intel_score: 3.05
+overall_score: 1.35
+---
+
+## Intent
+The `security_scan.py` sector implements high-complexity logic focusing on SovereignHUD, box_top, box_row, box_bottom, SecurityScanner, __init__, scan, _analyze_web_script, _regex_scan, _analyze_ast, _scan_imports, _scan_constants, report. It forms a node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via SovereignHUD, box_top, box_row, box_bottom, SecurityScanner, __init__, scan, _analyze_web_script, _regex_scan, _analyze_ast, _scan_imports, _scan_constants, report. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 3.5/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 3.0/10
+- **Gravity [G]**: 16 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [ast](file://ast)
+- [os](file://os)
+- [re](file://re)
+- [sys](file://sys)
+- [sv_engine](file://sv_engine)
+
+### Exports
+- `SovereignHUD`
+- `box_top`
+- `box_row`
+- `box_bottom`
+- `SecurityScanner`
+- `__init__`
+- `scan`
+- `_analyze_web_script`
+- `_regex_scan`
+- `_analyze_ast`
+- `_scan_imports`
+- `_scan_constants`
+- `report`

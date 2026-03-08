@@ -10,7 +10,7 @@ from src.tools.brave_search import BraveSearch
 def mock_brave_search(tmp_path, monkeypatch):
     """Creates a BraveSearch instance with a temporary quota file."""
     # Ensure .agent dir exists
-    agent_dir = tmp_path / ".agent"
+    agent_dir = tmp_path / ".agents"
     agent_dir.mkdir()
 
     # Patch QUOTA_FILE to point to tmp_path
@@ -66,7 +66,7 @@ def test_search_no_api_key(tmp_path, monkeypatch):
     """Verifies behavior when BRAVE_API_KEY is missing."""
     monkeypatch.delenv("BRAVE_API_KEY", raising=False)
     # Re-patch QUOTA_FILE because we are creating a new instance
-    agent_dir = tmp_path / ".agent"
+    agent_dir = tmp_path / ".agents"
     agent_dir.mkdir()
     monkeypatch.setattr(BraveSearch, "QUOTA_FILE", agent_dir / "brave_quota.json")
 

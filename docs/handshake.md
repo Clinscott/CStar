@@ -15,7 +15,7 @@ description: >-
   structured “If-Then” matrix.
 - **PennyOne Integration**: Anchored all agent navigation to the **Hall
   of Records** (`.stats/`).
-- **Terminal State Registry**: Initialized `.agent/state/terminal.json`
+- **Terminal State Registry**: Initialized `.agents/state/terminal.json`
   to provide persistent shell context.
 - **Phase Handshaking**: Upgraded the `SovereignForge` to record every
   phase transition in `walkthrough.qmd`.

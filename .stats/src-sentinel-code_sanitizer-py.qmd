@@ -1,0 +1,64 @@
+---
+title: "code_sanitizer.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\sentinel\code_sanitizer.py"
+loc: 411
+complexity: 107
+logic_score: 4.95
+style_score: 3.85
+intel_score: 6.75
+overall_score: 2.62
+---
+
+## Intent
+The `code_sanitizer.py` sector implements high-complexity logic focusing on QuarantineFailure, BifrostGate, __init__, validate_syntax, _get_project_modules, _check_import_node, validate_imports, _can_import, repair_syntax, _find_bad_imports, _apply_mock_stubs, repair_imports, _is_valid_import, scan_and_enrich_imports, perform_quarantine_scan, neuter_qmd_document, heimdall_guard, sanitize_code, sanitize_test, _strip_markdown_fences, _fix_indentation, _deep_fix_indentation, _is_syntax_valid, _find_min_indent, _apply_indent_correction, classify_error, extract_error_summary. It forms a node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via QuarantineFailure, BifrostGate, __init__, validate_syntax, _get_project_modules, _check_import_node, validate_imports, _can_import, repair_syntax, _find_bad_imports, _apply_mock_stubs, repair_imports, _is_valid_import, scan_and_enrich_imports, perform_quarantine_scan, neuter_qmd_document, heimdall_guard, sanitize_code, sanitize_test, _strip_markdown_fences, _fix_indentation, _deep_fix_indentation, _is_syntax_valid, _find_min_indent, _apply_indent_correction, classify_error, extract_error_summary. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 5.0/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 6.8/10
+- **Gravity [G]**: 131 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [ast](file://ast)
+- [importlib](file://importlib)
+- [re](file://re)
+- [textwrap](file://textwrap)
+- [pathlib](file://pathlib)
+- [src.tools.brave_search](file://src.tools.brave_search)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+
+### Exports
+- `QuarantineFailure`
+- `BifrostGate`
+- `__init__`
+- `validate_syntax`
+- `_get_project_modules`
+- `_check_import_node`
+- `validate_imports`
+- `_can_import`
+- `repair_syntax`
+- `_find_bad_imports`
+- `_apply_mock_stubs`
+- `repair_imports`
+- `_is_valid_import`
+- `scan_and_enrich_imports`
+- `perform_quarantine_scan`
+- `neuter_qmd_document`
+- `heimdall_guard`
+- `sanitize_code`
+- `sanitize_test`
+- `_strip_markdown_fences`
+- `_fix_indentation`
+- `_deep_fix_indentation`
+- `_is_syntax_valid`
+- `_find_min_indent`
+- `_apply_indent_correction`
+- `classify_error`
+- `extract_error_summary`

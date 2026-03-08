@@ -11,7 +11,7 @@ class TestRPCPhase89(unittest.TestCase):
         self.root = Path(__file__).resolve().parent.parent
         self.rpc = SovereignRPC(self.root)
         self.db_path = self.root / ".stats" / "pennyone.db"
-        self.ledger_path = self.root / ".agent" / "tech_debt_ledger.json"
+        self.ledger_path = self.root / ".agents" / "tech_debt_ledger.json"
 
     def test_get_recent_traces_empty(self):
         # Even if DB doesn't exist, it should return an empty list

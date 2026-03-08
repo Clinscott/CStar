@@ -30,7 +30,7 @@ class SentinelPerf:
 
     def __init__(self, project_root: str) -> None:
         self.root = project_root
-        self.base = os.path.join(project_root, ".agent")
+        self.base = os.path.join(project_root, ".agents")
         def _res(fname):
             qmd = os.path.join(project_root, fname.replace('.md', '.qmd'))
             md = os.path.join(project_root, fname)

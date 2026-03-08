@@ -1,0 +1,32 @@
+---
+title: "test_update_gemini_manifest_empire.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\quarantine\test_update_gemini_manifest_empire.py"
+loc: 14
+complexity: 1
+logic_score: 6.65
+style_score: 3.74
+intel_score: 1.40
+overall_score: 2.53
+---
+
+## Intent
+The `test_update_gemini_manifest_empire.py` sector implements modular logic focusing on test_update_manifest_simple. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via test_update_manifest_simple. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.6/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 4 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [src.tools.update_gemini_manifest](file://src.tools.update_gemini_manifest)
+
+### Exports
+- `test_update_manifest_simple`

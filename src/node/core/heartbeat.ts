@@ -2,12 +2,12 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import chalk from 'chalk';
-import { SynapticNexus } from './nexus.ts';
-import { HUD } from './hud.ts';
+import { SynapticNexus } from './nexus.js';
+import { HUD } from './hud.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const PROJECT_ROOT = path.resolve(__dirname, '../../../');
-const LORE_DIR = path.join(PROJECT_ROOT, '.agent/lore');
+const LORE_DIR = path.join(PROJECT_ROOT, '.agents/lore');
 
 /**
  * 🔱 Sovereign Loop (v1.0)
@@ -47,7 +47,7 @@ export class SovereignLoop {
     }
 
     private static async watchCycle(): Promise<void> {
-        console.error(chalk.cyan('  ◈ [THE WATCH]: Monitoring .agent/lore/ for new chants...'));
+        console.error(chalk.cyan('  ◈ [THE WATCH]: Monitoring .agents/lore/ for new chants...'));
         
         while (this.isRunning) {
             try {
@@ -87,3 +87,4 @@ export class SovereignLoop {
         console.error(chalk.yellow('\n  ◈ [HEARTBEAT]: Dormancy protocol engaged.'));
     }
 }
+

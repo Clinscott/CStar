@@ -12,11 +12,15 @@ export declare class CognitiveRouter {
     /**
      * [Ω] Orchestration Entrypoint
      * Routes intents based on the 'requires_core' flag in system_meta.
+     * @param payload
+     * @param corvus
      */
     routeIntent(payload: IntentPayload, corvus: CorvusProcess): Promise<void>;
     /**
      * Tier 1: The Edge (Ollama native REST)
      * Hardcoded to llama3.1 for current Windows hardware stopgap.
+     * @param payload
+     * @param appId
      */
     private routeToOllama;
 }

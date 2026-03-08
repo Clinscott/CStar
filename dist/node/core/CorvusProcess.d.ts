@@ -40,6 +40,7 @@ export declare class CorvusProcess extends EventEmitter {
     private routeOutput;
     /**
      * Injects rigid JSON payloads into standard input.
+     * @param payload
      */
     dispatchIntent(payload: IntentPayload): void;
     terminate(): Promise<void>;

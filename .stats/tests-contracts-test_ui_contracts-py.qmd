@@ -1,0 +1,39 @@
+---
+title: "test_ui_contracts.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\contracts\test_ui_contracts.py"
+loc: 32
+complexity: 2
+logic_score: 4.20
+style_score: 3.89
+intel_score: 1.40
+overall_score: 2.56
+---
+
+## Intent
+The `test_ui_contracts.py` sector implements modular logic focusing on TestUi_contracts, setUp, tearDown, test_transition. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via TestUi_contracts, setUp, tearDown, test_transition. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 4.2/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 12 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [io](file://io)
+- [os](file://os)
+- [sys](file://sys)
+- [unittest](file://unittest)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+
+### Exports
+- `TestUi_contracts`
+- `setUp`
+- `tearDown`
+- `test_transition`

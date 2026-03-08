@@ -14,7 +14,7 @@ class MemoryDB:
     """
     def __init__(self, project_root: str):
         self.root = Path(project_root)
-        self.db_path = self.root / ".agent" / "chroma_db"
+        self.db_path = self.root / ".agents" / "chroma_db"
         self.simulated = chromadb is None
         self._mock_records = [] # [ALFRED] Always initialize
 

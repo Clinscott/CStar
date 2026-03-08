@@ -1,5 +1,5 @@
-import chalk, { Chalk } from 'chalk';
-import { activePersona } from '../../tools/pennyone/personaRegistry.ts';
+import chalk, { ChalkInstance } from 'chalk';
+import { activePersona } from '../../tools/pennyone/personaRegistry.js';
 
 /**
  * 🔱 SovereignHUD (TypeScript Edition)
@@ -28,7 +28,7 @@ export class HUD {
                 return str.split('').map((c, i) => rain[i % rain.length](c)).join('');
             },
             mimir: isGemini ? (s: string) => s : chalk.blueBright,
-            crucible: isGemini ? (s: string) => s : (chalk.orange || chalk.redBright),
+            crucible: isGemini ? (s: string) => s : (chalk.hex('#FFA500') || chalk.redBright),
             sterling: isGemini ? (s: string) => s : chalk.whiteBright,
             void: isGemini ? (s: string) => s : chalk.gray
         };
@@ -164,7 +164,7 @@ export class HUD {
         return `${main('┏')}${main('━'.repeat(pad))} ${chalk.bold(displayTitle)} ${main('━'.repeat(rightPad))}${main('┓')}\n`;
     }
 
-    static boxRow(label: string, value: string | number, valueColor?: Chalk): string {
+    static boxRow(label: string, value: string | number, valueColor?: ChalkInstance): string {
         const { main, dim } = this.getTheme();
         const valStr = String(value);
 
@@ -267,3 +267,4 @@ export class HUD {
         process.stdout.write(`\r  ${chalk.green('✔')} ${dim(message)}\n`);
     }
 }
+

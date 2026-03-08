@@ -9,11 +9,11 @@ class TestCorvusDispatcher:
     @pytest.fixture
     def dispatcher(self, tmp_path):
         # Setup mock directories
-        skills = tmp_path / ".agent" / "skills"
+        skills = tmp_path / ".agents" / "skills"
         skills.mkdir(parents=True)
         (skills / "test_cmd.py").write_text("print('hi')")
 
-        workflows = tmp_path / ".agent" / "workflows"
+        workflows = tmp_path / ".agents" / "workflows"
         workflows.mkdir(parents=True)
         (workflows / "test_wf.md").write_text("# Workflow")
 

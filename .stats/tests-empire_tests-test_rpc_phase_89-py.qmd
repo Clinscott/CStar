@@ -1,0 +1,41 @@
+---
+title: "test_rpc_phase_89.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\empire_tests\test_rpc_phase_89.py"
+loc: 48
+complexity: 4
+logic_score: 6.20
+style_score: 3.78
+intel_score: 1.40
+overall_score: 2.49
+---
+
+## Intent
+The `test_rpc_phase_89.py` sector implements modular logic focusing on TestRPCPhase89, setUp, test_get_recent_traces_empty, test_get_architectural_suggestions_parsing, test_get_dashboard_state_structure. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via TestRPCPhase89, setUp, test_get_recent_traces_empty, test_get_architectural_suggestions_parsing, test_get_dashboard_state_structure. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.2/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 8 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [unittest](file://unittest)
+- [pathlib](file://pathlib)
+- [src.cstar.core.rpc](file://src.cstar.core.rpc)
+- [sqlite3](file://sqlite3)
+- [json](file://json)
+- [os](file://os)
+
+### Exports
+- `TestRPCPhase89`
+- `setUp`
+- `test_get_recent_traces_empty`
+- `test_get_architectural_suggestions_parsing`
+- `test_get_dashboard_state_structure`

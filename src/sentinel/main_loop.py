@@ -58,8 +58,8 @@ class DaemonOrchestrator:
 
     @staticmethod
     def load_config() -> dict[str, Any]:
-        """Load configuration from .agent/config.json."""
-        config_path = PROJECT_ROOT / ".agent" / "config.json"
+        """Load configuration from .agents/config.json."""
+        config_path = PROJECT_ROOT / ".agents" / "config.json"
         return SovereignUtils.safe_read_json(config_path)
 
     @staticmethod
@@ -103,7 +103,7 @@ class DaemonOrchestrator:
     async def daemon_loop(use_docker: bool = False, lock_file_path: Path | None = None) -> None:
         """Main daemon loop orchestrating Ravens across the Corvus Cluster with 6-hour endurance."""
         _ensure_bootstrapped = DaemonOrchestrator.ensure_bootstrapped
-        LOCK_FILE = lock_file_path or (PROJECT_ROOT / ".agent" / "muninn.pid")
+        LOCK_FILE = lock_file_path or (PROJECT_ROOT / ".agents" / "muninn.pid")
         
         # 6-Hour Guard
         DAEMON_START = time.time()
@@ -190,5 +190,5 @@ if __name__ == "__main__":
     parser.add_argument("--shadow-forge", "--docker", action="store_true", help="Execute the full Ravens cycle in a sandboxed Docker container.")
     args = parser.parse_args()
 
-    _LOCK_PATH = PROJECT_ROOT / ".agent" / "muninn.pid"
+    _LOCK_PATH = PROJECT_ROOT / ".agents" / "muninn.pid"
     asyncio.run(DaemonOrchestrator.daemon_loop(use_docker=args.shadow_forge, lock_file_path=_LOCK_PATH))

@@ -26,7 +26,7 @@ class BenchmarkOrchestrator:
         Args:
             n: The number of trials to execute for statistical significance.
         """
-        cmd = ["python", ".agent/scripts/sv_engine.py", "--benchmark"]
+        cmd = ["python", ".agents/scripts/sv_engine.py", "--benchmark"]
         times = []
 
         print(f"Executing {n} trials of sv_engine.py startup...")

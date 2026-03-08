@@ -48,7 +48,7 @@ Preserve the "why" behind technical decisions and provide a narrative history of
 ## 2026-02-28 - Session 99: Operation PennyOne - Path Sovereignty & Intelligence
 - **Accomplishments**:
     - **Path Sovereignty**: Eradicated the fragile `process.cwd()` dependency for directory resolution across PennyOne's core files (`analyzer.ts`, `compiler.ts`, `writer.ts`, etc.). 
-    - **Centralized Ascension**: Implemented a caching `PathRegistry` that uses `import.meta.dirname` to ascend directory trees until it locates `package.json` or `.agent/config.json`, locking down the true project root regardless of execution context.
+    - **Centralized Ascension**: Implemented a caching `PathRegistry` that uses `import.meta.dirname` to ascend directory trees until it locates `package.json` or `.agents/config.json`, locking down the true project root regardless of execution context.
     - **Intelligence Upgrade**: Upgraded `llm.ts` to demand deep, multi-sentence architectural summaries from both `MockProvider` heuristics and Gemini prompts, greatly enriching the Glass HUD panels in the Sovereign Matrix.
     - **TypeScript Surveillance**: Injected `js_sentinel.ts` into the `/investigate` workflow, covering the prior "Perimeter Blindspot" for Node.js environments.
 - **Git State**: 100% Empire TDD pass for `PathRegistry`; matrix graph successfully rebuilt and verified. 
@@ -195,7 +195,7 @@ Preserve the "why" behind technical decisions and provide a narrative history of
 - **Hardened Engine**: Implemented `min_score` validation (85% Execution Threshold) to ensure intent reliability.
 - **Multidim Testing**: Refactored `fishtest.py` to validate `min_score`, `expected_mode`, and `is_global`.
 - **Signal Boost**: Optimized `sv_engine.py` signal-to-noise ratio by indexing only high-value metadata and weighting activation words 10x.
-- **Absolute Corrections**: Populated `.agent/corrections.json` to guarantee 100% reliability for core project workflows.
+- **Absolute Corrections**: Populated `.agents/corrections.json` to guarantee 100% reliability for core project workflows.
 
 ### Architectural Decisions
 - **Corrections over Vectors**: Decided that for core destructive or critical workflows (like `/wrap-it-up`), a hard-mapped correction is superior to a probabilistic vector match. We use vectors for "Discovery" and corrections for "Execution."
@@ -221,7 +221,7 @@ Preserve the "why" behind technical decisions and provide a narrative history of
 ## 2026-01-31 - The Triple Threat Expansion
 ### Summary
 - **Visual Intelligence**: Implemented `trace_viz.py`, a CLI tool that visualizes TF-IDF vector breakdown with a glowing SovereignHUD.
-- **Distributed Intelligence**: Upgraded `sv_engine.py` to record interaction traces to `.agent/traces/` and `compile_session_traces.py` to aggregate them into session reports.
+- **Distributed Intelligence**: Upgraded `sv_engine.py` to record interaction traces to `.agents/traces/` and `compile_session_traces.py` to aggregate them into session reports.
 - **Global Intelligence**: Added `git-assistant`, `codestats`, and `agent-health` to the Global Skill Registry.
 - **Polish**: Externalized `stopwords.json` and refined the UI aesthetics (Glow SovereignHUD).
 
@@ -398,7 +398,7 @@ Completed the upgrade of `trace_viz.py` to Version 2.0. This tool now acts as th
 - **Correction**: Identified and fixed a critical flaw where `fishtest.py` and secondary scripts were not being deployed to new projects.
 
 ### Architectural Decisions
-- **Dynamic Deployment**: Switched `install.ps1` from a hardcoded file list to a dynamic recursive copy of `.agent/scripts`. This ensures that future tools added to the framework are automatically available to new projects without manual script updates.
+- **Dynamic Deployment**: Switched `install.ps1` from a hardcoded file list to a dynamic recursive copy of `.agents/scripts`. This ensures that future tools added to the framework are automatically available to new projects without manual script updates.
 - **Seed Persistence**: Chose to leave `new_world_seed` as a reference colony for future "Inheritance Checks".
 
 ### Current State
@@ -491,7 +491,7 @@ ishtest.py, and all auxiliary utilities.
 
 **Actions**:
 - **Genesis**: Created CorvusKnowledge git repository as the 'Remote DB'.
-- **Synapse**: Implemented .agent/scripts/synapse_sync.py to handle bidirectional knowledge transfer (Push/Pull).
+- **Synapse**: Implemented .agents/scripts/synapse_sync.py to handle bidirectional knowledge transfer (Push/Pull).
 - **Engine Evolution**: Updated sv_engine.py to support 'Zero-Copy Discovery' by indexing the Core directly.
 - **SovereignFish**:
     - Added --dry-run safety to Synapse (Item 1).
@@ -566,7 +566,7 @@ Achieved 100.0% accuracy on the N=1000 benchmark dataset using an overfit-correc
 - **Phase 2**: 66.1% Baseline established. Robustness tuning in progress.
 ## 2026-02-04 - Hybrid Calibration & The Butler's Mirror
 ### Summary
-- **Hybrid Extensions**: Resolved the "Empty Slash Menu" blocker by adopting a hybrid file extension strategy: Workflows in `.agent/workflows/` use `.md` for editor visibility, while all other documentation remains in the rich `.qmd` format.
+- **Hybrid Extensions**: Resolved the "Empty Slash Menu" blocker by adopting a hybrid file extension strategy: Workflows in `.agents/workflows/` use `.md` for editor visibility, while all other documentation remains in the rich `.qmd` format.
 - **Persona Sync Hardening**: Implemented proactive identity enforcement in `personas.py`. The system now ensures `.cursorrules` matches the active persona's identity (`IDENTITY: ALFRED` vs `IDENTITY: O.D.I.N.`) and synchronizes configuration files across the root and agent directories.
 - **SovereignHUD Optimization**: Repaired the `ui.py` layout logic to handle ANSI padding correctly on Windows terminals, restoring the stylized "Sci-Fi" aesthetics.
 - **SPRT Calibration**: Updated `fishtest.py` to support adversarial test cases (null expectations) and adjusted the accuracy threshold to 90% per user mandate.

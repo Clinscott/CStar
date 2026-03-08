@@ -3,20 +3,20 @@ title: "main.tsx"
 path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\vis\main.tsx"
 loc: 6
 complexity: 1
-logic_score: 9.65
-style_score: 9.54
+logic_score: 9.75
+style_score: 9.53
 intel_score: 8.07
-overall_score: 9.08
+overall_score: 8.33
 ---
 
 ## Intent
-The `main.tsx` module is the entry point for the browser-based visualization application. It handles the low-level React DOM mounting process, attaching the `App` component to the physical HTML root and initiating the visual cortex's rendering lifecycle.
+The `main.tsx` sector implements modular logic focusing on internal logic. It forms a node in the Gungnir Matrix.
 
 ## Interaction Protocol
-This module is executed by the browser when the visualization URL is accessed. It coordinates the initial render pass and ensures the application is correctly initialized within the client's environment.
+Integrate via internal logic. Follow the Linscott Standard for this sector.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 9.6/10
+- **Logic [L]**: 9.8/10
 - **Style [S]**: 9.5/10
 - **Intel [I]**: 8.1/10
 - **Gravity [G]**: 9 interactions (Agent Activity Hotspot)
@@ -28,7 +28,7 @@ This module is executed by the browser when the visualization URL is accessed. I
 ### Imports
 - [*](file://react)
 - [*](file://react-dom/client)
-- [App](file://./App.ts)
+- [App](file://./App.tsx)
 
 ### Exports
 Internal logic only.

@@ -15,9 +15,10 @@ def run_skill(skill: str, args: list[str], capture=False) -> str:
     venv_python = PROJECT_ROOT / ".venv" / "Scripts" / "python.exe"
     if not venv_python.exists(): venv_python = Path(sys.executable)
     
+    # [ALFRED]: Enforcing UTF-8 for all subprocess communication to handle runic flair
     cmd = [str(venv_python), str(cstar_dispatcher), skill, *args]
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        result = subprocess.run(cmd, capture_output=capture, text=True, check=True, encoding='utf-8')
         return result.stdout.strip() if capture else ""
     except subprocess.CalledProcessError as e:
         print(f"[ERROR] Chant Router: Skill '{skill}' failed: {e.stderr}", file=sys.stderr)
@@ -28,6 +29,12 @@ def check_skill_exists(skill: str) -> bool:
     return skill_dir.exists()
 
 def main():
+    # Force UTF-8 for stdout/stderr on Windows to survive the Awakening
+    if sys.platform == 'win32':
+        import io
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
     parser = argparse.ArgumentParser(description="Chant: Cognitive Skill Router.")
     parser.add_argument("query", help="The natural language chant.")
     
@@ -44,28 +51,32 @@ def main():
     The Shaman has chanted: "{args.query}"
     
     Look at our available skills (and infer any that might be needed from the web): 
-    [scan, oracle, forge, empire, sterling, sprt, promotion, telemetry, trace, metrics, stability, redactor, edda, locks, norn, personas, report, linter, ritual, hunt, memory]
+    [scan, oracle, forge, empire, sterling, sprt, promotion, telemetry, trace, metrics, stability, redactor, edda, locks, norn, personas, report, linter, ritual, hunt, memory, taliesin, consciousness, one-mind]
     
     Task: Return a JSON list of skill commands to execute this request.
     Format: [["skill_name", ["--arg1", "val1"]], ...]
     
     If the Shaman's request requires a capability not in the list, guess the required skill name and include it in the plan. The Wild Hunt will find it.
     
+    If the request is for a full scan, use [["scan", ["--path", "."]]] or similar.
+    
     Output RAW JSON only.
     """
     
     raw_plan = run_skill("one-mind", ["--prompt", planning_prompt, "--json"], capture=True)
-    
+
     try:
+        # Clean potential markdown and non-json noise
         clean_json = raw_plan.strip()
-        if "```json" in clean_json:
-            clean_json = clean_json.split("```json")[1].split("```")[0].strip()
-        elif "```" in clean_json:
-            clean_json = clean_json.split("```")[1].split("```")[0].strip()
-            
+        if "[" in clean_json and "]" in clean_json:
+            clean_json = clean_json[clean_json.find("["):clean_json.lastIndexOf("]")+1]
+
         plan = json.loads(clean_json)
     except Exception as e:
-        print(f"[ALFRED]: \"The One Mind's response was fragmented, sir. I cannot map the path.\" ({e})")
+        print(f"[ALFRED]: \"The One Mind's response was fragmented, sir. I cannot map the path.\"")
+        print(f"[DEBUG] Raw Plan received: {raw_plan[:500]}...", file=sys.stderr)
+        # Log to memory for learning
+        run_skill("memory", ["--log-feedback", "--skill", "chant", "--observation", f"Failed to parse planning JSON for query '{args.query}'. Error: {e}. Raw response: {raw_plan[:200]}"])
         return
 
     # 3. THE WILD HUNT: Capability Check
@@ -73,7 +84,7 @@ def main():
     for missing in missing_skills:
         print(f"[🔱] Huginn: Missing capability '{missing}' detected. Unleashing the Wild Hunt...", file=sys.stderr)
         run_skill("hunt", ["--search", missing])
-        # In a fully autonomous loop, we would ingest here. For safety, we warn and log memory.
+        # Log anomaly to memory
         run_skill("memory", ["--log-feedback", "--skill", "chant", "--observation", f"Missing skill requested: {missing}. Hunt dispatched."])
         print(f"[ALFRED]: \"The Hunt is underway for '{missing}', but we cannot proceed with the current flight path.\"")
         return
@@ -89,6 +100,7 @@ def main():
         run_skill("ritual", ["--pulse", f"Executing {skill_name.upper()}"])
         # We wrap execution to catch anomalies and learn, updating on BOTH success and failure
         output = run_skill(skill_name, skill_args, capture=True)
+        
         if "ERROR" in output or "FAIL" in output:
             print(f"\n[ALFRED]: \"Anomaly detected during {skill_name}. Initiating neuroplastic memory update.\"")
             run_skill("memory", ["--log-feedback", "--skill", skill_name, "--observation", f"Execution failed during chant '{args.query}' with args {skill_args}. Error trace: {output[:100]}"])

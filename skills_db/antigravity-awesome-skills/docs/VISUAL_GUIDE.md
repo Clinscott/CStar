@@ -66,7 +66,7 @@ antigravity-awesome-skills/
 
 ```
 ┌──────────────┐
-│ 1. INSTALL   │  Copy skills to .agent/skills/
+│ 1. INSTALL   │  Copy skills to .agents/skills/
 └──────┬───────┘
        │
        ↓
@@ -182,9 +182,9 @@ antigravity-awesome-skills/
 ├─────────────────────────────────────────┤
 │ $ git clone https://github.com/        │
 │   sickn33/antigravity-awesome-skills    │
-│   .agent/skills                         │
+│   .agents/skills                         │
 │                                         │
-│ ✓ Cloning into '.agent/skills'...      │
+│ ✓ Cloning into '.agents/skills'...      │
 │ ✓ Done!                                 │
 └─────────────────────────────────────────┘
 ```
@@ -195,7 +195,7 @@ antigravity-awesome-skills/
 ┌─────────────────────────────────────────┐
 │ File Explorer                           │
 ├─────────────────────────────────────────┤
-│ 📁 .agent/                              │
+│ 📁 .agents/                              │
 │   └── 📁 skills/                        │
 │       ├── 📁 brainstorming/             │
 │       ├── 📁 stripe-integration/        │
@@ -313,7 +313,7 @@ Open skills_index.json → Search for keyword → Find skill path
        │
        ↓
 ┌──────────────┐
-│ 4. TEST      │  Copy to .agent/skills/
+│ 4. TEST      │  Copy to .agents/skills/
 └──────┬───────┘  Try: @docker-mastery
        │
        ↓
@@ -437,7 +437,7 @@ START HERE
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │  📥 INSTALL                                                 │
-│  git clone [repo] .agent/skills                             │
+│  git clone [repo] .agents/skills                             │
 │                                                             │
 │  🎯 USE                                                     │
 │  @skill-name [your request]                                 │

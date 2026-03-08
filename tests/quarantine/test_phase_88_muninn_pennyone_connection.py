@@ -16,7 +16,7 @@ class TestMuninnPennyOneConnection(unittest.TestCase):
     def setUp(self):
         self.root = Path(__file__).resolve().parents[1]
         self.db_path = self.root / ".stats" / "pennyone.db"
-        self.ledger_path = self.root / ".agent" / "tech_debt_ledger.json"
+        self.ledger_path = self.root / ".agents" / "tech_debt_ledger.json"
         self.graph_path = self.root / ".stats" / "matrix-graph.json"
         
         # Backup existing artifacts

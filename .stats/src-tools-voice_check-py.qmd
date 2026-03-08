@@ -1,0 +1,37 @@
+---
+title: "voice_check.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\voice_check.py"
+loc: 30
+complexity: 3
+logic_score: 6.10
+style_score: 3.88
+intel_score: 9.40
+overall_score: 5.86
+---
+
+## Intent
+The `voice_check.py` sector implements modular logic focusing on VoiceDiagnostic, execute, main. It forms a node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via VoiceDiagnostic, execute, main. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 6.1/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 14 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [typing](file://typing)
+- [src.core.engine.dialogue](file://src.core.engine.dialogue)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+
+### Exports
+- `VoiceDiagnostic`
+- `execute`
+- `main`

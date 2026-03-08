@@ -68,7 +68,7 @@ Chúng tôi đã chuyển danh sách đầy đủ các kỹ năng sang một dan
 
 ```bash
 # Cài đặt phổ thông (hoạt động với hầu hết các công cụ)
-git clone https://github.com/sickn33/antigravity-awesome-skills.git .agent/skills
+git clone https://github.com/sickn33/antigravity-awesome-skills.git .agents/skills
 
 # Dành riêng cho Claude Code
 git clone https://github.com/sickn33/antigravity-awesome-skills.git .claude/skills

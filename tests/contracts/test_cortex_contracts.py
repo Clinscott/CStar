@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, patch
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.append(PROJECT_ROOT)
-sys.path.append(os.path.join(PROJECT_ROOT, ".agent", "scripts"))
-sys.path.append(os.path.join(PROJECT_ROOT, ".agent", "scripts", "empire"))
+sys.path.append(os.path.join(PROJECT_ROOT, ".agents", "scripts"))
+sys.path.append(os.path.join(PROJECT_ROOT, ".agents", "scripts", "empire"))
 
 class TestCortex_contracts(unittest.TestCase):
     def setUp(self):
@@ -25,7 +25,7 @@ class TestCortex_contracts(unittest.TestCase):
         # but since that triggers sys.exit, we might need to test the component directly.
         from src.core.engine.cortex import Cortex
 
-        cortex = Cortex(PROJECT_ROOT, os.path.join(PROJECT_ROOT, ".agent"))
+        cortex = Cortex(PROJECT_ROOT, os.path.join(PROJECT_ROOT, ".agents"))
 
         # WHEN Query "Who is Odin?" is executed
         with patch.object(cortex, 'query', return_value=[{'trigger': 'God', 'score': 0.9}]):

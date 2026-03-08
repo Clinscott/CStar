@@ -7,7 +7,7 @@ def tokenize(text):
     if not text: return []
     return re.findall(r'\w+', text.lower())
 
-base_path = ".agent"
+base_path = ".agents"
 config_path = os.path.join(base_path, "config.json")
 with open(config_path, encoding='utf-8') as f:
     config = json.load(f)

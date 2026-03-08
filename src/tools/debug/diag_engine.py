@@ -29,7 +29,7 @@ class DiagnosticEngine:
         """
         # Paths relative to the project root
         thesaurus_path = str(PROJECT_ROOT / 'thesaurus.qmd')
-        corrections_path = str(PROJECT_ROOT / '.agent' / 'corrections.json')
+        corrections_path = str(PROJECT_ROOT / '.agents' / 'corrections.json')
         stopwords_path = str(PROJECT_ROOT / 'src' / 'data' / 'stopwords.json')
 
         engine = SovereignVector(
@@ -38,7 +38,7 @@ class DiagnosticEngine:
             stopwords_path=stopwords_path
         )
         engine.load_core_skills()
-        engine.load_skills_from_dir(str(PROJECT_ROOT / '.agent' / 'skills'))
+        engine.load_skills_from_dir(str(PROJECT_ROOT / '.agents' / 'skills'))
         engine.load_skills_from_dir(str(PROJECT_ROOT / 'skills_db'), prefix='GLOBAL:')
         engine.build_index()
 

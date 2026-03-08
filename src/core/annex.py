@@ -40,7 +40,7 @@ class HeimdallWarden:
             if self._should_ignore(md_file):
                 continue
             # Edda ignores workflows by default, let's check
-            if ".agent/workflows" in str(md_file.as_posix()):
+            if ".agents/workflows" in str(md_file.as_posix()):
                 continue
 
             self.edda_tasks.append(md_file)

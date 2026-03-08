@@ -23,12 +23,12 @@ async def test_consolidated_memory_no_debt(mock_mimir, tmp_path):
     
     with patch("src.skills.local.dormancy.project_root", tmp_path):
         # Create .agent dir
-        (tmp_path / ".agent").mkdir()
+        (tmp_path / ".agents").mkdir()
         
         await consolidated_memory()
         
         # Verify long-term memory was written
-        memory_file = tmp_path / ".agent" / "memory.qmd"
+        memory_file = tmp_path / ".agents" / "memory.qmd"
         assert memory_file.exists()
         content = memory_file.read_text(encoding="utf-8")
         assert "No autonomous repairs required" in content
@@ -63,7 +63,7 @@ async def test_consolidated_memory_with_debt(mock_mimir, tmp_path):
     mock_mimir.call_tool = AsyncMock(side_effect=call_tool_side_effect)
     
     with patch("src.skills.local.dormancy.project_root", tmp_path):
-        (tmp_path / ".agent").mkdir()
+        (tmp_path / ".agents").mkdir()
         
         await consolidated_memory()
         
@@ -76,7 +76,7 @@ async def test_consolidated_memory_with_debt(mock_mimir, tmp_path):
         mock_mimir.index_sector.assert_any_call("src/core/test2.py")
         
         # Verify memory output
-        memory_file = tmp_path / ".agent" / "memory.qmd"
+        memory_file = tmp_path / ".agents" / "memory.qmd"
         content = memory_file.read_text(encoding="utf-8")
         assert "Sanitized 2 sectors" in content
         assert "src/core/test1.py (STYLE)" in content

@@ -1,0 +1,37 @@
+---
+title: "test_voice_check.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\quarantine\test_voice_check.py"
+loc: 24
+complexity: 1
+logic_score: 4.60
+style_score: 3.76
+intel_score: 9.40
+overall_score: 5.95
+---
+
+## Intent
+The `test_voice_check.py` sector implements modular logic focusing on mock_phrases, test_voice_check_usage, test_voice_check_execution. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via mock_phrases, test_voice_check_usage, test_voice_check_execution. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 4.6/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 6 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [pytest](file://pytest)
+- [src.tools.voice_check](file://src.tools.voice_check)
+- [src.core.engine.dialogue](file://src.core.engine.dialogue)
+
+### Exports
+- `mock_phrases`
+- `test_voice_check_usage`
+- `test_voice_check_execution`

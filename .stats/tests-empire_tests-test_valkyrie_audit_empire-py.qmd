@@ -1,0 +1,39 @@
+---
+title: "test_valkyrie_audit_empire.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\empire_tests\test_valkyrie_audit_empire.py"
+loc: 31
+complexity: 1
+logic_score: 7.35
+style_score: 3.66
+intel_score: 1.40
+overall_score: 3.10
+---
+
+## Intent
+The `test_valkyrie_audit_empire.py` sector implements modular logic focusing on TestValkyrieWarden, warden, test_scan_ignores_init, test_scan_filters_confidence. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via TestValkyrieWarden, warden, test_scan_ignores_init, test_scan_filters_confidence. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 7.3/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 6 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [unittest.mock](file://unittest.mock)
+- [pytest](file://pytest)
+- [src.sentinel.wardens.valkyrie](file://src.sentinel.wardens.valkyrie)
+
+### Exports
+- `TestValkyrieWarden`
+- `warden`
+- `test_scan_ignores_init`
+- `test_scan_filters_confidence`

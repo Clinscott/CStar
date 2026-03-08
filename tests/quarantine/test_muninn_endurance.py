@@ -11,7 +11,7 @@ from src.sentinel.muninn_heart import MuninnHeart
 def mock_root(tmp_path):
     """Creates a temporary repository structure for endurance testing."""
     (tmp_path / "src").mkdir()
-    (tmp_path / ".agent").mkdir()
+    (tmp_path / ".agents").mkdir()
     (tmp_path / "tests" / "gauntlet").mkdir(parents=True)
     return tmp_path
 

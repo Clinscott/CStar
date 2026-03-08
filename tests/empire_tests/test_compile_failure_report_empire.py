@@ -3,7 +3,7 @@ from src.tools.compile_failure_report import compile_report
 
 def test_compile_report_categorization(tmp_path):
     # Setup mock structure
-    agent_dir = tmp_path / ".agent"
+    agent_dir = tmp_path / ".agents"
     traces_dir = agent_dir / "traces" / "quarantine"
     traces_dir.mkdir(parents=True)
 

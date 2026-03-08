@@ -38,7 +38,7 @@ format: html
 **The Solution:**
 - Introduce the **Warden Module**.
 - Every time PennyOne Core updates the Matrix, it scans for "Toxic Sectors": `(High Gravity) + (Low Logic Score) + (Low Intel Score)`.
-- When a Toxic Sector crosses a threshold, the Warden automatically generates a **Tech Debt Bounty** and injects it into `.agent/corrections.json`.
+- When a Toxic Sector crosses a threshold, the Warden automatically generates a **Tech Debt Bounty** and injects it into `.agents/corrections.json`.
 - **Outcome:** ODIN automatically receives prioritized, contextualized refactoring missions.
 
 ---
@@ -62,7 +62,7 @@ format: html
 ### Phase 4: The Warden (Threat Assessment)
 - **Objective:** Close the loop between observation and execution.
 - **Action:** Write the logic that parses the Matrix for Toxic Sectors.
-- **Action:** Interface with `.agent/corrections.json` to post bounties for ODIN.
+- **Action:** Interface with `.agents/corrections.json` to post bounties for ODIN.
 
 ---
 

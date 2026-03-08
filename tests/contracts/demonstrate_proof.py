@@ -3,8 +3,8 @@ import sys
 
 # Add relevant paths
 BASE_DIR = os.getcwd()
-sys.path.append(os.path.join(BASE_DIR, ".agent", "scripts"))
-sys.path.append(os.path.join(BASE_DIR, ".agent", "scripts", "empire"))
+sys.path.append(os.path.join(BASE_DIR, ".agents", "scripts"))
+sys.path.append(os.path.join(BASE_DIR, ".agents", "scripts", "empire"))
 
 from compiler import EmpireCompiler
 

@@ -4,7 +4,7 @@
 Identity: ALFRED
 Purpose: Automated Test Scaffolding & Safety Net Generation.
 
-Reads the .agent/tech_debt_ledger.json
+Reads the .agents/tech_debt_ledger.json
 Targets high-risk files and uses the Antigravity Bridge to scaffold a rigorous test suite.
 Mandates human-in-the-loop (diff review) before committing tests to the manor.
 """
@@ -40,7 +40,7 @@ class DangerRoom:
     """Automated Scaffolding with Human Oversight."""
 
     def __init__(self, target_limit: int = 1, max_retries: int = 3, token_limit_per_session: int = 50000):
-        self.ledger_path = project_root / ".agent" / "tech_debt_ledger.json"
+        self.ledger_path = project_root / ".agents" / "tech_debt_ledger.json"
         self.target_limit = target_limit
         self.max_retries = max_retries
         self.token_limit = token_limit_per_session # Heuristic for now

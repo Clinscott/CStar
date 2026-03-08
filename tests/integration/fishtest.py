@@ -84,7 +84,7 @@ class FishtestRunner:
     def __init__(self, data_file: str = "fishtest_data.json") -> None:
         self.data_file = data_file
         self.current_dir = os.path.dirname(os.path.abspath(__file__))
-        self.base_path = os.path.join(PROJECT_ROOT, ".agent")
+        self.base_path = os.path.join(PROJECT_ROOT, ".agents")
         self.engine, self.persona = self._initialize_engine()
         SovereignHUD.PERSONA = self.persona
 

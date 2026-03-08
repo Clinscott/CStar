@@ -56,7 +56,7 @@ class SecurityScanner:
             return False, [f"Read Error: {e!s}"]
 
         # Run Checks
-        is_internal = "scripts" in self.path and ".agent" in self.path
+        is_internal = "scripts" in self.path and ".agents" in self.path
 
         for category, patterns in self.RISK_VECTORS.items():
             for pattern, weight in patterns:

@@ -21,7 +21,7 @@ class BraveSearch:
     Manages search operations via the Brave Search API.
     Includes monthly quota management and retry logic.
     """
-    QUOTA_FILE: Path = Path(".agent/brave_quota.json")
+    QUOTA_FILE: Path = Path(".agents/brave_quota.json")
     MAX_QUOTA: int = 1000
 
     def __init__(self) -> None:

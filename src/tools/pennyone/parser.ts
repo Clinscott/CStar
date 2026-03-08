@@ -1,7 +1,7 @@
 export * as TreeSitter from 'web-tree-sitter';
 import * as TreeSitter from 'web-tree-sitter';
 import path from 'path';
-import { registry } from './pathRegistry.ts';
+import { registry } from './pathRegistry.js';
 
 /**
  * [ALFRED]: "The sensors have been upgraded to the WASM standard, sir. 
@@ -36,7 +36,7 @@ export async function getParser(filepath: string): Promise<{ parser: TreeSitter.
     if (ext === '.py') {
         langPath = 'node_modules/tree-sitter-python/tree-sitter-python.wasm';
         languageName = 'python';
-    } else if (ext === '.ts') {
+    } else if (ext === '.js') {
         langPath = 'node_modules/tree-sitter-typescript/tree-sitter-typescript.wasm';
         languageName = 'typescript';
     } else if (ext === '.tsx') {
@@ -76,4 +76,5 @@ export async function parseCode(code: string, filepath: string) {
     const { parser } = await getParser(filepath);
     return parser.parse(code);
 }
+
 

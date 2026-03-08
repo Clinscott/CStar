@@ -7,7 +7,7 @@ from unittest.mock import mock_open, patch
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.append(PROJECT_ROOT)
-sys.path.append(os.path.join(PROJECT_ROOT, ".agent", "scripts"))
+sys.path.append(os.path.join(PROJECT_ROOT, ".agents", "scripts"))
 
 from src.games.odin_protocol.engine.persistence import OdinPersistence
 

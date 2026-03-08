@@ -1,8 +1,8 @@
-import { FileData } from '../types.ts';
-import { defaultProvider } from './llm.ts';
+import { FileData } from '../types.js';
+import { defaultProvider } from './llm.js';
 import fs from 'fs/promises';
 import path from 'path';
-import { registry } from '../pathRegistry.ts';
+import { registry } from '../pathRegistry.js';
 
 /**
  * QMD Writer
@@ -80,4 +80,5 @@ ${file.exports.length > 0 ? file.exports.map(e => `- \`${e}\``).join('\n') : 'In
     await fs.writeFile(qmdPath, content, 'utf-8');
     return { qmdPath, intent, interaction };
 }
+
 

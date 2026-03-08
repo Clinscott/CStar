@@ -111,7 +111,7 @@ class SandboxWarden:
 
     def _promote_skill(self, skill_path: Path):
         """Promotes the JIT skill to the permanent agent skills directory."""
-        dest = self.root / ".agent" / "skills" / skill_path.name
+        dest = self.root / ".agents" / "skills" / skill_path.name
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(skill_path, dest)
         SovereignHUD.persona_log("ODIN", f"Skill '{skill_path.name}' promoted to permanent active duty.")

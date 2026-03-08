@@ -1,14 +1,14 @@
-import { getParser, TreeSitter } from './parser.ts';
+import { getParser, TreeSitter } from './parser.js';
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import * as fsSync from 'node:fs';
 import path from 'node:path';
-import { calculateLogicScore } from './calculus/logic.ts';
-import { calculateStyleScore } from './calculus/style.ts';
-import { calculateIntelScore } from './calculus/intel.ts';
-import { getFileGravity } from './intel/gravity_db.ts';
-import { registry } from './pathRegistry.ts';
-import { GungnirMatrix, FileData } from './types.ts';
+import { calculateLogicScore } from './calculus/logic.js';
+import { calculateStyleScore } from './calculus/style.js';
+import { calculateIntelScore } from './calculus/intel.js';
+import { getFileGravity } from './intel/gravity_db.js';
+import { registry } from './pathRegistry.js';
+import { GungnirMatrix, FileData } from './types.js';
 
 /**
  * Analyzes code and returns FileData
@@ -212,7 +212,7 @@ function calculateVigilScore(filepath: string): number {
     const absPath = path.resolve(filepath);
     const stem = path.basename(absPath, path.extname(absPath));
     const isPy = absPath.endsWith('.py');
-    const isTs = absPath.endsWith('.ts') || absPath.endsWith('.tsx');
+    const isTs = absPath.endsWith('.js') || absPath.endsWith('.tsx');
 
     let score = 0;
 
@@ -272,7 +272,7 @@ function detectEndpoints(code: string, filepath: string): string[] {
  * @returns {Promise<number>} Anomaly score
  */
 async function getSystemAnomaly(): Promise<number> {
-    const statePath = path.join(registry.getRoot(), '.agent', 'sovereign_state.json');
+    const statePath = path.join(registry.getRoot(), '.agents', 'sovereign_state.json');
     try {
         const raw = await fs.readFile(statePath, 'utf-8');
         const data = JSON.parse(raw);
@@ -299,7 +299,11 @@ function analyzeMarkdown(code: string, filepath: string, hash: string, loc: numb
 
     return {
         path: filepath, loc, complexity: 1,
-        matrix: { logic: 10, style: 10, intel: 10, overall: 10, gravity: 0 },
+        matrix: { 
+            logic: 10, style: 10, intel: 10, overall: 10, gravity: 0, 
+            stability: 1, coupling: 0, aesthetic: 10, vigil: 10, anomaly: 0, 
+            sovereignty: 1 
+        },
         imports, exports, intent: undefined, hash
     };
 }
@@ -319,4 +323,5 @@ function calculateLOC(code: string, filepath: string): number {
         return content ? content.trim() : '';
     }).filter(line => line.length > 0).length;
 }
+
 

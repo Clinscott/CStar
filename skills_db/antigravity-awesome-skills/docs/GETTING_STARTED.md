@@ -38,7 +38,7 @@ If you see a 404 error, use: `npx github:sickn33/antigravity-awesome-skills`
 
 ```bash
 # Universal (works for most agents)
-git clone https://github.com/sickn33/antigravity-awesome-skills.git .agent/skills
+git clone https://github.com/sickn33/antigravity-awesome-skills.git .agents/skills
 ```
 
 ### 2. Pick Your Persona
@@ -102,7 +102,7 @@ Once installed, just talk to your AI naturally.
 | **Codex CLI**   | ✅ Full Support | `.codex/skills/`                                                      |
 | **Kiro CLI**    | ✅ Full Support | Global: `~/.kiro/skills/` · Workspace: `.kiro/skills/`                |
 | **Kiro IDE**    | ✅ Full Support | Global: `~/.kiro/skills/` · Workspace: `.kiro/skills/`                |
-| **Antigravity** | ✅ Native       | Global: `~/.gemini/antigravity/skills/` · Workspace: `.agent/skills/` |
+| **Antigravity** | ✅ Native       | Global: `~/.gemini/antigravity/skills/` · Workspace: `.agents/skills/` |
 | **Cursor**      | ✅ Native       | `.cursor/skills/`                                                     |
 | **OpenCode**    | ✅ Full Support | `.agents/skills/`                                                     |
 | **AdaL CLI**    | ✅ Full Support | `.adal/skills/`                                                       |

@@ -1,0 +1,46 @@
+---
+title: "ragnarok_muninn.js"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\harness\ragnarok_muninn.js"
+loc: 72
+complexity: 5
+logic_score: 3.90
+style_score: 1.00
+intel_score: 4.18
+overall_score: 2.83
+---
+
+## Intent
+The `ragnarok_muninn.js` sector implements modular logic focusing on __filename, __dirname, PROJECT_ROOT, SANDBOX_DIR, UGLY_FILE, escapedProjectRoot, escapedSandboxDir, pyScript, runnerPath, result, healedContent, arbitraryPixels. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via __filename, __dirname, PROJECT_ROOT, SANDBOX_DIR, UGLY_FILE, escapedProjectRoot, escapedSandboxDir, pyScript, runnerPath, result, healedContent, arbitraryPixels. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 3.9/10
+- **Style [S]**: 1.0/10
+- **Intel [I]**: 4.2/10
+- **Gravity [G]**: 2 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [spawnSync](file://child_process)
+- [*](file://fs)
+- [*](file://path)
+- [fileURLToPath](file://url)
+
+### Exports
+- `__filename`
+- `__dirname`
+- `PROJECT_ROOT`
+- `SANDBOX_DIR`
+- `UGLY_FILE`
+- `escapedProjectRoot`
+- `escapedSandboxDir`
+- `pyScript`
+- `runnerPath`
+- `result`
+- `healedContent`
+- `arbitraryPixels`

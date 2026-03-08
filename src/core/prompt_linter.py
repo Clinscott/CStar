@@ -44,7 +44,7 @@ class PromptLinter:
         except Exception:
             return False
 
-    def calculate_integrity_score(self, prompt_dir: str = ".agent/prompts") -> float:
+    def calculate_integrity_score(self, prompt_dir: str = ".agents/prompts") -> float:
         """Returns 0.0 to 100.0 based on how many prompts are error-free."""
         if not os.path.exists(prompt_dir):
             return 0.0

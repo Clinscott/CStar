@@ -196,8 +196,8 @@ class Synapse:
         self.extractor = KnowledgeExtractor(self.project_root, self.agent_dir)
 
     def _load_config(self) -> dict[str, Any]:
-        # [O.D.I.N.] Config is in .agent/config.json
-        config_path = self.project_root / ".agent" / "config.json"
+        # [O.D.I.N.] Config is in .agents/config.json
+        config_path = self.project_root / ".agents" / "config.json"
         if config_path.exists():
             try:
                 return json.loads(config_path.read_text(encoding="utf-8"))

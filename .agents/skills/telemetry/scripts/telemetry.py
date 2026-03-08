@@ -33,9 +33,9 @@ def main():
     if args.command == "flare":
         success = SubspaceTelemetry.flare(args.path, args.agent, args.action)
         if success:
-            print(f"[🔱] Flare dispatched for {args.path}")
+            print(f"[🔱] Flare dispatched for {args.path}", file=sys.stderr)
         else:
-            print(f"[ALFRED]: Pulse failed to reach PennyOne.")
+            print(f"[ALFRED]: Pulse failed to reach PennyOne.", file=sys.stderr)
             sys.exit(1)
 
     elif args.command == "trace":
@@ -44,9 +44,9 @@ def main():
             args.justification, args.status, args.final_score
         )
         if success:
-            print(f"[🔱] Mission trace recorded: {args.mission}")
+            print(f"[🔱] Mission trace recorded: {args.mission}", file=sys.stderr)
         else:
-            print(f"[ALFRED]: Hall of Records offline. Trace lost in the Void.")
+            print(f"[ALFRED]: Hall of Records offline. Trace lost in the Void.", file=sys.stderr)
             sys.exit(1)
     else:
         parser.print_help()

@@ -1,0 +1,43 @@
+---
+title: "test_phase_88_campaign_sync.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\quarantine\test_phase_88_campaign_sync.py"
+loc: 50
+complexity: 4
+logic_score: 3.63
+style_score: 3.68
+intel_score: 6.20
+overall_score: 3.71
+---
+
+## Intent
+The `test_phase_88_campaign_sync.py` sector implements modular logic focusing on TestCampaignSync, setUp, tearDown, test_domination_gain_calculation, test_no_double_processing. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via TestCampaignSync, setUp, tearDown, test_domination_gain_calculation, test_no_double_processing. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 3.6/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 6.2/10
+- **Gravity [G]**: 11 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [unittest](file://unittest)
+- [sqlite3](file://sqlite3)
+- [json](file://json)
+- [time](file://time)
+- [pathlib](file://pathlib)
+- [src.games.odin_protocol.engine.campaign_updater](file://src.games.odin_protocol.engine.campaign_updater)
+- [src.games.odin_protocol.engine.persistence](file://src.games.odin_protocol.engine.persistence)
+- [src.games.odin_protocol.engine.models](file://src.games.odin_protocol.engine.models)
+
+### Exports
+- `TestCampaignSync`
+- `setUp`
+- `tearDown`
+- `test_domination_gain_calculation`
+- `test_no_double_processing`

@@ -15,7 +15,7 @@ def install_skill(skill_name, target_root=None):
     config_path = os.path.join(base_path, "config.json")
 
     if not os.path.exists(config_path):
-        print("Error: .agent/config.json not found.")
+        print("Error: .agents/config.json not found.")
         return
 
     with open(config_path, encoding='utf-8') as f:

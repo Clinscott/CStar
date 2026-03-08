@@ -4,7 +4,7 @@ Feature: Collision Investigator
   Scenario: Verify collision investigator loads and performs a search
 
     Given a SovereignVector instance is initialized with configuration
-    And the SovereignVector has loaded core skills, skills from '.agent/skills', and skills from FrameworkRoot
+    And the SovereignVector has loaded core skills, skills from '.agents/skills', and skills from FrameworkRoot
     And the SovereignVector has built its index
     When I search for a query such as "please wrap up our project now"
     Then the search should return a list of results

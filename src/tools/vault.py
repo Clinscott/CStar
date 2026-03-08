@@ -22,7 +22,7 @@ class SovereignVault:
 
     def __init__(self):
         self.root = project_root
-        self.vault_dir = self.root / ".agent" / "vault"
+        self.vault_dir = self.root / ".agents" / "vault"
         self.key_file = self.vault_dir / "master.key"
         self.env_local = self.root / ".env.local"
 

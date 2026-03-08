@@ -19,7 +19,7 @@ def sovereign_vector_instance(tmp_path_factory):
     root_path = tmp_path_factory.mktemp("sv_root")
 
     # Create all necessary directories and dummy files
-    agent_dir = root_path / ".agent"
+    agent_dir = root_path / ".agents"
     agent_dir.mkdir()
     (agent_dir / "scripts").mkdir()
     agent_skills_dir = agent_dir / "skills"
@@ -51,13 +51,13 @@ def sovereign_vector_instance(tmp_path_factory):
         # GIVEN: a SovereignVector instance is initialized with configuration
         sv = SovereignVector(
             'thesaurus.qmd',
-            '.agent/corrections.json',
-            '.agent/scripts/stopwords.json'
+            '.agents/corrections.json',
+            '.agents/scripts/stopwords.json'
         )
 
         # AND: the SovereignVector has loaded skills
         sv.load_core_skills() # Core skills should be self-contained
-        sv.load_skills_from_dir('.agent/skills')
+        sv.load_skills_from_dir('.agents/skills')
         sv.load_skills_from_dir(str(framework_skills_dir), prefix="GLOBAL:")
 
         # AND: the SovereignVector has built its index

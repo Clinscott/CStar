@@ -2,6 +2,7 @@ import { EventManager } from '../../../core/EventManager.js';
 /**
  * [Ω] The Universal Event Router WebSocket Endpoint
  * Handles tenant-aware subscriptions and mobile-edge stability.
+ * @param fastify
  */
 const wsRoutes = async (fastify) => {
     fastify.get('/connect', { websocket: true }, (connection, req) => {

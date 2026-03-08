@@ -46,8 +46,8 @@ class PersonaStrategy:
         return quarantine_path
 
     def _sync_configs(self, persona: str) -> None:
-        """[A.L.F.R.E.D.] Synchronize .agent/config.json with Pathlib."""
-        config_path = self.root / ".agent" / "config.json"
+        """[A.L.F.R.E.D.] Synchronize .agents/config.json with Pathlib."""
+        config_path = self.root / ".agents" / "config.json"
         if config_path.exists():
             try:
                 data = json.loads(config_path.read_text(encoding='utf-8'))
@@ -77,7 +77,7 @@ class OdinStrategy(PersonaStrategy):
         if self._state_cache["data"] is not None and (now - self._state_cache["timestamp"]) < self.CACHE_TTL:
             return self._state_cache["data"]
 
-        state_path = self.root / ".agent" / "sovereign_state.json"
+        state_path = self.root / ".agents" / "sovereign_state.json"
 
         from src.core.utils import safe_read_json
         data = safe_read_json(state_path)

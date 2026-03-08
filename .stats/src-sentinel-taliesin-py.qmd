@@ -1,0 +1,55 @@
+---
+title: "taliesin.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\sentinel\taliesin.py"
+loc: 338
+complexity: 52
+logic_score: 4.63
+style_score: 3.65
+intel_score: 4.00
+overall_score: 1.63
+---
+
+## Intent
+The `taliesin.py` sector implements high-complexity logic focusing on TaliesinSpoke, __init__, ingest_style, extract_rtf_text, extract_docx_text, process_directory, gather_context, generate_post, generate_scene, calculate_cohesion, staging_gate, _staging_gate_agent, _staging_gate_terminal, main. It forms a node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via TaliesinSpoke, __init__, ingest_style, extract_rtf_text, extract_docx_text, process_directory, gather_context, generate_post, generate_scene, calculate_cohesion, staging_gate, _staging_gate_agent, _staging_gate_terminal, main. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 4.6/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 4.0/10
+- **Gravity [G]**: 66 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [asyncio](file://asyncio)
+- [json](file://json)
+- [os](file://os)
+- [time](file://time)
+- [pathlib](file://pathlib)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [src.cstar.core.uplink](file://src.cstar.core.uplink)
+- [src.sentinel.x_api](file://src.sentinel.x_api)
+- [zipfile](file://zipfile)
+- [re](file://re)
+- [argparse](file://argparse)
+
+### Exports
+- `TaliesinSpoke`
+- `__init__`
+- `ingest_style`
+- `extract_rtf_text`
+- `extract_docx_text`
+- `process_directory`
+- `gather_context`
+- `generate_post`
+- `generate_scene`
+- `calculate_cohesion`
+- `staging_gate`
+- `_staging_gate_agent`
+- `_staging_gate_terminal`
+- `main`

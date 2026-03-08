@@ -19,7 +19,7 @@ saved_memory:
     - Encoding Rule: Use BOM-less UTF-8 for all Inter-agent configs (JSON/MD) to avoid PowerShell/Python encoding conflicts.
     - Interaction Pattern: High-confidence (>90%) local intent matches should trigger an interactive confirmation (Y/n) rather than just a proposal.
     - Lightning Protocol: File optimization skills should follow a Read -> SovereignHUD -> Modify -> Report loop (as seen in `lightning_rod.py`).
-    - SovereignFish Mandate: Use `/sovereignfish` workflow (`c:/Users/Craig/Corvus/CorvusStar/.agent/workflows/sovereignfish.qmd`) EVERY session to implement 5 improvements. Log to `c:/Users/Craig/Corvus/CorvusStar/SOVEREIGNFISH_LEDGER.qmd`.
+    - SovereignFish Mandate: Use `/sovereignfish` workflow (`c:/Users/Craig/Corvus/CorvusStar/.agents/workflows/sovereignfish.qmd`) EVERY session to implement 5 improvements. Log to `c:/Users/Craig/Corvus/CorvusStar/SOVEREIGNFISH_LEDGER.qmd`.
     - The 85% Bar: Execution-level triggers must meet an 85% confidence score. Core workflows should be hard-mapped in `corrections.json` for 110% (1.10) confidence.
     - Intent Polarity: Use Vector Search for *Discovery* (finding new skills) and Corrections for *Execution* (triggering established workflows).
     - Fishtest Protocol 2.0: Tests must verify `min_score`, `is_global`, and `expected_mode` to be considered passing.
@@ -91,11 +91,11 @@ saved_memory:
     - Windows Encoding Bridge (CJK): On Windows, force `PYTHONIOENCODING=utf-8` in all Gauntlet/Subprocess environments to prevent `UnicodeEncodeError` when dealing with CJK characters.
     - Aggressive Process Termination: Use PowerShell-based tree killing in the `C*` dispatcher to neutralize the Sentinel and its orphans (`pytest`, etc.) surgically.
     - Dirty Working Tree Stall: dynamic plan artifacts (e.g., `ANNEXATION_PLAN.qmd`) must be added to `.gitignore`. If they are tracked, the Sentinel will detect its own plan-writing as a "Dirty" state and stall.
-    - Gauntlet PYTHONPATH: Ensure both project root and `.agent/scripts` are in `PYTHONPATH` during Gauntlet runs to resolve internal engine imports reliably.
+    - Gauntlet PYTHONPATH: Ensure both project root and `.agents/scripts` are in `PYTHONPATH` during Gauntlet runs to resolve internal engine imports reliably.
     - Encoding Sensitivity: Force UTF-8 encoding in all `open()` and `read_text()` calls to prevent `UnicodeDecodeError` on non-English environments.
     - MagicMock Serialization: When recording traces, convert `MagicMock` objects to strings or dictionaries before JSON serialization to avoid TypeErrors.
     - JS Sentinel Standard: Node.js flight deck security is enforced via `js_sentinel.ts` (ESLint wrapper). Persona-aware reports ensure audit symmetry across the hybrid plane.
-    - Persona-Aware Node: Node.js components must read `.agent/config.json` and utilize themed logging to honor the active persona (O.D.I.N./ALFRED), as seen in `src/node/setup.js`.
+    - Persona-Aware Node: Node.js components must read `.agents/config.json` and utilize themed logging to honor the active persona (O.D.I.N./ALFRED), as seen in `src/node/setup.js`.
     - TSX Bootstrap: CLI tools use a `.js` bridge in `bin/` to invoke `tsx` on the `.ts` core, ensuring zero-config ESM execution.
     - Constructor Injection Doctrine: Use DI for core implementation (e.g., WebSocket) in system drivers to ensure robust testability in ESM/TS environments.
     - Atomic Cleanup: Hybrid migration requires aggressive removal of legacy `.js` files to prevent import ambiguity.

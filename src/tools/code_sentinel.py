@@ -66,7 +66,7 @@ class Heimdall:
             SovereignHUD.PERSONA = "ODIN"
 
     def _load_config(self) -> dict:
-        config_path = self.project_root / ".agent" / "config.json"
+        config_path = self.project_root / ".agents" / "config.json"
         if config_path.exists():
             try:
                 with open(config_path, encoding='utf-8') as f:

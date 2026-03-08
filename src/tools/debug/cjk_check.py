@@ -7,8 +7,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
-# Also add the .agent/scripts for legacy engine imports
-SCRIPTS_DIR = PROJECT_ROOT / ".agent" / "scripts"
+# Also add the .agents/scripts for legacy engine imports
+SCRIPTS_DIR = PROJECT_ROOT / ".agents" / "scripts"
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.append(str(SCRIPTS_DIR))
 
@@ -23,8 +23,8 @@ class CJKDiagnostic:
         Initializes SovereignVector and runs CJK-specific search diagnostics.
         """
         thesaurus = str(PROJECT_ROOT / 'thesaurus.qmd')
-        corrections = str(PROJECT_ROOT / '.agent' / 'corrections.json')
-        stopwords = str(PROJECT_ROOT / '.agent' / 'scripts' / 'stopwords.json')
+        corrections = str(PROJECT_ROOT / '.agents' / 'corrections.json')
+        stopwords = str(PROJECT_ROOT / '.agents' / 'scripts' / 'stopwords.json')
 
         engine = SovereignVector(
             thesaurus,

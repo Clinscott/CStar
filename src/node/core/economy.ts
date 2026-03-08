@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import chalk from 'chalk';
-import { SynapticNexus } from './nexus.ts';
+import { SynapticNexus } from './nexus.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const PROJECT_ROOT = path.resolve(__dirname, '../../../');
@@ -112,3 +112,4 @@ export class ImperialLedger {
         }
     }
 }
+

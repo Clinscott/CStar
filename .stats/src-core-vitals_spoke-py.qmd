@@ -1,0 +1,36 @@
+---
+title: "vitals_spoke.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\core\vitals_spoke.py"
+loc: 17
+complexity: 3
+logic_score: 9.02
+style_score: 3.97
+intel_score: 9.40
+overall_score: 6.39
+---
+
+## Intent
+The `vitals_spoke.py` sector implements modular logic focusing on get_vitals. It forms a node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via get_vitals. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.0/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 10 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [sys](file://sys)
+- [pathlib](file://pathlib)
+- [typing](file://typing)
+- [src.cstar.core.rpc](file://src.cstar.core.rpc)
+
+### Exports
+- `get_vitals`

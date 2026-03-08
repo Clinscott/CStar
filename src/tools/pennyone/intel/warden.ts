@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { CompiledGraph } from '../types.ts';
-import { registry } from '../pathRegistry.ts';
+import { CompiledGraph } from '../types.js';
+import { registry } from '../pathRegistry.js';
 
 export interface TechDebtBounty {
     file: string;
@@ -33,7 +33,7 @@ export class Warden {
     private ledgerPath: string;
 
     constructor(customLedgerPath?: string) {
-        this.ledgerPath = customLedgerPath || path.join(registry.getRoot(), '.agent', 'tech_debt_ledger.json');
+        this.ledgerPath = customLedgerPath || path.join(registry.getRoot(), '.agents', 'tech_debt_ledger.json');
     }
 
     /**
@@ -125,4 +125,5 @@ export class Warden {
         }
     }
 }
+
 

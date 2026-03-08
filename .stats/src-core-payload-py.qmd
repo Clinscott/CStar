@@ -1,0 +1,37 @@
+---
+title: "payload.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\core\payload.py"
+loc: 35
+complexity: 4
+logic_score: 8.60
+style_score: 3.49
+intel_score: 9.40
+overall_score: 5.96
+---
+
+## Intent
+The `payload.py` sector implements modular logic focusing on IntentPayload, __post_init__, __repr__, to_dict. It forms a node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via IntentPayload, __post_init__, __repr__, to_dict. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.6/10
+- **Style [S]**: 3.5/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 10 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [dataclasses](file://dataclasses)
+- [types](file://types)
+- [typing](file://typing)
+
+### Exports
+- `IntentPayload`
+- `__post_init__`
+- `__repr__`
+- `to_dict`

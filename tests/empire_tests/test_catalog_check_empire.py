@@ -37,8 +37,8 @@ class SovereignVector:
 def setup_environment(tmp_path):
     """Sets up the required file structure and environment for the script execution."""
 
-    # Create the necessary directory structure: .agent/scripts/engine/
-    agent_dir = tmp_path / ".agent"
+    # Create the necessary directory structure: .agents/scripts/engine/
+    agent_dir = tmp_path / ".agents"
     scripts_dir = agent_dir / "scripts"
     engine_dir = scripts_dir / "engine"
     engine_dir.mkdir(parents=True, exist_ok=True)
@@ -55,7 +55,7 @@ def setup_environment(tmp_path):
     catalog_check_path = tmp_path / "catalog_check.py"
 
     # Note: Inserting the actual catalog_check.py code here for fixture completeness
-    catalog_check_code = "\nimport sys\nimport os\nsys.path.insert(0, '.agent/scripts')\n\nfrom engine.vector import SovereignVector\n\ne = SovereignVector(\n    'thesaurus.qmd', \n    '.agent/corrections.json', \n    '.agent/scripts/stopwords.json'\n)\ne.load_core_skills()\ne.build_index()\n\nquery = \"catalog start\"\nr = e.search(query)\n\nprint(f\"Tokens: {e.tokenize(query)}\")\n\ntrigger_map_result = e.trigger_map.get('start')\nprint(f\"Trigger Map for 'start': {trigger_map_result}\")\n\nif r:\n    print(f\"Top Result: {r[0]}\")\nelse:\n    print(\"No results found.\")\n\nsys.exit(0)"
+    catalog_check_code = "\nimport sys\nimport os\nsys.path.insert(0, '.agents/scripts')\n\nfrom engine.vector import SovereignVector\n\ne = SovereignVector(\n    'thesaurus.qmd', \n    '.agents/corrections.json', \n    '.agents/scripts/stopwords.json'\n)\ne.load_core_skills()\ne.build_index()\n\nquery = \"catalog start\"\nr = e.search(query)\n\nprint(f\"Tokens: {e.tokenize(query)}\")\n\ntrigger_map_result = e.trigger_map.get('start')\nprint(f\"Trigger Map for 'start': {trigger_map_result}\")\n\nif r:\n    print(f\"Top Result: {r[0]}\")\nelse:\n    print(\"No results found.\")\n\nsys.exit(0)"
     catalog_check_path.write_text(catalog_check_code)
 
     return tmp_path, catalog_check_path

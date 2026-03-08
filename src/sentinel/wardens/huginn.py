@@ -1,7 +1,7 @@
 """
 [Huginn: NEURAL TRACE ANALYSIS]
 Lore: "One of the Ravens who flies over the world to bring news to Odin."
-Purpose: Analyze .agent/traces for AI hallucinations, state deviance, or path leaks.
+Purpose: Analyze .agents/traces for AI hallucinations, state deviance, or path leaks.
 Now upgraded with Neural Auditing capabilities.
 """
 
@@ -18,7 +18,7 @@ from src.sentinel.wardens.base import BaseWarden
 class HuginnWarden(BaseWarden):
     def __init__(self, root: Path) -> None:
         super().__init__(root)
-        self.trace_dir = root / ".agent" / "traces"
+        self.trace_dir = root / ".agents" / "traces"
         self.api_key = os.getenv("MUNINN_API_KEY") or os.getenv("GOOGLE_API_KEY")
         # [Ω] Decoupled: Using Uplink for neural audits
         self.uplink = AntigravityUplink(api_key=self.api_key)

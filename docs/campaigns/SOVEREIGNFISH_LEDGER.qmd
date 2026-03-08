@@ -7,7 +7,7 @@
 Its goal is not to rewrite the application, but to polish it relentlessly.
 
 > [!TIP]
-> **Execution Protocol**: See [SovereignFish.qmd](file:///c:/Users/Craig/Corvus/CorvusStar/.agent/workflows/SovereignFish.qmd) for workflow execution steps.
+> **Execution Protocol**: See [SovereignFish.qmd](file:///c:/Users/Craig/Corvus/CorvusStar/.agents/workflows/SovereignFish.qmd) for workflow execution steps.
 > This document is the **Session Log** and **Protocol Reference**.
 
 **The Golden Rule:**
@@ -136,7 +136,7 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 - **Protocol**: Enabled `War Zone` conflict detection via Persona Identity overlap in the Federated Database.
 
 ### 2026-02-01 (Session 7: Iron Clad)
-- **Code**: Hardened .agent/scripts/ui.py with strict type hinting and docstrings.
+- **Code**: Hardened .agents/scripts/ui.py with strict type hinting and docstrings.
 - **Safety**: Fortified overwatch.py with try-except blocks for msvcrt and strict typing.
 ### 2026-02-02 (The O.D.I.N. Protocol)
 -   **Improvement 1 (Doc/Arch)**: Extended "Subconscious Architecture" to `/plan` and `/investigate`, ensuring 360-degree persona awareness.
@@ -144,7 +144,7 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 
 ### 2026-02-02 (Session 8: The Seed)
 -   **Improvement 1 (Code/Tool)**: Repaired `analyze_workflow.py` (The Oracle) to correctly identify task states and journal patterns (was a stub).
--   **Improvement 2 (Critial/Infra)**: Repaired `install.ps1` to correctly deploy `fishtest.py` and all scripts in `.agent/scripts` (dynamic loop) instead of hardcoded lists.
+-   **Improvement 2 (Critial/Infra)**: Repaired `install.ps1` to correctly deploy `fishtest.py` and all scripts in `.agents/scripts` (dynamic loop) instead of hardcoded lists.
 
 ### 2026-02-02 (Session 9: Exception Handling Purge)
 - **Improvement 1 (Code Quality)**: Replaced obsolete `GOD` persona with `O.D.I.N.` globally in `sv_engine.py`. - Status: SECURED.
@@ -283,7 +283,7 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 
 > 🔁 **RESUME DIRECTIVE**: Next session should start from **Target 318** (Batch 4: Documentation Sprint).  
 > Continue with remaining Batch 4 targets (318-400), then proceed to Batch 5 (Intent Expansion).  
-> 📄 **Full Plan**: [CAMPAIGN_IMPLEMENTATION_PLAN.qmd](file:///c:/Users/Craig/Corvus/CorvusStar/.agent/CAMPAIGN_IMPLEMENTATION_PLAN.qmd)
+> 📄 **Full Plan**: [CAMPAIGN_IMPLEMENTATION_PLAN.qmd](file:///c:/Users/Craig/Corvus/CorvusStar/.agents/CAMPAIGN_IMPLEMENTATION_PLAN.qmd)
 
 ### 2026-02-04 (Session 32: Hybrid Calibration & Persona Sync)
 - **Improvement 1 (Refactor)**: Centralized `_sync_configs` logic into `PersonaStrategy` base class to ensure consistent config alignment between root and .agent folders. - Status: SECURED.
@@ -316,7 +316,7 @@ In high-performance engines like Stockfish, SPRT is used to prove a change is st
 - Status: **SECURED (BASELINE ESTABLISHED)**
 
 ### 2026-02-06 (Session 36: Baseline Remediation)
-- **Improvement 1 (Structural)**: Encapsulated all orphaned functions in `.agent/scripts` into strictly-typed classes (Dispatcher, DebtAnalyzer, CodeSentinel, etc.). - Status: SECURED.
+- **Improvement 1 (Structural)**: Encapsulated all orphaned functions in `.agents/scripts` into strictly-typed classes (Dispatcher, DebtAnalyzer, CodeSentinel, etc.). - Status: SECURED.
 - **Improvement 2 (Complexity)**: Refactored Rank D offenders `set_persona.py` and `synapse_sync.py` to Rank A/C. Reduced avg complexity to 3.9. - Status: SECURED.
 - **Improvement 3 (Neural)**: Calibrated Intent Mapping to 97.8% (PASS) by sharpening clusters and hardening corrections for deployment/UI/Test intents. - Status: SECURED.
 - **Improvement 4 (Robustness)**: Migrated 100% of audited scripts to `pathlib.Path` and integrated Windows-safe Unicode handling for sub-processes. - Status: SECURED.

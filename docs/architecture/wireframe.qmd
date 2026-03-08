@@ -21,8 +21,8 @@ Maintain a searchable, accurate map of the project's UI and service architecture
 - `src/tools`: `c:/Users/Craig/Corvus/CorvusStar/src/tools` - Developer productivity and neural trace tools.
 - `src/synapse`: `c:/Users/Craig/Corvus/CorvusStar/src/synapse` - Cross-project knowledge synchronization logic.
 - `src/skills/local`: `c:/Users/Craig/Corvus/CorvusStar/src/skills/local` - Project-specific capability extensions.
-- `.agent/skills`: `c:/Users/Craig/Corvus/CorvusStar/.agent/skills` - Dynamic skill proxies and new discovery targets.
-- `.agent/workflows`: `c:/Users/Craig/Corvus/CorvusStar/.agent/workflows` - Core AgLng Workflows (lets-go, run-task, etc.)
+- `.agents/skills`: `c:/Users/Craig/Corvus/CorvusStar/.agents/skills` - Dynamic skill proxies and new discovery targets.
+- `.agents/workflows`: `c:/Users/Craig/Corvus/CorvusStar/.agents/workflows` - Core AgLng Workflows (lets-go, run-task, etc.)
 - `skills_db`: `c:/Users/Craig/Corvus/CorvusStar/skills_db` - Global Skill Registry.
 
 ## 🏗️ Core Components
@@ -102,6 +102,6 @@ Maintain a searchable, accurate map of the project's UI and service architecture
     - `git_trainer.ts`: Seeds the SQLite gravity vault with historical Git edit frequencies.
 
 ## 🏁 SovereighFish Campaign (N=1000)
-- **Roadmap**: `c:/Users/Craig/Corvus/CorvusStar/.agent/CAMPAIGN_IMPLEMENTATION_PLAN.qmd`.
+- **Roadmap**: `c:/Users/Craig/Corvus/CorvusStar/.agents/CAMPAIGN_IMPLEMENTATION_PLAN.qmd`.
 - **Ledger**: `c:/Users/Craig/Corvus/CorvusStar/SOVEREIGNFISH_LEDGER.qmd`.
 - **Status**: Phase 5 Stabilization complete. Automated Learning Loop Active.

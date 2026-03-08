@@ -30,7 +30,7 @@ export class PathRegistry {
 
             while (currentDir !== previousDir) {
                 const packageJsonPath = path.join(currentDir, 'package.json');
-                const agentConfigPath = path.join(currentDir, '.agent', 'config.json');
+                const agentConfigPath = path.join(currentDir, '.agents', 'config.json');
 
                 if (fs.existsSync(packageJsonPath) || fs.existsSync(agentConfigPath)) {
                     return currentDir.replace(/\\/g, '/');

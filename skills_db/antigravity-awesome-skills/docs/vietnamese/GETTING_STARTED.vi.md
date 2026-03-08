@@ -24,7 +24,7 @@ Sao chép các kỹ năng vào thư mục agent của bạn:
 
 ```bash
 # Cài đặt phổ thông (hoạt động với hầu hết các agent)
-git clone https://github.com/sickn33/antigravity-awesome-skills.git .agent/skills
+git clone https://github.com/sickn33/antigravity-awesome-skills.git .agents/skills
 ```
 
 ### 2. Chọn vai trò của bạn
@@ -70,7 +70,7 @@ Sau khi cài đặt, bạn chỉ cần trò chuyện với AI một cách tự n
 | :--------------- | :-------------- | :---------------- |
 | **Claude Code**  | ✅ Hỗ trợ đầy đủ | `.claude/skills/` |
 | **Gemini CLI**   | ✅ Hỗ trợ đầy đủ | `.gemini/skills/` |
-| **Antigravity**  | ✅ Hỗ trợ gốc   | `.agent/skills/`  |
+| **Antigravity**  | ✅ Hỗ trợ gốc   | `.agents/skills/`  |
 | **Cursor**       | ✅ Hỗ trợ gốc   | `.cursor/skills/` |
 | **Copilot**      | ⚠️ Chỉ văn bản  | Copy-paste thủ công |
 

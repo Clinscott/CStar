@@ -1,9 +1,9 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import chalk from 'chalk';
-import { registry } from '../pathRegistry.ts';
-import { searchIntents } from '../intel/database.ts';
-import { HUD } from '../../../node/core/hud.ts';
+import { registry } from '../pathRegistry.js';
+import { searchIntents } from '../intel/database.js';
+import { HUD } from '../../../node/core/hud.js';
 
 /**
  * Search matrix
@@ -101,3 +101,4 @@ if (process.argv[1].includes('search')) {
     const q = process.argv.slice(2).join(' ');
     if (q) searchMatrix(q);
 }
+

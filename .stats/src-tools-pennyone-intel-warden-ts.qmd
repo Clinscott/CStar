@@ -13,7 +13,7 @@ overall_score: 3.87
 The `warden.ts` module implements the 'Active Threat Assessment' system. It analyzes the compiled repository graph to identify 'Toxic Sectors'—modules with high gravity and poor logic scores—and logs them as Tech Debt Bounties in the centralized ledger.
 
 ## Interaction Protocol
-Integrate by instantiating the `Warden` class and calling the `evaluate` method with a `CompiledGraph`. It automatically updates the `.agent/tech_debt_ledger.json` with prioritised remediation targets.
+Integrate by instantiating the `Warden` class and calling the `evaluate` method with a `CompiledGraph`. It automatically updates the `.agents/tech_debt_ledger.json` with prioritised remediation targets.
 
 ## Gungnir Matrix Breakdown
 - **Logic [L]**: 3.1/10

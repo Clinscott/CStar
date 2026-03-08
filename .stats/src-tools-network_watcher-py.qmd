@@ -1,0 +1,44 @@
+---
+title: "network_watcher.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\network_watcher.py"
+loc: 64
+complexity: 7
+logic_score: 4.92
+style_score: 3.72
+intel_score: 6.40
+overall_score: 3.89
+---
+
+## Intent
+The `network_watcher.py` sector implements modular logic focusing on CruciblePipeline, __init__, get_theme, log_rejection, process, NetworkWatcher, __init__, watch. It forms a node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via CruciblePipeline, __init__, get_theme, log_rejection, process, NetworkWatcher, __init__, watch. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 4.9/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 6.4/10
+- **Gravity [G]**: 21 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [os](file://os)
+- [shutil](file://shutil)
+- [subprocess](file://subprocess)
+- [sys](file://sys)
+- [time](file://time)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+
+### Exports
+- `CruciblePipeline`
+- `__init__`
+- `get_theme`
+- `log_rejection`
+- `process`
+- `NetworkWatcher`
+- `__init__`
+- `watch`

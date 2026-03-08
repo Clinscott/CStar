@@ -33,7 +33,7 @@ Feature: Flight Synchronization
   Scenario: System waits for Ravens to finish their mission
     Given the Ravens have been released
     When SovereignWrapper.wait_for_ravens() executes
-    Then it monitors .agent/muninn.pid
+    Then it monitors .agents/muninn.pid
     And it blocks until the PID file is cleared or timeout is reached
     And it prints "Muninn is done flying" upon landing
 ```

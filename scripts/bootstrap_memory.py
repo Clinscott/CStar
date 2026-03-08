@@ -14,12 +14,12 @@ from src.core.sovereign_hud import SovereignHUD
 def bootstrap() -> None:
     """
     [O.D.I.N.] Initializing Semantic Context.
-    Scans the .agent/workflows directory and populates ChromaDB with workflow intents.
+    Scans the .agents/workflows directory and populates ChromaDB with workflow intents.
     """
     SovereignHUD.box_top("BOOTSTRAP: SEMANTIC BRAIN")
     db = MemoryDB(str(project_root))
 
-    workflow_dir = project_root / ".agent" / "workflows"
+    workflow_dir = project_root / ".agents" / "workflows"
     if not workflow_dir.exists():
         SovereignHUD.box_row("ERROR", "Workflows directory not found.", SovereignHUD.RED)
         SovereignHUD.box_bottom()

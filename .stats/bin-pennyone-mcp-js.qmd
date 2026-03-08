@@ -1,0 +1,37 @@
+---
+title: "pennyone-mcp.js"
+path: "C:\Users\Craig\Corvus\CorvusStar\bin\pennyone-mcp.js"
+loc: 18
+complexity: 2
+logic_score: 8.85
+style_score: 3.99
+intel_score: 3.62
+overall_score: 3.84
+---
+
+## Intent
+The `pennyone-mcp.js` sector implements modular logic focusing on __dirname, ROOT, bootstrap. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via __dirname, ROOT, bootstrap. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.9/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 3.6/10
+- **Gravity [G]**: 5 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [execa](file://execa)
+- [fileURLToPath](file://node:url)
+- [join](file://node:path)
+- [dirname](file://node:path)
+
+### Exports
+- `__dirname`
+- `ROOT`
+- `bootstrap`

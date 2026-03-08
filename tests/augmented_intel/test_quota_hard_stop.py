@@ -9,7 +9,7 @@ class TestQuotaHardStop:
     @pytest.fixture(autouse=True)
     def setup_quota(self):
         """Ensure a clean quota file for testing."""
-        self.quota_file = Path(".agent/brave_quota.json")
+        self.quota_file = Path(".agents/brave_quota.json")
         self.backup = None
         if self.quota_file.exists():
             self.backup = self.quota_file.read_text()

@@ -1,4 +1,4 @@
-import { NeuronBridge } from './.agent/forge_staged/neuron_bridge.ts';
+import { NeuronBridge } from './.agents/forge_staged/neuron_bridge.ts';
 import { SynapticNexus } from './src/node/core/nexus.ts';
 import chalk from 'chalk';
 

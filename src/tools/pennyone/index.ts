@@ -1,18 +1,19 @@
-import { crawlRepository } from './crawler.ts';
-import { analyzeFile, FileData } from './analyzer.ts';
-import { writeReport } from './intel/writer.ts';
-import { compileMatrix, CompiledGraph } from './intel/compiler.ts';
-import { registerSpoke, updateFtsIndex } from './intel/database.ts';
-import { SemanticIndexer } from './intel/semantic.ts';
-import { ChronicleIndexer } from './intel/chronicle.ts';
-import { Warden } from './intel/warden.ts';
+import { crawlRepository } from './crawler.js';
+import { analyzeFile } from './analyzer.js';
+import { writeReport } from './intel/writer.js';
+import { compileMatrix } from './intel/compiler.js';
+import { registerSpoke, updateFtsIndex } from './intel/database.js';
+import { SemanticIndexer } from './intel/semantic.js';
+import { ChronicleIndexer } from './intel/chronicle.js';
+import { Warden } from './intel/warden.js';
+import fsSync from 'node:fs';
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'node:crypto';
-import { registry } from './pathRegistry.ts';
-import { activePersona } from './personaRegistry.ts';
-import { ScanResult } from './types.ts';
-import { defaultProvider } from './intel/llm.ts';
+import { registry } from './pathRegistry.js';
+import { activePersona } from './personaRegistry.js';
+import { ScanResult, FileData, CompiledGraph } from './types.js';
+import { defaultProvider } from './intel/llm.js';
 import chalk from 'chalk';
 
 
@@ -144,8 +145,8 @@ export async function runScan(targetPath: string, force = false): Promise<FileDa
                         loc: existing.loc,
                         complexity: existing.complexity,
                         matrix: existing.matrix,
-                        imports: [],
-                        exports: [],
+                        imports: existing.imports || [],
+                        exports: existing.exports || [],
                         intent: existing.intent,
                         interaction_protocol: existing.interaction_protocol,
                         hash: currentHash,
@@ -166,9 +167,9 @@ export async function runScan(targetPath: string, force = false): Promise<FileDa
         }
     }
 
-    // Phase 2: High-Fidelity Intelligence (Batch Size 3 for balanced reliability)
+    // Phase 2: High-Fidelity Intelligence (Batch Size 50 for speed)
     const filesNeedingIntent = analyzedFiles.filter(af => af.needsIntent);
-    const BATCH_SIZE = 3;
+    const BATCH_SIZE = 50;
 
     for (let i = 0; i < filesNeedingIntent.length; i += BATCH_SIZE) {
         const batch = filesNeedingIntent.slice(i, i + BATCH_SIZE);
@@ -183,13 +184,22 @@ export async function runScan(targetPath: string, force = false): Promise<FileDa
             status: 'PROCESSING'
         };
         try {
-            fsSync.writeFileSync(path.join(registry.getRoot(), '.agent', 'scan_heartbeat.json'), JSON.stringify(status, null, 2));
+            fsSync.writeFileSync(path.join(registry.getRoot(), '.agents', 'scan_heartbeat.json'), JSON.stringify(status, null, 2));
         } catch { /* Ignore telemetry errors */ }
 
         console.log(chalk.cyan(` ◈ [HEARTBEAT] Processing Intelligence Batch ${batchNum}/${totalBatches}...`));
         
         try {
-            const batchIntents = await defaultProvider.getBatchIntent(batch.map(b => ({ code: b.code, data: b.data })));
+            let batchIntents;
+            try {
+                batchIntents = await defaultProvider.getBatchIntent(batch.map(b => ({ code: b.code, data: b.data })));
+            } catch (intentError: any) {
+                console.warn(chalk.yellow(`[WARNING] Batch ${batchNum} intelligence generation failed: ${intentError.message}. Using fallback metadata.`));
+                batchIntents = batch.map(() => ({ 
+                    intent: 'Intelligence generation offline. See sector lore for details.', 
+                    interaction: 'Standard' 
+                }));
+            }
             
             // Map intents back to data and write reports
             for (let j = 0; j < batch.length; j++) {
@@ -209,7 +219,7 @@ export async function runScan(targetPath: string, force = false): Promise<FileDa
             status.status = 'WAITING';
             status.last_update = Date.now();
             try {
-                fsSync.writeFileSync(path.join(registry.getRoot(), '.agent', 'scan_heartbeat.json'), JSON.stringify(status, null, 2));
+                fsSync.writeFileSync(path.join(registry.getRoot(), '.agents', 'scan_heartbeat.json'), JSON.stringify(status, null, 2));
             } catch { }
 
             // [Ω] ANTI-HANG: Brief delay between batches to allow the Host to breathe
@@ -239,3 +249,4 @@ export async function runScan(targetPath: string, force = false): Promise<FileDa
 
     return finalResults;
 }
+

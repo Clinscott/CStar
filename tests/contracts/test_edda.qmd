@@ -35,7 +35,7 @@ tags: [odin, edda, documentation, preservation]
 4.  The original `guide.md` is moved to `mock_project/.corvus_quarantine/`.
 
 ### 2. The Preservation (Workflows)
-**GIVEN** a workflow file `mock_project/.agent/workflows/plan.md`.
+**GIVEN** a workflow file `mock_project/.agents/workflows/plan.md`.
 **WHEN** `edda.py --scan mock_project` is executed.
 **THEN**:
 1.  `plan.md` remains untouched.

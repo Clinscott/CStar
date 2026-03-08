@@ -1,0 +1,42 @@
+---
+title: "ravens.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\.agents\skills\ravens.py"
+loc: 108
+complexity: 12
+logic_score: 1.77
+style_score: 3.53
+intel_score: 5.84
+overall_score: 2.31
+---
+
+## Intent
+The `ravens.py` sector implements high-complexity logic focusing on _get_running_pids, check_status, recall_ravens, release_ravens, learn, main. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via _get_running_pids, check_status, recall_ravens, release_ravens, learn, main. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 1.8/10
+- **Style [S]**: 3.5/10
+- **Intel [I]**: 5.8/10
+- **Gravity [G]**: 14 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [subprocess](file://subprocess)
+- [sys](file://sys)
+- [time](file://time)
+- [pathlib](file://pathlib)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [os](file://os)
+
+### Exports
+- `_get_running_pids`
+- `check_status`
+- `recall_ravens`
+- `release_ravens`
+- `learn`
+- `main`

@@ -5,7 +5,7 @@ import pytest
 
 # Add the script's directory to the path
 sys.path.insert(0, '.')
-sys.path.insert(0, '.agent/scripts')
+sys.path.insert(0, '.agents/scripts')
 
 # Mock the SovereignVector class and its methods
 class MockSovereignVector:
@@ -36,7 +36,7 @@ from src.tools.debug import cjk_check
 
 @pytest.fixture
 def mock_sovereign_vector():
-    return MockSovereignVector('thesaurus.qmd', '.agent/corrections.json', '.agent/scripts/stopwords.json')
+    return MockSovereignVector('thesaurus.qmd', '.agents/corrections.json', '.agents/scripts/stopwords.json')
 
 
 def test_successful_cjk_query(mock_sovereign_vector, monkeypatch):

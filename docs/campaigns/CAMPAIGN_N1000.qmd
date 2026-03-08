@@ -114,7 +114,7 @@ TOTAL: 315 / 1000
 > ⚠️ **SESSION STOP MARKER**: Session 30 halted at Target 315 (2026-02-03 @ 21:00 EST).  
 > **RESUME POINT**: Target 316 → Continue Batch 4 (Self-Synthesis & Autonomous Forge).
 
-> 📄 **FULL IMPLEMENTATION PLAN**: [CAMPAIGN_IMPLEMENTATION_PLAN.qmd](file:///c:/Users/Craig/Corvus/CorvusStar/.agent/CAMPAIGN_IMPLEMENTATION_PLAN.qmd)  
+> 📄 **FULL IMPLEMENTATION PLAN**: [CAMPAIGN_IMPLEMENTATION_PLAN.qmd](file:///c:/Users/Craig/Corvus/CorvusStar/.agents/CAMPAIGN_IMPLEMENTATION_PLAN.qmd)  
 > Contains: Complete codebase inventory, all 10 batch targets with detailed line-by-line improvements, discovery engine automation script, verification protocols, no-touch zones, and time estimates.
 
 ---

@@ -1,0 +1,38 @@
+---
+title: "test_mission_coordinator.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\unit\test_mission_coordinator.py"
+loc: 54
+complexity: 1
+logic_score: 8.52
+style_score: 3.58
+intel_score: 1.40
+overall_score: 3.23
+---
+
+## Intent
+The `test_mission_coordinator.py` sector implements modular logic focusing on coordinator, test_select_mission_with_target_metrics, test_select_mission_fallback_legacy. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via coordinator, test_select_mission_with_target_metrics, test_select_mission_fallback_legacy. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 8.5/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 9 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [pytest](file://pytest)
+- [json](file://json)
+- [pathlib](file://pathlib)
+- [unittest.mock](file://unittest.mock)
+- [src.sentinel.coordinator](file://src.sentinel.coordinator)
+
+### Exports
+- `coordinator`
+- `test_select_mission_with_target_metrics`
+- `test_select_mission_fallback_legacy`

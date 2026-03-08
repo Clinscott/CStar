@@ -3,20 +3,20 @@ title: "AgentGhost.tsx"
 path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\vis\components\AgentGhost.tsx"
 loc: 67
 complexity: 4
-logic_score: 7.13
+logic_score: 8.38
 style_score: 4.08
 intel_score: 6.18
-overall_score: 5.84
+overall_score: 5.08
 ---
 
 ## Intent
-The `AgentGhost.tsx` module implements the 3D visualization of autonomous agents within the neural graph. It renders agents as dynamic 'Ghosts' that move between nodes based on real-time telemetry, providing a visual representation of active file mutations and mission traces.
+The `AgentGhost.tsx` sector implements modular logic focusing on AgentGhost, AgentGhost, points, curve, arcedPoints, i, start, end, mid, dist, activeNode. It forms a node in the Gungnir Matrix.
 
 ## Interaction Protocol
-This component is used within the `NeuralGraph` scene. It receives agent position and path data, automatically animating the ghost's movement to reflect physical activity in the repository.
+Integrate via AgentGhost, AgentGhost, points, curve, arcedPoints, i, start, end, mid, dist, activeNode. Follow the Linscott Standard for this sector.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 7.1/10
+- **Logic [L]**: 8.4/10
 - **Style [S]**: 4.1/10
 - **Intel [I]**: 6.2/10
 - **Gravity [G]**: 7 interactions (Agent Activity Hotspot)

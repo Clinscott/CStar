@@ -1,0 +1,37 @@
+---
+title: "test_quick_check.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\quarantine\test_quick_check.py"
+loc: 10
+complexity: 1
+logic_score: 4.15
+style_score: 7.99
+intel_score: 9.40
+overall_score: 7.06
+---
+
+## Intent
+The `test_quick_check.py` sector implements modular logic focusing on test_run_quick_check_logic, MockEngine, __init__, load_core_skills, build_index, search. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via test_run_quick_check_logic, MockEngine, __init__, load_core_skills, build_index, search. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 4.1/10
+- **Style [S]**: 8.0/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 4 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [src.tools.debug.quick_check](file://src.tools.debug.quick_check)
+
+### Exports
+- `test_run_quick_check_logic`
+- `MockEngine`
+- `__init__`
+- `load_core_skills`
+- `build_index`
+- `search`

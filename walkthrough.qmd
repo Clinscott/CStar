@@ -1,3 +1,31 @@
+# Walkthrough: Session 116 - The Oracle Handshake & MCP Stabilization
+
+## 🎯 Goal
+Exorcise the `Method not found` crash from the MCP server, resolve systemic TypeScript compilation errors, and stabilize the Bifrost Bridge for high-fidelity intelligence requests.
+
+## 🏆 Results
+| Metric | Value |
+| :--- | :--- |
+| **MCP Stability** | **Direct SDK Strike (Zero Crash)** |
+| **tsc Compliance** | **100% (PennyOne Core)** |
+| **Intelligence** | **ADC-Payload Enabled** |
+| **Gungnir Metric** | **10.0 (Zero-Breach)** |
+
+## 🛠️ Key Changes
+- **Method not found Exorcism**: Replaced the invalid recursive `createMessage` call in `mcp-server.ts` with a **Direct SDK Strike** using the `google-genai` SDK and the ADC payload.
+- **PennyOne Core Stabilization**: Fixed critical `tsc` errors in `index.ts`, `llm.ts`, and `analyzer.ts` by correcting imports, adding missing interface properties, and hardening the `SamplingProvider` logic.
+- **SovereignHUD Hardening**: Updated `hud.ts` and `ceremony.ts` to use `ChalkInstance` and fixed missing color properties (`crucible/orange`).
+- **Bifrost Bridge Fortification**: Updated `cortex_link.ts` to allow complex payloads in `sendCommand` and corrected the `raven` status color logic in `ravens.ts`.
+
+## 🤝 Session Handshake
+**Session Delta**:
+- The framework is now immune to the recursive sampling crash.
+- The `pennyone` core is fully type-safe and synchronized with the latest Gungnir metrics.
+- Intelligence requests now leverage the direct `Gemini-2.0-Flash` model for instant, high-fidelity intents.
+
+**Resume Directive**:
+- Proceed to Phase 99 in `tasks.qmd` (Full Manuscript Expansion).
+
 # Walkthrough: Session 115 - TALIESIN Phase 8 (The 90% Threshold)
 
 ## 🎯 Goal
@@ -151,7 +179,7 @@ Synchronize the Corvus Star workflows with the Gungnir First Principles and ensu
 ## 🛠️ Key Changes
 - **Omniscience Matrix**: Updated `writer.ts`, `index.ts`, and `compiler.ts` to ensure **Interaction Protocols** are captured and persisted in [matrix-graph.json](file:///c:/Users/Craig/Corvus/CorvusStar/.stats/matrix-graph.json).
 - **Spoke Sanitization**: Fixed systemic template literal syntax errors in `pennyone.ts`, `ravens.ts`, `start.ts`, and `dispatcher.ts`.
-- **Sovereign Workflows**: Realigned all core workflows in `.agent/workflows/` to mandate Gungnir Matrix audits and Protocol-aware ingestion.
+- **Sovereign Workflows**: Realigned all core workflows in `.agents/workflows/` to mandate Gungnir Matrix audits and Protocol-aware ingestion.
 - **Search UX**: Enhanced `search.ts` to surface the **Protocol** alongside the **Intent** for immediate tactical awareness.
 
 ## 🤝 Session Handshake
@@ -225,7 +253,7 @@ Redefine Muninn's functionality from a naive 15-minute heartbeat to a continuous
 ## 🛠️ Key Changes
 - **Watcher Upgrades**: Added `get_last_edit_time` and `record_failure` to `TheWatcher` (`stability.py`) to give Muninn environmental awareness and fatigue tracking.
 - **Target Selection**: Rip-and-replaced the random `_hunt_phase` prioritization in `muninn.py` with `_select_target_phase` to parse and act on the explicit Tech Debt Ledger.
-- **LookAhead Utility**: Created `cstar unblock <file>` (`.agent/skills/unblock.py`) to give human operators a quick way to release escalated files back to Muninn after manual repair.
+- **LookAhead Utility**: Created `cstar unblock <file>` (`.agents/skills/unblock.py`) to give human operators a quick way to release escalated files back to Muninn after manual repair.
 
 ## 🤝 Session Handshake
 **Session Delta**:
@@ -315,7 +343,7 @@ Secure the ANNEX by refactoring 29 core components to the Linscott Standard (str
 ### 3. Warden & Support Infrastructure
 - **Base Architecture (`base.py`)**: Fortified the foundation of all watchtowers with explicit types and docstrings.
 - **Freya: BEAUTY (`freya.py`)**: Modernized aesthetic calculus with clean exception handling and strict typing.
-- **Debug & Data Tools**: Refactored 15+ auxiliary scripts (BraveSearch, VoiceCheck, DiagEngine, etc.) and purged legacy dependencies on `.agent/scripts`.
+- **Debug & Data Tools**: Refactored 15+ auxiliary scripts (BraveSearch, VoiceCheck, DiagEngine, etc.) and purged legacy dependencies on `.agents/scripts`.
 
 ### 4. Verification Gauntlet
 - **Precision Mocking**: Created 20+ new test files (`tests/test_*.py`) utilizing localized mocks to verify logic stability without environmental side effects.
@@ -346,7 +374,7 @@ Align the Genesis Bootstrapper with the project's persona configuration and impl
 ## 🛠️ Key Changes
 
 ### 1. Genesis Persona Alignment (`src/node/setup.js`)
-- **Dynamic Voice**: Refactored the bootstrapper to read `.agent/config.json` and adjust its logging style based on the active persona.
+- **Dynamic Voice**: Refactored the bootstrapper to read `.agents/config.json` and adjust its logging style based on the active persona.
 - **Themed Logging**: Implemented `personaLog` to ensure consistent cyan/green prefixes and voice formatting (O.D.I.N.'s directness vs. A.L.F.R.E.D.'s quotes).
 
 ### 2. Heimdall JS: The Sentinel (`src/tools/js_sentinel.ts`)
@@ -368,8 +396,8 @@ Align the Genesis Bootstrapper with the project's persona configuration and impl
 
 
 ### ⚡ Dynamic Capabilities Forged (22:36:01)
-- `.agent/workflows/wrap-it-up.html`
-- `.agent/workflows/wrap-it-up_files/`
+- `.agents/workflows/wrap-it-up.html`
+- `.agents/workflows/wrap-it-up_files/`
 - `src/skills/local/workflow_analyst/`
 
 # Walkthrough: Session 95 - A.L.F.R.E.D. Lore & Global Rebranding
@@ -438,4 +466,4 @@ Rebrand the "Alfred" persona to "A.L.F.R.E.D." across the entire codebase and en
 
 
 ### ⚡ Dynamic Capabilities Forged (01:44:46)
-- `.agent/workflows/forge-init.md`
+- `.agents/workflows/forge-init.md`

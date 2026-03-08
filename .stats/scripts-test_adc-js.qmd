@@ -1,0 +1,36 @@
+---
+title: "test_adc.js"
+path: "C:\Users\Craig\Corvus\CorvusStar\scripts\test_adc.js"
+loc: 19
+complexity: 2
+logic_score: 9.15
+style_score: 4.18
+intel_score: 1.40
+overall_score: 3.91
+---
+
+## Intent
+The `test_adc.js` sector implements modular logic focusing on testADC, ai, result. It forms a node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via testADC, ai, result. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 9.2/10
+- **Style [S]**: 4.2/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 0 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [GoogleGenAI](file://@google/genai)
+- [*](file://dotenv)
+- [*](file://node:path)
+
+### Exports
+- `testADC`
+- `ai`
+- `result`

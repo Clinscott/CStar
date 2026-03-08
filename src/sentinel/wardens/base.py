@@ -32,12 +32,12 @@ class BaseWarden(ABC):
 
     def _load_config(self) -> dict[str, Any]:
         """
-        Loads configuration from .agent/config.json.
+        Loads configuration from .agents/config.json.
 
         Returns:
             A dictionary containing the configuration data.
         """
-        config_path = self.root / ".agent" / "config.json"
+        config_path = self.root / ".agents" / "config.json"
         if config_path.exists():
             try:
                 return json.loads(config_path.read_text(encoding='utf-8'))
@@ -56,7 +56,7 @@ class BaseWarden(ABC):
         Returns:
             True if the path should be ignored, False otherwise.
         """
-        ignored_dirs = {".git", ".venv", "node_modules", "__pycache__", ".agent", ".pytest_cache", "dist", "build"}
+        ignored_dirs = {".git", ".venv", "node_modules", "__pycache__", ".agents", ".pytest_cache", "dist", "build"}
 
         return any(part in ignored_dirs for part in path.parts)
 

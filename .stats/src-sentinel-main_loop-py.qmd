@@ -1,0 +1,58 @@
+---
+title: "main_loop.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\sentinel\main_loop.py"
+loc: 138
+complexity: 20
+logic_score: 4.78
+style_score: 3.59
+intel_score: 7.20
+overall_score: 2.68
+---
+
+## Intent
+The `main_loop.py` sector implements high-complexity logic focusing on ShutdownHandler, __init__, shutdown, daemon_loop, highlander_check, DaemonOrchestrator, ensure_bootstrapped, load_config, load_target_repos, get_interval, load_persona, _highlander_check, daemon_loop. It forms a node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via ShutdownHandler, __init__, shutdown, daemon_loop, highlander_check, DaemonOrchestrator, ensure_bootstrapped, load_config, load_target_repos, get_interval, load_persona, _highlander_check, daemon_loop. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 4.8/10
+- **Style [S]**: 3.6/10
+- **Intel [I]**: 7.2/10
+- **Gravity [G]**: 72 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [json](file://json)
+- [logging](file://logging)
+- [os](file://os)
+- [signal](file://signal)
+- [time](file://time)
+- [pathlib](file://pathlib)
+- [typing](file://typing)
+- [psutil](file://psutil)
+- [colorama](file://colorama)
+- [src.sentinel._bootstrap](file://src.sentinel._bootstrap)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+- [src.sentinel.repo_spoke](file://src.sentinel.repo_spoke)
+- [src.core.utils](file://src.core.utils)
+- [argparse](file://argparse)
+- [asyncio](file://asyncio)
+
+### Exports
+- `ShutdownHandler`
+- `__init__`
+- `shutdown`
+- `daemon_loop`
+- `highlander_check`
+- `DaemonOrchestrator`
+- `ensure_bootstrapped`
+- `load_config`
+- `load_target_repos`
+- `get_interval`
+- `load_persona`
+- `_highlander_check`
+- `daemon_loop`

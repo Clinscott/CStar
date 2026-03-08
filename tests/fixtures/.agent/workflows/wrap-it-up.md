@@ -4,7 +4,7 @@ description: Finalizes the current session, updates documentation, runs a produc
 
 // turbo-all
 1. **Execute SovereignFish**: Run the SovereignFish protocol (`SovereignFish.qmd`). Identify, fix, and log 2 minor improvements. Verify with `fishtest.py`.
-6. 2. **Compile Neural Traces**: Run `python .agent/scripts/compile_session_traces.py` to generate the session's `TRACE_REPORT.qmd`.
+6. 2. **Compile Neural Traces**: Run `python .agents/scripts/compile_session_traces.py` to generate the session's `TRACE_REPORT.qmd`.
 3. Modify existing tasks in `tasks.qmd` as completed. **Do not overwrite history.**
 2. **Review & Update Wireframe**: Check `wireframe.qmd` against your changes. If you added new pages, components, or services, YOU MUST update `wireframe.qmd` to match the codebase.
 3. Add a `## ⏭️ Start Here Next` section at the bottom of `tasks.qmd` with a detailed, step-by-step plan for the next priority.

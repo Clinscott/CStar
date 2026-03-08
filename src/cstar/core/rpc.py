@@ -13,7 +13,7 @@ class SovereignRPC:
     def __init__(self, root_path: Path):
         self.root = root_path
         self.db_path = self.root / ".stats" / "pennyone.db"
-        self.ledger_path = self.root / ".agent" / "tech_debt_ledger.json"
+        self.ledger_path = self.root / ".agents" / "tech_debt_ledger.json"
         self.tasks_path = self.root / "tasks.qmd"
 
     def get_recent_traces(self, limit: int = 5) -> list[dict[str, Any]]:

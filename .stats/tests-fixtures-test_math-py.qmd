@@ -1,0 +1,35 @@
+---
+title: "test_math.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\fixtures\test_math.py"
+loc: 40
+complexity: 9
+logic_score: 2.75
+style_score: 4.01
+intel_score: 1.40
+overall_score: 2.14
+---
+
+## Intent
+The `test_math.py` sector implements modular logic focusing on tokenize, vectorize, similarity. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via tokenize, vectorize, similarity. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 2.8/10
+- **Style [S]**: 4.0/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 6 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [math](file://math)
+- [re](file://re)
+
+### Exports
+- `tokenize`
+- `vectorize`
+- `similarity`

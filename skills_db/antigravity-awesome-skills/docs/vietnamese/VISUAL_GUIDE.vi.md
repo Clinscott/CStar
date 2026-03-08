@@ -66,7 +66,7 @@ antigravity-awesome-skills/
 
 ```
 ┌──────────────┐
-│ 1. CÀI ĐẶT   │  Sao chép skills vào .agent/skills/
+│ 1. CÀI ĐẶT   │  Sao chép skills vào .agents/skills/
 1 └──────┬───────┘
        │
        ↓
@@ -182,9 +182,9 @@ antigravity-awesome-skills/
 ├─────────────────────────────────────────┤
 │ $ git clone https://github.com/        │
 │   sickn33/antigravity-awesome-skills    │
-│   .agent/skills                         │
+│   .agents/skills                         │
 │                                         │
-│ ✓ Đang sao chép vào '.agent/skills'... │
+│ ✓ Đang sao chép vào '.agents/skills'... │
 │ ✓ Hoàn tất!                             │
 └─────────────────────────────────────────┘
 ```
@@ -195,7 +195,7 @@ antigravity-awesome-skills/
 ┌─────────────────────────────────────────┐
 │ File Explorer                           │
 ├─────────────────────────────────────────┤
-│ 📁 .agent/                              │
+│ 📁 .agents/                              │
 │   └── 📁 skills/                        │
 │       ├── 📁 brainstorming/             │
 │       ├── 📁 stripe-integration/        │
@@ -313,7 +313,7 @@ Mở file skills_index.json → Tìm từ khóa → Tìm đường dẫn đến 
        │
        ↓
 ┌──────────────┐
-│ 4. KIỂM THỬ  │  Sao chép vào .agent/skills/
+│ 4. KIỂM THỬ  │  Sao chép vào .agents/skills/
 └──────┬───────┘  Thử: @docker-mastery
        │
        ↓
@@ -437,7 +437,7 @@ BẮT ĐẦU TẠI ĐÂY
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │  📥 CÀI ĐẶT                                                 │
-│  git clone [repo] .agent/skills                             │
+│  git clone [repo] .agents/skills                             │
 │                                                             │
 │  🎯 SỬ DỤNG                                                 │
 │  @ten-skill [yêu cầu của bạn]                               │

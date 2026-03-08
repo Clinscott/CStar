@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import { WebSocket } from 'ws';
-import { EventManager } from '../../../core/EventManager.ts';
+import { EventManager } from '../../../core/EventManager.js';
 
 /**
  * [Ω] The Universal Event Router WebSocket Endpoint
@@ -53,4 +53,5 @@ const wsRoutes: FastifyPluginAsync = async (fastify: any) => {
 };
 
 export default wsRoutes;
+
 

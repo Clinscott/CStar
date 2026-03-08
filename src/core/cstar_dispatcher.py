@@ -127,13 +127,13 @@ class CorvusDispatcher:
                     # Native Execution
                     env = os.environ.copy()
                     env["PYTHONPATH"] = str(self.project_root)
-                    subprocess.run([str(self.venv_python), cmd_path, *cmd_args], env=env, check=True)
+                    subprocess.run([str(self.venv_python), cmd_path, *cmd_args], env=env, check=True, encoding='utf-8')
                 else: # Workflow
                     SovereignHUD.persona_log("INFO", f"Dispatching workflow: /{cmd}")
                     import shutil
                     quarto_path = shutil.which("quarto") or r"C:\Program Files\Quarto\bin\quarto.exe"
                     if os.path.exists(quarto_path):
-                        subprocess.run([quarto_path, "render", cmd_path], check=True)
+                        subprocess.run([quarto_path, "render", cmd_path], check=True, encoding='utf-8')
                     else:
                         SovereignHUD.persona_log("WARN", "Quarto not found. Displaying raw workflow:")
                         SovereignHUD.box_top(f"WORKFLOW: {cmd}")
@@ -158,7 +158,7 @@ class CorvusDispatcher:
             cmd_path = all_cmds[skill_name]
             env = os.environ.copy()
             env["PYTHONPATH"] = str(self.project_root)
-            subprocess.run([str(self.venv_python), cmd_path, *args], env=env)
+            subprocess.run([str(self.venv_python), cmd_path, *args], env=env, encoding='utf-8')
 
     def _record_agentic_heartbeat(self, cmd: str, latency: float, tokens: int, error: float) -> None:
         """Delegates heartbeat recording to the Telemetry and Warden skills."""

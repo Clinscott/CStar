@@ -53,10 +53,10 @@ class SovereignHUD:
         try:
             import json
             root = Path.cwd()
-            config_path = root / ".agent" / "config.json"
+            config_path = root / ".agents" / "config.json"
             if not config_path.exists():
                 root = Path(__file__).parent.parent.parent.resolve()
-                config_path = root / ".agent" / "config.json"
+                config_path = root / ".agents" / "config.json"
             if config_path.exists():
                 with config_path.open("r", encoding="utf-8") as f:
                     data = json.load(f)
@@ -114,7 +114,7 @@ class SovereignHUD:
         pad = max(0, (width - t_len - 4) // 2)
         r_pad = width - t_len - 4 - pad
         
-        print(f"{main_color}+{'='*pad} {SovereignHUD.BOLD}{display_title}{SovereignHUD.RESET}{main_color} {'='*r_pad}+{SovereignHUD.RESET}")
+        print(f"{main_color}+{'='*pad} {SovereignHUD.BOLD}{display_title}{SovereignHUD.RESET}{main_color} {'='*r_pad}+{SovereignHUD.RESET}", file=sys.stderr)
 
     @staticmethod
     def box_row(label: str, value: Any, color: str | None = None, dim_label: bool = True) -> None:
@@ -131,19 +131,19 @@ class SovereignHUD:
         raw_len = 2 + 20 + 2 + len(str_val)
         padding = max(0, width - raw_len - 2)
         
-        print(f"{main_color}|{SovereignHUD.RESET}  {lbl_color}{str_lbl}{SovereignHUD.RESET}  {val_color}{str_val}{SovereignHUD.RESET}{' '*padding} {main_color}|{SovereignHUD.RESET}")
+        print(f"{main_color}|{SovereignHUD.RESET}  {lbl_color}{str_lbl}{SovereignHUD.RESET}  {val_color}{str_val}{SovereignHUD.RESET}{' '*padding} {main_color}|{SovereignHUD.RESET}", file=sys.stderr)
 
     @staticmethod
     def box_separator() -> None:
         width = SovereignHUD._last_width
         main_color = SovereignHUD.get_theme()['main']
-        print(f"{main_color}+{'='*(width-2)}+{SovereignHUD.RESET}")
+        print(f"{main_color}+{'='*(width-2)}+{SovereignHUD.RESET}", file=sys.stderr)
 
     @staticmethod
     def box_bottom() -> None:
         width = SovereignHUD._last_width
         main_color = SovereignHUD.get_theme()['main']
-        print(f"{main_color}+{'='*(width-2)}+{SovereignHUD.RESET}")
+        print(f"{main_color}+{'='*(width-2)}+{SovereignHUD.RESET}", file=sys.stderr)
 
     @staticmethod
     def persona_log(persona: str, msg: str, detail: str = "") -> None:
@@ -153,7 +153,7 @@ class SovereignHUD:
         reset = SovereignHUD.RESET if not SovereignHUD._COLORS_DISABLED else ""
         dim = SovereignHUD.DIM if not SovereignHUD._COLORS_DISABLED else ""
         prefix = theme["prefix"]
-        print(f"{dim}[{ts}]{reset} {color}{prefix}{reset} {msg} {dim}{detail}{reset}")
+        print(f"{dim}[{ts}]{reset} {color}{prefix}{reset} {msg} {dim}{detail}{reset}", file=sys.stderr)
 
     @staticmethod
     def log(level: str, msg: str, detail: str = "") -> None:
@@ -162,12 +162,12 @@ class SovereignHUD:
         color = theme["main"]
         if level == "WARN": color = SovereignHUD.YELLOW
         if level == "FAIL": color = SovereignHUD.RED
-        print(f"{SovereignHUD.DIM}[{ts}]{SovereignHUD.RESET} {color}[{level}]{SovereignHUD.RESET} {msg} {SovereignHUD.DIM}{detail}{SovereignHUD.RESET}")
+        print(f"{SovereignHUD.DIM}[{ts}]{SovereignHUD.RESET} {color}[{level}]{SovereignHUD.RESET} {msg} {SovereignHUD.DIM}{detail}{SovereignHUD.RESET}", file=sys.stderr)
 
     @classmethod
     async def stream_text(cls, text: str, delay: float = 0.015) -> None:
         for char in text:
-            sys.stdout.write(char)
-            sys.stdout.flush()
+            sys.stderr.write(char)
+            sys.stderr.flush()
             await asyncio.sleep(delay)
-        sys.stdout.write("\n")
+        sys.stderr.write("\n")

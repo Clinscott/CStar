@@ -1,23 +1,23 @@
 ---
 title: "NodeLayer.tsx"
 path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\vis\components\NodeLayer.tsx"
-loc: 80
-complexity: 6
-logic_score: 5.35
-style_score: 3.98
+loc: 97
+complexity: 7
+logic_score: 7.50
+style_score: 3.89
 intel_score: 2.00
-overall_score: 3.68
+overall_score: 2.78
 ---
 
 ## Intent
-The `NodeLayer.tsx` module optimizes the rendering of thousands of files using instanced meshes. It categorizes nodes into distinct 'Tiers' based on their Gungnir scores and applies performance-aware materials and visual effects to ensure a smooth framerate in high-density graphs.
+The `NodeLayer.tsx` sector implements modular logic focusing on tempObject, tempColor, NodeTier, meshRef, useNodeEffects, currentMesh, calculateEffect, NodeLayer, NodeLayer, useNodeEffects, nodesByDetail, tiers, calculateEffect, tierIdx. It forms a node in the Gungnir Matrix.
 
 ## Interaction Protocol
-This component is rendered within the `NeuralGraph`. It receives the full array of node data and uses `THREE.InstancedMesh` to efficiently render the visual representation of every sector in the Gungnir Matrix.
+Integrate via tempObject, tempColor, NodeTier, meshRef, useNodeEffects, currentMesh, calculateEffect, NodeLayer, NodeLayer, useNodeEffects, nodesByDetail, tiers, calculateEffect, tierIdx. Follow the Linscott Standard for this sector.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 5.3/10
-- **Style [S]**: 4.0/10
+- **Logic [L]**: 7.5/10
+- **Style [S]**: 3.9/10
 - **Intel [I]**: 2.0/10
 - **Gravity [G]**: 14 interactions (Agent Activity Hotspot)
 

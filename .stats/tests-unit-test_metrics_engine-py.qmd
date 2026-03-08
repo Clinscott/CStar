@@ -1,0 +1,39 @@
+---
+title: "test_metrics_engine.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\unit\test_metrics_engine.py"
+loc: 26
+complexity: 2
+logic_score: 5.50
+style_score: 4.08
+intel_score: 1.40
+overall_score: 2.98
+---
+
+## Intent
+The `test_metrics_engine.py` sector implements modular logic focusing on TestMetricsEngine, test_linter_parse, test_metrics_compute, test_sprt_delta. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via TestMetricsEngine, test_linter_parse, test_metrics_compute, test_sprt_delta. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 5.5/10
+- **Style [S]**: 4.1/10
+- **Intel [I]**: 1.4/10
+- **Gravity [G]**: 4 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [os](file://os)
+- [unittest](file://unittest)
+- [src.core.metrics](file://src.core.metrics)
+- [src.core.prompt_linter](file://src.core.prompt_linter)
+- [tests.integration.project_fishtest](file://tests.integration.project_fishtest)
+
+### Exports
+- `TestMetricsEngine`
+- `test_linter_parse`
+- `test_metrics_compute`
+- `test_sprt_delta`

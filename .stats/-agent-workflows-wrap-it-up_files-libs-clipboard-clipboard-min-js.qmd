@@ -1,0 +1,79 @@
+---
+title: "clipboard.min.js"
+path: "C:\Users\Craig\Corvus\CorvusStar\.agents\workflows\wrap-it-up_files\libs\clipboard\clipboard.min.js"
+loc: 1
+complexity: 64
+logic_score: 0.50
+style_score: 8.19
+intel_score: 9.40
+overall_score: 4.70
+---
+
+## Intent
+The `clipboard.min.js` sector implements high-complexity logic focusing on e, c, a, o, n, f, e, l, s, t, p, d, n, o, y, h, o, t, v, m, b, t, r, n, e, t, t, e, e, e, u, i, i, e, f, o, e, e, o, o, r, e, n, i, e, o, e, n. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via e, c, a, o, n, f, e, l, s, t, p, d, n, o, y, h, o, t, v, m, b, t, r, n, e, t, t, e, e, e, u, i, i, e, f, o, e, e, o, o, r, e, n, i, e, o, e, n. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 0.5/10
+- **Style [S]**: 8.2/10
+- **Intel [I]**: 9.4/10
+- **Gravity [G]**: 2 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+Minimal internal dependencies.
+
+### Exports
+- `e`
+- `c`
+- `a`
+- `o`
+- `n`
+- `f`
+- `e`
+- `l`
+- `s`
+- `t`
+- `p`
+- `d`
+- `n`
+- `o`
+- `y`
+- `h`
+- `o`
+- `t`
+- `v`
+- `m`
+- `b`
+- `t`
+- `r`
+- `n`
+- `e`
+- `t`
+- `t`
+- `e`
+- `e`
+- `e`
+- `u`
+- `i`
+- `i`
+- `e`
+- `f`
+- `o`
+- `e`
+- `e`
+- `o`
+- `o`
+- `r`
+- `e`
+- `n`
+- `i`
+- `e`
+- `o`
+- `e`
+- `n`

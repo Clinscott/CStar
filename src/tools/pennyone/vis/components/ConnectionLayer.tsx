@@ -37,25 +37,29 @@ const NeuralLink: React.FC<NeuralLinkProps> = ({ start, end, highlighted }) => {
 
 interface ConnectionLayerProps {
     links: Link[];
+    nodes: Node[];
     activeNodeId: string | number | null;
 }
 
-/**
- * 🔱 CONNECTION LAYER (v3.1)
- * Optimization: Batched Background Links (LineSegments) + Dynamic Projections.
- * Type Safety: Zero-Breach Compliance.
- */
-export const ConnectionLayer: React.FC<ConnectionLayerProps> = ({ links, activeNodeId }) => {
-    const validLinks = useMemo(() => (links || []).filter(l =>
-        l.source && l.target &&
-        typeof (l.source as any).x === 'number' &&
-        typeof (l.target as any).x === 'number'
-    ), [links]);
+export const ConnectionLayer: React.FC<ConnectionLayerProps> = ({ links, nodes, activeNodeId }) => {
+    const nodeMap = useMemo(() => new Map(nodes.map(n => [n.id, n])), [nodes]);
+
+    const validLinks = useMemo(() => {
+        return (links || []).map(l => {
+            const source = typeof l.source === 'object' ? l.source : nodeMap.get(l.source);
+            const target = typeof l.target === 'object' ? l.target : nodeMap.get(l.target);
+            return { source, target };
+        }).filter(l => 
+            l.source && l.target && 
+            typeof (l.source as any).x === 'number' && 
+            typeof (l.target as any).x === 'number'
+        );
+    }, [links, nodeMap]);
 
     // [Ω] Batch all background links into a single LineSegments geometry
     const { backgroundGeometry, highlightedLinks } = useMemo(() => {
         const bgPoints: number[] = [];
-        const hl: Link[] = [];
+        const hl: any[] = [];
 
         validLinks.forEach(link => {
             const sNode = link.source as unknown as Node;

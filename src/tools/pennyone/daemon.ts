@@ -1,11 +1,11 @@
 import * as chokidar from 'chokidar';
 import path from 'node:path';
 import fs from 'node:fs';
-import { runScan, indexSector } from './index.ts';
-import { registry } from './pathRegistry.ts';
+import { runScan, indexSector } from './index.js';
+import { registry } from './pathRegistry.js';
 import chalk from 'chalk';
-import { activePersona } from './personaRegistry.ts';
-import { CortexLink } from '../../node/cortex_link.ts';
+import { activePersona } from './personaRegistry.js';
+import { CortexLink } from '../../node/cortex_link.js';
 
 /**
  * P1 Daemon: The Autonomic Nervous System
@@ -55,8 +55,8 @@ ${activePersona.prefix}: "P1 Daemon ignited. Monitoring neural pathways in ${thi
                 '**/.stats/**',
                 '**/dist/**',
                 '**/build/**',
-                '**/.agent/traces/**',
-                '**/.agent/vault/**'
+                '**/.agents/traces/**',
+                '**/.agents/vault/**'
             ],
             persistent: true,
             ignoreInitial: true,
@@ -68,7 +68,7 @@ ${activePersona.prefix}: "P1 Daemon ignited. Monitoring neural pathways in ${thi
 
         this.watcher.on('all', async (event: string, filePath: string) => {
             const relPath = path.relative(this.targetPath, filePath);
-            const allowedExts = ['.js', '.ts', '.jsx', '.tsx', '.py', '.md', '.qmd'];
+            const allowedExts = ['.js', '.js', '.jsx', '.tsx', '.py', '.md', '.qmd'];
             const ext = path.extname(filePath).toLowerCase();
 
             if (!allowedExts.includes(ext)) return;
@@ -185,9 +185,10 @@ ${activePersona.prefix}: "P1 Daemon terminated. The Matrix is now static."`));
 }
 
 // Entry point for standalone execution
-if (process.argv[1].endsWith('daemon.ts') || process.argv[1].endsWith('daemon.js')) {
+if (process.argv[1].endsWith('daemon.js') || process.argv[1].endsWith('daemon.js')) {
     const target = process.argv[2] || '.';
     const daemon = new P1Daemon(target);
     daemon.start();
 }
+
 

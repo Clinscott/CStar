@@ -1,0 +1,21 @@
+{
+    "project_name": "CStar-Gungnir",
+    "global_project_health_score": 100.0,
+    "flight_history": [
+        {
+            "id": "c9eaf710-8186-4a2b-9c9b-462ec3e5d2f4",
+            "timestamp": "2026-02-25T18:01:46.083803",
+            "target": "ledger_initialization",
+            "decision": "Accept",
+            "alignment_score": 100.0,
+            "llr": 0.0,
+            "observations": [
+                1,
+                1,
+                1,
+                1,
+                1
+            ]
+        }
+    ]
+}

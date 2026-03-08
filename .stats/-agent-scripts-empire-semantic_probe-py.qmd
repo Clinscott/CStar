@@ -1,0 +1,36 @@
+---
+title: "semantic_probe.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\.agents\scripts\empire\semantic_probe.py"
+loc: 21
+complexity: 5
+logic_score: 3.45
+style_score: 3.88
+intel_score: 9.02
+overall_score: 5.10
+---
+
+## Intent
+The `semantic_probe.py` sector implements modular logic focusing on SemanticProbe, __init__, assert_semantic. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via SemanticProbe, __init__, assert_semantic. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 3.5/10
+- **Style [S]**: 3.9/10
+- **Intel [I]**: 9.0/10
+- **Gravity [G]**: 4 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [os](file://os)
+- [sys](file://sys)
+- [sv_engine](file://sv_engine)
+
+### Exports
+- `SemanticProbe`
+- `__init__`
+- `assert_semantic`

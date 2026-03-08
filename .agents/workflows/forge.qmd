@@ -1,0 +1,19 @@
+---
+name: forge
+description: Autonomous coding loop. Requests code from the Cloud Brain, applies it safely, and verifies via Gungnir.
+arguments:
+  - name: --task
+    description: The coding task or instruction.
+    required: true
+  - name: --target
+    description: The target file to edit.
+    required: true
+---
+
+# The Forge Protocol
+
+1.  **Analyze**: Read the target file and project context.
+2.  **Uplink**: Request intelligent code generation.
+3.  **Merge**: Apply changes atomically with backups.
+4.  **Verify**: Execute Gungnir Tests (SPRT).
+5.  **Retry**: If Gungnir fails, feed error back to Uplink (Max 3 retries).

@@ -1,0 +1,42 @@
+---
+title: "ui.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\tests\fixtures\new_world_seed\.agents\scripts\ui.py"
+loc: 111
+complexity: 13
+logic_score: 2.05
+style_score: 3.74
+intel_score: 8.97
+overall_score: 4.10
+---
+
+## Intent
+The `ui.py` sector implements high-complexity logic focusing on SovereignHUD, _speak, _get_theme, box_top, box_row, box_separator, box_bottom, progress_bar, render_sparkline, log. It forms a critical node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via SovereignHUD, _speak, _get_theme, box_top, box_row, box_separator, box_bottom, progress_bar, render_sparkline, log. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 2.0/10
+- **Style [S]**: 3.7/10
+- **Intel [I]**: 9.0/10
+- **Gravity [G]**: 8 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [datetime](file://datetime)
+- [typing](file://typing)
+
+### Exports
+- `SovereignHUD`
+- `_speak`
+- `_get_theme`
+- `box_top`
+- `box_row`
+- `box_separator`
+- `box_bottom`
+- `progress_bar`
+- `render_sparkline`
+- `log`

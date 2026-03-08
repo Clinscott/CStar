@@ -1,4 +1,4 @@
-import { Node } from '../types/index.ts';
+import { Node } from '../types/index.js';
 
 /**
  * [GUNGNIR] Node Effects Hook
@@ -69,3 +69,4 @@ export function useNodeEffects() {
 
     return { calculateEffect };
 }
+

@@ -28,14 +28,14 @@ class DialogueAuditor:
     def __init__(self, persona: str = "GOD") -> None:
         self.persona = persona
         self.project_root = PROJECT_ROOT
-        self.base_path = self.project_root / ".agent"
+        self.base_path = self.project_root / ".agents"
 
         # Initialize Engine
         self.engine = SovereignEngine(self.project_root)
 
     def _resolve(self, root: Path, filename: str, subdir: str) -> Path:
         """Resolve path to a specific file within project structure."""
-        return root / ".agent" / subdir / filename
+        return root / ".agents" / subdir / filename
 
     def audit(self, text: str) -> None:
         """Calculates and displays soul alignment score."""

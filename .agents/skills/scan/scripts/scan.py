@@ -50,14 +50,56 @@ def run_one_mind(prompt: str) -> str:
         return ""
 
 def crawl_directory(root_path: Path):
-    """Crawls directory ignoring common heavy folders."""
-    ignore_dirs = {'.git', 'node_modules', '.venv', 'dist', 'build', '.agents', '.stats'}
-    valid_exts = {'.py', '.ts', '.js', '.md', '.qmd'}
-    
-    for path in root_path.rglob('*'):
-        if path.is_file() and path.suffix in valid_exts:
-            if not any(part in ignore_dirs for part in path.parts):
-                yield path
+    """
+    Crawls the repository using 'git ls-files' to strictly respect .gitignore.
+    Includes both tracked files and untracked (non-ignored) files.
+    Prunes large non-source sectors like skills_db and temporary test data.
+    """
+    try:
+        # 1. Get tracked files
+        tracked = subprocess.check_output(
+            ["git", "ls-files"], 
+            cwd=str(PROJECT_ROOT), 
+            text=True, 
+            encoding='utf-8'
+        ).splitlines()
+        
+        # 2. Get untracked but NOT ignored files
+        untracked = subprocess.check_output(
+            ["git", "ls-files", "--others", "--exclude-standard"], 
+            cwd=str(PROJECT_ROOT), 
+            text=True, 
+            encoding='utf-8'
+        ).splitlines()
+        
+        all_files = set(tracked + untracked)
+        valid_exts = {'.py', '.ts', '.js', '.md', '.qmd', '.feature'}
+        
+        # [ALFRED] Strict Sector Exclusion
+        ignore_sectors = {'skills_db', 'tmp_load_test', 'dist', 'build', 'node_modules', '.venv', '.git', '.agents', '.stats', '.lore'}
+        
+        for rel_path in sorted(all_files):
+            file_path = PROJECT_ROOT / rel_path
+            
+            # Prune non-source sectors and hidden paths
+            parts = Path(rel_path).parts
+            if any(p in ignore_sectors or p.startswith('.') for p in parts):
+                continue
+                
+            # Ensure the file is within the target path provided by the Shaman
+            if file_path.exists() and file_path.is_file() and file_path.suffix in valid_exts:
+                if str(file_path.resolve()).startswith(str(root_path.resolve())):
+                    yield file_path
+                    
+    except subprocess.CalledProcessError:
+        # Fallback to basic crawl if not a git repo
+        print("[ALFRED]: WARNING - Not a git repository. Using basic crawl.", file=sys.stderr)
+        ignore_dirs = {'.git', 'node_modules', '.venv', 'dist', 'build', '.agents', '.stats'}
+        valid_exts = {'.py', '.ts', '.js', '.md', '.qmd', '.feature'}
+        for path in root_path.rglob('*'):
+            if path.is_file() and path.suffix in valid_exts:
+                if not any(part in ignore_dirs for part in path.parts):
+                    yield path
 
 def main():
     parser = argparse.ArgumentParser(description="Scan: Pure Python Repository Indexer.")

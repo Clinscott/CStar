@@ -907,7 +907,7 @@ The previous "37 agents" messaging was misleading because:
   - Responsive grid layout (adapts to screen size)
 
 - **Agent State Aggregator** - Collects agent data for dashboard (run.sh:737-773):
-  - `update_agents_state()` function aggregates `.agent/sub-agents/*.json` files
+  - `update_agents_state()` function aggregates `.agents/sub-agents/*.json` files
   - Writes to `.loki/state/agents.json` for dashboard consumption
   - Runs every 5 seconds via status monitor (run.sh:305, 311)
   - Handles missing directories gracefully (returns empty array)
@@ -1038,13 +1038,13 @@ To fully utilize:
   - Benefits: Instant rollback, clear history, audit trail
 
 - **Agent Lineage & Context Preservation** - Prevent context drift across multi-agent execution (SKILL.md:580-748):
-  - `.agent/sub-agents/` directory structure for per-agent context files
+  - `.agents/sub-agents/` directory structure for per-agent context files
   - Agent context schema with inherited_context (immutable) and agent-specific context (mutable)
   - Lineage tracking: every agent knows its parent and children
   - Decision logging: all choices logged with rationale and alternatives
   - Question tracking: clarifying questions and answers preserved
   - Context handoff protocol when agent completes
-  - Lineage tree in `.agent/lineage.json` for full spawn hierarchy
+  - Lineage tree in `.agents/lineage.json` for full spawn hierarchy
 
 - **CONSTITUTION.md** - Machine-enforceable behavioral contract (autonomy/CONSTITUTION.md):
   - 5 core inviolable principles with enforcement logic
@@ -1071,8 +1071,8 @@ To fully utilize:
 
 ### Changed
 - **Directory Structure** - Enhanced with new agent and rules directories (SKILL.md:2475-2541):
-  - Added `.agent/sub-agents/` for agent context tracking
-  - Added `.agent/lineage.json` for spawn tree
+  - Added `.agents/sub-agents/` for agent context tracking
+  - Added `.agents/lineage.json` for spawn tree
   - Added `.loki/specs/diagrams/` for Mermaid diagrams
   - Added `.loki/rules/` for machine-enforceable contracts
 - **Bootstrap Script** - Updated to create new directories (SKILL.md:2571)

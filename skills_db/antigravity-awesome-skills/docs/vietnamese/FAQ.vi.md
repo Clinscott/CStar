@@ -62,10 +62,10 @@ _Luôn kiểm tra nhãn rủi ro và xem xét mã nguồn trước khi dùng._
 
 ### Tôi nên cài đặt các kỹ năng này ở đâu?
 
-Đường dẫn phổ biến nhất hoạt động với mạng lưới các công cụ AI là `.agent/skills/`:
+Đường dẫn phổ biến nhất hoạt động với mạng lưới các công cụ AI là `.agents/skills/`:
 
 ```bash
-git clone https://github.com/sickn33/antigravity-awesome-skills.git .agent/skills
+git clone https://github.com/sickn33/antigravity-awesome-skills.git .agents/skills
 ```
 
 **Các đường dẫn cụ thể cho từng công cụ:**
@@ -80,7 +80,7 @@ git clone https://github.com/sickn33/antigravity-awesome-skills.git .agent/skill
 Hãy chạy git clone với lệnh sau:
 
 ```bash
-git clone -c core.symlinks=true https://github.com/sickn33/antigravity-awesome-skills.git .agent/skills
+git clone -c core.symlinks=true https://github.com/sickn33/antigravity-awesome-skills.git .agents/skills
 ```
 
 Hoặc bật "Chế độ Nhà phát triển" (Developer Mode) trong phần Cài đặt của Windows.
@@ -90,7 +90,7 @@ Hoặc bật "Chế độ Nhà phát triển" (Developer Mode) trong phần Cài
 Chuyển hướng đến thư mục chứa kỹ năng của bạn và kéo (pull) những thay đổi mới nhất:
 
 ```bash
-cd .agent/skills
+cd .agents/skills
 git pull origin main
 ```
 
@@ -128,7 +128,7 @@ Sử dụng biểu tượng `@` theo sau là tên skill:
 
 **Các nguyên nhân có thể xảy ra:**
 
-1. **Sai đường dẫn cài đặt**: Kiểm tra tài liệu hướng dẫn của công cụ bạn dùng. Hãy thử `.agent/skills/`.
+1. **Sai đường dẫn cài đặt**: Kiểm tra tài liệu hướng dẫn của công cụ bạn dùng. Hãy thử `.agents/skills/`.
 2. **Cần khởi động lại**: Khởi động lại AI/IDE sau khi cài đặt.
 3. **Lỗi đánh máy**: Bạn có gõ lầm `@brain-storming` thay vì `@brainstorming` không?
 

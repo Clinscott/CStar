@@ -6,7 +6,8 @@
         "C:/Users/Craig/Corvus/CorvusStar/bin/pennyone-mcp.js"
       ],
       "env": {
-        "GEMINI_CLI_ACTIVE": "true"
+        "GEMINI_CLI_ACTIVE": "true",
+        "RESTART_TS": "2026-03-07T17:30:00Z"
       }
     },
     "corvus-control": {

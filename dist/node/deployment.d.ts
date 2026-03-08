@@ -1,6 +1,5 @@
 /**
  * Overwrites a target file with the verified candidate and stages/commits it to Git.
- *
  * @param targetFile - The original file to overwrite.
  * @param candidateFile - The newly generated and verified candidate file.
  * @param commitMessage - Git commit message.

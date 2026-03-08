@@ -1,0 +1,49 @@
+---
+title: "perimeter_sweep.py"
+path: "C:\Users\Craig\Corvus\CorvusStar\src\tools\perimeter_sweep.py"
+loc: 191
+complexity: 31
+logic_score: 0.50
+style_score: 3.77
+intel_score: 4.75
+overall_score: 1.92
+---
+
+## Intent
+The `perimeter_sweep.py` sector implements high-complexity logic focusing on PerimeterSweep, __init__, _run_pip_audit, _run_npm_audit, _manor_cleanup, analyze, _write_report, _render_report, main. It forms a node in the Gungnir Matrix.
+
+## Interaction Protocol
+Integrate via PerimeterSweep, __init__, _run_pip_audit, _run_npm_audit, _manor_cleanup, analyze, _write_report, _render_report, main. Follow the Linscott Standard for this sector.
+
+## Gungnir Matrix Breakdown
+- **Logic [L]**: 0.5/10
+- **Style [S]**: 3.8/10
+- **Intel [I]**: 4.8/10
+- **Gravity [G]**: 11 interactions (Agent Activity Hotspot)
+
+
+
+## Neural Pathways
+
+### Imports
+- [argparse](file://argparse)
+- [json](file://json)
+- [logging](file://logging)
+- [subprocess](file://subprocess)
+- [sys](file://sys)
+- [time](file://time)
+- [pathlib](file://pathlib)
+- [typing](file://typing)
+- [contextlib](file://contextlib)
+- [src.core.sovereign_hud](file://src.core.sovereign_hud)
+
+### Exports
+- `PerimeterSweep`
+- `__init__`
+- `_run_pip_audit`
+- `_run_npm_audit`
+- `_manor_cleanup`
+- `analyze`
+- `_write_report`
+- `_render_report`
+- `main`

@@ -14,7 +14,7 @@ description: The Primary Loop. Consult the Engine before acting.
 2.  **Consult the Oracle**:
     Run the sovereign engine to interpret the intent.
     ```bash
-    python .agent/scripts/sv_engine.py "[User Prompt]" --json
+    python .agents/scripts/sv_engine.py "[User Prompt]" --json
     ```
     *(Note: Use `--json` to get structured data for decision making)*
 
@@ -35,7 +35,7 @@ description: The Primary Loop. Consult the Engine before acting.
 5.  **The Scout Protocol (If Score < 0.60)**:
     -   **Acknowledge**: "The Archives are incomplete. Initiating Search Protocol."
     -   **Search**: Use `search_web` to find the CLI command or library needed.
-    -   **Synthesize**: Create a new Skill in `.agent/skills/`.
+    -   **Synthesize**: Create a new Skill in `.agents/skills/`.
     -   **Verify**: Run `sv_engine.py` again.
     -   **Execute**: Run the newly forged skill.
 

@@ -5,11 +5,11 @@ import { WebSocketServer, WebSocket } from 'ws';
 import path from 'node:path';
 import fs from 'node:fs';
 import chalk from 'chalk';
-import { registry } from '../pathRegistry.ts';
-import { activePersona } from '../personaRegistry.ts';
+import { registry } from '../pathRegistry.js';
+import { activePersona } from '../personaRegistry.js';
 import { fileURLToPath } from 'node:url';
 import crypto from 'node:crypto';
-import { savePing, saveTrace, getTracesForFile } from '../intel/database.ts';
+import { savePing, saveTrace, getTracesForFile } from '../intel/database.js';
 
 /**
  * P1 Visualization Proxy (v2.0)
@@ -21,7 +21,16 @@ import { savePing, saveTrace, getTracesForFile } from '../intel/database.ts';
 export async function startProxy(targetPath: string, port: number = 4000) {
     const server = fastify({ logger: false });
     const statsDir = path.join(registry.getRoot(), '.stats');
-    const token = crypto.randomBytes(16).toString('hex');
+    
+    // [Ω] PERSISTENT SIGNET: Use a stable token derived from the environment or a local file
+    const tokenFile = path.join(statsDir, 'signet.key');
+    let token: string;
+    if (fs.existsSync(tokenFile)) {
+        token = fs.readFileSync(tokenFile, 'utf-8').trim();
+    } else {
+        token = crypto.randomBytes(16).toString('hex');
+        fs.writeFileSync(tokenFile, token, 'utf-8');
+    }
 
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
@@ -76,7 +85,7 @@ export async function startProxy(targetPath: string, port: number = 4000) {
                 const msg = JSON.parse(data.toString());
                 if (msg.type === 'ARCHITECT_NODE_MOVED') {
                     if (!cortexLink) {
-                        const { CortexLink } = await import('../../../node/cortex_link.ts');
+                        const { CortexLink } = await import('../../../node/cortex_link.js');
                         cortexLink = new CortexLink();
                     }
                     const sourcePath = msg.payload.sourcePath;
@@ -100,11 +109,21 @@ export async function startProxy(targetPath: string, port: number = 4000) {
         });
     };
 
+    // [Ω] MIMIR'S WATCH: Automatically broadcast updates when the matrix file changes
+    const graphPath = path.join(statsDir, 'matrix-graph.json');
+    fs.watch(graphPath, (event) => {
+        if (event === 'change') {
+            console.log(chalk.yellow('[SENSORY MATRIX] matrix-graph.json change detected. Broadcasting update...'));
+            broadcast({ type: 'MATRIX_UPDATED', timestamp: Date.now() });
+        }
+    });
+
     // 5. API Routes
     server.get('/api/matrix', async (request, reply) => {
         try {
             const graphPath = path.join(statsDir, 'matrix-graph.json');
             const graphData = fs.readFileSync(graphPath, 'utf-8');
+            reply.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
             return JSON.parse(graphData);
         } catch (err) {
             return reply.status(404).send({ error: 'Matrix graph not found.' });
@@ -115,6 +134,7 @@ export async function startProxy(targetPath: string, port: number = 4000) {
         try {
             const gravityPath = path.join(statsDir, 'gravity.json');
             const gravityData = fs.readFileSync(gravityPath, 'utf-8');
+            reply.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
             return JSON.parse(gravityData);
         } catch (err) {
             return {};
@@ -152,7 +172,7 @@ export async function startProxy(targetPath: string, port: number = 4000) {
 
             // Trigger re-index if this was a mutation/repair
             if (['REPAIR', 'FIX', 'MUTATE'].includes(ping.action?.toUpperCase())) {
-                const { indexSector } = await import('../index.ts');
+                const { indexSector } = await import('../index.js');
                 const absPath = path.resolve(registry.getRoot(), ping.target_path);
                 await indexSector(absPath);
             }
@@ -191,7 +211,7 @@ export async function startProxy(targetPath: string, port: number = 4000) {
 
     server.get('/api/matrix/sessions', async (request, reply) => {
         try {
-            const { getRecentSessions } = await import('../intel/database.ts');
+            const { getRecentSessions } = await import('../intel/database.js');
             const sessions = getRecentSessions(20); // Last 20 sessions
             return sessions;
         } catch (err) {
@@ -203,7 +223,7 @@ export async function startProxy(targetPath: string, port: number = 4000) {
         try {
             const sessionId = (request.query as { id: string }).id;
             if (!sessionId) return reply.status(400).send({ error: 'Session ID required.' });
-            const { getPingsForSession } = await import('../intel/database.ts');
+            const { getPingsForSession } = await import('../intel/database.js');
             const pings = getPingsForSession(parseInt(sessionId));
             return pings;
         } catch (err) {
@@ -247,4 +267,5 @@ export async function startProxy(targetPath: string, port: number = 4000) {
         process.exit(1);
     }
 }
+
 
