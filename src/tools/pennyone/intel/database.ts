@@ -1,8 +1,8 @@
 import Database from 'better-sqlite3';
 import path from 'node:path';
 import fs from 'node:fs';
-import { AgentPing } from '../types.ts';
-import { registry } from '../pathRegistry.ts';
+import { AgentPing } from '../types.js';
+import { registry } from '../pathRegistry.js';
 
 let db: Database.Database | undefined;
 let currentDbPath: string | undefined;
@@ -97,6 +97,23 @@ export function getDb(): Database.Database {
             target_path TEXT PRIMARY KEY,
             agent_id TEXT NOT NULL,
             lease_expiry INTEGER NOT NULL
+        );
+
+        -- [🧵] THE LEDGER OF THE NORNS: Task Beads
+        CREATE TABLE IF NOT EXISTS norn_beads (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            description TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'OPEN',
+            agent_id TEXT,
+            timestamp INTEGER DEFAULT (strftime('%s','now') * 1000)
+        );
+
+        -- [🔱] THE MEMORY SCRIBE: Skill Feedback Loop
+        CREATE TABLE IF NOT EXISTS skill_feedback (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT NOT NULL,
+            skill TEXT NOT NULL,
+            observation TEXT NOT NULL
         );
     `);
 
@@ -412,4 +429,5 @@ export function closeDb(): void {
         currentDbPath = undefined;
     }
 }
+
 
