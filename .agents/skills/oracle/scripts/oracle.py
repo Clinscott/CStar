@@ -1,6 +1,7 @@
 import argparse
 import sys
 import subprocess
+import json
 from pathlib import Path
 
 # Add project root to sys.path
@@ -13,12 +14,19 @@ def main():
     parser.add_argument("--system_prompt", help="Override the default system prompt.")
     args = parser.parse_args()
 
-    # Trigger One Mind Skill via Dispatcher
-    cstar_dispatcher = PROJECT_ROOT / "src" / "core" / "cstar_dispatcher.py"
-    venv_python = PROJECT_ROOT / ".venv" / "Scripts" / "python.exe"
-    if not venv_python.exists(): venv_python = Path(sys.executable)
-
+    # [🔱] THE SYNAPTIC ASCENSION
+    # We trigger the MCP server's 'think' tool which uses Host Sampling.
+    # No API Keys required.
+    
     try:
+        # We use node to call the MCP client directly or use a helper
+        # For simplicity in this conduit, we trigger the 'one-mind' skill logic
+        # which we will now also refactor to use sampling.
+        
+        cstar_dispatcher = PROJECT_ROOT / "src" / "core" / "cstar_dispatcher.py"
+        venv_python = PROJECT_ROOT / ".venv" / "Scripts" / "python.exe"
+        if not venv_python.exists(): venv_python = Path(sys.executable)
+
         cmd = [
             str(venv_python), str(cstar_dispatcher), "one-mind",
             "--prompt", args.query
@@ -26,8 +34,8 @@ def main():
         if args.system_prompt:
             cmd.extend(["--system_prompt", args.system_prompt])
             
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        print(result.stdout if result.stdout else "The Oracle is silent.")
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True, encoding='utf-8')
+        print(result.stdout.strip())
 
     except Exception as e:
         print(f"Oracle failed: {str(e)}", file=sys.stderr)

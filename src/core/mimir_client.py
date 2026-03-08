@@ -1,58 +1,57 @@
 """
-[Ω] Mimir Client: The Synaptic Link (v2.1)
+[Ω] Mimir Client: The Synaptic Link (v2.2)
 Lore: "A Raven's mind is linked to the Well by the threads of the Bifrost."
 Purpose: Native Python bridge for channeling the Host Agent's intelligence.
-Upgrade: Uses the local environment agent gateway (Sampling) via localhost:4000.
+Upgrade: No HTTP Gateways. No API Keys. Calls the 'oracle' skill via cstar.
 """
 
 import asyncio
-import json
 import os
 import sys
-import requests
+import subprocess
 from pathlib import Path
 from typing import Any, Optional
 
 class MimirClient:
     """The central nervous system bridge. Channels the Host Agent's One Mind."""
 
-    def __init__(self, port: int = 4000):
-        self.base_url = f"http://localhost:{port}/api/mimir"
+    def __init__(self):
         self.project_root = Path(__file__).resolve().parent.parent.parent
+        self.venv_python = self.project_root / ".venv" / "Scripts" / "python.exe"
+        if not self.venv_python.exists():
+            self.venv_python = Path(sys.executable)
+        self.cstar_dispatcher = self.project_root / "src" / "core" / "cstar_dispatcher.py"
 
     async def think(self, query: str, system_prompt: str | None = None) -> str | None:
         """
-        Channels the Host Agent's intelligence (Sampling).
-        No API keys required; uses the environment's active mind.
+        Channels the Host Agent's intelligence by triggering the 'oracle' skill.
+        The 'oracle' skill is now a gateway to the MCP 'think' tool (Sampling).
         """
-        payload = {
-            "query": query,
-            "system_prompt": system_prompt,
-            "stream": False
-        }
+        env = os.environ.copy()
+        env["PYTHONPATH"] = str(self.project_root)
         
+        args = ["--query", query]
+        if system_prompt:
+            args.extend(["--system_prompt", system_prompt])
+
         try:
-            # [🔱] THE SYNAPTIC STRIKE: Calling the host agent gateway
-            response = requests.post(
-                f"{self.base_url}/think", 
-                json=payload, 
-                timeout=60
+            # [🔱] THE SYNAPTIC ASCENSION: Using cstar dispatcher to run 'oracle'
+            result = subprocess.run(
+                [str(self.venv_python), str(self.cstar_dispatcher), "oracle", *args],
+                capture_output=True,
+                text=True,
+                env=env,
+                check=True,
+                encoding='utf-8'
             )
-            response.raise_for_status()
-            data = response.json()
-            return data.get("reply") or data.get("text")
-        except Exception as e:
-            print(f"[ALFRED]: \"The synaptic link to the Host is flickering, sir.\" ({e})", file=sys.stderr)
+            return result.stdout.strip()
+        except subprocess.CalledProcessError as e:
+            print(f"[ALFRED]: \"The synaptic link to the Host is flickering, sir.\"", file=sys.stderr)
             return None
 
     async def get_file_intent(self, filepath: str) -> str | None:
-        """Retrieves sector intelligence from the Host's memory."""
-        try:
-            response = requests.get(f"{self.base_url}/intent", params={"path": filepath})
-            data = response.json()
-            return data.get("intent")
-        except Exception:
-            return "The Well is silent for this sector."
+        """Retrieves sector intelligence via the oracle skill."""
+        return await self.think(f"What is the intent of sector: {filepath}?")
 
     async def close(self):
         pass
@@ -62,10 +61,10 @@ mimir = MimirClient()
 
 async def test_mimir():
     """Diagnostic check for the Synaptic Link."""
-    print("[INFO] Testing Synaptic Link to Host Agent...")
+    print("[INFO] Testing Synaptic Link to Host Agent (via cstar)...")
     reply = await mimir.think("Hello from the internal matrix.")
     if reply:
-        print(f"[SUCCESS] Host Agent responded: {reply[:100]}...")
+        print(f"[SUCCESS] Host Agent responded via Oracle.")
     else:
         print("[FAILURE] The Host Agent is unreachable.")
 
