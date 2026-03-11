@@ -3,8 +3,11 @@ import fs from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { activePersona } from '../tools/pennyone/personaRegistry.js';
+import { getHallSummary } from '../tools/pennyone/intel/database.ts';
 import { ANS } from './core/ans.js';
 import { HUD } from './core/hud.js';
+import { StateRegistry } from './core/state.ts';
+import { getHostMindLabel, isHostSessionActive, resolveHostProvider } from '../core/host_session.ts';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const PROJECT_ROOT = join(__dirname, '..', '..');
@@ -23,12 +26,6 @@ interface PerimeterReport {
     results: {
         pip_audit?: { vulnerabilities: number };
         npm_audit?: { vulnerabilities: number };
-    };
-}
-
-interface SovereignState {
-    warden?: {
-        active: boolean;
     };
 }
 
@@ -102,15 +99,9 @@ function getStatusColor(status: string): ChalkInstance {
  *
  */
 function getRavensStatus(): string {
-    const pidPath = join(PROJECT_ROOT, '.agents', 'muninn.pid');
-    if (fs.existsSync(pidPath)) {
-        try {
-            const pid = parseInt(fs.readFileSync(pidPath, 'utf-8').trim());
-            process.kill(pid, 0);
-            return 'ACTIVE';
-        } catch (e) {
-            return 'IDLE';
-        }
+    const cyclePath = join(PROJECT_ROOT, 'src', 'sentinel', 'ravens_cycle.py');
+    if (fs.existsSync(cyclePath)) {
+        return 'STANDBY';
     }
     return 'OFFLINE';
 }
@@ -139,8 +130,8 @@ function getPerimeterStatus(): string {
  *
  */
 function getPennyOneStatus(): string {
-    const statsPath = join(PROJECT_ROOT, '.stats', 'matrix-graph.json');
-    return fs.existsSync(statsPath) ? 'INDEXED' : 'OFFLINE';
+    const summary = getHallSummary(PROJECT_ROOT);
+    return summary?.last_scan_id ? 'INDEXED' : 'OFFLINE';
 }
 
 /**
@@ -166,15 +157,9 @@ function getFishtestStatus(): string {
  *
  */
 function getWardenStatus(): string {
-    // Check if warden is active in state
-    const statePath = join(PROJECT_ROOT, '.agents', 'sovereign_state.json');
-    if (fs.existsSync(statePath)) {
-        try {
-            const state = JSON.parse(fs.readFileSync(statePath, 'utf-8')) as SovereignState;
-            return state.warden?.active ? 'VIGILANT' : 'STANDBY';
-        } catch (e) { }
-    }
-    return 'STANDBY';
+    const state = StateRegistry.get();
+    const warden = state.warden as { active?: boolean } | undefined;
+    return warden?.active ? 'VIGILANT' : 'STANDBY';
 }
 
 /**
@@ -236,10 +221,11 @@ export async function runStartupCeremony() {
 
     process.stdout.write(HUD.boxSeparator());
 
-    // Gemini CLI Integration Status
-    if (process.env.GEMINI_CLI_ACTIVE === 'true') {
+    // Host Session Integration Status
+    if (isHostSessionActive(process.env)) {
+        const hostProvider = resolveHostProvider(process.env);
         process.stdout.write(HUD.boxRow('INTELLIGENCE', 'DECOUPLED', chalk.magenta.bold));
-        process.stdout.write(HUD.boxRow('MIND', 'GEMINI-3.1-PRO', chalk.magenta.bold));
+        process.stdout.write(HUD.boxRow('MIND', getHostMindLabel(hostProvider), chalk.magenta.bold));
         process.stdout.write(HUD.boxSeparator());
     }
 

@@ -1,72 +1,138 @@
 import { FastifyInstance } from 'fastify';
-import { Type, Static } from '@sinclair/typebox';
+import { Type } from '@sinclair/typebox';
+
+const IntelligenceCallerSchema = Type.Object({
+    source: Type.String(),
+    persona: Type.Optional(Type.String()),
+    sector_path: Type.Optional(Type.String()),
+    workflow: Type.Optional(Type.String()),
+});
+
+const IntelligenceTraceSchema = Type.Object({
+    correlation_id: Type.String(),
+    transport_mode: Type.Union([Type.Literal('host_session'), Type.Literal('synapse_db')]),
+    cached: Type.Optional(Type.Boolean()),
+});
+
+const IntelligenceResponseSchema = Type.Object({
+    status: Type.Union([Type.Literal('success'), Type.Literal('error')]),
+    raw_text: Type.Optional(Type.String()),
+    parsed_data: Type.Optional(Type.Unknown()),
+    error: Type.Optional(Type.String()),
+    trace: IntelligenceTraceSchema,
+});
 
 const MimirThinkSchema = Type.Object({
-    query: Type.String(),
+    prompt: Type.Optional(Type.String()),
+    query: Type.Optional(Type.String()),
     system_prompt: Type.Optional(Type.String()),
-    stream: Type.Optional(Type.Boolean())
+    transport_mode: Type.Optional(Type.Union([
+        Type.Literal('auto'),
+        Type.Literal('host_session'),
+        Type.Literal('synapse_db'),
+    ])),
+    correlation_id: Type.Optional(Type.String()),
+    caller: Type.Optional(IntelligenceCallerSchema),
+    metadata: Type.Optional(Type.Record(Type.String(), Type.Unknown())),
+    stream: Type.Optional(Type.Boolean()),
+});
+
+const MimirIntentQuerySchema = Type.Object({
+    path: Type.String(),
 });
 
 /**
- * [Ω] THE MIMIR GATEWAY (v3.0 - Keyless)
- * Purpose: Channel intelligence requests from Skills to the Host Agent (Shaman).
- * Mandate: No API Keys. Use local environment sampling.
+ * [Ω] THE MIMIR GATEWAY
+ * Purpose: Expose the canonical intelligence bridge to local clients.
  */
 export default async function (fastify: FastifyInstance) {
-    
     fastify.post(
         '/mimir/think',
         {
             schema: {
                 body: MimirThinkSchema,
                 response: {
-                    200: Type.Object({ text: Type.String(), reply: Type.String() }),
-                    500: Type.Object({ error: Type.String() })
-                }
-            }
+                    200: IntelligenceResponseSchema,
+                    400: IntelligenceResponseSchema,
+                    502: IntelligenceResponseSchema,
+                },
+            },
         },
         async (request, reply) => {
-            const { query, system_prompt } = request.body as any;
-            const { corvus } = fastify;
+            const body = request.body as {
+                prompt?: string;
+                query?: string;
+                system_prompt?: string;
+                transport_mode?: 'auto' | 'host_session' | 'synapse_db';
+                correlation_id?: string;
+                caller?: {
+                    source: string;
+                    persona?: string;
+                    sector_path?: string;
+                    workflow?: string;
+                };
+                metadata?: Record<string, unknown>;
+            };
+            const prompt = body.prompt ?? body.query;
 
-            try {
-                /**
-                 * [🔱] THE SYNAPTIC ASCENSION
-                 * We bypass the SDK and use the MCP Sampling capability.
-                 * This asks the Host (Gemini CLI) to perform the LLM strike.
-                 */
-                fastify.log.info('[Mimir] Ascending request to Host Agent (Sampling)...');
-                
-                const result = await corvus.sampleMind({
-                    prompt: query,
-                    systemPrompt: system_prompt,
-                    maxTokens: 2048
+            if (!prompt) {
+                return reply.code(400).send({
+                    status: 'error',
+                    error: 'A prompt or query field is required.',
+                    trace: {
+                        correlation_id: body.correlation_id ?? 'validation_error',
+                        transport_mode: 'host_session',
+                    },
                 });
-
-                if (!result || !result.text) {
-                    throw new Error('Host Agent (One Mind) returned an empty response.');
-                }
-
-                return { text: result.text, reply: result.text };
-            } catch (err: any) {
-                fastify.log.error(`[MimirThink] Sampling Error: ${err.message}`);
-                return reply.code(500).send({ error: `Host Sampling Failed: ${err.message}` });
             }
-        }
+
+            const result = await fastify.corvus.requestIntelligence({
+                prompt,
+                system_prompt: body.system_prompt,
+                transport_mode: body.transport_mode,
+                correlation_id: body.correlation_id,
+                caller: body.caller,
+                metadata: body.metadata,
+            });
+
+            if (result.status === 'error') {
+                return reply.code(502).send(result);
+            }
+
+            return result;
+        },
     );
 
     fastify.get(
         '/mimir/intent',
+        {
+            schema: {
+                querystring: MimirIntentQuerySchema,
+                response: {
+                    200: IntelligenceResponseSchema,
+                    400: IntelligenceResponseSchema,
+                    502: IntelligenceResponseSchema,
+                },
+            },
+        },
         async (request, reply) => {
             const { path: sectorPath } = request.query as { path: string };
-            const { corvus } = fastify;
-            
-            try {
-                const intent = await corvus.getWellIntent(sectorPath);
-                return { intent: intent || 'The Well is silent for this sector.' };
-            } catch (err: any) {
-                return { intent: `Error retrieving intent: ${err.message}` };
+            if (!sectorPath) {
+                return reply.code(400).send({
+                    status: 'error',
+                    error: 'A path query parameter is required.',
+                    trace: {
+                        correlation_id: 'validation_error',
+                        transport_mode: 'host_session',
+                    },
+                });
             }
-        }
+
+            const result = await fastify.corvus.requestSectorIntent(sectorPath);
+            if (result.status === 'error') {
+                return reply.code(502).send(result);
+            }
+            return result;
+        },
     );
 }

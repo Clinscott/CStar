@@ -4,7 +4,7 @@ description: Activates the Sovereign Agentic Loop (scaffold).
 
 # The Agentic Loop
 
-The **Agentic Loop** (`src/tools/loop.py`) is the heartbeat of the Sovereign System. It autonomously iterates through `tasks.qmd`, forging code, validating it via Gungnir, and committing changes.
+The **Agentic Loop** (`src/tools/loop.py`) is the heartbeat of the Sovereign System. It autonomously iterates through sovereign beads and Hall records, forging code, validating it via Gungnir, and committing changes. `tasks.qmd` is projection-only.
 
 ## Usage
 
@@ -13,7 +13,7 @@ python src/tools/loop.py
 ```
 
 ## Protocol
-1.  **Observe**: Norn parsers `tasks.qmd`.
+1.  **Observe**: Norn resolves the authoritative sovereign bead queue and may regenerate `tasks.qmd` as projection.
 2.  **Orient**: Identifies target file.
 3.  **Act**: Generates code (AntigravityUplink).
 4.  **Verify**: Runs Gungnir Gate (Ruff + Pytest).

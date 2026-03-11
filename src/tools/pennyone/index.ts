@@ -1,20 +1,29 @@
-import { crawlRepository } from './crawler.js';
-import { analyzeFile } from './analyzer.js';
-import { writeReport } from './intel/writer.js';
-import { compileMatrix } from './intel/compiler.js';
-import { registerSpoke, updateFtsIndex } from './intel/database.js';
-import { SemanticIndexer } from './intel/semantic.js';
-import { ChronicleIndexer } from './intel/chronicle.js';
-import { Warden } from './intel/warden.js';
+import { crawlRepository } from './crawler.ts';
+import { analyzeFile } from './analyzer.ts';
+import { writeReport } from './intel/writer.ts';
+import { writeProjectedMatrixGraph } from './intel/compiler.ts';
+import {
+    getLatestHallScanId,
+    recordHallFile,
+    recordHallScan,
+    registerSpoke,
+    updateFtsIndex,
+    upsertHallRepository,
+} from './intel/database.ts';
+import { SemanticIndexer } from './intel/semantic.ts';
+import { ChronicleIndexer } from './intel/chronicle.ts';
+import { Warden } from './intel/warden.ts';
 import fsSync from 'node:fs';
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'node:crypto';
-import { registry } from './pathRegistry.js';
-import { activePersona } from './personaRegistry.js';
-import { ScanResult, FileData, CompiledGraph } from './types.js';
-import { defaultProvider } from './intel/llm.js';
+import { registry } from './pathRegistry.ts';
+import { activePersona } from './personaRegistry.ts';
+import { ScanResult, FileData } from './types.ts';
+import { defaultProvider } from './intel/llm.ts';
 import chalk from 'chalk';
+import { buildHallRepositoryId } from '../../types/hall.ts';
+import { getGungnirOverall, patchGungnirMatrix } from '../../types/gungnir.ts';
 
 
 /**
@@ -27,6 +36,7 @@ export async function indexSector(filePath: string): Promise<FileData | null> {
     try {
         const absolutePath = path.resolve(filePath);
         const normalizedPath = registry.normalize(absolutePath);
+        const targetRepoRoot = registry.detectWorkspaceRoot(absolutePath);
         const code = await fs.readFile(absolutePath, 'utf-8');
         const currentHash = crypto.createHash('md5').update(code).digest('hex');
 
@@ -39,7 +49,9 @@ export async function indexSector(filePath: string): Promise<FileData | null> {
         const semanticData = semanticGraph.files.find(f => registry.normalize(f.path) === normalizedPath);
         
         if (semanticData) {
-            data.matrix.logic = (data.matrix.logic + semanticData.logic) / 2;
+            data.matrix = patchGungnirMatrix(data.matrix, {
+                logic: (data.matrix.logic + semanticData.logic) / 2,
+            });
             data.dependencies = semanticData.dependencies;
         }
 
@@ -53,25 +65,54 @@ export async function indexSector(filePath: string): Promise<FileData | null> {
         // 4. Global Memory Update (SQLite)
         updateFtsIndex(absolutePath, intent, interaction);
 
-        // 5. Hot-patch matrix-graph.json
-        const statsDir = path.join(registry.getRoot(), '.stats');
-        const graphPath = path.join(statsDir, 'matrix-graph.json');
-        
-        try {
-            const raw = await fs.readFile(graphPath, 'utf-8');
-            const graph: CompiledGraph = JSON.parse(raw);
-            const index = graph.files.findIndex(f => registry.normalize(f.path) === normalizedPath);
-            
-            if (index !== -1) {
-                graph.files[index] = data as any;
-            } else {
-                graph.files.push(data as any);
-            }
-            
-            await fs.writeFile(graphPath, JSON.stringify(graph, null, 2));
-        } catch (e) {
-            console.warn(`[WARNING] Failed to hot-patch matrix-graph.json: ${e}`);
+        // PennyOne projections are derived from Hall records, never patched directly.
+        const repoId = buildHallRepositoryId(targetRepoRoot);
+        upsertHallRepository({
+            root_path: targetRepoRoot,
+            name: path.basename(targetRepoRoot),
+            status: 'AWAKE',
+            active_persona: activePersona.name,
+            baseline_gungnir_score: getGungnirOverall(data.matrix),
+            intent_integrity: 100,
+            metadata: {
+                source: 'pennyone_sector_index',
+                estate_projection: {
+                    mounted_from: registry.getRoot(),
+                },
+            },
+            created_at: Date.now(),
+            updated_at: Date.now(),
+        });
+        let scanId = getLatestHallScanId(targetRepoRoot);
+        if (!scanId) {
+            scanId = `hall-scan:${Date.now()}`;
+            recordHallScan({
+                scan_id: scanId,
+                repo_id: repoId,
+                scan_kind: 'pennyone_sector_index',
+                status: 'COMPLETED',
+                baseline_gungnir_score: getGungnirOverall(data.matrix),
+                started_at: Date.now(),
+                completed_at: Date.now(),
+                metadata: {
+                    scope: path.dirname(absolutePath),
+                    projection_only: true,
+                },
+            });
         }
+        recordHallFile({
+            repo_id: repoId,
+            scan_id: scanId,
+            path: absolutePath,
+            content_hash: currentHash,
+            language: path.extname(absolutePath).replace(/^\./, '') || undefined,
+            gungnir_score: getGungnirOverall(data.matrix),
+            matrix: data.matrix,
+            intent_summary: data.intent,
+            interaction_summary: data.interaction_protocol,
+            created_at: Date.now(),
+        });
+        await writeProjectedMatrixGraph(targetRepoRoot, scanId);
 
         return data;
     } catch (error) {
@@ -89,6 +130,23 @@ export async function indexSector(filePath: string): Promise<FileData | null> {
 export async function runScan(targetPath: string, force = false): Promise<FileData[]> {
     // [Ω] Register this spoke in the central database
     registerSpoke(targetPath);
+    const targetRepoRoot = registry.detectWorkspaceRoot(targetPath);
+    upsertHallRepository({
+        root_path: targetRepoRoot,
+        name: path.basename(targetRepoRoot),
+        status: 'AWAKE',
+        active_persona: activePersona.name,
+        baseline_gungnir_score: 0,
+        intent_integrity: 100,
+        metadata: {
+            source: 'pennyone_scan',
+            estate_projection: {
+                mounted_from: registry.getRoot(),
+            },
+        },
+        created_at: Date.now(),
+        updated_at: Date.now(),
+    });
 
     // Phase 0: Chronicle Ingestion (One Mind)
     const chronicles = new ChronicleIndexer();
@@ -101,28 +159,6 @@ export async function runScan(targetPath: string, force = false): Promise<FileDa
     const files = await crawlRepository(targetPath);
     const analyzedFiles: { code: string, data: FileData, needsIntent: boolean }[] = [];
 
-    // Load existing matrix for incremental check
-    let existingGraph: CompiledGraph | null = null;
-    const statsDir = path.join(registry.getRoot(), '.stats');
-    const graphPath = path.join(statsDir, 'matrix-graph.json');
-    
-    if (!force) {
-        try {
-            const raw = await fs.readFile(graphPath, 'utf-8');
-            existingGraph = JSON.parse(raw);
-        } catch { }
-    }
-
-    const hashMap = new Map<string, FileData>();
-    if (existingGraph) {
-        existingGraph.files.forEach(f => {
-            const data = f as unknown as FileData;
-            if (!data.imports) data.imports = [];
-            if (!data.exports) data.exports = [];
-            hashMap.set(data.path, data);
-        });
-    }
-
     // Phase 1: Local Analysis & Change Detection
     for (const file of files) {
         try {
@@ -133,33 +169,11 @@ export async function runScan(targetPath: string, force = false): Promise<FileDa
             // Get semantic data for this file
             const semanticData = semanticGraph.files.find(f => registry.normalize(f.path) === normalizedPath);
 
-            const existing = hashMap.get(normalizedPath);
-            if (!force && existing && existing.hash === currentHash) {
-                // [🔱] Sync cached intent to FTS
-                updateFtsIndex(file, existing.intent || '...', existing.interaction_protocol || 'Standard');
-
-                analyzedFiles.push({
-                    code,
-                    data: {
-                        path: file,
-                        loc: existing.loc,
-                        complexity: existing.complexity,
-                        matrix: existing.matrix,
-                        imports: existing.imports || [],
-                        exports: existing.exports || [],
-                        intent: existing.intent,
-                        interaction_protocol: existing.interaction_protocol,
-                        hash: currentHash,
-                        cachedDependencies: semanticData ? semanticData.dependencies : (existing.dependencies || [])
-                    },
-                    needsIntent: false
-                });
-                continue;
-            }
-
             const data = await analyzeFile(code, file);
             if (semanticData) {
-                data.matrix.logic = (data.matrix.logic + semanticData.logic) / 2;
+                data.matrix = patchGungnirMatrix(data.matrix, {
+                    logic: (data.matrix.logic + semanticData.logic) / 2,
+                });
             }
             analyzedFiles.push({ code, data, needsIntent: true });
         } catch (error: unknown) {
@@ -234,14 +248,50 @@ export async function runScan(targetPath: string, force = false): Promise<FileDa
     const finalResults = analyzedFiles.map(af => af.data);
 
     if (finalResults.length > 0) {
-        const graphPath = await compileMatrix(finalResults, targetPath);
+        const scanId = `hall-scan:${Date.now()}`;
+        const repoId = buildHallRepositoryId(targetRepoRoot);
+        const startedAt = Date.now();
+        const averageScore = finalResults.reduce((sum, file) => sum + getGungnirOverall(file.matrix), 0) / finalResults.length;
+
+        recordHallScan({
+            scan_id: scanId,
+            repo_id: repoId,
+            scan_kind: 'pennyone_repository_scan',
+            status: 'COMPLETED',
+            baseline_gungnir_score: averageScore,
+            started_at: startedAt,
+            completed_at: Date.now(),
+            metadata: {
+                scope: path.resolve(targetPath),
+                canonical_projection: {
+                    authority: 'hall_projection',
+                    artifact_role: 'runtime_view',
+                    compatibility_exports: ['.stats/matrix-graph.json'],
+                },
+            },
+        });
+
+        for (const file of finalResults) {
+            recordHallFile({
+                repo_id: repoId,
+                scan_id: scanId,
+                path: file.path,
+                content_hash: file.hash,
+                language: path.extname(file.path).replace(/^\./, '') || undefined,
+                gungnir_score: getGungnirOverall(file.matrix),
+                matrix: file.matrix,
+                intent_summary: file.intent,
+                interaction_summary: file.interaction_protocol,
+                created_at: Date.now(),
+            });
+        }
+
+        await writeProjectedMatrixGraph(targetRepoRoot, scanId);
 
         // Phase 4: Active Threat Assessment (The Warden)
         try {
-            const raw = await fs.readFile(graphPath, 'utf-8');
-            const graph = JSON.parse(raw);
             const warden = new Warden();
-            await warden.evaluate(graph);
+            await warden.evaluateProjection(targetRepoRoot, scanId);
         } catch (e: unknown) {
             console.warn(`[WARNING] Warden evaluation failed: ${e instanceof Error ? e.message : String(e)}`);
         }

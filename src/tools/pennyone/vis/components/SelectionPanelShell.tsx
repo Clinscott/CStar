@@ -34,11 +34,11 @@ export const SelectionPanelShell: React.FC<SelectionPanelShellProps> = ({ select
                 <p style={{ color: '#eee', fontSize: '0.9rem', lineHeight: '1.4', marginTop: '4px' }}>{selectedNode.intent}</p>
             </div>
 
-            {selectedNode.matrix?.interaction_protocol && (
+            {selectedNode.interactionProtocol && (
                 <div style={{ marginBottom: '15px', padding: '10px', background: 'rgba(0, 242, 255, 0.05)', borderLeft: '2px solid #00f2ff' }}>
                     <strong style={{ color: '#00f2ff', fontSize: '0.8rem', textTransform: 'uppercase' }}>Interaction Protocol</strong>
                     <p style={{ color: '#ddd', fontSize: '0.85rem', lineHeight: '1.4', marginTop: '4px' }}>
-                        {selectedNode.matrix.interaction_protocol as string}
+                        {selectedNode.interactionProtocol}
                     </p>
                 </div>
             )}

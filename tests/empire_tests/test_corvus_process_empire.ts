@@ -1,110 +1,63 @@
-import { describe, it, beforeEach, afterEach } from 'node:test';
-import assert from 'node:assert';
-import { CorvusProcess } from '../../src/node/core/CorvusProcess.js';
-import { spawn } from 'child_process';
-import { EventEmitter } from 'events';
-import { PassThrough } from 'stream';
+import { beforeEach, describe, it } from 'node:test';
+import assert from 'node:assert/strict';
 
-describe('CorvusProcess: Empire Supervisor Logic', async () => {
+import { CorvusProcess, type IntentPayload } from '../../src/node/core/CorvusProcess.js';
+
+function buildIntentPayload(): IntentPayload {
+    return {
+        system_meta: { app_id: 'test-app', requires_core: true },
+        intent_raw: 'Fix the kernel bridge',
+        intent_normalized: 'kernel-fix',
+        target_workflow: 'repair',
+        extracted_entities: {},
+    };
+}
+
+describe('CorvusProcess: kernel supervisor logic', () => {
     let cp: CorvusProcess;
 
     beforeEach(() => {
-        cp = new CorvusProcess('tests/fixtures/dummy_daemon.py');
+        cp = new CorvusProcess(
+            'tests/fixtures/dummy_daemon.py',
+            async (payload) => ({
+                status: 'success',
+                data: { echoed_intent: payload.intent_normalized },
+            }),
+        );
     });
 
-    afterEach(async () => {
-        if (cp) {
-            await cp.terminate();
-        }
+    it('boots into a ready state without spawning a persistent child', async () => {
+        const events: Array<{ status?: string; message?: string }> = [];
+        cp.on('telemetry', (data) => events.push(data));
+
+        await cp.boot();
+
+        assert.equal(cp.getStatus(), true);
+        assert.equal(events[0]?.status, 'READY');
+        assert.match(events[0]?.message ?? '', /kernel bridge ready/i);
     });
 
-    it('should correctly buffer and parse fragmented NDJSON data', (t, done) => {
-        const stdout = new PassThrough();
-        const stderr = new PassThrough();
-        const mockChild = new EventEmitter() as any;
-        mockChild.stdout = stdout;
-        mockChild.stderr = stderr;
-        mockChild.stdin = { write: () => true };
-        mockChild.kill = (signal: string) => { mockChild.emit('close', 0); };
-
-        // @ts-ignore
-        (cp as any)._spawn = () => {
-            (cp as any).daemon = mockChild;
-            (cp as any).isRunning = true;
-            (cp as any).setupOutputBoundary();
-        };
-
-        cp.boot();
-
+    it('dispatchIntent emits success telemetry from the one-shot kernel bridge', async () => {
+        const statuses: string[] = [];
         cp.on('telemetry', (data) => {
-            if (data.type === 'TELEMETRY' && data.message === 'Complete message') {
-                done();
+            if (data.status) {
+                statuses.push(data.status);
             }
         });
 
-        stdout.write('{"message": "Complete ');
-        setTimeout(() => {
-            stdout.write('message"}\n');
-        }, 10);
+        await cp.boot();
+        await cp.dispatchIntent(buildIntentPayload());
+
+        assert.deepEqual(statuses, ['READY', 'DISPATCH', 'SUCCESS']);
     });
 
-    it('should emit SYSTEM_RESTART on daemon crash', (t, done) => {
-        const stdout = new PassThrough();
-        const stderr = new PassThrough();
-        const mockChild = new EventEmitter() as any;
-        mockChild.stdout = stdout;
-        mockChild.stderr = stderr;
-        mockChild.kill = (signal: string) => { mockChild.emit('close', 0); };
+    it('dispatchIntent fails when the kernel bridge returns an error', async () => {
+        const failing = new CorvusProcess(
+            'tests/fixtures/dummy_daemon.py',
+            async () => ({ status: 'error', error: 'bridge failure' }),
+        );
+        await failing.boot();
 
-        // @ts-ignore
-        (cp as any)._spawn = () => {
-            (cp as any).daemon = mockChild;
-            (cp as any).isRunning = true;
-            (cp as any).setupOutputBoundary();
-            (cp as any).setupFaultTolerance();
-        };
-
-        cp.boot();
-
-        cp.on('telemetry', (data) => {
-            if (data.type === 'SYSTEM_RESTART') {
-                try {
-                    assert.strictEqual(data.status, 'rebooting');
-                    done();
-                } catch (err) {
-                    // Ignore transient errors if any
-                }
-            }
-        });
-
-        // Trigger close event on the mock child
-        mockChild.emit('close', 1);
-    });
-
-    it('should fall back to HUD_STREAM', (t, done) => {
-        const stdout = new PassThrough();
-        const stderr = new PassThrough();
-        const mockChild = new EventEmitter() as any;
-        mockChild.stdout = stdout;
-        mockChild.stderr = stderr;
-        mockChild.kill = (signal: string) => { mockChild.emit('close', 0); };
-
-        // @ts-ignore
-        (cp as any)._spawn = () => {
-            (cp as any).daemon = mockChild;
-            (cp as any).isRunning = true;
-            (cp as any).setupOutputBoundary();
-        };
-
-        cp.boot();
-
-        cp.on('telemetry', (data) => {
-            if (data.type === 'HUD_STREAM') {
-                assert.strictEqual(data.message, '[ALFRED] Test');
-                done();
-            }
-        });
-
-        stdout.write('[ALFRED] Test\n');
+        await assert.rejects(() => failing.dispatchIntent(buildIntentPayload()), /bridge failure/);
     });
 });

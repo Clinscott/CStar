@@ -1,8 +1,8 @@
-import { FileData } from '../types.js';
-import { defaultProvider } from './llm.js';
+import { FileData } from '../types.ts';
+import { defaultProvider } from './llm.ts';
 import fs from 'fs/promises';
 import path from 'path';
-import { registry } from '../pathRegistry.js';
+import { registry } from '../pathRegistry.ts';
 
 /**
  * QMD Writer

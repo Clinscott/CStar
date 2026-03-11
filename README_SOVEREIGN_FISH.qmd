@@ -28,10 +28,10 @@ You can launch the background process using the Corvus Star CLI:
 
 ```bash
 # Standard Command
-c* daemon
+cstar daemon
 
 # O.D.I.N. Persona Alias (Preferred)
-c* ravens
+cstar ravens
 ```
 
 Or run directly via Python:

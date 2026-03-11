@@ -5,10 +5,10 @@ from sterileAgent.fishtest import SPRT, FishtestRunner
 
 def test_sprt_logic():
     sprt = SPRT(alpha=0.05, beta=0.05, p0=0.95, p1=0.99)
-    status, _ = sprt.evaluate(100, 100)
+    status, _, _ = sprt.evaluate(100, 100)
     assert "PASS" in status
 
-    status, _ = sprt.evaluate(0, 100)
+    status, _, _ = sprt.evaluate(0, 100)
     assert "FAIL" in status
 
 def test_fishtest_runner_init(tmp_path):

@@ -52,14 +52,15 @@ async function logTrace(missionId: string, metric: string, status: string, justi
 
 server.tool(
     'taliesin_forge',
-    'Weave code directly from repository lore (Campaigns or .feature contracts) using the One Mind.',
+    'Forge code from a canonical bead-backed TALIESIN request.',
     {
-        lorePath: z.string().describe('Relative path to the .qmd or .feature lore file'),
-        objective: z.string().optional().describe('Optional specific objective override'),
+        beadId: z.string().describe('Canonical bead id to forge from'),
+        persona: z.string().optional().describe('Optional TALIESIN persona override'),
+        model: z.string().optional().describe('Optional model override'),
     },
-    async ({ lorePath, objective }) => {
+    async ({ beadId, persona, model }) => {
         const missionId = `FORGE-${Date.now()}`;
-        await logTrace(missionId, 'CREATION', 'STARTED', `Forging from: ${lorePath}`);
+        await logTrace(missionId, 'CREATION', 'STARTED', `Forging from bead: ${beadId}`);
         
         try {
             /**
@@ -67,14 +68,17 @@ server.tool(
              * MCP server now acts as a strictly external gateway.
              */
             const cstarPath = path.join(PROJECT_ROOT, 'bin/cstar.js');
-            const args = ['forge', '--lore', lorePath];
-            if (objective) {
-                args.push('--objective', objective);
+            const args = ['forge', '--bead-id', beadId];
+            if (persona) {
+                args.push('--persona', persona);
+            }
+            if (model) {
+                args.push('--model', model);
             }
 
             const { stdout, stderr } = await execa('node', [cstarPath, ...args]);
             
-            await logTrace(missionId, 'CREATION', 'SUCCESS', `Artifact forged: ${lorePath}`);
+            await logTrace(missionId, 'CREATION', 'SUCCESS', `Artifact forged for bead: ${beadId}`);
             
             return {
                 content: [{ 
@@ -259,7 +263,7 @@ Corvus Star uses the Model Context Protocol (MCP) to unify Node.js intelligence 
    - consult_oracle: (SKILL) Consult Gungnir Oracle for deep analysis.
 
 2. corvus-control (The Bridge)
-   - taliesin_forge: (SKILL) Weave code artifacts from lore.
+   - taliesin_forge: (SKILL) Forge code from canonical bead-backed requests.
    - execute_cstar_command: Run core CLI commands (start, odin, ravens).
    - run_workflow: Execute high-level Sovereign workflows.
    - get_system_vitals: Monitor system health and suggestions.

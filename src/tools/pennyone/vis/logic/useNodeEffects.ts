@@ -1,4 +1,4 @@
-import { Node } from '../types/index.js';
+import { Node } from '../types/index.ts';
 
 /**
  * [GUNGNIR] Node Effects Hook

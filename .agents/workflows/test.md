@@ -1,6 +1,7 @@
 ---
 description: The Standard Protocol for Verifying Code Integrity and preventing Regression.
 ---
+# Intent: Verify integrity, run tests, debug logic, check regression, fuzz code, benchmark contract, validate performance.
 
 # The Testing Protocol (/test)
 
@@ -19,20 +20,24 @@ Does this break the larger system?
 1.  **Dependencies**: Check files that import the new code.
 2.  **Wireframe**: Does `wireframe.qmd` need updates?
 
-## 3. **Phase 3: The Fishtest (System)**
-Run the Engine's own verification suite to ensure NO REGRESSION in the agent itself.
-1.  **Command**: `python fishtest.py`
-2.  **Verdict**:
-    -   **100% Pass**: The Engine is clean.
-    -   **Any Fail**: **CRITICAL**. The Agent has damaged itself. Immediate Rollback or Fix required.
+## 3. **Phase 3: The Validation Envelope (System)**
+Run the Engine's verification surfaces and collect one canonical promotion envelope.
+1.  **Crucible**: run the targeted tests for the candidate.
+2.  **SPRT**: execute `python sterileAgent/fishtest.py --file fishtest_live.json --mode heuristic`.
+3.  **Benchmark**: run the benchmark path if latency or startup performance is part of the bead.
+4.  **Gungnir Delta**: capture pre-forge and post-forge scores.
+5.  **Promotion Gate**:
+    -   **ACCEPTED**: all required checks passed and `logic`, `style`, and `sovereignty` did not regress.
+    -   **INCONCLUSIVE**: evidence is incomplete; do not promote.
+    -   **REJECTED**: any failed check, rejected SPRT, or negative protected Gungnir delta blocks promotion.
 
 ## 4. **Phase 4: The Verdict**
 Summarize the State.
 
 -   **🟢 GREEN (All Clear)**:
-    -   "All systems nominal."
+    -   "All systems nominal. Validation envelope accepted."
     -   **Next Command**: `/wrap-it-up` (to finalize and commit).
 
 -   **🔴 RED (Failure)**:
-    -   "Weakness Detected."
+    -   "Weakness Detected. Promotion gate remains closed."
     -   **Next Command**: `/investigate` (to fix the tests).

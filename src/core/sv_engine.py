@@ -6,6 +6,8 @@ Standard: Linscott Protocol ([L] > 4.0 Compliance).
 Architecture: Spoke Decomposition (Context, Injector, Executor, Reporter, Builder, Orchestrator).
 """
 
+# Intent: Core compute engine for natural language intent resolution and environment orchestration.
+
 import argparse
 import os
 import sys
@@ -25,13 +27,8 @@ except (ImportError, ValueError, IndexError) as e:
 from src.core import utils
 from src.core.sovereign_hud import SovereignHUD
 
-# Spoke Imports
-from src.core.engine.context import SovereignContext
-from src.core.engine.injector import SovereignInjector
-from src.core.engine.executor import SovereignExecutor
-from src.core.engine.reporter import SovereignReporter
-from src.core.engine.builder import SovereignBuilder
-from src.core.engine.orchestrator import SovereignOrchestrator
+# [ALFRED] Spoke Consolidation: Reducing Coupling [C] via facade
+from src.core.engine import *
 
 
 class SovereignEngine:

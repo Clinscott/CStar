@@ -5,6 +5,8 @@ Handles dynamic switching between ODIN and A.L.F.R.E.D. personas.
 Enforces Linscott Standards: Encapsulated, Typed, Pathlib.
 """
 
+# Intent: Manages framework identity shifts by updating config.json and triggering HUD aesthetic synchronization.
+
 import json
 import sys
 from datetime import datetime

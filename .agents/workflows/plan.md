@@ -1,6 +1,7 @@
 ---
 description: The Standard Protocol for Session Planning and Architectural Blueprinting.
 ---
+# Intent: Architect system, draft strategy, blueprint feature, session planning, forecast architecture, implementation path.
 
 # The Planning Protocol (/plan)
 

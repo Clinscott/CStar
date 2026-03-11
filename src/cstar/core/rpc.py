@@ -2,6 +2,7 @@
 [Ω] Sovereign RPC Interface
 Lore: "The Oracle's eyes see the state of the Realm."
 Purpose: Logic for aggregating system state, traces, and suggestions for the HUD.
+Phase 1 Note: Transitional projection surface only. Runtime and Hall are authoritative.
 """
 
 import json
@@ -9,15 +10,17 @@ import sqlite3
 from pathlib import Path
 from typing import Any
 
+from src.core.engine.bead_ledger import BeadLedger
+
 class SovereignRPC:
     def __init__(self, root_path: Path):
         self.root = root_path
         self.db_path = self.root / ".stats" / "pennyone.db"
         self.ledger_path = self.root / ".agents" / "tech_debt_ledger.json"
-        self.tasks_path = self.root / "tasks.qmd"
+        self.bead_ledger = BeadLedger(self.root)
 
     def get_recent_traces(self, limit: int = 5) -> list[dict[str, Any]]:
-        """Queries the PennyOne database for recent mission traces."""
+        """Queries Hall validation records and projects them into the legacy mission-trace shape."""
         if not self.db_path.exists():
             return []
         
@@ -26,12 +29,36 @@ class SovereignRPC:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT * FROM mission_traces ORDER BY timestamp DESC LIMIT ?", 
+                """
+                SELECT rowid AS compatibility_id, *
+                FROM hall_validation_runs
+                ORDER BY created_at DESC
+                LIMIT ?
+                """,
                 (limit,)
             )
             rows = cursor.fetchall()
             conn.close()
-            return [dict(r) for r in rows]
+            traces: list[dict[str, Any]] = []
+            for row in rows:
+                payload = dict(row)
+                benchmark = json.loads(payload.get("benchmark_json") or "{}")
+                pre_scores = json.loads(payload.get("pre_scores_json") or "{}")
+                post_scores = json.loads(payload.get("post_scores_json") or "{}")
+                traces.append(
+                    {
+                        "id": payload.get("compatibility_id") or payload.get("legacy_trace_id") or payload.get("validation_id"),
+                        "mission_id": benchmark.get("mission_id") or payload.get("scan_id") or payload.get("validation_id"),
+                        "file_path": payload.get("target_path"),
+                        "target_metric": benchmark.get("target_metric", "overall"),
+                        "initial_score": pre_scores.get("overall", 0),
+                        "final_score": post_scores.get("overall", 0),
+                        "justification": payload.get("notes", ""),
+                        "status": payload.get("verdict", "INCONCLUSIVE"),
+                        "timestamp": payload.get("created_at", 0),
+                    }
+                )
+            return traces
         except Exception:
             return []
 
@@ -70,14 +97,12 @@ class SovereignRPC:
         }
 
     def _parse_tasks(self) -> list[str]:
-        """Simple parser for tasks.qmd to extract pending items."""
-        if not self.tasks_path.exists():
-            return []
-        
+        """Projects actionable sovereign beads instead of parsing markdown authority."""
         try:
-            content = self.tasks_path.read_text(encoding="utf-8")
-            lines = content.split('\n')
-            # Extract unchecked items
-            return [l.replace("- [ ]", "").strip() for l in lines if l.strip().startswith("- [ ]")]
+            beads = self.bead_ledger.list_beads(statuses=("OPEN", "IN_PROGRESS", "READY_FOR_REVIEW"))
+            return [
+                f"[{bead.id}] {bead.rationale}" if bead.target_path is None else f"[{bead.id}] {bead.rationale} ({bead.target_path})"
+                for bead in beads
+            ]
         except Exception:
             return []

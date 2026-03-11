@@ -4,6 +4,8 @@ Lore: "The nerves of the All-Father should not just feel the pain; they should u
 Purpose: Implements lore-aware MLP models for anomaly detection, grounded in Mimir's Well.
 """
 
+# Intent: Sovereign Neural Wardens for Anomaly and Session state monitoring using local MLP models.
+
 import pickle
 import json
 import asyncio
@@ -54,7 +56,7 @@ class BaseWarden:
             
             intersection = action_keywords.intersection(intent_keywords)
             return min(1.0, (len(intersection) + 1) / (len(action_keywords) + 1))
-        except:
+        except Exception:
             return 0.5
 
     def forward(self, x: list[float]) -> float:
@@ -71,19 +73,12 @@ class AnomalyWarden(BaseWarden):
         self.model_path = Path(model_path) if model_path else Path(".agents/warden.pkl")
         self.ledger_path = Path(ledger_path) if ledger_path else Path("src/data/anomalies_queue.jsonl")
 
-        self.input_dim = 5 # Upgraded from 4 to include Lore Alignment
-        self.hidden_dim = 16
-        self.output_dim = 1
-
-        self.W1 = np.random.randn(self.input_dim, self.hidden_dim) * 0.01
-        self.b1 = np.zeros((1, self.hidden_dim))
-        self.W2 = np.random.randn(self.hidden_dim, self.output_dim) * 0.01
-        self.b2 = np.zeros((1, self.output_dim))
-
-        self.running_mean = np.zeros(self.input_dim)
-        self.running_var = np.ones(self.input_dim)
-        self.count = 0
-        self.burn_in_cycles = 100
+        self.input_dim, self.hidden_dim, self.output_dim = 5, 16, 1
+        self.W1, self.b1 = np.random.randn(self.input_dim, self.hidden_dim) * 0.01, np.zeros((1, self.hidden_dim))
+        self.W2, self.b2 = np.random.randn(self.hidden_dim, self.output_dim) * 0.01, np.zeros((1, self.output_dim))
+        
+        self.running_mean, self.running_var = np.zeros(self.input_dim), np.ones(self.input_dim)
+        self.count, self.burn_in_cycles = 0, 100
 
         self.load()
 

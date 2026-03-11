@@ -1,19 +1,16 @@
 /* eslint-disable no-useless-escape */
 import chokidar from 'chokidar';
 import path from 'path';
-import { runScan } from '../index.js';
-import { compileMatrix } from '../intel/compiler.js';
-import { SubspaceRelay } from './socket.js';
+import { runScan } from '../index.ts';
+import { SubspaceRelay } from './socket.ts';
 import chalk from 'chalk';
-import { activePersona } from '../personaRegistry.js';
+import { activePersona } from '../personaRegistry.ts';
 
-/**
- * RepositoryWatcher: Monitors files and triggers delta analysis
- * @param {string} targetPath - The path to watch
- * @param {SubspaceRelay} relay - The relay for broadcasting
- * @returns {chokidar.FSWatcher} The watcher instance
- */
-export function startWatcher(targetPath: string, relay: SubspaceRelay) {
+export function startWatcher(
+    targetPath: string,
+    relay: SubspaceRelay,
+    scanRunner: typeof runScan = runScan,
+) {
     const watcher = chokidar.watch(targetPath, {
         ignored: [/(^|[\/\\])\../, '**/node_modules/**', '**/.stats/**', '**/.agents/**'],
         persistent: true,
@@ -35,7 +32,7 @@ export function startWatcher(targetPath: string, relay: SubspaceRelay) {
             console.log(chalk.yellow(`${activePersona.prefix}: "Delta detected in ${path.basename(filePath)}. Recalibrating sensors..."`));
             try {
                 // Re-run the full scan for consistency and to update qmd/json
-                const results = await runScan(targetPath);
+                const results = await scanRunner(targetPath);
                 const data = results.find(r => r.path.replace(/\\/g, '/') === filePath.replace(/\\/g, '/'));
 
                 if (data) {
@@ -62,9 +59,8 @@ export function startWatcher(targetPath: string, relay: SubspaceRelay) {
         rebuildTimer = setTimeout(async () => {
             console.log(chalk.magenta(`${activePersona.prefix}: "Structural shift detected. Recompiling Matrix buffer..."`));
             try {
-                const results = await runScan(targetPath);
-                await compileMatrix(results, targetPath);
-                relay.broadcast('GRAPH_REBUILT', {});
+                await scanRunner(targetPath);
+                relay.broadcast('MATRIX_UPDATED', { source: 'watcher:structural-shift' });
             } catch (err: any) {
                 console.error(chalk.red('[ERROR] Failed to rebuild matrix: '), err);
             }

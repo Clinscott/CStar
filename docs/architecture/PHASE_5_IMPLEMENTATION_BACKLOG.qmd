@@ -1,0 +1,271 @@
+---
+title: "Corvus Star Phase 5 Implementation Backlog"
+date: 2026-03-09
+status: completed
+---
+
+# Corvus Star Phase 5 Implementation Backlog
+
+> [!IMPORTANT]
+> This backlog operationalizes Phase 5 from `docs/architecture/WOVEN_SKILL_CONSOLIDATION_BLUEPRINT.qmd`.
+> Phase 5 stabilizes PennyOne against the canonical schema.
+> PennyOne may continue to emit compatibility artifacts, but visualization and search can no longer treat temporary graph files as primary authority.
+
+## Phase 5 Mission
+
+Phase 5 exists to make PennyOne a downstream consumer of Hall state rather than a mixed system that sometimes reads Hall and sometimes trusts temporary graph artifacts.
+
+The required outcomes are:
+
+1. PennyOne matrix views are materialized from Hall-backed projections.
+2. Runtime and visualization surfaces stop treating `matrix-graph.json` as live authority.
+3. Temporary graph files are compatibility exports only.
+4. PennyOne consumers use one stable projection contract instead of ad hoc graph assumptions.
+5. Matrix visualization remains downstream from scans, telemetry, and Hall writes.
+
+## Phase 5 Exit Criteria
+
+- A stable PennyOne projection contract exists for Hall-backed matrix views.
+- The vis proxy can serve matrix state from Hall projections without reading raw graph files as authority.
+- Scan, telemetry, and visualization invalidation no longer depend on `matrix-graph.json` as the live source of truth.
+- Temporary graph artifacts are clearly compatibility-only exports.
+- PennyOne consumers rely on one canonical projection surface for matrix state.
+
+## Execution Status
+
+Current Phase 5 state:
+
+- Phase 1 completed on 2026-03-09
+- Phase 2 completed on 2026-03-09
+- Phase 3 completed on 2026-03-09
+- Phase 4 completed on 2026-03-09
+- `CS-P5-00` closed on 2026-03-09
+- `CS-P5-01` closed on 2026-03-09
+- `CS-P5-02` closed on 2026-03-09
+- `CS-P5-03` closed on 2026-03-09
+- `CS-P5-04` closed on 2026-03-09
+- PennyOne now serves visualization state, Warden evaluation, and search from Hall-backed projections
+- `matrix-graph.json` remains only as an explicit compatibility export
+- Phase 5 completed on 2026-03-09
+
+## Ticket Index
+
+| ID | Status | Priority | Ticket | Depends On | Primary Surfaces |
+| --- | --- | --- | --- | --- | --- |
+| `CS-P5-00` | Closed | P0 | PennyOne Projection Contract Freeze | Phase 4 complete | `pennyone/types.ts`, `intel/compiler.ts`, `vis/proxy.ts`, projection tests |
+| `CS-P5-01` | Closed | P0 | Remove Graph File Authority From Visualization Transport | `CS-P5-00` | `vis/proxy.ts`, live broadcast surfaces, PennyOne vis tests |
+| `CS-P5-02` | Closed | P1 | Make Scan And Warden Flows Projection-First | `CS-P5-00` | `pennyone/index.ts`, `intel/warden.ts`, scan tests |
+| `CS-P5-03` | Closed | P1 | Harden Consumers Against Temporary Graph Assumptions | `CS-P5-00` | `vis/logic`, `live/search.ts`, consumer tests |
+| `CS-P5-04` | Closed | P1 | Quarantine Legacy Matrix Artifact Paths | `CS-P5-01`, `CS-P5-02`, `CS-P5-03` | compatibility exports, legacy tests, docs |
+
+## Critical Path
+
+The critical path is:
+
+`CS-P5-00 -> CS-P5-01 -> CS-P5-02 -> CS-P5-03 -> CS-P5-04`
+
+## Ticket Details
+
+## `CS-P5-00` PennyOne Projection Contract Freeze
+
+### Objective
+
+Freeze one canonical PennyOne matrix projection contract before removing the remaining graph-file authority leaks.
+
+### Files
+
+- `src/tools/pennyone/types.ts`
+- `src/tools/pennyone/intel/compiler.ts`
+- `src/tools/pennyone/vis/proxy.ts`
+- `tests/unit/test_gungnir_schema.test.ts`
+- `tests/unit/test_pennyone_projection_boundary.test.ts`
+
+### Change Set
+
+- Define a canonical Hall-backed PennyOne projection envelope.
+- Add one loader that materializes the current matrix view from Hall.
+- Route the vis proxy matrix API through that loader instead of raw file reads.
+- Keep `matrix-graph.json` only as a compatibility export.
+
+### Acceptance Criteria
+
+- PennyOne has one canonical loader for Hall-backed matrix projection state.
+- The vis proxy can serve matrix state without directly reading `matrix-graph.json`.
+- Projection payloads clearly indicate that Hall is the authority.
+
+### Verification
+
+```powershell
+npx tsx --test tests/unit/test_gungnir_schema.test.ts tests/unit/test_pennyone_projection_boundary.test.ts
+npx tsc --noEmit
+```
+
+### Closure Note
+
+Closed on 2026-03-09.
+
+Implemented outcomes:
+
+- `compiler.ts` now exposes a Hall-backed matrix projection reader in addition to the compatibility writer.
+- PennyOne projection payloads now declare their authority and artifact role explicitly.
+- The vis proxy now serves `/api/matrix` from Hall-backed projection materialization rather than direct JSON artifact reads.
+
+## `CS-P5-01` Remove Graph File Authority From Visualization Transport
+
+### Objective
+
+Move visualization invalidation and refresh behavior off the compatibility graph file.
+
+### Files
+
+- `src/tools/pennyone/vis/proxy.ts`
+- `src/tools/pennyone/live/recorder.ts`
+- PennyOne vis transport tests
+
+### Change Set
+
+- Stop watching `matrix-graph.json` as the primary refresh signal.
+- Broadcast matrix refresh from Hall/DB mutations or explicit projection rebuild events.
+- Ensure visualization transport remains downstream from canonical writes.
+
+### Acceptance Criteria
+
+- Visualization refresh no longer depends on graph-file mutation as the primary signal.
+- PennyOne vis updates are downstream from canonical Hall-backed state changes.
+
+### Verification
+
+```powershell
+npx tsx --test tests/empire_tests/test_pennyone_phase4_empire.ts tests/unit/test_pennyone_projection_boundary.test.ts
+npx tsc --noEmit
+```
+
+### Closure Note
+
+Closed on 2026-03-09.
+
+Implemented outcomes:
+
+- PennyOne live transport now emits `MATRIX_UPDATED` from canonical write activity instead of graph-file rebuild semantics.
+- Watcher tests now inject their scan runner and verify refresh signaling without depending on raw graph rebuild behavior.
+- The vis proxy stays downstream from Hall and `.stats` mutations rather than treating `matrix-graph.json` as a primary signal.
+
+## `CS-P5-02` Make Scan And Warden Flows Projection-First
+
+### Objective
+
+Ensure scan and threat-assessment flows operate on canonical projection state rather than ad hoc runtime graph payloads.
+
+### Files
+
+- `src/tools/pennyone/index.ts`
+- `src/tools/pennyone/intel/warden.ts`
+- Scan and Warden tests
+
+### Change Set
+
+- Use Hall-backed projection materialization as the authoritative post-scan matrix surface.
+- Demote runtime graph payloads to transient internal analysis only where still needed.
+- Remove scan metadata that implies compatibility graph artifacts are authoritative.
+
+### Acceptance Criteria
+
+- Post-scan PennyOne authority is Hall-backed projection state.
+- Warden and related flows no longer require a temporary graph artifact as their primary input.
+
+### Verification
+
+```powershell
+npx tsx --test tests/unit/test_pennyone_projection_gate.test.ts tests/unit/test_pennyone_projection_boundary.test.ts tests/unit/test_gungnir_schema.test.ts
+npx tsc --noEmit
+```
+
+### Closure Note
+
+Closed on 2026-03-09.
+
+Implemented outcomes:
+
+- `runScan()` now writes Hall, materializes the compatibility export, and then invokes Warden against the Hall-backed projection.
+- `Warden` now exposes an explicit projection-evaluation entrypoint so threat assessment reads canonical state instead of transient scan payloads.
+- Scan metadata now records Hall projection authority and demotes `matrix-graph.json` to compatibility export status.
+
+## `CS-P5-03` Harden Consumers Against Temporary Graph Assumptions
+
+### Objective
+
+Make PennyOne consumers depend only on the stable projection contract, not scanner-era graph quirks.
+
+### Files
+
+- `src/tools/pennyone/vis/logic/`
+- `src/tools/pennyone/live/search.ts`
+- Consumer tests
+
+### Change Set
+
+- Remove implicit assumptions about temporary graph-only fields.
+- Normalize consumer expectations around the canonical projection envelope.
+- Preserve visualization behavior when compatibility fields are absent or reduced.
+
+### Acceptance Criteria
+
+- PennyOne consumers tolerate the canonical projection contract without graph-era assumptions.
+- Search and visualization continue to operate from Hall-derived projection state.
+
+### Verification
+
+```powershell
+npx tsx --test tests/unit/test_pennyone_consumer_contract.test.ts tests/empire_tests/test_pennyone_search_empire.ts
+npx tsc --noEmit
+```
+
+### Closure Note
+
+Closed on 2026-03-09.
+
+Implemented outcomes:
+
+- PennyOne vis normalization now accepts the canonical projection envelope and no longer relies on graph-era field placement for interaction protocol data.
+- Search tests now exercise Hall-backed projection state directly instead of skipping when `matrix-graph.json` is absent.
+- Consumer hardening tests now cover reduced compatibility payloads so the UI continues to function when graph-era extras disappear.
+
+## `CS-P5-04` Quarantine Legacy Matrix Artifact Paths
+
+### Objective
+
+Collapse or quarantine the remaining code paths that still treat compatibility graph exports as live operating surfaces.
+
+### Files
+
+- Remaining compatibility graph readers and watchers
+- Legacy PennyOne tests
+- Phase 5 closure docs
+
+### Change Set
+
+- Quarantine or excise graph-only compatibility surfaces that remain outside the canonical projection path.
+- Leave only explicit export paths for temporary graph artifacts.
+- Document the final downstream-only PennyOne authority model.
+
+### Acceptance Criteria
+
+- No live PennyOne authority path depends on `matrix-graph.json`.
+- Compatibility graph exports remain optional and clearly non-authoritative.
+
+### Verification
+
+```powershell
+npx tsx --test tests/empire_tests/test_pennyone_phase4_empire.ts tests/unit/test_pennyone_projection_boundary.test.ts tests/unit/test_pennyone_projection_gate.test.ts tests/unit/test_pennyone_consumer_contract.test.ts tests/empire_tests/test_pennyone_search_empire.ts
+npx tsc --noEmit
+```
+
+### Closure Note
+
+Closed on 2026-03-09.
+
+Implemented outcomes:
+
+- The old graph-integrity test was quarantined because it treated `matrix-graph.json` as a live operating surface.
+- Checked-in vis graph artifacts were excised from the source tree.
+- Remaining `matrix-graph.json` references are confined to the explicit compatibility export path and compatibility-boundary tests.

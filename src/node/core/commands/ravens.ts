@@ -1,164 +1,96 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import fs from 'node:fs';
-import { join } from 'node:path';
-import { execa } from 'execa';
-import { HUD } from '../hud.js';
+
+import { RuntimeDispatcher } from '../runtime/dispatcher.ts';
+import { RavensAction, RavensWeavePayload, RuntimeDispatchPort, WeaveInvocation, WeaveResult } from '../runtime/contracts.ts';
+import { resolveWorkspaceRoot, withCliWorkspaceTarget, type WorkspaceRootSource } from '../runtime/invocation.ts';
+
+function renderResult(result: WeaveResult): void {
+    if (result.status === 'FAILURE') {
+        console.error(chalk.red(`\n[SYSTEM FAILURE]: ${result.error ?? 'Unknown runtime failure.'}`));
+        return;
+    }
+
+    const printer = result.status === 'TRANSITIONAL' ? chalk.yellow : chalk.green;
+    console.log(printer(`\n[ALFRED]: "${result.output}"`));
+}
+
+export function buildRavensInvocation(
+    action: RavensAction,
+    options: { shadowForge?: boolean; spoke?: string } = {},
+    workspaceRoot: string,
+): WeaveInvocation<RavensWeavePayload> {
+    return withCliWorkspaceTarget({
+        weave_id: 'weave:ravens',
+        payload: {
+            action,
+            shadow_forge: options.shadowForge,
+            spoke: options.spoke,
+        },
+    }, workspaceRoot);
+}
 
 /**
  * [GUNGNIR] Raven Command Spoke
- * Purpose: Monitor and Orchestrate the Raven Wardens (Muninn).
- * @param program
- * @param PROJECT_ROOT
+ * Purpose: Authoritative shell for Raven Warden orchestration.
  */
-export function registerRavenCommand(program: Command, PROJECT_ROOT: string) {
+export function registerRavenCommand(
+    program: Command,
+    workspaceRootSource: WorkspaceRootSource = process.cwd(),
+    dispatchPort: RuntimeDispatchPort = RuntimeDispatcher.getInstance(),
+) {
     const ravens = program
         .command('ravens')
         .description('Monitor and Orchestrate the Raven Wardens');
 
     ravens
-        .command('status')
-        .description('Display Raven health and quota isolation')
-        .action(async () => {
-            await displayStatus(PROJECT_ROOT);
+        .command('start')
+        .description('Run a one-shot Ravens sweep across configured repos')
+        .option('--shadow-forge', 'Execute in sandboxed Docker container')
+        .option('--spoke <slug>', 'Sweep only a specific mounted spoke')
+        .action(async (options: { shadowForge?: boolean; spoke?: string }) => {
+            const result = await dispatchPort.dispatch(buildRavensInvocation('start', options, resolveWorkspaceRoot(workspaceRootSource)));
+            renderResult(result);
         });
 
     ravens
-        .command('start')
-        .description('Release the Ravens (Launch Muninn Daemon)')
+        .command('sweep')
+        .description('Run a one-shot Ravens sweep across configured repos')
         .option('--shadow-forge', 'Execute in sandboxed Docker container')
-        .action(async (options: { shadowForge?: boolean }) => {
-            try {
-                const muninnPidPath = join(PROJECT_ROOT, '.agents', 'muninn.pid');
+        .option('--spoke <slug>', 'Sweep only a specific mounted spoke')
+        .action(async (options: { shadowForge?: boolean; spoke?: string }) => {
+            const result = await dispatchPort.dispatch(buildRavensInvocation('sweep', options, resolveWorkspaceRoot(workspaceRootSource)));
+            renderResult(result);
+        });
 
-                // 1. Check if already active
-                if (fs.existsSync(muninnPidPath)) {
-                    try {
-                        const pid = parseInt(fs.readFileSync(muninnPidPath, 'utf-8').trim());
-                        process.kill(pid, 0);
-                        console.log(chalk.yellow(`[ALFRED]: "The Ravens are already in flight (PID: ${pid})."`));
-                        return;
-                    } catch (e) {
-                        // Process not found, stale PID
-                        fs.unlinkSync(muninnPidPath);
-                    }
-                }
-
-                console.log(chalk.cyan('[ALFRED]: "Releasing the Ravens into the matrix..."'));
-
-                // 2. Launch main_loop.py in background
-                const pythonPath = join(PROJECT_ROOT, '.venv', 'Scripts', 'python.exe');
-                const mainLoopScript = join(PROJECT_ROOT, 'src', 'sentinel', 'main_loop.py');
-                const args = [mainLoopScript];
-                if (options.shadowForge) args.push('--shadow-forge');
-
-                const child = execa(pythonPath, args, {
-                    detached: true,
-                    stdio: 'ignore',
-                    env: { ...process.env, PYTHONPATH: PROJECT_ROOT }
-                });
-
-                child.unref();
-
-                console.log(chalk.green('[ALFRED]: "Muninn Daemon launched successfully. Orientation complete."'));
-
-            } catch (err: any) {
-                console.error(chalk.bgRed.white.bold(' [SYSTEM FAILURE] '));
-                console.error(chalk.red(`Critical Failure: ${err.message}`));
-                process.exit(1);
-            }
+    ravens
+        .command('cycle')
+        .description('Execute one ravens cycle through the stage-composed runtime')
+        .option('--spoke <slug>', 'Run one cycle against a specific mounted spoke')
+        .action(async (options: { spoke?: string }) => {
+            const result = await dispatchPort.dispatch(buildRavensInvocation('cycle', options, resolveWorkspaceRoot(workspaceRootSource)));
+            renderResult(result);
         });
 
     ravens
         .command('stop')
-        .description('Recall the Ravens (Stop Muninn Daemon)')
+        .description('Show that no resident Ravens daemon is active in kernel mode')
         .action(async () => {
-            try {
-                const muninnPidPath = join(PROJECT_ROOT, '.agents', 'muninn.pid');
-                if (!fs.existsSync(muninnPidPath)) {
-                    console.log(chalk.yellow('[ALFRED]: "The Ravens are already nesting, sir."'));
-                    return;
-                }
-
-                const pid = parseInt(fs.readFileSync(muninnPidPath, 'utf-8').trim());
-                process.kill(pid, 'SIGTERM');
-                fs.unlinkSync(muninnPidPath);
-                console.log(chalk.green(`[ALFRED]: "Muninn Daemon (PID: ${pid}) has been silenced."`));
-            } catch (err: any) {
-                console.error(chalk.red(`[ALFRED]: "I encountered resistance while recalling the ravens: ${err.message}"`));
-            }
+            const result = await dispatchPort.dispatch(buildRavensInvocation('stop', {}, resolveWorkspaceRoot(workspaceRootSource)));
+            renderResult(result);
         });
 
-    // Default to status if no subcommand
-    ravens.action(() => {
-        displayStatus(PROJECT_ROOT);
+    ravens
+        .command('status')
+        .description('Display Raven health and quota isolation')
+        .option('--spoke <slug>', 'Show target information for a specific mounted spoke')
+        .action(async (options: { spoke?: string }) => {
+            const result = await dispatchPort.dispatch(buildRavensInvocation('status', options, resolveWorkspaceRoot(workspaceRootSource)));
+            renderResult(result);
+        });
+
+    ravens.action(async () => {
+        const result = await dispatchPort.dispatch(buildRavensInvocation('status', {}, resolveWorkspaceRoot(workspaceRootSource)));
+        renderResult(result);
     });
 }
-
-/**
- *
- * @param PROJECT_ROOT
- */
-async function displayStatus(PROJECT_ROOT: string) {
-    try {
-        const palette = HUD.palette;
-        process.stdout.write(HUD.boxTop('◤ MUNINN MONITOR ◢'));
-
-        const muninnPidPath = join(PROJECT_ROOT, '.agents', 'muninn.pid');
-        let muninnStatus = 'OFFLINE';
-        let sColor = palette.crucible;
-
-        if (fs.existsSync(muninnPidPath)) {
-            try {
-                const pid = parseInt(fs.readFileSync(muninnPidPath, 'utf-8').trim());
-                process.kill(pid, 0);
-                muninnStatus = 'ACTIVE';
-                sColor = palette.sterling;
-            } catch (e) {
-                muninnStatus = 'OFFLINE (STALE)';
-            }
-        }
-        process.stdout.write(HUD.boxRow('RAVEN STATUS', muninnStatus, sColor));
-
-        const envPath = join(PROJECT_ROOT, '.env.local');
-        let envContent = '';
-        if (fs.existsSync(envPath)) {
-            envContent = fs.readFileSync(envPath, 'utf-8');
-        }
-
-        const isSet = (key: string) => (process.env[key] || new RegExp('^\\s*' + key + '\\s*=', 'm').test(envContent)) ? palette.sterling('SECURED') : palette.crucible('FALLBACK');
-
-        process.stdout.write(HUD.boxSeparator());
-        process.stdout.write(HUD.boxRow('MUNINN_KEY', isSet('MUNINN_API_KEY')));
-        process.stdout.write(HUD.boxRow('DAEMON_KEY', isSet('GOOGLE_API_DAEMON_KEY')));
-        process.stdout.write(HUD.boxRow('BRAVE_KEY', isSet('BRAVE_API_KEY')));
-        process.stdout.write(HUD.boxRow('SHARED_KEY', isSet('GOOGLE_API_KEY')));
-
-        process.stdout.write(HUD.boxSeparator());
-        const wardenDir = join(PROJECT_ROOT, 'src', 'sentinel', 'wardens');
-        let active_wardens: string[] = [];
-        if (fs.existsSync(wardenDir)) {
-            active_wardens = fs.readdirSync(wardenDir)
-                .filter(f => f.endsWith('.py') && !f.startsWith('__'))
-                .map(f => f.replace('.py', ''));
-        }
-
-        if (active_wardens.length > 0) {
-            process.stdout.write(HUD.boxRow('ACTIVE WARDENS', active_wardens.length));
-            active_wardens.forEach(w => {
-                const name = w.charAt(0).toUpperCase() + w.slice(1);
-                process.stdout.write(HUD.boxRow('  ◈', name, chalk.bold));
-            });
-        } else {
-            process.stdout.write(HUD.boxRow('WARDENS', 'NONE DETECTED', chalk.yellow));
-        }
-
-        process.stdout.write(HUD.boxSeparator());
-        process.stdout.write(HUD.boxNote());
-        process.stdout.write(HUD.boxBottom());
-
-    } catch (err: any) {
-        process.exit(1);
-    }
-}
-

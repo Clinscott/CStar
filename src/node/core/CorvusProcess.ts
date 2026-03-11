@@ -1,7 +1,9 @@
-import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
-import * as readline from 'readline';
 import { EventEmitter } from 'events';
-import { getPythonPath } from './python_utils.js';
+
+import { mimir } from '../../core/mimir_client.ts';
+import { CortexLink, type CortexResponse } from '../cortex_link.js';
+import { EventManager } from './EventManager.js';
+import { IntelligenceRequest, IntelligenceResponse } from '../../types/intelligence-contract.ts';
 
 /**
  * [O.D.I.N.] Rigid Input Boundary Schema
@@ -18,7 +20,7 @@ export interface IntentPayload {
  * [ALFRED] Continuous Output Boundary Schema
  */
 export interface DaemonTelemetry {
-    type?: 'TELEMETRY' | 'SYSTEM_RESTART' | 'HUD_STREAM';
+    type?: 'TELEMETRY' | 'SYSTEM_RESTART' | 'HUD_STREAM' | 'TRACE' | 'FLARE';
     source?: string;
     message?: string;
     status?: string;
@@ -26,208 +28,154 @@ export interface DaemonTelemetry {
     ts?: number;
 }
 
-export class CorvusProcess extends EventEmitter {
-    private daemon: ChildProcessWithoutNullStreams | null = null;
-    private isRunning: boolean = false;
-    private restartCount: number = 0;
-    private readonly MAX_RESTARTS = 5;
-    private terminalPromptActive: boolean = false;
+export type IntentDispatchExecutor = (payload: IntentPayload) => Promise<CortexResponse>;
 
-    constructor(private readonly entrypoint: string = 'src/core/cstar_dispatcher.py') {
+async function defaultIntentDispatch(payload: IntentPayload): Promise<CortexResponse> {
+    const link = new CortexLink();
+    return link.sendCommand('ROUTE_INTENT', [payload]);
+}
+
+export class CorvusProcess extends EventEmitter {
+    private isRunning = false;
+
+    constructor(
+        private readonly _entrypoint: string = 'src/core/cstar_dispatcher.py',
+        private readonly dispatchExecutor: IntentDispatchExecutor = defaultIntentDispatch,
+    ) {
         super();
     }
 
     public async boot(): Promise<void> {
-        if (this.isRunning) return;
+        if (this.isRunning) {
+            return;
+        }
 
-        this.restartCount = 0;
-        this._spawn();
+        this.isRunning = true;
+        this.emit('telemetry', {
+            type: 'TELEMETRY',
+            source: 'SYSTEM',
+            status: 'READY',
+            message: 'Kernel bridge ready for one-shot dispatch.',
+            ts: Date.now(),
+        });
     }
 
-    private _spawn(): void {
-        // Spawn the hardened Python core
-        // [Ω] Using 'python' or 'python3' based on environment
-        this.daemon = spawn(getPythonPath(), [this.entrypoint]);
-        this.isRunning = true;
-
-        this.setupOutputBoundary();
-        this.setupFaultTolerance();
+    public async dispatchIntent(payload: IntentPayload): Promise<void> {
+        if (!this.isRunning) {
+            throw new Error('Cannot dispatch: Kernel bridge offline.');
+        }
 
         this.emit('telemetry', {
             type: 'TELEMETRY',
             source: 'SYSTEM',
-            message: 'Corvus Daemon Spawning...',
-            ts: Date.now()
-        });
-    }
-
-    private setupFaultTolerance(): void {
-        this.daemon?.on('close', (code) => {
-            this.isRunning = false;
-            this.emit('telemetry', {
-                type: 'TELEMETRY',
-                source: 'SYSTEM',
-                status: 'EXIT',
-                message: `Daemon exited with code ${code}`,
-                ts: Date.now()
-            });
-            this.attemptResurrection();
+            status: 'DISPATCH',
+            message: `Dispatching intent ${payload.intent_normalized}.`,
+            ts: Date.now(),
         });
 
-        this.daemon?.on('error', (err) => {
-            this.emit('telemetry', {
-                type: 'TELEMETRY',
-                source: 'SYSTEM',
-                status: 'ERROR',
-                message: `Daemon crash: ${err.message}`,
-                ts: Date.now()
-            });
-        });
-    }
+        const response = await this.dispatchExecutor(payload);
+        const appId = payload.system_meta?.app_id;
+        const success = response.status === 'success';
+        const message = success
+            ? `Kernel completed ${payload.intent_normalized}.`
+            : `Kernel failed ${payload.intent_normalized}: ${response.error ?? 'Unknown error'}`;
 
-    private attemptResurrection(): void {
-        if (this.restartCount >= this.MAX_RESTARTS) {
-            this.emit('telemetry', {
-                type: 'TELEMETRY',
-                source: 'SYSTEM',
-                status: 'FATAL',
-                message: 'Max restarts exceeded. Hub offline.',
-                ts: Date.now()
+        if (appId) {
+            EventManager.getInstance().broadcast(String(appId), {
+                type: success ? 'CORE_INTENT_RESULT' : 'TELEMETRY',
+                intent: payload.intent_normalized,
+                response: response.data ?? response.error,
+                source: 'kernel',
             });
-            return;
         }
 
-        const backoff = Math.pow(2, this.restartCount) * 1000;
-        this.restartCount++;
-
-        // [AMENDMENT D] Reconnection State Broadcasting
         this.emit('telemetry', {
-            type: 'SYSTEM_RESTART',
-            status: 'rebooting',
-            data: { nextAttemptIn: backoff },
-            ts: Date.now()
+            type: 'TELEMETRY',
+            source: 'KERNEL',
+            status: success ? 'SUCCESS' : 'ERROR',
+            message,
+            data: response.data,
+            ts: Date.now(),
         });
 
-        setTimeout(() => this._spawn(), backoff);
-    }
-
-    /**
-     * [AMENDMENT A] NDJSON Stream Fragmentation Protection
-     * Uses native readline to buffer incoming chunks and only emit on \n boundaries.
-     */
-    private setupOutputBoundary(): void {
-        if (!this.daemon) return;
-
-        const stdoutStream = readline.createInterface({
-            input: this.daemon.stdout,
-            terminal: false
-        });
-
-        stdoutStream.on('line', (line: string) => {
-            this.routeOutput(line);
-        });
-
-        const stderrStream = readline.createInterface({
-            input: this.daemon.stderr,
-            terminal: false
-        });
-
-        stderrStream.on('line', (line: string) => {
-            this.emit('telemetry', {
-                type: 'TELEMETRY',
-                source: 'STDERR',
-                message: line,
-                ts: Date.now()
-            });
-        });
-    }
-
-    private routeOutput(rawLine: string): void {
-        const line = rawLine.trim();
-        if (!line) return;
-
-        try {
-            // Attempt NDJSON parse
-            const payload = JSON.parse(line);
-
-            // [PHASE 3] Routing Target Type Guard
-            // Only bridge to WebSocket if explicitly marked
-            if (payload.__routing_target === 'ws' && payload.app_id) {
-                const { __routing_target, app_id, ...data } = payload;
-                import('./EventManager.js').then(({ EventManager }) => {
-                    (EventManager.getInstance() as any).broadcast(app_id, data);
-                });
-                return;
-            }
-
-            // Fallback: Std SSE Telemetry
-            this.emit('telemetry', { ...payload, type: 'TELEMETRY' });
-        } catch {
-            // Fallback: Raw SovereignHUD async rendering strings
-            this.emit('telemetry', {
-                type: 'HUD_STREAM',
-                message: line,
-                ts: Date.now()
-            });
-        }
-    }
-
-    /**
-     * Injects rigid JSON payloads into standard input.
-     * @param payload
-     */
-    public dispatchIntent(payload: IntentPayload): void {
-        if (!this.daemon || !this.isRunning) {
-            throw new Error('Cannot dispatch: Daemon offline.');
-        }
-
-        const ndjson = JSON.stringify(payload) + '\n';
-
-        // [AMENDMENT C] Respect standard I/O backpressure
-        const success = this.daemon.stdin.write(ndjson);
         if (!success) {
-            this.emit('telemetry', {
-                type: 'TELEMETRY',
-                source: 'SYSTEM',
-                status: 'WARN',
-                message: 'Backpressure detected on stdin.',
-                ts: Date.now()
-            });
+            throw new Error(response.error ?? 'Kernel dispatch failed.');
         }
     }
 
     public async terminate(): Promise<void> {
-        if (!this.daemon) return;
-
-        // [Ω] Robustness: Check if kill exists (for mock environments)
-        if (typeof this.daemon.kill !== 'function') {
-            this.daemon = null;
-            this.isRunning = false;
+        if (!this.isRunning) {
             return;
         }
 
-        return new Promise((resolve) => {
-            const timeout = setTimeout(() => {
-                this.daemon?.kill('SIGKILL');
-                this.daemon = null;
-                this.isRunning = false;
-                resolve();
-            }, 5000);
-
-            this.daemon?.once('close', () => {
-                clearTimeout(timeout);
-                this.daemon = null;
-                this.isRunning = false;
-                resolve();
-            });
-
-            this.daemon?.kill('SIGTERM');
+        this.isRunning = false;
+        this.emit('telemetry', {
+            type: 'TELEMETRY',
+            source: 'SYSTEM',
+            status: 'OFFLINE',
+            message: 'Kernel bridge released.',
+            ts: Date.now(),
         });
     }
 
     public getStatus(): boolean {
         return this.isRunning;
     }
+
+    /**
+     * [Ω] Canonical intelligence bridge for Node-side callers.
+     */
+    public async requestIntelligence(payload: IntelligenceRequest): Promise<IntelligenceResponse> {
+        return mimir.request({
+            ...payload,
+            caller: payload.caller ?? { source: 'node:corvus-process' },
+        });
+    }
+
+    /**
+     * Retrieves canonical intent intelligence for a specific sector.
+     */
+    public async requestSectorIntent(filePath: string): Promise<IntelligenceResponse> {
+        return this.requestIntelligence({
+            prompt: `What is the intent of sector: ${filePath}?`,
+            caller: {
+                source: 'node:corvus-process:intent',
+                sector_path: filePath,
+            },
+        });
+    }
+
+    /**
+     * Legacy gateway compatibility shim over the canonical intelligence bridge.
+     */
+    public async sampleMind(payload: { prompt: string; systemPrompt?: string; maxTokens?: number }): Promise<{ text: string }> {
+        const response = await this.requestIntelligence({
+            prompt: payload.prompt,
+            system_prompt: payload.systemPrompt,
+            caller: {
+                source: 'node:corvus-process:sampleMind',
+                workflow: 'gateway:mimir',
+            },
+            metadata: {
+                max_tokens: payload.maxTokens,
+            },
+        });
+
+        if (response.status !== 'success' || !response.raw_text) {
+            throw new Error(response.error ?? 'The One Mind returned no intelligence.');
+        }
+
+        return { text: response.raw_text };
+    }
+
+    /**
+     * Legacy gateway compatibility shim over the canonical intelligence bridge.
+     */
+    public async getWellIntent(filePath: string): Promise<string | null> {
+        const response = await this.requestSectorIntent(filePath);
+        if (response.status !== 'success') {
+            throw new Error(response.error ?? `Intent retrieval for ${filePath} failed.`);
+        }
+        return response.raw_text ?? null;
+    }
 }
-
-

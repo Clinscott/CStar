@@ -1,6 +1,5 @@
 import argparse
 import json
-import os
 import sys
 import subprocess
 from pathlib import Path
@@ -8,6 +7,20 @@ from pathlib import Path
 # Add project root to sys.path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
+
+from src.core.engine.forge_candidate import (
+    extract_candidate_payload,
+    normalize_freeform_intent_to_forge_request,
+    normalize_lore_to_forge_request,
+    stage_forge_candidate,
+)
+
+
+def _to_repo_path(path: Path) -> str:
+    try:
+        return path.relative_to(PROJECT_ROOT).as_posix()
+    except ValueError:
+        return path.as_posix()
 
 def main():
     parser = argparse.ArgumentParser(description="Taliesin Forge: Weave code from lore.")
@@ -19,6 +32,22 @@ def main():
     if not lore_path.exists():
         print(f"[ALFRED]: CRITICAL - Lore missing at {lore_path}")
         sys.exit(1)
+
+    if lore_path.suffix.lower() in {".py", ".ts", ".tsx", ".js", ".jsx"}:
+        repo_target_path = _to_repo_path(lore_path)
+        request = normalize_freeform_intent_to_forge_request(
+            PROJECT_ROOT,
+            args.objective or f"Materialize a validation-ready candidate for {repo_target_path}.",
+            target_path=repo_target_path,
+            contract_refs=[f"file:{repo_target_path}"],
+            operator_constraints={"objective_override": args.objective} if args.objective else None,
+        )
+    else:
+        request = normalize_lore_to_forge_request(
+            PROJECT_ROOT,
+            lore_path,
+            operator_constraints={"objective_override": args.objective} if args.objective else None,
+        )
 
     # Trigger One Mind Skill via Dispatcher
     cstar_dispatcher = PROJECT_ROOT / "src" / "core" / "cstar_dispatcher.py"
@@ -38,33 +67,20 @@ def main():
         ]
         
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        raw = result.stdout
+        payload = extract_candidate_payload(result.stdout)
+        staged_result = stage_forge_candidate(
+            PROJECT_ROOT,
+            request,
+            payload,
+            required_validations=["crucible", "generated_tests", "gungnir_delta"],
+        )
 
-        # Handle possible markdown noise from the skill output
-        clean_json = raw.strip()
-        if "```json" in clean_json:
-            clean_json = clean_json.split("```json")[1].split("```")[0].strip()
-        elif "```" in clean_json:
-            clean_json = clean_json.split("```")[1].split("```")[0].strip()
-        
-        # Ensure we find the JSON object if there's surrounding text
-        if "{" in clean_json and "}" in clean_json:
-            clean_json = clean_json[clean_json.find("{"):clean_json.lastIndexOf("}")+1]
-
-        data = json.loads(clean_json)
-
-        if not data.get("target_path") or not data.get("code"):
-            raise ValueError("One Mind provided incomplete artifact data.")
-
-        staged_dir = PROJECT_ROOT / ".agents" / "forge_staged"
-        staged_dir.mkdir(parents=True, exist_ok=True)
-        
-        artifact_name = Path(data["target_path"]).name
-        stage_path = staged_dir / artifact_name
-        stage_path.write_text(data["code"], encoding='utf-8')
-
-        print(f"[🔱] Artifact forged successfully: {data['target_path']}")
-        print(f"[ALFRED]: Staged for review at .agents/forge_staged/{artifact_name}")
+        print(f"[🔱] Artifact forged successfully: {staged_result.target_path}", file=sys.stderr)
+        print(
+            f"[ALFRED]: Candidate staged for review at {Path(staged_result.staged_path).relative_to(PROJECT_ROOT)}",
+            file=sys.stderr,
+        )
+        print(json.dumps(staged_result.to_dict(), indent=2))
 
     except Exception as e:
         print(f"Forge failed: {str(e)}", file=sys.stderr)

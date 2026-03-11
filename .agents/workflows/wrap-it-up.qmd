@@ -1,6 +1,7 @@
 ---
 description: The Sovereign Commit & Dynamic Sync. Finalizes session, syncs state, and executes autonomous commit.
 ---
+# Intent: Finalize session, commit changes, finish task, end work, wrap up project, call it a day.
 
 1. **Initial Structural Scan**: Execute `cstar pennyone --scan` to capture the pre-finalization state of the system in Mimir's Well.
 2. **Release the Ravens**: Release the autonomous improvers into the matrix via `cstar ravens start`. 
@@ -11,7 +12,8 @@ description: The Sovereign Commit & Dynamic Sync. Finalizes session, syncs state
    - **Verification**: Run Ruff (Logic) and NPM test suites.
    - **Auto-Fix**: If the test suite is RED, trigger a recursive Raven repair cycle (up to 3 attempts) until the suite is GREEN.
 5. **Session Ingestion & Documentation**: 
-   - Update `tasks.qmd` (mark completed, preserve history).
+   - Resolve and update the authoritative sovereign bead or Hall record.
+   - Regenerate `tasks.qmd` as a projection after the bead state changes.
    - Update `walkthrough.qmd` (Session delta and accomplishments).
    - Update `dev_journal.qmd` (Reflections and architectural decisions).
    - Update `memory.qmd` (Lessons learned and long-term context).

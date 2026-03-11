@@ -5,11 +5,12 @@ import { WebSocketServer, WebSocket } from 'ws';
 import path from 'node:path';
 import fs from 'node:fs';
 import chalk from 'chalk';
-import { registry } from '../pathRegistry.js';
-import { activePersona } from '../personaRegistry.js';
+import { registry } from '../pathRegistry.ts';
+import { activePersona } from '../personaRegistry.ts';
 import { fileURLToPath } from 'node:url';
 import crypto from 'node:crypto';
-import { savePing, saveTrace, getTracesForFile } from '../intel/database.js';
+import { savePing, saveTrace, getTracesForFile } from '../intel/database.ts';
+import { buildEstateTopology, readProjectedMatrixGraph } from '../intel/compiler.ts';
 
 /**
  * P1 Visualization Proxy (v2.0)
@@ -109,24 +110,30 @@ export async function startProxy(targetPath: string, port: number = 4000) {
         });
     };
 
-    // [Ω] MIMIR'S WATCH: Automatically broadcast updates when the matrix file changes
-    const graphPath = path.join(statsDir, 'matrix-graph.json');
-    fs.watch(graphPath, (event) => {
-        if (event === 'change') {
-            console.log(chalk.yellow('[SENSORY MATRIX] matrix-graph.json change detected. Broadcasting update...'));
-            broadcast({ type: 'MATRIX_UPDATED', timestamp: Date.now() });
+    // [Ω] MIMIR'S WATCH: Broadcast updates when canonical PennyOne state changes.
+    fs.watch(statsDir, (_event, filename) => {
+        if (filename === 'pennyone.db' || filename === 'gravity.json') {
+            console.log(chalk.yellow(`[SENSORY MATRIX] ${filename} change detected. Broadcasting update...`));
+            broadcast({ type: 'MATRIX_UPDATED', timestamp: Date.now(), source: filename });
         }
     });
 
     // 5. API Routes
     server.get('/api/matrix', async (request, reply) => {
         try {
-            const graphPath = path.join(statsDir, 'matrix-graph.json');
-            const graphData = fs.readFileSync(graphPath, 'utf-8');
             reply.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-            return JSON.parse(graphData);
+            return readProjectedMatrixGraph(targetPath);
         } catch (err) {
-            return reply.status(404).send({ error: 'Matrix graph not found.' });
+            return reply.status(503).send({ error: 'Matrix projection unavailable.' });
+        }
+    });
+
+    server.get('/api/topology', async (_request, reply) => {
+        try {
+            reply.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+            return buildEstateTopology(registry.getRoot());
+        } catch (err) {
+            return reply.status(503).send({ error: 'Estate topology unavailable.' });
         }
     });
 

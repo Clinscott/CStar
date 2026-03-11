@@ -1,0 +1,204 @@
+{
+  "test_cases": [
+    {
+      "query": "reboot the catalog",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "neural",
+      "tags": [
+        "live",
+        "synthetic"
+      ]
+    },
+    {
+      "query": "start creating the site",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "neural",
+      "tags": [
+        "live",
+        "synthetic"
+      ]
+    },
+    {
+      "query": "begin implementation of checkout",
+      "expected": "/lets-go",
+      "min_score": 0.8,
+      "expected_mode": "neural",
+      "tags": [
+        "live",
+        "synthetic"
+      ]
+    },
+    {
+      "query": "debug the auth failure",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "neural",
+      "tags": [
+        "live",
+        "synthetic"
+      ]
+    },
+    {
+      "query": "analyze the system latency",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "neural",
+      "tags": [
+        "live",
+        "synthetic"
+      ]
+    },
+    {
+      "query": "check for security leaks",
+      "expected": "/investigate",
+      "min_score": 0.8,
+      "expected_mode": "neural",
+      "tags": [
+        "live",
+        "synthetic"
+      ]
+    },
+    {
+      "query": "generate the checkout logic",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "neural",
+      "tags": [
+        "live",
+        "synthetic"
+      ]
+    },
+    {
+      "query": "build the login component",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "neural",
+      "tags": [
+        "live",
+        "synthetic"
+      ]
+    },
+    {
+      "query": "implement the nav bar",
+      "expected": "/run-task",
+      "min_score": 0.8,
+      "expected_mode": "neural",
+      "tags": [
+        "live",
+        "synthetic"
+      ]
+    },
+    {
+      "query": "finish implementation and commit",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "neural",
+      "tags": [
+        "live",
+        "synthetic"
+      ]
+    },
+    {
+      "query": "call it a day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "neural",
+      "tags": [
+        "live",
+        "synthetic"
+      ]
+    },
+    {
+      "query": "finalize session",
+      "expected": "/wrap-it-up",
+      "min_score": 0.8,
+      "expected_mode": "neural",
+      "tags": [
+        "live",
+        "synthetic"
+      ]
+    },
+    {
+      "query": "run the full suite",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "neural",
+      "tags": [
+        "live",
+        "synthetic"
+      ]
+    },
+    {
+      "query": "verify the integrity",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "neural",
+      "tags": [
+        "live",
+        "synthetic"
+      ]
+    },
+    {
+      "query": "benchmark the engine",
+      "expected": "/test",
+      "min_score": 0.8,
+      "expected_mode": "neural",
+      "tags": [
+        "live",
+        "synthetic"
+      ]
+    },
+    {
+      "query": "draft a strategy for the store",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "neural",
+      "tags": [
+        "live",
+        "synthetic"
+      ]
+    },
+    {
+      "query": "architect the database",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "neural",
+      "tags": [
+        "live",
+        "synthetic"
+      ]
+    },
+    {
+      "query": "blueprint the visuals",
+      "expected": "/plan",
+      "min_score": 0.8,
+      "expected_mode": "neural",
+      "tags": [
+        "live",
+        "synthetic"
+      ]
+    },
+    {
+      "query": "show me the matrix",
+      "expected": "pennyone",
+      "min_score": 0.8,
+      "expected_mode": "neural",
+      "tags": [
+        "live",
+        "synthetic"
+      ]
+    },
+    {
+      "query": "visualize the code",
+      "expected": "pennyone",
+      "min_score": 0.8,
+      "expected_mode": "neural",
+      "tags": [
+        "live",
+        "synthetic"
+      ]
+    }
+  ]
+}

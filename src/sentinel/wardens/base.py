@@ -48,17 +48,20 @@ class BaseWarden(ABC):
     def _should_ignore(self, path: Path) -> bool:
         """
         Centralized logic for ignoring directories.
-        Default ignores: .git, .venv, node_modules, __pycache__, .agent, .pytest_cache, dist, build.
-
-        Args:
-            path: Path to the file or directory being checked.
-
-        Returns:
-            True if the path should be ignored, False otherwise.
         """
-        ignored_dirs = {".git", ".venv", "node_modules", "__pycache__", ".agents", ".pytest_cache", "dist", "build"}
+        # Hard-kill list for expensive recursive walks
+        ignored_dirs = {
+            ".git", ".venv", "node_modules", "__pycache__", 
+            ".agents", ".pytest_cache", "dist", "build", 
+            ".quarto", ".stats"
+        }
 
-        return any(part in ignored_dirs for part in path.parts)
+        # Check if any part of the path is in the ignored list
+        parts = set(path.parts)
+        if parts.intersection(ignored_dirs):
+            return True
+            
+        return False
 
     def research_topic(self, topic: str) -> list[dict[str, str]]:
         """

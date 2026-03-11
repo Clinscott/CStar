@@ -1,7 +1,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { CompiledGraph } from '../types.js';
-import { registry } from '../pathRegistry.js';
+import { CompiledGraph } from '../types.ts';
+import { registry } from '../pathRegistry.ts';
+import { readProjectedMatrixGraph } from './compiler.ts';
 
 export interface TechDebtBounty {
     file: string;
@@ -81,6 +82,13 @@ export class Warden {
 
         // Limit to top 50 targets to avoid bloat
         await this.updateLedger(bounties.slice(0, 50));
+    }
+
+    public async evaluateProjection(
+        targetRepo: string = registry.getRoot(),
+        scanId?: string,
+    ): Promise<void> {
+        await this.evaluate(readProjectedMatrixGraph(targetRepo, scanId));
     }
 
     private createBounty(file: string, priority: TechDebtBounty['priority'], target: string, m: any, justification: string): TechDebtBounty {

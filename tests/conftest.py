@@ -2,6 +2,7 @@
 import contextlib
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
@@ -117,6 +118,16 @@ def mock_mimir_globally():
     from src.core.mimir_client import mimir
     
     # Replace methods with AsyncMocks
+    mimir.request = AsyncMock(return_value=SimpleNamespace(
+        status="success",
+        raw_text="Mocked Oracle Response",
+        error=None,
+        trace=SimpleNamespace(
+            correlation_id="test-correlation-id",
+            transport_mode="host_session",
+            cached=False,
+        ),
+    ))
     mimir.call_tool = AsyncMock(return_value=None)
     mimir.get_file_intent = AsyncMock(return_value="Mock Intent")
     mimir.search_well = AsyncMock(return_value="Mock Well Results")

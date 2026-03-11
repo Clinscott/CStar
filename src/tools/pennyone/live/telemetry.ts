@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
-import { SubspaceRelay } from './socket.js';
-import { recordPing, recordTrace } from './recorder.js';
-import { AgentPing } from '../types.js';
+import { SubspaceRelay } from './socket.ts';
+import { recordPing, recordTrace } from './recorder.ts';
+import { AgentPing } from '../types.ts';
 
 /**
  * Path Normalization Mandate:
- * Sanitize incoming paths to match matrix-graph.json format.
+ * Sanitize incoming paths to match canonical Hall projection path format.
  * @param {string} p - The path
  * @returns {string} The normalized path
  */

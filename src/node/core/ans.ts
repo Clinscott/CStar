@@ -1,15 +1,16 @@
 import { CortexLink } from '../cortex_link.js';
 import { execa } from 'execa';
 import path from 'node:path';
-import fs from 'node:fs';
-import net from 'node:net';
 import { registry } from '../../tools/pennyone/pathRegistry.js';
 import chalk from 'chalk';
 import { activePersona } from '../../tools/pennyone/personaRegistry.js';
+import { getHallSummary } from '../../tools/pennyone/intel/database.ts';
+import { runScan } from '../../tools/pennyone/index.ts';
 
 import { getPythonPath } from './python_utils.js';
 
 import { HUD } from './hud.js';
+import { StateRegistry } from './state.ts';
 
 /**
  * Autonomic Nervous System (ANS)
@@ -18,25 +19,18 @@ import { HUD } from './hud.js';
  */
 export class ANS {
     /**
-     * Wakes the entire system (Oracle + PennyOne)
+     * Wakes the runtime without resident daemons.
      */
     static async wake() {
-        // [🔱] THE BRAIN: Wake Oracle (Python Daemon)
         const link = new CortexLink();
-        await HUD.spinner('Awakening the Gungnir Oracle...', 800);
-        await link.ensureDaemon(); 
+        await HUD.spinner('Synchronizing the kernel bridge...', 400);
+        await link.ensureDaemon();
 
-        // [🔱] THE BODY: Wake PennyOne (Node Daemon)
         await this.ensurePennyOne();
-    }
 
-    private static _checkPort(port: number): Promise<boolean> {
-        return new Promise((resolve) => {
-            const client = net.createConnection({ port, host: '127.0.0.1' }, () => {
-                client.end();
-                resolve(true);
-            });
-            client.on('error', () => resolve(false));
+        StateRegistry.updateFramework({
+            status: 'AWAKE',
+            last_awakening: Date.now()
         });
     }
 
@@ -63,55 +57,29 @@ ${activePersona.prefix}: "Initiating global dormancy protocol..."`));
         } catch (e) {
             console.error(chalk.red(`[ERROR] Dormancy transition failed: ${e instanceof Error ? e.message : String(e)}`));
         }
+
+        // [🔱] THE STATE: Sleep Synchronized
+        StateRegistry.updateFramework({
+            status: 'DORMANT'
+        });
     }
 
     /**
-     * Ensures P1 Daemon is running
+     * Ensures PennyOne has a current Hall projection without a resident watcher.
      */
     static async ensurePennyOne() {
-        const statsDir = path.join(registry.getRoot(), '.stats');
-        const pidFile = path.join(statsDir, 'p1-daemon.pid');
-        
-        let isRunning = false;
-        if (fs.existsSync(pidFile)) {
-            const pid = parseInt(fs.readFileSync(pidFile, 'utf-8').trim());
-            try {
-                process.kill(pid, 0);
-                isRunning = true;
-            } catch (e) {}
-        }
-
-        if (!isRunning) {
-            console.error(chalk.dim(`${activePersona.prefix} 'Igniting PennyOne...'`));
-            const p1Entry = path.join(registry.getRoot(), 'src', 'tools', 'pennyone', 'daemon.js');
-            const npxCmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
-            
-            // Spawn detached tsx process for the daemon
-            execa(npxCmd, ['tsx', p1Entry], {
-                detached: true,
-                stdio: 'ignore',
-                cwd: registry.getRoot()
-            }).unref();
+        const summary = getHallSummary(registry.getRoot());
+        if (!summary?.last_scan_id) {
+            console.error(chalk.dim(`${activePersona.prefix} 'Seeding PennyOne Hall projection...'`));
+            await runScan(registry.getRoot());
         }
     }
 
     /**
-     * Stops P1 Daemon
+     * There is no resident PennyOne daemon in kernel mode.
      */
     static async stopPennyOne() {
-        const statsDir = path.join(registry.getRoot(), '.stats');
-        const pidFile = path.join(statsDir, 'p1-daemon.pid');
-        
-        if (fs.existsSync(pidFile)) {
-            const pid = parseInt(fs.readFileSync(pidFile, 'utf-8').trim());
-            try {
-                process.kill(pid, 'SIGTERM');
-                console.error(chalk.dim(`${activePersona.prefix} 'PennyOne standing down.'`));
-            } catch (e) {}
-            if (fs.existsSync(pidFile)) {
-                try { fs.unlinkSync(pidFile); } catch(e) {}
-            }
-        }
+        console.error(chalk.dim(`${activePersona.prefix} 'PennyOne is already on-demand in kernel mode.'`));
     }
 }
 

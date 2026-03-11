@@ -7,6 +7,7 @@ Purpose: Parse CAMPAIGN_IMPLEMENTATION_PLAN.qmd to find the next actionable task
 from pathlib import Path
 from typing import Any
 
+from src.core.norn_coordinator import NornCoordinator
 from src.sentinel.wardens.base import BaseWarden
 
 
@@ -15,6 +16,7 @@ class NornWarden(BaseWarden):
         # Initialize BaseWarden with project root
         super().__init__(root)
         self.plan_path = root / "tasks.qmd"
+        self.coordinator = NornCoordinator(root)
 
     def scan(self) -> list[dict[str, Any]]:
         """
@@ -32,53 +34,41 @@ class NornWarden(BaseWarden):
                 "action": target["action"],
                 "severity": "CRITICAL",
                 "line": target["line_index"] + 1,
-                "raw_target": target # Keep the full object for Muninn
+                "raw_target": target["raw_target"],
             }]
         return []
 
-    def _parse_task_line(self, line: str, index: int) -> dict | None:
-        """Helper to parse a single line for a task."""
-        stripped = line.strip()
-        if stripped.startswith("- [ ]"):
-            return {
-                "type": "CAMPAIGN_TASK",
-                "file": "tasks.qmd",
-                "action": stripped[5:].strip(),
-                "line_index": index,
-                "raw_line": line
-            }
-        return None
-
     def get_next_target(self) -> dict[str, Any] | None:
         """
-        Scans tasks.qmd for the first unchecked item '- [ ]'.
+        Resolves the next actionable bead from the sovereign bead ledger.
         """
-        if not self.plan_path.exists():
+        bead = self.coordinator.peek_next_bead()
+        if bead is None:
             return None
 
-        lines = self.plan_path.read_text(encoding='utf-8').splitlines()
-        for i, line in enumerate(lines):
-            target = self._parse_task_line(line, i)
-            if target:
-                return target
-        return None
+        line_index = self.coordinator.ledger.find_projection_line(str(bead["id"]))
+        action = bead["rationale"]
+        if bead.get("target_path"):
+            action = f"{bead['target_path']}: {action}"
+
+        return {
+            "type": "CAMPAIGN_TASK",
+            "file": "tasks.qmd",
+            "action": action,
+            "line_index": line_index if line_index is not None else 0,
+            "raw_target": {
+                **bead,
+                "line_index": line_index if line_index is not None else 0,
+            },
+        }
 
     def mark_complete(self, target: dict[str, Any]) -> None:
         """
-        Marks the action as complete by switching '[ ]' to '[x]'.
+        Marks the action complete in the sovereign bead ledger.
         """
-        if not self.plan_path.exists():
+        bead_id = target.get("id") or target.get("bead_id")
+        if bead_id is None and isinstance(target.get("raw_target"), dict):
+            bead_id = target["raw_target"].get("id")
+        if bead_id is None:
             return
-
-        lines = self.plan_path.read_text(encoding='utf-8').splitlines()
-        idx = target.get('line_index', -1)
-
-        if idx >= 0 and idx < len(lines):
-            line = lines[idx]
-            if "- [ ]" in line:
-                # Replace the first occurrence of dash-space-bracket-space-bracket
-                # We want to preserve indentation.
-                # Regex or simple replace is fine since we know the structure from scan.
-                # But simple replace "- [ ]" -> "- [x]" is safest for single occurrence lines.
-                lines[idx] = line.replace("- [ ]", "- [x]", 1)
-                self.plan_path.write_text("\n".join(lines), encoding='utf-8')
+        self.coordinator.complete_bead_work(str(bead_id), resolution_note="Norn completed implementation; awaiting validation.")

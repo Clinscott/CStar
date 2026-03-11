@@ -1,3 +1,12 @@
+#!/usr/bin/env python3
+"""
+[GAME] Odin Protocol UI (ui.py)
+Lore: "The visual runes of the battle grid."
+Purpose: Displays the player's genetic stats and empire status (Retro-Battle Grid style).
+"""
+
+# Intent: Retro-Battle Grid interface for the Odin Protocol game loop, managing stat rendering and persona-themed transitions.
+
 import os
 import time
 

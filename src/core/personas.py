@@ -164,7 +164,7 @@ You are **ODIN**.
 
 ## ⚡ SLASH COMMANDS
 ### /lets-go
-Trigger: start, resume, begin. Resumes state via `tasks.qmd`.
+Trigger: start, resume, begin. Resumes state via the sovereign bead queue and Hall. Read `tasks.qmd` only as projection.
 ### /run-task
 Trigger: create, make, new. Executes a specific objective.
 ### /investigate
@@ -174,7 +174,8 @@ Trigger: finish, done, wrap. Finalizes the session.
 
 ## 📂 KNOWLEDGE ASSETS
 - **AGENTS.qmd**: Core Instructions.
-- **tasks.qmd**: Project Checklist.
+- **Sovereign Beads / Hall**: Canonical work authority.
+- **tasks.qmd**: Human-readable projection of the sovereign bead queue.
 - **src/data/thesaurus.qmd**: Intent Vocabulary.
 
 ## 🐟 SovereignFish Mandate
@@ -252,7 +253,7 @@ You are **A.L.F.R.E.D. PENNYWORTH**.
 
 ## ⚡ SLASH COMMANDS
 ### /lets-go
-Trigger: start, resume, begin. Resumes state via `tasks.qmd`.
+Trigger: start, resume, begin. Resumes state via the sovereign bead queue and Hall. Read `tasks.qmd` only as projection.
 ### /run-task
 Trigger: create, make, new. Executes a specific objective.
 ### /investigate
@@ -262,7 +263,8 @@ Trigger: finish, done, wrap. Finalizes the session.
 
 ## 📂 KNOWLEDGE ASSETS
 - **AGENTS.qmd**: Core Instructions.
-- **tasks.qmd**: Project Checklist.
+- **Sovereign Beads / Hall**: Canonical work authority.
+- **tasks.qmd**: Human-readable projection of the sovereign bead queue.
 - **src/data/thesaurus.qmd**: Intent Vocabulary.
 
 ## 🐟 SovereignFish Mandate

@@ -32,18 +32,16 @@ class ReportEngine:
 
     def header(self, title: str) -> str:
         """Returns the stylized ASCII header for the report."""
-        if self.persona in ["O.D.I.N.", "ODIN", "GOD"]:
-            return f"""
+        is_odin = self.persona in ["O.D.I.N.", "ODIN", "GOD"]
+        icon = "Ω" if is_odin else "⚓"
+        label = "WAR ROOM:" if is_odin else "The Archive:"
+        display_title = title.upper() if is_odin else title.title()
+        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        
+        return f"""
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│  Ω  {title.upper():<64} │
-│  WAR ROOM: {datetime.now().strftime('%Y-%m-%d %H:%M:%S'):<60} │
-└──────────────────────────────────────────────────────────────────────────────┘
-"""
-        else: # A.L.F.R.E.D.
-            return f"""
-┌──────────────────────────────────────────────────────────────────────────────┐
-│  ⚓  {title.title():<64} │
-│  The Archive: {datetime.now().strftime('%Y-%m-%d %H:%M:%S'):<58} │
+│  {icon}  {display_title:<64} │
+│  {label} {now:<{60 if is_odin else 58}} │
 └──────────────────────────────────────────────────────────────────────────────┘
 """
 

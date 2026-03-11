@@ -16,6 +16,7 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 from src.core.sovereign_hud import SovereignHUD
+from src.core.engine.bead_ledger import BeadLedger
 from src.core.mimir_client import mimir
 
 async def consolidated_memory():
@@ -62,62 +63,51 @@ async def consolidated_memory():
         # --- PHASE 2: THE DREAM STATE (Proactive Creation) ---
         SovereignHUD.log("ODIN", "The Forge cools, but the One Mind begins to dream of tomorrow's architecture...")
         
-        # 1. Read the current campaigns and tasks
-        tasks_path = project_root / "tasks.qmd"
-        tasks_content = tasks_path.read_text(encoding="utf-8") if tasks_path.exists() else "No tasks found."
-        
-        # 2. Ask the Oracle to design the next structural leap
-        dream_prompt = (
-            "You are the One Mind of the Corvus Star framework. You are currently in the 'Dream State' (REM Sleep). "
-            "Your mandate is Proactive Creation. Look at the current tasks and campaigns.\n\n"
-            f"TASKS:\n{tasks_content[:3000]}\n\n"
-            "Identify the single most impactful NEXT FEATURE or ARCHITECTURAL SHIFT that is uncompleted. "
-            "Write a concrete implementation plan for it, including the specific files to be created or modified, and a draft of the core logic. "
-            "Format your response as a JSON object with 'feature_name', 'rationale', and 'files' (a list of dicts with 'path' and 'draft_content')."
-        )
-        
-        from src.cstar.core.uplink import AntigravityUplink
-        uplink = AntigravityUplink()
-        response = await uplink.send_payload(dream_prompt, {
-            "persona": "ODIN",
-            "model": "gemini-3-flash-preview",
-            "system_prompt": "Output ONLY valid JSON. No markdown wrappers."
-        })
-        
-        dream_manifested = False
-        staged_dir = project_root / ".agents" / "forge_staged"
-        
-        if response.get("status") == "success":
+        # [Ω] THE DECALOGUE SCRYING
+        # Use qmd-search to find the actual weakest sectors based on PennyOne telemetry
+        qmd_search_script = project_root / ".agents" / "skills" / "qmd_search" / "scripts" / "search.py"
+        weak_sectors = []
+        if qmd_search_script.exists():
+            import subprocess
             try:
-                dream_res = response.get("data", {}).get("raw", "")
-                # Clean potential markdown from the response
-                clean_json = dream_res
-                if "```json" in clean_json:
-                    clean_json = clean_json.split("```json")[1].split("```")[0].strip()
-                elif clean_json.startswith("```"):
-                    clean_json = clean_json.split("```")[1].split("```")[0].strip()
-                elif "{" in clean_json:
-                    clean_json = clean_json[clean_json.find("{"):clean_json.rfind("}")+1]
-                    
-                dream_data = json.loads(clean_json)
-                staged_dir.mkdir(parents=True, exist_ok=True)
-                
-                # Write the Dream Manifesto
-                manifesto_path = staged_dir / "THE_DREAM.md"
-                manifesto_content = f"# 🌙 Muninn's Dream: {dream_data.get('feature_name', 'Unknown')}\n\n"
-                manifesto_content += f"**Rationale:**\n{dream_data.get('rationale', '')}\n\n"
-                manifesto_content += "## ◈ Staged Artifacts\n"
-                
-                for f_data in dream_data.get("files", []):
-                    f_path = staged_dir / Path(f_data['path']).name
-                    f_path.write_text(f_data.get('draft_content', ''), encoding='utf-8')
-                    manifesto_content += f"- `{f_data['path']}` -> Staged at `{f_path.name}`\n"
-                
-                manifesto_path.write_text(manifesto_content, encoding='utf-8')
-                dream_manifested = True
-                SovereignHUD.log("SUCCESS", f"The Dream has crystallized: {dream_data.get('feature_name')}")
+                res = subprocess.run(
+                    [sys.executable, str(qmd_search_script), "--metric", "overall", "--limit", "3"],
+                    capture_output=True, text=True
+                )
+                if res.returncode == 0:
+                    weak_sectors = json.loads(res.stdout)
             except Exception as e:
-                SovereignHUD.log("WARN", f"The Dream was fragmented and lost to the void: {e}")
+                SovereignHUD.log("WARN", f"Scrying failed: {e}")
+
+        dream_manifested = False
+        
+        if weak_sectors:
+            SovereignHUD.log("INFO", f"Muninn identified {len(weak_sectors)} vulnerable sectors for the Sovereign Bead System.")
+            ledger = BeadLedger(project_root)
+            
+            try:
+                for sector in weak_sectors:
+                    filepath = sector.get("path", "Unknown")
+                    score = sector.get("scores", {}).get("overall", 0)
+                    desc = (
+                        f"Evolution bead for {filepath}. Improve the weakest Gungnir sectors and "
+                        f"raise the baseline from {score}."
+                    )
+                    ledger.upsert_bead(
+                        target_path=filepath,
+                        rationale=desc,
+                        contract_refs=[f"file:{filepath}"],
+                        baseline_scores=sector.get("scores", {}),
+                        acceptance_criteria="Improve the canonical Gungnir baseline without regressing logic, style, or sovereignty.",
+                        status="OPEN",
+                    )
+
+                dream_manifested = True
+                SovereignHUD.log("SUCCESS", "The Dream has crystallized into the Sovereign Bead System.")
+            except Exception as e:
+                SovereignHUD.log("WARN", f"Failed to weave beads into the ledger: {e}")
+        else:
+            SovereignHUD.log("INFO", "The matrix is stable. No new dreams forged.")
 
         # --- PHASE 3: MEMORY FORGE (Hippocampus) ---
         memory_path = project_root / ".agents" / "memory.qmd"
@@ -130,7 +120,10 @@ async def consolidated_memory():
             summary += "- **Muninn's Flight:** No autonomous repairs required.\n"
         
         if dream_manifested:
-            summary += f"- **The Dream State:** Proactive architecture staged in `.agents/forge_staged/THE_DREAM.md`.\n"
+            summary += (
+                "- **The Dream State:** A non-authoritative dream proposal was staged in "
+                "`.agents/forge_staged/THE_DREAM.md`; promote it through sovereign beads before execution.\n"
+            )
             
         summary += "- **Sovereignty:** Neural Matrix stabilized and indexed in Mimir's Well.\n"
 

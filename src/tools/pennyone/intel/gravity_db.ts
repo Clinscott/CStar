@@ -2,8 +2,8 @@
 import Database from 'better-sqlite3';
 import path from 'node:path';
 import fs from 'node:fs';
-import { registry } from '../pathRegistry.js';
-import { GitChronograph } from './git_monitor.js';
+import { registry } from '../pathRegistry.ts';
+import { GitChronograph } from './git_monitor.ts';
 
 let db: Database.Database | null = null;
 let currentDbPath: string | undefined;

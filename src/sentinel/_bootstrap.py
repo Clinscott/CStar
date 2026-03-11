@@ -39,10 +39,19 @@ class SovereignBootstrap:
             if env_path.exists():
                 load_dotenv(dotenv_path=env_path)
 
-        # [🔱] ONE MIND ANCHOR: Ensure the agent status is immutable across spokes
+        # [Ω] OPERATION IRONCLAD: Automated Hardening
+        try:
+            from src.tools.vault import SovereignVault
+            vault = SovereignVault()
+            vault.auto_shield()
+        except Exception: pass
+
+        # [🔱] ONE MIND ANCHOR: Ensure host-session state is immutable across spokes
         import os
         if os.getenv("GEMINI_CLI_ACTIVE") == "true":
             os.environ["GEMINI_CLI_ACTIVE"] = "true"
+        if os.getenv("CODEX_SHELL") == "1":
+            os.environ["CODEX_SHELL"] = "1"
 
         _BOOTSTRAPPED = True
 

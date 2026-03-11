@@ -1,82 +1,184 @@
 import { Command } from 'commander';
-import { parse, join } from 'node:path';
-import fs from 'node:fs';
-import { execa } from 'execa';
+import { RuntimeDispatcher } from '../runtime/dispatcher.ts';
+import {
+    ChantWeavePayload,
+    DynamicCommandPayload,
+    EvolveWeavePayload,
+    RuntimeDispatchPort,
+    TaliesinForgeWeavePayload,
+    WeaveInvocation,
+} from '../runtime/contracts.ts';
+import { resolveWorkspaceRoot, withCliWorkspaceTarget, type WorkspaceRootSource } from '../runtime/invocation.ts';
+
+export function buildDynamicCommandInvocation(
+    command: string,
+    args: string[],
+    projectRoot: string,
+    cwd: string = process.cwd(),
+): WeaveInvocation<DynamicCommandPayload | ChantWeavePayload | EvolveWeavePayload | TaliesinForgeWeavePayload> {
+    if (command.toLowerCase() === 'chant') {
+        return buildChantInvocation(args, projectRoot, cwd);
+    }
+    if (command.toLowerCase() === 'evolve') {
+        return buildEvolveInvocation(args, projectRoot, cwd);
+    }
+    if (command.toLowerCase() === 'forge') {
+        return buildTaliesinForgeInvocation(args, projectRoot, cwd);
+    }
+
+    return withCliWorkspaceTarget({
+        weave_id: 'weave:dynamic-command',
+        payload: {
+            command: command.toLowerCase(),
+            args,
+            project_root: projectRoot,
+            cwd,
+        },
+    }, projectRoot, cwd);
+}
+
+export function buildChantInvocation(
+    args: string[],
+    projectRoot: string,
+    cwd: string = process.cwd(),
+    sessionId?: string,
+): WeaveInvocation<ChantWeavePayload> {
+    const invocation = withCliWorkspaceTarget<ChantWeavePayload>({
+        weave_id: 'weave:chant',
+        payload: {
+            query: args.join(' ').trim(),
+            project_root: projectRoot,
+            cwd,
+            source: 'cli',
+        },
+    }, projectRoot, cwd);
+
+    if (sessionId) {
+        return {
+            ...invocation,
+            session: {
+                mode: invocation.session?.mode ?? 'cli',
+                interactive: invocation.session?.interactive ?? true,
+                session_id: sessionId,
+            },
+        };
+    }
+
+    return invocation;
+}
+
+export function buildEvolveInvocation(
+    args: string[],
+    projectRoot: string,
+    cwd: string = process.cwd(),
+): WeaveInvocation<EvolveWeavePayload> {
+    const payload: EvolveWeavePayload = {
+        action: 'propose',
+        project_root: projectRoot,
+        cwd,
+        source: 'cli',
+        simulate: true,
+    };
+
+    for (let index = 0; index < args.length; index += 1) {
+        const token = args[index];
+        if (token === '--bead-id' && args[index + 1]) {
+            payload.bead_id = args[index + 1];
+            index += 1;
+            continue;
+        }
+        if (token === '--proposal-id' && args[index + 1]) {
+            payload.proposal_id = args[index + 1];
+            index += 1;
+            continue;
+        }
+        if (token === '--promote') {
+            payload.action = 'promote';
+            continue;
+        }
+        if (token === '--dry-run') {
+            payload.dry_run = true;
+            continue;
+        }
+        if (token === '--no-simulate') {
+            payload.simulate = false;
+            continue;
+        }
+        if (token === '--focus-axis' && args[index + 1]) {
+            payload.focus_axes = [...(payload.focus_axes ?? []), args[index + 1]];
+            index += 1;
+            continue;
+        }
+        if (token === '--validation-profile' && args[index + 1]) {
+            payload.validation_profile = args[index + 1];
+            index += 1;
+        }
+    }
+
+    return withCliWorkspaceTarget({
+        weave_id: 'weave:evolve',
+        payload,
+    }, projectRoot, cwd);
+}
+
+export function buildTaliesinForgeInvocation(
+    args: string[],
+    projectRoot: string,
+    cwd: string = process.cwd(),
+): WeaveInvocation<TaliesinForgeWeavePayload> {
+    const payload: TaliesinForgeWeavePayload = {
+        project_root: projectRoot,
+        cwd,
+        source: 'cli',
+    };
+
+    for (let index = 0; index < args.length; index += 1) {
+        const token = args[index];
+        if (token === '--bead-id' && args[index + 1]) {
+            payload.bead_id = args[index + 1];
+            index += 1;
+            continue;
+        }
+        if (token === '--persona' && args[index + 1]) {
+            payload.persona = args[index + 1];
+            index += 1;
+            continue;
+        }
+        if (token === '--model' && args[index + 1]) {
+            payload.model = args[index + 1];
+            index += 1;
+        }
+    }
+
+    return withCliWorkspaceTarget({
+        weave_id: 'weave:taliesin-forge',
+        payload,
+    }, projectRoot, cwd);
+}
 
 /**
  * [GUNGNIR] Dispatcher Spoke
- * Purpose: Handle dynamic workflow and skill discovery via Python Dispatcher.
+ * Purpose: Thin shell for runtime-backed dynamic workflow and skill discovery.
  * @param program
  * @param PROJECT_ROOT
  */
-export function registerDispatcher(program: Command, PROJECT_ROOT: string) {
-    const discoverAll = (): Map<string, string> => {
-        const commands = new Map<string, string>();
-        
-        // 1. Python Skills (.py)
-        const scriptDirs = [
-            join(PROJECT_ROOT, '.agents', 'skills'),
-            join(PROJECT_ROOT, 'src', 'tools'),
-            join(PROJECT_ROOT, 'src', 'skills', 'local'),
-            join(PROJECT_ROOT, 'skills_db'),
-            join(PROJECT_ROOT, 'src', 'sentinel'),
-            join(PROJECT_ROOT, 'scripts'),
-        ];
+export function registerDispatcher(
+    program: Command,
+    projectRootSource: WorkspaceRootSource,
+    dispatchPort: RuntimeDispatchPort = RuntimeDispatcher.getInstance(),
+) {
+    program.on('command:*', async (operands: string[]) => {
+        const [cmd, ...args] = operands;
+        const projectRoot = resolveWorkspaceRoot(projectRootSource);
+        const result = await dispatchPort.dispatch(buildDynamicCommandInvocation(cmd, args, projectRoot, process.cwd()));
 
-        scriptDirs.forEach(d => {
-            if (fs.existsSync(d)) {
-                const entries = fs.readdirSync(d, { withFileTypes: true });
-                entries.forEach(entry => {
-                    if (entry.isFile() && entry.name.endsWith('.py') && !entry.name.startsWith('_')) {
-                        const name = parse(entry.name).name;
-                        commands.set(name.toLowerCase(), join(d, entry.name));
-                    } else if (entry.isDirectory() && !entry.name.startsWith('.')) {
-                        const scriptsDir = join(d, entry.name, 'scripts');
-                        const mainScript = join(scriptsDir, `${entry.name}.py`);
-                        if (fs.existsSync(mainScript)) {
-                            commands.set(entry.name.toLowerCase(), mainScript);
-                        } else {
-                            // Legacy/Alternative check: dir/name.py
-                            const altScript = join(d, entry.name, `${entry.name}.py`);
-                            if (fs.existsSync(altScript)) {
-                                commands.set(entry.name.toLowerCase(), altScript);
-                            }
-                        }
-                    }
-                });
-            }
-        });
-
-        // 2. Workflows (.md / .qmd)
-        const workflowDir = join(PROJECT_ROOT, '.agents', 'workflows');
-        if (fs.existsSync(workflowDir)) {
-            fs.readdirSync(workflowDir).forEach(f => {
-                if ((f.endsWith('.md') || f.endsWith('.qmd')) && !f.startsWith('_')) {
-                    const name = parse(f).name;
-                    commands.set(name.toLowerCase(), join(workflowDir, f));
-                }
-            });
+        if (result.status === 'FAILURE') {
+            console.error(result.error ?? `Unknown command '${cmd}'`);
+            process.exit(1);
         }
 
-        return commands;
-    };
-
-    program.on('command:*', async (operands: string[]) => {
-        const cmd = operands[0].toLowerCase();
-        const allCmds = discoverAll();
-
-        if (allCmds.has(cmd)) {
-            try {
-                const pythonPath = join(PROJECT_ROOT, '.venv', 'Scripts', 'python.exe');
-                const dispatcherPath = join(PROJECT_ROOT, 'src', 'core', 'cstar_dispatcher.py');
-                await execa(pythonPath, [dispatcherPath, ...process.argv.slice(2)], {
-                    stdio: 'inherit',
-                    env: { ...process.env, PYTHONPATH: PROJECT_ROOT }
-                });
-            } catch (err) { }
-        } else {
-            console.error(`Unknown command '${cmd}'`);
-            process.exit(1);
+        if (result.weave_id !== 'weave:dynamic-command' && result.output) {
+            console.log(result.output);
         }
     });
 }

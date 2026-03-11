@@ -7,6 +7,7 @@ Purpose: Handle proactive actions like auto-installation and forge suggestions.
 import sys
 import subprocess
 from pathlib import Path
+from src.core.engine.bead_ledger import BeadLedger
 from src.core.sovereign_hud import SovereignHUD
 from src.core.engine.cortex import Cortex
 
@@ -26,24 +27,24 @@ class SovereignExecutor:
                 subprocess.run(command, shell=True, cwd=str(self.project_root))  # noqa: S602
 
     def suggest_forge(self, query: str) -> None:
-        """Autonomously triggers JIT Skill Forging if no good match is found."""
+        """Capture low-confidence forge intent as triage instead of generating code directly."""
         if len(query.split()) < 2:
             return
 
-        msg = f"Raven's Insight: No existing skill matches '{query}'. Igniting the Forge..."
-        SovereignHUD.persona_log("INFO", msg)
-        
-        from src.core.engine.skill_forger import SkillForger
-        forger = SkillForger(self.project_root)
-        
-        # We run this sync or handle event loop since we are in sync land here
-        import asyncio
-        try:
-            asyncio.run(forger.sv_forge_skill(query))
-        except RuntimeError:
-            # If loop already running
-            loop = asyncio.get_event_loop()
-            loop.run_until_complete(forger.sv_forge_skill(query))
+        ledger = BeadLedger(self.project_root)
+        bead = ledger.upsert_bead(
+            rationale=f"Review low-confidence forge intent: {query}",
+            status="NEEDS_TRIAGE",
+            source_kind="SYSTEM",
+            triage_reason=(
+                "Freeform forge bypass retired. Add an explicit target path, contract refs, and acceptance criteria "
+                "before invoking TALIESIN."
+            ),
+        )
+        SovereignHUD.persona_log(
+            "WARN",
+            f"Forge bypass retired. Captured '{query}' as triage bead {bead.id}.",
+        )
 
     def handle_cortex_query(self, query: str) -> None:
         """Direct search against the Knowledge Graph."""

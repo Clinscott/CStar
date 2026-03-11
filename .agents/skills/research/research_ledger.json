@@ -1,0 +1,156 @@
+{
+  "experiments": [
+    {
+      "timestamp": 1772941225.0513434,
+      "target": "scripts\\research_sv_engine.py",
+      "hypothesis": "Baseline performance for sv_engine search latency",
+      "status": "FAILED",
+      "duration": 7.09,
+      "metric": null
+    },
+    {
+      "timestamp": 1772941236.1533086,
+      "target": "scripts\\research_sv_engine.py",
+      "hypothesis": "Baseline performance for sv_engine search latency",
+      "status": "FAILED",
+      "duration": 2.73,
+      "metric": null
+    },
+    {
+      "timestamp": 1772941265.9236329,
+      "target": "scripts\\research_sv_engine.py",
+      "hypothesis": "Baseline performance for SovereignEngine search latency",
+      "status": "SUCCESS",
+      "duration": 12.33,
+      "metric": 0.007373
+    },
+    {
+      "timestamp": 1772941348.942563,
+      "target": "scripts\\research_sv_engine.py",
+      "hypothesis": "Optimization 1: Inverted synonym index for O(1) reverse lookup",
+      "status": "SUCCESS",
+      "duration": 11.54,
+      "metric": 0.008545
+    },
+    {
+      "timestamp": 1772941370.3725755,
+      "target": "scripts\\research_sv_engine.py",
+      "hypothesis": "Optimization 2: Cached target tokens in score_intent",
+      "status": "SUCCESS",
+      "duration": 9.33,
+      "metric": 0.005921
+    },
+    {
+      "timestamp": 1772941390.2030818,
+      "target": "scripts\\research_sv_engine.py",
+      "hypothesis": "Optimization 3: Normalization caching",
+      "status": "SUCCESS",
+      "duration": 9.55,
+      "metric": 0.0065
+    },
+    {
+      "timestamp": 1772941405.803012,
+      "target": "scripts\\research_sv_engine.py",
+      "hypothesis": "Optimization 4: In-place dictionary updates for cache persistence",
+      "status": "SUCCESS",
+      "duration": 8.3,
+      "metric": 0.005256
+    },
+    {
+      "timestamp": 1772985747.5956068,
+      "target": "C:\\Users\\Craig\\Corvus\\CorvusStar\\scripts\\research_sv_engine.py",
+      "hypothesis": "Dynamic optimization strike",
+      "status": "FAILED",
+      "duration": 6.69,
+      "metric": null
+    },
+    {
+      "timestamp": 1772985868.29963,
+      "target": "C:\\Users\\Craig\\Corvus\\CorvusStar\\scripts\\research_sv_engine.py",
+      "hypothesis": "Dynamic optimization strike",
+      "status": "FAILED",
+      "duration": 5.2,
+      "metric": null
+    },
+    {
+      "timestamp": 1772985950.311266,
+      "target": "C:\\Users\\Craig\\Corvus\\CorvusStar\\scripts\\research_sv_engine.py",
+      "hypothesis": "Dynamic optimization strike",
+      "status": "FAILED",
+      "duration": 3.88,
+      "metric": null
+    },
+    {
+      "timestamp": 1772986101.3693984,
+      "target": "C:\\Users\\Craig\\Corvus\\CorvusStar\\scripts\\research_sv_engine.py",
+      "hypothesis": "Dynamic optimization strike",
+      "status": "FAILED",
+      "duration": 3.95,
+      "metric": null
+    },
+    {
+      "timestamp": 1772986214.0250876,
+      "target": "C:\\Users\\Craig\\Corvus\\CorvusStar\\scripts\\research_sv_engine.py",
+      "hypothesis": "Dynamic optimization strike",
+      "status": "FAILED",
+      "duration": 4.02,
+      "metric": null
+    },
+    {
+      "timestamp": 1772986435.8613267,
+      "target": "C:\\Users\\Craig\\Corvus\\CorvusStar\\scripts\\research_sv_engine.py",
+      "hypothesis": "Dynamic optimization strike",
+      "status": "FAILED",
+      "duration": 4.49,
+      "metric": null
+    },
+    {
+      "timestamp": 1772986542.8979707,
+      "target": "C:\\Users\\Craig\\Corvus\\CorvusStar\\scripts\\research_sv_engine.py",
+      "hypothesis": "Dynamic optimization strike",
+      "status": "FAILED",
+      "duration": 4.06,
+      "metric": null
+    },
+    {
+      "timestamp": 1772986696.6765013,
+      "target": "C:\\Users\\Craig\\Corvus\\CorvusStar\\scripts\\research_sv_engine.py",
+      "hypothesis": "Dynamic optimization strike",
+      "status": "FAILED",
+      "duration": 3.91,
+      "metric": null
+    },
+    {
+      "timestamp": 1772991579.0547605,
+      "target": "C:\\Users\\Craig\\Corvus\\CorvusStar\\scripts\\research_sv_engine.py",
+      "hypothesis": "Dynamic optimization strike",
+      "status": "FAILED",
+      "duration": 4.2,
+      "metric": null
+    },
+    {
+      "timestamp": 1772991805.095911,
+      "target": "C:\\Users\\Craig\\Corvus\\CorvusStar\\scripts\\research_sv_engine.py",
+      "hypothesis": "Dynamic optimization strike",
+      "status": "FAILED",
+      "duration": 3.97,
+      "metric": null
+    },
+    {
+      "timestamp": 1772992023.9878733,
+      "target": "C:\\Users\\Craig\\Corvus\\CorvusStar\\scripts\\research_sv_engine.py",
+      "hypothesis": "Dynamic optimization strike",
+      "status": "FAILED",
+      "duration": 4.08,
+      "metric": null
+    }
+  ],
+  "global_best": {
+    "timestamp": 1772941405.803012,
+    "target": "scripts\\research_sv_engine.py",
+    "hypothesis": "Optimization 4: In-place dictionary updates for cache persistence",
+    "status": "SUCCESS",
+    "duration": 8.3,
+    "metric": 0.005256
+  }
+}

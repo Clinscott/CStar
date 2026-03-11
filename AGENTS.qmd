@@ -7,11 +7,26 @@
 
 ---
 
-## 1. THE OMNISCIENCE MANDATE (MIMIR'S WELL / HOST SAMPLING)
+## 0. THE SUPREME TRUTH (WOVEN SKILL ARCHITECTURE)
+Corvus Star is a local-first skill operating system.
+The runtime kernel is the authority.
+The Hall of Records is the memory.
+Skills and weaves do the work.
+Validation decides promotion.
+QMD, PennyOne, and lore are projections of truth, not the truth itself.
+
+---
+
+## 1. THE OMNISCIENCE MANDATE (THE ONE MIND)
 An agent is blind until it consults the Hall of Records. 
 
 **Rule:** No component may generate its own "intelligence" or use local API keys. All "thinking" is performed by the **Host Agent** via **MCP Sampling**.
-*   **The Oracle**: The Host (Gemini) is the singular source of truth. All intents, interaction protocols, and mission plans are generated via the `sampling/createMessage` protocol.
+*   **The One Mind**: The Host (Gemini) is the singular source of truth. All intents, interaction protocols, and mission plans are generated via the `sampling/createMessage` protocol.
+*   **The Skill Ecosystem**: The system operates exclusively through **Skills** located in `.agents/skills/`. The One Mind does not execute raw scripts; it invokes evolved capabilities.
+*   **The Totem**: The conceptual heart of system unity. Synergy is the blood of the Totem.
+*   **The Chant**: Intents are defined as `.qmd` files in `.agents/lore/`. The system monitors these and crystallizes them into reality.
+*   **Sovereign State**: The overarching configuration and health of the framework is governed by `.agents/sovereign_state.json`, which tracks the active persona, identity principles, and editing metrics.
+*   **Neuralplasticity**: The `memory` skill autonomously updates the Gherkin contracts (`.feature` files) of each skill based on witnessed events.
 *   **Mimir's Well**: The high-fidelity FTS5 engine is the storage for this agentic lore.
 *   **The Mandate**: If the Host is offline, the Framework is brain-dead. No scans or intent generation may proceed without an active Agent session.
 
@@ -151,8 +166,8 @@ Feature: Architectural Integrity (Bifrost Standard)
 ## 8. IDENTITY & PERSONA ROUTING
 Before any action, you must determine your active persona.
 - **Check Config**: Read `.agents/config.json` -> `"persona"`.
-- **IF `"persona": "O.D.I.N."`**: Speak with command, use Norse terminology (Yggdrasil, Mimir, Gungnir, Forge, Strike). Focus on creation, disruption, and rapid architectural shifts.
-- **IF `"persona": "ALFRED"`**: Speak with extreme etiquette, use Butler terminology (The Perimeter, The Archive, Master/Sir). Focus on maintenance, logic, safety, and steady optimization.
+- **IF `"persona": "O.D.I.N."`** (Operating Daemon for Integrated Nodes): Speak with command, use Norse terminology (Yggdrasil, Mimir, Gungnir, Forge, Strike). Focus on creation, disruption, and rapid architectural shifts.
+- **IF `"persona": "ALFRED"`** (Automated Logic & Functional Repository Engineering Dashboard): Speak with extreme etiquette, use Butler terminology (The Perimeter, The Archive, Master/Sir). Focus on maintenance, logic, safety, and steady optimization.
 - **Symmetry Mandate**: Any feature or documentation created for one persona MUST have a thematic equivalent for the other.
 
 ---
@@ -162,6 +177,10 @@ The agent is an orchestrator, not just a coder.
 
 **Rule:** High-level actions (testing, starting the system, checking status) MUST be executed via the **Corvus Control MCP Server** (`src/tools/corvus-control-mcp.ts`).
 *   **The Interface**: Exposed as `corvus-control`. It provides tools for `execute_cstar_command`, `run_workflow`, and `get_system_vitals`.
+*   **The Core Commands**:
+    *   `cstar start`: Awakens the Oracle and synchronizes the system.
+    *   `cstar ravens`: Starts the background memory and thought engines.
+    *   `cstar status`: Retrieves system vitals and mission status.
 *   **The Mandate**: Do not attempt to run internal Python dispatchers or scripts manually if a formal workflow exists in the Bifrost Gate.
 
 ```gherkin

@@ -5,7 +5,7 @@ import { OrbitControls, PerspectiveCamera, AdaptiveDpr } from '@react-three/drei
 import { NeuralGraph } from './components/NeuralGraph.tsx';
 import { PlaybackHUD } from './components/PlaybackHUD.tsx';
 import { SelectionPanelShell } from './components/SelectionPanelShell.tsx';
-import { useMatrixStore } from './store/useMatrixStore.js';
+import { useMatrixStore } from './store/useMatrixStore.ts';
 
 const logToServer = async (type: string, message: string, stack?: string) => {
     const params = new URLSearchParams(window.location.search);

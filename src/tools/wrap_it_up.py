@@ -46,11 +46,9 @@ class SovereignWrapper:
     def release_ravens(self):
         """Step 2: Ravens are set free to work in system."""
         SovereignHUD.box_top("STEP 2: RELEASE THE RAVENS")
-        SovereignHUD.persona_log("ODIN", "Releasing the Ravens into the matrix...")
+        SovereignHUD.persona_log("ODIN", "Running a one-shot Ravens sweep through the kernel...")
         npx_cmd = "npx.cmd" if os.name == 'nt' else "npx"
         try:
-            # We run Muninn as a one-shot or a short cycle for this wrap-up
-            # Using the 'ravens start' command which is detached
             subprocess.run([npx_cmd, "tsx", "cstar.ts", "ravens", "start"], cwd=str(self.root), check=True)
             SovereignHUD.box_row("STATUS", "RELEASED", SovereignHUD.GREEN)
         except subprocess.CalledProcessError as e:
@@ -58,29 +56,9 @@ class SovereignWrapper:
         SovereignHUD.box_bottom()
 
     def wait_for_ravens(self):
-        """Step 3: Wait for Ravens to finish their flight."""
+        """Step 3: Kernel sweeps are synchronous, so no PID polling is required."""
         SovereignHUD.box_top("STEP 3: RAVEN FLIGHT MONITOR")
-        SovereignHUD.persona_log("INFO", "Monitoring Raven flight path. Waiting for landing...")
-        
-        muninn_pid_path = self.root / ".agents" / "muninn.pid"
-        start_wait = time.time()
-        timeout = 600 # 10 minutes for this orchestrated run
-        
-        while muninn_pid_path.exists() and (time.time() - start_wait < timeout):
-            # Check every 10 seconds
-            time.sleep(10)
-            
-        if muninn_pid_path.exists():
-            SovereignHUD.persona_log("WARN", "Ravens are lingering. Recalling manually...")
-            try:
-                pid = int(muninn_pid_path.read_text().strip())
-                if os.name == 'nt':
-                    subprocess.run(["taskkill", "/F", "/PID", str(pid)], capture_output=True)
-                else:
-                    os.kill(pid, 9)
-                muninn_pid_path.unlink()
-            except: pass
-        
+        SovereignHUD.persona_log("INFO", "Ravens now return when the one-shot kernel sweep completes.")
         SovereignHUD.persona_log("SUCCESS", "Muninn is done flying.")
         SovereignHUD.box_bottom()
 

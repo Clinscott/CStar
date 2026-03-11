@@ -11,15 +11,13 @@ declare module 'fastify' {
 const corvusPlugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     const corvus = new CorvusProcess();
 
-    // Lifecycle: Boot once the server is ready
     fastify.addHook('onReady', async () => {
-        fastify.log.info('🔱 Initializing Gungnir Matrix...');
+        fastify.log.info('🔱 Initializing Corvus kernel bridge...');
         await corvus.boot();
     });
 
-    // Lifecycle: Graceful Shutdown
     fastify.addHook('onClose', async (instance) => {
-        instance.log.warn('⚠️ Shutting down Corvus Gateway. Severing Uplink...');
+        instance.log.warn('⚠️ Shutting down Corvus Gateway. Releasing kernel bridge...');
         await corvus.terminate();
     });
 

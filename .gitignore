@@ -49,3 +49,19 @@ gha-creds-*.json
 
 # [TALIESIN] Lore Corpus
 .lore/
+
+# Runtime artifacts and local state
+.agents/.agents/
+.agents/chroma_db/
+.agents/exchange/
+.agents/muninn.pid
+.agents/synapse.db
+.agents/vault/
+.agents/warden.pkl
+.pytest_gungnir_out.txt
+.stats/*.db
+.stats/*.pid
+.stats/matrix-graph.json
+**/.stats/
+src/tools/pennyone/vis/components/.stats/
+tests/tmp_memory_*/

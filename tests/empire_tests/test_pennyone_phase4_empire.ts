@@ -53,7 +53,14 @@ describe('PennyOne Phase 4: Watcher Delta Integration', async () => {
             if (type === 'NODE_UPDATED') broadcastPayload = payload;
         };
 
-        const watcher = startWatcher(testDir, relay);
+        const watcher = startWatcher(testDir, relay, async () => [
+            {
+                path: testFile,
+                loc: 2,
+                matrix: { overall: 5 },
+                intent: 'Updated intent',
+            } as any,
+        ]);
 
         // Chokidar needs a moment to stabilize
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -74,7 +81,7 @@ describe('PennyOne Phase 4: Watcher Delta Integration', async () => {
         }
     });
 
-    it('should signal GRAPH_REBUILT on file addition', async () => {
+    it('should signal MATRIX_UPDATED on file addition', async () => {
         const testDir = path.resolve(process.cwd(), 'temp_add_repo');
         await fs.mkdir(testDir, { recursive: true });
 
@@ -82,11 +89,14 @@ describe('PennyOne Phase 4: Watcher Delta Integration', async () => {
         const relay = new SubspaceRelay(httpServer);
 
         let rebuiltSignaled = false;
-        relay.broadcast = (type) => {
-            if (type === 'GRAPH_REBUILT') rebuiltSignaled = true;
+        relay.broadcast = (type, payload) => {
+            if (type === 'MATRIX_UPDATED') {
+                rebuiltSignaled = true;
+                assert.deepStrictEqual(payload, { source: 'watcher:structural-shift' });
+            }
         };
 
-        const watcher = startWatcher(testDir, relay);
+        const watcher = startWatcher(testDir, relay, async () => []);
         await new Promise(resolve => setTimeout(resolve, 500));
 
         // Add file
@@ -95,7 +105,7 @@ describe('PennyOne Phase 4: Watcher Delta Integration', async () => {
         await new Promise(resolve => setTimeout(resolve, 1000));
 
         try {
-            assert.ok(rebuiltSignaled, 'Should have signaled graph rebuild');
+            assert.ok(rebuiltSignaled, 'Should have signaled matrix update');
         } finally {
             await watcher.close();
             await fs.rm(testDir, { recursive: true, force: true });

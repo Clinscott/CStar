@@ -1,6 +1,7 @@
 ---
 description: Performs a deep analytical dive into a specific aspect of the application to ensure quality, correct interaction, and functionality.
 ---
+# Intent: Analyze code, debug failure, fix latency, investigate security, check bug, scrutinize leak, login check, check crash.
 
 # Investigate Workflow
 

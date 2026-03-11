@@ -26,8 +26,22 @@ def main():
     if args.dream:
         print(f"[🔱] Dreaming of {args.dream}...")
         dream_path.parent.mkdir(parents=True, exist_ok=True)
-        dream_path.write_text(f"# 🌙 THE DREAM: {args.dream}\n\n[ALFRED]: Proactive architecture staged.", encoding='utf-8')
-        print(f"[ALFRED]: The dream is staged at {dream_path.relative_to(PROJECT_ROOT)}")
+        dream_path.write_text(
+            "\n".join(
+                [
+                    "---",
+                    'status: "staging"',
+                    'authoritative_source: "hall_beads"',
+                    "---",
+                    f"# 🌙 THE DREAM: {args.dream}",
+                    "",
+                    "[ALFRED]: This dream is a staged proposal only.",
+                    "Promote it by normalizing the idea into sovereign beads or Hall records.",
+                ]
+            ),
+            encoding='utf-8',
+        )
+        print(f"[ALFRED]: The dream proposal is staged at {dream_path.relative_to(PROJECT_ROOT)}")
 
     if args.anchor_session:
         print("[🔱] Anchoring session achievements...")

@@ -1,0 +1,422 @@
+---
+title: "Chant and Evolve Woven Mapping"
+date: 2026-03-09
+status: active
+---
+
+# Chant and Evolve Woven Mapping
+
+## Purpose
+
+This note maps `chant` and `evolve` into the target Corvus Star woven-skill architecture.
+
+It also makes one architectural decision explicit:
+
+`evolve` is not a workflow-only surface.
+`evolve` must become a first-class skill in the authority graph.
+
+## Current State
+
+### `chant`
+
+Current live surface:
+
+- Skill package at `.agents/skills/chant/`
+- Contract file at `.agents/skills/chant/chant.feature`
+- Implementation at `.agents/skills/chant/scripts/chant.py`
+
+Current behavior:
+
+- accepts a natural-language chant
+- asks the One Mind for a plan
+- maps required skills
+- invokes `ritual`, `memory`, `hunt`, and other skills
+- executes the resulting flight path through the legacy Python dispatcher
+
+### `evolve`
+
+Current live surface:
+
+- Workflow at `.agents/workflows/evolve.md`
+- Staged workflow copy at `.agents/forge_staged/evolve.md`
+
+Current behavior:
+
+- reads open evolutionary beads from `.stats/pennyone.db`
+- identifies a target and baseline weakness
+- performs a code change
+- runs validation and SPRT
+- updates Gherkin contracts
+- marks the bead resolved
+
+Current problem:
+
+`evolve` is important enough to be an execution authority surface, but today it is only represented as a workflow document.
+
+That is the wrong shape for the target system.
+
+## Target Classification
+
+### `chant`
+
+`chant` becomes a first-class weave skill.
+
+Role:
+
+- intent router
+- plan generator
+- bounded mission launcher
+
+What it is not:
+
+- not a raw script router
+- not a hidden Python control plane
+- not a place where business logic bypasses the runtime kernel
+
+### `evolve`
+
+`evolve` becomes a first-class weave skill.
+
+Role:
+
+- bead-driven optimization executor
+- validation-aware change loop
+- contract proposal and promotion initiator
+
+What it is not:
+
+- not a markdown-only workflow
+- not an ad hoc batch script
+- not a side channel for self-modification outside Hall, validation, and contract gates
+
+## Canonical Runtime Position
+
+Both surfaces should sit inside the same authority model:
+
+`CLI or chant file -> runtime dispatcher -> named weave skill -> leaf skills -> validation -> Hall -> projections`
+
+That means:
+
+- `chant` is the front-door intent weave
+- `evolve` is the front-door optimization weave
+- both are invoked through the runtime dispatcher
+- both emit canonical Hall records
+- neither owns hidden state outside the authority model
+
+## Proposed Authority Layout
+
+### `chant`
+
+Canonical package:
+
+- `.agents/skills/chant/SKILL.md`
+- `.agents/skills/chant/chant.feature`
+- `.agents/skills/chant/contract.json`
+- `.agents/skills/chant/scripts/chant.py` during transition
+
+Target runtime identity:
+
+- skill id: `chant`
+- weave name: `intent.chant`
+
+### `evolve`
+
+Canonical package:
+
+- `.agents/skills/evolve/SKILL.md`
+- `.agents/skills/evolve/evolve.feature`
+- `.agents/skills/evolve/contract.json`
+- `.agents/skills/evolve/scripts/evolve.py` or runtime adapter during transition
+
+Target runtime identity:
+
+- skill id: `evolve`
+- weave name: `change.evolve`
+
+## Runtime Contract Shape
+
+### `chant` invocation
+
+Suggested payload:
+
+```json
+{
+  "skill_id": "chant",
+  "intent_source": "cli|lore_file|hall_record",
+  "query": "scan this repository and identify the next highest value bead",
+  "target_path": ".",
+  "persona": "ALFRED",
+  "constraints": {
+    "allow_hunt": true,
+    "allow_execution": true,
+    "dry_run": false
+  }
+}
+```
+
+Suggested result envelope:
+
+- normalized intent
+- selected plan or weave
+- emitted beads
+- invoked child skills
+- validation or failure summary
+- Hall record ids
+
+### `evolve` invocation
+
+Suggested payload:
+
+```json
+{
+  "skill_id": "evolve",
+  "bead_id": "BEAD-123",
+  "target_path": "src/node/core/runtime/dispatcher.ts",
+  "baseline_score": 71.4,
+  "focus_axes": ["logic", "intel", "evolution"],
+  "contracts": [
+    ".agents/skills/evolve/evolve.feature"
+  ],
+  "validation_profile": {
+    "run_tests": true,
+    "run_sprt": true,
+    "promote_on_success": false
+  }
+}
+```
+
+Suggested result envelope:
+
+- claimed bead id
+- code change summary
+- before and after Gungnir metrics
+- validation verdict
+- SPRT verdict
+- contract proposal ids
+- promotion decision
+- Hall record ids
+
+## Internal Composition
+
+### `chant` as a weave skill
+
+`chant` should orchestrate, not improvise.
+
+Recommended internal composition:
+
+1. decode intent
+2. resolve candidate weave or skill set
+3. normalize payload
+4. record intent in Hall
+5. dispatch child weave or skills
+6. collect outcome
+7. emit summary projection
+
+Expected child skills or adapters:
+
+- `one-mind`
+- `hunt`
+- `memory`
+- `report`
+- `ritual`
+- `scan`
+- `norn`
+
+### `evolve` as a weave skill
+
+`evolve` should be the bounded improvement loop.
+
+Recommended internal composition:
+
+1. claim bead
+2. read Hall baseline and target contracts
+3. formulate improvement hypothesis
+4. invoke forge or refactor subskill
+5. run tests
+6. run SPRT and Gungnir validation
+7. write observations
+8. create contract proposal
+9. resolve or requeue bead
+
+Expected child skills or adapters:
+
+- `forge`
+- `taliesin`
+- `sprt`
+- `memory`
+- `promotion`
+- `metrics`
+- `trace`
+
+## Hall of Records Responsibilities
+
+### `chant`
+
+`chant` must write:
+
+- intent record
+- resolved flight path
+- selected weave id
+- execution trace
+- emitted bead ids if any
+
+### `evolve`
+
+`evolve` must write:
+
+- bead claim and bead resolution
+- before and after score records
+- validation run record
+- SPRT verdict
+- contract observation
+- contract proposal
+- promotion outcome
+
+## Projection Responsibilities
+
+### QMD
+
+QMD should project:
+
+- chant mission summaries
+- evolve mission summaries
+- bead rationale
+- improvement narratives
+
+QMD should not be the execution authority.
+
+### PennyOne
+
+PennyOne should project:
+
+- chant-generated bead flows
+- evolve trajectory deltas
+- file-level before and after matrix shifts
+- promotion and failure patterns
+
+PennyOne should not infer truth from raw workflow files.
+
+## Transitional Mapping From Current Repo
+
+### `chant`
+
+Current implementation to keep:
+
+- natural-language intent decoding goal
+- skill mapping goal
+- mission feedback loop
+
+Current implementation to demote:
+
+- direct subprocess routing to `src/core/cstar_dispatcher.py`
+- hidden execution inside the Python dispatcher
+- direct skill existence logic as authority
+
+Transitional move:
+
+- keep `chant.py` as an adapter
+- place all dispatch authority in the runtime kernel
+- make `chant.py` consume the canonical invocation and return the canonical result
+
+### `evolve`
+
+Current implementation to keep:
+
+- bead-first execution model
+- validation and SPRT gate
+- contract update loop
+
+Current implementation to demote:
+
+- workflow markdown as the only execution surface
+- direct DB reads as local script authority
+- implicit mutation without a contract proposal boundary
+
+Transitional move:
+
+- forge `.agents/skills/evolve/`
+- keep `evolve.md` only as a human-readable projection or operator guide
+- move execution into a real skill entrypoint invoked by the runtime dispatcher
+
+## Command Surface
+
+### `chant`
+
+Preferred command semantics:
+
+- `cstar chant "<query>"`
+- `cstar run-skill chant --params ...`
+
+Command responsibility:
+
+- parse query
+- build `SkillInvocation`
+- dispatch to runtime
+
+### `evolve`
+
+Preferred command semantics:
+
+- `cstar evolve --bead <id>`
+- `cstar run-skill evolve --params ...`
+
+Command responsibility:
+
+- parse bead or target options
+- build `SkillInvocation`
+- dispatch to runtime
+
+## Contract Boundary
+
+### `chant`
+
+Success means:
+
+- intent was normalized
+- bounded execution path was selected
+- outcome was recorded
+
+Failure means:
+
+- unresolved intent
+- missing required capability
+- child execution failure
+
+### `evolve`
+
+Success means:
+
+- bead was processed
+- validation improved or satisfied acceptance
+- observation and proposal records were written
+
+Failure means:
+
+- bead could not be claimed
+- validation or SPRT failed
+- proposal was rejected or requeued
+
+## Definition of Done
+
+`chant` is correctly consolidated when:
+
+- it is dispatched through the runtime kernel
+- it no longer relies on the legacy Python dispatcher as authority
+- it emits canonical Hall records
+- it resolves into named weaves or skills, not ad hoc subprocess plans
+
+`evolve` is correctly consolidated when:
+
+- `.agents/skills/evolve/` exists as a real skill package
+- `evolve` is invocable through the runtime kernel
+- the bead claim and validation loop are recorded in Hall
+- contract evolution happens through proposal and promotion, not silent rewrite
+
+## Immediate Backlog Consequence
+
+The next architectural truth should be:
+
+1. `chant` remains a first-class skill and is remapped onto the runtime dispatcher through `CS-P1-11`.
+2. `evolve` is promoted from workflow to first-class skill through `CS-P1-12`.
+3. `evolve.md` becomes a projection or operator guide, not the canonical executor.
+4. Both surfaces become named weaves over smaller leaf skills.

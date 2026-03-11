@@ -1,0 +1,196 @@
+{
+  "failures": [
+    {
+      "timestamp": 1772980176.298324,
+      "file": "src/core/engine/vector_calculus.py",
+      "hypothesis": "Implement str.translate() for faster stopword/symbol stripping in normalize().",
+      "reason": "Regression"
+    },
+    {
+      "timestamp": 1772985560.221884,
+      "file": "src/core/engine/vector_calculus.py",
+      "hypothesis": "Implement str.translate() for faster stopword/symbol stripping in normalize().",
+      "reason": "Regression"
+    },
+    {
+      "timestamp": 1772985607.6756349,
+      "file": "src/core/engine/vector_calculus.py",
+      "hypothesis": "Implement str.translate() for faster stopword/symbol stripping in normalize().",
+      "reason": "Regression"
+    },
+    {
+      "timestamp": 1772985863.5055435,
+      "file": "src/core/engine/vector_calculus.py",
+      "hypothesis": "Implement str.translate() for faster stopword/symbol stripping in normalize().",
+      "reason": "Regression"
+    },
+    {
+      "timestamp": 1772986317.0234897,
+      "file": "src/core/sovereign_hud.py",
+      "hypothesis": "This sector has a low Gungnir score (70). Optimize for structural integrity, logic density, and Birkhoff symmetry.",
+      "reason": "Accuracy Regression"
+    },
+    {
+      "timestamp": 1772986539.2708879,
+      "file": "src/core/sovereign_hud.py",
+      "hypothesis": "This sector has a low Gungnir score (70). Optimize for structural integrity, logic density, and Birkhoff symmetry.",
+      "reason": "Regression"
+    },
+    {
+      "timestamp": 1772991585.798821,
+      "file": "src/core/engine/vector_router.py",
+      "hypothesis": "Implement pre-compiled regex patterns for domain keyword matching to reduce lookup latency.",
+      "reason": "Accuracy Regression"
+    },
+    {
+      "timestamp": 1772991811.9718475,
+      "file": "src/core/engine/vector_router.py",
+      "hypothesis": "Implement pre-compiled regex patterns for domain keyword matching to reduce lookup latency.",
+      "reason": "Accuracy Regression"
+    },
+    {
+      "timestamp": 1772992030.509097,
+      "file": "src/core/engine/vector_router.py",
+      "hypothesis": "Implement pre-compiled regex patterns for domain keyword matching to reduce lookup latency.",
+      "reason": "Accuracy Regression"
+    },
+    {
+      "timestamp": 1772992153.758951,
+      "file": "src/core/engine/vector_router.py",
+      "hypothesis": "Implement pre-compiled regex patterns for domain keyword matching to reduce lookup latency.",
+      "reason": "Accuracy Regression"
+    },
+    {
+      "timestamp": 1772992341.5276828,
+      "file": "src/core/engine/vector_router.py",
+      "hypothesis": "Implement pre-compiled regex patterns for domain keyword matching to reduce lookup latency.",
+      "reason": "Accuracy Regression"
+    },
+    {
+      "timestamp": 1772992543.2126331,
+      "file": "src/core/engine/vector_router.py",
+      "hypothesis": "Implement pre-compiled regex patterns for domain keyword matching to reduce lookup latency.",
+      "reason": "Regression"
+    },
+    {
+      "timestamp": 1772993114.7538435,
+      "file": "src/core/engine/vector_calculus.py",
+      "hypothesis": "Pre-calculate and reuse token sets in score_intent to reduce object creation overhead.",
+      "reason": "Regression"
+    },
+    {
+      "timestamp": 1772993292.2230163,
+      "file": "src/core/engine/vector_calculus.py",
+      "hypothesis": "Pre-calculate and reuse token sets in score_intent to reduce object creation overhead.",
+      "reason": "Regression"
+    },
+    {
+      "timestamp": 1772993948.9537003,
+      "file": "src/core/engine/vector_calculus.py",
+      "hypothesis": "Pre-calculate and reuse token sets in score_intent to reduce object creation overhead.",
+      "reason": "Regression"
+    },
+    {
+      "timestamp": 1772994111.076358,
+      "file": "src/core/engine/vector_calculus.py",
+      "hypothesis": "Pre-calculate and reuse token sets in score_intent to reduce object creation overhead.",
+      "reason": "Regression"
+    },
+    {
+      "timestamp": 1772994274.4931438,
+      "file": "src/core/engine/vector_calculus.py",
+      "hypothesis": "Pre-calculate and reuse token sets in score_intent to reduce object creation overhead.",
+      "reason": "Regression"
+    },
+    {
+      "timestamp": 1772994434.5786464,
+      "file": "src/core/engine/vector_calculus.py",
+      "hypothesis": "Pre-calculate and reuse token sets in score_intent to reduce object creation overhead.",
+      "reason": "Regression"
+    },
+    {
+      "timestamp": 1772994755.7833276,
+      "file": "src/core/engine/vector_calculus.py",
+      "hypothesis": "Pre-calculate and reuse token sets in score_intent to reduce object creation overhead.",
+      "reason": "Regression"
+    },
+    {
+      "timestamp": 1772996379.9038885,
+      "file": "src/core/sovereign_hud.py",
+      "hypothesis": "Low Gungnir score (70). Optimize structural integrity and logic density.",
+      "reason": "Regression"
+    },
+    {
+      "timestamp": 1772996437.1728377,
+      "file": "src/core/sovereign_hud.py",
+      "hypothesis": "Low Gungnir score (70). Optimize structural integrity and logic density.",
+      "reason": "Regression"
+    },
+    {
+      "timestamp": 1772996559.6984885,
+      "file": "src/core/sovereign_hud.py",
+      "hypothesis": "Low Gungnir score (70). Optimize structural integrity and logic density.",
+      "reason": "Regression"
+    },
+    {
+      "timestamp": 1772996681.0647023,
+      "file": "src/core/sovereign_hud.py",
+      "hypothesis": "Low Gungnir score (70). Optimize structural integrity and logic density.",
+      "reason": "Regression"
+    },
+    {
+      "timestamp": 1772996802.2409298,
+      "file": "src/core/sovereign_hud.py",
+      "hypothesis": "Low Gungnir score (70). Optimize structural integrity and logic density.",
+      "reason": "Regression"
+    },
+    {
+      "timestamp": 1772996922.9987006,
+      "file": "src/core/sovereign_hud.py",
+      "hypothesis": "Low Gungnir score (70). Optimize structural integrity and logic density.",
+      "reason": "Regression"
+    },
+    {
+      "timestamp": 1772998591.8565607,
+      "file": "src/core/sovereign_hud.py",
+      "hypothesis": "Low Gungnir score (70). Optimize structural integrity and logic density.",
+      "reason": "Regression"
+    },
+    {
+      "timestamp": 1772998649.0020852,
+      "file": "src/core/sovereign_hud.py",
+      "hypothesis": "Low Gungnir score (70). Optimize structural integrity and logic density.",
+      "reason": "Regression"
+    },
+    {
+      "timestamp": 1772998747.199966,
+      "file": "src/core/sovereign_hud.py",
+      "hypothesis": "Low Gungnir score (70). Optimize structural integrity and logic density.",
+      "reason": "Regression"
+    },
+    {
+      "timestamp": 1772999017.4077232,
+      "file": "src/core/sovereign_hud.py",
+      "hypothesis": "Low Gungnir score (70). Optimize structural integrity and logic density.",
+      "reason": "Regression"
+    },
+    {
+      "timestamp": 1772999141.3851233,
+      "file": "src/core/sovereign_hud.py",
+      "hypothesis": "Low Gungnir score (70). Optimize structural integrity and logic density.",
+      "reason": "Regression"
+    },
+    {
+      "timestamp": 1772999264.5255272,
+      "file": "src/core/sovereign_hud.py",
+      "hypothesis": "Low Gungnir score (70). Optimize structural integrity and logic density.",
+      "reason": "Regression"
+    },
+    {
+      "timestamp": 1772999387.3645887,
+      "file": "src/core/sovereign_hud.py",
+      "hypothesis": "Low Gungnir score (70). Optimize structural integrity and logic density.",
+      "reason": "Regression"
+    }
+  ]
+}

@@ -1,8 +1,8 @@
-import { FileData } from '../types.js';
-import { CortexLink } from '../../../node/cortex_link.js';
+import { FileData } from '../types.ts';
+import { CortexLink } from '../../../node/cortex_link.ts';
 import chalk from 'chalk';
 import path from 'node:path';
-import { mimir } from '../../../core/mimir_client.js';
+import { mimir } from '../../../core/mimir_client.ts';
 
 /**
  * LLM Provider Abstraction: THE ONE MIND CONDUIT
@@ -55,7 +55,7 @@ export class SamplingProvider implements IntelProvider {
              * We use the 'mimir' client to think. 
              * This works whether we are in an MCP server or a standalone CLI process.
              */
-            const raw = await mimir.think(prompt, "You are the Corvus Star Intelligence Oracle. Analyze code structure and provide semantic intents as raw JSON.");
+            const raw = await mimir.think(prompt);
 
             if (!raw) throw new Error('One Mind is silent.');
             

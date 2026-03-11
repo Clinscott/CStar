@@ -31,7 +31,7 @@ export class CognitiveRouter {
 
         if (requiresCore) {
             console.log(`[CognitiveRouter] Escalating ${payload.intent_normalized} to Gungnir Matrix (Core)...`);
-            corvus.dispatchIntent(payload);
+            await corvus.dispatchIntent(payload);
         } else {
             console.log(`[CognitiveRouter] Routing ${payload.intent_normalized} to Ollama (Edge)...`);
             await this.routeToOllama(payload, appId);

@@ -1,0 +1,183 @@
+---
+title: "Corvus Star Phase 2 Implementation Backlog"
+date: 2026-03-09
+status: completed
+---
+
+# Corvus Star Phase 2 Implementation Backlog
+
+> [!IMPORTANT]
+> This backlog operationalizes Phase 2 from `docs/architecture/WOVEN_SKILL_CONSOLIDATION_BLUEPRINT.qmd`.
+> Phase 2 removes hidden authorities.
+> Corvus Star remains sovereign. All projections, compatibility files, and narrative surfaces must yield to Hall and the runtime.
+
+## Phase 2 Mission
+
+Phase 2 exists to eliminate split-brain state.
+
+The required outcomes are:
+
+1. `sovereign_state.json` becomes a compatibility projection, not a live authority.
+2. `tasks.qmd` remains projection-only across runtime and workflow surfaces.
+3. PennyOne projection artifacts remain derived from Hall and stop acting as readiness or truth gates.
+4. Legacy tables such as `mission_traces` and `norn_beads` become migration-only compatibility surfaces.
+5. Staging and narrative workflow files stop functioning as hidden operational ledgers.
+
+## Phase 2 Exit Criteria
+
+- Hall-backed repository state is authoritative across CLI, runtime, PennyOne, and Python lifecycle surfaces.
+- `sovereign_state.json` is generated from Hall-compatible state and never overwrites Hall authority after bootstrap.
+- `tasks.qmd` is only regenerated from the sovereign bead ledger.
+- No active runtime path depends on `mission_traces`, `norn_beads`, or direct `matrix-graph.json` presence as canonical truth.
+- Compatibility layers are explicit and documented as transitional.
+
+## Execution Status
+
+Current Phase 2 state:
+
+- `CS-P2-00` closed on 2026-03-09
+- `CS-P2-01` closed on 2026-03-09
+- `CS-P2-02` closed on 2026-03-09
+- `CS-P2-03` closed on 2026-03-09
+- `CS-P2-04` closed on 2026-03-09
+- Phase 2 completed on 2026-03-09
+
+## Ticket Index
+
+| ID | Status | Priority | Ticket | Depends On | Primary Surfaces |
+| --- | --- | --- | --- | --- | --- |
+| `CS-P2-00` | Closed | P0 | Sovereign State Authority Inversion | Phase 1 complete | `state.ts`, Hall repository metadata, `sovereign_state.json` |
+| `CS-P2-01` | Closed | P0 | Projection Gate Hardening | `CS-P2-00` | `ceremony.ts`, PennyOne readiness, `matrix-graph.json` |
+| `CS-P2-02` | Closed | P1 | Legacy Table Quarantine | `CS-P2-00` | `mission_traces`, `norn_beads`, compatibility migrations |
+| `CS-P2-03` | Closed | P1 | Workflow Authority Demotion | `CS-P2-00` | `.agents/workflows`, `tasks.qmd`, legacy instructions |
+| `CS-P2-04` | Closed | P2 | Forge Staging Demotion | `CS-P2-03` | `.agents/forge_staged`, staged artifacts, lore references |
+
+## Critical Path
+
+The critical path is:
+
+`CS-P2-00 -> CS-P2-01 -> CS-P2-02 -> CS-P2-03`
+
+`CS-P2-04` should begin only after workflow and projection boundaries are stable.
+
+## Ticket Details
+
+## `CS-P2-00` Sovereign State Authority Inversion
+
+### Objective
+
+Make Hall-backed repository state authoritative and demote `.agents/sovereign_state.json` to a generated compatibility projection.
+
+### Files
+
+- `src/node/core/state.ts`
+- `src/tools/pennyone/intel/database.ts`
+- `src/core/engine/hall_schema.py`
+- `src/sentinel/muninn_heart.py`
+- `src/sentinel/stability.py`
+- `src/tools/pennyone/analyzer.ts`
+- `src/node/ceremony.ts`
+- New or updated tests for Hall/state projection behavior
+
+### Change Set
+
+- Stop Hall bootstrap from overwriting canonical repository state with stale compatibility JSON.
+- Store sovereign state metadata inside Hall repository records.
+- Make state readers prefer Hall metadata and summary fields, with JSON fallback only for compatibility.
+- Regenerate `.agents/sovereign_state.json` from Hall-backed state on write paths.
+- Move anomaly and watcher state off ad hoc file authority into Hall-backed metadata.
+
+### Acceptance Criteria
+
+- `StateRegistry` reads Hall-backed authority first.
+- Hall bootstrap does not overwrite newer Hall state with stale `sovereign_state.json`.
+- Runtime and lifecycle code can still read `sovereign_state.json`, but only as a projection or fallback.
+- Tests prove stale projection files cannot clobber Hall state.
+
+### Verification
+
+```powershell
+npx tsc --noEmit
+npm run test:node
+.\.venv\Scripts\python.exe -m pytest tests/unit/test_hall_schema.py -q
+```
+
+### Closure Note
+
+Closed on 2026-03-09.
+
+Implemented outcomes:
+
+- Hall bootstrap no longer allows stale `.agents/sovereign_state.json` data to overwrite canonical repository state.
+- `StateRegistry` now reads Hall-backed sovereign metadata first and only falls back to the compatibility projection when needed.
+- `TheWatcher` now stores its lock and fatigue state in Hall repository metadata instead of polluting `sovereign_state.json`.
+- Muninn intent integrity sync now updates Hall-backed repository state and mirrors the compatibility projection without making it authoritative.
+- Ceremony and analyzer surfaces now consume Hall-backed state rather than direct JSON/file-presence checks for authority.
+
+## `CS-P2-01` Projection Gate Hardening
+
+### Objective
+
+Remove direct operational dependence on projection artifacts such as `.stats/matrix-graph.json`.
+
+### Closure Note
+
+Closed on 2026-03-09.
+
+Implemented outcomes:
+
+- `runScan()` no longer uses `matrix-graph.json` as incremental cache authority.
+- PennyOne scan metadata now marks the graph as a projection artifact rather than canonical state.
+- Ceremony readiness and search paths continue to operate from Hall-backed state.
+- Regression coverage now proves a stale `matrix-graph.json` cannot influence a live scan.
+
+## `CS-P2-02` Legacy Table Quarantine
+
+### Objective
+
+Confine `mission_traces` and `norn_beads` to explicit migration or compatibility paths.
+
+### Closure Note
+
+Closed on 2026-03-09.
+
+Implemented outcomes:
+
+- `saveTrace()` and `getTracesForFile()` now project onto `hall_validation_runs` instead of using `mission_traces` as live authority.
+- `SovereignRPC` now reads Hall validation records and Hall-backed sovereign beads instead of `mission_traces` and `tasks.qmd`.
+- `CampaignUpdater` now consumes Hall validation records through a compatibility projection instead of querying `mission_traces`.
+- Legacy tables remain available for migration and compatibility only.
+
+## `CS-P2-03` Workflow Authority Demotion
+
+### Objective
+
+Remove remaining workflow and operator instructions that still treat `tasks.qmd` or narrative files as operational authority.
+
+### Closure Note
+
+Closed on 2026-03-09.
+
+Implemented outcomes:
+
+- Workflow markdown and generated operator artifacts now consistently treat `tasks.qmd` as a projection of Hall state rather than an editable authority.
+- Persona-generated cursor rules now describe `tasks.qmd` as a human-readable projection of the sovereign bead queue.
+- `update_gemini_manifest.py` now derives priority directives from the Hall-backed bead ledger instead of parsing `tasks.qmd`.
+- Regression coverage now proves the Gemini manifest ignores misleading `tasks.qmd` projection text and reads Hall bead priority instead.
+
+## `CS-P2-04` Forge Staging Demotion
+
+### Objective
+
+Demote `.agents/forge_staged` to explicit staging output and remove any hidden operational authority from staged lore or artifacts.
+
+### Closure Note
+
+Closed on 2026-03-09.
+
+Implemented outcomes:
+
+- `agent_loop.ts` no longer deploys staged artifacts by filename convention; it now requires a structured forge staging envelope with an explicit `staged_path`.
+- The forge skill now stages candidates through the canonical forge candidate contract and emits a JSON staging envelope instead of relying on implicit artifact names.
+- Dream-state and forge staging surfaces now mark `.agents/forge_staged` as staging-only, non-authoritative proposal space.
+- Regression coverage now proves runtime parsing rejects forge output that lacks explicit staging metadata.

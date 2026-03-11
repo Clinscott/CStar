@@ -13,6 +13,7 @@ import time
 from pathlib import Path
 from typing import Any
 
+from src.core.engine.hall_schema import HallOfRecords
 from src.core.sovereign_hud import SovereignHUD
 
 
@@ -88,24 +89,49 @@ class TheWatcher:
             root: Path to the project root directory.
         """
         self.root = root
-        self.state_file = self.root / ".agents" / "sovereign_state.json"
+        self.hall = HallOfRecords(root)
         self.state: dict[str, Any] = self._load_state()
 
+    @staticmethod
+    def _is_watcher_entry(value: Any) -> bool:
+        return isinstance(value, dict) and (
+            "status" in value or "edit_count_24h" in value or "content_hashes" in value or "last_edited" in value
+        )
+
     def _load_state(self) -> dict[str, Any]:
-        """Loads the sovereign state from the local cache."""
-        if not self.state_file.exists():
+        """Loads watcher state from Hall-backed repository metadata."""
+        record = self.hall.get_repository_record()
+        if record is not None:
+            watcher_state = record.metadata.get("watcher_state")
+            if isinstance(watcher_state, dict):
+                return watcher_state
+
+        state_file = self.root / ".agents" / "sovereign_state.json"
+        if not state_file.exists():
             return {}
         try:
-            return json.loads(self.state_file.read_text(encoding='utf-8'))
+            raw_state = json.loads(state_file.read_text(encoding='utf-8'))
+            if not isinstance(raw_state, dict):
+                return {}
+            return {
+                key: value
+                for key, value in raw_state.items()
+                if self._is_watcher_entry(value)
+            }
         except (OSError, json.JSONDecodeError):
             return {}
 
     def _save_state(self) -> None:
-        """Saves the current sovereign state to the local cache."""
+        """Saves watcher state into Hall metadata instead of the compatibility projection file."""
         try:
-            self.state_file.parent.mkdir(parents=True, exist_ok=True)
-            self.state_file.write_text(json.dumps(self.state, indent=2), encoding='utf-8')
-        except OSError:
+            record = self.hall.get_repository_record() or self.hall.bootstrap_repository()
+            record.metadata = {
+                **record.metadata,
+                "watcher_state": self.state,
+            }
+            record.updated_at = int(time.time() * 1000)
+            self.hall.upsert_repository(record)
+        except Exception:
             pass
 
     def is_locked(self, rel_path: str) -> bool:

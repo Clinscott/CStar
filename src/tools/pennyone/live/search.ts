@@ -1,9 +1,36 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
 import chalk from 'chalk';
-import { registry } from '../pathRegistry.js';
-import { searchIntents } from '../intel/database.js';
-import { HUD } from '../../../node/core/hud.js';
+import { registry } from '../pathRegistry.ts';
+import { getHallFiles, getLatestHallScanId, listHallMountedSpokes, searchIntents } from '../intel/database.ts';
+import { HUD } from '../../../node/core/hud.ts';
+import { createGungnirMatrix } from '../../../types/gungnir.ts';
+import type { HallFileRecord } from '../../../types/hall.ts';
+
+function getEstateHallFiles(workspaceRoot: string): HallFileRecord[] {
+    const mounted = listHallMountedSpokes(workspaceRoot);
+    const roots = [workspaceRoot, ...mounted.map((entry) => entry.root_path)];
+    const files: HallFileRecord[] = [];
+
+    for (const root of roots) {
+        files.push(...getHallFiles(root, getLatestHallScanId(root)));
+    }
+
+    return files;
+}
+
+function formatEstatePath(filePath: string, workspaceRoot: string): string {
+    const mounted = listHallMountedSpokes(workspaceRoot);
+    const normalized = registry.normalize(filePath);
+    for (const entry of mounted) {
+        const root = registry.normalize(entry.root_path);
+        const prefix = root.endsWith('/') ? root : `${root}/`;
+        if (normalized === root || normalized.startsWith(prefix)) {
+            const relative = normalized.slice(prefix.length);
+            return relative ? `spoke://${entry.slug}/${relative}` : `spoke://${entry.slug}/`;
+        }
+    }
+
+    return registry.getRelative(filePath);
+}
 
 /**
  * Search matrix
@@ -17,18 +44,13 @@ export async function searchMatrix(query: string, _targetPath: string = '.'): Pr
     process.stdout.write(HUD.boxTop(`WELL OF MIMIR: SEARCHING "${query}"`));
 
     try {
+        const hallFiles = getEstateHallFiles(registry.getRoot());
+        const hallFileMap = new Map(hallFiles.map((record) => [registry.normalize(record.path), record]));
+
         // 1. Primary Path: High-Fidelity FTS5 Search
         const dbResults = searchIntents(query);
 
         if (dbResults.length > 0) {
-            // Load the graph to get full metrics for the FTS results
-            const statsDir = path.join(registry.getRoot(), '.stats');
-            const graphPath = path.join(statsDir, 'matrix-graph.json');
-            let graph: any = { files: [] };
-            try {
-                graph = JSON.parse(await fs.readFile(graphPath, 'utf-8'));
-            } catch { /* fallback to partial data */ }
-
             dbResults.forEach(r => {
                 if (r.type === 'LORE') {
                     process.stdout.write(HUD.boxRow('📜 LORE', r.path, palette.mimir));
@@ -37,10 +59,10 @@ export async function searchMatrix(query: string, _targetPath: string = '.'): Pr
                     return;
                 }
 
-                const entry = graph.files.find((f: any) => registry.normalize(f.path) === registry.normalize(r.path));
-                const m = entry?.matrix || { overall: 0 };
+                const entry = hallFileMap.get(registry.normalize(r.path));
+                const m = entry?.matrix ? createGungnirMatrix(entry.matrix) : createGungnirMatrix({});
                 
-                process.stdout.write(HUD.boxRow('◈ SECTOR', registry.getRelative(r.path), palette.accent));
+                process.stdout.write(HUD.boxRow('◈ SECTOR', formatEstatePath(r.path, registry.getRoot()), palette.accent));
                 process.stdout.write(HUD.boxRow('  SOVEREIGNTY', `${((m.sovereignty || 0) * 100).toFixed(0)}%`, HUD.progressBar(m.sovereignty || 0, 10) as any));
                 process.stdout.write(HUD.boxRow('  INTENT', (r.intent || '...').slice(0, 40) + '...', palette.void));
                 process.stdout.write(HUD.boxSeparator());
@@ -50,19 +72,14 @@ export async function searchMatrix(query: string, _targetPath: string = '.'): Pr
             return;
         }
 
-        // 2. Fallback Path: Heuristic Graph Search (Structural)
-        const statsDir = path.join(registry.getRoot(), '.stats');
-        const graphPath = path.join(statsDir, 'matrix-graph.json');
-        
-        const raw = await fs.readFile(graphPath, 'utf-8');
-        const graph = JSON.parse(raw);
+        // 2. Fallback Path: Heuristic Hall Search (Structural)
         const results = [];
 
         const lowerQuery = query.toLowerCase();
 
-        for (const file of graph.files) {
+        for (const file of hallFiles) {
             const relPath = registry.getRelative(file.path);
-            const intentText = file.intent || '';
+            const intentText = file.intent_summary || '';
             const matchesIntent = intentText.toLowerCase().includes(lowerQuery);
             const matchesPath = relPath.toLowerCase().includes(lowerQuery);
 
@@ -78,10 +95,10 @@ export async function searchMatrix(query: string, _targetPath: string = '.'): Pr
         }
 
         results.forEach(r => {
-            const m = r.matrix || { overall: 0 };
-            process.stdout.write(HUD.boxRow('◈ SECTOR', registry.getRelative(r.path), chalk.blue));
+            const m = r.matrix ? createGungnirMatrix(r.matrix) : createGungnirMatrix({});
+            process.stdout.write(HUD.boxRow('◈ SECTOR', formatEstatePath(r.path, registry.getRoot()), chalk.blue));
             process.stdout.write(HUD.boxRow('  SOVEREIGNTY', `${((m.sovereignty || 0) * 100).toFixed(0)}%`, HUD.progressBar(m.sovereignty || 0, 10) as any));
-            process.stdout.write(HUD.boxRow('  INTENT', (r.intent || '...').slice(0, 40) + '...'));
+            process.stdout.write(HUD.boxRow('  INTENT', (r.intent_summary || '...').slice(0, 40) + '...'));
             process.stdout.write(HUD.boxSeparator());
         });
 

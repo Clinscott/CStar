@@ -1,0 +1,418 @@
+---
+title: "Skill Authority Report"
+generated_at: "2026-03-09 07:17:59"
+authoritative_root: ".agents/skills"
+---
+
+# Skill Authority Report
+
+`.agents/skills/` is the authoritative woven-skill registry for Phase 1.
+Any `src/skills/local/` surface is transitional and must be classified rather than guessed.
+
+- Authoritative skills: `57`
+- Transitional local entries: `8`
+- Duplicate definitions: `5`
+
+## Authoritative Registry
+
+### agent-lightning
+- Authority Path: `.agents/skills/agent-lightning`
+- Entrypoint: `none`
+- Contract: `.agents/skills/agent-lightning/agent-lightning.feature`
+- Runtime Trigger: `agent-lightning`
+
+### annex
+- Authority Path: `.agents/skills/annex`
+- Entrypoint: `.agents/skills/annex/scripts/annex.py`
+- Contract: `.agents/skills/annex/annex.feature`
+- Runtime Trigger: `annex`
+
+### build-review-interface
+- Authority Path: `.agents/skills/build-review-interface`
+- Entrypoint: `none`
+- Contract: `.agents/skills/build-review-interface/build-review-interface.feature`
+- Runtime Trigger: `build-review-interface`
+
+### cachebro
+- Authority Path: `.agents/skills/cachebro`
+- Entrypoint: `none`
+- Contract: `.agents/skills/cachebro/cachebro.feature`
+- Runtime Trigger: `cachebro`
+
+### calculus
+- Authority Path: `.agents/skills/calculus`
+- Entrypoint: `.agents/skills/calculus/scripts/calculus.py`
+- Contract: `.agents/skills/calculus/calculus.feature`
+- Runtime Trigger: `calculus`
+
+### chant
+- Authority Path: `.agents/skills/chant`
+- Entrypoint: `.agents/skills/chant/scripts/chant.py`
+- Contract: `.agents/skills/chant/chant.feature`
+- Runtime Trigger: `chant`
+
+### chapter
+- Authority Path: `.agents/skills/chapter`
+- Entrypoint: `none`
+- Contract: `.agents/skills/chapter/chapter.feature`
+- Runtime Trigger: `chapter`
+
+### chronicle
+- Authority Path: `.agents/skills/chronicle`
+- Entrypoint: `.agents/skills/chronicle/scripts/chronicle.py`
+- Contract: `.agents/skills/chronicle/SKILL.md`
+- Runtime Trigger: `chronicle`
+
+### consciousness
+- Authority Path: `.agents/skills/consciousness`
+- Entrypoint: `.agents/skills/consciousness/scripts/consciousness.py`
+- Contract: `.agents/skills/consciousness/consciousness.feature`
+- Runtime Trigger: `consciousness`
+
+### corvus-control
+- Authority Path: `.agents/skills/corvus-control`
+- Entrypoint: `none`
+- Contract: `.agents/skills/corvus-control/corvus-control.feature`
+- Runtime Trigger: `corvus-control`
+
+### edda
+- Authority Path: `.agents/skills/edda`
+- Entrypoint: `.agents/skills/edda/scripts/edda.py`
+- Contract: `.agents/skills/edda/edda.feature`
+- Runtime Trigger: `edda`
+
+### empire
+- Authority Path: `.agents/skills/empire`
+- Entrypoint: `.agents/skills/empire/scripts/empire.py`
+- Contract: `.agents/skills/empire/empire.feature`
+- Runtime Trigger: `empire`
+
+### engine
+- Authority Path: `.agents/skills/engine`
+- Entrypoint: `none`
+- Contract: `.agents/skills/engine/engine.feature`
+- Runtime Trigger: `engine`
+
+### error-analysis
+- Authority Path: `.agents/skills/error-analysis`
+- Entrypoint: `none`
+- Contract: `.agents/skills/error-analysis/error-analysis.feature`
+- Runtime Trigger: `error-analysis`
+
+### eval-audit
+- Authority Path: `.agents/skills/eval-audit`
+- Entrypoint: `none`
+- Contract: `.agents/skills/eval-audit/eval-audit.feature`
+- Runtime Trigger: `eval-audit`
+
+### evaluate-rag
+- Authority Path: `.agents/skills/evaluate-rag`
+- Entrypoint: `none`
+- Contract: `.agents/skills/evaluate-rag/evaluate-rag.feature`
+- Runtime Trigger: `evaluate-rag`
+
+### evolve
+- Authority Path: `.agents/skills/evolve`
+- Entrypoint: `.agents/skills/evolve/scripts/evolve.py`
+- Contract: `.agents/skills/evolve/contract.json`
+- Runtime Trigger: `evolve`
+
+### forge
+- Authority Path: `.agents/skills/forge`
+- Entrypoint: `.agents/skills/forge/scripts/forge.py`
+- Contract: `.agents/skills/forge/forge.feature`
+- Runtime Trigger: `forge`
+
+### gemini-skills
+- Authority Path: `.agents/skills/gemini-skills`
+- Entrypoint: `none`
+- Contract: `.agents/skills/gemini-skills/gemini-skills.feature`
+- Runtime Trigger: `gemini-skills`
+
+### generate-synthetic-data
+- Authority Path: `.agents/skills/generate-synthetic-data`
+- Entrypoint: `none`
+- Contract: `.agents/skills/generate-synthetic-data/generate-synthetic-data.feature`
+- Runtime Trigger: `generate-synthetic-data`
+
+### gherkin
+- Authority Path: `.agents/skills/gherkin`
+- Entrypoint: `none`
+- Contract: `.agents/skills/gherkin/gherkin.feature`
+- Runtime Trigger: `gherkin`
+
+### hunt
+- Authority Path: `.agents/skills/hunt`
+- Entrypoint: `.agents/skills/hunt/scripts/hunt.py`
+- Contract: `.agents/skills/hunt/hunt.feature`
+- Runtime Trigger: `hunt`
+
+### jailing
+- Authority Path: `.agents/skills/jailing`
+- Entrypoint: `.agents/skills/jailing/scripts/jailing.py`
+- Contract: `.agents/skills/jailing/jailing.feature`
+- Runtime Trigger: `jailing`
+
+### linter
+- Authority Path: `.agents/skills/linter`
+- Entrypoint: `.agents/skills/linter/scripts/linter.py`
+- Contract: `.agents/skills/linter/linter.feature`
+- Runtime Trigger: `linter`
+
+### locks
+- Authority Path: `.agents/skills/locks`
+- Entrypoint: `.agents/skills/locks/scripts/locks.py`
+- Contract: `.agents/skills/locks/locks.feature`
+- Runtime Trigger: `locks`
+
+### matrix
+- Authority Path: `.agents/skills/matrix`
+- Entrypoint: `.agents/skills/matrix/scripts/matrix.py`
+- Contract: `.agents/skills/matrix/matrix.feature`
+- Runtime Trigger: `matrix`
+
+### memory
+- Authority Path: `.agents/skills/memory`
+- Entrypoint: `.agents/skills/memory/scripts/memory.py`
+- Contract: `.agents/skills/memory/memory.feature`
+- Runtime Trigger: `memory`
+
+### metrics
+- Authority Path: `.agents/skills/metrics`
+- Entrypoint: `.agents/skills/metrics/scripts/metrics.py`
+- Contract: `.agents/skills/metrics/metrics.feature`
+- Runtime Trigger: `metrics`
+
+### mimir
+- Authority Path: `.agents/skills/mimir`
+- Entrypoint: `none`
+- Contract: `.agents/skills/mimir/mimir.feature`
+- Runtime Trigger: `mimir`
+
+### norn
+- Authority Path: `.agents/skills/norn`
+- Entrypoint: `.agents/skills/norn/scripts/norn.py`
+- Contract: `.agents/skills/norn/norn.feature`
+- Runtime Trigger: `norn`
+
+### odin_ui
+- Authority Path: `.agents/skills/odin_ui`
+- Entrypoint: `none`
+- Contract: `.agents/skills/odin_ui/odin_ui.feature`
+- Runtime Trigger: `odin_ui`
+
+### one-mind
+- Authority Path: `.agents/skills/one-mind`
+- Entrypoint: `.agents/skills/one-mind/scripts/one-mind.py`
+- Contract: `.agents/skills/one-mind/one-mind.feature`
+- Runtime Trigger: `one-mind`
+
+### oracle
+- Authority Path: `.agents/skills/oracle`
+- Entrypoint: `.agents/skills/oracle/scripts/oracle.py`
+- Contract: `.agents/skills/oracle/oracle.feature`
+- Runtime Trigger: `oracle`
+
+### persona
+- Authority Path: `.agents/skills/persona`
+- Entrypoint: `none`
+- Contract: `.agents/skills/persona/persona.feature`
+- Runtime Trigger: `persona`
+
+### personas
+- Authority Path: `.agents/skills/personas`
+- Entrypoint: `.agents/skills/personas/scripts/personas.py`
+- Contract: `.agents/skills/personas/personas.feature`
+- Runtime Trigger: `personas`
+
+### promotion
+- Authority Path: `.agents/skills/promotion`
+- Entrypoint: `.agents/skills/promotion/scripts/promotion.py`
+- Contract: `.agents/skills/promotion/promotion.feature`
+- Runtime Trigger: `promotion`
+
+### qmd_search
+- Authority Path: `.agents/skills/qmd_search`
+- Entrypoint: `.agents/skills/qmd_search/scripts/qmd_search.py`
+- Contract: `.agents/skills/qmd_search/SKILL.md`
+- Runtime Trigger: `qmd_search`
+
+### ravens
+- Authority Path: `.agents/skills/ravens`
+- Entrypoint: `.agents/skills/ravens/scripts/ravens.py`
+- Contract: `.agents/skills/ravens/ravens.feature`
+- Runtime Trigger: `ravens`
+
+### redactor
+- Authority Path: `.agents/skills/redactor`
+- Entrypoint: `.agents/skills/redactor/scripts/redactor.py`
+- Contract: `.agents/skills/redactor/redactor.feature`
+- Runtime Trigger: `redactor`
+
+### report
+- Authority Path: `.agents/skills/report`
+- Entrypoint: `.agents/skills/report/scripts/report.py`
+- Contract: `.agents/skills/report/report.feature`
+- Runtime Trigger: `report`
+
+### research
+- Authority Path: `.agents/skills/research`
+- Entrypoint: `.agents/skills/research/scripts/research.py`
+- Contract: `.agents/skills/research/SKILL.md`
+- Runtime Trigger: `research`
+
+### ritual
+- Authority Path: `.agents/skills/ritual`
+- Entrypoint: `.agents/skills/ritual/scripts/ritual.py`
+- Contract: `.agents/skills/ritual/ritual.feature`
+- Runtime Trigger: `ritual`
+
+### scan
+- Authority Path: `.agents/skills/scan`
+- Entrypoint: `.agents/skills/scan/scripts/scan.py`
+- Contract: `.agents/skills/scan/scan.feature`
+- Runtime Trigger: `scan`
+
+### sprt
+- Authority Path: `.agents/skills/sprt`
+- Entrypoint: `.agents/skills/sprt/scripts/sprt.py`
+- Contract: `.agents/skills/sprt/sprt.feature`
+- Runtime Trigger: `sprt`
+
+### stability
+- Authority Path: `.agents/skills/stability`
+- Entrypoint: `.agents/skills/stability/scripts/stability.py`
+- Contract: `.agents/skills/stability/stability.feature`
+- Runtime Trigger: `stability`
+
+### sterling
+- Authority Path: `.agents/skills/sterling`
+- Entrypoint: `.agents/skills/sterling/scripts/sterling.py`
+- Contract: `.agents/skills/sterling/sterling.feature`
+- Runtime Trigger: `sterling`
+
+### style
+- Authority Path: `.agents/skills/style`
+- Entrypoint: `.agents/skills/style/scripts/style.py`
+- Contract: `.agents/skills/style/style.feature`
+- Runtime Trigger: `style`
+
+### taliesin
+- Authority Path: `.agents/skills/taliesin`
+- Entrypoint: `.agents/skills/taliesin/scripts/taliesin.py`
+- Contract: `.agents/skills/taliesin/taliesin.feature`
+- Runtime Trigger: `taliesin`
+
+### taste-skill
+- Authority Path: `.agents/skills/taste-skill`
+- Entrypoint: `none`
+- Contract: `.agents/skills/taste-skill/taste-skill.feature`
+- Runtime Trigger: `taste-skill`
+
+### telemetry
+- Authority Path: `.agents/skills/telemetry`
+- Entrypoint: `.agents/skills/telemetry/scripts/telemetry.py`
+- Contract: `.agents/skills/telemetry/telemetry.feature`
+- Runtime Trigger: `telemetry`
+
+### trace
+- Authority Path: `.agents/skills/trace`
+- Entrypoint: `.agents/skills/trace/scripts/trace.py`
+- Contract: `.agents/skills/trace/trace.feature`
+- Runtime Trigger: `trace`
+
+### validate-evaluator
+- Authority Path: `.agents/skills/validate-evaluator`
+- Entrypoint: `none`
+- Contract: `.agents/skills/validate-evaluator/validate-evaluator.feature`
+- Runtime Trigger: `validate-evaluator`
+
+### vector
+- Authority Path: `.agents/skills/vector`
+- Entrypoint: `none`
+- Contract: `.agents/skills/vector/vector.feature`
+- Runtime Trigger: `vector`
+
+### visual-explainer
+- Authority Path: `.agents/skills/visual-explainer`
+- Entrypoint: `none`
+- Contract: `.agents/skills/visual-explainer/visual-explainer.feature`
+- Runtime Trigger: `visual-explainer`
+
+### voices
+- Authority Path: `.agents/skills/voices`
+- Entrypoint: `none`
+- Contract: `.agents/skills/voices/voices.feature`
+- Runtime Trigger: `voices`
+
+### warden
+- Authority Path: `.agents/skills/warden`
+- Entrypoint: `.agents/skills/warden/scripts/warden.py`
+- Contract: `.agents/skills/warden/warden.feature`
+- Runtime Trigger: `warden`
+
+### write-judge-prompt
+- Authority Path: `.agents/skills/write-judge-prompt`
+- Entrypoint: `none`
+- Contract: `.agents/skills/write-judge-prompt/write-judge-prompt.feature`
+- Runtime Trigger: `write-judge-prompt`
+
+## Transitional Local Skills
+
+### dormancy
+- Path: `src/skills/local/dormancy.py`
+- Migration Status: `bootstrap-only`
+- Authority Alias: `none`
+
+### Environment
+- Path: `src/skills/local/Environment`
+- Migration Status: `retire`
+- Authority Alias: `none`
+
+### GitHub
+- Path: `src/skills/local/GitHub`
+- Migration Status: `retire`
+- Authority Alias: `none`
+
+### radon
+- Path: `src/skills/local/radon`
+- Migration Status: `retire`
+- Authority Alias: `none`
+
+### skill-scout
+- Path: `src/skills/local/skill-scout`
+- Migration Status: `retire`
+- Authority Alias: `none`
+
+### VisualExplainer
+- Path: `src/skills/local/VisualExplainer`
+- Migration Status: `migrate`
+- Authority Alias: `none`
+
+### WildHunt
+- Path: `src/skills/local/WildHunt`
+- Migration Status: `migrate`
+- Authority Alias: `none`
+
+### workflow_analyst
+- Path: `src/skills/local/workflow_analyst`
+- Migration Status: `migrate`
+- Authority Alias: `none`
+
+## Duplicate Definitions
+
+- `CacheBro` -> `cachebro`
+  Local: `src/skills/local/CacheBro`
+  Authority: `.agents/skills/cachebro`
+- `KnowledgeHunter` -> `hunt`
+  Local: `src/skills/local/KnowledgeHunter`
+  Authority: `.agents/skills/hunt`
+- `oracle` -> `oracle`
+  Local: `src/skills/local/oracle`
+  Authority: `.agents/skills/oracle`
+- `persona-audit` -> `persona`
+  Local: `src/skills/local/persona-audit`
+  Authority: `.agents/skills/persona`
+- `SkillLearning` -> `evolve`
+  Local: `src/skills/local/SkillLearning`
+  Authority: `.agents/skills/evolve`

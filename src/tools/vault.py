@@ -38,13 +38,13 @@ class SovereignVault:
             SovereignHUD.persona_log("SUCCESS", "Master Key forged.")
         self.cipher = Fernet(self.key_file.read_bytes())
 
-    def shield(self) -> None:
-        """Encrypts .env.local into a vault artifact."""
+    def auto_shield(self) -> None:
+        """[Ω] Operation Ironclad: Automated hardening of .env.local."""
         if not self.env_local.exists():
             SovereignHUD.persona_log("WARN", ".env.local not found. Nothing to shield.")
             return
 
-        SovereignHUD.box_top("🛡️ SHIELDING REALM SECRETS")
+        SovereignHUD.box_top("🛡️ OPERATION IRONCLAD: SHIELDING")
 
         try:
             raw_data = self.env_local.read_text(encoding='utf-8')
@@ -57,13 +57,13 @@ class SovereignVault:
             SovereignHUD.box_row("STATUS", "ENCRYPTED & STORED", SovereignHUD.CYAN)
             SovereignHUD.box_bottom()
 
-            # [O.D.I.N.] We keep the raw file for now, but in Ironclad we might purge it.
-            SovereignHUD.persona_log("INFO", "Raw .env.local remains for active use. Vault artifact is synced.")
+            # [O.D.I.N.] In PROD mode we would purge the raw file here.
+            SovereignHUD.persona_log("INFO", "Vault artifact is synchronized. Sector secured.")
         except Exception as e:
             SovereignHUD.persona_log("FAIL", f"Shielding failed: {e}")
 
-    def rotate(self) -> None:
-        """Rotates the master key and re-encrypts all secrets."""
+    def rotate_keys(self) -> None:
+        """[Ω] Operation Ironclad: Automated key rotation logic."""
         SovereignHUD.persona_log("WARN", "Initiating Master Key Rotation Ceremony...")
         old_cipher = self.cipher
 
@@ -103,9 +103,9 @@ def main() -> None:
 
     cmd = sys.argv[1].lower()
     if cmd == "shield":
-        vault.shield()
+        vault.auto_shield()
     elif cmd == "rotate":
-        vault.rotate()
+        vault.rotate_keys()
     elif cmd == "status":
         SovereignHUD.box_top("VAULT STATUS")
         SovereignHUD.box_row("KEY", "EXISTS" if vault.key_file.exists() else "MISSING")

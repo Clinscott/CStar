@@ -25,7 +25,6 @@ src/corvus_star.egg-info/entry_points.txt
 src/corvus_star.egg-info/requires.txt
 src/corvus_star.egg-info/top_level.txt
 src/cstar/core/client.py
-src/cstar/core/daemon.py
 src/cstar/core/forge.py
 src/cstar/core/rpc.py
 src/cstar/core/tui.py
@@ -45,7 +44,6 @@ src/sentinel/__init__.py
 src/sentinel/_bootstrap.py
 src/sentinel/code_sanitizer.py
 src/sentinel/harvest_responses.py
-src/sentinel/main_loop.py
 src/sentinel/muninn.py
 src/sentinel/stability.py
 src/sentinel/wardens/__init__.py

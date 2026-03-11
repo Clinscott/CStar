@@ -14,7 +14,7 @@ The Corvus Star framework has successfully transitioned to the `.qmd` documentat
 - **Structural Integrity**: Resolved 400+ breaches using Code Sentinel.
 
 ### 5. Autonomous Learning & Foundation Hardening (Session 50)
-- **Autonomous Learning Loop**: Implemented `c* ravens -learn N=x` with statistical significance verification.
+- **Autonomous Learning Loop**: Implemented `cstar ravens -learn N=x` with statistical significance verification.
 - **SPRT Stability**: Integrated Sequential Probability Ratio Test into `Muninn` to prevent flaky code merges.
 - **Performance Guardrails**: Integrated `benchmark_engine.py` into the Crucible to catch regressions.
 - **Beauty Standards**: Established `color_theory.json` and anchored the 60-30-10 rule in `FreyaWarden`.

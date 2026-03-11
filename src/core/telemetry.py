@@ -1,5 +1,3 @@
-import json
-import os
 import time
 
 import requests
@@ -70,34 +68,8 @@ class SubspaceTelemetry:
     @staticmethod
     def broadcast_alert_to_daemon(message: str, file_path: str) -> None: # [Ω] Phase 2.1 Complete: Legacy bootstrap purged.
         """
-        Connects to the Python Daemon and triggers a real-time security alert.
+        Resident daemon alerts are retired in kernel mode. The HTTP trace remains authoritative.
         """
-        from pathlib import Path
-
-        from websockets.sync.client import connect
-        
-        # [A.L.F.R.E.D.] Find project root and auth key
-        root = Path(__file__).resolve().parent.parent.parent
-        key_file = root / ".agents" / "daemon.key"
-        
-        if not key_file.exists():
-            return
-
-        try:
-            auth_key = key_file.read_text().strip()
-            port = int(os.getenv("CSTAR_DAEMON_PORT", "50051"))
-            uri = f"ws://127.0.0.1:{port}"
-            
-            with connect(uri, timeout=1.0) as ws:
-                # 1. Auth
-                ws.send(json.dumps({"type": "auth", "auth_key": auth_key}))
-                # 2. Alert Command
-                ws.send(json.dumps({
-                    "command": "security_alert",
-                    "message": message,
-                    "file": file_path
-                }))
-        except Exception:
-            pass # We do not block for telemetry failures
+        return
 
 # Lore: "A Raven's shadow leaves a mark on the Matrix."

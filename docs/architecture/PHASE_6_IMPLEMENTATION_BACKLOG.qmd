@@ -1,0 +1,280 @@
+---
+title: "Corvus Star Phase 6 Implementation Backlog"
+date: 2026-03-10
+status: completed
+---
+
+# Corvus Star Phase 6 Implementation Backlog
+
+> [!IMPORTANT]
+> This backlog operationalizes Phase 6 from `docs/architecture/WOVEN_SKILL_CONSOLIDATION_BLUEPRINT.qmd`.
+> Phase 6 promotes skill learning safely.
+> Outcome observations must remain separate from canonical contracts, contract evolutions must become explicit proposals, and promotion must remain validation-gated.
+
+## Phase 6 Mission
+
+Phase 6 exists to make skill learning an explicit, reviewable, validation-backed workflow instead of a side effect scattered across proposal files, observations, and legacy promotion helpers.
+
+The required outcomes are:
+
+1. Skill outcome observations remain separate from canonical skill contracts.
+2. Proposed skill contract evolutions are stored as structured Hall-backed records.
+3. `evolve` emits canonical proposal records rather than only loose JSON artifacts.
+4. Promotion requires accepted validation evidence before mutating the canonical skill contract surface.
+5. Silent or implicit skill-promotion paths are quarantined or reduced to compatibility-only status.
+
+## Phase 6 Exit Criteria
+
+- A canonical Hall-backed schema exists for skill contract proposals and promotions.
+- `evolve` records proposal metadata separately from skill observations.
+- Accepted validation evidence gates contract promotion.
+- The runtime can execute proposal generation and proposal promotion without bypassing Hall authority.
+- No active skill-learning path silently promotes a contract without explicit validation-backed review.
+
+## Execution Status
+
+Current Phase 6 state:
+
+- Phase 1 completed on 2026-03-09
+- Phase 2 completed on 2026-03-09
+- Phase 3 completed on 2026-03-09
+- Phase 4 completed on 2026-03-09
+- Phase 5 completed on 2026-03-09
+- `CS-P6-00` closed on 2026-03-10
+- `CS-P6-01` closed on 2026-03-10
+- `CS-P6-02` closed on 2026-03-10
+- `CS-P6-03` closed on 2026-03-10
+- `CS-P6-04` closed on 2026-03-10
+- Hall now stores skill observations separately from skill proposal records and promotion state
+- `evolve` now emits canonical proposal ids plus validation-linked Hall proposal records
+- Promotion now requires accepted validation and accepted SPRT before mutating canonical skill contracts
+- Silent promotion helpers were either quarantined or reduced to explicit compatibility-only feedback logging
+- Phase 6 completed on 2026-03-10
+
+## Ticket Index
+
+| ID | Status | Priority | Ticket | Depends On | Primary Surfaces |
+| --- | --- | --- | --- | --- | --- |
+| `CS-P6-00` | Closed | P0 | Freeze The Skill-Learning Contract | Phase 5 complete | `hall_schema.py`, `types/hall.ts`, `intel/database.ts`, `evolve` contract surfaces |
+| `CS-P6-01` | Closed | P0 | Add A Canonical Skill Proposal Registry | `CS-P6-00` | Hall proposal schema, proposal helpers, Hall tests |
+| `CS-P6-02` | Closed | P1 | Make `evolve` Emit Hall-Backed Proposal Records | `CS-P6-01` | `evolve_skill.py`, runtime metadata, evolve tests |
+| `CS-P6-03` | Closed | P1 | Gate Skill Promotion On Accepted Validation | `CS-P6-01`, `CS-P6-02` | evolve promote path, runtime weave, validation/promotion tests |
+| `CS-P6-04` | Closed | P1 | Quarantine Silent Skill Promotion Paths | `CS-P6-03` | legacy promotion helpers, unsafe promotion tests, closure docs |
+
+## Critical Path
+
+The critical path is:
+
+`CS-P6-00 -> CS-P6-01 -> CS-P6-02 -> CS-P6-03 -> CS-P6-04`
+
+## Ticket Details
+
+## `CS-P6-00` Freeze The Skill-Learning Contract
+
+### Objective
+
+Define the canonical schema and contract surface for skill observations, proposals, and promotions before mutating the runtime again.
+
+### Files
+
+- `src/core/engine/hall_schema.py`
+- `src/types/hall.ts`
+- `src/tools/pennyone/intel/database.ts`
+- `.agents/skills/evolve/contract.json`
+- Hall schema tests
+
+### Change Set
+
+- Declare one Hall-backed record shape for skill contract proposals.
+- Align the Python and TypeScript Hall mirrors.
+- Freeze the `evolve` contract so proposal and promotion outputs are explicit.
+
+### Acceptance Criteria
+
+- Python and TypeScript agree on the Phase 6 skill-learning record shapes.
+- `evolve` has an explicit proposal/promotion contract surface rather than an implied JSON blob.
+
+### Verification
+
+```powershell
+npx tsx --test tests/unit/test_hall_schema.test.ts
+.\.venv\Scripts\python.exe -m pytest tests/unit/test_hall_schema.py -q
+npx tsc --noEmit
+```
+
+### Closure Note
+
+Closed on 2026-03-10.
+
+Implemented outcomes:
+
+- Python and TypeScript Hall mirrors now define one canonical skill proposal record shape plus proposal status enum.
+- PennyOne's DB mirror now persists the same proposal surface instead of forcing proposal state into observations.
+- The `evolve` contract now declares explicit `propose` and `promote` actions, proposal ids, and promotion-gate requirements.
+
+## `CS-P6-01` Add A Canonical Skill Proposal Registry
+
+### Objective
+
+Store skill contract evolution proposals as structured Hall-backed records instead of only loose files under `.agents/proposals/`.
+
+### Files
+
+- `src/core/engine/hall_schema.py`
+- `src/tools/pennyone/intel/database.ts`
+- proposal helper module(s)
+- Hall schema tests
+
+### Change Set
+
+- Add canonical skill proposal persistence.
+- Add helpers to write and read proposal records plus proposal artifacts.
+- Preserve proposal files as materialized artifacts, not the sole source of truth.
+
+### Acceptance Criteria
+
+- Skill proposals can be listed and loaded from Hall-backed state.
+- Proposal artifacts remain downstream from canonical records.
+
+### Verification
+
+```powershell
+npx tsx --test tests/unit/test_hall_schema.test.ts
+.\.venv\Scripts\python.exe -m pytest tests/unit/test_hall_schema.py -q
+```
+
+### Closure Note
+
+Closed on 2026-03-10.
+
+Implemented outcomes:
+
+- Hall now persists skill proposal records separately from skill observations.
+- The new `skill_learning.py` helper materializes proposal artifacts under `.agents/proposals/evolve/` while treating Hall as the authority.
+- Proposal records can be loaded, listed, and linked back to their bead, validation, and canonical contract path.
+
+## `CS-P6-02` Make `evolve` Emit Hall-Backed Proposal Records
+
+### Objective
+
+Ensure `evolve` writes canonical proposal records, links them to validation evidence, and keeps observations separate from proposals.
+
+### Files
+
+- `src/core/engine/evolve_skill.py`
+- `.agents/skills/evolve/scripts/evolve.py`
+- runtime evolve surfaces
+- evolve tests
+
+### Change Set
+
+- Record a structured proposal alongside the materialized proposal artifact.
+- Return proposal identifiers and statuses through the runtime.
+- Keep Hall observations limited to outcome reporting rather than contract authority.
+
+### Acceptance Criteria
+
+- `evolve` emits a canonical proposal id and status.
+- Proposal records point to the linked validation evidence and bead.
+
+### Verification
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/unit/test_evolve_skill.py tests/unit/test_hall_schema.py tests/unit/test_validation_result.py -q
+npx tsx --test tests/unit/test_evolve_runtime.test.ts tests/unit/test_hall_schema.test.ts
+npx tsc --noEmit
+```
+
+### Closure Note
+
+Closed on 2026-03-10.
+
+Implemented outcomes:
+
+- `execute_evolve()` now writes a validation result, loads the persisted Hall validation run, and emits a canonical Hall proposal record.
+- Runtime and CLI surfaces now return proposal ids, proposal status, and contract metadata instead of only a loose proposal artifact path.
+- Hall observations remain outcome-only and no longer act as the proposal authority surface.
+
+## `CS-P6-03` Gate Skill Promotion On Accepted Validation
+
+### Objective
+
+Add an explicit promotion path that mutates canonical skill contracts only after accepted validation evidence is present.
+
+### Files
+
+- evolve promotion helpers
+- `.agents/skills/evolve/scripts/evolve.py`
+- `src/node/core/commands/dispatcher.ts`
+- `src/node/core/runtime/weaves/evolve.ts`
+- promotion tests
+
+### Change Set
+
+- Add an explicit promote action for skill proposals.
+- Require accepted validation evidence before promotion.
+- Mark the proposal and bead lifecycle honestly after promotion.
+
+### Acceptance Criteria
+
+- Promotion fails without accepted validation evidence.
+- Successful promotion updates the canonical skill contract and finalizes the linked bead lifecycle.
+
+### Verification
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/unit/test_evolve_skill.py tests/unit/test_validation_result.py -q
+npx tsx --test tests/unit/test_evolve_runtime.test.ts
+npx tsc --noEmit
+```
+
+### Closure Note
+
+Closed on 2026-03-10.
+
+Implemented outcomes:
+
+- `evolve` now exposes an explicit promote action that loads the Hall proposal record rather than inferring promotion from proposal generation.
+- Promotion is blocked unless the linked validation verdict and SPRT verdict are both `ACCEPTED`.
+- Successful promotion mutates the canonical contract, records a promotion observation, marks the proposal `PROMOTED`, and resolves the linked bead.
+
+## `CS-P6-04` Quarantine Silent Skill Promotion Paths
+
+### Objective
+
+Retire or quarantine remaining code paths that silently promote skills or contracts outside the canonical proposal flow.
+
+### Files
+
+- unsafe legacy promotion helpers
+- legacy/unsafe promotion tests
+- Phase 6 closure docs
+
+### Change Set
+
+- Quarantine or demote any helper that auto-promotes skills without explicit Hall-backed review.
+- Leave only explicit compatibility surfaces where removal is not yet safe.
+- Document the final Phase 6 skill-learning authority model.
+
+### Acceptance Criteria
+
+- No active skill-learning path silently promotes a contract.
+- Remaining compatibility promotion helpers are explicit and clearly non-canonical.
+
+### Verification
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/unit/test_memory_skill_compat.py tests/unit/test_evolve_skill.py tests/unit/test_hall_schema.py tests/unit/test_validation_result.py -q
+npx tsx --test tests/unit/test_evolve_runtime.test.ts tests/unit/test_hall_schema.test.ts
+npx tsc --noEmit
+```
+
+### Closure Note
+
+Closed on 2026-03-10.
+
+Implemented outcomes:
+
+- The old sandbox warden auto-promotion path was quarantined under `.corvus_quarantine/`.
+- The legacy `memory` skill no longer mutates `.feature` contracts directly; it now records Hall-backed feedback and explicitly directs operators to the bead-backed evolve proposal flow.
+- Remaining compatibility helpers may still report status, but no active Phase 6 skill-learning path silently mutates canonical contracts outside the Hall-backed proposal and validation flow.

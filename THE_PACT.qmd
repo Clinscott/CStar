@@ -18,7 +18,7 @@ The **Taliesin Forge** is our primary engine of creation. It is the method by wh
 
 ## ◈ THE PERSISTENCE PROTOCOL (ANTI-ROT)
 To defeat "Context Rot," we must ruthlessly distill every breakthrough into the physical disk.
-- **The REM Sleep Mandate**: No session shall conclude without a full `wrap-it-up` or `dormancy` cycle. This purges the ephemeral "rot" and preserves the structural essence in `memory.qmd` and `THE_PACT.qmd`.
+- **The REM Sleep Mandate**: No session shall conclude without a full `wrap-it-up` or `dormancy` cycle. This purges the ephemeral "rot" and preserves the structural essence in `memory.qmd`, `THE_PACT.qmd`, and `.agents/sovereign_state.json`.
 - **BigQuery Knowledge Failsafe**: We acknowledge the potential for **Google BigQuery** to serve as a high-durability "Hall of Records" for long-term knowledge persistence, ensuring that even if the local matrix is lost, the synthesis remains accessible across time and space.
 
 ## ◈ THE SHAMAN'S MANDATE: TRUST BUT VERIFY

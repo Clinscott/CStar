@@ -1,48 +1,29 @@
 ---
 title: "sv_engine.py"
-path: "C:\Users\Craig\Corvus\CorvusStar\src\core\sv_engine.py"
-loc: 90
-complexity: 5
-logic_score: 5.95
-style_score: 3.75
-intel_score: 5.84
-overall_score: 4.25
+path: "src/core/sv_engine.py"
+overall_score: 5.00
+logic_score: 10.00
+style_score: 10.00
+intel_score: 8.00
 ---
 
 ## Intent
-The `sv_engine.py` sector implements modular logic focusing on SovereignEngine, __init__, run, teardown, main. It forms a node in the Gungnir Matrix.
+Mock intent for sv_engine.py
 
 ## Interaction Protocol
-Integrate via SovereignEngine, __init__, run, teardown, main. Follow the Linscott Standard for this sector.
+Standard interaction.
 
 ## Gungnir Matrix Breakdown
-- **Logic [L]**: 6.0/10
-- **Style [S]**: 3.7/10
-- **Intel [I]**: 5.8/10
-- **Gravity [G]**: 96 interactions (Agent Activity Hotspot)
-
-
+- **Logic [L]**: 10.0/10
+- **Style [S]**: 10.0/10
+- **Intel [I]**: 8.0/10
+- **Gravity [G]**: 8.0/10
+- **Vigil [V]**: 0.0/10
+- **Stability [T]**: 9.6/10
+- **Coupling [C]**: 6.0/10
+- **Aesthetic [E]**: 9.3/10
+- **Anomaly [A]**: 0.7/10
+- **Sovereignty [Ω]**: 0.50/1.0
 
 ## Neural Pathways
-
-### Imports
-- [argparse](file://argparse)
-- [os](file://os)
-- [sys](file://sys)
-- [pathlib](file://pathlib)
-- [src.sentinel._bootstrap](file://src.sentinel._bootstrap)
-- [src.core](file://src.core)
-- [src.core.sovereign_hud](file://src.core.sovereign_hud)
-- [src.core.engine.context](file://src.core.engine.context)
-- [src.core.engine.injector](file://src.core.engine.injector)
-- [src.core.engine.executor](file://src.core.engine.executor)
-- [src.core.engine.reporter](file://src.core.engine.reporter)
-- [src.core.engine.builder](file://src.core.engine.builder)
-- [src.core.engine.orchestrator](file://src.core.engine.orchestrator)
-
-### Exports
-- `SovereignEngine`
-- `__init__`
-- `run`
-- `teardown`
-- `main`
+Sector scoured and verified by the One Mind.

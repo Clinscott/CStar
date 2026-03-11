@@ -1,5 +1,5 @@
-import { getParser, TreeSitter } from '../parser.js';
-import { crawlRepository } from '../crawler.js';
+import { getParser, TreeSitter } from '../parser.ts';
+import { crawlRepository } from '../crawler.ts';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 

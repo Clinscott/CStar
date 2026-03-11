@@ -1,0 +1,9121 @@
+{
+  "sectors": {
+    "src\\scratch_forge.py": {
+      "intent": "Unknown",
+      "imports": [],
+      "exports": [],
+      "gungnir_score": 100,
+      "breaches": []
+    },
+    "src\\scratch_plan_b.py": {
+      "intent": "Unknown",
+      "imports": [],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\__init__.py": {
+      "intent": "Unknown",
+      "imports": [],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\annex.py": {
+      "intent": "The Annexation Protocol (Heimdall's Watch)",
+      "imports": [
+        [
+          "ast",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "datetime"
+        ],
+        [
+          "",
+          "pathlib"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "HeimdallWarden"
+        ],
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        }
+      ]
+    },
+    "src\\core\\cstar_dispatcher.py": {
+      "intent": "Main CLI Dispatcher for the Corvus Star framework.",
+      "imports": [
+        [
+          "os",
+          ""
+        ],
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.sentinel._bootstrap"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "CorvusDispatcher"
+        ],
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 80,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_COUPLING_BREACH: Over-entangled (11 imports). Isolate dependencies."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.13). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\edda.py": {
+      "intent": "Recursively scans for .md files and converts them to .qmd.",
+      "imports": [
+        [
+          "argparse",
+          ""
+        ],
+        [
+          "ast",
+          ""
+        ],
+        [
+          "re",
+          ""
+        ],
+        [
+          "shutil",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "EddaWeaver"
+        ],
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.11). Add intents/docstrings."
+        }
+      ]
+    },
+    "src\\core\\lease_manager.py": {
+      "intent": "[\ud83d\udd12] THE FLOCK OF MUNINN: Task Leases",
+      "imports": [
+        [
+          "sqlite3",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "LeaseManager"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\metrics.py": {
+      "intent": "Decoupled Metrics Tracker.",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "collections.abc"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.engine.atomic_gpt"
+        ],
+        [
+          "",
+          "src.core.prompt_linter"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "ExecutionTracker"
+        ],
+        [
+          "",
+          "ProjectMetricsEngine"
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_COUPLING_BREACH: Over-entangled (12 imports). Isolate dependencies."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.09). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        }
+      ]
+    },
+    "src\\core\\mimir_client.py": {
+      "intent": "Native Synaptic Bridge for direct Host Agent sampling and high-speed SQLite data exchange.",
+      "imports": [
+        [
+          "asyncio",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "sqlite3",
+          ""
+        ],
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "MimirClient"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.12). Add intents/docstrings."
+        }
+      ]
+    },
+    "src\\core\\norn_coordinator.py": {
+      "intent": "[\ud83e\uddf5] THE LEDGER OF THE NORNS (Next Task Manager)",
+      "imports": [
+        [
+          "sqlite3",
+          ""
+        ],
+        [
+          "re",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "NornCoordinator"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.13). Add intents/docstrings."
+        }
+      ]
+    },
+    "src\\core\\payload.py": {
+      "intent": "[O.D.I.N.] Immutable Payload Object for intent routing.",
+      "imports": [
+        [
+          "",
+          "dataclasses"
+        ],
+        [
+          "",
+          "types"
+        ],
+        [
+          "",
+          "typing"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "IntentPayload"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.10). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\personas.py": {
+      "intent": "Base class for project-wide persona strategies.",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "shutil",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "datetime"
+        ],
+        [
+          "",
+          "pathlib"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "PersonaStrategy"
+        ],
+        [
+          "",
+          "OdinStrategy(PersonaStrategy)"
+        ],
+        [
+          "",
+          "AlfredStrategy(PersonaStrategy)"
+        ],
+        [
+          "get_strategy",
+          ""
+        ],
+        [
+          "",
+          "PersonaRegistry"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.14). Add intents/docstrings."
+        }
+      ]
+    },
+    "src\\core\\promotion_registry.py": {
+      "intent": "Unknown",
+      "imports": [
+        [
+          "hashlib",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "",
+          "datetime"
+        ],
+        [
+          "",
+          "pathlib"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "PromotionRegistry"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00). Add intents/docstrings."
+        }
+      ]
+    },
+    "src\\core\\prompt_linter.py": {
+      "intent": "Reads a .prompty file and uses regex to find all {{variables}}.",
+      "imports": [
+        [
+          "ast",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "re",
+          ""
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "PromptLinter"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.12). Add intents/docstrings."
+        }
+      ]
+    },
+    "src\\core\\redactor.py": {
+      "intent": "\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u03a9 REDACTOR ENGINE \u03a9 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510",
+      "imports": [
+        [
+          "re",
+          ""
+        ],
+        [
+          "",
+          "src.tools.vault"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "Redactor"
+        ]
+      ],
+      "gungnir_score": 100,
+      "breaches": []
+    },
+    "src\\core\\report_engine.py": {
+      "intent": "Enforces Persona-driven reporting standards.",
+      "imports": [
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "datetime"
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "utils",
+          ""
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "ReportEngine"
+        ]
+      ],
+      "gungnir_score": 100,
+      "breaches": []
+    },
+    "src\\core\\set_persona.py": {
+      "intent": "[O.D.I.N.] Persona Management System (set_persona.py)",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "datetime"
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.core"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "PersonaManager"
+        ],
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.10). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\sovereign_hud.py": {
+      "intent": "Hyper-Refined User Interface (SovereignHUD) Class.",
+      "imports": [
+        [
+          "asyncio",
+          ""
+        ],
+        [
+          "contextlib",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "re",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "datetime"
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "SovereignHUD"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.03). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\sterling_auditor.py": {
+      "intent": "[\ud83d\udee1\ufe0f] Sterling Compliance Auditor",
+      "imports": [
+        [
+          "os",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "SterlingAuditor"
+        ],
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.14). Add intents/docstrings."
+        }
+      ]
+    },
+    "src\\core\\sv_engine.py": {
+      "intent": "[O.D.I.N.] Sovereign Engine (sv_engine.py)",
+      "imports": [
+        [
+          "argparse",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.core.engine.context"
+        ],
+        [
+          "",
+          "src.core.engine.injector"
+        ],
+        [
+          "",
+          "src.core.engine.executor"
+        ],
+        [
+          "",
+          "src.core.engine.reporter"
+        ],
+        [
+          "",
+          "src.core.engine.builder"
+        ],
+        [
+          "",
+          "src.core.engine.orchestrator"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "SovereignEngine"
+        ],
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_COUPLING_BREACH: Over-entangled (13 imports). Isolate dependencies."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.09). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\telemetry.py": {
+      "intent": "Subspace Telemetry Protocol.",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "requests",
+          ""
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "SubspaceTelemetry"
+        ]
+      ],
+      "gungnir_score": 100,
+      "breaches": []
+    },
+    "src\\core\\utils.py": {
+      "intent": "[A.L.F.R.E.D.] Unified Utility Hub for Corvus Star.",
+      "imports": [
+        [
+          "contextlib",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "queue",
+          ""
+        ],
+        [
+          "re",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "threading",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ]
+      ],
+      "exports": [
+        [
+          "load_config",
+          ""
+        ],
+        [
+          "safe_read_json",
+          ""
+        ],
+        [
+          "sanitize_query",
+          ""
+        ],
+        [
+          "",
+          "SovereignUtils"
+        ],
+        [
+          "_read_json_file",
+          ""
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.10). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\vitals_spoke.py": {
+      "intent": "[\u03a9] Sovereign Vitals Spoke",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.cstar.core.rpc"
+        ]
+      ],
+      "exports": [
+        [
+          "get_vitals",
+          ""
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.13). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\__init__.py": {
+      "intent": "[O.D.I.N.] Core Initialization & Environment Patching.",
+      "imports": [
+        [
+          "sys",
+          ""
+        ]
+      ],
+      "exports": [
+        [
+          "_apply_pydantic_v1_patch",
+          ""
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\calculus\\intel.ts": {
+      "intent": "Unknown",
+      "imports": [],
+      "exports": [
+        "calculateIntelScore"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\calculus\\logic.ts": {
+      "intent": "Unknown",
+      "imports": [],
+      "exports": [
+        "calculateLogicScore"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\calculus\\style.ts": {
+      "intent": "Unknown",
+      "imports": [],
+      "exports": [
+        "calculateStyleScore"
+      ],
+      "gungnir_score": 100,
+      "breaches": []
+    },
+    "src\\core\\engine\\alfred_observer.py": {
+      "intent": "[ENGINE] Alfred Overwatch",
+      "imports": [
+        [
+          "os",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "AlfredOverwatch"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\engine\\atomic_gpt.py": {
+      "intent": "Sovereign Neural Wardens for Anomaly and Session state monitoring using local MLP models.",
+      "imports": [
+        [
+          "pickle",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "asyncio",
+          ""
+        ],
+        [
+          "",
+          "datetime"
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "numpy as np",
+          ""
+        ],
+        [
+          "",
+          "src.core.mimir_client"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "WardenCircuitBreaker(Exception)"
+        ],
+        [
+          "",
+          "BaseWarden"
+        ],
+        [
+          "",
+          "AnomalyWarden(BaseWarden)"
+        ],
+        [
+          "",
+          "SessionWarden(BaseWarden)"
+        ],
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.10). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\engine\\bifrost.py": {
+      "intent": "# Synthetic Bridge Skill: {bridge_name}",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.core.engine.vector"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "SkillForge"
+        ],
+        [
+          "execute",
+          ""
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\engine\\builder.py": {
+      "intent": "[SPOKE] Sovereign Builder",
+      "imports": [
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.engine.instruction_loader"
+        ],
+        [
+          "",
+          "src.core.engine.memory_db"
+        ],
+        [
+          "",
+          "src.core.engine.vector"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "SovereignBuilder"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.12). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\engine\\cognitive_router.py": {
+      "intent": "Translates raw user intent into structured action plans, delegates to PennyOne for context,",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "logging",
+          ""
+        ],
+        [
+          "asyncio",
+          ""
+        ],
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "uuid",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.telemetry"
+        ],
+        [
+          "",
+          "src.core.mimir_client"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.core.engine.atomic_gpt"
+        ],
+        [
+          "",
+          "src.core.engine.heimdall_shield"
+        ],
+        [
+          "",
+          "src.core.lease_manager"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "CognitiveRouter"
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_COUPLING_BREACH: Over-entangled (12 imports). Isolate dependencies."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.10). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\engine\\context.py": {
+      "intent": "[SPOKE] Sovereign Context",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "gc",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.tools.compile_session_traces"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "SovereignContext"
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.07). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\engine\\cortex.py": {
+      "intent": "[ENGINE] Cortex RAG",
+      "imports": [
+        [
+          "re",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.core.engine.vector"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "Cortex"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.14). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\engine\\dialogue.py": {
+      "intent": "[ENGINE] Dialogue Engine",
+      "imports": [
+        [
+          "random",
+          ""
+        ],
+        [
+          "",
+          "collections"
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "yaml",
+          ""
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "DialogueEngine"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.11). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\engine\\env_adapter.py": {
+      "intent": "[ENGINE] Adaptive Environment Adapter",
+      "imports": [
+        [
+          "os",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "enum"
+        ],
+        [
+          "",
+          "typing"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "HostCapability(Enum)"
+        ],
+        [
+          "",
+          "EnvAdapter"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\engine\\executor.py": {
+      "intent": "[SPOKE] Sovereign Executor",
+      "imports": [
+        [
+          "sys",
+          ""
+        ],
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.core.engine.cortex"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "SovereignExecutor"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.11). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\engine\\heimdall_shield.py": {
+      "intent": "Raised when Heimdall's Shield detects a destructive command.",
+      "imports": [
+        [
+          "re",
+          ""
+        ],
+        [
+          "shlex",
+          ""
+        ],
+        [
+          "",
+          "typing"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "ShieldTrip(Exception)"
+        ],
+        [
+          "",
+          "HeimdallShield"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\engine\\injector.py": {
+      "intent": "[SPOKE] Sovereign Injector",
+      "imports": [
+        [
+          "re",
+          ""
+        ],
+        [
+          "logging",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.core.engine.vector"
+        ],
+        [
+          "",
+          "src.tools.brave_search"
+        ],
+        [
+          "",
+          "src.tools.gemini_search"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "SovereignInjector"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.07). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\engine\\instruction_loader.py": {
+      "intent": "[ENGINE] JIT Instruction Loader",
+      "imports": [
+        [
+          "",
+          "pathlib"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "InstructionLoader"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\engine\\memory_db.py": {
+      "intent": "[O.D.I.N.] The Semantic Brain of Corvus Star.",
+      "imports": [
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "MemoryDB"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.11). Add intents/docstrings."
+        }
+      ]
+    },
+    "src\\core\\engine\\orchestrator.py": {
+      "intent": "[SPOKE] Sovereign Orchestrator",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.core.payload"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.tools.brave_search"
+        ],
+        [
+          "",
+          "src.tools.gemini_search"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "SovereignOrchestrator"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.13). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\engine\\reporter.py": {
+      "intent": "[SPOKE] Sovereign Reporter",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "re",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "SovereignReporter"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.06). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        }
+      ]
+    },
+    "src\\core\\engine\\skill_forger.py": {
+      "intent": "[ENGINE] Skill Forger",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.cstar.core.uplink"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "SkillForger"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.10). Add intents/docstrings."
+        }
+      ]
+    },
+    "src\\core\\engine\\vector.py": {
+      "intent": "[ENGINE] Semantic Vector Router (Facade)",
+      "imports": [
+        [
+          "os",
+          ""
+        ],
+        [
+          "asyncio",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.core.engine.instruction_loader"
+        ],
+        [
+          "",
+          "src.core.engine.memory_db"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.core.engine.vector_config"
+        ],
+        [
+          "",
+          "src.core.engine.vector_calculus"
+        ],
+        [
+          "",
+          "src.core.engine.vector_router"
+        ],
+        [
+          "",
+          "src.core.engine.vector_shadow"
+        ],
+        [
+          "",
+          "src.core.engine.vector_ingest"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "SovereignVector"
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_COUPLING_BREACH: Over-entangled (14 imports). Isolate dependencies."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.14). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\engine\\vector_calculus.py": {
+      "intent": "Unknown",
+      "imports": [
+        [
+          "re",
+          ""
+        ],
+        [
+          "string",
+          ""
+        ],
+        [
+          "",
+          "typing"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "VectorCalculus"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.03). Add intents/docstrings."
+        }
+      ]
+    },
+    "src\\core\\engine\\vector_config.py": {
+      "intent": "[SPOKE] Vector Config",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "VectorConfig"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.07). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\engine\\vector_ingest.py": {
+      "intent": "My intent text",
+      "imports": [
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "VectorIngest"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\engine\\vector_router.py": {
+      "intent": "[SPOKE] Vector Router",
+      "imports": [],
+      "exports": [
+        [
+          "",
+          "VectorRouter"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\engine\\vector_shadow.py": {
+      "intent": "[SPOKE] Vector Shadow",
+      "imports": [
+        [
+          "",
+          "typing"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "VectorShadow"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\engine\\__init__.py": {
+      "intent": "Unknown",
+      "imports": [],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\engine\\gungnir\\ledger.py": {
+      "intent": "Identity: A.L.F.R.E.D. (The Butler)",
+      "imports": [
+        [
+          "argparse",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "uuid",
+          ""
+        ],
+        [
+          "",
+          "datetime"
+        ],
+        [
+          "",
+          "pathlib"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "LedgerManager"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.13). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\core\\engine\\gungnir\\universal.py": {
+      "intent": "Universal Aesthetic Calculus Engine.",
+      "imports": [
+        [
+          "ast",
+          ""
+        ],
+        [
+          "re",
+          ""
+        ],
+        [
+          "",
+          "typing"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "UniversalGungnir"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.06). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\crucible\\__init__.py": {
+      "intent": "[\u03a9] THE ADAMANT CRUCIBLE: Sovereign Verification Suite",
+      "imports": [],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\cstar\\__init__.py": {
+      "intent": "Unknown",
+      "imports": [],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\cstar\\core\\daemon.py": {
+      "intent": "[O.D.I.N.] Orchestration logic for the CStar background daemon and persistent WebSocket relay.",
+      "imports": [
+        [
+          "asyncio",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "secrets",
+          ""
+        ],
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "websockets",
+          ""
+        ],
+        [
+          "",
+          "websockets.server"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.core.sv_engine"
+        ],
+        [
+          "",
+          "src.cstar.core.uplink"
+        ],
+        [
+          "",
+          "src.core.mimir_client"
+        ]
+      ],
+      "exports": [
+        [
+          "get_daemon",
+          ""
+        ],
+        [
+          "engine_search_sync",
+          ""
+        ],
+        [
+          "",
+          "CStarDaemon"
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_COUPLING_BREACH: Over-entangled (22 imports). Isolate dependencies."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.09). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\cstar\\core\\rpc.py": {
+      "intent": "[\u03a9] Sovereign RPC Interface",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "sqlite3",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "SovereignRPC"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.08). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\cstar\\core\\uplink.py": {
+      "intent": "[\u03a9] Antigravity Uplink (v8.0 - Keyless).",
+      "imports": [
+        [
+          "asyncio",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "tempfile",
+          ""
+        ],
+        [
+          "re",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.core.mimir_client"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "AntigravityUplink"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.14). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\cstar\\core\\__init__.py": {
+      "intent": "Unknown",
+      "imports": [],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\games\\__init__.py": {
+      "intent": "Unknown",
+      "imports": [],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\games\\odin_protocol\\main.py": {
+      "intent": "[GAME] Odin Protocol Loop",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "random",
+          ""
+        ],
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.games.odin_protocol.engine"
+        ],
+        [
+          "",
+          "src.games.odin_protocol.ui"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "OdinAdventure"
+        ],
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_COUPLING_BREACH: Over-entangled (14 imports). Isolate dependencies."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.06). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\games\\odin_protocol\\ui.py": {
+      "intent": "Displays the player's genetic stats and empire status (Retro-Battle Grid style).",
+      "imports": [
+        [
+          "os",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "rich.console"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.games.odin_protocol.engine"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "OdinUI"
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "HIGH",
+          "action": "GUNGNIR_LOGIC_BREACH: High Complexity (16.0). Refactor God Methods."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.02). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\games\\odin_protocol\\engine\\adjudicator.py": {
+      "intent": "[ENGINE] Action Adjudicator",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "src.games.odin_protocol.engine.logic"
+        ],
+        [
+          "",
+          "src.games.odin_protocol.engine.models"
+        ],
+        [
+          "",
+          "src.games.odin_protocol.engine.scenarios"
+        ]
+      ],
+      "exports": [
+        [
+          "process_queue",
+          ""
+        ],
+        [
+          "",
+          "ActionAdjudicator"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.11). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\games\\odin_protocol\\engine\\campaign_updater.py": {
+      "intent": "[ENGINE] Campaign Updater",
+      "imports": [
+        [
+          "logging",
+          ""
+        ],
+        [
+          "sqlite3",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.games.odin_protocol.engine.models"
+        ],
+        [
+          "",
+          "src.games.odin_protocol.engine.persistence"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "CampaignUpdater"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.14). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\games\\odin_protocol\\engine\\gm_client.py": {
+      "intent": "[ENGINE] Game Master Client",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "logging",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.games.odin_protocol.engine.scenarios"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "OdinGM"
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.06). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\games\\odin_protocol\\engine\\logic.py": {
+      "intent": "[LOGIC] Odin Protocol Game Mechanics",
+      "imports": [
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "src.games.odin_protocol.engine.models"
+        ]
+      ],
+      "exports": [
+        [
+          "get_federated_seed",
+          ""
+        ],
+        [
+          "calculate_effective_stats",
+          ""
+        ],
+        [
+          "get_combat_rating",
+          ""
+        ],
+        [
+          "adjudicate_choice",
+          ""
+        ],
+        [
+          "update_domination",
+          ""
+        ],
+        [
+          "trigger_restart",
+          ""
+        ],
+        [
+          "",
+          "TacticalAdjudicator"
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.05). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\games\\odin_protocol\\engine\\models.py": {
+      "intent": "[MODELS] Odin Protocol Data Structures",
+      "imports": [
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "dataclasses"
+        ],
+        [
+          "",
+          "typing"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "Chromosome"
+        ],
+        [
+          "",
+          "Item"
+        ],
+        [
+          "",
+          "UniverseState"
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.14). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\games\\odin_protocol\\engine\\persistence.py": {
+      "intent": "[ENGINE] Persistence",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "logging",
+          ""
+        ],
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "OdinPersistence"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\games\\odin_protocol\\engine\\rng.py": {
+      "intent": "[ENGINE] Tactical RNG",
+      "imports": [
+        [
+          "random",
+          ""
+        ],
+        [
+          "secrets",
+          ""
+        ],
+        [
+          "",
+          "collections.abc"
+        ],
+        [
+          "",
+          "typing"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "TacticalRNG"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\games\\odin_protocol\\engine\\scenarios.py": {
+      "intent": "[ENGINE] Scenario Generator",
+      "imports": [
+        [
+          "hashlib",
+          ""
+        ],
+        [
+          "math",
+          ""
+        ],
+        [
+          "random",
+          ""
+        ],
+        [
+          "",
+          "typing"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "SovereignScenarioEngine"
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.05). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\games\\odin_protocol\\engine\\__init__.py": {
+      "intent": "Unknown",
+      "imports": [
+        [
+          "",
+          ".gm_client"
+        ],
+        [
+          "",
+          ".logic"
+        ],
+        [
+          "",
+          ".models"
+        ],
+        [
+          "",
+          ".persistence"
+        ]
+      ],
+      "exports": [],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.00). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\node\\agent_loop.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'node:fs/promises';",
+        "'node:path';",
+        "'chalk';",
+        "'./deployment.js';",
+        "'./cortex_link.js';",
+        "'./core/hud.js';",
+        "'execa';"
+      ],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\node\\ceremony.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'chalk';",
+        "'node:fs';",
+        "'node:path';",
+        "'node:url';",
+        "'../tools/pennyone/personaRegistry.js';",
+        "'./core/ans.js';",
+        "'./core/hud.js';"
+      ],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\node\\cortex_link.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'ws';",
+        "'execa';",
+        "'chalk';",
+        "'node:path';",
+        "'node:fs';",
+        "'node:url';",
+        "'../tools/pennyone/personaRegistry.js';",
+        "'ts-morph';",
+        "'./core/python_utils.js';"
+      ],
+      "exports": [
+        "CortexLink"
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "HIGH",
+          "action": "GUNGNIR_UI_BREACH: Low Birkhoff Measure (0.00). Increase symmetry."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\node\\deployment.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'node:fs/promises';",
+        "'execa';",
+        "'chalk';"
+      ],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\node\\setup.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'node:fs/promises';",
+        "'node:url';",
+        "'node:path';",
+        "'chalk';",
+        "'execa';"
+      ],
+      "exports": [
+        "getVenvBinaryPath"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\node\\core\\ans.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'../cortex_link.js';",
+        "'execa';",
+        "'node:path';",
+        "'node:fs';",
+        "'node:net';",
+        "'../../tools/pennyone/pathRegistry.js';",
+        "'chalk';",
+        "'../../tools/pennyone/personaRegistry.js';",
+        "'./python_utils.js';",
+        "'./hud.js';",
+        "'./state.ts';"
+      ],
+      "exports": [
+        "ANS"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\node\\core\\bdd_master.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'node:fs';",
+        "'node:path';",
+        "'chalk';"
+      ],
+      "exports": [
+        "BddMaster"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\node\\core\\CognitiveRouter.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'./CorvusProcess.js';",
+        "'./EventManager.js';"
+      ],
+      "exports": [
+        "CognitiveRouter"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\node\\core\\CorvusProcess.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'child_process';",
+        "'readline';",
+        "'events';",
+        "'./python_utils.js';"
+      ],
+      "exports": [
+        "CorvusProcess"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\node\\core\\economy.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'node:fs/promises';",
+        "'node:path';",
+        "'node:url';",
+        "'chalk';",
+        "'./nexus.js';"
+      ],
+      "exports": [
+        "ImperialLedger"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\node\\core\\EventManager.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'ws';"
+      ],
+      "exports": [
+        "EventManager"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\node\\core\\heartbeat.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'node:fs/promises';",
+        "'node:path';",
+        "'node:url';",
+        "'chalk';",
+        "'./nexus.js';",
+        "'./hud.js';"
+      ],
+      "exports": [
+        "SovereignLoop"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\node\\core\\hud.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'chalk';",
+        "'../../tools/pennyone/personaRegistry.js';"
+      ],
+      "exports": [
+        "HUD"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\node\\core\\nexus.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'chalk';",
+        "'./hud.js';"
+      ],
+      "exports": [
+        "SynapticNexus"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\node\\core\\python_utils.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'node:path';",
+        "'node:fs';",
+        "'../../tools/pennyone/pathRegistry.js';"
+      ],
+      "exports": [
+        "getPythonPath"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\node\\core\\state.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'node:fs';",
+        "'node:path';",
+        "'../../tools/pennyone/pathRegistry.js';",
+        "'../../tools/pennyone/personaRegistry.js';"
+      ],
+      "exports": [
+        "StateRegistry"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\node\\core\\commands\\dispatcher.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'commander';",
+        "'node:path';",
+        "'node:fs';",
+        "'execa';"
+      ],
+      "exports": [
+        "registerDispatcher"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\node\\core\\commands\\mcp.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'commander';",
+        "'chalk';"
+      ],
+      "exports": [
+        "registerMcpCommand"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\node\\core\\commands\\pennyone.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'commander';",
+        "'chalk';",
+        "'node:path';",
+        "'execa';"
+      ],
+      "exports": [
+        "registerPennyOneCommand"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\node\\core\\commands\\python.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'commander';",
+        "'node:path';",
+        "'execa';",
+        "'../ans.js';",
+        "'../python_utils.js';"
+      ],
+      "exports": [
+        "registerPythonSpokes"
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "HIGH",
+          "action": "GUNGNIR_UI_BREACH: Low Birkhoff Measure (0.00). Increase symmetry."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\node\\core\\commands\\ravens.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'commander';",
+        "'chalk';",
+        "'node:fs';",
+        "'node:path';",
+        "'execa';",
+        "'../hud.js';"
+      ],
+      "exports": [
+        "registerRavenCommand"
+      ],
+      "gungnir_score": 100,
+      "breaches": []
+    },
+    "src\\node\\core\\commands\\start.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'commander';",
+        "'chalk';",
+        "'node:path';",
+        "'../../cortex_link.js';",
+        "'../../agent_loop.js';",
+        "'../ans.js';",
+        "'../../../tools/pennyone/index.js';",
+        "'../state.ts';"
+      ],
+      "exports": [
+        "registerStartCommand"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\node\\core\\commands\\vitals.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'commander';",
+        "'execa';",
+        "'node:path';",
+        "'node:url';",
+        "'../hud.js';",
+        "'chalk';"
+      ],
+      "exports": [
+        "registerVitalsCommand"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\node\\gateway\\server.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'dotenv';",
+        "'node:path';",
+        "'node:url';",
+        "'fastify';",
+        "'@fastify/cors';",
+        "'@fastify/type-provider-typebox';",
+        "'./plugins/corvus.js';",
+        "'./routes/api/intent.js';",
+        "'./routes/api/mimir.js';",
+        "'./routes/api/telemetry.js';",
+        "'./routes/streams/telemetry.js';"
+      ],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\node\\gateway\\plugins\\corvus.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'fastify';",
+        "'fastify-plugin';",
+        "'../../core/CorvusProcess.js';"
+      ],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\node\\gateway\\routes\\api\\intent.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'fastify';",
+        "'@sinclair/typebox';"
+      ],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\node\\gateway\\routes\\api\\mimir.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'fastify';",
+        "'@sinclair/typebox';"
+      ],
+      "exports": [],
+      "gungnir_score": 100,
+      "breaches": []
+    },
+    "src\\node\\gateway\\routes\\api\\telemetry.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'fastify';",
+        "'@sinclair/typebox';"
+      ],
+      "exports": [],
+      "gungnir_score": 100,
+      "breaches": []
+    },
+    "src\\node\\gateway\\routes\\streams\\telemetry.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'fastify';",
+        "'stream';"
+      ],
+      "exports": [],
+      "gungnir_score": 100,
+      "breaches": []
+    },
+    "src\\node\\gateway\\routes\\ws\\events.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'fastify';",
+        "'ws';",
+        "'../../../core/EventManager.js';"
+      ],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\sentinel\\code_sanitizer.py": {
+      "intent": "The Bifrost Gate: Code Sanitizer",
+      "imports": [
+        [
+          "ast",
+          ""
+        ],
+        [
+          "importlib",
+          ""
+        ],
+        [
+          "re",
+          ""
+        ],
+        [
+          "textwrap",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.tools.brave_search"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "QuarantineFailure(Exception)"
+        ],
+        [
+          "",
+          "BifrostGate"
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.08). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\sentinel\\coordinator.py": {
+      "intent": "[ALFRED] Coordinates the Hunt and Selection phases of the Ravens Protocol.",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "MissionCoordinator"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.09). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\sentinel\\git_spoke.py": {
+      "intent": "[SPOKE] Git Spoke",
+      "imports": [
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "GitSpoke"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.12). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\sentinel\\harvest_responses.py": {
+      "intent": "Response Harvester: Captures live AI responses for the mock bank.",
+      "imports": [
+        [
+          "argparse",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "unittest.mock"
+        ],
+        [
+          "",
+          "src.sentinel._bootstrap"
+        ],
+        [
+          "",
+          "src.sentinel.muninn"
+        ],
+        [
+          "",
+          "src.cstar.core.uplink"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "ResponseRecorder"
+        ],
+        [
+          "",
+          "Harvester"
+        ]
+      ],
+      "gungnir_score": 80,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_COUPLING_BREACH: Over-entangled (12 imports). Isolate dependencies."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.13). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\sentinel\\main_loop.py": {
+      "intent": "Huginn & Muninn: The Twin Ravens (Daemon)",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "logging",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "signal",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "psutil",
+          ""
+        ],
+        [
+          "",
+          "colorama"
+        ],
+        [
+          "",
+          "src.sentinel._bootstrap"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.sentinel.repo_spoke"
+        ],
+        [
+          "",
+          "src.core.utils"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "ShutdownHandler"
+        ],
+        [
+          "highlander_check",
+          ""
+        ],
+        [
+          "",
+          "DaemonOrchestrator"
+        ]
+      ],
+      "gungnir_score": 80,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_COUPLING_BREACH: Over-entangled (15 imports). Isolate dependencies."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.10). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\sentinel\\muninn.py": {
+      "intent": "Muninn: The Raven of Memory & Excellence (Autonomous Improver)",
+      "imports": [
+        [
+          "asyncio",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.sentinel.muninn_heart"
+        ],
+        [
+          "",
+          "src.sentinel.muninn_hunter"
+        ],
+        [
+          "",
+          "src.sentinel.muninn_crucible"
+        ],
+        [
+          "",
+          "src.sentinel.wardens.norn"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "Muninn"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_COUPLING_BREACH: Over-entangled (12 imports). Isolate dependencies."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\sentinel\\muninn_crucible.py": {
+      "intent": "[SPOKE] Muninn Crucible",
+      "imports": [
+        [
+          "shutil",
+          ""
+        ],
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.sentinel.code_sanitizer"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "MuninnCrucible"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.08). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\sentinel\\muninn_heart.py": {
+      "intent": "[SPOKE] Muninn Heart",
+      "imports": [
+        [
+          "asyncio",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.core.metrics"
+        ],
+        [
+          "",
+          "src.sentinel.stability"
+        ],
+        [
+          "",
+          "src.sentinel.muninn_crucible"
+        ],
+        [
+          "",
+          "src.sentinel.muninn_memory"
+        ],
+        [
+          "",
+          "src.core.mimir_client"
+        ],
+        [
+          "",
+          "src.sentinel.coordinator"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "MuninnHeart"
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_COUPLING_BREACH: Over-entangled (15 imports). Isolate dependencies."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.11). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\sentinel\\muninn_hunter.py": {
+      "intent": "[SPOKE] Muninn Hunter",
+      "imports": [
+        [
+          "asyncio",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.sentinel.coordinator"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "MuninnHunter"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.11). Add intents/docstrings."
+        }
+      ]
+    },
+    "src\\sentinel\\muninn_memory.py": {
+      "intent": "[SPOKE] Muninn Memory",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "datetime"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "MuninnMemory"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.08). Add intents/docstrings."
+        }
+      ]
+    },
+    "src\\sentinel\\recreate_chapter.py": {
+      "intent": "The Director outlines the physical blocking and turn order.",
+      "imports": [
+        [
+          "asyncio",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.cstar.core.uplink"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "RecreateChapterPipeline"
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.05). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\sentinel\\repo_spoke.py": {
+      "intent": "[SPOKE] Repo Spoke",
+      "imports": [
+        [
+          "asyncio",
+          ""
+        ],
+        [
+          "logging",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.sentinel.git_spoke"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "RepoSpoke"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.11). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\sentinel\\sandbox_warden.py": {
+      "intent": "[O.D.I.N.] The Sandbox Warden",
+      "imports": [
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "uuid",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "SandboxWarden"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.12). Add intents/docstrings."
+        }
+      ]
+    },
+    "src\\sentinel\\score_cohesion.py": {
+      "intent": "Calculate the lexical overlap between the generated text and the true text.",
+      "imports": [
+        [
+          "asyncio",
+          ""
+        ],
+        [
+          "argparse",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "difflib"
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.cstar.core.uplink"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "CohesionScorer"
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.07). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\sentinel\\stability.py": {
+      "intent": "[STABILITY & VALIDATION]",
+      "imports": [
+        [
+          "hashlib",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "math",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "GungnirValidator"
+        ],
+        [
+          "",
+          "TheWatcher"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.13). Add intents/docstrings."
+        }
+      ]
+    },
+    "src\\sentinel\\taliesin.py": {
+      "intent": "[SPOKE] TALIESIN - Textual Articulation and Lore Ingestion Engine",
+      "imports": [
+        [
+          "asyncio",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.cstar.core.uplink"
+        ],
+        [
+          "",
+          "src.sentinel.x_api"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "TaliesinSpoke"
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_COUPLING_BREACH: Over-entangled (11 imports). Isolate dependencies."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.07). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        }
+      ]
+    },
+    "src\\sentinel\\taliesin_forge.py": {
+      "intent": "[SPOKE] Taliesin Forge (The Living Lore Compiler)",
+      "imports": [
+        [
+          "asyncio",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "re",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.cstar.core.uplink"
+        ]
+      ],
+      "exports": [
+        [
+          "extract_json",
+          ""
+        ],
+        [
+          "",
+          "TaliesinForge"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.10). Add intents/docstrings."
+        }
+      ]
+    },
+    "src\\sentinel\\x_api.py": {
+      "intent": "[SPOKE] TALIESIN - X API Wrapper (Simulation Mode)",
+      "imports": [
+        [
+          "os",
+          ""
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "XAPI"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.13). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\sentinel\\_bootstrap.py": {
+      "intent": "[BOOTSTRAP]",
+      "imports": [
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "dotenv"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.core.utils"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "SovereignBootstrap"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\sentinel\\__init__.py": {
+      "intent": "Unknown",
+      "imports": [],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\sentinel\\wardens\\base.py": {
+      "intent": "[WARDEN] Base Architecture",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "",
+          "abc"
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.tools.brave_search"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "BaseWarden(ABC)"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\sentinel\\wardens\\edda.py": {
+      "intent": "[Edda: DOCUMENTATION]",
+      "imports": [
+        [
+          "ast",
+          ""
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.sentinel.wardens.base"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "EddaWarden(BaseWarden)"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "HIGH",
+          "action": "GUNGNIR_LOGIC_BREACH: High Complexity (16.5). Refactor God Methods."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.12). Add intents/docstrings."
+        }
+      ]
+    },
+    "src\\sentinel\\wardens\\freya.py": {
+      "intent": "[WARDEN] Freya: BEAUTY",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "re",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.sentinel.wardens.base"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "FreyaWarden(BaseWarden)"
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "HIGH",
+          "action": "GUNGNIR_LOGIC_BREACH: High Complexity (25.5). Refactor God Methods."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.07). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\sentinel\\wardens\\ghost_warden.py": {
+      "intent": "[WARDEN] Ghost Warden (v1.0)",
+      "imports": [
+        [
+          "re",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.sentinel.wardens.base"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "GhostWarden(BaseWarden)"
+        ]
+      ],
+      "gungnir_score": 100,
+      "breaches": []
+    },
+    "src\\sentinel\\wardens\\huginn.py": {
+      "intent": "[Huginn: NEURAL TRACE ANALYSIS]",
+      "imports": [
+        [
+          "contextlib",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "re",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.cstar.core.uplink"
+        ],
+        [
+          "",
+          "src.sentinel.wardens.base"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "HuginnWarden(BaseWarden)"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.09). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\sentinel\\wardens\\mimir.py": {
+      "intent": "[Mimir: COMPLEXITY]",
+      "imports": [
+        [
+          "contextlib",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "radon.complexity"
+        ],
+        [
+          "",
+          "radon.metrics"
+        ],
+        [
+          "",
+          "src.sentinel.wardens.base"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "MimirWarden(BaseWarden)"
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "HIGH",
+          "action": "GUNGNIR_LOGIC_BREACH: High Complexity (19.5). Refactor God Methods."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.08). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        }
+      ]
+    },
+    "src\\sentinel\\wardens\\norn.py": {
+      "intent": "[Norn: CAMPAIGN FATE]",
+      "imports": [
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.sentinel.wardens.base"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "NornWarden(BaseWarden)"
+        ]
+      ],
+      "gungnir_score": 100,
+      "breaches": []
+    },
+    "src\\sentinel\\wardens\\runecaster.py": {
+      "intent": "[RuneCaster: TYPE SAFETY]",
+      "imports": [
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.sentinel.wardens.base"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "RuneCasterWarden(BaseWarden)"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\sentinel\\wardens\\sandbox_warden.py": {
+      "intent": "[WARDEN] Sandbox Warden",
+      "imports": [
+        [
+          "os",
+          ""
+        ],
+        [
+          "shutil",
+          ""
+        ],
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "tempfile",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "SandboxWarden"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.14). Add intents/docstrings."
+        }
+      ]
+    },
+    "src\\sentinel\\wardens\\scour.py": {
+      "intent": "[WARDEN] Scour Warden",
+      "imports": [
+        [
+          "os",
+          ""
+        ],
+        [
+          "re",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.sentinel.wardens.base"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "ScourWarden(BaseWarden)"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.13). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\sentinel\\wardens\\shadow_forge.py": {
+      "intent": "[O.D.I.N.] Shadow Forge Warden",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "shutil",
+          ""
+        ],
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.sentinel.wardens.base"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "ShadowForgeWarden(BaseWarden)"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.06). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        }
+      ]
+    },
+    "src\\sentinel\\wardens\\taste.py": {
+      "intent": "[WARDEN] Taste: HIGH-AGENCY AESTHETICS",
+      "imports": [
+        [
+          "re",
+          ""
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.sentinel.wardens.base"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "TasteWarden(BaseWarden)"
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "HIGH",
+          "action": "GUNGNIR_LOGIC_BREACH: High Complexity (15.5). Refactor God Methods."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.13). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\sentinel\\wardens\\valkyrie.py": {
+      "intent": "[Valkyrie: PRUNING]",
+      "imports": [
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "vulture",
+          ""
+        ],
+        [
+          "",
+          "src.sentinel.wardens.base"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "ValkyrieWarden(BaseWarden)"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.10). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\sentinel\\wardens\\__init__.py": {
+      "intent": "Wardens of Asgard",
+      "imports": [],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\skills\\install_skill.py": {
+      "intent": "[A.L.F.R.E.D.] Orchestration logic for Corvus Star skill installation.",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "re",
+          ""
+        ],
+        [
+          "shutil",
+          ""
+        ],
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "install_skill",
+          ""
+        ],
+        [
+          "_get_config",
+          ""
+        ],
+        [
+          "_sanitize_skill_name",
+          ""
+        ],
+        [
+          "",
+          "SkillInstaller"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.09). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\skills\\skill_forge.py": {
+      "intent": "The Skill Forge",
+      "imports": [
+        [
+          "os",
+          ""
+        ],
+        [
+          "py_compile",
+          ""
+        ],
+        [
+          "re",
+          ""
+        ],
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "datetime"
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "cortex"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.tools.brave_search"
+        ],
+        [
+          "argparse",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "pytest",
+          ""
+        ],
+        [
+          "ast",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "argparse",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "re",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "requests",
+          ""
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "SkillForge"
+        ],
+        [
+          "main",
+          ""
+        ],
+        [
+          "",
+          "Test{name.title().replace('_', '')}"
+        ],
+        [
+          "scan_file",
+          ""
+        ],
+        [
+          "main",
+          ""
+        ],
+        [
+          "{name}",
+          ""
+        ],
+        [
+          "main",
+          ""
+        ],
+        [
+          "scrape_data",
+          ""
+        ],
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_COUPLING_BREACH: Over-entangled (11 imports). Isolate dependencies."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.13). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        }
+      ]
+    },
+    "src\\skills\\__init__.py": {
+      "intent": "Unknown",
+      "imports": [],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\skills\\local\\dormancy.py": {
+      "intent": "[SKILL] Dormancy (Sleep) & The Dream State",
+      "imports": [
+        [
+          "sys",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "asyncio",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.core.mimir_client"
+        ]
+      ],
+      "exports": [
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.10). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\skills\\local\\CacheBro\\cache_bro.py": {
+      "intent": "[SKILL] CacheBro",
+      "imports": [
+        [
+          "difflib",
+          ""
+        ],
+        [
+          "hashlib",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "CacheBro"
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.07). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\skills\\local\\KnowledgeHunter\\hunter.py": {
+      "intent": "[SKILL] KnowledgeHunter",
+      "imports": [
+        [
+          "os",
+          ""
+        ],
+        [
+          "re",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.tools.brave_search"
+        ],
+        [
+          "",
+          "src.cstar.core.uplink"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "KnowledgeHunter"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.09). Add intents/docstrings."
+        }
+      ]
+    },
+    "src\\skills\\local\\SkillLearning\\learn.py": {
+      "intent": "[SKILL] SkillLearning",
+      "imports": [
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.skills.local.SkillHunter.hunter"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "SkillLearner"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.13). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\skills\\local\\VisualExplainer\\visual_explainer.py": {
+      "intent": "[SKILL] VisualExplainer",
+      "imports": [
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "datetime"
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "VisualExplainer"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.12). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\skills\\local\\WildHunt\\wild_hunt.py": {
+      "intent": "[SKILL] Wild Hunt",
+      "imports": [
+        [
+          "os",
+          ""
+        ],
+        [
+          "shutil",
+          ""
+        ],
+        [
+          "stat",
+          ""
+        ],
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "WildHunt"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_COUPLING_BREACH: Over-entangled (12 imports). Isolate dependencies."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.08). Add intents/docstrings."
+        }
+      ]
+    },
+    "src\\skills\\local\\workflow_analyst\\analyze_workflow.py": {
+      "intent": "[SKILL] Workflow Analyst",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "re",
+          ""
+        ],
+        [
+          "",
+          "collections"
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "WorkflowAnalyst"
+        ],
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\synapse\\synapse_auth.py": {
+      "intent": "Synapse Auth: The Neural Handshake",
+      "imports": [
+        [
+          "hashlib",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "random",
+          ""
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "PersonaVerifier"
+        ],
+        [
+          "",
+          "SynapseAuthenticator"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\synapse\\synapse_sync.py": {
+      "intent": "[O.D.I.N.] Synapse Synchronization System (synapse_sync.py)",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "shutil",
+          ""
+        ],
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "ConfigurationError(Exception)"
+        ],
+        [
+          "",
+          "PushRateLimiter"
+        ],
+        [
+          "",
+          "GitHelper"
+        ],
+        [
+          "",
+          "KnowledgeExtractor"
+        ],
+        [
+          "",
+          "Synapse"
+        ],
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_COUPLING_BREACH: Over-entangled (11 imports). Isolate dependencies."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.08). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\synapse\\__init__.py": {
+      "intent": "Unknown",
+      "imports": [],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\acquire.py": {
+      "intent": "[O.D.I.N.] Implementation of the Hunt & Forge Protocol.",
+      "imports": [
+        [
+          "argparse",
+          ""
+        ],
+        [
+          "asyncio",
+          ""
+        ],
+        [
+          "re",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.cstar.core.uplink"
+        ],
+        [
+          "",
+          "src.sentinel.code_sanitizer"
+        ],
+        [
+          "",
+          "src.tools.brave_search"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "SkillAcquirer"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.13). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\archive_consolidator.py": {
+      "intent": "[ALFRED] The Archive Consolidator",
+      "imports": [
+        [
+          "argparse",
+          ""
+        ],
+        [
+          "ast",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "logging",
+          ""
+        ],
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "collections"
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "ArchiveConsolidator"
+        ],
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_COUPLING_BREACH: Over-entangled (12 imports). Isolate dependencies."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.08). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\benchmark_engine.py": {
+      "intent": "[O.D.I.N.] Orchestration logic for Corvus Star performance benchmarking.",
+      "imports": [
+        [
+          "statistics",
+          ""
+        ],
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.report_engine"
+        ]
+      ],
+      "exports": [
+        [
+          "benchmark",
+          ""
+        ],
+        [
+          "",
+          "BenchmarkOrchestrator"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.07). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\brave_search.py": {
+      "intent": "[ALFRED] Brave Search Quota Manager & Tool",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "datetime"
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "requests",
+          ""
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "BraveSearch"
+        ],
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.09). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\code_sentinel.py": {
+      "intent": "[O.D.I.N.] Heimdall - The All-Seeing Code Guardian.",
+      "imports": [
+        [
+          "argparse",
+          ""
+        ],
+        [
+          "ast",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "Heimdall"
+        ],
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.07). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\compile_failure_report.py": {
+      "intent": "[O.D.I.N.] Orchestration logic for Sovereign Cycle failure analysis.",
+      "imports": [
+        [
+          "os",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "collections"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "compile_report",
+          ""
+        ],
+        [
+          "",
+          "FailureReporter"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.11). Add intents/docstrings."
+        }
+      ]
+    },
+    "src\\tools\\compile_session_traces.py": {
+      "intent": "[ALFRED] Advanced analytics for neural traces.",
+      "imports": [
+        [
+          "glob",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "shutil",
+          ""
+        ],
+        [
+          "",
+          "datetime"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "TraceAnalyzer"
+        ],
+        [
+          "",
+          "ReportRenderer"
+        ],
+        [
+          "",
+          "TraceCompiler"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.05). Add intents/docstrings."
+        }
+      ]
+    },
+    "src\\tools\\corvus-control-mcp.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'dotenv';",
+        "'node:path';",
+        "'node:url';",
+        "'@modelcontextprotocol/sdk/server/mcp.js';",
+        "'@modelcontextprotocol/sdk/server/stdio.js';",
+        "'zod';",
+        "'execa';",
+        "'../node/core/hud.js';",
+        "'chalk';"
+      ],
+      "exports": [],
+      "gungnir_score": 100,
+      "breaches": []
+    },
+    "src\\tools\\danger_room.py": {
+      "intent": "[ALFRED] The Danger Room",
+      "imports": [
+        [
+          "argparse",
+          ""
+        ],
+        [
+          "asyncio",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "logging",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.cstar.core.uplink"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "DangerRoom"
+        ],
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.10). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\debt_viz.py": {
+      "intent": "[O.D.I.N.] Structural Debt Visualizer (debt_viz.py)",
+      "imports": [
+        [
+          "argparse",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "DebtAnalyzer"
+        ],
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.08). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\gemini_search.py": {
+      "intent": "[O.D.I.N.] Gemini Search Provider",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "GeminiSearch"
+        ],
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\generate_tests.py": {
+      "intent": "[O.D.I.N.] Orchestration logic for synthetic fishtest data generation.",
+      "imports": [
+        [
+          "argparse",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "random",
+          ""
+        ]
+      ],
+      "exports": [
+        [
+          "generate_cases",
+          ""
+        ],
+        [
+          "",
+          "TestCaseGenerator"
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.06). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\js_sentinel.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'execa';",
+        "'chalk';",
+        "'node:fs/promises';",
+        "'node:path';",
+        "'node:url';"
+      ],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\latency_check.py": {
+      "intent": "[O.D.I.N.] Latency Profiler (latency_check.py)",
+      "imports": [
+        [
+          "contextlib",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "LatencyProfiler"
+        ],
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.12). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\lightning_rod.py": {
+      "intent": "[ALFRED] Orchestration logic for file optimization diagnostics.",
+      "imports": [
+        [
+          "os",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ]
+      ],
+      "exports": [
+        [
+          "optimize_file",
+          ""
+        ],
+        [
+          "",
+          "LightningOrchestrator"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.11). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\list_models.py": {
+      "intent": "[ALFRED] Orchestration logic for Gemini model discovery.",
+      "imports": [
+        [
+          "os",
+          ""
+        ],
+        [
+          "",
+          "dotenv"
+        ],
+        [
+          "",
+          "google"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "ModelLister"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.14). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\loop.py": {
+      "intent": "The 'Act' component of the Loop.",
+      "imports": [
+        [
+          "asyncio",
+          ""
+        ],
+        [
+          "gc",
+          ""
+        ],
+        [
+          "logging",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "shutil",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "contextlib",
+          ""
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.cstar.core.uplink"
+        ],
+        [
+          "",
+          "src.sentinel.wardens.norn"
+        ],
+        [
+          "",
+          "src.tools.wrap_it_up"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "SovereignForge"
+        ],
+        [
+          "",
+          "SovereignLifecycle"
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_COUPLING_BREACH: Over-entangled (15 imports). Isolate dependencies."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.14). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\merge_traces.py": {
+      "intent": "[ALFRED] Orchestration logic for neural trace consolidation.",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "shutil",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ]
+      ],
+      "exports": [
+        [
+          "_save_dataset",
+          ""
+        ],
+        [
+          "_process_single_trace",
+          ""
+        ],
+        [
+          "",
+          "TraceMerger"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.06). Add intents/docstrings."
+        }
+      ]
+    },
+    "src\\tools\\migrate_to_qmd.py": {
+      "intent": "QMD Migration Script",
+      "imports": [
+        [
+          "hashlib",
+          ""
+        ],
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ]
+      ],
+      "exports": [
+        [
+          "get_checksum",
+          ""
+        ],
+        [
+          "",
+          "MigrationEngine"
+        ],
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.10). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\network_watcher.py": {
+      "intent": "[ALFRED] Secure ingestion pipeline for the Federated Crucible.",
+      "imports": [
+        [
+          "os",
+          ""
+        ],
+        [
+          "shutil",
+          ""
+        ],
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "CruciblePipeline"
+        ],
+        [
+          "",
+          "NetworkWatcher"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.09). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\overwatch.py": {
+      "intent": "[ALFRED] Secure statistics accumulator for federated monitoring.",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "contextlib",
+          ""
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "StatsCollector"
+        ],
+        [
+          "",
+          "OverwatchRenderer"
+        ],
+        [
+          "",
+          "InputManager"
+        ],
+        [
+          "",
+          "Overwatch"
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.05). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\perimeter_sweep.py": {
+      "intent": "[ALFRED] The Perimeter Sweep",
+      "imports": [
+        [
+          "argparse",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "logging",
+          ""
+        ],
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "contextlib",
+          ""
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "PerimeterSweep"
+        ],
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.10). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\security_scan.py": {
+      "intent": "[ALFRED] Secure multi-layer scan with DoS and AST heuristics.",
+      "imports": [
+        [
+          "ast",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "re",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "SecurityScanner"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.02). Add intents/docstrings."
+        }
+      ]
+    },
+    "src\\tools\\sentinel_perf.py": {
+      "intent": "Sentinel Perf: Engine Latency Profiler",
+      "imports": [
+        [
+          "os",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "contextlib",
+          ""
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "SentinelPerf"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.13). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\trace_viz.py": {
+      "intent": "[ALFRED] Decoupled renderer that enforces a specific theme for neural replay.",
+      "imports": [
+        [
+          "argparse",
+          ""
+        ],
+        [
+          "glob",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "math",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "collections"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.core.engine.vector"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "TraceRenderer"
+        ],
+        [
+          "",
+          "TraceVisualizer"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_COUPLING_BREACH: Over-entangled (11 imports). Isolate dependencies."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.02). Add intents/docstrings."
+        }
+      ]
+    },
+    "src\\tools\\tune_weights.py": {
+      "intent": "[ALFRED] Cognitive learning module for autonomous weight optimization.",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "collections"
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.engine.vector"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "MetaLearner"
+        ],
+        [
+          "",
+          "WeightTuner"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.04). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\update_gemini_manifest.py": {
+      "intent": "[O.D.I.N.] Orchestration logic for Gemini Neural Manifest updates.",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "datetime"
+        ],
+        [
+          "",
+          "pathlib"
+        ]
+      ],
+      "exports": [
+        [
+          "update_manifest",
+          ""
+        ],
+        [
+          "",
+          "ManifestOrchestrator"
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.05). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\user_feedback.py": {
+      "intent": "[TOOL] User Feedback Logger",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "datetime"
+        ],
+        [
+          "",
+          "pathlib"
+        ]
+      ],
+      "exports": [
+        [
+          "log_feedback",
+          ""
+        ],
+        [
+          "",
+          "FeedbackOrchestrator"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.12). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\utility_belt.py": {
+      "intent": "[ALFRED] The Utility Belt",
+      "imports": [
+        [
+          "argparse",
+          ""
+        ],
+        [
+          "asyncio",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "logging",
+          ""
+        ],
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.cstar.core.uplink"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "UtilityBelt"
+        ],
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.08). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\vault.py": {
+      "intent": "\u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \u03a9 VAULT ENGINE \u03a9 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510",
+      "imports": [
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "cryptography.fernet"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "SovereignVault"
+        ],
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.08). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\voice_check.py": {
+      "intent": "[DIAGNOSTIC] Voice Checker",
+      "imports": [
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.core.engine.dialogue"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "VoiceDiagnostic"
+        ],
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.13). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\wrap_it_up.py": {
+      "intent": "Lazy-load and cache the engine instance for the session.",
+      "imports": [
+        [
+          "gc",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "datetime"
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.engine.atomic_gpt"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.core.sv_engine"
+        ],
+        [
+          "",
+          "src.tools.update_gemini_manifest"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "SovereignWrapper"
+        ],
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_COUPLING_BREACH: Over-entangled (13 imports). Isolate dependencies."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.11). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\__init__.py": {
+      "intent": "Unknown",
+      "imports": [],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\data\\dedupe_corrections.py": {
+      "intent": "Unknown",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ]
+      ],
+      "exports": [],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.10). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\data\\expand_thesaurus.py": {
+      "intent": "Unknown",
+      "imports": [
+        [
+          "re",
+          ""
+        ]
+      ],
+      "exports": [],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.10). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\data\\overfit_corrections.py": {
+      "intent": "[O.D.I.N.] Orchestration logic for neural correction overfitting.",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.engine.vector"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "CorrectionOptimizer"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.13). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\data\\sanitize_thesaurus.py": {
+      "intent": "[DATA] Thesaurus Sanitizer",
+      "imports": [
+        [
+          "",
+          "pathlib"
+        ]
+      ],
+      "exports": [
+        [
+          "sanitize_clusters",
+          ""
+        ],
+        [
+          "",
+          "ThesaurusSanitizer"
+        ],
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.11). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\data\\__init__.py": {
+      "intent": "Unknown",
+      "imports": [],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\debug\\audit_dialogue.py": {
+      "intent": "[O.D.I.N.] Identity Purity Audit (audit_dialogue.py)",
+      "imports": [
+        [
+          "argparse",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.engine.dialogue"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.core.sv_engine"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "DialogueAuditor"
+        ],
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\debug\\catalog_check.py": {
+      "intent": "Unknown",
+      "imports": [
+        [
+          "sys",
+          ""
+        ]
+      ],
+      "exports": [],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.13). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\debug\\check_pro.py": {
+      "intent": "Initializes the genai client, iterates through a list of candidate models,",
+      "imports": [
+        [
+          "os",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "dotenv"
+        ],
+        [
+          "",
+          "google"
+        ]
+      ],
+      "exports": [
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.09). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\debug\\cjk_check.py": {
+      "intent": "[O.D.I.N.] Orchestration logic for CJK (Chinese, Japanese, Korean) intent resonance.",
+      "imports": [
+        [
+          "sys",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.engine.vector"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "CJKDiagnostic"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.12). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\debug\\collision_investigator.py": {
+      "intent": "[O.D.I.N.] Orchestration logic for intent collision analysis.",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.engine.vector"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "CollisionInvestigator"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.08). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\debug\\debug_engine.py": {
+      "intent": "[O.D.I.N.] Orchestration logic for neural engine diagnostics.",
+      "imports": [
+        [
+          "os",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core.engine.vector"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "DebugEngine"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.10). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\debug\\debug_fishtest.py": {
+      "intent": "[DEBUG] Fishtest Diagnostic",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "src.core.engine.vector"
+        ]
+      ],
+      "exports": [
+        [
+          "run_debug_fishtest",
+          ""
+        ],
+        [
+          "",
+          "FishtestLegacyDiagnostic"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.12). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\debug\\debug_fishtest_phase2.py": {
+      "intent": "[DEBUG] Fishtest Phase 2 Diagnostic",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "src.core.engine.vector"
+        ]
+      ],
+      "exports": [
+        [
+          "run_debug_phase2",
+          ""
+        ],
+        [
+          "",
+          "FishtestDiagnostic"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.10). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\debug\\debug_perf.py": {
+      "intent": "[DEBUG] Performance Profiler",
+      "imports": [
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "src.core.engine.vector"
+        ]
+      ],
+      "exports": [
+        [
+          "run_profile",
+          ""
+        ],
+        [
+          "",
+          "PerformanceProfiler"
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.13). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\debug\\diag_engine.py": {
+      "intent": "[DEBUG] Diagnostic Engine",
+      "imports": [
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "src.core.engine.vector"
+        ]
+      ],
+      "exports": [
+        [
+          "run_diag",
+          ""
+        ],
+        [
+          "",
+          "DiagnosticEngine"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.14). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\debug\\quick_check.py": {
+      "intent": "[DEBUG] Quick Check",
+      "imports": [
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "src.core.engine.vector"
+        ]
+      ],
+      "exports": [
+        [
+          "run_quick_check",
+          ""
+        ],
+        [
+          "",
+          "QuickCheck"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.14). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\debug\\runecaster_audit.py": {
+      "intent": "[O.D.I.N.] RuneCaster - The All-Seeing Eye of Type Safety.",
+      "imports": [
+        [
+          "ast",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "RuneCasterAudit"
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.12). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\debug\\verify_fish.py": {
+      "intent": "[DEBUG] System Integrity Verifier",
+      "imports": [
+        [
+          "os",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "unittest.mock"
+        ],
+        [
+          "",
+          "pathlib"
+        ]
+      ],
+      "exports": [
+        [
+          "verify_system_integrity",
+          ""
+        ],
+        [
+          "",
+          "IntegrityVerifier"
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\debug\\__init__.py": {
+      "intent": "Unknown",
+      "imports": [],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\analyzer.ts": {
+      "intent": "[\\s\\S]*?",
+      "imports": [
+        "'./parser.js';",
+        "'node:crypto';",
+        "'node:fs/promises';",
+        "'node:fs';",
+        "'node:path';",
+        "'./calculus/logic.js';",
+        "'./calculus/style.js';",
+        "'./calculus/intel.js';",
+        "'./intel/gravity_db.js';",
+        "'./pathRegistry.js';",
+        "'./types.js';"
+      ],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\crawler.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'execa';",
+        "'node:path';",
+        "'node:fs';"
+      ],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\daemon.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'chokidar';",
+        "'node:path';",
+        "'node:fs';",
+        "'./index.js';",
+        "'./pathRegistry.js';",
+        "'chalk';",
+        "'./personaRegistry.js';",
+        "'../../node/cortex_link.js';"
+      ],
+      "exports": [
+        "P1Daemon"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\index.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'./crawler.js';",
+        "'./analyzer.js';",
+        "'./intel/writer.js';",
+        "'./intel/compiler.js';",
+        "'./intel/database.js';",
+        "'./intel/semantic.js';",
+        "'./intel/chronicle.js';",
+        "'./intel/warden.js';",
+        "'node:fs';",
+        "'fs/promises';",
+        "'path';",
+        "'node:crypto';",
+        "'./pathRegistry.js';",
+        "'./personaRegistry.js';",
+        "'./types.js';",
+        "'./intel/llm.js';",
+        "'chalk';"
+      ],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\mcp-server.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'dotenv';",
+        "'node:path';",
+        "'node:url';",
+        "'node:fs';",
+        "'execa';",
+        "'@modelcontextprotocol/sdk/server/mcp.js';",
+        "'@modelcontextprotocol/sdk/server/stdio.js';",
+        "'zod';",
+        "'./intel/semantic.js';",
+        "'./intel/database.js';",
+        "'./pathRegistry.js';",
+        "'./intel/llm.js';",
+        "'node:fs/promises';"
+      ],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\parser.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'web-tree-sitter';",
+        "'path';",
+        "'./pathRegistry.js';"
+      ],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\pathRegistry.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'path';",
+        "'fs';"
+      ],
+      "exports": [
+        "PathRegistry",
+        "registry"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\personaRegistry.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'fs';",
+        "'path';",
+        "'./pathRegistry.js';"
+      ],
+      "exports": [
+        "PersonaRegistry",
+        "activePersona"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\types.ts": {
+      "intent": "Unknown",
+      "imports": [],
+      "exports": [
+        "GungnirMatrix",
+        "FileData",
+        "AgentPing",
+        "ScanResult",
+        "CompiledGraph"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\calculus\\intel.ts": {
+      "intent": "Unknown",
+      "imports": [],
+      "exports": [
+        "calculateIntelScore"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\calculus\\logic.ts": {
+      "intent": "Unknown",
+      "imports": [],
+      "exports": [
+        "calculateLogicScore"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\calculus\\style.ts": {
+      "intent": "Unknown",
+      "imports": [],
+      "exports": [
+        "calculateStyleScore"
+      ],
+      "gungnir_score": 100,
+      "breaches": []
+    },
+    "src\\tools\\pennyone\\intel\\chronicle.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'node:fs/promises';",
+        "'node:path';",
+        "'./database.js';",
+        "'../pathRegistry.js';",
+        "'chalk';"
+      ],
+      "exports": [
+        "ChronicleIndexer"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\intel\\compiler.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'../types.js';",
+        "'fs/promises';",
+        "'path';",
+        "'../pathRegistry.js';"
+      ],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\intel\\database.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'better-sqlite3';",
+        "'node:path';",
+        "'node:fs';",
+        "'../types.js';",
+        "'../pathRegistry.js';"
+      ],
+      "exports": [
+        "getDb",
+        "acquireLease",
+        "releaseLease",
+        "registerSpoke",
+        "getSessionsWithSummaries",
+        "getTracesForFile",
+        "getSessionPings",
+        "updateFtsIndex",
+        "updateChronicleIndex",
+        "searchIntents",
+        "getRecentSessions",
+        "getPingsForSession",
+        "closeDb"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\intel\\git_monitor.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'execa';",
+        "'../pathRegistry.js';",
+        "'node:path';"
+      ],
+      "exports": [
+        "GitChronograph"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\intel\\git_trainer.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'execa';",
+        "'../pathRegistry.js';",
+        "'./gravity_db.js';",
+        "'chalk';",
+        "'path';"
+      ],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\intel\\gravity_db.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'better-sqlite3';",
+        "'node:path';",
+        "'node:fs';",
+        "'../pathRegistry.js';",
+        "'./git_monitor.js';"
+      ],
+      "exports": [
+        "getGravityDb",
+        "updateFileGravity",
+        "setFileGravity",
+        "closeGravityDb"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\intel\\llm.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'../types.js';",
+        "'../../../node/cortex_link.js';",
+        "'chalk';",
+        "'node:path';",
+        "'../../../core/mimir_client.js';"
+      ],
+      "exports": [
+        "SamplingProvider",
+        "defaultProvider:"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\intel\\mock_provider.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'../types.js';",
+        "'./llm.js';",
+        "'node:path';"
+      ],
+      "exports": [
+        "MockProvider"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\intel\\semantic.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'../parser.js';",
+        "'../crawler.js';",
+        "'node:fs/promises';",
+        "'node:path';"
+      ],
+      "exports": [
+        "SemanticIndexer"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\intel\\warden.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'node:fs/promises';",
+        "'node:path';",
+        "'../types.js';",
+        "'../pathRegistry.js';"
+      ],
+      "exports": [
+        "Warden"
+      ],
+      "gungnir_score": 100,
+      "breaches": []
+    },
+    "src\\tools\\pennyone\\intel\\writer.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'../types.js';",
+        "'./llm.js';",
+        "'fs/promises';",
+        "'path';",
+        "'../pathRegistry.js';"
+      ],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\live\\recorder.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'../types.js';",
+        "'../intel/database.js';"
+      ],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\live\\search.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'node:fs/promises';",
+        "'node:path';",
+        "'chalk';",
+        "'../pathRegistry.js';",
+        "'../intel/database.js';",
+        "'../../../node/core/hud.js';"
+      ],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\live\\socket.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'ws';",
+        "'http';",
+        "'chalk';"
+      ],
+      "exports": [
+        "SubspaceRelay"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\live\\telemetry.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'express';",
+        "'./socket.js';",
+        "'./recorder.js';",
+        "'../types.js';"
+      ],
+      "exports": [
+        "normalizePath"
+      ],
+      "gungnir_score": 100,
+      "breaches": []
+    },
+    "src\\tools\\pennyone\\live\\watcher.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'chokidar';",
+        "'path';",
+        "'../index.js';",
+        "'../intel/compiler.js';",
+        "'./socket.js';",
+        "'chalk';",
+        "'../personaRegistry.js';"
+      ],
+      "exports": [
+        "startWatcher"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\vis\\App.tsx": {
+      "intent": "Unknown",
+      "imports": [
+        "'react';",
+        "'@react-three/fiber';",
+        "'@react-three/drei';",
+        "'./components/NeuralGraph.tsx';",
+        "'./components/PlaybackHUD.tsx';",
+        "'./components/SelectionPanelShell.tsx';",
+        "'./store/useMatrixStore.js';"
+      ],
+      "exports": [
+        "App:"
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "HIGH",
+          "action": "GUNGNIR_UI_BREACH: Low Birkhoff Measure (0.00). Increase symmetry."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\vis\\main.tsx": {
+      "intent": "Unknown",
+      "imports": [
+        "'react';",
+        "'react-dom/client';",
+        "'./App.tsx';"
+      ],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\vis\\proxy.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'fastify';",
+        "'@fastify/static';",
+        "'@fastify/cors';",
+        "'ws';",
+        "'node:path';",
+        "'node:fs';",
+        "'chalk';",
+        "'../pathRegistry.js';",
+        "'../personaRegistry.js';",
+        "'node:url';",
+        "'node:crypto';",
+        "'../intel/database.js';"
+      ],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\vis\\vite.config.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'vite';",
+        "'@vitejs/plugin-react';"
+      ],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\vis\\components\\AgentGhost.tsx": {
+      "intent": "Unknown",
+      "imports": [
+        "'react';",
+        "'three';",
+        "'@react-three/drei';"
+      ],
+      "exports": [
+        "AgentGhost:"
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "HIGH",
+          "action": "GUNGNIR_UI_BREACH: Low Birkhoff Measure (0.00). Increase symmetry."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\vis\\components\\AuraLayers.tsx": {
+      "intent": "Unknown",
+      "imports": [
+        "'react';",
+        "'three';",
+        "'@react-three/fiber';",
+        "'@react-three/drei';",
+        "'../types/index.js';",
+        "'../store/useMatrixStore.js';"
+      ],
+      "exports": [
+        "FresnelAura:",
+        "SelectionHighlight:"
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "HIGH",
+          "action": "GUNGNIR_UI_BREACH: Low Birkhoff Measure (0.00). Increase symmetry."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\vis\\components\\ConnectionLayer.tsx": {
+      "intent": "Unknown",
+      "imports": [
+        "'react';",
+        "'three';",
+        "'@react-three/fiber';",
+        "'@react-three/drei';",
+        "'../types/index.ts';"
+      ],
+      "exports": [
+        "ConnectionLayer:"
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "HIGH",
+          "action": "GUNGNIR_UI_BREACH: Low Birkhoff Measure (0.00). Increase symmetry."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\vis\\components\\GhostTraceLayer.tsx": {
+      "intent": "Unknown",
+      "imports": [
+        "'react';",
+        "'three';",
+        "'@react-three/fiber';",
+        "'@react-three/drei';",
+        "'../types/index.ts';"
+      ],
+      "exports": [
+        "GhostTraceLayer:"
+      ],
+      "gungnir_score": 100,
+      "breaches": []
+    },
+    "src\\tools\\pennyone\\vis\\components\\NeuralGraph.tsx": {
+      "intent": "Unknown",
+      "imports": [
+        "'react';",
+        "'three';",
+        "'@react-three/fiber';",
+        "'@react-three/drei';",
+        "'d3-force-3d';",
+        "'gsap';",
+        "'../types/index.js';",
+        "'../store/useMatrixStore.js';",
+        "'./ConnectionLayer.tsx';",
+        "'./AuraLayers.tsx';",
+        "'./TextLabel.tsx';",
+        "'./GhostTraceLayer.tsx';",
+        "'../logic/useNeuralData.ts';"
+      ],
+      "exports": [
+        "NeuralGraph:"
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "HIGH",
+          "action": "GUNGNIR_UI_BREACH: Low Birkhoff Measure (0.00). Increase symmetry."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\vis\\components\\NodeLayer.tsx": {
+      "intent": "Unknown",
+      "imports": [
+        "'react';",
+        "'three';",
+        "'@react-three/fiber';",
+        "'../types/index.ts';",
+        "'../logic/useNodeEffects.ts';"
+      ],
+      "exports": [
+        "NodeLayer:"
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "HIGH",
+          "action": "GUNGNIR_UI_BREACH: Low Birkhoff Measure (0.00). Increase symmetry."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\vis\\components\\PlaybackHUD.tsx": {
+      "intent": "Unknown",
+      "imports": [
+        "'react';"
+      ],
+      "exports": [
+        "PlaybackHUD:"
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "HIGH",
+          "action": "GUNGNIR_UI_BREACH: Low Birkhoff Measure (0.00). Increase symmetry."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\vis\\components\\SectorMetrics.tsx": {
+      "intent": "Unknown",
+      "imports": [
+        "'react';",
+        "'../types/index.ts';"
+      ],
+      "exports": [
+        "SectorMetrics:"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "HIGH",
+          "action": "GUNGNIR_UI_BREACH: Low Birkhoff Measure (0.00). Increase symmetry."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\vis\\components\\SelectionPanel.tsx": {
+      "intent": "Unknown",
+      "imports": [
+        "'react';",
+        "'../types/index.ts';"
+      ],
+      "exports": [
+        "SelectionPanel:"
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "HIGH",
+          "action": "GUNGNIR_UI_BREACH: Low Birkhoff Measure (0.00). Increase symmetry."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\vis\\components\\SelectionPanelShell.tsx": {
+      "intent": "Unknown",
+      "imports": [
+        "'react';",
+        "'./SelectionPanel.tsx';",
+        "'./TrajectoryList.tsx';",
+        "'./SectorMetrics.tsx';",
+        "'../types/index.ts';"
+      ],
+      "exports": [
+        "SelectionPanelShell:"
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "HIGH",
+          "action": "GUNGNIR_UI_BREACH: Low Birkhoff Measure (0.00). Increase symmetry."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\vis\\components\\TextLabel.tsx": {
+      "intent": "Unknown",
+      "imports": [
+        "'react';",
+        "'three';",
+        "'@react-three/fiber';",
+        "'@react-three/drei';",
+        "'../types/index.ts';"
+      ],
+      "exports": [
+        "TextLabel:"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\vis\\components\\TrajectoryList.tsx": {
+      "intent": "Unknown",
+      "imports": [
+        "'react';",
+        "'../types/index.ts';"
+      ],
+      "exports": [
+        "TrajectoryList:"
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "HIGH",
+          "action": "GUNGNIR_UI_BREACH: Low Birkhoff Measure (0.00). Increase symmetry."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\vis\\logic\\useNeuralData.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'react';",
+        "'../types/index.js';"
+      ],
+      "exports": [
+        "useNeuralData",
+        "STELLAR_MAP:",
+        "getStar"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\vis\\logic\\useNodeEffects.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'../types/index.js';"
+      ],
+      "exports": [
+        "useNodeEffects"
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\tools\\pennyone\\vis\\store\\useMatrixStore.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'zustand';",
+        "'../types/index.js';",
+        "'three';"
+      ],
+      "exports": [
+        "useMatrixStore"
+      ],
+      "gungnir_score": 100,
+      "breaches": []
+    },
+    "src\\tools\\pennyone\\vis\\types\\index.ts": {
+      "intent": "Unknown",
+      "imports": [
+        "'d3-force-3d';"
+      ],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src\\types\\shims.d.ts": {
+      "intent": "Unknown",
+      "imports": [],
+      "exports": [],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src/core/set_persona.py": {
+      "intent": "Manages framework identity shifts by updating config.json and triggering HUD aesthetic synchronization.",
+      "imports": [
+        [
+          "json",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "datetime"
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.core"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "PersonaManager"
+        ],
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.10). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        }
+      ]
+    },
+    "src/games/odin_protocol/ui.py": {
+      "intent": "Retro-Battle Grid interface for the Odin Protocol game loop, managing stat rendering and persona-themed transitions.",
+      "imports": [
+        [
+          "os",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "",
+          "rich.console"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.games.odin_protocol.engine"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "OdinUI"
+        ]
+      ],
+      "gungnir_score": 85,
+      "breaches": [
+        {
+          "severity": "HIGH",
+          "action": "GUNGNIR_LOGIC_BREACH: High Complexity (16.0). Refactor God Methods."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.05). Add intents/docstrings."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_VIGIL_BREACH: No Gherkin behavioral contract found."
+        }
+      ]
+    },
+    "src/sentinel/recreate_chapter.py": {
+      "intent": "Manages narrative scene orchestration by defining physical blocking and turn-based character logic for the Director.",
+      "imports": [
+        [
+          "asyncio",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.cstar.core.uplink"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "RecreateChapterPipeline"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.07). Add intents/docstrings."
+        },
+        {
+          "severity": "LOW",
+          "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>15 lines)."
+        }
+      ]
+    },
+    "src/core/mimir_client.py": {
+      "intent": "Native Synaptic Bridge for direct Host Agent sampling and high-speed SQLite data exchange.",
+      "imports": [
+        [
+          "asyncio",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "time",
+          ""
+        ],
+        [
+          "json",
+          ""
+        ],
+        [
+          "sqlite3",
+          ""
+        ],
+        [
+          "subprocess",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "MimirClient"
+        ]
+      ],
+      "gungnir_score": 100,
+      "breaches": []
+    },
+    "src/core/engine/vector.py": {
+      "intent": "Central semantic routing hub for intent resolution, managing cross-domain search and hybrid scoring.",
+      "imports": [
+        [
+          "os",
+          ""
+        ],
+        [
+          "asyncio",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "typing"
+        ],
+        [
+          "",
+          "src.core.engine.instruction_loader"
+        ],
+        [
+          "",
+          "src.core.engine.memory_db"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.core.engine.vector_config"
+        ],
+        [
+          "",
+          "src.core.engine.vector_calculus"
+        ],
+        [
+          "",
+          "src.core.engine.vector_router"
+        ],
+        [
+          "",
+          "src.core.engine.vector_shadow"
+        ],
+        [
+          "",
+          "src.core.engine.vector_ingest"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "SovereignVector"
+        ]
+      ],
+      "gungnir_score": 90,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_COUPLING_BREACH: Over-entangled (14 imports). Isolate dependencies."
+        },
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.14). Add intents/docstrings."
+        }
+      ]
+    },
+    "src/core/sv_engine.py": {
+      "intent": "Core compute engine for natural language intent resolution and environment orchestration.",
+      "imports": [
+        [
+          "argparse",
+          ""
+        ],
+        [
+          "os",
+          ""
+        ],
+        [
+          "sys",
+          ""
+        ],
+        [
+          "",
+          "pathlib"
+        ],
+        [
+          "",
+          "src.core"
+        ],
+        [
+          "",
+          "src.core.sovereign_hud"
+        ],
+        [
+          "",
+          "src.core.engine"
+        ]
+      ],
+      "exports": [
+        [
+          "",
+          "SovereignEngine"
+        ],
+        [
+          "main",
+          ""
+        ]
+      ],
+      "gungnir_score": 95,
+      "breaches": [
+        {
+          "severity": "MEDIUM",
+          "action": "GUNGNIR_INTEL_BREACH: Low documentation ratio (0.10). Add intents/docstrings."
+        }
+      ]
+    }
+  },
+  "skills": {},
+  "compliance": {
+    "contract_coverage": 0.0,
+    "documentation_integrity": 0.0,
+    "total_drift": 0.0
+  }
+}

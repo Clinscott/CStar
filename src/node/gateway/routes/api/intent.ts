@@ -35,7 +35,7 @@ export default async function (fastify: FastifyInstance) {
             const { corvus } = fastify;
 
             if (!corvus.getStatus()) {
-                return reply.code(503).send({ error: 'Daemon offline' });
+                return reply.code(503).send({ error: 'Kernel bridge offline' });
             }
 
             try {

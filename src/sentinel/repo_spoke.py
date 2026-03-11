@@ -8,7 +8,9 @@ import asyncio
 import logging
 import time
 from pathlib import Path
+
 from src.core.sovereign_hud import SovereignHUD
+from src.sentinel.ravens_runtime import execute_ravens_cycle_contract
 from src.sentinel.git_spoke import GitSpoke
 
 class RepoSpoke:
@@ -20,7 +22,7 @@ class RepoSpoke:
         self.git = GitSpoke(repo_path)
 
     async def process(self, bootstrap_fn: callable) -> bool:
-        """Performs a single cleanup cycle on the repo."""
+        """Compatibility wrapper over one runtime-composed ravens cycle."""
         SovereignHUD.persona_log("INFO", f"Engaging Jurisdiction: {self.repo_name} {' (DOCKER SANDBOX)' if self.use_docker else ''}")
         if not self.repo_path.exists():
             logging.warning(f"[{self.repo_name}] [SKIP] Path not found.")
@@ -41,10 +43,8 @@ class RepoSpoke:
             # 3. Execution
             SovereignHUD.persona_log("INFO", f"Running Ravens Protocol: {self.repo_name}...")
             bootstrap_fn()
-            
-            from src.sentinel.muninn import Muninn
-            raven = Muninn(str(self.repo_path), use_docker=self.use_docker)
-            changed = await raven.run_cycle()
+            cycle = await execute_ravens_cycle_contract(self.repo_path)
+            changed = cycle.status == "SUCCESS"
 
             # 4. Commit (If changed)
             if changed:

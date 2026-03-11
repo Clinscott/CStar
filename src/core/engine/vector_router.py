@@ -12,9 +12,9 @@ class VectorRouter:
         """Determines the most likely domain for a query."""
         # Domain triggers
         domain_keywords = {
-            "CORE": ["session", "dormancy", "sleep", "setup", "wrap", "ledger"],
-            "DEV": ["test", "debug", "verify", "analyze", "scan", "refactor"],
-            "UI": ["matrix", "graph", "view", "hud", "visual", "aesthetics"],
+            "CORE": ["session", "dormancy", "sleep", "setup", "wrap", "ledger", "lets-go", "task", "plan", "workflow"],
+            "DEV": ["test", "debug", "verify", "analyze", "scan", "refactor", "investigate", "integrity", "git"],
+            "UI": ["matrix", "graph", "view", "hud", "visual", "aesthetics", "layout", "sci-fi", "glass", "neon", "glow"],
             "SYSTEM": ["process", "daemon", "bridge", "uplink", "cortex"]
         }
 

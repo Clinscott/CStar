@@ -4,6 +4,7 @@ import json
 import os
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch, AsyncMock
 
 # Add project root to path
@@ -39,33 +40,45 @@ class TestAntigravityUplink(unittest.IsolatedAsyncioTestCase):
         uplink = AntigravityUplink()
         query = "Identify yourself."
         
-        # We mock mimir.think to avoid real MCP calls
-        with patch('src.cstar.core.uplink.mimir.think', new_callable=AsyncMock) as mock_think:
-            mock_think.return_value = "I am ODIN"
+        with patch('src.cstar.core.uplink.mimir.request', new_callable=AsyncMock) as mock_request:
+            mock_request.return_value = SimpleNamespace(
+                status="success",
+                raw_text="I am ODIN",
+                error=None,
+                trace=SimpleNamespace(
+                    correlation_id="uplink-success",
+                    transport_mode="host_session",
+                    cached=False,
+                ),
+            )
             
             response = await uplink.send_payload(query)
             self.assertEqual(response["status"], "success")
             self.assertEqual(response["data"]["raw"], "I am ODIN")
-            mock_think.assert_called_once()
+            self.assertEqual(response["trace"]["correlation_id"], "uplink-success")
+            mock_request.assert_called_once()
 
-    async def test_uplink_silence_fallback(self):
-        """Verify the uplink returns a graceful failure when no JSON is detected."""
+    async def test_uplink_returns_canonical_error(self):
+        """Verify the uplink returns the canonical bridge error when intelligence fails."""
         uplink = AntigravityUplink()
         
-        # We mock mimir.think to return None to trigger the Direct Strike fallback
-        with patch('src.cstar.core.uplink.mimir.think', new_callable=AsyncMock) as mock_think:
-            mock_think.return_value = None
-            
-            # Now mock the entire shell execution for fallback
-            with patch('asyncio.create_subprocess_shell') as mock_proc:
-                mock_sub = AsyncMock()
-                mock_sub.wait = AsyncMock(return_value=0)
-                mock_proc.return_value = mock_sub
-                
-                with patch('src.cstar.core.uplink.Path.read_text', return_value='The void is silent.'):
-                    response = await uplink.send_payload("Hello")
-                    self.assertEqual(response["status"], "error")
-                    self.assertIn("Oracle Silence", response["message"])
+        with patch('src.cstar.core.uplink.mimir.request', new_callable=AsyncMock) as mock_request:
+            mock_request.return_value = SimpleNamespace(
+                status="error",
+                raw_text=None,
+                error="The One Mind returned no intelligence.",
+                trace=SimpleNamespace(
+                    correlation_id="uplink-error",
+                    transport_mode="synapse_db",
+                    cached=False,
+                ),
+            )
+
+            response = await uplink.send_payload("Hello")
+            self.assertEqual(response["status"], "error")
+            self.assertIn("no intelligence", response["message"])
+            self.assertEqual(response["trace"]["transport_mode"], "synapse_db")
+            mock_request.assert_called_once()
 
 if __name__ == '__main__':
     unittest.main()

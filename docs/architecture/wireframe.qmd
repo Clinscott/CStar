@@ -19,6 +19,7 @@ Maintain a searchable, accurate map of the project's UI and service architecture
 - `src/core`: `c:/Users/Craig/Corvus/CorvusStar/src/core` - The biological engine core (Dispatcher, Vector, SovereignHUD, Persona logic).
 - `src/sentinel`: `c:/Users/Craig/Corvus/CorvusStar/src/sentinel` - Defensive and Improvement logic (Muninn, Wardens, Gauntlet).
 - `src/tools`: `c:/Users/Craig/Corvus/CorvusStar/src/tools` - Developer productivity and neural trace tools.
+- `src/node`: `c:/Users/Craig/Corvus/CorvusStar/src/node` - The TypeScript/Node.js control plane (cstar start, heartbeat, pennyone).
 - `src/synapse`: `c:/Users/Craig/Corvus/CorvusStar/src/synapse` - Cross-project knowledge synchronization logic.
 - `src/skills/local`: `c:/Users/Craig/Corvus/CorvusStar/src/skills/local` - Project-specific capability extensions.
 - `.agents/skills`: `c:/Users/Craig/Corvus/CorvusStar/.agents/skills` - Dynamic skill proxies and new discovery targets.
@@ -27,12 +28,20 @@ Maintain a searchable, accurate map of the project's UI and service architecture
 
 ## 🏗️ Core Components
 
+### The One Mind (CStar Orchestrator)
+- **Path**: `c:/Users/Craig/Corvus/CorvusStar/cstar.ts` & `c:/Users/Craig/Corvus/CorvusStar/src/node/core/`
+- **Description**: The unified control plane for the Corvus Star system.
+- **Key Commands**:
+    - `cstar start`: Awakens the Oracle, synchronizes the Archive, and performs the Gungnir Handshake.
+    - `cstar ravens`: Activates the background Muninn (Memory) and Huginn (Thought) daemons.
+    - `cstar status`: Retrieves system vitals and mission status from the **Bifrost Gate**.
+
 ### SovereignVector Engine (Huginn)
 - **Path**: `c:/Users/Craig/Corvus/CorvusStar/src/core/sv_engine.py` (Search) & `c:/Users/Craig/Corvus/CorvusStar/src/core/vector.py` (Math).
-- **Description**: High-performance local TF-IDF vector matching.
+- **Description**: High-performance local TF-IDF vector matching for intent routing.
 - **Key Functions**:
     - `search(query)`: Maps natural language to triggers.
-    - **Optimization**: Implements `SimilarityStrategy` and **LRU Neural Cache** (0.065ms latency).
+    - **Optimization**: Implements `SimilarityStrategy`, **Inverted Synonym Index**, and **Triple-Layer Neural Cache** (0.0052ms latency).
 
 ### The Autonomous Learning Loop (Muninn)
 - **Path**: `c:/Users/Craig/Corvus/CorvusStar/src/sentinel/muninn.py`
@@ -41,8 +50,7 @@ Maintain a searchable, accurate map of the project's UI and service architecture
     - `run()`: Executes the Hunt -> Forge -> Crucible -> SPRT -> Teach cycle.
     - **SPRT (Sequential Probability Ratio Test)**: Statistical proof of fix stability.
     - **Teach Phase**: Periodic distillation of architectural lessons into `memory.qmd`.
-    - **SessionWarden**: Bottleneck neural network (4 hidden neurons) in `atomic_gpt.py` monitoring session aggregates.
-- **Harness**: `c:/Users/Craig/Corvus/CorvusStar/tests/harness/manual_learn.py` - Multi-cycle execution controller (`N=x`).
+- **Harness**: `cstar ravens -learn N=x` - Multi-cycle execution controller.
 
 ### Aesthetics & Security (The Wardens)
 - **Path**: `c:/Users/Craig/Corvus/CorvusStar/src/sentinel/muninn.py` (Class internal)

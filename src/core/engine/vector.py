@@ -1,9 +1,13 @@
 """
 [ENGINE] Semantic Vector Router (Facade)
 Lore: "The navigation charts of the Bifröst."
-Purpose: Unified semantic router delegating to specialized spokes.
+Purpose: Unified semantic router delegating to specialized spokes for intent resolution.
 """
 
+# Intent: Central semantic routing hub for intent resolution, managing cross-domain search and hybrid scoring.
+
+import os
+import asyncio
 from pathlib import Path
 from typing import Any
 
@@ -79,7 +83,7 @@ class SovereignVector:
     def normalize(self, text: str) -> str:
         return self.calculus_spoke.normalize(text)
 
-    def search(self, query: str) -> list[dict[str, Any]]:
+    async def search(self, query: str, mode: str = "neural") -> list[dict[str, Any]]:
         query_norm = self.normalize(query)
         if query_norm in self._search_cache:
             return self._search_cache[query_norm]
@@ -91,15 +95,23 @@ class SovereignVector:
 
         # 2. Shadow Search
         shadow_results = self.shadow_spoke.search(query_norm)
-        if shadow_results and shadow_results[0]["score"] >= 0.80:
+        if shadow_results and shadow_results[0]["score"] >= 0.95: # Very high confidence shadow
             self._search_cache[query_norm] = shadow_results[:5]
             return shadow_results[:5]
 
         # 3. Targeted Semantic Search
         top_domain = self.router_spoke.get_top_domain(query_norm, query)
-        results = self.memory_db.search_intent("system", query, n_results=30, domain=top_domain)
+        results = self.memory_db.search_intent("system", query_norm, n_results=10, domain=top_domain)
 
-        # 4. Hybrid Scoring
+        if not results:
+            return shadow_results[:5] if shadow_results else []
+
+        # 4. Neural Re-ranking (The "Mind")
+        # Only re-rank if there's potential ambiguity and we are not in heuristic mode
+        if len(results) > 1 and mode != "heuristic":
+            results = await self._neural_rerank(query, results)
+
+        # 5. Final Hybrid Scoring
         original_tokens = set(query_norm.split())
         expansion = self.calculus_spoke.expand_query(original_tokens)
         all_expanded = set().union(*expansion.values())
@@ -113,20 +125,67 @@ class SovereignVector:
         self._search_cache[query_norm] = final_results
         return final_results
 
+    async def _neural_rerank(self, query: str, candidates: list[dict]) -> list[dict]:
+        """[Ω] Consult the Oracle to verify the semantic winner."""
+        temp_file = None
+        try:
+            # Prevent re-ranker recursion or infinite loops
+            if os.environ.get("CSTAR_INTERNAL_SEARCH"): return candidates
+            
+            from src.cstar.core.uplink import AntigravityUplink
+            
+            # Construct candidate list for the Oracle
+            candidate_list = "\n".join([f"- {c['trigger']}: {c['description']}" for c in candidates[:5]])
+            
+            prompt = f"""
+            Identify the single best skill trigger for the user query from the list below.
+            
+            QUERY: "{query}"
+            
+            CANDIDATES:
+            {candidate_list}
+            
+            Return ONLY the trigger (e.g. '/lets-go'). If none match well, return 'None'.
+            """
+            
+            # [🔱] SAFE PASSAGE: Write prompt to temp file to avoid WinError 206
+            import tempfile
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False, encoding='utf-8') as f:
+                f.write(prompt)
+                temp_file = f.name
+
+            # [🔱] UPLINK: The One Mind decides
+            os.environ["CSTAR_INTERNAL_SEARCH"] = "1"
+            response_dict = await AntigravityUplink.query_bridge(temp_file)
+            os.environ.pop("CSTAR_INTERNAL_SEARCH")
+            
+            # Cleanup
+            if temp_file and os.path.exists(temp_file):
+                try: os.remove(temp_file)
+                except Exception: pass
+            
+            # Handle response structure correctly
+            raw_answer = ""
+            if isinstance(response_dict, dict):
+                raw_answer = response_dict.get("data", {}).get("raw", "") or response_dict.get("answer", "")
+            
+            winner_trigger = raw_answer.strip().lstrip('#').strip()
+            
+            if winner_trigger and winner_trigger != "None":
+                # Move the winner to the top
+                for c in candidates:
+                    if c["trigger"] == winner_trigger:
+                        c["_neural_boost"] = True
+                        return [c] + [other for other in candidates if other["trigger"] != winner_trigger]
+            
+            return candidates
+        except Exception:
+            if "CSTAR_INTERNAL_SEARCH" in os.environ: os.environ.pop("CSTAR_INTERNAL_SEARCH")
+            return candidates
+
     def load_core_skills(self) -> None:
-        core_skills = {
-            "lets-go": ("Start session priorities.", "CORE"),
-            "run-task": ("Execute specific task.", "CORE"),
-            "investigate": ("Analyze codebase.", "DEV"),
-            "plan": ("Architect system.", "CORE"),
-            "test": ("Verify integrity.", "DEV"),
-            "wrap-it-up": ("Finalize session.", "CORE"),
-            "dormancy": ("Sleep state.", "CORE"),
-            "oracle": ("Tacitcal guidance.", "CORE"),
-            "SovereignFish": ("Aesthetics.", "UI")
-        }
-        for trigger, (text, domain) in core_skills.items():
-            self.add_skill(trigger, text, domain=domain)
+        """[Ω] Load Core Workflows from .agents/workflows."""
+        self.load_skills_from_dir(self.project_root / ".agents" / "workflows")
 
     def add_skill(self, trigger: str, text: str, domain: str = "GENERAL") -> None:
         self.ingest_spoke.add_skill(trigger, text, domain)
@@ -139,4 +198,5 @@ class SovereignVector:
 
     def clear_active_ram(self) -> None:
         self._search_cache.clear()
-        self.calculus_spoke._expansion_cache.clear()
+        VectorCalculus._GLOBAL_NORM_CACHE.clear()
+        VectorCalculus._GLOBAL_EXPANSION_CACHE.clear()

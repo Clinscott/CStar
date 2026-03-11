@@ -18,6 +18,6 @@ Feature: PennyOne Maturation and Hall of Records
     And the is_api flag should be true
 
   Scenario: Gungnir Matrix Search identifies targets
-    Given a matrix-graph.json containing file intents and endpoints
+    Given a Hall-backed matrix projection containing file intents and endpoints
     When the cross-platform search is executed with a matching query
     Then the relevant sectors should be identified without throwing an error

@@ -1,7 +1,7 @@
 export * as TreeSitter from 'web-tree-sitter';
 import * as TreeSitter from 'web-tree-sitter';
 import path from 'path';
-import { registry } from './pathRegistry.js';
+import { registry } from './pathRegistry.ts';
 
 /**
  * [ALFRED]: "The sensors have been upgraded to the WASM standard, sir. 

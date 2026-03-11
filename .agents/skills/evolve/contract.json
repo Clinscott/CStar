@@ -1,0 +1,37 @@
+{
+  "skill_id": "evolve",
+  "version": "1.1",
+  "authority_root": ".agents/skills/evolve",
+  "runtime_trigger": "evolve",
+  "actions": {
+    "propose": "Generate a Hall-backed contract proposal from a validated bead-driven evolve run.",
+    "promote": "Promote a validated proposal into the canonical evolve contract."
+  },
+  "inputs": {
+    "action": "optional string: propose or promote",
+    "bead_id": "optional string",
+    "proposal_id": "required string when action=promote",
+    "dry_run": "optional boolean",
+    "simulate": "optional boolean",
+    "focus_axes": "optional array of gungnir axis names",
+    "validation_profile": "optional string"
+  },
+  "outputs": {
+    "proposal_id": "string",
+    "proposal_status": "string",
+    "validation_id": "string",
+    "proposal_path": "string",
+    "contract_path": "string",
+    "promotion_outcome": "NO_ACTIONABLE_BEADS or PROPOSAL_ONLY or PROPOSAL_READY or PROMOTED"
+  },
+  "defaults": {
+    "action": "propose",
+    "simulate": true,
+    "validation_profile": "standard"
+  },
+  "promotion_gate": {
+    "requires_validation_verdict": "ACCEPTED",
+    "requires_sprt_verdict": "ACCEPTED",
+    "requires_bead_status": "READY_FOR_REVIEW"
+  }
+}

@@ -1,8 +1,9 @@
 ---
-description: Prompts the agent to resume work from tasks.qmd by identifying current priorities and providing implementation proposals.
+description: Prompts the agent to resume work from the Sovereign Bead System, using tasks.qmd only as a projection.
 ---
+# Intent: Start session, resume work, kick off process, begin environment, reboot catalog, initiate dev setup.
 
-1. Read the latest `tasks.qmd` to identify the current priority and "Next Steps".
+1. Resolve the current authoritative bead queue from Hall and the Sovereign Bead System. Read `tasks.qmd` only as a human-readable projection.
 2. Check `memory.qmd` for long-term context, architectural rules, and past decisions.
 3. If the task involves UI, check `wireframe.qmd` for existing components. **CRITICAL:** Ensure any new page is planned to be wrapped in `DashboardLayout` (SovereignHUD). Standalone pages are strictly prohibited for core features.
 4. **Locate Files & Intelligence**: 
@@ -19,6 +20,6 @@ description: Prompts the agent to resume work from tasks.qmd by identifying curr
     - **ALFRED**: Present as "Humble Suggestions". Proposals are ways to serve the mission better.
     - **Structure**: Include trade-offs for each approach.
 8. Once a proposal is chosen by the user, perform the `/investigate` workflow on the chosen approach to identify potential risks, design patterns, and necessary refactors.
-9. Update `tasks.qmd` with a detailed task breakdown for the implementation phase (preserving history).
+9. Update the authoritative bead or Hall record for the implementation phase, then regenerate `tasks.qmd` as projection output.
 10. **Implement Choice**: Execute the implementation phase. Follow the **Development Protocol**: When developing components, wrap logic in try/catch blocks and log errors to the console. Start with extensive logging, but once tests verify the component is working, *you must remove* the console logs to keep the codebase clean.
 11. **Wrap It Up**: Once the investigation and implementation phase is done, perform the `/wrap-it-up` workflow to finalize the session and ensure stability.

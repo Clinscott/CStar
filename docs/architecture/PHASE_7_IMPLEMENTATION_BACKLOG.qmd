@@ -1,0 +1,419 @@
+---
+title: "Corvus Star Phase 7 Implementation Backlog"
+date: 2026-03-10
+status: completed
+---
+
+# Corvus Star Phase 7 Implementation Backlog
+
+> [!IMPORTANT]
+> This backlog operationalizes the post-Phase-6 actualization plan.
+> Phase 7 turns the completed kernel into a real operator system: globally launchable, estate-aware, collaborative at the planning layer, and capable of mounted spoke execution without reintroducing daemon authority.
+
+## Phase 7 Mission
+
+Phase 7 exists to convert Corvus Star from a strong internal kernel into a fully actualized estate brain with a first-class operator surface.
+
+The required outcomes are:
+
+1. `cstar` becomes a real operator entrypoint instead of a repo-bound command shell.
+2. The system gains a Linux and WSL-friendly TUI as the default human interface.
+3. `chant` becomes a collaborative planning loop that can refine intent into bead-backed execution plans.
+4. Estate mounting becomes Hall-backed, security-aware, and execution-safe.
+5. `ravens` can operate across mounted spokes via explicit sub-kernel or equivalent isolated execution.
+6. PennyOne can import, project, search, and visualize the estate rather than only the local brain.
+7. `evolve` can optimize either a bead or the broader system through a Fishtest-style validation and promotion loop.
+
+## Phase 7 Exit Criteria
+
+- A canonical operator contract exists for launcher mode, workspace targeting, and estate domain selection.
+- `cstar` can launch globally and target an explicit workspace without assuming the current repo root.
+- A primary TUI exists and is the default interactive operator entrypoint.
+- `chant` records collaborative planning state and emits bead-backed actualization plans instead of only routing keywords.
+- Mounted spokes are Hall-backed and executable through explicit estate targeting rather than implicit shell traversal.
+- `ravens`, PennyOne, and `evolve` can all operate against mounted estate targets without regressing Hall authority.
+- Legacy daemon-era operator assumptions are either removed or reduced to compatibility-only status.
+
+## Scope Guard
+
+Phase 7 does not finalize ODIN gameplay, AR or VR surfaces, or polish-plan rewrites for every downstream spoke.
+Those remain downstream of estate mounting and operator actualization.
+The spoke polish QMDs must be audited later, after the mounted estate is real.
+
+## Execution Status
+
+Current Phase 7 state:
+
+- Phase 1 completed on 2026-03-09
+- Phase 2 completed on 2026-03-09
+- Phase 3 completed on 2026-03-09
+- Phase 4 completed on 2026-03-09
+- Phase 5 completed on 2026-03-09
+- Phase 6 completed on 2026-03-10
+- `CS-P7-00` closed on 2026-03-10
+- `CS-P7-01` closed on 2026-03-10
+- `CS-P7-02` closed on 2026-03-10
+- `CS-P7-03` closed on 2026-03-10
+- `CS-P7-04` closed on 2026-03-10
+- `CS-P7-05` closed on 2026-03-10
+- `CS-P7-06` closed on 2026-03-10
+- `CS-P7-07` closed on 2026-03-10
+- Phase 7 completed on 2026-03-10
+
+## Ticket Index
+
+| ID | Status | Priority | Ticket | Depends On | Primary Surfaces |
+| --- | --- | --- | --- | --- | --- |
+| `CS-P7-00` | Closed | P0 | Freeze The Operator Actualization Contract | Phase 6 complete | `contracts.ts`, `dispatcher.ts`, `state.ts`, runtime tests |
+| `CS-P7-01` | Closed | P0 | Global Launcher And Workspace Selection | `CS-P7-00` | `cstar.ts`, path registry, launcher tests |
+| `CS-P7-02` | Closed | P0 | Build The Operator TUI Shell | `CS-P7-00`, `CS-P7-01` | new TUI surfaces, operator state, Linux and WSL tests |
+| `CS-P7-03` | Closed | P0 | Reforge `chant` Into Collaborative Planning | `CS-P7-00`, `CS-P7-02` | chant weave, Hall planning records, planning tests |
+| `CS-P7-04` | Closed | P0 | Replace Compatibility Mounting With Hall-Backed Estate Mounting | `CS-P7-00`, `CS-P7-01` | Hall spoke schema, state projection, `spoke://` registry |
+| `CS-P7-05` | Closed | P1 | Make `ravens` Estate-Aware And Sub-Kernel Driven | `CS-P7-04` | ravens runtime, sweep orchestration, estate tests |
+| `CS-P7-06` | Closed | P1 | Expand PennyOne Into Estate Import, Search, And Topology | `CS-P7-04` | PennyOne import/search/view, gallery tests |
+| `CS-P7-07` | Closed | P1 | Rebuild `evolve` As The Sovereign Optimizer | `CS-P7-03`, `CS-P7-05` | evolve skill, validation loop, optimizer tests |
+
+## Critical Path
+
+The critical path is:
+
+`CS-P7-00 -> CS-P7-01 -> CS-P7-02 -> CS-P7-03 -> CS-P7-04 -> CS-P7-05`
+
+Parallel branches:
+
+- `CS-P7-04 -> CS-P7-06`
+- `CS-P7-03 + CS-P7-05 -> CS-P7-07`
+
+## Ticket Details
+
+## `CS-P7-00` Freeze The Operator Actualization Contract
+
+### Objective
+
+Define the canonical contract for operator mode, workspace targeting, and estate domain selection before the TUI, launcher, and mounting work start diverging.
+
+### Files
+
+- `src/node/core/runtime/contracts.ts`
+- `src/node/core/runtime/dispatcher.ts`
+- `src/node/core/commands/dispatcher.ts`
+- `src/node/core/state.ts`
+- runtime and state tests
+
+### Change Set
+
+- Add explicit runtime targeting metadata for operator mode and estate domain selection.
+- Add explicit compatibility projection shapes for mounted spokes and operator console preferences.
+- Make CLI invocation builders populate the new contract without changing the existing execution semantics yet.
+
+### Acceptance Criteria
+
+- Runtime contracts can describe CLI, TUI, automation, and sub-kernel execution modes.
+- Runtime context can carry workspace-root intent plus target domain metadata.
+- Compatibility state can project mounted-spoke and operator-console metadata without becoming the authority.
+
+### Verification
+
+```powershell
+npx tsx --test tests/unit/test_runtime_dispatch.test.ts tests/unit/test_runtime_command_invocations.test.ts tests/unit/test_state_registry_projection.test.ts tests/unit/test_chant_runtime.test.ts
+npx tsc --noEmit
+```
+
+### Closure Note
+
+Closed on 2026-03-10.
+
+Implemented outcomes:
+
+- Runtime contracts now carry explicit operator-session and workspace-target metadata for future TUI, automation, and estate execution.
+- The dispatcher now composes runtime context from invocation targeting metadata instead of only assuming the local registry root.
+- Compatibility state now has explicit mounted-spoke and operator-console projection shapes, ready for Hall-backed estate mounting.
+
+## `CS-P7-01` Global Launcher And Workspace Selection
+
+### Objective
+
+Make `cstar` launch globally and target an explicit workspace or mounted spoke without assuming the current directory is the brain.
+
+### Files
+
+- `cstar.ts`
+- `bin/cstar.js`
+- `src/tools/pennyone/pathRegistry.ts`
+- launcher tests
+
+### Change Set
+
+- Add `--root` or equivalent workspace targeting to the launcher.
+- Make bare interactive launch prefer the TUI once it exists.
+- Ensure Linux, bash, and WSL entrypoints behave consistently.
+
+### Acceptance Criteria
+
+- `cstar` can be invoked outside the repo when an explicit workspace is supplied or remembered.
+- Workspace selection does not break existing non-interactive command dispatch.
+
+### Verification
+
+```powershell
+npx tsx --test tests/unit/test_launcher_workspace.test.ts tests/unit/test_start_runtime.test.ts tests/unit/test_runtime_command_invocations.test.ts
+npx tsc --noEmit
+```
+
+### Closure Note
+
+Closed on 2026-03-10.
+
+Implemented outcomes:
+
+- The launcher now preserves the user's launch cwd, resolves an explicit or inferred workspace root, and can pass that selection through the global `cstar` entrypoint.
+- Command shells for `start`, `ravens`, `pennyone`, and dynamic dispatch now emit the selected workspace into the runtime target contract.
+- PennyOne runtime paths now resolve relative to the selected workspace instead of silently scanning the package root when launched globally.
+
+## `CS-P7-02` Build The Operator TUI Shell
+
+### Objective
+
+Create the primary operator surface for Corvus Star: a Linux and WSL-friendly TUI with verbose execution traces, estate summary, and actionable command surfaces.
+
+### Files
+
+- new TUI command and rendering surfaces
+- operator-state helpers
+- TUI tests
+
+### Change Set
+
+- Add a TUI entrypoint that becomes the default interactive shell.
+- Expose Hall summary, bead queue, triage, ravens actions, forge preview, evolve review, validation history, and estate status.
+- Keep the output verbose and operator-legible instead of spinner-driven silence.
+
+### Acceptance Criteria
+
+- The TUI can launch from the global `cstar` entrypoint.
+- Interactive output continuously reports what the system is doing.
+- The TUI works in Linux bash and WSL environments without assuming a Windows-only console stack.
+
+### Verification
+
+```powershell
+npx tsx --test tests/unit/test_tui_runtime.test.ts
+npx tsc --noEmit
+```
+
+### Closure Note
+
+Closed on 2026-03-10.
+
+Implemented outcomes:
+
+- Corvus Star now has a real operator TUI shell with a top-lane intent prompt, Hall summary, bead queue preview, proposal preview, and live event crawl.
+- Bare interactive `cstar` launch now routes into the operator matrix instead of falling through to a silent CLI idle state.
+- The TUI shell can dispatch direct commands or fall back to `chant`, giving the system a first operator-facing natural-language lane without waiting for the deeper Phase 7 planning rewrite.
+
+## `CS-P7-03` Reforge `chant` Into Collaborative Planning
+
+### Objective
+
+Turn `chant` into a user-agent planning loop that refines intent into bead-backed execution plans and swarm-ready orchestration requests.
+
+### Files
+
+- `src/node/core/runtime/weaves/chant.ts`
+- planning/session persistence surfaces
+- Hall planning tests
+
+### Change Set
+
+- Add collaborative planning records and clarifying-question flow.
+- Emit bead-backed actualization plans rather than only keyword-routed execution.
+- Preserve direct weave routing only as a compatibility optimization when the intent is already exact.
+
+### Acceptance Criteria
+
+- `chant` can maintain a multi-turn planning state.
+- Successful planning emits a concrete bead or plan artifact.
+- Missing clarity produces structured follow-up prompts rather than unresolved failure dead-ends.
+
+### Verification
+
+```powershell
+npx tsx --test tests/unit/test_chant_runtime.test.ts tests/unit/test_chant_planning_runtime.test.ts
+npx tsc --noEmit
+```
+
+### Closure Note
+
+Closed on 2026-03-10.
+
+Implemented outcomes:
+
+- `chant` now records Hall-backed planning sessions, returns structured follow-up questions for under-specified intent, and preserves multi-turn planning state through the operator session id.
+- Concrete collaborative planning prompts now emit sovereign `NEEDS_TRIAGE` beads instead of dying as unresolved intent.
+- Natural-language compatibility improved for exact ravens and PennyOne phrasing while active planning sessions retain control until the user issues an explicit direct command.
+
+## `CS-P7-04` Replace Compatibility Mounting With Hall-Backed Estate Mounting
+
+### Objective
+
+Rewrite the spoke mounting plan around Hall authority, trust policy, and estate-safe path resolution instead of compatibility JSON and shell assumptions.
+
+### Files
+
+- Hall schema surfaces
+- `src/node/core/state.ts`
+- `src/tools/pennyone/pathRegistry.ts`
+- new spoke command surfaces
+- estate mounting tests
+
+### Change Set
+
+- Replace the underspecified `ManagedSpoke` concept with a Hall-backed mounted-estate schema.
+- Add `spoke://` resolution with trust and traversal boundaries.
+- Project mounted-spoke metadata into compatibility state only as a downstream mirror.
+
+### Acceptance Criteria
+
+- Mounted spokes are stored in Hall-backed state.
+- `spoke://` resolution is safe and deterministic.
+- `cstar spoke link` and related flows operate on the canonical estate model.
+
+### Verification
+
+```powershell
+npx tsx --test tests/unit/test_path_registry.test.ts tests/unit/test_state_registry_projection.test.ts tests/unit/test_spoke_runtime.test.ts
+npx tsc --noEmit
+```
+
+### Closure Note
+
+Closed on 2026-03-10.
+
+Implemented outcomes:
+
+- Mounted estate spokes now exist as first-class Hall records instead of only compatibility projection metadata.
+- `StateRegistry` now mirrors mounted spokes downstream while reading Hall-backed estate records first when they exist.
+- `spoke://` path resolution is now deterministic and traversal-safe, and the runtime dispatcher can resolve mounted spoke targets through the Hall estate model.
+- `cstar spoke link|unlink|list` now manages the estate directly, and `cstar status` surfaces the mounted estate matrix.
+
+## `CS-P7-05` Make `ravens` Estate-Aware And Sub-Kernel Driven
+
+### Objective
+
+Allow `ravens` to operate across mounted repos through isolated sub-kernel execution rather than resident daemons or implicit shell traversal.
+
+### Files
+
+- ravens runtime surfaces
+- orchestration helpers
+- ravens estate tests
+
+### Change Set
+
+- Teach `ravens sweep` to enumerate mounted estate targets.
+- Execute one cycle per target through isolated sub-kernel or equivalent bounded execution.
+- Keep Hall summaries and bead/validation evidence linked per target.
+
+### Acceptance Criteria
+
+- `ravens` can sweep mounted estate targets.
+- Target failures remain isolated and reported without poisoning the parent operator session.
+
+### Verification
+
+```powershell
+npx tsx --test tests/unit/test_ravens_cycle_runtime.test.ts tests/unit/test_ravens_estate_runtime.test.ts
+.\.venv\Scripts\python.exe -m pytest tests/contracts/test_muninn.py -q
+```
+
+### Closure Note
+
+Closed on 2026-03-10.
+
+Implemented outcomes:
+
+- `ravens` now sweeps the mounted estate, not just config-era repo lists, and supports targeting a specific mounted spoke.
+- Each sweep target executes through an isolated ravens-cycle subprocess boundary, while the parent runtime keeps per-target outcome metadata.
+- Sweep failures are now isolated and reported without forcing the parent estate sweep to collapse into total failure unless every target fails.
+
+## `CS-P7-06` Expand PennyOne Into Estate Import, Search, And Topology
+
+### Objective
+
+Make PennyOne able to import external repos, search the full estate, and visualize Corvus Star as the brain linked to mounted spokes.
+
+### Files
+
+- PennyOne import/search/view surfaces
+- gallery/topology tests
+
+### Change Set
+
+- Add git-backed repo import or cache flow.
+- Extend search beyond local code-intent lookup into estate-wide projection search.
+- Materialize a brain-to-spoke topology view suitable for the estate model.
+
+### Acceptance Criteria
+
+- PennyOne can import and project a public repository into a stored gallery.
+- Search works across mounted estate projections.
+- The visualization can render Corvus Star plus its mounted spokes as one topology.
+
+### Verification
+
+```powershell
+npx tsx --test tests/unit/test_pennyone_projection_boundary.test.ts tests/unit/test_pennyone_search_empire.ts tests/unit/test_pennyone_topology_runtime.test.ts
+npx tsc --noEmit
+```
+
+### Closure Note
+
+Closed on 2026-03-10.
+
+Implemented outcomes:
+
+- PennyOne can now import external git repositories into a managed estate gallery, mount them as read-only observed spokes, and project them into Hall-backed scans.
+- Estate-wide search now spans mounted spoke projections and renders mounted results through `spoke://` paths instead of brain-relative guesses.
+- PennyOne now exposes a brain-to-spoke topology payload so the visualization layer can render Corvus Star plus its mounted estate as one graph.
+
+## `CS-P7-07` Rebuild `evolve` As The Sovereign Optimizer
+
+### Objective
+
+Make `evolve` a true optimizer for beads or the broader system, using Fishtest-style trial loops, Gungnir scoring, and validation-gated promotion.
+
+### Files
+
+- `src/core/engine/evolve_skill.py`
+- skill-learning and validation surfaces
+- evolve runtime tests
+
+### Change Set
+
+- Support system-level optimization when no bead is explicitly supplied.
+- Model candidate trials, scoring deltas, and accepted promotion gates more like a bounded Fishtest loop.
+- Keep Hall proposal authority and accepted-validation promotion rules intact.
+
+### Acceptance Criteria
+
+- `cstar evolve` can select a valid optimization target without a bead id.
+- Trial evaluation remains explicit, reviewable, and promotion-gated.
+- Gungnir and validation results can be compared across candidate proposals.
+
+### Verification
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/unit/test_evolve_skill.py tests/unit/test_validation_result.py -q
+npx tsx --test tests/unit/test_evolve_runtime.test.ts
+npx tsc --noEmit
+```
+
+### Closure Note
+
+Closed on 2026-03-10.
+
+Implemented outcomes:
+
+- `cstar evolve` now routes through a canonical runtime weave, can select an actionable bead when no bead id is supplied, and can also promote a validated proposal through the same operator surface.
+- Validation results are now modeled as first-class Hall-backed records with explicit score deltas, benchmark checks, and SPRT verdicts that keep promotion reviewable and gateable.
+- Evolve proposals now materialize canonical skill-contract artifacts, remain proposal-backed until accepted validation evidence exists, and only promote into the authoritative contract once both validation and SPRT verdicts are accepted.

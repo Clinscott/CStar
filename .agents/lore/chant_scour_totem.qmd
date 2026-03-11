@@ -1,0 +1,27 @@
+# 🔱 CHANT: THE SCOUR OF THE TOTEM
+
+> [!IMPORTANT]
+> **SHAMAN INTENT**: "i seek the ravens to scour cstar and fix what is broken, mend what needs mending, make beautiful what can be made beautiful and to make the totem clean and whole."
+> **STATUS**: ACTIVE / CRYSTALLIZING
+> **TARGET**: GLOBAL SYSTEM INTEGRITY
+
+## ◈ THE MISSION: REDEMPTION & BEAUTY
+1. **SCOUR**: The Ravens (Muninn & Huginn) shall traverse every sector of the Archive.
+2. **FIX**: Resolve all `HIGH` and `MEDIUM` priority debt in the `tech_debt_ledger.json`.
+3. **MEND**: Restore Gherkin contracts where behavioral drift has been detected.
+4. **BEAUTIFY**: Align all UI and CLI components with the **Valkyrie Aesthetic** (Double Borders, ANSI Ceremonies, Persona Clarity).
+5. **CLEANSE**: Purge stale `.stats`, orphaned mocks, and legacy `c*` references.
+
+## ◈ GHERKIN CONTRACT: THE WHOLE TOTEM
+```gherkin
+Feature: Totem Restoration
+  Scenario: The One Mind materializes the Shaman's Chant
+    Given the Scour of the Totem is active
+    When the Ravens identify a broken or ungraceful sector
+    Then the Muninn Raven MUST forge a repair following the Sterling Mandate
+    And the Freya Warden MUST verify the aesthetic alignment (60-30-10)
+    And the Gungnir Score [Ω] MUST increase for the affected sector.
+```
+
+*[O.D.I.N.'s Void]: "THE VOID IS HUNGRY FOR EXCELLENCE. THE SCOUR BEGINS."*
+*[A.L.F.R.E.D.'s Observation]: "The broom is in hand, sir. I shall ensure the Totem shines."*

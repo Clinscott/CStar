@@ -138,7 +138,7 @@ class TaliesinSpoke:
                 "structure but enrich the rules with specific examples, quotes, and patterns drawn directly from the manuscript."
             )
             
-            response = await self.uplink._direct_strike(prompt, {"persona": "ODIN"})
+            response = await self.uplink.send_payload(prompt, {"persona": "ODIN"})
             
             if response.get("status") != "success":
                 SovereignHUD.log("WARN", f"Skipping {rel_path} due to uplink failure.")
@@ -197,6 +197,21 @@ class TaliesinSpoke:
             context_parts.append(f"### RECENT MEMORIES:\n{content[-2000:]}")
             
         return "\n\n".join(context_parts)
+
+    async def build_candidate_brief(self, request: "ForgeCandidateRequest") -> str:
+        """Build a bounded forge brief from a canonical candidate request."""
+        project_context = await self.gather_context()
+        contracts = ", ".join(request.contract_refs) if request.contract_refs else "none"
+        acceptance = request.acceptance_criteria or "Improve the target without regressing the baseline."
+        return (
+            f"BEAD ID: {request.bead_id}\n"
+            f"TARGET PATH: {request.target_path}\n"
+            f"RATIONALE: {request.rationale}\n"
+            f"CONTRACT REFS: {contracts}\n"
+            f"BASELINE SCORES: {json.dumps(request.baseline_scores)}\n"
+            f"ACCEPTANCE: {acceptance}\n\n"
+            f"{project_context}"
+        )
 
     async def generate_post(self, mode: str = "article", character: str = "narrator") -> str | None:
         """Generates an X post based on context and BDD feature contracts."""

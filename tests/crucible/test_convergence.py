@@ -1,6 +1,7 @@
 import unittest
 import asyncio
 import sys
+from types import SimpleNamespace
 from unittest.mock import patch, AsyncMock
 from pathlib import Path
 
@@ -22,9 +23,17 @@ class TestTheConvergence(unittest.IsolatedAsyncioTestCase):
         """Verify the Muninn -> Uplink -> Mimir -> Host loop (Mocked Phase)."""
         print("\n--- TIER 4: THE CONVERGENCE (MOCKED) ---")
         
-        # We mock mimir.think because live tests require a pre-flight mock success.
-        with patch('src.cstar.core.uplink.mimir.think', new_callable=AsyncMock) as mock_think:
-            mock_think.return_value = "The Oracle speaks: Convergence is achieved."
+        with patch('src.cstar.core.uplink.mimir.request', new_callable=AsyncMock) as mock_request:
+            mock_request.return_value = SimpleNamespace(
+                status="success",
+                raw_text="The Oracle speaks: Convergence is achieved.",
+                error=None,
+                trace=SimpleNamespace(
+                    correlation_id="convergence",
+                    transport_mode="host_session",
+                    cached=False,
+                ),
+            )
             
             # 1. Perform an Uplink request
             uplink = AntigravityUplink()
@@ -42,8 +51,7 @@ class TestTheConvergence(unittest.IsolatedAsyncioTestCase):
             raw_text = response["data"]["raw"]
             self.assertEqual(raw_text, "The Oracle speaks: Convergence is achieved.")
             
-            # 3. Verify Mimir was called
-            mock_think.assert_called_once()
+            mock_request.assert_called_once()
             print("[PASS] Convergence verified via Synaptic Link.")
 
 if __name__ == '__main__':

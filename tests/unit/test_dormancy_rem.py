@@ -3,6 +3,7 @@ import asyncio
 import json
 from unittest.mock import patch, MagicMock, AsyncMock
 from src.skills.local.dormancy import consolidated_memory
+from src.core.engine.bead_ledger import BeadLedger
 
 
 @pytest.fixture
@@ -80,3 +81,37 @@ async def test_consolidated_memory_with_debt(mock_mimir, tmp_path):
         content = memory_file.read_text(encoding="utf-8")
         assert "Sanitized 2 sectors" in content
         assert "src/core/test1.py (STYLE)" in content
+
+
+@pytest.mark.asyncio
+async def test_consolidated_memory_projects_weak_sectors_into_sovereign_beads(mock_mimir, tmp_path):
+    mock_res = MagicMock()
+    mock_res.isError = False
+    mock_res.content = [MagicMock(text='[ALFRED]: "No debt beyond the dream cycle, sir."')]
+    mock_mimir.call_tool = AsyncMock(return_value=mock_res)
+
+    search_script = tmp_path / ".agents" / "skills" / "qmd_search" / "scripts"
+    search_script.mkdir(parents=True)
+    (search_script / "search.py").write_text("# projection stub\n", encoding="utf-8")
+    (tmp_path / ".agents").mkdir(exist_ok=True)
+
+    weak_sector_payload = json.dumps(
+        [
+            {
+                "path": "src/core/weak.py",
+                "scores": {"overall": 2.5, "logic": 2.0, "style": 4.0, "intel": 5.0},
+            }
+        ]
+    )
+
+    completed = MagicMock()
+    completed.returncode = 0
+    completed.stdout = weak_sector_payload
+
+    with patch("src.skills.local.dormancy.project_root", tmp_path), patch("subprocess.run", return_value=completed):
+        await consolidated_memory()
+
+    beads = BeadLedger(tmp_path).list_beads()
+    assert len(beads) == 1
+    assert beads[0].target_path == "src/core/weak.py"
+    assert beads[0].baseline_scores["overall"] == 2.5

@@ -1,0 +1,833 @@
+{
+  "generated_at": 1773055079549,
+  "authoritative_root": ".agents/skills",
+  "skills": {
+    "agent-lightning": {
+      "name": "agent-lightning",
+      "normalized_name": "agentlightning",
+      "authority_path": ".agents/skills/agent-lightning",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/agent-lightning/agent-lightning.feature",
+      "runtime_trigger": "agent-lightning",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "annex": {
+      "name": "annex",
+      "normalized_name": "annex",
+      "authority_path": ".agents/skills/annex",
+      "entrypoint_path": ".agents/skills/annex/scripts/annex.py",
+      "contract_path": ".agents/skills/annex/annex.feature",
+      "runtime_trigger": "annex",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "build-review-interface": {
+      "name": "build-review-interface",
+      "normalized_name": "buildreviewinterface",
+      "authority_path": ".agents/skills/build-review-interface",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/build-review-interface/build-review-interface.feature",
+      "runtime_trigger": "build-review-interface",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "cachebro": {
+      "name": "cachebro",
+      "normalized_name": "cachebro",
+      "authority_path": ".agents/skills/cachebro",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/cachebro/cachebro.feature",
+      "runtime_trigger": "cachebro",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "calculus": {
+      "name": "calculus",
+      "normalized_name": "calculus",
+      "authority_path": ".agents/skills/calculus",
+      "entrypoint_path": ".agents/skills/calculus/scripts/calculus.py",
+      "contract_path": ".agents/skills/calculus/calculus.feature",
+      "runtime_trigger": "calculus",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "chant": {
+      "name": "chant",
+      "normalized_name": "chant",
+      "authority_path": ".agents/skills/chant",
+      "entrypoint_path": ".agents/skills/chant/scripts/chant.py",
+      "contract_path": ".agents/skills/chant/chant.feature",
+      "runtime_trigger": "chant",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "chapter": {
+      "name": "chapter",
+      "normalized_name": "chapter",
+      "authority_path": ".agents/skills/chapter",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/chapter/chapter.feature",
+      "runtime_trigger": "chapter",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "chronicle": {
+      "name": "chronicle",
+      "normalized_name": "chronicle",
+      "authority_path": ".agents/skills/chronicle",
+      "entrypoint_path": ".agents/skills/chronicle/scripts/chronicle.py",
+      "contract_path": ".agents/skills/chronicle/SKILL.md",
+      "runtime_trigger": "chronicle",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "consciousness": {
+      "name": "consciousness",
+      "normalized_name": "consciousness",
+      "authority_path": ".agents/skills/consciousness",
+      "entrypoint_path": ".agents/skills/consciousness/scripts/consciousness.py",
+      "contract_path": ".agents/skills/consciousness/consciousness.feature",
+      "runtime_trigger": "consciousness",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "corvus-control": {
+      "name": "corvus-control",
+      "normalized_name": "corvuscontrol",
+      "authority_path": ".agents/skills/corvus-control",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/corvus-control/corvus-control.feature",
+      "runtime_trigger": "corvus-control",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "edda": {
+      "name": "edda",
+      "normalized_name": "edda",
+      "authority_path": ".agents/skills/edda",
+      "entrypoint_path": ".agents/skills/edda/scripts/edda.py",
+      "contract_path": ".agents/skills/edda/edda.feature",
+      "runtime_trigger": "edda",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "empire": {
+      "name": "empire",
+      "normalized_name": "empire",
+      "authority_path": ".agents/skills/empire",
+      "entrypoint_path": ".agents/skills/empire/scripts/empire.py",
+      "contract_path": ".agents/skills/empire/empire.feature",
+      "runtime_trigger": "empire",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "engine": {
+      "name": "engine",
+      "normalized_name": "engine",
+      "authority_path": ".agents/skills/engine",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/engine/engine.feature",
+      "runtime_trigger": "engine",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "error-analysis": {
+      "name": "error-analysis",
+      "normalized_name": "erroranalysis",
+      "authority_path": ".agents/skills/error-analysis",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/error-analysis/error-analysis.feature",
+      "runtime_trigger": "error-analysis",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "eval-audit": {
+      "name": "eval-audit",
+      "normalized_name": "evalaudit",
+      "authority_path": ".agents/skills/eval-audit",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/eval-audit/eval-audit.feature",
+      "runtime_trigger": "eval-audit",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "evaluate-rag": {
+      "name": "evaluate-rag",
+      "normalized_name": "evaluaterag",
+      "authority_path": ".agents/skills/evaluate-rag",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/evaluate-rag/evaluate-rag.feature",
+      "runtime_trigger": "evaluate-rag",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "evolve": {
+      "name": "evolve",
+      "normalized_name": "evolve",
+      "authority_path": ".agents/skills/evolve",
+      "entrypoint_path": ".agents/skills/evolve/scripts/evolve.py",
+      "contract_path": ".agents/skills/evolve/contract.json",
+      "runtime_trigger": "evolve",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "forge": {
+      "name": "forge",
+      "normalized_name": "forge",
+      "authority_path": ".agents/skills/forge",
+      "entrypoint_path": ".agents/skills/forge/scripts/forge.py",
+      "contract_path": ".agents/skills/forge/forge.feature",
+      "runtime_trigger": "forge",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "gemini-skills": {
+      "name": "gemini-skills",
+      "normalized_name": "geminiskills",
+      "authority_path": ".agents/skills/gemini-skills",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/gemini-skills/gemini-skills.feature",
+      "runtime_trigger": "gemini-skills",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "generate-synthetic-data": {
+      "name": "generate-synthetic-data",
+      "normalized_name": "generatesyntheticdata",
+      "authority_path": ".agents/skills/generate-synthetic-data",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/generate-synthetic-data/generate-synthetic-data.feature",
+      "runtime_trigger": "generate-synthetic-data",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "gherkin": {
+      "name": "gherkin",
+      "normalized_name": "gherkin",
+      "authority_path": ".agents/skills/gherkin",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/gherkin/gherkin.feature",
+      "runtime_trigger": "gherkin",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "hunt": {
+      "name": "hunt",
+      "normalized_name": "hunt",
+      "authority_path": ".agents/skills/hunt",
+      "entrypoint_path": ".agents/skills/hunt/scripts/hunt.py",
+      "contract_path": ".agents/skills/hunt/hunt.feature",
+      "runtime_trigger": "hunt",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "jailing": {
+      "name": "jailing",
+      "normalized_name": "jailing",
+      "authority_path": ".agents/skills/jailing",
+      "entrypoint_path": ".agents/skills/jailing/scripts/jailing.py",
+      "contract_path": ".agents/skills/jailing/jailing.feature",
+      "runtime_trigger": "jailing",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "linter": {
+      "name": "linter",
+      "normalized_name": "linter",
+      "authority_path": ".agents/skills/linter",
+      "entrypoint_path": ".agents/skills/linter/scripts/linter.py",
+      "contract_path": ".agents/skills/linter/linter.feature",
+      "runtime_trigger": "linter",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "locks": {
+      "name": "locks",
+      "normalized_name": "locks",
+      "authority_path": ".agents/skills/locks",
+      "entrypoint_path": ".agents/skills/locks/scripts/locks.py",
+      "contract_path": ".agents/skills/locks/locks.feature",
+      "runtime_trigger": "locks",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "matrix": {
+      "name": "matrix",
+      "normalized_name": "matrix",
+      "authority_path": ".agents/skills/matrix",
+      "entrypoint_path": ".agents/skills/matrix/scripts/matrix.py",
+      "contract_path": ".agents/skills/matrix/matrix.feature",
+      "runtime_trigger": "matrix",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "memory": {
+      "name": "memory",
+      "normalized_name": "memory",
+      "authority_path": ".agents/skills/memory",
+      "entrypoint_path": ".agents/skills/memory/scripts/memory.py",
+      "contract_path": ".agents/skills/memory/memory.feature",
+      "runtime_trigger": "memory",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "metrics": {
+      "name": "metrics",
+      "normalized_name": "metrics",
+      "authority_path": ".agents/skills/metrics",
+      "entrypoint_path": ".agents/skills/metrics/scripts/metrics.py",
+      "contract_path": ".agents/skills/metrics/metrics.feature",
+      "runtime_trigger": "metrics",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "mimir": {
+      "name": "mimir",
+      "normalized_name": "mimir",
+      "authority_path": ".agents/skills/mimir",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/mimir/mimir.feature",
+      "runtime_trigger": "mimir",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "norn": {
+      "name": "norn",
+      "normalized_name": "norn",
+      "authority_path": ".agents/skills/norn",
+      "entrypoint_path": ".agents/skills/norn/scripts/norn.py",
+      "contract_path": ".agents/skills/norn/norn.feature",
+      "runtime_trigger": "norn",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "odin_ui": {
+      "name": "odin_ui",
+      "normalized_name": "odinui",
+      "authority_path": ".agents/skills/odin_ui",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/odin_ui/odin_ui.feature",
+      "runtime_trigger": "odin_ui",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "one-mind": {
+      "name": "one-mind",
+      "normalized_name": "onemind",
+      "authority_path": ".agents/skills/one-mind",
+      "entrypoint_path": ".agents/skills/one-mind/scripts/one-mind.py",
+      "contract_path": ".agents/skills/one-mind/one-mind.feature",
+      "runtime_trigger": "one-mind",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "oracle": {
+      "name": "oracle",
+      "normalized_name": "oracle",
+      "authority_path": ".agents/skills/oracle",
+      "entrypoint_path": ".agents/skills/oracle/scripts/oracle.py",
+      "contract_path": ".agents/skills/oracle/oracle.feature",
+      "runtime_trigger": "oracle",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "persona": {
+      "name": "persona",
+      "normalized_name": "persona",
+      "authority_path": ".agents/skills/persona",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/persona/persona.feature",
+      "runtime_trigger": "persona",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "personas": {
+      "name": "personas",
+      "normalized_name": "personas",
+      "authority_path": ".agents/skills/personas",
+      "entrypoint_path": ".agents/skills/personas/scripts/personas.py",
+      "contract_path": ".agents/skills/personas/personas.feature",
+      "runtime_trigger": "personas",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "promotion": {
+      "name": "promotion",
+      "normalized_name": "promotion",
+      "authority_path": ".agents/skills/promotion",
+      "entrypoint_path": ".agents/skills/promotion/scripts/promotion.py",
+      "contract_path": ".agents/skills/promotion/promotion.feature",
+      "runtime_trigger": "promotion",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "qmd_search": {
+      "name": "qmd_search",
+      "normalized_name": "qmdsearch",
+      "authority_path": ".agents/skills/qmd_search",
+      "entrypoint_path": ".agents/skills/qmd_search/scripts/qmd_search.py",
+      "contract_path": ".agents/skills/qmd_search/SKILL.md",
+      "runtime_trigger": "qmd_search",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "ravens": {
+      "name": "ravens",
+      "normalized_name": "ravens",
+      "authority_path": ".agents/skills/ravens",
+      "entrypoint_path": ".agents/skills/ravens/scripts/ravens.py",
+      "contract_path": ".agents/skills/ravens/ravens.feature",
+      "runtime_trigger": "ravens",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "redactor": {
+      "name": "redactor",
+      "normalized_name": "redactor",
+      "authority_path": ".agents/skills/redactor",
+      "entrypoint_path": ".agents/skills/redactor/scripts/redactor.py",
+      "contract_path": ".agents/skills/redactor/redactor.feature",
+      "runtime_trigger": "redactor",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "report": {
+      "name": "report",
+      "normalized_name": "report",
+      "authority_path": ".agents/skills/report",
+      "entrypoint_path": ".agents/skills/report/scripts/report.py",
+      "contract_path": ".agents/skills/report/report.feature",
+      "runtime_trigger": "report",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "research": {
+      "name": "research",
+      "normalized_name": "research",
+      "authority_path": ".agents/skills/research",
+      "entrypoint_path": ".agents/skills/research/scripts/research.py",
+      "contract_path": ".agents/skills/research/SKILL.md",
+      "runtime_trigger": "research",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "ritual": {
+      "name": "ritual",
+      "normalized_name": "ritual",
+      "authority_path": ".agents/skills/ritual",
+      "entrypoint_path": ".agents/skills/ritual/scripts/ritual.py",
+      "contract_path": ".agents/skills/ritual/ritual.feature",
+      "runtime_trigger": "ritual",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "scan": {
+      "name": "scan",
+      "normalized_name": "scan",
+      "authority_path": ".agents/skills/scan",
+      "entrypoint_path": ".agents/skills/scan/scripts/scan.py",
+      "contract_path": ".agents/skills/scan/scan.feature",
+      "runtime_trigger": "scan",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "sprt": {
+      "name": "sprt",
+      "normalized_name": "sprt",
+      "authority_path": ".agents/skills/sprt",
+      "entrypoint_path": ".agents/skills/sprt/scripts/sprt.py",
+      "contract_path": ".agents/skills/sprt/sprt.feature",
+      "runtime_trigger": "sprt",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "stability": {
+      "name": "stability",
+      "normalized_name": "stability",
+      "authority_path": ".agents/skills/stability",
+      "entrypoint_path": ".agents/skills/stability/scripts/stability.py",
+      "contract_path": ".agents/skills/stability/stability.feature",
+      "runtime_trigger": "stability",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "sterling": {
+      "name": "sterling",
+      "normalized_name": "sterling",
+      "authority_path": ".agents/skills/sterling",
+      "entrypoint_path": ".agents/skills/sterling/scripts/sterling.py",
+      "contract_path": ".agents/skills/sterling/sterling.feature",
+      "runtime_trigger": "sterling",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "style": {
+      "name": "style",
+      "normalized_name": "style",
+      "authority_path": ".agents/skills/style",
+      "entrypoint_path": ".agents/skills/style/scripts/style.py",
+      "contract_path": ".agents/skills/style/style.feature",
+      "runtime_trigger": "style",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "taliesin": {
+      "name": "taliesin",
+      "normalized_name": "taliesin",
+      "authority_path": ".agents/skills/taliesin",
+      "entrypoint_path": ".agents/skills/taliesin/scripts/taliesin.py",
+      "contract_path": ".agents/skills/taliesin/taliesin.feature",
+      "runtime_trigger": "taliesin",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "taste-skill": {
+      "name": "taste-skill",
+      "normalized_name": "tasteskill",
+      "authority_path": ".agents/skills/taste-skill",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/taste-skill/taste-skill.feature",
+      "runtime_trigger": "taste-skill",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "telemetry": {
+      "name": "telemetry",
+      "normalized_name": "telemetry",
+      "authority_path": ".agents/skills/telemetry",
+      "entrypoint_path": ".agents/skills/telemetry/scripts/telemetry.py",
+      "contract_path": ".agents/skills/telemetry/telemetry.feature",
+      "runtime_trigger": "telemetry",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "trace": {
+      "name": "trace",
+      "normalized_name": "trace",
+      "authority_path": ".agents/skills/trace",
+      "entrypoint_path": ".agents/skills/trace/scripts/trace.py",
+      "contract_path": ".agents/skills/trace/trace.feature",
+      "runtime_trigger": "trace",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "validate-evaluator": {
+      "name": "validate-evaluator",
+      "normalized_name": "validateevaluator",
+      "authority_path": ".agents/skills/validate-evaluator",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/validate-evaluator/validate-evaluator.feature",
+      "runtime_trigger": "validate-evaluator",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "vector": {
+      "name": "vector",
+      "normalized_name": "vector",
+      "authority_path": ".agents/skills/vector",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/vector/vector.feature",
+      "runtime_trigger": "vector",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "visual-explainer": {
+      "name": "visual-explainer",
+      "normalized_name": "visualexplainer",
+      "authority_path": ".agents/skills/visual-explainer",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/visual-explainer/visual-explainer.feature",
+      "runtime_trigger": "visual-explainer",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "voices": {
+      "name": "voices",
+      "normalized_name": "voices",
+      "authority_path": ".agents/skills/voices",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/voices/voices.feature",
+      "runtime_trigger": "voices",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "warden": {
+      "name": "warden",
+      "normalized_name": "warden",
+      "authority_path": ".agents/skills/warden",
+      "entrypoint_path": ".agents/skills/warden/scripts/warden.py",
+      "contract_path": ".agents/skills/warden/warden.feature",
+      "runtime_trigger": "warden",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "write-judge-prompt": {
+      "name": "write-judge-prompt",
+      "normalized_name": "writejudgeprompt",
+      "authority_path": ".agents/skills/write-judge-prompt",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/write-judge-prompt/write-judge-prompt.feature",
+      "runtime_trigger": "write-judge-prompt",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "dormancy": {
+      "name": "dormancy",
+      "normalized_name": "dormancy",
+      "authority_path": "src/skills/local/dormancy.py",
+      "entrypoint_path": "src/skills/local/dormancy.py",
+      "contract_path": null,
+      "runtime_trigger": "dormancy",
+      "migration_status": "bootstrap-only",
+      "source": "src/skills/local",
+      "authority_alias": null
+    },
+    "Environment": {
+      "name": "Environment",
+      "normalized_name": "environment",
+      "authority_path": "src/skills/local/Environment",
+      "entrypoint_path": "src/skills/local/Environment",
+      "contract_path": null,
+      "runtime_trigger": "Environment",
+      "migration_status": "retire",
+      "source": "src/skills/local",
+      "authority_alias": null
+    },
+    "GitHub": {
+      "name": "GitHub",
+      "normalized_name": "github",
+      "authority_path": "src/skills/local/GitHub",
+      "entrypoint_path": "src/skills/local/GitHub",
+      "contract_path": null,
+      "runtime_trigger": "GitHub",
+      "migration_status": "retire",
+      "source": "src/skills/local",
+      "authority_alias": null
+    },
+    "radon": {
+      "name": "radon",
+      "normalized_name": "radon",
+      "authority_path": "src/skills/local/radon",
+      "entrypoint_path": "src/skills/local/radon",
+      "contract_path": null,
+      "runtime_trigger": "radon",
+      "migration_status": "retire",
+      "source": "src/skills/local",
+      "authority_alias": null
+    },
+    "skill-scout": {
+      "name": "skill-scout",
+      "normalized_name": "skillscout",
+      "authority_path": "src/skills/local/skill-scout",
+      "entrypoint_path": "src/skills/local/skill-scout",
+      "contract_path": null,
+      "runtime_trigger": "skill-scout",
+      "migration_status": "retire",
+      "source": "src/skills/local",
+      "authority_alias": null
+    },
+    "VisualExplainer": {
+      "name": "VisualExplainer",
+      "normalized_name": "visualexplainer",
+      "authority_path": "src/skills/local/VisualExplainer",
+      "entrypoint_path": "src/skills/local/VisualExplainer/visual_explainer.py",
+      "contract_path": null,
+      "runtime_trigger": "VisualExplainer",
+      "migration_status": "migrate",
+      "source": "src/skills/local",
+      "authority_alias": null
+    },
+    "WildHunt": {
+      "name": "WildHunt",
+      "normalized_name": "wildhunt",
+      "authority_path": "src/skills/local/WildHunt",
+      "entrypoint_path": "src/skills/local/WildHunt/wild_hunt.py",
+      "contract_path": null,
+      "runtime_trigger": "WildHunt",
+      "migration_status": "migrate",
+      "source": "src/skills/local",
+      "authority_alias": null
+    },
+    "workflow_analyst": {
+      "name": "workflow_analyst",
+      "normalized_name": "workflowanalyst",
+      "authority_path": "src/skills/local/workflow_analyst",
+      "entrypoint_path": "src/skills/local/workflow_analyst/analyze_workflow.py",
+      "contract_path": null,
+      "runtime_trigger": "workflow_analyst",
+      "migration_status": "migrate",
+      "source": "src/skills/local",
+      "authority_alias": null
+    }
+  },
+  "duplicates": [
+    {
+      "local_name": "CacheBro",
+      "local_path": "src/skills/local/CacheBro",
+      "authority_name": "cachebro",
+      "authority_path": ".agents/skills/cachebro",
+      "classification": "wrap"
+    },
+    {
+      "local_name": "KnowledgeHunter",
+      "local_path": "src/skills/local/KnowledgeHunter",
+      "authority_name": "hunt",
+      "authority_path": ".agents/skills/hunt",
+      "classification": "wrap"
+    },
+    {
+      "local_name": "oracle",
+      "local_path": "src/skills/local/oracle",
+      "authority_name": "oracle",
+      "authority_path": ".agents/skills/oracle",
+      "classification": "wrap"
+    },
+    {
+      "local_name": "persona-audit",
+      "local_path": "src/skills/local/persona-audit",
+      "authority_name": "persona",
+      "authority_path": ".agents/skills/persona",
+      "classification": "wrap"
+    },
+    {
+      "local_name": "SkillLearning",
+      "local_path": "src/skills/local/SkillLearning",
+      "authority_name": "evolve",
+      "authority_path": ".agents/skills/evolve",
+      "classification": "wrap"
+    }
+  ],
+  "local_candidates": [
+    {
+      "name": "CacheBro",
+      "normalized_name": "cachebro",
+      "local_path": "src/skills/local/CacheBro",
+      "entrypoint_path": "src/skills/local/CacheBro/cache_bro.py",
+      "migration_status": "wrap",
+      "authority_alias": "cachebro",
+      "runtime_trigger": "CacheBro",
+      "source": "src/skills/local"
+    },
+    {
+      "name": "dormancy",
+      "normalized_name": "dormancy",
+      "local_path": "src/skills/local/dormancy.py",
+      "entrypoint_path": "src/skills/local/dormancy.py",
+      "migration_status": "bootstrap-only",
+      "authority_alias": null,
+      "runtime_trigger": "dormancy",
+      "source": "src/skills/local"
+    },
+    {
+      "name": "Environment",
+      "normalized_name": "environment",
+      "local_path": "src/skills/local/Environment",
+      "entrypoint_path": "src/skills/local/Environment",
+      "migration_status": "retire",
+      "authority_alias": null,
+      "runtime_trigger": "Environment",
+      "source": "src/skills/local"
+    },
+    {
+      "name": "GitHub",
+      "normalized_name": "github",
+      "local_path": "src/skills/local/GitHub",
+      "entrypoint_path": "src/skills/local/GitHub",
+      "migration_status": "retire",
+      "authority_alias": null,
+      "runtime_trigger": "GitHub",
+      "source": "src/skills/local"
+    },
+    {
+      "name": "KnowledgeHunter",
+      "normalized_name": "knowledgehunter",
+      "local_path": "src/skills/local/KnowledgeHunter",
+      "entrypoint_path": "src/skills/local/KnowledgeHunter/hunter.py",
+      "migration_status": "wrap",
+      "authority_alias": "hunt",
+      "runtime_trigger": "KnowledgeHunter",
+      "source": "src/skills/local"
+    },
+    {
+      "name": "oracle",
+      "normalized_name": "oracle",
+      "local_path": "src/skills/local/oracle",
+      "entrypoint_path": "src/skills/local/oracle",
+      "migration_status": "wrap",
+      "authority_alias": "oracle",
+      "runtime_trigger": "oracle",
+      "source": "src/skills/local"
+    },
+    {
+      "name": "persona-audit",
+      "normalized_name": "personaaudit",
+      "local_path": "src/skills/local/persona-audit",
+      "entrypoint_path": "src/skills/local/persona-audit",
+      "migration_status": "wrap",
+      "authority_alias": "persona",
+      "runtime_trigger": "persona-audit",
+      "source": "src/skills/local"
+    },
+    {
+      "name": "radon",
+      "normalized_name": "radon",
+      "local_path": "src/skills/local/radon",
+      "entrypoint_path": "src/skills/local/radon",
+      "migration_status": "retire",
+      "authority_alias": null,
+      "runtime_trigger": "radon",
+      "source": "src/skills/local"
+    },
+    {
+      "name": "skill-scout",
+      "normalized_name": "skillscout",
+      "local_path": "src/skills/local/skill-scout",
+      "entrypoint_path": "src/skills/local/skill-scout",
+      "migration_status": "retire",
+      "authority_alias": null,
+      "runtime_trigger": "skill-scout",
+      "source": "src/skills/local"
+    },
+    {
+      "name": "SkillLearning",
+      "normalized_name": "skilllearning",
+      "local_path": "src/skills/local/SkillLearning",
+      "entrypoint_path": "src/skills/local/SkillLearning/learn.py",
+      "migration_status": "wrap",
+      "authority_alias": "evolve",
+      "runtime_trigger": "SkillLearning",
+      "source": "src/skills/local"
+    },
+    {
+      "name": "VisualExplainer",
+      "normalized_name": "visualexplainer",
+      "local_path": "src/skills/local/VisualExplainer",
+      "entrypoint_path": "src/skills/local/VisualExplainer/visual_explainer.py",
+      "migration_status": "migrate",
+      "authority_alias": null,
+      "runtime_trigger": "VisualExplainer",
+      "source": "src/skills/local"
+    },
+    {
+      "name": "WildHunt",
+      "normalized_name": "wildhunt",
+      "local_path": "src/skills/local/WildHunt",
+      "entrypoint_path": "src/skills/local/WildHunt/wild_hunt.py",
+      "migration_status": "migrate",
+      "authority_alias": null,
+      "runtime_trigger": "WildHunt",
+      "source": "src/skills/local"
+    },
+    {
+      "name": "workflow_analyst",
+      "normalized_name": "workflowanalyst",
+      "local_path": "src/skills/local/workflow_analyst",
+      "entrypoint_path": "src/skills/local/workflow_analyst/analyze_workflow.py",
+      "migration_status": "migrate",
+      "authority_alias": null,
+      "runtime_trigger": "workflow_analyst",
+      "source": "src/skills/local"
+    }
+  ]
+}

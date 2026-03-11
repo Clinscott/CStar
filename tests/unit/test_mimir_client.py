@@ -1,70 +1,154 @@
+import sqlite3
+
 import pytest
-import asyncio
-from unittest.mock import MagicMock, patch, AsyncMock
+
 from src.core.mimir_client import MimirClient
 
 
-@pytest.fixture
-def mock_session():
-    session = AsyncMock()
-    session.initialize = AsyncMock()
-    session.close = AsyncMock()
-    
-    # Mock return values for call_tool
-    mock_result = MagicMock()
-    mock_result.isError = False
-    mock_result.content = [MagicMock(text="Mocked Result")]
-    session.call_tool = AsyncMock(return_value=mock_result)
-    
-    return session
+def _read_prompt(db_path, synapse_id: int) -> str:
+    with sqlite3.connect(str(db_path)) as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT prompt FROM synapse WHERE id = ?", (synapse_id,))
+        row = cursor.fetchone()
+        assert row is not None
+        return row[0]
+
+
+def _complete_prompt(db_path, synapse_id: int, response: str) -> None:
+    with sqlite3.connect(str(db_path)) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE synapse SET response = ?, status = 'COMPLETED' WHERE id = ?",
+            (response, synapse_id),
+        )
+        conn.commit()
 
 
 @pytest.mark.asyncio
-async def test_mimir_client_get_file_intent(mock_session):
-    client = MimirClient()
-    
-    with patch.object(client, '_get_session', return_value=mock_session):
-        intent = await client.get_file_intent("some/file.py")
-        
-        assert intent == "Mocked Result"
-        mock_session.call_tool.assert_called_once_with("get_file_intent", {"filepath": "some/file.py"})
+async def test_mimir_client_uses_host_session_contract(tmp_path):
+    client = MimirClient(project_root=tmp_path, host_session_active=True)
+
+    response = await client.request(
+        {
+            "prompt": "Identify the active capability.",
+            "system_prompt": "Respond in one line.",
+            "caller": {"source": "test-suite"},
+        }
+    )
+
+    assert response.status == "success"
+    assert response.trace.transport_mode == "host_session"
+    assert response.raw_text is not None
+    assert response.raw_text.startswith("[SAMPLING_REQUEST]")
+    assert "SYSTEM:" in response.raw_text
+    assert "USER:" in response.raw_text
 
 
 @pytest.mark.asyncio
-async def test_mimir_client_search_well(mock_session):
-    client = MimirClient()
-    
-    with patch.object(client, '_get_session', return_value=mock_session):
-        result = await client.search_well("some query")
-        
-        assert result == "Mocked Result"
-        mock_session.call_tool.assert_called_once_with("search_by_intent", {"query": "some query"})
+async def test_mimir_client_uses_codex_host_runner_when_provider_is_codex(tmp_path):
+    observed: list[tuple[str, str]] = []
+
+    async def host_session_runner(prompt: str, provider: str) -> str:
+        observed.append((provider, prompt))
+        return "Codex host response"
+
+    client = MimirClient(
+        project_root=tmp_path,
+        host_session_active=True,
+        host_provider="codex",
+        host_session_runner=host_session_runner,
+    )
+
+    response = await client.request({"prompt": "Explain the active bridge."})
+
+    assert response.status == "success"
+    assert response.trace.transport_mode == "host_session"
+    assert response.raw_text == "Codex host response"
+    assert observed == [("codex", "Explain the active bridge.")]
 
 
 @pytest.mark.asyncio
-async def test_mimir_client_index_sector(mock_session):
-    client = MimirClient()
-    
-    with patch.object(client, '_get_session', return_value=mock_session):
-        success = await client.index_sector("some/file.py")
-        
-        assert success is True
-        mock_session.call_tool.assert_called_once_with("index_sector", {"filepath": "some/file.py"})
+async def test_mimir_client_reads_synapse_completion(tmp_path):
+    async def oracle_runner(synapse_id: int) -> None:
+        prompt = _read_prompt(tmp_path / ".agents" / "synapse.db", synapse_id)
+        _complete_prompt(
+            tmp_path / ".agents" / "synapse.db",
+            synapse_id,
+            f"Completed: {prompt}",
+        )
+
+    client = MimirClient(
+        project_root=tmp_path,
+        host_session_active=False,
+        oracle_runner=oracle_runner,
+    )
+
+    response = await client.request({"prompt": "Trace the repository health."})
+
+    assert response.status == "success"
+    assert response.trace.transport_mode == "synapse_db"
+    assert response.trace.cached is False
+    assert response.raw_text == "Completed: Trace the repository health."
 
 
 @pytest.mark.asyncio
-async def test_mimir_client_error_handling(mock_session):
-    client = MimirClient()
-    
-    # Simulate an error response from MCP
-    error_result = MagicMock()
-    error_result.isError = True
-    error_result.content = [MagicMock(text="Error occurred")]
-    mock_session.call_tool = AsyncMock(return_value=error_result)
-    
-    with patch.object(client, '_get_session', return_value=mock_session):
-        intent = await client.get_file_intent("some/file.py")
-        assert intent is None
-        
-        success = await client.index_sector("some/file.py")
-        assert success is False
+async def test_mimir_client_uses_synapse_cache_before_oracle(tmp_path):
+    invoked = False
+    db_path = tmp_path / ".agents" / "synapse.db"
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with sqlite3.connect(str(db_path)) as conn:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS synapse (
+                id INTEGER PRIMARY KEY,
+                prompt TEXT,
+                response TEXT,
+                status TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+        conn.execute(
+            "INSERT INTO synapse (prompt, response, status) VALUES (?, ?, 'COMPLETED')",
+            ("Cached prompt", "Cached response"),
+        )
+        conn.commit()
+
+    async def oracle_runner(_synapse_id: int) -> None:
+        nonlocal invoked
+        invoked = True
+
+    client = MimirClient(
+        project_root=tmp_path,
+        host_session_active=False,
+        oracle_runner=oracle_runner,
+    )
+
+    response = await client.request({"prompt": "Cached prompt"})
+
+    assert response.status == "success"
+    assert response.raw_text == "Cached response"
+    assert response.trace.cached is True
+    assert invoked is False
+
+
+@pytest.mark.asyncio
+async def test_mimir_client_compatibility_wrappers_use_canonical_request(tmp_path):
+    async def oracle_runner(synapse_id: int) -> None:
+        prompt = _read_prompt(tmp_path / ".agents" / "synapse.db", synapse_id)
+        _complete_prompt(tmp_path / ".agents" / "synapse.db", synapse_id, f"OK: {prompt}")
+
+    client = MimirClient(
+        project_root=tmp_path,
+        host_session_active=False,
+        oracle_runner=oracle_runner,
+    )
+
+    intent = await client.get_file_intent("src/core/engine/vector.py")
+    search = await client.search_well("legacy daemon bridge")
+    indexed = await client.index_sector("src/core/engine/vector.py")
+
+    assert "src/core/engine/vector.py" in (intent or "")
+    assert "legacy daemon bridge" in (search or "")
+    assert indexed is True

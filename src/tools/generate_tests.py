@@ -1,9 +1,28 @@
 import argparse
 import json
 import random
+from pathlib import Path
 
 def generate_cases(n: int = 1000, threshold: float = 0.3) -> dict:
     return TestCaseGenerator.generate(n, threshold)
+
+
+def generate_candidate_tests(target_path: str, contract_refs: list[str] | None = None, bead_id: str | None = None) -> list[dict]:
+    normalized_target = target_path.replace("\\", "/")
+    stem = Path(normalized_target).stem or "candidate"
+    contract_refs = list(contract_refs or [])
+    reason = f"Regression gauntlet for {normalized_target}"
+    if bead_id:
+        reason = f"{reason} (bead {bead_id})"
+
+    return [
+        {
+            "path": f"tests/gauntlet/test_{stem}.py",
+            "reason": reason,
+            "contract_refs": contract_refs,
+            "template": "gauntlet",
+        }
+    ]
 
 class TestCaseGenerator:
     """[O.D.I.N.] Orchestration logic for synthetic fishtest data generation."""

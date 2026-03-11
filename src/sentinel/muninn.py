@@ -2,17 +2,18 @@
 Muninn: The Raven of Memory & Excellence (Autonomous Improver)
 Identity: ODIN/ALFRED Hybrid
 Purpose: Entry point for the Ravens Protocol (Facade over decomposed spokes).
+Phase 1 Note: Transitional wrapper over the runtime-owned ravens lifecycle.
 """
 
 import asyncio
 import os
 import sys
 from pathlib import Path
-from typing import Any
 
-from src.sentinel.muninn_heart import MuninnHeart
+from src.core.engine.ravens_stage import RavensCycleResult
 from src.sentinel.muninn_hunter import MuninnHunter
 from src.sentinel.muninn_crucible import MuninnCrucible
+from src.sentinel.ravens_runtime import execute_ravens_cycle, execute_ravens_cycle_contract
 from src.sentinel.wardens.norn import NornWarden
 
 # Alias for legacy test compatibility
@@ -36,14 +37,15 @@ class Muninn:
         
         # Initialize Uplink
         self.uplink = AntigravityUplink()
-        
-        # The Heart orchestrates the cycle
-        self.heart = MuninnHeart(self.root, self.uplink)
         print("[PULSE] Muninn: Initialization complete.")
 
     async def run_cycle(self) -> bool:
         """Executes a single autonomous repair cycle via the Heart spoke."""
-        return await self.heart.execute_cycle()
+        return await execute_ravens_cycle(self.root, uplink=self.uplink)
+
+    async def run_cycle_contract(self) -> RavensCycleResult:
+        """Returns the structured Phase 3 cycle contract while boolean callers remain supported."""
+        return await execute_ravens_cycle_contract(self.root, uplink=self.uplink)
 
 if __name__ == "__main__":
     # Force unbuffered output for real-time monitoring

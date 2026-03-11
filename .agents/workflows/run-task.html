@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="description" content="Focused task execution workflow that identifies user objectives, contextualizes them with tasks.qmd, and provides implementation proposals.">
+<meta name="description" content="Focused task execution workflow that identifies user objectives, contextualizes them with the sovereign bead queue, and provides implementation proposals.">
 
 <title>run-task</title>
 <style>
@@ -56,7 +56,7 @@ ul.task-list li input[type="checkbox"] {
 </blockquote>
 <ol type="1">
 <li><strong>Identify Target Task</strong>: Clarify the specific objective from the user’s request.</li>
-<li><strong>Contextualize</strong>: Read <code>tasks.qmd</code> to see where this fits in the overall project progress.</li>
+<li><strong>Contextualize</strong>: Resolve the authoritative bead from the Sovereign Bead System. Read <code>tasks.qmd</code> only as a projection of Hall state.</li>
 <li><strong>Sector Intelligence</strong>: Run <code>get_file_intent</code> for the primary target files. You MUST ingest both <strong>🎯 INTENT</strong> and <strong>🕹️ INTERACTION PROTOCOL</strong>.</li>
 <li><strong>Tech Debt Check</strong>: Consult <code>.agent/tech_debt_ledger.json</code>. If the target is a “Toxic Sector”, you MUST prioritize refactoring over feature addition.</li>
 <li><strong>Analyze Dependencies</strong>: Examine relevant files and logic to understand the scope of the change.</li>
@@ -67,7 +67,7 @@ ul.task-list li input[type="checkbox"] {
 <li><strong>ALFRED</strong>: Present as “Humble Suggestions”. Proposals are ways to serve the mission better.</li>
 <li><strong>Range</strong>: Include trade-offs (Simple, Robust, Moonshot).</li>
 </ul></li>
-<li><strong>Update Tasks</strong>: Once a proposal is chosen, update <code>tasks.qmd</code> with a detailed step-by-step breakdown (preserving history).</li>
+<li><strong>Update Bead State</strong>: Once a proposal is chosen, update the authoritative bead or Hall record and regenerate <code>tasks.qmd</code> as projection output.</li>
 <li><strong>Execute</strong>: Implement the chosen approach using the <strong>Development Protocol</strong> (logging, verification, etc.).</li>
 <li><strong>Verify</strong>: Ensure the task meets the success criteria and passes all tests.</li>
 <li><strong>Wrap Up</strong>: Perform the <code>/wrap-it-up</code> workflow to finalize the session.</li>

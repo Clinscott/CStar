@@ -30,7 +30,7 @@
   "scripts": {
     "test": "npm run test:node && npm run test:python",
     "test:python": "pytest tests/unit tests/integration tests/empire_tests tests/crucible",
-    "test:node": "tsx --test tests/*.test.ts tests/crucible/*.ts",
+    "test:node": "tsx --test tests/*.test.ts tests/unit/*.test.ts tests/crucible/*.ts",
     "test:ipc": "tsx --test tests/integration/ipc/*.test.ts",
     "test:empire": "tsx --test tests/empire_tests/test_corvus_process_empire.ts tests/empire_tests/test_gateway_empire.ts",
     "setup": "tsx src/node/setup.ts",

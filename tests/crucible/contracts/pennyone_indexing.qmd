@@ -22,4 +22,5 @@
     Given a successful repository scan
     When the compiler processes the scan results
     Then it must generate or update the .stats directory
-    And the matrix-graph.json must be correctly updated.
+    And the Hall-backed matrix projection must be materialized
+    And any matrix-graph.json output must remain a compatibility export only.

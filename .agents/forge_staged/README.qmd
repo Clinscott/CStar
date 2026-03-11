@@ -1,0 +1,21 @@
+---
+title: "Forge Staging Boundary"
+authoritative_source: "hall_beads"
+status: "staging-only"
+---
+
+# Forge Staging Boundary
+
+`.agents/forge_staged/` contains staged candidate artifacts and dream proposals.
+
+It is not an operational ledger.
+It is not a promotion gate.
+It does not authorize execution on its own.
+
+Authoritative promotion flows must go through:
+
+1. the sovereign bead ledger in Hall
+2. the canonical forge candidate contract
+3. validation and Gungnir/SPRT promotion logic
+
+Treat every file in this directory as a proposal until Corvus Star promotes it through those paths.

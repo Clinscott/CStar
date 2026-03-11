@@ -60,10 +60,10 @@
 
 ### ◈ MISSION SUMMARY (DREAM CYCLE): 2026-03-05 22:41:58
 - **Muninn's Flight:** Sanitized 1 sectors: C:/Users/Craig/Corvus/CorvusStar/sandbox_test_pennyone/test_file.ts (INTEL).
-- **The Dream State:** Proactive architecture staged in `.agents/forge_staged/THE_DREAM.md`.
+- **The Dream State:** A non-authoritative dream proposal was staged in `.agents/forge_staged/THE_DREAM.md`.
 - **Sovereignty:** Neural Matrix stabilized and indexed in Mimir's Well.
 
 ### ◈ MISSION SUMMARY (DREAM CYCLE): 2026-03-07 01:45:43
 - **Muninn's Flight:** Sanitized 1 sectors: C:/Users/Craig/Corvus/CorvusStar/sandbox_test_pennyone/test_file.ts (INTEL).
-- **The Dream State:** Proactive architecture staged in `.agents/forge_staged/THE_DREAM.md`.
+- **The Dream State:** A non-authoritative dream proposal was staged in `.agents/forge_staged/THE_DREAM.md`.
 - **Sovereignty:** Neural Matrix stabilized and indexed in Mimir's Well.

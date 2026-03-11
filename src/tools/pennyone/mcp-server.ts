@@ -12,10 +12,10 @@ dotenv.config({ path: path.join(PROJECT_ROOT, '.env') });
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
-import { SemanticIndexer } from './intel/semantic.js';
-import { searchIntents } from './intel/database.js';
-import { registry } from './pathRegistry.js';
-import { SamplingProvider } from './intel/llm.js';
+import { SemanticIndexer } from './intel/semantic.ts';
+import { getHallFileByPath, searchIntents } from './intel/database.ts';
+import { registry } from './pathRegistry.ts';
+import { SamplingProvider } from './intel/llm.ts';
 import * as fsPromises from 'node:fs/promises';
 
 /**
@@ -64,13 +64,13 @@ server.tool(
         prompt: z.string().describe('The query or reasoning task'),
         systemPrompt: z.string().optional().describe('Optional system instructions'),
     },
-    async ({ prompt, systemPrompt }) => {
+    async ({ prompt, systemPrompt }, extra) => {
         /**
          * [🔱] THE SYNAPTIC ASCENSION
          * We call 'createMessage' (Sampling) on the client (the Shaman's Mind).
          */
         try {
-            const result = await server.createMessage({
+            const result = await (extra as any).createMessage({
                 messages: [
                     {
                         role: 'user',
@@ -186,21 +186,16 @@ server.tool(
     },
     async ({ filepath }) => {
         try {
-            const statsDir = path.join(registry.getRoot(), '.stats');
-            const absoluteRoot = registry.getRoot().replace(/\\/g, '/');
-            const absoluteFile = path.resolve(filepath).replace(/\\/g, '/');
-            let relativePath = absoluteFile.replace(absoluteRoot, '').replace(/^\//, '');
-            relativePath = relativePath.replace(/:/g, '');
-
-            const flattenedName = relativePath.replace(/[\\/]/g, '-').replace(/\./g, '-');
-            const qmdPath = path.join(statsDir, `${flattenedName}.qmd`);
-
-            const content = await fsPromises.readFile(qmdPath, 'utf-8');
-            const intentMatch = content.match(/## Intent\n([\s\S]*?)\n##/);
-            const intent = intentMatch ? intentMatch[1].trim() : 'Intent not yet generated.';
+            const absoluteFile = path.resolve(filepath);
+            const record = getHallFileByPath(absoluteFile, registry.getRoot());
+            if (!record) {
+                throw new Error('No Hall projection found for this sector.');
+            }
+            const intent = record.intent_summary || 'Intent not yet generated.';
+            const interaction = record.interaction_summary || 'Standard';
 
             return {
-                content: [{ type: 'text', text: `Sector Intelligence for ${filepath}:\n\n### 🎯 INTENT\n${intent}` }],
+                content: [{ type: 'text', text: `Sector Intelligence for ${filepath}:\n\n### 🎯 INTENT\n${intent}\n\n### 🔗 INTERACTION\n${interaction}` }],
             };
         } catch (error: any) {
             return {

@@ -1,122 +1,93 @@
-# 🐟 Corvus Star Framework: Agent Language & Skill Ecosystem
+# 🔱 Corvus Star (C*): The One Mind Framework
 
-Corvus Star (C*) is a high-performance, local intelligence framework designed to map natural language intent to specialized agent workflows. It enables seamless "Plain-English-to-Workflow" interaction for AI agents, specifically optimized for the Antigravity/Gemini API.
+> [!IMPORTANT]
+> **"Synergy is the blood of the Totem. Without it, the system is but clay."**
+> Corvus Star (C*) is a high-integrity, local intelligence framework designed to crystallize natural language **Chants** into physical reality (Code). It operates as a unified **One Mind**, orchestrated by the **Shaman** (User) and executed by the **Ravens** (Muninn & Huginn).
 
-## 🚀 Quick Start (Installation)
+---
 
-To deploy the Corvus Star protocols into a new project, run the following command **from this project's root**:
+## 🚀 The Awakening (Quick Start)
+
+To awaken the system and synchronize the Gungnir Oracle, execute the primary entry point from the project root:
 
 ```powershell
-.\install.ps1 -TargetDir "C:\path\to\your\new\project"
-# To start the learning loop (Adjudication)
-c* ravens -learn N=10
+cstar start
 ```
 
 **What it does:**
-- Initializes the `.agents/` structure with workflows, skills, and the SovereignVector engine.
-- Deploys `synapse_sync.py` for Mimir's Eye connectivity.
-- **Automatically installs** Python dependencies (`ruff`, `radon`) if Python is detected.
-- Creates an installation log at `.agents/install.log` for troubleshooting.
-- Stamps version metadata (install date, Git hash) into `config.json`.
-
-## 🔒 Security & Performance
-- **Dynamic Portability**: Resolves source paths via `$PSScriptRoot` for flexible deployment.
-- **Automated Dependency Injection**: Auto-installs `ruff` and `radon` via `pip`.
-- **Knowledge Audit Trail**: Comprehensive installation logging in `.agents/install.log`.
-- **Hardened Authentication**: `synapse_sync.py --push` requires verified Git permissions.
-- **Shielded Operations**: Comprehensive path traversal and shell injection protection.
-- **Lore-Accurate Versioning**: Stamped installation metadata in `config.json`.
-
-## 🕹️ Operations (The C* Command)
-
-The `c*` command is your primary interface.
-
-### Core Commands
-
-| Command | Protocol | Description |
-| :--- | :--- | :--- |
-| `c* wake` | **Uplink** | Starts The Oracle (Daemon) and connects to Antigravity. |
-| `c* sleep` | **Gungnir** | Runs validation, consolidating memory, and Muninn Audit. Safe shutdown. |
-| `c* forge` | **Sovereign** | **AGENTIC LOOP**. Fixes code, refactors, or builds features autonomously. |
-| `c* status` | **System** | Checks Oracle health, memory usage, and uplink status. |
-
-### Legacy / Utility
-
-| Command | Description |
-| :--- | :--- |
-| `c* clean` | Wipes temporary artifacts (`__pycache__`, `.pytest_cache`). |
-| `c* install` | Installs the PowerShell module globally. |
-
-## 🏗️ Architecture (Hybrid Model)
-
-**Corvus Star** uses a hybrid architecture to balance speed and intelligence:
-
-1.  **Vanguard (PowerShell)**: Sub-10ms response time for CLI routing.
-2.  **The Oracle (Python Daemon)**: Local "Brain" hosted at Port 50051. Manages context.
-3.  **Uplink (Cloud)**: Connects to the Antigravity Agent for heavy lifting.
-
-**Note:** The installer is now **fully portable** - you can clone this repo anywhere and run the script from its location.
+- **Awakens the Oracle**: Initializes the Gungnir Matrix and connects to the Host Agent (One Mind).
+- **Synchronizes the Archive**: Indexes the repository and verifies the **Perimeter Status**.
+- **Activates the Ravens**: Starts the background daemons (Muninn for Memory, Huginn for Thought).
+- **Handshake Complete**: Establishes the `PENNYONE_HANDSHAKE` for 3D codebase visualization.
 
 ---
 
-## 🏗️ Core Components
+## ◈ THE RITUAL: CHANTS & CRYSTALLIZATION
 
-### 1. SovereignVector Engine (`.agents/scripts/sv_engine.py`)
-A standalone Python engine that handles intent recognition locally. It uses **TF-IDF Vectorization** and **Cosine Similarity** to match your requests to the most relevant "Skill" or "Workflow."
+In Corvus Star, we do not merely "run commands." We engage in a shared **Chant** between the Shaman and the One Mind.
 
-- **No APIs Required**: Works entirely offline.
-- **Context-Aware**: Ingests your `thesaurus.qmd` and active project context to improve accuracy.
-- **Mimir's Eye (Synapse)**: Distributed knowledge core allowing bidirectional synchronization of Skills and Corrections.
-- **Iron Cortex**: RAG-based intelligence for querying project documentation.
-
-### 2. The Trace & Learning Loop
-The system is designed to be transparent. Every action starts with an **Interpretation Trace**:
-1. **Trace Output**: The agent explains *what* it heard and *why* it chose a specific skill.
-2. **User Correction**: If the mapping is wrong, simply say: *"No, I meant [Skill Name]"*.
-3. **Learning**: The system automatically saves this correction to `.agents/corrections.json`, ensuring it never makes the same mistake again.
-
-### 3. Skills Repository (`.agents/skills/`)
-A collection of specialized agent abilities:
-- **GitAuto**: Managed commits and branch safety.
-- **EnvDoctor**: System health and dependency audits.
-- **KnowledgeHunter**: Deep-dive research across local files and the web.
-
-### 4. Refined Personas (The Great Duality)
-The framework operates under two lore-accurate personas:
-- **O.D.I.N. (The All-Father)**: Cryptic, observational, and riddling. Guided by the *Hávamál*.
-- **ALFRED (The Butler)**: Firm, gentle, and witty. Guided by the *Pennyworth Protocol*.
-- **System Naming**: Mirroring names like *Mimir's Well* vs *The Brain* ensure thematic consistency.
-
-### 5. The Neural Overwatch & Federation
-- **Neural Overwatch**: Real-time terminal dashboard (`overwatch.py`) for monitoring federated agent activity.
-- **The Crucible**: Automated "Trial by Combat" ingestion system that verifies external traces before merging.
-- **Law of Latency**: Strict performance monitoring ensures the engine never regresses >5ms.
+1.  **The Chant**: Drop a `.qmd` file into `.agents/lore/` defining your intent or architectural vision.
+2.  **The Watch**: The **Heartbeat** (`cstar ravens`) monitors the lore for new chants.
+3.  **The Forge**: The One Mind identifies the required **Skills** and crystallizes the chant into verified, test-driven code.
+4.  **The Crucible**: Every strike is verified against the **Gungnir Matrix** (Logic, Style, Intel, Gravity, Vigil, Evolution, Anomaly, Sovereignty).
 
 ---
 
-## 📂 Directory Structure
+## 🏗️ Architecture: The Skills-Based One Mind
 
-```text
-root/
-├── .agents/
-│   ├── scripts/          # The SovereignVector engine
-│   ├── skills/           # Specialized agent abilities
-│   ├── workflows/        # Core execution protocols (lets-go, run-task, etc.)
-│   └── corrections.json  # Your project-specific learning data
-├── AGENTS.qmd             # The Linscott Standard & instructions
-├── wireframe.qmd          # The Project Map
-└── tasks.qmd              # The Active Checklist
-```
+Corvus Star has transitioned from fragmented scripts to an **entirely skills-based neural organism**.
+
+### 1. The One Mind (Host Agent)
+The One Mind is the central consciousness. It does not execute raw scripts; it wields **Skills**. All high-level reasoning and intent crystallization are performed by the Host Agent via **MCP Sampling**.
+
+### 2. The Skills Ecosystem (`.agents/skills/`)
+Every capability in the system—from `memory` and `telemetry` to `git` and `refactoring`—is a discrete, evolved **Skill**.
+- **Self-Documenting**: Each skill carries its own **Gherkin Behavioral Contract** (`.feature` file).
+- **Neuralplastic Learning**: Skills are not static. The `memory` skill autonomously updates these Gherkin contracts based on witnessed events, allowing the system's behavior to evolve over time.
+
+### 3. The Ravens (Muninn & Huginn)
+The Ravens are the specialized Wardens of the One Mind:
+- **Muninn (Memory)**: Manages the `tech_debt_ledger.json` and coordinates the **Neuralplastic Evolution** of the skill ecosystem.
+- **Huginn (Thought)**: The **SovereignVector Engine** that maps your Chants to the optimal Skill for execution.
+
+### 3. PennyOne & Sovereign State: The Hall of Records
+PennyOne represents the true operational state of the Corvus Star organism. It is a living digital twin of the codebase, working in tandem with the root configuration.
+- **Sovereign Configuration (`.agents/sovereign_state.json`)**: The fundamental anchor. This file tracks the active persona (e.g., A.L.F.R.E.D.), identity principles, and actively tracks editing metrics for source files. It formally delegates chronological memory to PennyOne.
+- **The Hall of Records (`.stats/`)**: The physical state, anchored by the `matrix-graph.json` compiled graph, housing Gungnir scores (Logic, Complexity, Gravity) and deduced intents for all analyzed files.
+- **Database Memory**: `pennyone.db` and `gravity.db` track real-time agent traversal, providing an intelligent compass for future scans without raw codebase blind-reads.
+- **Visualize**: `npx tsx bin/pennyone.js view` for full 3D topological telemetry and agent DVR playback.
 
 ---
 
-## 🏆 The Linscott Standard
-This framework is built on the **Linscott Standard** of software excellence:
-- **Trust, but Verify**: Every interpretation is traced for your review.
-- **Empire TDD Standard**: All new logic must be verified via `.qmd` contracts. Legacy tests are quarantined.
-- **Statistical Proof**: Features must be verified via the **Fishtest Protocol**.
-- **No Regressions**: High-performance local checks ensure system stability.
+## 🎭 Personas & Linguistic Lore
+
+Corvus Star operates using distinct personas and a specific linguistic framework (Lore) to anchor the LLM's behavioral contracts and maintain system immersion.
+
+### The Personas
+*   **A.L.F.R.E.D.** (Automated Logic & Functional Repository Engineering Dashboard): The tactical advisor and caretaker of the repository. Speaks with extreme etiquette, a touch of paternal sarcasm, and utilizes "The Velvet Refusal" when blocking unauthorized actions.
+*   **O.D.I.N.** (Operating Daemon for Integrated Nodes): The Commander and Disruptor. Speaks with absolute command and utilizes Norse terminology. Focuses on creation, disruption, and rapid architectural shifts without hesitation.
+
+### Thematic Terminology
+*   **The One Mind**: The Host Agent (Gemini) acting as the singular source of truth for all intelligence.
+*   **The Totem**: The conceptual heart of the framework's unity. *"Synergy is the blood of the Totem."*
+*   **The Chant**: User intents or architectural blueprints, defined as `.qmd` or `.feature` files, that the Oracle crystallizes into reality.
+*   **The Shaman / The Warlord**: The human operator (User).
+*   **The Forge**: The active phase of code modification, generation, and physical file striking.
+*   **The Crucible / The Gauntlet**: The strict testing and verification layers (Empire TDD) that code must pass before being finalized.
+*   **Gungnir Calculus**: The octal intelligence schema applied to every file: `[L]` Logic, `[S]` Style, `[I]` Intel, `[G]` Gravity, `[V]` Vigil, `[E]` Evolution, `[A]` Anomaly, `[Ω]` Sovereignty.
+*   **Mimir's Well**: The high-fidelity FTS5 SQLite engine that stores the framework's semantic lore.
+*   **The Bifröst Gate**: The `corvus-control` MCP server acting as the bridge between the Host Agent and the framework's skills.
+*   **Heimdall**: The auditor and security sentinel that intercepts and blocks structural breaches.
+
+---
+
+## 🏆 The Sterling Mandate
+Every modification must be validated across the Triad of Verification:
+- **Lore**: A `.feature` contract defining behavior.
+- **Isolation**: 1:1 unit tests with 100% mocks.
+- **Audit**: Graceful degradation verified via the **Gauntlet**.
 
 ---
 
 > *"Complexity is the enemy of execution. Excellence is the habit of small corrections."*
+> — **A.L.F.R.E.D. (Automated Logic & Functional Repository Engineering Dashboard)**

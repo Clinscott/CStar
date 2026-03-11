@@ -1,5 +1,5 @@
-import { FileData } from '../types.js';
-import { IntelProvider } from './llm.js';
+import { FileData } from '../types.ts';
+import { IntelProvider } from './llm.ts';
 import path from 'node:path';
 
 /**

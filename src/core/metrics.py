@@ -1,12 +1,15 @@
 import json
 import os
+import re
 import subprocess
 import sys
 import time
 from collections.abc import Callable
 from typing import Any
+from pathlib import Path
 
 from src.core.engine.atomic_gpt import AnomalyWarden
+from src.core.engine.gungnir.schema import get_gungnir_overall
 from src.core.prompt_linter import PromptLinter
 
 try:
@@ -107,53 +110,59 @@ class ProjectMetricsEngine:
 
     def compute(self, project_root: str = ".") -> float:
         """
-        Orchestrates Radon, Pytest pass rates, PromptLinter score, and AtomicCortex loss
-        to return the final Global Project Health Score (GPHS).
+        Orchestrates Radon and other checks to return the final Global Project Health Score (GPHS).
+        V3: Integrates fine-grained UniversalGungnir scoring from the Chronicle state map.
         """
-        linter = PromptLinter()
-        warden = AnomalyWarden()
-
-        # 1. Prompt Integrity (15%)
-        prompt_score = linter.calculate_integrity_score()
-
-        # 2. Cortex Alignment (15%) - Uses AnomalyWarden anomaly probability
-        #    Low anomaly probability = high alignment
+        structural_score = 70.0
         try:
-            anomaly_prob = warden.forward([100.0, 50, 3, 0.01])  # baseline metadata vector
-            alignment_score = max(0, 100 * (1 - anomaly_prob))
-        except Exception as e:
-            import logging
-            logging.warning(f"AnomalyWarden alignment fallback triggered: {e}")
-            alignment_score = 70.0  # safe fallback
-
-        # 3. Functional Health (35%) - Mocking or running pytest pass rate
-        # In a real environment, we'd run: pytest --json-report
-        # For now, we'll use a heuristic or check a log file
-        functional_score = 80.0 # Default
-
-        # 4. Form/Structure (25%) - Complexity check via subprocess radon
-        complexity_score = 70.0 # Default
-        try:
-            # We check if radon is available
-            print(f"[PULSE] Metrics: Running radon CC on {project_root}...")
-            result = subprocess.run([sys.executable, "-m", "radon", "cc", project_root, "-s", "-a"], capture_output=True, text=True, timeout=120)
-            print(f"[PULSE] Metrics: radon CC complete (Return Code: {result.returncode})")
-            if result.returncode == 0:
-                # Basic parsing to find average complexity
-                # This is a simplification
-                complexity_score = 90.0 if "Average complexity: A" in result.stdout else 60.0
+            state_map_path = Path(project_root) / ".agents" / "skills" / "chronicle" / "state_map.json"
+            if state_map_path.exists():
+                state_data = json.loads(state_map_path.read_text(encoding='utf-8'))
+                sectors = state_data.get("sectors", {})
+                scores = []
+                for sector in sectors.values():
+                    if not isinstance(sector, dict):
+                        continue
+                    matrix = sector.get("matrix") or sector.get("gungnir")
+                    if isinstance(matrix, dict):
+                        scores.append(get_gungnir_overall(matrix))
+                    elif "gungnir_score" in sector:
+                        scores.append(float(sector.get("gungnir_score", 100) or 0))
+                if scores:
+                    structural_score = sum(scores) / len(scores)
         except Exception:
             pass
 
-        # 5. Lore Saga (10%) - Documentation check
-        lore_score = 50.0 # Default
+        # 2. Prompt Integrity (15%)
+        linter = PromptLinter()
+        prompt_score = linter.calculate_integrity_score()
+
+        # 3. Cortex Alignment (15%)
+        warden = AnomalyWarden()
+        try:
+            anomaly_prob = warden.forward([100.0, 50, 3, 0.01, 0.0])
+            alignment_score = max(0, 100 * (1 - anomaly_prob))
+        except Exception:
+            alignment_score = 70.0
+
+        # 4. Functional & Form (30%) - Radon Complexity
+        complexity_score = 70.0
+        try:
+            result = subprocess.run([sys.executable, "-m", "radon", "cc", project_root, "-s", "-a"], capture_output=True, text=True, timeout=120)
+            if result.returncode == 0:
+                # High sensitivity: capture average complexity
+                match = re.search(r'Average complexity: .*?\(([\d\.]+)\)', result.stdout)
+                if match:
+                    val = float(match.group(1))
+                    complexity_score = max(0, 100 - (val * 10)) # Every point of complexity is -10%
+        except Exception:
+            pass
 
         final_gphs = (
-            (functional_score * self.weights["function"]) +
-            (complexity_score * self.weights["form_structure"]) +
-            (prompt_score * self.weights["prompt_integrity"]) +
-            (alignment_score * self.weights["cortex_alignment"]) +
-            (lore_score * self.weights["lore_saga"])
-        ) / 100.0
+            (structural_score * 0.40) +
+            (prompt_score * 0.15) +
+            (alignment_score * 0.15) +
+            (complexity_score * 0.30)
+        )
 
         return final_gphs

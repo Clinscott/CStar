@@ -1,6 +1,6 @@
 import { execa } from 'execa';
-import { registry } from '../pathRegistry.js';
-import { setFileGravity } from './gravity_db.js';
+import { registry } from '../pathRegistry.ts';
+import { setFileGravity } from './gravity_db.ts';
 import chalk from 'chalk';
 import path from 'path';
 

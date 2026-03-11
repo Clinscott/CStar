@@ -1,3 +1,12 @@
+#!/usr/bin/env python3
+"""
+[SENTINEL] Chapter Recreation (recreate_chapter.py)
+Lore: "The Director outlines the physical blocking and turn order."
+Purpose: Orchestrates the structured recreation of manuscript chapters, defining character turns and scene coordinates.
+"""
+
+# Intent: Manages narrative scene orchestration by defining physical blocking and turn-based character logic for the Director.
+
 import asyncio
 import json
 import os

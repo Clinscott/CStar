@@ -2,6 +2,8 @@
 
 ## MANDATE
 Parse natural language "Chants" into dynamic execution plans (Flight Paths) of Agent Skills. Act as the primary Cognitive Router for Huginn and Muninn.
+Phase 1 authority: `cstar chant "<query>"` now resolves through the woven runtime.
+The Python script in `scripts/chant.py` is a compatibility adapter only.
 
 ## LOGIC PROTOCOL
 1. **INTENT DECODING**: Consult the One Mind to translate the Shaman's chant into a series of technical objectives.

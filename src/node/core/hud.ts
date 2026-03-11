@@ -1,5 +1,6 @@
 import chalk, { ChalkInstance } from 'chalk';
 import { activePersona } from '../../tools/pennyone/personaRegistry.js';
+import { isHostSessionActive } from '../../core/host_session.ts';
 
 /**
  * 🔱 SovereignHUD (TypeScript Edition)
@@ -12,33 +13,33 @@ export class HUD {
         return Math.max(40, Math.min(100, cols - 4));
     }
 
-    private static isGemini(): boolean {
-        return process.env.GEMINI_CLI_ACTIVE === 'true';
+    private static isHostSession(): boolean {
+        return isHostSessionActive(process.env);
     }
 
     private static getTheme() {
-        const isGemini = this.isGemini();
+        const isHostSession = this.isHostSession();
         const persona = (activePersona?.name || 'ALFRED').toUpperCase();
         
         // No-op or Markdown-safe color mapping
         const colors = {
             bifrost: (str: string) => {
-                if (isGemini) return str; // Strip colors in Gemini mode for stability
+                if (isHostSession) return str; // Strip colors in host-session mode for stability
                 const rain = [chalk.red, chalk.yellow, chalk.green, chalk.cyan, chalk.blue, chalk.magenta];
                 return str.split('').map((c, i) => rain[i % rain.length](c)).join('');
             },
-            mimir: isGemini ? (s: string) => s : chalk.blueBright,
-            crucible: isGemini ? (s: string) => s : (chalk.hex('#FFA500') || chalk.redBright),
-            sterling: isGemini ? (s: string) => s : chalk.whiteBright,
-            void: isGemini ? (s: string) => s : chalk.gray
+            mimir: isHostSession ? (s: string) => s : chalk.blueBright,
+            crucible: isHostSession ? (s: string) => s : (chalk.hex('#FFA500') || chalk.redBright),
+            sterling: isHostSession ? (s: string) => s : chalk.whiteBright,
+            void: isHostSession ? (s: string) => s : chalk.gray
         };
 
         if (persona === 'O.D.I.N.' || persona === 'GOD') {
             return {
                 name: 'ODIN',
-                main: isGemini ? (s: string) => s : chalk.red,
-                dim: isGemini ? (s: string) => s : chalk.magenta,
-                accent: isGemini ? (s: string) => s : chalk.yellow,
+                main: isHostSession ? (s: string) => s : chalk.red,
+                dim: isHostSession ? (s: string) => s : chalk.magenta,
+                accent: isHostSession ? (s: string) => s : chalk.yellow,
                 title: 'Ω O.D.I.N. GUNGNIR CONTROL Ω',
                 ...colors,
                 quotes: [
@@ -52,9 +53,9 @@ export class HUD {
         }
         return {
             name: 'ALFRED',
-            main: isGemini ? (s: string) => s : chalk.cyan,
-            dim: isGemini ? (s: string) => s : chalk.gray,
-            accent: isGemini ? (s: string) => s : chalk.green,
+            main: isHostSession ? (s: string) => s : chalk.cyan,
+            dim: isHostSession ? (s: string) => s : chalk.gray,
+            accent: isHostSession ? (s: string) => s : chalk.green,
             title: 'C* A.L.F.R.E.D. DASHBOARD',
             ...colors,
             quotes: [
@@ -77,11 +78,11 @@ export class HUD {
     }
 
     static async masterWrap(content: string): Promise<string> {
-        const isGemini = this.isGemini();
+        const isHostSession = this.isHostSession();
         const { title, quotes } = this.getTheme();
         const displayNote = quotes[Math.floor(Math.random() * quotes.length)];
         
-        if (!isGemini) return content;
+        if (!isHostSession) return content;
 
         // 1. Sovereign Title (Outside the box)
         let hud = `\n### 🔱 ${title}\n\n`;
@@ -119,11 +120,11 @@ export class HUD {
     }
 
     static traceHUD(trace: { intent: string; well?: string; wisdom?: string; verdict?: string; confidence?: number }): string {
-        const isGemini = this.isGemini();
+        const isHostSession = this.isHostSession();
         const { main, dim, accent } = this.getTheme();
         const wideSeparator = "━".repeat(80);
         
-        if (isGemini) {
+        if (isHostSession) {
             let md = `\n**🔱 CORVUS STAR TRACE [Ω]**\n\n`;
             md += `| ◈ **TRACING CONTEXT** | ${wideSeparator} |\n`;
             md += `| :--- | :--- |\n`;
@@ -153,7 +154,7 @@ export class HUD {
         const displayTitle = title || defaultTitle;
         const wideSeparator = "━".repeat(80);
         
-        if (this.isGemini()) {
+        if (this.isHostSession()) {
             return `\n**🔱 ${displayTitle}**\n\n| ◈ **GUNGNIR INTERFACE** | ${wideSeparator} |\n| :--- | :--- |\n`;
         }
 
@@ -164,18 +165,19 @@ export class HUD {
         return `${main('┏')}${main('━'.repeat(pad))} ${chalk.bold(displayTitle)} ${main('━'.repeat(rightPad))}${main('┓')}\n`;
     }
 
-    static boxRow(label: string, value: string | number, valueColor?: ChalkInstance): string {
+    static boxRow(label: string, value: string | number, valueColor?: any): string {
         const { main, dim } = this.getTheme();
         const valStr = String(value);
 
-        if (this.isGemini()) {
+        if (this.isHostSession()) {
             const cleanLabel = label.trim().replace(/^◈\s*/, '').replace(/^▷\s*/, '');
             // For nested items, use indentation or list markers
             const prefix = label.startsWith('  ') ? '  ▷ ' : '';
             return `| ${prefix}**${cleanLabel}** | \`${valStr}\` |\n`;
         }
 
-        const visualVal = valueColor ? valueColor(valStr) : valStr;
+        const colorFn = typeof valueColor === 'function' ? valueColor : (s: string) => s;
+        const visualVal = colorFn(valStr);
         const w = this.width;
         
         // Structure: ┃  LabelPart  ValuePart  (padding)  ┃
@@ -193,7 +195,7 @@ export class HUD {
         const { main, dim, accent, quotes } = this.getTheme();
         const displayNote = note || quotes[Math.floor(Math.random() * quotes.length)];
 
-        if (this.isGemini()) {
+        if (this.isHostSession()) {
             const persona = (activePersona?.name || 'ALFRED').toUpperCase();
             const icon = (persona === 'O.D.I.N.' || persona === 'GOD') ? 'Ω' : 'C*';
             return `\n> ◈ **${displayNote}**\n> ${icon} *${this.getTheme().title}*\n`;
@@ -211,19 +213,19 @@ export class HUD {
     }
 
     static boxSeparator(): string {
-        if (this.isGemini()) return ''; // Tables handle their own separation
+        if (this.isHostSession()) return ''; // Tables handle their own separation
         const { main } = this.getTheme();
         return `${main('┣')}${main('━'.repeat(this.width - 2))}${main('┫')}\n`;
     }
 
     static boxBottom(): string {
-        if (this.isGemini()) return '---\n';
+        if (this.isHostSession()) return '---\n';
         const { main } = this.getTheme();
         return `${main('┗')}${main('━'.repeat(this.width - 2))}${main('┛')}\n`;
     }
 
     static async streamText(text: string, delay = 15) {
-        if (this.isGemini()) {
+        if (this.isHostSession()) {
             process.stdout.write(text + '\n');
             return;
         }
@@ -238,7 +240,7 @@ export class HUD {
         const safeVal = Math.max(0, Math.min(1, val));
         const blocks = Math.floor(safeVal * length);
         
-        if (this.isGemini()) {
+        if (this.isHostSession()) {
             return '█'.repeat(blocks) + '░'.repeat(length - blocks);
         }
 
@@ -249,7 +251,7 @@ export class HUD {
     static async spinner(message: string, duration = 800) {
         const { main, dim } = this.getTheme();
         
-        if (this.isGemini()) {
+        if (this.isHostSession()) {
             process.stdout.write(`◈ ${message} ... OK\n`);
             return;
         }

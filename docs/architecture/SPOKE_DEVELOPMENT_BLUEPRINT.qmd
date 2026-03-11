@@ -1,0 +1,95 @@
+---
+title: "Corvus Star: Estate Spoke Development Blueprint"
+date: 2026-03-09
+status: active
+---
+
+# Corvus Star: Estate Spoke Development Blueprint
+
+## 1. Objective
+The objective of this plan is to design the architectural staging ground for the Corvus Star "Estate". It defines the precise, user-mandated vision, detailed component architecture, and the comprehensive development beads for each downstream Spoke managed by the Corvus Star Brain.
+
+*Note: Foundational scaffolding currently exists for KeepOS, Astrologer, SecureSphere, and CorvusEye. However, these systems are extremely basic. The focus of this blueprint is to heavily refactor, polish, and expand these rudimentary bases into their true architectural forms.*
+
+## 2. Scope & Impact
+- **Impacted Systems:** KeepOS, Astrologer, SecureSphere, CorvusEye, and the newly defined XO (Education Spoke).
+- **Goal:** Provide a structured, architecturally sound roadmap and a backlog of actionable work (Beads) for the Woven Skills to execute.
+
+## 3. The Estate Topology & Spoke Architectures
+
+### 3.1 KeepOS (`KOS`) - The Gamified Hub
+**Vision:** A gamified House Management tool blending "Sims 3" and "Civilization 4" aesthetics. It acts as the primary interface for all household users.
+
+**Architecture:**
+- **Engine:** Three.js isometric rendering engine with CSS3D overlays for interactive UI.
+- **Styling:** TailwindCSS v4 for modern, responsive components.
+- **Tauri Bridge:** Rust-based backend for direct system access (financials, smart home protocols, local file management).
+- **Modules:**
+    - `ManorView`: Isometric grid-based representation of the physical estate.
+    - `Household Ledger`: Financial tracking and food stock management (integrating with `KeepOS/data`).
+    - `VitalSign`: Real-time monitoring of house security, temperature, and environment.
+    - `NexusNodes`: Interactive 3D objects acting as entry points for external Spokes.
+
+### 3.2 XO (`XO`) - The Digital Tutor
+**Vision:** An advanced, stateful educational agent acting as a lifelong digital tutor, accessed via the HMCS Terra Nova carving.
+
+**Architecture:**
+- **Core:** Python-based stateful agent utilizing the Woven Skill runtime.
+- **Memory Graph:** Lifelong learning memory graph (ChromaDB) capturing user progress, interests, and knowledge gaps.
+- **Pedagogy Engine:** Adaptive curriculum generator that tailors lessons based on the Memory Graph.
+- **Interface:** Integrated into KeepOS via a Tauri event bridge, providing 3D/Audio feedback through the Terra Nova object.
+
+### 3.3 Astrologer (`AST`) - The Galaxy Bridge
+**Vision:** A communications bridge (Signal, WhatsApp, Slack) represented as a starship viewport looking out at a Three.js galaxy.
+
+**Architecture:**
+- **Viewport:** Three.js slowly swirling galaxy where stars represent message nodes. Star intensity/color reflects message priority/unread status.
+- **Bridges:** Protocol-specific adapters (Signal-CLI, WhatsApp-Web-JS, Slack SDK) running as managed child processes.
+- **Agentic Processor:** LLM-driven categorization and action engine (calendar invites, concern flagging).
+- **The Sage:** High-level strategic advisor providing context and advice on communications.
+
+### 3.4 SecureSphere (`SSP`) - The Adaptive Firewall
+**Vision:** The ultimate defensive perimeter protecting the Estate from traditional and agentic attacks.
+
+**Architecture:**
+- **Traffic Analyzer:** Real-time packet and request analysis (Rust-based).
+- **Heuristic Engine:** AI-driven anomaly detection for identifying agentic penetration attempts.
+- **Adaptive Ruleset:** Automated generation and application of firewall rules in response to detected threats.
+- **Hall Integration:** Logs all attack vectors and defense metrics into the Hall of Records.
+
+### 3.5 CorvusEye (`CEY`) - The Agentic Pen-Tester
+**Vision:** The offensive counterpart to SecureSphere, generating novel penetration vectors to test the Estate's defenses.
+
+**Architecture:**
+- **Exploit Forge:** Agentic engine that synthesizes new attack patterns based on research of modern vulnerabilities.
+- **Execution Surface:** Isolated sandbox for testing offensive maneuvers against SecureSphere.
+- **Feedback Loop:** Reports success/failure metrics back to the Brain to evolve both SSP and CEY.
+
+---
+
+## 4. Comprehensive Bead Backlog
+
+| ID | Repo | Target Path | Rationale | Acceptance Criteria | Status |
+| --- | --- | --- | --- | --- | --- |
+| `KOS-00` | `KeepOS` | `src/engine/` | Overhaul the basic 3D environment into a polished isometric engine. | Three.js scene renders a high-quality isometric grid with fluid navigation. | Planned |
+| `KOS-01` | `KeepOS` | `src/components/systems/` | Flesh out the basic data layers into robust food, financial, and climate systems. | UI displays deep, interactive mock data from `KeepOS/data/` seamlessly. | Planned |
+| `KOS-02` | `KeepOS` | `src/nodes/` | Refine physical access points (Terra Nova, Constellations) with extreme visual polish. | High-fidelity interactive nodes trigger mock `cstar` command dispatch. | Planned |
+| `KOS-03` | `KeepOS` | `src-tauri/src/` | Expand existing Tauri commands for comprehensive system telemetry. | Rust backend robustly returns detailed OS-level telemetry to the frontend. | Planned |
+| `XO-00` | `CorvusStar` | `src/skills/xo/` | Initialize the stateful knowledge core and agent logic from scratch. | Agent can store and retrieve user progress from the Memory Graph. | Planned |
+| `XO-01` | `KeepOS` | `src/nodes/TerraNova.tsx` | Connect newly created XO agent to the Terra Nova object. | Interaction with Terra Nova triggers a visible/audible XO session. | Planned |
+| `XO-02` | `CorvusStar` | `src/skills/xo/curriculum.py` | Implement the Pedagogy Engine for adaptive learning. | Engine generates a structured lesson plan based on user 'scan'. | Planned |
+| `AST-00` | `Astrologer` | `astrologer-client/src/` | Radically enhance the basic Three.js galaxy viewport for deep immersion. | Galaxy view renders with polished effects; stars are highly interactive. | Planned |
+| `AST-01` | `Astrologer` | `astrologer-desktop/src/` | Solidify basic protocol adapters for Signal and WhatsApp into production-ready bridges. | Adapters flawlessly receive and log messages to `Astrologer/data/`. | Planned |
+| `AST-02` | `CorvusStar` | `src/skills/astrologer/` | Implement advanced Agentic Message Processing over the basic skeleton. | LLM accurately categorizes incoming messages and identifies 'Action' items. | Planned |
+| `AST-03` | `Astrologer` | `astrologer-client/src/Sage.tsx` | Flesh out the basic Sage persona interface into a deep, strategic advisor. | The Sage provides high-quality strategic advice on selected threads. | Planned |
+| `SSP-00` | `SecureSphere` | `src-tauri/src/firewall/` | Hard-harden the basic defensive perimeter into a robust rust-based firewall. | Rust backend rigorously blocks/allows traffic based on dynamic rulesets. | Planned |
+| `SSP-01` | `SecureSphere` | `src/analysis/` | Flesh out the AI-driven Anomaly Detection engine from its basic state. | Engine accurately flags complex mock 'agentic attack' patterns in logs. | Planned |
+| `CEY-00` | `CorvusEye` | `src/offensive/` | Upgrade the basic agentic pen-tester into a formidable exploit generation engine. | Agent successfully synthesizes advanced, novel penetration vectors. | Planned |
+| `CEY-01` | `CorvusEye` | `src/sandbox/` | Solidify the isolated execution surface for safe, high-end pen-testing. | Pen-testing payloads execute reliably without leaking into the host OS. | Planned |
+| `ADV-01` | `CorvusStar` | `src/skills/forge/` | Orchestrate the SSP and CEY basic loops into a polished, continuous adversarial cycle. | Complex evolution metrics for both are logged reliably to the Hall of Records. | Planned |
+
+## 5. Verification & Execution Rules
+No bead in this backlog may be dispatched until:
+1.  The `SOVEREIGN_MOUNTING_BEADS.qmd` plan is fully implemented.
+2.  `cstar spoke link <spoke_name>` has been successfully executed for the target system.
+3.  The target Spoke's repository baseline has been established in the Hall of Records.

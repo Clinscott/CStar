@@ -7,6 +7,7 @@ export interface Node extends d3.SimulationNodeDatum {
     complexity?: number;
     matrix: Record<string, unknown>;
     intent: string;
+    interactionProtocol?: string;
     type: 'PYTHON' | 'LOGIC';
     x?: number;
     y?: number;

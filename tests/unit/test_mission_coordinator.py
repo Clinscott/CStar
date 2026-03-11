@@ -1,7 +1,9 @@
 import pytest
 import json
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+
+from src.core.engine.hall_schema import HallFileRecord, HallOfRecords, HallScanRecord
+from src.core.norn_coordinator import NornCoordinator
 
 from src.sentinel.coordinator import MissionCoordinator
 
@@ -69,3 +71,63 @@ def test_select_mission_fallback_legacy(coordinator, tmp_path):
     runtime_breaches = [{"severity": "HIGH", "file": "legacy.py"}]
     mission = coordinator.select_mission(runtime_breaches)
     assert mission["file"] == "legacy.py"
+
+
+def test_select_mission_prefers_hall_beads_over_legacy_projection(tmp_path):
+    agents_dir = tmp_path / ".agents"
+    agents_dir.mkdir()
+    (agents_dir / "sovereign_state.json").write_text(json.dumps({}), encoding="utf-8")
+    (agents_dir / "tech_debt_ledger.json").write_text(
+        json.dumps(
+            {
+                "top_targets": [
+                    {
+                        "file": "src/core/legacy.py",
+                        "priority": "CRITICAL",
+                        "target_metric": "LOGIC",
+                        "justification": "Legacy projection should not win.",
+                        "metrics": {"gravity": 999, "logic": 0.1},
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    hall = HallOfRecords(tmp_path)
+    repo = hall.bootstrap_repository()
+    hall.record_scan(
+        HallScanRecord(
+            scan_id="scan-hunt-1",
+            repo_id=repo.repo_id,
+            scan_kind="hunt",
+            status="COMPLETED",
+            baseline_gungnir_score=4.2,
+            started_at=1700000000000,
+            completed_at=1700000000100,
+            metadata={},
+        )
+    )
+    hall.record_file(
+        HallFileRecord(
+            repo_id=repo.repo_id,
+            scan_id="scan-hunt-1",
+            path="src/core/bead_target.py",
+            gungnir_score=2.2,
+            created_at=1700000000200,
+        )
+    )
+    NornCoordinator(tmp_path).ledger.upsert_bead(
+        scan_id="scan-hunt-1",
+        target_path="src/core/bead_target.py",
+        rationale="Canonical bead should win.",
+        contract_refs=["contracts:bead-target"],
+        acceptance_criteria="Raise the baseline above 5.0.",
+    )
+
+    mission = MissionCoordinator(tmp_path).select_mission([])
+
+    assert mission is not None
+    assert mission["file"] == "src/core/bead_target.py"
+    assert mission["bead_id"].startswith("bead:")
+    assert mission["compatibility_source"] == "hall_beads"

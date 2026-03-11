@@ -2,6 +2,7 @@ import os
 import subprocess
 import sys
 import time
+import json
 from pathlib import Path
 
 # Add project root to sys.path
@@ -33,7 +34,7 @@ class CorvusDispatcher:
 
     def _discover_all(self) -> dict[str, str]:
         """Scans all dynamic locations for available commands."""
-        commands = {}
+        commands = self._load_registry_manifest()
 
         # Scripts (.py)
         script_dirs = [
@@ -72,6 +73,22 @@ class CorvusDispatcher:
                     commands.setdefault(f.stem.lower(), str(f.resolve()))
 
         return commands
+
+    def _load_registry_manifest(self) -> dict[str, str]:
+        """Loads the Phase 1 skill registry manifest so command resolution has one authority map."""
+        manifest_path = self.project_root / ".agents" / "skill_registry.json"
+        if not manifest_path.exists():
+            return {}
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            commands = {}
+            for trigger, entry in manifest.get("skills", {}).items():
+                entrypoint = entry.get("entrypoint_path")
+                if entrypoint:
+                    commands.setdefault(str(trigger).lower(), str((self.project_root / entrypoint).resolve()))
+            return commands
+        except Exception:
+            return {}
 
     def show_help(self) -> None:
         """Displays the C* command interface."""

@@ -1,27 +1,15 @@
-export class GungnirMatrix {
-    logic!: number;
-    style!: number;
-    intel!: number;
-    overall!: number;
-    gravity!: number;
-    stability!: number;
-    coupling!: number;
-    aesthetic!: number;
-    anomaly!: number;
-    sovereignty!: number;
-    vigil?: number;
-}
+import type { GungnirMatrix } from '../../types/gungnir.ts';
 
-export class FileData {
-    path!: string;
-    loc!: number;
-    complexity!: number;
-    matrix!: GungnirMatrix;
-    imports!: { source: string; local: string; imported: string }[];
-    exports!: string[];
+export interface FileData {
+    path: string;
+    loc: number;
+    complexity: number;
+    matrix: GungnirMatrix;
+    imports: { source: string; local: string; imported: string }[];
+    exports: string[];
     intent?: string;
     interaction_protocol?: string;
-    hash!: string;
+    hash: string;
     endpoints?: string[];
     is_api?: boolean;
     cachedDependencies?: string[];
@@ -29,22 +17,28 @@ export class FileData {
     justification?: string;
 }
 
-export class AgentPing {
-    agent_id!: string;
-    action!: 'SEARCH' | 'READ' | 'EDIT' | 'EVALUATE' | 'THINK';
-    target_path!: string;
-    timestamp!: number;
+export interface AgentPing {
+    agent_id: string;
+    action: 'SEARCH' | 'READ' | 'EDIT' | 'EVALUATE' | 'THINK';
+    target_path: string;
+    timestamp: number;
 }
 
-export class ScanResult {
-    path!: string;
-    data!: FileData;
+export interface ScanResult {
+    path: string;
+    data: FileData;
 }
 
-export class CompiledGraph {
-    version!: string;
-    scanned_at!: string;
-    files!: Array<{
+export interface CompiledGraph {
+    version: string;
+    scanned_at: string;
+    projection?: {
+        authority: 'hall_projection' | 'runtime_scan';
+        repo_root: string;
+        scan_id?: string;
+        artifact_role: 'runtime_view' | 'compatibility_export';
+    };
+    files: Array<{
         path: string;
         loc: number;
         complexity: number;
@@ -56,9 +50,36 @@ export class CompiledGraph {
         endpoints?: string[];
         is_api?: boolean;
     }>;
-    summary!: {
+    summary: {
         total_files: number;
         total_loc: number;
         average_score: number;
     };
+}
+
+export interface EstateTopologyNode {
+    id: string;
+    label: string;
+    kind: 'brain' | 'spoke';
+    root_path: string;
+    status: string;
+    baseline_gungnir_score: number;
+    open_beads: number;
+    validation_runs: number;
+    mount_status?: string;
+    trust_level?: string;
+    projection_status?: string;
+}
+
+export interface EstateTopologyEdge {
+    source: string;
+    target: string;
+    relation: 'mounted_spoke';
+}
+
+export interface EstateTopologyPayload {
+    generated_at: string;
+    brain_id: string;
+    nodes: EstateTopologyNode[];
+    edges: EstateTopologyEdge[];
 }

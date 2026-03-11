@@ -2,6 +2,8 @@ import ast
 import re
 from typing import Any
 
+from src.core.engine.gungnir.schema import GungnirMatrix, build_gungnir_matrix, matrix_to_dict
+
 
 class UniversalGungnir:
     """
@@ -31,45 +33,93 @@ class UniversalGungnir:
 
         return breaches
 
+    def score_matrix(self, code: str, ext: str) -> dict[str, Any]:
+        breaches = self.audit_logic(code, ext)
+        logic = 10.0
+        style = 10.0
+        intel = 10.0
+        evolution = 10.0
+        anomaly = 0.0
+
+        severity_penalty = {
+            "LOW": 0.5,
+            "MEDIUM": 1.5,
+            "HIGH": 2.5,
+            "CRITICAL": 4.0,
+        }
+
+        for breach in breaches:
+            penalty = severity_penalty.get(str(breach.get("severity", "")).upper(), 1.0)
+            action = str(breach.get("action", "")).upper()
+            if "LOGIC" in action or "COUPLING" in action or "PARSE" in action:
+                logic = max(0.0, logic - penalty)
+            if "STYLE" in action or "UI" in action:
+                style = max(0.0, style - penalty)
+            if "INTEL" in action or "DOCS" in action or "DATA" in action:
+                intel = max(0.0, intel - penalty)
+            evolution = max(0.0, evolution - (penalty * 0.25))
+            if str(breach.get("severity", "")).upper() == "CRITICAL":
+                anomaly += 1.0
+
+        matrix = build_gungnir_matrix(
+            GungnirMatrix(
+                logic=logic,
+                style=style,
+                intel=intel,
+                gravity=0.0,
+                vigil=10.0,
+                evolution=evolution,
+                anomaly=anomaly,
+                sovereignty=max(0.0, min(10.0, (logic + style + intel + evolution) / 4)),
+            )
+        )
+        return matrix_to_dict(matrix)
+
     def _audit_logic_rules(self, code: str, ext: str) -> list[dict[str, Any]]:
         breaches = []
 
-        # Structure Check
-
         if ext == '.py':
-            # Claustrophobia check
-            consecutive = 0
-            for line in code.split('\n'):
-                if line.strip() and not line.strip().startswith('#'):
-                    consecutive += 1
-                    if consecutive > 12:
-                        breaches.append({
-                            "severity": "HIGH",
-                            "action": "GUNGNIR_LOGIC_BREACH: Claustrophobic code block (>12 lines)."
-                        })
-                        break
-                else:
-                    consecutive = 0
-
-            # Setup/Exec Ratio
             try:
                 tree = ast.parse(code)
-                for node in ast.walk(tree):
-                    if isinstance(node, ast.FunctionDef):
-                        setup = sum(1 for child in node.body if isinstance(child, (ast.Assign, ast.AnnAssign)))
-                        exec_n = sum(1 for child in node.body if not isinstance(child, (ast.Assign, ast.AnnAssign)))
-                        if exec_n > 0 and (setup / exec_n) > 1.7:
-                            breaches.append({
-                                "severity": "HIGH",
-                                "action": f"GUNGNIR_LOGIC_BREACH: Function '{node.name}' is top-heavy setup (Ratio: {setup/exec_n:.2f})."
-                            })
-            except Exception:
-                pass
+                
+                # 1. Logic [L] & Stability [T]: Complexity analysis
+                import radon.complexity as cc
+                results = cc.cc_visit(code)
+                avg_cc = sum(r.complexity for r in results) / len(results) if results else 1
+                if avg_cc > 15:
+                    breaches.append({"severity": "HIGH", "action": f"GUNGNIR_LOGIC_BREACH: High Complexity ({avg_cc:.1f}). Refactor God Methods."})
+                
+                # 2. Coupling [C]: Import counting
+                imports = [node for node in ast.walk(tree) if isinstance(node, (ast.Import, ast.ImportFrom))]
+                if len(imports) > 10:
+                    breaches.append({"severity": "MEDIUM", "action": f"GUNGNIR_COUPLING_BREACH: Over-entangled ({len(imports)} imports). Isolate dependencies."})
+
+                # 3. Intel [I]: Docstring/Comment ratio
+                lines = code.split('\n')
+                total_lines = len(lines)
+                doc_lines = sum(1 for line in lines if line.strip().startswith(('#', '\"\"\"', '\'\'\'')))
+                if total_lines > 20 and (doc_lines / total_lines) < 0.15:
+                    breaches.append({"severity": "MEDIUM", "action": f"GUNGNIR_INTEL_BREACH: Low documentation ratio ({doc_lines/total_lines:.2f}). Add intents/docstrings."})
+
+                # 4. Style [S]: Claustrophobia check
+                consecutive = 0
+                for line in lines:
+                    if line.strip() and not line.strip().startswith('#'):
+                        consecutive += 1
+                        if consecutive > 12:
+                            breaches.append({"severity": "LOW", "action": "GUNGNIR_STYLE_BREACH: Claustrophobic code block (>12 lines)."})
+                            break
+                    else:
+                        consecutive = 0
+
+            except Exception as e:
+                breaches.append({"severity": "CRITICAL", "action": f"GUNGNIR_PARSE_ERROR: {e}"})
 
         elif ext in ('.tsx', '.jsx', '.ts', '.js'):
             elements = len(re.findall(r'<[a-zA-Z0-9]+', code))
             classes = re.findall(r'className=["\']([^"\']+)["\']', code)
             all_cls = [c for match in classes for c in match.split()]
+
             unique_cls = len(set(all_cls))
             C_ui = elements + unique_cls if (elements + unique_cls) > 0 else 1
 

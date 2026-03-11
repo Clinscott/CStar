@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Node, Link, Trajectory, GhostTrace } from '../types/index.js';
+import { Node, Link, Trajectory, GhostTrace } from '../types/index.ts';
 import * as THREE from 'three';
 
 interface MatrixState {

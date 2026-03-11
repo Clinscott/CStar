@@ -1,0 +1,185 @@
+---
+title: "Corvus Star: Sovereign Spoke Mounting Backlog"
+date: 2026-03-09
+status: active
+---
+
+# Corvus Star: Sovereign Spoke Mounting Backlog
+
+> [!IMPORTANT]
+> This backlog defines the formal architectural mounting of "Spokes" (KeepOS, SecureSphere, Astrologer, CorvusEye) into the Corvus Star Kernel ("The Brain").
+> It transitions the system from opportunistic shell traversal to canonical, state-managed execution domains.
+>
+> This document is not part of the Sovereign Bead System.
+> It must not redefine bead authority, bead lifecycle, or `tasks.qmd` projection semantics from Phase 1.
+> The authoritative bead surfaces remain `hall_beads`, `src/core/engine/bead_ledger.py`, and `tasks.qmd` as a projection only.
+
+## Mission
+
+Corvus Star is the supreme Architect. To fulfill this mandate, it must be able to dispatch Woven Skills to downstream systems natively.
+
+The required outcomes are:
+1. The kernel maintains a registry of managed spokes.
+2. The runtime dispatcher can seamlessly shift execution context to a targeted spoke.
+3. Path resolution abstracts physical directory structures via a `spoke://` scheme.
+4. Telemetry and matrices reflect the entire "Estate", not just the Brain.
+
+## Exit Criteria
+
+- Hall-backed managed spoke records exist, and `StateRegistry` can project them for compatibility.
+- `RuntimeContext` supports `target_domain` and `spoke_root`.
+- Skills can execute against a spoke directory without breaking the Brain's sandbox.
+- `cstar spoke link` and `cstar status` commands correctly manage and display the multi-spoke topology.
+
+## Ticket Index
+
+| ID | Priority | Ticket | Depends On | Primary Surfaces |
+| --- | --- | --- | --- | --- |
+| `CS-SM-00` | P0 | Define ManagedSpoke Schema | none | `src/node/core/state.ts` |
+| `CS-SM-01` | P0 | Spoke Path Registry | `CS-SM-00` | `src/tools/pennyone/pathRegistry.ts` |
+| `CS-SM-02` | P0 | Enhance RuntimeContext | `CS-SM-00` | `src/node/core/runtime/contracts.ts` |
+| `CS-SM-03` | P0 | Context-Aware Dispatcher | `CS-SM-02` | `src/node/core/runtime/dispatcher.ts` |
+| `CS-SM-04` | P1 | Spoke CLI Commands | `CS-SM-01`, `CS-SM-03` | `cstar.ts`, new command spoke |
+| `CS-SM-05` | P1 | The Estate Matrix | `CS-SM-04` | `vitals.ts`, `pennyone.ts` |
+
+## Ticket Details
+
+## `CS-SM-00` Define ManagedSpoke Schema
+
+### Objective
+Introduce a Hall-backed registry for external spoke systems, with `SovereignState` acting only as a compatibility projection.
+
+### Files
+- `src/types/hall.ts`
+- `src/tools/pennyone/intel/database.ts`
+- `src/node/core/state.ts`
+- `.agents/sovereign_state.json`
+
+### Change Set
+- Define a `ManagedSpoke` interface containing: `name`, `absolute_path`, `status` (active/disconnected), and `last_sync`.
+- Store managed spokes in a Hall-backed record or table first.
+- Add a `managed_spokes` projection to the `SovereignState` interface only if compatibility reads require it.
+- Ensure `StateRegistry.get()` initializes with an empty spoke projection if none exists.
+
+### Acceptance Criteria
+- The Hall-backed spoke registry typechecks and persists correctly.
+- Reading and saving compatibility state preserves projected spoke metadata without becoming the authority.
+
+### Verification
+- Add a unit test verifying Hall-backed spoke records can be written and projected through `StateRegistry`.
+
+---
+
+## `CS-SM-01` Spoke Path Registry
+
+### Objective
+Create a proxy layer that translates abstract intent paths to absolute physical paths on the host machine.
+
+### Files
+- `src/tools/pennyone/pathRegistry.ts`
+- New: `tests/unit/test_path_registry.test.ts`
+
+### Change Set
+- Implement a resolver for the `spoke://[name]/` scheme.
+- If a path begins with `spoke://keepos/src/main.ts`, the registry must look up `keepos` in the `StateRegistry` and return the absolute path (e.g., `C:\Users\Craig\corvus\KeepOS\src\main.ts`).
+- Implement security boundaries to prevent path traversal (`../`) outside the registered spoke root.
+
+### Acceptance Criteria
+- Paths resolve correctly based on state configurations.
+- Unregistered spokes return a structured failure.
+- Directory traversal attacks are caught and rejected.
+
+### Verification
+- Run registry unit tests asserting valid resolutions and rejected traversals.
+
+---
+
+## `CS-SM-02` Enhance RuntimeContext
+
+### Objective
+Provide the necessary data structures for skills to know *where* they are executing.
+
+### Files
+- `src/node/core/runtime/contracts.ts`
+
+### Change Set
+- Add `target_domain?: string` (default: 'brain') to `RuntimeContext`.
+- Add `spoke_root?: string` to `RuntimeContext`.
+- Prefer a dispatch-scoped spoke selector or metadata envelope rather than redefining bead or task payloads.
+
+### Acceptance Criteria
+- Type definitions compile cleanly.
+- Existing command adapters remain compatible with the updated context.
+
+### Verification
+- `npx tsc --noEmit` passes.
+
+---
+
+## `CS-SM-03` Context-Aware Dispatcher
+
+### Objective
+Make the `RuntimeDispatcher` automatically shift the execution environment when a spoke is targeted.
+
+### Files
+- `src/node/core/runtime/dispatcher.ts`
+
+### Change Set
+- Before calling `adapter.execute()`, check the dispatcher-level spoke selector.
+- If present, query `StateRegistry` for the spoke's absolute path.
+- Update the generated `RuntimeContext` so `workspace_root` reflects the spoke, not the Brain.
+- Ensure any `chdir` or environment variables needed by the adapter reflect the targeted spoke.
+
+### Acceptance Criteria
+- A weave dispatched with a spoke selector of `keepos` executes its logic relative to the KeepOS directory.
+- If the target spoke is unregistered, the dispatcher returns an immediate `FAILURE`.
+
+### Verification
+- Add a dispatcher unit test proving `workspace_root` shifts correctly based on invocation payload.
+
+---
+
+## `CS-SM-04` Spoke CLI Commands
+
+### Objective
+Provide the operator with tooling to link and unlink spokes from the Brain.
+
+### Files
+- `cstar.ts`
+- New: `src/node/core/commands/spoke.ts`
+
+### Change Set
+- Create `cstar spoke link <name> <absolute_path>` to register a new spoke in `.agents/sovereign_state.json`.
+- Create `cstar spoke unlink <name>` to remove a spoke.
+- Verify the `<absolute_path>` exists before linking.
+
+### Acceptance Criteria
+- Operator can link `KeepOS` via CLI.
+- State file immediately reflects the linked spoke.
+- Invalid paths return a graceful error.
+
+### Verification
+- Run `npx tsx cstar.ts spoke link test_spoke ../dummy_dir` and assert state changes.
+
+---
+
+## `CS-SM-05` The Estate Matrix
+
+### Objective
+Update the system's vital readouts to reflect the multi-spoke architecture.
+
+### Files
+- `src/node/core/commands/vitals.ts` (or `cstar.ts` status command)
+- `src/node/core/commands/pennyone.ts`
+
+### Change Set
+- Enhance `cstar status` to iterate over `managed_spokes`.
+- Display a summary line for each connected spoke (Name, Status, Last Sync).
+- (Optional/Future) Ensure PennyOne scans can be targeted at specific spokes via the new `spoke://` scheme.
+
+### Acceptance Criteria
+- The CLI status report visually separates the Brain's vitals from the Estate's vitals.
+- Disconnected spokes are clearly marked.
+
+### Verification
+- Run `npx tsx cstar.ts status` and verify the new Estate Matrix layout.

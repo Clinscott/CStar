@@ -1,13 +1,12 @@
-# 🔱 RECURSIVE MEMORY SKILL (v1.0)
+# RECURSIVE MEMORY SKILL
 
 ## MANDATE
-Crystallize system experiences into persistent learning. Log runtime anomalies to the SQLite Hall of Records and autonomously update the Gherkin Behavioral Contracts (`.feature` files) of active skills based on witnessed events.
+Record runtime observations as Hall-backed feedback without mutating canonical skill contracts.
 
 ## LOGIC PROTOCOL
-1. **RECORD KEEPING**: Log intent misinterpretations and runtime feedback into Mimir's Well (`.stats/pennyone.db`).
-2. **BEHAVIORAL EVOLUTION**: Read a skill's existing Gherkin contract.
-3. **NEUROPLASTICITY**: Consult the One Mind to weave the new observation into a new `Given/When/Then` rule.
-4. **CONTRACT MUTATION**: Overwrite the skill's `.feature` file with the evolved behavioral logic.
+1. **RECORD KEEPING**: Persist runtime feedback as a Hall skill observation.
+2. **COMPATIBILITY ONLY**: Do not mutate `.feature` or `contract.json` surfaces directly.
+3. **ESCALATION PATH**: Route real contract evolution through a sovereign bead plus `cstar evolve --action propose`.
 
 ## USAGE
 `cstar memory --log-feedback --skill <name> --observation <text>`

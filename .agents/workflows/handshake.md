@@ -3,7 +3,7 @@ description: A lightweight session finalization protocol that updates core docum
 ---
 
 // turbo-all
-1. **Update Tasks**: Mark completed items in `tasks.qmd`.
+1. **Update Beads**: Resolve the authoritative sovereign bead or Hall record, then regenerate `tasks.qmd` as projection output.
 2. **Update Wireframe**: Ensure `wireframe.qmd` reflects any new files or structural changes (e.g., new components, scripts).
 3. **Update Walkthrough**: Add a "Session Handshake" section to `walkthrough.qmd` summarizing the "Session Delta" (what changed).
 4. **Update Dev Journal**: Log the session's achievements and architectural decisions in `dev_journal.qmd`.

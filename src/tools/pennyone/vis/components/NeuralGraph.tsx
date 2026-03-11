@@ -5,8 +5,8 @@ import { useTexture, Instances, Instance } from '@react-three/drei';
 import { forceSimulation, forceLink, forceManyBody, forceCollide, forceX, forceY, forceZ } from 'd3-force-3d';
 import gsap from 'gsap';
 
-import { Node, Link, Trajectory, GhostTrace } from '../types/index.js';
-import { useMatrixStore } from '../store/useMatrixStore.js';
+import { Node, Link, Trajectory, GhostTrace } from '../types/index.ts';
+import { useMatrixStore } from '../store/useMatrixStore.ts';
 import { ConnectionLayer } from './ConnectionLayer.tsx';
 import { FresnelAura, SelectionHighlight } from './AuraLayers.tsx';
 import { TextLabel } from './TextLabel.tsx';

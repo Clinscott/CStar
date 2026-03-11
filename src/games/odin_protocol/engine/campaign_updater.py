@@ -4,6 +4,7 @@ Lore: "Mimir's wisdom fuels the war effort."
 Purpose: Bridges PennyOne mission successes to O.D.I.N. Protocol campaign updates.
 """
 
+import json
 import logging
 import sqlite3
 from pathlib import Path
@@ -81,7 +82,7 @@ class CampaignUpdater:
 
     def _get_new_traces(self, last_id: int) -> list[dict[str, Any]]:
         """
-        Retrieves unprocessed mission traces from PennyOne DB.
+        Retrieves unprocessed Hall validation records projected into the legacy mission-trace shape.
         """
         if not self.db_path.exists():
             logging.warning(f"Database not found: {self.db_path}")
@@ -93,13 +94,37 @@ class CampaignUpdater:
             cursor = conn.cursor()
             
             cursor.execute(
-                "SELECT * FROM mission_traces WHERE id > ? ORDER BY id ASC",
+                """
+                SELECT rowid AS compatibility_id, *
+                FROM hall_validation_runs
+                WHERE rowid > ?
+                ORDER BY rowid ASC
+                """,
                 (last_id,)
             )
             rows = cursor.fetchall()
             conn.close()
-            
-            return [dict(row) for row in rows]
+
+            traces: list[dict[str, Any]] = []
+            for row in rows:
+                payload = dict(row)
+                benchmark = json.loads(payload.get("benchmark_json") or "{}")
+                pre_scores = json.loads(payload.get("pre_scores_json") or "{}")
+                post_scores = json.loads(payload.get("post_scores_json") or "{}")
+                traces.append(
+                    {
+                        "id": payload.get("compatibility_id"),
+                        "mission_id": benchmark.get("mission_id") or payload.get("scan_id") or payload.get("validation_id"),
+                        "file_path": payload.get("target_path"),
+                        "target_metric": benchmark.get("target_metric", "overall"),
+                        "initial_score": pre_scores.get("overall", 0),
+                        "final_score": post_scores.get("overall", 0),
+                        "justification": payload.get("notes", ""),
+                        "status": payload.get("verdict", "INCONCLUSIVE"),
+                        "timestamp": payload.get("created_at", 0),
+                    }
+                )
+            return traces
         except sqlite3.Error as e:
             logging.error(f"Database Error: {e}")
             return []

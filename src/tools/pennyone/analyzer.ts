@@ -1,14 +1,16 @@
-import { getParser, TreeSitter } from './parser.js';
+import { getParser, TreeSitter } from './parser.ts';
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import * as fsSync from 'node:fs';
 import path from 'node:path';
-import { calculateLogicScore } from './calculus/logic.js';
-import { calculateStyleScore } from './calculus/style.js';
-import { calculateIntelScore } from './calculus/intel.js';
-import { getFileGravity } from './intel/gravity_db.js';
-import { registry } from './pathRegistry.js';
-import { GungnirMatrix, FileData } from './types.js';
+import { calculateLogicScore } from './calculus/logic.ts';
+import { calculateStyleScore } from './calculus/style.ts';
+import { calculateIntelScore } from './calculus/intel.ts';
+import { getFileGravity } from './intel/gravity_db.ts';
+import { registry } from './pathRegistry.ts';
+import { getHallRepositoryRecord } from './intel/database.ts';
+import { createGungnirMatrix, patchGungnirMatrix } from '../../types/gungnir.ts';
+import { FileData } from './types.ts';
 
 /**
  * Analyzes code and returns FileData
@@ -26,7 +28,7 @@ export async function analyzeFile(code: string, filepath: string): Promise<FileD
     if (filepath.endsWith('.md') || filepath.endsWith('.qmd')) {
         const docResult = analyzeMarkdown(code, filepath, hash, loc);
         const gravity = await getFileGravity(filepath);
-        docResult.matrix.gravity = gravity;
+        docResult.matrix = patchGungnirMatrix(docResult.matrix, { gravity });
         return { ...docResult, endpoints, is_api: isApi };
     }
 
@@ -179,19 +181,20 @@ export async function analyzeFile(code: string, filepath: string): Promise<FileD
         path: filepath,
         loc,
         complexity,
-        matrix: { 
-            logic: logicValue, 
-            style, 
-            intel, 
-            overall, 
-            gravity, 
-            stability, 
+        matrix: createGungnirMatrix({
+            logic: logicValue,
+            style,
+            intel,
+            gravity,
+            vigil: vigilScore,
+            evolution: overall,
+            anomaly: anomalyScore,
+            sovereignty,
+            overall,
+            stability,
             coupling,
             aesthetic,
-            vigil: vigilScore,
-            anomaly: anomalyScore,
-            sovereignty
-        },
+        }),
         imports,
         exports,
         intent: undefined,
@@ -217,11 +220,11 @@ function calculateVigilScore(filepath: string): number {
     let score = 0;
 
     // 1. Tier 1: Lore Check (.feature)
-    const featurePath = path.join(root, 'tests', 'features', `${stem}.feature`);
+    const modernFeaturePath = path.join(root, '.agents', 'skills', stem, `${stem}.feature`);
+    const legacyFeaturePath = path.join(root, 'tests', 'features', `${stem}.feature`);
     const groupFeaturePath = path.join(root, 'tests', 'features', `${path.basename(path.dirname(absPath))}.feature`);
     
-    // Using synchronous checks here for the high-speed scan loop
-    const hasLore = fsSync.existsSync(featurePath) || fsSync.existsSync(groupFeaturePath);
+    const hasLore = fsSync.existsSync(modernFeaturePath) || fsSync.existsSync(legacyFeaturePath) || fsSync.existsSync(groupFeaturePath);
     if (hasLore) score += 5;
 
     // 2. Tier 2: Isolation Check (Unit Test)
@@ -272,11 +275,16 @@ function detectEndpoints(code: string, filepath: string): string[] {
  * @returns {Promise<number>} Anomaly score
  */
 async function getSystemAnomaly(): Promise<number> {
-    const statePath = path.join(registry.getRoot(), '.agents', 'sovereign_state.json');
     try {
-        const raw = await fs.readFile(statePath, 'utf-8');
-        const data = JSON.parse(raw);
-        return data.last_anomaly_score || 0;
+        const record = getHallRepositoryRecord(registry.getRoot());
+        const metadata = (record?.metadata ?? {}) as {
+            sovereign_projection?: {
+                extras?: {
+                    last_anomaly_score?: number;
+                };
+            };
+        };
+        return Number(metadata.sovereign_projection?.extras?.last_anomaly_score ?? 0);
     } catch { return 0; }
 }
 
@@ -299,11 +307,20 @@ function analyzeMarkdown(code: string, filepath: string, hash: string, loc: numb
 
     return {
         path: filepath, loc, complexity: 1,
-        matrix: { 
-            logic: 10, style: 10, intel: 10, overall: 10, gravity: 0, 
-            stability: 1, coupling: 0, aesthetic: 10, vigil: 10, anomaly: 0, 
-            sovereignty: 1 
-        },
+        matrix: createGungnirMatrix({
+            logic: 10,
+            style: 10,
+            intel: 10,
+            gravity: 0,
+            vigil: 10,
+            evolution: 10,
+            anomaly: 0,
+            sovereignty: 10,
+            overall: 10,
+            stability: 10,
+            coupling: 0,
+            aesthetic: 10,
+        }),
         imports, exports, intent: undefined, hash
     };
 }

@@ -12,18 +12,22 @@ export class PathRegistry {
     private root: string;
 
     private constructor() {
-        this.root = this.findProjectRoot();
+        this.root = this.findProjectRoot(process.env.CSTAR_WORKSPACE_ROOT ?? process.env.CSTAR_LAUNCH_CWD);
     }
 
     /**
      * Ascend the directory tree using ESM import.meta.dirname to locate the true project root.
      * Guaranteed to only run once per instantiation (The Ascension Cache).
      */
-    private findProjectRoot(): string {
+    private findProjectRoot(startPath?: string): string {
         try {
-            let currentDir = import.meta.dirname;
+            let currentDir = startPath ? path.resolve(startPath) : import.meta.dirname;
             if (process.platform === 'win32' && currentDir.startsWith('/')) {
                 currentDir = currentDir.slice(1);
+            }
+
+            if (fs.existsSync(currentDir) && !fs.statSync(currentDir).isDirectory()) {
+                currentDir = path.dirname(currentDir);
             }
 
             let previousDir = '';
@@ -43,8 +47,12 @@ export class PathRegistry {
             // Suppress and fallback
         }
 
-        console.warn('[WARNING] PathRegistry could not determine true project root via ascension. Falling back to process.cwd().');
-        return process.cwd().replace(/\\/g, '/');
+        const fallback = startPath ? path.resolve(startPath) : process.cwd();
+        const normalizedFallback = fs.existsSync(fallback) && fs.statSync(fallback).isDirectory()
+            ? fallback
+            : path.dirname(fallback);
+        console.warn('[WARNING] PathRegistry could not determine true project root via ascension. Falling back to the requested workspace path.');
+        return normalizedFallback.replace(/\\/g, '/');
     }
 
     /**
@@ -61,6 +69,58 @@ export class PathRegistry {
      */
     public setRoot(newRoot: string): void {
         this.root = path.resolve(newRoot).replace(/\\/g, '/');
+    }
+
+    public detectWorkspaceRoot(startPath: string): string {
+        return this.findProjectRoot(startPath);
+    }
+
+    public isSpokeUri(targetPath: string): boolean {
+        return /^spoke:\/\/[A-Za-z0-9._-]+(?:\/.*)?$/i.test(targetPath.trim());
+    }
+
+    public parseSpokeUri(targetPath: string): { slug: string; relativePath: string } {
+        const match = targetPath.trim().match(/^spoke:\/\/([A-Za-z0-9._-]+)(?:\/(.*))?$/i);
+        if (!match) {
+            throw new Error(`Invalid spoke URI '${targetPath}'. Expected spoke://<slug>/path`);
+        }
+
+        return {
+            slug: match[1].toLowerCase(),
+            relativePath: (match[2] ?? '').replace(/^\/+/, ''),
+        };
+    }
+
+    public resolveSpokeUri(targetPath: string, spokeRoot: string): string {
+        const normalizedRoot = this.normalize(spokeRoot);
+        const { relativePath } = this.parseSpokeUri(targetPath);
+        const candidate = relativePath
+            ? path.resolve(normalizedRoot, relativePath).replace(/\\/g, '/')
+            : normalizedRoot;
+        const rootPrefix = normalizedRoot.endsWith('/') ? normalizedRoot : `${normalizedRoot}/`;
+
+        if (candidate !== normalizedRoot && !candidate.startsWith(rootPrefix)) {
+            throw new Error(`Traversal outside mounted spoke root is not allowed for '${targetPath}'.`);
+        }
+
+        return candidate;
+    }
+
+    public resolveEstatePath(
+        targetPath: string,
+        mountedSpokes: Array<{ slug: string; root_path: string }> = [],
+    ): string {
+        if (!this.isSpokeUri(targetPath)) {
+            return this.normalize(targetPath);
+        }
+
+        const { slug } = this.parseSpokeUri(targetPath);
+        const spoke = mountedSpokes.find((entry) => entry.slug.toLowerCase() === slug);
+        if (!spoke) {
+            throw new Error(`Mounted spoke '${slug}' is not registered in the Hall estate.`);
+        }
+
+        return this.resolveSpokeUri(targetPath, spoke.root_path);
     }
 
     /**
