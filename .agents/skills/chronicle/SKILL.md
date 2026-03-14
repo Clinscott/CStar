@@ -1,4 +1,15 @@
+---
+name: chronicle
+description: "Use when building a high-fidelity system state map from documentation, code metadata, and behavioral contracts."
+risk: safe
+source: internal
+---
+
 # 🔱 CHRONICLE SKILL (v1.0)
+
+## When to Use
+- Use when building a high-fidelity system state map from documentation, code metadata, and behavioral contracts.
+
 
 ## MANDATE
 The Librarian of the Hall of Records. Scrutinize the physical state of the system by aggregating documentation, code metadata, and behavioral contracts.

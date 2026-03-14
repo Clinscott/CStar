@@ -39,7 +39,9 @@ ANNEXATION_PLAN.qmd
 
 # Node.js
 node_modules/
+dist/
 .stats/signet.url
+.npmrc
 
 /.quarto/
 **/*.quarto_ipynb
@@ -55,7 +57,11 @@ gha-creds-*.json
 .agents/chroma_db/
 .agents/exchange/
 .agents/muninn.pid
+.agents/scan_heartbeat.json
+.agents/skills/ref-openomf/
+.agents/sovereign_state.json
 .agents/synapse.db
+.agents/tech_debt_ledger.json
 .agents/vault/
 .agents/warden.pkl
 .pytest_gungnir_out.txt
@@ -65,3 +71,5 @@ gha-creds-*.json
 **/.stats/
 src/tools/pennyone/vis/components/.stats/
 tests/tmp_memory_*/
+.venv.failed_*/
+src/tools/pennyone/intel/hall_records.db

@@ -1,6 +1,6 @@
 ---
 title: "Sovereign Bead System"
-generated_at: "2026-03-09 19:58:45"
+generated_at: "2026-03-11 07:58:29"
 authoritative_source: "hall_beads"
 ---
 
@@ -8,15 +8,15 @@ authoritative_source: "hall_beads"
 
 `tasks.qmd` is a projection of the Hall of Records. Do not edit bead state here.
 
-- Repository: `repo:C:/Users/Craig/Corvus/CorvusStar`
+- Repository: `repo:/home/morderith/Corvus/CorvusStar`
 - Open Beads: `0`
 - In Progress: `0`
 - Ready For Review: `0`
-- Needs Triage: `10`
+- Needs Triage: `0`
 - Blocked: `0`
 - Resolved: `0`
-- Archived: `5`
-- Superseded: `1`
+- Archived: `0`
+- Superseded: `0`
 
 ## Open Beads
 - None
@@ -28,16 +28,7 @@ authoritative_source: "hall_beads"
 - None
 
 ## Beads Requiring Triage
-- [?] [legacy-bead:1] `src/core` :: SCAN_SECTOR: src/core | scan: legacy-scan:path-sov-1773023372125 | baseline: 1.00 | triage: Imported legacy bead requires canonical acceptance criteria.
-- [?] [legacy-bead:2] `src/node` :: SCAN_SECTOR: src/node | scan: legacy-scan:path-sov-1773023372125 | baseline: 1.00 | triage: Imported legacy bead requires canonical acceptance criteria.
-- [?] [legacy-bead:3] `src/tools` :: SCAN_SECTOR: src/tools | scan: legacy-scan:path-sov-1773023372125 | baseline: 1.00 | triage: Imported legacy bead requires canonical acceptance criteria.
-- [?] [legacy-bead:4] `src/sentinel` :: SCAN_SECTOR: src/sentinel | scan: legacy-scan:path-sov-1773023372125 | baseline: 1.00 | triage: Imported legacy bead requires canonical acceptance criteria.
-- [?] [legacy-bead:5] `scripts` :: SCAN_SECTOR: scripts | scan: legacy-scan:path-sov-1773023372125 | baseline: 1.00 | triage: Imported legacy bead requires canonical acceptance criteria.
-- [?] [legacy-bead:6] `sterileAgent` :: SCAN_SECTOR: sterileAgent | scan: legacy-scan:path-sov-1773023372125 | baseline: 1.00 | triage: Imported legacy bead requires canonical acceptance criteria.
-- [?] [legacy-bead:12] `WAR_ROOM` :: **TUI Content Polish**: Add high-fidelity ASCII art and RUNE separators to the WAR ROOM sections. | scan: legacy-scan:path-sov-1773023372125 | baseline: 1.00 | triage: Imported legacy bead requires canonical acceptance criteria.
-- [?] [legacy-bead:13] `exemplars.json` :: **Character Evolution**: Expand `exemplars.json` with Nicci's and Roan's specific manuscript rhythms. | scan: legacy-scan:path-sov-1773023372125 | baseline: 1.00 | triage: Imported legacy bead requires canonical acceptance criteria.
-- [?] [legacy-bead:14] `ravens_harness` :: **Shadow Forge Resilience**: Conduct a 10-iteration `ravens_harness` in YOLO mode to validate stability under Shadow Forge conditions. | scan: legacy-scan:path-sov-1773023372125 | baseline: 1.00 | triage: Imported legacy bead requires canonical acceptance criteria.
-- [?] [legacy-bead:16] `vis` :: **Visualization Polish**: Resolve remaining D3 and React-Three-Fiber type errors in the `vis/` sub-components. | scan: legacy-scan:path-sov-1773023372125 | baseline: 1.00 | triage: Imported legacy bead requires canonical acceptance criteria.
+- None
 
 ## Blocked Beads
 - None
@@ -46,11 +37,7 @@ authoritative_source: "hall_beads"
 - None
 
 ## Archived Beads
-- [-] [legacy-bead:10] `repository` :: **Bead: System Drift Audit**: Audit "Ghost Logic" (code without Gherkin contracts) and generate a drift report. | scan: legacy-scan:path-sov-1773023372125 | baseline: 1.00 | note: Legacy resolved bead archived without canonical validation evidence.
-- [-] [legacy-bead:11] `.env.local` :: **Operation Ironclad**: Security hardening of `.env.local` and regular API key rotation logic. | scan: legacy-scan:path-sov-1773023372125 | baseline: 1.00 | note: Legacy resolved bead archived without canonical validation evidence.
-- [-] [legacy-bead:7] `src/core/engine/memory_db.py` :: **Bead: MemoryDB Optimization**: Optimize the $O(N)$ simulated search latency in `src/core/engine/memory_db.py`. | scan: legacy-scan:path-sov-1773023372125 | baseline: 1.00 | note: Legacy resolved bead archived without canonical validation evidence.
-- [-] [legacy-bead:8] `src/core/report_engine.py` :: **Bead: ReportEngine Refactor**: Reduce logic density in header generation within `src/core/report_engine.py`. | scan: legacy-scan:path-sov-1773023372125 | baseline: 1.00 | note: Legacy resolved bead archived without canonical validation evidence.
-- [-] [legacy-bead:9] `src/core/engine/vector_ingest.py` :: **Bead: VectorIngest Batching**: Implement batch directory walks in `src/core/engine/vector_ingest.py`. | scan: legacy-scan:path-sov-1773023372125 | baseline: 1.00 | note: Legacy resolved bead archived without canonical validation evidence.
+- None
 
 ## Superseded Beads
-- [~] [legacy-bead:15] `.env.local` :: **Operation Ironclad**: Security hardening of `.env.local` and regular API key rotation logic. | scan: legacy-scan:path-sov-1773023372125 | baseline: 1.00 | note: Legacy resolved bead archived without canonical validation evidence. | superseded_by: legacy-bead:11
+- None

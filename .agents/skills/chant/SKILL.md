@@ -1,4 +1,15 @@
+---
+name: chant
+description: "Use when parsing natural-language chants into executable skill flight paths and routed execution plans."
+risk: safe
+source: internal
+---
+
 # 🔱 COGNITIVE CHANT SKILL (v1.0)
+
+## When to Use
+- Use when parsing natural-language chants into executable skill flight paths and routed execution plans.
+
 
 ## MANDATE
 Parse natural language "Chants" into dynamic execution plans (Flight Paths) of Agent Skills. Act as the primary Cognitive Router for Huginn and Muninn.

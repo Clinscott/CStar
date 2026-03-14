@@ -3,6 +3,36 @@ import path from 'path';
 
 import fs from 'fs';
 
+function isAbsolutePath(input: string): boolean {
+    return path.isAbsolute(input) || path.win32.isAbsolute(input) || path.posix.isAbsolute(input);
+}
+
+function normalizeSeparators(input: string): string {
+    return input.replace(/\\/g, '/');
+}
+
+function usesWindowsPathApi(input: string): boolean {
+    return /^[A-Za-z]:[\\/]/.test(input) || /^[\\/]{2}[^\\/]+[\\/][^\\/]+/.test(input);
+}
+
+function resolveWithBase(base: string, ...segments: string[]): string {
+    return usesWindowsPathApi(base) ? path.win32.resolve(base, ...segments) : path.resolve(base, ...segments);
+}
+
+function joinWithBase(base: string, ...segments: string[]): string {
+    return usesWindowsPathApi(base) ? path.win32.join(base, ...segments) : path.join(base, ...segments);
+}
+
+function dirnameForPath(input: string): string {
+    return usesWindowsPathApi(input) ? path.win32.dirname(input) : path.dirname(input);
+}
+
+function relativeBetween(from: string, to: string): string {
+    return usesWindowsPathApi(from) || usesWindowsPathApi(to)
+        ? path.win32.relative(from, to)
+        : path.relative(from, to);
+}
+
 /**
  * Operation PennyOne: Centralized Path Registry
  * Purpose: Eliminate path hallucination and ensure consistent normalization across the codebase.
@@ -21,13 +51,15 @@ export class PathRegistry {
      */
     private findProjectRoot(startPath?: string): string {
         try {
-            let currentDir = startPath ? path.resolve(startPath) : import.meta.dirname;
+            let currentDir = startPath
+                ? (isAbsolutePath(startPath) ? normalizeSeparators(startPath) : path.resolve(startPath))
+                : import.meta.dirname;
             if (process.platform === 'win32' && currentDir.startsWith('/')) {
                 currentDir = currentDir.slice(1);
             }
 
             if (fs.existsSync(currentDir) && !fs.statSync(currentDir).isDirectory()) {
-                currentDir = path.dirname(currentDir);
+                currentDir = dirnameForPath(currentDir);
             }
 
             let previousDir = '';
@@ -41,7 +73,7 @@ export class PathRegistry {
                 }
 
                 previousDir = currentDir;
-                currentDir = path.dirname(currentDir);
+                currentDir = dirnameForPath(currentDir);
             }
         } catch {
             // Suppress and fallback
@@ -50,7 +82,7 @@ export class PathRegistry {
         const fallback = startPath ? path.resolve(startPath) : process.cwd();
         const normalizedFallback = fs.existsSync(fallback) && fs.statSync(fallback).isDirectory()
             ? fallback
-            : path.dirname(fallback);
+            : dirnameForPath(fallback);
         console.warn('[WARNING] PathRegistry could not determine true project root via ascension. Falling back to the requested workspace path.');
         return normalizedFallback.replace(/\\/g, '/');
     }
@@ -68,7 +100,9 @@ export class PathRegistry {
      * @param {string} newRoot - The new root path
      */
     public setRoot(newRoot: string): void {
-        this.root = path.resolve(newRoot).replace(/\\/g, '/');
+        this.root = isAbsolutePath(newRoot)
+            ? normalizeSeparators(newRoot)
+            : path.resolve(newRoot).replace(/\\/g, '/');
     }
 
     public detectWorkspaceRoot(startPath: string): string {
@@ -95,7 +129,7 @@ export class PathRegistry {
         const normalizedRoot = this.normalize(spokeRoot);
         const { relativePath } = this.parseSpokeUri(targetPath);
         const candidate = relativePath
-            ? path.resolve(normalizedRoot, relativePath).replace(/\\/g, '/')
+            ? resolveWithBase(normalizedRoot, relativePath).replace(/\\/g, '/')
             : normalizedRoot;
         const rootPrefix = normalizedRoot.endsWith('/') ? normalizedRoot : `${normalizedRoot}/`;
 
@@ -141,11 +175,11 @@ export class PathRegistry {
      */
     public normalize(p: string): string {
         if (!p) return '';
-        const normalized = p.replace(/\\/g, '/');
-        if (path.isAbsolute(normalized)) {
+        const normalized = normalizeSeparators(p);
+        if (isAbsolutePath(p) || isAbsolutePath(normalized)) {
             return normalized;
         }
-        return path.join(this.root, normalized).replace(/\\/g, '/');
+        return joinWithBase(this.root, normalized).replace(/\\/g, '/');
     }
 
     /**
@@ -155,8 +189,8 @@ export class PathRegistry {
      * @returns {string} Resolved path
      */
     public resolve(sourceFile: string, relativePath: string): string {
-        const dir = path.dirname(sourceFile);
-        return this.normalize(path.resolve(dir, relativePath));
+        const dir = dirnameForPath(sourceFile);
+        return this.normalize(resolveWithBase(dir, relativePath));
     }
 
     /**
@@ -166,7 +200,7 @@ export class PathRegistry {
      */
     public getRelative(p: string): string {
         const abs = this.normalize(p);
-        return path.relative(this.root, abs).replace(/\\/g, '/');
+        return relativeBetween(this.root, abs).replace(/\\/g, '/');
     }
 }
 

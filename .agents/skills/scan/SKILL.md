@@ -1,4 +1,15 @@
+---
+name: scan
+description: "Use when performing structural repository scans, extracting symbols and intent, and updating Mimir and the Gungnir matrix."
+risk: safe
+source: internal
+---
+
 # 🔱 PENNYONE SCAN SKILL (v1.0)
+
+## When to Use
+- Use when performing structural repository scans, extracting symbols and intent, and updating Mimir and the Gungnir matrix.
+
 
 ## MANDATE
 Perform structural and intelligence scans of the repository to update the Gungnir Matrix and Mimir's Well.

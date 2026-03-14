@@ -1,4 +1,15 @@
+---
+name: trace
+description: "Use when rendering and analyzing neural trace artifacts for replay, conflict review, and live monitoring."
+risk: safe
+source: internal
+---
+
 # 🔱 NEURAL TRACE VISUALIZATION SKILL (v1.0)
+
+## When to Use
+- Use when rendering and analyzing neural trace artifacts for replay, conflict review, and live monitoring.
+
 
 ## MANDATE
 Render and analyze the neural path of triggered intents, providing high-fidelity visual replay and conflict analysis (War Room).

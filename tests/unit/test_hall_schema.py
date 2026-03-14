@@ -2,9 +2,13 @@ import json
 import sqlite3
 
 from src.core.engine.hall_schema import (
+    HallBeadRecord,
+    HallEpisodicMemoryRecord,
+    HallFileRecord,
     HallOfRecords,
     HallRepositoryRecord,
     HallSkillProposalRecord,
+    HallScanRecord,
     build_repo_id,
 )
 
@@ -194,3 +198,76 @@ def test_hall_schema_persists_skill_proposals_separately_from_observations(tmp_p
     assert proposal.metadata["source"] == "unit-test"
     assert len(proposals) == 1
     assert proposals[0].proposal_path == ".agents/proposals/evolve/proposal_evolve_1.json"
+
+
+def test_hall_schema_persists_file_imports_and_episodic_memory(tmp_path):
+    agents_dir = tmp_path / ".agents"
+    agents_dir.mkdir()
+    (agents_dir / "sovereign_state.json").write_text(json.dumps({}), encoding="utf-8")
+
+    hall = HallOfRecords(tmp_path)
+    repo = hall.bootstrap_repository()
+    hall.record_scan(
+        HallScanRecord(
+            scan_id="scan-1",
+            repo_id=repo.repo_id,
+            scan_kind="unit-test",
+            status="COMPLETED",
+            started_at=1700000000000,
+            completed_at=1700000000100,
+            metadata={"source": "unit-test"},
+        )
+    )
+    hall.record_file(
+        HallFileRecord(
+            repo_id=repo.repo_id,
+            scan_id="scan-1",
+            path=str(tmp_path / "src" / "sample.ts"),
+            created_at=1700000000200,
+            content_hash="abc123",
+            language="ts",
+            matrix={"logic": 8, "style": 7, "intel": 8, "sovereignty": 8, "overall": 7.8},
+            imports=[{"source": "./dep", "local": "helper", "imported": "helper"}],
+            exports=["runProjection"],
+            intent_summary="Projected intent",
+            interaction_summary="Standard",
+        )
+    )
+    hall.upsert_bead(
+        HallBeadRecord(
+            bead_id="bead-1",
+            repo_id=repo.repo_id,
+            rationale="Persist tactical memory",
+            status="RESOLVED",
+            created_at=1700000000300,
+            updated_at=1700000000300,
+        )
+    )
+    hall.save_episodic_memory(
+        HallEpisodicMemoryRecord(
+            memory_id="memory-1",
+            bead_id="bead-1",
+            repo_id=repo.repo_id,
+            tactical_summary="Persisted the tactical summary for the completed bead.",
+            files_touched=["src/node/core/runtime/weaves/compress.ts"],
+            successes=["Wrote episodic memory"],
+            metadata={"source": "unit-test"},
+            created_at=1700000000400,
+            updated_at=1700000000400,
+        )
+    )
+
+    file_record = hall.get_file(str(tmp_path / "src" / "sample.ts"), scan_id="scan-1")
+    memories = hall.list_episodic_memory("bead-1")
+    memory = hall.get_episodic_memory("memory-1")
+
+    assert file_record is not None
+    assert file_record.imports == [{"source": "./dep", "local": "helper", "imported": "helper"}]
+    assert file_record.exports == ["runProjection"]
+    assert memory is not None
+    assert memory.tactical_summary == "Persisted the tactical summary for the completed bead."
+    assert memory.files_touched == ["src/node/core/runtime/weaves/compress.ts"]
+    assert memory.successes == ["Wrote episodic memory"]
+    assert memory.metadata["source"] == "unit-test"
+    assert len(memories) == 1
+    assert memories[0].memory_id == "memory-1"

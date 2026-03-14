@@ -1,4 +1,15 @@
+---
+name: annex
+description: "Use when auditing the repository for structural weaknesses, standards violations, and actionable annexation plans."
+risk: safe
+source: internal
+---
+
 # 🔱 ANNEXATION PROTOCOL SKILL (v1.0)
+
+## When to Use
+- Use when auditing the repository for structural weaknesses, standards violations, and actionable annexation plans.
+
 
 ## MANDATE
 Conduct comprehensive audits of the repository ("The Territory") to identify structural weaknesses, non-compliance with standards, and generate actionable battle plans.

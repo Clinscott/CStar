@@ -8,13 +8,15 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.core.runtime_env import resolve_project_python
+
 def main():
     parser = argparse.ArgumentParser(description="Sterling Compliance: Audit sectors for Sovereignty.")
     parser.add_argument("--files", nargs="+", required=True, help="List of file paths to audit.")
     args = parser.parse_args()
 
     auditor_path = PROJECT_ROOT / "src" / "core" / "sterling_auditor.py"
-    venv_python = PROJECT_ROOT / ".venv" / "Scripts" / "python.exe"
+    venv_python = resolve_project_python(PROJECT_ROOT)
 
     if not auditor_path.exists():
         print(f"[ALFRED]: CRITICAL - Sterling Auditor missing at {auditor_path}", file=sys.stderr)

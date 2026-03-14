@@ -1,4 +1,15 @@
+---
+name: evolve
+description: "Use when running the bead-driven optimization loop under runtime, Hall, and validation authority."
+risk: safe
+source: internal
+---
+
 # EVOLVE SKILL
+
+## When to Use
+- Use when running the bead-driven optimization loop under runtime, Hall, and validation authority.
+
 
 ## MANDATE
 Run the bead-driven optimization loop under runtime, Hall, and validation authority.

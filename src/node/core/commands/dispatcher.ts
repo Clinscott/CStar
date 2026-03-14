@@ -1,3 +1,4 @@
+import { getDb } from '../../../tools/pennyone/intel/database.ts';
 import { Command } from 'commander';
 import { RuntimeDispatcher } from '../runtime/dispatcher.ts';
 import {
@@ -8,7 +9,8 @@ import {
     TaliesinForgeWeavePayload,
     WeaveInvocation,
 } from '../runtime/contracts.ts';
-import { resolveWorkspaceRoot, withCliWorkspaceTarget, type WorkspaceRootSource } from '../runtime/invocation.ts';
+import { buildCliSession, buildSpokeTarget, resolveWorkspaceRoot, withCliWorkspaceTarget, type WorkspaceRootSource } from '../runtime/invocation.ts';
+
 
 export function buildDynamicCommandInvocation(
     command: string,
@@ -17,7 +19,23 @@ export function buildDynamicCommandInvocation(
     cwd: string = process.cwd(),
 ): WeaveInvocation<DynamicCommandPayload | ChantWeavePayload | EvolveWeavePayload | TaliesinForgeWeavePayload> {
     if (command.toLowerCase() === 'chant') {
-        return buildChantInvocation(args, projectRoot, cwd);
+        // Look up the most recent active session to resume it
+        let sessionId;
+        try {
+            const db = getDb();
+            const row = db.prepare(`
+                SELECT session_id 
+                FROM hall_planning_sessions 
+                WHERE status NOT IN ('COMPLETED', 'FAILED') 
+                ORDER BY created_at DESC LIMIT 1
+            `).get() as { session_id: string } | undefined;
+            if (row) {
+                sessionId = row.session_id;
+            }
+        } catch (e) {
+            // Ignore DB errors if not initialized
+        }
+        return buildChantInvocation(args, projectRoot, cwd, sessionId);
     }
     if (command.toLowerCase() === 'evolve') {
         return buildEvolveInvocation(args, projectRoot, cwd);
@@ -79,6 +97,7 @@ export function buildEvolveInvocation(
         source: 'cli',
         simulate: true,
     };
+    let spoke: string | undefined;
 
     for (let index = 0; index < args.length; index += 1) {
         const token = args[index];
@@ -90,6 +109,15 @@ export function buildEvolveInvocation(
         if (token === '--proposal-id' && args[index + 1]) {
             payload.proposal_id = args[index + 1];
             index += 1;
+            continue;
+        }
+        if ((token === '--spoke' || token === '--target-spoke') && args[index + 1]) {
+            spoke = args[index + 1].trim().toLowerCase();
+            index += 1;
+            continue;
+        }
+        if (token.startsWith('--spoke=')) {
+            spoke = token.slice('--spoke='.length).trim().toLowerCase();
             continue;
         }
         if (token === '--promote') {
@@ -113,6 +141,15 @@ export function buildEvolveInvocation(
             payload.validation_profile = args[index + 1];
             index += 1;
         }
+    }
+
+    if (spoke) {
+        return {
+            weave_id: 'weave:evolve',
+            payload,
+            target: buildSpokeTarget(projectRoot, spoke),
+            session: buildCliSession(),
+        };
     }
 
     return withCliWorkspaceTarget({

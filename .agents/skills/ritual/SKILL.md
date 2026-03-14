@@ -1,4 +1,15 @@
+---
+name: ritual
+description: "Use when you need lore-accurate terminal animations, stylized headers, and ceremonial visual flair for Corvus Star execution."
+risk: safe
+source: internal
+---
+
 # 🔱 RITUAL AESTHETIC SKILL (v1.0)
+
+## When to Use
+- Use when you need lore-accurate terminal animations, stylized headers, and ceremonial visual flair for Corvus Star execution.
+
 
 ## MANDATE
 Provide lore-accurate, high-fidelity visual flair and terminal animations for the Corvus Star framework. Turn technical execution into a ceremonial experience.

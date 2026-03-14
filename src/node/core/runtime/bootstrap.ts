@@ -4,6 +4,10 @@ import { ChantWeave } from './weaves/chant.ts';
 import { EvolveWeave } from './weaves/evolve.ts';
 import { RavensCycleWeave, RavensStageContractAdapter } from './weaves/ravens_cycle.ts';
 import { TaliesinForgeWeave } from './weaves/taliesin_forge.ts';
+import { ResearchWeave } from './weaves/research.ts';
+import { CritiqueWeave } from './weaves/critique.ts';
+import { ArchitectWeave } from './weaves/architect.ts';
+import { CompressWeave } from './weaves/compress.ts';
 
 /**
  * [Ω] RUNTIME BOOTSTRAP
@@ -20,6 +24,10 @@ export function bootstrapRuntime(dispatcher: RuntimeDispatcher = RuntimeDispatch
         new RavensStageContractAdapter('promote'),
         new PennyOneAdapter(),
         new ChantWeave(dispatcher),
+        new ResearchWeave(dispatcher),
+        new CompressWeave(),
+        new CritiqueWeave(dispatcher),
+        new ArchitectWeave(dispatcher),
         new EvolveWeave(),
         new TaliesinForgeWeave(),
         new DynamicCommandAdapter(),

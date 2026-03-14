@@ -9,11 +9,12 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.core.runtime_env import resolve_project_python
+
 def run_skill(skill: str, args: list[str]) -> str:
     """Helper to run a skill via the Gungnir Dispatcher."""
     cstar_dispatcher = PROJECT_ROOT / "src" / "core" / "cstar_dispatcher.py"
-    venv_python = PROJECT_ROOT / ".venv" / "Scripts" / "python.exe"
-    if not venv_python.exists(): venv_python = Path(sys.executable)
+    venv_python = resolve_project_python(PROJECT_ROOT)
     
     cmd = [str(venv_python), str(cstar_dispatcher), skill, *args]
     try:

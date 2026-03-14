@@ -13,6 +13,7 @@ from src.core.engine.evolve_skill import execute_evolve, execute_evolve_promotio
 def main() -> None:
     parser = argparse.ArgumentParser(description="Authoritative evolve skill entrypoint.")
     parser.add_argument("--action", choices=("propose", "promote"), default="propose")
+    parser.add_argument("--project-root")
     parser.add_argument("--bead-id")
     parser.add_argument("--proposal-id")
     parser.add_argument("--dry-run", action="store_true")
@@ -21,16 +22,18 @@ def main() -> None:
     parser.add_argument("--validation-profile", default="standard")
     args = parser.parse_args()
 
+    target_root = Path(args.project_root).resolve() if args.project_root else PROJECT_ROOT
+
     if args.action == "promote":
         if not args.proposal_id:
             parser.error("--proposal-id is required when --action promote.")
         result = execute_evolve_promotion(
-            PROJECT_ROOT,
+            target_root,
             proposal_id=args.proposal_id,
         )
     else:
         result = execute_evolve(
-            PROJECT_ROOT,
+            target_root,
             bead_id=args.bead_id,
             dry_run=args.dry_run,
             simulate=args.simulate,

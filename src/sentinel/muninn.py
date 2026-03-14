@@ -10,16 +10,34 @@ import os
 import sys
 from pathlib import Path
 
+from src.core.sovereign_hud import SovereignHUD
+from src.core.annex import HeimdallWarden
+from src.core.engine.alfred_observer import AlfredOverwatch
+from src.core.engine.atomic_gpt import AnomalyWarden
+from src.core.metrics import ProjectMetricsEngine
 from src.core.engine.ravens_stage import RavensCycleResult
+from src.cstar.core.uplink import AntigravityUplink
+from src.sentinel._bootstrap import SovereignBootstrap
 from src.sentinel.muninn_hunter import MuninnHunter
 from src.sentinel.muninn_crucible import MuninnCrucible
-from src.sentinel.ravens_runtime import execute_ravens_cycle, execute_ravens_cycle_contract
 from src.sentinel.wardens.norn import NornWarden
+from src.sentinel.wardens.freya import FreyaWarden
+from src.sentinel.wardens.mimir import MimirWarden
+from src.sentinel.wardens.valkyrie import ValkyrieWarden
 
 # Alias for legacy test compatibility
 GungnirValidator = MuninnCrucible
+GungnirSPRT = MuninnCrucible
 NornWarden = NornWarden
 TheWatcher = MuninnHunter
+FreyaWarden = FreyaWarden
+HeimdallWarden = HeimdallWarden
+MimirWarden = MimirWarden
+ValkyrieWarden = ValkyrieWarden
+
+
+def bootstrap() -> None:
+    SovereignBootstrap.execute()
 
 class Muninn:
     """
@@ -37,15 +55,19 @@ class Muninn:
         
         # Initialize Uplink
         self.uplink = AntigravityUplink()
+
+        from src.sentinel.muninn_heart import MuninnHeart
+
+        self.heart = MuninnHeart(self.root, self.uplink)
         print("[PULSE] Muninn: Initialization complete.")
 
     async def run_cycle(self) -> bool:
         """Executes a single autonomous repair cycle via the Heart spoke."""
-        return await execute_ravens_cycle(self.root, uplink=self.uplink)
+        return await self.heart.execute_cycle()
 
     async def run_cycle_contract(self) -> RavensCycleResult:
         """Returns the structured Phase 3 cycle contract while boolean callers remain supported."""
-        return await execute_ravens_cycle_contract(self.root, uplink=self.uplink)
+        return await self.heart.execute_cycle_contract()
 
 if __name__ == "__main__":
     # Force unbuffered output for real-time monitoring

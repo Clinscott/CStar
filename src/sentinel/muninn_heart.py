@@ -5,6 +5,7 @@ Purpose: Lifecycle management, process synchronization, and autonomous loop exec
 """
 
 import asyncio
+import os
 import time
 import uuid
 from pathlib import Path

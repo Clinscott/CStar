@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
@@ -6,13 +7,17 @@ import { EvolveWeave } from '../../src/node/core/runtime/weaves/evolve.ts';
 import type { RuntimeContext } from '../../src/node/core/runtime/contracts.ts';
 
 const workspaceRoot = 'C:\\Users\\Craig\\Corvus\\CorvusStar';
+const spokeRoot = 'C:\\estate\\KeepOS';
 
-function createContext(workspaceRoot: string): RuntimeContext {
+function createContext(workspaceRoot: string, targetDomain: RuntimeContext['target_domain'] = 'brain'): RuntimeContext {
     return {
         mission_id: 'MISSION-EVOLVE',
         trace_id: 'TRACE-EVOLVE',
         persona: 'ALFRED',
         workspace_root: workspaceRoot,
+        operator_mode: targetDomain === 'spoke' ? 'subkernel' : 'cli',
+        target_domain: targetDomain,
+        interactive: targetDomain !== 'spoke',
         env: {},
         timestamp: Date.now(),
     };
@@ -59,19 +64,56 @@ describe('Evolve skill promotion (CS-P7-07)', () => {
         );
     });
 
+    it('can target a mounted spoke from CLI flags', () => {
+        assert.deepEqual(
+            buildEvolveInvocation(
+                ['--spoke', 'keepos', '--bead-id', 'bead-1'],
+                workspaceRoot,
+                workspaceRoot,
+            ),
+            {
+                weave_id: 'weave:evolve',
+                payload: {
+                    action: 'propose',
+                    bead_id: 'bead-1',
+                    project_root: workspaceRoot,
+                    cwd: workspaceRoot,
+                    source: 'cli',
+                    simulate: true,
+                },
+                target: {
+                    domain: 'spoke',
+                    workspace_root: workspaceRoot,
+                    requested_path: 'spoke://keepos/',
+                    spoke: 'keepos',
+                },
+                session: createCliSession(),
+            },
+        );
+    });
+
     it('returns a structured evolve result from the runtime weave', async () => {
-        const weave = new EvolveWeave((async () => ({
-            stdout: JSON.stringify({
-                status: 'SUCCESS',
-                summary: 'Simulated evolve candidate accepted for proposal staging.',
-                proposal_id: 'proposal:test',
-                proposal_status: 'VALIDATED',
-                validation_id: 'validation:test',
-                proposal_path: '.agents/proposals/evolve/proposal.json',
-                contract_path: '.agents/skills/evolve/contract.json',
-                promotion_outcome: 'PROPOSAL_READY',
-            }),
-        })) as any);
+        const calls: Array<{ command: string; args: string[]; cwd?: string; pythonPath?: string }> = [];
+        const weave = new EvolveWeave((async (command: string, args: string[], options: { cwd?: string; env?: Record<string, string | undefined> }) => {
+            calls.push({
+                command,
+                args,
+                cwd: options.cwd,
+                pythonPath: options.env?.PYTHONPATH,
+            });
+            return {
+                stdout: JSON.stringify({
+                    status: 'SUCCESS',
+                    summary: 'Simulated evolve candidate accepted for proposal staging.',
+                    proposal_id: 'proposal:test',
+                    proposal_status: 'VALIDATED',
+                    validation_id: 'validation:test',
+                    proposal_path: '.agents/proposals/evolve/proposal.json',
+                    contract_path: '.agents/skills/evolve/contract.json',
+                    promotion_outcome: 'PROPOSAL_READY',
+                }),
+            };
+        }) as any);
 
         const result = await weave.execute(
             {
@@ -85,13 +127,19 @@ describe('Evolve skill promotion (CS-P7-07)', () => {
                     source: 'cli',
                 },
             },
-            createContext(workspaceRoot),
+            createContext(spokeRoot, 'spoke'),
         );
 
         assert.equal(result.status, 'SUCCESS');
         assert.equal(result.metadata?.proposal_id, 'proposal:test');
         assert.equal(result.metadata?.proposal_status, 'VALIDATED');
         assert.equal(result.metadata?.promotion_outcome, 'PROPOSAL_READY');
+        assert.equal(calls.length, 1);
+        assert.equal(calls[0].args[0], path.join(workspaceRoot, '.agents', 'skills', 'evolve', 'scripts', 'evolve.py'));
+        assert.equal(calls[0].args[1], '--project-root');
+        assert.equal(calls[0].args[2], spokeRoot);
+        assert.equal(calls[0].cwd, workspaceRoot);
+        assert.equal(calls[0].pythonPath, workspaceRoot);
     });
 
     it('builds a promotion invocation from CLI flags', () => {

@@ -1,4 +1,15 @@
+---
+name: edda
+description: "Use when converting legacy Markdown to Quarto or synthesizing API reference documentation from Python source files."
+risk: safe
+source: internal
+---
+
 # 🔱 EDDA DOCUMENTATION SKILL (v1.0)
+
+## When to Use
+- Use when converting legacy Markdown to Quarto or synthesizing API reference documentation from Python source files.
+
 
 ## MANDATE
 Transmute legacy Markdown documentation into Quarto format (.qmd) and synthesize API reference documentation from Python source code.

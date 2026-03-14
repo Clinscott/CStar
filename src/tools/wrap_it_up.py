@@ -37,7 +37,7 @@ class SovereignWrapper:
         SovereignHUD.box_top("STEP 1: INITIAL STRUCTURAL SCAN")
         SovereignHUD.persona_log("ALFRED", "Performing initial structural harvest (PennyOne)...")
         try:
-            subprocess.run(["npx.cmd", "tsx", "cstar.ts", "pennyone", "--scan"], cwd=str(self.root), check=True)
+            subprocess.run(["node.exe" if os.name == "nt" else "node", str(self.root / "bin" / "cstar.js"), "pennyone", "--scan"], cwd=str(self.root), check=True)
             SovereignHUD.box_row("STATUS", "COMPLETE", SovereignHUD.GREEN)
         except subprocess.CalledProcessError as e:
             SovereignHUD.persona_log("HEIMDALL", f"BREACH: Initial PennyOne harvest failed. {e}")
@@ -49,7 +49,7 @@ class SovereignWrapper:
         SovereignHUD.persona_log("ODIN", "Running a one-shot Ravens sweep through the kernel...")
         npx_cmd = "npx.cmd" if os.name == 'nt' else "npx"
         try:
-            subprocess.run([npx_cmd, "tsx", "cstar.ts", "ravens", "start"], cwd=str(self.root), check=True)
+            subprocess.run(["node.exe" if os.name == "nt" else "node", str(self.root / "bin" / "cstar.js"), "ravens", "start"], cwd=str(self.root), check=True)
             SovereignHUD.box_row("STATUS", "RELEASED", SovereignHUD.GREEN)
         except subprocess.CalledProcessError as e:
             SovereignHUD.persona_log("HEIMDALL", f"BREACH: Raven release failed. {e}")
@@ -92,7 +92,7 @@ class SovereignWrapper:
                 SovereignHUD.persona_log("HEIMDALL", "Breach detected in test suite. Initiating auto-fix protocol...")
                 try:
                     # Attempt a general fix cycle via Muninn (The Hunter)
-                    subprocess.run([npx_cmd, "tsx", "cstar.ts", "ravens", "start"], cwd=str(self.root), check=True)
+                    subprocess.run(["node.exe" if os.name == "nt" else "node", str(self.root / "bin" / "cstar.js"), "ravens", "start"], cwd=str(self.root), check=True)
                     self.wait_for_ravens()
                 except: pass
             else:
@@ -110,7 +110,7 @@ class SovereignWrapper:
         npx_cmd = "npx.cmd" if os.name == 'nt' else "npx"
         # Final Structural Scan
         try:
-            subprocess.run([npx_cmd, "tsx", "cstar.ts", "pennyone", "--scan"], cwd=str(self.root), check=True)
+            subprocess.run(["node.exe" if os.name == "nt" else "node", str(self.root / "bin" / "cstar.js"), "pennyone", "--scan"], cwd=str(self.root), check=True)
         except: pass
 
         # Compile Session Traces
@@ -257,9 +257,9 @@ class SovereignWrapper:
         SovereignHUD.persona_log("INFO", "Initiating global dormancy...")
         try:
             if os.name == 'nt':
-                subprocess.run(["npx.cmd", "tsx", "cstar.ts", "sleep"], cwd=str(self.root), capture_output=True)
+                subprocess.run(["node.exe", str(self.root / "bin" / "cstar.js"), "sleep"], cwd=str(self.root), capture_output=True)
             else:
-                subprocess.run(["npx", "tsx", "cstar.ts", "sleep"], cwd=str(self.root), capture_output=True)
+                subprocess.run(["node", str(self.root / "bin" / "cstar.js"), "sleep"], cwd=str(self.root), capture_output=True)
         except: pass
 
         if self.engine:

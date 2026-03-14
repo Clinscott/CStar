@@ -1,4 +1,15 @@
+---
+name: jailing
+description: "Use when executing untrusted Python skills inside restricted Docker sandboxes with resource and cleanup safeguards."
+risk: safe
+source: internal
+---
+
 # 🔱 SANDBOX JAILING SKILL (v1.0)
+
+## When to Use
+- Use when executing untrusted Python skills inside restricted Docker sandboxes with resource and cleanup safeguards.
+
 
 ## MANDATE
 Execute untrusted Python skills in a restricted, isolated Docker environment to ensure system integrity and resource containment.

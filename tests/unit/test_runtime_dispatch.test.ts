@@ -34,7 +34,10 @@ describe('Canonical Runtime Dispatcher (CS-P1-01)', () => {
         bootstrapRuntime(dispatcher);
 
         assert.deepStrictEqual(dispatcher.listAdapterIds(), [
+            'weave:architect',
             'weave:chant',
+            'weave:compress',
+            'weave:critique',
             'weave:dynamic-command',
             'weave:evolve',
             'weave:pennyone',
@@ -44,6 +47,7 @@ describe('Canonical Runtime Dispatcher (CS-P1-01)', () => {
             'weave:ravens-memory',
             'weave:ravens-promote',
             'weave:ravens-validate',
+            'weave:research',
             'weave:start',
             'weave:taliesin-forge',
         ]);

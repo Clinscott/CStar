@@ -229,10 +229,10 @@ export class MimirClient {
             return;
         }
 
-        const cstarPath = path.join(this.projectRoot, 'cstar.ts');
+        const cstarBin = path.join(this.projectRoot, 'bin', 'cstar.js');
         await execFileAsync(
-            'npx',
-            ['tsx', cstarPath, 'oracle', String(synapseId), '--db', '--silent'],
+            process.execPath,
+            [cstarBin, 'oracle', String(synapseId), '--db', '--silent'],
             {
                 cwd: this.projectRoot,
                 env: { ...process.env },

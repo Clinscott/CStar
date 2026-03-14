@@ -35,7 +35,7 @@ describe('Gungnir Control Plane Bootstrap', () => {
     it('Verify cstar --help outputs the expected command list', async () => {
         const { stdout } = await execa('node', [cliPath, '--help'], { cwd: PROJECT_ROOT });
         assert.match(stdout, /Usage: cstar/);
-        assert.match(stdout, /start\s+\[options\]\s+<target>/);
+        assert.match(stdout, /start\s+\[options\]\s+\[target\]/);
         assert.match(stdout, /dominion/);
         assert.match(stdout, /odin/);
     });

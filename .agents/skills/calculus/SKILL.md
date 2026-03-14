@@ -1,4 +1,15 @@
+---
+name: calculus
+description: "Use when scoring code artifacts across logic, style, symmetry, and semantic intelligence."
+risk: safe
+source: internal
+---
+
 # 🔱 GUNGNIR CALCULUS SKILL (v1.0)
+
+## When to Use
+- Use when scoring code artifacts across logic, style, symmetry, and semantic intelligence.
+
 
 ## MANDATE
 Perform multi-dimensional analysis of code artifacts to evaluate structural logic, aesthetic symmetry, and semantic intelligence.

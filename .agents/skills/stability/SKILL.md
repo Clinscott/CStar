@@ -1,4 +1,15 @@
+---
+name: stability
+description: "Use when tracking edit fatigue and oscillation to prevent recursive or conflicting repair loops."
+risk: safe
+source: internal
+---
+
 # 🔱 STABILITY MANAGER SKILL (v1.0)
+
+## When to Use
+- Use when tracking edit fatigue and oscillation to prevent recursive or conflicting repair loops.
+
 
 ## MANDATE
 Protect the repository timeline by tracking file edit fatigue, preventing oscillation (edit wars), and maintaining environmental awareness.

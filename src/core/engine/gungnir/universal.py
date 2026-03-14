@@ -101,7 +101,18 @@ class UniversalGungnir:
                 if total_lines > 20 and (doc_lines / total_lines) < 0.15:
                     breaches.append({"severity": "MEDIUM", "action": f"GUNGNIR_INTEL_BREACH: Low documentation ratio ({doc_lines/total_lines:.2f}). Add intents/docstrings."})
 
-                # 4. Style [S]: Claustrophobia check
+                # 4. Balance [B]: Detect top-heavy setup versus execution
+                for node in [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]:
+                    setup_steps = sum(isinstance(stmt, (ast.Assign, ast.AnnAssign, ast.AugAssign)) for stmt in node.body)
+                    execution_steps = sum(isinstance(stmt, (ast.Return, ast.Expr, ast.Raise, ast.Yield, ast.YieldFrom)) for stmt in node.body)
+                    if execution_steps and setup_steps / execution_steps > 1.7:
+                        breaches.append({
+                            "severity": "MEDIUM",
+                            "action": f"GUNGNIR_LOGIC_BREACH: top-heavy setup detected ({setup_steps/execution_steps:.1f}). Reduce preamble before execution."
+                        })
+                        break
+
+                # 5. Style [S]: Claustrophobia check
                 consecutive = 0
                 for line in lines:
                     if line.strip() and not line.strip().startswith('#'):

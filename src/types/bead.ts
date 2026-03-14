@@ -18,6 +18,8 @@ export interface SovereignBead {
     resolution_note?: string;
     resolved_validation_id?: string;
     superseded_by?: string;
+    architect_opinion?: string;
+    critique_payload?: Record<string, unknown>;
     created_at: number;
     updated_at: number;
 }
@@ -41,6 +43,8 @@ export function materializeSovereignBead(record: HallBeadRecord): SovereignBead 
         resolution_note: record.resolution_note,
         resolved_validation_id: record.resolved_validation_id,
         superseded_by: record.superseded_by,
+        architect_opinion: record.architect_opinion,
+        critique_payload: record.critique_payload ? { ...record.critique_payload } : undefined,
         created_at: record.created_at,
         updated_at: record.updated_at,
     };

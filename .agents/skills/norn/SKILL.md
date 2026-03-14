@@ -1,4 +1,15 @@
+---
+name: norn
+description: "Use when synchronizing tasks into the PennyOne ledger and coordinating bead claim and resolution flow."
+risk: safe
+source: internal
+---
+
 # 🔱 NORN TASK COORDINATION SKILL (v1.0)
+
+## When to Use
+- Use when synchronizing tasks into the PennyOne ledger and coordinating bead claim and resolution flow.
+
 
 ## MANDATE
 Manage the Ledger of the Norns by synchronizing project tasks with the PennyOne database and generating executable "Beads" for Raven Wardens.

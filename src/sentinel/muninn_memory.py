@@ -83,7 +83,7 @@ class MuninnMemory:
         ledger_path = self.root / ".agents" / "sprt_ledger.json"
         state_path = self.root / ".agents" / "sovereign_state.json"
 
-        if not ledger_path.exists() or not state_path.exists():
+        if not ledger_path.exists():
             return None
 
         try:
@@ -103,8 +103,13 @@ class MuninnMemory:
 
             state: dict[str, Any] = {}
             if state_path.exists():
-                with open(state_path, "r", encoding="utf-8") as handle:
-                    state = json.load(handle)
+                try:
+                    with open(state_path, "r", encoding="utf-8") as handle:
+                        loaded_state = json.load(handle)
+                    if isinstance(loaded_state, dict):
+                        state = loaded_state
+                except (OSError, json.JSONDecodeError):
+                    state = {}
 
             state.setdefault("framework", {})
             state["framework"]["intent_integrity"] = accuracy

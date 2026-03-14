@@ -1,4 +1,15 @@
+---
+name: locks
+description: "Use when managing exclusive task leases in PennyOne to coordinate concurrent agents and prevent deadlocks."
+risk: safe
+source: internal
+---
+
 # 🔱 TASK LEASE MANAGEMENT SKILL (v1.0)
+
+## When to Use
+- Use when managing exclusive task leases in PennyOne to coordinate concurrent agents and prevent deadlocks.
+
 
 ## MANDATE
 Synchronize concurrent agent executions by managing exclusive task leases via the PennyOne database.

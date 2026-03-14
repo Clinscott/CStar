@@ -1,4 +1,15 @@
+---
+name: metrics
+description: "Use when computing project health metrics from latency, complexity, linting, and neural alignment signals."
+risk: safe
+source: internal
+---
+
 # 🔱 PROJECT METRICS SKILL (v1.0)
+
+## When to Use
+- Use when computing project health metrics from latency, complexity, linting, and neural alignment signals.
+
 
 ## MANDATE
 Calculate and track the Global Project Health Score (GPHS) based on functional health, code complexity, prompt integrity, and neural alignment.

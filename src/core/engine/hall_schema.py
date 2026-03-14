@@ -54,6 +54,8 @@ class HallFileRecord:
     language: str | None = None
     gungnir_score: float = 0.0
     matrix: GungnirMatrix | dict[str, Any] = field(default_factory=GungnirMatrix)
+    imports: list[dict[str, str]] = field(default_factory=list)
+    exports: list[str] = field(default_factory=list)
     intent_summary: str | None = None
     interaction_summary: str | None = None
 
@@ -107,6 +109,19 @@ class HallSkillObservation:
     outcome: str
     observation: str
     created_at: int
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class HallEpisodicMemoryRecord:
+    memory_id: str
+    bead_id: str
+    repo_id: str
+    tactical_summary: str
+    created_at: int
+    updated_at: int
+    files_touched: list[str] = field(default_factory=list)
+    successes: list[str] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -207,6 +222,8 @@ class HallOfRecords:
                     language TEXT,
                     gungnir_score REAL NOT NULL DEFAULT 0,
                     matrix_json TEXT,
+                    imports_json TEXT,
+                    exports_json TEXT,
                     intent_summary TEXT,
                     interaction_summary TEXT,
                     created_at INTEGER NOT NULL,
@@ -216,6 +233,26 @@ class HallOfRecords:
                 );
 
                 CREATE INDEX IF NOT EXISTS idx_hall_files_repo_path ON hall_files(repo_id, path);
+
+                CREATE TABLE IF NOT EXISTS hall_episodic_memory (
+                    memory_id TEXT PRIMARY KEY,
+                    bead_id TEXT NOT NULL,
+                    repo_id TEXT NOT NULL,
+                    tactical_summary TEXT NOT NULL,
+                    files_touched_json TEXT,
+                    successes_json TEXT,
+                    metadata_json TEXT,
+                    created_at INTEGER NOT NULL,
+                    updated_at INTEGER NOT NULL,
+                    FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id),
+                    FOREIGN KEY(bead_id) REFERENCES hall_beads(bead_id)
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_hall_episodic_memory_repo
+                ON hall_episodic_memory(repo_id, created_at);
+
+                CREATE INDEX IF NOT EXISTS idx_hall_episodic_memory_bead
+                ON hall_episodic_memory(bead_id, created_at);
 
                 CREATE TABLE IF NOT EXISTS hall_beads (
                     bead_id TEXT PRIMARY KEY,
@@ -378,6 +415,8 @@ class HallOfRecords:
             self._ensure_column(conn, "hall_beads", "resolution_note", "TEXT")
             self._ensure_column(conn, "hall_beads", "resolved_validation_id", "TEXT")
             self._ensure_column(conn, "hall_beads", "superseded_by", "TEXT")
+            self._ensure_column(conn, "hall_files", "imports_json", "TEXT")
+            self._ensure_column(conn, "hall_files", "exports_json", "TEXT")
             self._ensure_column(conn, "hall_skill_proposals", "summary", "TEXT")
             self._ensure_column(conn, "hall_skill_proposals", "promotion_note", "TEXT")
             self._ensure_column(conn, "hall_skill_proposals", "promoted_at", "INTEGER")
@@ -540,13 +579,15 @@ class HallOfRecords:
                 """
                 INSERT INTO hall_files (
                     repo_id, scan_id, path, content_hash, language, gungnir_score,
-                    matrix_json, intent_summary, interaction_summary, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    matrix_json, imports_json, exports_json, intent_summary, interaction_summary, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(scan_id, path) DO UPDATE SET
                     content_hash = excluded.content_hash,
                     language = excluded.language,
                     gungnir_score = excluded.gungnir_score,
                     matrix_json = excluded.matrix_json,
+                    imports_json = excluded.imports_json,
+                    exports_json = excluded.exports_json,
                     intent_summary = excluded.intent_summary,
                     interaction_summary = excluded.interaction_summary
                 """,
@@ -558,11 +599,147 @@ class HallOfRecords:
                     record.language,
                     record.gungnir_score or get_gungnir_overall(materialized_matrix),
                     json.dumps(matrix_to_dict(materialized_matrix)),
+                    json.dumps(record.imports),
+                    json.dumps(record.exports),
                     record.intent_summary,
                     record.interaction_summary,
                     record.created_at,
                 ),
             )
+
+    def get_file(self, file_path: str, scan_id: str | None = None) -> HallFileRecord | None:
+        self.ensure_schema()
+        repo_id = build_repo_id(self.project_root)
+        normalized_path = normalize_hall_path(file_path)
+        with self.connect() as conn:
+            row = (
+                conn.execute(
+                    """
+                    SELECT repo_id, scan_id, path, content_hash, language, gungnir_score,
+                           matrix_json, imports_json, exports_json, intent_summary, interaction_summary, created_at
+                    FROM hall_files
+                    WHERE repo_id = ? AND scan_id = ? AND path = ?
+                    LIMIT 1
+                    """,
+                    (repo_id, scan_id, normalized_path),
+                ).fetchone()
+                if scan_id is not None
+                else conn.execute(
+                    """
+                    SELECT repo_id, scan_id, path, content_hash, language, gungnir_score,
+                           matrix_json, imports_json, exports_json, intent_summary, interaction_summary, created_at
+                    FROM hall_files
+                    WHERE repo_id = ? AND path = ?
+                    ORDER BY created_at DESC
+                    LIMIT 1
+                    """,
+                    (repo_id, normalized_path),
+                ).fetchone()
+            )
+        return self._hall_file_from_row(row)
+
+    def list_files(self, scan_id: str | None = None) -> list[HallFileRecord]:
+        self.ensure_schema()
+        repo_id = build_repo_id(self.project_root)
+        with self.connect() as conn:
+            rows = (
+                conn.execute(
+                    """
+                    SELECT repo_id, scan_id, path, content_hash, language, gungnir_score,
+                           matrix_json, imports_json, exports_json, intent_summary, interaction_summary, created_at
+                    FROM hall_files
+                    WHERE repo_id = ? AND scan_id = ?
+                    ORDER BY path ASC
+                    """,
+                    (repo_id, scan_id),
+                ).fetchall()
+                if scan_id is not None
+                else conn.execute(
+                    """
+                    SELECT repo_id, scan_id, path, content_hash, language, gungnir_score,
+                           matrix_json, imports_json, exports_json, intent_summary, interaction_summary, created_at
+                    FROM hall_files
+                    WHERE repo_id = ?
+                    ORDER BY path ASC
+                    """,
+                    (repo_id,),
+                ).fetchall()
+            )
+        return [record for row in rows if (record := self._hall_file_from_row(row)) is not None]
+
+    def save_episodic_memory(self, record: HallEpisodicMemoryRecord) -> None:
+        self.ensure_schema()
+        with self.connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO hall_episodic_memory (
+                    memory_id, bead_id, repo_id, tactical_summary, files_touched_json,
+                    successes_json, metadata_json, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(memory_id) DO UPDATE SET
+                    tactical_summary = excluded.tactical_summary,
+                    files_touched_json = excluded.files_touched_json,
+                    successes_json = excluded.successes_json,
+                    metadata_json = excluded.metadata_json,
+                    updated_at = excluded.updated_at
+                """,
+                (
+                    record.memory_id,
+                    record.bead_id,
+                    record.repo_id,
+                    record.tactical_summary,
+                    json.dumps(record.files_touched),
+                    json.dumps(record.successes),
+                    json.dumps(record.metadata),
+                    record.created_at,
+                    record.updated_at,
+                ),
+            )
+
+    def get_episodic_memory(self, memory_id: str) -> HallEpisodicMemoryRecord | None:
+        self.ensure_schema()
+        repo_id = build_repo_id(self.project_root)
+        with self.connect() as conn:
+            row = conn.execute(
+                """
+                SELECT memory_id, bead_id, repo_id, tactical_summary, files_touched_json,
+                       successes_json, metadata_json, created_at, updated_at
+                FROM hall_episodic_memory
+                WHERE repo_id = ? AND memory_id = ?
+                LIMIT 1
+                """,
+                (repo_id, memory_id),
+            ).fetchone()
+        return self._hall_episodic_memory_from_row(row)
+
+    def list_episodic_memory(self, bead_id: str | None = None) -> list[HallEpisodicMemoryRecord]:
+        self.ensure_schema()
+        repo_id = build_repo_id(self.project_root)
+        with self.connect() as conn:
+            rows = (
+                conn.execute(
+                    """
+                    SELECT memory_id, bead_id, repo_id, tactical_summary, files_touched_json,
+                           successes_json, metadata_json, created_at, updated_at
+                    FROM hall_episodic_memory
+                    WHERE repo_id = ? AND bead_id = ?
+                    ORDER BY created_at ASC
+                    """,
+                    (repo_id, bead_id),
+                ).fetchall()
+                if bead_id is not None
+                else conn.execute(
+                    """
+                    SELECT memory_id, bead_id, repo_id, tactical_summary, files_touched_json,
+                           successes_json, metadata_json, created_at, updated_at
+                    FROM hall_episodic_memory
+                    WHERE repo_id = ?
+                    ORDER BY created_at ASC
+                    """,
+                    (repo_id,),
+                ).fetchall()
+            )
+        return [record for row in rows if (record := self._hall_episodic_memory_from_row(row)) is not None]
 
     def upsert_bead(self, record: HallBeadRecord) -> None:
         self.ensure_schema()
@@ -977,6 +1154,41 @@ class HallOfRecords:
         if column_name in HallOfRecords._table_columns(conn, table_name):
             return
         conn.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_sql}")
+
+    @staticmethod
+    def _hall_file_from_row(row: sqlite3.Row | None) -> HallFileRecord | None:
+        if row is None:
+            return None
+        return HallFileRecord(
+            repo_id=str(row["repo_id"]),
+            scan_id=str(row["scan_id"]),
+            path=str(row["path"]),
+            created_at=int(row["created_at"] or 0),
+            content_hash=str(row["content_hash"]) if row["content_hash"] is not None else None,
+            language=str(row["language"]) if row["language"] is not None else None,
+            gungnir_score=float(row["gungnir_score"] or 0),
+            matrix=json.loads(row["matrix_json"] or "{}"),
+            imports=json.loads(row["imports_json"] or "[]"),
+            exports=json.loads(row["exports_json"] or "[]"),
+            intent_summary=str(row["intent_summary"]) if row["intent_summary"] is not None else None,
+            interaction_summary=str(row["interaction_summary"]) if row["interaction_summary"] is not None else None,
+        )
+
+    @staticmethod
+    def _hall_episodic_memory_from_row(row: sqlite3.Row | None) -> HallEpisodicMemoryRecord | None:
+        if row is None:
+            return None
+        return HallEpisodicMemoryRecord(
+            memory_id=str(row["memory_id"]),
+            bead_id=str(row["bead_id"]),
+            repo_id=str(row["repo_id"]),
+            tactical_summary=str(row["tactical_summary"]),
+            created_at=int(row["created_at"] or 0),
+            updated_at=int(row["updated_at"] or 0),
+            files_touched=json.loads(row["files_touched_json"] or "[]"),
+            successes=json.loads(row["successes_json"] or "[]"),
+            metadata=json.loads(row["metadata_json"] or "{}"),
+        )
 
     @staticmethod
     def _now() -> int:

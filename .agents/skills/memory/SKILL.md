@@ -1,4 +1,15 @@
+---
+name: memory
+description: "Use when recording runtime observations as Hall-backed feedback without mutating canonical skill contracts."
+risk: safe
+source: internal
+---
+
 # RECURSIVE MEMORY SKILL
+
+## When to Use
+- Use when recording runtime observations as Hall-backed feedback without mutating canonical skill contracts.
+
 
 ## MANDATE
 Record runtime observations as Hall-backed feedback without mutating canonical skill contracts.

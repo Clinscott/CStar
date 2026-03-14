@@ -26,9 +26,12 @@ except (ImportError, ValueError, IndexError) as e:
 
 from src.core import utils
 from src.core.sovereign_hud import SovereignHUD
-
-# [ALFRED] Spoke Consolidation: Reducing Coupling [C] via facade
-from src.core.engine import *
+from src.core.engine.builder import SovereignBuilder
+from src.core.engine.context import SovereignContext
+from src.core.engine.executor import SovereignExecutor
+from src.core.engine.injector import SovereignInjector
+from src.core.engine.orchestrator import SovereignOrchestrator
+from src.core.engine.reporter import SovereignReporter
 
 
 class SovereignEngine:

@@ -1,4 +1,15 @@
+---
+name: oracle
+description: "Use when you need repository-aware technical analysis or intent generation grounded through the One Mind."
+risk: safe
+source: internal
+---
+
 # 🔱 GUNGNIR ORACLE SKILL (v1.0)
+
+## When to Use
+- Use when you need repository-aware technical analysis or intent generation grounded through the One Mind.
+
 
 ## MANDATE
 Provide high-fidelity repository intelligence, code analysis, and intent generation by consulting the One Mind.

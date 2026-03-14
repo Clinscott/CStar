@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { runScan } from '../src/tools/pennyone/index.js';
-import { P1Daemon } from '../src/tools/pennyone/daemon.js';
-import { startProxy } from '../src/tools/pennyone/vis/proxy.js';
-import { searchMatrix } from '../src/tools/pennyone/live/search.js';
+import { runScan } from '../src/tools/pennyone/index.ts';
+import { P1Daemon } from '../src/tools/pennyone/daemon.ts';
+import { startProxy } from '../src/tools/pennyone/vis/proxy.ts';
+import { searchMatrix } from '../src/tools/pennyone/live/search.ts';
 import fs from 'node:fs';
 import path from 'node:path';
-import { registry } from '../src/tools/pennyone/pathRegistry.js';
-import { ANS } from '../src/node/core/ans.js';
+import { registry } from '../src/tools/pennyone/pathRegistry.ts';
+import { ANS } from '../src/node/core/ans.ts';
 
 const program = new Command();
 

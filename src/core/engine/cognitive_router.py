@@ -4,6 +4,7 @@ import asyncio
 import subprocess
 import uuid
 from pathlib import Path
+from src.core.runtime_env import resolve_project_python
 from src.core.telemetry import SubspaceTelemetry
 from src.core.mimir_client import mimir
 from src.core.sovereign_hud import SovereignHUD
@@ -177,7 +178,7 @@ class CognitiveRouter:
         for cap in missing_capabilities:
             try:
                 self._secure_execute(
-                    ["python", str(hunt_script), "search", cap],
+                    [str(resolve_project_python(self.project_root)), str(hunt_script), "search", cap],
                     cwd=str(self.project_root),
                     check=True
                 )

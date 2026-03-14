@@ -4,7 +4,10 @@ Lore: "The gathering of souls."
 Purpose: Handle skill loading from files and directories into MemoryDB.
 """
 
+import re
 from pathlib import Path
+from typing import Any
+
 from src.core.sovereign_hud import SovereignHUD
 
 class VectorIngest:

@@ -1,4 +1,15 @@
+---
+name: sterling
+description: "Use when auditing repository sectors for compliance with the Sterling mandate across lore, isolation, and audit coverage."
+risk: safe
+source: internal
+---
+
 # 🔱 STERLING COMPLIANCE SKILL (v1.0)
+
+## When to Use
+- Use when auditing repository sectors for compliance with the Sterling mandate across lore, isolation, and audit coverage.
+
 
 ## MANDATE
 Audit the repository for compliance with the Sterling Mandate (Lore, Isolation, Audit).

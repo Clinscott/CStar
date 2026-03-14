@@ -3,6 +3,7 @@ try:
 except ImportError:
     chromadb = None
 
+import re
 from pathlib import Path
 from typing import Any
 

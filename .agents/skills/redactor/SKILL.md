@@ -1,4 +1,15 @@
+---
+name: redactor
+description: "Use when masking secrets in logs, reports, and terminal output before data leaves the system."
+risk: safe
+source: internal
+---
+
 # 🔱 SECRET REDACTION SKILL (v1.0)
+
+## When to Use
+- Use when masking secrets in logs, reports, and terminal output before data leaves the system.
+
 
 ## MANDATE
 Protect the repository from accidental secret exposure by automatically masking sensitive values (API keys, tokens) in logs, reports, and terminal output.

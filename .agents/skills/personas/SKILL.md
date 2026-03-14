@@ -1,4 +1,15 @@
+---
+name: personas
+description: "Use when managing persona selection, voice enforcement, policy checks, and documentation retheming."
+risk: safe
+source: internal
+---
+
 # 🔱 PERSONA MANAGEMENT SKILL (v1.0)
+
+## When to Use
+- Use when managing persona selection, voice enforcement, policy checks, and documentation retheming.
+
 
 ## MANDATE
 Enforce project-wide persona strategies, voice consistency, policy adherence, and documentation re-theming.

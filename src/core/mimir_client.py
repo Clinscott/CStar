@@ -222,10 +222,11 @@ class MimirClient:
                 await result
             return
 
-        cstar_ts = self.project_root / "cstar.ts"
+        cstar_bin = self.project_root / "bin" / "cstar.js"
+        node_cmd = "node.exe" if os.name == "nt" else "node"
         completed = await asyncio.to_thread(
             subprocess.run,
-            ["npx", "tsx", str(cstar_ts), "oracle", str(synapse_id), "--db", "--silent"],
+            [node_cmd, str(cstar_bin), "oracle", str(synapse_id), "--db", "--silent"],
             cwd=str(self.project_root),
             capture_output=True,
             text=True,

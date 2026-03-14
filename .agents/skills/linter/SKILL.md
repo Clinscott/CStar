@@ -1,4 +1,15 @@
+---
+name: linter
+description: "Use when checking prompt integrity between .prompty files and their Python invocations."
+risk: safe
+source: internal
+---
+
 # 🔱 PROMPT INTEGRITY LINTER SKILL (v1.0)
+
+## When to Use
+- Use when checking prompt integrity between .prompty files and their Python invocations.
+
 
 ## MANDATE
 Ensure high-fidelity prompt engineering by verifying variable synchronization between `.prompty` files and their Python invocations.

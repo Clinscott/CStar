@@ -42,10 +42,18 @@ def reset_hud_async_state():
     SovereignHUD._render_queue = None
     SovereignHUD._render_lock = None
     SovereignHUD._INITIALIZED = False
+    SovereignHUD._CACHED_THEME = None
+    SovereignHUD._CACHED_WIDTH = 64
+    SovereignHUD._last_width = 64
     SovereignHUD.PERSONA = "ALFRED"
     yield
     SovereignHUD._render_queue = None
     SovereignHUD._render_lock = None
+    SovereignHUD._INITIALIZED = False
+    SovereignHUD._CACHED_THEME = None
+    SovereignHUD._CACHED_WIDTH = 64
+    SovereignHUD._last_width = 64
+    SovereignHUD.PERSONA = "ALFRED"
 
 
 # ===========================================================================
@@ -172,3 +180,16 @@ async def test_hud_interruption_cleanup(mock_stream):
     assert "POST_CANCEL_WRITE" in mock_stream.getvalue(), (
         "Terminal is locked — post-cancel write failed"
     )
+
+
+def test_hud_invalid_config_falls_back_to_defaults(tmp_path, monkeypatch):
+    """Malformed persona config should not crash HUD initialization."""
+    agents_dir = tmp_path / ".agents"
+    agents_dir.mkdir()
+    (agents_dir / "config.json").write_text("not-json", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+
+    theme = SovereignHUD.get_theme()
+
+    assert SovereignHUD.PERSONA == "ALFRED"
+    assert theme["title"] == "CSTAR A.L.F.R.E.D. DASHBOARD"

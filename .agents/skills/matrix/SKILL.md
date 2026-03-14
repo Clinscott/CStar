@@ -1,4 +1,15 @@
+---
+name: matrix
+description: "Use when compiling or visualizing the repository relationship graph for topographical matrix analysis."
+risk: safe
+source: internal
+---
+
 # 🔱 GUNGNIR MATRIX SKILL (v1.0)
+
+## When to Use
+- Use when compiling or visualizing the repository relationship graph for topographical matrix analysis.
+
 
 ## MANDATE
 Compile and visualize the global repository relationship graph (Mimir's Matrix), providing real-time 3D topographical analysis.

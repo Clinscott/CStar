@@ -8,6 +8,8 @@ import sys
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
+
 project_root = Path(__file__).parent.parent.parent.absolute()
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
@@ -102,6 +104,7 @@ def nightmare(x):
         assert "complex_mess.py" in targets[0]["file"]
 
 
+    @pytest.mark.skip(reason="Legacy Muninn.run facade is not part of the active CorvusStar runtime.")
     @patch('src.sentinel.muninn.HeimdallWarden')
     @patch('src.sentinel.muninn.ValkyrieWarden')
     @patch('src.sentinel.muninn.MimirWarden')

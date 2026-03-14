@@ -10,6 +10,7 @@ project_root = Path(__file__).resolve().parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
+from src.core.runtime_env import resolve_project_python, resolve_quarto_binary
 from src.core.sovereign_hud import SovereignHUD
 from src.sentinel._bootstrap import PROJECT_ROOT, SovereignBootstrap
 
@@ -22,9 +23,7 @@ class CorvusDispatcher:
     """
     def __init__(self, root: Path | None = None) -> None:
         self.project_root = root or PROJECT_ROOT
-        self.venv_python = self.project_root / ".venv" / "Scripts" / "python.exe"
-        if not self.venv_python.exists():
-            self.venv_python = Path(sys.executable)
+        self.venv_python = resolve_project_python(self.project_root)
 
         # Persona Synchronization delegated to 'personas' skill
         # [ALFRED]: We still load persona for the HUD display, but policy is skill-based.
@@ -147,9 +146,8 @@ class CorvusDispatcher:
                     subprocess.run([str(self.venv_python), cmd_path, *cmd_args], env=env, check=True, encoding='utf-8')
                 else: # Workflow
                     SovereignHUD.persona_log("INFO", f"Dispatching workflow: /{cmd}")
-                    import shutil
-                    quarto_path = shutil.which("quarto") or r"C:\Program Files\Quarto\bin\quarto.exe"
-                    if os.path.exists(quarto_path):
+                    quarto_path = resolve_quarto_binary()
+                    if quarto_path:
                         subprocess.run([quarto_path, "render", cmd_path], check=True, encoding='utf-8')
                     else:
                         SovereignHUD.persona_log("WARN", "Quarto not found. Displaying raw workflow:")

@@ -1,4 +1,15 @@
+---
+name: forge
+description: "Use when translating lore fragments into staged code artifacts through the Taliesin Forge pipeline."
+risk: safe
+source: internal
+---
+
 # 🔱 TALIESIN FORGE SKILL (v1.0)
+
+## When to Use
+- Use when translating lore fragments into staged code artifacts through the Taliesin Forge pipeline.
+
 
 ## MANDATE
 Translate high-fidelity Lore Fragments (.qmd or .feature) into production-ready Code Artifacts that strictly adhere to the Linscott Standard.

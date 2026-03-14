@@ -1,4 +1,15 @@
+---
+name: telemetry
+description: "Use when recording mission telemetry, flares, and traces or broadcasting critical runtime alerts."
+risk: safe
+source: internal
+---
+
 # 🔱 SUBSPACE TELEMETRY SKILL (v1.0)
+
+## When to Use
+- Use when recording mission telemetry, flares, and traces or broadcasting critical runtime alerts.
+
 
 ## MANDATE
 Manage real-time mission telemetry, flares, and traces to update the Hall of Records and increase sector Gravity.

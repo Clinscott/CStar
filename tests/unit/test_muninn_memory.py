@@ -50,3 +50,24 @@ def test_sync_intent_integrity_from_sprt_updates_hall_first(tmp_path: Path) -> N
 
     state = json.loads((agents_dir / "sovereign_state.json").read_text(encoding="utf-8"))
     assert state["framework"]["intent_integrity"] == 87.5
+
+def test_sync_intent_integrity_from_sprt_bootstraps_compat_projection_when_missing(tmp_path: Path) -> None:
+    agents_dir = tmp_path / ".agents"
+    agents_dir.mkdir()
+    (agents_dir / "sprt_ledger.json").write_text(
+        json.dumps({"history": [{"accuracy": 91.25}]}),
+        encoding="utf-8",
+    )
+
+    memory = MuninnMemory(tmp_path)
+    accuracy = memory.sync_intent_integrity_from_sprt()
+
+    assert accuracy == 91.25
+
+    repo = HallOfRecords(tmp_path).get_repository_record()
+    assert repo is not None
+    assert repo.intent_integrity == 91.25
+
+    state = json.loads((agents_dir / "sovereign_state.json").read_text(encoding="utf-8"))
+    assert state["framework"]["intent_integrity"] == 91.25
+

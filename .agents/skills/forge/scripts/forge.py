@@ -14,6 +14,7 @@ from src.core.engine.forge_candidate import (
     normalize_lore_to_forge_request,
     stage_forge_candidate,
 )
+from src.core.runtime_env import resolve_project_python
 
 
 def _to_repo_path(path: Path) -> str:
@@ -51,8 +52,7 @@ def main():
 
     # Trigger One Mind Skill via Dispatcher
     cstar_dispatcher = PROJECT_ROOT / "src" / "core" / "cstar_dispatcher.py"
-    venv_python = PROJECT_ROOT / ".venv" / "Scripts" / "python.exe"
-    if not venv_python.exists(): venv_python = Path(sys.executable)
+    venv_python = resolve_project_python(PROJECT_ROOT)
 
     print(f"[Ω] Forge: Requesting materialization from the One Mind...", file=sys.stderr)
     

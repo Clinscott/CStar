@@ -1,4 +1,15 @@
+---
+name: warden
+description: "Use when monitoring repository anomalies, lore violations, system drift, and hardening signals."
+risk: safe
+source: internal
+---
+
 # 🔱 NEURAL WARDEN SKILL (v1.0)
+
+## When to Use
+- Use when monitoring repository anomalies, lore violations, system drift, and hardening signals.
+
 
 ## MANDATE
 Monitor and harden the repository against anomalies, lore violations, and system drift using localized neural models.

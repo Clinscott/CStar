@@ -1,4 +1,15 @@
+---
+name: research
+description: "Use when running fixed-budget experiments against immutable targets and recording successful optimizations into behavioral contracts."
+risk: safe
+source: internal
+---
+
 # 🔱 RESEARCH SKILL (v1.0)
+
+## When to Use
+- Use when running fixed-budget experiments against immutable targets and recording successful optimizations into behavioral contracts.
+
 
 ## MANDATE
 Conduct autonomous, fixed-budget experimentation to optimize target logic. This skill implements the "Karpathy Standard" for agent-driven research.

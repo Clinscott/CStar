@@ -1,4 +1,15 @@
+---
+name: sprt
+description: "Use when running sequential probability ratio tests to judge stability, regressions, and score deltas."
+risk: safe
+source: internal
+---
+
 # 🔱 GUNGNIR SPRT SKILL (v1.0)
+
+## When to Use
+- Use when running sequential probability ratio tests to judge stability, regressions, and score deltas.
+
 
 ## MANDATE
 Perform Sequential Probability Ratio Tests (SPRT) to statistically verify system stability, hypothesis acceptance, and GPHS delta significance.

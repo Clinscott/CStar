@@ -15,6 +15,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 # Imports (Now valid)
+from src.core.runtime_env import resolve_project_python
 from src.core.sovereign_hud import SovereignHUD
 
 
@@ -99,9 +100,7 @@ def release_ravens() -> None:
     try:
         project_dir = str(PROJECT_ROOT)
         # Use simple python if venv python not found (handled by shell mostly, but let's try to find venv)
-        python_exe = PROJECT_ROOT / ".venv" / "Scripts" / "python.exe"
-        if not python_exe.exists():
-            python_exe = "python"
+        python_exe = resolve_project_python(PROJECT_ROOT)
 
         cmd_str = f"Set-Location '{project_dir}'; & '{python_exe}' -m src.sentinel.main_loop"
 

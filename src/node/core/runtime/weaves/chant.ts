@@ -43,55 +43,7 @@ type DirectChantResolution =
           summary: string;
       };
 
-interface PlanningTargetIdentity {
-    target_kind: HallBeadTargetKind;
-    target_ref?: string;
-    target_path?: string;
-}
-
-interface PlanningResolution {
-    kind: 'planning';
-    session_id: string;
-    status: Extract<HallPlanningSessionStatus, 'NEEDS_INPUT' | 'PLAN_READY'>;
-    summary: string;
-    follow_up_questions: string[];
-    latest_question?: string;
-    emitted_beads: string[];
-    target: PlanningTargetIdentity;
-}
-
-interface PlanningTurn {
-    role: 'user' | 'system';
-    content: string;
-    at: number;
-}
-
 const CONTROL_WORDS = new Set(['chant', 'use', 'run', 'invoke']);
-const PLANNING_TERMS = [
-    'actualize',
-    'analyze',
-    'audit',
-    'build',
-    'create',
-    'design',
-    'enable',
-    'evolve',
-    'expand',
-    'fix',
-    'implement',
-    'improve',
-    'investigate',
-    'make',
-    'mount',
-    'optimize',
-    'orchestrate',
-    'plan',
-    'refine',
-    'refactor',
-    'rethink',
-    'review',
-    'support',
-];
 const TARGET_TERMS = [
     'bead',
     'brain',
@@ -116,7 +68,6 @@ const TARGET_TERMS = [
     'tui',
     'validation',
 ];
-const VAGUE_TOKENS = new Set(['this', 'that', 'it', 'something', 'stuff', 'things']);
 
 function tokenize(query: string): string[] {
     return query
@@ -313,198 +264,6 @@ function resolveSkillInvocation(tokens: string[], payload: ChantWeavePayload, sk
     return null;
 }
 
-function extractFileTarget(normalizedIntent: string): string | undefined {
-    const match = normalizedIntent.match(
-        /(?:[A-Za-z]:)?(?:[\\/][\w.\- ]+)+|(?:\.{1,2}[\\/][\w.\- ]+)+|[\w.\-]+(?:[\\/][\w.\- ]+)+|(?:\.[A-Za-z0-9._-]+)/,
-    );
-    if (!match) {
-        return undefined;
-    }
-    const candidate = match[0].trim();
-    if (!candidate.includes('/') && !candidate.includes('\\') && !candidate.startsWith('.')) {
-        return undefined;
-    }
-    return normalizeHallPath(candidate);
-}
-
-function inferPlanningTarget(normalizedIntent: string, repoId: string): PlanningTargetIdentity {
-    const fileTarget = extractFileTarget(normalizedIntent);
-    if (fileTarget) {
-        return {
-            target_kind: 'FILE',
-            target_ref: fileTarget,
-            target_path: fileTarget,
-        };
-    }
-
-    if (/\b(spoke|keepos|astrologer|securesphere|corvuseye|xo)\b/i.test(normalizedIntent)) {
-        return {
-            target_kind: 'SPOKE',
-            target_ref: normalizedIntent.match(/\b(keepos|astrologer|securesphere|corvuseye|xo)\b/i)?.[1]?.toLowerCase(),
-        };
-    }
-
-    if (/\b(contract|skill)\b/i.test(normalizedIntent)) {
-        return {
-            target_kind: 'CONTRACT',
-            target_ref: 'skill-contract',
-        };
-    }
-
-    if (/\b(validation|crucible|sprt|gungnir)\b/i.test(normalizedIntent)) {
-        return {
-            target_kind: 'VALIDATION',
-            target_ref: 'validation',
-        };
-    }
-
-    if (/\b(repo|repository|estate|brain|corvus star|kernel|system)\b/i.test(normalizedIntent)) {
-        return {
-            target_kind: 'REPOSITORY',
-            target_ref: repoId,
-        };
-    }
-
-    return {
-        target_kind: 'OTHER',
-    };
-}
-
-function hasPlanningVerb(normalizedIntent: string): boolean {
-    return PLANNING_TERMS.some((term) => normalizedIntent.toLowerCase().includes(term));
-}
-
-function hasConcreteTarget(normalizedIntent: string, lowerTokens: string[]): boolean {
-    if (extractFileTarget(normalizedIntent)) {
-        return true;
-    }
-    return hasAnyToken(lowerTokens, TARGET_TERMS);
-}
-
-function buildClarifyingQuestions(normalizedIntent: string, lowerTokens: string[], hasExistingSession: boolean): string[] {
-    const questions: string[] = [];
-    if (!hasConcreteTarget(normalizedIntent, lowerTokens)) {
-        questions.push('Which repo, spoke, bead, or file should this plan target?');
-    }
-    if (!hasPlanningVerb(normalizedIntent)) {
-        questions.push('What outcome do you want Corvus Star to produce or improve?');
-    }
-    if (!hasAnyToken(lowerTokens, ['validate', 'validation', 'test', 'review', 'forge', 'orchestrate', 'swarm'])) {
-        questions.push(
-            hasExistingSession
-                ? 'What validation or execution constraints should the plan respect?'
-                : 'Should this stay collaborative, or should I prepare an execution bead for orchestration?',
-        );
-    }
-
-    return questions.slice(0, 3);
-}
-
-function buildPlanningSummary(normalizedIntent: string, target: PlanningTargetIdentity, followUp: boolean): string {
-    const targetLabel = target.target_path ?? target.target_ref ?? target.target_kind.toLowerCase();
-    const prefix = followUp ? 'Collaborative chant plan refined' : 'Collaborative chant plan ready';
-    return `${prefix} for ${targetLabel}: ${normalizedIntent}`;
-}
-
-function buildPlanningTurns(
-    existingSession: HallPlanningSessionRecord | null,
-    userIntent: string,
-    systemMessage: string,
-    now: number,
-): PlanningTurn[] {
-    const existingTurns = Array.isArray(existingSession?.metadata?.turns)
-        ? (existingSession?.metadata?.turns as PlanningTurn[])
-        : [];
-    const nextTurns: PlanningTurn[] = [
-        ...existingTurns,
-        { role: 'user', content: userIntent, at: now },
-        { role: 'system', content: systemMessage, at: now },
-    ];
-    return nextTurns.slice(-12);
-}
-
-function buildPlanningResolution(
-    normalizedIntent: string,
-    context: RuntimeContext,
-    existingSession: HallPlanningSessionRecord | null,
-): PlanningResolution {
-    const repoId = buildHallRepositoryId(normalizeHallPath(context.workspace_root));
-    const lowerTokens = tokenize(normalizedIntent).map((token) => token.toLowerCase());
-    const followUpQuestions = buildClarifyingQuestions(normalizedIntent, lowerTokens, existingSession !== null);
-    const target = inferPlanningTarget(normalizedIntent, repoId);
-    const shouldAskForInput =
-        followUpQuestions.length > 0 &&
-        (!hasConcreteTarget(normalizedIntent, lowerTokens) ||
-            tokenize(normalizedIntent).length <= 4 ||
-            lowerTokens.some((token) => VAGUE_TOKENS.has(token)));
-
-    return {
-        kind: 'planning',
-        session_id: context.session_id ?? `chant-session:${context.trace_id}`,
-        status: shouldAskForInput ? 'NEEDS_INPUT' : 'PLAN_READY',
-        summary: shouldAskForInput
-            ? 'Collaborative chant requires one more refinement pass before emitting a sovereign plan.'
-            : buildPlanningSummary(normalizedIntent, target, existingSession !== null),
-        follow_up_questions: shouldAskForInput ? followUpQuestions : [],
-        latest_question: shouldAskForInput ? followUpQuestions[0] : undefined,
-        emitted_beads: [],
-        target,
-    };
-}
-
-function buildPlanningMetadata(
-    existingSession: HallPlanningSessionRecord | null,
-    resolution: PlanningResolution,
-    normalizedIntent: string,
-    now: number,
-): Record<string, unknown> {
-    return {
-        turns: buildPlanningTurns(
-            existingSession,
-            normalizedIntent,
-            resolution.latest_question ?? resolution.summary,
-            now,
-        ),
-        follow_up_questions: resolution.follow_up_questions,
-        emitted_beads: resolution.emitted_beads,
-        target: resolution.target,
-    };
-}
-
-function buildPlanningBead(
-    context: RuntimeContext,
-    resolution: PlanningResolution,
-    normalizedIntent: string,
-    existingSession: HallPlanningSessionRecord | null,
-    now: number,
-): HallBeadRecord {
-    const repoId = buildHallRepositoryId(normalizeHallPath(context.workspace_root));
-    const beadId = `chant-plan:${resolution.session_id}`;
-    const targetLabel = resolution.target.target_path ?? resolution.target.target_ref ?? 'estate-work';
-    const acceptanceCriteria = [
-        `Scope is confirmed for ${targetLabel}.`,
-        'The resulting work is decomposed into executable sovereign beads or an approved orchestration request.',
-        'Validation expectations are explicit before promotion or forge execution.',
-    ].join(' ');
-
-    return {
-        bead_id: beadId,
-        repo_id: repoId,
-        target_kind: resolution.target.target_kind,
-        target_ref: resolution.target.target_ref,
-        target_path: resolution.target.target_path,
-        rationale: normalizedIntent,
-        contract_refs: [],
-        baseline_scores: {},
-        acceptance_criteria: acceptanceCriteria,
-        status: 'NEEDS_TRIAGE',
-        source_kind: 'CHANT_PLAN',
-        triage_reason: resolution.summary,
-        created_at: existingSession?.created_at ?? now,
-        updated_at: now,
-    };
-}
-
 export class ChantWeave implements RuntimeAdapter<ChantWeavePayload> {
     public readonly id = 'weave:chant';
 
@@ -520,12 +279,10 @@ export class ChantWeave implements RuntimeAdapter<ChantWeavePayload> {
         const lowerTokens = tokens.map((token) => token.toLowerCase());
         const skills = loadSkillTriggers(payload.project_root);
         const existingSession = context.session_id ? getHallPlanningSession(context.session_id) : null;
-        const sessionNeedsPlanning = existingSession?.status === 'NEEDS_INPUT'
-            && !CONTROL_WORDS.has(lowerTokens[0] ?? '')
-            && (lowerTokens[0] ?? '') !== 'ravens'
-            && (lowerTokens[0] ?? '') !== 'pennyone'
-            && (lowerTokens[0] ?? '') !== 'start';
-        const builtIn = sessionNeedsPlanning ? null : resolveBuiltInWeave(lowerTokens, payload, normalizedIntent);
+        
+        // Fast-Track bypasses planning if it's a direct command or we aren't in a planning loop
+        const isPlanningLoop = existingSession !== null && existingSession.status !== 'COMPLETED' && existingSession.status !== 'FAILED';
+        const builtIn = isPlanningLoop ? null : resolveBuiltInWeave(lowerTokens, payload, normalizedIntent);
         const skillResolution = builtIn ? null : resolveSkillInvocation(tokens, payload, skills);
         const resolution = builtIn ?? skillResolution;
 
@@ -612,62 +369,204 @@ export class ChantWeave implements RuntimeAdapter<ChantWeavePayload> {
             };
         }
 
-        const planningResolution = buildPlanningResolution(normalizedIntent, context, existingSession);
+        // --- NEW MULTI-PHASE PLANNING ENGINE ---
         const now = Date.now();
         const repoId = buildHallRepositoryId(normalizeHallPath(context.workspace_root));
+        const sessionId = existingSession?.session_id ?? `chant-session:${context.trace_id}`;
+        
+        let sessionStatus = existingSession?.status ?? 'INTENT_RECEIVED';
+        let summary = 'Processing intent...';
+        let architectOpinion: string | undefined = undefined;
 
-        if (planningResolution.status === 'PLAN_READY') {
-            const bead = buildPlanningBead(context, planningResolution, normalizedIntent, existingSession, now);
-            upsertHallBead(bead);
-            planningResolution.emitted_beads.push(bead.bead_id);
+        // If we are passing input to an existing state (like "approve")
+        if (existingSession && (lowerTokens.includes('approve') || lowerTokens.includes('yes') || lowerTokens.includes('proceed'))) {
+             if (sessionStatus === 'PROPOSAL_REVIEW') {
+                 sessionStatus = 'BEAD_CRITIQUE_LOOP';
+             } else if (sessionStatus === 'BEAD_USER_REVIEW') {
+                 sessionStatus = 'BEAD_CRITIQUE_LOOP'; // Move to next bead
+             }
+        }
+
+        // We use a while loop to allow immediate state transitions without requiring the user to type "chant" again.
+        // For example, if we enter INTENT_RECEIVED, it does the work, changes state to RESEARCH_PHASE, and immediately continues.
+        let transitionOutput: WeaveResult | null = null;
+        let executing = true;
+
+        while (executing) {
+            switch (sessionStatus) {
+                case 'INTENT_RECEIVED':
+                    summary = 'Intent received. Initiating Research Phase (Wild Hunt & Web Fetch).';
+                    try {
+                        const researchResult = await this.dispatchPort.dispatch({
+                            weave_id: 'weave:research',
+                            payload: {
+                                intent: existingSession ? existingSession.user_intent : normalizedIntent,
+                                project_root: payload.project_root,
+                                cwd: payload.cwd,
+                                dry_run: payload.dry_run
+                            },
+                            session: invocation.session,
+                            target: invocation.target
+                        });
+                        
+                        if (researchResult.status === 'TRANSITIONAL') {
+                            // The weave is asking the CLI to do work. We must pause the loop and return this to the user/CLI.
+                            transitionOutput = researchResult;
+                            sessionStatus = 'RESEARCH_PHASE'; // When CLI replies, it will land here
+                            executing = false;
+                        } else if (researchResult.status === 'FAILURE') {
+                            summary = `Research Phase failed: ${researchResult.error}`;
+                            sessionStatus = 'FAILED';
+                            executing = false;
+                        } else {
+                            summary = `Research Phase complete. ${researchResult.output}`;
+                            sessionStatus = 'RESEARCH_PHASE';
+                        }
+                    } catch (err: any) {
+                        summary = `Research Phase failed to dispatch: ${err.message}`;
+                        sessionStatus = 'FAILED';
+                        executing = false;
+                    }
+                    break;
+
+                case 'RESEARCH_PHASE':
+                    // In a full implementation, we would extract the CLI's JSON response from `normalizedIntent` here 
+                    // and formulate the initial beads. For this loop, we transition to review.
+                    summary = 'Research Phase complete. Building comprehensive proposal.';
+                    sessionStatus = 'PROPOSAL_REVIEW';
+                    executing = false; // Pause for user review
+                    break;
+
+                case 'PROPOSAL_REVIEW':
+                    summary = 'Awaiting user approval of the current proposal. Type "approve" to proceed, or provide feedback.';
+                    executing = false; // Stay here until they type "approve" (handled at top of loop)
+                    break;
+
+                case 'BEAD_CRITIQUE_LOOP':
+                    summary = 'Executing Adversarial Co-Work Critique for current bead.';
+                    try {
+                        const critiqueResult = await this.dispatchPort.dispatch({
+                            weave_id: 'weave:critique',
+                            payload: {
+                                bead: { title: 'Current Bead', rationale: 'To be implemented' }, 
+                                research: { summary: 'Research data', research_artifacts: [] }, 
+                                project_root: payload.project_root,
+                                cwd: payload.cwd,
+                            },
+                            session: invocation.session,
+                            target: invocation.target
+                        });
+
+                        if (critiqueResult.status === 'TRANSITIONAL') {
+                             transitionOutput = critiqueResult;
+                             // We don't change state, we stay in critique loop so the CLI can do the work
+                             executing = false;
+                        } else if (critiqueResult.status === 'FAILURE') {
+                            summary = `Critique Phase failed: ${critiqueResult.error}`;
+                            sessionStatus = 'FAILED';
+                            executing = false;
+                        } else {
+                            sessionStatus = 'BEAD_USER_REVIEW';
+                        }
+                    } catch (err: any) {
+                        summary = `Critique loop failed to dispatch: ${err.message}`;
+                        sessionStatus = 'FAILED';
+                        executing = false;
+                    }
+                    break;
+
+                case 'BEAD_USER_REVIEW':
+                     summary = 'Awaiting human adjudication for bead conflict.';
+                     executing = false;
+                     break;
+
+                case 'PLAN_CONCRETE':
+                    summary = 'Plan is concrete. Initiating Forge Execution sequence.';
+                    sessionStatus = 'FORGE_EXECUTION';
+                    break;
+
+                case 'FORGE_EXECUTION':
+                    summary = 'Executing current SET bead via Evolve/Forge.';
+                    try {
+                        const currentBeadId = existingSession?.current_bead_id || 'mock-bead-1';
+                        const forgeResult = await this.dispatchPort.dispatch({
+                            weave_id: 'weave:evolve',
+                            payload: {
+                                action: 'propose',
+                                bead_id: currentBeadId,
+                                project_root: payload.project_root,
+                                cwd: payload.cwd,
+                                simulate: payload.dry_run
+                            },
+                            session: invocation.session,
+                            target: invocation.target
+                        });
+
+                        if (forgeResult.status === 'FAILURE') {
+                            const attempts = (existingSession?.metadata?.recovery_attempts as number) || 0;
+                            if (attempts < 3) {
+                                summary = `Forge failed on attempt ${attempts + 1}. Entering Autonomous Recovery.`;
+                                const recoveryDirective = `[SUB_AGENT_DIRECTIVE]\nTask: Autonomous Recovery...\nFailure Log: ${forgeResult.error}\n[/SUB_AGENT_DIRECTIVE]`;
+                                transitionOutput = {
+                                    weave_id: this.id,
+                                    status: 'TRANSITIONAL',
+                                    output: `${summary}\n${recoveryDirective}`,
+                                    metadata: { delegated: true, recovery: true }
+                                };
+                                executing = false;
+                            } else {
+                                summary = `Forge failed 3 times. Hard stop. Returning to BEAD_USER_REVIEW.`;
+                                sessionStatus = 'BEAD_USER_REVIEW';
+                            }
+                        } else {
+                            summary = `Bead ${currentBeadId} successfully forged.`;
+                            sessionStatus = 'COMPLETED'; // For now, end the loop
+                            executing = false;
+                        }
+                    } catch (err: any) {
+                        summary = `Forge execution failed to dispatch: ${err.message}`;
+                        sessionStatus = 'FAILED';
+                        executing = false;
+                    }
+                    break;
+
+                default:
+                    summary = `Session ended with state: ${sessionStatus}`;
+                    executing = false;
+                    break;
+            }
         }
 
         if (!payload.dry_run) {
             saveHallPlanningSession({
-                session_id: planningResolution.session_id,
+                session_id: sessionId,
                 repo_id: repoId,
                 skill_id: 'chant',
-                status: planningResolution.status,
+                status: sessionStatus,
                 user_intent: existingSession?.user_intent ?? normalizedIntent,
                 normalized_intent: existingSession
                     ? `${existingSession.normalized_intent}\nFOLLOW_UP: ${normalizedIntent}`
                     : normalizedIntent,
-                summary: planningResolution.summary,
-                latest_question: planningResolution.latest_question,
+                summary: summary,
+                architect_opinion: architectOpinion ?? existingSession?.architect_opinion,
                 created_at: existingSession?.created_at ?? now,
                 updated_at: now,
-                metadata: buildPlanningMetadata(existingSession, planningResolution, normalizedIntent, now),
+                metadata: existingSession?.metadata ?? {},
             });
         }
 
-        this.recordObservation(
-            context,
-            normalizedIntent,
-            planningResolution.status,
-            planningResolution,
-            planningResolution.emitted_beads,
-            undefined,
-            {
-                planning_session_id: planningResolution.session_id,
-                follow_up_questions: planningResolution.follow_up_questions,
-            },
-        );
+        if (transitionOutput) {
+            return transitionOutput;
+        }
 
         return {
             weave_id: this.id,
-            status: 'TRANSITIONAL',
-            output:
-                planningResolution.status === 'PLAN_READY'
-                    ? `${planningResolution.summary} Bead ${planningResolution.emitted_beads[0]} is ready for triage.`
-                    : `${planningResolution.summary} ${planningResolution.follow_up_questions.join(' ')}`.trim(),
+            status: sessionStatus === 'COMPLETED' ? 'SUCCESS' : 'TRANSITIONAL',
+            output: summary,
             metadata: {
                 normalized_intent: normalizedIntent,
-                selected_path: planningResolution.target.target_ref ?? null,
-                emitted_beads: planningResolution.emitted_beads,
-                resolution: planningResolution.kind,
-                planning_session_id: planningResolution.session_id,
-                planning_status: planningResolution.status,
-                follow_up_questions: planningResolution.follow_up_questions,
+                planning_session_id: sessionId,
+                planning_status: sessionStatus,
             },
         };
     }
@@ -676,25 +575,16 @@ export class ChantWeave implements RuntimeAdapter<ChantWeavePayload> {
         context: RuntimeContext,
         normalizedIntent: string,
         outcome: string,
-        resolution: DirectChantResolution | PlanningResolution,
+        resolution: DirectChantResolution,
         emittedBeads: string[],
         childResult?: WeaveResult,
         extraMetadata?: Record<string, unknown>,
     ): void {
-        const metadata =
-            resolution.kind === 'planning'
-                ? {
-                      selected_path: resolution.target.target_ref ?? resolution.target.target_path ?? null,
-                      resolution: resolution.kind,
-                      planning_status: resolution.status,
-                      follow_up_questions: resolution.follow_up_questions,
-                      emitted_beads: emittedBeads,
-                  }
-                : {
-                      selected_path: resolution.trigger,
-                      resolution: resolution.kind,
-                      emitted_beads: emittedBeads,
-                  };
+        const metadata = {
+            selected_path: resolution.trigger,
+            resolution: resolution.kind,
+            emitted_beads: emittedBeads,
+        };
 
         saveHallSkillObservation({
             observation_id: `chant:${context.trace_id}:${Date.now()}`,

@@ -28,14 +28,21 @@ describe('Ravens estate sweep runtime (CS-P7-05)', () => {
     let tmpRoot: string;
     let keepOsRoot: string;
     let astroRoot: string;
+    let legacyRoot: string;
 
     beforeEach(() => {
         tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-ravens-estate-'));
         keepOsRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-ravens-keepos-'));
         astroRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-ravens-astrologer-'));
+        legacyRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-ravens-legacy-'));
         fs.mkdirSync(path.join(tmpRoot, '.agents'), { recursive: true });
         fs.mkdirSync(path.join(tmpRoot, 'src', 'sentinel', 'wardens'), { recursive: true });
         fs.writeFileSync(path.join(tmpRoot, 'src', 'sentinel', 'wardens', 'norn.py'), '# warden', 'utf-8');
+        fs.writeFileSync(
+            path.join(tmpRoot, '.agents', 'config.json'),
+            JSON.stringify({ target_repos: [legacyRoot] }, null, 2),
+            'utf-8',
+        );
         registry.setRoot(tmpRoot);
         closeDb();
         StateRegistry.save(StateRegistry.get());
@@ -120,6 +127,7 @@ describe('Ravens estate sweep runtime (CS-P7-05)', () => {
         assert.match(result.output, /3 target\(s\)/);
         assert.equal((result.metadata?.sweep_results as Array<unknown>).length, 3);
         assert.equal((result.metadata?.isolated_failures as Array<unknown>).length, 1);
+        assert.ok(!(result.metadata?.target_repos as Array<string>).includes(legacyRoot.replace(/\\/g, '/')));
     });
 
     it('can target a single mounted spoke by slug', async () => {

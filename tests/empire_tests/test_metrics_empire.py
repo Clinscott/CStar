@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+
 # Add project root to sys.path
 PROJECT_ROOT = Path(__file__).parents[2]
 if str(PROJECT_ROOT) not in sys.path:
@@ -19,7 +20,8 @@ class TestProjectMetricsEngine(unittest.TestCase):
     @patch("src.core.metrics.subprocess.run")
     @patch("src.core.metrics.os.path.exists")
     @patch("src.core.metrics.open")
-    def test_compute_score(self, mock_open, mock_exists, mock_run, mock_cortex_cls, mock_linter_cls):
+    @patch("src.core.metrics.Path.exists", return_value=False)
+    def test_compute_score(self, mock_path_exists, mock_open, mock_exists, mock_run, mock_cortex_cls, mock_linter_cls):
         # Setup mocks
         mock_linter = mock_linter_cls.return_value
         mock_cortex = mock_cortex_cls.return_value
@@ -49,15 +51,18 @@ class TestProjectMetricsEngine(unittest.TestCase):
         # Function=80 (default) (35) -> 28
         # Form=90 (A) (25) -> 22.5
         # Lore=50 (default) (10) -> 5
-        # Total = 15 + 7.5 + 28 + 22.5 + 5 = 78.0
+        # Current GPHS weighting = 40% structural + 15% prompt + 15% alignment + 30% complexity
+        # Structural defaults to 70 when no Chronicle state map is present.
+        # Total = (70*0.40) + (100*0.15) + (50*0.15) + (70*0.30) = 71.5
 
         score = engine.compute(".")
-        self.assertAlmostEqual(score, 78.0, places=1)
+        self.assertAlmostEqual(score, 71.5, places=1)
 
     @patch("src.core.metrics.PromptLinter")
     @patch("src.core.metrics.AnomalyWarden")
     @patch("src.core.metrics.subprocess.run")
-    def test_radon_failure(self, mock_run, mock_cortex_cls, mock_linter_cls):
+    @patch("src.core.metrics.Path.exists", return_value=False)
+    def test_radon_failure(self, mock_path_exists, mock_run, mock_cortex_cls, mock_linter_cls):
         mock_linter = mock_linter_cls.return_value
         mock_cortex = mock_cortex_cls.return_value
 
@@ -71,12 +76,11 @@ class TestProjectMetricsEngine(unittest.TestCase):
 
         engine = ProjectMetricsEngine()
 
-        # Function=80, Form=70 (default), Prompt=0, Alignment=0 (mock forward returns 1.0), Lore=50
-        # (80*35) + (70*25) + (0) + (0) + (50*10)
-        # 2800 + 1750 + 500 = 5050 / 100 = 50.5
+        # With the current weighting, GPHS falls back to structural 70 and complexity 70 when Radon fails.
+        # Total = (70*0.40) + (0*0.15) + (0*0.15) + (70*0.30) = 49.0
 
         score = engine.compute(".")
-        self.assertAlmostEqual(score, 50.5, places=1)
+        self.assertAlmostEqual(score, 49.0, places=1)
 
 if __name__ == "__main__":
     unittest.main()

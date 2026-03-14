@@ -20,13 +20,18 @@ export function buildRavensInvocation(
     options: { shadowForge?: boolean; spoke?: string } = {},
     workspaceRoot: string,
 ): WeaveInvocation<RavensWeavePayload> {
+    const payload: RavensWeavePayload = {
+        action,
+        shadow_forge: options.shadowForge,
+    };
+
+    if (options.spoke) {
+        payload.spoke = options.spoke;
+    }
+
     return withCliWorkspaceTarget({
         weave_id: 'weave:ravens',
-        payload: {
-            action,
-            shadow_forge: options.shadowForge,
-            spoke: options.spoke,
-        },
+        payload,
     }, workspaceRoot);
 }
 

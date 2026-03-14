@@ -1,4 +1,15 @@
+---
+name: one-mind
+description: "Use when routing grounded LLM requests through the One Mind for context anchoring and response synthesis."
+risk: safe
+source: internal
+---
+
 # 🔱 ONE MIND (CENTRAL INTELLIGENCE) SKILL (v1.0)
+
+## When to Use
+- Use when routing grounded LLM requests through the One Mind for context anchoring and response synthesis.
+
 
 ## MANDATE
 Acts as the sovereign interface to the One Mind (Gemini-2.0-flash), centralizing all LLM interactions, prompt grounding, and response synthesis.

@@ -1,9 +1,15 @@
 ---
 name: gemini-live-api-dev
-description: Use this skill when building real-time, bidirectional streaming applications with the Gemini Live API. Covers WebSocket-based audio/video/text streaming, voice activity detection (VAD), native audio features, function calling, session management, ephemeral tokens for client-side auth, and all Live API configuration options. SDKs covered - google-genai (Python), @google/genai (JavaScript/TypeScript).
+description: "Use when building real-time Gemini Live API applications with bidirectional audio, video, text streaming, VAD, sessions, and tool calling."
+risk: safe
+source: internal
 ---
 
 # Gemini Live API Development Skill
+
+## When to Use
+- Use when building real-time Gemini Live API applications with bidirectional audio, video, text streaming, VAD, sessions, and tool calling.
+
 
 ## Overview
 

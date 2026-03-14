@@ -11,6 +11,9 @@ function createContext(workspaceRoot: string): RuntimeContext {
         trace_id: 'TRACE-TALIESIN',
         persona: 'TALIESIN',
         workspace_root: workspaceRoot,
+        operator_mode: 'cli',
+        target_domain: 'brain',
+        interactive: true,
         env: {},
         timestamp: Date.now(),
     };
@@ -33,6 +36,15 @@ describe('TALIESIN forge runtime (CS-P4-00)', () => {
                     project_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
                     cwd: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
                     source: 'cli',
+                },
+                target: {
+                    domain: 'brain',
+                    workspace_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
+                    requested_path: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
+                },
+                session: {
+                    mode: 'cli',
+                    interactive: true,
                 },
             },
         );

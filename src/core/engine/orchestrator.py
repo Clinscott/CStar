@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 from typing import Any
 from src.core.payload import IntentPayload
+from src.core.engine.cortex import Cortex
 from src.core.sovereign_hud import SovereignHUD
 from src.tools.brave_search import BraveSearch
 from src.tools.gemini_search import GeminiSearch

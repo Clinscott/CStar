@@ -135,6 +135,29 @@ export interface EvolveWeaveMetadata extends Record<string, unknown> {
     promotion_outcome?: string;
 }
 
+export interface ResearchWeavePayload {
+    intent: string;
+    project_root: string;
+    cwd: string;
+    dry_run?: boolean;
+}
+
+export interface CompressWeavePayload {
+    bead_id: string;
+    bead_intent: string;
+    project_root: string;
+    cwd: string;
+    git_diff?: string;
+    target_paths?: string[];
+    proposal_id?: string;
+    validation_id?: string;
+    tactical_summary?: string;
+    files_touched?: string[];
+    successes?: string[];
+    metadata?: Record<string, unknown>;
+    source?: 'cli' | 'python_adapter' | 'runtime';
+}
+
 export interface TaliesinForgeWeavePayload {
     bead_id?: string;
     persona?: string;

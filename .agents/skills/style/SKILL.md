@@ -1,4 +1,15 @@
+---
+name: style
+description: "Use when orchestrating neural search, cortex queries, and proactive skill discovery through the sovereign search engine."
+risk: safe
+source: internal
+---
+
 # 🔱 SOVEREIGN SEARCH & STYLE SKILL (v1.0)
+
+## When to Use
+- Use when orchestrating neural search, cortex queries, and proactive skill discovery through the sovereign search engine.
+
 
 ## MANDATE
 Orchestrate neural search, knowledge graph (Cortex) queries, and proactive skill discovery using the Master Sovereign Engine.

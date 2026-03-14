@@ -8,12 +8,15 @@ import {
     closeDb,
     getDb,
     getHallBeads,
+    getHallEpisodicMemory,
     getHallSkillProposal,
     getHallRepositoryRecord,
     getHallSummary,
+    listHallEpisodicMemory,
     listHallSkillProposals,
     migrateLegacyHallRecords,
     recordHallScan,
+    saveHallEpisodicMemory,
     saveHallValidationRun,
     saveHallSkillProposal,
     upsertHallRepository,
@@ -313,5 +316,42 @@ describe('Hall schema canonicalization (CS-P1-03)', () => {
         assert.deepStrictEqual(proposal?.metadata, { source: 'unit-test' });
         assert.strictEqual(proposals.length, 1);
         assert.strictEqual(proposals[0]?.proposal_path, '.agents/proposals/evolve/proposal_evolve_1.json');
+    });
+
+    it('persists Hall episodic memory as narrative thread history', () => {
+        getDb();
+        const repoId = buildHallRepositoryId(tmpRoot.replace(/\\/g, '/'));
+        upsertHallBead({
+            bead_id: 'bead-episodic-1',
+            repo_id: repoId,
+            rationale: 'Capture the tactical summary for a completed bead.',
+            status: 'RESOLVED',
+            created_at: 1700000000000,
+            updated_at: 1700000000000,
+        });
+
+        saveHallEpisodicMemory({
+            memory_id: 'memory-1',
+            bead_id: 'bead-episodic-1',
+            repo_id: repoId,
+            tactical_summary: 'Persisted the Hall-backed compressor output.',
+            files_touched: ['src/node/core/runtime/weaves/compress.ts'],
+            successes: ['Wrote episodic memory'],
+            metadata: { source: 'unit-test', bead_intent: 'Persist tactical summary' },
+            created_at: 1700000000100,
+            updated_at: 1700000000100,
+        });
+
+        const memory = getHallEpisodicMemory('memory-1', tmpRoot);
+        const memories = listHallEpisodicMemory(tmpRoot, 'bead-episodic-1');
+
+        assert.ok(memory);
+        assert.strictEqual(memory?.bead_id, 'bead-episodic-1');
+        assert.strictEqual(memory?.tactical_summary, 'Persisted the Hall-backed compressor output.');
+        assert.deepStrictEqual(memory?.files_touched, ['src/node/core/runtime/weaves/compress.ts']);
+        assert.deepStrictEqual(memory?.successes, ['Wrote episodic memory']);
+        assert.deepStrictEqual(memory?.metadata, { source: 'unit-test', bead_intent: 'Persist tactical summary' });
+        assert.strictEqual(memories.length, 1);
+        assert.strictEqual(memories[0]?.memory_id, 'memory-1');
     });
 });

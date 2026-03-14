@@ -15,7 +15,7 @@ class EddaWeaver:
         self.root = root_dir.resolve()
         self.quarantine = quarantine_dir.resolve()
         self.ignore_patterns = [
-            r"\.agent[\\/]workflows",  # Preserve workflows
+            r"\.agents[\\/]workflows",  # Preserve workflows
             r"\.corvus_quarantine",    # Ignore quarantine
             r"\.git",                  # Ignore git
             r"node_modules",           # Ignore deps

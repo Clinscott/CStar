@@ -25,6 +25,13 @@ export type HallSkillProposalStatus =
     | 'REJECTED'
     | 'SUPERSEDED';
 export type HallPlanningSessionStatus =
+    | 'INTENT_RECEIVED'
+    | 'RESEARCH_PHASE'
+    | 'PROPOSAL_REVIEW'
+    | 'BEAD_CRITIQUE_LOOP'
+    | 'BEAD_USER_REVIEW'
+    | 'PLAN_CONCRETE'
+    | 'FORGE_EXECUTION'
     | 'NEEDS_INPUT'
     | 'PLAN_READY'
     | 'ROUTED'
@@ -68,8 +75,37 @@ export interface HallFileRecord {
     language?: string;
     gungnir_score?: number;
     matrix?: GungnirMatrix;
+    imports?: HallFileImport[];
+    exports?: string[];
     intent_summary?: string;
     interaction_summary?: string;
+    created_at: number;
+}
+
+export interface HallFileImport {
+    source: string;
+    local: string;
+    imported: string;
+}
+
+export interface HallEvidence {
+    source: string;
+    confidence: number;
+    payload: Record<string, unknown>;
+    research_refs?: string[];
+}
+
+export interface HallBeadCritiqueRecord {
+    critique_id: string;
+    bead_id: string;
+    repo_id: string;
+    agent_id: string;
+    agent_expertise: string;
+    critique: string;
+    proposed_path: string;
+    evidence: HallEvidence;
+    is_architect_approved: boolean;
+    architect_feedback?: string;
     created_at: number;
 }
 
@@ -92,6 +128,8 @@ export interface HallBeadRecord {
     resolution_note?: string;
     resolved_validation_id?: string;
     superseded_by?: string;
+    architect_opinion?: string;
+    critique_payload?: Record<string, unknown>;
     created_at: number;
     updated_at: number;
 }
@@ -120,6 +158,18 @@ export interface HallSkillObservation {
     observation: string;
     created_at: number;
     metadata?: Record<string, unknown>;
+}
+
+export interface HallEpisodicMemoryRecord {
+    memory_id: string;
+    bead_id: string;
+    repo_id: string;
+    tactical_summary: string;
+    files_touched?: string[];
+    successes?: string[];
+    metadata?: Record<string, unknown>;
+    created_at: number;
+    updated_at: number;
 }
 
 export interface HallSkillProposalRecord {
@@ -152,6 +202,8 @@ export interface HallPlanningSessionRecord {
     updated_at: number;
     summary?: string;
     latest_question?: string;
+    architect_opinion?: string;
+    current_bead_id?: string;
     metadata?: Record<string, unknown>;
 }
 

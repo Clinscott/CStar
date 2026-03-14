@@ -1,4 +1,15 @@
+---
+name: empire
+description: "Use when verifying code artifacts against Gherkin contracts and strict companion test suites under the Empire TDD protocol."
+risk: safe
+source: internal
+---
+
 # 🔱 EMPIRE TDD SKILL (v1.0)
+
+## When to Use
+- Use when verifying code artifacts against Gherkin contracts and strict companion test suites under the Empire TDD protocol.
+
 
 ## MANDATE
 Enforce the Empire TDD Protocol by verifying code artifacts against Gherkin behavioral contracts and strict companion test suites.

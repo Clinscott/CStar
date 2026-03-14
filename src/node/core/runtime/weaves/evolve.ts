@@ -36,8 +36,10 @@ export class EvolveWeave implements RuntimeAdapter<EvolveWeavePayload> {
         context: RuntimeContext,
     ): Promise<WeaveResult> {
         const payload = invocation.payload;
-        const scriptPath = path.join(context.workspace_root, '.agents', 'skills', 'evolve', 'scripts', 'evolve.py');
-        const args = [scriptPath, '--action', payload.action ?? 'propose'];
+        const kernelRoot = payload.project_root || context.workspace_root;
+        const targetRoot = context.workspace_root;
+        const scriptPath = path.join(kernelRoot, '.agents', 'skills', 'evolve', 'scripts', 'evolve.py');
+        const args = [scriptPath, '--project-root', targetRoot, '--action', payload.action ?? 'propose'];
 
         if (payload.bead_id) {
             args.push('--bead-id', payload.bead_id);
@@ -58,9 +60,9 @@ export class EvolveWeave implements RuntimeAdapter<EvolveWeavePayload> {
             args.push('--validation-profile', payload.validation_profile);
         }
 
-        const { stdout } = await this.runner(resolvePythonPath(context.workspace_root), args, {
-            cwd: context.workspace_root,
-            env: { ...context.env, PYTHONPATH: context.workspace_root },
+        const { stdout } = await this.runner(resolvePythonPath(kernelRoot), args, {
+            cwd: kernelRoot,
+            env: { ...context.env, PYTHONPATH: kernelRoot },
         });
         const result = extractJsonObject(stdout) as EvolveWeaveMetadata & { status?: string; summary?: string };
 

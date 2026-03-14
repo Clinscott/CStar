@@ -1,4 +1,15 @@
+---
+name: report
+description: "Use when generating persona-aware reports with enforced voice, structured sections, and integrity signatures."
+risk: safe
+source: internal
+---
+
 # 🔱 PERSONA REPORTING SKILL (v1.0)
+
+## When to Use
+- Use when generating persona-aware reports with enforced voice, structured sections, and integrity signatures.
+
 
 ## MANDATE
 Generate stylized, persona-aware reports that enforce voice consistency and prevent "generic engineer" hallucinations.

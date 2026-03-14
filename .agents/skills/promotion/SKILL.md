@@ -1,4 +1,15 @@
+---
+name: promotion
+description: "Use when registering, hashing, verifying, and tracking promoted skills before sovereign admission."
+risk: safe
+source: internal
+---
+
 # 🔱 SKILL PROMOTION REGISTRY SKILL (v1.0)
+
+## When to Use
+- Use when registering, hashing, verifying, and tracking promoted skills before sovereign admission.
+
 
 ## MANDATE
 Manage the verification and promotion of agent capabilities, ensuring every skill is audited and hashed before entering the sovereign repository.

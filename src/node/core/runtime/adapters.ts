@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import fsPromises from 'node:fs/promises';
-import { basename, isAbsolute, join, parse, resolve } from 'node:path';
+import { isAbsolute, join, parse, resolve } from 'node:path';
 import { execa } from 'execa';
 
 import { ANS } from '../ans.ts';
@@ -122,30 +122,9 @@ function discoverLegacyCommands(projectRoot: string): Map<string, string> {
     return commands;
 }
 
-function loadRavensTargetRepos(projectRoot: string): string[] {
-    const configPath = join(projectRoot, '.agents', 'config.json');
-    if (!fs.existsSync(configPath)) {
-        return [projectRoot];
-    }
-
-    try {
-        const config = JSON.parse(fs.readFileSync(configPath, 'utf-8')) as {
-            target_repos?: unknown;
-        };
-        const configuredRepos = Array.isArray(config.target_repos) ? config.target_repos : [projectRoot];
-        const resolvedRepos = configuredRepos
-            .map((entry) => String(entry))
-            .filter(Boolean)
-            .map((entry) => (isAbsolute(entry) ? entry : resolve(projectRoot, entry)));
-        return resolvedRepos.length > 0 ? Array.from(new Set(resolvedRepos)) : [projectRoot];
-    } catch {
-        return [projectRoot];
-    }
-}
-
 interface RavensSweepTarget {
     slug: string;
-    domain: 'brain' | 'spoke' | 'compat';
+    domain: 'brain' | 'spoke';
     repo_root: string;
     requested_path: string;
 }
@@ -172,18 +151,7 @@ function loadRavensSweepTargets(projectRoot: string, requestedSpoke?: string): R
             requested_path: `spoke://${entry.slug}/`,
         }));
 
-    const knownRoots = new Set<string>([brainTarget.repo_root, ...mountedTargets.map((entry) => entry.repo_root)]);
-    const compatibilityTargets = loadRavensTargetRepos(projectRoot)
-        .map((entry) => normalizeRepoRoot(entry))
-        .filter((entry) => !knownRoots.has(entry))
-        .map((entry) => ({
-            slug: basename(entry).toLowerCase(),
-            domain: 'compat' as const,
-            repo_root: entry,
-            requested_path: entry,
-        }));
-
-    const targets = [brainTarget, ...mountedTargets, ...compatibilityTargets];
+    const targets = [brainTarget, ...mountedTargets];
     if (!requestedSpoke) {
         return targets;
     }
@@ -289,7 +257,7 @@ export class RavensAdapter implements RuntimeAdapter<RavensWeavePayload> {
             {
                 ...context,
                 workspace_root: kernelRoot,
-                target_domain: target.domain === 'spoke' ? 'spoke' : target.domain === 'compat' ? 'external' : 'brain',
+                target_domain: target.domain === 'spoke' ? 'spoke' : 'brain',
                 spoke_name: target.domain === 'spoke' ? target.slug : undefined,
                 spoke_root: target.domain === 'spoke' ? target.repo_root : undefined,
                 requested_root: target.requested_path,
@@ -422,7 +390,6 @@ export class PennyOneAdapter implements RuntimeAdapter<PennyOneWeavePayload> {
     ): Promise<WeaveResult> {
         const projectRoot = context.workspace_root;
         const payload = invocation.payload;
-        const npxCmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
 
         if (payload.action === 'import') {
             if (!payload.remote_url) {
@@ -492,9 +459,10 @@ export class PennyOneAdapter implements RuntimeAdapter<PennyOneWeavePayload> {
                 };
             }
 
-            await execa(npxCmd, ['tsx', analyticsScript], {
+            await execa(process.execPath, [join(projectRoot, 'scripts', 'run-tsx.mjs'), analyticsScript], {
                 stdio: 'inherit',
                 cwd: projectRoot,
+                env: { ...process.env },
             });
 
             return {
@@ -508,9 +476,10 @@ export class PennyOneAdapter implements RuntimeAdapter<PennyOneWeavePayload> {
         if (payload.action === 'view') {
             await writeProjectedMatrixGraph(projectRoot, getLatestHallScanId(projectRoot));
             const pennyoneBin = join(projectRoot, 'bin', 'pennyone.js');
-            await execa(npxCmd, ['tsx', pennyoneBin, 'view', resolveTargetPath(projectRoot, payload.path)], {
+            await execa(process.execPath, [join(projectRoot, 'scripts', 'run-tsx.mjs'), pennyoneBin, 'view', resolveTargetPath(projectRoot, payload.path)], {
                 stdio: 'inherit',
                 cwd: projectRoot,
+                env: { ...process.env },
             });
 
             return {

@@ -1,0 +1,30 @@
+# 📊 Migration Status Report
+
+**Timestamp**: 2026-03-11 12:50:00
+**Environment**: Linux (Ubuntu 24.04 / Noble)
+**Python Version**: 3.12.3
+
+## ✅ Completed Tasks
+- [x] **System Package Installation**: Verified `python3-pip` and `python3.12-venv` availability.
+- [x] **Virtual Environment Restoration**: Recreated `.venv` at `/home/morderith/Corvus/CorvusStar/.venv`.
+- [x] **Dependency Management**: Successfully installed all requirements from `requirements.txt` and supplemented with `pytest-bdd`.
+- [x] **Verification Run**: Executed `pytest` to establish a baseline of the current system state.
+
+## 📈 Baseline Test Results
+- **Total Collected**: 363
+- **Passed**: 357
+- **Failed/Incompatible**: 6
+- **Quarantined**: 6 (Modules like `antigravity_bridge` no longer present in `src`).
+
+## 🔍 Observations (System Evolution)
+The following failures are noted as potential artifacts of intentional system refactoring and removals. These are **not** currently considered actionable regressions:
+
+1.  **Module Retirement**: `src.cstar.core.antigravity_bridge` is absent; tests in `tests/quarantine` are likely obsolete.
+2.  **Orchestrator Refinement**: `src.core.engine.orchestrator` no longer exposes a `Cortex` attribute.
+3.  **HUD Protocol Update**: `src.core.sovereign_hud.SovereignHUD` no longer utilizes the `_speak` attribute.
+4.  **Sentinel/Muninn Reorganization**: `FreyaWarden` attribute is absent from `src.sentinel.muninn`.
+5.  **Test Harness Discrepancies**: Failures in `test_preservation_workflows` and `test_odin_reacts_to_defiance` suggest changes in mock requirements or internal logic thresholds.
+
+## ⏭️ Next Steps
+- [ ] **Test Suite Alignment**: Review the 6 failing tests against current architectural documentation to determine if they should be updated, moved to quarantine, or deleted.
+- [ ] **Annexation Plan Update**: Continue with the verification of remaining scripts as defined in `ANNEXATION_PLAN.qmd`.

@@ -8,6 +8,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.core.personas import PersonaRegistry
+from src.core.runtime_env import resolve_project_python
 
 def main():
     parser = argparse.ArgumentParser(description="Persona Management: Enforce agent identity.")
@@ -19,8 +20,7 @@ def main():
 
     # Trigger Taliesin for high-fidelity voice work
     cstar_dispatcher = PROJECT_ROOT / "src" / "core" / "cstar_dispatcher.py"
-    venv_python = PROJECT_ROOT / ".venv" / "Scripts" / "python.exe"
-    if not venv_python.exists(): venv_python = Path(sys.executable)
+    venv_python = resolve_project_python(PROJECT_ROOT)
 
     # Determine current persona from config
     import json

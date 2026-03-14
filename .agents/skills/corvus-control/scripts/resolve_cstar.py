@@ -2,6 +2,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from src.core.runtime_env import resolve_project_python
+
 
 def resolve() -> None:
     args = sys.argv[1:]
@@ -15,7 +17,7 @@ def resolve() -> None:
     project_root = Path(__file__).resolve().parent.parent.parent.parent
     node_dispatcher = project_root / "bin" / "cstar.js"
     python_dispatcher = project_root / "src" / "core" / "cstar_dispatcher.py"
-    venv_python = project_root / ".venv" / "Scripts" / "python.exe"
+    venv_python = resolve_project_python(project_root)
 
     # Node-specific commands
     if cmd in ["start", "dominion", "odin", "ravens"]:

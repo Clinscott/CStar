@@ -1,9 +1,15 @@
 ---
 name: corvus-control
-description: Orchestrates the Corvus Star (C*) framework by resolving commands between Node.js and Python dispatchers, executing workflows, and persisting neural learning. Use when the user requests cstar commands, workflows (lets-go, run-task), or ravens status.
+description: "Orchestrates the Corvus Star (C*) framework by resolving commands between Node.js and Python dispatchers, executing workflows, and persisting neural learning. Use when the user requests cstar commands, workflows (lets-go, run-task), or ravens status."
+risk: safe
+source: internal
 ---
 
 # Corvus Star Control
+
+## When to Use
+- Orchestrates the Corvus Star (C*) framework by resolving commands between Node.js and Python dispatchers, executing workflows, and persisting neural learning. Use when the user requests cstar commands, workflows (lets-go, run-task), or ravens status.
+
 
 This skill unifies the Gungnir Control Plane, allowing the agent to execute core framework commands and specialized workflows while maintaining the "Saga of the Code."
 

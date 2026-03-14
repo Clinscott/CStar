@@ -1,4 +1,15 @@
+---
+name: hunt
+description: "Use when finding missing capabilities, evaluating external skill sources safely, and ingesting approved logic."
+risk: safe
+source: internal
+---
+
 # 🔱 WILD HUNT SKILL (v1.0)
+
+## When to Use
+- Use when finding missing capabilities, evaluating external skill sources safely, and ingesting approved logic.
+
 
 ## MANDATE
 Scour digital realms for techniques and skills, forging them directly into the One Mind. Ingests remote repositories into active skills (`.agents/skills`) with strict physical isolation safeguards.

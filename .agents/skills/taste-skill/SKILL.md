@@ -1,9 +1,15 @@
 ---
-name: design-taste-frontend
-description: Senior UI/UX Engineer. Architect digital interfaces overriding default LLM biases. Enforces metric-based rules, strict component architecture, CSS hardware acceleration, and balanced design engineering.
+name: taste-skill
+description: "Use when crafting deliberate frontend interfaces with strong typography, motion, layout systems, and anti-slop design rules."
+risk: safe
+source: internal
 ---
 
 # High-Agency Frontend Skill
+
+## When to Use
+- Use when crafting deliberate frontend interfaces with strong typography, motion, layout systems, and anti-slop design rules.
+
 
 ## 1. ACTIVE BASELINE CONFIGURATION
 * DESIGN_VARIANCE: 8 (1=Perfect Symmetry, 10=Artsy Chaos)

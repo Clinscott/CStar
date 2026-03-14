@@ -17,7 +17,7 @@ export function getPythonPath(): string {
     const unixVenv = path.join(root, '.venv', 'bin', 'python');
     if (fs.existsSync(unixVenv)) return unixVenv;
 
-    // 3. Fallback to system python
-    return 'python';
+    // 3. Fallback to the host default interpreter
+    return process.platform === 'win32' ? 'python' : 'python3';
 }
 

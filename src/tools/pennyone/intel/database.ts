@@ -7,6 +7,7 @@ import { createGungnirMatrix, getGungnirOverall, type GungnirMatrix } from '../.
 import {
     HallBeadRecord,
     HallBeadStatus,
+    HallEpisodicMemoryRecord,
     HallFileRecord,
     HallMountedSpokeRecord,
     HallMountedSpokeStatus,
@@ -18,6 +19,8 @@ import {
     HallPlanningSessionStatus,
     HallSkillProposalRecord,
     HallValidationRun,
+    HallBeadCritiqueRecord,
+    HallEvidence,
     buildHallRepositoryId,
     normalizeHallPath,
 } from '../../../types/hall.ts';
@@ -106,6 +109,8 @@ function ensureHallSchema(database: Database.Database, rootPath: string): void {
             language TEXT,
             gungnir_score REAL NOT NULL DEFAULT 0,
             matrix_json TEXT,
+            imports_json TEXT,
+            exports_json TEXT,
             intent_summary TEXT,
             interaction_summary TEXT,
             created_at INTEGER NOT NULL,
@@ -115,6 +120,23 @@ function ensureHallSchema(database: Database.Database, rootPath: string): void {
         );
 
         CREATE INDEX IF NOT EXISTS idx_hall_files_repo_path ON hall_files(repo_id, path);
+
+        CREATE TABLE IF NOT EXISTS hall_episodic_memory (
+            memory_id TEXT PRIMARY KEY,
+            bead_id TEXT NOT NULL,
+            repo_id TEXT NOT NULL,
+            tactical_summary TEXT NOT NULL,
+            files_touched_json TEXT,
+            successes_json TEXT,
+            metadata_json TEXT,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL,
+            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id),
+            FOREIGN KEY(bead_id) REFERENCES hall_beads(bead_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_hall_episodic_memory_repo ON hall_episodic_memory(repo_id, created_at);
+        CREATE INDEX IF NOT EXISTS idx_hall_episodic_memory_bead ON hall_episodic_memory(bead_id, created_at);
 
         CREATE TABLE IF NOT EXISTS hall_beads (
             bead_id TEXT PRIMARY KEY,
@@ -143,6 +165,24 @@ function ensureHallSchema(database: Database.Database, rootPath: string): void {
         );
 
         CREATE INDEX IF NOT EXISTS idx_hall_beads_repo_status ON hall_beads(repo_id, status);
+
+        CREATE TABLE IF NOT EXISTS hall_bead_critiques (
+            critique_id TEXT PRIMARY KEY,
+            bead_id TEXT NOT NULL,
+            repo_id TEXT NOT NULL,
+            agent_id TEXT NOT NULL,
+            agent_expertise TEXT NOT NULL,
+            critique TEXT NOT NULL,
+            proposed_path TEXT NOT NULL,
+            evidence_json TEXT NOT NULL,
+            is_architect_approved INTEGER NOT NULL DEFAULT 0,
+            architect_feedback TEXT,
+            created_at INTEGER NOT NULL,
+            FOREIGN KEY(bead_id) REFERENCES hall_beads(bead_id),
+            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_hall_critiques_bead ON hall_bead_critiques(bead_id);
 
         CREATE TABLE IF NOT EXISTS hall_validation_runs (
             validation_id TEXT PRIMARY KEY,
@@ -307,9 +347,15 @@ function ensureHallSchema(database: Database.Database, rootPath: string): void {
     ensureColumn(database, 'hall_skill_proposals', 'promoted_at', 'INTEGER');
     ensureColumn(database, 'hall_skill_proposals', 'promoted_by', 'TEXT');
     ensureColumn(database, 'hall_skill_proposals', 'metadata_json', 'TEXT');
+    ensureColumn(database, 'hall_files', 'imports_json', 'TEXT');
+    ensureColumn(database, 'hall_files', 'exports_json', 'TEXT');
     ensureColumn(database, 'hall_planning_sessions', 'summary', 'TEXT');
     ensureColumn(database, 'hall_planning_sessions', 'latest_question', 'TEXT');
+    ensureColumn(database, 'hall_planning_sessions', 'architect_opinion', 'TEXT');
+    ensureColumn(database, 'hall_planning_sessions', 'current_bead_id', 'TEXT');
     ensureColumn(database, 'hall_planning_sessions', 'metadata_json', 'TEXT');
+    ensureColumn(database, 'hall_beads', 'architect_opinion', 'TEXT');
+    ensureColumn(database, 'hall_beads', 'critique_payload_json', 'TEXT');
 
     database.exec(`
         DROP VIEW IF EXISTS hall_repository_projection;
@@ -928,13 +974,15 @@ export function recordHallFile(record: HallFileRecord): void {
     database.prepare(`
         INSERT INTO hall_files (
             repo_id, scan_id, path, content_hash, language, gungnir_score,
-            matrix_json, intent_summary, interaction_summary, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            matrix_json, imports_json, exports_json, intent_summary, interaction_summary, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(scan_id, path) DO UPDATE SET
             content_hash = excluded.content_hash,
             language = excluded.language,
             gungnir_score = excluded.gungnir_score,
             matrix_json = excluded.matrix_json,
+            imports_json = excluded.imports_json,
+            exports_json = excluded.exports_json,
             intent_summary = excluded.intent_summary,
             interaction_summary = excluded.interaction_summary
     `).run(
@@ -945,6 +993,8 @@ export function recordHallFile(record: HallFileRecord): void {
         record.language ?? null,
         record.gungnir_score ?? getGungnirOverall(materializedMatrix),
         stringifyJson(materializedMatrix),
+        stringifyJson(record.imports ?? []),
+        stringifyJson(record.exports ?? []),
         record.intent_summary ?? null,
         record.interaction_summary ?? null,
         record.created_at,
@@ -957,8 +1007,8 @@ export function upsertHallBead(record: HallBeadRecord): void {
         INSERT INTO hall_beads (
             bead_id, repo_id, scan_id, legacy_id, target_kind, target_ref, target_path, rationale, contract_refs_json,
             baseline_scores_json, acceptance_criteria, status, assigned_agent, source_kind, triage_reason,
-            resolution_note, resolved_validation_id, superseded_by, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            resolution_note, resolved_validation_id, superseded_by, architect_opinion, critique_payload_json, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(bead_id) DO UPDATE SET
             scan_id = excluded.scan_id,
             legacy_id = excluded.legacy_id,
@@ -976,6 +1026,8 @@ export function upsertHallBead(record: HallBeadRecord): void {
             resolution_note = excluded.resolution_note,
             resolved_validation_id = excluded.resolved_validation_id,
             superseded_by = excluded.superseded_by,
+            architect_opinion = excluded.architect_opinion,
+            critique_payload_json = excluded.critique_payload_json,
             updated_at = excluded.updated_at
     `).run(
         record.bead_id,
@@ -996,6 +1048,8 @@ export function upsertHallBead(record: HallBeadRecord): void {
         record.resolution_note ?? null,
         record.resolved_validation_id ?? null,
         record.superseded_by ?? null,
+        record.architect_opinion ?? null,
+        stringifyJson(record.critique_payload ?? {}),
         record.created_at,
         record.updated_at,
     );
@@ -1053,19 +1107,47 @@ export function saveHallSkillObservation(record: HallSkillObservation): void {
     );
 }
 
+export function saveHallEpisodicMemory(record: HallEpisodicMemoryRecord): void {
+    const database = getDb();
+    database.prepare(`
+        INSERT INTO hall_episodic_memory (
+            memory_id, bead_id, repo_id, tactical_summary, files_touched_json,
+            successes_json, metadata_json, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(memory_id) DO UPDATE SET
+            tactical_summary = excluded.tactical_summary,
+            files_touched_json = excluded.files_touched_json,
+            successes_json = excluded.successes_json,
+            metadata_json = excluded.metadata_json,
+            updated_at = excluded.updated_at
+    `).run(
+        record.memory_id,
+        record.bead_id,
+        record.repo_id,
+        record.tactical_summary,
+        stringifyJson(record.files_touched ?? []),
+        stringifyJson(record.successes ?? []),
+        stringifyJson(record.metadata),
+        record.created_at,
+        record.updated_at,
+    );
+}
+
 export function saveHallPlanningSession(record: HallPlanningSessionRecord): void {
     const database = getDb();
     database.prepare(`
         INSERT INTO hall_planning_sessions (
             session_id, repo_id, skill_id, status, user_intent, normalized_intent,
-            summary, latest_question, created_at, updated_at, metadata_json
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            summary, latest_question, architect_opinion, current_bead_id, created_at, updated_at, metadata_json
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(session_id) DO UPDATE SET
             status = excluded.status,
             user_intent = excluded.user_intent,
             normalized_intent = excluded.normalized_intent,
             summary = excluded.summary,
             latest_question = excluded.latest_question,
+            architect_opinion = excluded.architect_opinion,
+            current_bead_id = excluded.current_bead_id,
             updated_at = excluded.updated_at,
             metadata_json = excluded.metadata_json
     `).run(
@@ -1077,6 +1159,8 @@ export function saveHallPlanningSession(record: HallPlanningSessionRecord): void
         record.normalized_intent,
         record.summary ?? null,
         record.latest_question ?? null,
+        record.architect_opinion ?? null,
+        record.current_bead_id ?? null,
         record.created_at,
         record.updated_at,
         stringifyJson(record.metadata),
@@ -1164,7 +1248,7 @@ export function getHallPlanningSession(sessionId: string): HallPlanningSessionRe
     const database = getDb();
     const row = database.prepare(`
         SELECT session_id, repo_id, skill_id, status, user_intent, normalized_intent,
-               summary, latest_question, created_at, updated_at, metadata_json
+               summary, latest_question, architect_opinion, current_bead_id, created_at, updated_at, metadata_json
         FROM hall_planning_sessions
         WHERE session_id = ?
         LIMIT 1
@@ -1183,10 +1267,67 @@ export function getHallPlanningSession(sessionId: string): HallPlanningSessionRe
         normalized_intent: String(row.normalized_intent),
         summary: row.summary ? String(row.summary) : undefined,
         latest_question: row.latest_question ? String(row.latest_question) : undefined,
+        architect_opinion: row.architect_opinion ? String(row.architect_opinion) : undefined,
+        current_bead_id: row.current_bead_id ? String(row.current_bead_id) : undefined,
         created_at: Number(row.created_at ?? 0),
         updated_at: Number(row.updated_at ?? 0),
         metadata: parseJson<Record<string, unknown>>(row.metadata_json as string | null, {}),
     };
+}
+
+export function saveHallBeadCritique(record: HallBeadCritiqueRecord): void {
+    const database = getDb();
+    database.prepare(`
+        INSERT INTO hall_bead_critiques (
+            critique_id, bead_id, repo_id, agent_id, agent_expertise,
+            critique, proposed_path, evidence_json, is_architect_approved, architect_feedback, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(critique_id) DO UPDATE SET
+            critique = excluded.critique,
+            proposed_path = excluded.proposed_path,
+            evidence_json = excluded.evidence_json,
+            is_architect_approved = excluded.is_architect_approved,
+            architect_feedback = excluded.architect_feedback
+    `).run(
+        record.critique_id,
+        record.bead_id,
+        record.repo_id,
+        record.agent_id,
+        record.agent_expertise,
+        record.critique,
+        record.proposed_path,
+        stringifyJson(record.evidence),
+        record.is_architect_approved ? 1 : 0,
+        record.architect_feedback ?? null,
+        record.created_at,
+    );
+}
+
+export function listHallBeadCritiques(beadId: string): HallBeadCritiqueRecord[] {
+    const database = getDb();
+    const rows = database.prepare(`
+        SELECT * FROM hall_bead_critiques
+        WHERE bead_id = ?
+        ORDER BY created_at ASC
+    `).all(beadId) as Array<Record<string, unknown>>;
+
+    return rows.map((row) => ({
+        critique_id: String(row.critique_id),
+        bead_id: String(row.bead_id),
+        repo_id: String(row.repo_id),
+        agent_id: String(row.agent_id),
+        agent_expertise: String(row.agent_expertise),
+        critique: String(row.critique),
+        proposed_path: String(row.proposed_path),
+        evidence: parseJson<HallEvidence>(row.evidence_json as string | null, {
+            source: 'unknown',
+            confidence: 0,
+            payload: {},
+        }),
+        is_architect_approved: Boolean(row.is_architect_approved),
+        architect_feedback: row.architect_feedback ? String(row.architect_feedback) : undefined,
+        created_at: Number(row.created_at ?? 0),
+    }));
 }
 
 export function saveHallMountedSpoke(record: HallMountedSpokeRecord): void {
@@ -1493,14 +1634,14 @@ export function getHallFiles(rootPath: string = registry.getRoot(), scanId?: str
     const rows = (scanId
         ? database.prepare(`
             SELECT repo_id, scan_id, path, content_hash, language, gungnir_score,
-                   matrix_json, intent_summary, interaction_summary, created_at
+                   matrix_json, imports_json, exports_json, intent_summary, interaction_summary, created_at
             FROM hall_files
             WHERE repo_id = ? AND scan_id = ?
             ORDER BY path ASC
         `).all(repoId, scanId)
         : database.prepare(`
             SELECT repo_id, scan_id, path, content_hash, language, gungnir_score,
-                   matrix_json, intent_summary, interaction_summary, created_at
+                   matrix_json, imports_json, exports_json, intent_summary, interaction_summary, created_at
             FROM hall_files
             WHERE repo_id = ?
             ORDER BY path ASC
@@ -1514,6 +1655,8 @@ export function getHallFiles(rootPath: string = registry.getRoot(), scanId?: str
         language: row.language ? String(row.language) : undefined,
         gungnir_score: Number(row.gungnir_score ?? 0),
         matrix: createGungnirMatrix(parseJson<GungnirMatrix | undefined>(row.matrix_json as string | null, undefined)),
+        imports: parseJson<HallFileRecord['imports']>(row.imports_json as string | null, []),
+        exports: parseJson<string[]>(row.exports_json as string | null, []),
         intent_summary: row.intent_summary ? String(row.intent_summary) : undefined,
         interaction_summary: row.interaction_summary ? String(row.interaction_summary) : undefined,
         created_at: Number(row.created_at ?? 0),
@@ -1546,14 +1689,14 @@ export function getHallFileByPath(
     const row = (activeScanId
         ? database.prepare(`
             SELECT repo_id, scan_id, path, content_hash, language, gungnir_score,
-                   matrix_json, intent_summary, interaction_summary, created_at
+                   matrix_json, imports_json, exports_json, intent_summary, interaction_summary, created_at
             FROM hall_files
             WHERE repo_id = ? AND scan_id = ? AND path = ?
             LIMIT 1
         `).get(repoId, activeScanId, normalizedPath)
         : database.prepare(`
             SELECT repo_id, scan_id, path, content_hash, language, gungnir_score,
-                   matrix_json, intent_summary, interaction_summary, created_at
+                   matrix_json, imports_json, exports_json, intent_summary, interaction_summary, created_at
             FROM hall_files
             WHERE repo_id = ? AND path = ?
             ORDER BY created_at DESC
@@ -1572,9 +1715,77 @@ export function getHallFileByPath(
         language: row.language ? String(row.language) : undefined,
         gungnir_score: Number(row.gungnir_score ?? 0),
         matrix: createGungnirMatrix(parseJson<GungnirMatrix | undefined>(row.matrix_json as string | null, undefined)),
+        imports: parseJson<HallFileRecord['imports']>(row.imports_json as string | null, []),
+        exports: parseJson<string[]>(row.exports_json as string | null, []),
         intent_summary: row.intent_summary ? String(row.intent_summary) : undefined,
         interaction_summary: row.interaction_summary ? String(row.interaction_summary) : undefined,
         created_at: Number(row.created_at ?? 0),
+    };
+}
+
+export function listHallEpisodicMemory(
+    rootPath: string = registry.getRoot(),
+    beadId?: string,
+): HallEpisodicMemoryRecord[] {
+    const database = getDb();
+    const repoId = buildHallRepositoryId(normalizeHallPath(rootPath));
+    const rows = (beadId
+        ? database.prepare(`
+            SELECT memory_id, bead_id, repo_id, tactical_summary, files_touched_json,
+                   successes_json, metadata_json, created_at, updated_at
+            FROM hall_episodic_memory
+            WHERE repo_id = ? AND bead_id = ?
+            ORDER BY created_at ASC
+        `).all(repoId, beadId)
+        : database.prepare(`
+            SELECT memory_id, bead_id, repo_id, tactical_summary, files_touched_json,
+                   successes_json, metadata_json, created_at, updated_at
+            FROM hall_episodic_memory
+            WHERE repo_id = ?
+            ORDER BY created_at ASC
+        `).all(repoId)) as Array<Record<string, unknown>>;
+
+    return rows.map((row) => ({
+        memory_id: String(row.memory_id),
+        bead_id: String(row.bead_id),
+        repo_id: String(row.repo_id),
+        tactical_summary: String(row.tactical_summary),
+        files_touched: parseJson<string[]>(row.files_touched_json as string | null, []),
+        successes: parseJson<string[]>(row.successes_json as string | null, []),
+        metadata: parseJson<Record<string, unknown>>(row.metadata_json as string | null, {}),
+        created_at: Number(row.created_at ?? 0),
+        updated_at: Number(row.updated_at ?? 0),
+    }));
+}
+
+export function getHallEpisodicMemory(
+    memoryId: string,
+    rootPath: string = registry.getRoot(),
+): HallEpisodicMemoryRecord | null {
+    const database = getDb();
+    const repoId = buildHallRepositoryId(normalizeHallPath(rootPath));
+    const row = database.prepare(`
+        SELECT memory_id, bead_id, repo_id, tactical_summary, files_touched_json,
+               successes_json, metadata_json, created_at, updated_at
+        FROM hall_episodic_memory
+        WHERE repo_id = ? AND memory_id = ?
+        LIMIT 1
+    `).get(repoId, memoryId) as Record<string, unknown> | undefined;
+
+    if (!row) {
+        return null;
+    }
+
+    return {
+        memory_id: String(row.memory_id),
+        bead_id: String(row.bead_id),
+        repo_id: String(row.repo_id),
+        tactical_summary: String(row.tactical_summary),
+        files_touched: parseJson<string[]>(row.files_touched_json as string | null, []),
+        successes: parseJson<string[]>(row.successes_json as string | null, []),
+        metadata: parseJson<Record<string, unknown>>(row.metadata_json as string | null, {}),
+        created_at: Number(row.created_at ?? 0),
+        updated_at: Number(row.updated_at ?? 0),
     };
 }
 
@@ -1588,7 +1799,7 @@ export function getHallBeads(
     let sql = `
         SELECT bead_id, repo_id, scan_id, legacy_id, target_kind, target_ref, target_path, rationale, contract_refs_json,
                baseline_scores_json, acceptance_criteria, status, assigned_agent, source_kind, triage_reason,
-               resolution_note, resolved_validation_id, superseded_by, created_at, updated_at
+               resolution_note, resolved_validation_id, superseded_by, architect_opinion, critique_payload_json, created_at, updated_at
         FROM hall_beads
         WHERE repo_id = ?
     `;
@@ -1631,6 +1842,8 @@ export function getHallBeads(
                 resolution_note: row.resolution_note ? String(row.resolution_note) : undefined,
                 resolved_validation_id: row.resolved_validation_id ? String(row.resolved_validation_id) : undefined,
                 superseded_by: row.superseded_by ? String(row.superseded_by) : undefined,
+                architect_opinion: row.architect_opinion ? String(row.architect_opinion) : undefined,
+                critique_payload: parseJson<Record<string, unknown> | undefined>(row.critique_payload_json as string | null, undefined),
                 created_at: Number(row.created_at ?? 0),
                 updated_at: Number(row.updated_at ?? 0),
             }),
