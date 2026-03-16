@@ -1,15 +1,18 @@
 ---
 title: "Skill Authority Report"
-generated_at: "2026-03-09 07:17:59"
+generated_at: "2026-03-14 17:56:16"
 authoritative_root: ".agents/skills"
+status: "WORK IN PROGRESS"
 ---
 
 # Skill Authority Report
 
+> WORK IN PROGRESS: This report includes draft skill authority additions pending final review.
+
 `.agents/skills/` is the authoritative woven-skill registry for Phase 1.
 Any `src/skills/local/` surface is transitional and must be classified rather than guessed.
 
-- Authoritative skills: `57`
+- Authoritative skills: `59`
 - Transitional local entries: `8`
 - Duplicate definitions: `5`
 
@@ -26,6 +29,12 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Entrypoint: `.agents/skills/annex/scripts/annex.py`
 - Contract: `.agents/skills/annex/annex.feature`
 - Runtime Trigger: `annex`
+
+### autobot
+- Authority Path: `.agents/skills/autobot`
+- Entrypoint: `.agents/skills/autobot/scripts/autobot.py`
+- Contract: `.agents/skills/autobot/contract.json`
+- Runtime Trigger: `autobot`
 
 ### build-review-interface
 - Authority Path: `.agents/skills/build-review-interface`
@@ -248,6 +257,12 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Entrypoint: `.agents/skills/redactor/scripts/redactor.py`
 - Contract: `.agents/skills/redactor/redactor.feature`
 - Runtime Trigger: `redactor`
+
+### ref-openomf
+- Authority Path: `.agents/skills/ref-openomf`
+- Entrypoint: `none`
+- Contract: `.agents/skills/ref-openomf/SKILL.qmd`
+- Runtime Trigger: `ref-openomf`
 
 ### report
 - Authority Path: `.agents/skills/report`

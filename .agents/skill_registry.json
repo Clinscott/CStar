@@ -1,6 +1,8 @@
 {
   "generated_at": 1773525376754,
   "authoritative_root": ".agents/skills",
+  "manifest_status": "WORK_IN_PROGRESS",
+  "manifest_note": "Contains draft skill authority additions pending final review.",
   "skills": {
     "agent-lightning": {
       "name": "agent-lightning",
@@ -399,6 +401,16 @@
       "entrypoint_path": ".agents/skills/redactor/scripts/redactor.py",
       "contract_path": ".agents/skills/redactor/redactor.feature",
       "runtime_trigger": "redactor",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "ref-openomf": {
+      "name": "ref-openomf",
+      "normalized_name": "refopenomf",
+      "authority_path": ".agents/skills/ref-openomf",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/ref-openomf/SKILL.qmd",
+      "runtime_trigger": "ref-openomf",
       "migration_status": "authoritative",
       "source": ".agents/skills"
     },
