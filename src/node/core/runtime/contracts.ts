@@ -113,6 +113,39 @@ export interface ChantWeavePayload {
     source?: 'cli' | 'python_adapter';
 }
 
+export interface AutobotWeavePayload {
+    bead_id?: string;
+    claim_next?: boolean;
+    checker_shell?: string;
+    max_attempts?: number;
+    timeout?: number;
+    startup_timeout?: number;
+    checker_timeout?: number;
+    grace_seconds?: number;
+    agent_id?: string;
+    worker_note?: string;
+    autobot_dir?: string;
+    command?: string;
+    command_args?: string[];
+    ready_regex?: string;
+    done_regexes?: string[];
+    env?: Record<string, string>;
+    stream?: boolean;
+    project_root: string;
+    cwd: string;
+    source?: 'cli' | 'python_adapter' | 'runtime';
+}
+
+export interface AutobotWeaveMetadata extends Record<string, unknown> {
+    outcome?: string;
+    bead_id?: string | null;
+    target_path?: string | null;
+    attempt_count?: number;
+    max_attempts?: number;
+    final_bead_status?: string | null;
+    validation_id?: string | null;
+}
+
 export interface EvolveWeavePayload {
     action?: 'propose' | 'promote';
     bead_id?: string;

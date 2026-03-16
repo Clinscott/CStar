@@ -155,31 +155,29 @@ describe('Command shells convert CLI args into runtime invocations (CS-P1-01)', 
     });
 
     it('chant fallback builds the chant weave invocation', () => {
-        assert.deepStrictEqual(
-            buildDynamicCommandInvocation(
-                'chant',
-                ['scan the hall'],
-                'C:\\Users\\Craig\\Corvus\\CorvusStar',
-                'C:\\Users\\Craig\\Corvus\\CorvusStar',
-            ),
-            {
-                weave_id: 'weave:chant',
-                payload: {
-                    query: 'scan the hall',
-                    project_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-                    cwd: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-                    source: 'cli',
-                },
-                target: {
-                    domain: 'brain',
-                    workspace_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-                    requested_path: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-                },
-                session: {
-                    mode: 'cli',
-                    interactive: true,
-                },
-            },
+        const invocation = buildDynamicCommandInvocation(
+            'chant',
+            ['scan the hall'],
+            'C:\\Users\\Craig\\Corvus\\CorvusStar',
+            'C:\\Users\\Craig\\Corvus\\CorvusStar',
         );
+
+        assert.equal(invocation.weave_id, 'weave:chant');
+        assert.deepStrictEqual(invocation.payload, {
+            query: 'scan the hall',
+            project_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
+            cwd: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
+            source: 'cli',
+        });
+        assert.deepStrictEqual(invocation.target, {
+            domain: 'brain',
+            workspace_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
+            requested_path: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
+        });
+        assert.equal(invocation.session?.mode, 'cli');
+        assert.equal(invocation.session?.interactive, true);
+        if (invocation.session?.session_id) {
+            assert.match(invocation.session.session_id, /^chant-session:/);
+        }
     });
 });

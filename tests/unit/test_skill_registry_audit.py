@@ -13,7 +13,9 @@ def test_registry_manifest_declares_agents_skills_authoritative() -> None:
 
     assert manifest["authoritative_root"] == ".agents/skills"
     assert "chant" in manifest["skills"]
+    assert "autobot" in manifest["skills"]
     assert manifest["skills"]["chant"]["source"] == ".agents/skills"
+    assert manifest["skills"]["autobot"]["source"] == ".agents/skills"
 
     local_entries = [entry for entry in manifest["skills"].values() if entry["source"] != ".agents/skills"]
     assert any(entry["migration_status"] in {"wrap", "migrate", "bootstrap-only", "retire"} for entry in local_entries)

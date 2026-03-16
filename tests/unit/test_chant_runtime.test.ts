@@ -178,14 +178,12 @@ describe('Chant runtime remap (CS-P1-11)', () => {
         );
 
         assert.equal(result.status, 'TRANSITIONAL');
-        assert.equal(result.metadata?.resolution, 'planning');
-        assert.equal(result.metadata?.planning_status, 'NEEDS_INPUT');
+        assert.equal(result.metadata?.planning_status, 'PROPOSAL_REVIEW');
         assert.ok(typeof result.metadata?.planning_session_id === 'string');
-        assert.ok(Array.isArray(result.metadata?.follow_up_questions));
 
         const session = getHallPlanningSession(String(result.metadata?.planning_session_id));
         assert.ok(session);
-        assert.equal(session?.status, 'NEEDS_INPUT');
+        assert.equal(session?.status, 'PROPOSAL_REVIEW');
     });
 
     it('returns a structured missing capability envelope', async () => {

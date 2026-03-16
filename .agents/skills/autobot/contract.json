@@ -1,0 +1,35 @@
+{
+  "skill_id": "autobot",
+  "version": "1.0",
+  "authority_root": ".agents/skills/autobot",
+  "runtime_trigger": "autobot",
+  "actions": {
+    "execute": "Claim or continue a sovereign bead by running AutoBot/Hermes as an ephemeral worker behind checker-gated retries."
+  },
+  "inputs": {
+    "bead_id": "optional string",
+    "claim_next": "optional boolean",
+    "checker_shell": "optional string",
+    "max_attempts": "optional integer",
+    "timeout": "optional number of seconds per Hermes attempt",
+    "startup_timeout": "optional number of seconds to wait for the Hermes prompt",
+    "checker_timeout": "optional number of seconds per checker run",
+    "worker_note": "optional string containing only immediate Hall/PennyOne context for the active bead"
+  },
+  "outputs": {
+    "status": "SUCCESS or FAILURE",
+    "outcome": "NO_ACTIONABLE_BEADS or READY_FOR_REVIEW or RESOLVED or BLOCKED",
+    "bead_id": "string or null",
+    "final_bead_status": "string or null",
+    "validation_id": "string or null",
+    "attempt_count": "integer"
+  },
+  "defaults": {
+    "action": "execute",
+    "agent_id": "AUTOBOT",
+    "max_attempts": 3,
+    "timeout": 300,
+    "startup_timeout": 30,
+    "checker_timeout": 300
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "generated_at": 1773055079549,
+  "generated_at": 1773525376754,
   "authoritative_root": ".agents/skills",
   "skills": {
     "agent-lightning": {
@@ -19,6 +19,16 @@
       "entrypoint_path": ".agents/skills/annex/scripts/annex.py",
       "contract_path": ".agents/skills/annex/annex.feature",
       "runtime_trigger": "annex",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
+    "autobot": {
+      "name": "autobot",
+      "normalized_name": "autobot",
+      "authority_path": ".agents/skills/autobot",
+      "entrypoint_path": ".agents/skills/autobot/scripts/autobot.py",
+      "contract_path": ".agents/skills/autobot/contract.json",
+      "runtime_trigger": "autobot",
       "migration_status": "authoritative",
       "source": ".agents/skills"
     },

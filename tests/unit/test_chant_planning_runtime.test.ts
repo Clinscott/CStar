@@ -6,7 +6,7 @@ import path from 'node:path';
 
 import { ChantWeave } from '../../src/node/core/runtime/weaves/chant.ts';
 import type { RuntimeDispatchPort, RuntimeContext, WeaveInvocation, WeaveResult } from '../../src/node/core/runtime/contracts.ts';
-import { closeDb, getHallBeads, getHallPlanningSession } from '../../src/tools/pennyone/intel/database.ts';
+import { closeDb, getHallPlanningSession } from '../../src/tools/pennyone/intel/database.ts';
 import { registry } from '../../src/tools/pennyone/pathRegistry.ts';
 
 class NoopDispatchPort implements RuntimeDispatchPort {
@@ -63,7 +63,7 @@ describe('Chant collaborative planning (CS-P7-03)', () => {
         closeDb();
     });
 
-    it('emits a sovereign triage bead when a collaborative plan is concrete enough', async () => {
+    it('advances collaborative planning into proposal review for a concrete request', async () => {
         const chant = new ChantWeave(new NoopDispatchPort());
         const result = await chant.execute(
             {
@@ -88,19 +88,12 @@ describe('Chant collaborative planning (CS-P7-03)', () => {
         );
 
         assert.equal(result.status, 'TRANSITIONAL');
-        assert.equal(result.metadata?.planning_status, 'PLAN_READY');
-        const emittedBeads = (result.metadata?.emitted_beads as string[] | undefined) ?? [];
-        assert.equal(emittedBeads.length, 1);
+        assert.equal(result.metadata?.planning_status, 'PROPOSAL_REVIEW');
 
         const sessionId = String(result.metadata?.planning_session_id);
         const session = getHallPlanningSession(sessionId);
         assert.ok(session);
-        assert.equal(session?.status, 'PLAN_READY');
-
-        const beads = getHallBeads(tmpRoot, ['NEEDS_TRIAGE']);
-        assert.equal(beads.length, 1);
-        assert.equal(beads[0]?.id, emittedBeads[0]);
-        assert.equal(beads[0]?.source_kind, 'CHANT_PLAN');
+        assert.equal(session?.status, 'PROPOSAL_REVIEW');
     });
 
     it('maintains a multi-turn planning session across follow-up prompts', async () => {
@@ -128,7 +121,7 @@ describe('Chant collaborative planning (CS-P7-03)', () => {
         );
 
         const sessionId = String(first.metadata?.planning_session_id);
-        assert.equal(first.metadata?.planning_status, 'NEEDS_INPUT');
+        assert.equal(first.metadata?.planning_status, 'PROPOSAL_REVIEW');
 
         const second = await chant.execute(
             {
@@ -154,12 +147,12 @@ describe('Chant collaborative planning (CS-P7-03)', () => {
         );
 
         assert.equal(second.status, 'TRANSITIONAL');
-        assert.equal(second.metadata?.planning_status, 'PLAN_READY');
+        assert.equal(second.metadata?.planning_status, 'PROPOSAL_REVIEW');
         assert.equal(second.metadata?.planning_session_id, sessionId);
 
         const session = getHallPlanningSession(sessionId);
         assert.ok(session);
-        assert.equal(session?.status, 'PLAN_READY');
+        assert.equal(session?.status, 'PROPOSAL_REVIEW');
         assert.match(session?.normalized_intent ?? '', /FOLLOW_UP:/);
     });
 });

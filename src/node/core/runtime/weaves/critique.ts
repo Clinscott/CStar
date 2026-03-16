@@ -5,6 +5,7 @@ import {
     WeaveInvocation,
     WeaveResult,
 } from '../contracts.ts';
+import { defaultHostTextInvoker, extractJsonObject, resolveRuntimeHostProvider, type HostTextInvoker } from './host_bridge.ts';
 
 export interface CritiqueWeavePayload {
     bead: Record<string, unknown>;
@@ -17,17 +18,63 @@ export interface CritiqueWeavePayload {
 export class CritiqueWeave implements RuntimeAdapter<CritiqueWeavePayload> {
     public readonly id = 'weave:critique';
 
-    public constructor(private readonly dispatchPort: RuntimeDispatchPort) {}
+    public constructor(
+        private readonly dispatchPort: RuntimeDispatchPort,
+        private readonly hostTextInvoker: HostTextInvoker = defaultHostTextInvoker,
+    ) {}
 
     public async execute(
         invocation: WeaveInvocation<CritiqueWeavePayload>,
         context: RuntimeContext,
     ): Promise<WeaveResult> {
         const payload = invocation.payload;
-        
-        const isCliActive = context.env.GEMINI_CLI_ACTIVE === 'true' || process.env.GEMINI_CLI_ACTIVE === 'true';
 
-        if (isCliActive) {
+        const provider = resolveRuntimeHostProvider(context);
+
+        if (provider === 'codex') {
+            try {
+                const rawText = await this.hostTextInvoker({
+                    provider,
+                    projectRoot: payload.project_root || context.workspace_root,
+                    source: 'runtime:critique',
+                    systemPrompt: 'You are the Corvus Star Adversarial Critique Agent. Return strict JSON only.',
+                    prompt: [
+                        'Stress-test the proposed bead against the supplied research and return strict JSON only.',
+                        'Expected format: { "needs_revision": boolean, "critique": "...", "evidence_source": "...", "proposed_path": "..." }',
+                        '',
+                        `PROPOSED BEAD:\n${JSON.stringify(payload.bead, null, 2)}`,
+                        '',
+                        `RESEARCH CONTEXT:\n${JSON.stringify(payload.research, null, 2)}`,
+                        '',
+                        `ROLLING CONTEXT:\n${payload.context ?? 'None'}`,
+                    ].join('\n'),
+                });
+                const parsed = extractJsonObject(rawText);
+                return {
+                    weave_id: this.id,
+                    status: 'SUCCESS',
+                    output: typeof parsed.critique === 'string' && parsed.critique.trim()
+                        ? parsed.critique.trim()
+                        : 'Critique complete.',
+                    metadata: {
+                        delegated: true,
+                        provider,
+                        bead_title: payload.bead.title,
+                        critique_payload: parsed,
+                    },
+                };
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                return {
+                    weave_id: this.id,
+                    status: 'FAILURE',
+                    output: '',
+                    error: `The Critique Agent failed through the Codex host session: ${message}`,
+                };
+            }
+        }
+
+        if (provider === 'gemini') {
             const directive = `
 [SUB_AGENT_DIRECTIVE]
 Task: You are the specialized Adversarial Critique Agent for Corvus Star.
@@ -60,13 +107,13 @@ Expected Output Format (JSON):
                     bead_title: payload.bead.title
                 }
             };
-        } else {
-            return {
-                weave_id: this.id,
-                status: 'FAILURE',
-                output: '',
-                error: 'The Critique Agent requires the Gemini CLI environment to function. Please run this command within the AI CLI.'
-            };
         }
+
+        return {
+            weave_id: this.id,
+            status: 'FAILURE',
+            output: '',
+            error: 'The Critique Agent requires an active host session (Gemini or Codex).',
+        };
     }
 }

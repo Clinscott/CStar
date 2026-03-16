@@ -1,5 +1,6 @@
 import { RuntimeDispatcher } from './dispatcher.ts';
 import { DynamicCommandAdapter, PennyOneAdapter, RavensAdapter, StartAdapter } from './adapters.ts';
+import { AutoBotWeave } from './weaves/autobot.ts';
 import { ChantWeave } from './weaves/chant.ts';
 import { EvolveWeave } from './weaves/evolve.ts';
 import { RavensCycleWeave, RavensStageContractAdapter } from './weaves/ravens_cycle.ts';
@@ -23,6 +24,7 @@ export function bootstrapRuntime(dispatcher: RuntimeDispatcher = RuntimeDispatch
         new RavensStageContractAdapter('validate'),
         new RavensStageContractAdapter('promote'),
         new PennyOneAdapter(),
+        new AutoBotWeave(),
         new ChantWeave(dispatcher),
         new ResearchWeave(dispatcher),
         new CompressWeave(),

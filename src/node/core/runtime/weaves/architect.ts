@@ -5,6 +5,7 @@ import {
     WeaveInvocation,
     WeaveResult,
 } from '../contracts.ts';
+import { defaultHostTextInvoker, extractJsonObject, resolveRuntimeHostProvider, type HostTextInvoker } from './host_bridge.ts';
 
 export interface ArchitectWeavePayload {
     bead: Record<string, unknown>;
@@ -17,17 +18,63 @@ export interface ArchitectWeavePayload {
 export class ArchitectWeave implements RuntimeAdapter<ArchitectWeavePayload> {
     public readonly id = 'weave:architect';
 
-    public constructor(private readonly dispatchPort: RuntimeDispatchPort) {}
+    public constructor(
+        private readonly dispatchPort: RuntimeDispatchPort,
+        private readonly hostTextInvoker: HostTextInvoker = defaultHostTextInvoker,
+    ) {}
 
     public async execute(
         invocation: WeaveInvocation<ArchitectWeavePayload>,
         context: RuntimeContext,
     ): Promise<WeaveResult> {
         const payload = invocation.payload;
-        
-        const isCliActive = context.env.GEMINI_CLI_ACTIVE === 'true' || process.env.GEMINI_CLI_ACTIVE === 'true';
 
-        if (isCliActive) {
+        const provider = resolveRuntimeHostProvider(context);
+
+        if (provider === 'codex') {
+            try {
+                const rawText = await this.hostTextInvoker({
+                    provider,
+                    projectRoot: payload.project_root || context.workspace_root,
+                    source: 'runtime:architect',
+                    systemPrompt: 'You are the Corvus Star Architect Agent. Return strict JSON only.',
+                    prompt: [
+                        'Review the proposed bead and critique payload, then return strict JSON only.',
+                        'Expected format: { "is_approved": boolean, "architect_opinion": "...", "final_proposed_path": "..." }',
+                        '',
+                        `PROPOSED BEAD:\n${JSON.stringify(payload.bead, null, 2)}`,
+                        '',
+                        `SUB-AGENT CRITIQUE:\n${JSON.stringify(payload.critique_payload, null, 2)}`,
+                        '',
+                        `ROLLING CONTEXT:\n${payload.context ?? 'None'}`,
+                    ].join('\n'),
+                });
+                const parsed = extractJsonObject(rawText);
+                return {
+                    weave_id: this.id,
+                    status: 'SUCCESS',
+                    output: typeof parsed.architect_opinion === 'string' && parsed.architect_opinion.trim()
+                        ? parsed.architect_opinion.trim()
+                        : 'Architect review complete.',
+                    metadata: {
+                        delegated: true,
+                        provider,
+                        bead_title: payload.bead.title,
+                        architect_payload: parsed,
+                    },
+                };
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                return {
+                    weave_id: this.id,
+                    status: 'FAILURE',
+                    output: '',
+                    error: `The Architect Agent failed through the Codex host session: ${message}`,
+                };
+            }
+        }
+
+        if (provider === 'gemini') {
             const directive = `
 [ARCHITECT_DIRECTIVE]
 Task: You are the Main Agent (The Architect) for Corvus Star.
@@ -66,13 +113,13 @@ Expected Output Format (JSON):
                     bead_title: payload.bead.title
                 }
             };
-        } else {
-            return {
-                weave_id: this.id,
-                status: 'FAILURE',
-                output: '',
-                error: 'The Architect Agent requires the ONE MIND environment to function. Please run this command within the AI CLI.'
-            };
         }
+
+        return {
+            weave_id: this.id,
+            status: 'FAILURE',
+            output: '',
+            error: 'The Architect Agent requires an active host session (Gemini or Codex).',
+        };
     }
 }

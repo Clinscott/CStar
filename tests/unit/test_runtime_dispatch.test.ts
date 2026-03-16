@@ -35,6 +35,7 @@ describe('Canonical Runtime Dispatcher (CS-P1-01)', () => {
 
         assert.deepStrictEqual(dispatcher.listAdapterIds(), [
             'weave:architect',
+            'weave:autobot',
             'weave:chant',
             'weave:compress',
             'weave:critique',
