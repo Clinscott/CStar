@@ -37,7 +37,7 @@ class IntegrityVerifier:
 
         print("--- VERIFYING SYSTEM INTEGRITY ---")
         try:
-            from src.sentinel.muninn import Muninn
+            from src.core.engine.ravens.muninn import Muninn
             print("SUCCESS: Muninn imported.")
 
             # Mock environment for initialization

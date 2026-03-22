@@ -10,7 +10,7 @@ PROJECT_ROOT = Path(__file__).parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.sentinel.wardens.valkyrie import ValkyrieWarden
+from src.core.engine.wardens.valkyrie import ValkyrieWarden
 
 
 class TestValkyrieEmpire:
@@ -19,7 +19,7 @@ class TestValkyrieEmpire:
     def mock_root(self, tmp_path):
         return tmp_path
 
-    @patch("src.sentinel.wardens.valkyrie.vulture.Vulture")
+    @patch("src.core.engine.wardens.valkyrie.vulture.Vulture")
     def test_scan_no_dead_code(self, mock_vulture_cls, mock_root):
         """Test clean scan with no dead code."""
         mock_vulture = mock_vulture_cls.return_value
@@ -31,7 +31,7 @@ class TestValkyrieEmpire:
         assert results == []
         mock_vulture.scavenge.assert_called()
 
-    @patch("src.sentinel.wardens.valkyrie.vulture.Vulture")
+    @patch("src.core.engine.wardens.valkyrie.vulture.Vulture")
     def test_scan_detects_dead_code(self, mock_vulture_cls, mock_root):
         """Test detection of high confidence dead code."""
         mock_vulture = mock_vulture_cls.return_value
@@ -53,7 +53,7 @@ class TestValkyrieEmpire:
         assert "dead.py" in breach["file"]
         assert "dead_func" in breach["action"]
 
-    @patch("src.sentinel.wardens.valkyrie.vulture.Vulture")
+    @patch("src.core.engine.wardens.valkyrie.vulture.Vulture")
     def test_scan_filters_low_confidence(self, mock_vulture_cls, mock_root):
         """Test that low confidence items are ignored."""
         mock_vulture = mock_vulture_cls.return_value
@@ -69,7 +69,7 @@ class TestValkyrieEmpire:
 
         assert len(results) == 0
 
-    @patch("src.sentinel.wardens.valkyrie.vulture.Vulture")
+    @patch("src.core.engine.wardens.valkyrie.vulture.Vulture")
     def test_scan_ignores_init(self, mock_vulture_cls, mock_root):
         """Test that __init__.py files are ignored."""
         mock_vulture = mock_vulture_cls.return_value

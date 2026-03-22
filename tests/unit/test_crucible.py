@@ -4,8 +4,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.sentinel.code_sanitizer import BifrostGate
-from src.sentinel.sandbox_warden import SandboxWarden
+from src.core.engine.ravens.code_sanitizer import BifrostGate
+from src.core.engine.ravens.sandbox_warden import SandboxWarden
 
 # ==============================================================================
 # Suite 3: Crucible Lockdown
@@ -49,7 +49,7 @@ class TestQMDNeutering:
 class TestZombiePurge:
     """[ODIN] Verifies persistent teardown even on execution failure."""
 
-    @patch("src.sentinel.sandbox_warden.subprocess.run")
+    @patch("src.core.engine.ravens.sandbox_warden.subprocess.run")
     def test_sandbox_zombie_purge_on_timeout(self, mock_run):
         """
         Simulate a hanging Docker container that triggers a TimeoutExpired.

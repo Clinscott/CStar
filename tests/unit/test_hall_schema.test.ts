@@ -254,6 +254,7 @@ describe('Hall schema canonicalization (CS-P1-03)', () => {
             contract_refs: ['contracts:vector'],
             baseline_scores: { overall: 2.1, scan_baseline: 4.4 },
             acceptance_criteria: 'Raise the baseline above 5.0.',
+            checker_shell: 'node --test tests/unit/test_hall_schema.test.ts',
             status: 'OPEN',
             created_at: 1700000000200,
             updated_at: 1700000000200,
@@ -266,6 +267,78 @@ describe('Hall schema canonicalization (CS-P1-03)', () => {
         assert.strictEqual(beads[0]?.target_kind, 'FILE');
         assert.strictEqual(beads[0]?.target_ref, 'src/core/vector.py');
         assert.strictEqual(beads[0]?.baseline_scores.overall, 2.1);
+        assert.strictEqual(beads[0]?.checker_shell, 'node --test tests/unit/test_hall_schema.test.ts');
+    });
+
+    it('preserves checker_shell when a bead is status-updated without re-supplying validation', () => {
+        getDb();
+        const repoId = buildHallRepositoryId(tmpRoot.replace(/\\/g, '/'));
+        const createdAt = 1700000000200;
+
+        upsertHallBead({
+            bead_id: 'bead-preserve-checker',
+            repo_id: repoId,
+            target_path: 'src/core/vector.py',
+            rationale: 'Repair vector scoring',
+            acceptance_criteria: 'Raise the baseline above 5.0.',
+            checker_shell: 'node --test tests/unit/test_hall_schema.test.ts',
+            status: 'OPEN',
+            created_at: createdAt,
+            updated_at: createdAt,
+        });
+
+        upsertHallBead({
+            bead_id: 'bead-preserve-checker',
+            repo_id: repoId,
+            target_path: 'src/core/vector.py',
+            rationale: 'Repair vector scoring',
+            acceptance_criteria: 'Raise the baseline above 5.0.',
+            status: 'IN_PROGRESS',
+            assigned_agent: 'SOVEREIGN-WORKER',
+            created_at: createdAt,
+            updated_at: createdAt + 1,
+        });
+
+        const bead = getHallBeads(tmpRoot).find((entry) => entry.id === 'bead-preserve-checker');
+        assert.strictEqual(bead?.status, 'IN_PROGRESS');
+        assert.strictEqual(bead?.checker_shell, 'node --test tests/unit/test_hall_schema.test.ts');
+    });
+
+    it('counts SET-gated beads in the hall repository summary projection', () => {
+        getDb();
+        const repoId = buildHallRepositoryId(tmpRoot.replace(/\\/g, '/'));
+        const createdAt = 1700000000200;
+
+        upsertHallBead({
+            bead_id: 'bead-open',
+            repo_id: repoId,
+            rationale: 'Draft bead still open.',
+            status: 'OPEN',
+            created_at: createdAt,
+            updated_at: createdAt,
+        });
+        upsertHallBead({
+            bead_id: 'bead-set-pending',
+            repo_id: repoId,
+            rationale: 'Awaiting explicit set dictate.',
+            status: 'SET-PENDING',
+            created_at: createdAt + 1,
+            updated_at: createdAt + 1,
+        });
+        upsertHallBead({
+            bead_id: 'bead-set',
+            repo_id: repoId,
+            rationale: 'Approved for execution.',
+            status: 'SET',
+            created_at: createdAt + 2,
+            updated_at: createdAt + 2,
+        });
+
+        const summary = getHallSummary(tmpRoot);
+        const statuses = getHallBeads(tmpRoot).map((bead) => bead.status);
+
+        assert.strictEqual(summary?.open_beads, 3);
+        assert.deepStrictEqual(statuses, ['OPEN', 'SET-PENDING', 'SET']);
     });
 
     it('persists Hall skill proposals separately from skill observations', () => {

@@ -5,7 +5,7 @@ import { RuntimeDispatcher } from '../runtime/dispatcher.ts';
 import { PennyOneWeavePayload, RuntimeDispatchPort, WeaveInvocation, WeaveResult } from '../runtime/contracts.ts';
 import { resolveWorkspaceRoot, withCliWorkspaceTarget, type WorkspaceRootSource } from '../runtime/invocation.ts';
 
-function renderResult(result: WeaveResult): void {
+export function renderResult(result: WeaveResult): void {
     if (result.status === 'FAILURE') {
         console.error(chalk.red(`\n[SYSTEM FAILURE]: ${result.error ?? 'Unknown runtime failure.'}`));
         return;

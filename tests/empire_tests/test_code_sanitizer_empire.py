@@ -1,4 +1,4 @@
-from src.sentinel.code_sanitizer import BifrostGate
+from src.core.engine.ravens.code_sanitizer import BifrostGate
 
 gate = BifrostGate()
 

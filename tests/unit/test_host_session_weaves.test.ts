@@ -83,6 +83,33 @@ describe('Host-session runtime weaves', () => {
         assert.deepStrictEqual(result.metadata?.research_artifacts, ['repo:local']);
     });
 
+    it('lets research execute through a non-Codex host provider when the runtime host bridge is configured', async () => {
+        const weave = new ResearchWeave(new NoopDispatchPort(), async () =>
+            JSON.stringify({
+                summary: 'Claude summarized the intent and identified the next planning step.',
+                research_artifacts: ['repo:claude'],
+            }),
+        );
+
+        const result = await weave.execute(
+            {
+                weave_id: 'weave:research',
+                payload: {
+                    intent: 'hello world',
+                    project_root: tmpRoot,
+                    cwd: tmpRoot,
+                    source: 'cli',
+                },
+            },
+            createContext(tmpRoot, { CORVUS_HOST_PROVIDER: 'claude' }),
+        );
+
+        assert.equal(result.status, 'SUCCESS');
+        assert.match(result.output, /Claude summarized/);
+        assert.equal(result.metadata?.provider, 'claude');
+        assert.deepStrictEqual(result.metadata?.research_artifacts, ['repo:claude']);
+    });
+
     it('lets critique execute through the Codex host session', async () => {
         const weave = new CritiqueWeave(new NoopDispatchPort(), async () =>
             JSON.stringify({
@@ -135,6 +162,49 @@ describe('Host-session runtime weaves', () => {
         assert.equal(result.status, 'SUCCESS');
         assert.match(result.output, /keep the worker brief bounded/i);
         assert.equal(result.metadata?.provider, 'codex');
+    });
+
+    it('tells architect to emit host-governable beads with repo-native checker shells', async () => {
+        let capturedPrompt = '';
+        const weave = new ArchitectWeave(new NoopDispatchPort(), async (request) => {
+            capturedPrompt = request.prompt;
+            return JSON.stringify({
+                proposal_summary: 'Emit one bounded bead.',
+                beads: [
+                    {
+                        id: 'bead-governable',
+                        title: 'Add a bounded command improvement',
+                        rationale: 'Keep the bead governable.',
+                        targets: ['src/node/core/commands/oracle.ts', 'tests/unit/test_oracle_command.test.ts'],
+                        depends_on: [],
+                        acceptance_criteria: ['A focused command improvement exists.'],
+                        checker_shell: 'node scripts/run-tsx.mjs --test tests/unit/test_oracle_command.test.ts',
+                    },
+                ],
+            });
+        });
+
+        const result = await weave.execute(
+            {
+                weave_id: 'weave:architect',
+                payload: {
+                    action: 'build_proposal',
+                    intent: 'Add a bounded command improvement.',
+                    research: {
+                        summary: 'The work fits inside one command spoke plus tests.',
+                        research_artifacts: ['src/node/core/commands/oracle.ts'],
+                    },
+                    cwd: tmpRoot,
+                },
+            },
+            createContext(tmpRoot, { CODEX_SHELL: '1' }),
+        );
+
+        assert.equal(result.status, 'SUCCESS');
+        assert.match(capturedPrompt, /Host-governable beads must stay bounded/i);
+        assert.match(capturedPrompt, /checker_shell must be executable in this repository without pnpm assumptions/i);
+        assert.match(capturedPrompt, /node scripts\/run-tsx\.mjs --test/i);
+        assert.match(capturedPrompt, /emit multiple smaller beads/i);
     });
 
     it('lets compress execute through the Codex host session and persist memory', async () => {

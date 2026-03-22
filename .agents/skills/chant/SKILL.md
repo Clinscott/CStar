@@ -12,17 +12,20 @@ source: internal
 
 
 ## MANDATE
-Parse natural language "Chants" into dynamic execution plans (Flight Paths) of Agent Skills. Act as the primary Cognitive Router for Huginn and Muninn.
-Phase 1 authority: `cstar chant "<query>"` now resolves through the woven runtime.
-The Python script in `scripts/chant.py` is a compatibility adapter only.
-When a chant reaches implementation, `chant` must hand the active bead to `autobot`. `chant` remains the planner/router; AutoBot is the disposable worker.
+Act as the primary entrypoint and session shell for Corvus Star. Parse natural language "Chants" into dynamic execution plans by delegating research, planning, and synthesis to specialized weaves (e.g., `weave:research`, `weave:architect`). Manage the collaborative session lifecycle and facilitate the handoff between planning and execution.
+Phase 1 authority: `cstar chant "<query>"` resolves through the woven runtime.
+Chant is the **shell**, not the **planner**. It orchestrates the flow:
+1. **Routing**: Direct dispatch for known built-in capabilities.
+2. **Session Lifecycle**: Create and resume collaborative planning sessions in the Hall.
+3. **Scheduler Handoff**: Handoff validated bead graphs to the execution layer (e.g., `weave:autobot`).
 
 ## LOGIC PROTOCOL
-1. **INTENT DECODING**: Consult the One Mind to translate the Shaman's chant into a series of technical objectives.
-2. **SKILL MAPPING**: Identify the optimal sequence of Agent Skills required to fulfill the objectives.
-3. **BEAD SHAPING**: Build beads for a constrained worker window. Only pass immediate context drawn from Hall and PennyOne: the active bead, target path, acceptance criteria, active critique, latest architect opinion, and the most recent episodic memory that changes the next edit.
-4. **CEREMONIAL EXECUTION**: Trigger the `ritual` skill to visualize the plan, then hand implementation beads to `autobot` instead of a generic worker.
-5. **MISSION FEEDBACK**: Monitor the success of each step and adjust the flight path if anomalies are detected.
+1. **ROUTING**: Match query against built-in weaves (`ravens`, `pennyone`, `start`) and installed skills.
+2. **SESSION BOOTSTRAP**: If no direct route matches, create or resume a planning session in the Hall.
+3. **RESEARCH DELEGATION**: Dispatch `weave:research` to gather codebase and environmental facts.
+4. **PLANNING DELEGATION**: Dispatch `weave:architect` to synthesize research and Hall truth into a structured bead graph.
+5. **HUMAN ADJUDICATION**: Present proposals to the operator for review and approval (State: `PROPOSAL_REVIEW`).
+6. **EXECUTION HANDOFF**: Dispatch `SET` beads to the execution layer (State: `FORGE_EXECUTION`).
 
 ## HANDOFF DISCIPLINE
 - AutoBot is the default sub-agent for implementation handoff.

@@ -12,7 +12,7 @@ if str(project_root) not in sys.path:
 
 from src.core.runtime_env import resolve_project_python, resolve_quarto_binary
 from src.core.sovereign_hud import SovereignHUD
-from src.sentinel._bootstrap import PROJECT_ROOT, SovereignBootstrap
+from src.core.bootstrap import PROJECT_ROOT, SovereignBootstrap
 
 SovereignBootstrap.execute()
 

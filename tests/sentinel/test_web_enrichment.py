@@ -2,7 +2,7 @@
 from pathlib import Path
 from unittest.mock import patch
 
-from src.sentinel.code_sanitizer import BifrostGate
+from src.core.engine.ravens.code_sanitizer import BifrostGate
 
 
 def test_scan_and_enrich_imports_valid_code():
@@ -11,7 +11,7 @@ def test_scan_and_enrich_imports_valid_code():
     result = gate.scan_and_enrich_imports(code)
     assert result == ""
 
-@patch("src.sentinel.code_sanitizer.BraveSearch")
+@patch("src.core.engine.ravens.code_sanitizer.BraveSearch")
 def test_scan_and_enrich_imports_invalid_import(MockBraveSearch):
     # Setup mock
     mock_searcher = MockBraveSearch.return_value
@@ -31,7 +31,7 @@ def test_scan_and_enrich_imports_invalid_import(MockBraveSearch):
     assert "FakeLib Docs" in result
     assert "http://fakelib.org" in result
 
-@patch("src.sentinel.code_sanitizer.BraveSearch")
+@patch("src.core.engine.ravens.code_sanitizer.BraveSearch")
 def test_quota_exhausted(MockBraveSearch):
     mock_searcher = MockBraveSearch.return_value
     mock_searcher.is_quota_available.return_value = False

@@ -29,7 +29,7 @@ Preserve the "why" behind technical decisions and provide a narrative history of
 
 ## 2026-03-01 - Session 101: Operation Shadow Forge 
 - **Accomplishments**: 
-    - **Shadow Forge Orchestrator**: Extracted the core container building logic from `muninn.py` into a specialized Warden (`src/sentinel/wardens/shadow_forge.py`) for enhanced isolation and testability.
+    - **Shadow Forge Orchestrator**: Extracted the core container building logic from `muninn.py` into a specialized Warden (`src/core/engine/wardens/shadow_forge.py`) for enhanced isolation and testability.
     - **Muninn Heartbeat**: Extruded the `muninn.pid` creation logic to warp the entire `run` process, inserting an explicit `_pulse_heartbeat` touch event into the long-running core methods to guarantee uninterrupted telemetry visibility.
     - **JSON Hardened Promotions**: Removed reliance on raw regex string matching (which fractured heavily under ANSI escape codes during Docker runs) by forcing the containerized payload to emit strict `{ "status": "...", "promoted_files": [...] }` structures.
 - **Git State**: 100% Python Empire TDD pass; `muninn` and `shadow_forge` passing 100% Ruff structural scans.
@@ -112,7 +112,7 @@ Preserve the "why" behind technical decisions and provide a narrative history of
 ## 2026-02-13 - Operation Bifröst: The Web-Aware Reforge (Session 54)
 ### Summary
 - **Brave Search Integration**: Successfully implemented `src/tools/brave_search.py` with 1,000/mo quota management and monthly reset logic.
-- **HeimdallGuard Security**: Integrated regex-based prompt injection neutralization in `src/sentinel/code_sanitizer.py`.
+- **HeimdallGuard Security**: Integrated regex-based prompt injection neutralization in `src/core/engine/ravens/code_sanitizer.py`.
 - **Raven's Eye Activation**: Modified `sv_engine.py` to perform proactive lexicon expansion for unknown technical terms.
 - **Forge Augmentor**: Upgraded `skill_forge.py` with Web-RAG for real-world syntax synthesis.
 - **SovereignFish Improvements**: Refactored `stopwords.json` and synchronized `DialogueEngine` naming convention.

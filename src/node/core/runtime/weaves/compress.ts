@@ -95,12 +95,13 @@ export class CompressWeave implements RuntimeAdapter<CompressWeavePayload> {
 
         const provider = resolveRuntimeHostProvider(context);
 
-        if (provider === 'codex') {
+        if (provider) {
             try {
                 const rawText = await this.hostTextInvoker({
                     provider,
                     projectRoot: payload.project_root || context.workspace_root,
                     source: 'runtime:compress',
+                    env: { ...process.env, ...context.env } as NodeJS.ProcessEnv,
                     systemPrompt: 'You are the Corvus Star Context Compressor. Return strict JSON only.',
                     prompt: `
 Bead ID: "${payload.bead_id}"
@@ -129,7 +130,7 @@ Instructions:
                         weave_id: this.id,
                         status: 'FAILURE',
                         output: '',
-                        error: 'The Context Compressor Codex host session did not return a tactical_summary.',
+                        error: `The Context Compressor ${provider} host session did not return a tactical_summary.`,
                     };
                 }
                 return persistTacticalSummary(payload, context, {
@@ -153,53 +154,15 @@ Instructions:
                     weave_id: this.id,
                     status: 'FAILURE',
                     output: '',
-                    error: `The Context Compressor failed through the Codex host session: ${message}`,
+                    error: `The Context Compressor failed through the ${provider} host session: ${message}`,
                 };
             }
         }
-
-        if (provider !== 'gemini') {
-            return {
-                weave_id: this.id,
-                status: 'FAILURE',
-                output: '',
-                error: 'The Context Compressor requires an active host session (Gemini or Codex) unless a tactical summary is provided for persistence.',
-            };
-        }
-
-        const directive = `
-[SUB_AGENT_DIRECTIVE]
-Task: You are the Corvus Star Context Compressor.
-Model Hint: gemini-2.5-flash-lite
-Bead ID: "${payload.bead_id}"
-Bead Intent: "${payload.bead_intent}"
-Candidate Diff:
-${payload.git_diff?.trim() || 'NO_DIFF_PROVIDED'}
-
-Instructions:
-1. Read the bead intent and diff.
-2. Ignore failed tool calls and abandoned attempts.
-3. Summarize only successful tactical changes that should become episodic memory.
-4. Keep the output compact and concrete.
-5. Return strict JSON only in this format:
-{
-  "tactical_summary": "...",
-  "files_touched": ["path/a", "path/b"],
-  "successes": ["..."],
-  "bead_id": "${payload.bead_id}"
-}
-[/SUB_AGENT_DIRECTIVE]
-`;
-
         return {
             weave_id: this.id,
-            status: 'TRANSITIONAL',
-            output: `Delegating compression to native ONE MIND environment.\n${directive}`,
-            metadata: {
-                delegated: true,
-                bead_id: payload.bead_id,
-                model_hint: 'gemini-2.5-flash-lite',
-            },
+            status: 'FAILURE',
+            output: '',
+            error: 'The Context Compressor requires an active host session unless a tactical summary is provided for persistence.',
         };
     }
 }

@@ -7,7 +7,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[4]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.core.engine.autobot_skill import execute_autobot
+from src.core.engine.autobot_skill import DEFAULT_HERMES_MODEL, execute_autobot
 
 
 def main() -> None:
@@ -24,15 +24,33 @@ def main() -> None:
     parser.add_argument("--agent-id", default="AUTOBOT")
     parser.add_argument("--worker-note")
     parser.add_argument("--autobot-dir", default="/home/morderith/Corvus/AutoBot")
-    parser.add_argument("--command", default="hermes")
+    parser.add_argument(
+        "--command",
+        help=(
+            "Base executable to launch. If omitted, the skill uses the local Hermes binary "
+            "under <autobot-dir>/hermes-agent/.venv/bin/hermes."
+        ),
+    )
     parser.add_argument("--command-arg", action="append", default=[])
-    parser.add_argument("--env", action="append", default=[])
+    parser.add_argument(
+        "--env",
+        action="append",
+        default=[],
+        help=(
+            "Environment variables to inject into Hermes and checker processes. Explicit values "
+            "override the local-model defaults for OPENAI_BASE_URL and OPENAI_API_KEY."
+        ),
+    )
     parser.add_argument("--ready-regex", default=r"(?:^|\n)\s*❯\s*$")
     parser.add_argument("--done-regex", action="append", default=[])
     parser.add_argument(
         "--stream",
         action="store_true",
         help="Relay Hermes and checker output live. Disabled by default so stdout stays valid JSON.",
+    )
+    parser.epilog = (
+        "Default launch behavior uses the local Hermes chat entrypoint with "
+        f"`-m {DEFAULT_HERMES_MODEL}`."
     )
     args = parser.parse_args()
 

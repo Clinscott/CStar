@@ -1,4 +1,5 @@
 import sqlite3
+import subprocess
 
 import pytest
 
@@ -25,7 +26,12 @@ def _complete_prompt(db_path, synapse_id: int, response: str) -> None:
 
 
 @pytest.mark.asyncio
-async def test_mimir_client_uses_host_session_contract(tmp_path):
+async def test_mimir_client_returns_a_typed_error_when_builtin_gemini_scaffold_yields_no_output(tmp_path, monkeypatch):
+    def fake_run(args, **kwargs):
+        return subprocess.CompletedProcess(args=args, returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
     client = MimirClient(project_root=tmp_path, host_session_active=True)
 
     response = await client.request(
@@ -36,12 +42,48 @@ async def test_mimir_client_uses_host_session_contract(tmp_path):
         }
     )
 
+    assert response.status == "error"
+    assert response.trace.transport_mode == "host_session"
+    assert response.error is not None
+    assert "gemini returned no output" in response.error.lower()
+
+
+@pytest.mark.asyncio
+async def test_mimir_client_uses_configured_gemini_host_bridge(tmp_path, monkeypatch):
+    observed: dict[str, object] = {}
+
+    def fake_run(args, **kwargs):
+        observed["args"] = args
+        observed["cwd"] = kwargs["cwd"]
+        observed["env"] = kwargs["env"]
+        return subprocess.CompletedProcess(args=args, returncode=0, stdout="Gemini host response", stderr="")
+
+    monkeypatch.setenv("CORVUS_GEMINI_HOST_BRIDGE_CMD", "gemini")
+    monkeypatch.setenv(
+        "CORVUS_GEMINI_HOST_BRIDGE_ARGS_JSON",
+        '["-p", "{prompt}", "--cwd", "{project_root}"]',
+    )
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    client = MimirClient(
+        project_root=tmp_path,
+        host_session_active=True,
+        host_provider="gemini",
+    )
+
+    response = await client.request({"prompt": "Explain the active bridge."})
+
     assert response.status == "success"
     assert response.trace.transport_mode == "host_session"
-    assert response.raw_text is not None
-    assert response.raw_text.startswith("[SAMPLING_REQUEST]")
-    assert "SYSTEM:" in response.raw_text
-    assert "USER:" in response.raw_text
+    assert response.raw_text == "Gemini host response"
+    assert observed["args"] == [
+        "gemini",
+        "-p",
+        "Explain the active bridge.",
+        "--cwd",
+        str(tmp_path),
+    ]
+    assert observed["cwd"] == str(tmp_path)
 
 
 @pytest.mark.asyncio
@@ -65,6 +107,58 @@ async def test_mimir_client_uses_codex_host_runner_when_provider_is_codex(tmp_pa
     assert response.trace.transport_mode == "host_session"
     assert response.raw_text == "Codex host response"
     assert observed == [("codex", "Explain the active bridge.")]
+
+
+@pytest.mark.asyncio
+async def test_mimir_client_uses_builtin_claude_cli_scaffold(tmp_path, monkeypatch):
+    observed: dict[str, object] = {}
+
+    def fake_run(args, **kwargs):
+        observed["args"] = args
+        observed["cwd"] = kwargs["cwd"]
+        return subprocess.CompletedProcess(args=args, returncode=0, stdout="Claude host response", stderr="")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    client = MimirClient(
+        project_root=tmp_path,
+        host_session_active=True,
+        host_provider="claude",
+    )
+
+    response = await client.request({"prompt": "Explain the active bridge."})
+
+    assert response.status == "success"
+    assert response.trace.transport_mode == "host_session"
+    assert response.raw_text == "Claude host response"
+    assert observed["args"] == ["claude", "-p", "Explain the active bridge."]
+    assert observed["cwd"] == str(tmp_path)
+
+
+@pytest.mark.asyncio
+async def test_mimir_client_uses_builtin_gemini_cli_scaffold(tmp_path, monkeypatch):
+    observed: dict[str, object] = {}
+
+    def fake_run(args, **kwargs):
+        observed["args"] = args
+        observed["cwd"] = kwargs["cwd"]
+        return subprocess.CompletedProcess(args=args, returncode=0, stdout="Gemini host response", stderr="")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    client = MimirClient(
+        project_root=tmp_path,
+        host_session_active=True,
+        host_provider="gemini",
+    )
+
+    response = await client.request({"prompt": "Explain the active bridge."})
+
+    assert response.status == "success"
+    assert response.trace.transport_mode == "host_session"
+    assert response.raw_text == "Gemini host response"
+    assert observed["args"] == ["gemini", "-p", "Explain the active bridge."]
+    assert observed["cwd"] == str(tmp_path)
 
 
 @pytest.mark.asyncio

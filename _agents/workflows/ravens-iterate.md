@@ -33,7 +33,7 @@ For each FAILED iteration in `tests/ravens_harness_results.json`:
 4. Determine if `code_sanitizer.py` should have caught this failure
 
 ### 4. Classify Fix Locations
-- If the sanitizer **should have caught it**: File a fix in `src/sentinel/code_sanitizer.py`
+- If the sanitizer **should have caught it**: File a fix in `src/core/engine/ravens/code_sanitizer.py`
 - If the **prompt was wrong**: File a prompt improvement in `sovereign_fish.py`'s `_run_gauntlet` prompt
 - If the **test infrastructure was wrong**: File a fix in `tests/ravens_harness.py`
 

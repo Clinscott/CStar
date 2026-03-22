@@ -12,7 +12,7 @@ project_root = script_dir.parent.parent
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
-from src.sentinel.coordinator import MissionCoordinator
+from src.core.engine.ravens.coordinator import MissionCoordinator
 from src.cstar.core.antigravity_bridge import AntigravityBridge
 
 class TestGungnirCrucibleV2(unittest.IsolatedAsyncioTestCase):

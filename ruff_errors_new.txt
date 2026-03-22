@@ -13,7 +13,7 @@ E402 Module level import not at top of file
    |
 30 |     sys.path.append(str(project_root))
 31 |
-32 | from src.sentinel._bootstrap import bootstrap
+32 | from src.core.bootstrap import bootstrap
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 33 |
 34 | bootstrap()
@@ -68,7 +68,7 @@ E402 Module level import not at top of file
 43 | from src.core.sovereign_hud import SovereignHUD
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 44 | from src.cstar.core.uplink import AntigravityUplink
-45 | from src.sentinel.code_sanitizer import (
+45 | from src.core.engine.ravens.code_sanitizer import (
    |
 
 E402 Module level import not at top of file
@@ -78,7 +78,7 @@ E402 Module level import not at top of file
 43 | from src.core.sovereign_hud import SovereignHUD
 44 | from src.cstar.core.uplink import AntigravityUplink
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-45 | from src.sentinel.code_sanitizer import (
+45 | from src.core.engine.ravens.code_sanitizer import (
 46 |     sanitize_code,
    |
 
@@ -87,7 +87,7 @@ E402 Module level import not at top of file
    |
 43 |   from src.core.sovereign_hud import SovereignHUD
 44 |   from src.cstar.core.uplink import AntigravityUplink
-45 | / from src.sentinel.code_sanitizer import (
+45 | / from src.core.engine.ravens.code_sanitizer import (
 46 | |     sanitize_code,
 47 | |     sanitize_test,
 48 | |     scan_and_enrich_imports,
@@ -101,7 +101,7 @@ E402 Module level import not at top of file
   --> src\sentinel\muninn.py:52:1
    |
 51 | # Stability Modules
-52 | from src.sentinel.stability import GungnirValidator, TheWatcher
+52 | from src.core.engine.ravens.stability import GungnirValidator, TheWatcher
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 53 |
 54 | # Warden Modules
@@ -111,9 +111,9 @@ E402 Module level import not at top of file
   --> src\sentinel\muninn.py:55:1
    |
 54 | # Warden Modules
-55 | from src.sentinel.wardens.base import BaseWarden
+55 | from src.core.engine.wardens.base import BaseWarden
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-56 | from src.sentinel.wardens.norn import NornWarden
+56 | from src.core.engine.wardens.norn import NornWarden
 57 | from src.tools.brave_search import BraveSearch
    |
 
@@ -121,8 +121,8 @@ E402 Module level import not at top of file
   --> src\sentinel\muninn.py:56:1
    |
 54 | # Warden Modules
-55 | from src.sentinel.wardens.base import BaseWarden
-56 | from src.sentinel.wardens.norn import NornWarden
+55 | from src.core.engine.wardens.base import BaseWarden
+56 | from src.core.engine.wardens.norn import NornWarden
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 57 | from src.tools.brave_search import BraveSearch
 58 | from src.tools.gemini_search import GeminiSearch
@@ -131,8 +131,8 @@ E402 Module level import not at top of file
 E402 Module level import not at top of file
   --> src\sentinel\muninn.py:57:1
    |
-55 | from src.sentinel.wardens.base import BaseWarden
-56 | from src.sentinel.wardens.norn import NornWarden
+55 | from src.core.engine.wardens.base import BaseWarden
+56 | from src.core.engine.wardens.norn import NornWarden
 57 | from src.tools.brave_search import BraveSearch
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 58 | from src.tools.gemini_search import GeminiSearch
@@ -142,7 +142,7 @@ E402 Module level import not at top of file
 E402 Module level import not at top of file
   --> src\sentinel\muninn.py:58:1
    |
-56 | from src.sentinel.wardens.norn import NornWarden
+56 | from src.core.engine.wardens.norn import NornWarden
 57 | from src.tools.brave_search import BraveSearch
 58 | from src.tools.gemini_search import GeminiSearch
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

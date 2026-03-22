@@ -16,7 +16,7 @@ from unittest.mock import patch, MagicMock, AsyncMock
 class TestXAPI:
     """Isolation tests for the X API wrapper (lazy-init)."""
 
-    @patch("src.sentinel.x_api.SovereignHUD")
+    @patch("docs.legacy_archive.src_sentinel.x_api.SovereignHUD")
     def test_load_credentials_returns_true_when_all_present(self, _mock_hud: MagicMock):
         """_load_credentials returns True when all 4 env vars are set."""
         env = {
@@ -26,29 +26,29 @@ class TestXAPI:
             "X_ACCESS_TOKEN_SECRET": "token_secret",
         }
         with patch.dict("os.environ", env, clear=False):
-            from src.sentinel.x_api import XAPI
+            from docs.legacy_archive.src_sentinel.x_api import XAPI
             api = XAPI()
             assert api._load_credentials() is True
 
-    @patch("src.sentinel.x_api.SovereignHUD")
+    @patch("docs.legacy_archive.src_sentinel.x_api.SovereignHUD")
     def test_load_credentials_returns_false_when_missing(self, _mock_hud: MagicMock):
         """_load_credentials returns False when env vars are absent."""
         with patch.dict("os.environ", {}, clear=True):
-            from src.sentinel.x_api import XAPI
+            from docs.legacy_archive.src_sentinel.x_api import XAPI
             api = XAPI()
             assert api._load_credentials() is False
 
-    @patch("src.sentinel.x_api.SovereignHUD")
+    @patch("docs.legacy_archive.src_sentinel.x_api.SovereignHUD")
     def test_post_article_simulated_when_unconfigured(self, mock_hud: MagicMock):
         """Unconfigured XAPI simulates post and returns True."""
         with patch.dict("os.environ", {}, clear=True):
-            from src.sentinel.x_api import XAPI
+            from docs.legacy_archive.src_sentinel.x_api import XAPI
             api = XAPI()
             result = api.post_article("Test content")
             assert result is True
             mock_hud.persona_log.assert_any_call("WARN", "X API Credentials not found. Post simulated.")
 
-    @patch("src.sentinel.x_api.SovereignHUD")
+    @patch("docs.legacy_archive.src_sentinel.x_api.SovereignHUD")
     def test_post_article_simulation_mode_when_configured(self, mock_hud: MagicMock):
         """Configured XAPI in SIMULATION_MODE logs simulation, returns True."""
         env = {
@@ -58,7 +58,7 @@ class TestXAPI:
             "X_ACCESS_TOKEN_SECRET": "token_secret",
         }
         with patch.dict("os.environ", env, clear=False):
-            from src.sentinel.x_api import XAPI
+            from docs.legacy_archive.src_sentinel.x_api import XAPI
             api = XAPI()
             assert api.SIMULATION_MODE is True
             result = api.post_article("Live content")
@@ -111,12 +111,12 @@ def taliesin_root(tmp_path: Path) -> Path:
     return tmp_path
 
 
-@patch("src.sentinel.taliesin.XAPI")
-@patch("src.sentinel.taliesin.AntigravityUplink")
-@patch("src.sentinel.taliesin.SovereignHUD")
+@patch("docs.legacy_archive.src_sentinel.taliesin.XAPI")
+@patch("docs.legacy_archive.src_sentinel.taliesin.AntigravityUplink")
+@patch("docs.legacy_archive.src_sentinel.taliesin.SovereignHUD")
 def create_spoke(root: Path, mock_hud: MagicMock, mock_uplink_cls: MagicMock, mock_xapi_cls: MagicMock):
     """Helper: creates a TaliesinSpoke with fully mocked externals."""
-    from src.sentinel.taliesin import TaliesinSpoke
+    from docs.legacy_archive.src_sentinel.taliesin import TaliesinSpoke
 
     mock_uplink = AsyncMock()
     mock_uplink_cls.return_value = mock_uplink

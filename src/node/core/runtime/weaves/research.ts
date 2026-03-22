@@ -6,14 +6,22 @@ import {
     WeaveInvocation,
     WeaveResult,
 } from '../contracts.ts';
-import { defaultHostTextInvoker, extractJsonObject, resolveRuntimeHostProvider, type HostTextInvoker } from './host_bridge.ts';
+import * as hostBridge from './host_bridge.ts';
+
+/**
+ * External dependencies for the ResearchWeave.
+ * Supports 1:1 unit test isolation via dependency injection.
+ */
+export const deps = {
+    ...Object.assign({}, hostBridge),
+};
 
 export class ResearchWeave implements RuntimeAdapter<ResearchWeavePayload> {
     public readonly id = 'weave:research';
 
     public constructor(
         private readonly dispatchPort: RuntimeDispatchPort,
-        private readonly hostTextInvoker: HostTextInvoker = defaultHostTextInvoker,
+        private readonly hostTextInvoker: hostBridge.HostTextInvoker = deps.defaultHostTextInvoker,
     ) {}
 
     public async execute(
@@ -22,7 +30,7 @@ export class ResearchWeave implements RuntimeAdapter<ResearchWeavePayload> {
     ): Promise<WeaveResult> {
         const payload = invocation.payload;
 
-        const provider = resolveRuntimeHostProvider(context);
+        const provider = deps.resolveRuntimeHostProvider(context);
 
         if (provider === 'codex') {
             try {
@@ -42,7 +50,7 @@ export class ResearchWeave implements RuntimeAdapter<ResearchWeavePayload> {
                         '{ "summary": "...", "research_artifacts": ["artifact-1", "artifact-2"] }',
                     ].join('\n'),
                 });
-                const parsed = extractJsonObject(rawText);
+                const parsed = deps.extractJsonObject(rawText);
                 const summary = typeof parsed.summary === 'string' && parsed.summary.trim()
                     ? parsed.summary.trim()
                     : 'Research complete.';

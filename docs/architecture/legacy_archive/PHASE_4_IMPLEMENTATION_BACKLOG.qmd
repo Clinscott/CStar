@@ -1,0 +1,290 @@
+---
+title: "Corvus Star Phase 4 Implementation Backlog"
+date: 2026-03-09
+status: completed
+---
+
+# Corvus Star Phase 4 Implementation Backlog
+
+> [!IMPORTANT]
+> This backlog operationalizes Phase 4 from `docs/architecture/WOVEN_SKILL_CONSOLIDATION_BLUEPRINT.qmd`.
+> Phase 4 standardizes TALIESIN execution.
+> TALIESIN may remain a runtime identity, but code forge can no longer bypass bead authority, contract discipline, or validation handoff.
+
+## Phase 4 Mission
+
+Phase 4 exists to make TALIESIN a canonical forge weave instead of a collection of direct script paths and permissive adapters.
+
+The required outcomes are:
+
+1. TALIESIN execution is dispatched through the runtime with an explicit forge contract.
+2. Canonical forge execution requires a real bead and a real contract surface.
+3. Forge output includes an explicit validation handoff instead of a raw staged file alone.
+4. Transitional lore or freeform adapters stop being live forge authority.
+5. Any active caller that still forges code must go through the Hall-backed bead flow and validation-ready result envelope.
+
+## Phase 4 Exit Criteria
+
+- A stable runtime weave exists for TALIESIN forge execution.
+- Canonical forge execution rejects beads that lack contract references, acceptance criteria, or executable target identity.
+- Forge staging emits an explicit validation request or equivalent structured handoff, not only a staged path.
+- No live runtime or CLI forge path depends on lore-file normalization or freeform objective text as the canonical source of work.
+- Transitional TALIESIN adapters are clearly compatibility-only and do not define operational authority.
+
+## Execution Status
+
+Current Phase 4 state:
+
+- Phase 1 completed on 2026-03-09
+- Phase 2 completed on 2026-03-09
+- Phase 3 completed on 2026-03-09
+- `CS-P4-00` closed on 2026-03-09
+- `CS-P4-01` closed on 2026-03-09
+- `CS-P4-02` closed on 2026-03-09
+- `CS-P4-03` closed on 2026-03-09
+- `CS-P4-04` closed on 2026-03-09
+- TALIESIN forge now dispatches through `weave:taliesin-forge` with a structured staged-candidate envelope
+- Canonical forge requests now require an eligible bead plus explicit contract refs and acceptance criteria
+- The script-level lore-file forge entrypoint is now compatibility-only and rejected by the canonical runtime path
+- Target-driven `start` execution no longer falls through to the legacy agent loop or lore/objective forge path
+- Contractless, workflow-only, or lore-only beads now normalize directly into triage instead of pretending to be executable work
+- Forge staging now emits a Crucible-consumable validation handoff with staged candidate and generated test metadata
+- Freeform JIT forge fallback now creates triage beads instead of generating code, and dead forge bypass files are quarantined
+- Phase 4 completed on 2026-03-09
+
+## Ticket Index
+
+| ID | Status | Priority | Ticket | Depends On | Primary Surfaces |
+| --- | --- | --- | --- | --- | --- |
+| `CS-P4-00` | Closed | P0 | TALIESIN Forge Runtime Contract Freeze | Phase 3 complete | `runtime/contracts.ts`, `runtime/bootstrap.ts`, `dispatcher.ts`, `taliesin_forge.py`, `forge_candidate.py` |
+| `CS-P4-01` | Closed | P0 | Require Bead-Backed Forge Input | `CS-P4-00` | `forge_candidate.py`, `bead_ledger.py`, forge request tests |
+| `CS-P4-02` | Closed | P0 | Require Contract-First Forge Input | `CS-P4-00` | `forge_candidate.py`, `taliesin_forge.py`, request validation and compatibility fences |
+| `CS-P4-03` | Closed | P1 | Emit Validation Handoff From Forge | `CS-P4-00`, `CS-P4-02` | `forge_candidate.py`, Crucible handoff metadata, runtime result typing |
+| `CS-P4-04` | Closed | P1 | Retire Direct Forge Bypass Paths | `CS-P4-01`, `CS-P4-02`, `CS-P4-03` | `taliesin_forge.py`, `skill_forger.py`, legacy forge callers, command adapters |
+
+## Critical Path
+
+The critical path is:
+
+`CS-P4-00 -> CS-P4-01 -> CS-P4-02 -> CS-P4-03 -> CS-P4-04`
+
+## Ticket Details
+
+## `CS-P4-00` TALIESIN Forge Runtime Contract Freeze
+
+### Objective
+
+Freeze the canonical TALIESIN forge invocation and result boundary before broader enforcement and cleanup.
+
+### Files
+
+- `src/node/core/runtime/contracts.ts`
+- `src/node/core/runtime/bootstrap.ts`
+- `src/node/core/runtime/weaves/`
+- `src/node/core/commands/dispatcher.ts`
+- `src/types/forge-candidate.ts`
+- `docs/legacy_archive/src_sentinel/taliesin_forge.py`
+- `src/core/engine/forge_candidate.py`
+- New or updated TALIESIN runtime tests
+
+### Change Set
+
+- Define a canonical `weave:taliesin-forge` invocation and metadata envelope.
+- Add a runtime-backed TALIESIN forge entrypoint that accepts bead-backed parameters and returns a structured staged candidate result.
+- Add a Python CLI envelope for runtime TALIESIN execution so TypeScript dispatch does not scrape freeform text.
+- Demote lore-file forge invocation to compatibility-only behavior; the runtime path must be bead-first.
+
+### Acceptance Criteria
+
+- The runtime can dispatch TALIESIN forge through a stable weave id.
+- TALIESIN forge returns a structured candidate envelope rather than ad hoc terminal text.
+- No canonical runtime invocation for TALIESIN depends on a lore file path.
+
+### Verification
+
+```powershell
+npx tsc --noEmit
+npx tsx --test tests/unit/test_runtime_dispatch.test.ts tests/unit/test_forge_candidate.test.ts tests/unit/test_taliesin_forge_runtime.test.ts
+.\.venv\Scripts\python.exe -m pytest tests/unit/test_forge_candidate.py -q
+```
+
+### Closure Note
+
+Closed on 2026-03-09.
+
+Implemented outcomes:
+
+- The runtime now exposes `weave:taliesin-forge` as the canonical TALIESIN forge entrypoint.
+- CLI dispatch now maps `forge` into the runtime spine instead of falling through to legacy command guessing.
+- TALIESIN forge now emits a structured staged candidate envelope plus explicit validation handoff metadata.
+- Canonical forge request construction now rejects beads that lack contract refs, acceptance criteria, or a forge-eligible lifecycle status.
+- The direct lore-file TALIESIN forge CLI path is now compatibility-only and explicitly rejected for canonical runtime execution.
+
+## `CS-P4-01` Require Bead-Backed Forge Input
+
+### Objective
+
+Remove non-bead canonical execution paths so TALIESIN always starts from sovereign work units.
+
+### Files
+
+- `src/core/engine/forge_candidate.py`
+- `docs/legacy_archive/src_sentinel/taliesin_forge.py`
+- `src/node/agent_loop.ts`
+- `src/node/core/runtime/weaves/`
+- Updated caller tests
+
+### Change Set
+
+- Require `bead_id` for canonical forge execution.
+- Reject direct target-plus-objective forge calls in any active runtime path.
+- Update remaining live callers to resolve a bead before invoking TALIESIN.
+
+### Acceptance Criteria
+
+- Canonical forge does not mint its own work unit during live execution.
+- Active callers can no longer invoke TALIESIN with only a file path and freeform objective.
+
+### Verification
+
+```powershell
+npx tsx --test tests/unit/test_start_runtime.test.ts tests/unit/test_taliesin_forge_runtime.test.ts tests/unit/test_runtime_dispatch.test.ts tests/unit/test_runtime_command_invocations.test.ts
+.\.venv\Scripts\python.exe -m pytest tests/unit/test_forge_candidate.py -q
+```
+
+### Closure Note
+
+Closed on 2026-03-09.
+
+Implemented outcomes:
+
+- `weave:start` no longer executes target-driven legacy forge or agent-loop behavior.
+- Target-plus-objective start calls now fail fast and direct operators toward bead-backed TALIESIN execution.
+- The direct lore-to-forge helper no longer normalizes lore into a live bead during execution.
+
+## `CS-P4-02` Require Contract-First Forge Input
+
+### Objective
+
+Ensure every canonical forge request is anchored to explicit contract references and acceptance criteria.
+
+### Files
+
+- `src/core/engine/forge_candidate.py`
+- `src/core/engine/bead_ledger.py`
+- `docs/legacy_archive/src_sentinel/taliesin.py`
+- `docs/legacy_archive/src_sentinel/taliesin_forge.py`
+- Updated request validation tests
+
+### Change Set
+
+- Reject forge requests that lack contract references or acceptance criteria.
+- Distinguish narrative lore ingestion from code forge authority.
+- Mark missing-contract beads as triage material, not executable forge work.
+
+### Acceptance Criteria
+
+- Canonical TALIESIN forge fails fast on contractless or criteria-free beads.
+- Lore and style surfaces no longer masquerade as contract input for code change execution.
+
+### Verification
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/unit/test_bead_ledger.py tests/unit/test_forge_candidate.py tests/unit/test_mission_coordinator.py tests/unit/test_rpc_projection.py tests/unit/test_muninn_promotion.py tests/contracts/test_muninn.py tests/empire_tests/test_norn_campaign_empire.py tests/empire_tests/test_norn_empire.py -q
+npx tsx --test tests/unit/test_start_runtime.test.ts tests/unit/test_taliesin_forge_runtime.test.ts
+```
+
+### Closure Note
+
+Closed on 2026-03-09.
+
+Implemented outcomes:
+
+- Bead actionability now requires target identity, acceptance criteria, and executable contract references.
+- New or normalized beads with only lore, workflow, or registry refs now land in `NEEDS_TRIAGE` immediately.
+- Forge request builders now reject lore-only and workflow-only request sources as non-canonical contract authority.
+
+## `CS-P4-03` Emit Validation Handoff From Forge
+
+### Objective
+
+Make forge output explicitly consumable by Crucible and promotion stages.
+
+### Files
+
+- `src/core/engine/forge_candidate.py`
+- `src/types/forge-candidate.ts`
+- `src/core/engine/ravens/muninn_crucible.py`
+- `src/node/core/runtime/weaves/`
+- Updated validation handoff tests
+
+### Change Set
+
+- Add explicit validation request metadata to staged candidate results.
+- Ensure the forge result carries bead id, target path, contract refs, required validations, and acceptance criteria into the validation boundary.
+- Remove any caller assumption that a staged file alone is enough to proceed.
+
+### Acceptance Criteria
+
+- Forge output is validation-ready as a structured envelope.
+- Crucible-facing callers no longer have to infer validation scope from a staged path alone.
+
+### Verification
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/unit/test_forge_candidate.py tests/unit/test_muninn_crucible_stage.py tests/unit/test_muninn_promotion.py -q
+npx tsx --test tests/unit/test_forge_candidate.test.ts tests/unit/test_taliesin_forge_runtime.test.ts
+```
+
+### Closure Note
+
+Closed on 2026-03-09.
+
+Implemented outcomes:
+
+- Forge validation requests now carry staged candidate paths and generated test metadata.
+- Crucible can normalize a forge validation handoff into a structured validation target.
+- Validation execution now consumes staged candidates directly when a canonical forge handoff is present.
+
+## `CS-P4-04` Retire Direct Forge Bypass Paths
+
+### Objective
+
+Collapse or quarantine the remaining TALIESIN and forge entrypoints that bypass runtime discipline.
+
+### Files
+
+- `docs/legacy_archive/src_sentinel/taliesin_forge.py`
+- `src/core/engine/skill_forger.py`
+- `src/core/engine/executor.py`
+- `src/node/agent_loop.ts`
+- Any remaining forge-specific compatibility tests
+
+### Change Set
+
+- Quarantine or excise direct lore-driven forge entrypoints that remain outside runtime control.
+- Demote freeform JIT skill forging to explicit compatibility or archive status if it cannot satisfy Phase 4 discipline.
+- Leave only runtime-dispatched or explicitly marked compatibility TALIESIN execution paths.
+
+### Acceptance Criteria
+
+- No live forge caller bypasses runtime dispatch, bead authority, and validation handoff.
+- Transitional adapters are visibly compatibility-only or removed.
+
+### Verification
+
+```powershell
+npx tsc --noEmit
+npx tsx --test tests/unit/test_start_runtime.test.ts tests/unit/test_taliesin_forge_runtime.test.ts tests/unit/test_runtime_dispatch.test.ts tests/unit/test_runtime_command_invocations.test.ts tests/unit/test_forge_candidate.test.ts
+.\.venv\Scripts\python.exe -m pytest tests/unit/test_executor.py tests/unit/test_forge_candidate.py tests/unit/test_bead_ledger.py tests/unit/test_muninn_crucible_stage.py tests/unit/test_muninn_promotion.py tests/contracts/test_muninn.py -q
+```
+
+### Closure Note
+
+Closed on 2026-03-09.
+
+Implemented outcomes:
+
+- The low-confidence executor fallback now captures a triage bead instead of minting or forging code directly.
+- The external MCP TALIESIN tool now requires a canonical bead id instead of lore-plus-objective input.
+- Legacy direct forge surfaces in `src/node/agent_loop.ts` and `src/core/engine/skill_forger.py` are quarantined alongside their dedicated tests.

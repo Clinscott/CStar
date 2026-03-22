@@ -25,7 +25,7 @@ def teardown_module():
         if mod in sys.modules:
             del sys.modules[mod]
 
-from src.sentinel.muninn import Muninn
+from src.core.engine.ravens.muninn import Muninn
 
 
 class TestMuninnEmpire:
@@ -33,10 +33,10 @@ class TestMuninnEmpire:
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key", "MUNINN_API_KEY": ""})
     def test_init(self):
         # We need to patch the constructor dependencies of Muninn
-        with patch("src.sentinel.muninn.TheWatcher"), \
-             patch("src.sentinel.muninn.ProjectMetricsEngine"), \
-             patch("src.sentinel.muninn.AlfredOverwatch"), \
-             patch("src.sentinel.muninn.GungnirSPRT"):
+        with patch("src.core.engine.ravens.muninn.TheWatcher"), \
+             patch("src.core.engine.ravens.muninn.ProjectMetricsEngine"), \
+             patch("src.core.engine.ravens.muninn.AlfredOverwatch"), \
+             patch("src.core.engine.ravens.muninn.GungnirSPRT"):
 
             muninn = Muninn("dummy_root")
             assert muninn.api_key == "fake_key"
@@ -47,12 +47,12 @@ class TestMuninnEmpire:
             assert muninn.api_key is None
 
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key", "MUNINN_API_KEY": ""})
-    @patch("src.sentinel.muninn.AnomalyWarden")
-    @patch("src.sentinel.muninn.Muninn._execute_hunt_async", new_callable=AsyncMock)
-    @patch("src.sentinel.muninn.SovereignHUD")
-    @patch("src.sentinel.muninn.ProjectMetricsEngine")
-    @patch("src.sentinel.muninn.TheWatcher")
-    @patch("src.sentinel.muninn.GungnirSPRT")
+    @patch("src.core.engine.ravens.muninn.AnomalyWarden")
+    @patch("src.core.engine.ravens.muninn.Muninn._execute_hunt_async", new_callable=AsyncMock)
+    @patch("src.core.engine.ravens.muninn.SovereignHUD")
+    @patch("src.core.engine.ravens.muninn.ProjectMetricsEngine")
+    @patch("src.core.engine.ravens.muninn.TheWatcher")
+    @patch("src.core.engine.ravens.muninn.GungnirSPRT")
     def test_run_scan_no_breaches(self, mock_sprt, mock_watcher, mock_metrics, mock_hud, mock_hunt, mock_cortex):
         muninn = Muninn("dummy_root")
 
@@ -74,13 +74,13 @@ class TestMuninnEmpire:
         assert args[0] == "SUCCESS"
 
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key", "MUNINN_API_KEY": ""})
-    @patch("src.sentinel.muninn.AnomalyWarden")
-    @patch("src.sentinel.muninn.Muninn._execute_hunt_async", new_callable=AsyncMock)
-    @patch("src.sentinel.muninn.SovereignHUD")
-    @patch("src.sentinel.muninn.ProjectMetricsEngine")
-    @patch("src.sentinel.muninn.TheWatcher")
-    @patch("src.sentinel.muninn.GungnirSPRT")
-    @patch("src.sentinel.muninn.subprocess.run")
+    @patch("src.core.engine.ravens.muninn.AnomalyWarden")
+    @patch("src.core.engine.ravens.muninn.Muninn._execute_hunt_async", new_callable=AsyncMock)
+    @patch("src.core.engine.ravens.muninn.SovereignHUD")
+    @patch("src.core.engine.ravens.muninn.ProjectMetricsEngine")
+    @patch("src.core.engine.ravens.muninn.TheWatcher")
+    @patch("src.core.engine.ravens.muninn.GungnirSPRT")
+    @patch("src.core.engine.ravens.muninn.subprocess.run")
     def test_run_with_breach_success(self, mock_sub, mock_sprt, mock_watcher, mock_metrics, mock_hud, mock_hunt, mock_cortex):
         # We must initialize Muninn AFTER the patches are set up so it picks up the Mocks in its __init__
         muninn = Muninn("dummy_root")
@@ -107,11 +107,11 @@ class TestMuninnEmpire:
         # Mock Forge/Gauntlet/Impl
         with patch.object(muninn, "_run_gauntlet", return_value=Path("tests/gauntlet/test_fix.py")), \
              patch.object(muninn, "_generate_implementation", return_value="fixed code"), \
-             patch("src.sentinel.muninn.Path.exists", return_value=True), \
-             patch("src.sentinel.muninn.Path.read_text", return_value="old code"), \
-             patch("src.sentinel.muninn.Path.write_text"), \
-             patch("src.sentinel.muninn.Path.unlink"), \
-             patch("src.sentinel.muninn.shutil.copy"):
+             patch("src.core.engine.ravens.muninn.Path.exists", return_value=True), \
+             patch("src.core.engine.ravens.muninn.Path.read_text", return_value="old code"), \
+             patch("src.core.engine.ravens.muninn.Path.write_text"), \
+             patch("src.core.engine.ravens.muninn.Path.unlink"), \
+             patch("src.core.engine.ravens.muninn.shutil.copy"):
 
                  # Mock SPRT
                  mock_sprt_inst = mock_sprt.return_value
@@ -125,18 +125,18 @@ class TestMuninnEmpire:
 
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key", "MUNINN_API_KEY": ""})
     def test_forge_improvement_failure(self):
-         with patch("src.sentinel.muninn.TheWatcher"), \
-              patch("src.sentinel.muninn.ProjectMetricsEngine"), \
-              patch("src.sentinel.muninn.AlfredOverwatch"), \
-              patch("src.sentinel.muninn.GungnirSPRT"):
+         with patch("src.core.engine.ravens.muninn.TheWatcher"), \
+              patch("src.core.engine.ravens.muninn.ProjectMetricsEngine"), \
+              patch("src.core.engine.ravens.muninn.AlfredOverwatch"), \
+              patch("src.core.engine.ravens.muninn.GungnirSPRT"):
 
              muninn = Muninn("dummy_root")
 
              target = {"file": "bad.py", "action": "Fix me"}
 
              with patch.object(muninn, "_run_gauntlet", return_value=None), \
-                  patch("src.sentinel.muninn.Path.exists", return_value=True), \
-                  patch("src.sentinel.muninn.Path.read_text", return_value="content"):
+                  patch("src.core.engine.ravens.muninn.Path.exists", return_value=True), \
+                  patch("src.core.engine.ravens.muninn.Path.read_text", return_value="content"):
                       assert muninn._forge_improvement(target) is False
 
 if __name__ == "__main__":

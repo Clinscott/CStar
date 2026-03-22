@@ -41,6 +41,7 @@ describe('Canonical Runtime Dispatcher (CS-P1-01)', () => {
             'weave:critique',
             'weave:dynamic-command',
             'weave:evolve',
+            'weave:orchestrate',
             'weave:pennyone',
             'weave:ravens',
             'weave:ravens-cycle',
@@ -51,7 +52,8 @@ describe('Canonical Runtime Dispatcher (CS-P1-01)', () => {
             'weave:research',
             'weave:start',
             'weave:taliesin-forge',
-        ]);
+            'weave:temporal-learning'
+            ]);
     });
 
     it('dispatches an isolated runtime adapter without touching the singleton', async () => {

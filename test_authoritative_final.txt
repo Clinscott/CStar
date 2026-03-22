@@ -119,7 +119,7 @@ C:\Python314\Lib\unittest\mock.py:1487: in __enter__
                   ^^^^^^^^^^^^^
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-name = 'src.sentinel.harvest_responses.genai'
+name = 'src.core.engine.ravens.harvest_responses.genai'
 
     def resolve_name(name):
         """
@@ -193,7 +193,7 @@ name = 'src.sentinel.harvest_responses.genai'
         for p in parts:
 >           result = getattr(result, p)
                      ^^^^^^^^^^^^^^^^^^
-E           AttributeError: module 'src.sentinel.harvest_responses' has no attribute 'genai'
+E           AttributeError: module 'src.core.engine.ravens.harvest_responses' has no attribute 'genai'
 
 C:\Python314\Lib\pkgutil.py:473: AttributeError
 ___________________ TestAuditDialogueEmpire.test_audit_flow ___________________
@@ -360,7 +360,7 @@ self = <unittest.mock._patch object at 0x000001D9410DA0B0>
 >           raise AttributeError(
                 "%s does not have the attribute %r" % (target, name)
             )
-E           AttributeError: <module 'src.sentinel._bootstrap' from 'C:\\Users\\Craig\\Corvus\\CorvusStar\\src\\sentinel\\_bootstrap.py'> does not have the attribute 'HUD'
+E           AttributeError: <module 'src.core.bootstrap' from 'C:\\Users\\Craig\\Corvus\\CorvusStar\\src\\sentinel\\_bootstrap.py'> does not have the attribute 'HUD'
 
 C:\Python314\Lib\unittest\mock.py:1473: AttributeError
 _______________ TestBootstrapEmpire.test_bootstrap_no_env_file ________________
@@ -368,12 +368,12 @@ _______________ TestBootstrapEmpire.test_bootstrap_no_env_file ________________
 self = <test_bootstrap_empire.TestBootstrapEmpire object at 0x000001D941023110>
 mock_dotenv = <MagicMock name='load_dotenv' id='2032612309184'>
 
-    @patch("src.sentinel._bootstrap.load_dotenv", create=True)
+    @patch("src.core.bootstrap.load_dotenv", create=True)
     def test_bootstrap_no_env_file(self, mock_dotenv):
         _bootstrap._BOOTSTRAPPED = False
->       with patch("src.sentinel._bootstrap.HUD"), \
+>       with patch("src.core.bootstrap.HUD"), \
              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-             patch("src.sentinel._bootstrap.load_config", return_value={}, create=True):
+             patch("src.core.bootstrap.load_config", return_value={}, create=True):
 
 tests\empire_tests\test_bootstrap_empire.py:49: 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
@@ -405,7 +405,7 @@ self = <unittest.mock._patch object at 0x000001D9412AF070>
 >           raise AttributeError(
                 "%s does not have the attribute %r" % (target, name)
             )
-E           AttributeError: <module 'src.sentinel._bootstrap' from 'C:\\Users\\Craig\\Corvus\\CorvusStar\\src\\sentinel\\_bootstrap.py'> does not have the attribute 'HUD'
+E           AttributeError: <module 'src.core.bootstrap' from 'C:\\Users\\Craig\\Corvus\\CorvusStar\\src\\sentinel\\_bootstrap.py'> does not have the attribute 'HUD'
 
 C:\Python314\Lib\unittest\mock.py:1473: AttributeError
 _______________________ TestUIEmpire.test_log_rejection _______________________

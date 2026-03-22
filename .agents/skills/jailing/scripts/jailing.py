@@ -6,7 +6,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.sentinel.sandbox_warden import SandboxWarden
+from src.core.engine.ravens.sandbox_warden import SandboxWarden
 
 def main():
     parser = argparse.ArgumentParser(description="Jailing: Isolated skill execution.")

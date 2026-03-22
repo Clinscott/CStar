@@ -10,7 +10,7 @@ PROJECT_ROOT = Path(__file__).parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.sentinel.wardens.mimir import MimirWarden
+from src.core.engine.wardens.mimir import MimirWarden
 
 
 class TestMimirEmpire:
@@ -66,7 +66,7 @@ class TestMimirEmpire:
         # Let's trust radon works and checks if we get *any* result for a really bad file
         # (simulated by mocking radon)
 
-        with patch("src.sentinel.wardens.mimir.mi_visit") as mock_mi:
+        with patch("src.core.engine.wardens.mimir.mi_visit") as mock_mi:
             mock_mi.return_value = 20.0 # Very low MI
             results = warden.scan()
 

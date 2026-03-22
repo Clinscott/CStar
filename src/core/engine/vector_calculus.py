@@ -46,7 +46,7 @@ class VectorCalculus:
         # Use pre-calculated target tokens if available
         if "_target_tokens" not in result:
             target_text = result.get('intent', '').lower()
-            result["_target_tokens"] = set(re.findall(r'\\w+', target_text))
+            result["_target_tokens"] = set(re.findall(r'\w+', target_text))
         
         target_tokens = result["_target_tokens"]
         if not target_tokens:

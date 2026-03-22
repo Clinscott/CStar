@@ -7,7 +7,7 @@ import pytest
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(PROJECT_ROOT))
 
-from src.sentinel.wardens.runecaster import RuneCasterWarden
+from src.core.engine.wardens.runecaster import RuneCasterWarden
 class TestRuneCasterWarden:
     @pytest.fixture
     def warden(self, tmp_path):

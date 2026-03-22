@@ -1,4 +1,4 @@
-import { MimirClient } from '../../../../core/mimir_client.ts';
+import { requestHostText } from '../../../../core/host_intelligence.ts';
 import type { HostProvider } from '../../../../core/host_session.ts';
 import { resolveHostProvider } from '../../../../core/host_session.ts';
 import type { RuntimeContext } from '../contracts.ts';
@@ -9,6 +9,7 @@ export interface HostTextRequest {
     provider: HostProvider;
     projectRoot: string;
     source: string;
+    env?: NodeJS.ProcessEnv;
 }
 
 export type HostTextInvoker = (request: HostTextRequest) => Promise<string>;
@@ -18,28 +19,15 @@ export function resolveRuntimeHostProvider(context: RuntimeContext): HostProvide
 }
 
 export async function defaultHostTextInvoker(request: HostTextRequest): Promise<string> {
-    const client = new MimirClient({
-        projectRoot: request.projectRoot,
-        hostSessionActive: true,
-        hostProvider: request.provider,
-    });
-    const response = await client.request({
+    const result = await requestHostText({
         prompt: request.prompt,
-        system_prompt: request.systemPrompt,
-        caller: { source: request.source },
-        transport_mode: 'host_session',
+        systemPrompt: request.systemPrompt,
+        projectRoot: request.projectRoot,
+        source: request.source,
+        provider: request.provider,
+        env: request.env,
     });
-
-    if (response.status !== 'success') {
-        throw new Error(response.error ?? `${request.provider} host session invocation failed.`);
-    }
-
-    const rawText = String(response.raw_text ?? '').trim();
-    if (!rawText) {
-        throw new Error(`${request.provider} host session returned no output.`);
-    }
-
-    return rawText;
+    return result.text;
 }
 
 export function extractJsonObject(raw: string): Record<string, unknown> {

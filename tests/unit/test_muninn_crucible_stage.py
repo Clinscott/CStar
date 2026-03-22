@@ -4,8 +4,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 from src.core.engine.hall_schema import HallOfRecords
 from src.core.engine.validation_result import create_validation_result
-from src.sentinel.muninn_crucible import MuninnCrucible
-from src.sentinel.muninn_memory import MuninnMemory
+from src.core.engine.ravens.muninn_crucible import MuninnCrucible
+from src.core.engine.ravens.muninn_memory import MuninnMemory
 
 
 def test_execute_validation_stage_returns_hall_backed_stage_result(tmp_path: Path) -> None:

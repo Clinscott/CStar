@@ -19,7 +19,7 @@ from src.core.sovereign_hud import SovereignHUD
 
 # We will use AntigravityUplink for the "Act" phase
 from src.cstar.core.uplink import AntigravityUplink
-from src.sentinel.wardens.norn import NornWarden
+from src.core.engine.wardens.norn import NornWarden
 from src.tools.wrap_it_up import SovereignWrapper
 
 # Configure Logging

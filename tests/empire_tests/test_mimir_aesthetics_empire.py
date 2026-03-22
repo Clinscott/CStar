@@ -7,7 +7,7 @@ import pytest
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(PROJECT_ROOT))
 
-from src.sentinel.wardens.mimir import MimirWarden
+from src.core.engine.wardens.mimir import MimirWarden
 
 
 class TestMimirBeauty:

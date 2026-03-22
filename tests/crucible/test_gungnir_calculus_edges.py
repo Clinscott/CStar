@@ -9,7 +9,7 @@ project_root = script_dir.parent.parent
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
-from src.sentinel.coordinator import MissionCoordinator
+from src.core.engine.ravens.coordinator import MissionCoordinator
 
 class TestGungnirCalculusEdges(unittest.TestCase):
     """Tier 3: Gungnir Calculus Edge Case Stress Test"""

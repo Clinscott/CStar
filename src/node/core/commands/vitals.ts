@@ -19,7 +19,7 @@ export function registerVitalsCommand(program: Command) {
         .action(async () => {
             try {
                 const spokePath = path.join(PROJECT_ROOT, 'src/core/vitals_spoke.py');
-                const pythonPath = path.join(PROJECT_ROOT, '.venv/Scripts/python.exe');
+                const pythonPath = path.join(PROJECT_ROOT, '.venv/bin/python');
                 const { stdout } = await execa(pythonPath, [spokePath]);
                 
                 const data = JSON.parse(stdout);

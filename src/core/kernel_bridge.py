@@ -130,7 +130,7 @@ def _ghost_pulse(root: Path, args: list[Any]) -> dict[str, Any]:
     if len(args) < 2:
         return _error("GHOST_PULSE requires a file path and content.")
 
-    from src.sentinel.wardens.ghost_warden import GhostWarden
+    from src.core.engine.wardens.ghost_warden import GhostWarden
 
     result = GhostWarden(root).adjudicate(str(args[0]), str(args[1]))
     return _success(result)
@@ -141,7 +141,7 @@ def _verify(root: Path, args: list[Any]) -> dict[str, Any]:
         return _error("verify requires a candidate path.")
 
     from src.cstar.core.uplink import AntigravityUplink
-    from src.sentinel.muninn_crucible import MuninnCrucible
+    from src.core.engine.ravens.muninn_crucible import MuninnCrucible
 
     test_path = Path(str(args[0]))
     if not test_path.is_absolute():

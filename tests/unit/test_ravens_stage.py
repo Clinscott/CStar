@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 from src.core.engine.ravens_stage import RavensCycleResult, RavensHallReferenceSet, RavensStageResult, RavensTargetIdentity
 from src.core.engine.validation_result import create_validation_result
-from src.sentinel.muninn_heart import MuninnHeart
+from src.core.engine.ravens.muninn_heart import MuninnHeart
 
 
 def test_ravens_stage_contract_serializes_nested_references() -> None:

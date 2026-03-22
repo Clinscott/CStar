@@ -8,7 +8,7 @@ import pytest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
-from src.sentinel.muninn import Muninn
+from src.core.engine.ravens.muninn import Muninn
 
 @pytest.fixture
 def test_root(tmp_path: Path):
@@ -72,7 +72,7 @@ def test_muninn_escalate_stuck_target(test_root):
 
 def test_watcher_get_last_edit_time(test_root):
     """GIVEN file manipulations, WHEN requesting last edit time from TheWatcher, THEN return max mtime."""
-    from src.sentinel.stability import TheWatcher
+    from src.core.engine.ravens.stability import TheWatcher
     import time
     
     src_dir = test_root / "src" / "dummy"

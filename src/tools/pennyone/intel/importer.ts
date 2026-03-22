@@ -5,7 +5,7 @@ import { execa } from 'execa';
 import { StateRegistry } from '../../../node/core/state.ts';
 import {
     getHallMountedSpoke,
-    getHallRepositoryRecord,
+    getHallRepository,
     saveHallMountedSpoke,
 } from './database.ts';
 import { registry } from '../pathRegistry.ts';
@@ -35,7 +35,7 @@ export async function importRepositoryIntoEstate(
     registry.setRoot(workspaceRoot);
     StateRegistry.save(StateRegistry.get());
 
-    const repo = getHallRepositoryRecord(workspaceRoot);
+    const repo = getHallRepository(workspaceRoot);
     if (!repo) {
         throw new Error('Failed to materialize the brain repository before PennyOne import.');
     }

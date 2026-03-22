@@ -12,9 +12,9 @@ project_root = script_dir.parent.parent
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
-from src.sentinel.muninn_heart import MuninnHeart
-from src.sentinel.muninn_hunter import MuninnHunter
-from src.sentinel.muninn_crucible import MuninnCrucible
+from src.core.engine.ravens.muninn_heart import MuninnHeart
+from src.core.engine.ravens.muninn_hunter import MuninnHunter
+from src.core.engine.ravens.muninn_crucible import MuninnCrucible
 from src.cstar.core.uplink import AntigravityUplink
 
 class TestMuninnCrucible(unittest.IsolatedAsyncioTestCase):

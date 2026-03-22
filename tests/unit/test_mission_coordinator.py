@@ -5,7 +5,7 @@ from pathlib import Path
 from src.core.engine.hall_schema import HallFileRecord, HallOfRecords, HallScanRecord
 from src.core.norn_coordinator import NornCoordinator
 
-from src.sentinel.coordinator import MissionCoordinator
+from src.core.engine.ravens.coordinator import MissionCoordinator
 
 
 @pytest.fixture

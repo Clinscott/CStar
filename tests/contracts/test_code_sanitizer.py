@@ -10,7 +10,7 @@ project_root = Path(__file__).parent.parent.parent.absolute()
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from src.sentinel.code_sanitizer import BifrostGate
+from src.core.engine.ravens.code_sanitizer import BifrostGate
 
 gate = BifrostGate(project_root)
 

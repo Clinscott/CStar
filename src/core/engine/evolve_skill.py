@@ -238,7 +238,7 @@ def execute_evolve(
             ValidationCheck(
                 name="evolve-loop",
                 status="PASS" if not dry_run else "SKIPPED",
-                details="Simulated evolve loop under Phase 1 authority.",
+                details="Simulated evolve loop under V2 authority.",
             )
         ],
         summary="Dry-run evolve preview created." if dry_run else "Simulated evolve candidate accepted for proposal staging.",

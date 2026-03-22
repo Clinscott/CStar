@@ -18,7 +18,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from src.core.sovereign_hud import SovereignHUD
 from src.cstar.core.uplink import AntigravityUplink
-from src.sentinel.code_sanitizer import BifrostGate
+from src.core.engine.ravens.code_sanitizer import BifrostGate
 from src.tools.brave_search import BraveSearch
 
 class SkillAcquirer:

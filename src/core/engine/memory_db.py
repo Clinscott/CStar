@@ -234,5 +234,5 @@ class MemoryDB:
         return self.root / ".agents" / "skills"
 
     def get_skill_registry_manifest(self) -> Path:
-        """Returns the generated Phase 1 registry manifest path."""
+        """Returns the generated V2 registry manifest path."""
         return self.root / ".agents" / "skill_registry.json"

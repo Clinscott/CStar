@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 project_root = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(project_root))
 
-from src.sentinel.muninn import Muninn
+from src.core.engine.ravens.muninn import Muninn
 
 
 def test_autonomous_loop_logic():
@@ -39,7 +39,7 @@ def test_autonomous_loop_logic():
     muninn = Muninn(target_path=str(project_root), client=mock_client)
 
     # Mock Wardens to find a "fake" target
-    patcher_norn = patch('src.sentinel.muninn.NornWarden.get_next_target')
+    patcher_norn = patch('src.core.engine.ravens.muninn.NornWarden.get_next_target')
     mock_norn = patcher_norn.start()
     mock_norn.return_value = {
         "type": "CAMPAIGN_TASK",

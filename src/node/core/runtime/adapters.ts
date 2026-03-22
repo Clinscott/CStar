@@ -1,185 +1,40 @@
 import fs from 'node:fs';
-import fsPromises from 'node:fs/promises';
-import { isAbsolute, join, parse, resolve } from 'node:path';
+import { join } from 'node:path';
 import { execa } from 'execa';
 
 import { ANS } from '../ans.ts';
-import { CortexLink } from '../../cortex_link.ts';
-import { getPythonPath } from '../python_utils.ts';
-import { runScan } from '../../../tools/pennyone/index.ts';
-import { buildEstateTopology, writeProjectedMatrixGraph } from '../../../tools/pennyone/intel/compiler.ts';
-import { getLatestHallScanId, listHallMountedSpokes } from '../../../tools/pennyone/intel/database.ts';
-import { importRepositoryIntoEstate } from '../../../tools/pennyone/intel/importer.ts';
-import { searchMatrix } from '../../../tools/pennyone/live/search.ts';
-import { registry } from '../../../tools/pennyone/pathRegistry.ts';
+import { resolveHostProvider } from '../../../core/host_session.ts';
 import { RavensCycleWeave } from './weaves/ravens_cycle.ts';
+import { discoverLegacyCommands, resolvePythonPath } from './adapters/legacy_commands.ts';
+import {
+    loadRavensSweepTargets,
+    RavensSweepTarget,
+} from './adapters/ravens_utils.ts';
 import {
     DynamicCommandPayload,
-    PennyOneWeavePayload,
+    HostGovernorWeavePayload,
     RavensWeavePayload,
     RuntimeAdapter,
+    RuntimeDispatchPort,
     RuntimeContext,
     StartWeavePayload,
     WeaveInvocation,
     WeaveResult,
 } from './contracts.ts';
 
-function resolvePythonPath(projectRoot: string): string {
-    const winPath = join(projectRoot, '.venv', 'Scripts', 'python.exe');
-    if (fs.existsSync(winPath)) {
-        return winPath;
-    }
-
-    const unixPath = join(projectRoot, '.venv', 'bin', 'python');
-    if (fs.existsSync(unixPath)) {
-        return unixPath;
-    }
-
-    return getPythonPath();
-}
-
-function loadSkillRegistryManifest(projectRoot: string): Map<string, string> {
-    const manifestPath = join(projectRoot, '.agents', 'skill_registry.json');
-    if (!fs.existsSync(manifestPath)) {
-        return new Map();
-    }
-
-    try {
-        const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as {
-            skills?: Record<string, { entrypoint_path?: string }>;
-        };
-        const commands = new Map<string, string>();
-        for (const [trigger, entry] of Object.entries(manifest.skills ?? {})) {
-            if (!entry.entrypoint_path) {
-                continue;
-            }
-            commands.set(trigger.toLowerCase(), join(projectRoot, entry.entrypoint_path));
-        }
-        return commands;
-    } catch {
-        return new Map();
-    }
-}
-
-function discoverLegacyCommands(projectRoot: string): Map<string, string> {
-    const commands = loadSkillRegistryManifest(projectRoot);
-    const scriptDirs = [
-        join(projectRoot, '.agents', 'skills'),
-        join(projectRoot, 'src', 'tools'),
-        join(projectRoot, 'src', 'skills', 'local'),
-        join(projectRoot, 'skills_db'),
-        join(projectRoot, 'src', 'sentinel'),
-        join(projectRoot, 'scripts'),
-    ];
-
-    for (const dir of scriptDirs) {
-        if (!fs.existsSync(dir)) {
-            continue;
-        }
-
-        const entries = fs.readdirSync(dir, { withFileTypes: true });
-        for (const entry of entries) {
-            if (entry.isFile() && entry.name.endsWith('.py') && !entry.name.startsWith('_')) {
-                const key = parse(entry.name).name.toLowerCase();
-                if (!commands.has(key)) {
-                    commands.set(key, join(dir, entry.name));
-                }
-                continue;
-            }
-
-            if (!entry.isDirectory() || entry.name.startsWith('.')) {
-                continue;
-            }
-
-            const scriptsDir = join(dir, entry.name, 'scripts');
-            const mainScript = join(scriptsDir, `${entry.name}.py`);
-            const altScript = join(dir, entry.name, `${entry.name}.py`);
-
-            if (fs.existsSync(mainScript)) {
-                if (!commands.has(entry.name.toLowerCase())) {
-                    commands.set(entry.name.toLowerCase(), mainScript);
-                }
-            } else if (fs.existsSync(altScript)) {
-                if (!commands.has(entry.name.toLowerCase())) {
-                    commands.set(entry.name.toLowerCase(), altScript);
-                }
-            }
-        }
-    }
-
-    const workflowDir = join(projectRoot, '.agents', 'workflows');
-    if (fs.existsSync(workflowDir)) {
-        for (const file of fs.readdirSync(workflowDir)) {
-            if ((file.endsWith('.md') || file.endsWith('.qmd')) && !file.startsWith('_')) {
-                const key = parse(file).name.toLowerCase();
-                if (!commands.has(key)) {
-                    commands.set(key, join(workflowDir, file));
-                }
-            }
-        }
-    }
-
-    return commands;
-}
-
-interface RavensSweepTarget {
-    slug: string;
-    domain: 'brain' | 'spoke';
-    repo_root: string;
-    requested_path: string;
-}
-
-function normalizeRepoRoot(repoRoot: string): string {
-    return resolve(repoRoot).replace(/\\/g, '/');
-}
-
-function loadRavensSweepTargets(projectRoot: string, requestedSpoke?: string): RavensSweepTarget[] {
-    const brainRoot = normalizeRepoRoot(projectRoot);
-    const brainTarget: RavensSweepTarget = {
-        slug: 'brain',
-        domain: 'brain',
-        repo_root: brainRoot,
-        requested_path: brainRoot,
-    };
-
-    const mountedTargets = listHallMountedSpokes(projectRoot)
-        .filter((entry) => entry.mount_status === 'active')
-        .map((entry) => ({
-            slug: entry.slug,
-            domain: 'spoke' as const,
-            repo_root: normalizeRepoRoot(entry.root_path),
-            requested_path: `spoke://${entry.slug}/`,
-        }));
-
-    const targets = [brainTarget, ...mountedTargets];
-    if (!requestedSpoke) {
-        return targets;
-    }
-
-    const requested = requestedSpoke.toLowerCase();
-    return targets.filter((entry) => entry.slug === requested);
-}
-
-function resolveTargetPath(projectRoot: string, targetPath: string | undefined): string {
-    if (!targetPath || targetPath === '.') {
-        return projectRoot;
-    }
-
-    if (registry.isSpokeUri(targetPath)) {
-        return registry.resolveEstatePath(targetPath, listHallMountedSpokes(registry.getRoot()));
-    }
-
-    return isAbsolute(targetPath) ? targetPath : resolve(projectRoot, targetPath);
-}
+export { PennyOneAdapter } from './weaves/pennyone.ts';
 
 export class StartAdapter implements RuntimeAdapter<StartWeavePayload> {
     public readonly id = 'weave:start';
+
+    public constructor(private readonly dispatchPort?: RuntimeDispatchPort) {}
 
     public async execute(
         invocation: WeaveInvocation<StartWeavePayload>,
         context: RuntimeContext,
     ): Promise<WeaveResult> {
         const payload = invocation.payload;
+        const hostProvider = resolveHostProvider({ ...process.env, ...context.env } as NodeJS.ProcessEnv);
 
         if (payload.verbose) {
             process.env.CSTAR_VERBOSE = 'true';
@@ -190,24 +45,46 @@ export class StartAdapter implements RuntimeAdapter<StartWeavePayload> {
         }
 
         if (!payload.target) {
-            if (payload.loki) {
-                const link = new CortexLink();
-                const response = await link.sendCommand('NORN_POLL', []);
-
-                if (response?.status === 'success') {
+            if (payload.loki || hostProvider) {
+                if (!this.dispatchPort) {
                     return {
                         weave_id: this.id,
-                        status: 'TRANSITIONAL',
-                        output: 'Loki mode poll completed through the kernel bridge.',
-                        metadata: { adapter: 'runtime:loki-poll' },
+                        status: 'FAILURE',
+                        output: '',
+                        error: 'Host-governor routing is unavailable because the runtime dispatch port is not attached.',
                     };
                 }
 
+                await ANS.wake();
+
+                const governorResult = await this.dispatchPort.dispatch<HostGovernorWeavePayload>({
+                    weave_id: 'weave:host-governor',
+                    payload: {
+                        task: payload.task,
+                        ledger: payload.ledger,
+                        auto_execute: true,
+                        auto_replan_blocked: true,
+                        max_parallel: 1,
+                        project_root: context.workspace_root,
+                        cwd: context.workspace_root,
+                        source: 'runtime',
+                    },
+                    session: invocation.session,
+                    target: invocation.target,
+                });
+
                 return {
+                    ...governorResult,
                     weave_id: this.id,
-                    status: 'FAILURE',
-                    output: '',
-                    error: 'Loki mode poll failed or no tasks were available.',
+                    output: governorResult.output
+                        ? `The system is awake and synchronized. ${governorResult.output}`.trim()
+                        : 'The system is awake and synchronized.',
+                    metadata: {
+                        ...(governorResult.metadata ?? {}),
+                        adapter: 'runtime:host-governor',
+                        delegated_weave_id: 'weave:host-governor',
+                        resume_provider: hostProvider ?? null,
+                    },
                 };
             }
 
@@ -377,148 +254,6 @@ export class RavensAdapter implements RuntimeAdapter<RavensWeavePayload> {
                 shadow_forge: payload.shadow_forge ?? false,
                 isolated_failures: sweepResults.filter((result) => result.status === 'FAILURE'),
             },
-        };
-    }
-}
-
-export class PennyOneAdapter implements RuntimeAdapter<PennyOneWeavePayload> {
-    public readonly id = 'weave:pennyone';
-
-    public async execute(
-        invocation: WeaveInvocation<PennyOneWeavePayload>,
-        context: RuntimeContext,
-    ): Promise<WeaveResult> {
-        const projectRoot = context.workspace_root;
-        const payload = invocation.payload;
-
-        if (payload.action === 'import') {
-            if (!payload.remote_url) {
-                return {
-                    weave_id: this.id,
-                    status: 'FAILURE',
-                    output: '',
-                    error: 'PennyOne import requires a git source or local repository path.',
-                };
-            }
-
-            const mounted = await importRepositoryIntoEstate(payload.remote_url, {
-                slug: payload.slug,
-                workspaceRoot: registry.getRoot(),
-            });
-            return {
-                weave_id: this.id,
-                status: 'TRANSITIONAL',
-                output: `PennyOne imported and projected '${mounted.slug}' into the estate gallery.`,
-                metadata: {
-                    adapter: 'runtime:pennyone-estate-import',
-                    mounted_spoke: mounted,
-                },
-            };
-        }
-
-        if (payload.action === 'topology') {
-            const topology = buildEstateTopology(registry.getRoot());
-            return {
-                weave_id: this.id,
-                status: 'TRANSITIONAL',
-                output: `PennyOne topology projected for ${topology.nodes.length} node(s).`,
-                metadata: {
-                    adapter: 'runtime:pennyone-topology',
-                    topology,
-                },
-            };
-        }
-
-        if (payload.action === 'search') {
-            if (!payload.query) {
-                return {
-                    weave_id: this.id,
-                    status: 'FAILURE',
-                    output: '',
-                    error: 'PennyOne search requires a query.',
-                };
-            }
-
-            await searchMatrix(payload.query, resolveTargetPath(projectRoot, payload.path));
-            return {
-                weave_id: this.id,
-                status: 'TRANSITIONAL',
-                output: `PennyOne search completed for "${payload.query}".`,
-                metadata: { adapter: 'legacy:pennyone', action: payload.action },
-            };
-        }
-
-        if (payload.action === 'stats') {
-            const analyticsScript = join(projectRoot, 'scripts', 'p1_analytics.ts');
-            if (!fs.existsSync(analyticsScript)) {
-                return {
-                    weave_id: this.id,
-                    status: 'FAILURE',
-                    output: '',
-                    error: `PennyOne analytics script not found at ${analyticsScript}`,
-                };
-            }
-
-            await execa(process.execPath, [join(projectRoot, 'scripts', 'run-tsx.mjs'), analyticsScript], {
-                stdio: 'inherit',
-                cwd: projectRoot,
-                env: { ...process.env },
-            });
-
-            return {
-                weave_id: this.id,
-                status: 'TRANSITIONAL',
-                output: 'PennyOne analytics completed.',
-                metadata: { adapter: 'legacy:pennyone', action: payload.action },
-            };
-        }
-
-        if (payload.action === 'view') {
-            await writeProjectedMatrixGraph(projectRoot, getLatestHallScanId(projectRoot));
-            const pennyoneBin = join(projectRoot, 'bin', 'pennyone.js');
-            await execa(process.execPath, [join(projectRoot, 'scripts', 'run-tsx.mjs'), pennyoneBin, 'view', resolveTargetPath(projectRoot, payload.path)], {
-                stdio: 'inherit',
-                cwd: projectRoot,
-                env: { ...process.env },
-            });
-
-            return {
-                weave_id: this.id,
-                status: 'TRANSITIONAL',
-                output: 'PennyOne visualization bridge launched.',
-                metadata: { adapter: 'legacy:pennyone', action: payload.action },
-            };
-        }
-
-        if (payload.action === 'clean') {
-            const targetRoot = resolveTargetPath(projectRoot, payload.path);
-            const statsDir = join(targetRoot, '.stats');
-
-            if (payload.total_reset) {
-                await fsPromises.rm(statsDir, { recursive: true, force: true });
-                return {
-                    weave_id: this.id,
-                    status: 'TRANSITIONAL',
-                    output: 'PennyOne total reset complete.',
-                    metadata: { adapter: 'legacy:pennyone', action: payload.action, total_reset: true },
-                };
-            }
-
-            return {
-                weave_id: this.id,
-                status: 'TRANSITIONAL',
-                output: 'PennyOne surgical clean complete. Long-term memory preserved.',
-                metadata: { adapter: 'legacy:pennyone', action: payload.action, ghosts: payload.ghosts ?? true },
-            };
-        }
-
-        const scanPath = resolveTargetPath(projectRoot, payload.path);
-        const results = await runScan(scanPath);
-        return {
-            weave_id: this.id,
-            status: 'TRANSITIONAL',
-            output: `PennyOne scan complete. Total files: ${results.length}.`,
-            metadata: { adapter: 'legacy:pennyone', action: 'scan', files: results.length },
         };
     }
 }

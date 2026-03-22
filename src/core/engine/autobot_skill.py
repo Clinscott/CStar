@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any, Sequence
 
 from src.core.engine.bead_ledger import BeadLedger, SovereignBead
+from src.core.engine.sovereign_worker import SovereignWorker
 from src.core.engine.validation_result import (
     ValidationCheck,
     create_validation_result,
@@ -27,9 +28,13 @@ from src.core.engine.validation_result import (
 
 DEFAULT_PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_AUTOBOT_DIR = Path("/home/morderith/Corvus/AutoBot")
+DEFAULT_SOVEREIGN_MODEL = "deepseek"
+DEFAULT_SOVEREIGN_BASE_URL = "http://localhost:11434/v1"
+DEFAULT_SOVEREIGN_API_KEY = "sk-dummy-string"
 DEFAULT_READY_REGEX = r"(?:^|\n)\s*❯\s*$"
 TAIL_LIMIT = 64_000
 OUTPUT_LIMIT = 200_000
+TRANSCRIPT_LIMIT = 500_000
 RETRY_FEEDBACK_LIMIT = 4_000
 PROMPT_FIELD_LIMIT = 1_200
 PROMPT_BASELINE_LIMIT = 600
@@ -57,6 +62,14 @@ class HardTimeoutError(OverseerError):
 
 class ProcessExitedError(OverseerError):
     """Raised when a subprocess exits before the overseer sees completion."""
+
+
+class QueryCommandError(OverseerError):
+    """Raised when Hermes single-query execution fails after launching."""
+
+    def __init__(self, message: str, *, command_result: CommandResult) -> None:
+        super().__init__(message)
+        self.command_result = command_result
 
 
 @dataclass
@@ -115,6 +128,24 @@ class AutoBotSkillResult:
             "final_bead_status": self.final_bead_status,
             "validation_id": self.validation_id,
             "metadata": dict(self.metadata),
+        }
+
+
+@dataclass(slots=True)
+class AttemptArtifact:
+    attempt: int
+    prompt_path: str
+    transcript_path: str
+    metadata_path: str
+    transcript_excerpt: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "attempt": self.attempt,
+            "prompt_path": self.prompt_path,
+            "transcript_path": self.transcript_path,
+            "metadata_path": self.metadata_path,
+            "transcript_excerpt": self.transcript_excerpt,
         }
 
 
@@ -190,12 +221,14 @@ class HermesSessionRunner:
         self.master_fd: int | None = None
         self.decoder = codecs.getincrementaldecoder(self.encoding)(errors="replace")
         self.tail = ""
+        self.transcript = ""
 
     def run(self, task_prompt: str, *, done_regexes: Sequence[str], extra_env: dict[str, str] | None = None) -> RunResult:
         self.process = None
         self.master_fd = None
         self.decoder = codecs.getincrementaldecoder(self.encoding)(errors="replace")
         self.tail = ""
+        self.transcript = ""
 
         started_at = time.monotonic()
         try:
@@ -360,6 +393,7 @@ class HermesSessionRunner:
 
     def _append_tail(self, text: str) -> None:
         self.tail = append_capped(self.tail, text, limit=TAIL_LIMIT)
+        self.transcript = append_capped(self.transcript, text, limit=TRANSCRIPT_LIMIT)
 
     def _reset_tail(self) -> None:
         self.tail = ""
@@ -377,6 +411,15 @@ class HermesSessionRunner:
 
     def _tail_excerpt(self, limit: int = 1_200) -> str:
         normalized = self._normalized_tail().strip()
+        if not normalized:
+            return "<no output captured>"
+        return normalized[-limit:]
+
+    def transcript_text(self) -> str:
+        return self.transcript
+
+    def transcript_excerpt(self, limit: int = 2_000) -> str:
+        normalized = normalize_terminal_text(self.transcript).strip()
         if not normalized:
             return "<no output captured>"
         return normalized[-limit:]
@@ -403,6 +446,35 @@ class HermesSessionRunner:
         except OSError:
             pass
         self.master_fd = None
+
+
+def run_preflight_checker(
+    *,
+    project_root: Path,
+    bead_id: str,
+    checker_shell: str,
+    timeout_seconds: float,
+    grace_seconds: float,
+    stream_output: bool,
+    extra_env: dict[str, str] | None = None,
+    encoding: str = "utf-8",
+) -> CommandResult | None:
+    """Run the bead checker once before any Hermes attempt."""
+    if not checker_shell:
+        return None
+
+    checker_env = dict(extra_env or {})
+    checker_env["CORVUS_PROJECT_ROOT"] = str(project_root)
+    checker_env["CORVUS_BEAD_ID"] = bead_id
+    return run_command_capture(
+        ["bash", "-lc", checker_shell],
+        cwd=project_root,
+        timeout_seconds=timeout_seconds,
+        grace_seconds=grace_seconds,
+        stream_output=stream_output,
+        extra_env=checker_env,
+        encoding=encoding,
+    )
 
 
 def run_command_capture(
@@ -531,10 +603,53 @@ def parse_env_assignments(items: Sequence[str]) -> dict[str, str]:
     return env
 
 
-def build_command(command: str, command_args: Sequence[str]) -> list[str]:
+def default_hermes_command(autobot_dir: Path) -> str:
+    candidates = [
+        autobot_dir / "hermes-agent" / ".venv" / "bin" / "hermes",
+        autobot_dir / "hermes-agent" / ".venv" / "Scripts" / "hermes.exe",
+        autobot_dir / "hermes-agent" / "hermes",
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return str(candidate)
+    return str(candidates[0])
+
+
+def default_hermes_command_args() -> list[str]:
+    return ["chat", "-m", DEFAULT_HERMES_MODEL]
+
+
+def build_command(command: str | None, command_args: Sequence[str], *, autobot_dir: Path) -> list[str]:
+    resolved_command = command.strip() if isinstance(command, str) else ""
+    if not resolved_command:
+        resolved_command = default_hermes_command(autobot_dir)
     if command_args:
-        return [command, *command_args]
-    return [command, "chat"]
+        return [resolved_command, *command_args]
+    return [resolved_command, *default_hermes_command_args()]
+
+
+def build_bead_command(
+    command: str | None,
+    command_args: Sequence[str],
+    *,
+    autobot_dir: Path,
+    task_prompt: str,
+) -> list[str]:
+    resolved = build_command(command, command_args, autobot_dir=autobot_dir)
+    if not any(item in {"-q", "--query"} or item.startswith("--query=") for item in resolved):
+        resolved.extend(["-q", task_prompt])
+    if not any(item in {"-Q", "--quiet"} for item in resolved):
+        resolved.append("-Q")
+    return resolved
+
+
+def build_base_env(env: dict[str, str] | None = None) -> dict[str, str]:
+    merged = {
+        "OPENAI_BASE_URL": DEFAULT_HERMES_BASE_URL,
+        "OPENAI_API_KEY": DEFAULT_HERMES_API_KEY,
+    }
+    merged.update(env or {})
+    return merged
 
 
 def bead_mode_requested(args: argparse.Namespace) -> bool:
@@ -559,6 +674,43 @@ def build_bead_env(project_root: Path, bead: SovereignBead, attempt: int) -> dic
     }
 
 
+def iter_preflight_paths(project_root: Path, bead: SovereignBead) -> list[Path]:
+    paths: list[Path] = []
+    seen: set[Path] = set()
+
+    for candidate in [bead.target_path, *bead.contract_refs]:
+        value = str(candidate or "").strip()
+        if not value:
+            continue
+        if ":" in value and not value.startswith(("./", "../")) and not os.path.isabs(value):
+            continue
+
+        path = Path(value)
+        resolved = path if path.is_absolute() else (project_root / path)
+        normalized = resolved.resolve()
+        try:
+            normalized.relative_to(project_root.resolve())
+        except ValueError:
+            continue
+        if normalized in seen:
+            continue
+        seen.add(normalized)
+        paths.append(normalized)
+
+    return paths
+
+
+def has_post_bead_file_activity(project_root: Path, bead: SovereignBead) -> bool:
+    bead_created_ms = bead.created_at
+    for candidate in iter_preflight_paths(project_root, bead):
+        if not candidate.exists():
+            continue
+        modified_ms = candidate.stat().st_mtime_ns / 1_000_000
+        if modified_ms >= bead_created_ms:
+            return True
+    return False
+
+
 def build_done_sentinel(bead: SovereignBead, attempt: int) -> str:
     return f"AUTOBOT_BEAD_COMPLETE::{bead.id}::ATTEMPT::{attempt}"
 
@@ -572,35 +724,40 @@ def build_bead_prompt(
     retry_feedback: str | None,
     worker_note: str | None,
 ) -> str:
-    target_path = bead.target_path or bead.target_ref or "<unspecified>"
-    rationale = compact_prompt_text(bead.rationale, limit=PROMPT_FIELD_LIMIT) or "<none>"
-    acceptance_criteria = compact_prompt_text(bead.acceptance_criteria, limit=PROMPT_FIELD_LIMIT)
-    baseline_scores = compact_prompt_text(
-        json.dumps(bead.baseline_scores, sort_keys=True) if bead.baseline_scores else "",
-        limit=PROMPT_BASELINE_LIMIT,
-    )
     bounded_worker_note = compact_prompt_text(worker_note, limit=WORKER_NOTE_LIMIT)
     lines = [
-        "CorvusStar is orchestrating bead lifecycle. AutoBot via Hermes is the worker doing the implementation.",
-        "AutoBot has a tight 32k context window. Treat this prompt as the full non-local brief.",
+        "CorvusStar is orchestrating bead lifecycle. SovereignWorker is the native worker doing the implementation.",
+        "SovereignWorker has a 32k context window and directly executes CStar skills.",
         f"Project root to edit: {project_root}",
         f"Bead ID: {bead.id}",
         f"Attempt: {attempt}",
-        f"Target path: {target_path}",
-        f"Rationale: {rationale}",
     ]
 
-    if bead.contract_refs:
-        contract_refs = compact_prompt_text(", ".join(bead.contract_refs), limit=PROMPT_FIELD_LIMIT)
-        if contract_refs:
-            lines.append(f"Contract refs: {contract_refs}")
-    if acceptance_criteria:
-        lines.append(f"Acceptance criteria: {acceptance_criteria}")
-    if baseline_scores:
-        lines.append(f"Baseline scores: {baseline_scores}")
     if bounded_worker_note:
-        lines.append("Immediate Hall/PennyOne context (bounded):")
+        lines.append("Authoritative Hall/PennyOne brief:")
         lines.append(bounded_worker_note)
+    else:
+        target_path = bead.target_path or bead.target_ref or "<unspecified>"
+        rationale = compact_prompt_text(bead.rationale, limit=PROMPT_FIELD_LIMIT) or "<none>"
+        acceptance_criteria = compact_prompt_text(bead.acceptance_criteria, limit=PROMPT_FIELD_LIMIT)
+        baseline_scores = compact_prompt_text(
+            json.dumps(bead.baseline_scores, sort_keys=True) if bead.baseline_scores else "",
+            limit=PROMPT_BASELINE_LIMIT,
+        )
+        lines.extend(
+            [
+                f"Target path: {target_path}",
+                f"Rationale: {rationale}",
+            ]
+        )
+        if bead.contract_refs:
+            contract_refs = compact_prompt_text(", ".join(bead.contract_refs), limit=PROMPT_FIELD_LIMIT)
+            if contract_refs:
+                lines.append(f"Contract refs: {contract_refs}")
+        if acceptance_criteria:
+            lines.append(f"Acceptance criteria: {acceptance_criteria}")
+        if baseline_scores:
+            lines.append(f"Baseline scores: {baseline_scores}")
     if retry_feedback:
         lines.append("Previous validation feedback:")
         lines.append(retry_feedback)
@@ -609,11 +766,12 @@ def build_bead_prompt(
         [
             "Execution requirements:",
             "1. Treat this as a bounded bead. Stay on the target path and only inspect directly adjacent files when required.",
-            "2. Treat the Immediate Hall/PennyOne context block as the authoritative non-local context budget.",
+            "2. If an Authoritative Hall/PennyOne brief block is present, treat it as the authoritative non-local context budget.",
             "3. Make the smallest complete change that satisfies the bead.",
             "4. Save every edited file under the project root above.",
             "5. Do not stop at analysis or a plan.",
-            f"6. When finished, print exactly this line on its own: {done_sentinel}",
+            "6. Do not invent imports, files, commands, or dependencies. If something is not already present or directly verified, do not rely on it.",
+            f"7. When finished, print exactly this line on its own: {done_sentinel}",
         ]
     )
     return "\n".join(lines)
@@ -624,6 +782,165 @@ def build_retry_feedback(header: str, details: str) -> str:
     if len(cleaned) > RETRY_FEEDBACK_LIMIT:
         cleaned = cleaned[-RETRY_FEEDBACK_LIMIT:]
     return f"{header}\n{cleaned or '<no details available>'}"
+
+
+def run_bead_query(
+    command: Sequence[str],
+    *,
+    cwd: Path,
+    timeout_seconds: float,
+    grace_seconds: float,
+    stream_output: bool,
+    extra_env: dict[str, str],
+    done_regexes: Sequence[str],
+) -> tuple[RunResult, CommandResult]:
+    command_result = run_command_capture(
+        command,
+        cwd=cwd,
+        timeout_seconds=timeout_seconds,
+        grace_seconds=grace_seconds,
+        stream_output=stream_output,
+        extra_env=extra_env,
+    )
+
+    excerpt = command_result.excerpt()
+    if command_result.timed_out:
+        raise QueryCommandError(
+            f"Hermes single-query command exceeded the hard timeout of {timeout_seconds:.1f} seconds.\n"
+            f"Recent output:\n{excerpt}",
+            command_result=command_result,
+        )
+    if command_result.returncode != 0:
+        raise QueryCommandError(
+            "Hermes single-query command exited before completion.\n"
+            f"Return code: {command_result.returncode}\n"
+            f"Recent output:\n{excerpt}",
+            command_result=command_result,
+        )
+
+    normalized_output = normalize_terminal_text(command_result.output)
+    matched_pattern: str | None = None
+    for pattern in done_regexes:
+        if re.compile(pattern, re.MULTILINE).search(normalized_output):
+            matched_pattern = pattern
+            break
+
+    reason = (
+        f"matched completion pattern: {matched_pattern}"
+        if matched_pattern is not None
+        else "Hermes single-query run exited cleanly"
+    )
+    return (
+        RunResult(
+            success=True,
+            reason=reason,
+            matched_pattern=matched_pattern,
+            returncode=command_result.returncode,
+            elapsed_seconds=command_result.elapsed_seconds,
+        ),
+        command_result,
+    )
+
+
+def _safe_artifact_fragment(value: str, fallback: str) -> str:
+    normalized = re.sub(r"[^A-Za-z0-9._-]+", "_", value.strip())
+    normalized = normalized.strip("._-")
+    return normalized or fallback
+
+
+def _relative_to_root(path: Path, project_root: Path) -> str:
+    try:
+        return str(path.relative_to(project_root))
+    except ValueError:
+        return str(path)
+
+
+def _redact_env(env: dict[str, str]) -> dict[str, str]:
+    redacted: dict[str, str] = {}
+    for key, value in env.items():
+        if key.upper().endswith("API_KEY") or key.upper().endswith("TOKEN"):
+            redacted[key] = "<redacted>"
+        else:
+            redacted[key] = value
+    return redacted
+
+
+def _redact_command(command: Sequence[str]) -> list[str]:
+    redacted: list[str] = []
+    skip_query_value = False
+    for item in command:
+        if skip_query_value:
+            redacted.append("<prompt omitted>")
+            skip_query_value = False
+            continue
+        if item in {"-q", "--query"}:
+            redacted.append(item)
+            skip_query_value = True
+            continue
+        if item.startswith("--query="):
+            redacted.append("--query=<prompt omitted>")
+            continue
+        redacted.append(item)
+    return redacted
+
+
+def persist_attempt_artifact(
+    *,
+    project_root: Path,
+    bead: SovereignBead,
+    attempt: int,
+    task_prompt: str,
+    transcript_text: str,
+    command: Sequence[str],
+    extra_env: dict[str, str],
+    status: str,
+    detail: str,
+    matched_pattern: str | None,
+    returncode: int | None,
+    elapsed_seconds: float | None,
+) -> AttemptArtifact:
+    diagnostics_root = project_root / ".stats" / "autobot" / _safe_artifact_fragment(bead.id, "bead")
+    diagnostics_root.mkdir(parents=True, exist_ok=True)
+
+    attempt_prefix = f"attempt-{attempt:03d}"
+    prompt_path = diagnostics_root / f"{attempt_prefix}.prompt.txt"
+    transcript_path = diagnostics_root / f"{attempt_prefix}.transcript.txt"
+    metadata_path = diagnostics_root / f"{attempt_prefix}.json"
+
+    normalized_transcript = normalize_terminal_text(transcript_text)
+    prompt_path.write_text(task_prompt, encoding="utf-8")
+    transcript_path.write_text(normalized_transcript, encoding="utf-8")
+    metadata_path.write_text(
+        json.dumps(
+            {
+                "bead_id": bead.id,
+                "attempt": attempt,
+                "status": status,
+                "detail": detail,
+                "matched_pattern": matched_pattern,
+                "returncode": returncode,
+                "elapsed_seconds": elapsed_seconds,
+                "command": _redact_command(command),
+                "target_path": bead.target_path,
+                "env": _redact_env(extra_env),
+                "prompt_path": _relative_to_root(prompt_path, project_root),
+                "transcript_path": _relative_to_root(transcript_path, project_root),
+                "transcript_excerpt": compact_prompt_text(normalized_transcript, limit=2_000),
+                "created_at": int(time.time() * 1000),
+            },
+            indent=2,
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+
+    return AttemptArtifact(
+        attempt=attempt,
+        prompt_path=_relative_to_root(prompt_path, project_root),
+        transcript_path=_relative_to_root(transcript_path, project_root),
+        metadata_path=_relative_to_root(metadata_path, project_root),
+        transcript_excerpt=compact_prompt_text(normalized_transcript, limit=2_000) or "<no output captured>",
+    )
 
 
 def select_bead(
@@ -650,7 +967,7 @@ def select_bead(
     if bead is None:
         raise OverseerError(f"Bead {bead_id!r} does not exist.")
 
-    if bead.status == "OPEN":
+    if bead.status in {"SET", "OPEN"}:
         claimed = ledger.claim_bead(bead.id, agent_id)
         if claimed is None:
             raise OverseerError(f"Bead {bead.id} could not be claimed.")
@@ -664,7 +981,7 @@ def select_bead(
         return ledger, bead, False
 
     raise OverseerError(
-        f"Bead {bead.id} is in status {bead.status}; only OPEN or IN_PROGRESS beads can be worked."
+        f"Bead {bead.id} is in status {bead.status}; only SET, OPEN, or IN_PROGRESS beads can be worked."
     )
 
 
@@ -675,14 +992,15 @@ def persist_checker_validation(
     attempt: int,
     checker_shell: str,
     checker_result: CommandResult,
-    hermes_result: RunResult,
+    hermes_result: RunResult | None,
 ) -> str:
     status = "PASS" if checker_result.succeeded else "FAIL"
     timeout_note = " Checker timed out." if checker_result.timed_out else ""
+    stage = "preflight checker" if hermes_result is None else "checker"
     summary = (
-        f"AutoBot checker accepted bead {bead.id} on attempt {attempt}."
+        f"AutoBot {stage} accepted bead {bead.id} on attempt {attempt}."
         if checker_result.succeeded
-        else f"AutoBot checker rejected bead {bead.id} on attempt {attempt}.{timeout_note}"
+        else f"AutoBot {stage} rejected bead {bead.id} on attempt {attempt}.{timeout_note}"
     )
     check = ValidationCheck(
         name="autobot_checker",
@@ -696,11 +1014,12 @@ def persist_checker_validation(
         summary=summary,
         metadata={
             "attempt": attempt,
+            "preflight": hermes_result is None,
             "checker_shell": checker_shell,
             "checker_returncode": checker_result.returncode,
             "checker_timed_out": checker_result.timed_out,
-            "hermes_reason": hermes_result.reason,
-            "hermes_match": hermes_result.matched_pattern,
+            "hermes_reason": None if hermes_result is None else hermes_result.reason,
+            "hermes_match": None if hermes_result is None else hermes_result.matched_pattern,
         },
     )
     record = save_validation_result(
@@ -764,7 +1083,7 @@ def run_prompt_mode(args: argparse.Namespace, base_env: dict[str, str]) -> int:
         raise OverseerError("A prompt is required unless bead mode is enabled.")
 
     runner = HermesSessionRunner(
-        command=build_command(args.command, args.command_arg),
+        command=build_command(args.command, args.command_arg, autobot_dir=args.autobot_dir),
         working_dir=args.autobot_dir,
         ready_regex=args.ready_regex,
         timeout_seconds=args.timeout,
@@ -792,7 +1111,7 @@ def run_bead_mode(args: argparse.Namespace, base_env: dict[str, str]) -> AutoBot
         agent_id=args.agent_id,
     )
     if bead is None:
-        print("[autobot] no actionable OPEN beads were available.", file=sys.stderr)
+        print("[autobot] no actionable SET/OPEN beads were available.", file=sys.stderr)
         return AutoBotSkillResult(
             status="SUCCESS",
             outcome="NO_ACTIONABLE_BEADS",
@@ -809,16 +1128,77 @@ def run_bead_mode(args: argparse.Namespace, base_env: dict[str, str]) -> AutoBot
 
     retry_feedback: str | None = None
     last_validation_id: str | None = None
-    runner = HermesSessionRunner(
-        command=build_command(args.command, args.command_arg),
-        working_dir=args.autobot_dir,
-        ready_regex=args.ready_regex,
-        timeout_seconds=args.timeout,
-        startup_timeout_seconds=args.startup_timeout,
-        grace_seconds=args.grace_seconds,
-        stream_output=not args.no_stream,
-        base_env=base_env,
-    )
+    attempt_artifacts: list[AttemptArtifact] = []
+
+    # Preflight checker short-circuit: only a successful preflight resolves early.
+    if args.checker_shell:
+        print(f"[autobot] running preflight checker for bead {bead.id}.", file=sys.stderr)
+        preflight_env = dict(base_env)
+        preflight_env["CORVUS_BEAD_ID"] = bead.id
+        preflight_env["CORVUS_PROJECT_ROOT"] = str(args.project_root)
+
+        preflight_result = run_preflight_checker(
+            project_root=args.project_root,
+            bead_id=bead.id,
+            checker_shell=args.checker_shell,
+            timeout_seconds=args.checker_timeout,
+            grace_seconds=args.grace_seconds,
+            stream_output=not args.no_stream,
+            extra_env=preflight_env,
+        )
+
+        if preflight_result is not None and preflight_result.succeeded and has_post_bead_file_activity(args.project_root, bead):
+            validation_id = persist_checker_validation(
+                project_root=args.project_root,
+                bead=bead,
+                attempt=0,
+                checker_shell=args.checker_shell,
+                checker_result=preflight_result,
+                hermes_result=None,
+            )
+            finalize_success(ledger, bead, 0, validation_id=validation_id)
+            print(
+                f"[autobot] bead {bead.id} resolved via preflight validation {validation_id} (attempt_count=0).",
+                file=sys.stderr,
+            )
+            resolved_bead = ledger.get_bead(bead.id)
+            return AutoBotSkillResult(
+                status="SUCCESS",
+                outcome="RESOLVED_PREFLIGHT",
+                summary=f"AutoBot resolved bead {bead.id} via preflight validation {validation_id}.",
+                bead_id=bead.id,
+                target_path=bead.target_path,
+                claimed=claimed_now,
+                attempt_count=0,
+                max_attempts=args.max_attempts,
+                final_bead_status=None if resolved_bead is None else resolved_bead.status,
+                validation_id=validation_id,
+                metadata={
+                    "agent_id": args.agent_id,
+                    "checker_shell": args.checker_shell,
+                    "checker_returncode": preflight_result.returncode,
+                    "hermes_reason": None,
+                    "matched_pattern": None,
+                    "attempt_artifacts": [],
+                },
+            )
+        if preflight_result is not None and preflight_result.succeeded:
+            print(
+                (
+                    f"[autobot] preflight checker passed for bead {bead.id}, "
+                    "but no target or contract files changed after bead creation; continuing into Hermes."
+                ),
+                file=sys.stderr,
+            )
+        elif preflight_result is not None:
+            failure_reason = "timed out" if preflight_result.timed_out else "did not pass"
+            print(
+                (
+                    f"[autobot] preflight checker {failure_reason} for bead {bead.id}; "
+                    "continuing into Hermes."
+                ),
+                file=sys.stderr,
+            )
 
     for attempt in range(1, args.max_attempts + 1):
         done_sentinel = build_done_sentinel(bead, attempt)
@@ -829,23 +1209,108 @@ def run_bead_mode(args: argparse.Namespace, base_env: dict[str, str]) -> AutoBot
             f"[autobot] AutoBot attempt {attempt}/{args.max_attempts} for bead {bead.id}.",
             file=sys.stderr,
         )
+        task_prompt = build_bead_prompt(
+            project_root=args.project_root,
+            bead=bead,
+            attempt=attempt,
+            done_sentinel=done_sentinel,
+            retry_feedback=retry_feedback,
+            worker_note=args.worker_note,
+        )
+        bead_command = build_bead_command(
+            args.command,
+            args.command_arg,
+            autobot_dir=args.autobot_dir,
+            task_prompt=task_prompt,
+        )
         try:
-            hermes_result = runner.run(
-                build_bead_prompt(
-                    project_root=args.project_root,
-                    bead=bead,
-                    attempt=attempt,
-                    done_sentinel=done_sentinel,
-                    retry_feedback=retry_feedback,
-                    worker_note=args.worker_note,
-                ),
-                done_regexes=[re.escape(done_sentinel), *args.done_regex],
-                extra_env=bead_env,
+            # PIVOT: Using CStar-native SovereignWorker instead of Hermes CLI
+            worker = SovereignWorker(
+                project_root=args.project_root,
+                model=DEFAULT_HERMES_MODEL,
+                base_url=DEFAULT_HERMES_BASE_URL,
+                max_turns=10
             )
+            
+            system_prompt = (
+                "You are a CStar Sovereign Worker. Your goal is to complete the user's task by using tools.\n"
+                "You MUST use tools via XML: <invoke name='tool_name'><arg_name>value</arg_name></invoke>.\n"
+                "Available tools: read_file, write_file, run_shell_command, list_directory.\n"
+                "Think in <thought> tags before acting.\n"
+                "When finished, summarize your work and end with the word DONE."
+            )
+            
+            start_time = time.time()
+            transcript = worker.run(system_prompt, task_prompt)
+            elapsed = time.time() - start_time
+            
+            hermes_result = RunResult(
+                success=True,
+                reason="SovereignWorker completed task loop.",
+                matched_pattern="DONE",
+                returncode=0,
+                elapsed_seconds=elapsed
+            )
+            
+            command_result = CommandResult(
+                command=["sovereign_worker", "--project-root", str(args.project_root)],
+                returncode=0,
+                timed_out=False,
+                elapsed_seconds=elapsed,
+                output=transcript
+            )
+            
+            artifact = persist_attempt_artifact(
+                project_root=args.project_root,
+                bead=bead,
+                attempt=attempt,
+                task_prompt=task_prompt,
+                transcript_text=command_result.output,
+                command=command_result.command,
+                extra_env=bead_env,
+                status="SUCCESS",
+                detail=hermes_result.reason,
+                matched_pattern=hermes_result.matched_pattern,
+                returncode=hermes_result.returncode,
+                elapsed_seconds=hermes_result.elapsed_seconds,
+            )
+            attempt_artifacts.append(artifact)
         except OverseerError as exc:
-            failure_text = str(exc)
+            failed_command = bead_command
+            failed_transcript = ""
+            failed_returncode: int | None = None
+            failed_elapsed_seconds: float | None = None
+            if isinstance(exc, QueryCommandError):
+                failed_command = exc.command_result.command
+                failed_transcript = exc.command_result.output
+                failed_returncode = exc.command_result.returncode
+                failed_elapsed_seconds = exc.command_result.elapsed_seconds
+            artifact = persist_attempt_artifact(
+                project_root=args.project_root,
+                bead=bead,
+                attempt=attempt,
+                task_prompt=task_prompt,
+                transcript_text=failed_transcript,
+                command=failed_command,
+                extra_env=bead_env,
+                status="FAILURE",
+                detail=str(exc),
+                matched_pattern=None,
+                returncode=failed_returncode,
+                elapsed_seconds=failed_elapsed_seconds,
+            )
+            attempt_artifacts.append(artifact)
+            failure_text = (
+                f"{exc}\n"
+                f"Diagnostic transcript: {artifact.transcript_path}\n"
+                f"Diagnostic metadata: {artifact.metadata_path}"
+            )
             print(f"[autobot] AutoBot attempt {attempt} failed: {failure_text}", file=sys.stderr)
             if attempt >= args.max_attempts:
+                failure_summary = (
+                    f"AutoBot failed to complete bead {bead.id} after {attempt} attempts. "
+                    f"See {artifact.transcript_path}."
+                )
                 block_failed_bead(
                     ledger,
                     bead,
@@ -859,7 +1324,7 @@ def run_bead_mode(args: argparse.Namespace, base_env: dict[str, str]) -> AutoBot
                 return AutoBotSkillResult(
                     status="FAILURE",
                     outcome="BLOCKED",
-                    summary=f"AutoBot failed to complete bead {bead.id} after {attempt} attempts.",
+                    summary=failure_summary,
                     bead_id=bead.id,
                     target_path=bead.target_path,
                     claimed=claimed_now,
@@ -870,6 +1335,7 @@ def run_bead_mode(args: argparse.Namespace, base_env: dict[str, str]) -> AutoBot
                     metadata={
                         "agent_id": args.agent_id,
                         "worker_failure": failure_text,
+                        "attempt_artifacts": [item.to_dict() for item in attempt_artifacts],
                     },
                 )
             retry_feedback = build_retry_feedback(
@@ -905,6 +1371,7 @@ def run_bead_mode(args: argparse.Namespace, base_env: dict[str, str]) -> AutoBot
                     "agent_id": args.agent_id,
                     "hermes_reason": hermes_result.reason,
                     "matched_pattern": hermes_result.matched_pattern,
+                    "attempt_artifacts": [item.to_dict() for item in attempt_artifacts],
                 },
             )
 
@@ -958,6 +1425,7 @@ def run_bead_mode(args: argparse.Namespace, base_env: dict[str, str]) -> AutoBot
                     "checker_returncode": checker_result.returncode,
                     "hermes_reason": hermes_result.reason,
                     "matched_pattern": hermes_result.matched_pattern,
+                    "attempt_artifacts": [item.to_dict() for item in attempt_artifacts],
                 },
             )
 
@@ -969,6 +1437,10 @@ def run_bead_mode(args: argparse.Namespace, base_env: dict[str, str]) -> AutoBot
             file=sys.stderr,
         )
         if attempt >= args.max_attempts:
+            failure_summary = (
+                f"Checker rejected AutoBot output for bead {bead.id} after {attempt} attempts. "
+                f"See {attempt_artifacts[-1].transcript_path}."
+            )
             block_failed_bead(
                 ledger,
                 bead,
@@ -982,7 +1454,7 @@ def run_bead_mode(args: argparse.Namespace, base_env: dict[str, str]) -> AutoBot
             return AutoBotSkillResult(
                 status="FAILURE",
                 outcome="BLOCKED",
-                summary=f"Checker rejected AutoBot output for bead {bead.id} after {attempt} attempts.",
+                summary=failure_summary,
                 bead_id=bead.id,
                 target_path=bead.target_path,
                 claimed=claimed_now,
@@ -995,6 +1467,7 @@ def run_bead_mode(args: argparse.Namespace, base_env: dict[str, str]) -> AutoBot
                     "checker_shell": args.checker_shell,
                     "checker_returncode": checker_result.returncode,
                     "checker_output_excerpt": checker_result.excerpt(),
+                    "attempt_artifacts": [item.to_dict() for item in attempt_artifacts],
                 },
             )
 
@@ -1036,16 +1509,19 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--command",
-        default="hermes",
-        help="Base executable to launch (default: hermes).",
+        default=None,
+        help=(
+            "Base executable to launch. If omitted, the overseer uses the local Hermes binary "
+            "under <autobot-dir>/hermes-agent/.venv/bin/hermes."
+        ),
     )
     parser.add_argument(
         "--command-arg",
         action="append",
         default=[],
         help=(
-            "Extra command arguments. If omitted, the overseer uses `chat`, which preserves "
-            "Hermes' interactive prompt behavior."
+            f"Extra command arguments. If omitted, the overseer uses "
+            f"`{' '.join(default_hermes_command_args())}`."
         ),
     )
     parser.add_argument(
@@ -1053,7 +1529,10 @@ def build_parser() -> argparse.ArgumentParser:
         action="append",
         default=[],
         metavar="KEY=VALUE",
-        help="Environment variables to inject into Hermes and checker processes.",
+        help=(
+            "Environment variables to inject into Hermes and checker processes. Explicit values "
+            "override the local-model defaults for OPENAI_BASE_URL and OPENAI_API_KEY."
+        ),
     )
     parser.add_argument(
         "--ready-regex",
@@ -1147,7 +1626,7 @@ def execute_autobot(
     bead_id: str | None = None,
     claim_next: bool = False,
     autobot_dir: Path | str = DEFAULT_AUTOBOT_DIR,
-    command: str = "hermes",
+    command: str | None = None,
     command_args: Sequence[str] | None = None,
     env: dict[str, str] | None = None,
     ready_regex: str = DEFAULT_READY_REGEX,
@@ -1187,7 +1666,7 @@ def execute_autobot(
         raise OverseerError("--max-attempts must be at least 1.")
     if not bead_id and not claim_next:
         raise OverseerError("execute_autobot requires --bead-id or claim_next=True.")
-    return run_bead_mode(args, dict(env or {}))
+    return run_bead_mode(args, build_base_env(env))
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -1196,7 +1675,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     validate_args(args, parser)
 
     try:
-        base_env = parse_env_assignments(args.env)
+        base_env = build_base_env(parse_env_assignments(args.env))
     except ValueError as exc:
         parser.error(str(exc))
 

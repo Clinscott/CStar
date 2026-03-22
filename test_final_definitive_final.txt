@@ -256,7 +256,7 @@ self = <unittest.mock._patch object at 0x000001FEAA357070>
 >           raise AttributeError(
                 "%s does not have the attribute %r" % (target, name)
             )
-E           AttributeError: <module 'src.sentinel._bootstrap' from 'C:\\Users\\Craig\\Corvus\\CorvusStar\\src\\sentinel\\_bootstrap.py'> does not have the attribute 'HUD'
+E           AttributeError: <module 'src.core.bootstrap' from 'C:\\Users\\Craig\\Corvus\\CorvusStar\\src\\sentinel\\_bootstrap.py'> does not have the attribute 'HUD'
 
 C:\Python314\Lib\unittest\mock.py:1473: AttributeError
 _______________ TestBootstrapEmpire.test_bootstrap_no_env_file ________________
@@ -309,7 +309,7 @@ self = <unittest.mock._patch object at 0x000001FEAA357150>
 >           raise AttributeError(
                 "%s does not have the attribute %r" % (target, name)
             )
-E           AttributeError: <module 'src.sentinel._bootstrap' from 'C:\\Users\\Craig\\Corvus\\CorvusStar\\src\\sentinel\\_bootstrap.py'> does not have the attribute 'HUD'
+E           AttributeError: <module 'src.core.bootstrap' from 'C:\\Users\\Craig\\Corvus\\CorvusStar\\src\\sentinel\\_bootstrap.py'> does not have the attribute 'HUD'
 
 C:\Python314\Lib\unittest\mock.py:1473: AttributeError
 ============================== warnings summary ===============================

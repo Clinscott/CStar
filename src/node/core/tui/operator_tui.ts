@@ -19,6 +19,7 @@ import type {
 } from '../../../types/hall.ts';
 import { buildChantInvocation, buildDynamicCommandInvocation } from '../commands/dispatcher.ts';
 import type { RuntimeDispatchPort } from '../runtime/contracts.ts';
+import { resumeHostGovernorIfAvailable, type OperatorResumeResult } from '../operator_resume.ts';
 
 type OperatorEventLevel = 'INFO' | 'WARN' | 'FAIL' | 'PASS';
 
@@ -55,6 +56,32 @@ function pushEvent(
     detail?: string,
 ): OperatorEvent[] {
     return [...events, { at: Date.now(), level, message, detail }].slice(-10);
+}
+
+function appendResumeEvents(events: OperatorEvent[], resumeResult: OperatorResumeResult): OperatorEvent[] {
+    if (!resumeResult.resumed) {
+        return events;
+    }
+
+    if (resumeResult.governorResult?.status === 'FAILURE') {
+        return pushEvent(
+            events,
+            'FAIL',
+            'Host governor resume failed.',
+            resumeResult.governorResult.error ?? resumeResult.provider ?? 'unknown',
+        );
+    }
+
+    let next = pushEvent(
+        events,
+        'PASS',
+        'Host governor synchronized.',
+        resumeResult.provider ?? 'host',
+    );
+    if (resumeResult.governorResult?.output?.trim()) {
+        next = pushEvent(next, 'INFO', 'Governor summary.', resumeResult.governorResult.output.trim());
+    }
+    return next;
 }
 
 function truncate(value: string, length: number): string {
@@ -127,6 +154,7 @@ export function shouldLaunchOperatorTui(
     argv: string[],
     interactive: boolean = Boolean(input.isTTY && output.isTTY),
 ): boolean {
+    let explicitTui = false;
     let skipNext = false;
     for (const token of argv) {
         if (skipNext) {
@@ -147,11 +175,12 @@ export function shouldLaunchOperatorTui(
             continue;
         }
         if (!token.startsWith('-')) {
-            return token.toLowerCase() === 'tui';
+            explicitTui = token.toLowerCase() === 'tui';
+            return explicitTui;
         }
     }
 
-    return interactive;
+    return interactive && explicitTui;
 }
 
 export function readOperatorSnapshot(events: OperatorEvent[]): OperatorSnapshot {
@@ -260,6 +289,16 @@ async function dispatchOperatorInput(
     }
 
     if (lower === 'status' || lower === 'hall') {
+        if (lower === 'status') {
+            const resumeResult = await resumeHostGovernorIfAvailable(dispatchPort, {
+                workspaceRoot,
+                cwd: workspaceRoot,
+                env: process.env,
+                task: 'Resume host-governed operator status review.',
+                source: 'cli',
+            });
+            events = appendResumeEvents(events, resumeResult);
+        }
         events = pushEvent(events, 'PASS', 'Operator state refreshed.', lower);
         return { events, planningSessionId: activePlanningSessionId };
     }
@@ -319,8 +358,17 @@ async function dispatchOperatorInput(
 }
 
 export async function runOperatorTui(dispatchPort: RuntimeDispatchPort): Promise<void> {
-    const initialSummary = getHallSummary(registry.getRoot());
-    let events = buildSeedEvents(registry.getRoot(), initialSummary);
+    const workspaceRoot = registry.getRoot();
+    const resumeResult = await resumeHostGovernorIfAvailable(dispatchPort, {
+        workspaceRoot,
+        cwd: workspaceRoot,
+        env: process.env,
+        task: 'Resume host-governed operator matrix.',
+        source: 'cli',
+    });
+    const initialSummary = getHallSummary(workspaceRoot);
+    let events = buildSeedEvents(workspaceRoot, initialSummary);
+    events = appendResumeEvents(events, resumeResult);
     let activePlanningSessionId: string | undefined;
 
     if (!input.isTTY || !output.isTTY) {

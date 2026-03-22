@@ -1,7 +1,7 @@
 import json
 from unittest.mock import MagicMock
 
-from src.sentinel.harvest_responses import ResponseRecorder
+from src.core.engine.ravens.harvest_responses import ResponseRecorder
 
 
 def test_response_recorder_calls():

@@ -11,11 +11,24 @@ from src.core.engine.gungnir.schema import GungnirMatrix, build_gungnir_matrix, 
 
 HallRepositoryStatus = Literal["DORMANT", "AWAKE", "AGENT_LOOP"]
 HallScanStatus = Literal["PENDING", "COMPLETED", "FAILED"]
-HallBeadStatus = Literal["OPEN", "IN_PROGRESS", "READY_FOR_REVIEW", "NEEDS_TRIAGE", "BLOCKED", "RESOLVED", "ARCHIVED", "SUPERSEDED"]
+HallBeadStatus = Literal["OPEN", "SET-PENDING", "SET", "IN_PROGRESS", "READY_FOR_REVIEW", "NEEDS_TRIAGE", "BLOCKED", "RESOLVED", "ARCHIVED", "SUPERSEDED"]
 HallBeadTargetKind = Literal["FILE", "SECTOR", "REPOSITORY", "CONTRACT", "SPOKE", "WORKFLOW", "VALIDATION", "OTHER"]
 HallValidationVerdict = Literal["ACCEPTED", "REJECTED", "INCONCLUSIVE", "SUCCESS", "FAILURE"]
 HallSkillProposalStatus = Literal["PROPOSED", "VALIDATED", "PROMOTED", "REJECTED", "SUPERSEDED"]
-HallPlanningSessionStatus = Literal["NEEDS_INPUT", "PLAN_READY", "ROUTED", "COMPLETED", "FAILED"]
+HallPlanningSessionStatus = Literal[
+    "INTENT_RECEIVED",
+    "RESEARCH_PHASE",
+    "PROPOSAL_REVIEW",
+    "BEAD_CRITIQUE_LOOP",
+    "BEAD_USER_REVIEW",
+    "PLAN_CONCRETE",
+    "FORGE_EXECUTION",
+    "NEEDS_INPUT",
+    "PLAN_READY",
+    "ROUTED",
+    "COMPLETED",
+    "FAILED",
+]
 
 
 @dataclass
@@ -75,6 +88,7 @@ class HallBeadRecord:
     contract_refs: list[str] = field(default_factory=list)
     baseline_scores: dict[str, Any] = field(default_factory=dict)
     acceptance_criteria: str | None = None
+    checker_shell: str | None = None
     status: HallBeadStatus = "OPEN"
     assigned_agent: str | None = None
     source_kind: str | None = None
@@ -157,6 +171,8 @@ class HallPlanningSessionRecord:
     updated_at: int
     summary: str | None = None
     latest_question: str | None = None
+    architect_opinion: str | None = None
+    current_bead_id: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -266,6 +282,7 @@ class HallOfRecords:
                     contract_refs_json TEXT,
                     baseline_scores_json TEXT,
                     acceptance_criteria TEXT,
+                    checker_shell TEXT,
                     status TEXT NOT NULL DEFAULT 'OPEN',
                     assigned_agent TEXT,
                     source_kind TEXT,
@@ -349,6 +366,8 @@ class HallOfRecords:
                     normalized_intent TEXT NOT NULL,
                     summary TEXT,
                     latest_question TEXT,
+                    architect_opinion TEXT,
+                    current_bead_id TEXT,
                     created_at INTEGER NOT NULL,
                     updated_at INTEGER NOT NULL,
                     metadata_json TEXT,
@@ -393,7 +412,7 @@ class HallOfRecords:
                         SELECT COUNT(*)
                         FROM hall_beads b
                         WHERE b.repo_id = r.repo_id
-                          AND b.status IN ('OPEN', 'IN_PROGRESS')
+                          AND b.status IN ('OPEN', 'SET-PENDING', 'SET', 'IN_PROGRESS', 'READY_FOR_REVIEW')
                     ) AS open_beads,
                     (
                         SELECT COUNT(*)
@@ -414,6 +433,7 @@ class HallOfRecords:
             self._ensure_column(conn, "hall_beads", "triage_reason", "TEXT")
             self._ensure_column(conn, "hall_beads", "resolution_note", "TEXT")
             self._ensure_column(conn, "hall_beads", "resolved_validation_id", "TEXT")
+            self._ensure_column(conn, "hall_beads", "checker_shell", "TEXT")
             self._ensure_column(conn, "hall_beads", "superseded_by", "TEXT")
             self._ensure_column(conn, "hall_files", "imports_json", "TEXT")
             self._ensure_column(conn, "hall_files", "exports_json", "TEXT")
@@ -424,6 +444,8 @@ class HallOfRecords:
             self._ensure_column(conn, "hall_skill_proposals", "metadata_json", "TEXT")
             self._ensure_column(conn, "hall_planning_sessions", "summary", "TEXT")
             self._ensure_column(conn, "hall_planning_sessions", "latest_question", "TEXT")
+            self._ensure_column(conn, "hall_planning_sessions", "architect_opinion", "TEXT")
+            self._ensure_column(conn, "hall_planning_sessions", "current_bead_id", "TEXT")
             self._ensure_column(conn, "hall_planning_sessions", "metadata_json", "TEXT")
             conn.executescript(
                 """
@@ -462,7 +484,7 @@ class HallOfRecords:
                         SELECT COUNT(*)
                         FROM hall_beads b
                         WHERE b.repo_id = r.repo_id
-                          AND b.status IN ('OPEN', 'IN_PROGRESS', 'READY_FOR_REVIEW')
+                          AND b.status IN ('OPEN', 'SET-PENDING', 'SET', 'IN_PROGRESS', 'READY_FOR_REVIEW')
                     ) AS open_beads,
                     (
                         SELECT COUNT(*)
@@ -748,9 +770,9 @@ class HallOfRecords:
                 """
                 INSERT INTO hall_beads (
                     bead_id, repo_id, scan_id, legacy_id, target_kind, target_ref, target_path, rationale, contract_refs_json,
-                    baseline_scores_json, acceptance_criteria, status, assigned_agent, source_kind, triage_reason,
+                    baseline_scores_json, acceptance_criteria, checker_shell, status, assigned_agent, source_kind, triage_reason,
                     resolution_note, resolved_validation_id, superseded_by, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(bead_id) DO UPDATE SET
                     scan_id = excluded.scan_id,
                     legacy_id = excluded.legacy_id,
@@ -761,6 +783,7 @@ class HallOfRecords:
                     contract_refs_json = excluded.contract_refs_json,
                     baseline_scores_json = excluded.baseline_scores_json,
                     acceptance_criteria = excluded.acceptance_criteria,
+                    checker_shell = COALESCE(excluded.checker_shell, hall_beads.checker_shell),
                     status = excluded.status,
                     assigned_agent = excluded.assigned_agent,
                     source_kind = excluded.source_kind,
@@ -782,6 +805,7 @@ class HallOfRecords:
                     json.dumps(record.contract_refs),
                     json.dumps(record.baseline_scores),
                     record.acceptance_criteria,
+                    record.checker_shell,
                     record.status,
                     record.assigned_agent,
                     record.source_kind,

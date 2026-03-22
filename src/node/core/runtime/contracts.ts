@@ -77,6 +77,19 @@ export interface StartWeavePayload {
     verbose?: boolean;
 }
 
+export interface HostGovernorWeavePayload {
+    task?: string;
+    ledger?: string;
+    auto_execute?: boolean;
+    auto_replan_blocked?: boolean;
+    max_parallel?: number;
+    max_promotions?: number;
+    dry_run?: boolean;
+    project_root?: string;
+    cwd?: string;
+    source?: 'cli' | 'runtime';
+}
+
 export type RavensAction = 'start' | 'stop' | 'status' | 'cycle' | 'sweep';
 
 export interface RavensWeavePayload {
@@ -110,7 +123,7 @@ export interface ChantWeavePayload {
     project_root: string;
     cwd: string;
     dry_run?: boolean;
-    source?: 'cli' | 'python_adapter';
+    source?: 'cli' | 'python_adapter' | 'runtime';
 }
 
 export interface AutobotWeavePayload {
@@ -133,7 +146,13 @@ export interface AutobotWeavePayload {
     stream?: boolean;
     project_root: string;
     cwd: string;
-    source?: 'cli' | 'python_adapter' | 'runtime';
+    source: string;
+}
+
+export interface HostWorkerWeavePayload {
+    bead_id: string;
+    project_root: string;
+    cwd: string;
 }
 
 export interface AutobotWeaveMetadata extends Record<string, unknown> {
@@ -228,6 +247,44 @@ export interface TaliesinForgeWeaveMetadata extends Record<string, unknown> {
     validation_request?: ForgeValidationRequest;
 }
 
+export interface OrchestrateWeavePayload {
+    planning_session_id?: string;
+    max_parallel?: number;
+    tick_timeout?: number;
+    dry_run?: boolean;
+    worker_identity?: string;
+    bead_ids?: string[];
+    project_root: string;
+    cwd: string;
+    source?: 'cli' | 'python_adapter' | 'runtime';
+}
+
+export interface OrchestrateWeaveMetadata extends Record<string, unknown> {
+    bead_outcomes?: Record<string, {
+        status: string;
+        exit_code?: number;
+        duration_ms?: number;
+        error?: string;
+    }>;
+    reaped_zombies?: number;
+    total_processed?: number;
+}
+
+export interface TemporalLearningWeavePayload {
+    lookback_days?: number;
+    min_churn?: number;
+    limit?: number;
+    project_root: string;
+    cwd: string;
+    source?: 'cli' | 'runtime';
+}
+
+export interface TemporalLearningWeaveMetadata extends Record<string, unknown> {
+    analyzed_commits?: number;
+    identified_sectors?: number;
+    emitted_beads?: string[];
+}
+
 /**
  * [🔱] THE RUNTIME ADAPTER
  * Adapters wrap legacy or specialized execution paths (Python, CLI scripts, direct Node modules)
@@ -236,4 +293,5 @@ export interface TaliesinForgeWeaveMetadata extends Record<string, unknown> {
 export interface RuntimeAdapter<T = unknown> {
     readonly id: string;
     execute(invocation: WeaveInvocation<T>, context: RuntimeContext): Promise<WeaveResult>;
+    shutdown?(): Promise<void>;
 }

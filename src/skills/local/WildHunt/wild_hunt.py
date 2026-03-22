@@ -22,7 +22,7 @@ try:
          project_root = Path(__file__).resolve().parents[3]
          
     sys.path.append(str(project_root))
-    from src.sentinel._bootstrap import SovereignBootstrap
+    from src.core.bootstrap import SovereignBootstrap
     SovereignBootstrap.execute()
 except (ImportError, ValueError, IndexError):
     pass
@@ -135,7 +135,7 @@ class WildHunt:
         
         # 2. Invoke Shadow Forge for security analysis
         try:
-            from src.sentinel.wardens.shadow_forge import ShadowForgeWarden
+            from src.core.engine.wardens.shadow_forge import ShadowForgeWarden
             ShadowForgeWarden(self.root)
             # Override target to run the new skill in isolation
             # For this MVP, we assume ShadowForge validates it and we move it if successful

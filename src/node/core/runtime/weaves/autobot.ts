@@ -11,6 +11,7 @@ import type {
     WeaveInvocation,
     WeaveResult,
 } from '../contracts.ts';
+import { RUNTIME_KERNEL_ROOT } from '../kernel_root.ts';
 
 function resolvePythonPath(projectRoot: string): string {
     const windows = path.join(projectRoot, '.venv', 'Scripts', 'python.exe');
@@ -35,8 +36,11 @@ function extractJsonObject(raw: string): Record<string, unknown> {
 
 export class AutoBotWeave implements RuntimeAdapter<AutobotWeavePayload> {
     public readonly id = 'weave:autobot';
+    private readonly runner: typeof execa;
 
-    public constructor(private readonly runner: typeof execa = execa) {}
+    public constructor(runner: typeof execa = execa) {
+        this.runner = runner;
+    }
 
     public async execute(
         invocation: WeaveInvocation<AutobotWeavePayload>,
@@ -52,7 +56,7 @@ export class AutoBotWeave implements RuntimeAdapter<AutobotWeavePayload> {
             };
         }
 
-        const kernelRoot = payload.project_root || context.workspace_root;
+        const kernelRoot = RUNTIME_KERNEL_ROOT;
         const targetRoot = context.workspace_root;
         const scriptPath = path.join(kernelRoot, '.agents', 'skills', 'autobot', 'scripts', 'autobot.py');
         const args = [scriptPath, '--project-root', targetRoot];
@@ -63,7 +67,15 @@ export class AutoBotWeave implements RuntimeAdapter<AutobotWeavePayload> {
             args.push('--claim-next');
         }
         if (payload.checker_shell) {
-            args.push('--checker-shell', payload.checker_shell);
+            // THE GAUNTLET: Wrap the checker shell in a phantom sync and fast-failing syntax checker
+            const targetPath = context.workspace_root; 
+            const syncScript = path.join(RUNTIME_KERNEL_ROOT, 'src', 'node', 'core', 'runtime', 'sync_slice.ts');
+            const syncCommand = `npx tsx ${syncScript} "${targetPath}" "${payload.bead_id}"`;
+            
+            const isTs = fs.existsSync(path.join(targetPath, 'tsconfig.json'));
+            const syntaxCheck = isTs ? `npx tsc --noEmit && ` : ``;
+            
+            args.push('--checker-shell', `${syncCommand} && ${syntaxCheck}${payload.checker_shell}`);
         }
         if (payload.max_attempts !== undefined) {
             args.push('--max-attempts', String(payload.max_attempts));

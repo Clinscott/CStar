@@ -8,9 +8,11 @@ function stripAnsi(value: string): string {
 }
 
 describe('Operator TUI shell (CS-P7-02)', () => {
-    it('launches by default when only global options are present', () => {
-        assert.equal(shouldLaunchOperatorTui([], true), true);
-        assert.equal(shouldLaunchOperatorTui(['--root', 'C:\\Estate\\KeepOS'], true), true);
+    it('launches only when the tui command is explicitly requested', () => {
+        assert.equal(shouldLaunchOperatorTui([], true), false);
+        assert.equal(shouldLaunchOperatorTui(['--root', 'C:\\Estate\\KeepOS'], true), false);
+        assert.equal(shouldLaunchOperatorTui(['tui'], true), true);
+        assert.equal(shouldLaunchOperatorTui(['--root', 'C:\\Estate\\KeepOS', 'tui'], true), true);
         assert.equal(shouldLaunchOperatorTui(['status'], true), false);
         assert.equal(shouldLaunchOperatorTui(['ravens', 'status'], true), false);
     });
@@ -92,7 +94,7 @@ describe('Operator TUI shell (CS-P7-02)', () => {
                     session_id: 'chant-session:1',
                     repo_id: 'repo:test',
                     skill_id: 'chant',
-                    status: 'NEEDS_INPUT',
+                    status: 'PROPOSAL_REVIEW',
                     user_intent: 'help me rebuild chant',
                     normalized_intent: 'help me rebuild chant',
                     latest_question: 'Which repo, spoke, bead, or file should this plan target?',

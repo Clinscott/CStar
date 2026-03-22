@@ -69,7 +69,7 @@ mock_env = <MagicMock name='get' id='1562457827248'>
 mock_sovereign_fish = <MagicMock name='SovereignFish' id='1562457827584'>
 tmp_path = WindowsPath('C:/Users/Craig/AppData/Local/Temp/pytest-of-Craig/pytest-253/test_harvest_loop0')
 
-    @patch('src.sentinel.harvest_responses.SovereignFish')
+    @patch('src.core.engine.ravens.harvest_responses.SovereignFish')
     @patch('os.environ.get', return_value="fake_key")
     @patch('google.genai.Client')
     def test_harvest_loop(self, mock_client, mock_env, mock_sovereign_fish, tmp_path):
@@ -77,8 +77,8 @@ tmp_path = WindowsPath('C:/Users/Craig/AppData/Local/Temp/pytest-of-Craig/pytest
         mock_sovereign_fish_instance = mock_sovereign_fish.return_value
     
         # We need to mock FIXTURES_DIR and PROJECT_ROOT for isolation
-        with patch('src.sentinel.harvest_responses.FIXTURES_DIR', tmp_path), \
-             patch('src.sentinel.harvest_responses.Path') as mock_path_class:
+        with patch('src.core.engine.ravens.harvest_responses.FIXTURES_DIR', tmp_path), \
+             patch('src.core.engine.ravens.harvest_responses.Path') as mock_path_class:
     
             # Setup Path("/...") call inside harvest to return tmp_path
             mock_path_class.return_value.resolve.return_value = tmp_path
@@ -283,9 +283,9 @@ mock_executor = <MagicMock name='ThreadPoolExecutor' id='1562478997728'>
 mock_hud = <MagicMock name='HUD' id='1562478998064'>
 
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key"})
-    @patch("src.sentinel.muninn.HUD")
-    @patch("src.sentinel.muninn.ThreadPoolExecutor")
-    @patch("src.sentinel.muninn.HeimdallWarden")
+    @patch("src.core.engine.ravens.muninn.HUD")
+    @patch("src.core.engine.ravens.muninn.ThreadPoolExecutor")
+    @patch("src.core.engine.ravens.muninn.HeimdallWarden")
     def test_run_scan_no_breaches(self, mock_heimdall, mock_executor, mock_hud):
         muninn = Muninn("dummy_root")
     
@@ -304,10 +304,10 @@ mock_executor = <MagicMock name='ThreadPoolExecutor' id='1562458588560'>
 mock_hud = <MagicMock name='HUD' id='1562458587888'>
 
     @patch.dict(os.environ, {"GOOGLE_API_KEY": "fake_key"})
-    @patch("src.sentinel.muninn.HUD")
-    @patch("src.sentinel.muninn.ThreadPoolExecutor")
-    @patch("src.sentinel.muninn.HeimdallWarden")
-    @patch("src.sentinel.muninn.subprocess.run")
+    @patch("src.core.engine.ravens.muninn.HUD")
+    @patch("src.core.engine.ravens.muninn.ThreadPoolExecutor")
+    @patch("src.core.engine.ravens.muninn.HeimdallWarden")
+    @patch("src.core.engine.ravens.muninn.subprocess.run")
     def test_run_with_breach_success(self, mock_sub, mock_heimdall, mock_executor, mock_hud):
         muninn = Muninn("dummy_root")
     

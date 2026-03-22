@@ -15,6 +15,8 @@ import { ChantWeave } from '../../src/node/core/runtime/weaves/chant.ts';
 import {
     closeDb,
     getDb,
+    getHallPlanningSession,
+    getHallSkillProposal,
     saveHallEpisodicMemory,
     saveHallPlanningSession,
     upsertHallBead,
@@ -35,6 +37,96 @@ class CaptureDispatchPort implements RuntimeDispatchPort {
                 outcome: 'READY_FOR_REVIEW',
             },
         };
+    }
+}
+
+class PlanningDispatchPort implements RuntimeDispatchPort {
+    public async dispatch<T>(invocation: WeaveInvocation<T>): Promise<WeaveResult> {
+        if (invocation.weave_id === 'weave:research') {
+            return {
+                weave_id: invocation.weave_id,
+                status: 'SUCCESS',
+                output: 'Research complete.',
+                metadata: {
+                    research_artifacts: ['README.md', 'tests/test_title_slug.py'],
+                },
+            };
+        }
+
+        if (invocation.weave_id === 'weave:architect') {
+            return {
+                weave_id: invocation.weave_id,
+                status: 'SUCCESS',
+                output: 'Architect proposal synthesis complete.',
+                metadata: {
+                    architect_proposal: {
+                        proposal_summary: 'Build a tiny slug utility with a standard-library-only CLI.',
+                        beads: [
+                            {
+                                id: 'title-slug',
+                                title: 'Implement title slug utility',
+                                rationale: 'Create the missing utility required by the README smoke task.',
+                                targets: ['title_slug.py', 'tests/test_title_slug.py', 'README.md'],
+                                depends_on: [],
+                                acceptance_criteria: [
+                                    'Expose slugify(text: str) -> str.',
+                                    'CLI prints a stable slug for the provided title.',
+                                    'Bundled unittest suite passes.',
+                                ],
+                                checker_shell: 'python3 -m unittest discover -s tests -p \'test_*.py\' -q',
+                            },
+                        ],
+                    },
+                },
+            };
+        }
+
+        throw new Error(`Unexpected weave dispatch in planning test: ${invocation.weave_id}`);
+    }
+}
+
+class TypeScriptPlanningDispatchPort implements RuntimeDispatchPort {
+    public async dispatch<T>(invocation: WeaveInvocation<T>): Promise<WeaveResult> {
+        if (invocation.weave_id === 'weave:research') {
+            return {
+                weave_id: invocation.weave_id,
+                status: 'SUCCESS',
+                output: 'Research complete.',
+                metadata: {
+                    research_artifacts: ['src/node/core/runtime/weaves/host_governor.ts'],
+                },
+            };
+        }
+
+        if (invocation.weave_id === 'weave:architect') {
+            return {
+                weave_id: invocation.weave_id,
+                status: 'SUCCESS',
+                output: 'Architect proposal synthesis complete.',
+                metadata: {
+                    architect_proposal: {
+                        proposal_summary: 'Capture host-governor validation follow-up as a test-only micro-bead.',
+                        beads: [
+                            {
+                                id: 'host-governor-verification',
+                                title: 'Add host-governor verification coverage',
+                                rationale: 'Preserve the validation contract for host-governor promotion.',
+                                targets: ['tests/unit/test_host_governor_runtime.test.ts'],
+                                depends_on: [],
+                                focus_hint: 'Limit edits to the promotion-validation assertions for host-governor.',
+                                acceptance_criteria: [
+                                    'Host-governor validation coverage is updated.',
+                                    'The TypeScript unit suite remains green.',
+                                ],
+                                checker_shell: 'node --test tests/unit/test_host_governor_runtime.test.ts',
+                            },
+                        ],
+                    },
+                },
+            };
+        }
+
+        throw new Error(`Unexpected weave dispatch in TypeScript planning test: ${invocation.weave_id}`);
     }
 }
 
@@ -82,7 +174,7 @@ describe('Chant AutoBot handoff', () => {
         closeDb();
     });
 
-    it('routes concrete bead execution through AutoBot with a bounded Hall/PennyOne brief', async () => {
+    it('routes concrete bead execution through AutoBot with a concise local-worker brief', async () => {
         const repoId = buildHallRepositoryId(normalizeHallPath(tmpRoot));
         const sessionId = 'chant-session-autobot';
         const now = Date.now();
@@ -128,6 +220,9 @@ describe('Chant AutoBot handoff', () => {
             acceptance_criteria: 'Chant must delegate implementation to AutoBot with a bounded worker note.',
             status: 'OPEN',
             architect_opinion: 'Keep the worker brief narrow and operational.',
+            critique_payload: {
+                focus_hint: 'Touch only the handoff branch that dispatches AutoBot and leave the planning loop intact.',
+            },
             created_at: now,
             updated_at: now,
         });
@@ -196,9 +291,153 @@ describe('Chant AutoBot handoff', () => {
         assert.equal(autobotPayload.bead_id, 'bead-autobot');
         assert.equal(autobotPayload.checker_shell, 'echo PASS');
         assert.equal(autobotPayload.max_attempts, 2);
-        assert.match(autobotPayload.worker_note ?? '', /32k AutoBot worker window/i);
-        assert.match(autobotPayload.worker_note ?? '', /PennyOne intent summary: Runtime chant entrypoint/i);
-        assert.match(autobotPayload.worker_note ?? '', /Recent episodic memory 1: Previous attempt isolated the handoff boundary/i);
-        assert.match(autobotPayload.worker_note ?? '', /Latest planning focus: Use only the immediate Hall and PennyOne context/i);
+        assert.match(autobotPayload.worker_note ?? '', /Local Hermes micro-bead/i);
+        assert.match(autobotPayload.worker_note ?? '', /Do not invent imports, dependencies, commands, or files/i);
+        assert.match(autobotPayload.worker_note ?? '', /Target path: src\/runtime\/chant\.ts/i);
+        assert.match(autobotPayload.worker_note ?? '', /Focus hint: Touch only the handoff branch/i);
+        assert.match(autobotPayload.worker_note ?? '', /Checker shell: echo PASS/i);
+        assert.match(autobotPayload.worker_note ?? '', /Target file role: Runtime chant entrypoint/i);
+        assert.doesNotMatch(autobotPayload.worker_note ?? '', /Recent episodic memory/i);
+        assert.doesNotMatch(autobotPayload.worker_note ?? '', /Latest planning focus/i);
+        assert.doesNotMatch(autobotPayload.worker_note ?? '', /PennyOne imports/i);
+    });
+
+    it('persists architect proposals as OPEN chant beads before the SET gate', async () => {
+        const repoId = buildHallRepositoryId(normalizeHallPath(tmpRoot));
+        const dispatchPort = new PlanningDispatchPort();
+        const chant = new ChantWeave(dispatchPort);
+        const result = await chant.execute(
+            {
+                weave_id: 'weave:chant',
+                payload: {
+                    query: 'Implement the README utility.',
+                    project_root: tmpRoot,
+                    cwd: tmpRoot,
+                    source: 'cli',
+                },
+                target: {
+                    domain: 'brain',
+                    workspace_root: tmpRoot,
+                    requested_path: tmpRoot,
+                },
+                session: {
+                    mode: 'cli',
+                    interactive: true,
+                },
+            },
+            {
+                mission_id: 'MISSION-CHANT-PROPOSAL',
+                trace_id: 'TRACE-CHANT-PROPOSAL',
+                persona: 'ALFRED',
+                workspace_root: tmpRoot,
+                operator_mode: 'cli',
+                target_domain: 'brain',
+                interactive: true,
+                env: {},
+                timestamp: Date.now(),
+            },
+        );
+
+        assert.equal(result.status, 'TRANSITIONAL');
+        assert.equal(result.metadata?.planning_status, 'PROPOSAL_REVIEW');
+
+        const session = getHallPlanningSession('chant-session:TRACE-CHANT-PROPOSAL');
+        assert.ok(session);
+        assert.equal(session?.status, 'PROPOSAL_REVIEW');
+        assert.ok(session?.current_bead_id);
+        assert.match(result.output, /mark it SET/i);
+
+        const proposal = getHallSkillProposal('proposal:chant-session:TRACE-CHANT-PROPOSAL:title-slug');
+        assert.ok(proposal);
+        assert.equal(proposal?.status, 'PROPOSED');
+        assert.equal(proposal?.bead_id, session?.current_bead_id);
+        assert.equal(proposal?.target_path, 'title_slug.py');
+
+        const bead = getDb().prepare(`
+            SELECT bead_id, status, target_path, acceptance_criteria, checker_shell, source_kind, contract_refs_json
+            FROM hall_beads
+            WHERE bead_id = ?
+        `).get(session?.current_bead_id) as {
+            bead_id: string;
+            status: string;
+            target_path: string | null;
+            acceptance_criteria: string | null;
+            checker_shell: string | null;
+            source_kind: string | null;
+            contract_refs_json: string | null;
+        } | undefined;
+
+        assert.ok(bead);
+        assert.equal(bead?.status, 'OPEN');
+        assert.equal(bead?.target_path, 'title_slug.py');
+        assert.equal(bead?.source_kind, 'CHANT');
+        assert.match(bead?.acceptance_criteria ?? '', /slugify/);
+        assert.equal(bead?.checker_shell, 'python3 -m unittest discover -s tests -p \'test_*.py\' -q');
+        assert.match(bead?.contract_refs_json ?? '', /tests\/test_title_slug\.py/);
+        assert.equal(session?.repo_id, repoId);
+    });
+
+    it('normalizes CStar TypeScript checker commands and retains test-only contract refs', async () => {
+        const repoId = buildHallRepositoryId(normalizeHallPath(tmpRoot));
+        fs.mkdirSync(path.join(tmpRoot, 'scripts'), { recursive: true });
+        fs.writeFileSync(path.join(tmpRoot, 'scripts', 'run-tsx.mjs'), '// stub\n', 'utf-8');
+
+        const chant = new ChantWeave(new TypeScriptPlanningDispatchPort());
+        const result = await chant.execute(
+            {
+                weave_id: 'weave:chant',
+                payload: {
+                    query: 'Plan a host-governor validation follow-up.',
+                    project_root: tmpRoot,
+                    cwd: tmpRoot,
+                    source: 'cli',
+                },
+                target: {
+                    domain: 'brain',
+                    workspace_root: tmpRoot,
+                    requested_path: tmpRoot,
+                },
+                session: {
+                    mode: 'cli',
+                    interactive: true,
+                },
+            },
+            {
+                mission_id: 'MISSION-CHANT-TS-NORMALIZE',
+                trace_id: 'TRACE-CHANT-TS-NORMALIZE',
+                persona: 'ALFRED',
+                workspace_root: tmpRoot,
+                operator_mode: 'cli',
+                target_domain: 'brain',
+                interactive: true,
+                env: {},
+                timestamp: Date.now(),
+            },
+        );
+
+        assert.equal(result.status, 'TRANSITIONAL');
+        assert.equal(result.metadata?.planning_status, 'PROPOSAL_REVIEW');
+
+        const session = getHallPlanningSession('chant-session:TRACE-CHANT-TS-NORMALIZE');
+        assert.ok(session);
+        assert.equal(session?.repo_id, repoId);
+        assert.ok(session?.current_bead_id);
+
+        const bead = getDb().prepare(`
+            SELECT checker_shell, contract_refs_json, target_path, critique_payload_json
+            FROM hall_beads
+            WHERE bead_id = ?
+        `).get(session?.current_bead_id) as {
+            checker_shell: string | null;
+            contract_refs_json: string | null;
+            target_path: string | null;
+            critique_payload_json: string | null;
+        } | undefined;
+
+        assert.ok(bead);
+        assert.equal(bead?.target_path, 'tests/unit/test_host_governor_runtime.test.ts');
+        assert.equal(bead?.checker_shell, 'node scripts/run-tsx.mjs --test tests/unit/test_host_governor_runtime.test.ts');
+        assert.match(bead?.contract_refs_json ?? '', /tests\/unit\/test_host_governor_runtime\.test\.ts/);
+        assert.match(bead?.critique_payload_json ?? '', /promotion-validation assertions/i);
     });
 });

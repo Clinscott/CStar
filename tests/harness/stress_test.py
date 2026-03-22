@@ -14,7 +14,7 @@ import contextlib
 
 from google import genai
 
-from src.sentinel.muninn import Muninn
+from src.core.engine.ravens.muninn import Muninn
 from tests.harness.raven_proxy import RavenProxy
 
 # Initialize Colorama

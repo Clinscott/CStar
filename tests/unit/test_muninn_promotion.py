@@ -5,8 +5,8 @@ from unittest.mock import MagicMock
 from src.core.engine.bead_ledger import BeadLedger
 from src.core.engine.hall_schema import HallFileRecord, HallOfRecords, HallScanRecord, HallValidationRun
 from src.core.engine.ravens_stage import RavensHallReferenceSet, RavensStageResult, RavensTargetIdentity
-from src.sentinel.muninn_memory import MuninnMemory
-from src.sentinel.muninn_promotion import MuninnPromotion
+from src.core.engine.ravens.muninn_memory import MuninnMemory
+from src.core.engine.ravens.muninn_promotion import MuninnPromotion
 
 
 def seed_claimed_bead(root: Path) -> tuple[MuninnMemory, BeadLedger, str, str, Path]:

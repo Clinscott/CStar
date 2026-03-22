@@ -15,7 +15,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 # [ALFRED] Ensure environment is initialized
 try:
-    from src.sentinel._bootstrap import SovereignBootstrap
+    from src.core.bootstrap import SovereignBootstrap
     SovereignBootstrap.execute()
 except (ImportError, ValueError, IndexError):
     pass

@@ -19,7 +19,7 @@ try:
     project_root = script_dir.parent.parent
     if str(project_root) not in sys.path:
         sys.path.insert(0, str(project_root))
-    from src.sentinel._bootstrap import SovereignBootstrap
+    from src.core.bootstrap import SovereignBootstrap
     SovereignBootstrap.execute()
 except (ImportError, ValueError, IndexError) as e:
     print(f"Bootstrap Failure: {e}")

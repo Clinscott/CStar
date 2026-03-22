@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from src.sentinel.wardens.base import BaseWarden
+from src.core.engine.wardens.base import BaseWarden
 
 
 class ConcreteWarden(BaseWarden):

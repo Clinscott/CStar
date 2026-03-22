@@ -15,12 +15,12 @@ project_root = Path(__file__).parent.parent.parent.absolute()
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from src.sentinel.muninn import Muninn
-from src.sentinel.muninn_heart import MuninnHeart
-from src.sentinel.muninn_crucible import MuninnCrucible
-from src.sentinel.stability import TheWatcher
-from src.sentinel.wardens.norn import NornWarden
-from src.sentinel.wardens.edda import EddaWarden
+from src.core.engine.ravens.muninn import Muninn
+from src.core.engine.ravens.muninn_heart import MuninnHeart
+from src.core.engine.ravens.muninn_crucible import MuninnCrucible
+from src.core.engine.ravens.stability import TheWatcher
+from src.core.engine.wardens.norn import NornWarden
+from src.core.engine.wardens.edda import EddaWarden
 from src.core.engine.hall_schema import HallFileRecord, HallOfRecords, HallScanRecord
 
 # ==============================================================================
@@ -118,7 +118,7 @@ class TestEddaWarden:
 class TestMuninnCrucible:
     """Verifies Gauntlet generation and Rollback logic."""
 
-    @patch("src.sentinel.muninn_crucible.BifrostGate")
+    @patch("src.core.engine.ravens.muninn_crucible.BifrostGate")
     def test_rollback_restores_backup(self, mock_gate, tmp_path):
         src_dir = tmp_path / "src"
         src_dir.mkdir()
@@ -136,7 +136,7 @@ class TestMuninnCrucible:
 
         assert target_file.read_text(encoding="utf-8") == original_content
 
-    @patch("src.sentinel.muninn_crucible.BifrostGate")
+    @patch("src.core.engine.ravens.muninn_crucible.BifrostGate")
     def test_generate_gauntlet_calls_uplink(self, mock_gate_cls, tmp_path):
         mock_gate = MagicMock()
         mock_gate.sanitize_test.return_value = "def test_fix(): assert True"

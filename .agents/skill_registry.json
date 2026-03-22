@@ -34,6 +34,16 @@
       "migration_status": "authoritative",
       "source": ".agents/skills"
     },
+    "bookmark-weaver": {
+      "name": "bookmark-weaver",
+      "normalized_name": "bookmarkweaver",
+      "authority_path": ".agents/skills/bookmark-weaver",
+      "entrypoint_path": ".agents/skills/bookmark-weaver/scripts/weaver.py",
+      "contract_path": ".agents/skills/bookmark-weaver/weaver.feature",
+      "runtime_trigger": "bookmark-weaver",
+      "migration_status": "authoritative",
+      "source": ".agents/skills"
+    },
     "build-review-interface": {
       "name": "build-review-interface",
       "normalized_name": "buildreviewinterface",

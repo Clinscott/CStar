@@ -4,8 +4,8 @@ import time
 import os
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-from src.sentinel.muninn import Muninn
-from src.sentinel.muninn_heart import MuninnHeart
+from src.core.engine.ravens.muninn import Muninn
+from src.core.engine.ravens.muninn_heart import MuninnHeart
 
 @pytest.fixture
 def mock_root(tmp_path):
@@ -25,7 +25,7 @@ class TestMuninnEndurance:
     async def test_endurance_limit_termination(self, mock_root):
         """Verify that Muninn terminates after the endurance limit is reached."""
         with patch('src.cstar.core.uplink.AntigravityUplink'), \
-             patch('src.sentinel.muninn_heart.TheWatcher'):
+             patch('src.core.engine.ravens.muninn_heart.TheWatcher'):
             
             m = Muninn(target_path=str(mock_root))
             # Set start time to 7 hours ago
@@ -38,10 +38,10 @@ class TestMuninnEndurance:
     @pytest.mark.asyncio
     async def test_mission_failure_resilience(self, mock_root):
         """Verify that Muninn survives a mission failure and rolls back correctly."""
-        with patch('src.sentinel.muninn_hunter.MuninnHunter.execute_hunt') as mock_hunt, \
-             patch('src.sentinel.muninn_crucible.MuninnCrucible.verify_fix', return_value=False), \
-             patch('src.sentinel.muninn_crucible.MuninnCrucible.generate_gauntlet', return_value=Path("test.py")), \
-             patch('src.sentinel.muninn_crucible.MuninnCrucible.generate_steel', return_value="fixed code"), \
+        with patch('src.core.engine.ravens.muninn_hunter.MuninnHunter.execute_hunt') as mock_hunt, \
+             patch('src.core.engine.ravens.muninn_crucible.MuninnCrucible.verify_fix', return_value=False), \
+             patch('src.core.engine.ravens.muninn_crucible.MuninnCrucible.generate_gauntlet', return_value=Path("test.py")), \
+             patch('src.core.engine.ravens.muninn_crucible.MuninnCrucible.generate_steel', return_value="fixed code"), \
              patch('src.cstar.core.uplink.AntigravityUplink'):
             
             # Mock a breach

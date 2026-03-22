@@ -1,4 +1,4 @@
-from src.sentinel.muninn import GungnirValidator
+from src.core.engine.ravens.muninn import GungnirValidator
 
 
 def test_sprt_validator_stable():

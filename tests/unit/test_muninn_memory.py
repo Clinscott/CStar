@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 from src.core.engine.hall_schema import HallOfRecords
-from src.sentinel.muninn_memory import MuninnMemory
+from src.core.engine.ravens.muninn_memory import MuninnMemory
 
 
 def test_record_trace_writes_hall_observation_and_compatibility_trace(tmp_path: Path) -> None:

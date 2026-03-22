@@ -15,7 +15,14 @@ from collections.abc import Awaitable, Callable
 from pathlib import Path
 from typing import Any
 
-from src.core.host_session import HostProvider, is_host_session_active, resolve_host_provider
+from src.core.host_session import (
+    HostProvider,
+    expand_host_bridge_args,
+    get_host_bridge_configuration_hint,
+    is_host_session_active,
+    resolve_configured_host_bridge,
+    resolve_host_provider,
+)
 from src.core.intelligence_contract import (
     IntelligenceRequest,
     IntelligenceResponse,
@@ -29,6 +36,12 @@ OracleRunner = Callable[[int], Awaitable[None] | None]
 HostSessionRunner = Callable[[str, HostProvider], Awaitable[str] | str]
 
 
+def _default_cli_bridge_args(provider: HostProvider, prompt: str) -> list[str]:
+    if provider in {"gemini", "claude"}:
+        return ["-p", prompt]
+    return [prompt]
+
+
 class MimirClient:
     """Canonical Python bridge for Corvus Star intelligence requests."""
 
@@ -36,6 +49,7 @@ class MimirClient:
         self,
         project_root: Path | None = None,
         *,
+        env: dict[str, str] | None = None,
         host_session_active: bool | None = None,
         host_provider: HostProvider | None = None,
         host_session_runner: HostSessionRunner | None = None,
@@ -45,6 +59,7 @@ class MimirClient:
     ) -> None:
         self.project_root = project_root or Path(__file__).resolve().parent.parent.parent
         self.db_path = self.project_root / ".agents" / "synapse.db"
+        self.env = env if env is not None else dict(os.environ)
         self.host_session_active = host_session_active
         self.host_provider = host_provider
         self.host_session_runner = host_session_runner
@@ -126,32 +141,59 @@ class MimirClient:
         if self.host_session_active is not None:
             return "host_session" if self.host_session_active else "synapse_db"
 
-        return "host_session" if is_host_session_active(dict(os.environ)) else "synapse_db"
+        return "host_session" if is_host_session_active(self.env) else "synapse_db"
 
     async def _request_via_host_session(self, request: IntelligenceRequest) -> IntelligenceResponse:
         effective_prompt = build_effective_prompt(request)
         provider = self._resolve_host_provider()
 
-        if provider == "codex":
-            try:
-                raw_text = await self._invoke_host_session(effective_prompt, provider)
-                return build_intelligence_success(request, raw_text, "host_session")
-            except Exception as exc:
-                return build_intelligence_error(
-                    request,
-                    f"Host session invocation failed: {exc}",
-                    "host_session",
-                )
-
-        raw_text = f"[SAMPLING_REQUEST]\n{effective_prompt}"
-        return build_intelligence_success(request, raw_text, "host_session")
+        try:
+            raw_text = await self._invoke_host_session(effective_prompt, provider)
+            return build_intelligence_success(request, raw_text, "host_session")
+        except Exception as exc:
+            return build_intelligence_error(
+                request,
+                f"Host session invocation failed: {exc}",
+                "host_session",
+            )
 
     def _resolve_host_provider(self) -> HostProvider:
         if self.host_provider is not None:
             return self.host_provider
         if self.host_session_active is True:
             return "gemini"
-        return resolve_host_provider(dict(os.environ)) or "gemini"
+        return resolve_host_provider(self.env) or "gemini"
+
+    async def _invoke_configured_host_bridge(self, prompt: str, provider: HostProvider) -> str | None:
+        bridge = resolve_configured_host_bridge(provider, self.env)
+        if bridge is None:
+            return None
+
+        completed = await asyncio.to_thread(
+            subprocess.run,
+            [
+                bridge["command"],
+                *expand_host_bridge_args(
+                    bridge["args"],
+                    prompt=prompt,
+                    project_root=str(self.project_root),
+                    provider=provider,
+                ),
+            ],
+            cwd=str(self.project_root),
+            capture_output=True,
+            text=True,
+            check=False,
+            env={**self.env},
+        )
+        if completed.returncode != 0:
+            stderr = completed.stderr.strip() or completed.stdout.strip() or "Unknown host-session bridge failure."
+            raise RuntimeError(stderr)
+
+        response = completed.stdout.strip() or completed.stderr.strip()
+        if not response:
+            raise RuntimeError(f"Host provider {provider} returned no output.")
+        return response
 
     async def _invoke_host_session(self, prompt: str, provider: HostProvider) -> str:
         if self.host_session_runner is not None:
@@ -163,8 +205,38 @@ class MimirClient:
                 return normalized
             raise RuntimeError(f"Host provider {provider} returned no output.")
 
+        configured_response = await self._invoke_configured_host_bridge(prompt, provider)
+        if configured_response is not None:
+            return configured_response
+
+        if provider in {"gemini", "claude"}:
+            completed = await asyncio.to_thread(
+                subprocess.run,
+                [provider, *_default_cli_bridge_args(provider, prompt)],
+                cwd=str(self.project_root),
+                capture_output=True,
+                text=True,
+                check=False,
+                env={**self.env},
+            )
+            if completed.returncode != 0:
+                stderr = completed.stderr.strip() or completed.stdout.strip() or f"Unknown {provider} failure."
+                raise RuntimeError(stderr)
+
+            response = completed.stdout.strip() or completed.stderr.strip()
+            if not response:
+                raise RuntimeError(f"{provider} returned no output.")
+            return response
+
         if provider != "codex":
-            return f"[SAMPLING_REQUEST]\n{prompt}"
+            raise RuntimeError(
+                " ".join(
+                    [
+                        f"Provider {provider} does not have an executable host-session bridge configured in the Python runtime.",
+                        get_host_bridge_configuration_hint(provider),
+                    ]
+                )
+            )
 
         completed = await asyncio.to_thread(
             subprocess.run,
@@ -173,7 +245,7 @@ class MimirClient:
             capture_output=True,
             text=True,
             check=False,
-            env={**os.environ},
+            env={**self.env},
         )
         if completed.returncode != 0:
             stderr = completed.stderr.strip() or completed.stdout.strip() or "Unknown codex failure."

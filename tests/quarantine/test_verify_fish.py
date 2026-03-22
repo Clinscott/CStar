@@ -10,7 +10,7 @@ def test_verify_system_integrity(monkeypatch):
     class MockMuninn:
         def __init__(self, root): pass
 
-    monkeypatch.setattr("src.sentinel.muninn.Muninn", MockMuninn)
+    monkeypatch.setattr("src.core.engine.ravens.muninn.Muninn", MockMuninn)
 
     # Run verification
     results = verify_system_integrity()

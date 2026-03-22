@@ -3,7 +3,7 @@ import time
 
 import pytest
 
-from src.sentinel.muninn import TheWatcher
+from src.core.engine.ravens.muninn import TheWatcher
 
 
 class TestTheWatcher:

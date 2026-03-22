@@ -5,7 +5,12 @@ import { Command } from 'commander';
 import { registerStartCommand } from '../../src/node/core/commands/start.ts';
 import { registerRavenCommand } from '../../src/node/core/commands/ravens.ts';
 import { registerPennyOneCommand } from '../../src/node/core/commands/pennyone.ts';
-import { buildDynamicCommandInvocation } from '../../src/node/core/commands/dispatcher.ts';
+import {
+    buildDynamicCommandInvocation,
+    parseChantSessionDirective,
+    registerDispatcher,
+    shouldAutoResumeChantSession,
+} from '../../src/node/core/commands/dispatcher.ts';
 import { RuntimeDispatchPort, WeaveInvocation, WeaveResult } from '../../src/node/core/runtime/contracts.ts';
 
 class CaptureDispatchPort implements RuntimeDispatchPort {
@@ -179,5 +184,105 @@ describe('Command shells convert CLI args into runtime invocations (CS-P1-01)', 
         if (invocation.session?.session_id) {
             assert.match(invocation.session.session_id, /^chant-session:/);
         }
+    });
+
+    it('does not auto-resume chant for a fresh detailed planning request', () => {
+        assert.equal(shouldAutoResumeChantSession(['plan', 'a', 'fresh', 'runtime', 'improvement']), false);
+        assert.deepStrictEqual(
+            parseChantSessionDirective(['--new-session', 'plan', 'a', 'fresh', 'runtime', 'improvement']),
+            {
+                queryArgs: ['plan', 'a', 'fresh', 'runtime', 'improvement'],
+                sessionId: undefined,
+                shouldResume: false,
+            },
+        );
+    });
+
+    it('allows explicit chant resume directives and strips them from the query payload', () => {
+        assert.equal(shouldAutoResumeChantSession(['proceed']), true);
+        assert.deepStrictEqual(
+            parseChantSessionDirective(['--session', 'chant-session:abc123', 'proceed']),
+            {
+                queryArgs: ['proceed'],
+                sessionId: 'chant-session:abc123',
+                shouldResume: true,
+            },
+        );
+    });
+
+    it('autobot fallback builds the dedicated AutoBot weave invocation', () => {
+        const invocation = buildDynamicCommandInvocation(
+            'autobot',
+            [
+                '--bead-id',
+                'bead-1',
+                '--checker-shell',
+                'echo PASS',
+                '--timeout',
+                '45',
+                '--agent-id',
+                'SOVEREIGN-WORKER',
+                '--worker-note',
+                'Immediate Hall/PennyOne context.',
+                '--source',
+                'runtime',
+            ],
+            'C:\\Users\\Craig\\Corvus\\CorvusStar',
+            'C:\\Users\\Craig\\Corvus\\CorvusStar',
+        );
+
+        assert.equal(invocation.weave_id, 'weave:autobot');
+        assert.deepStrictEqual(invocation.payload, {
+            bead_id: 'bead-1',
+            checker_shell: 'echo PASS',
+            timeout: 45,
+            agent_id: 'SOVEREIGN-WORKER',
+            worker_note: 'Immediate Hall/PennyOne context.',
+            project_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
+            cwd: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
+            source: 'runtime',
+        });
+        assert.deepStrictEqual(invocation.target, {
+            domain: 'brain',
+            workspace_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
+            requested_path: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
+        });
+        assert.equal(invocation.session?.mode, 'cli');
+        assert.equal(invocation.session?.interactive, true);
+    });
+
+    it('dispatcher fallback preserves raw CLI options for autobot commands', async () => {
+        const capture = new CaptureDispatchPort();
+        const program = new Command();
+        registerDispatcher(program, 'C:\\Users\\Craig\\Corvus\\CorvusStar', capture);
+
+        const originalArgv = process.argv;
+        process.argv = [
+            'node',
+            'test',
+            'autobot',
+            '--bead-id',
+            'bead-1',
+            '--timeout',
+            '45',
+            '--agent-id',
+            'SOVEREIGN-WORKER',
+        ];
+
+        try {
+            await program.parseAsync(process.argv);
+        } finally {
+            process.argv = originalArgv;
+        }
+
+        assert.equal(capture.invocation?.weave_id, 'weave:autobot');
+        assert.deepStrictEqual(capture.invocation?.payload, {
+            bead_id: 'bead-1',
+            timeout: 45,
+            agent_id: 'SOVEREIGN-WORKER',
+            project_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
+            cwd: process.cwd(),
+            source: 'cli',
+        });
     });
 });

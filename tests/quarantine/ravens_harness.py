@@ -25,17 +25,17 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from src.core.sovereign_hud import SovereignHUD
 from src.cstar.core.uplink import AntigravityUplink
-from src.sentinel.muninn_heart import MuninnHeart
+from src.core.engine.ravens.muninn_heart import MuninnHeart
 from src.core.annex import HeimdallWarden
-from src.sentinel.wardens.edda import EddaWarden
-from src.sentinel.wardens.mimir import MimirWarden
-from src.sentinel.wardens.runecaster import RuneCasterWarden
-from src.sentinel.wardens.valkyrie import ValkyrieWarden
-from src.sentinel.wardens.norn import NornWarden
-from src.sentinel.wardens.freya import FreyaWarden
-from src.sentinel.wardens.huginn import HuginnWarden
-from src.sentinel.wardens.taste import TasteWarden
-from src.sentinel.wardens.shadow_forge import ShadowForgeWarden
+from src.core.engine.wardens.edda import EddaWarden
+from src.core.engine.wardens.mimir import MimirWarden
+from src.core.engine.wardens.runecaster import RuneCasterWarden
+from src.core.engine.wardens.valkyrie import ValkyrieWarden
+from src.core.engine.wardens.norn import NornWarden
+from src.core.engine.wardens.freya import FreyaWarden
+from src.core.engine.wardens.huginn import HuginnWarden
+from src.core.engine.wardens.taste import TasteWarden
+from src.core.engine.wardens.shadow_forge import ShadowForgeWarden
 
 RESULTS_FILE = PROJECT_ROOT / "tests" / "ravens_harness_results.json"
 

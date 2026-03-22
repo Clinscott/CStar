@@ -7,7 +7,7 @@ from src.core.engine.validation_result import (
     create_sprt_verdict,
     create_validation_result,
 )
-from src.sentinel.muninn_crucible import MuninnCrucible
+from src.core.engine.ravens.muninn_crucible import MuninnCrucible
 
 
 def test_validation_result_accepts_when_checks_and_scores_hold() -> None:
@@ -70,7 +70,7 @@ def test_validation_result_remains_inconclusive_when_sprt_is_unresolved() -> Non
 
 def test_muninn_crucible_emits_canonical_validation_result(tmp_path: Path) -> None:
     crucible = MuninnCrucible(tmp_path, MagicMock())
-    with patch("src.sentinel.muninn_crucible.subprocess.run") as mock_run:
+    with patch("src.core.engine.ravens.muninn_crucible.subprocess.run") as mock_run:
         mock_run.return_value = MagicMock(returncode=0, stdout="1 passed", stderr="")
         result = crucible.verify_fix_result(
             tmp_path / "tests" / "gauntlet" / "test_sample.py",

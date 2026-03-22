@@ -27,7 +27,7 @@ class SkillForge:
 
 def execute(context):
     # Dynamic logic implementation
-    return {'status': 'synthesized', 'action': 'routing_to_general_handler'}
+    return {{'status': 'synthesized', 'action': 'routing_to_general_handler'}}
 """
         with open(f'.agents/skills/{bridge_name}', 'w') as f:
             f.write(bridge_template)

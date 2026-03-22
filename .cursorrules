@@ -22,6 +22,10 @@ This project operates under the CorvusStar / ODIN protocols.
 - **Understand before you Act.** Investigate first.
 - **Improve, Don't Replace.** Improve the existing interface.
 
+### 🎯 Sovereign Search Protocol
+- **MANDATORY**: When searching for code, lore, or architectural intent across the Brain and Spokes, you **MUST** use `cstar hall "<query>"`.
+- **Reasoning**: This command is the only one that searches the entire Estate (all mounted repositories) using high-fidelity FTS5 indexing.
+
 ### 🗺️ Wireframe Maintenance
 When creating or modifying components, you **MUST** update `c:/Users/Craig/Corvus/CorvusStar/wireframe.qmd`.
 

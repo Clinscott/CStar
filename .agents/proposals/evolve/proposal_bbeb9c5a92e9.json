@@ -1,0 +1,197 @@
+{
+  "proposal_id": "proposal:bbeb9c5a92e9",
+  "skill_id": "evolve",
+  "bead_id": "bead:evolve:temporal:odin-protocol-save-state-json",
+  "validation_id": "validation:ff3effc4d237",
+  "target_path": "/home/morderith/Corvus/CStar/odin_protocol/save_state.json",
+  "contract_path": ".agents/skills/evolve/contract.json",
+  "proposal_status": "PROPOSED",
+  "summary": "Evolve generated a canonical skill contract proposal. Promotion requires explicit validation-backed review.",
+  "dry_run": true,
+  "simulate": true,
+  "focus_axes": [],
+  "validation_profile": "standard",
+  "validation": {
+    "validation_id": "validation:ff3effc4d237",
+    "verdict": "INCONCLUSIVE",
+    "summary": "Dry-run evolve preview created.",
+    "score_delta": {
+      "before": {
+        "version": "1.0",
+        "logic": 0.0,
+        "style": 0.0,
+        "intel": 0.0,
+        "gravity": 0.0,
+        "vigil": 0.0,
+        "evolution": 0.0,
+        "anomaly": 0.0,
+        "sovereignty": 0.0,
+        "overall": 7.0,
+        "stability": 0.0,
+        "coupling": 0.0,
+        "aesthetic": 0.0
+      },
+      "after": {
+        "version": "1.0",
+        "logic": 0.0,
+        "style": 0.0,
+        "intel": 0.0,
+        "gravity": 0.0,
+        "vigil": 0.0,
+        "evolution": 0.0,
+        "anomaly": 0.0,
+        "sovereignty": 0.0,
+        "overall": 7.0,
+        "stability": 0.0,
+        "coupling": 0.0,
+        "aesthetic": 0.0
+      },
+      "delta": {
+        "logic": 0.0,
+        "style": 0.0,
+        "intel": 0.0,
+        "gravity": 0.0,
+        "vigil": 0.0,
+        "evolution": 0.0,
+        "anomaly": 0.0,
+        "sovereignty": 0.0,
+        "overall": 0.0,
+        "stability": 0.0,
+        "coupling": 0.0,
+        "aesthetic": 0.0
+      },
+      "improved_axes": [],
+      "regressed_axes": []
+    },
+    "created_at": 1773799146291,
+    "benchmark": null,
+    "sprt": {
+      "verdict": "INCONCLUSIVE",
+      "summary": "Preview only.",
+      "llr": 0.0,
+      "passed": 0,
+      "total": 0,
+      "lower_bound": -2.9,
+      "upper_bound": 2.9
+    },
+    "checks": [
+      {
+        "name": "evolve-loop",
+        "status": "SKIPPED",
+        "details": "Simulated evolve loop under Phase 1 authority."
+      }
+    ],
+    "blocking_reasons": [],
+    "metadata": {
+      "validation_profile": "standard",
+      "simulate": true,
+      "dry_run": true,
+      "forge_request": {
+        "bead_id": "bead:evolve:temporal:odin-protocol-save-state-json",
+        "repo_id": "repo:/home/morderith/Corvus/CStar",
+        "scan_id": "hall-scan:1773793101638",
+        "target_path": "/home/morderith/Corvus/CStar/odin_protocol/save_state.json",
+        "rationale": "Temporal Learning identified this as a high-churn sector (65 commits in 90 days). Use Karpathy's Auto Researcher (Evolve) to stabilize and optimize the logic.",
+        "contract_refs": [
+          "contract:evolve"
+        ],
+        "baseline_scores": {
+          "overall": 7,
+          "repository_baseline": 0.0,
+          "scan_id": "hall-scan:1773793101638",
+          "scan_baseline": 6.736123759239706,
+          "source": "hall_scans",
+          "target_path": "/home/morderith/Corvus/CStar/odin_protocol/save_state.json"
+        },
+        "acceptance_criteria": "- The target file must maintain structural integrity after the optimization cycle.\n- Evolutionary changes must show a statistically significant improvement in the target Gungnir axis.",
+        "operator_constraints": {
+          "persona": "TALIESIN",
+          "mode": "simulate"
+        },
+        "request_source": "bead",
+        "created_at": 1773799146291,
+        "trace_metadata": {}
+      }
+    }
+  },
+  "validation_run": {
+    "validation_id": "validation:ff3effc4d237",
+    "verdict": "INCONCLUSIVE",
+    "sprt_verdict": "INCONCLUSIVE",
+    "notes": "Dry-run evolve preview created."
+  },
+  "current_contract": {
+    "skill_id": "evolve",
+    "version": "1.1",
+    "authority_root": ".agents/skills/evolve",
+    "runtime_trigger": "evolve",
+    "actions": {
+      "propose": "Generate a Hall-backed contract proposal from a validated bead-driven evolve run.",
+      "promote": "Promote a validated proposal into the canonical evolve contract."
+    },
+    "inputs": {
+      "action": "optional string: propose or promote",
+      "bead_id": "optional string",
+      "proposal_id": "required string when action=promote",
+      "dry_run": "optional boolean",
+      "simulate": "optional boolean",
+      "focus_axes": "optional array of gungnir axis names",
+      "validation_profile": "optional string"
+    },
+    "outputs": {
+      "proposal_id": "string",
+      "proposal_status": "string",
+      "validation_id": "string",
+      "proposal_path": "string",
+      "contract_path": "string",
+      "promotion_outcome": "NO_ACTIONABLE_BEADS or PROPOSAL_ONLY or PROPOSAL_READY or PROMOTED"
+    },
+    "defaults": {
+      "action": "propose",
+      "simulate": true,
+      "validation_profile": "standard"
+    },
+    "promotion_gate": {
+      "requires_validation_verdict": "ACCEPTED",
+      "requires_sprt_verdict": "ACCEPTED",
+      "requires_bead_status": "READY_FOR_REVIEW"
+    }
+  },
+  "proposed_contract": {
+    "skill_id": "evolve",
+    "version": "1.2",
+    "authority_root": ".agents/skills/evolve",
+    "runtime_trigger": "evolve",
+    "actions": {
+      "propose": "Generate a Hall-backed contract proposal from a validated bead-driven evolve run.",
+      "promote": "Promote a validated proposal into the canonical evolve contract."
+    },
+    "inputs": {
+      "action": "optional string: propose or promote",
+      "bead_id": "optional string",
+      "proposal_id": "required string when action=promote",
+      "dry_run": "optional boolean",
+      "simulate": "optional boolean",
+      "focus_axes": "optional array of gungnir axis names",
+      "validation_profile": "optional string"
+    },
+    "outputs": {
+      "proposal_id": "string",
+      "proposal_status": "string",
+      "validation_id": "string",
+      "proposal_path": "string",
+      "contract_path": "string",
+      "promotion_outcome": "NO_ACTIONABLE_BEADS or PROPOSAL_ONLY or PROPOSAL_READY or PROMOTED"
+    },
+    "defaults": {
+      "action": "propose",
+      "simulate": true,
+      "validation_profile": "standard"
+    },
+    "promotion_gate": {
+      "requires_validation_verdict": "ACCEPTED",
+      "requires_sprt_verdict": "ACCEPTED",
+      "requires_bead_status": "READY_FOR_REVIEW"
+    }
+  }
+}

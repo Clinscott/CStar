@@ -13,7 +13,7 @@ sys.path.append(str(project_root))
 load_dotenv(project_root / ".env.local")
 load_dotenv(project_root / ".env")
 
-from src.sentinel.taliesin import TaliesinSpoke
+from docs.legacy_archive.src_sentinel.taliesin import TaliesinSpoke
 from src.core.sovereign_hud import SovereignHUD
 
 async def run_loop(score_only=False):

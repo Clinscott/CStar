@@ -8,7 +8,7 @@ from colorama import Fore, init
 project_root = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(project_root))
 
-from src.sentinel.muninn import Muninn
+from src.core.engine.ravens.muninn import Muninn
 from tests.harness.raven_proxy import RavenProxy
 
 init(autoreset=True)

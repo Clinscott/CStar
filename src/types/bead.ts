@@ -11,6 +11,7 @@ export interface SovereignBead {
     contract_refs: string[];
     baseline_scores: Record<string, unknown>;
     acceptance_criteria?: string;
+    checker_shell?: string;
     status: HallBeadStatus;
     assigned_agent?: string;
     source_kind?: string;
@@ -36,6 +37,7 @@ export function materializeSovereignBead(record: HallBeadRecord): SovereignBead 
         contract_refs: Array.isArray(record.contract_refs) ? [...record.contract_refs] : [],
         baseline_scores: { ...(record.baseline_scores ?? {}) },
         acceptance_criteria: record.acceptance_criteria,
+        checker_shell: record.checker_shell,
         status: record.status,
         assigned_agent: record.assigned_agent,
         source_kind: record.source_kind,
@@ -55,4 +57,41 @@ export function getSovereignBeadOverallScore(bead: Pick<SovereignBead, 'baseline
     const value = baseline.overall ?? baseline.scan_baseline ?? baseline.repository_baseline ?? 0;
     const score = Number(value);
     return Number.isFinite(score) ? score : 0;
+}
+
+export interface ParsedBeadId {
+    sessionId: string;
+    fragment: string;
+}
+
+export function validateBeadId(id: string): boolean {
+    const pattern = /^bead:[^:]+:[^:]+$/;
+    return pattern.test(id);
+}
+
+export function parseBeadId(id: string): ParsedBeadId | null {
+    if (!id || !id.startsWith('bead:')) {
+        return null;
+    }
+
+    const parts = id.split(':');
+    if (parts.length < 3) {
+        return null;
+    }
+
+    if ((parts[1] === 'chant-session' || parts[1] === 'evolve') && parts.length >= 4) {
+        return {
+            sessionId: `${parts[1]}:${parts[2]}`,
+            fragment: parts.slice(3).join(':'),
+        };
+    }
+
+    if (parts[1] === 'chant-session' || parts[1] === 'evolve') {
+        return null;
+    }
+
+    return {
+        sessionId: parts[1],
+        fragment: parts.slice(2).join(':'),
+    };
 }

@@ -10,12 +10,12 @@ if str(PROJECT_ROOT) not in sys.path:
 # Import Wardens
 from src.core.annex import HeimdallWarden
 from src.core.sovereign_hud import SovereignHUD
-from src.sentinel.wardens.edda import EddaWarden
-from src.sentinel.wardens.freya import FreyaWarden
-from src.sentinel.wardens.huginn import HuginnWarden
-from src.sentinel.wardens.mimir import MimirWarden
-from src.sentinel.wardens.runecaster import RuneCasterWarden
-from src.sentinel.wardens.valkyrie import ValkyrieWarden
+from src.core.engine.wardens.edda import EddaWarden
+from src.core.engine.wardens.freya import FreyaWarden
+from src.core.engine.wardens.huginn import HuginnWarden
+from src.core.engine.wardens.mimir import MimirWarden
+from src.core.engine.wardens.runecaster import RuneCasterWarden
+from src.core.engine.wardens.valkyrie import ValkyrieWarden
 
 
 def scout() -> None:

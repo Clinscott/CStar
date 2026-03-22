@@ -52,7 +52,7 @@ mock_response.text = '<div className="w-3 h-8 bg-black absolute left-0 m-1 p-2">
 mock_client.models.generate_content.return_value = mock_response
 
 # 4. Import and Run Muninn
-from src.sentinel.muninn import Muninn
+from src.core.engine.ravens.muninn import Muninn
 from src.tools.brave_search import BraveSearch
 
 # Mock BraveSearch to avoid quota check

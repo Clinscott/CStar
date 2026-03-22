@@ -8,7 +8,7 @@ import pytest
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(PROJECT_ROOT))
 
-from src.sentinel.wardens.freya import FreyaWarden
+from src.core.engine.wardens.freya import FreyaWarden
 class TestFreyaWarden:
     @pytest.fixture
     def warden(self, tmp_path):

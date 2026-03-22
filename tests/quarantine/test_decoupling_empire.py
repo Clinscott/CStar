@@ -18,7 +18,7 @@ if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
 from src.cstar.core.uplink import AntigravityUplink
-from src.sentinel.muninn import Muninn
+from src.core.engine.ravens.muninn import Muninn
 
 @pytest.mark.asyncio
 async def test_uplink_emits_directive_in_gemini_mode(capsys):
@@ -70,7 +70,7 @@ async def test_huginn_neural_audit_decoupled():
     """
     Scenario: Huginn routes neural audits through Uplink in Gemini Mode
     """
-    from src.sentinel.wardens.huginn import HuginnWarden
+    from src.core.engine.wardens.huginn import HuginnWarden
     
     with patch.dict(os.environ, {"GEMINI_CLI_ACTIVE": "true"}):
         with patch("src.cstar.core.uplink.AntigravityUplink.send_payload") as mock_send:

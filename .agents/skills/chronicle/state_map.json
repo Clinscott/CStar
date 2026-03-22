@@ -98,7 +98,7 @@
         ],
         [
           "",
-          "src.sentinel._bootstrap"
+          "src.core.bootstrap"
         ]
       ],
       "exports": [
@@ -3498,11 +3498,11 @@
         ],
         [
           "",
-          "src.sentinel._bootstrap"
+          "src.core.bootstrap"
         ],
         [
           "",
-          "src.sentinel.muninn"
+          "src.core.engine.ravens.muninn"
         ],
         [
           "",
@@ -3580,7 +3580,7 @@
         ],
         [
           "",
-          "src.sentinel._bootstrap"
+          "src.core.bootstrap"
         ],
         [
           "",
@@ -3588,7 +3588,7 @@
         ],
         [
           "",
-          "src.sentinel.repo_spoke"
+          "src.core.engine.ravens.repo_spoke"
         ],
         [
           "",
@@ -3654,19 +3654,19 @@
         ],
         [
           "",
-          "src.sentinel.muninn_heart"
+          "src.core.engine.ravens.muninn_heart"
         ],
         [
           "",
-          "src.sentinel.muninn_hunter"
+          "src.core.engine.ravens.muninn_hunter"
         ],
         [
           "",
-          "src.sentinel.muninn_crucible"
+          "src.core.engine.ravens.muninn_crucible"
         ],
         [
           "",
-          "src.sentinel.wardens.norn"
+          "src.core.engine.wardens.norn"
         ]
       ],
       "exports": [
@@ -3720,7 +3720,7 @@
         ],
         [
           "",
-          "src.sentinel.code_sanitizer"
+          "src.core.engine.ravens.code_sanitizer"
         ]
       ],
       "exports": [
@@ -3774,15 +3774,15 @@
         ],
         [
           "",
-          "src.sentinel.stability"
+          "src.core.engine.ravens.stability"
         ],
         [
           "",
-          "src.sentinel.muninn_crucible"
+          "src.core.engine.ravens.muninn_crucible"
         ],
         [
           "",
-          "src.sentinel.muninn_memory"
+          "src.core.engine.ravens.muninn_memory"
         ],
         [
           "",
@@ -3790,7 +3790,7 @@
         ],
         [
           "",
-          "src.sentinel.coordinator"
+          "src.core.engine.ravens.coordinator"
         ]
       ],
       "exports": [
@@ -3832,7 +3832,7 @@
         ],
         [
           "",
-          "src.sentinel.coordinator"
+          "src.core.engine.ravens.coordinator"
         ],
         [
           "",
@@ -3970,7 +3970,7 @@
         ],
         [
           "",
-          "src.sentinel.git_spoke"
+          "src.core.engine.ravens.git_spoke"
         ]
       ],
       "exports": [
@@ -4170,7 +4170,7 @@
         ],
         [
           "",
-          "src.sentinel.x_api"
+          "docs.legacy_archive.src_sentinel.x_api"
         ]
       ],
       "exports": [
@@ -4384,7 +4384,7 @@
         ],
         [
           "",
-          "src.sentinel.wardens.base"
+          "src.core.engine.wardens.base"
         ]
       ],
       "exports": [
@@ -4426,7 +4426,7 @@
         ],
         [
           "",
-          "src.sentinel.wardens.base"
+          "src.core.engine.wardens.base"
         ]
       ],
       "exports": [
@@ -4468,7 +4468,7 @@
         ],
         [
           "",
-          "src.sentinel.wardens.base"
+          "src.core.engine.wardens.base"
         ],
         [
           "",
@@ -4513,7 +4513,7 @@
         ],
         [
           "",
-          "src.sentinel.wardens.base"
+          "src.core.engine.wardens.base"
         ]
       ],
       "exports": [
@@ -4559,7 +4559,7 @@
         ],
         [
           "",
-          "src.sentinel.wardens.base"
+          "src.core.engine.wardens.base"
         ]
       ],
       "exports": [
@@ -4597,7 +4597,7 @@
         ],
         [
           "",
-          "src.sentinel.wardens.base"
+          "src.core.engine.wardens.base"
         ]
       ],
       "exports": [
@@ -4618,7 +4618,7 @@
         ],
         [
           "",
-          "src.sentinel.wardens.base"
+          "src.core.engine.wardens.base"
         ]
       ],
       "exports": [
@@ -4706,7 +4706,7 @@
         ],
         [
           "",
-          "src.sentinel.wardens.base"
+          "src.core.engine.wardens.base"
         ],
         [
           "",
@@ -4768,7 +4768,7 @@
         ],
         [
           "",
-          "src.sentinel.wardens.base"
+          "src.core.engine.wardens.base"
         ]
       ],
       "exports": [
@@ -4802,7 +4802,7 @@
         ],
         [
           "",
-          "src.sentinel.wardens.base"
+          "src.core.engine.wardens.base"
         ]
       ],
       "exports": [
@@ -4844,7 +4844,7 @@
         ],
         [
           "",
-          "src.sentinel.wardens.base"
+          "src.core.engine.wardens.base"
         ]
       ],
       "exports": [
@@ -5580,7 +5580,7 @@
         ],
         [
           "",
-          "src.sentinel.code_sanitizer"
+          "src.core.engine.ravens.code_sanitizer"
         ],
         [
           "",
@@ -6335,7 +6335,7 @@
         ],
         [
           "",
-          "src.sentinel.wardens.norn"
+          "src.core.engine.wardens.norn"
         ],
         [
           "",
@@ -8888,7 +8888,7 @@
         }
       ]
     },
-    "src/sentinel/recreate_chapter.py": {
+    "src/core/engine/ravens/recreate_chapter.py": {
       "intent": "Manages narrative scene orchestration by defining physical blocking and turn-based character logic for the Director.",
       "imports": [
         [

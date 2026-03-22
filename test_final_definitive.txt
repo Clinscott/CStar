@@ -100,7 +100,7 @@ mock_env = <MagicMock name='get' id='1341684545728'>
 mock_sovereign_fish = <MagicMock name='SovereignFish' id='1341684546064'>
 tmp_path = WindowsPath('C:/Users/Craig/AppData/Local/Temp/pytest-of-Craig/pytest-256/test_harvest_loop0')
 
-    @patch('src.sentinel.harvest_responses.SovereignFish')
+    @patch('src.core.engine.ravens.harvest_responses.SovereignFish')
     @patch('os.environ.get', return_value="fake_key")
     @patch('google.genai.Client')
     def test_harvest_loop(self, mock_client, mock_env, mock_sovereign_fish, tmp_path):
@@ -108,8 +108,8 @@ tmp_path = WindowsPath('C:/Users/Craig/AppData/Local/Temp/pytest-of-Craig/pytest
         mock_sovereign_fish_instance = mock_sovereign_fish.return_value
     
         # We need to mock FIXTURES_DIR and PROJECT_ROOT for isolation
-        with patch('src.sentinel.harvest_responses.FIXTURES_DIR', tmp_path), \
-             patch('src.sentinel.harvest_responses.Path') as mock_path_class:
+        with patch('src.core.engine.ravens.harvest_responses.FIXTURES_DIR', tmp_path), \
+             patch('src.core.engine.ravens.harvest_responses.Path') as mock_path_class:
     
             # Setup Path("/...") call inside harvest to return tmp_path
             mock_path_class.return_value.resolve.return_value = tmp_path
@@ -280,7 +280,7 @@ C:\Python314\Lib\unittest\mock.py:1487: in __enter__
                   ^^^^^^^^^^^^^
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-name = 'src.sentinel._bootstrap.utils'
+name = 'src.core.bootstrap.utils'
 
     def resolve_name(name):
         """
@@ -354,7 +354,7 @@ name = 'src.sentinel._bootstrap.utils'
         for p in parts:
 >           result = getattr(result, p)
                      ^^^^^^^^^^^^^^^^^^
-E           AttributeError: module 'src.sentinel._bootstrap' has no attribute 'utils'
+E           AttributeError: module 'src.core.bootstrap' has no attribute 'utils'
 
 C:\Python314\Lib\pkgutil.py:473: AttributeError
 _______________ TestBootstrapEmpire.test_bootstrap_no_env_file ________________
@@ -407,7 +407,7 @@ self = <unittest.mock._patch object at 0x0000013862622CF0>
 >           raise AttributeError(
                 "%s does not have the attribute %r" % (target, name)
             )
-E           AttributeError: <module 'src.sentinel._bootstrap' from 'C:\\Users\\Craig\\Corvus\\CorvusStar\\src\\sentinel\\_bootstrap.py'> does not have the attribute 'load_dotenv'
+E           AttributeError: <module 'src.core.bootstrap' from 'C:\\Users\\Craig\\Corvus\\CorvusStar\\src\\sentinel\\_bootstrap.py'> does not have the attribute 'load_dotenv'
 
 C:\Python314\Lib\unittest\mock.py:1473: AttributeError
 _______________________ TestUIEmpire.test_log_rejection _______________________

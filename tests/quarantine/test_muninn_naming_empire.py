@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.sentinel.muninn import Muninn
+from src.core.engine.ravens.muninn import Muninn
 
 
 def test_muninn_run_instantiation():
@@ -11,23 +11,23 @@ def test_muninn_run_instantiation():
     """
     target_path = "."
 
-    with patch("src.sentinel.muninn.AntigravityUplink"), \
-         patch("src.sentinel.muninn.bootstrap"), \
-         patch("src.sentinel.muninn.TheWatcher"), \
-         patch("src.sentinel.muninn.ProjectMetricsEngine") as MockMetricsEngine, \
-         patch("src.sentinel.muninn.AlfredOverwatch"), \
-         patch("src.sentinel.muninn.GungnirSPRT"), \
-         patch("src.sentinel.muninn.SovereignHUD"), \
-         patch("src.sentinel.muninn.NornWarden"), \
-         patch("src.sentinel.muninn.HeimdallWarden"), \
-         patch("src.sentinel.wardens.valkyrie.ValkyrieWarden"), \
-         patch("src.sentinel.wardens.edda.EddaWarden"), \
-         patch("src.sentinel.wardens.runecaster.RuneCasterWarden"), \
-         patch("src.sentinel.wardens.mimir.MimirWarden"), \
-         patch("src.sentinel.wardens.huginn.HuginnWarden"), \
-         patch("src.sentinel.wardens.freya.FreyaWarden"), \
+    with patch("src.core.engine.ravens.muninn.AntigravityUplink"), \
+         patch("src.core.engine.ravens.muninn.bootstrap"), \
+         patch("src.core.engine.ravens.muninn.TheWatcher"), \
+         patch("src.core.engine.ravens.muninn.ProjectMetricsEngine") as MockMetricsEngine, \
+         patch("src.core.engine.ravens.muninn.AlfredOverwatch"), \
+         patch("src.core.engine.ravens.muninn.GungnirSPRT"), \
+         patch("src.core.engine.ravens.muninn.SovereignHUD"), \
+         patch("src.core.engine.ravens.muninn.NornWarden"), \
+         patch("src.core.engine.ravens.muninn.HeimdallWarden"), \
+         patch("src.core.engine.wardens.valkyrie.ValkyrieWarden"), \
+         patch("src.core.engine.wardens.edda.EddaWarden"), \
+         patch("src.core.engine.wardens.runecaster.RuneCasterWarden"), \
+         patch("src.core.engine.wardens.mimir.MimirWarden"), \
+         patch("src.core.engine.wardens.huginn.HuginnWarden"), \
+         patch("src.core.engine.wardens.freya.FreyaWarden"), \
          patch("builtins.open"), \
-         patch("src.sentinel.muninn.Muninn._execute_hunt_async", new_callable=MagicMock) as mock_hunt:
+         patch("src.core.engine.ravens.muninn.Muninn._execute_hunt_async", new_callable=MagicMock) as mock_hunt:
 
         # Instantiate Muninn
         # We need to mock api_key or client to avoid ValueError

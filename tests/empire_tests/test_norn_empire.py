@@ -9,7 +9,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.core.engine.hall_schema import HallFileRecord, HallOfRecords, HallScanRecord
-from src.sentinel.wardens.norn import NornWarden
+from src.core.engine.wardens.norn import NornWarden
 
 
 def seed_sovereign_beads(root: Path):

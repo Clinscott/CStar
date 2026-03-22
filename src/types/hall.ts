@@ -4,6 +4,8 @@ export type HallRepositoryStatus = 'DORMANT' | 'AWAKE' | 'AGENT_LOOP';
 export type HallScanStatus = 'PENDING' | 'COMPLETED' | 'FAILED';
 export type HallBeadStatus =
     | 'OPEN'
+    | 'SET-PENDING'
+    | 'SET'
     | 'IN_PROGRESS'
     | 'READY_FOR_REVIEW'
     | 'NEEDS_TRIAGE'
@@ -121,6 +123,7 @@ export interface HallBeadRecord {
     contract_refs?: string[];
     baseline_scores?: Record<string, unknown>;
     acceptance_criteria?: string;
+    checker_shell?: string;
     status: HallBeadStatus;
     assigned_agent?: string;
     source_kind?: string;
@@ -224,6 +227,31 @@ export interface HallMountedSpokeRecord {
     metadata?: Record<string, unknown>;
     created_at: number;
     updated_at: number;
+}
+
+export interface HallGitCommitRecord {
+    commit_hash: string;
+    repo_id: string;
+    author_name: string;
+    author_email: string;
+    authored_at: number;
+    committer_name: string;
+    committer_email: string;
+    committed_at: number;
+    message: string;
+    parent_hashes: string[];
+}
+
+export interface HallGitDiffRecord {
+    id?: number;
+    commit_hash: string;
+    repo_id: string;
+    file_path: string;
+    change_type: 'ADDED' | 'MODIFIED' | 'DELETED' | 'RENAMED';
+    old_path?: string;
+    insertions: number;
+    deletions: number;
+    patch_text?: string;
 }
 
 export interface HallRepositorySummary {

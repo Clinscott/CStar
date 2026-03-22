@@ -108,8 +108,8 @@ async def test_taliesin_forge_returns_validation_ready_candidate_result(tmp_path
     )
     request = build_forge_request_from_bead(tmp_path, bead.id)
 
-    with patch("src.sentinel.taliesin_forge.AntigravityUplink") as mock_uplink_cls, patch(
-        "src.sentinel.taliesin_forge.TaliesinSpoke"
+    with patch("docs.legacy_archive.src_sentinel.taliesin_forge.AntigravityUplink") as mock_uplink_cls, patch(
+        "docs.legacy_archive.src_sentinel.taliesin_forge.TaliesinSpoke"
     ) as mock_spoke_cls:
         mock_uplink = AsyncMock()
         mock_uplink.send_payload.return_value = {
@@ -131,7 +131,7 @@ async def test_taliesin_forge_returns_validation_ready_candidate_result(tmp_path
         mock_spoke.build_candidate_brief = AsyncMock(return_value="bounded candidate brief")
         mock_spoke_cls.return_value = mock_spoke
 
-        from src.sentinel.taliesin_forge import TaliesinForge
+        from docs.legacy_archive.src_sentinel.taliesin_forge import TaliesinForge
 
         forge = TaliesinForge(tmp_path)
         result = await forge.forge_candidate(request)
@@ -159,10 +159,10 @@ async def test_taliesin_forge_rejects_live_lore_execution(tmp_path):
         encoding="utf-8",
     )
 
-    with patch("src.sentinel.taliesin_forge.AntigravityUplink"), patch(
-        "src.sentinel.taliesin_forge.TaliesinSpoke"
-    ), patch("src.sentinel.taliesin_forge.SovereignHUD") as mock_hud:
-        from src.sentinel.taliesin_forge import TaliesinForge
+    with patch("docs.legacy_archive.src_sentinel.taliesin_forge.AntigravityUplink"), patch(
+        "docs.legacy_archive.src_sentinel.taliesin_forge.TaliesinSpoke"
+    ), patch("docs.legacy_archive.src_sentinel.taliesin_forge.SovereignHUD") as mock_hud:
+        from docs.legacy_archive.src_sentinel.taliesin_forge import TaliesinForge
 
         forge = TaliesinForge(tmp_path)
         result = await forge.weave_code_from_lore(lore_path)

@@ -1,7 +1,7 @@
 
 import pytest
 
-from src.sentinel.wardens.freya import FreyaWarden
+from src.core.engine.wardens.freya import FreyaWarden
 
 
 @pytest.fixture

@@ -16,21 +16,33 @@ function usesWindowsPathApi(input: string): boolean {
 }
 
 function resolveWithBase(base: string, ...segments: string[]): string {
-    return usesWindowsPathApi(base) ? path.win32.resolve(base, ...segments) : path.resolve(base, ...segments);
+    if (process.platform === 'win32') {
+        return usesWindowsPathApi(base) ? path.win32.resolve(base, ...segments) : path.resolve(base, ...segments);
+    }
+    return path.posix.resolve(base, ...segments);
 }
 
 function joinWithBase(base: string, ...segments: string[]): string {
-    return usesWindowsPathApi(base) ? path.win32.join(base, ...segments) : path.join(base, ...segments);
+    if (process.platform === 'win32') {
+        return usesWindowsPathApi(base) ? path.win32.join(base, ...segments) : path.join(base, ...segments);
+    }
+    return path.posix.join(base, ...segments);
 }
 
 function dirnameForPath(input: string): string {
-    return usesWindowsPathApi(input) ? path.win32.dirname(input) : path.dirname(input);
+    if (process.platform === 'win32') {
+        return usesWindowsPathApi(input) ? path.win32.dirname(input) : path.dirname(input);
+    }
+    return path.posix.dirname(input);
 }
 
 function relativeBetween(from: string, to: string): string {
-    return usesWindowsPathApi(from) || usesWindowsPathApi(to)
-        ? path.win32.relative(from, to)
-        : path.relative(from, to);
+    if (process.platform === 'win32') {
+        return usesWindowsPathApi(from) || usesWindowsPathApi(to)
+            ? path.win32.relative(from, to)
+            : path.relative(from, to);
+    }
+    return path.posix.relative(from, to);
 }
 
 /**
@@ -54,6 +66,14 @@ export class PathRegistry {
             let currentDir = startPath
                 ? (isAbsolutePath(startPath) ? normalizeSeparators(startPath) : path.resolve(startPath))
                 : import.meta.dirname;
+            
+            // [🔱] THE ONE MIND: Cross-platform Sanitization
+            if (process.platform !== 'win32' && /^[A-Za-z]:/.test(currentDir)) {
+                // If we are on Linux but got a Windows path (hallucination or stale context),
+                // we must ignore it and fallback to the actual current directory.
+                currentDir = process.cwd();
+            }
+
             if (process.platform === 'win32' && currentDir.startsWith('/')) {
                 currentDir = currentDir.slice(1);
             }

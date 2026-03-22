@@ -9,7 +9,7 @@ import json
 import time
 import requests
 from pathlib import Path
-from src.sentinel.coordinator import MissionCoordinator
+from src.core.engine.ravens.coordinator import MissionCoordinator
 from src.core.telemetry import SubspaceTelemetry
 
 class TestMuninnPennyOneConnection(unittest.TestCase):

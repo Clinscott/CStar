@@ -10,9 +10,11 @@ from typing import Any, Sequence
 
 from src.core.engine.hall_schema import HallBeadRecord, HallOfRecords, normalize_hall_path
 
-PROJECTION_STATUS_ORDER = ("OPEN", "IN_PROGRESS", "READY_FOR_REVIEW", "NEEDS_TRIAGE", "BLOCKED", "RESOLVED", "ARCHIVED", "SUPERSEDED")
+PROJECTION_STATUS_ORDER = ("OPEN", "SET-PENDING", "SET", "IN_PROGRESS", "READY_FOR_REVIEW", "NEEDS_TRIAGE", "BLOCKED", "RESOLVED", "ARCHIVED", "SUPERSEDED")
 PROJECTION_MARKERS = {
     "OPEN": "[ ]",
+    "SET-PENDING": "[P]",
+    "SET": "[S]",
     "IN_PROGRESS": "[/]",
     "READY_FOR_REVIEW": "[>]",
     "NEEDS_TRIAGE": "[?]",
@@ -55,6 +57,7 @@ class SovereignBead:
     contract_refs: list[str] = field(default_factory=list)
     baseline_scores: dict[str, Any] = field(default_factory=dict)
     acceptance_criteria: str | None = None
+    checker_shell: str | None = None
     status: str = "OPEN"
     assigned_agent: str | None = None
     legacy_id: int | None = None
@@ -77,6 +80,7 @@ class SovereignBead:
             contract_refs=self.contract_refs,
             baseline_scores=self.baseline_scores,
             acceptance_criteria=self.acceptance_criteria,
+            checker_shell=self.checker_shell,
             status=self.status,
             assigned_agent=self.assigned_agent,
             source_kind=self.source_kind,
@@ -102,6 +106,7 @@ class SovereignBead:
             "contract_refs": list(self.contract_refs),
             "baseline_scores": dict(self.baseline_scores),
             "acceptance_criteria": self.acceptance_criteria,
+            "checker_shell": self.checker_shell,
             "status": self.status,
             "assigned_agent": self.assigned_agent,
             "created_at": self.created_at,
@@ -148,10 +153,10 @@ class BeadLedger:
         return sorted(beads, key=self._sort_key)
 
     def peek_next_bead(self) -> dict[str, Any] | None:
-        open_beads = self._list_actionable_beads(statuses=("OPEN",))
-        if not open_beads:
+        actionable_beads = self._list_actionable_beads(statuses=("SET", "OPEN"))
+        if not actionable_beads:
             return None
-        return open_beads[0].to_public_dict()
+        return sorted(actionable_beads, key=self._claim_sort_key)[0].to_public_dict()
 
     def claim_next_bead(self, agent_id: str) -> dict[str, Any] | None:
         self.normalize_existing_beads()
@@ -170,7 +175,7 @@ class BeadLedger:
         with self.connect() as conn:
             conn.execute("BEGIN IMMEDIATE")
             bead = self._get_bead_for_update(conn, bead_id)
-            if bead is None or bead.status != "OPEN" or not self._is_claimable(bead):
+            if bead is None or bead.status not in {"OPEN", "SET"} or not self._is_claimable(bead):
                 return None
             claimed = self._claim_bead_in_transaction(conn, bead, agent_id)
 
@@ -407,6 +412,8 @@ class BeadLedger:
             "",
             f"- Repository: `{self.repository.repo_id}`",
             f"- Open Beads: `{sum(1 for bead in beads if bead.status == 'OPEN')}`",
+            f"- Set Pending: `{sum(1 for bead in beads if bead.status == 'SET-PENDING')}`",
+            f"- Set Beads: `{sum(1 for bead in beads if bead.status == 'SET')}`",
             f"- In Progress: `{sum(1 for bead in beads if bead.status == 'IN_PROGRESS')}`",
             f"- Ready For Review: `{sum(1 for bead in beads if bead.status == 'READY_FOR_REVIEW')}`",
             f"- Needs Triage: `{sum(1 for bead in beads if bead.status == 'NEEDS_TRIAGE')}`",
@@ -489,11 +496,14 @@ class BeadLedger:
         rows = conn.execute(
             """
             SELECT * FROM hall_beads
-            WHERE repo_id = ? AND status = 'OPEN'
+            WHERE repo_id = ? AND status IN ('SET', 'OPEN')
             """,
             (self.repository.repo_id,),
         ).fetchall()
-        beads = sorted((self._row_to_bead(row) for row in rows if self._is_claimable(self._row_to_bead(row))), key=self._sort_key)
+        beads = sorted(
+            (self._row_to_bead(row) for row in rows if self._is_claimable(self._row_to_bead(row))),
+            key=self._claim_sort_key,
+        )
         return beads[0] if beads else None
 
     def _get_bead_for_update(self, conn, bead_id: str | int) -> SovereignBead | None:
@@ -515,7 +525,7 @@ class BeadLedger:
             """
             UPDATE hall_beads
             SET status = 'IN_PROGRESS', assigned_agent = ?, updated_at = ?
-            WHERE bead_id = ? AND repo_id = ? AND status = 'OPEN'
+            WHERE bead_id = ? AND repo_id = ? AND status IN ('SET', 'OPEN')
             """,
             (agent_id, updated_at, bead.id, self.repository.repo_id),
         )
@@ -723,9 +733,9 @@ class BeadLedger:
             """
             INSERT INTO hall_beads (
                 bead_id, repo_id, scan_id, legacy_id, target_kind, target_ref, target_path, rationale, contract_refs_json,
-                baseline_scores_json, acceptance_criteria, status, assigned_agent, source_kind, triage_reason,
+                baseline_scores_json, acceptance_criteria, checker_shell, status, assigned_agent, source_kind, triage_reason,
                 resolution_note, resolved_validation_id, superseded_by, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(bead_id) DO UPDATE SET
                 scan_id = excluded.scan_id,
                 legacy_id = excluded.legacy_id,
@@ -736,6 +746,7 @@ class BeadLedger:
                 contract_refs_json = excluded.contract_refs_json,
                 baseline_scores_json = excluded.baseline_scores_json,
                 acceptance_criteria = excluded.acceptance_criteria,
+                checker_shell = COALESCE(excluded.checker_shell, hall_beads.checker_shell),
                 status = excluded.status,
                 assigned_agent = excluded.assigned_agent,
                 source_kind = excluded.source_kind,
@@ -757,6 +768,7 @@ class BeadLedger:
                 json.dumps(record.contract_refs),
                 json.dumps(record.baseline_scores),
                 record.acceptance_criteria,
+                record.checker_shell,
                 record.status,
                 record.assigned_agent,
                 record.source_kind,
@@ -781,6 +793,7 @@ class BeadLedger:
             contract_refs=list(self._parse_json(row["contract_refs_json"], [])),
             baseline_scores=dict(self._parse_json(row["baseline_scores_json"], {})),
             acceptance_criteria=str(row["acceptance_criteria"]) if row["acceptance_criteria"] else None,
+            checker_shell=str(row["checker_shell"]) if row["checker_shell"] else None,
             status=str(row["status"] or "OPEN"),
             assigned_agent=str(row["assigned_agent"]) if row["assigned_agent"] else None,
             created_at=int(row["created_at"] or 0),
@@ -797,6 +810,15 @@ class BeadLedger:
         status_rank = {status: index for index, status in enumerate(PROJECTION_STATUS_ORDER)}
         return (
             status_rank.get(bead.status, len(status_rank)),
+            self._overall_score(bead),
+            bead.created_at,
+            bead.id,
+        )
+
+    def _claim_sort_key(self, bead: SovereignBead) -> tuple[int, float, int, str]:
+        status_priority = 0 if bead.status == "SET" else 1
+        return (
+            status_priority,
             self._overall_score(bead),
             bead.created_at,
             bead.id,
@@ -868,7 +890,7 @@ class BeadLedger:
 
     @classmethod
     def _is_claimable(cls, bead: SovereignBead) -> bool:
-        return bead.status == "OPEN" and cls._is_actionable(bead)
+        return bead.status in {"OPEN", "SET"} and cls._is_actionable(bead)
 
     @staticmethod
     def _new_bead_id() -> str:
@@ -878,6 +900,8 @@ class BeadLedger:
     def _section_title(status: str) -> str:
         mapping = {
             "OPEN": "Open Beads",
+            "SET-PENDING": "Set-Pending Beads",
+            "SET": "Set Beads",
             "IN_PROGRESS": "Beads In Progress",
             "READY_FOR_REVIEW": "Beads Ready For Review",
             "NEEDS_TRIAGE": "Beads Requiring Triage",

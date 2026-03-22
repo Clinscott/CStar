@@ -21,7 +21,19 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
     private static instance: RuntimeDispatcher;
     private adapters: Map<string, RuntimeAdapter> = new Map();
 
-    private constructor() {}
+    private deps: {
+        stateRegistry: typeof StateRegistry;
+        resolveEstateTarget: typeof resolveEstateTarget;
+        activePersona: typeof activePersona;
+    };
+
+    private constructor(deps?: Partial<typeof RuntimeDispatcher.prototype.deps>) {
+        this.deps = {
+            stateRegistry: deps?.stateRegistry ?? StateRegistry,
+            resolveEstateTarget: deps?.resolveEstateTarget ?? resolveEstateTarget,
+            activePersona: deps?.activePersona ?? activePersona,
+        };
+    }
 
     public static getInstance(): RuntimeDispatcher {
         if (!this.instance) {
@@ -30,8 +42,8 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
         return this.instance;
     }
 
-    public static createIsolated(): RuntimeDispatcher {
-        return new RuntimeDispatcher();
+    public static createIsolated(deps?: Partial<typeof RuntimeDispatcher.prototype.deps>): RuntimeDispatcher {
+        return new RuntimeDispatcher(deps);
     }
 
     /**
@@ -59,7 +71,7 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
 
         let estateTarget;
         try {
-            estateTarget = resolveEstateTarget(invocation.target);
+            estateTarget = this.deps.resolveEstateTarget(invocation.target);
         } catch (err: any) {
             return {
                 weave_id: invocation.weave_id,
@@ -72,7 +84,7 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
         const context: RuntimeContext = {
             mission_id: `MISSION-${crypto.randomInt(10000, 99999)}`,
             trace_id: crypto.randomUUID(),
-            persona: activePersona.name,
+            persona: this.deps.activePersona.name,
             workspace_root: estateTarget.workspaceRoot,
             operator_mode: invocation.session?.mode ?? 'cli',
             target_domain: estateTarget.targetDomain,
@@ -86,14 +98,14 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
         };
 
         // Update Global State: Mission Identity
-        StateRegistry.updateMission(context.mission_id, `Executing weave: ${invocation.weave_id}`);
+        this.deps.stateRegistry.updateMission(context.mission_id, `Executing weave: ${invocation.weave_id}`);
 
         try {
             const result = await adapter.execute(invocation, context);
             
             // Sync status if needed
             if (result.status === 'SUCCESS' && result.metrics_delta) {
-                StateRegistry.updateFramework({ gungnir_score: getGungnirOverall(result.metrics_delta) });
+                this.deps.stateRegistry.updateFramework({ gungnir_score: getGungnirOverall(result.metrics_delta) });
             }
 
             return result;
@@ -113,6 +125,16 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
 
     public listAdapterIds(): string[] {
         return Array.from(this.adapters.keys()).sort();
+    }
+
+    /**
+     * Triggers the shutdown hook for all registered adapters.
+     */
+    public async shutdown(): Promise<void> {
+        const tasks = Array.from(this.adapters.values())
+            .filter(a => typeof a.shutdown === 'function')
+            .map(a => a.shutdown!());
+        await Promise.all(tasks);
     }
 
     public clearAdapters(): void {

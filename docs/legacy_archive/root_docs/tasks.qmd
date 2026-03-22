@@ -1,0 +1,354 @@
+---
+title: "Sovereign Bead System"
+generated_at: "2026-03-21 12:21:50"
+authoritative_source: "hall_beads"
+---
+
+# Sovereign Bead System
+
+`tasks.qmd` is a projection of the Hall of Records. Do not edit bead state here.
+
+- Repository: `repo:/home/morderith/Corvus/CStar`
+- Open Beads: `4`
+- Set Pending: `0`
+- Set Beads: `0`
+- In Progress: `1`
+- Ready For Review: `10`
+- Needs Triage: `2`
+- Blocked: `5`
+- Resolved: `12`
+- Archived: `1`
+- Superseded: `0`
+
+## Open Beads
+- [ ] [bead:chant-session:e6ec5875-3800-4ef4-9b02-93fcd69c959f:health-disk-usage] `src/node/core/runtime/health.ts` :: Monitors available disk space to prevent runtime failures due to storage exhaustion. | scan: hall-scan:1773802496286 | baseline: 6.76 | contracts: tests/unit/health_disk.test.ts | acceptance: Asynchronous function returning Promise | Returns total > 0 | Returns available >= 0
+- [ ] [bead:chant-session:e6ec5875-3800-4ef4-9b02-93fcd69c959f:health-memory-usage] `src/node/core/runtime/health.ts` :: Enables tracking of runtime memory consumption (RSS, heap) to detect leaks or resource pressure. | scan: hall-scan:1773802496286 | baseline: 6.76 | contracts: tests/unit/health_memory.test.ts | acceptance: Returns object with rss, heapTotal, and heapUsed | Values are non-zero integers | Synchronous execution
+- [ ] [bead:chant-session:e6ec5875-3800-4ef4-9b02-93fcd69c959f:health-overall-check] `src/node/core/runtime/health.ts` :: Aggregates discrete metrics into a high-level health status for system-wide reporting. | scan: hall-scan:1773802496286 | baseline: 6.76 | contracts: tests/unit/health_overall.test.ts | acceptance: Returns status ('healthy', 'degraded', 'critical') | Includes component-level metrics | Asynchronous aggregation
+- [ ] [bead:chant-session:4855b5df-7bf4-4991-a740-2be9505b8895:bead-health-epic] `repository` :: Provides a high-level tracking point for the complete implementation of system diagnostics and health reporting. | scan: hall-scan:1773802496286 | baseline: 6.76 | contracts: src/node/core/runtime/health.ts | acceptance: Memory and disk monitoring functions are implemented and exported. | Overall health aggregator correctly synthesizes component status. | All associated unit tests pass under strict TDD validation.
+
+## Set-Pending Beads
+- None
+
+## Set Beads
+- None
+
+## Beads In Progress
+- [/] [bead:chant-session:f7a0bcca-6a4f-4045-a30b-6b18290d8531:create_zero_touch_js] `zero_touch.js` :: Establishes a minimal baseline execution target in the root directory as requested. | scan: hall-scan:1773802496286 | baseline: 6.76 | agent: SOVEREIGN-WORKER | contracts: zero_touch.js | acceptance: zero_touch.js exists in root | Executing node zero_touch.js prints SUCCESS | note: AutoBot failed on final attempt 3.
+Hermes single-query command exited before completion.
+Return code: 1
+Recent output:
+⚠️  API call failed (attempt 1/3): InternalServerError
+   ⏱️  Time elapsed before failure: 1.58s
+   📝 Error: Error code: 503 - {'error': {'message': 'Loading model', 'type': 'unavailable_error', 'code': 503}}
+   📊 Request context: 2 messages, ~7,690 tokens, 31 tools
+⚠️  API call failed (attempt 2/3): APIConnectionError
+   ⏱️  Time elapsed before failure: 5.13s
+   📝 Error: Connection error.
+   📊 Request context: 2 messages, ~7,690 tokens, 31 tools
+⚠️  API call failed (attempt 3/3): InternalServerError
+   ⏱️  Time elapsed before failure: 10.37s
+   📝 Error: Error code: 503 - {'error': {'message': 'Loading model', 'type': 'unavailable_error', 'code': 503}}
+   📊 Request context: 2 messages, ~7,690 tokens, 31 tools
+❌ Max retries (3) exceeded. Giving up.
+Traceback (most recent call last):
+  File "/home/morderith/Corvus/AutoBot/hermes-agent/.venv/bin/hermes", line 8, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/morderith/Corvus/AutoBot/hermes-agent/hermes_cli/main.py", line 4041, in main
+    args.func(args)
+  File "/home/morderith/Corvus/AutoBot/hermes-agent/hermes_cli/main.py", line 540, in cmd_chat
+    cli_main(**kwargs)
+  File "/home/morderith/Corvus/AutoBot/hermes-agent/cli.py", line 7080, in main
+    result = cli.agent.run_conversation(query)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/morderith/Corvus/AutoBot/hermes-agent/run_agent.py", line 6051, in run_conversation
+    raise api_error
+  File "/home/morderith/Corvus/AutoBot/hermes-agent/run_agent.py", line 5398, in run_conversation
+    response = self._interruptible_api_call(api_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/morderith/Corvus/AutoBot/hermes-agent/run_agent.py", line 3166, in _interruptible_api_call
+    raise result["error"]
+  File "/home/morderith/Corvus/AutoBot/hermes-agent/run_agent.py", line 3133, in _call
+    result["response"] = request_client_holder["client"].chat.completions.create(**api_kwargs)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/morderith/Corvus/AutoBot/hermes-agent/.venv/lib/python3.12/site-packages/openai/_utils/_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/morderith/Corvus/AutoBot/hermes-agent/.venv/lib/python3.12/site-packages/openai/resources/chat/completions/completions.py", line 1211, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "/home/morderith/Corvus/AutoBot/hermes-agent/.venv/lib/python3.12/site-packages/openai/_base_client.py", line 1297, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/morderith/Corvus/AutoBot/hermes-agent/.venv/lib/python3.12/site-packages/openai/_base_client.py", line 1070, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.InternalServerError: Error code: 503 - {'error': {'message': 'Loading model', 'type': 'unavailable_error', 'code': 503}}
+Diagnostic transcript: .stats/autobot/bead_chant-session_f7a0bcca-6a4f-4045-a30b-6b18290d8531_create_zero_touch_js/attempt-003.transcript.txt
+Diagnostic metadata: .stats/autobot/bead_chant-session_f7a0bcca-6a4f-4045-a30b-6b18290d8531_create_zero_touch_js/attempt-003.json
+
+## Beads Ready For Review
+- [>] [bead-autobot-qvac-1] `/home/morderith/Corvus/AutoBot/llama.cpp` :: Switch the llama.cpp submodule/source to the tetherto/qvac-fabric-llm.cpp fork and rebuild with Vulkan/Metal and Dynamic Tiling enabled. This provides high-performance heterogeneous GPU acceleration and memory-efficient inference. | scan: hall-scan:1773802496286 | baseline: 6.76 | contracts: /home/morderith/Corvus/AutoBot/llama.cpp | acceptance: llama-server binary is compiled from qvac-fabric-llm.cpp source.
+Server starts with --ngl 99 using Vulkan/Metal backend.
+Dynamic tiling is confirmed active in logs (if applicable). | triage: Awaiting canonical validation evidence.
+- [>] [bead-autobot-qvac-2] `/home/morderith/Corvus/AutoBot/start_ai.sh` :: Update start_ai.sh and start_hermes.sh to leverage qvac-specific flags (like optimized cache types and tiling) and ensure hermes-agent is properly connected to the new backend. | scan: hall-scan:1773802496286 | baseline: 6.76 | contracts: /home/morderith/Corvus/AutoBot/start_ai.sh, /home/morderith/Corvus/AutoBot/start_hermes.sh | acceptance: start_ai.sh includes optimized flags for qvac.
+Hermes successfully connects to the qvac-powered llama-server.
+System handles 32k+ context without OOM on 8GB VRAM. | triage: Awaiting canonical validation evidence.
+- [>] [bead-autobot-qvac-3] `/home/morderith/Corvus/AutoBot/hermes-agent/skills/continuous_learning.py` :: Create a new skill for hermes-agent that captures interaction trajectories and triggers local LoRA fine-tuning using qvac's native Vulkan/Metal training pipeline. | scan: hall-scan:1773802496286 | baseline: 6.76 | contracts: /home/morderith/Corvus/AutoBot/hermes-agent/skills/continuous_learning.py | acceptance: Hermes can export successful trajectories for training.
+LoRA training job can be triggered locally on consumer GPU.
+Adapters are successfully generated in the local environment. | triage: Awaiting canonical validation evidence.
+- [>] [bead-autobot-qvac-4] `/home/morderith/Corvus/AutoBot/llama.cpp/models/bitnet` :: Deploy a BitNet 1.58-bit (TQ2_0) model and expand the context window to 128k tokens. This maximizes the 8GB VRAM efficiency for large-scale reasoning and long-document analysis. | scan: hall-scan:1773802496286 | baseline: 6.76 | contracts: /home/morderith/Corvus/AutoBot/llama.cpp/models/bitnet | acceptance: BitNet model (TQ2_0) is running successfully on qvac backend.
+Inference speed is maintained or improved compared to Q4_K_M.
+128k context window is functional on 8GB VRAM. | triage: Awaiting canonical validation evidence.
+- [>] [bead-chant-shell-1] `src/node/core/runtime/weaves/chant.ts` :: Define the authoritative responsibility boundary for chant. Keep direct routing for built-in weaves and installed skills, but replace the ambiguous planning contract with an explicit shell contract. Either restore `NEEDS_INPUT` and `PLAN_READY` deliberately or update the tests and metadata to the new `PROPOSAL_REVIEW` model, but do not leave a split-brain system in place. | scan: hall-scan:1773802496286 | baseline: 6.76 | contracts: src/node/core/runtime/weaves/chant.ts, src/node/core/commands/dispatcher.ts, tests/unit/test_chant_runtime.test.ts, tests/unit/test_chant_planning_runtime.test.ts, .agents/skills/chant/SKILL.md | acceptance: Direct command routing remains green.
+Planning responses expose a stable metadata contract.
+No test expects a legacy state that the runtime no longer emits.
+No placeholder planning mode is described as production-ready. | triage: Awaiting canonical validation evidence.
+- [>] [bead-chant-shell-2] `src/node/core/runtime/contracts.ts` :: Implement `weave:compress` using the ONE MIND delegation pattern with strict `Model Hint: gemini-2.5-flash-lite`. Add `hall_episodic_memory` persistence and the TypeScript contracts needed to store tactical summaries of completed bead work. The compressor should accept bead intent plus a diff or equivalent artifact envelope and emit strict JSON that records only successful tactical outcomes. | scan: hall-scan:1773802496286 | baseline: 6.76 | contracts: src/node/core/runtime/contracts.ts, src/node/core/runtime/weaves/compress.ts, src/node/core/runtime/bootstrap.ts, src/tools/pennyone/intel/database.ts, src/types/hall.ts, tests/unit | acceptance: `weave:compress` exists and is registered.
+The weave emits a `[SUB_AGENT_DIRECTIVE]` with `Model Hint: gemini-2.5-flash-lite`.
+`hall_episodic_memory` exists in the runtime schema and has save/read helpers.
+There are focused unit tests for compressor delegation and episodic memory persistence. | triage: Awaiting canonical validation evidence.
+- [>] [bead-chant-shell-3] `src/node/core/runtime/weaves/architect.ts` :: Move mission synthesis out of chant. The Architect must consume the user intent, research artifacts, and Hall schema, then emit a dependency-aware bead graph plus a proposal summary. Chant should request this graph, not build it internally. | scan: hall-scan:1773802496286 | baseline: 6.76 | contracts: src/node/core/runtime/weaves/architect.ts, src/node/core/runtime/weaves/chant.ts, src/types/hall.ts, src/tools/pennyone/intel/database.ts, tests/unit | acceptance: Architect owns proposal synthesis.
+Architect emits a structured dependency graph, not a linear placeholder plan.
+Chant stops embedding proposal-construction logic beyond dispatch and state transitions. | triage: Awaiting canonical validation evidence.
+- [>] [bead:chant-session:dab58e9a-43ca-4825-ba40-1b2b15c8375f:metrics-cpu-bead] `src/node/core/runtime/metrics.ts` :: Provides high-resolution CPU consumption data for the current process. | scan: hall-scan:1773802496286 | baseline: 6.76 | agent: HOST-WORKER | contracts: tests/unit/metrics_cpu.test.ts | acceptance: Returns object with 'user' and 'system' fields | Values are non-negative numbers | Test metrics_cpu.test.ts passes | note: Final checker failure for bead bead:chant-session:dab58e9a-43ca-4825-ba40-1b2b15c8375f:metrics-cpu-bead. Last validation: validation:29033387ad48.
+/home/morderith/Corvus/CStar/tests/unit/metrics_cpu.test.ts:3
+import { getCPUUsage } from '../../src/node/core/runtime/metrics.js';
+         ^
+SyntaxError: The requested module '../../src/node/core/runtime/metrics.js' does not provide an export named 'getCPUUsage'
+    at #asyncInstantiate (node:internal/modules/esm/module_job:319:21)
+    at async ModuleJob.run (node:internal/modules/esm/module_job:422:5)
+    at async node:internal/modules/esm/loader:639:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v25.8.1
+✖ tests/unit/metrics_cpu.test.ts (131.264265ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 138.367472
+
+✖ failing tests:
+
+test at tests/unit/metrics_cpu.test.ts:1:1
+✖ tests/unit/metrics_cpu.test.ts (131.264265ms)
+  'test failed'
+- [>] [bead:chant-session:dab58e9a-43ca-4825-ba40-1b2b15c8375f:metrics-format-bead] `src/node/core/runtime/metrics.ts` :: Converts raw byte counts into human-readable strings (KB, MB, GB). | scan: hall-scan:1773802496286 | baseline: 6.76 | agent: HOST-WORKER | contracts: tests/unit/metrics_format.test.ts | acceptance: 0 bytes returns '0 Bytes' | Correctly scales to KB, MB, and GB | Test metrics_format.test.ts passes | triage: Awaiting canonical validation evidence.
+- [>] [bead:chant-session:dab58e9a-43ca-4825-ba40-1b2b15c8375f:metrics-uptime-bead] `src/node/core/runtime/metrics.ts` :: Tracks how long the process has been running for health monitoring. | scan: hall-scan:1773802496286 | baseline: 6.76 | agent: HOST-WORKER | contracts: tests/unit/metrics_uptime.test.ts | acceptance: Returns a number greater than or equal to 0 | Matches process.uptime() behavior | Test metrics_uptime.test.ts passes | triage: Awaiting canonical validation evidence.
+
+## Beads Requiring Triage
+- [?] [bead:chant-session:e6ec5875-3800-4ef4-9b02-93fcd69c959f:health-runtime-epic] `other:unscoped` :: Orchestrates the fragmented implementation of system health monitoring functions to ensure stable resource tracking. | scan: hall-scan:1773802496286 | baseline: 6.76 | contracts: src/node/core/runtime/health.ts | acceptance: All child health beads completed | Comprehensive health reporting verified across memory and disk | triage: Missing canonical target identity.
+- [?] [bead:chant-session:97548ef2-5d42-4345-81ba-38416f4c3bb2:epic_math_utils_multiplication] `other:unscoped` :: Tracks the complete delivery of multiplication functionality, including source implementation and automated verification through TDD. | scan: hall-scan:1773802496286 | baseline: 6.76 | contracts: src/node/core/runtime/math_utils.ts | acceptance: multiply function is implemented in math_utils.ts | Unit test suite created in tests/unit/math_utils.test.ts | Verification suite passes with 100% success rate | triage: Missing canonical target identity.
+
+## Blocked Beads
+- [!] [bead:chant-session:a9b6d66f-5768-4750-942f-426e719db090:bead-preflight-checker-shortcircuit] `src/core/engine/autobot_skill.py` :: `run_bead_mode()` currently always launches Hermes before running validation. Adding a single preflight checker branch in the bead worker keeps the change host-governable and bounded: when `checker_shell` already succeeds in the bead environment, the worker should persist accepted validation evidence and resolve the bead with zero Hermes attempts; when preflight validation fails, execution should continue into the existing Hermes retry loop without changing its behavior. | scan: hall-scan:1773802496286 | baseline: 6.76 | contracts: tests/unit/test_autobot_skill.py | acceptance: When `args.checker_shell` is present and a preflight run succeeds before attempt 1, the bead is finalized as successful without launching the Hermes worker command. | The preflight success path persists checker validation evidence through the existing validation/finalization flow and records the bead as resolved with `attempt_count == 0`. | When the preflight checker fails or times out, the worker does not resolve early and instead enters the current Hermes retry loop unchanged. | Unit tests cover both the passing preflight short-circuit path and the failing preflight fallthrough path. | triage: Orchestrator: Worker failed (exit 1). Last log:         "transcript_excerpt": "\u280b \u266a(\u00b4\u03b5` ) \ud83d\udcd6 /home/morderith/Corvus/CSta... (0.0s) \u2819 \u266a(\u00b4\u03b5` ) \ud83d\udcd6 /home/morderith/Corvus/CSta... (0.1s) \u2839 \u266a(\u00b4\u03b5` ) \ud83d\udcd6 /home/morderith/Corvus/CSta... (0.2s) \u2838 \u266a(\u00b4\u03b5` ) \ud83d\udcd6 /home/morderith/Corvus/CSta... (0.4s) \u283c \u266a(\u00b4\u03b5` ) \ud83d\udcd6 /home/morderith/Corvus/CSta... (0.5s) \u2834 \u266a(\u00b4\u03b5` ) \ud83d\udcd6 /home/morderith/Corvus/CSta... (0.6s) \u2826 \u266a(\u00b4\u03b5` ) \ud83d\udcd6 /home/morderith/Corvus/CSta... (0.7s) \u250a \ud83d\udcd6 read ...src/core/engine/autobot_skill.py 0.8s \u280b \u266a(\u00b4\u03b5` ) \ud83d\udcd6 /home/morderith/Corvus/CSta... (0.0s) \u2819 \u266a(\u00b4\u03b5` ) \ud83d\udcd6 /home/morderith/Corvus/CSta... (0.1s) \u2839 \u266a(\u00b4\u03b5` ) \ud83d\udcd6 /home/morderith/Corvus/CSta... (0.2s) \u2838 \u266a(\u00b4\u03b5` ) \ud83d\udcd6 /home/morderith/Corvus/CSta... (0.4s) \u283c \u266a(\u00b4\u03b5` ) \ud83d\udcd6 /home/morderith/Corvus/CSta... (0.5s) \u2834 \u266a(\u00b4\u03b5` ) \ud83d\udcd6 /home/morderith/Corvus/CSta... (0.6s) \u2826 \u266a(\u00b4\u03b5` ) \ud83d\udcd6 /home/morderith/Corvus/CSta... (0.7s) \u250a \ud83d\udcd6 read ...src/core/engine/autobot_skill.py 0.8s \u280b (\u25d5\u1d17\u25d5\u273f) \ud83d\udcd6 /home/morderith/Corvus/CSta... (0.0s) \u2819 (\u25d5\u1d17\u25d5\u273f) \ud83d\udcd6 /home/morderith/Corvus/CSta... (0.1s) \u2839 (\u25d5\u1d17\u25d5\u273f) \ud83d\udcd6 /home/morderith/Corvus/CSta... (0.2s) \u2838 (\u25d5\u1d17\u25d5\u273f) \ud83d\udcd6 /home/morderith/Corvus/CSta... (0.4s) \u283c (\u25d5\u1d17\u25d5\u273f) \ud83d\udcd6 /home/morderith/Corvus/CSta... (0.5s) \u2834 (\u25d5\u1d17\u25d5\u273f) \ud83d\udcd6 /home/morderith/Corvus/CSta... (0.6s) \u2826 (\u25d5\u1d17\u25d5\u273f) \ud83d\udcd6 /home/morderith/Corvus/CSta... (0.7s) \u250a \ud83d\udcd6 read ...src/core/engine/autobot_skill.py 0.8s \u26a0\ufe0f API call failed (attempt 1/3): BadRequestError \u23f1\ufe0f Time elapsed before failure: 0.14s \ud83d\udcdd Error: Error code: 400 - {'error': {'code': 400, 'message': 'request (44161 tokens) exceeds the available context size (32768 tokens), try increasing it', 'type': 'exceed_context_size_error', 'n_prompt_token \ud83d\udcca Request context: 8 messages, ~28,260 tokens, 31 tools \u26a0\ufe0f Context length exceeded \u2014 stepping down: 128,000 \u2192 64,000 tokens \ud83d\udddc\ufe0f Context compression attempt 1/3... \u26a0\ufe0f API call failed (attempt 1/3): BadRequestError \u23f1\ufe0f Time elapsed before failure: 0.13s \ud83d\udcdd Error: Error code: 400 - {'error': {'code': 400, 'message': 'request (44158 tokens) exceeds the available context size (32768 tokens), try increasing it', 'type': 'exceed_context_size_error', 'n_prompt_token \ud83d\udcca Request context: 9 messages, ~28,336 tokens, 3\u2026"       }     ]   } }" | note: Final checker failure for bead bead:chant-session:a9b6d66f-5768-4750-942f-426e719db090:bead-preflight-checker-shortcircuit. Last validation: validation:70609048921d.
+==================================== ERRORS ====================================
+______________ ERROR collecting tests/unit/test_autobot_skill.py _______________
+.venv/lib/python3.12/site-packages/_pytest/python.py:507: in importtestmodule
+    mod = import_path(
+.venv/lib/python3.12/site-packages/_pytest/pathlib.py:587: in import_path
+    importlib.import_module(module_name)
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+.venv/lib/python3.12/site-packages/_pytest/assertion/rewrite.py:197: in exec_module
+    exec(co, module.__dict__)
+tests/unit/test_autobot_skill.py:6: in <module>
+    from src.core.engine.autobot_skill import (
+E     File "/home/morderith/Corvus/CStar/src/core/engine/autobot_skill.py", line 468
+E       """
+E          ^
+E   IndentationError: unindent does not match any outer indentation level
+=========================== short test summary info ============================
+ERROR tests/unit/test_autobot_skill.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.13s
+- [!] [bead:chant-session:1dd3980e-d085-47b6-b736-69aa9d37b860:bead-1] `src/node/core/runtime/weaves/host_governor.ts` :: `src/node/core/runtime/weaves/host_governor.ts` already decides when candidate beads are too wide or not governable, but it only records broad deferred IDs and free-text context. Adding a stable bead-id keyed reason map in that file lets the governor persist explicit rejection causes and gives replanning a machine-readable basis for narrowing blocked beads safely. | scan: hall-scan:1773802496286 | baseline: 6.76 | contracts: tests/unit/test_host_governor_runtime.test.ts | acceptance: Deferred beads receive stable reason code entries | Governor metadata stores a bead-id keyed deferral reason map | Blocked-bead replan payload includes prior governor reason codes | triage: AutoBot worker could not complete the claimed bead. | note: AutoBot failed on final attempt 3.
+Hermes single-query command exceeded the hard timeout of 300.0 seconds.
+Recent output:
+┊ 💬 I see the issue - Node.js strip-only mode can't handle TypeScript parameter properties (private readonly fields in constructors). I need to inspect the test file first to understand how it's supposed to work, then find a compatible approach.
+
+  ⠋ (★ω★) 📖 /home/morderith/Corvus/CSta... (0.0s)
+  ⠙ (★ω★) 📖 /home/morderith/Corvus/CSta... (0.1s)
+  ⠹ (★ω★) 📖 /home/morderith/Corvus/CSta... (0.2s)
+  ⠸ (★ω★) 📖 /home/morderith/Corvus/CSta... (0.4s)
+  ⠼ (★ω★) 📖 /home/morderith/Corvus/CSta... (0.5s)
+  ⠴ (★ω★) 📖 /home/morderith/Corvus/CSta... (0.6s)
+  ⠦ (★ω★) 📖 /home/morderith/Corvus/CSta... (0.7s)
+                                                      
+  ┊ 📖 read      ...st_host_governor_runtime.test.ts  0.8s
+  ┊ 💬 Now let me read the actual target file to see the current implementation:
+
+  ⠋ (◕‿◕✿) 📖 /home/morderith/Corvus/CSta... (0.0s)
+  ⠙ (◕‿◕✿) 📖 /home/morderith/Corvus/CSta... (0.1s)
+  ⠹ (◕‿◕✿) 📖 /home/morderith/Corvus/CSta... (0.2s)
+  ⠸ (◕‿◕✿) 📖 /home/morderith/Corvus/CSta... (0.4s)
+  ⠼ (◕‿◕✿) 📖 /home/morderith/Corvus/CSta... (0.5s)
+  ⠴ (◕‿◕✿) 📖 /home/morderith/Corvus/CSta... (0.6s)
+  ⠦ (◕‿◕✿) 📖 /home/morderith/Corvus/CSta... (0.7s)
+                                                       
+  ┊ 📖 read      .../runtime/weaves/host_governor.ts  0.8s
+
+  ⠋ (◕‿◕✿) 📖 /home/morderith/Corvus/CSta... (0.0s)
+  ⠙ (◕‿◕✿) 📖 /home/morderith/Corvus/CSta... (0.1s)
+  ⠹ (◕‿◕✿) 📖 /home/morderith/Corvus/CSta... (0.2s)
+  ⠸ (◕‿◕✿) 📖 /home/morderith/Corvus/CSta... (0.4s)
+  ⠼ (◕‿◕✿) 📖 /home/morderith/Corvus/CSta... (0.5s)
+  ⠴ (◕‿◕✿) 📖 /home/morderith/Corvus/CSta... (0.6s)
+  ⠦ (◕‿◕✿) 📖 /home/morderith/Corvus/CSta... (0.7s)
+                                                       
+  ┊ 📖 read      .../runtime/weaves/host_governor.ts  0.8s
+Diagnostic transcript: .stats/autobot/bead_chant-session_1dd3980e-d085-47b6-b736-69aa9d37b860_bead-1/attempt-003.transcript.txt
+Diagnostic metadata: .stats/autobot/bead_chant-session_1dd3980e-d085-47b6-b736-69aa9d37b860_bead-1/attempt-003.json
+- [!] [bead:chant-session:1dd3980e-d085-47b6-b736-69aa9d37b860:bead-2] `tests/unit/test_host_governor_runtime.test.ts` :: The existing host-governor runtime test file already covers bounded promotion and blocked-bead replanning. Extending that single suite is the smallest safe way to prove explicit deferral reasons are written for rejected beads and forwarded into chant replanning without adding new dependencies or checker paths. | scan: hall-scan:1773802496286 | baseline: 6.76 | contracts: tests/unit/test_host_governor_runtime.test.ts | acceptance: Mixed candidate coverage asserts explicit width or checker reason codes | Recorded deferral reason map is visible through current runtime metadata surfaces | Blocked-bead replanning assertions confirm prior reason codes are forwarded | triage: Checker rejected AutoBot output after 3 attempts. | note: Final checker failure for bead bead:chant-session:1dd3980e-d085-47b6-b736-69aa9d37b860:bead-2. Last validation: validation:5daf563f720f.
+file:///home/morderith/Corvus/CStar/src/tools/pennyone/intel/database.ts:4
+import { AgentPing } from '../types.ts';
+         ^^^^^^^^^
+SyntaxError: The requested module '../types.ts' does not provide an export named 'AgentPing'
+    at #asyncInstantiate (node:internal/modules/esm/module_job:319:21)
+    at async ModuleJob.run (node:internal/modules/esm/module_job:422:5)
+    at async node:internal/modules/esm/loader:639:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v25.8.1
+✖ tests/unit/test_host_governor_runtime.test.ts (128.715701ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 135.098266
+
+✖ failing tests:
+
+test at tests/unit/test_host_governor_runtime.test.ts:1:1
+✖ tests/unit/test_host_governor_runtime.test.ts (128.715701ms)
+  'test failed'
+- [!] [bead:chant-session:71777e3a-928a-4ab0-bd72-168ffa71517e:cstar-governor-reason-codes] `src/node/core/runtime/weaves/host_governor.ts` :: Current deferral logic relies on unstructured text, which prevents the system from automatically categorizing and addressing specific failure modes during replanning. | scan: hall-scan:1773802496286 | baseline: 6.76 | agent: SOVEREIGN-WORKER | contracts: tests/unit/test_host_governor_runtime.test.ts | acceptance: Governance loop extracts stable reason codes for deferred candidates. | Codes are persisted to database triage_reason for deferred beads. | summarizeBlockedBeads propagates codes into replan context. | triage: Orchestrator: Worker failed (exit 1). Last log: 
+- [!] [bead:chant-session:ca298b1a-2059-4c59-a83e-bd53cd4d59aa:impl-validate-bead-id] `src/types/bead.ts` :: Formalizes the validation logic for bead IDs to prevent malformed identifiers from propagating through the system, ensuring structural integrity in session-bead mappings. | scan: hall-scan:1773802496286 | baseline: 6.76 | contracts: tests/unit/test_bead_validation.test.ts | acceptance: Returns true for valid 'bead:session:fragment' identifiers. | Returns false for identifiers missing segments, prefix, or having extra segments. | Verified by node:test suite in tests/unit/test_bead_validation.test.ts. | triage: AutoBot worker could not complete the claimed bead. | note: AutoBot failed on final attempt 3.
+Hermes single-query command exceeded the hard timeout of 300.0 seconds.
+Recent output:
+┊ 💬 ◆ bead:impl-validate-bead-id
+
+The error shows a missing module at `tools/pennyone/intel/database.ts`. Let me first check the current state of the target file and understand the structure before implementing.
+
+  ⠋ (✿◠‿◠) 📖 /home/morderith/Corvus/CSta... (0.0s)
+  ⠙ (✿◠‿◠) 📖 /home/morderith/Corvus/CSta... (0.1s)
+  ⠹ (✿◠‿◠) 📖 /home/morderith/Corvus/CSta... (0.2s)
+  ⠸ (✿◠‿◠) 📖 /home/morderith/Corvus/CSta... (0.4s)
+  ⠼ (✿◠‿◠) 📖 /home/morderith/Corvus/CSta... (0.5s)
+  ⠴ (✿◠‿◠) 📖 /home/morderith/Corvus/CSta... (0.6s)
+  ⠦ (✿◠‿◠) 📖 /home/morderith/Corvus/CSta... (0.7s)
+                                                       
+  ┊ 📖 read      ...h/Corvus/CStar/src/types/bead.ts  0.8s
+  ┊ 💬 The `validateBeadId` function already exists at lines 67-71. The error about missing database.ts is a separate runtime issue. Let me check the test file to see what it expects:
+
+  ⠋ ♪(´ε` ) 📖 /home/morderith/Corvus/CSta... (0.0s)
+  ⠙ ♪(´ε` ) 📖 /home/morderith/Corvus/CSta... (0.1s)
+  ⠹ ♪(´ε` ) 📖 /home/morderith/Corvus/CSta... (0.2s)
+  ⠸ ♪(´ε` ) 📖 /home/morderith/Corvus/CSta... (0.4s)
+  ⠼ ♪(´ε` ) 📖 /home/morderith/Corvus/CSta... (0.5s)
+  ⠴ ♪(´ε` ) 📖 /home/morderith/Corvus/CSta... (0.6s)
+  ⠦ ♪(´ε` ) 📖 /home/morderith/Corvus/CSta... (0.7s)
+  ⠧ ♪(´ε` ) 📖 /home/morderith/Corvus/CSta... (0.8s)
+  ⠇ ♪(´ε` ) 📖 /home/morderith/Corvus/CSta... (1.0s)
+                                                        
+  ┊ 📖 read      ...nit/test_bead_validation.test.ts  1.0s
+  ┊ 💬 The test expects `validateBeadId` to reject `'bead:session:fragment:extra'` (4 segments), but the current regex `^bead:(.+):(.+)$` accepts it because `.+` is greedy and matches across colons.
+
+I need to enforce exactly two segments by using `[^:]+` instead of `.+`:
+
+  ⠋ ♪(´ε` ) 🔧 /home/morderith/Corvus/CSta... (0.0s)
+  ⠙ ♪(´ε` ) 🔧 /home/morderith/Corvus/CSta... (0.1s)
+  ⠹ ♪(´ε` ) 🔧 /home/morderith/Corvus/CSta... (0.2s)
+  ⠸ ♪(´ε` ) 🔧 /home/morderith/Corvus/CSta... (0.4s)
+  ⠼ ♪(´ε` ) 🔧 /home/morderith/Corvus/CSta... (0.5s)
+  ⠴ ♪(´ε` ) 🔧 /home/morderith/Corvus/CSta... (0.6s)
+  ⠦ ♪(´ε` ) 🔧 /home/morderith/Corvus/CSta... (0.7s)
+  ⠧ ♪(´ε` ) 🔧 /home/morderith/Corvus/CSta... (0.8s)
+  ⠇ ♪(´ε` ) 🔧 /home/morderith/Corvus/CSta... (1.0s)
+  ⠏ ♪(´ε` ) 🔧 /home/morderith/Corvus/CSta... (1.1s)
+  ⠋ ♪(´ε` ) 🔧 /home/morderith/Corvus/CSta... (1.2s)
+  ⠙ ♪(´ε` ) 🔧 /home/morderith/Corvus/CSta... (1.3s)
+  ⠹ ♪(´ε` ) 🔧 /home/morderith/Corvus/CSta... (1.4s)
+  ⠸ ♪(´ε` ) 🔧 /home/morderith/Corvus/CSta... (1.6s)
+  ⠼ ♪(´ε` ) 🔧 /home/morderith/Corvus/CSta... (1.7s)
+  ⠴ ♪(´ε` ) 🔧 /home/morderith/Corvus/CSta... (1.8s)
+  ⠦ ♪(´ε` ) 🔧 /home/morderith/Corvus/CSta... (1.9s)
+  ⠧ ♪(´ε` ) 🔧 /home/morderith/Corvus/CSta... (2.0s)
+  ⠇ ♪(´ε` ) 🔧 /home/morderith/Corvus/CSta... (2.2s)
+  ⠏ ♪(´ε` ) 🔧 /home/morderith/Corvus/CSta... (2.3s)
+  ⠋ ♪(´ε` ) 🔧 /home/morderith/Corvus/CSta... (2.4s)
+                                                        
+  ┊ 🔧 patch     ...h/Corvus/CStar/src/types/bead.ts  2.4s
+  ┊ 💬 The patch applied. Now let me verify the fix by running the tests:
+
+  ⠋ (◕‿◕✿) 💻 cd /home/morderith/Corvus/C... (0.0s)
+  ⠙ (◕‿◕✿) 💻 cd /home/morderith/Corvus/C... (0.1s)
+  ⠹ (◕‿◕✿) 💻 cd /home/morderith/Corvus/C... (0.2s)
+  ⠸ (◕‿◕✿) 💻 cd /home/morderith/Corvus/C... (0.4s)
+  ⠼ (◕‿◕✿) 💻 cd /home/morderith/Corvus/C... (0.5s)
+  ⠴ (◕‿◕✿) 💻 cd /home/morderith/Corvus/C... (0.6s)
+  ⠦ (◕‿◕✿) 💻 cd /home/morderith/Corvus/C... (0.7s)
+                                                       
+  ┊ 💻 $         cd /home/morderith/Corvus/CStar && npx ...  0.8s
+Diagnostic transcript: .stats/autobot/bead_chant-session_ca298b1a-2059-4c59-a83e-bd53cd4d59aa_impl-validate-bead-id/attempt-003.transcript.txt
+Diagnostic metadata: .stats/autobot/bead_chant-session_ca298b1a-2059-4c59-a83e-bd53cd4d59aa_impl-validate-bead-id/attempt-003.json
+
+## Resolved Beads
+- [x] [bead:chant-session:c6a08f28-34d0-4292-a6f6-9f2271426cb5:oracle-provider-override] `/home/morderith/Corvus/CStar/src/node/core/commands/oracle.ts` :: The shared host bridge already supports explicit provider selection, but the `oracle` spoke never exposes that control and always relies on ambient environment forwarding. Adding a validated `--provider <gemini|codex|claude>` option to `oracle` is the narrowest host-governable improvement because it preserves centralized provider handling while enabling one-shot provider selection for both direct prompt sampling and Synapse-backed fulfillment. | scan: hall-scan:1773802496286 | baseline: 6.76 | agent: SOVEREIGN-WORKER | contracts: /home/morderith/Corvus/CStar/tests/unit/test_oracle_command.test.ts | acceptance: `oracle` accepts `--provider <gemini|codex|claude>` and rejects unsupported values through the command surface. | The parsed provider is threaded through direct prompt sampling into the existing host text request path without requiring environment changes. | The parsed provider is also threaded through the `--db` Synapse fulfillment path into the existing host text request path. | Unit coverage proves the forced provider override is forwarded for both direct invocation and Synapse-backed invocation. | note: AutoBot completed bead bead:chant-session:c6a08f28-34d0-4292-a6f6-9f2271426cb5:oracle-provider-override on attempt 1. Validation validation:30df121def02 accepted the result. | validation: validation:30df121def02
+- [x] [bead:chant-session:6908a6c1-1be0-42f2-8412-a6b46e4f06a0:bead:autobot-preflight:parse-repair] `src/core/engine/autobot_skill.py` :: The current blocker is structural rather than architectural. `src/core/engine/autobot_skill.py` contains a malformed `run_preflight_checker()` insertion that breaks collection before any semantic validation can occur. This must be repaired first so later checker-backed changes operate on an importable module. | scan: hall-scan:1773802496286 | baseline: 6.76 | agent: SOVEREIGN-WORKER | contracts: tests/unit/test_autobot_skill.py | acceptance: `src/core/engine/autobot_skill.py` imports without syntax or indentation failure. | `run_preflight_checker()` has valid indentation and a single coherent docstring/body. | No intentional runtime behavior change is introduced beyond restoring a parsable module surface. | note: AutoBot completed bead bead:chant-session:6908a6c1-1be0-42f2-8412-a6b46e4f06a0:bead:autobot-preflight:parse-repair on attempt 0. Validation validation:d3e1128dc6c9 accepted the result. | validation: validation:d3e1128dc6c9
+- [x] [bead:chant-session:6908a6c1-1be0-42f2-8412-a6b46e4f06a0:bead:autobot-preflight:test-coverage] `tests/unit/test_autobot_skill.py` :: CStar verification policy requires mock-driven proof for new orchestration logic. Existing coverage exercises retry and timeout behavior, but it does not prove the zero-attempt preflight success path, the failed-preflight fallthrough path, or the non-Hermes validation metadata contract. Those proofs should land as a dedicated follow-up bead rather than being mixed into the semantic repair. | scan: hall-scan:1773802496286 | baseline: 6.76 | agent: SOVEREIGN-WORKER | contracts: tests/unit/test_autobot_skill.py | acceptance: A unit test proves that a passing preflight checker resolves the bead with `attempt_count == 0` and no Hermes worker invocation. | A unit test proves that a failing or timed-out preflight checker does not resolve early and Hermes is invoked through the existing attempt flow. | A unit test or explicit assertion proves preflight validation persistence does not require Hermes result fields. | `tests/unit/test_autobot_skill.py` passes under the repository checker command. | note: AutoBot completed bead bead:chant-session:6908a6c1-1be0-42f2-8412-a6b46e4f06a0:bead:autobot-preflight:test-coverage on attempt 0. Validation validation:9c0bb4134773 accepted the result. | validation: validation:9c0bb4134773
+- [x] [bead:chant-session:6f5866c5-8530-4495-8dc0-1e1ffefd49da:bead-host-governor-deferral-reason-codes] `src/node/core/runtime/weaves/host_governor.ts` :: `src/node/core/runtime/weaves/host_governor.ts` is the single bounded authority for candidate deferral and blocked-bead replanning, so adding stable reason codes there keeps the change narrow while making deferred outcomes machine-readable and available to replan queries. | scan: hall-scan:1773802496286 | baseline: 6.76 | agent: SOVEREIGN-WORKER | contracts: tests/unit/test_host_governor_runtime.test.ts | acceptance: Deferred candidates emit stable reason codes in metadata. | Blocked-bead replan context includes grouped deferral reason codes. | `node --test tests/unit/test_host_governor_runtime.test.ts` passes with coverage for reason propagation. | note: AutoBot completed bead bead:chant-session:6f5866c5-8530-4495-8dc0-1e1ffefd49da:bead-host-governor-deferral-reason-codes on attempt 0. Validation validation:cd208229d790 accepted the result. | validation: validation:cd208229d790
+- [x] [bead:chant-session:2f23aefc-1351-460c-abb3-555af152d723:bead:host-governor:machine-readable-reason-codes] `src/node/core/runtime/weaves/host_governor.ts` :: Transitioning from unstructured notes to stable reason codes allows the governance loop to provide actionable signals for autonomous recovery of blocked beads. | scan: hall-scan:1773802496286 | baseline: 6.76 | agent: AUTOBOT | contracts: tests/unit/test_host_governor_runtime.test.ts | acceptance: Host-Governor extracts 'reason_code' from LLM decision JSON. | Extracted codes are persisted to 'triage_reason' in the database for deferred beads. | Unit tests verify that reason codes are correctly propagated during the governance loop. | note: AutoBot completed bead bead:chant-session:2f23aefc-1351-460c-abb3-555af152d723:bead:host-governor:machine-readable-reason-codes on attempt 0. Validation validation:495ae71af06c accepted the result. | validation: validation:495ae71af06c
+- [x] [bead:chant-session:d5cdbe8c-dfc0-414c-b03d-bd6cc96ad073:initialize-node-runtime-version] `src/node/core/runtime/version.ts` :: Creating a dedicated version module provides a central source of truth for the runtime version, which is required for telemetry and system identification. | scan: hall-scan:1773802496286 | baseline: 6.76 | agent: SOVEREIGN-WORKER | contracts: tests/unit/test_version.test.ts | acceptance: version.ts exports CSTAR_VERSION as '0.1.0'. | Unit test confirms the exact version string. | Checker shell command exits with code 0. | note: AutoBot completed bead bead:chant-session:d5cdbe8c-dfc0-414c-b03d-bd6cc96ad073:initialize-node-runtime-version on attempt 0. Validation validation:b12c87e556fb accepted the result. | validation: validation:b12c87e556fb
+- [x] [bead:chant-session:ec664e8f-eef4-4611-9e01-73243d625bc5:hello-module-implementation] `src/hello.js` :: Create a new ES module that exports a function returning the string 'hello' as requested, verified by a pre-written unit test. | scan: hall-scan:1773802496286 | baseline: 6.76 | agent: SOVEREIGN-WORKER | contracts: tests/unit/hello.test.js | acceptance: src/hello.js exists and exports sayHello. | sayHello() returns the string 'hello'. | Unit tests in tests/unit/hello.test.js pass. | note: AutoBot completed bead bead:chant-session:ec664e8f-eef4-4611-9e01-73243d625bc5:hello-module-implementation on attempt 0. Validation validation:e5a00787ec50 accepted the result. | validation: validation:e5a00787ec50
+- [x] [bead:chant-session:58e79951-ad91-401d-86f0-28837f85b9c6:bead-parsing-impl] `src/types/bead.ts` :: Implements the core parsing logic using the identified heuristic for dual-segment session IDs (chant-session and evolve). | scan: hall-scan:1773802496286 | baseline: 6.76 | agent: AUTOBOT | contracts: tests/unit/test_bead_parsing.test.ts | acceptance: Correctly parses 1-segment IDs (e.g., bead:bookmark:123) | Correctly parses 2-segment IDs (e.g., bead:chant-session:UUID:123) | Returns null for invalid formats or non-bead prefixes | triage: Checker rejected AutoBot output after 3 attempts. | note: AutoBot completed bead bead:chant-session:58e79951-ad91-401d-86f0-28837f85b9c6:bead-parsing-impl on attempt 0. Validation validation:a2ff76f06123 accepted the result. | validation: validation:a2ff76f06123
+- [x] [bead:chant-session:4855b5df-7bf4-4991-a740-2be9505b8895:bead-health-disk] `src/node/core/runtime/health.ts` :: Ensures the system remains operational by monitoring available disk space on the root filesystem. | scan: hall-scan:1773802496286 | baseline: 6.76 | agent: AUTOBOT | contracts: tests/unit/health_disk.test.ts | acceptance: Async function returns available and total disk space in bytes. | Available space is non-negative and total space is positive. | Unit test handles asynchronous stat retrieval correctly. | note: Implemented and verified via TDD tests.
+- [x] [bead:chant-session:4855b5df-7bf4-4991-a740-2be9505b8895:bead-health-memory] `src/node/core/runtime/health.ts` :: Essential for monitoring process performance and detecting potential memory leaks early. | scan: hall-scan:1773802496286 | baseline: 6.76 | agent: AUTOBOT | contracts: tests/unit/health_memory.test.ts | acceptance: Function returns an object with rss, heapTotal, and heapUsed. | All returned metrics are positive numbers. | Unit test passes with strict node:assert validation. | triage: Awaiting canonical validation evidence. | note: Implemented and verified via TDD tests.
+- [x] [bead:chant-session:4855b5df-7bf4-4991-a740-2be9505b8895:bead-health-overall] `src/node/core/runtime/health.ts` :: Synthesizes low-level metrics into a high-level status for external monitoring systems. | scan: hall-scan:1773802496286 | baseline: 6.76 | contracts: tests/unit/health_overall.test.ts | acceptance: Returns status from ['healthy', 'degraded', 'critical']. | Aggregates data from both memory and disk subsystems. | Async implementation ensures non-blocking status checks. | note: Implemented and verified via TDD tests.
+- [x] [bead:chant-session:97548ef2-5d42-4345-81ba-38416f4c3bb2:math_utils_multiply_implementation] `src/node/core/runtime/math_utils.ts` :: Adds the required multiplication operation to the core runtime utilities as requested. | scan: hall-scan:1773802496286 | baseline: 6.76 | agent: SOVEREIGN-WORKER | contracts: tests/unit/math_utils.test.ts | acceptance: multiply(2, 5) returns 10 | multiply(-3, 4) returns -12 | multiply(0, 100) returns 0 | note: Final checker failure for bead bead:chant-session:97548ef2-5d42-4345-81ba-38416f4c3bb2:math_utils_multiply_implementation. Last validation: validation:ca7993b31921.
+/home/morderith/Corvus/CStar/tests/unit/math_utils.test.ts:3
+import { multiply } from '../../src/node/core/runtime/math_utils.js';
+         ^
+SyntaxError: The requested module '../../src/node/core/runtime/math_utils.js' does not provide an export named 'multiply'
+    at #asyncInstantiate (node:internal/modules/esm/module_job:319:21)
+    at async ModuleJob.run (node:internal/modules/esm/module_job:422:5)
+    at async node:internal/modules/esm/loader:639:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v25.8.1
+✖ tests/unit/math_utils.test.ts (128.401234ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 135.715556
+
+✖ failing tests:
+
+test at tests/unit/math_utils.test.ts:1:1
+✖ tests/unit/math_utils.test.ts (128.401234ms)
+  'test failed'
+
+## Archived Beads
+- [-] [bead:chant-session:6908a6c1-1be0-42f2-8412-a6b46e4f06a0:bead:autobot-preflight:semantics-contract] `src/core/engine/autobot_skill.py` :: Once the module imports, the next risk is incorrect behavior. The current preflight branch finalizes whenever `run_preflight_checker()` returns a `CommandResult`, even when the checker failed or timed out, and `persist_checker_validation()` dereferences Hermes-only fields although the preflight path passes no Hermes result. This bead keeps the change bounded to the AutoBot worker and validation contract. | scan: hall-scan:1773802496286 | baseline: 6.76 | contracts: tests/unit/test_autobot_skill.py | acceptance: `run_bead_mode()` resolves early only when the preflight checker result succeeded. | A failed or timed-out preflight run falls through into the existing Hermes retry loop without changing that loop's behavior. | Checker validation persistence accepts the preflight path without requiring Hermes-only metadata, or an equivalent dedicated preflight persistence path is introduced. | A successful preflight resolution records `attempt_count == 0` and resolves the bead without launching Hermes. | note: Archived to isolate the 2026-03-19 monitored live-fire session.
+
+## Superseded Beads
+- None

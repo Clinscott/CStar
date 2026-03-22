@@ -73,7 +73,7 @@ export function registerPythonSpokes(program: Command, PROJECT_ROOT: string) {
         .action(async (options: { ingest?: boolean; mode?: string; character?: string; post?: boolean }) => {
             try {
                 const pythonPath = getPythonPath();
-                const taliesinScript = join(PROJECT_ROOT, 'src/sentinel/taliesin.py');
+                const taliesinScript = join(PROJECT_ROOT, 'docs/legacy_archive/src_sentinel/taliesin.py');
                 const args = [];
                 if (options.ingest) args.push('--ingest');
                 if (options.mode) args.push('--mode', options.mode);
@@ -99,7 +99,7 @@ export function registerPythonSpokes(program: Command, PROJECT_ROOT: string) {
         .action(async (options: { scenario: string; details: string; conclusion: string; chars: string }) => {
             try {
                 const pythonPath = getPythonPath();
-                const recreateScript = join(PROJECT_ROOT, 'src/sentinel/recreate_chapter.py');
+                const recreateScript = join(PROJECT_ROOT, 'src/core/engine/ravens/recreate_chapter.py');
                 await execa(pythonPath, [
                     recreateScript,
                     '--scenario', options.scenario,

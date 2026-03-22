@@ -14,15 +14,15 @@ project_root = Path(__file__).parent.parent.parent.absolute()
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from src.sentinel.muninn import Muninn
-from src.sentinel.wardens.mimir import MimirWarden
-from src.sentinel.wardens.valkyrie import ValkyrieWarden
+from src.core.engine.ravens.muninn import Muninn
+from src.core.engine.wardens.mimir import MimirWarden
+from src.core.engine.wardens.valkyrie import ValkyrieWarden
 
 
 class TestValkyrieWarden:
     """Detects dead code using Vulture (Mocked)."""
 
-    @patch('src.sentinel.wardens.valkyrie.vulture')
+    @patch('src.core.engine.wardens.valkyrie.vulture')
     def test_finds_unused_function(self, mock_vulture_module, tmp_path):
         # Setup Mock Vulture
         mock_v = MagicMock()
@@ -52,7 +52,7 @@ class TestValkyrieWarden:
         # Verify Vulture was called correctly
         mock_v.scavenge.assert_called()
 
-    @patch('src.sentinel.wardens.valkyrie.vulture')
+    @patch('src.core.engine.wardens.valkyrie.vulture')
     def test_filters_low_confidence(self, mock_vulture_module, tmp_path):
         # Setup Mock Vulture
         mock_v = MagicMock()
@@ -105,10 +105,10 @@ def nightmare(x):
 
 
     @pytest.mark.skip(reason="Legacy Muninn.run facade is not part of the active CorvusStar runtime.")
-    @patch('src.sentinel.muninn.HeimdallWarden')
-    @patch('src.sentinel.muninn.ValkyrieWarden')
-    @patch('src.sentinel.muninn.MimirWarden')
-    @patch('src.sentinel.muninn.FreyaWarden')
+    @patch('src.core.engine.ravens.muninn.HeimdallWarden')
+    @patch('src.core.engine.ravens.muninn.ValkyrieWarden')
+    @patch('src.core.engine.ravens.muninn.MimirWarden')
+    @patch('src.core.engine.ravens.muninn.FreyaWarden')
     def test_valkyrie_precedes_beauty(self, mock_visual, mock_mimir, mock_valkyrie, mock_annex, tmp_path):
         # Setup: All strategists find targets
         mock_annex_inst = mock_annex.return_value
@@ -143,7 +143,7 @@ def nightmare(x):
 
                 fish._execute_hunt_async = AsyncMock(return_value=(all_breaches, scan_results))
 
-                with patch('src.sentinel.muninn.SovereignHUD') as mock_hud:
+                with patch('src.core.engine.ravens.muninn.SovereignHUD') as mock_hud:
                     mock_hud.PERSONA = "ODIN"
                     fish.run()
 

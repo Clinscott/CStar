@@ -1,8 +1,8 @@
 import { FileData } from '../types.ts';
 import { CortexLink } from '../../../node/cortex_link.ts';
 import chalk from 'chalk';
-import path from 'node:path';
-import { mimir } from '../../../core/mimir_client.ts';
+import { requestHostText, type HostTextResult } from '../../../core/host_intelligence.ts';
+import { registry } from '../pathRegistry.ts';
 
 /**
  * LLM Provider Abstraction: THE ONE MIND CONDUIT
@@ -19,13 +19,14 @@ export interface IntelProvider {
  * SamplingProvider: Leverages the Synaptic Link (mimir) to channel the Host Agent.
  */
 export class SamplingProvider implements IntelProvider {
-    private static mcpServer: any = null;
-
-    constructor() {}
-
-    static registerServer(server: any) {
-        this.mcpServer = server;
-    }
+    public constructor(
+        private readonly hostTextInvoker: (request: {
+            prompt: string;
+            projectRoot: string;
+            source: string;
+            metadata?: Record<string, unknown>;
+        }) => Promise<HostTextResult> = requestHostText,
+    ) {}
 
     async getIntent(code: string, data: FileData): Promise<{ intent: string; interaction: string }> {
         return (await this.getBatchIntent([{ code, data }]))[0];
@@ -49,32 +50,20 @@ export class SamplingProvider implements IntelProvider {
 
         try {
             console.error(chalk.cyan(`[ALFRED] Requesting Synaptic Strike for ${items.length} sectors...`));
-            
-            /**
-             * [🔱] THE SYNAPTIC ASCENSION
-             * We use the 'mimir' client to think. 
-             * This works whether we are in an MCP server or a standalone CLI process.
-             */
-            const raw = await mimir.think(prompt);
-
-            if (!raw) throw new Error('One Mind is silent.');
-            
+            const { text: raw } = await this.hostTextInvoker({
+                prompt,
+                projectRoot: registry.getRoot(),
+                source: 'pennyone:intel:batch-intent',
+                metadata: {
+                    file_count: items.length,
+                },
+            });
             return this.parseResponse(raw, items);
-        } catch (err: any) {
-            console.error(chalk.yellow(`[WARNING] Synaptic Strike failed: ${err.message}. Generating structural intents...`));
-            return this.generateStructuralIntents(items);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            console.error(chalk.red(`[ERROR] Synaptic Strike failed: ${message}`));
+            throw new Error(`PennyOne host intelligence failed: ${message}`);
         }
-    }
-
-    private generateStructuralIntents(items: { code: string, data: FileData }[]): { intent: string; interaction: string }[] {
-        return items.map(item => {
-            const name = path.basename(item.data.path);
-            const exports = item.data.exports.join(', ') || 'internal logic';
-            return {
-                intent: `The \`${name}\` sector implements logic focusing on ${exports}.`,
-                interaction: `Integrate via ${exports}. Follow the Linscott Standard.`
-            };
-        });
     }
 
     private parseResponse(raw: string, items: any[]): { intent: string; interaction: string }[] {

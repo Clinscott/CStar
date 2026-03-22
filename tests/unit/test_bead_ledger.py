@@ -177,6 +177,79 @@ def test_claim_next_bead_is_atomic_under_concurrent_agents(tmp_path):
     assert materialized.assigned_agent in {"RAVEN-A", "RAVEN-B"}
 
 
+def test_claim_next_bead_prioritizes_set_gate_work(tmp_path):
+    seed_hall(tmp_path)
+    ledger = BeadLedger(tmp_path)
+
+    draft = ledger.upsert_bead(
+        bead_id="bead-open",
+        target_path="src/core/sample.py",
+        rationale="Draft bead still awaiting set gate",
+        contract_refs=["contracts:sample-repair"],
+        acceptance_criteria="Raise the baseline above 5.0.",
+        status="OPEN",
+    )
+    approved = ledger.upsert_bead(
+        bead_id="bead-set",
+        target_path="src/core/sample.py",
+        rationale="Approved bead ready for execution",
+        contract_refs=["contracts:sample-repair"],
+        acceptance_criteria="Raise the baseline above 5.0.",
+        status="SET",
+    )
+
+    preview = ledger.peek_next_bead()
+    claimed = ledger.claim_next_bead("RAVEN-SET")
+
+    assert preview is not None
+    assert preview["id"] == approved.id
+    assert claimed is not None
+    assert claimed["id"] == approved.id
+
+    claimed_record = ledger.get_bead(approved.id)
+    draft_record = ledger.get_bead(draft.id)
+    assert claimed_record is not None and claimed_record.status == "IN_PROGRESS"
+    assert draft_record is not None and draft_record.status == "OPEN"
+
+
+def test_hall_upsert_preserves_checker_shell_on_status_updates(tmp_path):
+    seed_hall(tmp_path)
+    hall = HallOfRecords(tmp_path)
+    repo = hall.bootstrap_repository()
+
+    hall.upsert_bead(
+        HallBeadRecord(
+            bead_id="bead-preserve-checker",
+            repo_id=repo.repo_id,
+            target_path="src/core/sample.py",
+            rationale="Repair the sample path",
+            acceptance_criteria="Raise the baseline above 5.0.",
+            checker_shell="python -m pytest tests/unit/test_bead_ledger.py -q",
+            status="OPEN",
+            created_at=1700000000200,
+            updated_at=1700000000200,
+        )
+    )
+    hall.upsert_bead(
+        HallBeadRecord(
+            bead_id="bead-preserve-checker",
+            repo_id=repo.repo_id,
+            target_path="src/core/sample.py",
+            rationale="Repair the sample path",
+            acceptance_criteria="Raise the baseline above 5.0.",
+            status="IN_PROGRESS",
+            assigned_agent="RAVEN-A",
+            created_at=1700000000200,
+            updated_at=1700000000201,
+        )
+    )
+
+    bead = BeadLedger(tmp_path).get_bead("bead-preserve-checker")
+    assert bead is not None
+    assert bead.status == "IN_PROGRESS"
+    assert bead.checker_shell == "python -m pytest tests/unit/test_bead_ledger.py -q"
+
+
 def test_bead_ledger_requires_validation_before_resolution(tmp_path):
     seed_hall(tmp_path)
     ledger = BeadLedger(tmp_path)

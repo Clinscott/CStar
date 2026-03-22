@@ -4,8 +4,8 @@ import json
 import time
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-from src.sentinel.muninn import Muninn
-from src.sentinel.coordinator import MissionCoordinator
+from src.core.engine.ravens.muninn import Muninn
+from src.core.engine.ravens.coordinator import MissionCoordinator
 
 # Identity: Lead Engineer (Gungnir Matrix)
 # Mandate: Empire TDD / Linscott Standard
@@ -56,7 +56,7 @@ def test_silence_protocol_blocks_flight_on_recent_activity(mock_root):
     WHEN: Muninn checks for silence.
     THEN: It should return False (not silent).
     """
-    with patch("src.sentinel.stability.TheWatcher.get_last_edit_time") as mock_edit:
+    with patch("src.core.engine.ravens.stability.TheWatcher.get_last_edit_time") as mock_edit:
         # 1 minute ago
         mock_edit.return_value = time.time() - 60
         
@@ -70,7 +70,7 @@ def test_silence_protocol_allows_flight_after_threshold(mock_root):
     WHEN: Muninn checks for silence.
     THEN: It should return True (silent).
     """
-    with patch("src.sentinel.stability.TheWatcher.get_last_edit_time") as mock_edit:
+    with patch("src.core.engine.ravens.stability.TheWatcher.get_last_edit_time") as mock_edit:
         # 6 minutes ago
         mock_edit.return_value = time.time() - 360
         

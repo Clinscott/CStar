@@ -4,14 +4,15 @@ import { writeReport } from './intel/writer.ts';
 import { writeProjectedMatrixGraph } from './intel/compiler.ts';
 import {
     getLatestHallScanId,
-    recordHallFile,
-    recordHallScan,
     registerSpoke,
+    saveHallFile,
+    saveHallRepository,
+    saveHallScan,
     updateFtsIndex,
-    upsertHallRepository,
 } from './intel/database.ts';
 import { SemanticIndexer } from './intel/semantic.ts';
 import { ChronicleIndexer } from './intel/chronicle.ts';
+import { ChronosIndexer } from './intel/chronos.ts';
 import { Warden } from './intel/warden.ts';
 import fsSync from 'node:fs';
 import fs from 'fs/promises';
@@ -67,7 +68,7 @@ export async function indexSector(filePath: string): Promise<FileData | null> {
 
         // PennyOne projections are derived from Hall records, never patched directly.
         const repoId = buildHallRepositoryId(targetRepoRoot);
-        upsertHallRepository({
+        saveHallRepository({
             root_path: targetRepoRoot,
             name: path.basename(targetRepoRoot),
             status: 'AWAKE',
@@ -86,7 +87,7 @@ export async function indexSector(filePath: string): Promise<FileData | null> {
         let scanId = getLatestHallScanId(targetRepoRoot);
         if (!scanId) {
             scanId = `hall-scan:${Date.now()}`;
-            recordHallScan({
+            saveHallScan({
                 scan_id: scanId,
                 repo_id: repoId,
                 scan_kind: 'pennyone_sector_index',
@@ -100,7 +101,7 @@ export async function indexSector(filePath: string): Promise<FileData | null> {
                 },
             });
         }
-        recordHallFile({
+        saveHallFile({
             repo_id: repoId,
             scan_id: scanId,
             path: absolutePath,
@@ -133,7 +134,7 @@ export async function runScan(targetPath: string, force = false): Promise<FileDa
     // [Ω] Register this spoke in the central database
     registerSpoke(targetPath);
     const targetRepoRoot = registry.detectWorkspaceRoot(targetPath);
-    upsertHallRepository({
+    saveHallRepository({
         root_path: targetRepoRoot,
         name: path.basename(targetRepoRoot),
         status: 'AWAKE',
@@ -154,6 +155,10 @@ export async function runScan(targetPath: string, force = false): Promise<FileDa
     const chronicles = new ChronicleIndexer();
     await chronicles.index();
 
+    // Phase 0.5: Temporal History Ingestion (Chronos)
+    const chronos = new ChronosIndexer();
+    await chronos.index();
+
     // Phase 3: Semantic Pass (Global Registry)
     const indexer = new SemanticIndexer(targetPath);
     const semanticGraph = await indexer.index();
@@ -161,7 +166,7 @@ export async function runScan(targetPath: string, force = false): Promise<FileDa
     const files = await crawlRepository(targetPath);
     const analyzedFiles: { code: string, data: FileData, needsIntent: boolean }[] = [];
 
-    // Phase 1: Local Analysis & Change Detection
+    // Intelligent Analysis & Change Detection
     for (const file of files) {
         try {
             const code = await fs.readFile(file, 'utf-8');
@@ -255,7 +260,7 @@ export async function runScan(targetPath: string, force = false): Promise<FileDa
         const startedAt = Date.now();
         const averageScore = finalResults.reduce((sum, file) => sum + getGungnirOverall(file.matrix), 0) / finalResults.length;
 
-        recordHallScan({
+        saveHallScan({
             scan_id: scanId,
             repo_id: repoId,
             scan_kind: 'pennyone_repository_scan',
@@ -274,7 +279,7 @@ export async function runScan(targetPath: string, force = false): Promise<FileDa
         });
 
         for (const file of finalResults) {
-            recordHallFile({
+            saveHallFile({
                 repo_id: repoId,
                 scan_id: scanId,
                 path: file.path,

@@ -9,7 +9,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from tests.integration.project_fishtest import GungnirSPRT
-from src.sentinel.stability import GungnirValidator
+from src.core.engine.ravens.stability import GungnirValidator
 
 def main():
     parser = argparse.ArgumentParser(description="SPRT: Statistical verification.")

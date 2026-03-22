@@ -1,11 +1,11 @@
 import pytest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
-from src.sentinel.wardens.mimir import MimirWarden
+from src.core.engine.wardens.mimir import MimirWarden
 
 @pytest.fixture
 def mock_db():
-    with patch("src.sentinel.wardens.mimir.SubspaceTelemetry.log_trace") as mock:
+    with patch("src.core.engine.wardens.mimir.SubspaceTelemetry.log_trace") as mock:
         yield mock
 
 def test_mimir_aesthetic_breach(tmp_path):

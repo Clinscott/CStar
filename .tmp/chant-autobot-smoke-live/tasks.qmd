@@ -1,0 +1,51 @@
+---
+title: "Sovereign Bead System"
+generated_at: "2026-03-19 11:11:12"
+authoritative_source: "hall_beads"
+---
+
+# Sovereign Bead System
+
+`tasks.qmd` is a projection of the Hall of Records. Do not edit bead state here.
+
+- Repository: `repo:/home/morderith/Corvus/CStar/.tmp/chant-autobot-smoke-live`
+- Open Beads: `1`
+- Set Pending: `0`
+- Set Beads: `0`
+- In Progress: `0`
+- Ready For Review: `0`
+- Needs Triage: `0`
+- Blocked: `1`
+- Resolved: `1`
+- Archived: `0`
+- Superseded: `0`
+
+## Open Beads
+- [ ] [bead:chant-session:03888779-7fcd-4b25-9924-996bf1327311:bead-01] `README` :: The implementation should be driven by the explicit workspace goal and the existing test suite so the behavior matches repository expectations without unnecessary scope. | scan: scan:bead-baseline:1773920967470 | baseline: 0.00 | contracts: tests, title_slug.py | acceptance: README expectations for the slug utility are identified. | All relevant `test_*.py` cases are reviewed to extract exact `slugify` behavior. | No functionality beyond documented and tested requirements is introduced.
+
+## Set-Pending Beads
+- None
+
+## Set Beads
+- None
+
+## Beads In Progress
+- None
+
+## Beads Ready For Review
+- None
+
+## Beads Requiring Triage
+- None
+
+## Blocked Beads
+- [!] [bead:chant-session:03888779-7fcd-4b25-9924-996bf1327311:bead-02] `title_slug.py` :: The user explicitly requires a new module with a single public function and minimal changes. The implementation should normalize input into a stable slug format while avoiding third-party dependencies. | scan: scan:bead-baseline:1773920967470 | baseline: 0.00 | contracts: tests | acceptance: `title_slug.py` exists in the workspace. | The module exposes `slugify(text: str) -> str`. | Implementation uses only Python standard library modules. | Code remains minimal and focused on tested behavior. | triage: Hermes diagnostic timed out; see .stats/autobot/bead_chant-session_03888779-7fcd-4b25-9924-996bf1327311_bead-02/attempt-001.transcript.txt
+
+## Resolved Beads
+- [x] [bead:chant-session:03888779-7fcd-4b25-9924-996bf1327311:bead-03] `title_slug.py` :: Validation is defined by the provided unittest command, so the final state should be confirmed against that exact check and adjusted only if tests reveal missing edge-case handling. | scan: scan:bead-baseline:1773920967470 | baseline: 0.00 | agent: SOVEREIGN-WORKER | contracts: tests | acceptance: `python3 -m unittest discover -s tests -p 'test_*.py' -q` completes successfully. | Any fixes made after test execution are limited to satisfying failing bundled cases. | Final implementation still honors the minimal-change constraint. | note: AutoBot completed bead bead:chant-session:03888779-7fcd-4b25-9924-996bf1327311:bead-03 on attempt 1. Validation validation:9e56258e1c06 accepted the result. | validation: validation:9e56258e1c06
+
+## Archived Beads
+- None
+
+## Superseded Beads
+- None

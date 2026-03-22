@@ -8,7 +8,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.append(str(PROJECT_ROOT))
 
 from src.core.engine.hall_schema import HallFileRecord, HallOfRecords, HallScanRecord
-from src.sentinel.muninn import NornWarden
+from src.core.engine.ravens.muninn import NornWarden
 
 
 def seed_campaign(root: Path):

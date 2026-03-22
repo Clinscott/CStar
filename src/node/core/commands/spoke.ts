@@ -6,7 +6,7 @@ import chalk from 'chalk';
 import { resolveWorkspaceRoot, type WorkspaceRootSource } from '../runtime/invocation.ts';
 import { StateRegistry } from '../state.ts';
 import {
-    getHallRepositoryRecord,
+    getHallRepository,
     listHallMountedSpokes,
     removeHallMountedSpoke,
     saveHallMountedSpoke,
@@ -42,7 +42,7 @@ export function registerSpokeCommand(program: Command, projectRootSource: Worksp
             }
 
             StateRegistry.save(StateRegistry.get());
-            const repo = getHallRepositoryRecord(workspaceRoot);
+            const repo = getHallRepository(workspaceRoot);
             if (!repo) {
                 console.error(chalk.red('Failed to materialize the Hall repository before linking the spoke.'));
                 process.exit(1);

@@ -3,12 +3,7 @@ import path from 'node:path';
 import { registry } from '../../tools/pennyone/pathRegistry.js';
 import { activePersona } from '../../tools/pennyone/personaRegistry.js';
 import {
-    getHallRepositoryRecord,
-    listHallMountedSpokes,
-    removeHallMountedSpoke,
-    saveHallMountedSpoke,
-    getHallSummary,
-    upsertHallRepository,
+    database,
 } from '../../tools/pennyone/intel/database.ts';
 import type { HallMountedSpokeRecord } from '../../types/hall.ts';
 
@@ -198,27 +193,27 @@ export class StateRegistry {
 
     private static readHallMountedSpokes(): ManagedSpokeProjection[] {
         try {
-            return listHallMountedSpokes(registry.getRoot()).map(projectManagedSpoke);
+            return database.listHallMountedSpokes(registry.getRoot()).map(projectManagedSpoke);
         } catch {
             return [];
         }
     }
 
     private static syncHallMountedSpokes(managedSpokes: ManagedSpokeProjection[]): void {
-        const repoRecord = getHallRepositoryRecord(registry.getRoot());
+        const repoRecord = database.getHallRepository(registry.getRoot());
         const repoId = repoRecord?.repo_id;
         if (!repoId) {
             return;
         }
 
-        const existing = listHallMountedSpokes(registry.getRoot());
+        const existing = database.listHallMountedSpokes(registry.getRoot());
         const existingBySlug = new Map(existing.map((record) => [record.slug, record]));
         const nextSlugs = new Set<string>();
 
         for (const spoke of managedSpokes) {
             nextSlugs.add(spoke.slug);
             const prior = existingBySlug.get(spoke.slug);
-            saveHallMountedSpoke({
+            database.saveHallMountedSpoke({
                 spoke_id: prior?.spoke_id ?? spoke.spoke_id,
                 repo_id: repoId,
                 slug: spoke.slug,
@@ -240,13 +235,13 @@ export class StateRegistry {
 
         for (const stale of existing) {
             if (!nextSlugs.has(stale.slug)) {
-                removeHallMountedSpoke(stale.slug, registry.getRoot());
+                database.removeHallMountedSpoke(stale.slug, registry.getRoot());
             }
         }
     }
 
     private static extractHallProjection(): SovereignStatePatch {
-        const record = getHallRepositoryRecord(registry.getRoot());
+        const record = database.getHallRepository(registry.getRoot());
         const metadata = (record?.metadata ?? {}) as Record<string, unknown>;
         const projection = metadata[this.SOVEREIGN_PROJECTION_KEY] as SovereignProjectionMetadata | undefined;
 
@@ -265,7 +260,7 @@ export class StateRegistry {
     }
 
     private static buildMetadata(state: SovereignState): Record<string, unknown> {
-        const existingMetadata = (getHallRepositoryRecord(registry.getRoot())?.metadata ?? {}) as Record<string, unknown>;
+        const existingMetadata = (database.getHallRepository(registry.getRoot())?.metadata ?? {}) as Record<string, unknown>;
         const { framework, identity, hall_of_records, managed_spokes, operator_console, ...extras } = state;
         const projectedSpokes = this.readHallMountedSpokes();
 
@@ -302,7 +297,7 @@ export class StateRegistry {
         }
 
         try {
-            const hallSummary = getHallSummary(registry.getRoot());
+            const hallSummary = database.getHallSummary(registry.getRoot());
             if (hallSummary) {
                 state.framework = {
                     ...state.framework,
@@ -336,13 +331,13 @@ export class StateRegistry {
 
     static save(state: SovereignState) {
         const materialized = this.ensureStateShape(state);
-        const existingRecord = getHallRepositoryRecord(registry.getRoot());
+        const existingRecord = database.getHallRepository(registry.getRoot());
         const createdAt = existingRecord?.created_at
             ?? materialized.framework.last_awakening
             ?? Date.now();
 
         try {
-            upsertHallRepository({
+            database.saveHallRepository({
                 root_path: registry.getRoot(),
                 name: path.basename(registry.getRoot()),
                 status: materialized.framework.status,

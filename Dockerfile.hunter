@@ -20,7 +20,7 @@ RUN pip install --no-cache-dir \
     python-dotenv
 
 # Copy required core logic
-COPY src/sentinel/_bootstrap.py /app/src/sentinel/
+COPY src/core/bootstrap.py /app/src/sentinel/
 COPY src/tools/brave_search.py /app/src/tools/
 COPY src/core/ui.py /app/src/core/
 

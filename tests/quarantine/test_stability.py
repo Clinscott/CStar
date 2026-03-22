@@ -2,7 +2,7 @@ import time
 
 import pytest
 
-from src.sentinel.stability import GungnirValidator, TheWatcher
+from src.core.engine.ravens.stability import GungnirValidator, TheWatcher
 
 
 def test_gungnir_validator_stable():

@@ -11,7 +11,7 @@ sys.path.append(str(PROJECT_ROOT))
 
 import json
 
-from src.sentinel.muninn import Muninn
+from src.core.engine.ravens.muninn import Muninn
 
 
 class TestMuninnMemoryIdempotency:

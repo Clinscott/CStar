@@ -8,7 +8,7 @@ import { calculateStyleScore } from './calculus/style.ts';
 import { calculateIntelScore } from './calculus/intel.ts';
 import { getFileGravity } from './intel/gravity_db.ts';
 import { registry } from './pathRegistry.ts';
-import { getHallRepositoryRecord } from './intel/database.ts';
+import { getHallRepository } from './intel/database.ts';
 import { createGungnirMatrix, patchGungnirMatrix } from '../../types/gungnir.ts';
 import { FileData } from './types.ts';
 
@@ -276,7 +276,7 @@ function detectEndpoints(code: string, filepath: string): string[] {
  */
 async function getSystemAnomaly(): Promise<number> {
     try {
-        const record = getHallRepositoryRecord(registry.getRoot());
+        const record = getHallRepository(registry.getRoot());
         const metadata = (record?.metadata ?? {}) as {
             sovereign_projection?: {
                 extras?: {

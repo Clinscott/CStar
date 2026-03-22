@@ -13,9 +13,9 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 import { SemanticIndexer } from './intel/semantic.ts';
-import { getHallFileByPath, searchIntents } from './intel/database.ts';
+import { getHallFile, searchIntents } from './intel/database.ts';
 import { registry } from './pathRegistry.ts';
-import { SamplingProvider } from './intel/llm.ts';
+import { requestHostText } from '../../core/host_intelligence.ts';
 import * as fsPromises from 'node:fs/promises';
 
 /**
@@ -28,9 +28,6 @@ const server = new McpServer({
     name: 'pennyone',
     version: '2.5.0',
 });
-
-// [🔱] THE SYNERGY: Link the provider to this server instance for Sampling
-SamplingProvider.registerServer(server);
 
 // --- TELEMETRY ---
 async function logTrace(missionId: string, metric: string, status: string, justification: string) {
@@ -55,6 +52,17 @@ async function logTrace(missionId: string, metric: string, status: string, justi
     }
 }
 
+async function requestPennyOneHostText(prompt: string, systemPrompt: string | undefined, source: string): Promise<string> {
+    const result = await requestHostText({
+        prompt,
+        systemPrompt,
+        projectRoot: registry.getRoot(),
+        source,
+        env: process.env,
+    });
+    return result.text;
+}
+
 // --- TOOLS ---
 
 server.tool(
@@ -64,27 +72,13 @@ server.tool(
         prompt: z.string().describe('The query or reasoning task'),
         systemPrompt: z.string().optional().describe('Optional system instructions'),
     },
-    async ({ prompt, systemPrompt }, extra) => {
-        /**
-         * [🔱] THE SYNAPTIC ASCENSION
-         * We call 'createMessage' (Sampling) on the client (the Shaman's Mind).
-         */
+    async ({ prompt, systemPrompt }) => {
         try {
-            const result = await (extra as any).createMessage({
-                messages: [
-                    {
-                        role: 'user',
-                        content: { type: 'text', text: prompt }
-                    }
-                ],
-                systemPrompt: systemPrompt || "You are the Corvus Star One Mind.",
-                modelPreferences: {
-                    hints: [{ name: process.env.GEMINI_MODEL || 'gemini-2.0-flash' }]
-                }
-            });
-
-            const text = result.content.type === 'text' ? result.content.text : 'The One Mind returned non-textual intelligence.';
-
+            const text = await requestPennyOneHostText(
+                prompt,
+                systemPrompt || 'You are the Corvus Star One Mind.',
+                'pennyone:mcp:think',
+            );
             return {
                 content: [{ type: 'text', text }]
             };
@@ -105,20 +99,17 @@ server.tool(
         system_prompt: z.string().optional().describe('Override the default system prompt for the Oracle.'),
     },
     async ({ query, system_prompt }) => {
-        /**
-         * [ALFRED]: Re-routing to the 'think' logic which uses host sampling.
-         * The 'oracle' skill triggers this tool via cstar.
-         */
-        const cstarPath = path.join(PROJECT_ROOT, 'bin/cstar.js');
-        const args = ['oracle', '--query', query];
-        if (system_prompt) {
-            args.push('--system_prompt', system_prompt);
+        try {
+            const text = await requestPennyOneHostText(query, system_prompt, 'pennyone:mcp:consult_oracle');
+            return {
+                content: [{ type: 'text', text }],
+            };
+        } catch (error: any) {
+            return {
+                content: [{ type: 'text', text: `Host Sampling Failed: ${error.message}` }],
+                isError: true,
+            };
         }
-
-        const { stdout, stderr } = await execa('node', [cstarPath, ...args]);
-        return {
-            content: [{ type: 'text', text: stdout || stderr }],
-        };
     }
 );
 
@@ -187,7 +178,7 @@ server.tool(
     async ({ filepath }) => {
         try {
             const absoluteFile = path.resolve(filepath);
-            const record = getHallFileByPath(absoluteFile, registry.getRoot());
+            const record = getHallFile(absoluteFile, registry.getRoot());
             if (!record) {
                 throw new Error('No Hall projection found for this sector.');
             }

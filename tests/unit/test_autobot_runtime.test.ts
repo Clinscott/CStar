@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
 import type { RuntimeContext } from '../../src/node/core/runtime/contracts.ts';
+import { RUNTIME_KERNEL_ROOT } from '../../src/node/core/runtime/kernel_root.ts';
 import { AutoBotWeave } from '../../src/node/core/runtime/weaves/autobot.ts';
 
 type RunnerCall = {
@@ -76,7 +77,9 @@ describe('AutoBot runtime weave', () => {
         assert.ok(calls[0]?.args.includes('echo PASS'));
         assert.ok(calls[0]?.args.includes('--worker-note'));
         assert.ok(calls[0]?.args.includes('Immediate bead brief from chant.'));
-        assert.equal(calls[0]?.options.cwd, '/tmp/corvusstar');
-        assert.equal(calls[0]?.options.env?.PYTHONPATH, '/tmp/corvusstar');
+        assert.ok(calls[0]?.args.includes('--project-root'));
+        assert.ok(calls[0]?.args.includes('/tmp/corvusstar'));
+        assert.equal(calls[0]?.options.cwd, RUNTIME_KERNEL_ROOT);
+        assert.equal(calls[0]?.options.env?.PYTHONPATH, RUNTIME_KERNEL_ROOT);
     });
 });

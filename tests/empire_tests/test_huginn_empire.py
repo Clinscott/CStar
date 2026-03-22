@@ -10,7 +10,7 @@ PROJECT_ROOT = Path(__file__).parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.sentinel.wardens.huginn import HuginnWarden
+from src.core.engine.wardens.huginn import HuginnWarden
 
 
 class TestHuginnEmpire:
@@ -67,7 +67,7 @@ class TestHuginnEmpire:
             assert breach is not None
             assert "/tmp/suspicious_file.txt" in breach["action"]
 
-    @patch("src.sentinel.wardens.huginn.AntigravityUplink")
+    @patch("src.core.engine.wardens.huginn.AntigravityUplink")
     def test_scan_neural_audit(self, mock_uplink_cls, mock_root):
         """Test neural audit invocation and parsing."""
         trace_file = mock_root / ".agents" / "traces" / "session_latest.md"

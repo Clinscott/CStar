@@ -12,7 +12,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 # Now imports can proceed — AnomalyWarden exists in atomic_gpt.py
-from src.sentinel.muninn import Muninn
+from src.core.engine.ravens.muninn import Muninn
 from tests.harness.manual_learn import run_learning_cycle
 from tests.harness.raven_proxy import RavenProxy
 
@@ -25,7 +25,7 @@ def mock_hud():
 @pytest.fixture
 def muninn_instance(mock_hud):
     with patch("src.cstar.core.uplink.AntigravityUplink"), \
-         patch("src.sentinel.muninn_heart.MuninnHeart"), \
+         patch("src.core.engine.ravens.muninn_heart.MuninnHeart"), \
          patch.dict(os.environ, {"GOOGLE_API_KEY": "MOCK_KEY"}):
 
         m = Muninn(target_path=str(PROJECT_ROOT))
@@ -39,7 +39,7 @@ def test_muninn_api_key_priority(mock_hud):
     }
     with patch.dict(os.environ, env_vars), \
          patch("src.cstar.core.uplink.AntigravityUplink") as mock_uplink, \
-         patch("src.sentinel.muninn_heart.MuninnHeart"):
+         patch("src.core.engine.ravens.muninn_heart.MuninnHeart"):
 
         m = Muninn(target_path=str(PROJECT_ROOT))
         # Ensure AntigravityUplink was initialized with the priority key

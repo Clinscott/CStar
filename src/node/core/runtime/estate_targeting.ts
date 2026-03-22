@@ -1,4 +1,4 @@
-import { getHallMountedSpoke, listHallMountedSpokes } from '../../../tools/pennyone/intel/database.ts';
+import { database } from '../../../tools/pennyone/intel/database.ts';
 import { registry } from '../../../tools/pennyone/pathRegistry.ts';
 import type { TargetDomain, WorkspaceTarget } from './contracts.ts';
 
@@ -33,7 +33,7 @@ export function resolveEstateTarget(target?: WorkspaceTarget): ResolvedEstateTar
             };
         }
 
-        const mounted = getHallMountedSpoke(target.spoke, registry.getRoot());
+        const mounted = database.getHallMountedSpoke(target.spoke, registry.getRoot());
         if (!mounted) {
             throw new Error(`Mounted spoke '${target.spoke}' is not registered in the Hall estate.`);
         }
@@ -48,7 +48,7 @@ export function resolveEstateTarget(target?: WorkspaceTarget): ResolvedEstateTar
     }
 
     if (target.requested_path && registry.isSpokeUri(target.requested_path)) {
-        const mountedSpokes = listHallMountedSpokes(registry.getRoot());
+        const mountedSpokes = database.listHallMountedSpokes(registry.getRoot());
         const { slug } = registry.parseSpokeUri(target.requested_path);
         const mounted = mountedSpokes.find((entry) => entry.slug.toLowerCase() === slug);
         if (!mounted) {
