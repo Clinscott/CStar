@@ -11,7 +11,7 @@ import type {
     WeaveInvocation,
     WeaveResult,
 } from '../../src/node/core/runtime/contracts.ts';
-import { ChantWeave } from '../../src/node/core/runtime/weaves/chant.ts';
+import { ChantWeave } from  '../../src/node/core/runtime/weaves/chant.js';
 import {
     closeDb,
     getDb,
@@ -21,8 +21,8 @@ import {
     saveHallPlanningSession,
     upsertHallBead,
 } from '../../src/tools/pennyone/intel/database.ts';
-import { registry } from '../../src/tools/pennyone/pathRegistry.ts';
-import { buildHallRepositoryId, normalizeHallPath } from '../../src/types/hall.ts';
+import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
+import { buildHallRepositoryId, normalizeHallPath } from  '../../src/types/hall.js';
 
 class CaptureDispatchPort implements RuntimeDispatchPort {
     public invocation: WeaveInvocation<unknown> | null = null;
@@ -180,6 +180,9 @@ describe('Chant AutoBot handoff', () => {
         const now = Date.now();
         const scanId = 'scan-autobot-runtime';
         const db = getDb();
+
+        const repos = db.prepare('SELECT repo_id FROM hall_repositories').all();
+        console.log(`[DEBUG] Test repoId: ${repoId}, DB repos: ${JSON.stringify(repos)}`);
 
         db.prepare(`
             INSERT INTO hall_scans (

@@ -2,24 +2,24 @@ import chalk from 'chalk';
 import readline from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 
-import { StateRegistry, type SovereignState } from '../state.ts';
-import { HUD } from '../hud.ts';
+import { StateRegistry, type SovereignState } from  '../state.js';
+import { HUD } from  '../hud.js';
 import {
     getHallBeads,
     getHallSummary,
     listHallPlanningSessions,
     listHallSkillProposals,
 } from '../../../tools/pennyone/intel/database.ts';
-import { registry } from '../../../tools/pennyone/pathRegistry.ts';
-import type { SovereignBead } from '../../../types/bead.ts';
+import { registry } from  '../../../tools/pennyone/pathRegistry.js';
+import type { SovereignBead } from  '../../../types/bead.js';
 import type {
     HallPlanningSessionRecord,
     HallRepositorySummary,
     HallSkillProposalRecord,
 } from '../../../types/hall.ts';
-import { buildChantInvocation, buildDynamicCommandInvocation } from '../commands/dispatcher.ts';
-import type { RuntimeDispatchPort } from '../runtime/contracts.ts';
-import { resumeHostGovernorIfAvailable, type OperatorResumeResult } from '../operator_resume.ts';
+import { buildChantInvocation, buildDynamicCommandInvocation } from  '../commands/dispatcher.js';
+import type { RuntimeDispatchPort } from  '../runtime/contracts.js';
+import { resumeHostGovernorIfAvailable, type OperatorResumeResult } from  '../operator_resume.js';
 
 type OperatorEventLevel = 'INFO' | 'WARN' | 'FAIL' | 'PASS';
 

@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3';
-import { normalizeHallPath, buildHallRepositoryId } from '../../../types/hall.ts';
+import { normalizeHallPath, buildHallRepositoryId } from  '../../../types/hall.js';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -50,11 +50,13 @@ export function ensureColumn(database: Database.Database, tableName: string, col
 export function ensureHallSchema(database: Database.Database, rootPath: string): void {
     const normalizedRoot = normalizeHallPath(rootPath);
     const repoId = buildHallRepositoryId(normalizedRoot);
+    console.log(`[DEBUG] ensureHallSchema: rootPath=${rootPath}, normalizedRoot=${normalizedRoot}, repoId=${repoId}`);
     const legacyState = getLegacyState(rootPath);
     const framework = legacyState.framework ?? {};
     const now = Date.now();
 
     database.exec(`
+        PRAGMA foreign_keys = ON;
         CREATE TABLE IF NOT EXISTS hall_repositories (
             repo_id TEXT PRIMARY KEY,
             root_path TEXT UNIQUE NOT NULL,
@@ -425,39 +427,30 @@ export function ensureHallSchema(database: Database.Database, rootPath: string):
         FROM hall_repositories r;
     `);
 
-    const existingRepository = database.prepare(`
-        SELECT repo_id
-        FROM hall_repositories
-        WHERE repo_id = ?
-        LIMIT 1
-    `).get(repoId) as { repo_id: string } | undefined;
-
-    if (!existingRepository) {
-        database.prepare(`
-            INSERT INTO hall_repositories (
-                repo_id, root_path, name, status, active_persona, baseline_gungnir_score,
-                intent_integrity, metadata_json, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(
-            repoId,
-            normalizedRoot,
-            path.basename(normalizedRoot),
-            framework.status ?? 'DORMANT',
-            framework.active_persona ?? 'ALFRED',
-            Number(framework.gungnir_score ?? 0),
-            Number(framework.intent_integrity ?? 0),
-            stringifyJson({
-                source: 'legacy-sovereign-projection',
-                sovereign_projection: {
-                    framework: {
-                        last_awakening: Number(framework.last_awakening ?? 0),
-                    },
-                    identity: legacyState.identity ?? undefined,
-                    hall_of_records: legacyState.hall_of_records ?? undefined,
+    database.prepare(`
+        INSERT OR IGNORE INTO hall_repositories (
+            repo_id, root_path, name, status, active_persona, baseline_gungnir_score,
+            intent_integrity, metadata_json, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+        repoId,
+        normalizedRoot,
+        path.basename(normalizedRoot),
+        framework.status ?? 'DORMANT',
+        framework.active_persona ?? 'ALFRED',
+        Number(framework.gungnir_score ?? 0),
+        Number(framework.intent_integrity ?? 0),
+        stringifyJson({
+            source: 'legacy-sovereign-projection',
+            sovereign_projection: {
+                framework: {
+                    last_awakening: Number(framework.last_awakening ?? 0),
                 },
-            }),
-            Number(framework.last_awakening ?? 0),
-            now,
-        );
-    }
+                identity: legacyState.identity ?? undefined,
+                hall_of_records: legacyState.hall_of_records ?? undefined,
+            },
+        }),
+        Number(framework.last_awakening ?? 0),
+        now,
+    );
 }

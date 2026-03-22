@@ -12,7 +12,7 @@ import { registry } from '../pathRegistry.js';
 import path from 'node:path';
 
 export function saveHallSkillObservation(record: HallSkillObservation): void {
-    const db = database.getDb('.');
+    const db = database.getDb();
     db.prepare(`
         INSERT INTO hall_skill_observations (
             observation_id, repo_id, skill_id, outcome, observation, created_at, metadata_json
@@ -33,7 +33,7 @@ export function saveHallSkillObservation(record: HallSkillObservation): void {
 }
 
 export function saveHallPlanningSession(record: HallPlanningSessionRecord): void {
-    const db = database.getDb('.');
+    const db = database.getDb();
     db.prepare(`
         INSERT INTO hall_planning_sessions (
             session_id, repo_id, skill_id, status, user_intent, normalized_intent,
@@ -67,7 +67,7 @@ export function saveHallPlanningSession(record: HallPlanningSessionRecord): void
 }
 
 export function saveHallSkillProposal(record: HallSkillProposalRecord): void {
-    const db = database.getDb('.');
+    const db = database.getDb();
     db.prepare(`
         INSERT INTO hall_skill_proposals (
             proposal_id, repo_id, skill_id, bead_id, validation_id, target_path, contract_path,
@@ -109,7 +109,7 @@ export function saveHallSkillProposal(record: HallSkillProposalRecord): void {
 }
 
 export function getHallSkillProposal(proposalId: string): HallSkillProposalRecord | null {
-    const db = database.getDb('.');
+    const db = database.getDb();
     const row = db.prepare(`
         SELECT proposal_id, repo_id, skill_id, bead_id, validation_id, target_path, contract_path,
                proposal_path, status, summary, promotion_note, promoted_at, promoted_by,
@@ -144,7 +144,7 @@ export function getHallSkillProposal(proposalId: string): HallSkillProposalRecor
 }
 
 export function getHallPlanningSession(sessionId: string): HallPlanningSessionRecord | null {
-    const db = database.getDb('.');
+    const db = database.getDb();
     const row = db.prepare(`
         SELECT session_id, repo_id, skill_id, status, user_intent, normalized_intent,
                summary, latest_question, architect_opinion, current_bead_id, created_at, updated_at, metadata_json
@@ -181,7 +181,7 @@ export function listHallSkillProposals(
         statuses?: HallSkillProposalRecord['status'][];
     } = {},
 ): HallSkillProposalRecord[] {
-    const db = database.getDb('.');
+    const db = database.getDb();
     const repoId = buildHallRepositoryId(normalizeHallPath(rootPath));
     const params: Array<string> = [repoId];
     let sql = `
@@ -229,7 +229,7 @@ export function listHallPlanningSessions(
         statuses?: HallPlanningSessionStatus[];
     } = {},
 ): HallPlanningSessionRecord[] {
-    const db = database.getDb('.');
+    const db = database.getDb();
     const repoId = buildHallRepositoryId(normalizeHallPath(rootPath));
     const params: Array<string> = [repoId];
     let sql = `
@@ -263,7 +263,7 @@ export function listHallPlanningSessions(
 }
 
 export function registerSpoke(targetRepo: string): number {
-    const db = database.getDb('.');
+    const db = database.getDb();
     const normalizedRepo = path.resolve(targetRepo).replace(/\\/g, '/');
     const spokeName = path.basename(normalizedRepo);
 
@@ -288,7 +288,7 @@ export async function savePing(ping: AgentPing, targetRepo: string) {
     const sanitizedAction = validActions.includes(ping.action) ? ping.action : 'THINK';
 
     const spokeId = registerSpoke(targetRepo);
-    const db = database.getDb('.');
+    const db = database.getDb();
     const oneHourAgo = Date.now() - (60 * 60 * 1000);
 
     let session = db.prepare('SELECT id FROM sessions WHERE agent_id = ? AND spoke_id = ? AND start_timestamp > ? ORDER BY id DESC LIMIT 1')
@@ -308,7 +308,7 @@ export async function savePing(ping: AgentPing, targetRepo: string) {
 }
 
 export function getSessionsWithSummaries(targetRepo: string): Record<string, unknown>[] {
-    const db = database.getDb('.');
+    const db = database.getDb();
     const normalizedRepo = path.resolve(targetRepo).replace(/\\/g, '/');
 
     const sessions = db.prepare(`
@@ -335,13 +335,13 @@ export function getSessionsWithSummaries(targetRepo: string): Record<string, unk
 }
 
 export function getSessionPings(sessionId: number, _targetRepo: string): AgentPing[] {
-    const db = database.getDb('.');
+    const db = database.getDb();
     return db.prepare('SELECT agent_id, action, target_path, timestamp FROM pings WHERE session_id = ? ORDER BY timestamp ASC')
         .all(sessionId) as AgentPing[];
 }
 
 export function getRecentSessions(limit: number = 20): any[] {
-    const db = database.getDb('.');
+    const db = database.getDb();
     return db.prepare(`
         SELECT s.*, sp.name as spoke_name, sp.root_path as spoke_path
         FROM sessions s
@@ -352,7 +352,7 @@ export function getRecentSessions(limit: number = 20): any[] {
 }
 
 export function getPingsForSession(sessionId: number): any[] {
-    const db = database.getDb('.');
+    const db = database.getDb();
     return db.prepare(`
         SELECT * FROM pings 
         WHERE session_id = ? 

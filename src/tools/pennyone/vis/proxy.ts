@@ -5,12 +5,12 @@ import { WebSocketServer, WebSocket } from 'ws';
 import path from 'node:path';
 import fs from 'node:fs';
 import chalk from 'chalk';
-import { registry } from '../pathRegistry.ts';
-import { activePersona } from '../personaRegistry.ts';
+import { registry } from  '../pathRegistry.js';
+import { activePersona } from  '../personaRegistry.js';
 import { fileURLToPath } from 'node:url';
 import crypto from 'node:crypto';
-import { savePing, saveTrace, getTracesForFile } from '../intel/database.ts';
-import { buildEstateTopology, readProjectedMatrixGraph } from '../intel/compiler.ts';
+import { savePing, saveTrace, getTracesForFile } from  '../intel/database.js';
+import { buildEstateTopology, readProjectedMatrixGraph } from  '../intel/compiler.js';
 
 /**
  * P1 Visualization Proxy (v2.0)

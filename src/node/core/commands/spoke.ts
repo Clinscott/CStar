@@ -3,15 +3,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import chalk from 'chalk';
 
-import { resolveWorkspaceRoot, type WorkspaceRootSource } from '../runtime/invocation.ts';
-import { StateRegistry } from '../state.ts';
+import { resolveWorkspaceRoot, type WorkspaceRootSource } from  '../runtime/invocation.js';
+import { StateRegistry } from  '../state.js';
 import {
     getHallRepository,
     listHallMountedSpokes,
     removeHallMountedSpoke,
     saveHallMountedSpoke,
 } from '../../../tools/pennyone/intel/database.ts';
-import { registry } from '../../../tools/pennyone/pathRegistry.ts';
+import { registry } from  '../../../tools/pennyone/pathRegistry.js';
 
 function normalizeSlug(input: string): string {
     return input.trim().toLowerCase().replace(/[^a-z0-9._-]+/g, '-');

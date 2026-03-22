@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert';
-import { updateFtsIndex, searchIntents, getRecentSessions, getPingsForSession, getDb } from '../../src/tools/pennyone/intel/database.ts';
+import { updateFtsIndex, searchIntents, getRecentSessions, getPingsForSession, getDb } from  '../../src/tools/pennyone/intel/database.js';
 
 test('Well of Mimir FTS5 Operations', async () => {
     const testPath = 'src/core/annex.py';

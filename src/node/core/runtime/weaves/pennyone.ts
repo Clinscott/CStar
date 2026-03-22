@@ -3,13 +3,13 @@ import fsPromises from 'node:fs/promises';
 import { join } from 'node:path';
 import { execa } from 'execa';
 
-import { runScan } from '../../../../tools/pennyone/index.ts';
-import { buildEstateTopology, writeProjectedMatrixGraph } from '../../../../tools/pennyone/intel/compiler.ts';
-import { database } from '../../../../tools/pennyone/intel/database.ts';
-import { importRepositoryIntoEstate } from '../../../../tools/pennyone/intel/importer.ts';
-import { searchMatrix } from '../../../../tools/pennyone/live/search.ts';
-import { registry } from '../../../../tools/pennyone/pathRegistry.ts';
-import { resolveTargetPath } from '../adapters/ravens_utils.ts';
+import { runScan } from  '../../../../tools/pennyone/index.js';
+import { buildEstateTopology, writeProjectedMatrixGraph } from  '../../../../tools/pennyone/intel/compiler.js';
+import { database } from  '../../../../tools/pennyone/intel/database.js';
+import { importRepositoryIntoEstate } from  '../../../../tools/pennyone/intel/importer.js';
+import { searchMatrix } from  '../../../../tools/pennyone/live/search.js';
+import { registry } from  '../../../../tools/pennyone/pathRegistry.js';
+import { resolveTargetPath } from  '../adapters/ravens_utils.js';
 import {
     PennyOneWeavePayload,
     RuntimeAdapter,

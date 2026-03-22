@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert';
-import { getTracesForFile, saveTrace } from '../src/tools/pennyone/intel/database';
+import { getTracesForFile, saveTrace } from  '../src/tools/pennyone/intel/database.js';
 
 test('Neural Trajectory Database Logic', async () => {
     const testFile = 'src/core/test_logic.py';

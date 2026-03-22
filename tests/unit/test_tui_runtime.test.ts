@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { renderOperatorShell, shouldLaunchOperatorTui, type OperatorSnapshot } from '../../src/node/core/tui/operator_tui.ts';
+import { renderOperatorShell, shouldLaunchOperatorTui, type OperatorSnapshot } from  '../../src/node/core/tui/operator_tui.js';
 
 function stripAnsi(value: string): string {
     return value.replace(/\x1B\[[0-9;]*[A-Za-z]/g, '');

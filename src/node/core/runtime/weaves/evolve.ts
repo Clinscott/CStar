@@ -3,7 +3,7 @@ import path from 'node:path';
 
 import { execa } from 'execa';
 
-import type { EvolveWeaveMetadata, EvolveWeavePayload, RuntimeAdapter, RuntimeContext, WeaveInvocation, WeaveResult } from '../contracts.ts';
+import type { EvolveWeaveMetadata, EvolveWeavePayload, RuntimeAdapter, RuntimeContext, WeaveInvocation, WeaveResult } from  '../contracts.js';
 
 function resolvePythonPath(projectRoot: string): string {
     const windows = path.join(projectRoot, '.venv', 'Scripts', 'python.exe');

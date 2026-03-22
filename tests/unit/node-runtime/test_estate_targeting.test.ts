@@ -1,8 +1,8 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveEstateTarget } from '../../../src/node/core/runtime/estate_targeting.ts';
-import { registry } from '../../../src/tools/pennyone/pathRegistry.ts';
-import { database } from '../../../src/tools/pennyone/intel/database.ts';
+import { resolveEstateTarget } from  '../../../src/node/core/runtime/estate_targeting.js';
+import { registry } from  '../../../src/tools/pennyone/pathRegistry.js';
+import { database } from  '../../../src/tools/pennyone/intel/database.js';
 
 describe('Estate Targeting Unit Tests', () => {
     it('should resolve the root workspace when target is undefined', () => {

@@ -1,4 +1,4 @@
-import { buildHallRepositoryId, normalizeHallPath } from './hall.ts';
+import { buildHallRepositoryId, normalizeHallPath } from  './hall.js';
 
 export type RavensStageName = 'memory' | 'hunt' | 'validate' | 'promote';
 export type RavensStageStatus = 'SUCCESS' | 'FAILURE' | 'SKIPPED' | 'NO_ACTION' | 'TRANSITIONAL';

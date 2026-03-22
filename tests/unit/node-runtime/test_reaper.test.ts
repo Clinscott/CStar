@@ -1,7 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
-import { OrchestratorReaper } from '../../../src/node/core/runtime/reaper.ts';
-import { database } from '../../../src/tools/pennyone/intel/database.ts';
+import { OrchestratorReaper } from  '../../../src/node/core/runtime/reaper.js';
+import { database } from  '../../../src/tools/pennyone/intel/database.js';
 
 describe('Orchestrator Reaper Unit Tests', () => {
     it('should map success to READY_FOR_REVIEW', async () => {

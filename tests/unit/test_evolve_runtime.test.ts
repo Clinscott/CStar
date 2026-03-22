@@ -2,9 +2,9 @@ import path from 'node:path';
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { buildEvolveInvocation } from '../../src/node/core/commands/dispatcher.ts';
-import { EvolveWeave } from '../../src/node/core/runtime/weaves/evolve.ts';
-import type { RuntimeContext } from '../../src/node/core/runtime/contracts.ts';
+import { buildEvolveInvocation } from  '../../src/node/core/commands/dispatcher.js';
+import { EvolveWeave } from  '../../src/node/core/runtime/weaves/evolve.js';
+import type { RuntimeContext } from  '../../src/node/core/runtime/contracts.js';
 
 const workspaceRoot = 'C:\\Users\\Craig\\Corvus\\CorvusStar';
 const spokeRoot = 'C:\\estate\\KeepOS';

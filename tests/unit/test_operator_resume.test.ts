@@ -1,8 +1,8 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { resumeHostGovernorIfAvailable } from '../../src/node/core/operator_resume.ts';
-import type { RuntimeDispatchPort, WeaveInvocation, WeaveResult } from '../../src/node/core/runtime/contracts.ts';
+import { resumeHostGovernorIfAvailable } from  '../../src/node/core/operator_resume.js';
+import type { RuntimeDispatchPort, WeaveInvocation, WeaveResult } from  '../../src/node/core/runtime/contracts.js';
 
 class CaptureDispatchPort implements RuntimeDispatchPort {
     public invocation: WeaveInvocation<unknown> | null = null;

@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { BddMaster } from '../../src/node/core/bdd_master.ts';
-import { CortexLink } from '../../src/node/cortex_link.ts';
+import { BddMaster } from  '../../src/node/core/bdd_master.js';
+import { CortexLink } from  '../../src/node/cortex_link.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const FEATURE_PATH = path.join(__dirname, '../features/ipc_handshake_empire.feature');

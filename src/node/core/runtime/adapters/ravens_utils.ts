@@ -1,6 +1,6 @@
 import { isAbsolute, resolve } from 'node:path';
-import { listHallMountedSpokes } from '../../../../tools/pennyone/intel/database.ts';
-import { registry } from '../../../../tools/pennyone/pathRegistry.ts';
+import { listHallMountedSpokes } from  '../../../../tools/pennyone/intel/database.js';
+import { registry } from  '../../../../tools/pennyone/pathRegistry.js';
 
 export const deps = {
     listHallMountedSpokes,

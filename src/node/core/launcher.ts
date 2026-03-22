@@ -2,7 +2,7 @@ import path from 'node:path';
 
 import type { Command } from 'commander';
 
-import { registry } from '../../tools/pennyone/pathRegistry.ts';
+import { registry } from  '../../tools/pennyone/pathRegistry.js';
 
 function readRootArg(argv: string[]): string | undefined {
     for (let index = 0; index < argv.length; index += 1) {

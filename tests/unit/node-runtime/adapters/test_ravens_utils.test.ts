@@ -1,6 +1,6 @@
 import { test, describe, beforeEach } from 'node:test';
 import assert from 'node:assert';
-import { normalizeRepoRoot, loadRavensSweepTargets, resolveTargetPath, deps } from '../../../../src/node/core/runtime/adapters/ravens_utils.ts';
+import { normalizeRepoRoot, loadRavensSweepTargets, resolveTargetPath, deps } from  '../../../../src/node/core/runtime/adapters/ravens_utils.js';
 
 describe('ravens_utils', () => {
     beforeEach(() => {

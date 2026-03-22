@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { materializeNeuralData } from '../../src/tools/pennyone/vis/logic/useNeuralData.ts';
+import { materializeNeuralData } from  '../../src/tools/pennyone/vis/logic/useNeuralData.js';
 
 describe('PennyOne consumer contract hardening (CS-P5-03)', () => {
     it('materializes nodes from the canonical projection envelope without graph-era assumptions', () => {

@@ -4,8 +4,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { resolveWorkspaceSelection, selectWorkspaceRoot } from '../../src/node/core/launcher.ts';
-import { registry } from '../../src/tools/pennyone/pathRegistry.ts';
+import { resolveWorkspaceSelection, selectWorkspaceRoot } from  '../../src/node/core/launcher.js';
+import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
 
 describe('Launcher workspace selection (CS-P7-01)', () => {
     it('detects a workspace root from the launch cwd when invoked inside a repo', () => {

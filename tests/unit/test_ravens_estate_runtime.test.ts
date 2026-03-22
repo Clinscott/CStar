@@ -4,11 +4,11 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { RavensAdapter } from '../../src/node/core/runtime/adapters.ts';
-import type { RuntimeContext } from '../../src/node/core/runtime/contracts.ts';
-import { registry } from '../../src/tools/pennyone/pathRegistry.ts';
-import { closeDb, getHallRepositoryRecord, saveHallMountedSpoke } from '../../src/tools/pennyone/intel/database.ts';
-import { StateRegistry } from '../../src/node/core/state.ts';
+import { RavensAdapter } from  '../../src/node/core/runtime/adapters.js';
+import type { RuntimeContext } from  '../../src/node/core/runtime/contracts.js';
+import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
+import { closeDb, getHallRepositoryRecord, saveHallMountedSpoke } from  '../../src/tools/pennyone/intel/database.js';
+import { StateRegistry } from  '../../src/node/core/state.js';
 
 function createContext(workspaceRoot: string): RuntimeContext {
     return {

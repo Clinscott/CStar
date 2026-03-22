@@ -4,11 +4,11 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { ChantWeave } from '../../src/node/core/runtime/weaves/chant.ts';
-import type { RuntimeDispatchPort, RuntimeContext, WeaveInvocation, WeaveResult } from '../../src/node/core/runtime/contracts.ts';
-import { closeDb, getHallPlanningSession, saveHallPlanningSession } from '../../src/tools/pennyone/intel/database.ts';
-import { registry } from '../../src/tools/pennyone/pathRegistry.ts';
-import { buildHallRepositoryId, normalizeHallPath } from '../../src/types/hall.ts';
+import { ChantWeave } from  '../../src/node/core/runtime/weaves/chant.js';
+import type { RuntimeDispatchPort, RuntimeContext, WeaveInvocation, WeaveResult } from  '../../src/node/core/runtime/contracts.js';
+import { closeDb, getHallPlanningSession, saveHallPlanningSession } from  '../../src/tools/pennyone/intel/database.js';
+import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
+import { buildHallRepositoryId, normalizeHallPath } from  '../../src/types/hall.js';
 
 class NoopDispatchPort implements RuntimeDispatchPort {
     public async dispatch<T>(invocation: WeaveInvocation<T>): Promise<WeaveResult> {

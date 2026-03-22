@@ -1,7 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
-import { StartAdapter, DynamicCommandAdapter } from '../../../src/node/core/runtime/adapters.ts';
-import { RuntimeContext, WeaveInvocation } from '../../../src/node/core/runtime/contracts.ts';
+import { StartAdapter, DynamicCommandAdapter } from  '../../../src/node/core/runtime/adapters.js';
+import { RuntimeContext, WeaveInvocation } from  '../../../src/node/core/runtime/contracts.js';
 
 describe('Runtime Adapters', () => {
     describe('StartAdapter', () => {

@@ -1,7 +1,7 @@
-import { runScan } from '../../../src/tools/pennyone/index.ts';
+import { runScan } from  '../../../src/tools/pennyone/index.js';
 import fs from 'fs/promises';
 import path from 'path';
-import { registry } from '../../../src/tools/pennyone/pathRegistry.ts';
+import { registry } from  '../../../src/tools/pennyone/pathRegistry.js';
 
 /**
  * [Ω] Interaction Protocol Verification

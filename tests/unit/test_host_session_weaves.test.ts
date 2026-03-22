@@ -4,14 +4,14 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import type { RuntimeContext, RuntimeDispatchPort, WeaveInvocation, WeaveResult } from '../../src/node/core/runtime/contracts.ts';
-import { ArchitectWeave } from '../../src/node/core/runtime/weaves/architect.ts';
-import { CompressWeave } from '../../src/node/core/runtime/weaves/compress.ts';
-import { CritiqueWeave } from '../../src/node/core/runtime/weaves/critique.ts';
-import { ResearchWeave } from '../../src/node/core/runtime/weaves/research.ts';
-import { closeDb, getHallEpisodicMemory, upsertHallBead, upsertHallRepository } from '../../src/tools/pennyone/intel/database.ts';
-import { registry } from '../../src/tools/pennyone/pathRegistry.ts';
-import { buildHallRepositoryId } from '../../src/types/hall.ts';
+import type { RuntimeContext, RuntimeDispatchPort, WeaveInvocation, WeaveResult } from  '../../src/node/core/runtime/contracts.js';
+import { ArchitectWeave } from  '../../src/node/core/runtime/weaves/architect.js';
+import { CompressWeave } from  '../../src/node/core/runtime/weaves/compress.js';
+import { CritiqueWeave } from  '../../src/node/core/runtime/weaves/critique.js';
+import { ResearchWeave } from  '../../src/node/core/runtime/weaves/research.js';
+import { closeDb, getHallEpisodicMemory, upsertHallBead, upsertHallRepository } from  '../../src/tools/pennyone/intel/database.js';
+import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
+import { buildHallRepositoryId } from  '../../src/types/hall.js';
 
 class NoopDispatchPort implements RuntimeDispatchPort {
     public async dispatch<T>(invocation: WeaveInvocation<T>): Promise<WeaveResult> {

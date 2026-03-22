@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import * as path from 'node:path';
 
 // Import the module to test and its dependencies
-import { runSyncSlice } from '../../../../src/node/core/runtime/sync_slice.ts';
+import { runSyncSlice } from  '../../../../src/node/core/runtime/sync_slice.js';
 
 // Import fs directly - we will stub its methods
 import * as fs from 'node:fs'; 

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Node, Link } from '../types/index.ts';
+import { Node, Link } from  '../types/index.js';
 
 interface MatrixFilePayload {
     path?: string;

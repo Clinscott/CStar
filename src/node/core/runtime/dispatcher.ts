@@ -6,11 +6,11 @@ import {
     RuntimeAdapter,
     RuntimeDispatchPort,
 } from './contracts.ts';
-import { StateRegistry } from '../state.ts';
-import { activePersona } from '../../../tools/pennyone/personaRegistry.ts';
-import { registry } from '../../../tools/pennyone/pathRegistry.ts';
-import { getGungnirOverall } from '../../../types/gungnir.ts';
-import { resolveEstateTarget } from './estate_targeting.ts';
+import { StateRegistry } from  '../state.js';
+import { activePersona } from  '../../../tools/pennyone/personaRegistry.js';
+import { registry } from  '../../../tools/pennyone/pathRegistry.js';
+import { getGungnirOverall } from  '../../../types/gungnir.js';
+import { resolveEstateTarget } from  './estate_targeting.js';
 
 /**
  * [Ω] THE CANONICAL RUNTIME DISPATCHER (v1.0)

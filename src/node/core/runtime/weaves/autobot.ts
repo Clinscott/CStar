@@ -11,7 +11,7 @@ import type {
     WeaveInvocation,
     WeaveResult,
 } from '../contracts.ts';
-import { RUNTIME_KERNEL_ROOT } from '../kernel_root.ts';
+import { RUNTIME_KERNEL_ROOT } from  '../kernel_root.js';
 
 function resolvePythonPath(projectRoot: string): string {
     const windows = path.join(projectRoot, '.venv', 'Scripts', 'python.exe');

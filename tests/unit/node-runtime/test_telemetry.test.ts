@@ -1,6 +1,6 @@
 import { test, describe, beforeEach } from 'node:test';
 import assert from 'node:assert';
-import { OrchestratorTelemetryBridge, deps } from '../../../src/node/core/runtime/telemetry.ts';
+import { OrchestratorTelemetryBridge, deps } from  '../../../src/node/core/runtime/telemetry.js';
 
 describe('OrchestratorTelemetryBridge', () => {
     let mockDb: any;

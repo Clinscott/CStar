@@ -1,9 +1,9 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { buildTaliesinForgeInvocation } from '../../src/node/core/commands/dispatcher.ts';
-import type { RuntimeContext } from '../../src/node/core/runtime/contracts.ts';
-import { TaliesinForgeWeave } from '../../src/node/core/runtime/weaves/taliesin_forge.ts';
+import { buildTaliesinForgeInvocation } from  '../../src/node/core/commands/dispatcher.js';
+import type { RuntimeContext } from  '../../src/node/core/runtime/contracts.js';
+import { TaliesinForgeWeave } from  '../../src/node/core/runtime/weaves/taliesin_forge.js';
 
 function createContext(workspaceRoot: string): RuntimeContext {
     return {

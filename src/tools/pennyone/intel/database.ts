@@ -1,4 +1,5 @@
 import { join } from 'node:path';
+import fs from 'node:fs';
 import { 
     upsertHallBead, 
     getHallBead, 
@@ -11,36 +12,46 @@ import {
     upsertBeadCritique,
     getBeadCritiques,
     getEpisodicMemory,
+    getEpisodicMemoryById,
     saveEpisodicMemory,
     getValidationRuns,
-    saveValidationRun
+    getTracesForFile,
+    saveValidationRun,
+    saveTrace
 } from './bead_controller.js';
 import { 
     getHallPlanningSession, 
     saveHallPlanningSession, 
-    listHallPlanningSessions as getHallPlanningSessions,
+    listHallPlanningSessions,
     saveHallSkillProposal,
     getHallSkillProposal,
-    listHallSkillProposals as getSkillProposals,
+    listHallSkillProposals,
     getSessionsWithSummaries as getRecentAgentPings,
     registerSpoke,
-    saveHallSkillObservation
+    saveHallSkillObservation,
+    savePing,
+    getSessionPings,
+    getRecentSessions,
+    getPingsForSession
 } from './session_manager.js';
 import { 
-    getHallRepositoryRecord as getHallRepository, 
-    upsertHallRepository as saveHallRepository, 
-    recordHallScan as saveHallScan,
-    getHallFileByPath as getHallFile,
-    recordHallFile as saveHallFile,
+    getHallRepositoryRecord, 
+    upsertHallRepository, 
+    recordHallScan,
+    getHallFileByPath,
+    recordHallFile,
     getHallFiles,
     getLatestHallScanId,
-    saveHallGitCommit as saveHallGitHistory,
+    saveHallGitCommit,
     saveHallGitDiff,
-    acquireLease as acquireHallLease,
-    releaseLease as releaseHallLease,
+    getHallGitHistory,
+    acquireLease,
+    releaseLease,
     getHallMountedSpoke,
     listHallMountedSpokes,
     saveHallMountedSpoke,
+    removeHallMountedSpoke,
+    migrateLegacyHallRecords,
     getHallSummary,
     updateFtsIndex,
     updateChronicleIndex,
@@ -48,24 +59,35 @@ import {
 } from './repository_manager.js';
 import { ensureHallSchema } from './schema.js';
 import Database from 'better-sqlite3';
+import { registry } from '../pathRegistry.js';
 
 export class HallDatabase {
-    private db: Database.Database | undefined;
+    private dbs: Map<string, Database.Database> = new Map();
 
-    public getDb(rootPath: string): Database.Database {
-        if (!this.db) {
-            const dbPath = join(rootPath, '.stats', 'pennyone.db');
-            this.db = new Database(dbPath);
-            ensureHallSchema(this.db, rootPath);
+    public getDb(rootPath: string = registry.getRoot()): Database.Database {
+        const normalizedRoot = rootPath.replace(/\\/g, '/').replace(/\/+$/, '');
+        if (this.dbs.has(normalizedRoot)) {
+            return this.dbs.get(normalizedRoot)!;
         }
-        return this.db;
+
+        const statsDir = join(rootPath, '.stats');
+        if (!fs.existsSync(statsDir)) {
+            fs.mkdirSync(statsDir, { recursive: true });
+        }
+        const dbPath = join(statsDir, 'pennyone.db');
+        const db = new Database(dbPath);
+        this.dbs.set(normalizedRoot, db);
+        
+        ensureHallSchema(db, rootPath);
+        
+        return db;
     }
 
     public close(): void {
-        if (this.db) {
-            this.db.close();
-            this.db = undefined;
+        for (const db of this.dbs.values()) {
+            db.close();
         }
+        this.dbs.clear();
     }
 
     // Facade Methods
@@ -85,24 +107,24 @@ export class HallDatabase {
     public saveValidationRun = saveValidationRun;
     public getHallPlanningSession = getHallPlanningSession;
     public saveHallPlanningSession = saveHallPlanningSession;
-    public getHallPlanningSessions = getHallPlanningSessions;
+    public listHallPlanningSessions = listHallPlanningSessions;
     public saveHallSkillProposal = saveHallSkillProposal;
-    public getSkillProposals = getSkillProposals;
+    public listHallSkillProposals = listHallSkillProposals;
     public getHallSkillProposal = getHallSkillProposal;
     public getRecentAgentPings = getRecentAgentPings;
     public registerSpoke = registerSpoke;
     public saveHallSkillObservation = saveHallSkillObservation;
-    public getHallRepository = getHallRepository;
-    public saveHallRepository = saveHallRepository;
-    public saveHallScan = saveHallScan;
-    public getHallFile = getHallFile;
-    public saveHallFile = saveHallFile;
+    public getHallRepository = getHallRepositoryRecord;
+    public saveHallRepository = upsertHallRepository;
+    public saveHallScan = recordHallScan;
+    public getHallFile = getHallFileByPath;
+    public saveHallFile = recordHallFile;
     public getHallFiles = getHallFiles;
     public getLatestHallScanId = getLatestHallScanId;
-    public saveHallGitHistory = saveHallGitHistory;
+    public saveHallGitHistory = saveHallGitCommit;
     public saveHallGitDiff = saveHallGitDiff;
-    public acquireHallLease = acquireHallLease;
-    public releaseHallLease = releaseHallLease;
+    public acquireHallLease = acquireLease;
+    public releaseHallLease = releaseLease;
     public getHallMountedSpoke = getHallMountedSpoke;
     public listHallMountedSpokes = listHallMountedSpokes;
     public saveHallMountedSpoke = saveHallMountedSpoke;
@@ -114,6 +136,22 @@ export class HallDatabase {
 }
 
 export const database = new HallDatabase();
+
+/**
+ * [Ω] STANDALONE DB ACCESS (Legacy/Facade)
+ * Returns the global database instance for a given root path.
+ */
+export function getDb(rootPath: string = registry.getRoot()): Database.Database {
+    return database.getDb(rootPath);
+}
+
+/**
+ * [Ω] STANDALONE DB DISPOSAL (Legacy/Facade)
+ * Closes the global database instance.
+ */
+export function closeDb(): void {
+    database.close();
+}
 
 // Re-export all controller logic with unified names for backward compatibility
 export {
@@ -128,32 +166,54 @@ export {
     upsertBeadCritique,
     getBeadCritiques,
     getEpisodicMemory,
+    getEpisodicMemory as getHallEpisodicMemory,
+    getEpisodicMemory as listHallEpisodicMemory,
+    getEpisodicMemoryById,
     saveEpisodicMemory,
+    saveEpisodicMemory as saveHallEpisodicMemory,
     getValidationRuns,
+    getTracesForFile,
     saveValidationRun,
+    saveValidationRun as saveHallValidationRun,
+    saveTrace,
     getHallPlanningSession,
     saveHallPlanningSession,
-    getHallPlanningSessions,
+    listHallPlanningSessions,
+    listHallPlanningSessions as getHallPlanningSessions,
     saveHallSkillProposal,
-    getSkillProposals,
+    listHallSkillProposals,
+    listHallSkillProposals as getSkillProposals,
     getHallSkillProposal,
     getRecentAgentPings,
     registerSpoke,
     saveHallSkillObservation,
-    getHallRepository,
-    saveHallRepository,
-    saveHallScan,
-    getHallFile,
-    saveHallFile,
+    savePing,
+    getSessionPings,
+    getRecentSessions,
+    getPingsForSession,
+    getHallRepositoryRecord,
+    getHallRepositoryRecord as getHallRepository,
+    upsertHallRepository,
+    upsertHallRepository as saveHallRepository,
+    recordHallScan,
+    recordHallScan as saveHallScan,
+    getHallFileByPath,
+    getHallFileByPath as getHallFile,
+    recordHallFile,
+    recordHallFile as saveHallFile,
     getHallFiles,
     getLatestHallScanId,
-    saveHallGitHistory,
+    saveHallGitCommit,
+    saveHallGitCommit as saveHallGitHistory,
     saveHallGitDiff,
-    acquireHallLease,
-    releaseHallLease,
+    getHallGitHistory,
+    acquireLease as acquireHallLease,
+    releaseLease as releaseHallLease,
     getHallMountedSpoke,
     listHallMountedSpokes,
     saveHallMountedSpoke,
+    removeHallMountedSpoke,
+    migrateLegacyHallRecords,
     getHallSummary,
     updateFtsIndex,
     updateChronicleIndex,

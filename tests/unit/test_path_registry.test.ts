@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { registry } from '../../src/tools/pennyone/pathRegistry.ts';
+import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
 
 describe('Estate path registry (CS-P7-04)', () => {
     it('resolves spoke URIs through explicit mounted spoke roots', () => {

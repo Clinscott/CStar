@@ -2,9 +2,9 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { join } from 'node:path';
 
-import { RuntimeDispatcher } from '../runtime/dispatcher.ts';
-import { RuntimeDispatchPort, StartWeavePayload, WeaveInvocation, WeaveResult } from '../runtime/contracts.ts';
-import { resolveWorkspaceRoot, withCliWorkspaceTarget, type WorkspaceRootSource } from '../runtime/invocation.ts';
+import { RuntimeDispatcher } from  '../runtime/dispatcher.js';
+import { RuntimeDispatchPort, StartWeavePayload, WeaveInvocation, WeaveResult } from  '../runtime/contracts.js';
+import { resolveWorkspaceRoot, withCliWorkspaceTarget, type WorkspaceRootSource } from  '../runtime/invocation.js';
 
 function renderResult(result: WeaveResult): void {
     if (result.status === 'FAILURE') {

@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { requestHostText } from '../../src/core/host_intelligence.ts';
+import { requestHostText } from  '../../src/core/host_intelligence.js';
 
 describe('Host intelligence bridge (CS-P1-02)', () => {
     it('forces host-session transport through the shared Mimir bridge', async () => {

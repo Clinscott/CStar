@@ -4,7 +4,7 @@ import {
     createGungnirMatrix,
     type GungnirMatrix,
 } from './gungnir.ts';
-import type { HallValidationRun } from './hall.ts';
+import type { HallValidationRun } from  './hall.js';
 
 export type ValidationVerdict = 'ACCEPTED' | 'REJECTED' | 'INCONCLUSIVE';
 export type BenchmarkStatus = 'PASS' | 'FAIL' | 'SKIPPED';

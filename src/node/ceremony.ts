@@ -3,11 +3,11 @@ import fs from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { activePersona } from '../tools/pennyone/personaRegistry.js';
-import { getHallSummary } from '../tools/pennyone/intel/database.ts';
+import { getHallSummary } from  '../tools/pennyone/intel/database.js';
 import { ANS } from './core/ans.js';
 import { HUD } from './core/hud.js';
-import { StateRegistry } from './core/state.ts';
-import { getHostMindLabel, isHostSessionActive, resolveHostProvider } from '../core/host_session.ts';
+import { StateRegistry } from  './core/state.js';
+import { getHostMindLabel, isHostSessionActive, resolveHostProvider } from  '../core/host_session.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const PROJECT_ROOT = join(__dirname, '..', '..');

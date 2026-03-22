@@ -1,7 +1,7 @@
-import { crawlRepository } from './crawler.ts';
-import { analyzeFile } from './analyzer.ts';
-import { writeReport } from './intel/writer.ts';
-import { writeProjectedMatrixGraph } from './intel/compiler.ts';
+import { crawlRepository } from  './crawler.js';
+import { analyzeFile } from  './analyzer.js';
+import { writeReport } from  './intel/writer.js';
+import { writeProjectedMatrixGraph } from  './intel/compiler.js';
 import {
     getLatestHallScanId,
     registerSpoke,
@@ -10,21 +10,21 @@ import {
     saveHallScan,
     updateFtsIndex,
 } from './intel/database.ts';
-import { SemanticIndexer } from './intel/semantic.ts';
-import { ChronicleIndexer } from './intel/chronicle.ts';
-import { ChronosIndexer } from './intel/chronos.ts';
-import { Warden } from './intel/warden.ts';
+import { SemanticIndexer } from  './intel/semantic.js';
+import { ChronicleIndexer } from  './intel/chronicle.js';
+import { ChronosIndexer } from  './intel/chronos.js';
+import { Warden } from  './intel/warden.js';
 import fsSync from 'node:fs';
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'node:crypto';
-import { registry } from './pathRegistry.ts';
-import { activePersona } from './personaRegistry.ts';
-import { ScanResult, FileData } from './types.ts';
-import { defaultProvider } from './intel/llm.ts';
+import { registry } from  './pathRegistry.js';
+import { activePersona } from  './personaRegistry.js';
+import { ScanResult, FileData } from  './types.js';
+import { defaultProvider } from  './intel/llm.js';
 import chalk from 'chalk';
-import { buildHallRepositoryId } from '../../types/hall.ts';
-import { getGungnirOverall, patchGungnirMatrix } from '../../types/gungnir.ts';
+import { buildHallRepositoryId } from  '../../types/hall.js';
+import { getGungnirOverall, patchGungnirMatrix } from  '../../types/gungnir.js';
 
 
 /**

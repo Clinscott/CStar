@@ -1,6 +1,6 @@
-import { database } from '../../../tools/pennyone/intel/database.ts';
-import { registry } from '../../../tools/pennyone/pathRegistry.ts';
-import type { TargetDomain, WorkspaceTarget } from './contracts.ts';
+import { database } from  '../../../tools/pennyone/intel/database.js';
+import { registry } from  '../../../tools/pennyone/pathRegistry.js';
+import type { TargetDomain, WorkspaceTarget } from  './contracts.js';
 
 export interface ResolvedEstateTarget {
     workspaceRoot: string;

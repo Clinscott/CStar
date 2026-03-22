@@ -1,6 +1,6 @@
-import { database } from '../../../tools/pennyone/intel/database.ts';
-import type { HallPlanningSessionRecord } from '../../../types/hall.ts';
-import { buildSkeletonContext } from './ast_slicer.ts';
+import { database } from  '../../../tools/pennyone/intel/database.js';
+import type { HallPlanningSessionRecord } from  '../../../types/hall.js';
+import { buildSkeletonContext } from  './ast_slicer.js';
 
 export const deps = {
     database,

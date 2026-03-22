@@ -14,7 +14,7 @@ describe('PennyOne Phase 3: Semantic Intelligence', () => {
         const fileB = path.resolve(root, 'integration_test_b.ts');
 
         fs.writeFileSync(fileB, 'export const SharedLogic = 42;');
-        fs.writeFileSync(fileA, 'import { SharedLogic } from "./integration_test_b"; console.log(SharedLogic);');
+        fs.writeFileSync(fileA, 'import { SharedLogic } from  './integration_test_b.js'; console.log(SharedLogic);');
 
         try {
             const graph = await indexer.index([fileA, fileB]);

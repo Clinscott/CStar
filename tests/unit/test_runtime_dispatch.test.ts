@@ -1,9 +1,9 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { bootstrapRuntime } from '../../src/node/core/runtime/bootstrap.ts';
-import { RuntimeDispatcher } from '../../src/node/core/runtime/dispatcher.ts';
-import { RuntimeAdapter, RuntimeContext, WeaveInvocation, WeaveResult } from '../../src/node/core/runtime/contracts.ts';
+import { bootstrapRuntime } from  '../../src/node/core/runtime/bootstrap.js';
+import { RuntimeDispatcher } from  '../../src/node/core/runtime/dispatcher.js';
+import { RuntimeAdapter, RuntimeContext, WeaveInvocation, WeaveResult } from  '../../src/node/core/runtime/contracts.js';
 
 class EchoAdapter implements RuntimeAdapter<{ message: string }> {
     public readonly id = 'weave:echo';

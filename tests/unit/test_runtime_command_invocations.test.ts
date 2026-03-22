@@ -2,16 +2,16 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { Command } from 'commander';
 
-import { registerStartCommand } from '../../src/node/core/commands/start.ts';
-import { registerRavenCommand } from '../../src/node/core/commands/ravens.ts';
-import { registerPennyOneCommand } from '../../src/node/core/commands/pennyone.ts';
+import { registerStartCommand } from  '../../src/node/core/commands/start.js';
+import { registerRavenCommand } from  '../../src/node/core/commands/ravens.js';
+import { registerPennyOneCommand } from  '../../src/node/core/commands/pennyone.js';
 import {
     buildDynamicCommandInvocation,
     parseChantSessionDirective,
     registerDispatcher,
     shouldAutoResumeChantSession,
 } from '../../src/node/core/commands/dispatcher.ts';
-import { RuntimeDispatchPort, WeaveInvocation, WeaveResult } from '../../src/node/core/runtime/contracts.ts';
+import { RuntimeDispatchPort, WeaveInvocation, WeaveResult } from  '../../src/node/core/runtime/contracts.js';
 
 class CaptureDispatchPort implements RuntimeDispatchPort {
     public invocation: WeaveInvocation<unknown> | null = null;

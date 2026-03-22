@@ -6,8 +6,8 @@ import {
     TemporalLearningWeavePayload,
     TemporalLearningWeaveMetadata
 } from '../contracts.ts';
-import { getDb, upsertHallBead } from '../../../../tools/pennyone/intel/database.ts';
-import { buildHallRepositoryId, normalizeHallPath } from '../../../../types/hall.ts';
+import { getDb, upsertHallBead } from  '../../../../tools/pennyone/intel/database.js';
+import { buildHallRepositoryId, normalizeHallPath } from  '../../../../types/hall.js';
 import path from 'node:path';
 import chalk from 'chalk';
 

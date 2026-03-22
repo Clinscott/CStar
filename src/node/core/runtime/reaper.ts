@@ -1,5 +1,5 @@
-import { database } from '../../../tools/pennyone/intel/database.ts';
-import { WorkerResult } from './worker_bridge.ts';
+import { database } from  '../../../tools/pennyone/intel/database.js';
+import { WorkerResult } from  './worker_bridge.js';
 
 /**
  * [Ω] ORCHESTRATOR REAPER

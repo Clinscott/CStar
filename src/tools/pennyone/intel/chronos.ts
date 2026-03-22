@@ -1,5 +1,5 @@
 import { execa } from 'execa';
-import { registry } from '../pathRegistry.ts';
+import { registry } from  '../pathRegistry.js';
 import { 
     saveHallGitHistory, 
     saveHallGitDiff

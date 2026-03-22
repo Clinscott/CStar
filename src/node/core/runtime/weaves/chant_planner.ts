@@ -1,10 +1,10 @@
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 
-import * as database from '../../../../tools/pennyone/intel/database.ts';
-import * as hallTypes from '../../../../types/hall.ts';
-import type { HallPlanningSessionRecord, HallPlanningSessionStatus } from '../../../../types/hall.ts';
-import { buildHallRepositoryId, normalizeHallPath } from '../../../../types/hall.ts';
+import * as database from  '../../../../tools/pennyone/intel/database.js';
+import * as hallTypes from  '../../../../types/hall.js';
+import type { HallPlanningSessionRecord, HallPlanningSessionStatus } from  '../../../../types/hall.js';
+import { buildHallRepositoryId, normalizeHallPath } from  '../../../../types/hall.js';
 import type {
     AutobotWeavePayload,
     RuntimeDispatchPort,

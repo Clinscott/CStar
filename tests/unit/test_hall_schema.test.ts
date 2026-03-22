@@ -22,9 +22,9 @@ import {
     upsertHallRepository,
     upsertHallBead,
 } from '../../src/tools/pennyone/intel/database.ts';
-import { registry } from '../../src/tools/pennyone/pathRegistry.ts';
-import { buildHallRepositoryId } from '../../src/types/hall.ts';
-import { StateRegistry } from '../../src/node/core/state.ts';
+import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
+import { buildHallRepositoryId } from  '../../src/types/hall.js';
+import { StateRegistry } from  '../../src/node/core/state.js';
 
 describe('Hall schema canonicalization (CS-P1-03)', () => {
     let tmpRoot: string;

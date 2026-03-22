@@ -1,16 +1,16 @@
-import { getParser, TreeSitter } from './parser.ts';
+import { getParser, TreeSitter } from  './parser.js';
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import * as fsSync from 'node:fs';
 import path from 'node:path';
-import { calculateLogicScore } from './calculus/logic.ts';
-import { calculateStyleScore } from './calculus/style.ts';
-import { calculateIntelScore } from './calculus/intel.ts';
-import { getFileGravity } from './intel/gravity_db.ts';
-import { registry } from './pathRegistry.ts';
-import { getHallRepository } from './intel/database.ts';
-import { createGungnirMatrix, patchGungnirMatrix } from '../../types/gungnir.ts';
-import { FileData } from './types.ts';
+import { calculateLogicScore } from  './calculus/logic.js';
+import { calculateStyleScore } from  './calculus/style.js';
+import { calculateIntelScore } from  './calculus/intel.js';
+import { getFileGravity } from  './intel/gravity_db.js';
+import { registry } from  './pathRegistry.js';
+import { getHallRepository } from  './intel/database.js';
+import { createGungnirMatrix, patchGungnirMatrix } from  '../../types/gungnir.js';
+import { FileData } from  './types.js';
 
 /**
  * Analyzes code and returns FileData

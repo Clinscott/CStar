@@ -1,9 +1,9 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { ANS } from '../../src/node/core/ans.ts';
-import type { HostGovernorWeavePayload, RuntimeContext, RuntimeDispatchPort, WeaveInvocation, WeaveResult } from '../../src/node/core/runtime/contracts.ts';
-import { StartAdapter } from '../../src/node/core/runtime/adapters.ts';
+import { ANS } from  '../../src/node/core/ans.js';
+import type { HostGovernorWeavePayload, RuntimeContext, RuntimeDispatchPort, WeaveInvocation, WeaveResult } from  '../../src/node/core/runtime/contracts.js';
+import { StartAdapter } from  '../../src/node/core/runtime/adapters.js';
 
 class CaptureDispatchPort implements RuntimeDispatchPort {
     public invocation: WeaveInvocation<unknown> | null = null;

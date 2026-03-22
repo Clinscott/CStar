@@ -11,7 +11,7 @@ import type {
     WeaveInvocation,
     WeaveResult,
 } from '../../src/node/core/runtime/contracts.ts';
-import { HostGovernorWeave } from '../../src/node/core/runtime/weaves/host_governor.ts';
+import { HostGovernorWeave } from  '../../src/node/core/runtime/weaves/host_governor.js';
 import {
     closeDb,
     getHallBeads,
@@ -22,8 +22,8 @@ import {
     saveHallPlanningSession,
     saveHallSkillProposal,
 } from '../../src/tools/pennyone/intel/database.ts';
-import { registry } from '../../src/tools/pennyone/pathRegistry.ts';
-import { buildHallRepositoryId, normalizeHallPath } from '../../src/types/hall.ts';
+import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
+import { buildHallRepositoryId, normalizeHallPath } from  '../../src/types/hall.js';
 
 class CaptureDispatchPort implements RuntimeDispatchPort {
     public invocations: WeaveInvocation<unknown>[] = [];

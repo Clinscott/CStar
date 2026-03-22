@@ -1,6 +1,6 @@
-import { getDb } from '../../../tools/pennyone/intel/database.ts';
+import { getDb } from  '../../../tools/pennyone/intel/database.js';
 import { Command } from 'commander';
-import { RuntimeDispatcher } from '../runtime/dispatcher.ts';
+import { RuntimeDispatcher } from  '../runtime/dispatcher.js';
 import {
     AutobotWeavePayload,
     ChantWeavePayload,
@@ -10,7 +10,7 @@ import {
     TaliesinForgeWeavePayload,
     WeaveInvocation,
 } from '../runtime/contracts.ts';
-import { buildCliSession, buildSpokeTarget, resolveWorkspaceRoot, withCliWorkspaceTarget, type WorkspaceRootSource } from '../runtime/invocation.ts';
+import { buildCliSession, buildSpokeTarget, resolveWorkspaceRoot, withCliWorkspaceTarget, type WorkspaceRootSource } from  '../runtime/invocation.js';
 
 const CHANT_RESUME_CONTROL_PHRASES = new Set([
     'approve',

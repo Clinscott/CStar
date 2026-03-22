@@ -1,6 +1,6 @@
 import { test, describe, beforeEach } from 'node:test';
 import assert from 'node:assert';
-import { extractTargetSymbol, injectTargetSymbol, buildSkeletonContext, deps } from '../../../src/node/core/runtime/ast_slicer.ts';
+import { extractTargetSymbol, injectTargetSymbol, buildSkeletonContext, deps } from  '../../../src/node/core/runtime/ast_slicer.js';
 
 describe('ast_slicer', () => {
     let mockSourceFile: any;

@@ -1,9 +1,9 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import type { RuntimeContext } from '../../src/node/core/runtime/contracts.ts';
-import { RUNTIME_KERNEL_ROOT } from '../../src/node/core/runtime/kernel_root.ts';
-import { AutoBotWeave } from '../../src/node/core/runtime/weaves/autobot.ts';
+import type { RuntimeContext } from  '../../src/node/core/runtime/contracts.js';
+import { RUNTIME_KERNEL_ROOT } from  '../../src/node/core/runtime/kernel_root.js';
+import { AutoBotWeave } from  '../../src/node/core/runtime/weaves/autobot.js';
 
 type RunnerCall = {
     command: string;

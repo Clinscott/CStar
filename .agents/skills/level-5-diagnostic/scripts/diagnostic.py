@@ -64,14 +64,30 @@ class Level5Diagnostic:
         return False
 
     def run(self):
-        SovereignHUD.persona_log("INFO", "LEVEL 5 DIAGNOSTIC: Scanning the Estate...")
+        SovereignHUD.persona_log("INFO", "LEVEL 5 DIAGNOSTIC: Scanning the Estate (Core Only)...")
         
-        excludes = [".venv", "node_modules", ".git", "__pycache__", "dist", "build", "coverage", ".quarto"]
+        # Aggressive exclusion of non-core folders
+        excludes = [
+            ".venv", "node_modules", ".git", "__pycache__", "dist", "build", 
+            "coverage", ".quarto", "skills_db", "docs", "bin", "site_libs",
+            "quarto-html", "gogcli", "logs", ".stats", ".tmp", "docs/legacy_archive"
+        ]
+        
+        # Only scan these core functional areas
+        core_prefixes = ["src/", ".agents/skills/", "scripts/"]
         
         for ext in ["*.py", "*.ts", "*.js"]:
             for path in self.root.rglob(ext):
                 rel_parts = path.relative_to(self.root).parts
+                rel_str = str(path.relative_to(self.root)).replace("\\", "/")
+                
+                # Filter by exclusion list
                 if any(ex in rel_parts for ex in excludes):
+                    continue
+                
+                # Only include root files (like cstar.ts) or files in core prefixes
+                is_core = any(rel_str.startswith(p) for p in core_prefixes) or len(rel_parts) == 1
+                if not is_core:
                     continue
                 
                 self.stats["scanned"] += 1

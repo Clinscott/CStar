@@ -13,9 +13,9 @@ import {
     saveHallPlanningSession,
     saveHallSkillProposal,
 } from '../../../../tools/pennyone/intel/database.ts';
-import { buildHallRepositoryId, normalizeHallPath } from '../../../../types/hall.ts';
-import type { SovereignBead } from '../../../../types/bead.ts';
-import type { HallPlanningSessionStatus } from '../../../../types/hall.ts';
+import { buildHallRepositoryId, normalizeHallPath } from  '../../../../types/hall.js';
+import type { SovereignBead } from  '../../../../types/bead.js';
+import type { HallPlanningSessionStatus } from  '../../../../types/hall.js';
 import {
     HostGovernorWeavePayload,
     OrchestrateWeavePayload,
@@ -25,9 +25,9 @@ import {
     WeaveInvocation,
     WeaveResult,
 } from '../contracts.ts';
-import type { ChantWeavePayload } from '../contracts.ts';
-import type { HostProvider } from '../../../../core/host_session.ts';
-import { defaultHostTextInvoker, extractJsonObject, resolveRuntimeHostProvider, type HostTextInvoker } from './host_bridge.ts';
+import type { ChantWeavePayload } from  '../contracts.js';
+import type { HostProvider } from  '../../../../core/host_session.js';
+import { defaultHostTextInvoker, extractJsonObject, resolveRuntimeHostProvider, type HostTextInvoker } from  './host_bridge.js';
 
 interface HostGovernorDecision {
     approved_bead_ids?: unknown;

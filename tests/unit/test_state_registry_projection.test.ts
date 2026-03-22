@@ -17,7 +17,7 @@ import {
     listHallMountedSpokes,
     upsertHallRepository,
 } from '../../src/tools/pennyone/intel/database.ts';
-import { registry } from '../../src/tools/pennyone/pathRegistry.ts';
+import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
 
 describe('State registry projection boundary (CS-P2-00)', () => {
     let tmpRoot: string;

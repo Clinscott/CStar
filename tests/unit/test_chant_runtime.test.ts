@@ -4,11 +4,11 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { buildChantInvocation } from '../../src/node/core/commands/dispatcher.ts';
-import { ChantWeave } from '../../src/node/core/runtime/weaves/chant.ts';
-import type { RuntimeDispatchPort, RuntimeContext, WeaveInvocation, WeaveResult } from '../../src/node/core/runtime/contracts.ts';
-import { closeDb, getHallPlanningSession } from '../../src/tools/pennyone/intel/database.ts';
-import { registry } from '../../src/tools/pennyone/pathRegistry.ts';
+import { buildChantInvocation } from  '../../src/node/core/commands/dispatcher.js';
+import { ChantWeave } from  '../../src/node/core/runtime/weaves/chant.js';
+import type { RuntimeDispatchPort, RuntimeContext, WeaveInvocation, WeaveResult } from  '../../src/node/core/runtime/contracts.js';
+import { closeDb, getHallPlanningSession } from  '../../src/tools/pennyone/intel/database.js';
+import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
 
 class CaptureDispatchPort implements RuntimeDispatchPort {
     public invocation: WeaveInvocation<unknown> | null = null;

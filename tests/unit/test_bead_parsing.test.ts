@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert';
-import { parseBeadId } from '../../src/types/bead';
+import { parseBeadId } from  '../../src/types/bead.js';
 
 test('parseBeadId: parses single-segment session IDs', () => {
   const result = parseBeadId('bead:bookmark:123');

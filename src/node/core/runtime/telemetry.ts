@@ -1,4 +1,4 @@
-import { database } from '../../../tools/pennyone/intel/database.ts';
+import { database } from  '../../../tools/pennyone/intel/database.js';
 
 const deps = {
     getDb: (rootPath: string = '.') => database.getDb(rootPath),

@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { RUNTIME_KERNEL_ROOT } from '../../../src/node/core/runtime/kernel_root.ts';
+import { RUNTIME_KERNEL_ROOT } from  '../../../src/node/core/runtime/kernel_root.js';
 import path from 'node:path';
 
 describe('Kernel Root Unit Tests', () => {

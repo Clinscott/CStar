@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trajectory } from '../types/index.ts';
+import { Trajectory } from  '../types/index.js';
 
 interface TrajectoryListProps {
     trajectories: Trajectory[];

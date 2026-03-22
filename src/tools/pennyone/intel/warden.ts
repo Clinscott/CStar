@@ -1,8 +1,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { CompiledGraph } from '../types.ts';
-import { registry } from '../pathRegistry.ts';
-import { readProjectedMatrixGraph } from './compiler.ts';
+import { CompiledGraph } from  '../types.js';
+import { registry } from  '../pathRegistry.js';
+import { readProjectedMatrixGraph } from  './compiler.js';
 
 export interface TechDebtBounty {
     file: string;

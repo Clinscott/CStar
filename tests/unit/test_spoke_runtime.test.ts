@@ -4,11 +4,11 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { RuntimeDispatcher } from '../../src/node/core/runtime/dispatcher.ts';
-import type { RuntimeAdapter, RuntimeContext, WeaveInvocation, WeaveResult } from '../../src/node/core/runtime/contracts.ts';
-import { registry } from '../../src/tools/pennyone/pathRegistry.ts';
-import { closeDb, getHallRepositoryRecord, saveHallMountedSpoke } from '../../src/tools/pennyone/intel/database.ts';
-import { StateRegistry } from '../../src/node/core/state.ts';
+import { RuntimeDispatcher } from  '../../src/node/core/runtime/dispatcher.js';
+import type { RuntimeAdapter, RuntimeContext, WeaveInvocation, WeaveResult } from  '../../src/node/core/runtime/contracts.js';
+import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
+import { closeDb, getHallRepositoryRecord, saveHallMountedSpoke } from  '../../src/tools/pennyone/intel/database.js';
+import { StateRegistry } from  '../../src/node/core/state.js';
 
 class EchoSpokeAdapter implements RuntimeAdapter<{ message: string }> {
     public readonly id = 'weave:spoke-echo';

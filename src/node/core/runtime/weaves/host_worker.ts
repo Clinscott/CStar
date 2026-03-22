@@ -9,9 +9,9 @@ import type {
     WeaveInvocation,
     WeaveResult,
 } from '../contracts.ts';
-import { defaultHostTextInvoker, type HostTextInvoker } from './host_bridge.ts';
-import { getHallBeads } from '../../../../tools/pennyone/intel/database.ts';
-import { resolveRuntimeHostProvider } from './host_bridge.ts';
+import { defaultHostTextInvoker, type HostTextInvoker } from  './host_bridge.js';
+import { getHallBeads } from  '../../../../tools/pennyone/intel/database.js';
+import { resolveRuntimeHostProvider } from  './host_bridge.js';
 
 function extractCodeBlock(text: string): string {
     const lines = text.split('\n');

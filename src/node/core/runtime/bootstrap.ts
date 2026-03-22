@@ -1,18 +1,18 @@
-import { RuntimeDispatcher } from './dispatcher.ts';
-import { DynamicCommandAdapter, PennyOneAdapter, RavensAdapter, StartAdapter } from './adapters.ts';
-import { AutoBotWeave } from './weaves/autobot.ts';
-import { HostWorkerWeave } from './weaves/host_worker.ts';
-import { ChantWeave } from './weaves/chant.ts';
-import { EvolveWeave } from './weaves/evolve.ts';
-import { RavensCycleWeave, RavensStageContractAdapter } from './weaves/ravens_cycle.ts';
-import { TaliesinForgeWeave } from './weaves/taliesin_forge.ts';
-import { ResearchWeave } from './weaves/research.ts';
-import { CritiqueWeave } from './weaves/critique.ts';
-import { ArchitectWeave } from './weaves/architect.ts';
-import { CompressWeave } from './weaves/compress.ts';
-import { OrchestrateWeave } from './weaves/orchestrate.ts';
-import { HostGovernorWeave } from './weaves/host_governor.ts';
-import { TemporalLearningWeave } from './weaves/temporal_learning.ts';
+import { RuntimeDispatcher } from  './dispatcher.js';
+import { DynamicCommandAdapter, PennyOneAdapter, RavensAdapter, StartAdapter } from  './adapters.js';
+import { AutoBotWeave } from  './weaves/autobot.js';
+import { HostWorkerWeave } from  './weaves/host_worker.js';
+import { ChantWeave } from  './weaves/chant.js';
+import { EvolveWeave } from  './weaves/evolve.js';
+import { RavensCycleWeave, RavensStageContractAdapter } from  './weaves/ravens_cycle.js';
+import { TaliesinForgeWeave } from  './weaves/taliesin_forge.js';
+import { ResearchWeave } from  './weaves/research.js';
+import { CritiqueWeave } from  './weaves/critique.js';
+import { ArchitectWeave } from  './weaves/architect.js';
+import { CompressWeave } from  './weaves/compress.js';
+import { OrchestrateWeave } from  './weaves/orchestrate.js';
+import { HostGovernorWeave } from  './weaves/host_governor.js';
+import { TemporalLearningWeave } from  './weaves/temporal_learning.js';
 
 /**
  * [Ω] RUNTIME BOOTSTRAP

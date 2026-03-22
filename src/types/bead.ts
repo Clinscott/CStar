@@ -1,4 +1,4 @@
-import type { HallBeadRecord, HallBeadStatus, HallBeadTargetKind } from './hall.ts';
+import type { HallBeadRecord, HallBeadStatus, HallBeadTargetKind } from  './hall.js';
 
 export interface SovereignBead {
     id: string;

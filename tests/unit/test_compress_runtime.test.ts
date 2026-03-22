@@ -4,8 +4,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import type { RuntimeContext } from '../../src/node/core/runtime/contracts.ts';
-import { CompressWeave } from '../../src/node/core/runtime/weaves/compress.ts';
+import type { RuntimeContext } from  '../../src/node/core/runtime/contracts.js';
+import { CompressWeave } from  '../../src/node/core/runtime/weaves/compress.js';
 import {
     closeDb,
     getHallEpisodicMemory,
@@ -13,8 +13,8 @@ import {
     upsertHallBead,
     upsertHallRepository,
 } from '../../src/tools/pennyone/intel/database.ts';
-import { registry } from '../../src/tools/pennyone/pathRegistry.ts';
-import { buildHallRepositoryId } from '../../src/types/hall.ts';
+import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
+import { buildHallRepositoryId } from  '../../src/types/hall.js';
 
 function createContext(workspaceRoot: string, env: Record<string, string | undefined> = {}): RuntimeContext {
     return {

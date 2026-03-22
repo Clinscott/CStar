@@ -1,4 +1,4 @@
-import type { OperatorSession, WeaveInvocation, WorkspaceTarget } from './contracts.ts';
+import type { OperatorSession, WeaveInvocation, WorkspaceTarget } from  './contracts.js';
 
 export type WorkspaceRootSource = string | (() => string);
 

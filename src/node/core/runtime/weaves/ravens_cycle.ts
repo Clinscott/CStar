@@ -3,7 +3,7 @@ import path from 'node:path';
 
 import { execa } from 'execa';
 
-import { buildHallRepositoryId } from '../../../../types/hall.ts';
+import { buildHallRepositoryId } from  '../../../../types/hall.js';
 import {
     createRavensHallReferenceSet,
     materializeRavensTargetIdentity,

@@ -4,9 +4,9 @@
  * Mandate: Execution must be structured, traced, and verifiable.
  */
 
-import type { ForgeCandidateResult, ForgeValidationRequest } from '../../../types/forge-candidate.ts';
-import type { GungnirMatrix } from '../../../types/gungnir.ts';
-import type { RavensCycleResult, RavensStageResult, RavensTargetIdentity } from '../../../types/ravens-stage.ts';
+import type { ForgeCandidateResult, ForgeValidationRequest } from  '../../../types/forge-candidate.js';
+import type { GungnirMatrix } from  '../../../types/gungnir.js';
+import type { RavensCycleResult, RavensStageResult, RavensTargetIdentity } from  '../../../types/ravens-stage.js';
 
 export type WeaveStatus = 'SUCCESS' | 'FAILURE' | 'TRANSITIONAL';
 export type OperatorMode = 'cli' | 'tui' | 'automation' | 'subkernel';

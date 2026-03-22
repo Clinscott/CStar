@@ -1,4 +1,4 @@
-import type { GungnirMatrix } from '../../types/gungnir.ts';
+import type { GungnirMatrix } from  '../../types/gungnir.js';
 
 export interface FileData {
     path: string;

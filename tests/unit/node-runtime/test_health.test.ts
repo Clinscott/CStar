@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { getMemoryUsage, getDiskUsage, checkOverallHealth } from '../../../src/node/core/runtime/health.ts';
+import { getMemoryUsage, getDiskUsage, checkOverallHealth } from  '../../../src/node/core/runtime/health.js';
 
 describe('System Health Module', () => {
     it('should return memory usage with numeric values', () => {

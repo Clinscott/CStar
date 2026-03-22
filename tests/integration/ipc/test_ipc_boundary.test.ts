@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { CortexLink } from '../../../src/node/cortex_link.ts';
+import { CortexLink } from  '../../../src/node/cortex_link.js';
 
 /**
  * [Ω] IPC BOUNDARY VERIFICATION (Adamant Crucible)

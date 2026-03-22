@@ -1,7 +1,7 @@
-import { database } from '../../../tools/pennyone/intel/database.ts';
-import { buildHallRepositoryId, normalizeHallPath, HallBeadStatus } from '../../../types/hall.ts';
-import { registry } from '../../../tools/pennyone/pathRegistry.ts';
-import { SovereignBead } from '../../../types/bead.ts';
+import { database } from  '../../../tools/pennyone/intel/database.js';
+import { buildHallRepositoryId, normalizeHallPath, HallBeadStatus } from  '../../../types/hall.js';
+import { registry } from  '../../../tools/pennyone/pathRegistry.js';
+import { SovereignBead } from  '../../../types/bead.js';
 
 /**
  * [Ω] ORCHESTRATOR SCHEDULER

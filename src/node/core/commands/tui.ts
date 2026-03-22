@@ -1,8 +1,8 @@
 import { Command } from 'commander';
 
-import { RuntimeDispatcher } from '../runtime/dispatcher.ts';
-import type { RuntimeDispatchPort } from '../runtime/contracts.ts';
-import { runOperatorTui } from '../tui/operator_tui.ts';
+import { RuntimeDispatcher } from  '../runtime/dispatcher.js';
+import type { RuntimeDispatchPort } from  '../runtime/contracts.js';
+import { runOperatorTui } from  '../tui/operator_tui.js';
 
 export function registerTuiCommand(
     program: Command,

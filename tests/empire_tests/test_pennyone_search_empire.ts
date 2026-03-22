@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { searchMatrix } from '../../src/tools/pennyone/live/search.ts';
+import { searchMatrix } from  '../../src/tools/pennyone/live/search.js';
 import {
     closeDb,
     getHallRepositoryRecord,
@@ -13,9 +13,9 @@ import {
     saveHallMountedSpoke,
     upsertHallRepository,
 } from '../../src/tools/pennyone/intel/database.ts';
-import { registry } from '../../src/tools/pennyone/pathRegistry.ts';
-import { createGungnirMatrix } from '../../src/types/gungnir.ts';
-import { buildHallRepositoryId } from '../../src/types/hall.ts';
+import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
+import { createGungnirMatrix } from  '../../src/types/gungnir.js';
+import { buildHallRepositoryId } from  '../../src/types/hall.js';
 
 describe('PennyOne Unified Search (Phase 5)', () => {
     const originalRoot = registry.getRoot();

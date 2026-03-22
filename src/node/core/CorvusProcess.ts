@@ -1,9 +1,9 @@
 import { EventEmitter } from 'events';
 
-import { mimir } from '../../core/mimir_client.ts';
+import { mimir } from  '../../core/mimir_client.js';
 import { CortexLink, type CortexResponse } from '../cortex_link.js';
 import { EventManager } from './EventManager.js';
-import { IntelligenceRequest, IntelligenceResponse } from '../../types/intelligence-contract.ts';
+import { IntelligenceRequest, IntelligenceResponse } from  '../../types/intelligence-contract.js';
 
 /**
  * [O.D.I.N.] Rigid Input Boundary Schema

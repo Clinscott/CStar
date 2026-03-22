@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
-import { registry } from '../../src/tools/pennyone/pathRegistry.ts';
+import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
 
 /**
  * [EMPIRE TDD]: Operation PennyOne Structural Rectification

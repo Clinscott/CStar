@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { registry } from './pathRegistry.ts';
+import { registry } from  './pathRegistry.js';
 
 /**
  * Operation PennyOne: Configuration-Driven Persona Registry

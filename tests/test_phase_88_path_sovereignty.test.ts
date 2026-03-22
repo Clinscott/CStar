@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert';
-import { getTracesForFile, saveTrace } from '../src/tools/pennyone/intel/database';
+import { getTracesForFile, saveTrace } from  '../src/tools/pennyone/intel/database.js';
 
 test('Path Sovereignty: Cross-OS Path Matching', async () => {
     const unixPath = 'src/core/utils.py';

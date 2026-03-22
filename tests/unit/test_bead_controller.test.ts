@@ -2,9 +2,9 @@ import { describe, it, mock, beforeEach, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 
 // Import the database object to mock its methods
-import { database } from '../../src/tools/pennyone/intel/database.ts';
-import { upsertHallBead, getHallBead, getBeadCount } from '../../src/tools/pennyone/intel/bead_controller.ts';
-import { HallBeadRecord } from '../../src/types/hall.ts';
+import { database } from  '../../src/tools/pennyone/intel/database.js';
+import { upsertHallBead, getHallBead, getBeadCount } from  '../../src/tools/pennyone/intel/bead_controller.js';
+import { HallBeadRecord } from  '../../src/types/hall.js';
 
 /**
  * Unit tests for BeadController using Node.js native test runner and mocking.

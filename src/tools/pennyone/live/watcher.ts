@@ -1,10 +1,10 @@
 /* eslint-disable no-useless-escape */
 import chokidar from 'chokidar';
 import path from 'path';
-import { runScan } from '../index.ts';
-import { SubspaceRelay } from './socket.ts';
+import { runScan } from  '../index.js';
+import { SubspaceRelay } from  './socket.js';
 import chalk from 'chalk';
-import { activePersona } from '../personaRegistry.ts';
+import { activePersona } from  '../personaRegistry.js';
 
 export function startWatcher(
     targetPath: string,

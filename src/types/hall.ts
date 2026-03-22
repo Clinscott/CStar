@@ -1,4 +1,4 @@
-import type { GungnirMatrix } from './gungnir.ts';
+import type { GungnirMatrix } from  './gungnir.js';
 
 export type HallRepositoryStatus = 'DORMANT' | 'AWAKE' | 'AGENT_LOOP';
 export type HallScanStatus = 'PENDING' | 'COMPLETED' | 'FAILED';

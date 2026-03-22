@@ -1,11 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execa } from 'execa';
-import { OrchestratorProcessManager } from './process_manager.ts';
-import * as autobotContext from './autobot_context.ts';
-import { RUNTIME_KERNEL_ROOT } from './kernel_root.ts';
-import { database } from '../../../tools/pennyone/intel/database.ts';
-import * as astSlicer from './ast_slicer.ts';
+import { OrchestratorProcessManager } from  './process_manager.js';
+import * as autobotContext from  './autobot_context.js';
+import { RUNTIME_KERNEL_ROOT } from  './kernel_root.js';
+import { database } from  '../../../tools/pennyone/intel/database.js';
+import * as astSlicer from  './ast_slicer.js';
 
 export const deps = {
     fs: {

@@ -1,5 +1,5 @@
-import * as database from '../../../../tools/pennyone/intel/database.ts';
-import { registry } from '../../../../tools/pennyone/pathRegistry.ts';
+import * as database from  '../../../../tools/pennyone/intel/database.js';
+import { registry } from  '../../../../tools/pennyone/pathRegistry.js';
 import type {
     RuntimeAdapter,
     RuntimeDispatchPort,
@@ -8,8 +8,8 @@ import type {
     WeaveResult,
     ChantWeavePayload,
 } from '../contracts.ts';
-import * as parser from './chant_parser.ts';
-import * as planner from './chant_planner.ts';
+import * as parser from  './chant_parser.js';
+import * as planner from  './chant_planner.js';
 
 export const deps = {
     database: Object.assign({}, database),

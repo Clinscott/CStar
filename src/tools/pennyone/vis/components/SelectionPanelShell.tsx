@@ -1,8 +1,8 @@
 import React from 'react';
-import { SelectionPanel } from './SelectionPanel.tsx';
-import { TrajectoryList } from './TrajectoryList.tsx';
-import { SectorMetrics } from './SectorMetrics.tsx';
-import { Node, Trajectory } from '../types/index.ts';
+import { SelectionPanel } from  './SelectionPanel.js';
+import { TrajectoryList } from  './TrajectoryList.js';
+import { SectorMetrics } from  './SectorMetrics.js';
+import { Node, Trajectory } from  '../types/index.js';
 
 interface SelectionPanelShellProps {
     selectedNode: Node;

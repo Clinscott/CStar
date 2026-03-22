@@ -1,4 +1,4 @@
-import type { GungnirMatrix } from '../../../types/gungnir.ts';
+import type { GungnirMatrix } from  '../../../types/gungnir.js';
 
 /**
  * [Ω] THE SKILL RUNTIME CONTRACT (v1.1)

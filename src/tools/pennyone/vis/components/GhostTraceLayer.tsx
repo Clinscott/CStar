@@ -2,7 +2,7 @@ import React, { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { Line } from '@react-three/drei';
-import { GhostTrace } from '../types/index.ts';
+import { GhostTrace } from  '../types/index.js';
 
 interface GhostTraceLayerProps {
     traces: GhostTrace[];

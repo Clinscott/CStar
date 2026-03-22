@@ -1,5 +1,5 @@
-import { AgentPing } from '../types.ts';
-import { savePing, saveTrace } from '../intel/database.ts';
+import { AgentPing } from  '../types.js';
+import { savePing, saveTrace } from  '../intel/database.js';
 
 /**
  * Record a ping to the chronological session ledger (SQLite).

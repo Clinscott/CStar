@@ -1,7 +1,7 @@
-import type { IntelligenceResponse } from '../types/intelligence-contract.ts';
-import { MimirClient, type MimirClientOptions } from './mimir_client.ts';
-import type { HostProvider } from './host_session.ts';
-import { resolveHostProvider } from './host_session.ts';
+import type { IntelligenceResponse } from  '../types/intelligence-contract.js';
+import { MimirClient, type MimirClientOptions } from  './mimir_client.js';
+import type { HostProvider } from  './host_session.js';
+import { resolveHostProvider } from  './host_session.js';
 
 export interface HostTextRequest {
     prompt: string;

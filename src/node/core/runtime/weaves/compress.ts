@@ -1,5 +1,5 @@
-import { buildHallRepositoryId, normalizeHallPath } from '../../../../types/hall.ts';
-import { saveHallEpisodicMemory } from '../../../../tools/pennyone/intel/database.ts';
+import { buildHallRepositoryId, normalizeHallPath } from  '../../../../types/hall.js';
+import { saveHallEpisodicMemory } from  '../../../../tools/pennyone/intel/database.js';
 import type {
     CompressWeavePayload,
     RuntimeAdapter,
@@ -7,7 +7,7 @@ import type {
     WeaveInvocation,
     WeaveResult,
 } from '../contracts.ts';
-import { defaultHostTextInvoker, extractJsonObject, resolveRuntimeHostProvider, type HostTextInvoker } from './host_bridge.ts';
+import { defaultHostTextInvoker, extractJsonObject, resolveRuntimeHostProvider, type HostTextInvoker } from  './host_bridge.js';
 
 function normalizeStringList(values: string[] | undefined): string[] {
     return (values ?? [])

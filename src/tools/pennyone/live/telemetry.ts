@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { SubspaceRelay } from './socket.ts';
-import { recordPing, recordTrace } from './recorder.ts';
-import { AgentPing } from '../types.ts';
+import { SubspaceRelay } from  './socket.js';
+import { recordPing, recordTrace } from  './recorder.js';
+import { AgentPing } from  '../types.js';
 
 /**
  * Path Normalization Mandate:

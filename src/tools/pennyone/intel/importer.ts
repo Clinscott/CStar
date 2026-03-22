@@ -2,15 +2,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execa } from 'execa';
 
-import { StateRegistry } from '../../../node/core/state.ts';
+import { StateRegistry } from  '../../../node/core/state.js';
 import {
     getHallMountedSpoke,
     getHallRepository,
     saveHallMountedSpoke,
 } from './database.ts';
-import { registry } from '../pathRegistry.ts';
-import { runScan } from '../index.ts';
-import type { HallMountedSpokeRecord } from '../../../types/hall.ts';
+import { registry } from  '../pathRegistry.js';
+import { runScan } from  '../index.js';
+import type { HallMountedSpokeRecord } from  '../../../types/hall.js';
 
 function inferSlug(source: string): string {
     const trimmed = source.replace(/\/+$/, '');

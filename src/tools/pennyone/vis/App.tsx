@@ -2,10 +2,10 @@
 import React, { useEffect, Component, ReactNode } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, PerspectiveCamera, AdaptiveDpr } from '@react-three/drei';
-import { NeuralGraph } from './components/NeuralGraph.tsx';
-import { PlaybackHUD } from './components/PlaybackHUD.tsx';
-import { SelectionPanelShell } from './components/SelectionPanelShell.tsx';
-import { useMatrixStore } from './store/useMatrixStore.ts';
+import { NeuralGraph } from  './components/NeuralGraph.js';
+import { PlaybackHUD } from  './components/PlaybackHUD.js';
+import { SelectionPanelShell } from  './components/SelectionPanelShell.js';
+import { useMatrixStore } from  './store/useMatrixStore.js';
 
 const logToServer = async (type: string, message: string, stack?: string) => {
     const params = new URLSearchParams(window.location.search);

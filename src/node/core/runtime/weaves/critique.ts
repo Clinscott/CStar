@@ -5,7 +5,7 @@ import {
     WeaveInvocation,
     WeaveResult,
 } from '../contracts.ts';
-import { defaultHostTextInvoker, extractJsonObject, resolveRuntimeHostProvider, type HostTextInvoker } from './host_bridge.ts';
+import { defaultHostTextInvoker, extractJsonObject, resolveRuntimeHostProvider, type HostTextInvoker } from  './host_bridge.js';
 
 export interface CritiqueWeavePayload {
     bead: Record<string, unknown>;

@@ -8,12 +8,12 @@ import {
     HostWorkerWeavePayload,
     RuntimeDispatchPort
 } from '../contracts.ts';
-import { OrchestratorScheduler } from '../scheduler.ts';
-import { OrchestratorWorkerBridge } from '../worker_bridge.ts';
-import { OrchestratorProcessManager } from '../process_manager.ts';
-import { OrchestratorReaper } from '../reaper.ts';
-import { OrchestratorTelemetryBridge } from '../telemetry.ts';
-import { getHallBeads } from '../../../../tools/pennyone/intel/database.ts';
+import { OrchestratorScheduler } from  '../scheduler.js';
+import { OrchestratorWorkerBridge } from  '../worker_bridge.js';
+import { OrchestratorProcessManager } from  '../process_manager.js';
+import { OrchestratorReaper } from  '../reaper.js';
+import { OrchestratorTelemetryBridge } from  '../telemetry.js';
+import { getHallBeads } from  '../../../../tools/pennyone/intel/database.js';
 
 /**
  * [Ω] ORCHESTRATE WEAVE

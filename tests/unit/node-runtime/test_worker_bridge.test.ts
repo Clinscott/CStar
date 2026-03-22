@@ -1,7 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
-import { deps, OrchestratorWorkerBridge } from '../../../src/node/core/runtime/worker_bridge.ts';
-import { OrchestratorProcessManager } from '../../../src/node/core/runtime/process_manager.ts';
+import { deps, OrchestratorWorkerBridge } from  '../../../src/node/core/runtime/worker_bridge.js';
+import { OrchestratorProcessManager } from  '../../../src/node/core/runtime/process_manager.js';
 
 describe('OrchestratorWorkerBridge', () => {
     it('should execute a bead successfully', async () => {

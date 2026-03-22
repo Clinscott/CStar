@@ -2,10 +2,10 @@ import fs from 'node:fs';
 import { join } from 'node:path';
 import { execa } from 'execa';
 
-import { ANS } from '../ans.ts';
-import { resolveHostProvider } from '../../../core/host_session.ts';
-import { RavensCycleWeave } from './weaves/ravens_cycle.ts';
-import { discoverLegacyCommands, resolvePythonPath } from './adapters/legacy_commands.ts';
+import { ANS } from  '../ans.js';
+import { resolveHostProvider } from  '../../../core/host_session.js';
+import { RavensCycleWeave } from  './weaves/ravens_cycle.js';
+import { discoverLegacyCommands, resolvePythonPath } from  './adapters/legacy_commands.js';
 import {
     loadRavensSweepTargets,
     RavensSweepTarget,
@@ -22,7 +22,7 @@ import {
     WeaveResult,
 } from './contracts.ts';
 
-export { PennyOneAdapter } from './weaves/pennyone.ts';
+export { PennyOneAdapter } from  './weaves/pennyone.js';
 
 export class StartAdapter implements RuntimeAdapter<StartWeavePayload> {
     public readonly id = 'weave:start';

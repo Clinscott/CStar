@@ -4,8 +4,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { createGungnirMatrix } from '../../src/types/gungnir.ts';
-import { compileMatrixFromHall } from '../../src/tools/pennyone/intel/compiler.ts';
+import { createGungnirMatrix } from  '../../src/types/gungnir.js';
+import { compileMatrixFromHall } from  '../../src/tools/pennyone/intel/compiler.js';
 import {
     closeDb,
     getHallFiles,
@@ -13,8 +13,8 @@ import {
     recordHallScan,
     upsertHallRepository,
 } from '../../src/tools/pennyone/intel/database.ts';
-import { registry } from '../../src/tools/pennyone/pathRegistry.ts';
-import { buildHallRepositoryId } from '../../src/types/hall.ts';
+import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
+import { buildHallRepositoryId } from  '../../src/types/hall.js';
 
 describe('Gungnir matrix contract (CS-P1-04)', () => {
     let tmpRoot: string;

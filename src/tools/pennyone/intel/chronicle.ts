@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { updateChronicleIndex } from './database.ts';
-import { registry } from '../pathRegistry.ts';
+import { updateChronicleIndex } from  './database.js';
+import { registry } from  '../pathRegistry.js';
 import chalk from 'chalk';
 
 /**

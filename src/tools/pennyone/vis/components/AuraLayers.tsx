@@ -2,8 +2,8 @@ import React, { useRef, useMemo } from 'react';
 import * as THREE from 'three';
 import { useFrame, extend, ThreeElement } from '@react-three/fiber';
 import { shaderMaterial } from '@react-three/drei';
-import { Node } from '../types/index.ts';
-import { useMatrixStore } from '../store/useMatrixStore.ts';
+import { Node } from  '../types/index.js';
+import { useMatrixStore } from  '../store/useMatrixStore.js';
 
 // [🛡️] THE GUNGNIR AURA SHADER
 const GungnirAuraMaterial = shaderMaterial(

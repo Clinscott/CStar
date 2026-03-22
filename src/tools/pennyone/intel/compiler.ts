@@ -1,11 +1,11 @@
-import { FileData, CompiledGraph } from '../types.ts';
+import { FileData, CompiledGraph } from  '../types.js';
 import fs from 'fs/promises';
 import path from 'path';
-import { registry } from '../pathRegistry.ts';
-import { getHallFiles, getHallSummary, listHallMountedSpokes } from './database.ts';
-import type { HallFileRecord } from '../../../types/hall.ts';
-import { createGungnirMatrix, getGungnirOverall } from '../../../types/gungnir.ts';
-import type { EstateTopologyPayload } from '../types.ts';
+import { registry } from  '../pathRegistry.js';
+import { getHallFiles, getHallSummary, listHallMountedSpokes } from  './database.js';
+import type { HallFileRecord } from  '../../../types/hall.js';
+import { createGungnirMatrix, getGungnirOverall } from  '../../../types/gungnir.js';
+import type { EstateTopologyPayload } from  '../types.js';
 
 interface ProjectionMetadata {
     authority: 'hall_projection' | 'runtime_scan';

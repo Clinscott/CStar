@@ -1,4 +1,4 @@
-import { runScan } from '../../src/tools/pennyone/index.ts';
+import { runScan } from  '../../src/tools/pennyone/index.js';
 import fs from 'fs/promises';
 import path from 'path';
 import { test } from 'node:test';

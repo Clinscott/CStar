@@ -1,6 +1,6 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert';
-import * as contracts from '../../../src/node/core/runtime/contracts.ts';
+import * as contracts from  '../../../src/node/core/runtime/contracts.js';
 
 describe('contracts', () => {
     test('should be importable', () => {

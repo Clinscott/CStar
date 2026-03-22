@@ -1,8 +1,8 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { SamplingProvider } from '../../src/tools/pennyone/intel/llm.ts';
-import { createGungnirMatrix } from '../../src/types/gungnir.ts';
+import { SamplingProvider } from  '../../src/tools/pennyone/intel/llm.js';
+import { createGungnirMatrix } from  '../../src/types/gungnir.js';
 
 const TEST_FILE_DATA = {
     path: 'src/answer.ts',

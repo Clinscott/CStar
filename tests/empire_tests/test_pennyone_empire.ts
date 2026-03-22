@@ -68,7 +68,7 @@ describe('PennyOne: Empire Analysis Engine', () => {
 
     it('should handle aliased imports and exports rigorously', async () => {
         const code = `
-            import { foo as bar } from './module';
+            import { foo as bar } from  './module.js';
             export { bar as baz };
         `;
         const result = await analyzeFile(code, 'test.ts');

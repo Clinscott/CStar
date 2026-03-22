@@ -1,9 +1,9 @@
 import chalk from 'chalk';
-import { registry } from '../pathRegistry.ts';
-import { getHallFiles, getLatestHallScanId, listHallMountedSpokes, searchIntents } from '../intel/database.ts';
-import { HUD } from '../../../node/core/hud.ts';
-import { createGungnirMatrix } from '../../../types/gungnir.ts';
-import type { HallFileRecord } from '../../../types/hall.ts';
+import { registry } from  '../pathRegistry.js';
+import { getHallFiles, getLatestHallScanId, listHallMountedSpokes, searchIntents } from  '../intel/database.js';
+import { HUD } from  '../../../node/core/hud.js';
+import { createGungnirMatrix } from  '../../../types/gungnir.js';
+import type { HallFileRecord } from  '../../../types/hall.js';
 
 function getEstateHallFiles(workspaceRoot: string): HallFileRecord[] {
     const mounted = listHallMountedSpokes(workspaceRoot);

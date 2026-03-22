@@ -4,18 +4,18 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { buildEstateTopology, readProjectedMatrixGraph } from '../../src/tools/pennyone/intel/compiler.ts';
-import { importRepositoryIntoEstate } from '../../src/tools/pennyone/intel/importer.ts';
+import { buildEstateTopology, readProjectedMatrixGraph } from  '../../src/tools/pennyone/intel/compiler.js';
+import { importRepositoryIntoEstate } from  '../../src/tools/pennyone/intel/importer.js';
 import {
     closeDb,
     recordHallFile,
     recordHallScan,
     upsertHallRepository,
 } from '../../src/tools/pennyone/intel/database.ts';
-import { registry } from '../../src/tools/pennyone/pathRegistry.ts';
-import { createGungnirMatrix } from '../../src/types/gungnir.ts';
-import { buildHallRepositoryId } from '../../src/types/hall.ts';
-import { StateRegistry } from '../../src/node/core/state.ts';
+import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
+import { createGungnirMatrix } from  '../../src/types/gungnir.js';
+import { buildHallRepositoryId } from  '../../src/types/hall.js';
+import { StateRegistry } from  '../../src/node/core/state.js';
 
 describe('PennyOne estate topology runtime (CS-P7-06)', () => {
     let tmpRoot: string;

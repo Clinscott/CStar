@@ -1,7 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
-import { OrchestratorScheduler } from '../../../src/node/core/runtime/scheduler.ts';
-import { database } from '../../../src/tools/pennyone/intel/database.ts';
+import { OrchestratorScheduler } from  '../../../src/node/core/runtime/scheduler.js';
+import { database } from  '../../../src/tools/pennyone/intel/database.js';
 
 describe('OrchestratorScheduler', () => {
     it('should reclaim zombie beads', async () => {

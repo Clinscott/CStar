@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import { join, parse } from 'node:path';
-import { getPythonPath } from '../../python_utils.ts';
+import { getPythonPath } from  '../../python_utils.js';
 
 export const deps = {
     fs,

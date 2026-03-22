@@ -1,8 +1,8 @@
-import { FileData } from '../types.ts';
-import { CortexLink } from '../../../node/cortex_link.ts';
+import { FileData } from  '../types.js';
+import { CortexLink } from  '../../../node/cortex_link.js';
 import chalk from 'chalk';
-import { requestHostText, type HostTextResult } from '../../../core/host_intelligence.ts';
-import { registry } from '../pathRegistry.ts';
+import { requestHostText, type HostTextResult } from  '../../../core/host_intelligence.js';
+import { registry } from  '../pathRegistry.js';
 
 /**
  * LLM Provider Abstraction: THE ONE MIND CONDUIT

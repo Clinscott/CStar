@@ -1,7 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { runScan } from '../../../src/tools/pennyone/index.ts';
-import { defaultProvider } from '../../../src/tools/pennyone/intel/llm.ts';
+import { runScan } from  '../../../src/tools/pennyone/index.js';
+import { defaultProvider } from  '../../../src/tools/pennyone/intel/llm.js';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 

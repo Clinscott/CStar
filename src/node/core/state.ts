@@ -5,7 +5,7 @@ import { activePersona } from '../../tools/pennyone/personaRegistry.js';
 import {
     database,
 } from '../../tools/pennyone/intel/database.ts';
-import type { HallMountedSpokeRecord } from '../../types/hall.ts';
+import type { HallMountedSpokeRecord } from  '../../types/hall.js';
 
 export interface FrameworkState {
     status: 'AWAKE' | 'DORMANT' | 'AGENT_LOOP';

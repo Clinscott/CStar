@@ -120,9 +120,11 @@ export class PathRegistry {
      * @param {string} newRoot - The new root path
      */
     public setRoot(newRoot: string): void {
-        this.root = isAbsolutePath(newRoot)
+        const resolvedRoot = isAbsolutePath(newRoot)
             ? normalizeSeparators(newRoot)
             : path.resolve(newRoot).replace(/\\/g, '/');
+        console.log(`[DEBUG] PathRegistry.setRoot: ${resolvedRoot}`);
+        this.root = resolvedRoot;
     }
 
     public detectWorkspaceRoot(startPath: string): string {
@@ -182,10 +184,11 @@ export class PathRegistry {
      * @returns {PathRegistry} The instance
      */
     public static getInstance(): PathRegistry {
-        if (!PathRegistry.instance) {
-            PathRegistry.instance = new PathRegistry();
+        const globalAny = globalThis as any;
+        if (!globalAny.__PATH_REGISTRY_INSTANCE__) {
+            globalAny.__PATH_REGISTRY_INSTANCE__ = new PathRegistry();
         }
-        return PathRegistry.instance;
+        return globalAny.__PATH_REGISTRY_INSTANCE__;
     }
 
     /**

@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { database } from '../../../tools/pennyone/intel/database.ts';
-import { extractTargetSymbol, injectTargetSymbol } from './ast_slicer.ts';
+import { database } from  '../../../tools/pennyone/intel/database.js';
+import { extractTargetSymbol, injectTargetSymbol } from  './ast_slicer.js';
 
 // [ALFRED] Exported dependencies for 1:1 unit test isolation
 export const deps = {

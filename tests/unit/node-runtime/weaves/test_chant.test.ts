@@ -1,7 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
-import { ChantWeave, deps } from '../../../../src/node/core/runtime/weaves/chant.ts';
-import { WeaveResult } from '../../../../src/node/core/runtime/contracts.ts';
+import { ChantWeave, deps } from  '../../../../src/node/core/runtime/weaves/chant.js';
+import { WeaveResult } from  '../../../../src/node/core/runtime/contracts.js';
 
 describe('ChantWeave Unit Tests', () => {
     it('initializes correctly', () => {

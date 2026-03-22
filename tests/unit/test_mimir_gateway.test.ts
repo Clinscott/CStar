@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 
-import mimirRoute from '../../src/node/gateway/routes/api/mimir.ts';
+import mimirRoute from  '../../src/node/gateway/routes/api/mimir.js';
 
 describe('Mimir gateway route (CS-P1-02)', () => {
     let fastify: ReturnType<typeof Fastify>;

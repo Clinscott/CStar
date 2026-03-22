@@ -1,6 +1,6 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { OrchestratorProcessManager, deps } from '../../../src/node/core/runtime/process_manager.ts';
+import { OrchestratorProcessManager, deps } from  '../../../src/node/core/runtime/process_manager.js';
 
 describe('OrchestratorProcessManager', () => {
     it('should register and unregister process groups', () => {

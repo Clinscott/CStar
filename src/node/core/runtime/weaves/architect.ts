@@ -5,7 +5,7 @@ import {
     WeaveInvocation,
     WeaveResult,
 } from '../contracts.ts';
-import * as hostBridge from './host_bridge.ts';
+import * as hostBridge from  './host_bridge.js';
 
 /**
  * External dependencies for the ArchitectWeave.

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Node } from '../types/index.ts';
+import { Node } from  '../types/index.js';
 
 interface SelectionPanelProps {
     selectedNode: Node;

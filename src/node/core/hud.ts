@@ -1,6 +1,6 @@
 import chalk, { ChalkInstance } from 'chalk';
 import { activePersona } from '../../tools/pennyone/personaRegistry.js';
-import { isHostSessionActive } from '../../core/host_session.ts';
+import { isHostSessionActive } from  '../../core/host_session.js';
 
 /**
  * 🔱 SovereignHUD (TypeScript Edition)

@@ -4,11 +4,11 @@ import { join } from 'node:path';
 import { Path } from 'node:fs'; // Mocking fs for path operations
 
 // Import the refactored database facade
-import { database } from '../../../src/tools/pennyone/intel/database.ts';
+import { database } from  '../../../src/tools/pennyone/intel/database.js';
 // Import other modules that might be used by the facade's methods, if needed for mocking
-import * as hallSchema from '../../../src/tools/pennyone/intel/schema.ts';
-import * as pennyonePathRegistry from '../../../src/tools/pennyone/pathRegistry.ts';
-import * as hallTypes from '../../../types/hall.ts';
+import * as hallSchema from  '../../../src/tools/pennyone/intel/schema.js';
+import * as pennyonePathRegistry from  '../../../src/tools/pennyone/pathRegistry.js';
+import * as hallTypes from  '../../../types/hall.js';
 
 // Constants and Mock Data
 const MOCK_ROOT_PATH = '/mock/corvus/cstar';

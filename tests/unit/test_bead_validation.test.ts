@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import { test } from 'node:test';
-import { validateBeadId } from '../../src/types/bead.ts';
+import { validateBeadId } from  '../../src/types/bead.js';
 
 test('validateBeadId: identifies valid bead identifiers', () => {
   assert.strictEqual(validateBeadId('bead:session-123:fragment-456'), true);

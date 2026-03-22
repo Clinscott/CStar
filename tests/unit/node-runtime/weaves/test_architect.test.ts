@@ -1,7 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { ArchitectWeave, deps } from '../../../../src/node/core/runtime/weaves/architect.ts';
+import { ArchitectWeave, deps } from  '../../../../src/node/core/runtime/weaves/architect.js';
 
 describe('ArchitectWeave Unit Tests', () => {
     it('initializes correctly', () => {

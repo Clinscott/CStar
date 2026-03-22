@@ -1,6 +1,6 @@
-import type { HostProvider } from '../../core/host_session.ts';
-import { resolveHostProvider } from '../../core/host_session.ts';
-import { ANS } from './ans.ts';
+import type { HostProvider } from  '../../core/host_session.js';
+import { resolveHostProvider } from  '../../core/host_session.js';
+import { ANS } from  './ans.js';
 import type {
     HostGovernorWeavePayload,
     RuntimeDispatchPort,

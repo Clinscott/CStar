@@ -1,8 +1,8 @@
 import test, { mock } from 'node:test';
 import assert from 'node:assert';
 import path from 'node:path';
-import { indexSector } from '../../src/tools/pennyone/index.ts';
-import { defaultProvider } from '../../src/tools/pennyone/intel/llm.ts';
+import { indexSector } from  '../../src/tools/pennyone/index.js';
+import { defaultProvider } from  '../../src/tools/pennyone/intel/llm.js';
 
 test('Targeted Incremental Scan (indexSector)', async () => {
     // [🛡️] STERLING MANDATE: Isolation Strike

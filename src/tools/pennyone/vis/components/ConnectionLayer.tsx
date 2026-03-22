@@ -2,7 +2,7 @@ import React, { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { Line } from '@react-three/drei';
-import { Node, Link } from '../types/index.ts';
+import { Node, Link } from  '../types/index.js';
 
 interface NeuralLinkProps {
     start: [number, number, number];

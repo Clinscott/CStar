@@ -1,7 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
-import { RuntimeDispatcher } from '../../../src/node/core/runtime/dispatcher.ts';
-import { WeaveInvocation, WeaveResult } from '../../../src/node/core/runtime/contracts.ts';
+import { RuntimeDispatcher } from  '../../../src/node/core/runtime/dispatcher.js';
+import { WeaveInvocation, WeaveResult } from  '../../../src/node/core/runtime/contracts.js';
 
 describe('RuntimeDispatcher', () => {
     it('should correctly dispatch to a registered adapter', async () => {

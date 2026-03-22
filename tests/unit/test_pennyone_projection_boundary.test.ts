@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { readProjectedMatrixGraph, writeProjectedMatrixGraph } from '../../src/tools/pennyone/intel/compiler.ts';
+import { readProjectedMatrixGraph, writeProjectedMatrixGraph } from  '../../src/tools/pennyone/intel/compiler.js';
 import {
     closeDb,
     getHallFileByPath,
@@ -12,9 +12,9 @@ import {
     recordHallScan,
     upsertHallRepository,
 } from '../../src/tools/pennyone/intel/database.ts';
-import { searchMatrix } from '../../src/tools/pennyone/live/search.ts';
-import { registry } from '../../src/tools/pennyone/pathRegistry.ts';
-import { buildHallRepositoryId } from '../../src/types/hall.ts';
+import { searchMatrix } from  '../../src/tools/pennyone/live/search.js';
+import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
+import { buildHallRepositoryId } from  '../../src/types/hall.js';
 
 describe('PennyOne projection boundary (CS-P1-08)', () => {
     let tmpRoot: string;

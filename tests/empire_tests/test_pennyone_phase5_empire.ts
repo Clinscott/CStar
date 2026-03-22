@@ -5,7 +5,7 @@ import { analyzeFile } from '../../src/tools/pennyone/analyzer.js';
 describe('PennyOne Phase 5: Polyglot Extraction', async () => {
     it('should correctly analyze a TypeScript file using Tree-sitter', async () => {
         const tsCode = `
-            import { run } from './agent';
+            import { run } from  './agent.js';
             export function main() {
                 if (true) {
                     console.log("TS Active");

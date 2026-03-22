@@ -4,13 +4,13 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { OrchestratorProcessManager } from '../../src/node/core/runtime/process_manager.ts';
-import { OrchestratorReaper } from '../../src/node/core/runtime/reaper.ts';
-import { OrchestratorWorkerBridge } from '../../src/node/core/runtime/worker_bridge.ts';
-import { RUNTIME_KERNEL_ROOT } from '../../src/node/core/runtime/kernel_root.ts';
-import { closeDb, getDb, upsertHallBead } from '../../src/tools/pennyone/intel/database.ts';
-import { registry } from '../../src/tools/pennyone/pathRegistry.ts';
-import { buildHallRepositoryId, normalizeHallPath } from '../../src/types/hall.ts';
+import { OrchestratorProcessManager } from  '../../src/node/core/runtime/process_manager.js';
+import { OrchestratorReaper } from  '../../src/node/core/runtime/reaper.js';
+import { OrchestratorWorkerBridge } from  '../../src/node/core/runtime/worker_bridge.js';
+import { RUNTIME_KERNEL_ROOT } from  '../../src/node/core/runtime/kernel_root.js';
+import { closeDb, getDb, upsertHallBead } from  '../../src/tools/pennyone/intel/database.js';
+import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
+import { buildHallRepositoryId, normalizeHallPath } from  '../../src/types/hall.js';
 
 describe('Orchestrator Internal Spokes [Ω]', () => {
     let tmpRoot: string;

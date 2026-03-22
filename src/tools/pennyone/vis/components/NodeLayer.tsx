@@ -1,8 +1,8 @@
 import React, { useRef, useMemo } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
-import { Node, Link } from '../types/index.ts';
-import { useNodeEffects } from '../logic/useNodeEffects.ts';
+import { Node, Link } from  '../types/index.js';
+import { useNodeEffects } from  '../logic/useNodeEffects.js';
 
 const tempObject = new THREE.Object3D();
 const tempColor = new THREE.Color();

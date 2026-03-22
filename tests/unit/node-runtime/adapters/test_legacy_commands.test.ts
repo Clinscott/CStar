@@ -1,6 +1,6 @@
 import { test, describe, beforeEach } from 'node:test';
 import assert from 'node:assert';
-import { resolvePythonPath, loadSkillRegistryManifest, discoverLegacyCommands, deps } from '../../../../src/node/core/runtime/adapters/legacy_commands.ts';
+import { resolvePythonPath, loadSkillRegistryManifest, discoverLegacyCommands, deps } from  '../../../../src/node/core/runtime/adapters/legacy_commands.js';
 
 describe('legacy_commands', () => {
     beforeEach(() => {

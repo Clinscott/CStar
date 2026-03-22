@@ -1,7 +1,7 @@
-import { requestHostText } from '../../../../core/host_intelligence.ts';
-import type { HostProvider } from '../../../../core/host_session.ts';
-import { resolveHostProvider } from '../../../../core/host_session.ts';
-import type { RuntimeContext } from '../contracts.ts';
+import { requestHostText } from  '../../../../core/host_intelligence.js';
+import type { HostProvider } from  '../../../../core/host_session.js';
+import { resolveHostProvider } from  '../../../../core/host_session.js';
+import type { RuntimeContext } from  '../contracts.js';
 
 export interface HostTextRequest {
     prompt: string;

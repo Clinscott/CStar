@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import Database from 'better-sqlite3';
 
-import { MimirClient } from '../../src/core/mimir_client.ts';
+import { MimirClient } from  '../../src/core/mimir_client.js';
 
 describe('TypeScript Mimir client bridge (CS-P1-02)', () => {
     it('uses a configured Gemini host bridge when the provider bridge is explicitly configured', async () => {

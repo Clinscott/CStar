@@ -5,20 +5,20 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { runScan } from '../../src/tools/pennyone/index.ts';
-import { ChronicleIndexer } from '../../src/tools/pennyone/intel/chronicle.ts';
-import { defaultProvider } from '../../src/tools/pennyone/intel/llm.ts';
-import { SemanticIndexer } from '../../src/tools/pennyone/intel/semantic.ts';
-import { Warden } from '../../src/tools/pennyone/intel/warden.ts';
+import { runScan } from  '../../src/tools/pennyone/index.js';
+import { ChronicleIndexer } from  '../../src/tools/pennyone/intel/chronicle.js';
+import { defaultProvider } from  '../../src/tools/pennyone/intel/llm.js';
+import { SemanticIndexer } from  '../../src/tools/pennyone/intel/semantic.js';
+import { Warden } from  '../../src/tools/pennyone/intel/warden.js';
 import {
     closeDb,
     recordHallFile,
     recordHallScan,
     upsertHallRepository,
 } from '../../src/tools/pennyone/intel/database.ts';
-import { registry } from '../../src/tools/pennyone/pathRegistry.ts';
-import { createGungnirMatrix } from '../../src/types/gungnir.ts';
-import { buildHallRepositoryId } from '../../src/types/hall.ts';
+import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
+import { createGungnirMatrix } from  '../../src/types/gungnir.js';
+import { buildHallRepositoryId } from  '../../src/types/hall.js';
 
 describe('PennyOne projection gate hardening (CS-P2-01)', () => {
     const originalCwd = process.cwd();

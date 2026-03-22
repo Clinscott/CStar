@@ -4,13 +4,13 @@ import path from 'node:path';
 import { registry } from '../../tools/pennyone/pathRegistry.js';
 import chalk from 'chalk';
 import { activePersona } from '../../tools/pennyone/personaRegistry.js';
-import { getHallSummary } from '../../tools/pennyone/intel/database.ts';
-import { runScan } from '../../tools/pennyone/index.ts';
+import { getHallSummary } from  '../../tools/pennyone/intel/database.js';
+import { runScan } from  '../../tools/pennyone/index.js';
 
 import { getPythonPath } from './python_utils.js';
 
 import { HUD } from './hud.js';
-import { StateRegistry } from './state.ts';
+import { StateRegistry } from  './state.js';
 
 /**
  * Autonomic Nervous System (ANS)

@@ -4,8 +4,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { RavensAdapter } from '../../src/node/core/runtime/adapters.ts';
-import type { RuntimeContext, WeaveInvocation } from '../../src/node/core/runtime/contracts.ts';
+import { RavensAdapter } from  '../../src/node/core/runtime/adapters.js';
+import type { RuntimeContext, WeaveInvocation } from  '../../src/node/core/runtime/contracts.js';
 
 function createContext(workspaceRoot: string): RuntimeContext {
     return {

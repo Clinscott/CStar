@@ -1,6 +1,6 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
-import { deps, resolveAutobotBeadId, buildAutobotWorkerNote, resolveAutobotCheckerShell } from '../../../src/node/core/runtime/autobot_context.ts';
+import { deps, resolveAutobotBeadId, buildAutobotWorkerNote, resolveAutobotCheckerShell } from  '../../../src/node/core/runtime/autobot_context.js';
 
 describe('Autobot Context Unit Tests', () => {
     it('should resolve the correct bead ID based on priority', () => {

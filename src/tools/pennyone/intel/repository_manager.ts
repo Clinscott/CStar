@@ -20,7 +20,7 @@ import { createGungnirMatrix, getGungnirOverall, type GungnirMatrix } from '../.
 import { upsertHallBead, saveValidationRun as saveHallValidationRun } from './bead_controller.js';
 
 export function upsertHallRepository(record: Omit<HallRepositoryRecord, 'repo_id'> & { repo_id?: string }): HallRepositoryRecord {
-    const db = database.getDb('.');
+    const db = database.getDb();
     const normalizedRoot = normalizeHallPath(record.root_path);
     const now = Math.max(record.updated_at, record.created_at, Date.now());
     const materialized: HallRepositoryRecord = {
@@ -62,7 +62,7 @@ export function upsertHallRepository(record: Omit<HallRepositoryRecord, 'repo_id
 }
 
 export function recordHallScan(record: HallScanRecord): void {
-    const db = database.getDb('.');
+    const db = database.getDb();
     db.prepare(`
         INSERT INTO hall_scans (
             scan_id, repo_id, scan_kind, status, baseline_gungnir_score, started_at, completed_at, metadata_json
@@ -85,7 +85,7 @@ export function recordHallScan(record: HallScanRecord): void {
 }
 
 export function recordHallFile(record: HallFileRecord): void {
-    const db = database.getDb('.');
+    const db = database.getDb();
     const materializedMatrix = record.matrix ? createGungnirMatrix(record.matrix) : undefined;
     db.prepare(`
         INSERT INTO hall_files (
@@ -118,7 +118,7 @@ export function recordHallFile(record: HallFileRecord): void {
 }
 
 export function saveHallMountedSpoke(record: HallMountedSpokeRecord): void {
-    const db = database.getDb('.');
+    const db = database.getDb();
     db.prepare(`
         INSERT INTO hall_mounted_spokes (
             spoke_id, repo_id, slug, kind, root_path, remote_url, default_branch,
@@ -163,7 +163,7 @@ export function getHallMountedSpoke(
     slugOrId: string,
     rootPath: string = registry.getRoot(),
 ): HallMountedSpokeRecord | null {
-    const db = database.getDb('.');
+    const db = database.getDb();
     const repoId = buildHallRepositoryId(normalizeHallPath(rootPath));
     const row = db.prepare(`
         SELECT spoke_id, repo_id, slug, kind, root_path, remote_url, default_branch,
@@ -199,7 +199,7 @@ export function getHallMountedSpoke(
 }
 
 export function listHallMountedSpokes(rootPath: string = registry.getRoot()): HallMountedSpokeRecord[] {
-    const db = database.getDb('.');
+    const db = database.getDb();
     const repoId = buildHallRepositoryId(normalizeHallPath(rootPath));
     const rows = db.prepare(`
         SELECT spoke_id, repo_id, slug, kind, root_path, remote_url, default_branch,
@@ -231,7 +231,7 @@ export function listHallMountedSpokes(rootPath: string = registry.getRoot()): Ha
 }
 
 export function removeHallMountedSpoke(slugOrId: string, rootPath: string = registry.getRoot()): boolean {
-    const db = database.getDb('.');
+    const db = database.getDb();
     const repoId = buildHallRepositoryId(normalizeHallPath(rootPath));
     const result = db.prepare(`
         DELETE FROM hall_mounted_spokes
@@ -242,7 +242,7 @@ export function removeHallMountedSpoke(slugOrId: string, rootPath: string = regi
 }
 
 export function getHallSummary(rootPath: string = registry.getRoot()): HallRepositorySummary | null {
-    const db = database.getDb('.');
+    const db = database.getDb();
     const normalizedRoot = normalizeHallPath(rootPath);
     const row = db.prepare('SELECT * FROM hall_repository_projection WHERE root_path = ?').get(normalizedRoot) as
         | Record<string, unknown>
@@ -268,7 +268,7 @@ export function getHallSummary(rootPath: string = registry.getRoot()): HallRepos
 }
 
 export function getHallRepositoryRecord(rootPath: string = registry.getRoot()): HallRepositoryRecord | null {
-    const db = database.getDb('.');
+    const db = database.getDb();
     const normalizedRoot = normalizeHallPath(rootPath);
     const row = db.prepare(`
         SELECT repo_id, root_path, name, status, active_persona, baseline_gungnir_score,
@@ -297,7 +297,7 @@ export function getHallRepositoryRecord(rootPath: string = registry.getRoot()): 
 }
 
 export function getHallFiles(rootPath: string = registry.getRoot(), scanId?: string): HallFileRecord[] {
-    const db = database.getDb('.');
+    const db = database.getDb();
     const repoId = buildHallRepositoryId(normalizeHallPath(rootPath));
     const rows = (scanId
         ? db.prepare(`
@@ -332,7 +332,7 @@ export function getHallFiles(rootPath: string = registry.getRoot(), scanId?: str
 }
 
 export function getLatestHallScanId(rootPath: string = registry.getRoot()): string | undefined {
-    const db = database.getDb('.');
+    const db = database.getDb();
     const repoId = buildHallRepositoryId(normalizeHallPath(rootPath));
     const row = db.prepare(`
         SELECT scan_id
@@ -350,7 +350,7 @@ export function getHallFileByPath(
     rootPath: string = registry.getRoot(),
     scanId?: string,
 ): HallFileRecord | null {
-    const db = database.getDb('.');
+    const db = database.getDb();
     const repoId = buildHallRepositoryId(normalizeHallPath(rootPath));
     const normalizedPath = normalizeHallPath(filePath);
     const activeScanId = scanId ?? getLatestHallScanId(rootPath);
@@ -392,7 +392,7 @@ export function getHallFileByPath(
 }
 
 export function saveHallGitCommit(record: HallGitCommitRecord): void {
-    const db = database.getDb('.');
+    const db = database.getDb();
     db.prepare(`
         INSERT INTO hall_git_commits (
             commit_hash, repo_id, author_name, author_email, authored_at,
@@ -423,7 +423,7 @@ export function saveHallGitCommit(record: HallGitCommitRecord): void {
 }
 
 export function saveHallGitDiff(record: HallGitDiffRecord): void {
-    const db = database.getDb('.');
+    const db = database.getDb();
     db.prepare(`
         INSERT INTO hall_git_diffs (
             commit_hash, repo_id, file_path, change_type, old_path, insertions, deletions, patch_text
@@ -441,7 +441,7 @@ export function saveHallGitDiff(record: HallGitDiffRecord): void {
 }
 
 export function getHallGitHistory(repoId: string, limit: number = 100): HallGitCommitRecord[] {
-    const db = database.getDb('.');
+    const db = database.getDb();
     const rows = db.prepare(`
         SELECT * FROM hall_git_commits
         WHERE repo_id = ?
@@ -473,7 +473,7 @@ export function migrateLegacyHallRecords(rootPath: string = registry.getRoot()):
     beads: number;
     validation_runs: number;
 } {
-    const db = database.getDb('.');
+    const db = database.getDb();
     const normalizedRoot = normalizeHallPath(rootPath);
     const legacyState = getLegacyState(rootPath);
     const repository = upsertHallRepository({
@@ -579,7 +579,7 @@ export function migrateLegacyHallRecords(rootPath: string = registry.getRoot()):
 }
 
 export function acquireLease(targetPath: string, agentId: string, durationMs: number = 300000): boolean {
-    const db = database.getDb('.');
+    const db = database.getDb();
     const now = Date.now();
     const expiry = now + durationMs;
     const normalizedPath = targetPath.replace(/\\/g, '/');
@@ -603,13 +603,13 @@ export function acquireLease(targetPath: string, agentId: string, durationMs: nu
 }
 
 export function releaseLease(targetPath: string, agentId: string): void {
-    const db = database.getDb('.');
+    const db = database.getDb();
     const normalizedPath = targetPath.replace(/\\/g, '/');
     db.prepare('DELETE FROM task_leases WHERE target_path = ? AND agent_id = ?').run(normalizedPath, agentId);
 }
 
 export function updateFtsIndex(filePath: string, intent: string, protocol: string) {
-    const db = database.getDb('.');
+    const db = database.getDb();
     const normalizedPath = filePath.replace(/\\/g, '/');
 
     const isStructural = intent.includes('sector implements logic focusing on');
@@ -626,14 +626,14 @@ export function updateFtsIndex(filePath: string, intent: string, protocol: strin
 }
 
 export function updateChronicleIndex(sourceFile: string, header: string, content: string, timestamp: string = '') {
-    const db = database.getDb('.');
+    const db = database.getDb();
     db.prepare('DELETE FROM chronicles_fts WHERE source_file = ? AND header = ?').run(sourceFile, header);
     db.prepare('INSERT INTO chronicles_fts (source_file, header, content, timestamp) VALUES (?, ?, ?, ?)')
         .run(sourceFile, header, content, timestamp);
 }
 
 export function searchIntents(query: string): any[] {
-    const db = database.getDb('.');
+    const db = database.getDb();
     const safeQuery = query.replace(/'/g, ' ');
 
     const codeResults = db.prepare(`

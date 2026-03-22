@@ -62,7 +62,8 @@ class VigilanceAuditor:
             # 1. Aggressive Noise Pruning (Categorize as LEGACY/PRUNABLE)
             is_noise = any(noise in file_path_str for noise in [
                 "tmp_load_test", "skills_db", "site_libs", "quarto-html", 
-                "tmp_diag", ".tmp", "docs/", "node_modules", ".venv"
+                "tmp_diag", ".tmp", "docs/", "node_modules", ".venv",
+                "bin/", "gogcli/", "logs/", ".stats/"
             ])
             
             if is_noise:

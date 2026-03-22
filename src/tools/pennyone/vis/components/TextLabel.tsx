@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
-import { Node } from '../types/index.ts';
+import { Node } from  '../types/index.js';
 
 /**
  * 🏷️ TEXT LABEL

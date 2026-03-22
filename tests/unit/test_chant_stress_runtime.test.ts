@@ -4,8 +4,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { ChantWeave } from '../../src/node/core/runtime/weaves/chant.ts';
-import type { RuntimeContext, RuntimeDispatchPort, WeaveInvocation, WeaveResult } from '../../src/node/core/runtime/contracts.ts';
+import { ChantWeave } from  '../../src/node/core/runtime/weaves/chant.js';
+import type { RuntimeContext, RuntimeDispatchPort, WeaveInvocation, WeaveResult } from  '../../src/node/core/runtime/contracts.js';
 import {
     closeDb,
     getHallBeads,
@@ -13,7 +13,7 @@ import {
     listHallPlanningSessions,
     listHallSkillProposals,
 } from '../../src/tools/pennyone/intel/database.ts';
-import { registry } from '../../src/tools/pennyone/pathRegistry.ts';
+import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
 
 type ChantStressScenario = {
     key: string;

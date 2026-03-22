@@ -1,8 +1,8 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { RavensCycleWeave, RavensStageContractAdapter } from '../../src/node/core/runtime/weaves/ravens_cycle.ts';
-import type { RuntimeContext } from '../../src/node/core/runtime/contracts.ts';
+import { RavensCycleWeave, RavensStageContractAdapter } from  '../../src/node/core/runtime/weaves/ravens_cycle.js';
+import type { RuntimeContext } from  '../../src/node/core/runtime/contracts.js';
 
 function createContext(workspaceRoot: string): RuntimeContext {
     return {

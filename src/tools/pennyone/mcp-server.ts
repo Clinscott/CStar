@@ -12,10 +12,10 @@ dotenv.config({ path: path.join(PROJECT_ROOT, '.env') });
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
-import { SemanticIndexer } from './intel/semantic.ts';
-import { getHallFile, searchIntents } from './intel/database.ts';
-import { registry } from './pathRegistry.ts';
-import { requestHostText } from '../../core/host_intelligence.ts';
+import { SemanticIndexer } from  './intel/semantic.js';
+import { getHallFile, searchIntents } from  './intel/database.js';
+import { registry } from  './pathRegistry.js';
+import { requestHostText } from  '../../core/host_intelligence.js';
 import * as fsPromises from 'node:fs/promises';
 
 /**

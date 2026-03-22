@@ -3,9 +3,9 @@ import Database from 'better-sqlite3';
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { requestHostText, type HostTextResult } from '../../../core/host_intelligence.ts';
-import type { HostProvider } from '../../../core/host_session.ts';
-import { resolveWorkspaceRoot, type WorkspaceRootSource } from '../runtime/invocation.ts';
+import { requestHostText, type HostTextResult } from  '../../../core/host_intelligence.js';
+import type { HostProvider } from  '../../../core/host_session.js';
+import { resolveWorkspaceRoot, type WorkspaceRootSource } from  '../runtime/invocation.js';
 
 export interface OracleCommandOptions {
     system?: string;

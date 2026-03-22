@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { createForgeCandidateRequest, createForgeCandidateResult } from '../../src/types/forge-candidate.ts';
+import { createForgeCandidateRequest, createForgeCandidateResult } from  '../../src/types/forge-candidate.js';
 
 describe('Forge candidate contract (CS-P1-06)', () => {
     it('creates a canonical request with stable defaults', () => {

@@ -1,7 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { ResearchWeave, deps } from '../../../../src/node/core/runtime/weaves/research.ts';
+import { ResearchWeave, deps } from  '../../../../src/node/core/runtime/weaves/research.js';
 
 describe('ResearchWeave Unit Tests', () => {
     it('initializes correctly', () => {
