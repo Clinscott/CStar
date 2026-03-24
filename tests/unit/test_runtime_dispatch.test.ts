@@ -37,7 +37,7 @@ describe('Canonical Runtime Dispatcher (CS-P1-01)', () => {
             'weave:architect',
             'weave:autobot',
             'weave:chant',
-            'weave:compress',
+            'weave:distill',
             'weave:critique',
             'weave:dynamic-command',
             'weave:evolve',

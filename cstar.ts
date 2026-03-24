@@ -18,7 +18,7 @@ import { registerRunSkillCommand } from './src/node/core/commands/run-skill.ts';
 import { bootstrapRuntime } from './src/node/core/runtime/bootstrap.ts';
 import { RuntimeDispatcher } from './src/node/core/runtime/dispatcher.ts';
 
-import { registerMcpCommand } from './src/node/core/commands/mcp.ts';
+import { registerBifrostCommand } from './src/node/core/commands/bifrost.ts';
 import { registerOracleCommand } from './src/node/core/commands/oracle.ts';
 import { registerTuiCommand } from './src/node/core/commands/tui.ts';
 import { registerSpokeCommand } from './src/node/core/commands/spoke.ts';
@@ -81,13 +81,13 @@ const program = new Command();
   ravens           Monitor and release the Raven Wardens (Muninn/Memory).
   status           Retrieve system vitals, mission traces, and perimeter reports.
   tui              Open the operator matrix shell.
-  mcp              Manage the Corvus Control & PennyOne MCP servers.
+  bifrost          Manage the Corvus Control & PennyOne MCP servers.
   spoke            Link, unlink, and inspect mounted estate spokes.
   hall [query]     Consult the Hall of Records or search the estate by intent.
-  skills           List all registered Agent Skills and runtime Weaves.
+  manifest         List all registered Agent Skills and runtime Weaves.
   skill-info <id>  Inspect the mandate and logic protocol of a specific skill.
   oracle           Consult the One Mind Host Agent via direct sampling.
-  [skill]          Directly invoke any evolved skill from the ecosystem (e.g., 'cstar memory').
+  [skill]          Directly invoke any evolved skill from the ecosystem (e.g., 'cstar scribe').
   [workflow]       Execute high-level workflows (e.g., 'cstar lets-go', 'cstar plan').
 
 ◈ PERSONA PROTOCOL
@@ -112,7 +112,7 @@ const program = new Command();
     registerPennyOneCommand(program, () => registry.getRoot());
     registerRavenCommand(program, () => registry.getRoot());
     registerVitalsCommand(program);
-    registerMcpCommand(program);
+    registerBifrostCommand(program);
     registerOracleCommand(program, () => registry.getRoot());
     registerRunSkillCommand(program);
     registerTuiCommand(program);
@@ -146,6 +146,7 @@ const program = new Command();
                     project_root: projectRoot,
                     cwd: process.cwd(),
                     max_parallel: parseInt(options.parallel),
+                    limit: parseInt(options.limit),
                     tick_timeout: parseInt(options.timeout),
                     dry_run: options.dryRun
                 }
@@ -396,7 +397,7 @@ const program = new Command();
         });
 
     program
-        .command('skills')
+        .command('manifest')
         .description('List all registered Agent Skills and runtime Weaves')
         .action(() => {
             const registryPath = join(PROJECT_ROOT, '.agents', 'skill_registry.json');
@@ -413,8 +414,8 @@ const program = new Command();
             console.log(chalk.dim('━'.repeat(60)));
             
             console.log(chalk.bold('◈ AUTHENTICATED SKILLS'));
-            Object.keys(skillRegistry.skills).sort().forEach(name => {
-                const skill = skillRegistry.skills[name];
+            Object.keys(skillRegistry.entries).sort().forEach(name => {
+                const skill = skillRegistry.entries[name];
                 const status = activeAdapters.has(`weave:${name}`) || activeAdapters.has(name) 
                     ? chalk.green('ACTIVE') 
                     : chalk.dim('LOADED');
@@ -448,8 +449,8 @@ const program = new Command();
                 const registryPath = join(PROJECT_ROOT, '.agents', 'skill_registry.json');
                 if (fs.existsSync(registryPath)) {
                     const registry = JSON.parse(fs.readFileSync(registryPath, 'utf-8'));
-                    if (registry.skills[name]) {
-                        console.log(JSON.stringify(registry.skills[name], null, 2));
+                    if (registry.entries[name]) {
+                        console.log(JSON.stringify(registry.entries[name], null, 2));
                     } else {
                         console.error(chalk.red(`Skill '${name}' not found in registry.`));
                     }

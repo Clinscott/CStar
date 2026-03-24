@@ -1,5 +1,13 @@
 import { RuntimeDispatcher } from  './dispatcher.js';
-import { DynamicCommandAdapter, PennyOneAdapter, RavensAdapter, StartAdapter } from  './adapters.js';
+import { 
+    DynamicCommandAdapter, 
+    PennyOneAdapter, 
+    RavensAdapter, 
+    StartAdapter,
+    RestorationWeave,
+    EstateExpansionWeave,
+    VigilanceWeave
+} from  './adapters.js';
 import { AutoBotWeave } from  './weaves/autobot.js';
 import { HostWorkerWeave } from  './weaves/host_worker.js';
 import { ChantWeave } from  './weaves/chant.js';
@@ -9,7 +17,7 @@ import { TaliesinForgeWeave } from  './weaves/taliesin_forge.js';
 import { ResearchWeave } from  './weaves/research.js';
 import { CritiqueWeave } from  './weaves/critique.js';
 import { ArchitectWeave } from  './weaves/architect.js';
-import { CompressWeave } from  './weaves/compress.js';
+import { DistillWeave } from  './weaves/distill.js';
 import { OrchestrateWeave } from  './weaves/orchestrate.js';
 import { HostGovernorWeave } from  './weaves/host_governor.js';
 import { TemporalLearningWeave } from  './weaves/temporal_learning.js';
@@ -32,7 +40,7 @@ export function bootstrapRuntime(dispatcher: RuntimeDispatcher = RuntimeDispatch
         new HostWorkerWeave(),
         new ChantWeave(dispatcher),
         new ResearchWeave(dispatcher),
-        new CompressWeave(),
+        new DistillWeave(),
         new CritiqueWeave(dispatcher),
         new ArchitectWeave(dispatcher),
         new EvolveWeave(),
@@ -41,6 +49,9 @@ export function bootstrapRuntime(dispatcher: RuntimeDispatcher = RuntimeDispatch
         new OrchestrateWeave(dispatcher),
         new HostGovernorWeave(dispatcher),
         new TemporalLearningWeave(),
+        new RestorationWeave(dispatcher),
+        new EstateExpansionWeave(dispatcher),
+        new VigilanceWeave(dispatcher),
     ];
 
     for (const adapter of adapters) {

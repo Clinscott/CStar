@@ -18,7 +18,13 @@ if str(PROJECT_ROOT) not in sys.path:
 from src.core.sovereign_hud import SovereignHUD
 from src.core.engine.hall_schema import HallOfRecords, HallBeadRecord, build_repo_id
 
-def generate_bead_id(prefix: str) -> str:
+def generate_bead_id(prefix: str, salt: str = "") -> str:
+    # Use deterministic fragment if salt provided, else uuid for backwards compatibility
+    # but prefer deterministic for idempotency.
+    if salt:
+        import hashlib
+        h = hashlib.md5(salt.encode()).hexdigest()[:8]
+        return f"bead:l5:vigilance:{prefix}:{h}"
     return f"bead:l5:vigilance:{prefix}:{uuid.uuid4().hex[:8]}"
 
 class VigilanceAuditor:
@@ -89,8 +95,8 @@ class VigilanceAuditor:
         bead_count = 0
         
         for sector_id, files in functional_sectors.items():
-            # Create Parent Sector Bead
-            parent_id = generate_bead_id(f"pb-{sector_id}")
+            # Create Parent Sector Bead (Deterministic based on sector_id)
+            parent_id = generate_bead_id(f"pb-{sector_id}", salt=f"sector-{sector_id}")
             self.db.upsert_bead(HallBeadRecord(
                 bead_id=parent_id,
                 repo_id=self.repo_id,
@@ -105,10 +111,10 @@ class VigilanceAuditor:
             bead_count += 1
 
             # Create Child Beads for the first few files or aggregate if too many
-            # For this automation, we create 1 bead per file if files < 10, else 1 aggregate remediation bead.
             if len(files) <= 5:
                 for f in files:
-                    child_id = generate_bead_id(f"cb-{sector_id}")
+                    # Use :child: in ID to avoid orchestrator shattering
+                    child_id = generate_bead_id(f"cb-{sector_id}:child", salt=f"file-{f}")
                     self.db.upsert_bead(HallBeadRecord(
                         bead_id=child_id,
                         repo_id=self.repo_id,
@@ -124,7 +130,8 @@ class VigilanceAuditor:
                     bead_count += 1
             else:
                 # Aggregate remediation for large sectors
-                child_id = generate_bead_id(f"cb-agg-{sector_id}")
+                # Use :child: in ID to avoid orchestrator shattering
+                child_id = generate_bead_id(f"cb-agg-{sector_id}:child", salt=f"agg-sector-{sector_id}")
                 self.db.upsert_bead(HallBeadRecord(
                     bead_id=child_id,
                     repo_id=self.repo_id,

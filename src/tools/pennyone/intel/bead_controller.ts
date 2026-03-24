@@ -25,6 +25,7 @@ function parseJson<T>(value: string | null | undefined, fallback: T): T {
 
 export function upsertHallBead(record: HallBeadRecord): void {
     const db = database.getDb();
+    console.log(`[DEBUG] upsertHallBead: id=${record.bead_id}, status=${record.status}`);
     const sql = `
         INSERT INTO hall_beads (
             bead_id, repo_id, scan_id, legacy_id, target_kind, target_ref, target_path, 
@@ -39,29 +40,35 @@ export function upsertHallBead(record: HallBeadRecord): void {
             resolution_note = excluded.resolution_note,
             updated_at = excluded.updated_at
     `;
-    db.prepare(sql).run(
-        record.bead_id,
-        record.repo_id,
-        record.scan_id,
-        record.legacy_id,
-        record.target_kind,
-        record.target_ref,
-        record.target_path,
-        record.rationale,
-        stringifyJson(record.contract_refs),
-        stringifyJson(record.baseline_scores),
-        record.acceptance_criteria,
-        record.checker_shell,
-        record.status,
-        record.assigned_agent,
-        record.source_kind,
-        record.triage_reason,
-        record.resolution_note,
-        record.resolved_validation_id,
-        record.superseded_by,
-        record.created_at,
-        record.updated_at
-    );
+    try {
+        db.prepare(sql).run(
+            record.bead_id,
+            record.repo_id,
+            record.scan_id,
+            record.legacy_id,
+            record.target_kind,
+            record.target_ref,
+            record.target_path,
+            record.rationale,
+            stringifyJson(record.contract_refs),
+            stringifyJson(record.baseline_scores),
+            record.acceptance_criteria,
+            record.checker_shell,
+            record.status,
+            record.assigned_agent,
+            record.source_kind,
+            record.triage_reason,
+            record.resolution_note,
+            record.resolved_validation_id,
+            record.superseded_by,
+            record.created_at,
+            record.updated_at
+        );
+        console.log(`[DEBUG] upsertHallBead: SUCCESS for ${record.bead_id}`);
+    } catch (err: any) {
+        console.error(`[DEBUG] upsertHallBead: FAILURE for ${record.bead_id}: ${err.message}`);
+        throw err;
+    }
 }
 
 export function getHallBead(beadId: string): SovereignBead | null {

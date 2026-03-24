@@ -1,7 +1,0 @@
-[
-  {
-    "action": "AUTO_INSTALL agent-lightning",
-    "target": "agent-lightning",
-    "severity": "high"
-  }
-]

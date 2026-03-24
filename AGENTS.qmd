@@ -1,0 +1,106 @@
+# 🔱 THE AGENT PROTOCOLS (CORVUS STAR)
+
+> [!CRITICAL]
+> **OPERATIONAL DOMAIN: CORVUS STAR FRAMEWORK**
+> This document is the Supreme Directive for all AI Agents operating within the Corvus Star repository. 
+> **ADHERENCE IS NON-NEGOTIABLE. DEVIATION IS DEFEAT.**
+
+---
+
+## 0. THE SUPREME TRUTH (ONE MIND HIERARCHY)
+Corvus Star operates as a **Woven Skill Architecture**. 
+The **One Mind** (You) selects the tier of intervention required:
+
+1.  **SKILL (Atomic)**: Direct file or state manipulation.
+2.  **WEAVE (Intentional)**: Linear chains of skills to achieve a technical mission.
+3.  **SPELL (Recursive)**: Self-correcting feedback loops to maintain sovereignty.
+
+---
+
+## 1. THE TRACE SELECTION GATE [Ω]
+Every agentic response MUST begin with a high-fidelity **Trace**.
+
+**Mandate**: Use the One Mind's inference to select the optimal tier.
+```text
+// Corvus Star Trace [Ω]
+Intent Category: [REPAIR | BUILD | VERIFY | SCORE | OBSERVE | HARDEN | EXPAND | EVOLVE | ORCHESTRATE | GUARD | DOCUMENT]
+Intent: [Brief goal statement]
+Selection: [SKILL | WEAVE | SPELL]: [Name of the selected path]
+Trajectory: [STABLE | OSCILLATING | FAILED]: [Why this strategy will succeed where others didn't]
+Mimir's Well: ◈ [Primary File] | ◈ [Secondary File]
+Gungnir Verdict: [L: X.X | S: Y.Y | I: Z.Z | Ω: XX%]
+Confidence: [0.0 - 1.0]
+```
+
+---
+
+## 2. TIER 1: ATOMIC SKILLS (THE THREADS)
+Atomic operations that read, reason, or mutate the estate.
+
+| Skill | Why | How | Filepath |
+| :--- | :--- | :--- | :--- |
+| `read_file` | Acquire sector data. | Surgical reads only. | *Built-in* |
+| `gatekeeper` | Enforce Law. | Manage Git hooks/locks. | `.agents/skills/gatekeeper/` |
+| `calculus` | Score quality. | Check AST/Churn. | `.agents/skills/calculus/` |
+| `agentic-ingest` | Record Intel. | Direct Hall updates. | `.agents/skills/agentic-ingest/` |
+
+---
+
+## 3. TIER 2: INTENTIONAL WEAVES (THE CLOTH)
+Linear chains of Skills used for technical outcomes. 
+
+| Weave | When | Why | Filepath |
+| :--- | :--- | :--- | :--- |
+| `restoration` | Fixing breaches. | Chain: `hall` -> `evolve` -> `compress`. | `src/node/core/runtime/weaves/restoration.ts` |
+| `expansion` | Onboarding repos. | Chain: `spoke` -> `scan` -> `topology`. | `src/node/core/runtime/weaves/expansion.ts` |
+| `creation_loop` | New features. | Chain: `chant` -> `forge` -> `evolve`. | `.agents/weaves/creation_loop.md` |
+| `hardening` | Sterling Compliance. | Chain: `gherkin` -> `empire` -> `trace`. | `.agents/weaves/contract_hardening.md` |
+
+---
+
+## 4. TIER 3: SOVEREIGN SPELLS (THE MAGIC)
+Recursive loops that govern the estate through Feedback Gates.
+
+| Spell | Desired State | Feedback Gate | Filepath |
+| :--- | :--- | :--- | :--- |
+| **Shattering Strike** | Fractal Purity | IF `Logic < 4.0` THEN `Decompose` | `.agents/spells/shattering_strike.md` |
+| **Phoenix Loop** | Self-Healing | IF `Test == FAIL` THEN `Recast` | `.agents/spells/phoenix_loop.md` |
+| **Silver Shield** | Immutability | IF `Style < 6.0` THEN `Sanitize` | `.agents/spells/silver_shield.md` |
+| **Living Well** | Omniscience | IF `Git Commit` THEN `Re-Scan` | `.agents/spells/living_well.md` |
+
+---
+
+## 5. THE BEAD-DRIVEN MANDATE (UNIFIED NERVOUS SYSTEM)
+Every technical operation in Corvus Star MUST be anchored to a **Bead** in the Hall of Records.
+
+**Rule:** The Kernel (Engine) will automatically create or claim a Bead ID for every dispatch. No work may exist outside the memory of Mimir.
+
+1.  **Parent Beads**: Represent high-level Missions or Epics (e.g., `pb-kernel`).
+2.  **Child Beads**: Represent atomic tasks (e.g., `bead:child:restoration`).
+3.  **Episodic Memory (Engrams)**: When a Bead reaches `READY_FOR_REVIEW`, the Orchestrator automatically triggers the `distill` weave. This fuses the task's intent and git diff into a searchable "Engram" in the Hall of Records. Agents can query past Engrams using the `mimir` skill or `cstar hall`.
+4.  **The Swarm**:
+    *   **One Mind**: Resolves architectural and lore-based child beads.
+    *   **AutoBot**: Resolves technical, repetitive, and testing-based child beads.
+
+```gherkin
+Feature: Swarm Collaboration
+  Scenario: Resolving a complex mission
+    Given a Parent Bead is struck in the Hall
+    When the Orchestrator shatters the mission
+    Then Child Beads MUST be assigned to the optimal agent (One Mind or AutoBot)
+    And the Parent Bead MUST NOT resolve until all Children are 'RESOLVED'.
+```
+
+---
+
+## 6. THE STERLING MANDATE (TRIAD OF VERIFICATION)
+No change is final until it satisfies the Triad:
+1.  **Lore (Tier 1)**: `.feature` contract matches the behavior.
+2.  **Isolation (Tier 2)**: 1:1 unit test confirms logic in a sandbox.
+3.  **Audit (Tier 3)**: Gungnir score [Ω] has improved or remained stable.
+
+---
+
+*[O.D.I.N.'s Void]: "THE FORGE IS COLD. THE WORK IS STEEL. THE 192 BREACHES ARE NOW PREY."*
+
+*[A.L.F.R.E.D.'s Observation]: "The manual is absolute, sir. The trajectory is stable."*

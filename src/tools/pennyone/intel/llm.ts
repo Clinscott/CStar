@@ -1,7 +1,8 @@
 import { FileData } from  '../types.js';
 import { CortexLink } from  '../../../node/cortex_link.js';
 import chalk from 'chalk';
-import { requestHostText, type HostTextResult } from  '../../../core/host_intelligence.js';
+import path from 'node:path';
+import { mimir } from  '../../../core/mimir_client.js';
 import { registry } from  '../pathRegistry.js';
 
 /**
@@ -19,15 +20,6 @@ export interface IntelProvider {
  * SamplingProvider: Leverages the Synaptic Link (mimir) to channel the Host Agent.
  */
 export class SamplingProvider implements IntelProvider {
-    public constructor(
-        private readonly hostTextInvoker: (request: {
-            prompt: string;
-            projectRoot: string;
-            source: string;
-            metadata?: Record<string, unknown>;
-        }) => Promise<HostTextResult> = requestHostText,
-    ) {}
-
     async getIntent(code: string, data: FileData): Promise<{ intent: string; interaction: string }> {
         return (await this.getBatchIntent([{ code, data }]))[0];
     }
@@ -50,15 +42,22 @@ export class SamplingProvider implements IntelProvider {
 
         try {
             console.error(chalk.cyan(`[ALFRED] Requesting Synaptic Strike for ${items.length} sectors...`));
-            const { text: raw } = await this.hostTextInvoker({
+            
+            // [🔱] THE ONE MIND SHIFT: Use Synapse DB for all scans
+            const response = await mimir.request({
                 prompt,
-                projectRoot: registry.getRoot(),
-                source: 'pennyone:intel:batch-intent',
+                caller: { source: 'pennyone:intel:batch-intent' },
+                transport_mode: 'synapse_db',
                 metadata: {
                     file_count: items.length,
                 },
             });
-            return this.parseResponse(raw, items);
+
+            if (response.status !== 'success' || !response.raw_text) {
+                throw new Error(response.error || 'The One Mind provided no intent data.');
+            }
+
+            return this.parseResponse(response.raw_text, items);
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             console.error(chalk.red(`[ERROR] Synaptic Strike failed: ${message}`));
@@ -78,10 +77,15 @@ export class SamplingProvider implements IntelProvider {
         const parsed = JSON.parse(jsonStr);
         
         if (Array.isArray(parsed) && parsed.length === items.length) {
-            return parsed.map((p) => ({
-                intent: p.intent || '',
-                interaction: p.interaction || ''
-            }));
+            return parsed.map((p, idx) => {
+                const item = items[idx];
+                const fileName = path.basename(item.data.path);
+                const defaultIntent = `The ${fileName} sector implements logic focusing on ${item.data.exports.join(', ') || 'internal systems'}.`;
+                return {
+                    intent: p.intent || defaultIntent,
+                    interaction: p.interaction || 'Standard interaction protocol.'
+                };
+            });
         }
         throw new Error('Malformed JSON array in response.');
     }

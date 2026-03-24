@@ -650,5 +650,12 @@ export function searchIntents(query: string): any[] {
         ORDER BY rank
     `).all(safeQuery) as any[];
 
-    return [...codeResults, ...loreResults].sort((a, b) => a.rank - b.rank);
+    const episodicResults = db.prepare(`
+        SELECT memory_id as path, tactical_summary as intent, metadata_json as interaction_protocol, rank, 'ENGRAM' as type
+        FROM hall_episodic_fts 
+        WHERE hall_episodic_fts MATCH ? 
+        ORDER BY rank
+    `).all(safeQuery) as any[];
+
+    return [...codeResults, ...loreResults, ...episodicResults].sort((a, b) => a.rank - b.rank);
 }

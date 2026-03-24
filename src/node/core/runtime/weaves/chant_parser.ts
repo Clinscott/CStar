@@ -51,6 +51,31 @@ export const TARGET_TERMS = [
     'validation',
 ];
 
+export interface IntentCategoryMatch {
+    category: string;
+    default_path: string;
+    tier: string;
+    matched_trigger: string;
+}
+
+export const INTENT_CATEGORIES: Record<string, {
+    triggers: string[];
+    default_path: string;
+    tier: string;
+}> = {
+    REPAIR:      { triggers: ['fix', 'repair', 'heal', 'restore', 'broken', 'failing', 'bug'], default_path: 'restoration', tier: 'WEAVE' },
+    BUILD:       { triggers: ['build', 'create', 'scaffold', 'implement', 'new', 'add', 'feature'], default_path: 'creation_loop', tier: 'WEAVE' },
+    VERIFY:      { triggers: ['test', 'verify', 'validate', 'check', 'assert', 'spec'], default_path: 'empire', tier: 'SKILL' },
+    SCORE:       { triggers: ['score', 'grade', 'rate', 'audit', 'quality', 'gungnir'], default_path: 'calculus', tier: 'PRIME' },
+    OBSERVE:     { triggers: ['scan', 'search', 'find', 'query', 'status', 'health', 'look', 'show'], default_path: 'scan', tier: 'PRIME' },
+    HARDEN:      { triggers: ['contract', 'comply', 'sterling', 'harden', 'gherkin'], default_path: 'contract_hardening', tier: 'WEAVE' },
+    EXPAND:      { triggers: ['deploy', 'link', 'mount', 'spoke', 'onboard'], default_path: 'expansion', tier: 'WEAVE' },
+    EVOLVE:      { triggers: ['optimize', 'refactor', 'evolve', 'improve'], default_path: 'evolve', tier: 'WEAVE' },
+    ORCHESTRATE: { triggers: ['plan', 'dispatch', 'autobot', 'orchestrate'], default_path: 'orchestrate', tier: 'WEAVE' },
+    GUARD:       { triggers: ['protect', 'shield', 'lock', 'guard', 'drift'], default_path: 'silver_shield', tier: 'SPELL' },
+    DOCUMENT:    { triggers: ['document', 'explain', 'chronicle', 'architecture'], default_path: 'living_architecture', tier: 'WEAVE' },
+};
+
 export const deps = {
     fs: Object.assign({}, fs),
     path: Object.assign({}, path),
@@ -79,12 +104,68 @@ export function loadSkillTriggers(projectRoot: string): Set<string> {
 
     try {
         const manifest = JSON.parse(deps.fs.readFileSync(manifestPath, 'utf-8')) as {
-            skills?: Record<string, unknown>;
+            entries?: Record<string, unknown>;
         };
-        return new Set(Object.keys(manifest.skills ?? {}).map((entry) => entry.toLowerCase()));
+        return new Set(Object.keys(manifest.entries ?? {}).map((entry) => entry.toLowerCase()));
     } catch {
         return new Set();
     }
+}
+
+/**
+ * Classifies a query into one of the 11 Intent Categories using the closed grammar.
+ * Returns null if no category matches (agent must ask user to clarify).
+ */
+export function resolveIntentCategory(lowerTokens: string[]): IntentCategoryMatch | null {
+    for (const [category, config] of Object.entries(INTENT_CATEGORIES)) {
+        for (const trigger of config.triggers) {
+            if (lowerTokens.includes(trigger)) {
+                return {
+                    category,
+                    default_path: config.default_path,
+                    tier: config.tier,
+                    matched_trigger: trigger,
+                };
+            }
+        }
+    }
+    return null;
+}
+
+export function resolveByIntentCategory(
+    lowerTokens: string[],
+    payload: ChantWeavePayload,
+): DirectChantResolution | null {
+    const match = resolveIntentCategory(lowerTokens);
+    if (!match) {
+        return null;
+    }
+
+    // WEAVEs should bypass the dynamic-command adapter and trigger the specific weave ID directly
+    if (match.tier === 'WEAVE') {
+        return {
+            kind: 'weave',
+            trigger: match.default_path,
+            invocation: {
+                weave_id: `weave:${match.default_path}`,
+                payload: {} as any, // Most weaves will take the current context
+            },
+            summary: `Intent category '${match.category}' matched on '${match.matched_trigger}'. Routing directly to weave '${match.default_path}'.`,
+        };
+    }
+
+    // SKILLs and PRIMEs use the dynamic command adapter
+    return {
+        kind: 'weave',
+        trigger: match.default_path,
+        invocation: buildDynamicSkillInvocation(
+            match.default_path,
+            [],
+            payload.project_root,
+            payload.cwd,
+        ),
+        summary: `Intent category '${match.category}' matched on '${match.matched_trigger}'. Routing to skill '${match.default_path}'.`,
+    };
 }
 
 export function buildDynamicSkillInvocation(

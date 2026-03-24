@@ -38,7 +38,9 @@ export class ChantWeave implements RuntimeAdapter<ChantWeavePayload> {
         const isPlanningLoop = existingSession !== null && existingSession.status !== 'COMPLETED' && existingSession.status !== 'FAILED';
         const builtIn = isPlanningLoop ? null : deps.parser.resolveBuiltInWeave(lowerTokens, payload, normalizedIntent);
         const skillResolution = builtIn ? null : deps.parser.resolveSkillInvocation(tokens, payload, skills);
-        const resolution = builtIn ?? skillResolution;
+        // Intent Category resolution: the closed grammar routes when exact matching fails
+        const intentResolution = (builtIn || skillResolution) ? null : deps.parser.resolveByIntentCategory(lowerTokens, payload);
+        const resolution = builtIn ?? skillResolution ?? intentResolution;
 
         deps.registry.setRoot(context.workspace_root);
 

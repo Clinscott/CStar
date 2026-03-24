@@ -26,7 +26,7 @@ export function detectHostProvider(env: NodeJS.ProcessEnv = process.env): HostPr
         return override;
     }
 
-    if (env.GEMINI_CLI_ACTIVE === 'true') {
+    if (env.GEMINI_CLI_ACTIVE === 'true' || env.GEMINI_CLI === '1') {
         return 'gemini';
     }
 

@@ -1,4 +1,4 @@
-import { describe, it, mock } from 'node:test';
+import { describe, it, mock, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -10,9 +10,16 @@ import {
     loadSkillTriggers,
     resolveBuiltInWeave,
     resolveSkillInvocation,
+    resolveIntentCategory,
+    resolveByIntentCategory,
+    deps,
 } from '../../../../src/node/core/runtime/weaves/chant_parser.ts';
 
 describe('Chant Parser Unit Tests', () => {
+    afterEach(() => {
+        mock.restoreAll();
+    });
+
     it('tokenize splits query by whitespace and filters empty strings', () => {
         assert.deepEqual(tokenize('  ravens   status  '), ['ravens', 'status']);
         assert.deepEqual(tokenize(''), []);
@@ -28,19 +35,14 @@ describe('Chant Parser Unit Tests', () => {
     });
 
     it('loadSkillTriggers returns empty set if manifest does not exist', () => {
-        mock.method(fs, 'existsSync', () => false);
+        mock.method(deps.fs, 'existsSync', () => false);
         const result = loadSkillTriggers('/fake/root');
         assert.equal(result.size, 0);
     });
 
     it('loadSkillTriggers returns skill keys from manifest', () => {
-        mock.method(fs, 'existsSync', () => true);
-        mock.method(fs, 'readFileSync', () => JSON.stringify({
-            skills: {
-                'SkillA': {},
-                'SkillB': {}
-            }
-        }));
+        mock.method(deps.fs, 'existsSync', () => true);
+        mock.method(deps.fs, 'readFileSync', () => '{"entries":{"SkillA":{},"SkillB":{}}}');
         const result = loadSkillTriggers('/fake/root');
         assert.ok(result.has('skilla'));
         assert.ok(result.has('skillb'));
@@ -94,5 +96,34 @@ describe('Chant Parser Unit Tests', () => {
         const res = resolveSkillInvocation(['use', 'missing-skill'], payload, skills);
         assert.equal(res?.kind, 'missing_capability');
         assert.equal(res?.trigger, 'missing-skill');
+    });
+
+    it('resolveIntentCategory maps triggers to correct grammatical categories', () => {
+        const repairMatch = resolveIntentCategory(['fix', 'the', 'bug']);
+        assert.equal(repairMatch?.category, 'REPAIR');
+        assert.equal(repairMatch?.default_path, 'restoration');
+        assert.equal(repairMatch?.tier, 'WEAVE');
+
+        const scoreMatch = resolveIntentCategory(['score', 'the', 'code']);
+        assert.equal(scoreMatch?.category, 'SCORE');
+        assert.equal(scoreMatch?.default_path, 'calculus');
+        assert.equal(scoreMatch?.tier, 'PRIME');
+
+        const buildMatch = resolveIntentCategory(['build', 'a', 'feature']);
+        assert.equal(buildMatch?.category, 'BUILD');
+        assert.equal(buildMatch?.default_path, 'creation_loop');
+
+        const noMatch = resolveIntentCategory(['do', 'something', 'random']);
+        assert.equal(noMatch, null);
+    });
+
+    it('resolveByIntentCategory returns a valid weave invocation for a matched category', () => {
+        const payload = { query: 'fix it', project_root: '/tmp/test', cwd: '/tmp/test' };
+        const res = resolveByIntentCategory(['fix', 'it'], payload);
+        
+        assert.equal(res?.kind, 'weave');
+        assert.equal(res?.trigger, 'restoration');
+        assert.equal(res?.invocation.weave_id, 'weave:restoration');
+        assert.equal(res?.invocation.payload !== undefined, true);
     });
 });

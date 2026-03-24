@@ -122,6 +122,31 @@ export function ensureHallSchema(database: Database.Database, rootPath: string):
         CREATE INDEX IF NOT EXISTS idx_hall_episodic_memory_repo ON hall_episodic_memory(repo_id, created_at);
         CREATE INDEX IF NOT EXISTS idx_hall_episodic_memory_bead ON hall_episodic_memory(bead_id, created_at);
 
+        CREATE VIRTUAL TABLE IF NOT EXISTS hall_episodic_fts USING fts5(
+            memory_id UNINDEXED,
+            tactical_summary,
+            metadata_json,
+            content='hall_episodic_memory',
+            content_rowid='rowid'
+        );
+
+        CREATE TRIGGER IF NOT EXISTS hall_episodic_memory_ai AFTER INSERT ON hall_episodic_memory BEGIN
+            INSERT INTO hall_episodic_fts(rowid, memory_id, tactical_summary, metadata_json)
+            VALUES (new.rowid, new.memory_id, new.tactical_summary, new.metadata_json);
+        END;
+
+        CREATE TRIGGER IF NOT EXISTS hall_episodic_memory_ad AFTER DELETE ON hall_episodic_memory BEGIN
+            INSERT INTO hall_episodic_fts(hall_episodic_fts, rowid, memory_id, tactical_summary, metadata_json)
+            VALUES('delete', old.rowid, old.memory_id, old.tactical_summary, old.metadata_json);
+        END;
+
+        CREATE TRIGGER IF NOT EXISTS hall_episodic_memory_au AFTER UPDATE ON hall_episodic_memory BEGIN
+            INSERT INTO hall_episodic_fts(hall_episodic_fts, rowid, memory_id, tactical_summary, metadata_json)
+            VALUES('delete', old.rowid, old.memory_id, old.tactical_summary, old.metadata_json);
+            INSERT INTO hall_episodic_fts(rowid, memory_id, tactical_summary, metadata_json)
+            VALUES (new.rowid, new.memory_id, new.tactical_summary, new.metadata_json);
+        END;
+
         CREATE TABLE IF NOT EXISTS hall_beads (
             bead_id TEXT PRIMARY KEY,
             repo_id TEXT NOT NULL,

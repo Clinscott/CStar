@@ -11,6 +11,8 @@ import { activePersona } from  '../../../tools/pennyone/personaRegistry.js';
 import { registry } from  '../../../tools/pennyone/pathRegistry.js';
 import { getGungnirOverall } from  '../../../types/gungnir.js';
 import { resolveEstateTarget } from  './estate_targeting.js';
+import { upsertHallBead, getHallBead } from  '../../../tools/pennyone/intel/database.js';
+import { buildHallRepositoryId, normalizeHallPath } from  '../../../types/hall.js';
 
 /**
  * [Ω] THE CANONICAL RUNTIME DISPATCHER (v1.0)
@@ -83,6 +85,7 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
 
         const context: RuntimeContext = {
             mission_id: `MISSION-${crypto.randomInt(10000, 99999)}`,
+            bead_id: (invocation.payload as any)?.bead_id || `bead_mission_${Date.now()}`,
             trace_id: crypto.randomUUID(),
             persona: this.deps.activePersona.name,
             workspace_root: estateTarget.workspaceRoot,
@@ -97,8 +100,43 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
             timestamp: Date.now()
         };
 
+        // [🔱] THE BEAD-DRIVEN MANDATE: Ensure the Hall tracks the Engine
+        const repoId = buildHallRepositoryId(normalizeHallPath(context.workspace_root));
+        const existingBead = getHallBead(context.bead_id);
+        
+        if (!existingBead) {
+            // Strike a new Parent Mission Bead if it doesn't exist
+            upsertHallBead({
+                bead_id: context.bead_id,
+                repo_id: repoId,
+                target_kind: 'SYSTEM',
+                target_ref: invocation.weave_id,
+                target_path: estateTarget.requestedRoot || null,
+                rationale: `Mission execution: ${invocation.weave_id}`,
+                status: 'OPEN',
+                source_kind: 'SYSTEM',
+                created_at: Date.now(),
+                updated_at: Date.now()
+            } as any);
+        }
+
         // Update Global State: Mission Identity
-        this.deps.stateRegistry.updateMission(context.mission_id, `Executing weave: ${invocation.weave_id}`);
+        this.deps.stateRegistry.updateMission(context.mission_id, `Executing weave: ${invocation.weave_id}`, context.bead_id);
+
+        // [🔱] THE FRACTAL STRIKE: Create a Child Bead for this specific execution
+        const childBeadId = `${context.bead_id}:exec:${invocation.weave_id}:${Date.now()}`;
+        upsertHallBead({
+            bead_id: childBeadId,
+            repo_id: repoId,
+            target_kind: 'WEAVE',
+            target_ref: invocation.weave_id,
+            target_path: estateTarget.requestedRoot || null,
+            rationale: `Execution of ${invocation.weave_id} under mission ${context.mission_id}`,
+            status: 'IN_PROGRESS',
+            assigned_agent: context.persona === 'O.D.I.N.' ? 'ONE-MIND' : 'ALFRED',
+            created_at: Date.now(),
+            updated_at: Date.now()
+        } as any);
 
         try {
             const result = await adapter.execute(invocation, context);

@@ -9,34 +9,13 @@ import type {
     WeaveInvocation,
     WeaveResult,
 } from '../contracts.ts';
-import { defaultHostTextInvoker, type HostTextInvoker } from  './host_bridge.js';
-import { getHallBeads } from  '../../../../tools/pennyone/intel/database.js';
-import { resolveRuntimeHostProvider } from  './host_bridge.js';
-
-function extractCodeBlock(text: string): string {
-    const lines = text.split('\n');
-    let code = '';
-    let inBlock = false;
-    for (const line of lines) {
-        if (line.startsWith('```')) {
-            if (inBlock) {
-                return code.trim();
-            }
-            inBlock = true;
-            continue;
-        }
-        if (inBlock) {
-            code += line + '\n';
-        }
-    }
-    return text.trim();
-}
+import { mimir } from  '../../../../core/mimir_client.js';
 
 export class HostWorkerWeave implements RuntimeAdapter<HostWorkerWeavePayload> {
     public readonly id = 'weave:host-worker';
     private readonly runner: typeof execa;
 
-    public constructor(runner: typeof execa = execa, private readonly hostTextInvoker: HostTextInvoker = defaultHostTextInvoker) {
+    public constructor(runner: typeof execa = execa) {
         this.runner = runner;
     }
 
@@ -46,18 +25,9 @@ export class HostWorkerWeave implements RuntimeAdapter<HostWorkerWeavePayload> {
     ): Promise<WeaveResult> {
         const payload = invocation.payload;
         const projectRoot = payload.project_root || context.workspace_root;
-        const provider = resolveRuntimeHostProvider(context);
 
-        if (!provider) {
-            return {
-                weave_id: this.id,
-                status: 'FAILURE',
-                output: '',
-                error: 'Host worker requires an active host session.',
-            };
-        }
-
-        const beads = getHallBeads(projectRoot);
+        const repoId = buildHallRepositoryId(normalizeHallPath(projectRoot));
+        const beads = getHallBeads(repoId);
         const bead = beads.find(b => b.id === payload.bead_id);
 
         if (!bead) {
@@ -115,15 +85,19 @@ export class HostWorkerWeave implements RuntimeAdapter<HostWorkerWeavePayload> {
         ].join('\n');
 
         try {
-             const response = await this.hostTextInvoker({
+             // [🔱] THE ONE MIND SHIFT: Queue the request in Synapse DB and wait for agentic fulfillment.
+             // We set a long poll time because the agent (me) might take a turn to provide the answer.
+             const response = await mimir.request({
                  prompt,
-                 provider,
-                 projectRoot,
-                 source: 'runtime:host-worker',
-                 env: { ...process.env, ...context.env } as NodeJS.ProcessEnv,
+                 caller: { source: 'runtime:host-worker', sector_path: targetPath },
+                 transport_mode: 'synapse_db'
              });
 
-             const newContent = extractCodeBlock(response);
+             if (response.status !== 'success' || !response.raw_text) {
+                 throw new Error(response.error || 'Failed to retrieve code from One Mind.');
+             }
+
+             const newContent = extractCodeBlock(response.raw_text);
              fs.mkdirSync(path.dirname(absoluteTargetPath), { recursive: true });
              fs.writeFileSync(absoluteTargetPath, newContent, 'utf-8');
 

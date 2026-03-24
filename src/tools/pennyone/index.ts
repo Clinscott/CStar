@@ -188,9 +188,9 @@ export async function runScan(targetPath: string, force = false): Promise<FileDa
         }
     }
 
-    // Phase 2: High-Fidelity Intelligence (Batch Size 50 for speed)
+    // Phase 2: High-Fidelity Intelligence (Batch Size 10 for stability)
     const filesNeedingIntent = analyzedFiles.filter(af => af.needsIntent);
-    const BATCH_SIZE = 50;
+    const BATCH_SIZE = 10;
 
     for (let i = 0; i < filesNeedingIntent.length; i += BATCH_SIZE) {
         const batch = filesNeedingIntent.slice(i, i + BATCH_SIZE);

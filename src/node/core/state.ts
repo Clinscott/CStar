@@ -13,6 +13,7 @@ export interface FrameworkState {
     active_persona: string;
     active_task?: string;
     mission_id?: string;
+    bead_id?: string;
     gungnir_score: number;
     intent_integrity: number;
 }
@@ -272,6 +273,7 @@ export class StateRegistry {
                     last_awakening: framework.last_awakening,
                     active_task: framework.active_task,
                     mission_id: framework.mission_id,
+                    bead_id: framework.bead_id,
                 },
                 identity,
                 hall_of_records,
@@ -299,26 +301,32 @@ export class StateRegistry {
         try {
             const hallSummary = database.getHallSummary(registry.getRoot());
             if (hallSummary) {
+                const metadata = (hallSummary.metadata ?? {}) as any;
+                const projection = metadata[this.SOVEREIGN_PROJECTION_KEY] as any;
+                
                 state.framework = {
                     ...state.framework,
                     status: hallSummary.status,
                     active_persona: hallSummary.active_persona,
                     gungnir_score: hallSummary.baseline_gungnir_score,
                     intent_integrity: hallSummary.intent_integrity,
+                    bead_id: projection?.framework?.bead_id
                 };
             }
-        } catch {
             // Hall projection is authoritative when available, but state must remain readable without it.
+        } catch {
+            // State must remain readable even if Hall is temporarily unavailable.
         }
 
         return state;
     }
 
-    static updateMission(id: string, task: string) {
+    static updateMission(id: string, task: string, beadId?: string) {
         this.updateFramework({
             status: 'AGENT_LOOP',
             mission_id: id,
-            active_task: task
+            active_task: task,
+            bead_id: beadId
         });
     }
 

@@ -27,6 +27,7 @@ export interface WorkspaceTarget {
 
 export interface RuntimeContext {
     mission_id: string;
+    bead_id: string;
     trace_id: string;
     persona: string;
     workspace_root: string;
@@ -250,6 +251,7 @@ export interface TaliesinForgeWeaveMetadata extends Record<string, unknown> {
 export interface OrchestrateWeavePayload {
     planning_session_id?: string;
     max_parallel?: number;
+    limit?: number;
     tick_timeout?: number;
     dry_run?: boolean;
     worker_identity?: string;
@@ -283,6 +285,28 @@ export interface TemporalLearningWeaveMetadata extends Record<string, unknown> {
     analyzed_commits?: number;
     identified_sectors?: number;
     emitted_beads?: string[];
+}
+
+export interface RestorationWeavePayload {
+    bead_ids?: string[];
+    epic?: string;
+    max_beads?: number;
+    project_root: string;
+    cwd: string;
+}
+
+export interface EstateExpansionWeavePayload {
+    remote_url: string;
+    slug?: string;
+    project_root: string;
+    cwd: string;
+}
+
+export interface VigilanceWeavePayload {
+    spoke?: string;
+    aggressive?: boolean;
+    project_root: string;
+    cwd: string;
 }
 
 /**

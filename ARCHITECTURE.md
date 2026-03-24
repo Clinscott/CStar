@@ -23,9 +23,11 @@ Corvus Star is not limited to a single repository.
 *   **The Brain**: The current directory where the Node.js orchestrator and PennyOne database reside.
 *   **The Spokes**: External git repositories mounted to the framework (managed via `cstar spoke`). When you execute a Bead, it can target a specific Spoke, allowing you to orchestrate an entire multi-repo architecture from one central terminal.
 
-## 4. The Memory Plane: PennyOne & The Hall of Records
-Because your context window is limited, CStar maintains its own long-term memory.
-*   **PennyOne (`better-sqlite3`)**: The framework's database. It indexes the repository, tracks Gungnir scores, and archives completed tasks. You query PennyOne via MCP (`search_by_intent`) to "remember" the architecture without reading every file.
+## 4. The Memory Plane: PennyOne, Engrams, & The Hall
+Because your context window is limited, CStar maintains its own layered memory architecture inspired by MemOS and Hermes.
+*   **The Hall of Records (`pennyone.db`)**: The framework's SQLite database acts as a unified knowledge graph.
+*   **Engrams (Episodic Memory)**: Every time a task (Bead) is completed, the `distill` weave autonomously runs a "Memory Flush." It summarizes the intent, the code changes, and saves them into the database as a structured Engram.
+*   **Mimir (`cstar hall`)**: When you query the Hall via MCP (`search_by_intent`) or CLI (`cstar hall`), Mimir doesn't just search current code; it searches the FTS5 index of all past Engrams. This allows you to recall historical context (e.g., "Why did we implement X in session 97?").
 
 ## 5. The Law: Hardcoded Lore & Contract Verification
 The "Lore" of Corvus Star acts as strict behavioral guardrails enforced by the local Python kernel.

@@ -180,6 +180,13 @@ export class MimirClient {
         if (mode === 'synapse_db') {
             return 'synapse_db';
         }
+        
+        // [🔱] THE ONE MIND MANDATE: If we are in an agent session, default to Synapse DB
+        // to leverage the session context and preserve the external CLI quota.
+        if (this.env.GEMINI_CLI === '1' || this.env.GEMINI_CLI_ACTIVE === 'true') {
+            return 'synapse_db';
+        }
+
         if (typeof this.hostSessionActive === 'boolean') {
             return this.hostSessionActive ? 'host_session' : 'synapse_db';
         }
@@ -403,6 +410,14 @@ export class MimirClient {
     }
 
     private async invokeOracle(synapseId: number): Promise<void> {
+        // [🔱] THE ONE MIND MANDATE: If we are in an agent session, do not invoke the external CLI.
+        // The active session will fulfill the request.
+        if (this.env.GEMINI_CLI === '1' || this.env.GEMINI_CLI_ACTIVE === 'true' || 
+            this.env.CORVUS_SKIP_ORACLE_INVOKE === 'true' || this.env.CORVUS_SKIP_ORACLE_INVOKE === '1') {
+            console.log(`[MIMIR] Awaiting One Mind fulfillment for Synapse ID: ${synapseId}...`);
+            return;
+        }
+
         if (this.oracleInvoker) {
             await this.oracleInvoker(synapseId);
             return;
@@ -411,7 +426,7 @@ export class MimirClient {
         const cstarBin = path.join(this.projectRoot, 'bin', 'cstar.js');
         await execFileAsync(
             process.execPath,
-            [cstarBin, 'oracle', String(synapseId), '--db', '--silent'],
+            [cstarBin, '--root', this.projectRoot, 'oracle', String(synapseId), '--db', '--silent'],
             {
                 cwd: this.projectRoot,
                 env: { ...this.env },

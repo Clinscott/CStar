@@ -1,865 +1,588 @@
 {
-  "generated_at": 1773525376754,
-  "authoritative_root": ".agents/skills",
-  "manifest_status": "WORK_IN_PROGRESS",
-  "manifest_note": "Contains draft skill authority additions pending final review.",
-  "skills": {
-    "agent-lightning": {
-      "name": "agent-lightning",
-      "normalized_name": "agentlightning",
-      "authority_path": ".agents/skills/agent-lightning",
-      "entrypoint_path": null,
-      "contract_path": ".agents/skills/agent-lightning/agent-lightning.feature",
-      "runtime_trigger": "agent-lightning",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "annex": {
-      "name": "annex",
-      "normalized_name": "annex",
-      "authority_path": ".agents/skills/annex",
-      "entrypoint_path": ".agents/skills/annex/scripts/annex.py",
-      "contract_path": ".agents/skills/annex/annex.feature",
-      "runtime_trigger": "annex",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "autobot": {
-      "name": "autobot",
-      "normalized_name": "autobot",
-      "authority_path": ".agents/skills/autobot",
-      "entrypoint_path": ".agents/skills/autobot/scripts/autobot.py",
-      "contract_path": ".agents/skills/autobot/contract.json",
-      "runtime_trigger": "autobot",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "bookmark-weaver": {
-      "name": "bookmark-weaver",
-      "normalized_name": "bookmarkweaver",
-      "authority_path": ".agents/skills/bookmark-weaver",
-      "entrypoint_path": ".agents/skills/bookmark-weaver/scripts/weaver.py",
-      "contract_path": ".agents/skills/bookmark-weaver/weaver.feature",
-      "runtime_trigger": "bookmark-weaver",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "build-review-interface": {
-      "name": "build-review-interface",
-      "normalized_name": "buildreviewinterface",
-      "authority_path": ".agents/skills/build-review-interface",
-      "entrypoint_path": null,
-      "contract_path": ".agents/skills/build-review-interface/build-review-interface.feature",
-      "runtime_trigger": "build-review-interface",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "cachebro": {
-      "name": "cachebro",
-      "normalized_name": "cachebro",
-      "authority_path": ".agents/skills/cachebro",
-      "entrypoint_path": null,
-      "contract_path": ".agents/skills/cachebro/cachebro.feature",
-      "runtime_trigger": "cachebro",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "calculus": {
-      "name": "calculus",
-      "normalized_name": "calculus",
-      "authority_path": ".agents/skills/calculus",
-      "entrypoint_path": ".agents/skills/calculus/scripts/calculus.py",
-      "contract_path": ".agents/skills/calculus/calculus.feature",
-      "runtime_trigger": "calculus",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "chant": {
-      "name": "chant",
-      "normalized_name": "chant",
-      "authority_path": ".agents/skills/chant",
-      "entrypoint_path": ".agents/skills/chant/scripts/chant.py",
-      "contract_path": ".agents/skills/chant/chant.feature",
-      "runtime_trigger": "chant",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "chapter": {
-      "name": "chapter",
-      "normalized_name": "chapter",
-      "authority_path": ".agents/skills/chapter",
-      "entrypoint_path": null,
-      "contract_path": ".agents/skills/chapter/chapter.feature",
-      "runtime_trigger": "chapter",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "chronicle": {
-      "name": "chronicle",
-      "normalized_name": "chronicle",
-      "authority_path": ".agents/skills/chronicle",
-      "entrypoint_path": ".agents/skills/chronicle/scripts/chronicle.py",
-      "contract_path": ".agents/skills/chronicle/SKILL.md",
-      "runtime_trigger": "chronicle",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "consciousness": {
-      "name": "consciousness",
-      "normalized_name": "consciousness",
-      "authority_path": ".agents/skills/consciousness",
-      "entrypoint_path": ".agents/skills/consciousness/scripts/consciousness.py",
-      "contract_path": ".agents/skills/consciousness/consciousness.feature",
-      "runtime_trigger": "consciousness",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "corvus-control": {
-      "name": "corvus-control",
-      "normalized_name": "corvuscontrol",
-      "authority_path": ".agents/skills/corvus-control",
-      "entrypoint_path": null,
-      "contract_path": ".agents/skills/corvus-control/corvus-control.feature",
-      "runtime_trigger": "corvus-control",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "edda": {
-      "name": "edda",
-      "normalized_name": "edda",
-      "authority_path": ".agents/skills/edda",
-      "entrypoint_path": ".agents/skills/edda/scripts/edda.py",
-      "contract_path": ".agents/skills/edda/edda.feature",
-      "runtime_trigger": "edda",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "empire": {
-      "name": "empire",
-      "normalized_name": "empire",
-      "authority_path": ".agents/skills/empire",
-      "entrypoint_path": ".agents/skills/empire/scripts/empire.py",
-      "contract_path": ".agents/skills/empire/empire.feature",
-      "runtime_trigger": "empire",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "engine": {
-      "name": "engine",
-      "normalized_name": "engine",
-      "authority_path": ".agents/skills/engine",
-      "entrypoint_path": null,
-      "contract_path": ".agents/skills/engine/engine.feature",
-      "runtime_trigger": "engine",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "error-analysis": {
-      "name": "error-analysis",
-      "normalized_name": "erroranalysis",
-      "authority_path": ".agents/skills/error-analysis",
-      "entrypoint_path": null,
-      "contract_path": ".agents/skills/error-analysis/error-analysis.feature",
-      "runtime_trigger": "error-analysis",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "eval-audit": {
-      "name": "eval-audit",
-      "normalized_name": "evalaudit",
-      "authority_path": ".agents/skills/eval-audit",
-      "entrypoint_path": null,
-      "contract_path": ".agents/skills/eval-audit/eval-audit.feature",
-      "runtime_trigger": "eval-audit",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "evaluate-rag": {
-      "name": "evaluate-rag",
-      "normalized_name": "evaluaterag",
-      "authority_path": ".agents/skills/evaluate-rag",
-      "entrypoint_path": null,
-      "contract_path": ".agents/skills/evaluate-rag/evaluate-rag.feature",
-      "runtime_trigger": "evaluate-rag",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "evolve": {
-      "name": "evolve",
-      "normalized_name": "evolve",
-      "authority_path": ".agents/skills/evolve",
-      "entrypoint_path": ".agents/skills/evolve/scripts/evolve.py",
-      "contract_path": ".agents/skills/evolve/contract.json",
-      "runtime_trigger": "evolve",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "forge": {
-      "name": "forge",
-      "normalized_name": "forge",
-      "authority_path": ".agents/skills/forge",
-      "entrypoint_path": ".agents/skills/forge/scripts/forge.py",
-      "contract_path": ".agents/skills/forge/forge.feature",
-      "runtime_trigger": "forge",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "gemini-skills": {
-      "name": "gemini-skills",
-      "normalized_name": "geminiskills",
-      "authority_path": ".agents/skills/gemini-skills",
-      "entrypoint_path": null,
-      "contract_path": ".agents/skills/gemini-skills/gemini-skills.feature",
-      "runtime_trigger": "gemini-skills",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "generate-synthetic-data": {
-      "name": "generate-synthetic-data",
-      "normalized_name": "generatesyntheticdata",
-      "authority_path": ".agents/skills/generate-synthetic-data",
-      "entrypoint_path": null,
-      "contract_path": ".agents/skills/generate-synthetic-data/generate-synthetic-data.feature",
-      "runtime_trigger": "generate-synthetic-data",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "gherkin": {
-      "name": "gherkin",
-      "normalized_name": "gherkin",
-      "authority_path": ".agents/skills/gherkin",
-      "entrypoint_path": null,
-      "contract_path": ".agents/skills/gherkin/gherkin.feature",
-      "runtime_trigger": "gherkin",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "hunt": {
-      "name": "hunt",
-      "normalized_name": "hunt",
-      "authority_path": ".agents/skills/hunt",
-      "entrypoint_path": ".agents/skills/hunt/scripts/hunt.py",
-      "contract_path": ".agents/skills/hunt/hunt.feature",
-      "runtime_trigger": "hunt",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "jailing": {
-      "name": "jailing",
-      "normalized_name": "jailing",
-      "authority_path": ".agents/skills/jailing",
-      "entrypoint_path": ".agents/skills/jailing/scripts/jailing.py",
-      "contract_path": ".agents/skills/jailing/jailing.feature",
-      "runtime_trigger": "jailing",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "linter": {
-      "name": "linter",
-      "normalized_name": "linter",
-      "authority_path": ".agents/skills/linter",
-      "entrypoint_path": ".agents/skills/linter/scripts/linter.py",
-      "contract_path": ".agents/skills/linter/linter.feature",
-      "runtime_trigger": "linter",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "locks": {
-      "name": "locks",
-      "normalized_name": "locks",
-      "authority_path": ".agents/skills/locks",
-      "entrypoint_path": ".agents/skills/locks/scripts/locks.py",
-      "contract_path": ".agents/skills/locks/locks.feature",
-      "runtime_trigger": "locks",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "matrix": {
-      "name": "matrix",
-      "normalized_name": "matrix",
-      "authority_path": ".agents/skills/matrix",
-      "entrypoint_path": ".agents/skills/matrix/scripts/matrix.py",
-      "contract_path": ".agents/skills/matrix/matrix.feature",
-      "runtime_trigger": "matrix",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "memory": {
-      "name": "memory",
-      "normalized_name": "memory",
-      "authority_path": ".agents/skills/memory",
-      "entrypoint_path": ".agents/skills/memory/scripts/memory.py",
-      "contract_path": ".agents/skills/memory/memory.feature",
-      "runtime_trigger": "memory",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "metrics": {
-      "name": "metrics",
-      "normalized_name": "metrics",
-      "authority_path": ".agents/skills/metrics",
-      "entrypoint_path": ".agents/skills/metrics/scripts/metrics.py",
-      "contract_path": ".agents/skills/metrics/metrics.feature",
-      "runtime_trigger": "metrics",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
+  "version": "2.0",
+  "generated_at": 1711234567890,
+  "tiers": {
+    "PRIME": { "description": "Atomic operations (observe/reason/mutate/isolate)" },
+    "SKILL": { "description": "Discrete functional capabilities" },
+    "WEAVE": { "description": "Linear chains of skills/primes" },
+    "SPELL": { "description": "Recursive feedback loops over weaves" }
+  },
+  "intent_grammar": {
+    "REPAIR":      { "triggers": ["fix","repair","heal","restore","broken","failing","bug"], "default_path": "restoration", "tier": "WEAVE" },
+    "BUILD":       { "triggers": ["build","create","scaffold","implement","new","add","feature"], "default_path": "creation_loop", "tier": "WEAVE" },
+    "VERIFY":      { "triggers": ["test","verify","validate","check","assert","spec"], "default_path": "empire", "tier": "SKILL" },
+    "SCORE":       { "triggers": ["score","grade","rate","audit","quality","gungnir"], "default_path": "calculus", "tier": "PRIME" },
+    "OBSERVE":     { "triggers": ["scan","search","find","query","status","health","look","show"], "default_path": "scan", "tier": "PRIME" },
+    "HARDEN":      { "triggers": ["contract","comply","sterling","harden","gherkin"], "default_path": "contract_hardening", "tier": "WEAVE" },
+    "EXPAND":      { "triggers": ["deploy","link","mount","spoke","onboard"], "default_path": "expansion", "tier": "WEAVE" },
+    "EVOLVE":      { "triggers": ["optimize","refactor","evolve","improve"], "default_path": "evolve", "tier": "WEAVE" },
+    "ORCHESTRATE": { "triggers": ["plan","dispatch","autobot","orchestrate"], "default_path": "orchestrate", "tier": "WEAVE" },
+    "GUARD":       { "triggers": ["protect","shield","lock","guard","drift"], "default_path": "silver_shield", "tier": "SPELL" },
+    "DOCUMENT":    { "triggers": ["document","explain","chronicle","architecture"], "default_path": "living_architecture", "tier": "WEAVE" }
+  },
+  "entries": {
+    "hall": {
+      "tier": "PRIME",
+      "prime_category": "observation",
+      "description": "Use when searching the Hall of Records, retrieving repository status, or querying metadata.",
+      "instruction_path": ".agents/skills/hall/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar hall" },
+      "viability": "ACTIVE",
+      "risk": "safe"
     },
     "mimir": {
-      "name": "mimir",
-      "normalized_name": "mimir",
-      "authority_path": ".agents/skills/mimir",
-      "entrypoint_path": null,
-      "contract_path": ".agents/skills/mimir/mimir.feature",
-      "runtime_trigger": "mimir",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
+      "tier": "PRIME",
+      "prime_category": "observation",
+      "description": "Use when querying the Well of Mimir for deep semantic search.",
+      "instruction_path": ".agents/skills/mimir/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar hall" },
+      "viability": "ACTIVE",
+      "risk": "safe"
     },
-    "norn": {
-      "name": "norn",
-      "normalized_name": "norn",
-      "authority_path": ".agents/skills/norn",
-      "entrypoint_path": ".agents/skills/norn/scripts/norn.py",
-      "contract_path": ".agents/skills/norn/norn.feature",
-      "runtime_trigger": "norn",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
+    "vitals": {
+      "tier": "PRIME",
+      "prime_category": "observation",
+      "description": "Retrieve system health metrics, resource usage, or agentic mission status.",
+      "instruction_path": ".agents/skills/vitals/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar vitals" },
+      "viability": "ACTIVE",
+      "risk": "safe"
     },
-    "odin_ui": {
-      "name": "odin_ui",
-      "normalized_name": "odinui",
-      "authority_path": ".agents/skills/odin_ui",
-      "entrypoint_path": null,
-      "contract_path": ".agents/skills/odin_ui/odin_ui.feature",
-      "runtime_trigger": "odin_ui",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
+    "status": {
+      "tier": "PRIME",
+      "prime_category": "observation",
+      "description": "Retrieve system vitals, framework state, and estate matrix reports.",
+      "instruction_path": ".agents/skills/status/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar status" },
+      "viability": "ACTIVE",
+      "risk": "safe"
     },
-    "one-mind": {
-      "name": "one-mind",
-      "normalized_name": "onemind",
-      "authority_path": ".agents/skills/one-mind",
-      "entrypoint_path": ".agents/skills/one-mind/scripts/one-mind.py",
-      "contract_path": ".agents/skills/one-mind/one-mind.feature",
-      "runtime_trigger": "one-mind",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "oracle": {
-      "name": "oracle",
-      "normalized_name": "oracle",
-      "authority_path": ".agents/skills/oracle",
-      "entrypoint_path": ".agents/skills/oracle/scripts/oracle.py",
-      "contract_path": ".agents/skills/oracle/oracle.feature",
-      "runtime_trigger": "oracle",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "persona": {
-      "name": "persona",
-      "normalized_name": "persona",
-      "authority_path": ".agents/skills/persona",
-      "entrypoint_path": null,
-      "contract_path": ".agents/skills/persona/persona.feature",
-      "runtime_trigger": "persona",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "personas": {
-      "name": "personas",
-      "normalized_name": "personas",
-      "authority_path": ".agents/skills/personas",
-      "entrypoint_path": ".agents/skills/personas/scripts/personas.py",
-      "contract_path": ".agents/skills/personas/personas.feature",
-      "runtime_trigger": "personas",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "promotion": {
-      "name": "promotion",
-      "normalized_name": "promotion",
-      "authority_path": ".agents/skills/promotion",
-      "entrypoint_path": ".agents/skills/promotion/scripts/promotion.py",
-      "contract_path": ".agents/skills/promotion/promotion.feature",
-      "runtime_trigger": "promotion",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "qmd_search": {
-      "name": "qmd_search",
-      "normalized_name": "qmdsearch",
-      "authority_path": ".agents/skills/qmd_search",
-      "entrypoint_path": ".agents/skills/qmd_search/scripts/qmd_search.py",
-      "contract_path": ".agents/skills/qmd_search/SKILL.md",
-      "runtime_trigger": "qmd_search",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "ravens": {
-      "name": "ravens",
-      "normalized_name": "ravens",
-      "authority_path": ".agents/skills/ravens",
-      "entrypoint_path": ".agents/skills/ravens/scripts/ravens.py",
-      "contract_path": ".agents/skills/ravens/ravens.feature",
-      "runtime_trigger": "ravens",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "redactor": {
-      "name": "redactor",
-      "normalized_name": "redactor",
-      "authority_path": ".agents/skills/redactor",
-      "entrypoint_path": ".agents/skills/redactor/scripts/redactor.py",
-      "contract_path": ".agents/skills/redactor/redactor.feature",
-      "runtime_trigger": "redactor",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "ref-openomf": {
-      "name": "ref-openomf",
-      "normalized_name": "refopenomf",
-      "authority_path": ".agents/skills/ref-openomf",
-      "entrypoint_path": null,
-      "contract_path": ".agents/skills/ref-openomf/SKILL.qmd",
-      "runtime_trigger": "ref-openomf",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "report": {
-      "name": "report",
-      "normalized_name": "report",
-      "authority_path": ".agents/skills/report",
-      "entrypoint_path": ".agents/skills/report/scripts/report.py",
-      "contract_path": ".agents/skills/report/report.feature",
-      "runtime_trigger": "report",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "research": {
-      "name": "research",
-      "normalized_name": "research",
-      "authority_path": ".agents/skills/research",
-      "entrypoint_path": ".agents/skills/research/scripts/research.py",
-      "contract_path": ".agents/skills/research/SKILL.md",
-      "runtime_trigger": "research",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "ritual": {
-      "name": "ritual",
-      "normalized_name": "ritual",
-      "authority_path": ".agents/skills/ritual",
-      "entrypoint_path": ".agents/skills/ritual/scripts/ritual.py",
-      "contract_path": ".agents/skills/ritual/ritual.feature",
-      "runtime_trigger": "ritual",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
+    "metrics": {
+      "tier": "PRIME",
+      "prime_category": "observation",
+      "description": "Compute project health metrics from latency, complexity, linting, and neural alignment.",
+      "instruction_path": ".agents/skills/metrics/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar metrics" },
+      "viability": "ACTIVE",
+      "risk": "safe"
     },
     "scan": {
-      "name": "scan",
-      "normalized_name": "scan",
-      "authority_path": ".agents/skills/scan",
-      "entrypoint_path": ".agents/skills/scan/scripts/scan.py",
-      "contract_path": ".agents/skills/scan/scan.feature",
-      "runtime_trigger": "scan",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
+      "tier": "PRIME",
+      "prime_category": "observation",
+      "description": "Perform structural repository scans, extract symbols, and update the Gungnir matrix.",
+      "instruction_path": ".agents/skills/scan/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar scan" },
+      "viability": "ACTIVE",
+      "risk": "safe"
     },
-    "sprt": {
-      "name": "sprt",
-      "normalized_name": "sprt",
-      "authority_path": ".agents/skills/sprt",
-      "entrypoint_path": ".agents/skills/sprt/scripts/sprt.py",
-      "contract_path": ".agents/skills/sprt/sprt.feature",
-      "runtime_trigger": "sprt",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
+    "manifest": {
+      "tier": "PRIME",
+      "prime_category": "observation",
+      "description": "List registered Agent Skills, Weaves, or inspect specific skill mandates.",
+      "instruction_path": ".agents/skills/manifest/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar manifest" },
+      "viability": "ACTIVE",
+      "risk": "safe"
     },
-    "stability": {
-      "name": "stability",
-      "normalized_name": "stability",
-      "authority_path": ".agents/skills/stability",
-      "entrypoint_path": ".agents/skills/stability/scripts/stability.py",
-      "contract_path": ".agents/skills/stability/stability.feature",
-      "runtime_trigger": "stability",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
+    "qmd_search": {
+      "tier": "PRIME",
+      "prime_category": "observation",
+      "description": "Search PennyOne QMD reports across Gungnir vectors.",
+      "instruction_path": ".agents/skills/qmd_search/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar qmd_search" },
+      "viability": "ACTIVE",
+      "risk": "safe"
     },
-    "sterling": {
-      "name": "sterling",
-      "normalized_name": "sterling",
-      "authority_path": ".agents/skills/sterling",
-      "entrypoint_path": ".agents/skills/sterling/scripts/sterling.py",
-      "contract_path": ".agents/skills/sterling/sterling.feature",
-      "runtime_trigger": "sterling",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
+    "oracle": {
+      "tier": "PRIME",
+      "prime_category": "reasoning",
+      "description": "Consult the One Mind Host Agent via direct sampling for reasoning or intent generation.",
+      "instruction_path": ".agents/skills/oracle/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar oracle" },
+      "viability": "ACTIVE",
+      "risk": "safe"
     },
-    "style": {
-      "name": "style",
-      "normalized_name": "style",
-      "authority_path": ".agents/skills/style",
-      "entrypoint_path": ".agents/skills/style/scripts/style.py",
-      "contract_path": ".agents/skills/style/style.feature",
-      "runtime_trigger": "style",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "taliesin": {
-      "name": "taliesin",
-      "normalized_name": "taliesin",
-      "authority_path": ".agents/skills/taliesin",
-      "entrypoint_path": ".agents/skills/taliesin/scripts/taliesin.py",
-      "contract_path": ".agents/skills/taliesin/taliesin.feature",
-      "runtime_trigger": "taliesin",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "taste-skill": {
-      "name": "taste-skill",
-      "normalized_name": "tasteskill",
-      "authority_path": ".agents/skills/taste-skill",
-      "entrypoint_path": null,
-      "contract_path": ".agents/skills/taste-skill/taste-skill.feature",
-      "runtime_trigger": "taste-skill",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "telemetry": {
-      "name": "telemetry",
-      "normalized_name": "telemetry",
-      "authority_path": ".agents/skills/telemetry",
-      "entrypoint_path": ".agents/skills/telemetry/scripts/telemetry.py",
-      "contract_path": ".agents/skills/telemetry/telemetry.feature",
-      "runtime_trigger": "telemetry",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
+    "calculus": {
+      "tier": "PRIME",
+      "prime_category": "reasoning",
+      "description": "Score code artifacts across logic, style, symmetry, and semantic intelligence.",
+      "instruction_path": ".agents/skills/calculus/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar calculus" },
+      "viability": "ACTIVE",
+      "risk": "safe"
     },
     "trace": {
-      "name": "trace",
-      "normalized_name": "trace",
-      "authority_path": ".agents/skills/trace",
-      "entrypoint_path": ".agents/skills/trace/scripts/trace.py",
-      "contract_path": ".agents/skills/trace/trace.feature",
-      "runtime_trigger": "trace",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
+      "tier": "PRIME",
+      "prime_category": "reasoning",
+      "description": "The Neural Selection Gate. Analyzes prompts via the One Mind to select the optimal tier (Skill, Weave, Spell).",
+      "instruction_path": ".agents/skills/trace/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar trace" },
+      "viability": "ACTIVE",
+      "risk": "safe"
     },
-    "validate-evaluator": {
-      "name": "validate-evaluator",
-      "normalized_name": "validateevaluator",
-      "authority_path": ".agents/skills/validate-evaluator",
-      "entrypoint_path": null,
-      "contract_path": ".agents/skills/validate-evaluator/validate-evaluator.feature",
-      "runtime_trigger": "validate-evaluator",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
+    "style": {
+      "tier": "PRIME",
+      "prime_category": "reasoning",
+      "description": "Orchestrate neural search and proactive skill discovery through the sovereign search engine.",
+      "instruction_path": ".agents/skills/style/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar style" },
+      "viability": "ACTIVE",
+      "risk": "safe"
     },
-    "vector": {
-      "name": "vector",
-      "normalized_name": "vector",
-      "authority_path": ".agents/skills/vector",
-      "entrypoint_path": null,
-      "contract_path": ".agents/skills/vector/vector.feature",
-      "runtime_trigger": "vector",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
+    "agentic-ingest": {
+      "tier": "PRIME",
+      "prime_category": "mutation",
+      "description": "Direct One Mind conduit for recording file intelligence into the Hall of Records.",
+      "instruction_path": ".agents/skills/agentic-ingest/SKILL.md",
+      "execution": { "mode": "agent-native" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "forge": {
+      "tier": "PRIME",
+      "prime_category": "mutation",
+      "description": "Translate lore fragments into staged code artifacts through the Taliesin Forge pipeline.",
+      "instruction_path": ".agents/skills/forge/SKILL.md",
+      "execution": { "mode": "kernel-backed", "adapter_id": "weave:forge" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "scribe": {
+      "tier": "PRIME",
+      "prime_category": "mutation",
+      "description": "Record runtime observations as Hall-backed feedback.",
+      "instruction_path": ".agents/skills/scribe/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar scribe" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "report": {
+      "tier": "PRIME",
+      "prime_category": "mutation",
+      "description": "Generate persona-aware reports with enforced voice and integrity signatures.",
+      "instruction_path": ".agents/skills/report/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar report" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "jailing": {
+      "tier": "PRIME",
+      "prime_category": "isolation",
+      "description": "Execute untrusted skills inside restricted Docker sandboxes with cleanups.",
+      "instruction_path": ".agents/skills/jailing/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar jailing" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "gatekeeper": {
+      "tier": "PRIME",
+      "prime_category": "isolation",
+      "description": "Enforcer of Gungnir Law. Manages filesystem locks and Git hooks.",
+      "instruction_path": ".agents/skills/gatekeeper/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar gatekeeper" },
+      "viability": "ACTIVE",
+      "risk": "high-authority"
+    },
+    "locks": {
+      "tier": "PRIME",
+      "prime_category": "isolation",
+      "description": "Manage exclusive task leases in PennyOne to prevent deadlocks.",
+      "instruction_path": ".agents/skills/locks/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar locks" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "annex": {
+      "tier": "SKILL",
+      "description": "Audit the repository for structural weaknesses and create annexation plans.",
+      "instruction_path": ".agents/skills/annex/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar annex" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "autobot": {
+      "tier": "SKILL",
+      "description": "Execute sovereign beads as an ephemeral worker with checker-gated retries.",
+      "instruction_path": ".agents/skills/autobot/SKILL.md",
+      "execution": { "mode": "kernel-backed", "adapter_id": "weave:autobot" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "bookmark-weaver": {
+      "tier": "SKILL",
+      "description": "Autonomous ingest of bookmarks into the Hall Bead Ledger.",
+      "instruction_path": ".agents/skills/bookmark-weaver/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar bookmark-weaver" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "cachebro": {
+      "tier": "SKILL",
+      "description": "Manage intelligent caching strategies for APIs and computations.",
+      "instruction_path": ".agents/skills/cachebro/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar cachebro" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "chant": {
+      "tier": "WEAVE",
+      "description": "Parse natural-language chants into executable skill flight paths and routing plans.",
+      "instruction_path": ".agents/skills/chant/SKILL.md",
+      "execution": { "mode": "kernel-backed", "adapter_id": "weave:chant" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "chronicle": {
+      "tier": "SKILL",
+      "description": "Build high-fidelity system state maps from docs, code, and contracts.",
+      "instruction_path": ".agents/skills/chronicle/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar chronicle" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "distill": {
+      "tier": "SKILL",
+      "description": "Summarize tasks or git diffs into tactical summaries for episodic memory.",
+      "instruction_path": ".agents/skills/distill/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar distill" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "consciousness": {
+      "tier": "SKILL",
+      "description": "Maintain Totem and Dream state for project identity and proactive intent.",
+      "instruction_path": ".agents/skills/consciousness/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar consciousness" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "corvus-control": {
+      "tier": "SKILL",
+      "description": "Orchestrates the CStar framework and Model Context Protocol (MCP) interactions.",
+      "instruction_path": ".agents/skills/corvus-control/SKILL.md",
+      "execution": { "mode": "kernel-backed", "cli": "cstar" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "edda": {
+      "tier": "SKILL",
+      "description": "Convert legacy Markdown to Quarto or synthesize API reference docs.",
+      "instruction_path": ".agents/skills/edda/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar edda" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "empire": {
+      "tier": "SKILL",
+      "description": "Verify code artifacts against Gherkin contracts under the Empire TDD protocol.",
+      "instruction_path": ".agents/skills/empire/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar empire" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "engine": {
+      "tier": "SKILL",
+      "description": "The Core CStar Kernel. Manages the execution spine and runtime dispatcher.",
+      "instruction_path": ".agents/skills/engine/SKILL.md",
+      "execution": { "mode": "kernel-backed" },
+      "viability": "ACTIVE",
+      "risk": "safety-critical"
+    },
+    "evolve": {
+      "tier": "WEAVE",
+      "description": "Run the bead-driven optimization loop under runtime and validation authority.",
+      "instruction_path": ".agents/skills/evolve/SKILL.md",
+      "execution": { "mode": "kernel-backed", "adapter_id": "weave:evolve" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "gherkin": {
+      "tier": "SKILL",
+      "description": "Create, validate, or manage Gherkin .feature contract files.",
+      "instruction_path": ".agents/skills/gherkin/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar gherkin" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "hunt": {
+      "tier": "SKILL",
+      "description": "Find missing capabilities, evaluate external skills safely, and ingest them.",
+      "instruction_path": ".agents/skills/hunt/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar hunt" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "linter": {
+      "tier": "SKILL",
+      "description": "Check prompt integrity between .prompty files and their invocations.",
+      "instruction_path": ".agents/skills/linter/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar linter" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "matrix": {
+      "tier": "SKILL",
+      "description": "Compile or visualize the repository relationship graph for topographical analysis.",
+      "instruction_path": ".agents/skills/matrix/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar matrix" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "bifrost": {
+      "tier": "SKILL",
+      "description": "Manage the Model Context Protocol (MCP) bridge for host agents.",
+      "instruction_path": ".agents/skills/bifrost/SKILL.md",
+      "execution": { "mode": "kernel-backed" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "norn": {
+      "tier": "SKILL",
+      "description": "Synchronize tasks into the PennyOne ledger and coordinate bead flow.",
+      "instruction_path": ".agents/skills/norn/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar norn" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "one-mind": {
+      "tier": "SKILL",
+      "description": "Route grounded LLM requests for context anchoring and synthesis.",
+      "instruction_path": ".agents/skills/one-mind/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar one-mind" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "orchestrate": {
+      "tier": "WEAVE",
+      "description": "Initiate autonomous restoration cycles and manage the swarm execution loop.",
+      "instruction_path": ".agents/skills/orchestrate/SKILL.md",
+      "execution": { "mode": "kernel-backed", "adapter_id": "weave:orchestrate" },
+      "viability": "ACTIVE",
+      "risk": "safety-critical"
+    },
+    "personas": {
+      "tier": "SKILL",
+      "description": "Manage persona selection, voice enforcement, and policy checks.",
+      "instruction_path": ".agents/skills/personas/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar personas" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "promotion": {
+      "tier": "SKILL",
+      "description": "Register, hash, verify, and track promoted skills before admission.",
+      "instruction_path": ".agents/skills/promotion/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar promotion" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "ravens": {
+      "tier": "WEAVE",
+      "description": "Coordinate autonomous repository improvement by selecting debt targets.",
+      "instruction_path": ".agents/skills/ravens/SKILL.md",
+      "execution": { "mode": "kernel-backed", "adapter_id": "weave:ravens" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "redactor": {
+      "tier": "SKILL",
+      "description": "Mask secrets in logs, reports, and terminal output before data leaves.",
+      "instruction_path": ".agents/skills/redactor/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar redactor" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "research": {
+      "tier": "SKILL",
+      "description": "Run fixed-budget experiments against immutable targets to record optimizations.",
+      "instruction_path": ".agents/skills/research/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar research" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "ritual": {
+      "tier": "SKILL",
+      "description": "Generate lore-accurate terminal animations and ceremonial visual flair.",
+      "instruction_path": ".agents/skills/ritual/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar ritual" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "spoke": {
+      "tier": "SKILL",
+      "description": "Manage the Corvus Star estate, linking external repositories.",
+      "instruction_path": ".agents/skills/spoke/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar spoke" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "sprt": {
+      "tier": "SKILL",
+      "description": "Run sequential probability ratio tests to judge stability and regressions.",
+      "instruction_path": ".agents/skills/sprt/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar sprt" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "stability": {
+      "tier": "SKILL",
+      "description": "Track edit fatigue and oscillation to prevent recursive repair loops.",
+      "instruction_path": ".agents/skills/stability/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar stability" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "start": {
+      "tier": "WEAVE",
+      "description": "Awaken the system pulse, initiate agent loops, and bootstrap the runtime.",
+      "instruction_path": ".agents/skills/start/SKILL.md",
+      "execution": { "mode": "kernel-backed", "adapter_id": "weave:start" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "sterling": {
+      "tier": "SKILL",
+      "description": "Audit repository sectors for compliance with the Sterling mandate.",
+      "instruction_path": ".agents/skills/sterling/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar sterling" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "taliesin": {
+      "tier": "SKILL",
+      "description": "Refine and enforce Corvus Star persona voice across system outputs.",
+      "instruction_path": ".agents/skills/taliesin/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar taliesin" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "taste-skill": {
+      "tier": "SKILL",
+      "description": "Craft deliberate frontend interfaces with strong typography and anti-slop rules.",
+      "instruction_path": ".agents/skills/taste-skill/SKILL.md",
+      "execution": { "mode": "agent-native" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "telemetry": {
+      "tier": "SKILL",
+      "description": "Record mission telemetry, flares, and broadcast runtime alerts.",
+      "instruction_path": ".agents/skills/telemetry/SKILL.md",
+      "execution": { "mode": "agent-native", "cli": "cstar telemetry" },
+      "viability": "ACTIVE",
+      "risk": "safe"
     },
     "visual-explainer": {
-      "name": "visual-explainer",
-      "normalized_name": "visualexplainer",
-      "authority_path": ".agents/skills/visual-explainer",
-      "entrypoint_path": null,
-      "contract_path": ".agents/skills/visual-explainer/visual-explainer.feature",
-      "runtime_trigger": "visual-explainer",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
-    },
-    "voices": {
-      "name": "voices",
-      "normalized_name": "voices",
-      "authority_path": ".agents/skills/voices",
-      "entrypoint_path": null,
-      "contract_path": ".agents/skills/voices/voices.feature",
-      "runtime_trigger": "voices",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
+      "tier": "SKILL",
+      "description": "Generate self-contained HTML pages for diagrams and project recaps.",
+      "instruction_path": ".agents/skills/visual-explainer/SKILL.md",
+      "execution": { "mode": "agent-native" },
+      "viability": "ACTIVE",
+      "risk": "safe"
     },
     "warden": {
-      "name": "warden",
-      "normalized_name": "warden",
-      "authority_path": ".agents/skills/warden",
-      "entrypoint_path": ".agents/skills/warden/scripts/warden.py",
-      "contract_path": ".agents/skills/warden/warden.feature",
-      "runtime_trigger": "warden",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
+      "tier": "SKILL",
+      "description": "Monitor repository anomalies, lore violations, and system drift.",
+      "instruction_path": ".agents/skills/warden/SKILL.md",
+      "execution": { "mode": "kernel-backed", "adapter_id": "weave:warden" },
+      "viability": "ACTIVE",
+      "risk": "safe"
     },
-    "write-judge-prompt": {
-      "name": "write-judge-prompt",
-      "normalized_name": "writejudgeprompt",
-      "authority_path": ".agents/skills/write-judge-prompt",
-      "entrypoint_path": null,
-      "contract_path": ".agents/skills/write-judge-prompt/write-judge-prompt.feature",
-      "runtime_trigger": "write-judge-prompt",
-      "migration_status": "authoritative",
-      "source": ".agents/skills"
+    "restoration": {
+      "tier": "WEAVE",
+      "description": "Autonomous repair of Linscott breaches from the Hall of Records.",
+      "instruction_path": ".agents/weaves/restoration.md",
+      "execution": { "mode": "kernel-backed", "adapter_id": "weave:restoration" },
+      "viability": "ACTIVE",
+      "risk": "safe"
     },
-    "dormancy": {
-      "name": "dormancy",
-      "normalized_name": "dormancy",
-      "authority_path": "src/skills/local/dormancy.py",
-      "entrypoint_path": "src/skills/local/dormancy.py",
-      "contract_path": null,
-      "runtime_trigger": "dormancy",
-      "migration_status": "bootstrap-only",
-      "source": "src/skills/local",
-      "authority_alias": null
+    "expansion": {
+      "tier": "WEAVE",
+      "description": "Onboard and topology-scan new Spoke repositories.",
+      "instruction_path": ".agents/weaves/expansion.md",
+      "execution": { "mode": "kernel-backed", "adapter_id": "weave:expansion" },
+      "viability": "ACTIVE",
+      "risk": "safe"
     },
-    "Environment": {
-      "name": "Environment",
-      "normalized_name": "environment",
-      "authority_path": "src/skills/local/Environment",
-      "entrypoint_path": "src/skills/local/Environment",
-      "contract_path": null,
-      "runtime_trigger": "Environment",
-      "migration_status": "retire",
-      "source": "src/skills/local",
-      "authority_alias": null
+    "vigilance": {
+      "tier": "WEAVE",
+      "description": "Continuously audit the estate against Gungnir standards.",
+      "instruction_path": ".agents/weaves/vigilance.md",
+      "execution": { "mode": "kernel-backed", "adapter_id": "weave:vigilance" },
+      "viability": "ACTIVE",
+      "risk": "safe"
     },
-    "GitHub": {
-      "name": "GitHub",
-      "normalized_name": "github",
-      "authority_path": "src/skills/local/GitHub",
-      "entrypoint_path": "src/skills/local/GitHub",
-      "contract_path": null,
-      "runtime_trigger": "GitHub",
-      "migration_status": "retire",
-      "source": "src/skills/local",
-      "authority_alias": null
+    "creation_loop": {
+      "tier": "WEAVE",
+      "description": "Build new features through chant, forge, and evolve cycles.",
+      "instruction_path": ".agents/weaves/creation_loop.md",
+      "execution": { "mode": "agent-native" },
+      "viability": "ACTIVE",
+      "risk": "safe"
     },
-    "radon": {
-      "name": "radon",
-      "normalized_name": "radon",
-      "authority_path": "src/skills/local/radon",
-      "entrypoint_path": "src/skills/local/radon",
-      "contract_path": null,
-      "runtime_trigger": "radon",
-      "migration_status": "retire",
-      "source": "src/skills/local",
-      "authority_alias": null
+    "contract_hardening": {
+      "tier": "WEAVE",
+      "description": "Enforce Sterling Compliance across Gherkin layers.",
+      "instruction_path": ".agents/weaves/contract_hardening.md",
+      "execution": { "mode": "agent-native" },
+      "viability": "ACTIVE",
+      "risk": "safe"
     },
-    "skill-scout": {
-      "name": "skill-scout",
-      "normalized_name": "skillscout",
-      "authority_path": "src/skills/local/skill-scout",
-      "entrypoint_path": "src/skills/local/skill-scout",
-      "contract_path": null,
-      "runtime_trigger": "skill-scout",
-      "migration_status": "retire",
-      "source": "src/skills/local",
-      "authority_alias": null
+    "living_architecture": {
+      "tier": "WEAVE",
+      "description": "Record and analyze architectural decisions back to Mimir's Well.",
+      "instruction_path": ".agents/weaves/living_architecture.md",
+      "execution": { "mode": "agent-native" },
+      "viability": "ACTIVE",
+      "risk": "safe"
     },
-    "VisualExplainer": {
-      "name": "VisualExplainer",
-      "normalized_name": "visualexplainer",
-      "authority_path": "src/skills/local/VisualExplainer",
-      "entrypoint_path": "src/skills/local/VisualExplainer/visual_explainer.py",
-      "contract_path": null,
-      "runtime_trigger": "VisualExplainer",
-      "migration_status": "migrate",
-      "source": "src/skills/local",
-      "authority_alias": null
+    "secure_speculation": {
+      "tier": "WEAVE",
+      "description": "Safely theorize and run bounded tests against legacy sectors.",
+      "instruction_path": ".agents/weaves/secure_speculation.md",
+      "execution": { "mode": "agent-native" },
+      "viability": "ACTIVE",
+      "risk": "safe"
     },
-    "WildHunt": {
-      "name": "WildHunt",
-      "normalized_name": "wildhunt",
-      "authority_path": "src/skills/local/WildHunt",
-      "entrypoint_path": "src/skills/local/WildHunt/wild_hunt.py",
-      "contract_path": null,
-      "runtime_trigger": "WildHunt",
-      "migration_status": "migrate",
-      "source": "src/skills/local",
-      "authority_alias": null
+    "ephemeral_grid": {
+      "tier": "WEAVE",
+      "description": "Manage distributed AutoBot execution queues.",
+      "instruction_path": ".agents/weaves/ephemeral_grid.md",
+      "execution": { "mode": "kernel-backed" },
+      "viability": "ACTIVE",
+      "risk": "safe"
     },
-    "workflow_analyst": {
-      "name": "workflow_analyst",
-      "normalized_name": "workflowanalyst",
-      "authority_path": "src/skills/local/workflow_analyst",
-      "entrypoint_path": "src/skills/local/workflow_analyst/analyze_workflow.py",
-      "contract_path": null,
-      "runtime_trigger": "workflow_analyst",
-      "migration_status": "migrate",
-      "source": "src/skills/local",
-      "authority_alias": null
+    "shattering_strike": {
+      "tier": "SPELL",
+      "description": "Recursively decompose logic that falls below 4.0 Gungnir score.",
+      "instruction_path": ".agents/spells/shattering_strike.md",
+      "execution": { "mode": "agent-native" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "phoenix_loop": {
+      "tier": "SPELL",
+      "description": "Self-healing loop that recasts weaves upon test failure.",
+      "instruction_path": ".agents/spells/phoenix_loop.md",
+      "execution": { "mode": "agent-native" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "silver_shield": {
+      "tier": "SPELL",
+      "description": "Auto-sanitize sectors where the Style score drops below 6.0.",
+      "instruction_path": ".agents/spells/silver_shield.md",
+      "execution": { "mode": "agent-native" },
+      "viability": "ACTIVE",
+      "risk": "safe"
+    },
+    "living_well": {
+      "tier": "SPELL",
+      "description": "Omniscient post-commit scan to keep the Gungnir matrix updated.",
+      "instruction_path": ".agents/spells/living_well.md",
+      "execution": { "mode": "agent-native" },
+      "viability": "ACTIVE",
+      "risk": "safe"
     }
-  },
-  "duplicates": [
-    {
-      "local_name": "CacheBro",
-      "local_path": "src/skills/local/CacheBro",
-      "authority_name": "cachebro",
-      "authority_path": ".agents/skills/cachebro",
-      "classification": "wrap"
-    },
-    {
-      "local_name": "KnowledgeHunter",
-      "local_path": "src/skills/local/KnowledgeHunter",
-      "authority_name": "hunt",
-      "authority_path": ".agents/skills/hunt",
-      "classification": "wrap"
-    },
-    {
-      "local_name": "oracle",
-      "local_path": "src/skills/local/oracle",
-      "authority_name": "oracle",
-      "authority_path": ".agents/skills/oracle",
-      "classification": "wrap"
-    },
-    {
-      "local_name": "persona-audit",
-      "local_path": "src/skills/local/persona-audit",
-      "authority_name": "persona",
-      "authority_path": ".agents/skills/persona",
-      "classification": "wrap"
-    },
-    {
-      "local_name": "SkillLearning",
-      "local_path": "src/skills/local/SkillLearning",
-      "authority_name": "evolve",
-      "authority_path": ".agents/skills/evolve",
-      "classification": "wrap"
-    }
-  ],
-  "local_candidates": [
-    {
-      "name": "CacheBro",
-      "normalized_name": "cachebro",
-      "local_path": "src/skills/local/CacheBro",
-      "entrypoint_path": "src/skills/local/CacheBro/cache_bro.py",
-      "migration_status": "wrap",
-      "authority_alias": "cachebro",
-      "runtime_trigger": "CacheBro",
-      "source": "src/skills/local"
-    },
-    {
-      "name": "dormancy",
-      "normalized_name": "dormancy",
-      "local_path": "src/skills/local/dormancy.py",
-      "entrypoint_path": "src/skills/local/dormancy.py",
-      "migration_status": "bootstrap-only",
-      "authority_alias": null,
-      "runtime_trigger": "dormancy",
-      "source": "src/skills/local"
-    },
-    {
-      "name": "Environment",
-      "normalized_name": "environment",
-      "local_path": "src/skills/local/Environment",
-      "entrypoint_path": "src/skills/local/Environment",
-      "migration_status": "retire",
-      "authority_alias": null,
-      "runtime_trigger": "Environment",
-      "source": "src/skills/local"
-    },
-    {
-      "name": "GitHub",
-      "normalized_name": "github",
-      "local_path": "src/skills/local/GitHub",
-      "entrypoint_path": "src/skills/local/GitHub",
-      "migration_status": "retire",
-      "authority_alias": null,
-      "runtime_trigger": "GitHub",
-      "source": "src/skills/local"
-    },
-    {
-      "name": "KnowledgeHunter",
-      "normalized_name": "knowledgehunter",
-      "local_path": "src/skills/local/KnowledgeHunter",
-      "entrypoint_path": "src/skills/local/KnowledgeHunter/hunter.py",
-      "migration_status": "wrap",
-      "authority_alias": "hunt",
-      "runtime_trigger": "KnowledgeHunter",
-      "source": "src/skills/local"
-    },
-    {
-      "name": "oracle",
-      "normalized_name": "oracle",
-      "local_path": "src/skills/local/oracle",
-      "entrypoint_path": "src/skills/local/oracle",
-      "migration_status": "wrap",
-      "authority_alias": "oracle",
-      "runtime_trigger": "oracle",
-      "source": "src/skills/local"
-    },
-    {
-      "name": "persona-audit",
-      "normalized_name": "personaaudit",
-      "local_path": "src/skills/local/persona-audit",
-      "entrypoint_path": "src/skills/local/persona-audit",
-      "migration_status": "wrap",
-      "authority_alias": "persona",
-      "runtime_trigger": "persona-audit",
-      "source": "src/skills/local"
-    },
-    {
-      "name": "radon",
-      "normalized_name": "radon",
-      "local_path": "src/skills/local/radon",
-      "entrypoint_path": "src/skills/local/radon",
-      "migration_status": "retire",
-      "authority_alias": null,
-      "runtime_trigger": "radon",
-      "source": "src/skills/local"
-    },
-    {
-      "name": "skill-scout",
-      "normalized_name": "skillscout",
-      "local_path": "src/skills/local/skill-scout",
-      "entrypoint_path": "src/skills/local/skill-scout",
-      "migration_status": "retire",
-      "authority_alias": null,
-      "runtime_trigger": "skill-scout",
-      "source": "src/skills/local"
-    },
-    {
-      "name": "SkillLearning",
-      "normalized_name": "skilllearning",
-      "local_path": "src/skills/local/SkillLearning",
-      "entrypoint_path": "src/skills/local/SkillLearning/learn.py",
-      "migration_status": "wrap",
-      "authority_alias": "evolve",
-      "runtime_trigger": "SkillLearning",
-      "source": "src/skills/local"
-    },
-    {
-      "name": "VisualExplainer",
-      "normalized_name": "visualexplainer",
-      "local_path": "src/skills/local/VisualExplainer",
-      "entrypoint_path": "src/skills/local/VisualExplainer/visual_explainer.py",
-      "migration_status": "migrate",
-      "authority_alias": null,
-      "runtime_trigger": "VisualExplainer",
-      "source": "src/skills/local"
-    },
-    {
-      "name": "WildHunt",
-      "normalized_name": "wildhunt",
-      "local_path": "src/skills/local/WildHunt",
-      "entrypoint_path": "src/skills/local/WildHunt/wild_hunt.py",
-      "migration_status": "migrate",
-      "authority_alias": null,
-      "runtime_trigger": "WildHunt",
-      "source": "src/skills/local"
-    },
-    {
-      "name": "workflow_analyst",
-      "normalized_name": "workflowanalyst",
-      "local_path": "src/skills/local/workflow_analyst",
-      "entrypoint_path": "src/skills/local/workflow_analyst/analyze_workflow.py",
-      "migration_status": "migrate",
-      "authority_alias": null,
-      "runtime_trigger": "workflow_analyst",
-      "source": "src/skills/local"
-    }
-  ]
+  }
 }

@@ -240,7 +240,7 @@ describe('Host-session runtime weaves', () => {
 
         const result = await weave.execute(
             {
-                weave_id: 'weave:compress',
+                weave_id: 'weave:distill',
                 payload: {
                     bead_id: 'bead-codex',
                     bead_intent: 'Capture the tactical summary.',

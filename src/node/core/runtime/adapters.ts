@@ -5,6 +5,9 @@ import { execa } from 'execa';
 import { ANS } from  '../ans.js';
 import { resolveHostProvider } from  '../../../core/host_session.js';
 import { RavensCycleWeave } from  './weaves/ravens_cycle.js';
+import { RestorationWeave } from  './weaves/restoration.js';
+import { EstateExpansionWeave } from  './weaves/expansion.js';
+import { VigilanceWeave } from  './weaves/vigilance.js';
 import { discoverLegacyCommands, resolvePythonPath } from  './adapters/legacy_commands.js';
 import {
     loadRavensSweepTargets,
@@ -23,6 +26,9 @@ import {
 } from './contracts.ts';
 
 export { PennyOneAdapter } from  './weaves/pennyone.js';
+export { RestorationWeave } from  './weaves/restoration.js';
+export { EstateExpansionWeave } from  './weaves/expansion.js';
+export { VigilanceWeave } from  './weaves/vigilance.js';
 
 export class StartAdapter implements RuntimeAdapter<StartWeavePayload> {
     public readonly id = 'weave:start';

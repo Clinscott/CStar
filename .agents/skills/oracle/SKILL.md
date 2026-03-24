@@ -1,28 +1,25 @@
 ---
 name: oracle
-description: "Use when you need repository-aware technical analysis or intent generation grounded through the One Mind."
+description: "Use when consulting the One Mind Host Agent via direct sampling for reasoning, analysis, or intent generation."
 risk: safe
 source: internal
 ---
 
-# 🔱 GUNGNIR ORACLE SKILL (v1.0)
+# 🔱 ORACLE SKILL (v1.0)
 
 ## When to Use
-- Use when you need repository-aware technical analysis or intent generation grounded through the One Mind.
-
+- Use when a high-fidelity answer is needed from the host agent (Gemini/Codex/Claude).
+- Use to fulfill asynchronous "Synapse" requests queued in the database.
 
 ## MANDATE
-Provide high-fidelity repository intelligence, code analysis, and intent generation by consulting the One Mind.
+Channel the high-fidelity reasoning of the One Mind to provide technical and architectural insights.
 
 ## LOGIC PROTOCOL
-1. **QUERY ANALYSIS**: Analyze the natural language request or code fragment.
-2. **CONTEXT SYNCHRONIZATION**: Access the Gungnir Matrix to provide grounded responses.
-3. **DIRECT STRIKE**: Call the One Mind (Gemini-2.0-flash) with a repository-aware system prompt.
-4. **INTELLIGENCE DELIVERY**: Deliver precise, technical analysis to the requesting component.
-
-## CONSTRAINTS
-- Responses MUST be technical and concise.
-- Adhere strictly to the repository lore and standards.
+1. **INPUT RESOLUTION**: Determine if the target is a raw prompt, a file path (to be read), or a Synapse ID.
+2. **SAMPLING**: Invoke the `host_intelligence` bridge to send the request to the host.
+3. **SYNAPSE FULFILLMENT**: If using `--db`, update the `synapse` table with the result and mark as 'COMPLETED'.
+4. **RESPONSE RENDERING**: Output the raw or structured response to the user or requesting process.
 
 ## USAGE
-`cstar oracle --query <query> [--system_prompt <override>]`
+`cstar oracle "Analyze this code..."`
+`cstar oracle <synapse_id> --db`
