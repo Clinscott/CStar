@@ -54,7 +54,7 @@ export class PathRegistry {
     private root: string;
 
     private constructor() {
-        this.root = this.findProjectRoot(process.env.CSTAR_WORKSPACE_ROOT ?? process.env.CSTAR_LAUNCH_CWD);
+        this.root = this.findProjectRoot(process.env.CSTAR_PROJECT_ROOT || process.env.CSTAR_WORKSPACE_ROOT || process.env.CSTAR_LAUNCH_CWD);
     }
 
     /**

@@ -1,0 +1,27 @@
+# 💎 GEMINI NEURAL MANIFEST
+
+> **Timestamp**: 2026-03-24 09:30:44
+> **Active Mind**: ALFRED
+
+## 🧩 Context Anchors
+- **Project Root**: `/home/morderith/Corvus/CStar`
+- **Persona Strategy**: `personas.py -> alfred`
+- **Framework Port**: 3000 (Odin Dashboard)
+
+## ⏭️ Priority Directives
+- **Queue**: 4 open / 0 in progress / 9 ready for review / 415 needs triage / 5 blocked / 20 resolved
+- **Next Bead**: `bead:chant-session:5657f1ac-956c-4048-bfbd-e1feadcaa698:cb-engine-1` -> `.stats/pennyone.db` :: Investigate and resolve Linscott rule breaches within the Python Engine.
+
+## 📜 Recent Continuity (Git)
+```text
+050a8053 feat: implement MemOS-inspired episodic memory (Engrams) and purge legacy skills
+e62e8b61 feat: level 5 diagnostic core-only refocus and estate cleanup
+3690d073 feat: Complete Level 5 Diagnostic restoration and cleanup
+e5f4dee8 chore: mark pending skill authority files as work in progress
+97401c18 feat: route chant through autobot and codex host sessions
+```
+
+## 🛠️ System Health
+- **Code Sentinel**: PASS
+- **Fishtest Accuracy**: 94.7%
+- **Operational Buffer**: STABLE

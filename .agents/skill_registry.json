@@ -62,7 +62,11 @@
       "prime_category": "observation",
       "description": "Compute project health metrics from latency, complexity, linting, and neural alignment.",
       "instruction_path": ".agents/skills/metrics/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar metrics" },
+      "execution": { 
+        "mode": "kernel-backed", 
+        "cli": "cstar metrics",
+        "script_path": ".agents/skills/metrics/scripts/metrics.py" 
+      },
       "viability": "ACTIVE",
       "risk": "safe"
     },
@@ -71,7 +75,11 @@
       "prime_category": "observation",
       "description": "Perform structural repository scans, extract symbols, and update the Gungnir matrix.",
       "instruction_path": ".agents/skills/scan/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar scan" },
+      "execution": { 
+        "mode": "kernel-backed", 
+        "cli": "cstar scan",
+        "script_path": ".agents/skills/scan/scripts/scan.py"
+      },
       "viability": "ACTIVE",
       "risk": "safe"
     },

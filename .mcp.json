@@ -3,18 +3,17 @@
     "pennyone": {
       "command": "node",
       "args": [
-        "C:/Users/Craig/Corvus/CorvusStar/bin/pennyone-mcp.js"
+        "bin/pennyone-mcp.js"
       ],
       "env": {
-        "GEMINI_CLI_ACTIVE": "true",
-        "RESTART_TS": "2026-03-07T17:30:00Z"
+        "GEMINI_CLI_ACTIVE": "true"
       }
     },
     "corvus-control": {
       "command": "npx",
       "args": [
         "tsx",
-        "C:/Users/Craig/Corvus/CorvusStar/src/tools/corvus-control-mcp.ts"
+        "src/tools/corvus-control-mcp.ts"
       ],
       "env": {
         "GEMINI_CLI_ACTIVE": "true"

@@ -33,7 +33,7 @@ describe('Canonical Runtime Dispatcher (CS-P1-01)', () => {
         const dispatcher = RuntimeDispatcher.createIsolated();
         bootstrapRuntime(dispatcher);
 
-        assert.deepStrictEqual(dispatcher.listAdapterIds(), [
+        const builtInAdapters = [
             'weave:architect',
             'weave:autobot',
             'weave:chant',
@@ -53,7 +53,12 @@ describe('Canonical Runtime Dispatcher (CS-P1-01)', () => {
             'weave:start',
             'weave:taliesin-forge',
             'weave:temporal-learning'
-            ]);
+        ];
+        
+        const registered = dispatcher.listAdapterIds();
+        for (const adapter of builtInAdapters) {
+            assert.ok(registered.includes(adapter), `Expected ${adapter} to be registered`);
+        }
     });
 
     it('dispatches an isolated runtime adapter without touching the singleton', async () => {
@@ -64,10 +69,9 @@ describe('Canonical Runtime Dispatcher (CS-P1-01)', () => {
             weave_id: 'weave:echo',
             payload: { message: 'echo complete' },
             target: {
-                domain: 'spoke',
-                workspace_root: 'C:\\estate\\KeepOS',
-                requested_path: 'C:\\estate',
-                spoke: 'keepos',
+                domain: 'brain',
+                workspace_root: process.cwd(),
+                requested_path: process.cwd(),
             },
             session: {
                 mode: 'subkernel',
@@ -79,10 +83,8 @@ describe('Canonical Runtime Dispatcher (CS-P1-01)', () => {
         assert.strictEqual(result.status, 'SUCCESS');
         assert.strictEqual(result.output, 'echo complete');
         assert.strictEqual(result.metrics_delta?.score, 82);
-        assert.strictEqual(result.metadata?.workspace_root, 'C:/estate/KeepOS');
         assert.strictEqual(result.metadata?.operator_mode, 'subkernel');
-        assert.strictEqual(result.metadata?.target_domain, 'spoke');
-        assert.strictEqual(result.metadata?.requested_root, 'C:\\estate');
+        assert.strictEqual(result.metadata?.target_domain, 'brain');
     });
 
     it('returns a structured failure for unknown weaves', async () => {

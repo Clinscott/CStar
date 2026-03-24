@@ -66,7 +66,7 @@ export interface WeaveResult {
 }
 
 export interface RuntimeDispatchPort {
-    dispatch<T>(invocation: WeaveInvocation<T>): Promise<WeaveResult>;
+    dispatch<T>(invocation: WeaveInvocation<T> | import('../skills/types.js').SkillBead<T>): Promise<WeaveResult>;
 }
 
 export interface StartWeavePayload {

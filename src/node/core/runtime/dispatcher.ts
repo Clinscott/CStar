@@ -59,24 +59,30 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
      * [🔱] THE SUPREME DISPATCH
      * The authoritative entrypoint for all high-level framework operations.
      */
-    public async dispatch<T>(invocation: WeaveInvocation<T>): Promise<WeaveResult> {
-        const adapter = this.adapters.get(invocation.weave_id);
+    public async dispatch<T>(invocation: WeaveInvocation<T> | import('../skills/types.js').SkillBead<T>): Promise<WeaveResult> {
+        const isSkillBead = 'skill_id' in invocation;
+        const weaveId = isSkillBead ? invocation.skill_id : invocation.weave_id;
+        const payload = isSkillBead ? invocation.params : invocation.payload;
+        const target = isSkillBead ? undefined : invocation.target;
+        const session = isSkillBead ? undefined : invocation.session;
+
+        const adapter = this.adapters.get(weaveId);
 
         if (!adapter) {
             return {
-                weave_id: invocation.weave_id,
+                weave_id: weaveId,
                 status: 'FAILURE',
                 output: '',
-                error: `[ALFRED]: "I am unable to resolve the weave '${invocation.weave_id}', sir. The spine remains disconnected for this path."`
+                error: `[ALFRED]: "I am unable to resolve the weave/skill '${weaveId}', sir. The spine remains disconnected for this path."`
             };
         }
 
         let estateTarget;
         try {
-            estateTarget = this.deps.resolveEstateTarget(invocation.target);
+            estateTarget = this.deps.resolveEstateTarget(target);
         } catch (err: any) {
             return {
-                weave_id: invocation.weave_id,
+                weave_id: weaveId,
                 status: 'FAILURE',
                 output: '',
                 error: `[ALFRED]: "I cannot resolve the requested estate target, sir: ${err.message}"`,
@@ -85,17 +91,17 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
 
         const context: RuntimeContext = {
             mission_id: `MISSION-${crypto.randomInt(10000, 99999)}`,
-            bead_id: (invocation.payload as any)?.bead_id || `bead_mission_${Date.now()}`,
+            bead_id: (payload as any)?.bead_id || (isSkillBead ? invocation.id : `bead_mission_${Date.now()}`),
             trace_id: crypto.randomUUID(),
             persona: this.deps.activePersona.name,
             workspace_root: estateTarget.workspaceRoot,
-            operator_mode: invocation.session?.mode ?? 'cli',
+            operator_mode: session?.mode ?? 'cli',
             target_domain: estateTarget.targetDomain,
-            interactive: invocation.session?.interactive ?? true,
+            interactive: session?.interactive ?? true,
             spoke_name: estateTarget.spokeName,
             spoke_root: estateTarget.spokeRoot,
             requested_root: estateTarget.requestedRoot,
-            session_id: invocation.session?.session_id,
+            session_id: session?.session_id,
             env: process.env,
             timestamp: Date.now()
         };
@@ -110,9 +116,9 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
                 bead_id: context.bead_id,
                 repo_id: repoId,
                 target_kind: 'SYSTEM',
-                target_ref: invocation.weave_id,
+                target_ref: weaveId,
                 target_path: estateTarget.requestedRoot || null,
-                rationale: `Mission execution: ${invocation.weave_id}`,
+                rationale: `Mission execution: ${weaveId}`,
                 status: 'OPEN',
                 source_kind: 'SYSTEM',
                 created_at: Date.now(),
@@ -121,17 +127,17 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
         }
 
         // Update Global State: Mission Identity
-        this.deps.stateRegistry.updateMission(context.mission_id, `Executing weave: ${invocation.weave_id}`, context.bead_id);
+        this.deps.stateRegistry.updateMission(context.mission_id, `Executing weave/skill: ${weaveId}`, context.bead_id);
 
         // [🔱] THE FRACTAL STRIKE: Create a Child Bead for this specific execution
-        const childBeadId = `${context.bead_id}:exec:${invocation.weave_id}:${Date.now()}`;
+        const childBeadId = `${context.bead_id}:exec:${weaveId}:${Date.now()}`;
         upsertHallBead({
             bead_id: childBeadId,
             repo_id: repoId,
-            target_kind: 'WEAVE',
-            target_ref: invocation.weave_id,
+            target_kind: isSkillBead ? 'SKILL' : 'WEAVE',
+            target_ref: weaveId,
             target_path: estateTarget.requestedRoot || null,
-            rationale: `Execution of ${invocation.weave_id} under mission ${context.mission_id}`,
+            rationale: `Execution of ${weaveId} under mission ${context.mission_id}`,
             status: 'IN_PROGRESS',
             assigned_agent: context.persona === 'O.D.I.N.' ? 'ONE-MIND' : 'ALFRED',
             created_at: Date.now(),
@@ -139,7 +145,11 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
         } as any);
 
         try {
-            const result = await adapter.execute(invocation, context);
+            // If it's a SkillBead, wrap it into a WeaveInvocation to pass down
+            const invocationToPass: WeaveInvocation<any> = isSkillBead 
+                ? { weave_id: weaveId, payload: payload, target: target, session: session } 
+                : invocation;
+            const result = await adapter.execute(invocationToPass, context);
             
             // Sync status if needed
             if (result.status === 'SUCCESS' && result.metrics_delta) {
@@ -149,10 +159,10 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
             return result;
         } catch (err: any) {
             return {
-                weave_id: invocation.weave_id,
+                weave_id: weaveId,
                 status: 'FAILURE',
                 output: '',
-                error: `[ALFRED]: "The execution of weave '${invocation.weave_id}' has suffered a catastrophic failure: ${err.message}"`
+                error: `[ALFRED]: "The execution of weave/skill '${weaveId}' has suffered a catastrophic failure: ${err.message}"`
             };
         }
     }

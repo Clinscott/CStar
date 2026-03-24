@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { SkillDispatcher } from '../skills/SkillManager.js';
+import { RuntimeDispatcher } from '../runtime/dispatcher.js';
 import { SkillBead } from '../skills/types.js';
 import { getGungnirOverall } from '../../../types/gungnir.js';
 
@@ -16,7 +16,7 @@ export function registerRunSkillCommand(program: Command) {
         .option('-i, --intent <string>', 'Intent override for the execution')
         .option('-p, --params <json>', 'JSON parameters for the skill')
         .action(async (id: string, options: { target?: string, intent?: string, params?: string }) => {
-            const dispatcher = SkillDispatcher.getInstance();
+            const dispatcher = RuntimeDispatcher.getInstance();
             
             const bead: SkillBead = {
                 id: `CLI-RUN-${Date.now()}`,
@@ -37,9 +37,9 @@ export function registerRunSkillCommand(program: Command) {
                 if (result.status === 'SUCCESS') {
                     console.log(chalk.green(`\n✔ SKILL EXECUTION SUCCESSFUL`));
                     console.log(`${chalk.bold('OUTPUT:')} ${result.output}`);
-                    console.log(
-                        `${chalk.bold('GUNGNIR Ω:')} ${getGungnirOverall(result.initial_metrics).toFixed(2)} -> ${getGungnirOverall(result.final_metrics).toFixed(2)}`,
-                    );
+                    if (result.metrics_delta) {
+                        console.log(`${chalk.bold('GUNGNIR Ω:')} Delta updated.`);
+                    }
                 } else {
                     console.error(chalk.red(`\n✖ SKILL EXECUTION FAILED`));
                     console.error(`${chalk.bold('ERROR:')} ${result.error}`);
