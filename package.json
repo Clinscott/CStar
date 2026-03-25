@@ -34,7 +34,9 @@
     "test:ipc": "node scripts/run-tsx.mjs --test tests/integration/ipc/*.test.ts",
     "test:empire": "node scripts/run-tsx.mjs --test tests/empire_tests/test_corvus_process_empire.ts tests/empire_tests/test_gateway_empire.ts",
     "setup": "node scripts/run-tsx.mjs src/node/setup.ts",
-    "postinstall": "npm run setup"
+    "postinstall": "npm run setup",
+    "install-os": "./scripts/install_cstar_os.sh",
+    "uninstall-os": "./scripts/uninstall_cstar_os.sh"
   },
   "dependencies": {
     "@babel/parser": "^7.29.0",

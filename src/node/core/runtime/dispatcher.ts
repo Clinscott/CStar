@@ -106,6 +106,36 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
             timestamp: Date.now()
         };
 
+        // [🔱] THE TRACE SELECTION GATE: Enforce Trace for CLI operations
+        const query = (payload as any)?.query || (payload as any)?.rationale || '';
+        const hasTrace = query.includes('// Corvus Star Trace [Ω]');
+        const isInternalOS = ['weave:host-governor', 'weave:dynamic-command', 'weave:restoration', 'weave:creation_loop', 'weave:orchestrate'].includes(weaveId);
+        
+        if (context.operator_mode === 'cli' && !isInternalOS && weaveId !== 'weave:chant' && !hasTrace) {
+             // Only enforce on primary entry points (chant, skills, etc.)
+             // status and hall are allowed for observation.
+             if (['weave:status', 'weave:hall', 'weave:vitals', 'weave:manifest'].includes(weaveId)) {
+                 // Allowed observation
+             } else {
+                return {
+                    weave_id: weaveId,
+                    status: 'FAILURE',
+                    output: '',
+                    error: `[KERNEL PANIC]: Trace Selection Gate Breach. The command '${weaveId}' MUST begin with the '// Corvus Star Trace [Ω]' block.`
+                };
+             }
+        }
+        
+        // If it's a chant call, it MUST have the trace.
+        if (weaveId === 'weave:chant' && context.operator_mode === 'cli' && !hasTrace) {
+             return {
+                weave_id: weaveId,
+                status: 'FAILURE',
+                output: '',
+                error: `[KERNEL PANIC]: Trace Selection Gate Breach. All Planning sessions (chant) MUST begin with the '// Corvus Star Trace [Ω]' block.`
+            };
+        }
+
         // [🔱] THE BEAD-DRIVEN MANDATE: Ensure the Hall tracks the Engine
         const repoId = buildHallRepositoryId(normalizeHallPath(context.workspace_root));
         const existingBead = getHallBead(context.bead_id);

@@ -278,6 +278,11 @@ const program = new Command();
                 if (result.output) {
                     console.log(`\n${result.output}`);
                 }
+                if (result.metadata?.emitted_beads) {
+                    const beads = result.metadata.emitted_beads as string[];
+                    console.log(chalk.cyan('\n ◤ EMITTED BEADS ◢ '));
+                    beads.forEach(b => console.log(chalk.blue(`  • ${b}`)));
+                }
             } else {
                 console.error(chalk.red(`\n[FAILURE]: ${result.error}`));
                 process.exit(1);
@@ -299,6 +304,7 @@ const program = new Command();
             const state = snapshot.framework;
             console.log(chalk.cyan('\n ◤ FRAMEWORK STATE REPORT ◢ '));
             console.log(chalk.dim('━'.repeat(40)));
+            console.log(`${chalk.bold('KERNEL:')}         ${chalk.green('RING 0 (ACTIVE)')}`);
             if (resumeResult.resumed) {
                 if (resumeResult.governorResult?.status === 'FAILURE') {
                     console.log(`${chalk.bold('HOST RESUME:')}    ${chalk.red(resumeResult.governorResult.error ?? 'resume failed')}`);

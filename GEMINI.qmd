@@ -1,14 +1,20 @@
-# 💎 GEMINI NEURAL MANIFEST
+# 🔱 GEMINI NEURAL MANIFEST (C* OS)
 
-> **Timestamp**: 2026-03-24 09:30:44
-> **Active Mind**: ALFRED
+> **OS STATUS**: RING 0 ACTIVE
+> **Kernel Mode**: O.D.I.N. (High-Velocity Integration)
+> **Sovereign Host**: Gemini CLI
 
-## 🧩 Context Anchors
-- **Project Root**: `/home/morderith/Corvus/CStar`
-- **Persona Strategy**: `personas.py -> alfred`
-- **Framework Port**: 3000 (Odin Dashboard)
+## 🧩 Kernel State
+- **Root**: `/home/morderith/Corvus/CStar`
+- **Spine**: `cstar.ts`
+- **Memory**: `pennyone.db` (Engrams Active)
+
+## ⚖️ OS Directive
+You are now operating within the **Corvus Star Operating System**. All file modifications must be dispatched via `cstar orchestrate`. Native tools (`write_file`, `replace`) are restricted to Kernel maintenance tasks ONLY.
 
 ## ⏭️ Priority Directives
+- **Plan**: `OS_INTEGRATION_PLAN.md` -> PHASE 1 (BOOTLOADER)
+- **Active Task**: Bead 1.1 Implementation (Neural Law Update)
 - **Queue**: 4 open / 0 in progress / 9 ready for review / 415 needs triage / 5 blocked / 20 resolved
 - **Next Bead**: `bead:chant-session:5657f1ac-956c-4048-bfbd-e1feadcaa698:cb-engine-1` -> `.stats/pennyone.db` :: Investigate and resolve Linscott rule breaches within the Python Engine.
 
