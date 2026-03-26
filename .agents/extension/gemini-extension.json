@@ -1,0 +1,24 @@
+{
+  "name": "cstar-os",
+  "version": "1.0.0",
+  "description": "Corvus Star (C*) Sovereign Operating System Extension. Integrates deep repository memory, autonomous workers, and kernel-level validation hooks.",
+  "contextFileName": "GEMINI.md",
+  "mcpServers": {
+    "pennyone": {
+      "command": "node",
+      "args": ["${extensionPath}/../../../bin/pennyone-mcp.js"],
+      "env": {
+        "CSTAR_ROOT": "${extensionPath}/../../..",
+        "NODE_ENV": "production"
+      }
+    }
+  },
+  "settings": [
+    {
+      "name": "Persona",
+      "envVar": "CSTAR_PERSONA",
+      "default": "ALFRED",
+      "description": "Active CStar persona (O.D.I.N. or ALFRED)"
+    }
+  ]
+}

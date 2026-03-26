@@ -149,6 +149,18 @@ export class OrchestratorWorkerBridge {
             }
         }
 
+        // [🔱] THE IMMUTABLE GRID: Version Control Integration
+        // If the worker failed, we must revert the target file to prevent broken logic from polluting the workspace.
+        if (workerResult.exitCode !== 0 && originalTargetPath) {
+             try {
+                 // Use the project root determined via the bridge
+                 await this.runner('git', ['checkout', 'HEAD', '--', originalTargetPath], { cwd: this.workspaceRoot });
+                 workerResult.stderr += `\n[C* KERNEL]: Worker failed. Reverted '${originalTargetPath}' to HEAD.`;
+             } catch (e: any) {
+                 workerResult.stderr += `\n[C* KERNEL]: Failed to revert '${originalTargetPath}': ${e.message}`;
+             }
+        }
+
         if (targetSymbol && originalTargetPath && slicedTempPath) {
              // Restore the original target path in DB
              const db = deps.db.getDb();

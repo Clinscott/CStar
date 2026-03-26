@@ -101,6 +101,16 @@ export class OrchestrateWeave implements RuntimeAdapter<OrchestrateWeavePayload>
                     ];
 
                     for (const child of children) {
+                        // [🔱] DETERMINISTIC ROUTING
+                        let assignedAgent = child.agent;
+                        const targetPath = bead.target_path || '';
+                        
+                        if (targetPath.endsWith('.ts') || targetPath.endsWith('.py') || targetPath.endsWith('.js')) {
+                            assignedAgent = 'AUTOBOT';
+                        } else if (targetPath.endsWith('.md') || targetPath.endsWith('.feature') || targetPath.endsWith('.qmd')) {
+                            assignedAgent = 'ONE-MIND';
+                        }
+
                         upsertHallBead({
                             bead_id: child.id,
                             repo_id: bead.repo_id,
@@ -108,7 +118,7 @@ export class OrchestrateWeave implements RuntimeAdapter<OrchestrateWeavePayload>
                             target_path: bead.target_path,
                             rationale: `Sovereign sub-task for ${beadId}`,
                             status: 'SET',
-                            assigned_agent: child.agent,
+                            assigned_agent: assignedAgent,
                             created_at: Date.now(),
                             updated_at: Date.now()
                         } as any);

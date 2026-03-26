@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "BeforeAgent": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "cstar-vitals",
+            "type": "command",
+            "command": "node ${extensionPath}/hooks/session_start.js"
+          }
+        ]
+      }
+    ],
+    "BeforeTool": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "cstar-gatekeeper",
+            "type": "command",
+            "command": "node ${extensionPath}/hooks/before_write.js"
+          }
+        ]
+      }
+    ]
+  }
+}

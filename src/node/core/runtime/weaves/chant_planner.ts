@@ -153,6 +153,18 @@ export async function runPlanningLoop(
         summary = 'Moving to Research Phase.';
     }
 
+    // [🔱] THE MIMIR HOOK: Automatic Context Injection
+    let automaticContext = '';
+    try {
+        const results = deps.database.searchIntents(normalizedIntent);
+        if (results.length > 0) {
+            automaticContext = '\n\n### [Ω] AUTOMATIC CONTEXT (MIMIR)\n' + 
+                results.slice(0, 3).map(r => `- **${r.path}**: ${r.intent}`).join('\n');
+        }
+    } catch (e) {
+        // Fail silently to prevent chant crashes
+    }
+
     if (!payload.dry_run) {
         deps.database.saveHallPlanningSession({
             session_id: sessionId,
@@ -162,7 +174,7 @@ export async function runPlanningLoop(
             user_intent: existingSession?.user_intent ?? normalizedIntent,
             normalized_intent: existingSession
                 ? `${existingSession.normalized_intent}\nFOLLOW_UP: ${normalizedIntent}`
-                : normalizedIntent,
+                : `${normalizedIntent}${automaticContext}`,
             summary: summary,
             created_at: existingSession?.created_at ?? now,
             updated_at: now,

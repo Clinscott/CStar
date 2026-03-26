@@ -59,15 +59,13 @@ export class OrchestratorReaper {
 
             // ESCALATION PROTOCOL:
             // If the local worker failed, escalate to the Host Worker instead of blocking indefinitely.
-            // If it was already the Host Worker that failed, it stays BLOCKED.
+            // [🔱] THE KERNEL TRAP: Auto-trigger Phoenix Loop for self-healing
             if (!currentAgent || currentAgent === 'SOVEREIGN-WORKER') {
-                const previousFailures = (beadRow?.triage_reason ?? '').includes('Escalation Protocol') ? 1 : 0;
-                if (previousFailures >= 1 || result.exitCode !== 0) {
-                     // Escalate!
-                     finalStatus = 'SET';
-                     assignedAgent = 'HOST-WORKER';
-                     triageReason = `[Escalation Protocol] Local worker failed. Escalating to HOST-WORKER. Previous error: ${triageReason}`;
-                }
+                finalStatus = 'RECAST';
+                assignedAgent = 'PHOENIX';
+                triageReason = `[Kernel Trap] Worker failed. Triggering 'spell:phoenix_loop' for autonomous self-healing.`;
+            } else {
+                finalStatus = 'BLOCKED';
             }
         }
 

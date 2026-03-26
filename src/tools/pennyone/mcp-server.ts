@@ -275,6 +275,84 @@ server.tool(
     }
 );
 
+server.tool(
+    'switch_persona',
+    'Switch the active CStar persona (O.D.I.N. or ALFRED). This updates the internal kernel configuration.',
+    {
+        persona: z.enum(['O.D.I.N.', 'ALFRED', 'ODIN']).describe('The target persona ID.'),
+    },
+    async ({ persona }) => {
+        try {
+            const cstarPath = path.join(PROJECT_ROOT, 'bin/cstar.js');
+            const target = persona.toUpperCase().includes('ODIN') ? 'ODIN' : 'ALFRED';
+            await execa('node', [cstarPath, 'personas', '--set', target], { cwd: PROJECT_ROOT });
+
+            return {
+                content: [{ type: 'text', text: `[ALFRED]: "Persona switched to ${target}. The kernel has been reconfigured."` }]
+            };
+        } catch (error: any) {
+            return {
+                content: [{ type: 'text', text: `Failed to switch persona: ${error.message}` }],
+                isError: true
+            };
+        }
+    }
+);
+
+server.tool(
+    'dispatch_autobot',
+...
+    'Execute a planned Bead using the local Sovereign Worker (DeepSeek/llama.cpp) via the Pointer Protocol. This runs the implementation locally and returns a concise summary of the result, protecting your context window.',
+    {
+        bead_id: z.string().describe('The ID of the Bead in the Hall of Records to execute.'),
+        timeout: z.number().optional().default(600).describe('Maximum execution time in seconds.'),
+    },
+    async ({ bead_id, timeout }) => {
+        const missionId = `AUTOBOT-${bead_id}-${Date.now()}`;
+        await logTrace(missionId, 'ORCHESTRATION', 'STARTED', `Dispatched local worker for bead: ${bead_id}`);
+        
+        try {
+            // Spin up the worker sub-process via the CStar Kernel (Ring 0)
+            const cstarPath = path.join(PROJECT_ROOT, 'bin/cstar.js');
+            const worker = await execa('node', [cstarPath, 'autobot', '--bead-id', bead_id, '--timeout', String(timeout), '--source', 'runtime'], {
+                cwd: PROJECT_ROOT,
+                env: {
+                    ...process.env,
+                    ORCHESTRATOR_WORKER_ID: 'SOVEREIGN-WORKER',
+                    PYTHONPATH: PROJECT_ROOT
+                },
+                reject: false // We want to capture the exit code even on failure
+            });
+
+            // Gather a concise summary of the mutation (Git Diff Stat)
+            let diffStat = 'No changes detected.';
+            try {
+                 const diffResult = await execa('git', ['diff', '--stat', 'HEAD'], { cwd: PROJECT_ROOT });
+                 if (diffResult.stdout) {
+                     diffStat = diffResult.stdout;
+                 }
+            } catch (e) {
+                 // Ignore git errors
+            }
+
+            const status = worker.exitCode === 0 ? 'SUCCESS' : 'FAILED';
+            await logTrace(missionId, 'ORCHESTRATION', status, `Worker exited with code ${worker.exitCode}`);
+
+            return {
+                content: [{ 
+                    type: 'text', 
+                    text: `[POINTER PROTOCOL]: AutoBot execution complete.\n\nStatus: ${status}\nExit Code: ${worker.exitCode}\n\nGit Diff Summary:\n${diffStat}\n\nLast Output:\n${worker.stderr ? worker.stderr.slice(-1000) : worker.stdout.slice(-1000)}` 
+                }]
+            };
+        } catch (error: any) {
+            await logTrace(missionId, 'ORCHESTRATION', 'ERROR', `Failed to spawn AutoBot: ${error.message}`);
+            return {
+                content: [{ type: 'text', text: `Failed to dispatch AutoBot worker: ${error.message}` }],
+                isError: true,
+            };
+        }
+    }
+);
 
 // --- MAIN ---
 
