@@ -35,8 +35,8 @@
     "test:empire": "node scripts/run-tsx.mjs --test tests/empire_tests/test_corvus_process_empire.ts tests/empire_tests/test_gateway_empire.ts",
     "setup": "node scripts/run-tsx.mjs src/node/setup.ts",
     "postinstall": "npm run setup",
-    "install-os": "./scripts/install_cstar_os.sh",
-    "uninstall-os": "./scripts/uninstall_cstar_os.sh"
+    "install-os": "node scripts/run-tsx.mjs cstar.ts os install",
+    "uninstall-os": "node scripts/run-tsx.mjs cstar.ts os uninstall"
   },
   "dependencies": {
     "@babel/parser": "^7.29.0",

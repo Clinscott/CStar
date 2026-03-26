@@ -22,6 +22,7 @@ import { registerBifrostCommand } from './src/node/core/commands/bifrost.ts';
 import { registerOracleCommand } from './src/node/core/commands/oracle.ts';
 import { registerTuiCommand } from './src/node/core/commands/tui.ts';
 import { registerSpokeCommand } from './src/node/core/commands/spoke.ts';
+import { registerOsCommands } from './src/node/core/commands/os-integration.ts';
 import { getLaunchCwd, installWorkspaceSelectionHook, selectWorkspaceRoot } from './src/node/core/launcher.ts';
 import { StateRegistry } from './src/node/core/state.ts';
 import { registry } from './src/tools/pennyone/pathRegistry.ts';
@@ -117,6 +118,7 @@ const program = new Command();
     registerRunSkillCommand(program);
     registerTuiCommand(program);
     registerSpokeCommand(program, () => registry.getRoot());
+    registerOsCommands(program);
     registerDispatcher(program, () => registry.getRoot());
 
     program

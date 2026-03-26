@@ -7,18 +7,29 @@ from pathlib import Path
 # [Ω] CSTAR GATEKEEPER KERNEL ENFORCER (v1.0)
 # Purpose: Prevent Ring 3 (Host) from corrupting Ring 0 (C*) via legacy bypass.
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+def get_project_root():
+    """Determine the absolute path to the project root reliably."""
+    # When run as a git hook, __file__ might be inside .git/hooks
+    # We resolve it and look for the directory containing cstar.ts
+    current = Path(__file__).resolve()
+    while current.parent != current:
+        if (current / "cstar.ts").exists():
+            return current
+        current = current.parent
+    # Fallback to the current working directory if not found via __file__ traverse
+    cwd = Path(os.getcwd())
+    if (cwd / "cstar.ts").exists():
+        return cwd
+    return Path(__file__).resolve().parent.parent
 
 def run_cstar(cmd):
     """Run a cstar command and return the output."""
+    project_root = get_project_root()
     try:
-        # Determine the absolute path to the project root (where cstar.ts lives)
-        project_root = str(Path(__file__).resolve().parent.parent)
-        
         # Use npx tsx cstar.ts for reliability in this environment
         result = subprocess.run(
-            ["npx", "tsx", f"{project_root}/cstar.ts", *cmd.split()],
-            cwd=project_root,
+            ["npx", "tsx", str(project_root / "cstar.ts"), *cmd.split()],
+            cwd=str(project_root),
             capture_output=True,
             text=True,
             check=True
