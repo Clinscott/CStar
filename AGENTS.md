@@ -4,6 +4,7 @@
 
 ## Working Agreements
 - **Node.js Kernel Only**: All execution flows through the TypeScript kernel (`cstar.ts`). No Python dual-runtime.
+- **Authority Order**: Registry and runtime contracts outrank prose. If a document disagrees with `skill_registry.json` or runtime behavior, treat the document as stale.
 - **Trace First**: Begin agentic responses with a Corvus Star Trace block (see `AGENTS.qmd` §1).
 - **Bead-Driven**: Anchor all work to Beads in the Hall of Records.
 - **Sterling Mandate**: Changes require Lore (.feature contract), Isolation (unit test), and Audit (Gungnir score).
@@ -22,11 +23,11 @@ Read the SKILL.md to understand **when** and **how** to use each capability.
 ## Hierarchy of Power
 1. **PRIME** — Atomic operations (read, score, write, isolate).
 2. **SKILL** — Discrete functional capabilities.
-3. **WEAVE** — Linear chains of skills (`.agents/weaves/`).
-4. **SPELL** — Recursive feedback loops (`.agents/spells/`).
+3. **WEAVE** — Runtime-routed orchestration or bounded composite behavior.
+4. **SPELL** — Governance or recursion policy. Treat spells as policy-only unless the registry marks them `runtime-backed`.
 
 ## Intent Grammar (The Prompt Compiler)
-Every user request MUST be classified into one of these Intent Categories before you act. If the request doesn't clearly map, ask the user to clarify — **never guess**.
+Intent grammar is descriptive. Runtime routing is registry-first; the grammar is a fallback when no direct capability resolution exists.
 
 | Category | Trigger Words | Default Path | Tier |
 |:---|:---|:---|:---|
@@ -39,7 +40,7 @@ Every user request MUST be classified into one of these Intent Categories before
 | `EXPAND` | deploy, link, mount, spoke, onboard | `expansion` | WEAVE |
 | `EVOLVE` | optimize, refactor, evolve, improve | `evolve` | WEAVE |
 | `ORCHESTRATE` | plan, dispatch, autobot, orchestrate | `orchestrate` | WEAVE |
-| `GUARD` | protect, shield, lock, guard, drift | `silver_shield` | SPELL |
+| `GUARD` | protect, shield, lock, guard, drift | `silver_shield` | SPELL (policy-only by default) |
 | `DOCUMENT` | document, explain, chronicle, architecture | `living_architecture` | WEAVE |
 
 ## Episodic Memory (Engrams)
@@ -62,6 +63,7 @@ Confidence: [0.0 - 1.0]
 2. **Trace First**: Begin agentic responses with a Trace block (see above).
 3. **Bead-Driven**: Anchor all work to Beads in the Hall of Records.
 4. **Sterling Mandate**: Changes require Lore (.feature contract), Isolation (unit test), and Audit (Gungnir score).
+5. **Spells Are Not Generic Runtime Commands**: If a spell is selected, verify its registry classification before treating it as executable.
 
 ## Key Files
 - `AGENTS.qmd` — Supreme directive
@@ -70,7 +72,11 @@ Confidence: [0.0 - 1.0]
 
 ## Commands
 - `cstar <command>` — Kernel CLI
+- `node bin/cstar.js <command>` — Canonical bootstrap path when aliasing is unavailable or shell wrappers are suspect
 - `npm test` — Full test suite
 - `npm run test:node` — TypeScript tests only
 
-
+## Launcher Contract
+- Prefer the local bootstrap surfaces: `./cstar <command>` from the CStar root or `node bin/cstar.js <command>` from any shell.
+- Do not invoke bare `npx tsx cstar.ts ...` for normal operation. That path is fragile under offline or degraded npm conditions and can block access to the Hall before the kernel starts.
+- If Hall access fails, verify the launcher path before treating the Hall database as unavailable.

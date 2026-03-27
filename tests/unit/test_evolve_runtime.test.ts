@@ -131,6 +131,7 @@ describe('Evolve skill promotion (CS-P7-07)', () => {
         );
 
         assert.equal(result.status, 'SUCCESS');
+        assert.equal(result.metadata?.context_policy, 'project');
         assert.equal(result.metadata?.proposal_id, 'proposal:test');
         assert.equal(result.metadata?.proposal_status, 'VALIDATED');
         assert.equal(result.metadata?.promotion_outcome, 'PROPOSAL_READY');

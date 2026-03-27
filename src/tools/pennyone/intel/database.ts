@@ -34,12 +34,26 @@ import {
     getRecentSessions,
     getPingsForSession
 } from './session_manager.js';
+import {
+    claimHallOneMindRequest,
+    listHallOneMindBranches,
+    claimNextHallOneMindRequest,
+    getHallOneMindBroker,
+    getHallOneMindRequest,
+    listHallOneMindRequests,
+    saveHallOneMindBranch,
+    saveHallOneMindBroker,
+    saveHallOneMindRequest,
+    summarizeHallOneMindBranches,
+} from './one_mind_controller.js';
 import { 
     getHallRepositoryRecord, 
     upsertHallRepository, 
     recordHallScan,
     getHallFileByPath,
+    getHallFilesByIntentSummary,
     recordHallFile,
+    updateHallFileIntent,
     getHallFiles,
     getLatestHallScanId,
     saveHallGitCommit,
@@ -108,6 +122,16 @@ export class HallDatabase {
     public getHallPlanningSession = getHallPlanningSession;
     public saveHallPlanningSession = saveHallPlanningSession;
     public listHallPlanningSessions = listHallPlanningSessions;
+    public getHallOneMindBroker = getHallOneMindBroker;
+    public getHallOneMindRequest = getHallOneMindRequest;
+    public saveHallOneMindBranch = saveHallOneMindBranch;
+    public saveHallOneMindBroker = saveHallOneMindBroker;
+    public saveHallOneMindRequest = saveHallOneMindRequest;
+    public claimHallOneMindRequest = claimHallOneMindRequest;
+    public claimNextHallOneMindRequest = claimNextHallOneMindRequest;
+    public listHallOneMindBranches = listHallOneMindBranches;
+    public summarizeHallOneMindBranches = summarizeHallOneMindBranches;
+    public listHallOneMindRequests = listHallOneMindRequests;
     public saveHallSkillProposal = saveHallSkillProposal;
     public listHallSkillProposals = listHallSkillProposals;
     public getHallSkillProposal = getHallSkillProposal;
@@ -118,7 +142,9 @@ export class HallDatabase {
     public saveHallRepository = upsertHallRepository;
     public saveHallScan = recordHallScan;
     public getHallFile = getHallFileByPath;
+    public getHallFilesByIntentSummary = getHallFilesByIntentSummary;
     public saveHallFile = recordHallFile;
+    public updateHallFileIntent = updateHallFileIntent;
     public getHallFiles = getHallFiles;
     public getLatestHallScanId = getLatestHallScanId;
     public saveHallGitHistory = saveHallGitCommit;
@@ -180,6 +206,16 @@ export {
     saveHallPlanningSession,
     listHallPlanningSessions,
     listHallPlanningSessions as getHallPlanningSessions,
+    claimHallOneMindRequest,
+    claimNextHallOneMindRequest,
+    getHallOneMindBroker,
+    getHallOneMindRequest,
+    saveHallOneMindBranch,
+    saveHallOneMindBroker,
+    saveHallOneMindRequest,
+    listHallOneMindBranches,
+    summarizeHallOneMindBranches,
+    listHallOneMindRequests,
     saveHallSkillProposal,
     listHallSkillProposals,
     listHallSkillProposals as getSkillProposals,
@@ -199,8 +235,10 @@ export {
     recordHallScan as saveHallScan,
     getHallFileByPath,
     getHallFileByPath as getHallFile,
+    getHallFilesByIntentSummary,
     recordHallFile,
     recordHallFile as saveHallFile,
+    updateHallFileIntent,
     getHallFiles,
     getLatestHallScanId,
     saveHallGitCommit,

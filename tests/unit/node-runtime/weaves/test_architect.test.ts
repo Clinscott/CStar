@@ -62,4 +62,40 @@ describe('ArchitectWeave Unit Tests', () => {
         assert.equal(result.output, 'Good work');
         mock.reset();
     });
+
+    it('build_proposal fails when the host response omits beads', async () => {
+        const dispatchPort: any = {};
+        const hostTextInvoker = async () => '{"proposal_summary": "summary"}';
+        const weave = new ArchitectWeave(dispatchPort, hostTextInvoker);
+
+        mock.method(deps, 'resolveRuntimeHostProvider', () => 'codex');
+        mock.method(deps, 'extractJsonObject', (text: string) => JSON.parse(text));
+
+        const result = await weave.execute({
+            weave_id: 'weave:architect',
+            payload: { action: 'build_proposal', cwd: '.' }
+        } as any, { workspace_root: '.', env: {} } as any);
+
+        assert.equal(result.status, 'FAILURE');
+        assert.match(result.error ?? '', /must include a beads array/i);
+        mock.reset();
+    });
+
+    it('review_critique fails when the host response omits approval state', async () => {
+        const dispatchPort: any = {};
+        const hostTextInvoker = async () => '{"architect_opinion": "Good work"}';
+        const weave = new ArchitectWeave(dispatchPort, hostTextInvoker);
+
+        mock.method(deps, 'resolveRuntimeHostProvider', () => 'codex');
+        mock.method(deps, 'extractJsonObject', (text: string) => JSON.parse(text));
+
+        const result = await weave.execute({
+            weave_id: 'weave:architect',
+            payload: { action: 'review_critique', cwd: '.', bead: { title: 'T' }, critique_payload: {} }
+        } as any, { workspace_root: '.', env: {} } as any);
+
+        assert.equal(result.status, 'FAILURE');
+        assert.match(result.error ?? '', /must include an is_approved boolean/i);
+        mock.reset();
+    });
 });

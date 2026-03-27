@@ -17,11 +17,13 @@ export function buildStableTempEnv(baseEnv = process.env) {
 }
 
 export function resolveTsxLaunch(projectRoot = PROJECT_ROOT, args = []) {
-    const localTsx = path.join(projectRoot, 'node_modules', '.bin', process.platform === 'win32' ? 'tsx.cmd' : 'tsx');
-    if (fs.existsSync(localTsx)) {
+    const localTsxLoader = path.join(projectRoot, 'node_modules', 'tsx', 'dist', 'loader.mjs');
+    if (fs.existsSync(localTsxLoader)) {
         return {
-            command: localTsx,
-            args,
+            // The tsx CLI spins up an IPC socket that can be blocked by sandboxed environments.
+            // Launching Node directly with the local tsx loader keeps Hall/bootstrap access available.
+            command: process.execPath,
+            args: ['--import', localTsxLoader, ...args],
         };
     }
 

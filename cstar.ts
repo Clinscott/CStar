@@ -10,7 +10,7 @@ import { runStartupCeremony } from './src/node/ceremony.ts';
 // Command Spokes
 import { registerStartCommand } from './src/node/core/commands/start.ts';
 import { registerPythonSpokes } from './src/node/core/commands/python.ts';
-import { registerPennyOneCommand, buildPennyOneInvocation, renderResult } from './src/node/core/commands/pennyone.ts';
+import { registerPennyOneCommand, buildPennyOneInvocation } from './src/node/core/commands/pennyone.ts';
 import { registerRavenCommand } from './src/node/core/commands/ravens.ts';
 import { registerDispatcher } from './src/node/core/commands/dispatcher.ts';
 import { registerVitalsCommand } from './src/node/core/commands/vitals.ts';
@@ -23,6 +23,9 @@ import { registerOracleCommand } from './src/node/core/commands/oracle.ts';
 import { registerTuiCommand } from './src/node/core/commands/tui.ts';
 import { registerSpokeCommand } from './src/node/core/commands/spoke.ts';
 import { registerOsCommands } from './src/node/core/commands/os-integration.ts';
+import { registerOneMindCommand } from './src/node/core/commands/one-mind.ts';
+import { registerTraceCommand } from './src/node/core/commands/trace.ts';
+import { renderOperationalContext, renderStandardCommandResult } from './src/node/core/commands/command_context.ts';
 import { getLaunchCwd, installWorkspaceSelectionHook, selectWorkspaceRoot } from './src/node/core/launcher.ts';
 import { StateRegistry } from './src/node/core/state.ts';
 import { registry } from './src/tools/pennyone/pathRegistry.ts';
@@ -38,6 +41,7 @@ import { resumeHostGovernorIfAvailable } from './src/node/core/operator_resume.t
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const PROJECT_ROOT = __dirname;
+process.env.CSTAR_CONTROL_ROOT = process.env.CSTAR_CONTROL_ROOT || PROJECT_ROOT;
 const pkgPath = join(PROJECT_ROOT, 'package.json');
 const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
 const launchCwd = getLaunchCwd();
@@ -88,6 +92,8 @@ const program = new Command();
   manifest         List all registered Agent Skills and runtime Weaves.
   skill-info <id>  Inspect the mandate and logic protocol of a specific skill.
   oracle           Consult the One Mind Host Agent via direct sampling.
+  one-mind         Inspect or fulfill Hall-backed One Mind broker requests.
+  trace           Show the active Hall-backed planning trace for the host CLI.
   [skill]          Directly invoke any evolved skill from the ecosystem (e.g., 'cstar scribe').
   [workflow]       Execute high-level workflows (e.g., 'cstar lets-go', 'cstar plan').
 
@@ -115,6 +121,8 @@ const program = new Command();
     registerVitalsCommand(program);
     registerBifrostCommand(program);
     registerOracleCommand(program, () => registry.getRoot());
+    registerOneMindCommand(program, () => registry.getRoot());
+    registerTraceCommand(program, () => registry.getRoot());
     registerRunSkillCommand(program);
     registerTuiCommand(program);
     registerSpokeCommand(program, () => registry.getRoot());
@@ -156,6 +164,7 @@ const program = new Command();
 
             if (result.status === 'SUCCESS') {
                 console.log(chalk.green(`[SUCCESS]: ${result.output}`));
+                renderOperationalContext(result, projectRoot);
                 if (result.metadata?.bead_outcomes) {
                     const outcomes = result.metadata.bead_outcomes as any;
                     Object.entries(outcomes).forEach(([id, data]: [string, any]) => {
@@ -200,6 +209,7 @@ const program = new Command();
 
             if (result.status === 'SUCCESS') {
                 console.log(chalk.green(`\n[SUCCESS]: ${result.output}`));
+                renderOperationalContext(result, registry.getRoot());
                 if (result.metadata) {
                     const meta = result.metadata as any;
                     if (meta.proposal_path) console.log(chalk.dim(`  Proposal: ${meta.proposal_path}`));
@@ -238,6 +248,7 @@ const program = new Command();
 
             if (result.status === 'SUCCESS') {
                 console.log(chalk.green(`\n[SUCCESS]: ${result.output}`));
+                renderOperationalContext(result, registry.getRoot());
                 if (result.metadata?.emitted_beads) {
                     const beads = result.metadata.emitted_beads as string[];
                     console.log(chalk.dim(`\nGenerated ${beads.length} beads for Evolve:`));
@@ -280,6 +291,7 @@ const program = new Command();
                 if (result.output) {
                     console.log(`\n${result.output}`);
                 }
+                renderOperationalContext(result, projectRoot);
                 if (result.metadata?.emitted_beads) {
                     const beads = result.metadata.emitted_beads as string[];
                     console.log(chalk.cyan('\n ◤ EMITTED BEADS ◢ '));
@@ -317,6 +329,9 @@ const program = new Command();
                     console.log(
                         `${chalk.bold('HOST RESUME:')}    ${chalk.green('synchronized')} ${chalk.magenta(`(${resumeResult.provider})`)}${detail}`,
                     );
+                    if (resumeResult.planningSummary) {
+                        console.log(`${chalk.bold('TRACE:')}          ${chalk.dim(resumeResult.planningSummary)}`);
+                    }
                 }
             }
             console.log(`${chalk.bold('STATUS:')}         ${state.status === 'AWAKE' ? chalk.green(state.status) : chalk.yellow(state.status)}`);
@@ -374,7 +389,7 @@ const program = new Command();
                 const projectRoot = registry.getRoot();
                 const dispatchPort = RuntimeDispatcher.getInstance();
                 const result = await dispatchPort.dispatch(buildPennyOneInvocation({ search: query }, projectRoot));
-                renderResult(result);
+                renderStandardCommandResult(result, projectRoot);
                 return;
             }
 

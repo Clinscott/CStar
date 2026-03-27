@@ -1,26 +1,30 @@
+Feature: Host Session Decoupling and Integration
 
-Feature: Gemini CLI Decoupling and Integration
+  This feature verifies that Corvus Star decouples its intelligence layer from
+  direct SDK assumptions and routes through the shared Mimir/Uplink contract
+  across supported host providers.
 
-  This feature verifies that Corvus Star correctly decouples its intelligence layer 
-  when running within the Gemini CLI environment. It ensures that direct API calls
-  are bypassed in favor of structured directives and that the UI reflects this state.
+  Scenario: AntigravityUplink returns structured intelligence through the shared Mimir bridge
+    Given the AntigravityUplink is invoked with a query and persona context
+    When the shared Mimir client returns a successful intelligence response
+    Then the uplink should return a "success" status
+    And it should surface the raw intelligence payload under "data.raw"
+    And it should preserve the bridge trace metadata including "transport_mode"
 
-  Scenario: AntigravityUplink emits [GEMINI_DIRECTIVE] in Gemini Mode
-    Given the environment variable "GEMINI_CLI_ACTIVE" is set to "true"
-    And a query is sent to the AntigravityUplink
-    When the uplink processes the transmission
-    Then the uplink should NOT initialize a direct SDK client
-    And it should print a structured "[GEMINI_DIRECTIVE]" JSON block to stdout
-    And it should return a "pending" status to the caller
+  Scenario: Bootstrap preserves active host-session markers across the control plane
+    Given the environment declares an active host provider and session markers
+    When the shared bootstrap awakens the estate
+    Then the bootstrap should preserve those host markers in process environment
+    And downstream spokes should not need to re-infer the host from Gemini-only state
 
-  Scenario: Muninn operates without a direct SDK client in Gemini Mode
-    Given the environment variable "GEMINI_CLI_ACTIVE" is set to "true"
-    When Muninn is initialized
-    Then Muninn.client should be None
-    And Muninn should utilize the AntigravityUplink for all Forge operations
+  Scenario: Control Plane (cstar.ts) displays provider-specific integration status
+    Given the environment declares an active host provider
+    When the "status" command is executed
+    Then the output should include the matching host integration banner
+    And the control plane should not assume Gemini is the only interactive host
 
-  Scenario: Control Plane (cstar.ts) displays integration status in Gemini Mode
-    Given the environment variable "GEMINI_CLI_ACTIVE" is set to "true"
-    When the "ravens --status" command is executed
-    Then the output should include "◤ GEMINI CLI INTEGRATION ACTIVE ◢"
-    And the startup ceremony should display "INTELLIGENCE: DECOUPLED"
+  Scenario: Provider-specific host bridges honor configured commands and preserve transport metadata
+    Given the environment declares an explicit host bridge command for a supported provider
+    When the shared Mimir client fulfills a request through that bridge
+    Then the request should execute through the configured provider bridge
+    And the response trace should preserve "transport_mode" as "host_session"

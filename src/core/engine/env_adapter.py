@@ -23,13 +23,20 @@ class EnvAdapter:
         self.capability = self._detect_capability()
 
     def _detect_capability(self) -> HostCapability:
-        # 1. Check for Gemini CLI / Extension specific environment variables
+        # 1. Check for explicit sub-agent host flags
         if os.environ.get("GEMINI_CLI_SUBAGENTS") == "true":
             return HostCapability.SUB_AGENTS
+        if os.environ.get("CODEX_SUBAGENTS") == "true" or os.environ.get("CLAUDE_SUBAGENTS") == "true":
+            return HostCapability.SUB_AGENTS
 
-        # 2. Check for specialized tool availability (e.g., codebase_investigator)
-        # This is a proxy for "Rich Interactive Environment"
-        if "google.gemini" in sys.modules or os.environ.get("AGENT_MODE") == "interactive":
+        # 2. Check for provider SDK/tool presence or explicit interactive host mode.
+        if (
+            "google.gemini" in sys.modules
+            or os.environ.get("AGENT_MODE") == "interactive"
+            or os.environ.get("CODEX_SHELL") == "1"
+            or os.environ.get("CODEX_THREAD_ID")
+            or os.environ.get("CORVUS_HOST_PROVIDER") in {"codex", "claude"}
+        ):
             return HostCapability.SUB_AGENTS
 
         # 3. Default to Local JIT for standard terminal runs

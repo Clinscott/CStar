@@ -19,6 +19,11 @@ test('Well of Mimir FTS5 Operations', async () => {
     const resultsStem = searchIntents('connect matrix');
     assert.ok(resultsStem.some(r => r.path === testPath), 'Should find stemmed intent');
 
+    // 3b. Search Index (Hyphenated bead-style query should not break FTS parsing)
+    updateFtsIndex('XO/docs/planning/XO_SCOPE_MATRIX.md', 'XO bead charter scope operating modes foundation', 'Open scope matrix');
+    const resultsHyphen = searchIntents('pb-xo-foundation xo-bead-01 scope non-goals');
+    assert.ok(Array.isArray(resultsHyphen), 'Should return a result array for bead-style queries');
+
     // 4. Update existing path
     const updatedIntent = 'Updated intent.';
     updateFtsIndex(testPath, updatedIntent, testProtocol);

@@ -8,8 +8,8 @@ import type { RuntimeContext } from  '../../src/node/core/runtime/contracts.js';
 import { DistillWeave } from  '../../src/node/core/runtime/weaves/distill.js';
 import {
     closeDb,
+    getEpisodicMemoryById,
     getHallEpisodicMemory,
-    listHallEpisodicMemory,
     upsertHallBead,
     upsertHallRepository,
 } from '../../src/tools/pennyone/intel/database.ts';
@@ -49,8 +49,70 @@ describe('Context compressor runtime weave (CS-THREADS-P2)', () => {
         closeDb();
     });
 
-    it('emits a ONE MIND delegation directive in CLI mode', async () => {
-        const weave = new DistillWeave();
+    it('persists host-distilled episodic memory when the Codex host returns strict JSON', async () => {
+        const repoId = buildHallRepositoryId(tmpRoot.replace(/\\/g, '/'));
+        upsertHallRepository({
+            root_path: tmpRoot,
+            name: path.basename(tmpRoot),
+            status: 'AWAKE',
+            active_persona: 'ALFRED',
+            baseline_gungnir_score: 7.8,
+            intent_integrity: 95,
+            metadata: { source: 'unit-test' },
+            created_at: 1700000000000,
+            updated_at: 1700000000000,
+        });
+        upsertHallBead({
+            bead_id: 'bead-host',
+            repo_id: repoId,
+            target_kind: 'FILE',
+            target_path: 'src/node/core/runtime/weaves/distill.ts',
+            rationale: 'Capture a host-distilled tactical summary.',
+            status: 'RESOLVED',
+            created_at: 1700000000000,
+            updated_at: 1700000000000,
+        });
+
+        const weave = new DistillWeave(async () => JSON.stringify({
+            tactical_summary: 'Compressed the successful tactical path.',
+            files_touched: ['src/node/core/runtime/weaves/distill.ts'],
+            successes: ['Persisted episodic memory'],
+            bead_id: 'bead-host',
+        }));
+
+        const result = await weave.execute(
+            {
+                weave_id: 'weave:distill',
+                payload: {
+                    bead_id: 'bead-host',
+                    bead_intent: 'Summarize the tactical changes from a bead diff.',
+                    project_root: tmpRoot,
+                    cwd: tmpRoot,
+                    git_diff: 'diff --git a/src/a.ts b/src/a.ts\n+export const x = 1;\n',
+                    source: 'runtime',
+                },
+            },
+            createContext(tmpRoot, { CODEX_SHELL: '1' }),
+        );
+
+        assert.equal(result.status, 'SUCCESS');
+        assert.equal(result.metadata?.persisted, true);
+
+        const memoryId = String(result.metadata?.memory_id);
+        const memory = getEpisodicMemoryById(memoryId);
+        assert.ok(memory);
+        assert.equal(memory?.bead_id, 'bead-host');
+        assert.equal(memory?.tactical_summary, 'Compressed the successful tactical path.');
+        assert.deepEqual(memory?.files_touched, ['src/node/core/runtime/weaves/distill.ts']);
+        assert.deepEqual(memory?.successes, ['Persisted episodic memory']);
+    });
+
+    it('fails when host-distill JSON provides malformed files_touched', async () => {
+        const weave = new DistillWeave(async () => JSON.stringify({
+            tactical_summary: 'Compressed the successful tactical path.',
+            files_touched: 'src/node/core/runtime/weaves/distill.ts',
+            bead_id: 'bead-1',
+        }));
 
         const result = await weave.execute(
             {
@@ -61,18 +123,14 @@ describe('Context compressor runtime weave (CS-THREADS-P2)', () => {
                     project_root: tmpRoot,
                     cwd: tmpRoot,
                     git_diff: 'diff --git a/src/a.ts b/src/a.ts\n+export const x = 1;\n',
-                    source: 'cli',
+                    source: 'runtime',
                 },
             },
-            createContext(tmpRoot, { GEMINI_CLI_ACTIVE: 'true' }),
+            createContext(tmpRoot, { CODEX_SHELL: '1' }),
         );
 
-        assert.equal(result.status, 'TRANSITIONAL');
-        assert.equal(result.metadata?.delegated, true);
-        assert.equal(result.metadata?.model_hint, 'gemini-2.5-flash-lite');
-        assert.match(result.output, /\[SUB_AGENT_DIRECTIVE\]/);
-        assert.match(result.output, /Model Hint: gemini-2\.5-flash-lite/);
-        assert.match(result.output, /strict JSON only/i);
+        assert.equal(result.status, 'FAILURE');
+        assert.match(result.error ?? '', /files_touched must be an array of strings/i);
     });
 
     it('persists an episodic memory row when a tactical summary is provided', async () => {
@@ -91,6 +149,8 @@ describe('Context compressor runtime weave (CS-THREADS-P2)', () => {
         upsertHallBead({
             bead_id: 'bead-1',
             repo_id: repoId,
+            target_kind: 'FILE',
+            target_path: 'src/node/core/runtime/weaves/distill.ts',
             rationale: 'Capture the tactical thread summary.',
             status: 'RESOLVED',
             created_at: 1700000000000,
@@ -122,8 +182,8 @@ describe('Context compressor runtime weave (CS-THREADS-P2)', () => {
         assert.equal(result.metadata?.persisted, true);
 
         const memoryId = String(result.metadata?.memory_id);
-        const memory = getHallEpisodicMemory(memoryId, tmpRoot);
-        const beadMemories = listHallEpisodicMemory(tmpRoot, 'bead-1');
+        const memory = getEpisodicMemoryById(memoryId);
+        const beadMemories = getHallEpisodicMemory('bead-1');
 
         assert.ok(memory);
         assert.equal(memory?.bead_id, 'bead-1');

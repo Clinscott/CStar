@@ -391,6 +391,70 @@ export function getHallFileByPath(
     };
 }
 
+export function getHallFilesByIntentSummary(
+    intentSummary: string,
+    rootPath: string = registry.getRoot(),
+    pathPrefix?: string,
+): HallFileRecord[] {
+    const db = database.getDb();
+    const repoId = buildHallRepositoryId(normalizeHallPath(rootPath));
+    const normalizedPrefix = pathPrefix ? normalizeHallPath(pathPrefix) : null;
+    const likePrefix = normalizedPrefix ? `${normalizedPrefix.replace(/[\\/]$/, '')}%` : null;
+    const rows = (likePrefix
+        ? db.prepare(`
+            SELECT repo_id, scan_id, path, content_hash, language, gungnir_score,
+                   matrix_json, imports_json, exports_json, intent_summary, interaction_summary, created_at
+            FROM hall_files
+            WHERE repo_id = ? AND intent_summary = ? AND path LIKE ?
+            ORDER BY path ASC
+        `).all(repoId, intentSummary, likePrefix)
+        : db.prepare(`
+            SELECT repo_id, scan_id, path, content_hash, language, gungnir_score,
+                   matrix_json, imports_json, exports_json, intent_summary, interaction_summary, created_at
+            FROM hall_files
+            WHERE repo_id = ? AND intent_summary = ?
+            ORDER BY path ASC
+        `).all(repoId, intentSummary)) as Array<Record<string, unknown>>;
+
+    return rows.map((row) => ({
+        repo_id: String(row.repo_id),
+        scan_id: String(row.scan_id),
+        path: String(row.path),
+        content_hash: row.content_hash ? String(row.content_hash) : undefined,
+        language: row.language ? String(row.language) : undefined,
+        gungnir_score: Number(row.gungnir_score ?? 0),
+        matrix: createGungnirMatrix(parseJson<GungnirMatrix | undefined>(row.matrix_json as string | null, undefined)),
+        imports: parseJson<HallFileRecord['imports']>(row.imports_json as string | null, []),
+        exports: parseJson<string[]>(row.exports_json as string | null, []),
+        intent_summary: row.intent_summary ? String(row.intent_summary) : undefined,
+        interaction_summary: row.interaction_summary ? String(row.interaction_summary) : undefined,
+        created_at: Number(row.created_at ?? 0),
+    }));
+}
+
+export function updateHallFileIntent(
+    record: {
+        repo_id: string;
+        scan_id: string;
+        path: string;
+        intent_summary: string;
+        interaction_summary?: string;
+    },
+): void {
+    const db = database.getDb();
+    db.prepare(`
+        UPDATE hall_files
+        SET intent_summary = ?, interaction_summary = ?
+        WHERE repo_id = ? AND scan_id = ? AND path = ?
+    `).run(
+        record.intent_summary,
+        record.interaction_summary ?? null,
+        record.repo_id,
+        record.scan_id,
+        normalizeHallPath(record.path),
+    );
+}
+
 export function saveHallGitCommit(record: HallGitCommitRecord): void {
     const db = database.getDb();
     db.prepare(`
@@ -612,6 +676,14 @@ export function updateFtsIndex(filePath: string, intent: string, protocol: strin
     const db = database.getDb();
     const normalizedPath = filePath.replace(/\\/g, '/');
 
+    db.exec(`
+        CREATE VIRTUAL TABLE IF NOT EXISTS intents_fts USING fts5(
+            path UNINDEXED,
+            intent,
+            interaction_protocol
+        )
+    `);
+
     const isStructural = intent.includes('sector implements logic focusing on');
     if (isStructural) {
         const existing = db.prepare('SELECT intent FROM intents_fts WHERE path = ?').get(normalizedPath) as { intent: string } | undefined;
@@ -634,7 +706,10 @@ export function updateChronicleIndex(sourceFile: string, header: string, content
 
 export function searchIntents(query: string): any[] {
     const db = database.getDb();
-    const safeQuery = query.replace(/'/g, ' ');
+    const safeQuery = buildSafeFtsQuery(query);
+    if (!safeQuery) {
+        return [];
+    }
 
     const codeResults = db.prepare(`
         SELECT path, intent, interaction_protocol, rank, 'CODE' as type
@@ -658,4 +733,23 @@ export function searchIntents(query: string): any[] {
     `).all(safeQuery) as any[];
 
     return [...codeResults, ...loreResults, ...episodicResults].sort((a, b) => a.rank - b.rank);
+}
+
+function buildSafeFtsQuery(query: string): string {
+    const tokens = query
+        .split(/[^A-Za-z0-9_]+/g)
+        .map((token) => token.trim())
+        .filter(Boolean);
+
+    if (tokens.length === 0) {
+        return '';
+    }
+
+    const primaryTokens = tokens.filter((token) => token.length >= 3 && /[A-Za-z]/.test(token));
+    const fallbackTokens = primaryTokens.length > 0
+        ? primaryTokens
+        : tokens.filter((token) => token.length >= 2 && /[A-Za-z]/.test(token));
+    const safeTokens = fallbackTokens.length > 0 ? fallbackTokens : tokens;
+
+    return safeTokens.map((token) => `"${token.replace(/"/g, '""')}"`).join(' ');
 }

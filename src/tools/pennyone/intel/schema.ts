@@ -47,6 +47,15 @@ export function ensureColumn(database: Database.Database, tableName: string, col
     database.exec(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${columnSql}`);
 }
 
+function ensureVirtualTable(database: Database.Database, tableName: string, createSql: string): void {
+    try {
+        database.prepare(`SELECT 1 FROM ${tableName} LIMIT 1`).get();
+    } catch {
+        database.exec(`DROP TABLE IF EXISTS ${tableName};`);
+        database.exec(createSql);
+    }
+}
+
 export function ensureHallSchema(database: Database.Database, rootPath: string): void {
     const normalizedRoot = normalizeHallPath(rootPath);
     const repoId = buildHallRepositoryId(normalizedRoot);
@@ -270,6 +279,72 @@ export function ensureHallSchema(database: Database.Database, rootPath: string):
         CREATE INDEX IF NOT EXISTS idx_hall_planning_repo
         ON hall_planning_sessions(repo_id, updated_at);
 
+        CREATE TABLE IF NOT EXISTS hall_one_mind_broker (
+            repo_id TEXT PRIMARY KEY,
+            status TEXT NOT NULL,
+            binding_state TEXT NOT NULL,
+            fulfillment_ready INTEGER NOT NULL DEFAULT 0,
+            provider TEXT,
+            session_id TEXT,
+            control_plane TEXT NOT NULL,
+            metadata_json TEXT,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL,
+            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS hall_one_mind_requests (
+            request_id TEXT PRIMARY KEY,
+            repo_id TEXT NOT NULL,
+            caller_source TEXT NOT NULL,
+            boundary TEXT NOT NULL,
+            request_status TEXT NOT NULL,
+            transport_preference TEXT,
+            prompt TEXT NOT NULL,
+            system_prompt TEXT,
+            response_text TEXT,
+            error_text TEXT,
+            lease_owner TEXT,
+            claimed_at INTEGER,
+            completed_at INTEGER,
+            metadata_json TEXT,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL,
+            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_hall_one_mind_requests_repo_status
+        ON hall_one_mind_requests(repo_id, request_status, created_at);
+
+        CREATE TABLE IF NOT EXISTS hall_one_mind_branches (
+            branch_id TEXT PRIMARY KEY,
+            repo_id TEXT NOT NULL,
+            source_weave TEXT NOT NULL,
+            branch_group_id TEXT NOT NULL,
+            branch_kind TEXT NOT NULL,
+            branch_label TEXT NOT NULL,
+            branch_index INTEGER NOT NULL,
+            status TEXT NOT NULL,
+            provider TEXT,
+            session_id TEXT,
+            trace_id TEXT,
+            parent_request_id TEXT,
+            summary TEXT,
+            error_text TEXT,
+            artifacts_json TEXT,
+            metadata_json TEXT,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL,
+            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id),
+            FOREIGN KEY(parent_request_id) REFERENCES hall_one_mind_requests(request_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_hall_one_mind_branches_repo_group
+        ON hall_one_mind_branches(repo_id, branch_group_id, created_at);
+
+        CREATE INDEX IF NOT EXISTS idx_hall_one_mind_branches_trace
+        ON hall_one_mind_branches(repo_id, trace_id, created_at);
+
         CREATE TABLE IF NOT EXISTS hall_git_commits (
             commit_hash TEXT PRIMARY KEY,
             repo_id TEXT NOT NULL,
@@ -327,6 +402,54 @@ export function ensureHallSchema(database: Database.Database, rootPath: string):
 
         CREATE INDEX IF NOT EXISTS idx_hall_mounted_spokes_repo
         ON hall_mounted_spokes(repo_id, slug);
+
+        CREATE TABLE IF NOT EXISTS spokes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            root_path TEXT NOT NULL UNIQUE
+        );
+
+        CREATE TABLE IF NOT EXISTS sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            agent_id TEXT NOT NULL,
+            spoke_id INTEGER NOT NULL,
+            start_timestamp INTEGER NOT NULL,
+            end_timestamp INTEGER,
+            total_pings INTEGER NOT NULL DEFAULT 0,
+            FOREIGN KEY(spoke_id) REFERENCES spokes(id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_sessions_spoke_time
+        ON sessions(spoke_id, start_timestamp DESC);
+
+        CREATE TABLE IF NOT EXISTS pings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            session_id INTEGER NOT NULL,
+            agent_id TEXT NOT NULL,
+            action TEXT NOT NULL,
+            target_path TEXT NOT NULL,
+            timestamp INTEGER NOT NULL,
+            FOREIGN KEY(session_id) REFERENCES sessions(id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_pings_session_time
+        ON pings(session_id, timestamp ASC);
+
+        CREATE INDEX IF NOT EXISTS idx_pings_target_time
+        ON pings(target_path, timestamp DESC);
+
+        CREATE VIRTUAL TABLE IF NOT EXISTS intents_fts USING fts5(
+            path UNINDEXED,
+            intent,
+            interaction_protocol
+        );
+
+        CREATE VIRTUAL TABLE IF NOT EXISTS chronicles_fts USING fts5(
+            source_file UNINDEXED,
+            header,
+            content,
+            timestamp UNINDEXED
+        );
 
         DROP VIEW IF EXISTS hall_repository_projection;
         CREATE VIEW hall_repository_projection AS
@@ -400,6 +523,31 @@ export function ensureHallSchema(database: Database.Database, rootPath: string):
     ensureColumn(database, 'hall_planning_sessions', 'metadata_json', 'TEXT');
     ensureColumn(database, 'hall_beads', 'architect_opinion', 'TEXT');
     ensureColumn(database, 'hall_beads', 'critique_payload_json', 'TEXT');
+
+    ensureVirtualTable(
+        database,
+        'intents_fts',
+        `
+            CREATE VIRTUAL TABLE intents_fts USING fts5(
+                path UNINDEXED,
+                intent,
+                interaction_protocol
+            );
+        `,
+    );
+
+    ensureVirtualTable(
+        database,
+        'chronicles_fts',
+        `
+            CREATE VIRTUAL TABLE chronicles_fts USING fts5(
+                source_file UNINDEXED,
+                header,
+                content,
+                timestamp UNINDEXED
+            );
+        `,
+    );
 
     database.exec(`
         DROP VIEW IF EXISTS hall_repository_projection;

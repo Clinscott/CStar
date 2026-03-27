@@ -1,378 +1,665 @@
 ---
 title: "Skill Authority Report"
-generated_at: "2026-03-14 17:56:16"
+generated_at: "2026-03-26 12:49:33"
 authoritative_root: ".agents/skills"
-status: "WORK IN PROGRESS"
 ---
 
 # Skill Authority Report
 
-> WORK IN PROGRESS: This report includes draft skill authority additions pending final review.
-
 `.agents/skills/` is the authoritative woven-skill registry for Phase 1.
 Any `src/skills/local/` surface is transitional and must be classified rather than guessed.
 
-- Authoritative skills: `59`
-- Transitional local entries: `8`
-- Duplicate definitions: `5`
+- Authoritative skills: `58`
+- Transitional local entries: `13`
+- Duplicate definitions: `4`
+- Active capability authority issues: `0`
 
 ## Authoritative Registry
 
-### agent-lightning
-- Authority Path: `.agents/skills/agent-lightning`
+### _archive
+- Authority Path: `.agents/skills/_archive`
 - Entrypoint: `none`
-- Contract: `.agents/skills/agent-lightning/agent-lightning.feature`
-- Runtime Trigger: `agent-lightning`
+- Contract: `none`
+- Runtime Trigger: `_archive`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `none`
+- Tests: `tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py, tests/unit/test_evolve_skill.py, tests/unit/test_memory_skill_compat.py`
+
+### agentic-ingest
+- Authority Path: `.agents/skills/agentic-ingest`
+- Entrypoint: `none`
+- Contract: `.agents/skills/agentic-ingest/SKILL.md`
+- Runtime Trigger: `agentic-ingest`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/agentic-ingest/SKILL.md`
+- Tests: `tests/unit/test_intelligence_contract.py, tests/unit/engine/test_skill_learning.py, tests/unit/engine/test_vector_ingest.py, tests/unit/test_autobot_skill.py`
 
 ### annex
 - Authority Path: `.agents/skills/annex`
 - Entrypoint: `.agents/skills/annex/scripts/annex.py`
 - Contract: `.agents/skills/annex/annex.feature`
 - Runtime Trigger: `annex`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/annex/annex.feature`
+- Tests: `tests/contracts/test_annex.py, tests/empire_tests/test_annex_empire.py, tests/empire_tests/test_annex_preservation_empire.py`
 
 ### autobot
 - Authority Path: `.agents/skills/autobot`
 - Entrypoint: `.agents/skills/autobot/scripts/autobot.py`
 - Contract: `.agents/skills/autobot/contract.json`
 - Runtime Trigger: `autobot`
+- Owner Runtime: `cstar-kernel`
+- Host Support: `{"gemini": "supported", "codex": "supported", "claude": "supported"}`
+- Recursion Policy: `bounded-orchestrator`
+- Contracts: `.agents/skills/autobot/contract.json`
+- Tests: `tests/unit/test_autobot_runtime.test.ts`
 
-### build-review-interface
-- Authority Path: `.agents/skills/build-review-interface`
+### bifrost
+- Authority Path: `.agents/skills/bifrost`
 - Entrypoint: `none`
-- Contract: `.agents/skills/build-review-interface/build-review-interface.feature`
-- Runtime Trigger: `build-review-interface`
+- Contract: `.agents/skills/bifrost/SKILL.md`
+- Runtime Trigger: `bifrost`
+- Owner Runtime: `cstar-kernel`
+- Host Support: `{"gemini": "supported", "codex": "supported", "claude": "supported"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/bifrost/SKILL.md`
+- Tests: `tests/unit/engine/test_bifrost.py, tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py, tests/unit/test_evolve_skill.py`
+
+### bookmark-weaver
+- Authority Path: `.agents/skills/bookmark-weaver`
+- Entrypoint: `none`
+- Contract: `.agents/skills/bookmark-weaver/SKILL.md`
+- Runtime Trigger: `bookmark-weaver`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/bookmark-weaver/SKILL.md`
+- Tests: `tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py, tests/unit/test_evolve_skill.py, tests/unit/test_memory_skill_compat.py`
 
 ### cachebro
 - Authority Path: `.agents/skills/cachebro`
 - Entrypoint: `none`
 - Contract: `.agents/skills/cachebro/cachebro.feature`
 - Runtime Trigger: `cachebro`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/cachebro/cachebro.feature`
+- Tests: `tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py, tests/unit/test_evolve_skill.py, tests/unit/test_memory_skill_compat.py`
 
 ### calculus
 - Authority Path: `.agents/skills/calculus`
 - Entrypoint: `.agents/skills/calculus/scripts/calculus.py`
 - Contract: `.agents/skills/calculus/calculus.feature`
 - Runtime Trigger: `calculus`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/calculus/calculus.feature`
+- Tests: `tests/unit/engine/test_vector_calculus.py, tests/crucible/test_gungnir_calculus_edges.py, tests/unit/test_gungnir_schema.py, tests/unit/test_gungnir_schema.test.ts`
 
 ### chant
 - Authority Path: `.agents/skills/chant`
 - Entrypoint: `.agents/skills/chant/scripts/chant.py`
 - Contract: `.agents/skills/chant/chant.feature`
 - Runtime Trigger: `chant`
-
-### chapter
-- Authority Path: `.agents/skills/chapter`
-- Entrypoint: `none`
-- Contract: `.agents/skills/chapter/chapter.feature`
-- Runtime Trigger: `chapter`
+- Owner Runtime: `cstar-kernel`
+- Host Support: `{"gemini": "supported", "codex": "supported", "claude": "supported"}`
+- Recursion Policy: `bounded-orchestrator`
+- Contracts: `.agents/skills/chant/chant.feature`
+- Tests: `tests/unit/test_chant_runtime.test.ts, tests/unit/node-runtime/weaves/test_chant.test.ts`
 
 ### chronicle
 - Authority Path: `.agents/skills/chronicle`
 - Entrypoint: `.agents/skills/chronicle/scripts/chronicle.py`
 - Contract: `.agents/skills/chronicle/SKILL.md`
 - Runtime Trigger: `chronicle`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/chronicle/SKILL.md`
+- Tests: `tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py, tests/unit/test_evolve_skill.py, tests/unit/test_memory_skill_compat.py`
 
 ### consciousness
 - Authority Path: `.agents/skills/consciousness`
 - Entrypoint: `.agents/skills/consciousness/scripts/consciousness.py`
 - Contract: `.agents/skills/consciousness/consciousness.feature`
 - Runtime Trigger: `consciousness`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/consciousness/consciousness.feature`
+- Tests: `tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py, tests/unit/test_evolve_skill.py, tests/unit/test_memory_skill_compat.py`
 
 ### corvus-control
 - Authority Path: `.agents/skills/corvus-control`
 - Entrypoint: `none`
 - Contract: `.agents/skills/corvus-control/corvus-control.feature`
 - Runtime Trigger: `corvus-control`
+- Owner Runtime: `cstar-kernel`
+- Host Support: `{"gemini": "supported", "codex": "supported", "claude": "supported"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/corvus-control/corvus-control.feature`
+- Tests: `tests/unit/engine/ravens/test_coordinator.py, tests/unit/engine/ravens/test_git_spoke.py, tests/unit/engine/ravens/test_muninn_hunter.py, tests/unit/engine/ravens/test_ravens_cycle.py`
+
+### distill
+- Authority Path: `.agents/skills/distill`
+- Entrypoint: `none`
+- Contract: `.agents/skills/distill/SKILL.md`
+- Runtime Trigger: `distill`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/distill/SKILL.md`
+- Tests: `tests/unit/test_distill_runtime.test.ts`
 
 ### edda
 - Authority Path: `.agents/skills/edda`
 - Entrypoint: `.agents/skills/edda/scripts/edda.py`
 - Contract: `.agents/skills/edda/edda.feature`
 - Runtime Trigger: `edda`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/edda/edda.feature`
+- Tests: `tests/contracts/test_edda.py, tests/empire_tests/test_edda_audit_empire.py, tests/empire_tests/test_edda_empire.py, tests/empire_tests/test_edda_syntax_empire.py`
 
 ### empire
 - Authority Path: `.agents/skills/empire`
 - Entrypoint: `.agents/skills/empire/scripts/empire.py`
 - Contract: `.agents/skills/empire/empire.feature`
 - Runtime Trigger: `empire`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/empire/empire.feature`
+- Tests: `tests/unit/test_atomic_gpt_empire.py, tests/unit/test_cognitive_router_empire.py, tests/unit/test_heimdall_shield_empire.py, tests/unit/test_lease_manager_empire.py`
 
 ### engine
 - Authority Path: `.agents/skills/engine`
 - Entrypoint: `none`
 - Contract: `.agents/skills/engine/engine.feature`
 - Runtime Trigger: `engine`
-
-### error-analysis
-- Authority Path: `.agents/skills/error-analysis`
-- Entrypoint: `none`
-- Contract: `.agents/skills/error-analysis/error-analysis.feature`
-- Runtime Trigger: `error-analysis`
-
-### eval-audit
-- Authority Path: `.agents/skills/eval-audit`
-- Entrypoint: `none`
-- Contract: `.agents/skills/eval-audit/eval-audit.feature`
-- Runtime Trigger: `eval-audit`
-
-### evaluate-rag
-- Authority Path: `.agents/skills/evaluate-rag`
-- Entrypoint: `none`
-- Contract: `.agents/skills/evaluate-rag/evaluate-rag.feature`
-- Runtime Trigger: `evaluate-rag`
+- Owner Runtime: `cstar-kernel`
+- Host Support: `{"gemini": "supported", "codex": "supported", "claude": "supported"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/engine/engine.feature`
+- Tests: `tests/unit/engine/ravens/test_coordinator.py, tests/unit/engine/ravens/test_git_spoke.py, tests/unit/engine/ravens/test_muninn_hunter.py, tests/unit/engine/ravens/test_ravens_cycle.py`
 
 ### evolve
 - Authority Path: `.agents/skills/evolve`
 - Entrypoint: `.agents/skills/evolve/scripts/evolve.py`
 - Contract: `.agents/skills/evolve/contract.json`
 - Runtime Trigger: `evolve`
+- Owner Runtime: `cstar-kernel`
+- Host Support: `{"gemini": "supported", "codex": "supported", "claude": "supported"}`
+- Recursion Policy: `bounded-orchestrator`
+- Contracts: `.agents/skills/evolve/contract.json`
+- Tests: `tests/unit/test_evolve_runtime.test.ts`
 
 ### forge
 - Authority Path: `.agents/skills/forge`
 - Entrypoint: `.agents/skills/forge/scripts/forge.py`
 - Contract: `.agents/skills/forge/forge.feature`
 - Runtime Trigger: `forge`
+- Owner Runtime: `cstar-kernel`
+- Host Support: `{"gemini": "supported", "codex": "supported", "claude": "supported"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/forge/forge.feature`
+- Tests: `tests/unit/test_forge_candidate.py, tests/unit/test_taliesin_forge_runtime.test.ts, tests/unit/engine/ravens/test_ravens_runtime.py, tests/unit/node-runtime/adapters/test_legacy_commands.test.ts`
 
-### gemini-skills
-- Authority Path: `.agents/skills/gemini-skills`
+### gatekeeper
+- Authority Path: `.agents/skills/gatekeeper`
 - Entrypoint: `none`
-- Contract: `.agents/skills/gemini-skills/gemini-skills.feature`
-- Runtime Trigger: `gemini-skills`
-
-### generate-synthetic-data
-- Authority Path: `.agents/skills/generate-synthetic-data`
-- Entrypoint: `none`
-- Contract: `.agents/skills/generate-synthetic-data/generate-synthetic-data.feature`
-- Runtime Trigger: `generate-synthetic-data`
+- Contract: `.agents/skills/gatekeeper/SKILL.md`
+- Runtime Trigger: `gatekeeper`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/gatekeeper/SKILL.md`
+- Tests: `tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py, tests/unit/test_evolve_skill.py, tests/unit/test_memory_skill_compat.py`
 
 ### gherkin
 - Authority Path: `.agents/skills/gherkin`
 - Entrypoint: `none`
 - Contract: `.agents/skills/gherkin/gherkin.feature`
 - Runtime Trigger: `gherkin`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/gherkin/gherkin.feature`
+- Tests: `tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py, tests/unit/test_evolve_skill.py, tests/unit/test_memory_skill_compat.py`
+
+### hall
+- Authority Path: `.agents/skills/hall`
+- Entrypoint: `none`
+- Contract: `.agents/skills/hall/SKILL.md`
+- Runtime Trigger: `hall`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/hall/SKILL.md`
+- Tests: `tests/unit/test_hall_schema.py, tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py, tests/unit/test_evolve_skill.py`
 
 ### hunt
 - Authority Path: `.agents/skills/hunt`
 - Entrypoint: `.agents/skills/hunt/scripts/hunt.py`
 - Contract: `.agents/skills/hunt/hunt.feature`
 - Runtime Trigger: `hunt`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/hunt/hunt.feature`
+- Tests: `tests/unit/test_mimir_client.py, tests/unit/test_mimir_client_bridge.test.ts, tests/unit/test_mimir_gateway.test.ts, tests/empire_tests/test_mimir_aesthetics_empire.py`
 
 ### jailing
 - Authority Path: `.agents/skills/jailing`
 - Entrypoint: `.agents/skills/jailing/scripts/jailing.py`
 - Contract: `.agents/skills/jailing/jailing.feature`
 - Runtime Trigger: `jailing`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/jailing/jailing.feature`
+- Tests: `tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py, tests/unit/test_evolve_skill.py, tests/unit/test_memory_skill_compat.py`
+
+### level-5-diagnostic
+- Authority Path: `.agents/skills/level-5-diagnostic`
+- Entrypoint: `none`
+- Contract: `.agents/skills/level-5-diagnostic/level-5-diagnostic.feature`
+- Runtime Trigger: `level-5-diagnostic`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/level-5-diagnostic/level-5-diagnostic.feature`
+- Tests: `tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py, tests/unit/test_evolve_skill.py, tests/unit/test_memory_skill_compat.py`
 
 ### linter
 - Authority Path: `.agents/skills/linter`
 - Entrypoint: `.agents/skills/linter/scripts/linter.py`
 - Contract: `.agents/skills/linter/linter.feature`
 - Runtime Trigger: `linter`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/linter/linter.feature`
+- Tests: `tests/empire_tests/test_prompt_linter_empire.py`
 
 ### locks
 - Authority Path: `.agents/skills/locks`
 - Entrypoint: `.agents/skills/locks/scripts/locks.py`
 - Contract: `.agents/skills/locks/locks.feature`
 - Runtime Trigger: `locks`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/locks/locks.feature`
+- Tests: `tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py, tests/unit/test_evolve_skill.py, tests/unit/test_memory_skill_compat.py`
+
+### manifest
+- Authority Path: `.agents/skills/manifest`
+- Entrypoint: `none`
+- Contract: `.agents/skills/manifest/SKILL.md`
+- Runtime Trigger: `manifest`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/manifest/SKILL.md`
+- Tests: `tests/unit/test_skill_registry_audit.py, tests/unit/test_state_registry_projection.test.ts, tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py`
 
 ### matrix
 - Authority Path: `.agents/skills/matrix`
 - Entrypoint: `.agents/skills/matrix/scripts/matrix.py`
 - Contract: `.agents/skills/matrix/matrix.feature`
 - Runtime Trigger: `matrix`
-
-### memory
-- Authority Path: `.agents/skills/memory`
-- Entrypoint: `.agents/skills/memory/scripts/memory.py`
-- Contract: `.agents/skills/memory/memory.feature`
-- Runtime Trigger: `memory`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/matrix/matrix.feature`
+- Tests: `tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py, tests/unit/test_evolve_skill.py, tests/unit/test_memory_skill_compat.py`
 
 ### metrics
 - Authority Path: `.agents/skills/metrics`
 - Entrypoint: `.agents/skills/metrics/scripts/metrics.py`
 - Contract: `.agents/skills/metrics/metrics.feature`
 - Runtime Trigger: `metrics`
+- Owner Runtime: `cstar-kernel`
+- Host Support: `{"gemini": "supported", "codex": "supported", "claude": "supported"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/metrics/metrics.feature`
+- Tests: `tests/unit/test_metrics_engine.py, tests/unit/engine/ravens/test_coordinator.py, tests/unit/engine/ravens/test_git_spoke.py, tests/unit/engine/ravens/test_muninn_hunter.py`
 
 ### mimir
 - Authority Path: `.agents/skills/mimir`
 - Entrypoint: `none`
 - Contract: `.agents/skills/mimir/mimir.feature`
 - Runtime Trigger: `mimir`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/mimir/mimir.feature`
+- Tests: `tests/unit/test_mimir_client.py, tests/unit/test_mimir_client_bridge.test.ts, tests/unit/test_mimir_gateway.test.ts, tests/empire_tests/test_mimir_aesthetics_empire.py`
 
 ### norn
 - Authority Path: `.agents/skills/norn`
 - Entrypoint: `.agents/skills/norn/scripts/norn.py`
 - Contract: `.agents/skills/norn/norn.feature`
 - Runtime Trigger: `norn`
-
-### odin_ui
-- Authority Path: `.agents/skills/odin_ui`
-- Entrypoint: `none`
-- Contract: `.agents/skills/odin_ui/odin_ui.feature`
-- Runtime Trigger: `odin_ui`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/norn/norn.feature`
+- Tests: `tests/unit/test_norn_coordinator_empire.py, tests/empire_tests/test_norn_campaign_empire.py, tests/empire_tests/test_norn_empire.py`
 
 ### one-mind
 - Authority Path: `.agents/skills/one-mind`
-- Entrypoint: `.agents/skills/one-mind/scripts/one-mind.py`
+- Entrypoint: `none`
 - Contract: `.agents/skills/one-mind/one-mind.feature`
 - Runtime Trigger: `one-mind`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/one-mind/one-mind.feature`
+- Tests: `tests/unit/test_intelligence_contract.py, tests/unit/test_mimir_client.py, tests/unit/test_mimir_client_bridge.test.ts, tests/unit/test_intelligence_contract.test.ts`
 
 ### oracle
 - Authority Path: `.agents/skills/oracle`
 - Entrypoint: `.agents/skills/oracle/scripts/oracle.py`
 - Contract: `.agents/skills/oracle/oracle.feature`
 - Runtime Trigger: `oracle`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/oracle/oracle.feature`
+- Tests: `tests/unit/test_oracle_command.test.ts, tests/unit/test_runtime_command_invocations.test.ts`
 
-### persona
-- Authority Path: `.agents/skills/persona`
-- Entrypoint: `none`
-- Contract: `.agents/skills/persona/persona.feature`
-- Runtime Trigger: `persona`
+### orchestrate
+- Authority Path: `.agents/skills/orchestrate`
+- Entrypoint: `src/node/core/runtime/weaves/orchestrate.ts`
+- Contract: `.agents/skills/orchestrate/SKILL.md`
+- Runtime Trigger: `orchestrate`
+- Owner Runtime: `cstar-kernel`
+- Host Support: `{"gemini": "supported", "codex": "supported", "claude": "supported"}`
+- Recursion Policy: `bounded-orchestrator`
+- Contracts: `.agents/skills/orchestrate/SKILL.md`
+- Tests: `tests/unit/node-runtime/weaves/test_host_governor.test.ts, tests/unit/node-runtime/weaves/test_host_worker.test.ts, tests/unit/node-runtime/weaves/test_architect.test.ts, tests/unit/node-runtime/weaves/test_chant.test.ts`
 
 ### personas
 - Authority Path: `.agents/skills/personas`
 - Entrypoint: `.agents/skills/personas/scripts/personas.py`
 - Contract: `.agents/skills/personas/personas.feature`
 - Runtime Trigger: `personas`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/personas/personas.feature`
+- Tests: `tests/empire_tests/test_contextual_persona.py, tests/empire_tests/test_persona_logic_empire.py, tests/empire_tests/test_personas_empire.py, tests/empire_tests/test_personas_retheme_empire.py`
 
 ### promotion
 - Authority Path: `.agents/skills/promotion`
 - Entrypoint: `.agents/skills/promotion/scripts/promotion.py`
 - Contract: `.agents/skills/promotion/promotion.feature`
 - Runtime Trigger: `promotion`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/promotion/promotion.feature`
+- Tests: `tests/unit/test_muninn_promotion.py`
 
 ### qmd_search
 - Authority Path: `.agents/skills/qmd_search`
 - Entrypoint: `.agents/skills/qmd_search/scripts/qmd_search.py`
 - Contract: `.agents/skills/qmd_search/SKILL.md`
 - Runtime Trigger: `qmd_search`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/qmd_search/SKILL.md`
+- Tests: `tests/quarantine/test_brave_search.py, tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py, tests/unit/test_evolve_skill.py`
 
 ### ravens
 - Authority Path: `.agents/skills/ravens`
 - Entrypoint: `.agents/skills/ravens/scripts/ravens.py`
 - Contract: `.agents/skills/ravens/ravens.feature`
 - Runtime Trigger: `ravens`
+- Owner Runtime: `cstar-kernel`
+- Host Support: `{"gemini": "supported", "codex": "supported", "claude": "supported"}`
+- Recursion Policy: `bounded-orchestrator`
+- Contracts: `.agents/skills/ravens/ravens.feature`
+- Tests: `tests/unit/engine/ravens/test_muninn_hunter.py, tests/unit/engine/ravens/test_coordinator.py, tests/unit/engine/ravens/test_git_spoke.py, tests/unit/engine/ravens/test_ravens_cycle.py`
 
 ### redactor
 - Authority Path: `.agents/skills/redactor`
 - Entrypoint: `.agents/skills/redactor/scripts/redactor.py`
 - Contract: `.agents/skills/redactor/redactor.feature`
 - Runtime Trigger: `redactor`
-
-### ref-openomf
-- Authority Path: `.agents/skills/ref-openomf`
-- Entrypoint: `none`
-- Contract: `.agents/skills/ref-openomf/SKILL.qmd`
-- Runtime Trigger: `ref-openomf`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/redactor/redactor.feature`
+- Tests: `tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py, tests/unit/test_evolve_skill.py, tests/unit/test_memory_skill_compat.py`
 
 ### report
 - Authority Path: `.agents/skills/report`
 - Entrypoint: `.agents/skills/report/scripts/report.py`
 - Contract: `.agents/skills/report/report.feature`
 - Runtime Trigger: `report`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/report/report.feature`
+- Tests: `tests/empire_tests/test_compile_failure_report_empire.py, tests/empire_tests/test_report_engine_empire.py, tests/quarantine/test_report_engine.py`
 
 ### research
 - Authority Path: `.agents/skills/research`
 - Entrypoint: `.agents/skills/research/scripts/research.py`
 - Contract: `.agents/skills/research/SKILL.md`
 - Runtime Trigger: `research`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/research/SKILL.md`
+- Tests: `tests/unit/node-runtime/weaves/test_research.test.ts`
 
 ### ritual
 - Authority Path: `.agents/skills/ritual`
 - Entrypoint: `.agents/skills/ritual/scripts/ritual.py`
 - Contract: `.agents/skills/ritual/ritual.feature`
 - Runtime Trigger: `ritual`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/ritual/ritual.feature`
+- Tests: `tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py, tests/unit/test_evolve_skill.py, tests/unit/test_memory_skill_compat.py`
 
 ### scan
 - Authority Path: `.agents/skills/scan`
 - Entrypoint: `.agents/skills/scan/scripts/scan.py`
 - Contract: `.agents/skills/scan/scan.feature`
 - Runtime Trigger: `scan`
+- Owner Runtime: `cstar-kernel`
+- Host Support: `{"gemini": "supported", "codex": "supported", "claude": "supported"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/scan/scan.feature`
+- Tests: `tests/empire_tests/test_security_scan_empire.py, tests/node/pennyone/scan_logic.test.ts`
+
+### scribe
+- Authority Path: `.agents/skills/scribe`
+- Entrypoint: `none`
+- Contract: `.agents/skills/scribe/SKILL.md`
+- Runtime Trigger: `scribe`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/scribe/SKILL.md`
+- Tests: `tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py, tests/unit/test_evolve_skill.py, tests/unit/test_memory_skill_compat.py`
+
+### spoke
+- Authority Path: `.agents/skills/spoke`
+- Entrypoint: `none`
+- Contract: `.agents/skills/spoke/SKILL.md`
+- Runtime Trigger: `spoke`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/spoke/SKILL.md`
+- Tests: `tests/unit/test_spoke_runtime.test.ts`
 
 ### sprt
 - Authority Path: `.agents/skills/sprt`
 - Entrypoint: `.agents/skills/sprt/scripts/sprt.py`
 - Contract: `.agents/skills/sprt/sprt.feature`
 - Runtime Trigger: `sprt`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/sprt/sprt.feature`
+- Tests: `tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py, tests/unit/test_evolve_skill.py, tests/unit/test_memory_skill_compat.py`
 
 ### stability
 - Authority Path: `.agents/skills/stability`
 - Entrypoint: `.agents/skills/stability/scripts/stability.py`
 - Contract: `.agents/skills/stability/stability.feature`
 - Runtime Trigger: `stability`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/stability/stability.feature`
+- Tests: `tests/quarantine/test_stability.py`
+
+### start
+- Authority Path: `.agents/skills/start`
+- Entrypoint: `none`
+- Contract: `.agents/skills/start/SKILL.md`
+- Runtime Trigger: `start`
+- Owner Runtime: `cstar-kernel`
+- Host Support: `{"gemini": "supported", "codex": "supported", "claude": "supported"}`
+- Recursion Policy: `bounded-orchestrator`
+- Contracts: `.agents/skills/start/SKILL.md`
+- Tests: `tests/unit/test_start_runtime.test.ts`
+
+### status
+- Authority Path: `.agents/skills/status`
+- Entrypoint: `none`
+- Contract: `.agents/skills/status/SKILL.md`
+- Runtime Trigger: `status`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/status/SKILL.md`
+- Tests: `tests/unit/test_runtime_command_invocations.test.ts, tests/unit/engine/ravens/test_ravens_runtime.py, tests/unit/engine/test_skill_learning.py, tests/unit/health_disk.test.ts`
 
 ### sterling
 - Authority Path: `.agents/skills/sterling`
 - Entrypoint: `.agents/skills/sterling/scripts/sterling.py`
 - Contract: `.agents/skills/sterling/sterling.feature`
 - Runtime Trigger: `sterling`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/sterling/sterling.feature`
+- Tests: `tests/unit/test_sterling_auditor.py`
 
 ### style
 - Authority Path: `.agents/skills/style`
 - Entrypoint: `.agents/skills/style/scripts/style.py`
 - Contract: `.agents/skills/style/style.feature`
 - Runtime Trigger: `style`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/style/style.feature`
+- Tests: `tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py, tests/unit/test_evolve_skill.py, tests/unit/test_memory_skill_compat.py`
 
 ### taliesin
 - Authority Path: `.agents/skills/taliesin`
 - Entrypoint: `.agents/skills/taliesin/scripts/taliesin.py`
 - Contract: `.agents/skills/taliesin/taliesin.feature`
 - Runtime Trigger: `taliesin`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/taliesin/taliesin.feature`
+- Tests: `tests/unit/test_taliesin.py`
 
 ### taste-skill
 - Authority Path: `.agents/skills/taste-skill`
 - Entrypoint: `none`
 - Contract: `.agents/skills/taste-skill/taste-skill.feature`
 - Runtime Trigger: `taste-skill`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/taste-skill/taste-skill.feature`
+- Tests: `tests/unit/engine/test_skill_learning.py, tests/unit/engine/wardens/test_taste.py, tests/unit/test_autobot_skill.py, tests/unit/test_evolve_skill.py`
 
 ### telemetry
 - Authority Path: `.agents/skills/telemetry`
 - Entrypoint: `.agents/skills/telemetry/scripts/telemetry.py`
 - Contract: `.agents/skills/telemetry/telemetry.feature`
 - Runtime Trigger: `telemetry`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/telemetry/telemetry.feature`
+- Tests: `tests/unit/engine/test_skill_learning.py, tests/unit/node-runtime/test_telemetry.test.ts, tests/unit/test_autobot_skill.py, tests/unit/test_evolve_skill.py`
 
 ### trace
 - Authority Path: `.agents/skills/trace`
 - Entrypoint: `.agents/skills/trace/scripts/trace.py`
 - Contract: `.agents/skills/trace/trace.feature`
 - Runtime Trigger: `trace`
-
-### validate-evaluator
-- Authority Path: `.agents/skills/validate-evaluator`
-- Entrypoint: `none`
-- Contract: `.agents/skills/validate-evaluator/validate-evaluator.feature`
-- Runtime Trigger: `validate-evaluator`
-
-### vector
-- Authority Path: `.agents/skills/vector`
-- Entrypoint: `none`
-- Contract: `.agents/skills/vector/vector.feature`
-- Runtime Trigger: `vector`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/trace/trace.feature`
+- Tests: `tests/empire_tests/test_trace_viz_empire.py`
 
 ### visual-explainer
 - Authority Path: `.agents/skills/visual-explainer`
 - Entrypoint: `none`
 - Contract: `.agents/skills/visual-explainer/visual-explainer.feature`
 - Runtime Trigger: `visual-explainer`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/visual-explainer/visual-explainer.feature`
+- Tests: `tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py, tests/unit/test_evolve_skill.py, tests/unit/test_memory_skill_compat.py`
 
-### voices
-- Authority Path: `.agents/skills/voices`
+### vitals
+- Authority Path: `.agents/skills/vitals`
 - Entrypoint: `none`
-- Contract: `.agents/skills/voices/voices.feature`
-- Runtime Trigger: `voices`
+- Contract: `.agents/skills/vitals/SKILL.md`
+- Runtime Trigger: `vitals`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/vitals/SKILL.md`
+- Tests: `tests/unit/engine/test_skill_learning.py, tests/unit/health_disk.test.ts, tests/unit/health_memory.test.ts, tests/unit/health_overall.test.ts`
 
 ### warden
 - Authority Path: `.agents/skills/warden`
 - Entrypoint: `.agents/skills/warden/scripts/warden.py`
 - Contract: `.agents/skills/warden/warden.feature`
 - Runtime Trigger: `warden`
-
-### write-judge-prompt
-- Authority Path: `.agents/skills/write-judge-prompt`
-- Entrypoint: `none`
-- Contract: `.agents/skills/write-judge-prompt/write-judge-prompt.feature`
-- Runtime Trigger: `write-judge-prompt`
+- Owner Runtime: `cstar-kernel`
+- Host Support: `{"gemini": "supported", "codex": "supported", "claude": "supported"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/warden/warden.feature`
+- Tests: `tests/quarantine/test_base_warden.py, tests/quarantine/test_freya_warden.py, tests/quarantine/test_session_warden_determinism_empire.py, tests/quarantine/test_warden_burnin.py`
 
 ## Transitional Local Skills
+
+### CacheBro
+- Path: `src/skills/local/CacheBro`
+- Migration Status: `wrap`
+- Authority Alias: `cachebro`
 
 ### dormancy
 - Path: `src/skills/local/dormancy.py`
@@ -389,6 +676,21 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Migration Status: `retire`
 - Authority Alias: `none`
 
+### KnowledgeHunter
+- Path: `src/skills/local/KnowledgeHunter`
+- Migration Status: `wrap`
+- Authority Alias: `hunt`
+
+### oracle
+- Path: `src/skills/local/oracle`
+- Migration Status: `wrap`
+- Authority Alias: `oracle`
+
+### persona-audit
+- Path: `src/skills/local/persona-audit`
+- Migration Status: `retire`
+- Authority Alias: `none`
+
 ### radon
 - Path: `src/skills/local/radon`
 - Migration Status: `retire`
@@ -398,6 +700,11 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Path: `src/skills/local/skill-scout`
 - Migration Status: `retire`
 - Authority Alias: `none`
+
+### SkillLearning
+- Path: `src/skills/local/SkillLearning`
+- Migration Status: `wrap`
+- Authority Alias: `evolve`
 
 ### VisualExplainer
 - Path: `src/skills/local/VisualExplainer`
@@ -414,6 +721,9 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Migration Status: `migrate`
 - Authority Alias: `none`
 
+## Active Capability Authority Issues
+
+- No active capability authority issues detected.
 ## Duplicate Definitions
 
 - `CacheBro` -> `cachebro`
@@ -425,9 +735,6 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - `oracle` -> `oracle`
   Local: `src/skills/local/oracle`
   Authority: `.agents/skills/oracle`
-- `persona-audit` -> `persona`
-  Local: `src/skills/local/persona-audit`
-  Authority: `.agents/skills/persona`
 - `SkillLearning` -> `evolve`
   Local: `src/skills/local/SkillLearning`
   Authority: `.agents/skills/evolve`

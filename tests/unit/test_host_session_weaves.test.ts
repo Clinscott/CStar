@@ -83,6 +83,42 @@ describe('Host-session runtime weaves', () => {
         assert.deepStrictEqual(result.metadata?.research_artifacts, ['repo:local']);
     });
 
+    it('lets research fan out bounded subquestions through parallel Codex host inference', async () => {
+        const responses = [
+            JSON.stringify({
+                summary: 'Codex answered the repository-layout question.',
+                research_artifacts: ['repo:layout'],
+            }),
+            JSON.stringify({
+                summary: 'Codex answered the testing-surface question.',
+                research_artifacts: ['repo:tests', 'repo:layout'],
+            }),
+        ];
+        let index = 0;
+        const weave = new ResearchWeave(new NoopDispatchPort(), async () => responses[index++] ?? responses[responses.length - 1]);
+
+        const result = await weave.execute(
+            {
+                weave_id: 'weave:research',
+                payload: {
+                    intent: 'understand the current runtime',
+                    subquestions: ['layout', 'tests'],
+                    project_root: tmpRoot,
+                    cwd: tmpRoot,
+                    source: 'cli',
+                },
+            },
+            createContext(tmpRoot, { CODEX_SHELL: '1' }),
+        );
+
+        assert.equal(result.status, 'SUCCESS');
+        assert.equal(result.metadata?.parallel, true);
+        assert.equal(result.metadata?.branch_count, 2);
+        assert.deepStrictEqual(result.metadata?.research_artifacts, ['repo:layout', 'repo:tests']);
+        assert.match(result.output, /repository-layout question/i);
+        assert.match(result.output, /testing-surface question/i);
+    });
+
     it('lets research execute through a non-Codex host provider when the runtime host bridge is configured', async () => {
         const weave = new ResearchWeave(new NoopDispatchPort(), async () =>
             JSON.stringify({
@@ -136,6 +172,44 @@ describe('Host-session runtime weaves', () => {
         assert.match(result.output, /narrow the acceptance criteria/i);
         assert.equal(result.metadata?.provider, 'codex');
         assert.equal((result.metadata?.critique_payload as { proposed_path?: string }).proposed_path, 'src/node/core/runtime/weaves/chant.ts');
+    });
+
+    it('lets critique fan out bounded focus areas through parallel Codex host inference', async () => {
+        const responses = [
+            JSON.stringify({
+                needs_revision: true,
+                critique: 'Tighten the acceptance criteria.',
+                evidence_source: 'repo:contracts',
+                proposed_path: 'src/node/core/runtime/weaves/chant.ts',
+            }),
+            JSON.stringify({
+                needs_revision: false,
+                critique: 'The checker shell is acceptable.',
+                evidence_source: 'repo:validation',
+                proposed_path: 'src/node/core/runtime/weaves/chant.ts',
+            }),
+        ];
+        let index = 0;
+        const weave = new CritiqueWeave(new NoopDispatchPort(), async () => responses[index++] ?? responses[responses.length - 1]);
+
+        const result = await weave.execute(
+            {
+                weave_id: 'weave:critique',
+                payload: {
+                    bead: { title: 'Current bead' },
+                    research: { summary: 'Local research' },
+                    focus_areas: ['contracts', 'validation'],
+                    cwd: tmpRoot,
+                },
+            },
+            createContext(tmpRoot, { CODEX_SHELL: '1' }),
+        );
+
+        assert.equal(result.status, 'SUCCESS');
+        assert.equal(result.metadata?.parallel, true);
+        assert.equal(result.metadata?.branch_count, 2);
+        assert.match(result.output, /\[contracts\]/i);
+        assert.match(result.output, /\[validation\]/i);
     });
 
     it('lets architect execute through the Codex host session', async () => {

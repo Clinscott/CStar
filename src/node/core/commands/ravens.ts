@@ -1,19 +1,9 @@
 import { Command } from 'commander';
-import chalk from 'chalk';
 
+import { renderStandardCommandResult } from './command_context.js';
 import { RuntimeDispatcher } from  '../runtime/dispatcher.js';
-import { RavensAction, RavensWeavePayload, RuntimeDispatchPort, WeaveInvocation, WeaveResult } from  '../runtime/contracts.js';
+import { RavensAction, RavensWeavePayload, RuntimeDispatchPort, WeaveInvocation } from  '../runtime/contracts.js';
 import { resolveWorkspaceRoot, withCliWorkspaceTarget, type WorkspaceRootSource } from  '../runtime/invocation.js';
-
-function renderResult(result: WeaveResult): void {
-    if (result.status === 'FAILURE') {
-        console.error(chalk.red(`\n[SYSTEM FAILURE]: ${result.error ?? 'Unknown runtime failure.'}`));
-        return;
-    }
-
-    const printer = result.status === 'TRANSITIONAL' ? chalk.yellow : chalk.green;
-    console.log(printer(`\n[ALFRED]: "${result.output}"`));
-}
 
 export function buildRavensInvocation(
     action: RavensAction,
@@ -54,8 +44,9 @@ export function registerRavenCommand(
         .option('--shadow-forge', 'Execute in sandboxed Docker container')
         .option('--spoke <slug>', 'Sweep only a specific mounted spoke')
         .action(async (options: { shadowForge?: boolean; spoke?: string }) => {
-            const result = await dispatchPort.dispatch(buildRavensInvocation('start', options, resolveWorkspaceRoot(workspaceRootSource)));
-            renderResult(result);
+            const workspaceRoot = resolveWorkspaceRoot(workspaceRootSource);
+            const result = await dispatchPort.dispatch(buildRavensInvocation('start', options, workspaceRoot));
+            renderStandardCommandResult(result, workspaceRoot);
         });
 
     ravens
@@ -64,8 +55,9 @@ export function registerRavenCommand(
         .option('--shadow-forge', 'Execute in sandboxed Docker container')
         .option('--spoke <slug>', 'Sweep only a specific mounted spoke')
         .action(async (options: { shadowForge?: boolean; spoke?: string }) => {
-            const result = await dispatchPort.dispatch(buildRavensInvocation('sweep', options, resolveWorkspaceRoot(workspaceRootSource)));
-            renderResult(result);
+            const workspaceRoot = resolveWorkspaceRoot(workspaceRootSource);
+            const result = await dispatchPort.dispatch(buildRavensInvocation('sweep', options, workspaceRoot));
+            renderStandardCommandResult(result, workspaceRoot);
         });
 
     ravens
@@ -73,16 +65,18 @@ export function registerRavenCommand(
         .description('Execute one ravens cycle through the stage-composed runtime')
         .option('--spoke <slug>', 'Run one cycle against a specific mounted spoke')
         .action(async (options: { spoke?: string }) => {
-            const result = await dispatchPort.dispatch(buildRavensInvocation('cycle', options, resolveWorkspaceRoot(workspaceRootSource)));
-            renderResult(result);
+            const workspaceRoot = resolveWorkspaceRoot(workspaceRootSource);
+            const result = await dispatchPort.dispatch(buildRavensInvocation('cycle', options, workspaceRoot));
+            renderStandardCommandResult(result, workspaceRoot);
         });
 
     ravens
         .command('stop')
         .description('Show that no resident Ravens daemon is active in kernel mode')
         .action(async () => {
-            const result = await dispatchPort.dispatch(buildRavensInvocation('stop', {}, resolveWorkspaceRoot(workspaceRootSource)));
-            renderResult(result);
+            const workspaceRoot = resolveWorkspaceRoot(workspaceRootSource);
+            const result = await dispatchPort.dispatch(buildRavensInvocation('stop', {}, workspaceRoot));
+            renderStandardCommandResult(result, workspaceRoot);
         });
 
     ravens
@@ -90,12 +84,14 @@ export function registerRavenCommand(
         .description('Display Raven health and quota isolation')
         .option('--spoke <slug>', 'Show target information for a specific mounted spoke')
         .action(async (options: { spoke?: string }) => {
-            const result = await dispatchPort.dispatch(buildRavensInvocation('status', options, resolveWorkspaceRoot(workspaceRootSource)));
-            renderResult(result);
+            const workspaceRoot = resolveWorkspaceRoot(workspaceRootSource);
+            const result = await dispatchPort.dispatch(buildRavensInvocation('status', options, workspaceRoot));
+            renderStandardCommandResult(result, workspaceRoot);
         });
 
     ravens.action(async () => {
-        const result = await dispatchPort.dispatch(buildRavensInvocation('status', {}, resolveWorkspaceRoot(workspaceRootSource)));
-        renderResult(result);
+        const workspaceRoot = resolveWorkspaceRoot(workspaceRootSource);
+        const result = await dispatchPort.dispatch(buildRavensInvocation('status', {}, workspaceRoot));
+        renderStandardCommandResult(result, workspaceRoot);
     });
 }

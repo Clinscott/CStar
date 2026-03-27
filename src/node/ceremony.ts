@@ -3,7 +3,8 @@ import fs from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { activePersona } from '../tools/pennyone/personaRegistry.js';
-import { getHallSummary } from  '../tools/pennyone/intel/database.js';
+import { getHallOneMindBroker, getHallSummary } from  '../tools/pennyone/intel/database.js';
+import { registry } from '../tools/pennyone/pathRegistry.js';
 import { ANS } from './core/ans.js';
 import { HUD } from './core/hud.js';
 import { StateRegistry } from  './core/state.js';
@@ -175,6 +176,17 @@ function getVaultStatus(): string {
     return fs.existsSync(masterKey) ? 'ARMED' : 'OFFLINE';
 }
 
+function getOneMindBrokerStatus(): string {
+    const state = getHallOneMindBroker(registry.getRoot());
+    if (!state) {
+        return 'OFFLINE';
+    }
+    if (!state.fulfillment_ready) {
+        return 'UNBOUND';
+    }
+    return state.binding_state === 'BOUND' ? 'BOUND' : 'UNBOUND';
+}
+
 /**
  *
  */
@@ -226,6 +238,7 @@ export async function runStartupCeremony() {
         const hostProvider = resolveHostProvider(process.env);
         process.stdout.write(HUD.boxRow('INTELLIGENCE', 'DECOUPLED', chalk.magenta.bold));
         process.stdout.write(HUD.boxRow('MIND', getHostMindLabel(hostProvider), chalk.magenta.bold));
+        process.stdout.write(HUD.boxRow('BROKER', getOneMindBrokerStatus(), chalk.magenta.bold));
         process.stdout.write(HUD.boxSeparator());
     }
 
@@ -241,5 +254,3 @@ export async function runStartupCeremony() {
 
     process.stdout.write(HUD.boxBottom());
 }
-
-

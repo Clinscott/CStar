@@ -44,6 +44,10 @@ export type HallMountedSpokeStatus = 'active' | 'disconnected' | 'pending';
 export type HallMountedSpokeTrust = 'trusted' | 'observe' | 'quarantined';
 export type HallMountedSpokeWritePolicy = 'read_write' | 'read_only';
 export type HallMountedSpokeProjectionStatus = 'current' | 'stale' | 'missing';
+export type HallOneMindBrokerStatus = 'OFFLINE' | 'READY' | 'ERROR';
+export type HallOneMindBindingState = 'UNBOUND' | 'BOUND';
+export type HallOneMindRequestStatus = 'PENDING' | 'CLAIMED' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+export type HallOneMindBranchStatus = 'COMPLETED' | 'FAILED';
 
 export interface HallRepositoryRecord {
     repo_id: string;
@@ -227,6 +231,83 @@ export interface HallMountedSpokeRecord {
     metadata?: Record<string, unknown>;
     created_at: number;
     updated_at: number;
+}
+
+export interface HallOneMindBrokerRecord {
+    repo_id: string;
+    status: HallOneMindBrokerStatus;
+    binding_state: HallOneMindBindingState;
+    fulfillment_ready: boolean;
+    provider?: string;
+    session_id?: string;
+    control_plane: string;
+    metadata?: Record<string, unknown>;
+    created_at: number;
+    updated_at: number;
+}
+
+export interface HallOneMindRequestRecord {
+    request_id: string;
+    repo_id: string;
+    caller_source: string;
+    boundary: 'primary' | 'subagent' | 'autobot';
+    request_status: HallOneMindRequestStatus;
+    transport_preference?: 'host_session' | 'synapse_db';
+    prompt: string;
+    system_prompt?: string;
+    response_text?: string;
+    error_text?: string;
+    lease_owner?: string;
+    claimed_at?: number;
+    completed_at?: number;
+    metadata?: Record<string, unknown>;
+    created_at: number;
+    updated_at: number;
+}
+
+export interface HallOneMindBranchRecord {
+    branch_id: string;
+    repo_id: string;
+    source_weave: string;
+    branch_group_id: string;
+    branch_kind: 'research' | 'critique';
+    branch_label: string;
+    branch_index: number;
+    status: HallOneMindBranchStatus;
+    provider?: string;
+    session_id?: string;
+    trace_id?: string;
+    parent_request_id?: string;
+    summary?: string;
+    error_text?: string;
+    artifacts?: string[];
+    metadata?: Record<string, unknown>;
+    created_at: number;
+    updated_at: number;
+}
+
+export interface HallOneMindBranchDigestGroup {
+    branch_group_id: string;
+    source_weave: string;
+    branch_kind: 'research' | 'critique';
+    provider?: string;
+    branch_count: number;
+    branch_labels: string[];
+    summary: string;
+    artifacts: string[];
+    needs_revision: boolean;
+    evidence_sources: string[];
+    proposed_paths: string[];
+}
+
+export interface HallOneMindBranchDigest {
+    trace_id?: string;
+    session_id?: string;
+    total_branches: number;
+    group_count: number;
+    branch_kinds: Array<'research' | 'critique'>;
+    artifacts: string[];
+    groups: HallOneMindBranchDigestGroup[];
 }
 
 export interface HallGitCommitRecord {

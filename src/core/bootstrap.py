@@ -48,10 +48,17 @@ class SovereignBootstrap:
 
         # [🔱] ONE MIND ANCHOR: Ensure host-session state is immutable across spokes
         import os
-        if os.getenv("GEMINI_CLI_ACTIVE") == "true":
-            os.environ["GEMINI_CLI_ACTIVE"] = "true"
-        if os.getenv("CODEX_SHELL") == "1":
-            os.environ["CODEX_SHELL"] = "1"
+        for env_name in (
+            "GEMINI_CLI_ACTIVE",
+            "GEMINI_CLI",
+            "CODEX_SHELL",
+            "CODEX_THREAD_ID",
+            "CORVUS_HOST_PROVIDER",
+            "CORVUS_HOST_SESSION_ACTIVE",
+        ):
+            env_value = os.getenv(env_name)
+            if env_value:
+                os.environ[env_name] = env_value
 
         _BOOTSTRAPPED = True
 

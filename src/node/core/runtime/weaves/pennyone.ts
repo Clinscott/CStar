@@ -3,7 +3,7 @@ import fsPromises from 'node:fs/promises';
 import { join } from 'node:path';
 import { execa } from 'execa';
 
-import { runScan } from  '../../../../tools/pennyone/index.js';
+import { refreshOfflineIntents, runScan } from  '../../../../tools/pennyone/index.js';
 import { buildEstateTopology, writeProjectedMatrixGraph } from  '../../../../tools/pennyone/intel/compiler.js';
 import { database } from  '../../../../tools/pennyone/intel/database.js';
 import { importRepositoryIntoEstate } from  '../../../../tools/pennyone/intel/importer.js';
@@ -82,6 +82,21 @@ export class PennyOneAdapter implements RuntimeAdapter<PennyOneWeavePayload> {
                 status: 'TRANSITIONAL',
                 output: `PennyOne search completed for "${payload.query}".`,
                 metadata: { adapter: 'legacy:pennyone', action: payload.action },
+            };
+        }
+
+        if (payload.action === 'refresh_intents') {
+            const refreshPath = resolveTargetPath(projectRoot, payload.path);
+            const result = await refreshOfflineIntents(refreshPath);
+            return {
+                weave_id: this.id,
+                status: 'TRANSITIONAL',
+                output: `PennyOne refreshed ${result.refreshed}/${result.total_candidates} offline semantic intent record(s).`,
+                metadata: {
+                    adapter: 'runtime:pennyone-refresh-intents',
+                    action: payload.action,
+                    ...result,
+                },
             };
         }
 

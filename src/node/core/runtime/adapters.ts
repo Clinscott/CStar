@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import { join } from 'node:path';
 import { execa } from 'execa';
 
+import { executeHostGovernorResume } from '../operator_resume.js';
 import { ANS } from  '../ans.js';
 import { resolveHostProvider } from  '../../../core/host_session.js';
 import { RavensCycleWeave } from  './weaves/ravens_cycle.js';
@@ -15,7 +16,6 @@ import {
 } from './adapters/ravens_utils.ts';
 import {
     DynamicCommandPayload,
-    HostGovernorWeavePayload,
     RavensWeavePayload,
     RuntimeAdapter,
     RuntimeDispatchPort,
@@ -61,23 +61,31 @@ export class StartAdapter implements RuntimeAdapter<StartWeavePayload> {
                     };
                 }
 
-                await ANS.wake();
-
-                const governorResult = await this.dispatchPort.dispatch<HostGovernorWeavePayload>({
-                    weave_id: 'weave:host-governor',
-                    payload: {
+                const resumeResult = await executeHostGovernorResume(
+                    this.dispatchPort,
+                    {
+                        workspaceRoot: context.workspace_root,
+                        cwd: context.workspace_root,
                         task: payload.task,
                         ledger: payload.ledger,
-                        auto_execute: true,
-                        auto_replan_blocked: true,
-                        max_parallel: 1,
-                        project_root: context.workspace_root,
-                        cwd: context.workspace_root,
+                        autoExecute: true,
+                        autoReplanBlocked: true,
+                        maxParallel: 1,
                         source: 'runtime',
+                        session: invocation.session,
+                        target: invocation.target,
                     },
-                    session: invocation.session,
-                    target: invocation.target,
-                });
+                    hostProvider,
+                    {
+                        wakeKernel: async () => ANS.wake(),
+                    },
+                );
+                const governorResult = resumeResult.governorResult ?? {
+                    weave_id: 'weave:host-governor',
+                    status: 'FAILURE' as const,
+                    output: '',
+                    error: 'Host-governor resume did not produce a result.',
+                };
 
                 return {
                     ...governorResult,
@@ -87,9 +95,11 @@ export class StartAdapter implements RuntimeAdapter<StartWeavePayload> {
                         : 'The system is awake and synchronized.',
                     metadata: {
                         ...(governorResult.metadata ?? {}),
-                        adapter: 'runtime:host-governor',
+                        adapter: 'runtime:start-resume',
                         delegated_weave_id: 'weave:host-governor',
-                        resume_provider: hostProvider ?? null,
+                        resume_provider: resumeResult.provider,
+                        resume_mode: payload.loki ? 'explicit-loki' : 'host-session',
+                        resume_requested: true,
                     },
                 };
             }

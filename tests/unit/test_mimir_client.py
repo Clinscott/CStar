@@ -32,7 +32,7 @@ async def test_mimir_client_returns_a_typed_error_when_builtin_gemini_scaffold_y
 
     monkeypatch.setattr(subprocess, "run", fake_run)
 
-    client = MimirClient(project_root=tmp_path, host_session_active=True)
+    client = MimirClient(project_root=tmp_path, env={}, host_session_active=True)
 
     response = await client.request(
         {
@@ -67,6 +67,7 @@ async def test_mimir_client_uses_configured_gemini_host_bridge(tmp_path, monkeyp
 
     client = MimirClient(
         project_root=tmp_path,
+        env={},
         host_session_active=True,
         host_provider="gemini",
     )
@@ -96,6 +97,7 @@ async def test_mimir_client_uses_codex_host_runner_when_provider_is_codex(tmp_pa
 
     client = MimirClient(
         project_root=tmp_path,
+        env={},
         host_session_active=True,
         host_provider="codex",
         host_session_runner=host_session_runner,
@@ -122,6 +124,7 @@ async def test_mimir_client_uses_builtin_claude_cli_scaffold(tmp_path, monkeypat
 
     client = MimirClient(
         project_root=tmp_path,
+        env={},
         host_session_active=True,
         host_provider="claude",
     )
@@ -148,6 +151,7 @@ async def test_mimir_client_uses_builtin_gemini_cli_scaffold(tmp_path, monkeypat
 
     client = MimirClient(
         project_root=tmp_path,
+        env={},
         host_session_active=True,
         host_provider="gemini",
     )
@@ -162,6 +166,56 @@ async def test_mimir_client_uses_builtin_gemini_cli_scaffold(tmp_path, monkeypat
 
 
 @pytest.mark.asyncio
+async def test_mimir_client_prefers_synapse_db_in_auto_mode_for_interactive_codex(tmp_path):
+    async def oracle_runner(synapse_id: int) -> None:
+        _complete_prompt(
+            tmp_path / ".agents" / "synapse.db",
+            synapse_id,
+            "Codex interactive synapse response",
+        )
+
+    client = MimirClient(
+        project_root=tmp_path,
+        env={"CODEX_SHELL": "1", "CODEX_THREAD_ID": "thread-1"},
+        oracle_runner=oracle_runner,
+    )
+
+    response = await client.request({"prompt": "Explain the active bridge."})
+
+    assert response.status == "success"
+    assert response.trace.transport_mode == "synapse_db"
+    assert response.raw_text == "Codex interactive synapse response"
+
+
+@pytest.mark.asyncio
+async def test_mimir_client_prefers_detected_codex_provider_before_gemini_fallback(tmp_path):
+    observed: list[tuple[str, str]] = []
+
+    async def host_session_runner(prompt: str, provider: str) -> str:
+        observed.append((provider, prompt))
+        return "Codex detected response"
+
+    client = MimirClient(
+        project_root=tmp_path,
+        env={"CODEX_SHELL": "1", "CODEX_THREAD_ID": "thread-1"},
+        host_session_active=True,
+        host_session_runner=host_session_runner,
+    )
+
+    response = await client.request(
+        {
+            "prompt": "Explain the detected bridge.",
+            "transport_mode": "host_session",
+            "caller": {"source": "test-suite"},
+        }
+    )
+
+    assert response.status == "success"
+    assert response.trace.transport_mode == "host_session"
+    assert observed == [("codex", "Explain the detected bridge.")]
+
+
+@pytest.mark.asyncio
 async def test_mimir_client_reads_synapse_completion(tmp_path):
     async def oracle_runner(synapse_id: int) -> None:
         prompt = _read_prompt(tmp_path / ".agents" / "synapse.db", synapse_id)
@@ -173,6 +227,7 @@ async def test_mimir_client_reads_synapse_completion(tmp_path):
 
     client = MimirClient(
         project_root=tmp_path,
+        env={},
         host_session_active=False,
         oracle_runner=oracle_runner,
     )
@@ -215,6 +270,7 @@ async def test_mimir_client_uses_synapse_cache_before_oracle(tmp_path):
 
     client = MimirClient(
         project_root=tmp_path,
+        env={},
         host_session_active=False,
         oracle_runner=oracle_runner,
     )
@@ -235,6 +291,7 @@ async def test_mimir_client_compatibility_wrappers_use_canonical_request(tmp_pat
 
     client = MimirClient(
         project_root=tmp_path,
+        env={},
         host_session_active=False,
         oracle_runner=oracle_runner,
     )

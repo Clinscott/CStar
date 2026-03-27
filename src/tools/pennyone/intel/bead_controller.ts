@@ -31,13 +31,24 @@ export function upsertHallBead(record: HallBeadRecord): void {
             bead_id, repo_id, scan_id, legacy_id, target_kind, target_ref, target_path, 
             rationale, contract_refs_json, baseline_scores_json, acceptance_criteria, 
             checker_shell, status, assigned_agent, source_kind, triage_reason, 
-            resolution_note, resolved_validation_id, superseded_by, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            resolution_note, resolved_validation_id, superseded_by, architect_opinion, critique_payload_json, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(bead_id) DO UPDATE SET
+            target_kind = excluded.target_kind,
+            target_ref = excluded.target_ref,
+            target_path = excluded.target_path,
+            rationale = excluded.rationale,
+            contract_refs_json = excluded.contract_refs_json,
+            baseline_scores_json = excluded.baseline_scores_json,
+            acceptance_criteria = excluded.acceptance_criteria,
+            checker_shell = excluded.checker_shell,
             status = excluded.status,
             assigned_agent = excluded.assigned_agent,
+            source_kind = excluded.source_kind,
             triage_reason = excluded.triage_reason,
             resolution_note = excluded.resolution_note,
+            architect_opinion = excluded.architect_opinion,
+            critique_payload_json = excluded.critique_payload_json,
             updated_at = excluded.updated_at
     `;
     try {
@@ -61,6 +72,8 @@ export function upsertHallBead(record: HallBeadRecord): void {
             record.resolution_note,
             record.resolved_validation_id,
             record.superseded_by,
+            record.architect_opinion,
+            stringifyJson(record.critique_payload),
             record.created_at,
             record.updated_at
         );
@@ -91,9 +104,18 @@ export function getBeadCount(rootPath: string): number {
 }
 
 // ... existing HallBead getter stubs or implementations ...
-export function getHallBeads(repoId: string): SovereignBead[] {
+export function getHallBeads(rootOrRepoId: string, statuses?: HallBeadStatus[]): SovereignBead[] {
     const db = database.getDb();
-    const rows = db.prepare('SELECT * FROM hall_beads WHERE repo_id = ?').all(repoId) as any[];
+    const repoId = rootOrRepoId.startsWith('repo:')
+        ? rootOrRepoId
+        : buildHallRepositoryId(normalizeHallPath(rootOrRepoId));
+    let rows: any[];
+    if (statuses && statuses.length > 0) {
+        const placeholders = statuses.map(() => '?').join(', ');
+        rows = db.prepare(`SELECT * FROM hall_beads WHERE repo_id = ? AND status IN (${placeholders})`).all(repoId, ...statuses) as any[];
+    } else {
+        rows = db.prepare('SELECT * FROM hall_beads WHERE repo_id = ?').all(repoId) as any[];
+    }
     return rows.map(row => materializeSovereignBead({
         ...row,
         contract_refs: parseJson(row.contract_refs_json, []),

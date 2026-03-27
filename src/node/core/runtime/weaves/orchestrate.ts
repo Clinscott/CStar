@@ -17,12 +17,35 @@ import { OrchestratorTelemetryBridge } from  '../telemetry.js';
 import { getHallBeads, getHallBead, upsertHallBead } from  '../../../../tools/pennyone/intel/database.js';
 import { buildHallRepositoryId, normalizeHallPath } from  '../../../../types/hall.js';
 import chalk from 'chalk';
+import type { SovereignBead } from '../../../../types/bead.js';
 
 /**
  * [Ω] ORCHESTRATE WEAVE
  * Purpose: The sovereign execution engine for SET beads.
  * Mandate: Stateless, Deterministic, and Aggressively Reaped (Yo-Yo).
  */
+export function resolveExecutionRoute(bead: SovereignBead): 'AUTOBOT' | 'HOST-WORKER' | 'ONE-MIND' {
+    const assigned = String(bead.assigned_agent ?? '').trim().toUpperCase();
+    if (assigned === 'AUTOBOT' || assigned === 'HOST-WORKER' || assigned === 'ONE-MIND') {
+        return assigned;
+    }
+
+    const targetPath = String(bead.target_path ?? bead.target_ref ?? '').trim().toLowerCase();
+    const hasChecker = typeof bead.checker_shell === 'string' && bead.checker_shell.trim().length > 0;
+    const isCodeTarget = /\.(ts|tsx|js|jsx|py|go|rs|java|c|cc|cpp|h)$/.test(targetPath);
+    const isDocsTarget = /\.(md|qmd|feature|txt|rst)$/.test(targetPath);
+    const isArchitectureHeavy = typeof bead.architect_opinion === 'string' && bead.architect_opinion.trim().length > 0;
+    const hasCritiqueTargets = Array.isArray(bead.critique_payload?.targets) && bead.critique_payload.targets.length > 1;
+
+    if (isCodeTarget && hasChecker && !isArchitectureHeavy && !hasCritiqueTargets) {
+        return 'AUTOBOT';
+    }
+    if (isDocsTarget || isArchitectureHeavy || hasCritiqueTargets || !hasChecker) {
+        return 'HOST-WORKER';
+    }
+    return 'HOST-WORKER';
+}
+
 export class OrchestrateWeave implements RuntimeAdapter<OrchestrateWeavePayload> {
     public readonly id = 'weave:orchestrate';
     private processManager = new OrchestratorProcessManager();
@@ -56,7 +79,11 @@ export class OrchestrateWeave implements RuntimeAdapter<OrchestrateWeavePayload>
                 weave_id: this.id,
                 status: 'SUCCESS',
                 output: '[ORCHESTRATOR]: No beads in SET state. Swarm remains idle.',
-                metadata: { total_processed: 0, reaped_zombies: reapedZombies }
+                metadata: {
+                    context_policy: 'project',
+                    total_processed: 0,
+                    reaped_zombies: reapedZombies,
+                }
             };
         }
 
@@ -76,7 +103,11 @@ export class OrchestrateWeave implements RuntimeAdapter<OrchestrateWeavePayload>
                 weave_id: this.id,
                 status: 'SUCCESS',
                 output: `[DRY-RUN]: Would process ${targetBeads.length} beads: ${targetBeads.join(', ')}`,
-                metadata: { total_processed: targetBeads.length, reaped_zombies: reapedZombies }
+                metadata: {
+                    context_policy: 'project',
+                    total_processed: targetBeads.length,
+                    reaped_zombies: reapedZombies,
+                }
             };
         }
 
@@ -102,14 +133,11 @@ export class OrchestrateWeave implements RuntimeAdapter<OrchestrateWeavePayload>
 
                     for (const child of children) {
                         // [🔱] DETERMINISTIC ROUTING
-                        let assignedAgent = child.agent;
-                        const targetPath = bead.target_path || '';
-                        
-                        if (targetPath.endsWith('.ts') || targetPath.endsWith('.py') || targetPath.endsWith('.js')) {
-                            assignedAgent = 'AUTOBOT';
-                        } else if (targetPath.endsWith('.md') || targetPath.endsWith('.feature') || targetPath.endsWith('.qmd')) {
-                            assignedAgent = 'ONE-MIND';
-                        }
+                        const assignedAgent = resolveExecutionRoute({
+                            ...bead,
+                            id: child.id,
+                            assigned_agent: child.agent,
+                        } as SovereignBead);
 
                         upsertHallBead({
                             bead_id: child.id,
@@ -134,7 +162,8 @@ export class OrchestrateWeave implements RuntimeAdapter<OrchestrateWeavePayload>
                     return;
                 }
 
-                const isHostWorker = bead?.assigned_agent === 'HOST-WORKER' || bead?.assigned_agent === 'ONE-MIND';
+                const executionRoute = resolveExecutionRoute(bead as SovereignBead);
+                const isHostWorker = executionRoute === 'HOST-WORKER' || executionRoute === 'ONE-MIND';
 
                 if (isHostWorker && this.dispatchPort) {
                      const hostResult = await this.dispatchPort.dispatch<HostWorkerWeavePayload>({
@@ -159,7 +188,8 @@ export class OrchestrateWeave implements RuntimeAdapter<OrchestrateWeavePayload>
                      outcomes[beadId] = {
                          status: finalStatus,
                          exit_code: hostResult.status === 'SUCCESS' ? 0 : 1,
-                         duration_ms: Date.now() - start
+                         duration_ms: Date.now() - start,
+                         route: executionRoute,
                      };
                 } else {
                     // Heartbeat pulse setup
@@ -179,7 +209,8 @@ export class OrchestrateWeave implements RuntimeAdapter<OrchestrateWeavePayload>
                     outcomes[beadId] = {
                         status: finalStatus,
                         exit_code: workerResult.exitCode,
-                        duration_ms: Date.now() - start
+                        duration_ms: Date.now() - start,
+                        route: executionRoute,
                     };
                 }
 
@@ -210,7 +241,8 @@ export class OrchestrateWeave implements RuntimeAdapter<OrchestrateWeavePayload>
                 outcomes[beadId] = {
                     status: 'BLOCKED',
                     error: err.message,
-                    duration_ms: Date.now() - start
+                    duration_ms: Date.now() - start,
+                    route: bead ? resolveExecutionRoute(bead as SovereignBead) : undefined,
                 };
             }
         });
@@ -225,6 +257,7 @@ export class OrchestrateWeave implements RuntimeAdapter<OrchestrateWeavePayload>
             status: 'SUCCESS',
             output: `[ORCHESTRATOR]: Batch complete. Processed ${targetBeads.length} beads.`,
             metadata: {
+                context_policy: 'project',
                 bead_outcomes: outcomes,
                 reaped_zombies: reapedZombies,
                 total_processed: targetBeads.length

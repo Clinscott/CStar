@@ -21,6 +21,8 @@ import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
 
 describe('State registry projection boundary (CS-P2-00)', () => {
     let tmpRoot: string;
+    let controlRoot: string;
+    const originalControlRoot = process.env.CSTAR_CONTROL_ROOT;
 
     const managedSpokes: ManagedSpokeProjection[] = [
         {
@@ -47,13 +49,20 @@ describe('State registry projection boundary (CS-P2-00)', () => {
 
     beforeEach(() => {
         tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-state-projection-'));
+        controlRoot = tmpRoot;
         fs.mkdirSync(path.join(tmpRoot, '.agents'), { recursive: true });
         registry.setRoot(tmpRoot);
+        process.env.CSTAR_CONTROL_ROOT = controlRoot;
         closeDb();
     });
 
     afterEach(() => {
         closeDb();
+        if (originalControlRoot === undefined) {
+            delete process.env.CSTAR_CONTROL_ROOT;
+        } else {
+            process.env.CSTAR_CONTROL_ROOT = originalControlRoot;
+        }
     });
 
     it('prefers Hall-backed sovereign metadata over legacy projection JSON', () => {
@@ -230,5 +239,23 @@ describe('State registry projection boundary (CS-P2-00)', () => {
         assert.deepStrictEqual(projection.operator_console, operatorConsole);
         assert.strictEqual(projection.last_anomaly_score, 4.4);
         assert.deepStrictEqual(projection.warden, { active: true });
+    });
+
+    it('anchors compatibility state writes to the configured control root instead of the active workspace root', () => {
+        const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-state-workspace-'));
+        fs.mkdirSync(path.join(workspaceRoot, '.stats'), { recursive: true });
+        registry.setRoot(workspaceRoot);
+
+        const state = StateRegistry.get();
+        state.framework.status = 'AWAKE';
+        state.framework.active_persona = 'ALFRED';
+        state.framework.gungnir_score = 7.7;
+        state.framework.intent_integrity = 88;
+
+        StateRegistry.save(state);
+
+        assert.equal(fs.existsSync(path.join(controlRoot, '.agents', 'sovereign_state.json')), true);
+        assert.equal(fs.existsSync(path.join(workspaceRoot, '.agents', 'sovereign_state.json')), false);
+        assert.ok(getHallRepositoryRecord(controlRoot));
     });
 });

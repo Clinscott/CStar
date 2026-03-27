@@ -159,6 +159,37 @@ describe('Command shells convert CLI args into runtime invocations (CS-P1-01)', 
         });
     });
 
+    it('pennyone command dispatches semantic-intent refresh through the shared pennyone weave', async () => {
+        const capture = new CaptureDispatchPort();
+        const program = new Command();
+        registerPennyOneCommand(program, 'C:\\Users\\Craig\\Corvus\\CorvusStar', capture);
+
+        await program.parseAsync([
+            'node',
+            'test',
+            'pennyone',
+            '--refresh-intents',
+            'src',
+        ]);
+
+        assert.deepStrictEqual(capture.invocation, {
+            weave_id: 'weave:pennyone',
+            payload: {
+                action: 'refresh_intents',
+                path: 'src',
+            },
+            target: {
+                domain: 'brain',
+                workspace_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
+                requested_path: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
+            },
+            session: {
+                mode: 'cli',
+                interactive: true,
+            },
+        });
+    });
+
     it('chant fallback builds the chant weave invocation', () => {
         const invocation = buildDynamicCommandInvocation(
             'chant',

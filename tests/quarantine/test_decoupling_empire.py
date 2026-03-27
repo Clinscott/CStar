@@ -1,96 +1,92 @@
 """
-[EMPIRE TDD] Gemini CLI Decoupling Verification
+[EMPIRE TDD] Host-session decoupling verification
 Lore: "Verifying the severed strings of the Gungnir Calculus."
 Standard: Linscott Standard (Atomic Code/Verification)
 """
 
-import os
-import json
-import pytest
-import asyncio
-from unittest.mock import patch, MagicMock
-from pathlib import Path
+from __future__ import annotations
 
-# Shared Bootstrap
 import sys
+import os
+from pathlib import Path
+from unittest.mock import AsyncMock, patch
+
+import pytest
+
 project_root = Path(__file__).resolve().parents[2]
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
 from src.cstar.core.uplink import AntigravityUplink
-from src.core.engine.ravens.muninn import Muninn
+from src.core.engine.wardens.huginn import HuginnWarden
+
 
 @pytest.mark.asyncio
-async def test_uplink_emits_directive_in_gemini_mode(capsys):
-    """
-    Scenario: AntigravityUplink emits [GEMINI_DIRECTIVE] in Gemini Mode
-    """
-    # GIVEN: GEMINI_CLI_ACTIVE is true
-    with patch.dict(os.environ, {"GEMINI_CLI_ACTIVE": "true"}):
-        uplink = AntigravityUplink(api_key="TEST_KEY")
-        
-        # WHEN: A payload is sent
+async def test_uplink_returns_structured_bridge_response() -> None:
+    with patch("src.cstar.core.uplink.mimir.request", new_callable=AsyncMock) as mock_request:
+        mock_request.return_value = type(
+            "Response",
+            (),
+            {
+                "status": "success",
+                "raw_text": "Shared bridge response",
+                "error": None,
+                "trace": type(
+                    "Trace",
+                    (),
+                    {
+                        "correlation_id": "uplink-test",
+                        "transport_mode": "host_session",
+                        "cached": False,
+                    },
+                )(),
+            },
+        )()
+
+        uplink = AntigravityUplink()
         response = await uplink.send_payload("Test Query", {"persona": "ODIN"})
-        
-        # THEN: Status should be pending
-        assert response["status"] == "pending"
-        assert "Directive emitted to Gemini CLI" in response["message"]
-        
-        # AND: [GEMINI_DIRECTIVE] should be in stdout
-        captured = capsys.readouterr()
-        assert "[GEMINI_DIRECTIVE]" in captured.out
-        assert "[/GEMINI_DIRECTIVE]" in captured.out
-        
-        # Verify JSON content
-        json_str = captured.out.split("[GEMINI_DIRECTIVE]")[1].split("[/GEMINI_DIRECTIVE]")[0].strip()
-        directive = json.loads(json_str)
-        assert directive["type"] == "LLM_REQUEST"
-        assert directive["query"] == "Test Query"
-        assert directive["persona"] == "ODIN"
 
-def test_muninn_initialization_decoupled():
-    """
-    Scenario: Muninn operates without a direct SDK client in Gemini Mode
-    """
-    # GIVEN: GEMINI_CLI_ACTIVE is true
-    with patch.dict(os.environ, {"GEMINI_CLI_ACTIVE": "true"}):
-        # Mocking Path.cwd() to avoid dependency on current dir structure if needed
-        with patch("os.getenv", side_effect=lambda k, d=None: "true" if k == "GEMINI_CLI_ACTIVE" else "TEST_KEY"):
-            m = Muninn()
-            
-            # THEN: Muninn.client must be None
-            assert m.client is None
-            
-            # AND: Uplink must be initialized
-            assert m.uplink is not None
-            assert isinstance(m.uplink, AntigravityUplink)
+        assert response["status"] == "success"
+        assert response["data"]["raw"] == "Shared bridge response"
+        assert response["trace"]["transport_mode"] == "host_session"
+
+
+def test_bootstrap_preserves_host_markers() -> None:
+    from src.core import bootstrap as bootstrap_module
+
+    with patch.dict(
+        "os.environ",
+        {
+            "CODEX_SHELL": "1",
+            "CODEX_THREAD_ID": "thread-1",
+            "CORVUS_HOST_PROVIDER": "codex",
+            "CORVUS_HOST_SESSION_ACTIVE": "true",
+        },
+        clear=False,
+    ):
+        bootstrap_module._BOOTSTRAPPED = False
+        bootstrap_module.SovereignBootstrap.execute()
+
+        assert os.environ["CODEX_SHELL"] == "1"
+        assert os.environ["CODEX_THREAD_ID"] == "thread-1"
+        assert os.environ["CORVUS_HOST_PROVIDER"] == "codex"
+        assert os.environ["CORVUS_HOST_SESSION_ACTIVE"] == "true"
+
 
 @pytest.mark.asyncio
-async def test_huginn_neural_audit_decoupled():
-    """
-    Scenario: Huginn routes neural audits through Uplink in Gemini Mode
-    """
-    from src.core.engine.wardens.huginn import HuginnWarden
-    
-    with patch.dict(os.environ, {"GEMINI_CLI_ACTIVE": "true"}):
-        with patch("src.cstar.core.uplink.AntigravityUplink.send_payload") as mock_send:
-            mock_send.return_value = {"status": "pending"}
-            
-            warden = HuginnWarden(project_root)
-            
-            # Create a dummy trace file
-            trace_dir = project_root / ".agents" / "traces"
-            trace_dir.mkdir(parents=True, exist_ok=True)
-            dummy_trace = trace_dir / "test_trace.md"
-            dummy_trace.write_text("Dummy trace content", encoding='utf-8')
-            
-            # WHEN: Neural audit is triggered
-            results = await warden._scan_neural_async(dummy_trace)
-            
-            # THEN: Uplink should have been called
-            mock_send.assert_called_once()
-            # AND: Results should be empty (pending)
-            assert results == []
+async def test_huginn_pending_bridge_response_returns_no_targets() -> None:
+    trace_dir = project_root / ".agents" / "traces"
+    trace_dir.mkdir(parents=True, exist_ok=True)
+    dummy_trace = trace_dir / "test_trace.md"
+    dummy_trace.write_text("Dummy trace content", encoding="utf-8")
 
-if __name__ == "__main__":
-    pytest.main([__file__])
+    try:
+        with patch("src.cstar.core.uplink.AntigravityUplink.send_payload", new_callable=AsyncMock) as mock_send:
+            mock_send.return_value = {"status": "pending"}
+            warden = HuginnWarden(project_root)
+            results = await warden._scan_neural_async(dummy_trace)
+
+            mock_send.assert_awaited_once()
+            assert results == []
+    finally:
+        dummy_trace.unlink(missing_ok=True)

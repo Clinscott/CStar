@@ -48,6 +48,16 @@ def is_host_session_active(env: dict[str, str] | None = None) -> bool:
     return detect_host_provider(current_env) is not None
 
 
+def is_interactive_host_session(env: dict[str, str] | None = None) -> bool:
+    current_env = env if env is not None else os.environ
+    provider = detect_host_provider(current_env)
+    if provider == "gemini":
+        return current_env.get("GEMINI_CLI_ACTIVE") == "true" or current_env.get("GEMINI_CLI") == "1"
+    if provider == "codex":
+        return current_env.get("CODEX_SHELL") == "1" or bool(current_env.get("CODEX_THREAD_ID"))
+    return False
+
+
 def resolve_host_provider(
     env: dict[str, str] | None = None,
     fallback: HostProvider = "gemini",

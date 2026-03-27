@@ -19,7 +19,6 @@ from src.core.host_session import (
     HostProvider,
     expand_host_bridge_args,
     get_host_bridge_configuration_hint,
-    is_host_session_active,
     resolve_configured_host_bridge,
     resolve_host_provider,
 )
@@ -31,6 +30,8 @@ from src.core.intelligence_contract import (
     build_intelligence_success,
     normalize_intelligence_request,
 )
+from src.core.one_mind_bridge import resolve_one_mind_decision
+from src.core.synapse_db import ensure_healthy_synapse_db
 
 OracleRunner = Callable[[int], Awaitable[None] | None]
 HostSessionRunner = Callable[[str, HostProvider], Awaitable[str] | str]
@@ -133,15 +134,13 @@ class MimirClient:
         return None
 
     def _resolve_transport_mode(self, request: IntelligenceRequest) -> str:
-        if request.transport_mode == "host_session":
-            return "host_session"
-        if request.transport_mode == "synapse_db":
-            return "synapse_db"
-
-        if self.host_session_active is not None:
-            return "host_session" if self.host_session_active else "synapse_db"
-
-        return "host_session" if is_host_session_active(self.env) else "synapse_db"
+        broker_active = self._read_hall_broker_active()
+        return resolve_one_mind_decision(
+            request,
+            self.env,
+            host_session_active=self.host_session_active,
+            broker_active=broker_active,
+        ).transport_mode
 
     async def _request_via_host_session(self, request: IntelligenceRequest) -> IntelligenceResponse:
         effective_prompt = build_effective_prompt(request)
@@ -160,9 +159,12 @@ class MimirClient:
     def _resolve_host_provider(self) -> HostProvider:
         if self.host_provider is not None:
             return self.host_provider
+        detected = resolve_host_provider(self.env)
+        if detected is not None:
+            return detected
         if self.host_session_active is True:
             return "gemini"
-        return resolve_host_provider(self.env) or "gemini"
+        return "gemini"
 
     async def _invoke_configured_host_bridge(self, prompt: str, provider: HostProvider) -> str | None:
         bridge = resolve_configured_host_bridge(provider, self.env)
@@ -294,6 +296,18 @@ class MimirClient:
                 await result
             return
 
+        decision = resolve_one_mind_decision(
+            IntelligenceRequest(
+                prompt="",
+                caller={"source": "python:mimir:oracle-check"},
+            ),
+            self.env,
+            host_session_active=self.host_session_active,
+            broker_active=self._read_hall_broker_active(),
+        )
+        if decision.reason == "interactive-host-session-bus" or self.env.get("CORVUS_SKIP_ORACLE_INVOKE") in {"true", "1"}:
+            return
+
         cstar_bin = self.project_root / "bin" / "cstar.js"
         node_cmd = "node.exe" if os.name == "nt" else "node"
         completed = await asyncio.to_thread(
@@ -311,19 +325,35 @@ class MimirClient:
             raise RuntimeError(stderr)
 
     def _ensure_db(self) -> None:
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        with sqlite3.connect(str(self.db_path)) as conn:
-            conn.execute(
-                """
-                CREATE TABLE IF NOT EXISTS synapse (
-                    id INTEGER PRIMARY KEY,
-                    prompt TEXT,
-                    response TEXT,
-                    status TEXT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        recovered, backup_path = ensure_healthy_synapse_db(self.db_path)
+        if recovered:
+            print(f"[MIMIR] Synapse DB was corrupt and has been rebuilt. Backup: {backup_path}")
+
+    def _read_hall_broker_active(self) -> bool:
+        hall_db_path = self.project_root / ".stats" / "pennyone.db"
+        if not hall_db_path.exists():
+            return False
+
+        repo_id = f"repo:{str(self.project_root).replace(chr(92), '/').rstrip('/')}"
+        try:
+            with sqlite3.connect(str(hall_db_path)) as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    """
+                    SELECT status, binding_state, fulfillment_ready
+                    FROM hall_one_mind_broker
+                    WHERE repo_id = ?
+                    LIMIT 1
+                    """,
+                    (repo_id,),
                 )
-                """
-            )
+                row = cursor.fetchone()
+                if not row:
+                    return False
+                status, binding_state, fulfillment_ready = row
+                return status == "READY" and binding_state == "BOUND" and int(fulfillment_ready or 0) == 1
+        except sqlite3.Error:
+            return False
 
     def _read_cached_response(self, prompt: str) -> str | None:
         with sqlite3.connect(str(self.db_path)) as conn:

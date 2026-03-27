@@ -1,22 +1,13 @@
 import { Command } from 'commander';
-import chalk from 'chalk';
 
+import { renderStandardCommandResult } from './command_context.js';
 import { RuntimeDispatcher } from  '../runtime/dispatcher.js';
-import { PennyOneWeavePayload, RuntimeDispatchPort, WeaveInvocation, WeaveResult } from  '../runtime/contracts.js';
+import { PennyOneWeavePayload, RuntimeDispatchPort, WeaveInvocation } from  '../runtime/contracts.js';
 import { resolveWorkspaceRoot, withCliWorkspaceTarget, type WorkspaceRootSource } from  '../runtime/invocation.js';
-
-export function renderResult(result: WeaveResult): void {
-    if (result.status === 'FAILURE') {
-        console.error(chalk.red(`\n[SYSTEM FAILURE]: ${result.error ?? 'Unknown runtime failure.'}`));
-        return;
-    }
-
-    const printer = result.status === 'TRANSITIONAL' ? chalk.yellow : chalk.green;
-    console.log(printer(`\n[ALFRED]: "${result.output}"`));
-}
 
 export function buildPennyOneInvocation(options: {
     scan?: string | boolean;
+    refreshIntents?: string | boolean;
     view?: boolean;
     clean?: boolean;
     stats?: boolean;
@@ -41,6 +32,16 @@ export function buildPennyOneInvocation(options: {
             weave_id: 'weave:pennyone',
             payload: {
                 action: 'topology',
+            },
+        }, workspaceRoot);
+    }
+
+    if (options.refreshIntents) {
+        return withCliWorkspaceTarget({
+            weave_id: 'weave:pennyone',
+            payload: {
+                action: 'refresh_intents',
+                path: typeof options.refreshIntents === 'string' ? options.refreshIntents : '.',
             },
         }, workspaceRoot);
     }
@@ -109,6 +110,7 @@ export function registerPennyOneCommand(
         .alias('p1')
         .description('Operation PennyOne: 3D Neural Matrix & Repository Stats')
         .option('-s, --scan [path]', 'Scan the repository for stats and Gungnir scores', '.')
+        .option('--refresh-intents [path]', 'Re-enrich Hall records that still carry the offline semantic-intent placeholder')
         .option('-v, --view', 'Spin up the 3D Gungnir Matrix visualization bridge')
         .option('-c, --clean', 'Purge the .stats/ directory and all archived sessions')
         .option('--stats', 'View long-term agent activity and logic loop analytics')
@@ -118,6 +120,7 @@ export function registerPennyOneCommand(
         .option('--topology', 'Render the current estate topology summary')
         .action(async (options: {
             scan?: string | boolean;
+            refreshIntents?: string | boolean;
             view?: boolean;
             clean?: boolean;
             stats?: boolean;
@@ -126,7 +129,8 @@ export function registerPennyOneCommand(
             slug?: string;
             topology?: boolean;
         }) => {
-            const result = await dispatchPort.dispatch(buildPennyOneInvocation(options, resolveWorkspaceRoot(workspaceRootSource)));
-            renderResult(result);
+            const workspaceRoot = resolveWorkspaceRoot(workspaceRootSource);
+            const result = await dispatchPort.dispatch(buildPennyOneInvocation(options, workspaceRoot));
+            renderStandardCommandResult(result, workspaceRoot);
         });
 }

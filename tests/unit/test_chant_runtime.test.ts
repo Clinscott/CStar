@@ -178,12 +178,12 @@ describe('Chant runtime remap (CS-P1-11)', () => {
         );
 
         assert.equal(result.status, 'TRANSITIONAL');
-        assert.equal(result.metadata?.planning_status, 'PROPOSAL_REVIEW');
+        assert.equal(result.metadata?.planning_status, 'RESEARCH_PHASE');
         assert.ok(typeof result.metadata?.planning_session_id === 'string');
 
         const session = getHallPlanningSession(String(result.metadata?.planning_session_id));
         assert.ok(session);
-        assert.equal(session?.status, 'PROPOSAL_REVIEW');
+        assert.equal(session?.status, 'RESEARCH_PHASE');
     });
 
     it('returns a structured missing capability envelope', async () => {
@@ -213,5 +213,98 @@ describe('Chant runtime remap (CS-P1-11)', () => {
         assert.equal(result.status, 'FAILURE');
         assert.match(result.error ?? '', /not installed/i);
         assert.equal(result.metadata?.resolution, 'missing_capability');
+    });
+
+    it('returns a policy-only envelope for direct spell execution requests', async () => {
+        fs.writeFileSync(
+            path.join(tmpRoot, '.agents', 'skill_registry.json'),
+            JSON.stringify({
+                entries: {
+                    silver_shield: {
+                        tier: 'SPELL',
+                        spell_classification: 'policy-only',
+                        host_support: {
+                            codex: 'policy-only',
+                        },
+                    },
+                },
+            }),
+            'utf-8',
+        );
+
+        const chant = new ChantWeave(new CaptureDispatchPort());
+        const result = await chant.execute(
+            {
+                weave_id: 'weave:chant',
+                payload: {
+                    query: 'use silver_shield',
+                    project_root: tmpRoot,
+                    cwd: tmpRoot,
+                    source: 'cli',
+                },
+                target: {
+                    domain: 'brain',
+                    workspace_root: tmpRoot,
+                    requested_path: tmpRoot,
+                },
+                session: {
+                    mode: 'cli',
+                    interactive: true,
+                },
+            },
+            createContext(tmpRoot),
+        );
+
+        assert.equal(result.status, 'FAILURE');
+        assert.equal(result.metadata?.resolution, 'policy_only');
+        assert.equal(result.metadata?.spell_classification, 'policy-only');
+    });
+
+    it('returns an unsupported-host envelope sourced from registry metadata', async () => {
+        fs.writeFileSync(
+            path.join(tmpRoot, '.agents', 'skill_registry.json'),
+            JSON.stringify({
+                entries: {
+                    hall: {
+                        tier: 'PRIME',
+                        execution: { mode: 'agent-native', cli: 'cstar hall' },
+                        host_support: {
+                            codex: 'unsupported',
+                        },
+                    },
+                },
+            }),
+            'utf-8',
+        );
+
+        const chant = new ChantWeave(new CaptureDispatchPort());
+        const context = createContext(tmpRoot);
+        context.env = { CODEX_SHELL: '1', CODEX_THREAD_ID: 'thread-chant' };
+
+        const result = await chant.execute(
+            {
+                weave_id: 'weave:chant',
+                payload: {
+                    query: 'use hall',
+                    project_root: tmpRoot,
+                    cwd: tmpRoot,
+                    source: 'cli',
+                },
+                target: {
+                    domain: 'brain',
+                    workspace_root: tmpRoot,
+                    requested_path: tmpRoot,
+                },
+                session: {
+                    mode: 'cli',
+                    interactive: true,
+                },
+            },
+            context,
+        );
+
+        assert.equal(result.status, 'FAILURE');
+        assert.equal(result.metadata?.resolution, 'unsupported_host');
+        assert.equal(result.metadata?.host_support_status, 'unsupported');
     });
 });

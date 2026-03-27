@@ -100,6 +100,44 @@ describe('Operator TUI shell (CS-P7-02)', () => {
                     latest_question: 'Which repo, spoke, bead, or file should this plan target?',
                     created_at: 1700000000000,
                     updated_at: 1700000000001,
+                    metadata: {
+                        trace_id: 'TRACE-PLAN-1',
+                        branch_ledger_digest: {
+                            trace_id: 'TRACE-PLAN-1',
+                            total_branches: 3,
+                            group_count: 2,
+                            branch_kinds: ['research', 'critique'],
+                            artifacts: ['src/runtime.ts'],
+                            groups: [
+                                {
+                                    branch_group_id: 'research:TRACE-PLAN-1',
+                                    source_weave: 'weave:research',
+                                    branch_kind: 'research',
+                                    provider: 'codex',
+                                    branch_count: 2,
+                                    branch_labels: ['layout', 'tests'],
+                                    summary: 'Research stayed bounded.',
+                                    artifacts: ['src/runtime.ts'],
+                                    needs_revision: false,
+                                    evidence_sources: [],
+                                    proposed_paths: [],
+                                },
+                                {
+                                    branch_group_id: 'critique:TRACE-PLAN-1',
+                                    source_weave: 'weave:critique',
+                                    branch_kind: 'critique',
+                                    provider: 'codex',
+                                    branch_count: 1,
+                                    branch_labels: ['validation'],
+                                    summary: 'Validation path needs tightening.',
+                                    artifacts: [],
+                                    needs_revision: true,
+                                    evidence_sources: ['repo:validation'],
+                                    proposed_paths: ['src/runtime.ts'],
+                                },
+                            ],
+                        },
+                    },
                 },
             ],
             proposals: [
@@ -128,6 +166,8 @@ describe('Operator TUI shell (CS-P7-02)', () => {
         assert.match(rendered, /INTENT LANE/i);
         assert.match(rendered, /OPEN BEADS/i);
         assert.match(rendered, /PLAN 1/i);
+        assert.match(rendered, /TRACE-PLAN-1/);
+        assert.match(rendered, /R=2 C=1 REV=1 A=1/);
         assert.match(rendered, /PROPOSAL 1/i);
         assert.match(rendered, /EVENT 1/i);
     });

@@ -1,5 +1,6 @@
 import { getDb } from  '../../../tools/pennyone/intel/database.js';
 import { Command } from 'commander';
+import { renderStandardCommandResult } from './command_context.js';
 import { RuntimeDispatcher } from  '../runtime/dispatcher.js';
 import {
     AutobotWeavePayload,
@@ -441,8 +442,8 @@ export function registerDispatcher(
             process.exit(1);
         }
 
-        if (result.weave_id !== 'weave:dynamic-command' && result.output) {
-            console.log(result.output);
+        if (result.weave_id !== 'weave:dynamic-command') {
+            renderStandardCommandResult(result, projectRoot);
         }
     });
 }

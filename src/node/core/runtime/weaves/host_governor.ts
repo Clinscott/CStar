@@ -5,6 +5,7 @@ import path from 'node:path';
 
 import {
     getHallBeads,
+    getHallBeadsByStatus,
     getDb,
     getHallPlanningSession,
     listHallSkillProposals,
@@ -12,11 +13,14 @@ import {
     saveHallSkillObservation,
     saveHallPlanningSession,
     saveHallSkillProposal,
+    summarizeHallOneMindBranches,
 } from '../../../../tools/pennyone/intel/database.ts';
 import { buildHallRepositoryId, normalizeHallPath } from  '../../../../types/hall.js';
 import type { SovereignBead } from  '../../../../types/bead.js';
-import type { HallPlanningSessionStatus } from  '../../../../types/hall.js';
+import type { HallOneMindBranchDigest, HallPlanningSessionRecord, HallPlanningSessionStatus } from  '../../../../types/hall.js';
 import {
+    HostGovernorDecision,
+    HostGovernorPolicy,
     HostGovernorWeavePayload,
     OrchestrateWeavePayload,
     RuntimeAdapter,
@@ -26,15 +30,9 @@ import {
     WeaveResult,
 } from '../contracts.ts';
 import type { ChantWeavePayload } from  '../contracts.js';
+import { resolveHostGovernorPolicy } from  '../host_governor_policy.js';
 import type { HostProvider } from  '../../../../core/host_session.js';
 import { defaultHostTextInvoker, extractJsonObject, resolveRuntimeHostProvider, type HostTextInvoker } from  './host_bridge.js';
-
-interface HostGovernorDecision {
-    approved_bead_ids?: unknown;
-    deferred_bead_ids?: unknown;
-    reason_code?: unknown;
-    notes?: unknown;
-}
 
 interface ReplanResult {
     invoked: boolean;
@@ -66,13 +64,6 @@ const ACTIVE_PLANNING_STATUSES: HallPlanningSessionStatus[] = [
     'PLAN_READY',
     'ROUTED',
 ];
-const LOCAL_WORKER_MAX_TOTAL_TARGETS = 2;
-const LOCAL_WORKER_MAX_IMPLEMENTATION_TARGETS = 1;
-const LOCAL_WORKER_MAX_ACCEPTANCE_ITEMS = 3;
-const LOCAL_WORKER_MAX_ACCEPTANCE_ITEM_LENGTH = 220;
-const LOCAL_WORKER_MAX_IMPLEMENTATION_LINES = 400;
-const LOCAL_WORKER_MAX_TOTAL_TARGET_LINES = 700;
-
 function asStringArray(value: unknown): string[] {
     if (!Array.isArray(value)) {
         return [];
@@ -126,11 +117,11 @@ function getAcceptanceCriteriaItems(bead: SovereignBead): string[] {
         .filter(Boolean);
 }
 
-function hasConciseAcceptanceCriteria(bead: SovereignBead): boolean {
+function hasConciseAcceptanceCriteria(bead: SovereignBead, policy: HostGovernorPolicy): boolean {
     const items = getAcceptanceCriteriaItems(bead);
     return items.length > 0
-        && items.length <= LOCAL_WORKER_MAX_ACCEPTANCE_ITEMS
-        && items.every((item) => item.length <= LOCAL_WORKER_MAX_ACCEPTANCE_ITEM_LENGTH);
+        && items.length <= policy.max_acceptance_items
+        && items.every((item) => item.length <= policy.max_acceptance_item_length);
 }
 
 function resolveTargetFilePath(projectRoot: string, target: string): string | null {
@@ -166,7 +157,7 @@ function readTargetLineCount(projectRoot: string, target: string): number | null
     }
 }
 
-function fitsLocalWorkerFileBudget(projectRoot: string, targets: string[]): boolean {
+function fitsLocalWorkerFileBudget(projectRoot: string, targets: string[], policy: HostGovernorPolicy): boolean {
     let totalLines = 0;
 
     for (const target of targets) {
@@ -176,23 +167,23 @@ function fitsLocalWorkerFileBudget(projectRoot: string, targets: string[]): bool
         }
 
         totalLines += lineCount;
-        if (!isVerificationOrDocumentationTarget(target) && lineCount > LOCAL_WORKER_MAX_IMPLEMENTATION_LINES) {
+        if (!isVerificationOrDocumentationTarget(target) && lineCount > policy.max_implementation_lines) {
             return false;
         }
     }
 
-    return totalLines === 0 || totalLines <= LOCAL_WORKER_MAX_TOTAL_TARGET_LINES;
+    return totalLines === 0 || totalLines <= policy.max_total_target_lines;
 }
 
-function isBoundedBead(projectRoot: string, bead: SovereignBead): boolean {
+function isBoundedBead(projectRoot: string, bead: SovereignBead, policy: HostGovernorPolicy): boolean {
     const targets = getBeadTargets(bead);
-    if (targets.length === 0 || targets.length > LOCAL_WORKER_MAX_TOTAL_TARGETS) {
+    if (targets.length === 0 || targets.length > policy.max_total_targets) {
         return false;
     }
 
     const implementationTargets = targets.filter((target) => !isVerificationOrDocumentationTarget(target));
-    return implementationTargets.length === LOCAL_WORKER_MAX_IMPLEMENTATION_TARGETS
-        && hasConciseAcceptanceCriteria(bead);
+    return implementationTargets.length === policy.max_implementation_targets
+        && hasConciseAcceptanceCriteria(bead, policy);
 }
 
 function extractCheckerCommand(checkerShell: string): string | null {
@@ -235,7 +226,7 @@ function hasGovernableValidation(bead: SovereignBead, projectRoot: string): bool
     return isCommandAvailable(checkerCommand, projectRoot);
 }
 
-function summarizeCandidates(projectRoot: string, beads: SovereignBead[]): Array<Record<string, unknown>> {
+function summarizeCandidates(projectRoot: string, beads: SovereignBead[], policy: HostGovernorPolicy): Array<Record<string, unknown>> {
     return beads.map((bead) => ({
         bead_id: bead.id,
         target_path: bead.target_path ?? bead.target_ref ?? null,
@@ -247,11 +238,11 @@ function summarizeCandidates(projectRoot: string, beads: SovereignBead[]): Array
         contract_refs: bead.contract_refs,
         source_kind: bead.source_kind ?? null,
         acceptance_criteria_items: getAcceptanceCriteriaItems(bead),
-        bounded: isBoundedBead(projectRoot, bead),
+        bounded: isBoundedBead(projectRoot, bead, policy),
     }));
 }
 
-function summarizeTargetFileBudgets(projectRoot: string, bead: SovereignBead): Array<Record<string, unknown>> {
+function summarizeTargetFileBudgets(projectRoot: string, bead: SovereignBead, policy: HostGovernorPolicy): Array<Record<string, unknown>> {
     return getBeadTargets(bead).map((target) => {
         const lineCount = readTargetLineCount(projectRoot, target);
         return {
@@ -261,13 +252,13 @@ function summarizeTargetFileBudgets(projectRoot: string, bead: SovereignBead): A
             local_worker_fit: lineCount === null
                 ? null
                 : (isVerificationOrDocumentationTarget(target)
-                    ? lineCount <= LOCAL_WORKER_MAX_TOTAL_TARGET_LINES
-                    : lineCount <= LOCAL_WORKER_MAX_IMPLEMENTATION_LINES),
+                    ? lineCount <= policy.max_total_target_lines
+                    : lineCount <= policy.max_implementation_lines),
         };
     });
 }
 
-function summarizeBlockedBeads(projectRoot: string, beads: SovereignBead[]): Array<Record<string, unknown>> {
+function summarizeBlockedBeads(projectRoot: string, beads: SovereignBead[], policy: HostGovernorPolicy): Array<Record<string, unknown>> {
     return beads.map((bead) => ({
         bead_id: bead.id,
         status: bead.status,
@@ -278,7 +269,7 @@ function summarizeBlockedBeads(projectRoot: string, beads: SovereignBead[]): Arr
         acceptance_criteria: bead.acceptance_criteria ?? null,
         checker_shell: bead.checker_shell ?? null,
         architect_opinion: bead.architect_opinion ?? null,
-        target_file_budgets: summarizeTargetFileBudgets(projectRoot, bead),
+        target_file_budgets: summarizeTargetFileBudgets(projectRoot, bead, policy),
     }));
 }
 
@@ -290,18 +281,18 @@ function getPromotionLimit(payload: HostGovernorWeavePayload): number {
     return Math.max(1, payload.max_promotions ?? 5);
 }
 
-function buildBlockedBeadReplanQuery(projectRoot: string, beads: SovereignBead[]): string {
+function buildBlockedBeadReplanQuery(projectRoot: string, beads: SovereignBead[], policy: HostGovernorPolicy): string {
     return [
         'Replan blocked Hall beads.',
         'Take a big step back and reassess using first principles.',
         'The following beads are BLOCKED or NEEDS_TRIAGE and require a revised plan.',
         'Produce micro-beads for the local SovereignWorker: exactly 1 implementation target, optionally 1 supporting verification/docs target, exactly 1 checker path, and concise acceptance criteria.',
-        `If target_file_budgets show an implementation file above ${LOCAL_WORKER_MAX_IMPLEMENTATION_LINES} lines or a combined surface above ${LOCAL_WORKER_MAX_TOTAL_TARGET_LINES} lines, do not target the whole file again.`,
+        `If target_file_budgets show an implementation file above ${policy.max_implementation_lines} lines or a combined surface above ${policy.max_total_target_lines} lines, do not target the whole file again.`,
         'For oversized or cross-cutting files, split by named function or focused section and repeat that scope explicitly in focus_hint, title, and rationale.',
         'Do not rely on inferred imports or dependencies that are not directly verifiable from the named targets.',
         'Keep the new plan aligned with the CStar framework and the One Mind governance policy.',
         '',
-        `BLOCKED_BEADS:\n${JSON.stringify(summarizeBlockedBeads(projectRoot, beads), null, 2)}`,
+        `BLOCKED_BEADS:\n${JSON.stringify(summarizeBlockedBeads(projectRoot, beads, policy), null, 2)}`,
     ].join('\n');
 }
 
@@ -341,9 +332,41 @@ function getPlanningSessionBeadIds(projectRoot: string, planningSessionId: strin
     );
 }
 
+function getPlanningSessionBranchDigest(projectRoot: string, session: HallPlanningSessionRecord | null): HallOneMindBranchDigest | undefined {
+    const metadataDigest = session?.metadata?.branch_ledger_digest;
+    if (metadataDigest && typeof metadataDigest === 'object' && !Array.isArray(metadataDigest)) {
+        const digest = metadataDigest as HallOneMindBranchDigest;
+        if (Array.isArray(digest.groups) && typeof digest.total_branches === 'number') {
+            return digest;
+        }
+    }
+
+    const traceId = typeof session?.metadata?.trace_id === 'string' && session.metadata.trace_id.trim()
+        ? session.metadata.trace_id.trim()
+        : undefined;
+    if (!traceId) {
+        return undefined;
+    }
+    return summarizeHallOneMindBranches(projectRoot, {
+        traceId,
+        maxGroups: 4,
+        maxArtifacts: 6,
+    }) ?? undefined;
+}
+
+function getProjectBeads(projectRoot: string, statuses?: HallPlanningSessionStatus[] | string[]): SovereignBead[] {
+    const repoId = buildHallRepositoryId(normalizeHallPath(projectRoot));
+    if (!statuses || statuses.length === 0) {
+        return getHallBeads(repoId);
+    }
+
+    return uniqueStrings(statuses).flatMap((status) => getHallBeadsByStatus(repoId, status as SovereignBead['status']));
+}
+
 function collectGovernableCandidates(
     projectRoot: string,
     limit: number,
+    policy: HostGovernorPolicy,
     options: {
         beadIds?: string[];
         excludeBeadIds?: string[];
@@ -352,8 +375,8 @@ function collectGovernableCandidates(
     const beadIdFilter = options.beadIds ? new Set(options.beadIds) : null;
     const excludedIds = new Set(options.excludeBeadIds ?? []);
 
-    return getHallBeads(projectRoot, ['OPEN', 'SET-PENDING'])
-        .filter((bead) => hasGovernableValidation(bead, projectRoot) && isBoundedBead(projectRoot, bead))
+    return getProjectBeads(projectRoot, ['OPEN', 'SET-PENDING'])
+        .filter((bead) => hasGovernableValidation(bead, projectRoot) && isBoundedBead(projectRoot, bead, policy))
         .filter((bead) => !beadIdFilter || beadIdFilter.has(bead.id))
         .filter((bead) => !excludedIds.has(bead.id))
         .slice(0, limit);
@@ -363,6 +386,19 @@ function normalizeApprovedIds(
     decision: HostGovernorDecision,
     candidates: SovereignBead[],
 ): { approved: string[]; deferred: string[]; reasonCode?: string; notes?: string } {
+    if (decision.approved_bead_ids !== undefined && !Array.isArray(decision.approved_bead_ids)) {
+        throw new Error('Host governor response approved_bead_ids must be an array of strings.');
+    }
+    if (decision.deferred_bead_ids !== undefined && !Array.isArray(decision.deferred_bead_ids)) {
+        throw new Error('Host governor response deferred_bead_ids must be an array of strings.');
+    }
+    if (decision.reason_code !== undefined && typeof decision.reason_code !== 'string') {
+        throw new Error('Host governor response reason_code must be a string when provided.');
+    }
+    if (decision.notes !== undefined && typeof decision.notes !== 'string') {
+        throw new Error('Host governor response notes must be a string when provided.');
+    }
+
     const candidateIds = new Set(candidates.map((bead) => bead.id));
     const approved = asStringArray(decision.approved_bead_ids).filter((beadId) => candidateIds.has(beadId));
     const deferred = asStringArray(decision.deferred_bead_ids).filter((beadId) => candidateIds.has(beadId));
@@ -397,10 +433,13 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
         provider: HostProvider,
         projectRoot: string,
         payload: HostGovernorWeavePayload,
+        policy: HostGovernorPolicy,
         env: NodeJS.ProcessEnv,
         source: GovernancePassResult['source'],
         planningSessionId?: string,
     ): Promise<GovernancePassResult> {
+        const planningSession = planningSessionId ? getHallPlanningSession(planningSessionId) : null;
+        const branchDigest = planningSession ? getPlanningSessionBranchDigest(projectRoot, planningSession) : undefined;
         const rawText = await this.hostTextInvoker({
             provider,
             projectRoot,
@@ -411,7 +450,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
                 'Take a big step back and reassess using first principles.',
                 'Review the candidate Hall beads and decide which may be promoted to SET now.',
                 'Approve only beads that are aligned with the CStar framework, micro-bounded for the local SovereignWorker, and backed by explicit checker_shell validation.',
-                'Micro-bounded means: exactly 1 implementation target outside tests/docs, optionally 1 supporting verification/docs target, and concise acceptance criteria.',
+                `Micro-bounded means: at most ${policy.max_total_targets} total target(s), exactly ${policy.max_implementation_targets} implementation target(s) outside tests/docs, and concise acceptance criteria capped at ${policy.max_acceptance_items} item(s).`,
                 'Defer anything ambiguous, architectural, cross-cutting, or weakly specified.',
                 'Return strict JSON only in this format:',
                 '{ "approved_bead_ids": ["..."], "deferred_bead_ids": ["..."], "reason_code": "...", "notes": "..." }',
@@ -422,8 +461,10 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
                 `WORKSPACE ROOT: ${projectRoot}`,
                 `CANDIDATE SOURCE: ${source === 'replan' ? 'fresh chant replan' : 'existing hall backlog'}`,
                 planningSessionId ? `PLANNING SESSION: ${planningSessionId}` : '',
+                branchDigest ? `PLANNING BRANCH DIGEST:\n${JSON.stringify(branchDigest, null, 2)}` : '',
                 '',
-                `CANDIDATES:\n${JSON.stringify(summarizeCandidates(projectRoot, candidates), null, 2)}`,
+                `POLICY:\n${JSON.stringify(policy, null, 2)}`,
+                `CANDIDATES:\n${JSON.stringify(summarizeCandidates(projectRoot, candidates, policy), null, 2)}`,
             ].filter(Boolean).join('\n'),
         });
 
@@ -431,7 +472,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
         const now = Date.now();
 
         if (!payload.dry_run) {
-            this.updateBeadStatusAndMetadata(projectRoot, decision.approved, decision.deferred, decision.reasonCode, now, planningSessionId);
+            this.updateBeadStatusAndMetadata(projectRoot, decision.approved, decision.deferred, policy, decision.reasonCode, now, planningSessionId);
         }
 
         return {
@@ -449,13 +490,14 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
         projectRoot: string,
         approvedBeadIds: string[],
         deferredBeadIds: string[],
+        policy: HostGovernorPolicy,
         reasonCode: string | undefined,
         updatedAt: number,
         planningSessionId?: string,
     ): void {
         const repoId = buildHallRepositoryId(normalizeHallPath(projectRoot));
         const db = getDb();
-        const beads = getHallBeads(projectRoot);
+        const beads = getProjectBeads(projectRoot);
 
         if (approvedBeadIds.length > 0) {
             const promoteBead = db.prepare(`
@@ -471,7 +513,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
                 let agent = 'SOVEREIGN-WORKER';
                 if (bead) {
                     const targets = getBeadTargets(bead);
-                    if (!fitsLocalWorkerFileBudget(projectRoot, targets)) {
+                    if (!fitsLocalWorkerFileBudget(projectRoot, targets, policy)) {
                         agent = 'HOST-WORKER';
                     }
                 }
@@ -513,6 +555,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
         invocation: WeaveInvocation<HostGovernorWeavePayload>,
         payload: HostGovernorWeavePayload,
         projectRoot: string,
+        policy: HostGovernorPolicy,
     ): Promise<ReplanResult> {
         const beadIds = blockedBeads.map((bead) => bead.id);
         if (beadIds.length === 0) {
@@ -528,7 +571,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
         const chantResult = await this.dispatchPort.dispatch<ChantWeavePayload>({
             weave_id: 'weave:chant',
             payload: {
-                query: buildBlockedBeadReplanQuery(projectRoot, beadsToReplan),
+                query: buildBlockedBeadReplanQuery(projectRoot, beadsToReplan, policy),
                 project_root: projectRoot,
                 cwd: payload.cwd ?? projectRoot,
                 source: 'cli',
@@ -577,6 +620,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
         provider: HostProvider,
         projectRoot: string,
         payload: HostGovernorWeavePayload,
+        policy: HostGovernorPolicy,
         env: NodeJS.ProcessEnv,
         promotedCount: number,
         excludedBeadIds: string[],
@@ -586,7 +630,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
             return null;
         }
 
-        const candidates = collectGovernableCandidates(projectRoot, limit, {
+        const candidates = collectGovernableCandidates(projectRoot, limit, policy, {
             beadIds: getPlanningSessionBeadIds(projectRoot, planningSessionId),
             excludeBeadIds: excludedBeadIds,
         });
@@ -594,7 +638,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
             return null;
         }
 
-        return await this.evaluateCandidates(candidates, provider, projectRoot, payload, env, 'replan', planningSessionId);
+        return await this.evaluateCandidates(candidates, provider, projectRoot, payload, policy, env, 'replan', planningSessionId);
     }
 
     public async execute(
@@ -604,6 +648,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
         const payload = invocation.payload;
         const projectRoot = payload.project_root || context.workspace_root;
         const provider = resolveRuntimeHostProvider(context);
+        const policy = resolveHostGovernorPolicy(payload.policy);
 
         if (!provider) {
             return {
@@ -616,7 +661,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
 
         const promotionLimit = getPromotionLimit(payload);
         const runtimeEnv = { ...process.env, ...context.env } as NodeJS.ProcessEnv;
-        const initialCandidates = collectGovernableCandidates(projectRoot, promotionLimit);
+        const initialCandidates = collectGovernableCandidates(projectRoot, promotionLimit, policy);
         const governancePasses: GovernancePassResult[] = [];
         const repoId = buildHallRepositoryId(normalizeHallPath(projectRoot));
         const orchestrateResults: WeaveResult[] = [];
@@ -625,10 +670,11 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
         if (initialCandidates.length === 0) {
             replanResult = !payload.dry_run && payload.auto_replan_blocked !== false
                 ? await this.triggerBlockedBeadReplan(
-                    getHallBeads(projectRoot, ['BLOCKED', 'NEEDS_TRIAGE']),
+                    getProjectBeads(projectRoot, ['BLOCKED', 'NEEDS_TRIAGE']),
                     invocation,
                     payload,
                     projectRoot,
+                    policy,
                 )
                 : { invoked: false, beadIds: [] } satisfies ReplanResult;
 
@@ -639,6 +685,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
                         provider,
                         projectRoot,
                         payload,
+                        policy,
                         runtimeEnv,
                         0,
                         [],
@@ -655,6 +702,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
                         error: `Host governor could not complete its governance pass for replanned beads: ${message}`,
                         metadata: {
                             provider,
+                            policy,
                             replanned_bead_ids: replanResult.beadIds,
                             replan_planning_session_id: replanResult.planningSessionId,
                             replan_planning_status: replanResult.planningStatus,
@@ -741,6 +789,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
                         total_candidates: governancePasses.reduce((sum, pass) => sum + pass.candidateBeadIds.length, 0),
                         provider,
                         notes: noteText,
+                        policy,
                         delegated_orchestrate: orchestrateResults.length > 0,
                         orchestrate_status: orchestrateResults.at(-1)?.status,
                         replanned_bead_ids: replanResult.beadIds,
@@ -764,6 +813,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
                     deferred_bead_ids: [],
                     total_candidates: 0,
                     provider,
+                    policy,
                     replanned_bead_ids: replanResult.beadIds,
                     replan_planning_session_id: replanResult.planningSessionId,
                     replan_planning_status: replanResult.planningStatus,
@@ -773,7 +823,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
 
         let existingPass: GovernancePassResult;
         try {
-            existingPass = await this.evaluateCandidates(initialCandidates, provider, projectRoot, payload, runtimeEnv, 'existing');
+            existingPass = await this.evaluateCandidates(initialCandidates, provider, projectRoot, payload, policy, runtimeEnv, 'existing');
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             return {
@@ -815,13 +865,13 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
             }
 
             if (payload.auto_replan_blocked !== false) {
-                const blockedBeads = getHallBeads(projectRoot, ['BLOCKED', 'NEEDS_TRIAGE'])
+                const blockedBeads = getProjectBeads(projectRoot, ['BLOCKED', 'NEEDS_TRIAGE'])
                     .filter((bead) => existingPass.promotedBeadIds.includes(bead.id));
-                replanResult = await this.triggerBlockedBeadReplan(blockedBeads, invocation, payload, projectRoot);
+                replanResult = await this.triggerBlockedBeadReplan(blockedBeads, invocation, payload, projectRoot, policy);
             }
         } else if (!payload.dry_run && payload.auto_replan_blocked !== false) {
-            const blockedBeads = getHallBeads(projectRoot, ['BLOCKED', 'NEEDS_TRIAGE']);
-            replanResult = await this.triggerBlockedBeadReplan(blockedBeads, invocation, payload, projectRoot);
+            const blockedBeads = getProjectBeads(projectRoot, ['BLOCKED', 'NEEDS_TRIAGE']);
+            replanResult = await this.triggerBlockedBeadReplan(blockedBeads, invocation, payload, projectRoot, policy);
         }
 
         if (replanResult.planningSessionId) {
@@ -831,6 +881,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
                     provider,
                     projectRoot,
                     payload,
+                    policy,
                     runtimeEnv,
                     uniqueStrings(governancePasses.flatMap((pass) => pass.promotedBeadIds)).length,
                     uniqueStrings(governancePasses.flatMap((pass) => pass.candidateBeadIds)),
@@ -878,6 +929,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
                     output: '',
                     error: `Host governor could not complete its governance pass for replanned beads: ${message}`,
                     metadata: {
+                        context_policy: 'project',
                         promoted_bead_ids: uniqueStrings(governancePasses.flatMap((pass) => pass.promotedBeadIds)),
                         deferred_bead_ids: uniqueStrings(governancePasses.flatMap((pass) => pass.deferredBeadIds)),
                         provider,
@@ -911,6 +963,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
                 deferred_bead_ids: deferred,
                 notes: noteText,
                 passes: governancePasses,
+                policy,
             },
         });
 
@@ -931,11 +984,13 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
             status: 'SUCCESS',
             output: summaryParts.join(' '),
             metadata: {
+                context_policy: 'project',
                 promoted_bead_ids: promoted,
                 deferred_bead_ids: deferred,
                 total_candidates: governancePasses.reduce((sum, pass) => sum + pass.candidateBeadIds.length, 0),
                 provider,
                 notes: noteText,
+                policy,
                 delegated_orchestrate: orchestrateResults.length > 0,
                 orchestrate_status: orchestrateResults.at(-1)?.status,
                 replanned_bead_ids: replanResult.beadIds,

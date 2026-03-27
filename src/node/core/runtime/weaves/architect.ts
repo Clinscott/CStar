@@ -1,4 +1,7 @@
 import {
+    ArchitectProposalHostResponse,
+    ArchitectReviewHostResponse,
+    ArchitectWeavePayload,
     RuntimeAdapter,
     RuntimeContext,
     RuntimeDispatchPort,
@@ -15,15 +18,49 @@ export const deps = {
     ...Object.assign({}, hostBridge),
 };
 
-export interface ArchitectWeavePayload {
-    action?: 'build_proposal' | 'review_critique';
-    intent?: string;
-    research?: Record<string, unknown>;
-    bead?: Record<string, unknown>;
-    critique_payload?: Record<string, unknown>;
-    context?: string;
-    project_root?: string;
-    cwd: string;
+function normalizeProposalResponse(parsed: ArchitectProposalHostResponse): { proposalSummary: string; beads: Record<string, unknown>[] } {
+    const proposalSummary = typeof parsed.proposal_summary === 'string' ? parsed.proposal_summary.trim() : '';
+    if (!proposalSummary) {
+        throw new Error('Architect proposal response must include a non-empty proposal_summary string.');
+    }
+
+    if (!Array.isArray(parsed.beads)) {
+        throw new Error('Architect proposal response must include a beads array.');
+    }
+
+    const beads = parsed.beads.filter(
+        (bead): bead is Record<string, unknown> => typeof bead === 'object' && bead !== null && !Array.isArray(bead),
+    );
+    if (beads.length !== parsed.beads.length) {
+        throw new Error('Architect proposal response beads must be objects.');
+    }
+
+    return { proposalSummary, beads };
+}
+
+function normalizeReviewResponse(parsed: ArchitectReviewHostResponse): {
+    isApproved: boolean;
+    architectOpinion: string;
+    finalProposedPath?: string;
+} {
+    if (typeof parsed.is_approved !== 'boolean') {
+        throw new Error('Architect review response must include an is_approved boolean.');
+    }
+
+    const architectOpinion = typeof parsed.architect_opinion === 'string' ? parsed.architect_opinion.trim() : '';
+    if (!architectOpinion) {
+        throw new Error('Architect review response must include a non-empty architect_opinion string.');
+    }
+
+    const finalProposedPath = typeof parsed.final_proposed_path === 'string' && parsed.final_proposed_path.trim()
+        ? parsed.final_proposed_path.trim()
+        : undefined;
+
+    return {
+        isApproved: parsed.is_approved,
+        architectOpinion,
+        finalProposedPath,
+    };
 }
 
 export class ArchitectWeave implements RuntimeAdapter<ArchitectWeavePayload> {
@@ -59,15 +96,20 @@ export class ArchitectWeave implements RuntimeAdapter<ArchitectWeavePayload> {
                             `RESEARCH: ${JSON.stringify(payload.research, null, 2)}`,
                         ].join('\n'),
                     });
-                    const parsed = deps.extractJsonObject(rawText);
+                    const parsed = deps.extractJsonObject(rawText) as ArchitectProposalHostResponse;
+                    const normalized = normalizeProposalResponse(parsed);
                     return {
                         weave_id: this.id,
                         status: 'SUCCESS',
-                        output: parsed.proposal_summary || 'Proposal synthesized.',
+                        output: normalized.proposalSummary,
                         metadata: {
                             delegated: true,
                             provider,
-                            architect_proposal: parsed,
+                            architect_proposal: {
+                                ...parsed,
+                                proposal_summary: normalized.proposalSummary,
+                                beads: normalized.beads,
+                            },
                         },
                     };
                 } catch (error) {
@@ -99,15 +141,21 @@ export class ArchitectWeave implements RuntimeAdapter<ArchitectWeavePayload> {
                             `SUB-AGENT CRITIQUE:\n${JSON.stringify(payload.critique_payload, null, 2)}`,
                         ].join('\n'),
                     });
-                    const parsed = deps.extractJsonObject(rawText);
+                    const parsed = deps.extractJsonObject(rawText) as ArchitectReviewHostResponse;
+                    const normalized = normalizeReviewResponse(parsed);
                     return {
                         weave_id: this.id,
                         status: 'SUCCESS',
-                        output: parsed.architect_opinion || 'Architect review complete.',
+                        output: normalized.architectOpinion,
                         metadata: {
                             delegated: true,
                             provider,
-                            architect_payload: parsed,
+                            architect_payload: {
+                                ...parsed,
+                                is_approved: normalized.isApproved,
+                                architect_opinion: normalized.architectOpinion,
+                                final_proposed_path: normalized.finalProposedPath,
+                            },
                         },
                     };
                 } catch (error) {

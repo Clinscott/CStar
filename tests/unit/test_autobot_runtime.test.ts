@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
 import type { RuntimeContext } from  '../../src/node/core/runtime/contracts.js';
-import { RUNTIME_KERNEL_ROOT } from  '../../src/node/core/runtime/kernel_root.js';
+import { RUNTIME_KERNEL_ROOT } from  '../../src/node/core/runtime/kernel_root.ts';
 import { AutoBotWeave } from  '../../src/node/core/runtime/weaves/autobot.js';
 
 type RunnerCall = {
@@ -68,13 +68,16 @@ describe('AutoBot runtime weave', () => {
         );
 
         assert.equal(result.status, 'SUCCESS');
+        assert.equal(result.metadata?.context_policy, 'project');
         assert.equal(result.metadata?.outcome, 'READY_FOR_REVIEW');
         assert.equal(calls.length, 1);
         assert.match(calls[0]?.command ?? '', /python/i);
         assert.ok(calls[0]?.args.includes('--bead-id'));
         assert.ok(calls[0]?.args.includes('bead-1'));
         assert.ok(calls[0]?.args.includes('--checker-shell'));
-        assert.ok(calls[0]?.args.includes('echo PASS'));
+        const checkerShellIndex = calls[0]?.args.indexOf('--checker-shell') ?? -1;
+        const checkerShell = checkerShellIndex >= 0 ? calls[0]?.args[checkerShellIndex + 1] : '';
+        assert.match(checkerShell ?? '', /echo PASS/);
         assert.ok(calls[0]?.args.includes('--worker-note'));
         assert.ok(calls[0]?.args.includes('Immediate bead brief from chant.'));
         assert.ok(calls[0]?.args.includes('--project-root'));

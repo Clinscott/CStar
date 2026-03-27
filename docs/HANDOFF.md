@@ -11,11 +11,12 @@ If you have just awakened in this repository, follow these steps in order:
 1.  **READ `AGENTS.qmd`**: This is the Supreme Directive. It defines your hierarchy of power (Skills, Weaves, Spells).
 2.  **READ `THE_PACT.qmd`**: This defines your persona and synergy protocol.
 3.  **EXECUTE `cstar status`**: This synchronizes your internal state with the physical estate.
+4.  **TREAT PROSE AS DESCRIPTIVE**: If a document disagrees with `.agents/skill_registry.json` or runtime contracts, the registry/runtime wins.
 
 ---
 
 ## 🛠️ THE API HIERARCHY
-The framework is organized into three tiers of capability. To fulfill any prompt, perform a **Trace Selection** to find the most efficient tier:
+The framework uses three primary execution tiers plus one governance tier. To fulfill any prompt, perform a **Trace Selection** and then verify the registry classification before assuming execution semantics.
 
 ### 1. TIER 1: SKILLS (Atomic)
 - **Location**: `.agents/skills/<name>/SKILL.md`
@@ -27,7 +28,8 @@ The framework is organized into three tiers of capability. To fulfill any prompt
 
 ### 3. TIER 3: SPELLS (Recursive)
 - **Location**: `.agents/spells/<name>.md`
-- **Use for**: Self-correcting feedback loops that maintain a desired state.
+- **Use for**: Governance policies and recursive feedback guidance.
+- **Execution Note**: Do not assume a spell is directly executable. Confirm whether it is `runtime-backed`, `policy-only`, or `deprecated` in the registry first.
 
 ---
 

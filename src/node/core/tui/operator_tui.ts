@@ -5,6 +5,7 @@ import { stdin as input, stdout as output } from 'node:process';
 import { StateRegistry, type SovereignState } from  '../state.js';
 import { HUD } from  '../hud.js';
 import {
+    getHallPlanningSession,
     getHallBeads,
     getHallSummary,
     listHallPlanningSessions,
@@ -19,7 +20,12 @@ import type {
 } from '../../../types/hall.ts';
 import { buildChantInvocation, buildDynamicCommandInvocation } from  '../commands/dispatcher.js';
 import type { RuntimeDispatchPort } from  '../runtime/contracts.js';
-import { resumeHostGovernorIfAvailable, type OperatorResumeResult } from  '../operator_resume.js';
+import {
+    compactPlanningHandle,
+    formatPlanningDigestBadge,
+    resumeHostGovernorIfAvailable,
+    type OperatorResumeResult,
+} from  '../operator_resume.js';
 
 type OperatorEventLevel = 'INFO' | 'WARN' | 'FAIL' | 'PASS';
 
@@ -78,6 +84,9 @@ function appendResumeEvents(events: OperatorEvent[], resumeResult: OperatorResum
         'Host governor synchronized.',
         resumeResult.provider ?? 'host',
     );
+    if (resumeResult.planningSummary) {
+        next = pushEvent(next, 'INFO', 'Planning trace.', resumeResult.planningSummary);
+    }
     if (resumeResult.governorResult?.output?.trim()) {
         next = pushEvent(next, 'INFO', 'Governor summary.', resumeResult.governorResult.output.trim());
     }
@@ -123,7 +132,26 @@ function formatProposal(proposal: HallSkillProposalRecord): string {
 
 function formatPlanningSession(session: HallPlanningSessionRecord): string {
     const focus = session.latest_question ?? session.summary ?? session.normalized_intent;
-    return truncate(`[${session.status}] ${session.session_id} :: ${focus}`, 88);
+    const handle = compactPlanningHandle(session);
+    const digestBadge = formatPlanningDigestBadge(session);
+    return truncate(
+        `[${session.status}] ${handle}${digestBadge ? ` {${digestBadge}}` : ''} :: ${focus}`,
+        104,
+    );
+}
+
+function formatPlanningStatusEvent(session: HallPlanningSessionRecord | null): string | undefined {
+    if (!session) {
+        return undefined;
+    }
+
+    const digestBadge = formatPlanningDigestBadge(session);
+    const parts = [
+        session.status,
+        compactPlanningHandle(session),
+        digestBadge,
+    ].filter(Boolean);
+    return parts.join(' | ');
 }
 
 function buildSeedEvents(workspaceRoot: string, hallSummary: HallRepositorySummary | null): OperatorEvent[] {
@@ -330,7 +358,13 @@ async function dispatchOperatorInput(
         : activePlanningSessionId;
 
     if (typeof result.metadata?.planning_status === 'string') {
-        events = pushEvent(events, 'INFO', 'Planning state updated.', String(result.metadata.planning_status));
+        const session = planningSessionId ? getHallPlanningSession(planningSessionId) : null;
+        events = pushEvent(
+            events,
+            'INFO',
+            'Planning state updated.',
+            formatPlanningStatusEvent(session) ?? String(result.metadata.planning_status),
+        );
     }
 
     if (Array.isArray(result.metadata?.follow_up_questions)) {

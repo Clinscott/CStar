@@ -6,6 +6,8 @@ import chalk from 'chalk';
 import { activePersona } from '../../tools/pennyone/personaRegistry.js';
 import { getHallSummary } from  '../../tools/pennyone/intel/database.js';
 import { runScan } from  '../../tools/pennyone/index.js';
+import { isHostSessionActive } from '../../core/host_session.js';
+import { ensureOneMindBroker } from './one_mind_broker/manager.js';
 
 import { getPythonPath } from './python_utils.js';
 
@@ -25,6 +27,10 @@ export class ANS {
         const link = new CortexLink();
         await HUD.spinner('Synchronizing the kernel bridge...', 400);
         await link.ensureDaemon();
+
+        if (isHostSessionActive(process.env)) {
+            await ensureOneMindBroker(registry.getRoot(), process.env);
+        }
 
         await this.ensurePennyOne();
 
@@ -82,4 +88,3 @@ ${activePersona.prefix}: "Initiating global dormancy protocol..."`));
         console.error(chalk.dim(`${activePersona.prefix} 'PennyOne is already on-demand in kernel mode.'`));
     }
 }
-

@@ -86,7 +86,7 @@ export function registerOsCommands(program: Command) {
             if (fs.existsSync(bashrcPath)) {
                 const bashrcContent = fs.readFileSync(bashrcPath, 'utf8');
                 if (!bashrcContent.includes('alias cstar=')) {
-                    fs.appendFileSync(bashrcPath, `\nalias cstar='npx tsx ${path.join(PROJECT_ROOT, 'cstar.ts')}'\n`);
+                    fs.appendFileSync(bashrcPath, `\nalias cstar='node ${path.join(PROJECT_ROOT, 'bin', 'cstar.js')}'\n`);
                     console.log(chalk.green("    ◈ SYS-ALIAS: 'cstar' registered."));
                 }
             }

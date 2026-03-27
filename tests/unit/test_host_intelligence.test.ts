@@ -50,4 +50,70 @@ describe('Host intelligence bridge (CS-P1-02)', () => {
             /Host Agent session inactive/i,
         );
     });
+
+    it('uses direct host-session transport in an interactive Codex session when no broker is configured', async () => {
+        let capturedRequest: Record<string, unknown> | undefined;
+
+        const result = await requestHostText(
+            {
+                prompt: 'Explain the host bridge.',
+                projectRoot: '/tmp/corvus-host-intelligence',
+                source: 'test-suite',
+                env: { CODEX_SHELL: '1', CODEX_THREAD_ID: 'thread-1' },
+            },
+            {
+                clientFactory: () => ({
+                    request: async (request) => {
+                        capturedRequest = request as Record<string, unknown>;
+                        return {
+                            status: 'success',
+                            raw_text: 'Synapse-backed response.',
+                            trace: {
+                                correlation_id: 'host-intelligence-codex-test',
+                                transport_mode: 'host_session',
+                                cached: false,
+                            },
+                        };
+                    },
+                }),
+            },
+        );
+
+        assert.equal(result.provider, 'codex');
+        assert.equal(result.text, 'Synapse-backed response.');
+        assert.equal(capturedRequest?.transport_mode, 'host_session');
+    });
+
+    it('uses synapse_db when an interactive broker is explicitly configured', async () => {
+        let capturedRequest: Record<string, unknown> | undefined;
+
+        const result = await requestHostText(
+            {
+                prompt: 'Explain the host bridge.',
+                projectRoot: '/tmp/corvus-host-intelligence',
+                source: 'test-suite',
+                env: { CODEX_SHELL: '1', CODEX_THREAD_ID: 'thread-1', CORVUS_ONE_MIND_BROKER_ACTIVE: '1' },
+            },
+            {
+                clientFactory: () => ({
+                    request: async (request) => {
+                        capturedRequest = request as Record<string, unknown>;
+                        return {
+                            status: 'success',
+                            raw_text: 'Broker-backed response.',
+                            trace: {
+                                correlation_id: 'host-intelligence-codex-broker-test',
+                                transport_mode: 'synapse_db',
+                                cached: false,
+                            },
+                        };
+                    },
+                }),
+            },
+        );
+
+        assert.equal(result.provider, 'codex');
+        assert.equal(result.text, 'Broker-backed response.');
+        assert.equal(capturedRequest?.transport_mode, 'synapse_db');
+    });
 });

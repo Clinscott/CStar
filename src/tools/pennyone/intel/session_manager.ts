@@ -267,6 +267,14 @@ export function registerSpoke(targetRepo: string): number {
     const normalizedRepo = path.resolve(targetRepo).replace(/\\/g, '/');
     const spokeName = path.basename(normalizedRepo);
 
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS spokes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            root_path TEXT NOT NULL UNIQUE
+        )
+    `);
+
     const spoke = db.prepare('SELECT id FROM spokes WHERE root_path = ? OR name = ?').get(normalizedRepo, spokeName) as { id: number } | undefined;
 
     if (!spoke) {

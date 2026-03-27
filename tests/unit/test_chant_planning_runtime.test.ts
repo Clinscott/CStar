@@ -6,7 +6,7 @@ import path from 'node:path';
 
 import { ChantWeave } from  '../../src/node/core/runtime/weaves/chant.js';
 import type { RuntimeDispatchPort, RuntimeContext, WeaveInvocation, WeaveResult } from  '../../src/node/core/runtime/contracts.js';
-import { closeDb, getHallPlanningSession, saveHallPlanningSession } from  '../../src/tools/pennyone/intel/database.js';
+import { closeDb, getHallPlanningSession, saveHallOneMindBranch, saveHallPlanningSession } from  '../../src/tools/pennyone/intel/database.js';
 import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
 import { buildHallRepositoryId, normalizeHallPath } from  '../../src/types/hall.js';
 
@@ -30,6 +30,50 @@ class InspectPlanningDispatchPort implements RuntimeDispatchPort {
             assert.equal(session?.status, 'INTENT_RECEIVED');
             assert.match(session?.summary ?? '', /Initiating Research Phase/i);
             assert.equal(session?.metadata?.phase_in_flight, 'weave:research');
+            const workspaceRoot = String((invocation.payload as { project_root?: string }).project_root);
+
+            const repoId = buildHallRepositoryId(normalizeHallPath(workspaceRoot));
+            const now = Date.now();
+            saveHallOneMindBranch({
+                branch_id: 'research:TRACE-PLAN:bounded-runtime-improvement:0',
+                repo_id: repoId,
+                source_weave: 'weave:research',
+                branch_group_id: 'research:TRACE-PLAN:bounded-runtime-improvement',
+                branch_kind: 'research',
+                branch_label: 'layout',
+                branch_index: 0,
+                status: 'COMPLETED',
+                provider: 'codex',
+                trace_id: 'TRACE-PLAN',
+                summary: 'Layout findings stay bounded.',
+                artifacts: ['README.md'],
+                metadata: {
+                    intent: 'plan a bounded runtime improvement',
+                    branch_count: 2,
+                },
+                created_at: now,
+                updated_at: now,
+            }, workspaceRoot);
+            saveHallOneMindBranch({
+                branch_id: 'research:TRACE-PLAN:bounded-runtime-improvement:1',
+                repo_id: repoId,
+                source_weave: 'weave:research',
+                branch_group_id: 'research:TRACE-PLAN:bounded-runtime-improvement',
+                branch_kind: 'research',
+                branch_label: 'tests',
+                branch_index: 1,
+                status: 'COMPLETED',
+                provider: 'codex',
+                trace_id: 'TRACE-PLAN',
+                summary: 'Test surface is narrow.',
+                artifacts: ['src/runtime.ts'],
+                metadata: {
+                    intent: 'plan a bounded runtime improvement',
+                    branch_count: 2,
+                },
+                created_at: now + 1,
+                updated_at: now + 1,
+            }, workspaceRoot);
 
             return {
                 weave_id: invocation.weave_id,
@@ -51,13 +95,16 @@ class InspectPlanningDispatchPort implements RuntimeDispatchPort {
             assert.equal(session?.status, 'RESEARCH_PHASE');
             assert.match(session?.summary ?? '', /Synthesizing proposal via Architect/i);
             assert.equal(session?.metadata?.phase_in_flight, 'weave:architect');
-            assert.deepEqual(session?.metadata?.research_payload, {
-                summary: 'Repository research complete.',
-                research_artifacts: ['README.md', 'src/runtime.ts'],
-            });
+            assert.equal((session?.metadata?.research_payload as Record<string, unknown> | undefined)?.summary, 'Repository research complete.');
+            assert.deepEqual((session?.metadata?.research_payload as Record<string, unknown> | undefined)?.research_artifacts, ['README.md', 'src/runtime.ts']);
+            const digest = (session?.metadata?.branch_ledger_digest as Record<string, unknown> | undefined);
+            assert.ok(digest);
+            assert.equal(digest?.total_branches, 2);
+            assert.equal(digest?.group_count, 1);
             const research = (invocation.payload as { research?: Record<string, unknown> }).research;
             assert.equal(research?.summary, 'Repository research complete.');
             assert.deepEqual(research?.research_artifacts, ['README.md', 'src/runtime.ts']);
+            assert.equal((research?.branch_ledger_digest as Record<string, unknown> | undefined)?.total_branches, 2);
             assert.ok(Array.isArray(research?.local_worker_file_budgets));
             const budgets = research?.local_worker_file_budgets as Array<Record<string, unknown>>;
             assert.ok(budgets.some((entry) => entry.path === 'README.md' && entry.local_worker_fit === true));
@@ -291,14 +338,14 @@ describe('Chant collaborative planning (CS-P7-03)', () => {
 
         assert.equal(result.status, 'TRANSITIONAL');
         assert.equal(result.metadata?.planning_status, 'PROPOSAL_REVIEW');
+        assert.equal(result.metadata?.context_policy, 'project');
 
         const session = getHallPlanningSession('chant-session:TRACE-PLAN');
         assert.ok(session);
         assert.equal(session?.status, 'PROPOSAL_REVIEW');
-        assert.deepEqual(session?.metadata?.research_payload, {
-            summary: 'Repository research complete.',
-            research_artifacts: ['README.md', 'src/runtime.ts'],
-        });
+        assert.equal((session?.metadata?.research_payload as Record<string, unknown> | undefined)?.summary, 'Repository research complete.');
+        assert.deepEqual((session?.metadata?.research_payload as Record<string, unknown> | undefined)?.research_artifacts, ['README.md', 'src/runtime.ts']);
+        assert.equal((session?.metadata?.branch_ledger_digest as Record<string, unknown> | undefined)?.total_branches, 2);
     });
 
     it('reuses stored research payload when resuming from RESEARCH_PHASE', async () => {

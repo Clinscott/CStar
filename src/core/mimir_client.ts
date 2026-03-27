@@ -14,14 +14,17 @@ import {
     buildIntelligenceSuccess,
     normalizeIntelligenceRequest,
 } from '../types/intelligence-contract.ts';
+import { buildHallRepositoryId, normalizeHallPath, type HallOneMindRequestRecord } from '../types/hall.js';
 import {
     HostProvider,
     expandHostBridgeArgs,
     getHostBridgeConfigurationHint,
-    isHostSessionActive,
     resolveConfiguredHostBridge,
     resolveHostProvider,
 } from './host_session.ts';
+import { resolveOneMindDecision } from './one_mind_bridge.ts';
+import { ensureHealthySynapseDb } from './synapse_db.ts';
+import { getHallOneMindBroker, listHallOneMindRequests, saveHallOneMindRequest } from '../tools/pennyone/intel/database.js';
 
 const execFileAsync = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -112,13 +115,14 @@ export class MimirClient {
 
     public async request(request: IntelligenceRequest): Promise<IntelligenceResponse> {
         const normalized = normalizeIntelligenceRequest(request, 'ts:mimir');
-        const transportMode = this.resolveTransportMode(normalized.transport_mode);
+        const decision = this.resolveDecision(normalized);
+        const transportMode = decision.transportMode;
 
         if (transportMode === 'host_session') {
-            return this.requestViaHostSession(normalized);
+            return this.requestViaHostSession(normalized, decision);
         }
 
-        return this.requestViaSynapse(normalized);
+        return this.requestViaSynapse(normalized, decision);
     }
 
     public async think(query: string, systemPrompt?: string): Promise<string | null> {
@@ -173,65 +177,101 @@ export class MimirClient {
         return;
     }
 
-    private resolveTransportMode(mode: IntelligenceRequest['transport_mode'] = 'auto'): 'host_session' | 'synapse_db' {
-        if (mode === 'host_session') {
-            return 'host_session';
-        }
-        if (mode === 'synapse_db') {
-            return 'synapse_db';
-        }
-        
-        // [🔱] THE ONE MIND MANDATE: If we are in an agent session, default to Synapse DB
-        // to leverage the session context and preserve the external CLI quota.
-        if (this.env.GEMINI_CLI === '1' || this.env.GEMINI_CLI_ACTIVE === 'true') {
-            return 'synapse_db';
-        }
-
-        if (typeof this.hostSessionActive === 'boolean') {
-            return this.hostSessionActive ? 'host_session' : 'synapse_db';
-        }
-        return isHostSessionActive(this.env) ? 'host_session' : 'synapse_db';
+    private resolveDecision(
+        request: ReturnType<typeof normalizeIntelligenceRequest>,
+    ) {
+        const broker = this.readHallBrokerRecord();
+        return resolveOneMindDecision(request, this.env, {
+            hostSessionActive: this.hostSessionActive,
+            brokerActive: Boolean(broker?.fulfillment_ready && broker.binding_state === 'BOUND' && broker.status === 'READY'),
+        });
     }
 
     private async requestViaHostSession(
         request: ReturnType<typeof normalizeIntelligenceRequest>,
+        decision: ReturnType<typeof resolveOneMindDecision>,
     ): Promise<IntelligenceResponse> {
         const effectivePrompt = buildEffectivePrompt(request);
         const provider = this.resolveHostProvider();
+        this.writeHallRequestRecord(request, decision, {
+            request_status: 'PENDING',
+            transport_preference: 'host_session',
+            metadata: {
+                decision_reason: decision.reason,
+                provider,
+            },
+        });
 
         try {
             const rawText = await this.invokeHostSession(effectivePrompt, provider);
-            return buildIntelligenceSuccess(request, rawText, 'host_session');
+            const response = buildIntelligenceSuccess(request, rawText, 'host_session');
+            this.writeHallRequestRecord(request, decision, {
+                request_status: 'COMPLETED',
+                transport_preference: 'host_session',
+                response_text: rawText,
+                completed_at: Date.now(),
+                metadata: {
+                    decision_reason: decision.reason,
+                    provider,
+                },
+            });
+            return response;
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
+            const disableLocalFallback = this.env.CORVUS_DISABLE_LOCAL_LLM_FALLBACK === 'true'
+                || this.env.CORVUS_DISABLE_LOCAL_LLM_FALLBACK === '1';
             
             // FALLBACK TO LOCAL LLM
-            console.warn(`[MIMIR] Host session failed (${message}). Falling back to Local LLM...`);
-            try {
-                const localResponse = await fetch(`${LOCAL_LLM_URL}/chat/completions`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        model: 'deepseek',
-                        messages: [
-                            { role: 'system', content: request.system_prompt ?? 'You are a CStar internal intelligence agent.' },
-                            { role: 'user', content: request.prompt }
-                        ],
-                        temperature: 0
-                    })
-                });
+            if (!disableLocalFallback) {
+                console.warn(`[MIMIR] Host session failed (${message}). Falling back to Local LLM...`);
+                try {
+                    const localResponse = await fetch(`${LOCAL_LLM_URL}/chat/completions`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            model: 'deepseek',
+                            messages: [
+                                { role: 'system', content: request.system_prompt ?? 'You are a CStar internal intelligence agent.' },
+                                { role: 'user', content: request.prompt }
+                            ],
+                            temperature: 0
+                        })
+                    });
 
-                if (localResponse.ok) {
-                    const data = await localResponse.json() as any;
-                    const text = data.choices?.[0]?.message?.content;
-                    if (text) {
-                        return buildIntelligenceSuccess(request, text, 'synapse_db');
+                    if (localResponse.ok) {
+                        const data = await localResponse.json() as any;
+                        const text = data.choices?.[0]?.message?.content;
+                        if (text) {
+                            const response = buildIntelligenceSuccess(request, text, 'synapse_db');
+                            this.writeHallRequestRecord(request, decision, {
+                                request_status: 'COMPLETED',
+                                transport_preference: 'host_session',
+                                response_text: text,
+                                completed_at: Date.now(),
+                                metadata: {
+                                    decision_reason: decision.reason,
+                                    provider,
+                                    fallback_transport: 'local_llm',
+                                },
+                            });
+                            return response;
+                        }
                     }
+                } catch (fallbackError) {
+                    console.error(`[MIMIR] Local fallback also failed: ${fallbackError}`);
                 }
-            } catch (fallbackError) {
-                console.error(`[MIMIR] Local fallback also failed: ${fallbackError}`);
             }
 
+            this.writeHallRequestRecord(request, decision, {
+                request_status: 'FAILED',
+                transport_preference: 'host_session',
+                error_text: `Host session invocation failed: ${message}`,
+                completed_at: Date.now(),
+                metadata: {
+                    decision_reason: decision.reason,
+                    provider,
+                },
+            });
             return buildIntelligenceError(request, `Host session invocation failed: ${message}`, 'host_session');
         }
     }
@@ -240,10 +280,14 @@ export class MimirClient {
         if (this.hostProvider) {
             return this.hostProvider;
         }
+        const detectedProvider = resolveHostProvider(this.env);
+        if (detectedProvider) {
+            return detectedProvider;
+        }
         if (this.hostSessionActive === true) {
             return 'gemini';
         }
-        return resolveHostProvider(this.env) ?? 'gemini';
+        return 'gemini';
     }
 
     private async invokeConfiguredHostBridge(prompt: string, provider: HostProvider): Promise<string | null> {
@@ -380,46 +424,116 @@ export class MimirClient {
         );
     }
 
-    private async requestViaSynapse(request: ReturnType<typeof normalizeIntelligenceRequest>): Promise<IntelligenceResponse> {
+    private async requestViaSynapse(
+        request: ReturnType<typeof normalizeIntelligenceRequest>,
+        decision: ReturnType<typeof resolveOneMindDecision>,
+    ): Promise<IntelligenceResponse> {
         const effectivePrompt = buildEffectivePrompt(request);
         this.ensureDb();
 
         const cached = this.readCachedResponse(effectivePrompt);
         if (cached) {
+            this.writeHallRequestRecord(request, decision, {
+                request_status: 'COMPLETED',
+                transport_preference: 'synapse_db',
+                response_text: cached,
+                completed_at: Date.now(),
+                metadata: {
+                    decision_reason: decision.reason,
+                    cached: true,
+                },
+            });
             return buildIntelligenceSuccess(request, cached, 'synapse_db', true);
         }
 
+        this.writeHallRequestRecord(request, decision, {
+            request_status: 'PENDING',
+            transport_preference: 'synapse_db',
+            metadata: {
+                decision_reason: decision.reason,
+            },
+        });
         const synapseId = this.createPendingPrompt(effectivePrompt);
+        this.writeHallRequestRecord(request, decision, {
+            request_status: 'PENDING',
+            transport_preference: 'synapse_db',
+            metadata: {
+                decision_reason: decision.reason,
+                synapse_id: synapseId,
+            },
+        });
 
         try {
             await this.invokeOracle(synapseId);
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
+            this.writeHallRequestRecord(request, decision, {
+                request_status: 'FAILED',
+                transport_preference: 'synapse_db',
+                error_text: `Oracle invocation failed: ${message}`,
+                completed_at: Date.now(),
+                metadata: {
+                    decision_reason: decision.reason,
+                    synapse_id: synapseId,
+                },
+            });
             return buildIntelligenceError(request, `Oracle invocation failed: ${message}`, 'synapse_db');
         }
 
         for (let attempt = 0; attempt < this.pollAttempts; attempt += 1) {
             const row = this.readSynapseRow(synapseId);
             if (row?.status === 'COMPLETED' && row.response) {
+                this.writeHallRequestRecord(request, decision, {
+                    request_status: 'COMPLETED',
+                    transport_preference: 'synapse_db',
+                    response_text: row.response,
+                    completed_at: Date.now(),
+                    metadata: {
+                        decision_reason: decision.reason,
+                        synapse_id: synapseId,
+                    },
+                });
                 return buildIntelligenceSuccess(request, row.response, 'synapse_db');
             }
             await new Promise((resolve) => setTimeout(resolve, this.pollIntervalMs));
         }
 
+        this.writeHallRequestRecord(request, decision, {
+            request_status: 'FAILED',
+            transport_preference: 'synapse_db',
+            error_text: 'Timed out waiting for synapse response.',
+            completed_at: Date.now(),
+            metadata: {
+                decision_reason: decision.reason,
+                synapse_id: synapseId,
+            },
+        });
         return buildIntelligenceError(request, 'Timed out waiting for synapse response.', 'synapse_db');
     }
 
     private async invokeOracle(synapseId: number): Promise<void> {
-        // [🔱] THE ONE MIND MANDATE: If we are in an agent session, do not invoke the external CLI.
-        // The active session will fulfill the request.
-        if (this.env.GEMINI_CLI === '1' || this.env.GEMINI_CLI_ACTIVE === 'true' || 
-            this.env.CORVUS_SKIP_ORACLE_INVOKE === 'true' || this.env.CORVUS_SKIP_ORACLE_INVOKE === '1') {
-            console.log(`[MIMIR] Awaiting One Mind fulfillment for Synapse ID: ${synapseId}...`);
+        if (this.oracleInvoker) {
+            await this.oracleInvoker(synapseId);
             return;
         }
 
-        if (this.oracleInvoker) {
-            await this.oracleInvoker(synapseId);
+        // [🔱] THE ONE MIND MANDATE: If we are in an agent session, do not invoke the external CLI.
+        // The active session will fulfill the request.
+        if (resolveOneMindDecision({
+            prompt: '',
+            transport_mode: 'auto',
+            caller: { source: 'ts:mimir:oracle-check' },
+            metadata: {},
+        }, this.env, {
+            hostSessionActive: this.hostSessionActive,
+            brokerActive: Boolean(
+                this.readHallBrokerRecord()?.fulfillment_ready
+                && this.readHallBrokerRecord()?.binding_state === 'BOUND'
+                && this.readHallBrokerRecord()?.status === 'READY',
+            ),
+        }).reason === 'interactive-host-session-bus' ||
+            this.env.CORVUS_SKIP_ORACLE_INVOKE === 'true' || this.env.CORVUS_SKIP_ORACLE_INVOKE === '1') {
+            console.log(`[MIMIR] Hall-backed One Mind fulfillment is responsible for Synapse ID: ${synapseId}.`);
             return;
         }
 
@@ -435,19 +549,9 @@ export class MimirClient {
     }
 
     private ensureDb(): void {
-        const db = new Database(this.dbPath);
-        try {
-            db.exec(`
-                CREATE TABLE IF NOT EXISTS synapse (
-                    id INTEGER PRIMARY KEY,
-                    prompt TEXT,
-                    response TEXT,
-                    status TEXT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            `);
-        } finally {
-            db.close();
+        const result = ensureHealthySynapseDb(this.dbPath);
+        if (result.recovered) {
+            console.warn(`[MIMIR] Synapse DB was corrupt and has been rebuilt. Backup: ${result.backupPath}`);
         }
     }
 
@@ -486,6 +590,47 @@ export class MimirClient {
         } finally {
             db.close();
         }
+    }
+
+    private readHallBrokerRecord() {
+        return getHallOneMindBroker(this.projectRoot);
+    }
+
+    private writeHallRequestRecord(
+        request: ReturnType<typeof normalizeIntelligenceRequest>,
+        decision: ReturnType<typeof resolveOneMindDecision>,
+        updates: Partial<HallOneMindRequestRecord>,
+    ): void {
+        const now = Date.now();
+        const existing = this.readHallRequestRecord(request.correlation_id);
+        const baseMetadata = existing?.metadata ?? {};
+        const nextRecord: HallOneMindRequestRecord = {
+            request_id: request.correlation_id,
+            repo_id: buildHallRepositoryId(normalizeHallPath(this.projectRoot)),
+            caller_source: request.caller.source,
+            boundary: decision.boundary,
+            request_status: updates.request_status ?? existing?.request_status ?? 'PENDING',
+            transport_preference: updates.transport_preference ?? existing?.transport_preference,
+            prompt: request.prompt,
+            system_prompt: request.system_prompt,
+            response_text: updates.response_text ?? existing?.response_text,
+            error_text: updates.error_text ?? existing?.error_text,
+            lease_owner: updates.lease_owner ?? existing?.lease_owner,
+            claimed_at: updates.claimed_at ?? existing?.claimed_at,
+            completed_at: updates.completed_at ?? existing?.completed_at,
+            metadata: {
+                ...baseMetadata,
+                ...(updates.metadata ?? {}),
+            },
+            created_at: existing?.created_at ?? now,
+            updated_at: now,
+        };
+        saveHallOneMindRequest(nextRecord, this.projectRoot);
+    }
+
+    private readHallRequestRecord(requestId: string): HallOneMindRequestRecord | null {
+        const requests = listHallOneMindRequests(this.projectRoot);
+        return requests.find((record) => record.request_id === requestId) ?? null;
     }
 }
 

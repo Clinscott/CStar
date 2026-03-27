@@ -98,9 +98,16 @@ function projectManagedSpoke(record: HallMountedSpokeRecord): ManagedSpokeProjec
 
 export class StateRegistry {
     private static readonly SOVEREIGN_PROJECTION_KEY = 'sovereign_projection';
+    private static getControlRoot(): string {
+        const configuredRoot = process.env.CSTAR_CONTROL_ROOT ?? process.env.CSTAR_PROJECT_ROOT;
+        if (configuredRoot?.trim()) {
+            return path.resolve(configuredRoot.trim());
+        }
+        return registry.getRoot();
+    }
 
     private static getPath() {
-        return path.join(registry.getRoot(), '.agents', 'sovereign_state.json');
+        return path.join(this.getControlRoot(), '.agents', 'sovereign_state.json');
     }
 
     private static getDefaultState(): SovereignState {
@@ -194,20 +201,21 @@ export class StateRegistry {
 
     private static readHallMountedSpokes(): ManagedSpokeProjection[] {
         try {
-            return database.listHallMountedSpokes(registry.getRoot()).map(projectManagedSpoke);
+            return database.listHallMountedSpokes(this.getControlRoot()).map(projectManagedSpoke);
         } catch {
             return [];
         }
     }
 
     private static syncHallMountedSpokes(managedSpokes: ManagedSpokeProjection[]): void {
-        const repoRecord = database.getHallRepository(registry.getRoot());
+        const controlRoot = this.getControlRoot();
+        const repoRecord = database.getHallRepository(controlRoot);
         const repoId = repoRecord?.repo_id;
         if (!repoId) {
             return;
         }
 
-        const existing = database.listHallMountedSpokes(registry.getRoot());
+        const existing = database.listHallMountedSpokes(controlRoot);
         const existingBySlug = new Map(existing.map((record) => [record.slug, record]));
         const nextSlugs = new Set<string>();
 
@@ -236,13 +244,13 @@ export class StateRegistry {
 
         for (const stale of existing) {
             if (!nextSlugs.has(stale.slug)) {
-                database.removeHallMountedSpoke(stale.slug, registry.getRoot());
+                database.removeHallMountedSpoke(stale.slug, controlRoot);
             }
         }
     }
 
     private static extractHallProjection(): SovereignStatePatch {
-        const record = database.getHallRepository(registry.getRoot());
+        const record = database.getHallRepository(this.getControlRoot());
         const metadata = (record?.metadata ?? {}) as Record<string, unknown>;
         const projection = metadata[this.SOVEREIGN_PROJECTION_KEY] as SovereignProjectionMetadata | undefined;
 
@@ -261,7 +269,7 @@ export class StateRegistry {
     }
 
     private static buildMetadata(state: SovereignState): Record<string, unknown> {
-        const existingMetadata = (database.getHallRepository(registry.getRoot())?.metadata ?? {}) as Record<string, unknown>;
+        const existingMetadata = (database.getHallRepository(this.getControlRoot())?.metadata ?? {}) as Record<string, unknown>;
         const { framework, identity, hall_of_records, managed_spokes, operator_console, ...extras } = state;
         const projectedSpokes = this.readHallMountedSpokes();
 
@@ -299,7 +307,7 @@ export class StateRegistry {
         }
 
         try {
-            const hallSummary = database.getHallSummary(registry.getRoot());
+            const hallSummary = database.getHallSummary(this.getControlRoot());
             if (hallSummary) {
                 const metadata = (hallSummary.metadata ?? {}) as any;
                 const projection = metadata[this.SOVEREIGN_PROJECTION_KEY] as any;
@@ -339,15 +347,16 @@ export class StateRegistry {
 
     static save(state: SovereignState) {
         const materialized = this.ensureStateShape(state);
-        const existingRecord = database.getHallRepository(registry.getRoot());
+        const controlRoot = this.getControlRoot();
+        const existingRecord = database.getHallRepository(controlRoot);
         const createdAt = existingRecord?.created_at
             ?? materialized.framework.last_awakening
             ?? Date.now();
 
         try {
             database.saveHallRepository({
-                root_path: registry.getRoot(),
-                name: path.basename(registry.getRoot()),
+                root_path: controlRoot,
+                name: path.basename(controlRoot),
                 status: materialized.framework.status,
                 active_persona: materialized.framework.active_persona,
                 baseline_gungnir_score: materialized.framework.gungnir_score,
@@ -361,6 +370,7 @@ export class StateRegistry {
             // Compatibility state writes should not fail if Hall is temporarily unavailable.
         }
 
+        fs.mkdirSync(path.dirname(this.getPath()), { recursive: true });
         fs.writeFileSync(this.getPath(), JSON.stringify(materialized, null, 2), 'utf-8');
     }
 }

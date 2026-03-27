@@ -1,9 +1,40 @@
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+
 export type HostProvider = 'gemini' | 'codex' | 'claude';
+export type HostSupportStatus =
+    | 'supported'
+    | 'native-session'
+    | 'exec-bridge'
+    | 'policy-only'
+    | 'unsupported'
+    | 'unknown';
 
 export interface HostBridgeConfig {
     command: string;
     args: string[];
 }
+
+export interface HostDelegateBridgeConfig {
+    command: string;
+    args: string[];
+}
+
+interface RegistryEntry {
+    runtime_trigger?: string;
+    host_support?: Partial<Record<HostProvider, string>>;
+}
+
+interface RegistryManifest {
+    entries?: Record<string, RegistryEntry>;
+    skills?: Record<string, RegistryEntry>;
+}
+
+const SUPPORTED_HOST_STATUSES = new Set<HostSupportStatus>([
+    'supported',
+    'native-session',
+    'exec-bridge',
+]);
 
 function normalizeFlag(value: string | undefined): boolean | undefined {
     if (value === undefined) {
@@ -26,12 +57,12 @@ export function detectHostProvider(env: NodeJS.ProcessEnv = process.env): HostPr
         return override;
     }
 
-    if (env.GEMINI_CLI_ACTIVE === 'true' || env.GEMINI_CLI === '1') {
-        return 'gemini';
-    }
-
     if (env.CODEX_SHELL === '1' || Boolean(env.CODEX_THREAD_ID)) {
         return 'codex';
+    }
+
+    if (env.GEMINI_CLI_ACTIVE === 'true' || env.GEMINI_CLI === '1') {
+        return 'gemini';
     }
 
     return null;
@@ -44,6 +75,17 @@ export function isHostSessionActive(env: NodeJS.ProcessEnv = process.env): boole
     }
 
     return detectHostProvider(env) !== null;
+}
+
+export function isInteractiveHostSession(env: NodeJS.ProcessEnv = process.env): boolean {
+    const provider = detectHostProvider(env);
+    if (provider === 'gemini') {
+        return env.GEMINI_CLI_ACTIVE === 'true' || env.GEMINI_CLI === '1';
+    }
+    if (provider === 'codex') {
+        return env.CODEX_SHELL === '1' || Boolean(env.CODEX_THREAD_ID);
+    }
+    return false;
 }
 
 export function resolveHostProvider(
@@ -114,6 +156,103 @@ function getProviderBridgeEnvNames(provider: HostProvider): { command: string; a
     };
 }
 
+function getProviderDelegateBridgeEnvNames(provider: HostProvider): { command: string; args: string } {
+    const prefix = `CORVUS_${provider.toUpperCase()}_DELEGATE_BRIDGE`;
+    return {
+        command: `${prefix}_CMD`,
+        args: `${prefix}_ARGS_JSON`,
+    };
+}
+
+function loadRegistryManifest(projectRoot: string): RegistryManifest | null {
+    const manifestPath = path.join(projectRoot, '.agents', 'skill_registry.json');
+    if (!fs.existsSync(manifestPath)) {
+        return null;
+    }
+
+    try {
+        return JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as RegistryManifest;
+    } catch {
+        return null;
+    }
+}
+
+function getRegistryEntries(manifest: RegistryManifest | null): Record<string, RegistryEntry> {
+    if (manifest?.entries && typeof manifest.entries === 'object') {
+        return manifest.entries;
+    }
+    if (manifest?.skills && typeof manifest.skills === 'object') {
+        return manifest.skills;
+    }
+    return {};
+}
+
+function normalizeHostSupportStatus(value: string | undefined): HostSupportStatus {
+    const normalized = value?.trim().toLowerCase();
+    if (normalized === 'supported') {
+        return 'supported';
+    }
+    if (normalized === 'native-session' || normalized === 'native') {
+        return 'native-session';
+    }
+    if (normalized === 'exec-bridge' || normalized === 'bridge') {
+        return 'exec-bridge';
+    }
+    if (normalized === 'policy-only') {
+        return 'policy-only';
+    }
+    if (normalized === 'unsupported') {
+        return 'unsupported';
+    }
+    return 'unknown';
+}
+
+export function isHostSupportStatusAllowed(status: HostSupportStatus | null | undefined): boolean {
+    return status === null || status === undefined || SUPPORTED_HOST_STATUSES.has(status);
+}
+
+export function getCapabilityHostSupport(
+    projectRoot: string,
+    capability: string,
+    provider: HostProvider,
+): HostSupportStatus | null {
+    const entries = getRegistryEntries(loadRegistryManifest(projectRoot));
+    const normalizedCapability = capability.trim().toLowerCase();
+    if (!normalizedCapability) {
+        return null;
+    }
+
+    const directEntry = entries[normalizedCapability];
+    const matchedEntry = directEntry
+        ?? Object.values(entries).find((entry) => String(entry.runtime_trigger ?? '').trim().toLowerCase() === normalizedCapability);
+    if (!matchedEntry?.host_support) {
+        return null;
+    }
+
+    return normalizeHostSupportStatus(matchedEntry.host_support[provider]);
+}
+
+export function explainCapabilityHostSupport(
+    projectRoot: string,
+    capability: string,
+    provider: HostProvider,
+): string | null {
+    const status = getCapabilityHostSupport(projectRoot, capability, provider);
+    if (isHostSupportStatusAllowed(status)) {
+        return null;
+    }
+
+    if (status === 'policy-only') {
+        return `Capability '${capability}' is policy-only and cannot execute directly on ${provider}.`;
+    }
+
+    if (status === 'unsupported') {
+        return `Capability '${capability}' is marked unsupported on ${provider} in the authoritative skill registry.`;
+    }
+
+    return `Capability '${capability}' does not declare executable support for ${provider} in the authoritative skill registry.`;
+}
+
 export function resolveConfiguredHostBridge(
     env: NodeJS.ProcessEnv = process.env,
     provider: HostProvider,
@@ -138,6 +277,30 @@ export function resolveConfiguredHostBridge(
     return null;
 }
 
+export function resolveConfiguredDelegateBridge(
+    env: NodeJS.ProcessEnv = process.env,
+    provider: HostProvider,
+): HostDelegateBridgeConfig | null {
+    const providerEnv = getProviderDelegateBridgeEnvNames(provider);
+    const providerCommand = env[providerEnv.command]?.trim();
+    if (providerCommand) {
+        return {
+            command: providerCommand,
+            args: parseBridgeArgsJson(env[providerEnv.args], providerEnv.args),
+        };
+    }
+
+    const sharedCommand = env.CORVUS_DELEGATE_BRIDGE_CMD?.trim();
+    if (sharedCommand) {
+        return {
+            command: sharedCommand,
+            args: parseBridgeArgsJson(env.CORVUS_DELEGATE_BRIDGE_ARGS_JSON, 'CORVUS_DELEGATE_BRIDGE_ARGS_JSON'),
+        };
+    }
+
+    return null;
+}
+
 export function expandHostBridgeArgs(
     template: string[],
     values: {
@@ -154,7 +317,30 @@ export function expandHostBridgeArgs(
     );
 }
 
+export function expandDelegateBridgeArgs(
+    template: string[],
+    values: {
+        request_path: string;
+        result_path: string;
+        project_root: string;
+        provider: HostProvider;
+    },
+): string[] {
+    return template.map((entry) =>
+        entry
+            .replaceAll('{request_path}', values.request_path)
+            .replaceAll('{result_path}', values.result_path)
+            .replaceAll('{project_root}', values.project_root)
+            .replaceAll('{provider}', values.provider),
+    );
+}
+
 export function getHostBridgeConfigurationHint(provider: HostProvider): string {
     const providerEnv = getProviderBridgeEnvNames(provider);
     return `Set ${providerEnv.command} and ${providerEnv.args}, set CORVUS_HOST_BRIDGE_CMD and CORVUS_HOST_BRIDGE_ARGS_JSON, or supply an explicit hostSessionInvoker.`;
+}
+
+export function getDelegateBridgeConfigurationHint(provider: HostProvider): string {
+    const providerEnv = getProviderDelegateBridgeEnvNames(provider);
+    return `Set ${providerEnv.command} and ${providerEnv.args}, set CORVUS_DELEGATE_BRIDGE_CMD and CORVUS_DELEGATE_BRIDGE_ARGS_JSON, or bind a provider-native delegation adapter.`;
 }

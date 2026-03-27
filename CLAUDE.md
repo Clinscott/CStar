@@ -6,8 +6,10 @@
 - **Node.js Kernel** (`cstar.ts`): The sole execution spine. Routes intents, dispatches weaves, manages beads.
 - **Skills** (`.agents/skills/*/SKILL.md`): Atomic capabilities you execute directly.
 - **Weaves** (`.agents/weaves/*.md`): Linear chains of skills for structured workflows.
-- **Spells** (`.agents/spells/*.md`): Recursive feedback loops for autonomous estate maintenance.
+- **Spells** (`.agents/spells/*.md`): Governance policies or recursive feedback guidance. Treat them as policy-only unless the registry marks them `runtime-backed`.
 - **PennyOne** (SQLite): Long-term memory. Query via MCP (`search_by_intent`).
+
+Registry and runtime contracts outrank prose. If a document disagrees with `.agents/skill_registry.json` or the TypeScript runtime, follow the registry/runtime.
 
 ## Skill Discovery
 Read `SKILL.md` files in `.agents/skills/` to understand capabilities. Each has YAML frontmatter with `name`, `description`, `tier`, and `risk`. Follow the "When to Use" and "Logic Protocol" sections.
@@ -22,7 +24,7 @@ Read `SKILL.md` files in `.agents/skills/` to understand capabilities. Each has 
 Workflow files in `.agents/workflows/` define structured procedures (e.g., `/investigate`, `/evolve`, `/test`). Read the workflow `.md` before executing.
 
 ## Intent Grammar (The Prompt Compiler)
-Every user request MUST be classified into one of these Intent Categories before you act. If the request doesn't clearly map, ask the user to clarify — **never guess**.
+Intent grammar is descriptive. The runtime resolves direct capabilities from the registry first and only falls back to grammar when no direct capability matches.
 
 | Category | Trigger Words | Default Path | Tier |
 |:---|:---|:---|:---|
@@ -35,7 +37,7 @@ Every user request MUST be classified into one of these Intent Categories before
 | `EXPAND` | deploy, link, mount, spoke, onboard | `expansion` | WEAVE |
 | `EVOLVE` | optimize, refactor, evolve, improve | `evolve` | WEAVE |
 | `ORCHESTRATE` | plan, dispatch, autobot, orchestrate | `orchestrate` | WEAVE |
-| `GUARD` | protect, shield, lock, guard, drift | `silver_shield` | SPELL |
+| `GUARD` | protect, shield, lock, guard, drift | `silver_shield` | SPELL (policy-only by default) |
 | `DOCUMENT` | document, explain, chronicle, architecture | `living_architecture` | WEAVE |
 
 ## Episodic Memory (Engrams)
@@ -58,7 +60,6 @@ Confidence: [0.0 - 1.0]
 2. **Trace First**: Every agentic response begins with a Trace block (see above).
 3. **Bead-Driven**: All work must be anchored to a Bead in the Hall of Records.
 4. **Sterling Mandate**: No change is final until it satisfies Lore (.feature), Isolation (unit test), and Audit (Gungnir score).
-5. **CLI**: Use `cstar <command>` for kernel operations. Use `npx tsx` for Node.js scripts.
+5. **CLI**: Use `./cstar <command>` or `node bin/cstar.js <command>` for kernel operations. Do not rely on bare `npx tsx cstar.ts ...` for normal operation.
 6. **Testing**: `npm test` runs the full suite. `npm run test:node` for TS tests only.
-
 

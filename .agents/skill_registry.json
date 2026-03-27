@@ -1,24 +1,148 @@
 {
   "version": "2.0",
-  "generated_at": 1711234567890,
+  "generated_at": 1774543773111,
   "tiers": {
-    "PRIME": { "description": "Atomic operations (observe/reason/mutate/isolate)" },
-    "SKILL": { "description": "Discrete functional capabilities" },
-    "WEAVE": { "description": "Linear chains of skills/primes" },
-    "SPELL": { "description": "Recursive feedback loops over weaves" }
+    "PRIME": {
+      "description": "Atomic operations (observe/reason/mutate/isolate)"
+    },
+    "SKILL": {
+      "description": "Discrete functional capabilities"
+    },
+    "WEAVE": {
+      "description": "Linear chains of skills/primes"
+    },
+    "SPELL": {
+      "description": "Recursive feedback loops over weaves"
+    }
   },
   "intent_grammar": {
-    "REPAIR":      { "triggers": ["fix","repair","heal","restore","broken","failing","bug"], "default_path": "restoration", "tier": "WEAVE" },
-    "BUILD":       { "triggers": ["build","create","scaffold","implement","new","add","feature"], "default_path": "creation_loop", "tier": "WEAVE" },
-    "VERIFY":      { "triggers": ["test","verify","validate","check","assert","spec"], "default_path": "empire", "tier": "SKILL" },
-    "SCORE":       { "triggers": ["score","grade","rate","audit","quality","gungnir"], "default_path": "calculus", "tier": "PRIME" },
-    "OBSERVE":     { "triggers": ["scan","search","find","query","status","health","look","show"], "default_path": "scan", "tier": "PRIME" },
-    "HARDEN":      { "triggers": ["contract","comply","sterling","harden","gherkin"], "default_path": "contract_hardening", "tier": "WEAVE" },
-    "EXPAND":      { "triggers": ["deploy","link","mount","spoke","onboard"], "default_path": "expansion", "tier": "WEAVE" },
-    "EVOLVE":      { "triggers": ["optimize","refactor","evolve","improve"], "default_path": "evolve", "tier": "WEAVE" },
-    "ORCHESTRATE": { "triggers": ["plan","dispatch","autobot","orchestrate"], "default_path": "orchestrate", "tier": "WEAVE" },
-    "GUARD":       { "triggers": ["protect","shield","lock","guard","drift"], "default_path": "silver_shield", "tier": "SPELL" },
-    "DOCUMENT":    { "triggers": ["document","explain","chronicle","architecture"], "default_path": "living_architecture", "tier": "WEAVE" }
+    "REPAIR": {
+      "triggers": [
+        "fix",
+        "repair",
+        "heal",
+        "restore",
+        "broken",
+        "failing",
+        "bug"
+      ],
+      "default_path": "restoration",
+      "tier": "WEAVE"
+    },
+    "BUILD": {
+      "triggers": [
+        "build",
+        "create",
+        "scaffold",
+        "implement",
+        "new",
+        "add",
+        "feature"
+      ],
+      "default_path": "creation_loop",
+      "tier": "WEAVE"
+    },
+    "VERIFY": {
+      "triggers": [
+        "test",
+        "verify",
+        "validate",
+        "check",
+        "assert",
+        "spec"
+      ],
+      "default_path": "empire",
+      "tier": "SKILL"
+    },
+    "SCORE": {
+      "triggers": [
+        "score",
+        "grade",
+        "rate",
+        "audit",
+        "quality",
+        "gungnir"
+      ],
+      "default_path": "calculus",
+      "tier": "PRIME"
+    },
+    "OBSERVE": {
+      "triggers": [
+        "scan",
+        "search",
+        "find",
+        "query",
+        "status",
+        "health",
+        "look",
+        "show"
+      ],
+      "default_path": "scan",
+      "tier": "PRIME"
+    },
+    "HARDEN": {
+      "triggers": [
+        "contract",
+        "comply",
+        "sterling",
+        "harden",
+        "gherkin"
+      ],
+      "default_path": "contract_hardening",
+      "tier": "WEAVE"
+    },
+    "EXPAND": {
+      "triggers": [
+        "deploy",
+        "link",
+        "mount",
+        "spoke",
+        "onboard"
+      ],
+      "default_path": "expansion",
+      "tier": "WEAVE"
+    },
+    "EVOLVE": {
+      "triggers": [
+        "optimize",
+        "refactor",
+        "evolve",
+        "improve"
+      ],
+      "default_path": "evolve",
+      "tier": "WEAVE"
+    },
+    "ORCHESTRATE": {
+      "triggers": [
+        "plan",
+        "dispatch",
+        "autobot",
+        "orchestrate"
+      ],
+      "default_path": "orchestrate",
+      "tier": "WEAVE"
+    },
+    "GUARD": {
+      "triggers": [
+        "protect",
+        "shield",
+        "lock",
+        "guard",
+        "drift"
+      ],
+      "default_path": "silver_shield",
+      "tier": "SPELL"
+    },
+    "DOCUMENT": {
+      "triggers": [
+        "document",
+        "explain",
+        "chronicle",
+        "architecture"
+      ],
+      "default_path": "living_architecture",
+      "tier": "WEAVE"
+    }
   },
   "entries": {
     "hall": {
@@ -26,571 +150,2287 @@
       "prime_category": "observation",
       "description": "Use when searching the Hall of Records, retrieving repository status, or querying metadata.",
       "instruction_path": ".agents/skills/hall/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar hall" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar hall"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/hall",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/hall/SKILL.md",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/hall/SKILL.md"
+      ],
+      "tests": [
+        "tests/unit/test_hall_schema.py",
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/test_autobot_skill.py",
+        "tests/unit/test_evolve_skill.py"
+      ],
+      "runtime_trigger": "hall"
     },
     "mimir": {
       "tier": "PRIME",
       "prime_category": "observation",
       "description": "Use when querying the Well of Mimir for deep semantic search.",
       "instruction_path": ".agents/skills/mimir/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar hall" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar hall"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/mimir",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/mimir/mimir.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/mimir/mimir.feature"
+      ],
+      "tests": [
+        "tests/unit/test_mimir_client.py",
+        "tests/unit/test_mimir_client_bridge.test.ts",
+        "tests/unit/test_mimir_gateway.test.ts",
+        "tests/empire_tests/test_mimir_aesthetics_empire.py"
+      ],
+      "runtime_trigger": "mimir"
     },
     "vitals": {
       "tier": "PRIME",
       "prime_category": "observation",
       "description": "Retrieve system health metrics, resource usage, or agentic mission status.",
       "instruction_path": ".agents/skills/vitals/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar vitals" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar vitals"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/vitals",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/vitals/SKILL.md",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/vitals/SKILL.md"
+      ],
+      "tests": [
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/health_disk.test.ts",
+        "tests/unit/health_memory.test.ts",
+        "tests/unit/health_overall.test.ts"
+      ],
+      "runtime_trigger": "vitals"
     },
     "status": {
       "tier": "PRIME",
       "prime_category": "observation",
       "description": "Retrieve system vitals, framework state, and estate matrix reports.",
       "instruction_path": ".agents/skills/status/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar status" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar status"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/status",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/status/SKILL.md",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/status/SKILL.md"
+      ],
+      "tests": [
+        "tests/unit/test_runtime_command_invocations.test.ts",
+        "tests/unit/engine/ravens/test_ravens_runtime.py",
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/health_disk.test.ts"
+      ],
+      "runtime_trigger": "status"
     },
     "metrics": {
       "tier": "PRIME",
       "prime_category": "observation",
       "description": "Compute project health metrics from latency, complexity, linting, and neural alignment.",
       "instruction_path": ".agents/skills/metrics/SKILL.md",
-      "execution": { 
-        "mode": "kernel-backed", 
+      "execution": {
+        "mode": "kernel-backed",
         "cli": "cstar metrics",
-        "script_path": ".agents/skills/metrics/scripts/metrics.py" 
+        "script_path": ".agents/skills/metrics/scripts/metrics.py"
       },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/metrics",
+      "entrypoint_path": ".agents/skills/metrics/scripts/metrics.py",
+      "contract_path": ".agents/skills/metrics/metrics.feature",
+      "owner_runtime": "cstar-kernel",
+      "host_support": {
+        "gemini": "supported",
+        "codex": "supported",
+        "claude": "supported"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/metrics/metrics.feature"
+      ],
+      "tests": [
+        "tests/unit/test_metrics_engine.py",
+        "tests/unit/engine/ravens/test_coordinator.py",
+        "tests/unit/engine/ravens/test_git_spoke.py",
+        "tests/unit/engine/ravens/test_muninn_hunter.py"
+      ],
+      "runtime_trigger": "metrics"
     },
     "scan": {
       "tier": "PRIME",
       "prime_category": "observation",
       "description": "Perform structural repository scans, extract symbols, and update the Gungnir matrix.",
       "instruction_path": ".agents/skills/scan/SKILL.md",
-      "execution": { 
-        "mode": "kernel-backed", 
+      "execution": {
+        "mode": "kernel-backed",
         "cli": "cstar scan",
         "script_path": ".agents/skills/scan/scripts/scan.py"
       },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/scan",
+      "entrypoint_path": ".agents/skills/scan/scripts/scan.py",
+      "contract_path": ".agents/skills/scan/scan.feature",
+      "owner_runtime": "cstar-kernel",
+      "host_support": {
+        "gemini": "supported",
+        "codex": "supported",
+        "claude": "supported"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/scan/scan.feature"
+      ],
+      "tests": [
+        "tests/empire_tests/test_security_scan_empire.py",
+        "tests/node/pennyone/scan_logic.test.ts"
+      ],
+      "runtime_trigger": "scan"
     },
     "manifest": {
       "tier": "PRIME",
       "prime_category": "observation",
       "description": "List registered Agent Skills, Weaves, or inspect specific skill mandates.",
       "instruction_path": ".agents/skills/manifest/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar manifest" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar manifest"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/manifest",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/manifest/SKILL.md",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/manifest/SKILL.md"
+      ],
+      "tests": [
+        "tests/unit/test_skill_registry_audit.py",
+        "tests/unit/test_state_registry_projection.test.ts",
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/test_autobot_skill.py"
+      ],
+      "runtime_trigger": "manifest"
     },
     "qmd_search": {
       "tier": "PRIME",
       "prime_category": "observation",
       "description": "Search PennyOne QMD reports across Gungnir vectors.",
       "instruction_path": ".agents/skills/qmd_search/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar qmd_search" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar qmd_search"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/qmd_search",
+      "entrypoint_path": ".agents/skills/qmd_search/scripts/qmd_search.py",
+      "contract_path": ".agents/skills/qmd_search/SKILL.md",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/qmd_search/SKILL.md"
+      ],
+      "tests": [
+        "tests/quarantine/test_brave_search.py",
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/test_autobot_skill.py",
+        "tests/unit/test_evolve_skill.py"
+      ],
+      "runtime_trigger": "qmd_search"
     },
     "oracle": {
       "tier": "PRIME",
       "prime_category": "reasoning",
       "description": "Consult the One Mind Host Agent via direct sampling for reasoning or intent generation.",
       "instruction_path": ".agents/skills/oracle/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar oracle" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar oracle"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/oracle",
+      "entrypoint_path": ".agents/skills/oracle/scripts/oracle.py",
+      "contract_path": ".agents/skills/oracle/oracle.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/oracle/oracle.feature"
+      ],
+      "tests": [
+        "tests/unit/test_oracle_command.test.ts",
+        "tests/unit/test_runtime_command_invocations.test.ts"
+      ],
+      "runtime_trigger": "oracle"
     },
     "calculus": {
       "tier": "PRIME",
       "prime_category": "reasoning",
       "description": "Score code artifacts across logic, style, symmetry, and semantic intelligence.",
       "instruction_path": ".agents/skills/calculus/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar calculus" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar calculus"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/calculus",
+      "entrypoint_path": ".agents/skills/calculus/scripts/calculus.py",
+      "contract_path": ".agents/skills/calculus/calculus.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/calculus/calculus.feature"
+      ],
+      "tests": [
+        "tests/unit/engine/test_vector_calculus.py",
+        "tests/crucible/test_gungnir_calculus_edges.py",
+        "tests/unit/test_gungnir_schema.py",
+        "tests/unit/test_gungnir_schema.test.ts"
+      ],
+      "runtime_trigger": "calculus"
     },
     "trace": {
       "tier": "PRIME",
       "prime_category": "reasoning",
       "description": "The Neural Selection Gate. Analyzes prompts via the One Mind to select the optimal tier (Skill, Weave, Spell).",
       "instruction_path": ".agents/skills/trace/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar trace" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar trace"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/trace",
+      "entrypoint_path": ".agents/skills/trace/scripts/trace.py",
+      "contract_path": ".agents/skills/trace/trace.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/trace/trace.feature"
+      ],
+      "tests": [
+        "tests/empire_tests/test_trace_viz_empire.py"
+      ],
+      "runtime_trigger": "trace"
     },
     "style": {
       "tier": "PRIME",
       "prime_category": "reasoning",
       "description": "Orchestrate neural search and proactive skill discovery through the sovereign search engine.",
       "instruction_path": ".agents/skills/style/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar style" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar style"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/style",
+      "entrypoint_path": ".agents/skills/style/scripts/style.py",
+      "contract_path": ".agents/skills/style/style.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/style/style.feature"
+      ],
+      "tests": [
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/test_autobot_skill.py",
+        "tests/unit/test_evolve_skill.py",
+        "tests/unit/test_memory_skill_compat.py"
+      ],
+      "runtime_trigger": "style"
     },
     "agentic-ingest": {
       "tier": "PRIME",
       "prime_category": "mutation",
       "description": "Direct One Mind conduit for recording file intelligence into the Hall of Records.",
       "instruction_path": ".agents/skills/agentic-ingest/SKILL.md",
-      "execution": { "mode": "agent-native" },
+      "execution": {
+        "mode": "agent-native"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/agentic-ingest",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/agentic-ingest/SKILL.md",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/agentic-ingest/SKILL.md"
+      ],
+      "tests": [
+        "tests/unit/test_intelligence_contract.py",
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/engine/test_vector_ingest.py",
+        "tests/unit/test_autobot_skill.py"
+      ],
+      "runtime_trigger": "agentic-ingest"
     },
     "forge": {
       "tier": "PRIME",
       "prime_category": "mutation",
       "description": "Translate lore fragments into staged code artifacts through the Taliesin Forge pipeline.",
       "instruction_path": ".agents/skills/forge/SKILL.md",
-      "execution": { "mode": "kernel-backed", "adapter_id": "weave:forge" },
+      "execution": {
+        "mode": "kernel-backed",
+        "adapter_id": "weave:forge"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/forge",
+      "entrypoint_path": ".agents/skills/forge/scripts/forge.py",
+      "contract_path": ".agents/skills/forge/forge.feature",
+      "owner_runtime": "cstar-kernel",
+      "host_support": {
+        "gemini": "supported",
+        "codex": "supported",
+        "claude": "supported"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/forge/forge.feature"
+      ],
+      "tests": [
+        "tests/unit/test_forge_candidate.py",
+        "tests/unit/test_taliesin_forge_runtime.test.ts",
+        "tests/unit/engine/ravens/test_ravens_runtime.py",
+        "tests/unit/node-runtime/adapters/test_legacy_commands.test.ts"
+      ],
+      "runtime_trigger": "forge"
     },
     "scribe": {
       "tier": "PRIME",
       "prime_category": "mutation",
       "description": "Record runtime observations as Hall-backed feedback.",
       "instruction_path": ".agents/skills/scribe/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar scribe" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar scribe"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/scribe",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/scribe/SKILL.md",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/scribe/SKILL.md"
+      ],
+      "tests": [
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/test_autobot_skill.py",
+        "tests/unit/test_evolve_skill.py",
+        "tests/unit/test_memory_skill_compat.py"
+      ],
+      "runtime_trigger": "scribe"
     },
     "report": {
       "tier": "PRIME",
       "prime_category": "mutation",
       "description": "Generate persona-aware reports with enforced voice and integrity signatures.",
       "instruction_path": ".agents/skills/report/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar report" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar report"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/report",
+      "entrypoint_path": ".agents/skills/report/scripts/report.py",
+      "contract_path": ".agents/skills/report/report.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/report/report.feature"
+      ],
+      "tests": [
+        "tests/empire_tests/test_compile_failure_report_empire.py",
+        "tests/empire_tests/test_report_engine_empire.py",
+        "tests/quarantine/test_report_engine.py"
+      ],
+      "runtime_trigger": "report"
     },
     "jailing": {
       "tier": "PRIME",
       "prime_category": "isolation",
       "description": "Execute untrusted skills inside restricted Docker sandboxes with cleanups.",
       "instruction_path": ".agents/skills/jailing/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar jailing" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar jailing"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/jailing",
+      "entrypoint_path": ".agents/skills/jailing/scripts/jailing.py",
+      "contract_path": ".agents/skills/jailing/jailing.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/jailing/jailing.feature"
+      ],
+      "tests": [
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/test_autobot_skill.py",
+        "tests/unit/test_evolve_skill.py",
+        "tests/unit/test_memory_skill_compat.py"
+      ],
+      "runtime_trigger": "jailing"
     },
     "gatekeeper": {
       "tier": "PRIME",
       "prime_category": "isolation",
       "description": "Enforcer of Gungnir Law. Manages filesystem locks and Git hooks.",
       "instruction_path": ".agents/skills/gatekeeper/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar gatekeeper" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar gatekeeper"
+      },
       "viability": "ACTIVE",
-      "risk": "high-authority"
+      "risk": "high-authority",
+      "authority_path": ".agents/skills/gatekeeper",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/gatekeeper/SKILL.md",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/gatekeeper/SKILL.md"
+      ],
+      "tests": [
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/test_autobot_skill.py",
+        "tests/unit/test_evolve_skill.py",
+        "tests/unit/test_memory_skill_compat.py"
+      ],
+      "runtime_trigger": "gatekeeper"
     },
     "locks": {
       "tier": "PRIME",
       "prime_category": "isolation",
       "description": "Manage exclusive task leases in PennyOne to prevent deadlocks.",
       "instruction_path": ".agents/skills/locks/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar locks" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar locks"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/locks",
+      "entrypoint_path": ".agents/skills/locks/scripts/locks.py",
+      "contract_path": ".agents/skills/locks/locks.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/locks/locks.feature"
+      ],
+      "tests": [
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/test_autobot_skill.py",
+        "tests/unit/test_evolve_skill.py",
+        "tests/unit/test_memory_skill_compat.py"
+      ],
+      "runtime_trigger": "locks"
     },
     "annex": {
       "tier": "SKILL",
       "description": "Audit the repository for structural weaknesses and create annexation plans.",
       "instruction_path": ".agents/skills/annex/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar annex" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar annex"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/annex",
+      "entrypoint_path": ".agents/skills/annex/scripts/annex.py",
+      "contract_path": ".agents/skills/annex/annex.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/annex/annex.feature"
+      ],
+      "tests": [
+        "tests/contracts/test_annex.py",
+        "tests/empire_tests/test_annex_empire.py",
+        "tests/empire_tests/test_annex_preservation_empire.py"
+      ],
+      "runtime_trigger": "annex"
     },
     "autobot": {
       "tier": "SKILL",
       "description": "Execute sovereign beads as an ephemeral worker with checker-gated retries.",
       "instruction_path": ".agents/skills/autobot/SKILL.md",
-      "execution": { "mode": "kernel-backed", "adapter_id": "weave:autobot" },
+      "execution": {
+        "mode": "kernel-backed",
+        "adapter_id": "weave:autobot"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/autobot",
+      "entrypoint_path": ".agents/skills/autobot/scripts/autobot.py",
+      "contract_path": ".agents/skills/autobot/contract.json",
+      "owner_runtime": "cstar-kernel",
+      "host_support": {
+        "gemini": "supported",
+        "codex": "supported",
+        "claude": "supported"
+      },
+      "recursion_policy": "bounded-orchestrator",
+      "contracts": [
+        ".agents/skills/autobot/contract.json"
+      ],
+      "tests": [
+        "tests/unit/test_autobot_runtime.test.ts"
+      ],
+      "runtime_trigger": "autobot"
     },
     "bookmark-weaver": {
       "tier": "SKILL",
       "description": "Autonomous ingest of bookmarks into the Hall Bead Ledger.",
       "instruction_path": ".agents/skills/bookmark-weaver/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar bookmark-weaver" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar bookmark-weaver"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/bookmark-weaver",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/bookmark-weaver/SKILL.md",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/bookmark-weaver/SKILL.md"
+      ],
+      "tests": [
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/test_autobot_skill.py",
+        "tests/unit/test_evolve_skill.py",
+        "tests/unit/test_memory_skill_compat.py"
+      ],
+      "runtime_trigger": "bookmark-weaver"
     },
     "cachebro": {
       "tier": "SKILL",
       "description": "Manage intelligent caching strategies for APIs and computations.",
       "instruction_path": ".agents/skills/cachebro/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar cachebro" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar cachebro"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/cachebro",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/cachebro/cachebro.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/cachebro/cachebro.feature"
+      ],
+      "tests": [
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/test_autobot_skill.py",
+        "tests/unit/test_evolve_skill.py",
+        "tests/unit/test_memory_skill_compat.py"
+      ],
+      "runtime_trigger": "cachebro"
     },
     "chant": {
       "tier": "WEAVE",
       "description": "Parse natural-language chants into executable skill flight paths and routing plans.",
       "instruction_path": ".agents/skills/chant/SKILL.md",
-      "execution": { "mode": "kernel-backed", "adapter_id": "weave:chant" },
+      "execution": {
+        "mode": "kernel-backed",
+        "adapter_id": "weave:chant"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/chant",
+      "entrypoint_path": ".agents/skills/chant/scripts/chant.py",
+      "contract_path": ".agents/skills/chant/chant.feature",
+      "owner_runtime": "cstar-kernel",
+      "host_support": {
+        "gemini": "supported",
+        "codex": "supported",
+        "claude": "supported"
+      },
+      "recursion_policy": "bounded-orchestrator",
+      "contracts": [
+        ".agents/skills/chant/chant.feature"
+      ],
+      "tests": [
+        "tests/unit/test_chant_runtime.test.ts",
+        "tests/unit/node-runtime/weaves/test_chant.test.ts"
+      ],
+      "runtime_trigger": "chant"
     },
     "chronicle": {
       "tier": "SKILL",
       "description": "Build high-fidelity system state maps from docs, code, and contracts.",
       "instruction_path": ".agents/skills/chronicle/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar chronicle" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar chronicle"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/chronicle",
+      "entrypoint_path": ".agents/skills/chronicle/scripts/chronicle.py",
+      "contract_path": ".agents/skills/chronicle/SKILL.md",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/chronicle/SKILL.md"
+      ],
+      "tests": [
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/test_autobot_skill.py",
+        "tests/unit/test_evolve_skill.py",
+        "tests/unit/test_memory_skill_compat.py"
+      ],
+      "runtime_trigger": "chronicle"
     },
     "distill": {
       "tier": "SKILL",
       "description": "Summarize tasks or git diffs into tactical summaries for episodic memory.",
       "instruction_path": ".agents/skills/distill/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar distill" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar distill"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/distill",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/distill/SKILL.md",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/distill/SKILL.md"
+      ],
+      "tests": [
+        "tests/unit/test_distill_runtime.test.ts"
+      ],
+      "runtime_trigger": "distill"
     },
     "consciousness": {
       "tier": "SKILL",
       "description": "Maintain Totem and Dream state for project identity and proactive intent.",
       "instruction_path": ".agents/skills/consciousness/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar consciousness" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar consciousness"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/consciousness",
+      "entrypoint_path": ".agents/skills/consciousness/scripts/consciousness.py",
+      "contract_path": ".agents/skills/consciousness/consciousness.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/consciousness/consciousness.feature"
+      ],
+      "tests": [
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/test_autobot_skill.py",
+        "tests/unit/test_evolve_skill.py",
+        "tests/unit/test_memory_skill_compat.py"
+      ],
+      "runtime_trigger": "consciousness"
     },
     "corvus-control": {
       "tier": "SKILL",
       "description": "Orchestrates the CStar framework and Model Context Protocol (MCP) interactions.",
       "instruction_path": ".agents/skills/corvus-control/SKILL.md",
-      "execution": { "mode": "kernel-backed", "cli": "cstar" },
+      "execution": {
+        "mode": "kernel-backed",
+        "cli": "cstar"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/corvus-control",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/corvus-control/corvus-control.feature",
+      "owner_runtime": "cstar-kernel",
+      "host_support": {
+        "gemini": "supported",
+        "codex": "supported",
+        "claude": "supported"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/corvus-control/corvus-control.feature"
+      ],
+      "tests": [
+        "tests/unit/engine/ravens/test_coordinator.py",
+        "tests/unit/engine/ravens/test_git_spoke.py",
+        "tests/unit/engine/ravens/test_muninn_hunter.py",
+        "tests/unit/engine/ravens/test_ravens_cycle.py"
+      ],
+      "runtime_trigger": "corvus-control"
     },
     "edda": {
       "tier": "SKILL",
       "description": "Convert legacy Markdown to Quarto or synthesize API reference docs.",
       "instruction_path": ".agents/skills/edda/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar edda" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar edda"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/edda",
+      "entrypoint_path": ".agents/skills/edda/scripts/edda.py",
+      "contract_path": ".agents/skills/edda/edda.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/edda/edda.feature"
+      ],
+      "tests": [
+        "tests/contracts/test_edda.py",
+        "tests/empire_tests/test_edda_audit_empire.py",
+        "tests/empire_tests/test_edda_empire.py",
+        "tests/empire_tests/test_edda_syntax_empire.py"
+      ],
+      "runtime_trigger": "edda"
     },
     "empire": {
       "tier": "SKILL",
       "description": "Verify code artifacts against Gherkin contracts under the Empire TDD protocol.",
       "instruction_path": ".agents/skills/empire/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar empire" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar empire"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/empire",
+      "entrypoint_path": ".agents/skills/empire/scripts/empire.py",
+      "contract_path": ".agents/skills/empire/empire.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/empire/empire.feature"
+      ],
+      "tests": [
+        "tests/unit/test_atomic_gpt_empire.py",
+        "tests/unit/test_cognitive_router_empire.py",
+        "tests/unit/test_heimdall_shield_empire.py",
+        "tests/unit/test_lease_manager_empire.py"
+      ],
+      "runtime_trigger": "empire"
     },
     "engine": {
       "tier": "SKILL",
       "description": "The Core CStar Kernel. Manages the execution spine and runtime dispatcher.",
       "instruction_path": ".agents/skills/engine/SKILL.md",
-      "execution": { "mode": "kernel-backed" },
+      "execution": {
+        "mode": "kernel-backed"
+      },
       "viability": "ACTIVE",
-      "risk": "safety-critical"
+      "risk": "safety-critical",
+      "authority_path": ".agents/skills/engine",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/engine/engine.feature",
+      "owner_runtime": "cstar-kernel",
+      "host_support": {
+        "gemini": "supported",
+        "codex": "supported",
+        "claude": "supported"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/engine/engine.feature"
+      ],
+      "tests": [
+        "tests/unit/engine/ravens/test_coordinator.py",
+        "tests/unit/engine/ravens/test_git_spoke.py",
+        "tests/unit/engine/ravens/test_muninn_hunter.py",
+        "tests/unit/engine/ravens/test_ravens_cycle.py"
+      ],
+      "runtime_trigger": "engine"
     },
     "evolve": {
       "tier": "WEAVE",
       "description": "Run the bead-driven optimization loop under runtime and validation authority.",
       "instruction_path": ".agents/skills/evolve/SKILL.md",
-      "execution": { "mode": "kernel-backed", "adapter_id": "weave:evolve" },
+      "execution": {
+        "mode": "kernel-backed",
+        "adapter_id": "weave:evolve"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/evolve",
+      "entrypoint_path": ".agents/skills/evolve/scripts/evolve.py",
+      "contract_path": ".agents/skills/evolve/contract.json",
+      "owner_runtime": "cstar-kernel",
+      "host_support": {
+        "gemini": "supported",
+        "codex": "supported",
+        "claude": "supported"
+      },
+      "recursion_policy": "bounded-orchestrator",
+      "contracts": [
+        ".agents/skills/evolve/contract.json"
+      ],
+      "tests": [
+        "tests/unit/test_evolve_runtime.test.ts"
+      ],
+      "runtime_trigger": "evolve"
     },
     "gherkin": {
       "tier": "SKILL",
       "description": "Create, validate, or manage Gherkin .feature contract files.",
       "instruction_path": ".agents/skills/gherkin/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar gherkin" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar gherkin"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/gherkin",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/gherkin/gherkin.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/gherkin/gherkin.feature"
+      ],
+      "tests": [
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/test_autobot_skill.py",
+        "tests/unit/test_evolve_skill.py",
+        "tests/unit/test_memory_skill_compat.py"
+      ],
+      "runtime_trigger": "gherkin"
     },
     "hunt": {
       "tier": "SKILL",
       "description": "Find missing capabilities, evaluate external skills safely, and ingest them.",
       "instruction_path": ".agents/skills/hunt/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar hunt" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar hunt"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/hunt",
+      "entrypoint_path": ".agents/skills/hunt/scripts/hunt.py",
+      "contract_path": ".agents/skills/hunt/hunt.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/hunt/hunt.feature"
+      ],
+      "tests": [
+        "tests/unit/test_mimir_client.py",
+        "tests/unit/test_mimir_client_bridge.test.ts",
+        "tests/unit/test_mimir_gateway.test.ts",
+        "tests/empire_tests/test_mimir_aesthetics_empire.py"
+      ],
+      "runtime_trigger": "hunt"
     },
     "linter": {
       "tier": "SKILL",
       "description": "Check prompt integrity between .prompty files and their invocations.",
       "instruction_path": ".agents/skills/linter/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar linter" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar linter"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/linter",
+      "entrypoint_path": ".agents/skills/linter/scripts/linter.py",
+      "contract_path": ".agents/skills/linter/linter.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/linter/linter.feature"
+      ],
+      "tests": [
+        "tests/empire_tests/test_prompt_linter_empire.py"
+      ],
+      "runtime_trigger": "linter"
     },
     "matrix": {
       "tier": "SKILL",
       "description": "Compile or visualize the repository relationship graph for topographical analysis.",
       "instruction_path": ".agents/skills/matrix/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar matrix" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar matrix"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/matrix",
+      "entrypoint_path": ".agents/skills/matrix/scripts/matrix.py",
+      "contract_path": ".agents/skills/matrix/matrix.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/matrix/matrix.feature"
+      ],
+      "tests": [
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/test_autobot_skill.py",
+        "tests/unit/test_evolve_skill.py",
+        "tests/unit/test_memory_skill_compat.py"
+      ],
+      "runtime_trigger": "matrix"
     },
     "bifrost": {
       "tier": "SKILL",
       "description": "Manage the Model Context Protocol (MCP) bridge for host agents.",
       "instruction_path": ".agents/skills/bifrost/SKILL.md",
-      "execution": { "mode": "kernel-backed" },
+      "execution": {
+        "mode": "kernel-backed"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/bifrost",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/bifrost/SKILL.md",
+      "owner_runtime": "cstar-kernel",
+      "host_support": {
+        "gemini": "supported",
+        "codex": "supported",
+        "claude": "supported"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/bifrost/SKILL.md"
+      ],
+      "tests": [
+        "tests/unit/engine/test_bifrost.py",
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/test_autobot_skill.py",
+        "tests/unit/test_evolve_skill.py"
+      ],
+      "runtime_trigger": "bifrost"
     },
     "norn": {
       "tier": "SKILL",
       "description": "Synchronize tasks into the PennyOne ledger and coordinate bead flow.",
       "instruction_path": ".agents/skills/norn/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar norn" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar norn"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/norn",
+      "entrypoint_path": ".agents/skills/norn/scripts/norn.py",
+      "contract_path": ".agents/skills/norn/norn.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/norn/norn.feature"
+      ],
+      "tests": [
+        "tests/unit/test_norn_coordinator_empire.py",
+        "tests/empire_tests/test_norn_campaign_empire.py",
+        "tests/empire_tests/test_norn_empire.py"
+      ],
+      "runtime_trigger": "norn"
     },
     "one-mind": {
       "tier": "SKILL",
       "description": "Route grounded LLM requests for context anchoring and synthesis.",
       "instruction_path": ".agents/skills/one-mind/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar one-mind" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar one-mind"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/one-mind",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/one-mind/one-mind.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/one-mind/one-mind.feature"
+      ],
+      "tests": [
+        "tests/unit/test_intelligence_contract.py",
+        "tests/unit/test_mimir_client.py",
+        "tests/unit/test_mimir_client_bridge.test.ts",
+        "tests/unit/test_intelligence_contract.test.ts"
+      ],
+      "runtime_trigger": "one-mind"
     },
     "orchestrate": {
       "tier": "WEAVE",
       "description": "Initiate autonomous restoration cycles and manage the swarm execution loop.",
       "instruction_path": ".agents/skills/orchestrate/SKILL.md",
-      "execution": { "mode": "kernel-backed", "adapter_id": "weave:orchestrate" },
+      "execution": {
+        "mode": "kernel-backed",
+        "adapter_id": "weave:orchestrate"
+      },
       "viability": "ACTIVE",
-      "risk": "safety-critical"
+      "risk": "safety-critical",
+      "authority_path": ".agents/skills/orchestrate",
+      "entrypoint_path": "src/node/core/runtime/weaves/orchestrate.ts",
+      "contract_path": ".agents/skills/orchestrate/SKILL.md",
+      "owner_runtime": "cstar-kernel",
+      "host_support": {
+        "gemini": "supported",
+        "codex": "supported",
+        "claude": "supported"
+      },
+      "recursion_policy": "bounded-orchestrator",
+      "contracts": [
+        ".agents/skills/orchestrate/SKILL.md"
+      ],
+      "tests": [
+        "tests/unit/node-runtime/weaves/test_host_governor.test.ts",
+        "tests/unit/node-runtime/weaves/test_host_worker.test.ts",
+        "tests/unit/node-runtime/weaves/test_architect.test.ts",
+        "tests/unit/node-runtime/weaves/test_chant.test.ts"
+      ],
+      "runtime_trigger": "orchestrate"
     },
     "personas": {
       "tier": "SKILL",
       "description": "Manage persona selection, voice enforcement, and policy checks.",
       "instruction_path": ".agents/skills/personas/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar personas" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar personas"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/personas",
+      "entrypoint_path": ".agents/skills/personas/scripts/personas.py",
+      "contract_path": ".agents/skills/personas/personas.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/personas/personas.feature"
+      ],
+      "tests": [
+        "tests/empire_tests/test_contextual_persona.py",
+        "tests/empire_tests/test_persona_logic_empire.py",
+        "tests/empire_tests/test_personas_empire.py",
+        "tests/empire_tests/test_personas_retheme_empire.py"
+      ],
+      "runtime_trigger": "personas"
     },
     "promotion": {
       "tier": "SKILL",
       "description": "Register, hash, verify, and track promoted skills before admission.",
       "instruction_path": ".agents/skills/promotion/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar promotion" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar promotion"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/promotion",
+      "entrypoint_path": ".agents/skills/promotion/scripts/promotion.py",
+      "contract_path": ".agents/skills/promotion/promotion.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/promotion/promotion.feature"
+      ],
+      "tests": [
+        "tests/unit/test_muninn_promotion.py"
+      ],
+      "runtime_trigger": "promotion"
     },
     "ravens": {
       "tier": "WEAVE",
       "description": "Coordinate autonomous repository improvement by selecting debt targets.",
       "instruction_path": ".agents/skills/ravens/SKILL.md",
-      "execution": { "mode": "kernel-backed", "adapter_id": "weave:ravens" },
+      "execution": {
+        "mode": "kernel-backed",
+        "adapter_id": "weave:ravens"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/ravens",
+      "entrypoint_path": ".agents/skills/ravens/scripts/ravens.py",
+      "contract_path": ".agents/skills/ravens/ravens.feature",
+      "owner_runtime": "cstar-kernel",
+      "host_support": {
+        "gemini": "supported",
+        "codex": "supported",
+        "claude": "supported"
+      },
+      "recursion_policy": "bounded-orchestrator",
+      "contracts": [
+        ".agents/skills/ravens/ravens.feature"
+      ],
+      "tests": [
+        "tests/unit/engine/ravens/test_muninn_hunter.py",
+        "tests/unit/engine/ravens/test_coordinator.py",
+        "tests/unit/engine/ravens/test_git_spoke.py",
+        "tests/unit/engine/ravens/test_ravens_cycle.py"
+      ],
+      "runtime_trigger": "ravens"
     },
     "redactor": {
       "tier": "SKILL",
       "description": "Mask secrets in logs, reports, and terminal output before data leaves.",
       "instruction_path": ".agents/skills/redactor/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar redactor" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar redactor"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/redactor",
+      "entrypoint_path": ".agents/skills/redactor/scripts/redactor.py",
+      "contract_path": ".agents/skills/redactor/redactor.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/redactor/redactor.feature"
+      ],
+      "tests": [
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/test_autobot_skill.py",
+        "tests/unit/test_evolve_skill.py",
+        "tests/unit/test_memory_skill_compat.py"
+      ],
+      "runtime_trigger": "redactor"
     },
     "research": {
       "tier": "SKILL",
       "description": "Run fixed-budget experiments against immutable targets to record optimizations.",
       "instruction_path": ".agents/skills/research/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar research" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar research"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/research",
+      "entrypoint_path": ".agents/skills/research/scripts/research.py",
+      "contract_path": ".agents/skills/research/SKILL.md",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/research/SKILL.md"
+      ],
+      "tests": [
+        "tests/unit/node-runtime/weaves/test_research.test.ts"
+      ],
+      "runtime_trigger": "research"
     },
     "ritual": {
       "tier": "SKILL",
       "description": "Generate lore-accurate terminal animations and ceremonial visual flair.",
       "instruction_path": ".agents/skills/ritual/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar ritual" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar ritual"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/ritual",
+      "entrypoint_path": ".agents/skills/ritual/scripts/ritual.py",
+      "contract_path": ".agents/skills/ritual/ritual.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/ritual/ritual.feature"
+      ],
+      "tests": [
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/test_autobot_skill.py",
+        "tests/unit/test_evolve_skill.py",
+        "tests/unit/test_memory_skill_compat.py"
+      ],
+      "runtime_trigger": "ritual"
     },
     "spoke": {
       "tier": "SKILL",
       "description": "Manage the Corvus Star estate, linking external repositories.",
       "instruction_path": ".agents/skills/spoke/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar spoke" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar spoke"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/spoke",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/spoke/SKILL.md",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/spoke/SKILL.md"
+      ],
+      "tests": [
+        "tests/unit/test_spoke_runtime.test.ts"
+      ],
+      "runtime_trigger": "spoke"
     },
     "sprt": {
       "tier": "SKILL",
       "description": "Run sequential probability ratio tests to judge stability and regressions.",
       "instruction_path": ".agents/skills/sprt/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar sprt" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar sprt"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/sprt",
+      "entrypoint_path": ".agents/skills/sprt/scripts/sprt.py",
+      "contract_path": ".agents/skills/sprt/sprt.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/sprt/sprt.feature"
+      ],
+      "tests": [
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/test_autobot_skill.py",
+        "tests/unit/test_evolve_skill.py",
+        "tests/unit/test_memory_skill_compat.py"
+      ],
+      "runtime_trigger": "sprt"
     },
     "stability": {
       "tier": "SKILL",
       "description": "Track edit fatigue and oscillation to prevent recursive repair loops.",
       "instruction_path": ".agents/skills/stability/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar stability" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar stability"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/stability",
+      "entrypoint_path": ".agents/skills/stability/scripts/stability.py",
+      "contract_path": ".agents/skills/stability/stability.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/stability/stability.feature"
+      ],
+      "tests": [
+        "tests/quarantine/test_stability.py"
+      ],
+      "runtime_trigger": "stability"
     },
     "start": {
       "tier": "WEAVE",
       "description": "Awaken the system pulse, initiate agent loops, and bootstrap the runtime.",
       "instruction_path": ".agents/skills/start/SKILL.md",
-      "execution": { "mode": "kernel-backed", "adapter_id": "weave:start" },
+      "execution": {
+        "mode": "kernel-backed",
+        "adapter_id": "weave:start"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/start",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/start/SKILL.md",
+      "owner_runtime": "cstar-kernel",
+      "host_support": {
+        "gemini": "supported",
+        "codex": "supported",
+        "claude": "supported"
+      },
+      "recursion_policy": "bounded-orchestrator",
+      "contracts": [
+        ".agents/skills/start/SKILL.md"
+      ],
+      "tests": [
+        "tests/unit/test_start_runtime.test.ts"
+      ],
+      "runtime_trigger": "start"
     },
     "sterling": {
       "tier": "SKILL",
       "description": "Audit repository sectors for compliance with the Sterling mandate.",
       "instruction_path": ".agents/skills/sterling/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar sterling" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar sterling"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/sterling",
+      "entrypoint_path": ".agents/skills/sterling/scripts/sterling.py",
+      "contract_path": ".agents/skills/sterling/sterling.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/sterling/sterling.feature"
+      ],
+      "tests": [
+        "tests/unit/test_sterling_auditor.py"
+      ],
+      "runtime_trigger": "sterling"
     },
     "taliesin": {
       "tier": "SKILL",
       "description": "Refine and enforce Corvus Star persona voice across system outputs.",
       "instruction_path": ".agents/skills/taliesin/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar taliesin" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar taliesin"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/taliesin",
+      "entrypoint_path": ".agents/skills/taliesin/scripts/taliesin.py",
+      "contract_path": ".agents/skills/taliesin/taliesin.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/taliesin/taliesin.feature"
+      ],
+      "tests": [
+        "tests/unit/test_taliesin.py"
+      ],
+      "runtime_trigger": "taliesin"
     },
     "taste-skill": {
       "tier": "SKILL",
       "description": "Craft deliberate frontend interfaces with strong typography and anti-slop rules.",
       "instruction_path": ".agents/skills/taste-skill/SKILL.md",
-      "execution": { "mode": "agent-native" },
+      "execution": {
+        "mode": "agent-native"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/taste-skill",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/taste-skill/taste-skill.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/taste-skill/taste-skill.feature"
+      ],
+      "tests": [
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/engine/wardens/test_taste.py",
+        "tests/unit/test_autobot_skill.py",
+        "tests/unit/test_evolve_skill.py"
+      ],
+      "runtime_trigger": "taste-skill"
     },
     "telemetry": {
       "tier": "SKILL",
       "description": "Record mission telemetry, flares, and broadcast runtime alerts.",
       "instruction_path": ".agents/skills/telemetry/SKILL.md",
-      "execution": { "mode": "agent-native", "cli": "cstar telemetry" },
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar telemetry"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/telemetry",
+      "entrypoint_path": ".agents/skills/telemetry/scripts/telemetry.py",
+      "contract_path": ".agents/skills/telemetry/telemetry.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/telemetry/telemetry.feature"
+      ],
+      "tests": [
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/node-runtime/test_telemetry.test.ts",
+        "tests/unit/test_autobot_skill.py",
+        "tests/unit/test_evolve_skill.py"
+      ],
+      "runtime_trigger": "telemetry"
     },
     "visual-explainer": {
       "tier": "SKILL",
       "description": "Generate self-contained HTML pages for diagrams and project recaps.",
       "instruction_path": ".agents/skills/visual-explainer/SKILL.md",
-      "execution": { "mode": "agent-native" },
+      "execution": {
+        "mode": "agent-native"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/visual-explainer",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/visual-explainer/visual-explainer.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/visual-explainer/visual-explainer.feature"
+      ],
+      "tests": [
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/test_autobot_skill.py",
+        "tests/unit/test_evolve_skill.py",
+        "tests/unit/test_memory_skill_compat.py"
+      ],
+      "runtime_trigger": "visual-explainer"
     },
     "warden": {
       "tier": "SKILL",
       "description": "Monitor repository anomalies, lore violations, and system drift.",
       "instruction_path": ".agents/skills/warden/SKILL.md",
-      "execution": { "mode": "kernel-backed", "adapter_id": "weave:warden" },
+      "execution": {
+        "mode": "kernel-backed",
+        "adapter_id": "weave:warden"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/skills/warden",
+      "entrypoint_path": ".agents/skills/warden/scripts/warden.py",
+      "contract_path": ".agents/skills/warden/warden.feature",
+      "owner_runtime": "cstar-kernel",
+      "host_support": {
+        "gemini": "supported",
+        "codex": "supported",
+        "claude": "supported"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/warden/warden.feature"
+      ],
+      "tests": [
+        "tests/quarantine/test_base_warden.py",
+        "tests/quarantine/test_freya_warden.py",
+        "tests/quarantine/test_session_warden_determinism_empire.py",
+        "tests/quarantine/test_warden_burnin.py"
+      ],
+      "runtime_trigger": "warden"
     },
     "restoration": {
       "tier": "WEAVE",
       "description": "Autonomous repair of Linscott breaches from the Hall of Records.",
       "instruction_path": ".agents/weaves/restoration.md",
-      "execution": { "mode": "kernel-backed", "adapter_id": "weave:restoration" },
+      "execution": {
+        "mode": "kernel-backed",
+        "adapter_id": "weave:restoration"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/weaves/restoration.md",
+      "entrypoint_path": null,
+      "contract_path": ".agents/weaves/restoration.md",
+      "owner_runtime": "cstar-kernel",
+      "host_support": {
+        "gemini": "supported",
+        "codex": "supported",
+        "claude": "supported"
+      },
+      "recursion_policy": "bounded-composite",
+      "contracts": [
+        ".agents/weaves/restoration.md"
+      ],
+      "tests": [
+        "tests/unit/node-runtime/weaves/test_architect.test.ts",
+        "tests/unit/node-runtime/weaves/test_chant.test.ts",
+        "tests/unit/node-runtime/weaves/test_chant_parser.test.ts",
+        "tests/unit/node-runtime/weaves/test_chant_planner.test.ts"
+      ],
+      "runtime_trigger": "restoration"
     },
     "expansion": {
       "tier": "WEAVE",
       "description": "Onboard and topology-scan new Spoke repositories.",
       "instruction_path": ".agents/weaves/expansion.md",
-      "execution": { "mode": "kernel-backed", "adapter_id": "weave:expansion" },
+      "execution": {
+        "mode": "kernel-backed",
+        "adapter_id": "weave:expansion"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/weaves/expansion.md",
+      "entrypoint_path": null,
+      "contract_path": ".agents/weaves/expansion.md",
+      "owner_runtime": "cstar-kernel",
+      "host_support": {
+        "gemini": "supported",
+        "codex": "supported",
+        "claude": "supported"
+      },
+      "recursion_policy": "bounded-composite",
+      "contracts": [
+        ".agents/weaves/expansion.md"
+      ],
+      "tests": [
+        "tests/unit/node-runtime/weaves/test_architect.test.ts",
+        "tests/unit/node-runtime/weaves/test_chant.test.ts",
+        "tests/unit/node-runtime/weaves/test_chant_parser.test.ts",
+        "tests/unit/node-runtime/weaves/test_chant_planner.test.ts"
+      ],
+      "runtime_trigger": "expansion"
     },
     "vigilance": {
       "tier": "WEAVE",
       "description": "Continuously audit the estate against Gungnir standards.",
       "instruction_path": ".agents/weaves/vigilance.md",
-      "execution": { "mode": "kernel-backed", "adapter_id": "weave:vigilance" },
+      "execution": {
+        "mode": "kernel-backed",
+        "adapter_id": "weave:vigilance"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/weaves/vigilance.md",
+      "entrypoint_path": null,
+      "contract_path": ".agents/weaves/vigilance.md",
+      "owner_runtime": "cstar-kernel",
+      "host_support": {
+        "gemini": "supported",
+        "codex": "supported",
+        "claude": "supported"
+      },
+      "recursion_policy": "bounded-composite",
+      "contracts": [
+        ".agents/weaves/vigilance.md"
+      ],
+      "tests": [
+        "tests/unit/node-runtime/weaves/test_architect.test.ts",
+        "tests/unit/node-runtime/weaves/test_chant.test.ts",
+        "tests/unit/node-runtime/weaves/test_chant_parser.test.ts",
+        "tests/unit/node-runtime/weaves/test_chant_planner.test.ts"
+      ],
+      "runtime_trigger": "vigilance"
     },
     "creation_loop": {
       "tier": "WEAVE",
       "description": "Build new features through chant, forge, and evolve cycles.",
       "instruction_path": ".agents/weaves/creation_loop.md",
-      "execution": { "mode": "agent-native" },
+      "execution": {
+        "mode": "agent-native"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/weaves/creation_loop.md",
+      "entrypoint_path": null,
+      "contract_path": ".agents/weaves/creation_loop.md",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "bounded-composite",
+      "contracts": [
+        ".agents/weaves/creation_loop.md"
+      ],
+      "tests": [
+        "tests/unit/node-runtime/weaves/test_architect.test.ts",
+        "tests/unit/node-runtime/weaves/test_chant.test.ts",
+        "tests/unit/node-runtime/weaves/test_chant_parser.test.ts",
+        "tests/unit/node-runtime/weaves/test_chant_planner.test.ts"
+      ],
+      "runtime_trigger": "creation_loop"
     },
     "contract_hardening": {
       "tier": "WEAVE",
       "description": "Enforce Sterling Compliance across Gherkin layers.",
       "instruction_path": ".agents/weaves/contract_hardening.md",
-      "execution": { "mode": "agent-native" },
+      "execution": {
+        "mode": "agent-native"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/weaves/contract_hardening.md",
+      "entrypoint_path": null,
+      "contract_path": ".agents/weaves/contract_hardening.md",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "bounded-composite",
+      "contracts": [
+        ".agents/weaves/contract_hardening.md"
+      ],
+      "tests": [
+        "tests/unit/node-runtime/weaves/test_architect.test.ts",
+        "tests/unit/node-runtime/weaves/test_chant.test.ts",
+        "tests/unit/node-runtime/weaves/test_chant_parser.test.ts",
+        "tests/unit/node-runtime/weaves/test_chant_planner.test.ts"
+      ],
+      "runtime_trigger": "contract_hardening"
     },
     "living_architecture": {
       "tier": "WEAVE",
       "description": "Record and analyze architectural decisions back to Mimir's Well.",
       "instruction_path": ".agents/weaves/living_architecture.md",
-      "execution": { "mode": "agent-native" },
+      "execution": {
+        "mode": "agent-native"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/weaves/living_architecture.md",
+      "entrypoint_path": null,
+      "contract_path": ".agents/weaves/living_architecture.md",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "bounded-composite",
+      "contracts": [
+        ".agents/weaves/living_architecture.md"
+      ],
+      "tests": [
+        "tests/unit/node-runtime/weaves/test_architect.test.ts",
+        "tests/unit/node-runtime/weaves/test_chant.test.ts",
+        "tests/unit/node-runtime/weaves/test_chant_parser.test.ts",
+        "tests/unit/node-runtime/weaves/test_chant_planner.test.ts"
+      ],
+      "runtime_trigger": "living_architecture"
     },
     "secure_speculation": {
       "tier": "WEAVE",
       "description": "Safely theorize and run bounded tests against legacy sectors.",
       "instruction_path": ".agents/weaves/secure_speculation.md",
-      "execution": { "mode": "agent-native" },
+      "execution": {
+        "mode": "agent-native"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/weaves/secure_speculation.md",
+      "entrypoint_path": null,
+      "contract_path": ".agents/weaves/secure_speculation.md",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "bounded-composite",
+      "contracts": [
+        ".agents/weaves/secure_speculation.md"
+      ],
+      "tests": [
+        "tests/unit/node-runtime/weaves/test_architect.test.ts",
+        "tests/unit/node-runtime/weaves/test_chant.test.ts",
+        "tests/unit/node-runtime/weaves/test_chant_parser.test.ts",
+        "tests/unit/node-runtime/weaves/test_chant_planner.test.ts"
+      ],
+      "runtime_trigger": "secure_speculation"
     },
     "ephemeral_grid": {
       "tier": "WEAVE",
       "description": "Manage distributed AutoBot execution queues.",
       "instruction_path": ".agents/weaves/ephemeral_grid.md",
-      "execution": { "mode": "kernel-backed" },
+      "execution": {
+        "mode": "kernel-backed"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/weaves/ephemeral_grid.md",
+      "entrypoint_path": null,
+      "contract_path": ".agents/weaves/ephemeral_grid.md",
+      "owner_runtime": "cstar-kernel",
+      "host_support": {
+        "gemini": "supported",
+        "codex": "supported",
+        "claude": "supported"
+      },
+      "recursion_policy": "bounded-composite",
+      "contracts": [
+        ".agents/weaves/ephemeral_grid.md"
+      ],
+      "tests": [
+        "tests/unit/node-runtime/weaves/test_architect.test.ts",
+        "tests/unit/node-runtime/weaves/test_chant.test.ts",
+        "tests/unit/node-runtime/weaves/test_chant_parser.test.ts",
+        "tests/unit/node-runtime/weaves/test_chant_planner.test.ts"
+      ],
+      "runtime_trigger": "ephemeral_grid"
     },
     "shattering_strike": {
       "tier": "SPELL",
       "description": "Recursively decompose logic that falls below 4.0 Gungnir score.",
       "instruction_path": ".agents/spells/shattering_strike.md",
-      "execution": { "mode": "agent-native" },
+      "execution": {
+        "mode": "agent-native"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/spells/shattering_strike.md",
+      "entrypoint_path": null,
+      "contract_path": ".agents/spells/shattering_strike.md",
+      "owner_runtime": "policy-layer",
+      "host_support": {
+        "gemini": "policy-only",
+        "codex": "policy-only",
+        "claude": "policy-only"
+      },
+      "recursion_policy": "policy-only",
+      "contracts": [
+        ".agents/spells/shattering_strike.md"
+      ],
+      "tests": [
+        "tests/unit/test_skill_registry_audit.py"
+      ],
+      "runtime_trigger": "shattering_strike",
+      "spell_classification": "policy-only"
     },
     "phoenix_loop": {
       "tier": "SPELL",
       "description": "Self-healing loop that recasts weaves upon test failure.",
       "instruction_path": ".agents/spells/phoenix_loop.md",
-      "execution": { "mode": "agent-native" },
+      "execution": {
+        "mode": "agent-native"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/spells/phoenix_loop.md",
+      "entrypoint_path": null,
+      "contract_path": ".agents/spells/phoenix_loop.md",
+      "owner_runtime": "policy-layer",
+      "host_support": {
+        "gemini": "policy-only",
+        "codex": "policy-only",
+        "claude": "policy-only"
+      },
+      "recursion_policy": "policy-only",
+      "contracts": [
+        ".agents/spells/phoenix_loop.md"
+      ],
+      "tests": [
+        "tests/unit/test_skill_registry_audit.py"
+      ],
+      "runtime_trigger": "phoenix_loop",
+      "spell_classification": "policy-only"
     },
     "silver_shield": {
       "tier": "SPELL",
       "description": "Auto-sanitize sectors where the Style score drops below 6.0.",
       "instruction_path": ".agents/spells/silver_shield.md",
-      "execution": { "mode": "agent-native" },
+      "execution": {
+        "mode": "agent-native"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/spells/silver_shield.md",
+      "entrypoint_path": null,
+      "contract_path": ".agents/spells/silver_shield.md",
+      "owner_runtime": "policy-layer",
+      "host_support": {
+        "gemini": "policy-only",
+        "codex": "policy-only",
+        "claude": "policy-only"
+      },
+      "recursion_policy": "policy-only",
+      "contracts": [
+        ".agents/spells/silver_shield.md"
+      ],
+      "tests": [
+        "tests/unit/test_heimdall_shield_empire.py"
+      ],
+      "runtime_trigger": "silver_shield",
+      "spell_classification": "policy-only"
     },
     "living_well": {
       "tier": "SPELL",
       "description": "Omniscient post-commit scan to keep the Gungnir matrix updated.",
       "instruction_path": ".agents/spells/living_well.md",
-      "execution": { "mode": "agent-native" },
+      "execution": {
+        "mode": "agent-native"
+      },
       "viability": "ACTIVE",
-      "risk": "safe"
+      "risk": "safe",
+      "authority_path": ".agents/spells/living_well.md",
+      "entrypoint_path": null,
+      "contract_path": ".agents/spells/living_well.md",
+      "owner_runtime": "policy-layer",
+      "host_support": {
+        "gemini": "policy-only",
+        "codex": "policy-only",
+        "claude": "policy-only"
+      },
+      "recursion_policy": "policy-only",
+      "contracts": [
+        ".agents/spells/living_well.md"
+      ],
+      "tests": [
+        "tests/unit/test_skill_registry_audit.py"
+      ],
+      "runtime_trigger": "living_well",
+      "spell_classification": "policy-only"
+    },
+    "_archive": {
+      "tier": "SKILL",
+      "description": "",
+      "instruction_path": ".agents/skills/_archive/SKILL.md",
+      "execution": {
+        "mode": "agent-native"
+      },
+      "viability": "DEPRECATED",
+      "risk": "safe",
+      "authority_path": ".agents/skills/_archive",
+      "entrypoint_path": null,
+      "contract_path": null,
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [],
+      "tests": [
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/test_autobot_skill.py",
+        "tests/unit/test_evolve_skill.py",
+        "tests/unit/test_memory_skill_compat.py"
+      ],
+      "runtime_trigger": "_archive"
+    },
+    "level-5-diagnostic": {
+      "tier": "SKILL",
+      "description": "",
+      "instruction_path": ".agents/skills/level-5-diagnostic/SKILL.md",
+      "execution": {
+        "mode": "agent-native"
+      },
+      "viability": "ACTIVE",
+      "risk": "safe",
+      "authority_path": ".agents/skills/level-5-diagnostic",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/level-5-diagnostic/level-5-diagnostic.feature",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/level-5-diagnostic/level-5-diagnostic.feature"
+      ],
+      "tests": [
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/test_autobot_skill.py",
+        "tests/unit/test_evolve_skill.py",
+        "tests/unit/test_memory_skill_compat.py"
+      ],
+      "runtime_trigger": "level-5-diagnostic"
     }
+  },
+  "authority_audit": {
+    "generated_at": 1774543773111,
+    "authoritative_root": ".agents/skills",
+    "duplicates": [
+      {
+        "local_name": "CacheBro",
+        "local_path": "src/skills/local/CacheBro",
+        "authority_name": "cachebro",
+        "authority_path": ".agents/skills/cachebro",
+        "classification": "wrap"
+      },
+      {
+        "local_name": "KnowledgeHunter",
+        "local_path": "src/skills/local/KnowledgeHunter",
+        "authority_name": "hunt",
+        "authority_path": ".agents/skills/hunt",
+        "classification": "wrap"
+      },
+      {
+        "local_name": "oracle",
+        "local_path": "src/skills/local/oracle",
+        "authority_name": "oracle",
+        "authority_path": ".agents/skills/oracle",
+        "classification": "wrap"
+      },
+      {
+        "local_name": "SkillLearning",
+        "local_path": "src/skills/local/SkillLearning",
+        "authority_name": "evolve",
+        "authority_path": ".agents/skills/evolve",
+        "classification": "wrap"
+      }
+    ],
+    "local_candidates": [
+      {
+        "name": "CacheBro",
+        "normalized_name": "cachebro",
+        "local_path": "src/skills/local/CacheBro",
+        "entrypoint_path": "src/skills/local/CacheBro/cache_bro.py",
+        "migration_status": "wrap",
+        "authority_alias": "cachebro",
+        "runtime_trigger": "CacheBro",
+        "source": "src/skills/local"
+      },
+      {
+        "name": "dormancy",
+        "normalized_name": "dormancy",
+        "local_path": "src/skills/local/dormancy.py",
+        "entrypoint_path": "src/skills/local/dormancy.py",
+        "migration_status": "bootstrap-only",
+        "authority_alias": null,
+        "runtime_trigger": "dormancy",
+        "source": "src/skills/local"
+      },
+      {
+        "name": "Environment",
+        "normalized_name": "environment",
+        "local_path": "src/skills/local/Environment",
+        "entrypoint_path": "src/skills/local/Environment",
+        "migration_status": "retire",
+        "authority_alias": null,
+        "runtime_trigger": "Environment",
+        "source": "src/skills/local"
+      },
+      {
+        "name": "GitHub",
+        "normalized_name": "github",
+        "local_path": "src/skills/local/GitHub",
+        "entrypoint_path": "src/skills/local/GitHub",
+        "migration_status": "retire",
+        "authority_alias": null,
+        "runtime_trigger": "GitHub",
+        "source": "src/skills/local"
+      },
+      {
+        "name": "KnowledgeHunter",
+        "normalized_name": "knowledgehunter",
+        "local_path": "src/skills/local/KnowledgeHunter",
+        "entrypoint_path": "src/skills/local/KnowledgeHunter/hunter.py",
+        "migration_status": "wrap",
+        "authority_alias": "hunt",
+        "runtime_trigger": "KnowledgeHunter",
+        "source": "src/skills/local"
+      },
+      {
+        "name": "oracle",
+        "normalized_name": "oracle",
+        "local_path": "src/skills/local/oracle",
+        "entrypoint_path": "src/skills/local/oracle",
+        "migration_status": "wrap",
+        "authority_alias": "oracle",
+        "runtime_trigger": "oracle",
+        "source": "src/skills/local"
+      },
+      {
+        "name": "persona-audit",
+        "normalized_name": "personaaudit",
+        "local_path": "src/skills/local/persona-audit",
+        "entrypoint_path": "src/skills/local/persona-audit",
+        "migration_status": "retire",
+        "authority_alias": null,
+        "runtime_trigger": "persona-audit",
+        "source": "src/skills/local"
+      },
+      {
+        "name": "radon",
+        "normalized_name": "radon",
+        "local_path": "src/skills/local/radon",
+        "entrypoint_path": "src/skills/local/radon",
+        "migration_status": "retire",
+        "authority_alias": null,
+        "runtime_trigger": "radon",
+        "source": "src/skills/local"
+      },
+      {
+        "name": "skill-scout",
+        "normalized_name": "skillscout",
+        "local_path": "src/skills/local/skill-scout",
+        "entrypoint_path": "src/skills/local/skill-scout",
+        "migration_status": "retire",
+        "authority_alias": null,
+        "runtime_trigger": "skill-scout",
+        "source": "src/skills/local"
+      },
+      {
+        "name": "SkillLearning",
+        "normalized_name": "skilllearning",
+        "local_path": "src/skills/local/SkillLearning",
+        "entrypoint_path": "src/skills/local/SkillLearning/learn.py",
+        "migration_status": "wrap",
+        "authority_alias": "evolve",
+        "runtime_trigger": "SkillLearning",
+        "source": "src/skills/local"
+      },
+      {
+        "name": "VisualExplainer",
+        "normalized_name": "visualexplainer",
+        "local_path": "src/skills/local/VisualExplainer",
+        "entrypoint_path": "src/skills/local/VisualExplainer/visual_explainer.py",
+        "migration_status": "migrate",
+        "authority_alias": null,
+        "runtime_trigger": "VisualExplainer",
+        "source": "src/skills/local"
+      },
+      {
+        "name": "WildHunt",
+        "normalized_name": "wildhunt",
+        "local_path": "src/skills/local/WildHunt",
+        "entrypoint_path": "src/skills/local/WildHunt/wild_hunt.py",
+        "migration_status": "migrate",
+        "authority_alias": null,
+        "runtime_trigger": "WildHunt",
+        "source": "src/skills/local"
+      },
+      {
+        "name": "workflow_analyst",
+        "normalized_name": "workflowanalyst",
+        "local_path": "src/skills/local/workflow_analyst",
+        "entrypoint_path": "src/skills/local/workflow_analyst/analyze_workflow.py",
+        "migration_status": "migrate",
+        "authority_alias": null,
+        "runtime_trigger": "workflow_analyst",
+        "source": "src/skills/local"
+      }
+    ],
+    "authority_issues": []
   }
 }

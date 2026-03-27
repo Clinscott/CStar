@@ -1,0 +1,324 @@
+{
+  "title": "CStar Host Convergence Backlog",
+  "date": "2026-03-25",
+  "status": "proposed",
+  "owner": "O.D.I.N.",
+  "critical_path": [
+    "CS-HC-01",
+    "CS-HC-04",
+    "CS-HC-10",
+    "CS-HC-12",
+    "CS-HC-14"
+  ],
+  "tickets": [
+    {
+      "id": "CS-HC-01",
+      "status": "Proposed",
+      "priority": "P0",
+      "title": "Registry Authority Enrichment",
+      "depends_on": [],
+      "files": [
+        "/home/morderith/Corvus/CStar/.agents/skill_registry.json",
+        "/home/morderith/Corvus/CStar/scripts/audit_skill_registry.py",
+        "/home/morderith/Corvus/CStar/docs/architecture/SKILL_REGISTRY.md"
+      ],
+      "tests": [
+        "/home/morderith/Corvus/CStar/tests/unit/test_skill_registry_audit.py"
+      ]
+    },
+    {
+      "id": "CS-HC-02",
+      "status": "Proposed",
+      "priority": "P0",
+      "title": "Documentation Authority Cleanup",
+      "depends_on": [
+        "CS-HC-01"
+      ],
+      "files": [
+        "/home/morderith/Corvus/CStar/AGENTS.qmd",
+        "/home/morderith/Corvus/CStar/AGENTS.md",
+        "/home/morderith/Corvus/CStar/CLAUDE.md",
+        "/home/morderith/Corvus/CStar/docs/HANDOFF.md"
+      ],
+      "tests": [
+        "/home/morderith/Corvus/CStar/tests/empire_tests/test_personas_retheme_empire.py"
+      ]
+    },
+    {
+      "id": "CS-HC-03",
+      "status": "Proposed",
+      "priority": "P1",
+      "title": "Spell Classification Boundary",
+      "depends_on": [
+        "CS-HC-01",
+        "CS-HC-02"
+      ],
+      "files": [
+        "/home/morderith/Corvus/CStar/.agents/skill_registry.json",
+        "/home/morderith/Corvus/CStar/AGENTS.qmd",
+        "/home/morderith/Corvus/CStar/docs/architecture/SKILL_PERMUTATIONS.md"
+      ],
+      "tests": [
+        "/home/morderith/Corvus/CStar/tests/unit/test_skill_registry_audit.py"
+      ]
+    },
+    {
+      "id": "CS-HC-04",
+      "status": "Proposed",
+      "priority": "P0",
+      "title": "Chant Registry-First Routing",
+      "depends_on": [
+        "CS-HC-01"
+      ],
+      "files": [
+        "/home/morderith/Corvus/CStar/src/node/core/runtime/weaves/chant_parser.ts",
+        "/home/morderith/Corvus/CStar/src/node/core/runtime/weaves/chant.ts"
+      ],
+      "tests": [
+        "/home/morderith/Corvus/CStar/tests/unit/node-runtime/weaves/test_chant_parser.test.ts",
+        "/home/morderith/Corvus/CStar/tests/unit/test_chant_runtime.test.ts",
+        "/home/morderith/Corvus/CStar/tests/unit/test_chant_planning_runtime.test.ts"
+      ]
+    },
+    {
+      "id": "CS-HC-05",
+      "status": "Proposed",
+      "priority": "P1",
+      "title": "Tier-Specific Routing Semantics",
+      "depends_on": [
+        "CS-HC-04"
+      ],
+      "files": [
+        "/home/morderith/Corvus/CStar/src/node/core/runtime/weaves/chant_parser.ts",
+        "/home/morderith/Corvus/CStar/src/node/core/runtime/contracts.ts"
+      ],
+      "tests": [
+        "/home/morderith/Corvus/CStar/tests/unit/node-runtime/weaves/test_chant_parser.test.ts",
+        "/home/morderith/Corvus/CStar/tests/unit/node-runtime/test_contracts.test.ts"
+      ]
+    },
+    {
+      "id": "CS-HC-06",
+      "status": "Proposed",
+      "priority": "P1",
+      "title": "Host Support Diagnostics",
+      "depends_on": [
+        "CS-HC-01",
+        "CS-HC-04"
+      ],
+      "files": [
+        "/home/morderith/Corvus/CStar/src/node/core/runtime/weaves/chant_parser.ts",
+        "/home/morderith/Corvus/CStar/src/core/host_session.ts"
+      ],
+      "tests": [
+        "/home/morderith/Corvus/CStar/tests/unit/test_chant_runtime.test.ts",
+        "/home/morderith/Corvus/CStar/tests/unit/test_host_session_weaves.test.ts"
+      ]
+    },
+    {
+      "id": "CS-HC-07",
+      "status": "Proposed",
+      "priority": "P1",
+      "title": "Weave Contract Hardening",
+      "depends_on": [
+        "CS-HC-01",
+        "CS-HC-04"
+      ],
+      "files": [
+        "/home/morderith/Corvus/CStar/src/node/core/runtime/contracts.ts",
+        "/home/morderith/Corvus/CStar/src/node/core/runtime/weaves/architect.ts",
+        "/home/morderith/Corvus/CStar/src/node/core/runtime/weaves/research.ts",
+        "/home/morderith/Corvus/CStar/src/node/core/runtime/weaves/host_governor.ts"
+      ],
+      "tests": [
+        "/home/morderith/Corvus/CStar/tests/unit/test_host_session_weaves.test.ts",
+        "/home/morderith/Corvus/CStar/tests/unit/test_host_governor_runtime.test.ts",
+        "/home/morderith/Corvus/CStar/tests/unit/test_distill_runtime.test.ts"
+      ]
+    },
+    {
+      "id": "CS-HC-08",
+      "status": "Proposed",
+      "priority": "P1",
+      "title": "Host Governor Policy Externalization",
+      "depends_on": [
+        "CS-HC-07"
+      ],
+      "files": [
+        "/home/morderith/Corvus/CStar/src/node/core/runtime/weaves/host_governor.ts",
+        "/home/morderith/Corvus/CStar/.agents/skill_registry.json"
+      ],
+      "tests": [
+        "/home/morderith/Corvus/CStar/tests/unit/test_host_governor_runtime.test.ts",
+        "/home/morderith/Corvus/CStar/tests/unit/test_start_runtime.test.ts"
+      ]
+    },
+    {
+      "id": "CS-HC-09",
+      "status": "Proposed",
+      "priority": "P2",
+      "title": "Start Resume Narrowing",
+      "depends_on": [
+        "CS-HC-08"
+      ],
+      "files": [
+        "/home/morderith/Corvus/CStar/src/node/core/runtime/adapters.ts",
+        "/home/morderith/Corvus/CStar/src/node/core/operator_resume.ts"
+      ],
+      "tests": [
+        "/home/morderith/Corvus/CStar/tests/unit/test_start_runtime.test.ts"
+      ]
+    },
+    {
+      "id": "CS-HC-10",
+      "status": "Proposed",
+      "priority": "P0",
+      "title": "Active Capability Verification Binding",
+      "depends_on": [
+        "CS-HC-01"
+      ],
+      "files": [
+        "/home/morderith/Corvus/CStar/.agents/skill_registry.json",
+        "/home/morderith/Corvus/CStar/scripts/audit_skill_registry.py"
+      ],
+      "tests": [
+        "/home/morderith/Corvus/CStar/tests/unit/test_skill_registry_audit.py"
+      ]
+    },
+    {
+      "id": "CS-HC-11",
+      "status": "Proposed",
+      "priority": "P1",
+      "title": "Host Bridge Contract Coverage",
+      "depends_on": [
+        "CS-HC-06",
+        "CS-HC-07",
+        "CS-HC-10"
+      ],
+      "files": [
+        "/home/morderith/Corvus/CStar/tests/empire_tests/specs/decoupling.qmd",
+        "/home/morderith/Corvus/CStar/tests/crucible/contracts/bridge_protocol.qmd"
+      ],
+      "tests": [
+        "/home/morderith/Corvus/CStar/tests/empire_tests/test_ui_integration_empire.ts",
+        "/home/morderith/Corvus/CStar/tests/quarantine/test_decoupling_empire.py",
+        "/home/morderith/Corvus/CStar/tests/unit/test_host_session_weaves.test.ts"
+      ]
+    },
+    {
+      "id": "CS-HC-12",
+      "status": "Proposed",
+      "priority": "P0",
+      "title": "Registry-Declared Host Support",
+      "depends_on": [
+        "CS-HC-01",
+        "CS-HC-10"
+      ],
+      "files": [
+        "/home/morderith/Corvus/CStar/.agents/skill_registry.json",
+        "/home/morderith/Corvus/CStar/src/core/host_session.ts",
+        "/home/morderith/Corvus/CStar/src/core/host_intelligence.ts",
+        "/home/morderith/Corvus/CStar/src/core/mimir_client.ts"
+      ],
+      "tests": [
+        "/home/morderith/Corvus/CStar/tests/unit/test_mimir_client_bridge.test.ts",
+        "/home/morderith/Corvus/CStar/tests/unit/test_oracle_command.test.ts"
+      ]
+    },
+    {
+      "id": "CS-HC-13",
+      "status": "Proposed",
+      "priority": "P1",
+      "title": "Shared Control Plane Provider Cleanup",
+      "depends_on": [
+        "CS-HC-12"
+      ],
+      "files": [
+        "/home/morderith/Corvus/CStar/src/core/host_intelligence.ts",
+        "/home/morderith/Corvus/CStar/src/core/mimir_client.ts",
+        "/home/morderith/Corvus/CStar/src/core/engine/env_adapter.py"
+      ],
+      "tests": [
+        "/home/morderith/Corvus/CStar/tests/unit/test_mimir_client_bridge.test.ts",
+        "/home/morderith/Corvus/CStar/tests/unit/test_host_session_weaves.test.ts"
+      ]
+    },
+    {
+      "id": "CS-HC-14",
+      "status": "Proposed",
+      "priority": "P1",
+      "title": "Codex Skill Sync Surface",
+      "depends_on": [
+        "CS-HC-01",
+        "CS-HC-12"
+      ],
+      "files": [
+        "/home/morderith/.codex/corvus/bin/sync_from_cstar.py",
+        "/home/morderith/.codex/corvus/README.md",
+        "/home/morderith/.codex/skills/corvus-grounding/SKILL.md",
+        "/home/morderith/.codex/skills/corvus-workflow-bridge/SKILL.md",
+        "/home/morderith/.codex/skills/cstar-runtime-bridge/SKILL.md",
+        "/home/morderith/.codex/skills/cstar-skill-registry/SKILL.md"
+      ],
+      "tests": []
+    },
+    {
+      "id": "CS-HC-15",
+      "status": "Proposed",
+      "priority": "P2",
+      "title": "Codex Startup Grounding Upgrade",
+      "depends_on": [
+        "CS-HC-14"
+      ],
+      "files": [
+        "/home/morderith/.codex/corvus/hooks/session_start.py"
+      ],
+      "tests": []
+    },
+    {
+      "id": "CS-HC-16",
+      "status": "Proposed",
+      "priority": "P2",
+      "title": "Codex Shutdown Memory Upgrade",
+      "depends_on": [
+        "CS-HC-14"
+      ],
+      "files": [
+        "/home/morderith/.codex/corvus/hooks/session_stop.py"
+      ],
+      "tests": []
+    },
+    {
+      "id": "CS-HC-17",
+      "status": "Proposed",
+      "priority": "P1",
+      "title": "Explicit Codex Host Bridge",
+      "depends_on": [
+        "CS-HC-12",
+        "CS-HC-14"
+      ],
+      "files": [
+        "/home/morderith/.codex/corvus/bin/codex_host_bridge.py",
+        "/home/morderith/.codex/corvus/env/corvus-codex-env.sh"
+      ],
+      "tests": []
+    },
+    {
+      "id": "CS-HC-18",
+      "status": "Proposed",
+      "priority": "P2",
+      "title": "Codex Drift Detection",
+      "depends_on": [
+        "CS-HC-14",
+        "CS-HC-15",
+        "CS-HC-16",
+        "CS-HC-17"
+      ],
+      "files": [
+        "/home/morderith/.codex/corvus/bin/sync_from_cstar.py",
+        "/home/morderith/.codex/corvus/integration_manifest.json"
+      ],
+      "tests": []
+    }
+  ]
+}

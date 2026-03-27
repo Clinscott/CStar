@@ -128,13 +128,17 @@ export class AutoBotWeave implements RuntimeAdapter<AutobotWeavePayload> {
             status?: string;
             summary?: string;
         };
+        const metadata: AutobotWeaveMetadata = {
+            ...result,
+            context_policy: 'project',
+        };
 
         return {
             weave_id: this.id,
             status: String(result.status) === 'SUCCESS' ? 'SUCCESS' : 'FAILURE',
             output: String(result.summary ?? 'AutoBot execution completed.'),
             error: String(result.status) === 'SUCCESS' ? undefined : String(result.summary ?? 'AutoBot execution failed.'),
-            metadata: result,
+            metadata,
         };
     }
 }

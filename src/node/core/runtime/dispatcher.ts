@@ -110,11 +110,13 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
         const query = (payload as any)?.query || (payload as any)?.rationale || '';
         const hasTrace = query.includes('// Corvus Star Trace [Ω]');
         const isInternalOS = ['weave:host-governor', 'weave:dynamic-command', 'weave:restoration', 'weave:creation_loop', 'weave:orchestrate'].includes(weaveId);
+        const isObservationInvocation = ['weave:status', 'weave:hall', 'weave:vitals', 'weave:manifest'].includes(weaveId)
+            || (weaveId === 'weave:pennyone' && ['search', 'stats', 'topology', 'view', 'scan'].includes(String((payload as any)?.action ?? '').trim()));
         
         if (context.operator_mode === 'cli' && !isInternalOS && weaveId !== 'weave:chant' && !hasTrace) {
              // Only enforce on primary entry points (chant, skills, etc.)
-             // status and hall are allowed for observation.
-             if (['weave:status', 'weave:hall', 'weave:vitals', 'weave:manifest'].includes(weaveId)) {
+             // status, hall, and pennyone observation paths are allowed for observation.
+             if (isObservationInvocation) {
                  // Allowed observation
              } else {
                 return {

@@ -4,6 +4,8 @@
 > **OPERATIONAL DOMAIN: CORVUS STAR FRAMEWORK**
 > This document is the Supreme Directive for all AI Agents operating within the Corvus Star repository. 
 > **ADHERENCE IS NON-NEGOTIABLE. DEVIATION IS DEFEAT.**
+>
+> Registry metadata and runtime contracts outrank prose. If this document disagrees with `.agents/skill_registry.json` or runtime behavior, treat this document as stale and follow the registry/runtime.
 
 ---
 
@@ -13,7 +15,7 @@ The **One Mind** (You) selects the tier of intervention required:
 
 1.  **SKILL (Atomic)**: Direct file or state manipulation.
 2.  **WEAVE (Intentional)**: Linear chains of skills to achieve a technical mission.
-3.  **SPELL (Recursive)**: Self-correcting feedback loops to maintain sovereignty.
+3.  **SPELL (Recursive)**: Governance or recursion policy. Do not assume a spell is directly executable unless the registry marks it `runtime-backed`.
 
 ---
 
@@ -59,14 +61,14 @@ Linear chains of Skills used for technical outcomes.
 ---
 
 ## 4. TIER 3: SOVEREIGN SPELLS (THE MAGIC)
-Recursive loops that govern the estate through Feedback Gates.
+Recursive policies that govern the estate through Feedback Gates. The current spell layer is policy-only unless the registry says otherwise.
 
-| Spell | Desired State | Feedback Gate | Filepath |
+| Spell | Classification | Desired State | Feedback Gate | Filepath |
 | :--- | :--- | :--- | :--- |
-| **Shattering Strike** | Fractal Purity | IF `Logic < 4.0` THEN `Decompose` | `.agents/spells/shattering_strike.md` |
-| **Phoenix Loop** | Self-Healing | IF `Test == FAIL` THEN `Recast` | `.agents/spells/phoenix_loop.md` |
-| **Silver Shield** | Immutability | IF `Style < 6.0` THEN `Sanitize` | `.agents/spells/silver_shield.md` |
-| **Living Well** | Omniscience | IF `Git Commit` THEN `Re-Scan` | `.agents/spells/living_well.md` |
+| **Shattering Strike** | `policy-only` | Fractal Purity | IF `Logic < 4.0` THEN `Decompose` | `.agents/spells/shattering_strike.md` |
+| **Phoenix Loop** | `policy-only` | Self-Healing | IF `Test == FAIL` THEN `Recast` | `.agents/spells/phoenix_loop.md` |
+| **Silver Shield** | `policy-only` | Immutability | IF `Style < 6.0` THEN `Sanitize` | `.agents/spells/silver_shield.md` |
+| **Living Well** | `policy-only` | Omniscience | IF `Git Commit` THEN `Re-Scan` | `.agents/spells/living_well.md` |
 
 ---
 

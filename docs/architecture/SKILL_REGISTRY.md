@@ -27,6 +27,20 @@ Agents discover capabilities by reading `.md` files, but *execution* happens in 
 *   **Viability**: `ACTIVE` (ready for use), `PLANNED` (stubbed out), or `DEPRECATED` (do not use). Non-viable legacy skills have been moved to `.agents/skills/_archive/`.
 *   **Risk**: `safe` (standard operations), `high-authority` (requires user consent, e.g., git hooks), or `safety-critical` (kernel-level changes).
 
+### 4. Authority Fields
+Active entries are being converged toward explicit authority metadata.
+
+*   **`authority_path`**: The authoritative filesystem root or spell file for the capability.
+*   **`entrypoint_path`**: The executable script or runtime adapter entrypoint when one exists.
+*   **`contract_path`**: The nearest local contract artifact, feature file, or skill mandate.
+*   **`owner_runtime`**: Which layer actually owns execution authority, for example `cstar-kernel`, `host-agent`, or `policy-layer`.
+*   **`host_support`**: Declared provider support across Gemini, Codex, and Claude. Current normalized values are `supported`, `native-session`, `exec-bridge`, `policy-only`, `unsupported`, and `unknown`.
+*   **`recursion_policy`**: Whether the capability is a leaf, bounded composite, bounded orchestrator, or policy-only surface.
+*   **`contracts`**: Explicit contract references associated with the capability.
+*   **`tests`**: Explicit or inferred verification references associated with the capability.
+
+These fields are part of the authority-convergence effort: the registry should describe not just what a capability is called, but where it lives, how it executes, and how it is verified.
+
 ---
 
 ## 📊 CURRENT ESTATE INVENTORY (Active Tiers)

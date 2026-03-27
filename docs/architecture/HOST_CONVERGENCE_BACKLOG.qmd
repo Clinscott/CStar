@@ -1,0 +1,581 @@
+---
+title: "CStar Host Convergence Backlog"
+date: 2026-03-25
+status: proposed
+owner: "O.D.I.N."
+---
+
+# CStar Host Convergence Backlog
+
+> [!IMPORTANT]
+> This backlog exists to converge CStar's skills, weaves, and spells into executable authority.
+> It also captures the Codex-local integration work adopted from CStar so the host layer stops drifting.
+
+## Mission
+
+The mission is to remove authority drift between lore, registry, runtime, and host integrations.
+
+The required outcomes are:
+
+1. `skill_registry.json` is the single source of truth for active capabilities.
+2. Documentation becomes descriptive and never outranks runtime or registry truth.
+3. Chant routing becomes registry-first instead of hardcoded-grammar-first.
+4. Every active capability declares execution mode, verification, and host support.
+5. Spells are explicitly classified as runtime-backed, policy-only, or deprecated.
+6. Host support differences between Gemini, Codex, and Claude are declared, not implied.
+7. The Codex-local skill and hook layer stays synchronized with CStar authority.
+
+## Exit Criteria
+
+- `scripts/audit_skill_registry.py` fails if any `ACTIVE` capability is missing execution authority, verification references, or host support metadata.
+- `chant_parser.ts` does not maintain a second authoritative capability map separate from the registry.
+- `AGENTS.qmd`, `AGENTS.md`, and related docs do not reference stale authority files or runtime semantics that the code does not implement.
+- Host-session runtime tests continue to pass after host support normalization.
+- Codex-local Corvus skills and hooks can be refreshed from CStar authority with one explicit sync path.
+
+## Architectural Critique
+
+The current risk is not conceptual weakness. It is ceremonial authority drift.
+
+- The registry, chant router, host bridge, and tests already form a real control plane.
+- The docs and taxonomy still overstate execution certainty in places.
+- Spells are the highest-risk tier because they can read like executable runtime despite lacking uniform contracts.
+- The chant parser still embeds a parallel closed grammar in code, which will drift unless the registry becomes the first resolver.
+- Host parity is not real across Gemini, Codex, and Claude; pretending otherwise will produce fragile behavior.
+
+This backlog therefore prioritizes registry authority, router hardening, verification linkage, and explicit host support over any expansion of lore.
+
+## Ticket Index
+
+| ID | Status | Priority | Ticket | Depends On | Primary Surfaces |
+| --- | --- | --- | --- | --- | --- |
+| `CS-HC-01` | Proposed | P0 | Registry Authority Enrichment | none | registry, audit |
+| `CS-HC-02` | Proposed | P0 | Documentation Authority Cleanup | `CS-HC-01` | AGENTS, docs |
+| `CS-HC-03` | Proposed | P1 | Spell Classification Boundary | `CS-HC-01`, `CS-HC-02` | registry, AGENTS |
+| `CS-HC-04` | Proposed | P0 | Chant Registry-First Routing | `CS-HC-01` | chant parser, chant runtime |
+| `CS-HC-05` | Proposed | P1 | Tier-Specific Routing Semantics | `CS-HC-04` | chant parser, contracts |
+| `CS-HC-06` | Proposed | P1 | Host Support Diagnostics | `CS-HC-01`, `CS-HC-04` | chant parser, host session |
+| `CS-HC-07` | Proposed | P1 | Weave Contract Hardening | `CS-HC-01`, `CS-HC-04` | contracts, research, architect, distill, governor |
+| `CS-HC-08` | Proposed | P1 | Host Governor Policy Externalization | `CS-HC-07` | governor, registry |
+| `CS-HC-09` | Proposed | P2 | Start Resume Narrowing | `CS-HC-08` | adapters, operator resume |
+| `CS-HC-10` | Proposed | P0 | Active Capability Verification Binding | `CS-HC-01` | registry, audit |
+| `CS-HC-11` | Proposed | P1 | Host Bridge Contract Coverage | `CS-HC-06`, `CS-HC-07`, `CS-HC-10` | decoupling specs, bridge tests |
+| `CS-HC-12` | Proposed | P0 | Registry-Declared Host Support | `CS-HC-01`, `CS-HC-10` | registry, host session, host intelligence, mimir |
+| `CS-HC-13` | Proposed | P1 | Shared Control Plane Provider Cleanup | `CS-HC-12` | host intelligence, mimir, env adapter |
+| `CS-HC-14` | Proposed | P1 | Codex Skill Sync Surface | `CS-HC-01`, `CS-HC-12` | ~/.codex sync, skills |
+| `CS-HC-15` | Proposed | P2 | Codex Startup Grounding Upgrade | `CS-HC-14` | ~/.codex start hook |
+| `CS-HC-16` | Proposed | P2 | Codex Shutdown Memory Upgrade | `CS-HC-14` | ~/.codex stop hook |
+| `CS-HC-17` | Proposed | P1 | Explicit Codex Host Bridge | `CS-HC-12`, `CS-HC-14` | ~/.codex bridge/env |
+| `CS-HC-18` | Proposed | P2 | Codex Drift Detection | `CS-HC-14`, `CS-HC-15`, `CS-HC-16`, `CS-HC-17` | ~/.codex manifest/sync |
+
+## Critical Path
+
+The minimum convergence path is:
+
+`CS-HC-01 -> CS-HC-04 -> CS-HC-10 -> CS-HC-12 -> CS-HC-14`
+
+`CS-HC-02` and `CS-HC-03` should land before broader documentation claims are expanded.
+
+`CS-HC-07`, `CS-HC-08`, and `CS-HC-09` can proceed once registry authority and chant routing are stable.
+
+`CS-HC-15` through `CS-HC-18` should follow after host-support declarations are stable enough to keep Codex in sync.
+
+## Ticket Details
+
+## `CS-HC-01` Registry Authority Enrichment
+
+### Objective
+
+Make the registry the single operational authority for active capabilities.
+
+### Files
+
+- `.agents/skill_registry.json`
+- `scripts/audit_skill_registry.py`
+- `docs/architecture/SKILL_REGISTRY.md`
+
+### Change Set
+
+- Add or normalize fields for `contracts`, `tests`, `owner_runtime`, `host_support`, and `recursion_policy`.
+- Fail audit when an `ACTIVE` capability omits required authority fields.
+- Document the new schema in `SKILL_REGISTRY.md`.
+
+### Acceptance Criteria
+
+- Every `ACTIVE` entry exposes execution authority and verification metadata.
+- The audit script rejects incomplete active entries.
+
+### Verification
+
+```bash
+python3 scripts/audit_skill_registry.py
+python3 -m pytest tests/unit/test_skill_registry_audit.py -q
+```
+
+## `CS-HC-02` Documentation Authority Cleanup
+
+### Objective
+
+Demote docs to descriptive projections and purge stale references.
+
+### Files
+
+- `AGENTS.qmd`
+- `AGENTS.md`
+- `CLAUDE.md`
+- `docs/HANDOFF.md`
+
+### Change Set
+
+- Remove or replace stale references such as `chant_upgrade_plan.json`.
+- Clarify that registry and runtime outrank prose when behavior disagrees.
+- Align tier descriptions with actual runtime capability.
+
+### Acceptance Criteria
+
+- No stale authority references remain.
+- Documentation does not claim runtime behavior the code cannot prove.
+
+### Verification
+
+- Manual grep for stale file references.
+- Targeted read-through of changed documents.
+
+## `CS-HC-03` Spell Classification Boundary
+
+### Objective
+
+Stop presenting every spell as if it were an equal execution tier.
+
+### Files
+
+- `.agents/skill_registry.json`
+- `AGENTS.qmd`
+- `docs/architecture/SKILL_PERMUTATIONS.md`
+
+### Change Set
+
+- Tag each spell as `runtime-backed`, `policy-only`, or `deprecated`.
+- Update docs to reflect the classification.
+
+### Acceptance Criteria
+
+- Spells no longer imply runtime authority without proof.
+
+### Verification
+
+```bash
+python3 scripts/audit_skill_registry.py
+python3 -m pytest tests/unit/test_skill_registry_audit.py -q
+```
+
+## `CS-HC-04` Chant Registry-First Routing
+
+### Objective
+
+Move chant capability routing to the registry-first model.
+
+### Files
+
+- `src/node/core/runtime/weaves/chant_parser.ts`
+- `src/node/core/runtime/weaves/chant.ts`
+
+### Change Set
+
+- Resolve direct capability routing from registry metadata before intent-category fallback.
+- Reduce hardcoded category defaults to fallback status.
+
+### Acceptance Criteria
+
+- Chant does not depend on a parallel hardcoded capability map for primary resolution.
+
+### Verification
+
+```bash
+node scripts/run-tsx.mjs --test tests/unit/node-runtime/weaves/test_chant_parser.test.ts
+node scripts/run-tsx.mjs --test tests/unit/test_chant_runtime.test.ts
+node scripts/run-tsx.mjs --test tests/unit/test_chant_planning_runtime.test.ts
+```
+
+## `CS-HC-05` Tier-Specific Routing Semantics
+
+### Objective
+
+Make tier semantics explicit in runtime contracts.
+
+### Files
+
+- `src/node/core/runtime/weaves/chant_parser.ts`
+- `src/node/core/runtime/contracts.ts`
+
+### Change Set
+
+- Encode how `PRIME/SKILL`, `WEAVE`, and `SPELL` may be routed.
+- Prevent generic execution of `SPELL` entries unless marked `runtime-backed`.
+
+### Acceptance Criteria
+
+- Tier names imply one runtime meaning only.
+
+### Verification
+
+```bash
+node scripts/run-tsx.mjs --test tests/unit/node-runtime/weaves/test_chant_parser.test.ts
+node scripts/run-tsx.mjs --test tests/unit/node-runtime/test_contracts.test.ts
+```
+
+## `CS-HC-06` Host Support Diagnostics
+
+### Objective
+
+Produce typed unsupported-host failures from declared metadata.
+
+### Files
+
+- `src/node/core/runtime/weaves/chant_parser.ts`
+- `src/core/host_session.ts`
+
+### Change Set
+
+- Use declared `host_support` to reject capabilities unsupported by the active provider.
+- Surface typed failures rather than ad hoc missing-capability messages.
+
+### Acceptance Criteria
+
+- Unsupported host behavior is explicit and traceable to the registry.
+
+### Verification
+
+```bash
+node scripts/run-tsx.mjs --test tests/unit/test_chant_runtime.test.ts
+node scripts/run-tsx.mjs --test tests/unit/test_host_session_weaves.test.ts
+```
+
+## `CS-HC-07` Weave Contract Hardening
+
+### Objective
+
+Make active weaves behave like bounded adapters rather than prompt envelopes.
+
+### Files
+
+- `src/node/core/runtime/contracts.ts`
+- `src/node/core/runtime/weaves/architect.ts`
+- `src/node/core/runtime/weaves/research.ts`
+- `src/node/core/runtime/weaves/host_governor.ts`
+
+### Change Set
+
+- Tighten payload and result contracts for architect, research, distill, and governor-adjacent flows.
+- Reject malformed host returns explicitly.
+
+### Acceptance Criteria
+
+- Weaves expose strict payload/result expectations.
+
+### Verification
+
+```bash
+node scripts/run-tsx.mjs --test tests/unit/test_host_session_weaves.test.ts
+node scripts/run-tsx.mjs --test tests/unit/test_host_governor_runtime.test.ts
+node scripts/run-tsx.mjs --test tests/unit/test_distill_runtime.test.ts
+```
+
+## `CS-HC-08` Host Governor Policy Externalization
+
+### Objective
+
+Stop hiding boundedness and promotion rules in private constants.
+
+### Files
+
+- `src/node/core/runtime/weaves/host_governor.ts`
+- `.agents/skill_registry.json`
+
+### Change Set
+
+- Externalize governability thresholds or route them through declared policy metadata.
+
+### Acceptance Criteria
+
+- Promotion policy is auditable and testable.
+
+### Verification
+
+```bash
+node scripts/run-tsx.mjs --test tests/unit/test_host_governor_runtime.test.ts
+node scripts/run-tsx.mjs --test tests/unit/test_start_runtime.test.ts
+```
+
+## `CS-HC-09` Start Resume Narrowing
+
+### Objective
+
+Keep `cstar start` a narrow wake-and-resume surface.
+
+### Files
+
+- `src/node/core/runtime/adapters.ts`
+- `src/node/core/operator_resume.ts`
+
+### Change Set
+
+- Clarify and enforce `start` as the host-governed resume entrypoint rather than a generic overloaded command.
+
+### Acceptance Criteria
+
+- Start behavior is consistent across host-active and host-inactive execution.
+
+### Verification
+
+```bash
+node scripts/run-tsx.mjs --test tests/unit/test_start_runtime.test.ts
+```
+
+## `CS-HC-10` Active Capability Verification Binding
+
+### Objective
+
+Make verification references mandatory for active capability records.
+
+### Files
+
+- `.agents/skill_registry.json`
+- `scripts/audit_skill_registry.py`
+
+### Change Set
+
+- Require contract and unit-test references for `ACTIVE` capabilities.
+
+### Acceptance Criteria
+
+- No active capability can remain verification-opaque.
+
+### Verification
+
+```bash
+python3 scripts/audit_skill_registry.py
+python3 -m pytest tests/unit/test_skill_registry_audit.py -q
+```
+
+## `CS-HC-11` Host Bridge Contract Coverage
+
+### Objective
+
+Promote host bridge behavior into explicit contract coverage.
+
+### Files
+
+- `tests/empire_tests/specs/decoupling.qmd`
+- `tests/crucible/contracts/bridge_protocol.qmd`
+
+### Change Set
+
+- Add or refine contract language for Gemini/Codex/Claude bridge behavior and decoupling expectations.
+
+### Acceptance Criteria
+
+- Bridge behavior exists at the contract layer, not just unit tests.
+
+### Verification
+
+```bash
+node scripts/run-tsx.mjs --test tests/empire_tests/test_ui_integration_empire.ts
+python3 -m pytest tests/quarantine/test_decoupling_empire.py -q
+node scripts/run-tsx.mjs --test tests/unit/test_host_session_weaves.test.ts
+```
+
+## `CS-HC-12` Registry-Declared Host Support
+
+### Objective
+
+Centralize provider support declarations.
+
+### Files
+
+- `.agents/skill_registry.json`
+- `src/core/host_session.ts`
+- `src/core/host_intelligence.ts`
+- `src/core/mimir_client.ts`
+
+### Change Set
+
+- Consume `host_support` declarations in provider resolution and host invocation paths.
+
+### Acceptance Criteria
+
+- Host differences are declared centrally and enforced consistently.
+
+### Verification
+
+```bash
+node scripts/run-tsx.mjs --test tests/unit/test_mimir_client_bridge.test.ts
+node scripts/run-tsx.mjs --test tests/unit/test_oracle_command.test.ts
+```
+
+## `CS-HC-13` Shared Control Plane Provider Cleanup
+
+### Objective
+
+Remove Gemini-only assumptions from shared host policy.
+
+### Files
+
+- `src/core/host_intelligence.ts`
+- `src/core/mimir_client.ts`
+- `src/core/engine/env_adapter.py`
+
+### Change Set
+
+- Replace provider-specific assumptions with declared provider capability logic.
+
+### Acceptance Criteria
+
+- Shared control-plane behavior is provider-aware instead of Gemini-biased.
+
+### Verification
+
+```bash
+node scripts/run-tsx.mjs --test tests/unit/test_mimir_client_bridge.test.ts
+node scripts/run-tsx.mjs --test tests/unit/test_host_session_weaves.test.ts
+```
+
+## `CS-HC-14` Codex Skill Sync Surface
+
+### Objective
+
+Keep Codex-local skills synchronized with CStar authority.
+
+### Files
+
+- `~/.codex/corvus/bin/sync_from_cstar.py`
+- `~/.codex/corvus/README.md`
+- `~/.codex/skills/corvus-grounding/SKILL.md`
+- `~/.codex/skills/corvus-workflow-bridge/SKILL.md`
+- `~/.codex/skills/cstar-runtime-bridge/SKILL.md`
+- `~/.codex/skills/cstar-skill-registry/SKILL.md`
+
+### Change Set
+
+- Maintain a refresh path from CStar authority into the local Codex skill layer.
+
+### Acceptance Criteria
+
+- The Codex skill layer is refreshable instead of manually drifting.
+
+### Verification
+
+```bash
+python3 ~/.codex/corvus/bin/sync_from_cstar.py --estate-root /home/morderith/Corvus
+PYTHONPYCACHEPREFIX=/tmp python3 -m py_compile ~/.codex/corvus/bin/sync_from_cstar.py
+```
+
+## `CS-HC-15` Codex Startup Grounding Upgrade
+
+### Objective
+
+Expose the real runtime authority surfaces in Codex startup context.
+
+### Files
+
+- `~/.codex/corvus/hooks/session_start.py`
+
+### Change Set
+
+- Include registry, host bridge, governor, and local refresh-path context in startup grounding.
+
+### Acceptance Criteria
+
+- Codex startup context reflects current runtime authority, not just persona and hall guidance.
+
+### Verification
+
+```bash
+python3 ~/.codex/corvus/hooks/session_start.py
+```
+
+## `CS-HC-16` Codex Shutdown Memory Upgrade
+
+### Objective
+
+Persist actual CStar workflow context in Codex session summaries.
+
+### Files
+
+- `~/.codex/corvus/hooks/session_stop.py`
+
+### Change Set
+
+- Capture `cstar` commands and Hall queries alongside normal command history.
+
+### Acceptance Criteria
+
+- Resume memory reflects real Corvus workflow usage.
+
+### Verification
+
+```bash
+python3 ~/.codex/corvus/hooks/session_stop.py
+```
+
+## `CS-HC-17` Explicit Codex Host Bridge
+
+### Objective
+
+Provide a declared Codex bridge surface for CStar host execution.
+
+### Files
+
+- `~/.codex/corvus/bin/codex_host_bridge.py`
+- `~/.codex/corvus/env/corvus-codex-env.sh`
+
+### Change Set
+
+- Keep Codex host execution behind one explicit bridge helper and env contract.
+
+### Acceptance Criteria
+
+- Codex support is explicit and routable from CStar without pretending Gemini-style directive parity.
+
+### Verification
+
+```bash
+PYTHONPYCACHEPREFIX=/tmp python3 -m py_compile ~/.codex/corvus/bin/codex_host_bridge.py
+```
+
+## `CS-HC-18` Codex Drift Detection
+
+### Objective
+
+Detect when Codex-local integration no longer matches CStar authority.
+
+### Files
+
+- `~/.codex/corvus/bin/sync_from_cstar.py`
+- `~/.codex/corvus/integration_manifest.json`
+
+### Change Set
+
+- Emit and compare a local authority snapshot for Codex skills/hooks.
+
+### Acceptance Criteria
+
+- Drift can be detected without manually rereading every local skill and hook.
+
+### Verification
+
+```bash
+python3 ~/.codex/corvus/bin/sync_from_cstar.py --estate-root /home/morderith/Corvus
+```
+
+## Recommended First Slice
+
+The smallest high-value implementation slice is:
+
+1. `CS-HC-01`
+2. `CS-HC-04`
+3. `CS-HC-10`
+4. `CS-HC-12`
+5. `CS-HC-14`
+
+That slice tightens authority, router behavior, verification binding, host support declarations, and Codex sync without expanding architecture first.

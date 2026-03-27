@@ -114,8 +114,7 @@ export async function searchMatrix(query: string, _targetPath: string = '.'): Pr
 /**
  * CLI entry point for testing
  */
-if (process.argv[1].includes('search')) {
+if (typeof process.argv[1] === 'string' && process.argv[1].includes('search')) {
     const q = process.argv.slice(2).join(' ');
     if (q) searchMatrix(q);
 }
-

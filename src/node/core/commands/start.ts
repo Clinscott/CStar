@@ -2,19 +2,10 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { join } from 'node:path';
 
+import { renderStandardCommandResult } from './command_context.js';
 import { RuntimeDispatcher } from  '../runtime/dispatcher.js';
-import { RuntimeDispatchPort, StartWeavePayload, WeaveInvocation, WeaveResult } from  '../runtime/contracts.js';
+import { RuntimeDispatchPort, StartWeavePayload, WeaveInvocation } from  '../runtime/contracts.js';
 import { resolveWorkspaceRoot, withCliWorkspaceTarget, type WorkspaceRootSource } from  '../runtime/invocation.js';
-
-function renderResult(result: WeaveResult): void {
-    if (result.status === 'FAILURE') {
-        console.error(chalk.red(`\n[SYSTEM FAILURE]: ${result.error ?? 'Unknown runtime failure.'}`));
-        return;
-    }
-
-    const printer = result.status === 'TRANSITIONAL' ? chalk.yellow : chalk.green;
-    console.log(printer(`\n[ALFRED]: "${result.output}"`));
-}
 
 export function buildStartInvocation(
     target: string | undefined,
@@ -58,7 +49,7 @@ export function registerStartCommand(
                     ...options,
                     ledger: options.ledger || join(workspaceRoot, 'ledger'),
                 }, workspaceRoot));
-                renderResult(result);
+                renderStandardCommandResult(result, workspaceRoot);
             } catch (error: any) {
                 console.error(chalk.red(`\nCritical Dispatch Error: ${error.message}`));
             }

@@ -1,5 +1,7 @@
 import {
     ResearchWeavePayload,
+    ResearchHostResponse,
+    ResearchWeaveMetadata,
     RuntimeAdapter,
     RuntimeContext,
     RuntimeDispatchPort,
@@ -7,6 +9,9 @@ import {
     WeaveResult,
 } from '../contracts.ts';
 import * as hostBridge from  './host_bridge.js';
+import { saveHallOneMindBranch, summarizeHallOneMindBranches } from '../../../../tools/pennyone/intel/database.js';
+import { buildHallRepositoryId, normalizeHallPath } from '../../../../types/hall.js';
+import type { HallOneMindBranchRecord } from '../../../../types/hall.js';
 
 /**
  * External dependencies for the ResearchWeave.
@@ -14,7 +19,58 @@ import * as hostBridge from  './host_bridge.js';
  */
 export const deps = {
     ...Object.assign({}, hostBridge),
+    saveHallOneMindBranch,
+    summarizeHallOneMindBranches,
 };
+
+function normalizeResearchResponse(parsed: ResearchHostResponse): { summary: string; researchArtifacts: string[] } {
+    const summary = typeof parsed.summary === 'string' ? parsed.summary.trim() : '';
+    if (!summary) {
+        throw new Error('Research host response must include a non-empty summary string.');
+    }
+
+    if (parsed.research_artifacts !== undefined && !Array.isArray(parsed.research_artifacts)) {
+        throw new Error('Research host response research_artifacts must be an array of strings when provided.');
+    }
+
+    const researchArtifacts = Array.isArray(parsed.research_artifacts)
+        ? parsed.research_artifacts.filter((value): value is string => typeof value === 'string').map((value) => value.trim()).filter(Boolean)
+        : [];
+
+    return { summary, researchArtifacts };
+}
+
+function buildResearchPrompt(intent: string, workspaceRoot: string, question?: string): string {
+    return [
+        `Intent: ${intent}`,
+        question ? `Subquestion: ${question}` : '',
+        `Workspace root: ${workspaceRoot}`,
+        'Instructions:',
+        '1. Inspect the repository first.',
+        '2. Use web search only if your host environment supports it and the intent needs external context.',
+        '3. Synthesize only the findings needed for the planner to continue.',
+        '4. Return strict JSON only in this format:',
+        '{ "summary": "...", "research_artifacts": ["artifact-1", "artifact-2"] }',
+    ].filter(Boolean).join('\n');
+}
+
+function buildResearchBranchGroupId(payload: ResearchWeavePayload, context: RuntimeContext): string {
+    return `research:${context.trace_id}:${payload.intent.trim().toLowerCase().replace(/\s+/g, '-').slice(0, 48)}`;
+}
+
+function buildResearchBranchMetadata(
+    payload: ResearchWeavePayload,
+    context: RuntimeContext,
+    branchCount: number,
+): Record<string, unknown> {
+    return {
+        mission_id: context.mission_id,
+        trace_id: context.trace_id,
+        session_id: context.session_id ?? null,
+        intent: payload.intent,
+        branch_count: branchCount,
+    };
+}
 
 export class ResearchWeave implements RuntimeAdapter<ResearchWeavePayload> {
     public readonly id = 'weave:research';
@@ -34,40 +90,79 @@ export class ResearchWeave implements RuntimeAdapter<ResearchWeavePayload> {
 
         if (provider === 'codex') {
             try {
-                const rawText = await this.hostTextInvoker({
-                    provider,
-                    projectRoot: payload.project_root || context.workspace_root,
-                    source: 'runtime:research',
-                    systemPrompt: 'You are the Corvus Star Research Agent. Return strict JSON only.',
-                    prompt: [
-                        `Intent: ${payload.intent}`,
-                        `Workspace root: ${payload.project_root || context.workspace_root}`,
-                        'Instructions:',
-                        '1. Inspect the repository first.',
-                        '2. Use web search only if your host environment supports it and the intent needs external context.',
-                        '3. Synthesize only the findings needed for the planner to continue.',
-                        '4. Return strict JSON only in this format:',
-                        '{ "summary": "...", "research_artifacts": ["artifact-1", "artifact-2"] }',
-                    ].join('\n'),
-                });
-                const parsed = deps.extractJsonObject(rawText);
-                const summary = typeof parsed.summary === 'string' && parsed.summary.trim()
-                    ? parsed.summary.trim()
-                    : 'Research complete.';
-                const artifacts = Array.isArray(parsed.research_artifacts)
-                    ? parsed.research_artifacts
+                const workspaceRoot = payload.project_root || context.workspace_root;
+                const branches = payload.subquestions && payload.subquestions.length > 0
+                    ? payload.subquestions.map((question) => question.trim()).filter(Boolean)
                     : [];
+                const branchQuestions = branches.length > 0 ? branches : [payload.intent];
+                const branchGroupId = buildResearchBranchGroupId(payload, context);
+                const now = Date.now();
+                const branchResults = await Promise.all(branchQuestions.map(async (question, index) => {
+                    const rawText = await this.hostTextInvoker({
+                        provider,
+                        projectRoot: workspaceRoot,
+                        source: branches.length > 0 ? `runtime:research:branch:${index}` : 'runtime:research',
+                        systemPrompt: 'You are the Corvus Star Research Agent. Return strict JSON only.',
+                        prompt: buildResearchPrompt(payload.intent, workspaceRoot, branches.length > 0 ? question : undefined),
+                    });
+                    const parsed = deps.extractJsonObject(rawText) as ResearchHostResponse;
+                    const normalized = normalizeResearchResponse(parsed);
+                    const record: HallOneMindBranchRecord = {
+                        branch_id: `${branchGroupId}:${index}`,
+                        repo_id: buildHallRepositoryId(normalizeHallPath(workspaceRoot)),
+                        source_weave: this.id,
+                        branch_group_id: branchGroupId,
+                        branch_kind: 'research',
+                        branch_label: question,
+                        branch_index: index,
+                        status: 'COMPLETED',
+                        provider,
+                        session_id: context.session_id,
+                        trace_id: context.trace_id,
+                        summary: normalized.summary,
+                        artifacts: normalized.researchArtifacts,
+                        metadata: buildResearchBranchMetadata(payload, context, branchQuestions.length),
+                        created_at: now,
+                        updated_at: now,
+                    };
+                    deps.saveHallOneMindBranch(record, workspaceRoot);
+                    return {
+                        question,
+                        summary: normalized.summary,
+                        research_artifacts: normalized.researchArtifacts,
+                        parsed,
+                    };
+                }));
+
+                const summary = branchResults.map((entry) => entry.summary).join(' ');
+                const researchArtifacts = Array.from(new Set(branchResults.flatMap((entry) => entry.research_artifacts)));
+                const branchLedgerDigest = deps.summarizeHallOneMindBranches(workspaceRoot, {
+                    branchGroupId,
+                    traceId: context.trace_id,
+                    sessionId: context.session_id,
+                });
+                const metadata: ResearchWeaveMetadata = {
+                    context_policy: 'project',
+                    delegated: true,
+                    parallel: branchResults.length > 1,
+                    branch_count: branchResults.length,
+                    provider,
+                    intent: payload.intent,
+                    branch_group_id: branchGroupId,
+                    branch_ledger_digest: branchLedgerDigest ?? undefined,
+                    research_artifacts: researchArtifacts,
+                    research_payload: branchResults.length === 1 ? branchResults[0]?.parsed : undefined,
+                    research_branches: branchResults.map((entry) => ({
+                        question: entry.question,
+                        summary: entry.summary,
+                        research_artifacts: entry.research_artifacts,
+                    })),
+                };
                 return {
                     weave_id: this.id,
                     status: 'SUCCESS',
                     output: summary,
-                    metadata: {
-                        delegated: true,
-                        provider,
-                        intent: payload.intent,
-                        research_artifacts: artifacts,
-                        research_payload: parsed,
-                    },
+                    metadata,
                 };
             } catch (error) {
                 const message = error instanceof Error ? error.message : String(error);

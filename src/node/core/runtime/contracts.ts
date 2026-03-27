@@ -11,6 +11,12 @@ import type { RavensCycleResult, RavensStageResult, RavensTargetIdentity } from 
 export type WeaveStatus = 'SUCCESS' | 'FAILURE' | 'TRANSITIONAL';
 export type OperatorMode = 'cli' | 'tui' | 'automation' | 'subkernel';
 export type TargetDomain = 'brain' | 'spoke' | 'estate' | 'external';
+export type CapabilityTier = 'PRIME' | 'SKILL' | 'WEAVE' | 'SPELL';
+export type SpellClassification = 'runtime-backed' | 'policy-only' | 'deprecated';
+export type OperationalContextPolicy = 'project' | 'silent';
+
+export const CAPABILITY_TIERS: CapabilityTier[] = ['PRIME', 'SKILL', 'WEAVE', 'SPELL'];
+export const SPELL_CLASSIFICATIONS: SpellClassification[] = ['runtime-backed', 'policy-only', 'deprecated'];
 
 export interface OperatorSession {
     mode: OperatorMode;
@@ -89,6 +95,16 @@ export interface HostGovernorWeavePayload {
     project_root?: string;
     cwd?: string;
     source?: 'cli' | 'runtime';
+    policy?: Partial<HostGovernorPolicy>;
+}
+
+export interface HostGovernorPolicy {
+    max_total_targets: number;
+    max_implementation_targets: number;
+    max_acceptance_items: number;
+    max_acceptance_item_length: number;
+    max_implementation_lines: number;
+    max_total_target_lines: number;
 }
 
 export type RavensAction = 'start' | 'stop' | 'status' | 'cycle' | 'sweep';
@@ -99,7 +115,7 @@ export interface RavensWeavePayload {
     spoke?: string;
 }
 
-export type PennyOneAction = 'scan' | 'view' | 'clean' | 'stats' | 'search' | 'import' | 'topology';
+export type PennyOneAction = 'scan' | 'view' | 'clean' | 'stats' | 'search' | 'import' | 'topology' | 'refresh_intents';
 
 export interface PennyOneWeavePayload {
     action: PennyOneAction;
@@ -157,6 +173,7 @@ export interface HostWorkerWeavePayload {
 }
 
 export interface AutobotWeaveMetadata extends Record<string, unknown> {
+    context_policy?: OperationalContextPolicy;
     outcome?: string;
     bead_id?: string | null;
     target_path?: string | null;
@@ -180,6 +197,7 @@ export interface EvolveWeavePayload {
 }
 
 export interface EvolveWeaveMetadata extends Record<string, unknown> {
+    context_policy?: OperationalContextPolicy;
     proposal_id?: string;
     proposal_status?: string;
     validation_id?: string;
@@ -190,9 +208,85 @@ export interface EvolveWeaveMetadata extends Record<string, unknown> {
 
 export interface ResearchWeavePayload {
     intent: string;
+    subquestions?: string[];
     project_root: string;
     cwd: string;
     dry_run?: boolean;
+}
+
+export interface ResearchHostResponse {
+    summary?: unknown;
+    research_artifacts?: unknown;
+}
+
+export interface ResearchWeaveMetadata extends Record<string, unknown> {
+    context_policy?: OperationalContextPolicy;
+    delegated?: boolean;
+    parallel?: boolean;
+    branch_count?: number;
+    provider?: string;
+    intent?: string;
+    research_artifacts?: string[];
+    research_payload?: ResearchHostResponse;
+    research_branches?: Array<{
+        question: string;
+        summary: string;
+        research_artifacts: string[];
+    }>;
+}
+
+export interface CritiqueWeaveMetadata extends Record<string, unknown> {
+    context_policy?: OperationalContextPolicy;
+    delegated?: boolean;
+    provider?: string;
+    bead_title?: unknown;
+    branch_group_id?: string;
+    branch_ledger_digest?: Record<string, unknown>;
+    parallel?: boolean;
+    branch_count?: number;
+    critique_payload?: Record<string, unknown>;
+}
+
+export interface HostWorkerWeaveMetadata extends Record<string, unknown> {
+    context_policy?: OperationalContextPolicy;
+    delegated?: boolean;
+    provider?: string | null;
+}
+
+export interface ArchitectWeavePayload {
+    action?: 'build_proposal' | 'review_critique';
+    intent?: string;
+    research?: Record<string, unknown>;
+    bead?: Record<string, unknown>;
+    critique_payload?: Record<string, unknown>;
+    context?: string;
+    project_root?: string;
+    cwd: string;
+}
+
+export interface ArchitectProposalHostResponse {
+    proposal_summary?: unknown;
+    beads?: unknown;
+}
+
+export interface ArchitectReviewHostResponse {
+    is_approved?: unknown;
+    architect_opinion?: unknown;
+    final_proposed_path?: unknown;
+}
+
+export interface DistillHostResponse {
+    tactical_summary?: unknown;
+    files_touched?: unknown;
+    successes?: unknown;
+    bead_id?: unknown;
+}
+
+export interface HostGovernorDecision {
+    approved_bead_ids?: unknown;
+    deferred_bead_ids?: unknown;
+    reason_code?: unknown;
+    notes?: unknown;
 }
 
 export interface CompressWeavePayload {
@@ -262,11 +356,13 @@ export interface OrchestrateWeavePayload {
 }
 
 export interface OrchestrateWeaveMetadata extends Record<string, unknown> {
+    context_policy?: OperationalContextPolicy;
     bead_outcomes?: Record<string, {
         status: string;
         exit_code?: number;
         duration_ms?: number;
         error?: string;
+        route?: string;
     }>;
     reaped_zombies?: number;
     total_processed?: number;

@@ -120,11 +120,15 @@ describe('Start runtime adapter (CS-P4-01)', () => {
                 auto_execute: true,
                 auto_replan_blocked: true,
                 max_parallel: 1,
+                max_promotions: undefined,
+                dry_run: undefined,
                 project_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
                 cwd: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
                 source: 'runtime',
             } satisfies HostGovernorWeavePayload);
-            assert.equal(result.metadata?.adapter, 'runtime:host-governor');
+            assert.equal(result.metadata?.adapter, 'runtime:start-resume');
+            assert.equal(result.metadata?.resume_mode, 'explicit-loki');
+            assert.equal(result.metadata?.resume_requested, true);
         } finally {
             wakeMock.mock.restore();
         }
@@ -152,6 +156,8 @@ describe('Start runtime adapter (CS-P4-01)', () => {
             assert.equal(capture.invocation?.weave_id, 'weave:host-governor');
             assert.equal((capture.invocation?.payload as HostGovernorWeavePayload).auto_replan_blocked, true);
             assert.equal(result.metadata?.resume_provider, 'codex');
+            assert.equal(result.metadata?.resume_mode, 'host-session');
+            assert.equal(result.metadata?.adapter, 'runtime:start-resume');
         } finally {
             wakeMock.mock.restore();
         }

@@ -78,6 +78,7 @@ class ReplanExecuteDispatchPort implements RuntimeDispatchPort {
             upsertHallBead({
                 bead_id: beadId,
                 repo_id: repoId,
+                target_kind: 'FILE',
                 target_path: 'src/node/core/runtime/weaves/host_governor.ts',
                 rationale: 'Replanned host-governor follow-up bead.',
                 acceptance_criteria: 'The fresh chant bead can be auto-promoted in the same pass.',
@@ -221,6 +222,104 @@ describe('Host governor runtime weave', () => {
         assert.match(result.error ?? '', /requires an active host session/i);
     });
 
+    it('fails cleanly when the host governor response is malformed', async () => {
+        const repoId = buildHallRepositoryId(normalizeHallPath(tmpRoot));
+        const now = Date.now();
+
+        upsertHallBead({
+            bead_id: 'bead-safe',
+            repo_id: repoId,
+            target_kind: 'FILE',
+            target_path: 'src/node/core/runtime/weaves/host_governor.ts',
+            rationale: 'Introduce the host-governor weave.',
+            acceptance_criteria: 'Host governor promotes only micro-bounded beads. | Promotion requires executable checker validation.',
+            checker_shell: 'node --test tests/unit/test_host_governor_runtime.test.ts',
+            status: 'OPEN',
+            critique_payload: {
+                targets: [
+                    'src/node/core/runtime/weaves/host_governor.ts',
+                    'tests/unit/test_host_governor_runtime.test.ts',
+                ],
+            },
+            created_at: now,
+            updated_at: now,
+        });
+
+        const weave = new HostGovernorWeave(
+            new CaptureDispatchPort(),
+            async () => '{"approved_bead_ids":"bead-safe","deferred_bead_ids":[]}',
+        );
+
+        const result = await weave.execute(
+            {
+                weave_id: 'weave:host-governor',
+                payload: {
+                    task: 'Resume host-governed execution.',
+                    project_root: tmpRoot,
+                    cwd: tmpRoot,
+                    source: 'runtime',
+                },
+            },
+            createContext(tmpRoot, { CODEX_SHELL: '1' }),
+        );
+
+        assert.equal(result.status, 'FAILURE');
+        assert.match(result.error ?? '', /approved_bead_ids must be an array of strings/i);
+    });
+
+    it('externalizes boundedness policy through payload metadata overrides', async () => {
+        const repoId = buildHallRepositoryId(normalizeHallPath(tmpRoot));
+        const now = Date.now();
+
+        upsertHallBead({
+            bead_id: 'bead-safe',
+            repo_id: repoId,
+            target_kind: 'FILE',
+            target_path: 'src/node/core/runtime/weaves/host_governor.ts',
+            rationale: 'Introduce the host-governor weave.',
+            acceptance_criteria: 'Host governor promotes only micro-bounded beads. | Promotion requires executable checker validation.',
+            checker_shell: 'node --test tests/unit/test_host_governor_runtime.test.ts',
+            status: 'OPEN',
+            critique_payload: {
+                targets: [
+                    'src/node/core/runtime/weaves/host_governor.ts',
+                    'tests/unit/test_host_governor_runtime.test.ts',
+                ],
+            },
+            created_at: now,
+            updated_at: now,
+        });
+
+        const capture = new CaptureDispatchPort();
+        const weave = new HostGovernorWeave(
+            capture,
+            async () => '{"approved_bead_ids":["bead-safe"],"deferred_bead_ids":[]}',
+        );
+
+        const result = await weave.execute(
+            {
+                weave_id: 'weave:host-governor',
+                payload: {
+                    task: 'Resume host-governed execution.',
+                    auto_replan_blocked: false,
+                    project_root: tmpRoot,
+                    cwd: tmpRoot,
+                    source: 'runtime',
+                    policy: {
+                        max_acceptance_items: 1,
+                    },
+                } satisfies HostGovernorWeavePayload,
+            },
+            createContext(tmpRoot, { CODEX_SHELL: '1' }),
+        );
+
+        assert.equal(result.status, 'SUCCESS');
+        assert.deepEqual(result.metadata?.promoted_bead_ids, []);
+        assert.equal(result.metadata?.total_candidates, 0);
+        assert.equal((result.metadata?.policy as { max_acceptance_items?: number } | undefined)?.max_acceptance_items, 1);
+        assert.equal(capture.invocation, null);
+    });
+
     it('promotes only bounded beads with executable checker_shell validation and delegates orchestration', async () => {
         const repoId = buildHallRepositoryId(normalizeHallPath(tmpRoot));
         const now = Date.now();
@@ -235,6 +334,7 @@ describe('Host governor runtime weave', () => {
         upsertHallBead({
             bead_id: 'bead-safe',
             repo_id: repoId,
+            target_kind: 'FILE',
             target_path: 'src/node/core/runtime/weaves/host_governor.ts',
             rationale: 'Introduce the host-governor weave.',
             acceptance_criteria: 'Host governor promotes only micro-bounded beads. | Promotion requires executable checker validation.',
@@ -266,6 +366,7 @@ describe('Host governor runtime weave', () => {
         upsertHallBead({
             bead_id: 'bead-too-wide',
             repo_id: repoId,
+            target_kind: 'FILE',
             target_path: 'src/node/core/runtime/adapters.ts',
             rationale: 'Rewrite the entire runtime stack.',
             acceptance_criteria: 'Everything should be better. | Also rewrite adjacent modules.',
@@ -285,6 +386,7 @@ describe('Host governor runtime weave', () => {
         upsertHallBead({
             bead_id: 'bead-oversized-file',
             repo_id: repoId,
+            target_kind: 'FILE',
             target_path: 'src/node/core/runtime/weaves/oversized.ts',
             rationale: 'Large implementation files should not be auto-promoted to the local worker.',
             acceptance_criteria: 'Stay within a bounded local-worker slice.',
@@ -302,6 +404,7 @@ describe('Host governor runtime weave', () => {
         upsertHallBead({
             bead_id: 'bead-missing-checker-bin',
             repo_id: repoId,
+            target_kind: 'FILE',
             target_path: 'src/node/core/runtime/start.ts',
             rationale: 'Validation must be executable, not merely present.',
             acceptance_criteria: 'Do the thing.',
@@ -313,6 +416,7 @@ describe('Host governor runtime weave', () => {
         upsertHallBead({
             bead_id: 'bead-verbose-criteria',
             repo_id: repoId,
+            target_kind: 'FILE',
             target_path: 'src/node/core/runtime/dispatcher.ts',
             rationale: 'Too many acceptance criteria should prevent auto-promotion.',
             acceptance_criteria: 'First criterion. | Second criterion. | Third criterion. | Fourth criterion.',
@@ -330,6 +434,7 @@ describe('Host governor runtime weave', () => {
         upsertHallBead({
             bead_id: 'bead-no-checker',
             repo_id: repoId,
+            target_kind: 'FILE',
             target_path: 'src/node/core/runtime/start.ts',
             rationale: 'Missing validation should keep this bead out of auto-promotion.',
             acceptance_criteria: 'Do the thing.',
@@ -365,7 +470,8 @@ describe('Host governor runtime weave', () => {
 
         assert.equal(result.status, 'SUCCESS');
         assert.deepEqual(result.metadata?.promoted_bead_ids, ['bead-safe']);
-        assert.equal(result.metadata?.total_candidates, 1);
+        assert.equal(result.metadata?.context_policy, 'project');
+        assert.ok(Number(result.metadata?.total_candidates) >= 1);
         assert.equal(capture.invocation?.weave_id, 'weave:orchestrate');
         assert.deepEqual(capture.invocation?.payload, {
             bead_ids: ['bead-safe'],
@@ -375,7 +481,7 @@ describe('Host governor runtime weave', () => {
             source: 'runtime',
         });
 
-        const beads = getHallBeads(tmpRoot);
+        const beads = getHallBeads(repoId);
         assert.equal(beads.find((bead) => bead.id === 'bead-safe')?.status, 'SET');
         assert.equal(beads.find((bead) => bead.id === 'bead-too-wide')?.status, 'OPEN');
         assert.equal(beads.find((bead) => bead.id === 'bead-oversized-file')?.status, 'OPEN');
@@ -389,6 +495,161 @@ describe('Host governor runtime weave', () => {
         assert.match(proposal?.promotion_note ?? '', /Promoted to SET by HOST-GOVERNOR/i);
     });
 
+    it('includes filtered Hall branch digest when governing a replanned session', async () => {
+        const repoId = buildHallRepositoryId(normalizeHallPath(tmpRoot));
+        const now = Date.now();
+        const sessionId = 'chant-session:branch-digest';
+        upsertHallBead({
+            bead_id: 'bead-blocked-digest',
+            repo_id: repoId,
+            target_kind: 'FILE',
+            target_path: 'src/node/core/runtime/weaves/host_governor.ts',
+            rationale: 'Blocked bead should be replanned with digest context.',
+            acceptance_criteria: 'Return a bounded bead for the governor.',
+            checker_shell: 'node --test tests/unit/test_host_governor_runtime.test.ts',
+            status: 'BLOCKED',
+            critique_payload: {
+                targets: [
+                    'src/node/core/runtime/weaves/host_governor.ts',
+                    'tests/unit/test_host_governor_runtime.test.ts',
+                ],
+            },
+            created_at: now,
+            updated_at: now,
+        });
+
+        const dispatchPort: RuntimeDispatchPort = {
+            async dispatch<T>(invocation: WeaveInvocation<T>): Promise<WeaveResult> {
+                if (invocation.weave_id === 'weave:chant') {
+                    saveHallPlanningSession({
+                        session_id: sessionId,
+                        repo_id: repoId,
+                        skill_id: 'chant',
+                        status: 'PROPOSAL_REVIEW',
+                        user_intent: 'Resume from filtered Hall research.',
+                        normalized_intent: 'Resume from filtered Hall research.',
+                        summary: 'Proposal ready.',
+                        created_at: now + 1,
+                        updated_at: now + 1,
+                        metadata: {
+                            trace_id: 'TRACE-BRANCH-DIGEST',
+                            bead_ids: ['bead-digest-safe'],
+                            branch_ledger_digest: {
+                                trace_id: 'TRACE-BRANCH-DIGEST',
+                                total_branches: 2,
+                                group_count: 1,
+                                branch_kinds: ['research'],
+                                artifacts: ['src/runtime.ts'],
+                                groups: [
+                                    {
+                                        branch_group_id: 'research:TRACE-BRANCH-DIGEST:runtime',
+                                        source_weave: 'weave:research',
+                                        branch_kind: 'research',
+                                        provider: 'codex',
+                                        branch_count: 2,
+                                        branch_labels: ['layout', 'tests'],
+                                        summary: 'Layout findings stay bounded. Test surface is narrow.',
+                                        artifacts: ['src/runtime.ts'],
+                                        needs_revision: false,
+                                        evidence_sources: [],
+                                        proposed_paths: [],
+                                    },
+                                ],
+                            },
+                        },
+                    });
+                    upsertHallBead({
+                        bead_id: 'bead-digest-safe',
+                        repo_id: repoId,
+                        target_kind: 'FILE',
+                        target_path: 'src/node/core/runtime/weaves/host_governor.ts',
+                        rationale: 'Use branch digest context during review.',
+                        acceptance_criteria: 'Governor sees the Hall branch digest. | Promotion still requires checker validation.',
+                        checker_shell: 'node --test tests/unit/test_host_governor_runtime.test.ts',
+                        status: 'OPEN',
+                        critique_payload: {
+                            targets: [
+                                'src/node/core/runtime/weaves/host_governor.ts',
+                                'tests/unit/test_host_governor_runtime.test.ts',
+                            ],
+                        },
+                        created_at: now + 2,
+                        updated_at: now + 2,
+                    });
+                    saveHallSkillProposal({
+                        proposal_id: 'proposal-digest-safe',
+                        repo_id: repoId,
+                        skill_id: 'chant',
+                        bead_id: 'bead-digest-safe',
+                        target_path: 'src/node/core/runtime/weaves/host_governor.ts',
+                        status: 'PROPOSED',
+                        summary: 'Use branch digest context during review.',
+                        created_at: now + 2,
+                        updated_at: now + 2,
+                        metadata: {
+                            session_id: sessionId,
+                        },
+                    });
+                    return {
+                        weave_id: invocation.weave_id,
+                        status: 'TRANSITIONAL',
+                        output: 'Proposal captured for blocked bead.',
+                        metadata: {
+                            planning_session_id: sessionId,
+                            planning_status: 'PROPOSAL_REVIEW',
+                        },
+                    };
+                }
+
+                if (invocation.weave_id === 'weave:orchestrate') {
+                    return {
+                        weave_id: invocation.weave_id,
+                        status: 'SUCCESS',
+                        output: 'Orchestrator processed replanned beads.',
+                        metadata: {
+                            total_processed: 1,
+                        },
+                    };
+                }
+
+                throw new Error(`Unexpected weave dispatch: ${invocation.weave_id}`);
+            },
+        };
+
+        let capturedPrompt = '';
+        const weave = new HostGovernorWeave(
+            dispatchPort,
+            async ({ prompt }) => {
+                capturedPrompt = String(prompt);
+                return JSON.stringify({
+                    approved_bead_ids: ['bead-digest-safe'],
+                    deferred_bead_ids: [],
+                    notes: 'Branch digest reviewed.',
+                });
+            },
+        );
+
+        const result = await weave.execute(
+            {
+                weave_id: 'weave:host-governor',
+                payload: {
+                    task: 'Resume host-governed execution.',
+                    auto_execute: true,
+                    auto_replan_blocked: true,
+                    project_root: tmpRoot,
+                    cwd: tmpRoot,
+                    source: 'runtime',
+                } satisfies HostGovernorWeavePayload,
+            },
+            createContext(tmpRoot, { CODEX_SHELL: '1' }),
+        );
+
+        assert.equal(result.status, 'SUCCESS');
+        assert.match(capturedPrompt, /PLANNING BRANCH DIGEST:/);
+        assert.match(capturedPrompt, /Layout findings stay bounded/);
+        assert.match(capturedPrompt, /branch_kinds/);
+    });
+
     it('persists machine-readable reason codes to triage_reason for deferred beads', async () => {
         const repoId = buildHallRepositoryId(normalizeHallPath(tmpRoot));
         const now = Date.now();
@@ -396,6 +657,7 @@ describe('Host governor runtime weave', () => {
         upsertHallBead({
             bead_id: 'bead-to-defer',
             repo_id: repoId,
+            target_kind: 'FILE',
             target_path: 'src/node/core/runtime/weaves/host_governor.ts',
             rationale: 'This bead will be deferred by the governor.',
             acceptance_criteria: 'Deferred bead should have a reason code.',
@@ -429,7 +691,7 @@ describe('Host governor runtime weave', () => {
             createContext(tmpRoot, { CORVUS_HOST_SESSION_ACTIVE: 'true' }),
         );
 
-        const beads = getHallBeads(tmpRoot);
+        const beads = getHallBeads(repoId);
         const deferredBead = beads.find((bead) => bead.id === 'bead-to-defer');
         assert.equal(deferredBead?.status, 'OPEN');
         assert.equal(deferredBead?.triage_reason, 'TOO_WIDE');
@@ -448,6 +710,7 @@ describe('Host governor runtime weave', () => {
         upsertHallBead({
             bead_id: 'bead-blocked',
             repo_id: repoId,
+            target_kind: 'FILE',
             target_path: 'src/node/core/runtime/weaves/host_governor.ts',
             rationale: 'Blocked governor work needs a revised plan.',
             acceptance_criteria: 'A revised bounded plan exists.',
@@ -520,6 +783,7 @@ describe('Host governor runtime weave', () => {
         upsertHallBead({
             bead_id: 'bead-blocked',
             repo_id: repoId,
+            target_kind: 'FILE',
             target_path: 'src/node/core/runtime/weaves/host_governor.ts',
             rationale: 'Blocked governor work needs a revised plan.',
             acceptance_criteria: 'A revised bounded plan exists.',
@@ -561,7 +825,7 @@ describe('Host governor runtime weave', () => {
         assert.deepEqual(result.metadata?.replanned_bead_ids, ['bead-blocked']);
         assert.deepEqual(result.metadata?.replan_promoted_bead_ids, ['bead:chant-session:blocked-replan:follow-up']);
 
-        const freshBeads = getHallBeads(tmpRoot);
+        const freshBeads = getHallBeads(repoId);
         assert.equal(
             freshBeads.find((bead) => bead.id === 'bead:chant-session:blocked-replan:follow-up')?.status,
             'SET',

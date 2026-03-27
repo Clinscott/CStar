@@ -2,6 +2,7 @@ import type { IntelligenceResponse } from  '../types/intelligence-contract.js';
 import { MimirClient, type MimirClientOptions } from  './mimir_client.js';
 import type { HostProvider } from  './host_session.js';
 import { resolveHostProvider } from  './host_session.js';
+import { resolveOneMindDecision } from './one_mind_bridge.js';
 
 export interface HostTextRequest {
     prompt: string;
@@ -46,17 +47,20 @@ export async function requestHostText(
         hostProvider: provider,
     });
 
-    // [🔱] THE ONE MIND MANDATE: Default to synapse_db if in an agent session
-    // to preserve external quotas and leverage current session context.
-    const isAgentSession = env.GEMINI_CLI === '1' || env.GEMINI_CLI_ACTIVE === 'true';
-    const transportMode = request.metadata?.transport_mode as any || (isAgentSession ? 'synapse_db' : 'host_session');
-
-    const response = await client.request({
+    const intelligenceRequest = {
         prompt: request.prompt,
         system_prompt: request.systemPrompt,
         correlation_id: request.correlationId,
         caller: { source: request.source },
-        metadata: request.metadata,
+        metadata: request.metadata ?? {},
+        transport_mode: request.metadata?.transport_mode as any ?? 'auto',
+    };
+    const transportMode = resolveOneMindDecision(intelligenceRequest, env, {
+        hostSessionActive: true,
+    }).transportMode;
+
+    const response = await client.request({
+        ...intelligenceRequest,
         transport_mode: transportMode,
     });
 

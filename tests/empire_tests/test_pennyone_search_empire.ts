@@ -11,6 +11,7 @@ import {
     recordHallFile,
     recordHallScan,
     saveHallMountedSpoke,
+    updateFtsIndex,
     upsertHallRepository,
 } from '../../src/tools/pennyone/intel/database.ts';
 import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
@@ -132,5 +133,58 @@ describe('PennyOne Unified Search (Phase 5)', () => {
         }
 
         assert.match(output, /No matches found in the Hall of Records/i);
+    });
+
+    test('searchMatrix remains accessible for hyphenated bead-style queries', async () => {
+        const repoId = buildHallRepositoryId(tmpRoot.replace(/\\/g, '/'));
+        const filePath = path.join(tmpRoot, 'XO', 'docs', 'foundation', 'XO_CHARTER.md');
+        upsertHallRepository({
+            root_path: tmpRoot,
+            name: path.basename(tmpRoot),
+            status: 'AWAKE',
+            active_persona: 'ALFRED',
+            baseline_gungnir_score: 7.4,
+            intent_integrity: 90,
+            created_at: 1700000000000,
+            updated_at: 1700000000000,
+        });
+        recordHallScan({
+            scan_id: 'scan-search-hyphen',
+            repo_id: repoId,
+            scan_kind: 'search_test',
+            status: 'COMPLETED',
+            baseline_gungnir_score: 7.4,
+            started_at: 1700000000000,
+            completed_at: 1700000000100,
+            metadata: { source: 'unit-test' },
+        });
+        recordHallFile({
+            repo_id: repoId,
+            scan_id: 'scan-search-hyphen',
+            path: filePath,
+            content_hash: 'hyphen123',
+            language: 'md',
+            matrix: createGungnirMatrix({ overall: 7.4, sovereignty: 0.8 }),
+            intent_summary: 'XO bead charter scope non-goals operating modes foundation',
+            interaction_summary: 'Standard',
+            created_at: 1700000000200,
+        });
+        updateFtsIndex(filePath, 'XO bead charter scope non-goals operating modes foundation', 'Open scope matrix');
+
+        let output = '';
+        const originalWrite = process.stdout.write.bind(process.stdout);
+        process.stdout.write = ((chunk: string | Uint8Array) => {
+            output += chunk.toString();
+            return true;
+        }) as typeof process.stdout.write;
+
+        try {
+            await searchMatrix('pb-xo-foundation xo-bead-01 charter scope non-goals operating modes', tmpRoot);
+        } finally {
+            process.stdout.write = originalWrite;
+        }
+
+        assert.doesNotMatch(output, /Hall of Records currently inaccessible/i);
+        assert.match(output, /XO_CHARTER\.md/i);
     });
 });

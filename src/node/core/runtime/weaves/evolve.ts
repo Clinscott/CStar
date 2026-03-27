@@ -65,13 +65,17 @@ export class EvolveWeave implements RuntimeAdapter<EvolveWeavePayload> {
             env: { ...context.env, PYTHONPATH: kernelRoot },
         });
         const result = extractJsonObject(stdout) as EvolveWeaveMetadata & { status?: string; summary?: string };
+        const metadata: EvolveWeaveMetadata = {
+            ...result,
+            context_policy: 'project',
+        };
 
         return {
             weave_id: this.id,
             status: String(result.status) === 'SUCCESS' ? 'SUCCESS' : 'FAILURE',
             output: String(result.summary ?? 'Evolve execution completed.'),
             error: String(result.status) === 'SUCCESS' ? undefined : String(result.summary ?? 'Evolve failed.'),
-            metadata: result,
+            metadata,
         };
     }
 }

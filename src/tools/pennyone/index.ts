@@ -4,10 +4,12 @@ import { writeReport } from  './intel/writer.js';
 import { writeProjectedMatrixGraph } from  './intel/compiler.js';
 import {
     getLatestHallScanId,
+    getHallFilesByIntentSummary,
     registerSpoke,
     saveHallFile,
     saveHallRepository,
     saveHallScan,
+    updateHallFileIntent,
     updateFtsIndex,
 } from './intel/database.ts';
 import { SemanticIndexer } from  './intel/semantic.js';
@@ -21,10 +23,17 @@ import crypto from 'node:crypto';
 import { registry } from  './pathRegistry.js';
 import { activePersona } from  './personaRegistry.js';
 import { ScanResult, FileData } from  './types.js';
-import { defaultProvider } from  './intel/llm.js';
+import { defaultProvider, OFFLINE_INTENT_PLACEHOLDER } from  './intel/llm.js';
 import chalk from 'chalk';
 import { buildHallRepositoryId } from  '../../types/hall.js';
 import { getGungnirOverall, patchGungnirMatrix } from  '../../types/gungnir.js';
+import { isHostSessionActive } from '../../core/host_session.js';
+
+export interface IntentRefreshResult {
+    refreshed: number;
+    failed: number;
+    total_candidates: number;
+}
 
 
 /**
@@ -165,6 +174,7 @@ export async function runScan(targetPath: string, force = false): Promise<FileDa
 
     const files = await crawlRepository(targetPath);
     const analyzedFiles: { code: string, data: FileData, needsIntent: boolean }[] = [];
+    const hostSessionActive = isHostSessionActive();
 
     // Intelligent Analysis & Change Detection
     for (const file of files) {
@@ -215,9 +225,12 @@ export async function runScan(targetPath: string, force = false): Promise<FileDa
             try {
                 batchIntents = await defaultProvider.getBatchIntent(batch.map(b => ({ code: b.code, data: b.data })));
             } catch (intentError: any) {
+                if (hostSessionActive) {
+                    throw new Error(`Batch ${batchNum} semantic intent failed during an active host session: ${intentError.message}`);
+                }
                 console.warn(chalk.yellow(`[WARNING] Batch ${batchNum} intelligence generation failed: ${intentError.message}. Using fallback metadata.`));
                 batchIntents = batch.map(() => ({ 
-                    intent: 'Intelligence generation offline. See sector lore for details.', 
+                    intent: OFFLINE_INTENT_PLACEHOLDER, 
                     interaction: 'Standard' 
                 }));
             }
@@ -309,3 +322,85 @@ export async function runScan(targetPath: string, force = false): Promise<FileDa
     return finalResults;
 }
 
+function isPathWithinTarget(recordPath: string, targetPath: string, targetIsDirectory: boolean): boolean {
+    const normalizedRecord = registry.normalize(recordPath);
+    const normalizedTarget = registry.normalize(targetPath).replace(/[\\/]$/, '');
+
+    if (!targetIsDirectory) {
+        return normalizedRecord === normalizedTarget;
+    }
+
+    return normalizedRecord === normalizedTarget || normalizedRecord.startsWith(`${normalizedTarget}/`);
+}
+
+export async function refreshOfflineIntents(targetPath: string): Promise<IntentRefreshResult> {
+    const absoluteTarget = path.resolve(targetPath);
+    const targetRepoRoot = registry.detectWorkspaceRoot(absoluteTarget);
+    const targetStats = await fs.stat(absoluteTarget).catch(() => null);
+    const targetIsDirectory = targetStats?.isDirectory() ?? !path.extname(absoluteTarget);
+    const repoId = buildHallRepositoryId(targetRepoRoot);
+    const candidates = getHallFilesByIntentSummary(OFFLINE_INTENT_PLACEHOLDER, targetRepoRoot)
+        .filter((record) => isPathWithinTarget(record.path, absoluteTarget, targetIsDirectory));
+
+    if (candidates.length === 0) {
+        return {
+            refreshed: 0,
+            failed: 0,
+            total_candidates: 0,
+        };
+    }
+
+    const prepared: Array<{
+        record: Awaited<ReturnType<typeof getHallFilesByIntentSummary>>[number];
+        code: string;
+        data: FileData;
+    }> = [];
+    let failed = 0;
+
+    for (const record of candidates) {
+        try {
+            const code = await fs.readFile(record.path, 'utf-8');
+            const data = await analyzeFile(code, record.path);
+            data.hash = crypto.createHash('md5').update(code).digest('hex');
+            prepared.push({ record, code, data });
+        } catch (error: unknown) {
+            failed += 1;
+            console.warn(`[WARNING] Failed to prepare ${record.path} for intent refresh: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    }
+
+    if (prepared.length === 0) {
+        return {
+            refreshed: 0,
+            failed,
+            total_candidates: candidates.length,
+        };
+    }
+
+    const batchIntents = await defaultProvider.getBatchIntent(
+        prepared.map((item) => ({
+            code: item.code,
+            data: item.data,
+        })),
+    );
+
+    for (let index = 0; index < prepared.length; index += 1) {
+        const item = prepared[index];
+        const intentData = batchIntents[index];
+        const { intent, interaction } = await writeReport(item.data, targetRepoRoot, item.code, intentData);
+        updateHallFileIntent({
+            repo_id: repoId,
+            scan_id: item.record.scan_id,
+            path: item.record.path,
+            intent_summary: intent,
+            interaction_summary: interaction,
+        });
+        updateFtsIndex(item.record.path, intent, interaction);
+    }
+
+    return {
+        refreshed: prepared.length,
+        failed,
+        total_candidates: candidates.length,
+    };
+}

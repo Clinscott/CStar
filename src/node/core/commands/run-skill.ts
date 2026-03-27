@@ -1,8 +1,10 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
+import { renderOperationalContext } from './command_context.js';
 import { RuntimeDispatcher } from '../runtime/dispatcher.js';
 import { SkillBead } from '../skills/types.js';
 import { getGungnirOverall } from '../../../types/gungnir.js';
+import { registry } from '../../../tools/pennyone/pathRegistry.js';
 
 /**
  * [🔱] THE SKILL RUN COMMAND
@@ -37,6 +39,7 @@ export function registerRunSkillCommand(program: Command) {
                 if (result.status === 'SUCCESS') {
                     console.log(chalk.green(`\n✔ SKILL EXECUTION SUCCESSFUL`));
                     console.log(`${chalk.bold('OUTPUT:')} ${result.output}`);
+                    renderOperationalContext(result, registry.getRoot());
                     if (result.metrics_delta) {
                         console.log(`${chalk.bold('GUNGNIR Ω:')} Delta updated.`);
                     }

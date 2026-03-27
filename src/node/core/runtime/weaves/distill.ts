@@ -2,6 +2,7 @@ import { buildHallRepositoryId, normalizeHallPath } from  '../../../../types/hal
 import { saveHallEpisodicMemory } from  '../../../../tools/pennyone/intel/database.js';
 import type {
     CompressWeavePayload,
+    DistillHostResponse,
     RuntimeAdapter,
     RuntimeContext,
     WeaveInvocation,
@@ -13,6 +14,39 @@ function normalizeStringList(values: string[] | undefined): string[] {
     return (values ?? [])
         .map((value) => value.trim())
         .filter(Boolean);
+}
+
+function normalizeOptionalStringArray(value: unknown, fieldName: string): string[] | undefined {
+    if (value === undefined) {
+        return undefined;
+    }
+    if (!Array.isArray(value)) {
+        throw new Error(`Context Distiller response field ${fieldName} must be an array of strings when provided.`);
+    }
+    return value.filter((entry): entry is string => typeof entry === 'string').map((entry) => entry.trim()).filter(Boolean);
+}
+
+function normalizeDistillResponse(parsed: DistillHostResponse): {
+    tacticalSummary: string;
+    filesTouched?: string[];
+    successes?: string[];
+    beadId?: string;
+} {
+    const tacticalSummary = typeof parsed.tactical_summary === 'string' ? parsed.tactical_summary.trim() : '';
+    if (!tacticalSummary) {
+        throw new Error('Context Distiller response must include a non-empty tactical_summary string.');
+    }
+
+    const beadId = typeof parsed.bead_id === 'string' && parsed.bead_id.trim()
+        ? parsed.bead_id.trim()
+        : undefined;
+
+    return {
+        tacticalSummary,
+        filesTouched: normalizeOptionalStringArray(parsed.files_touched, 'files_touched'),
+        successes: normalizeOptionalStringArray(parsed.successes, 'successes'),
+        beadId,
+    };
 }
 
 function persistTacticalSummary(
@@ -123,27 +157,13 @@ Instructions:
 }
 `.trim(),
                 });
-                const parsed = extractJsonObject(rawText);
-                const tacticalSummary = typeof parsed.tactical_summary === 'string' ? parsed.tactical_summary.trim() : '';
-                if (!tacticalSummary) {
-                    return {
-                        weave_id: this.id,
-                        status: 'FAILURE',
-                        output: '',
-                        error: `The Context Distiller ${provider} host session did not return a tactical_summary.`,
-                    };
-                }
+                const parsed = extractJsonObject(rawText) as DistillHostResponse;
+                const normalized = normalizeDistillResponse(parsed);
                 return persistTacticalSummary(payload, context, {
-                    tactical_summary: tacticalSummary,
-                    files_touched: Array.isArray(parsed.files_touched)
-                        ? parsed.files_touched.filter((value): value is string => typeof value === 'string')
-                        : undefined,
-                    successes: Array.isArray(parsed.successes)
-                        ? parsed.successes.filter((value): value is string => typeof value === 'string')
-                        : undefined,
-                    bead_id: typeof parsed.bead_id === 'string' && parsed.bead_id.trim()
-                        ? parsed.bead_id.trim()
-                        : payload.bead_id,
+                    tactical_summary: normalized.tacticalSummary,
+                    files_touched: normalized.filesTouched,
+                    successes: normalized.successes,
+                    bead_id: normalized.beadId ?? payload.bead_id,
                     metadata: {
                         provider,
                     },

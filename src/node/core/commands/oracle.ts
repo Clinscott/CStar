@@ -5,6 +5,7 @@ import path from 'node:path';
 
 import { requestHostText, type HostTextResult } from  '../../../core/host_intelligence.js';
 import type { HostProvider } from  '../../../core/host_session.js';
+import { ensureHealthySynapseDb } from '../../../core/synapse_db.js';
 import { resolveWorkspaceRoot, type WorkspaceRootSource } from  '../runtime/invocation.js';
 
 export interface OracleCommandOptions {
@@ -98,6 +99,10 @@ export async function fulfillOracleSynapseRequest(
     dependencies: OracleDependencies = {},
 ): Promise<string> {
     const dbPath = path.join(options.projectRoot, '.agents', 'synapse.db');
+    const repair = ensureHealthySynapseDb(dbPath);
+    if (repair.recovered) {
+        console.warn(`[ORACLE] Synapse DB was corrupt and has been rebuilt. Backup: ${repair.backupPath}`);
+    }
     const databaseFactory = dependencies.databaseFactory ?? ((resolvedDbPath: string) => new Database(resolvedDbPath));
     const db = databaseFactory(dbPath);
 
