@@ -47,6 +47,16 @@ jobs:
         python -m ruff check . --select E9,F63,F7,F82 --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         python -m ruff check . --exit-zero --statistics
+
+    - name: Validate Generated Distribution Artifacts
+      if: runner.os == 'Windows'
+      run: |
+        npm run build:distributions
+        npm run validate:distributions
+
+    - name: Prepare Release Artifacts
+      if: runner.os == 'Linux'
+      run: npm run release:prepare
         
     - name: Test Unified Suite (Node & Python)
       run: npm test

@@ -2,7 +2,6 @@ import type { IntelligenceResponse } from  '../types/intelligence-contract.js';
 import { MimirClient, type MimirClientOptions } from  './mimir_client.js';
 import type { HostProvider } from  './host_session.js';
 import { resolveHostProvider } from  './host_session.js';
-import { resolveOneMindDecision } from './one_mind_bridge.js';
 
 export interface HostTextRequest {
     prompt: string;
@@ -55,13 +54,8 @@ export async function requestHostText(
         metadata: request.metadata ?? {},
         transport_mode: request.metadata?.transport_mode as any ?? 'auto',
     };
-    const transportMode = resolveOneMindDecision(intelligenceRequest, env, {
-        hostSessionActive: true,
-    }).transportMode;
-
     const response = await client.request({
         ...intelligenceRequest,
-        transport_mode: transportMode,
     });
 
     if (response.status !== 'success') {

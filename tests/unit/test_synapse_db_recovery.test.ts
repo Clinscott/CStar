@@ -11,7 +11,7 @@ import { MimirClient } from '../../src/core/mimir_client.js';
 describe('Synapse DB recovery', () => {
     it('backs up and rebuilds a malformed synapse database', () => {
         const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-synapse-recovery-'));
-        const dbPath = path.join(tmpRoot, '.agents', 'synapse.db');
+        const dbPath = path.join(tmpRoot, '.stats', 'synapse.db');
         fs.mkdirSync(path.dirname(dbPath), { recursive: true });
         fs.writeFileSync(dbPath, 'not a sqlite database', 'utf-8');
 
@@ -32,13 +32,15 @@ describe('Synapse DB recovery', () => {
 
     it('lets Mimir continue after rebuilding a malformed synapse database', async () => {
         const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-synapse-recovery-client-'));
-        const dbPath = path.join(tmpRoot, '.agents', 'synapse.db');
+        const dbPath = path.join(tmpRoot, '.stats', 'synapse.db');
         fs.mkdirSync(path.dirname(dbPath), { recursive: true });
         fs.writeFileSync(dbPath, 'not a sqlite database', 'utf-8');
 
         const client = new MimirClient({
             projectRoot: tmpRoot,
             hostSessionActive: false,
+            pollIntervalMs: 10,
+            pollAttempts: 50,
             oracleInvoker: async (synapseId) => {
                 const db = new Database(dbPath);
                 try {

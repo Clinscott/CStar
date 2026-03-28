@@ -20,6 +20,15 @@ export interface HostDelegateBridgeConfig {
     args: string[];
 }
 
+export interface HostSkillActivationRequest {
+    skill_id: string;
+    role?: string;
+    intent: string;
+    project_root: string;
+    target_paths?: string[];
+    payload?: Record<string, unknown>;
+}
+
 interface RegistryEntry {
     runtime_trigger?: string;
     host_support?: Partial<Record<HostProvider, string>>;
@@ -324,6 +333,7 @@ export function expandDelegateBridgeArgs(
         result_path: string;
         project_root: string;
         provider: HostProvider;
+        subagent_profile: string;
     },
 ): string[] {
     return template.map((entry) =>
@@ -331,7 +341,8 @@ export function expandDelegateBridgeArgs(
             .replaceAll('{request_path}', values.request_path)
             .replaceAll('{result_path}', values.result_path)
             .replaceAll('{project_root}', values.project_root)
-            .replaceAll('{provider}', values.provider),
+            .replaceAll('{provider}', values.provider)
+            .replaceAll('{subagent_profile}', values.subagent_profile),
     );
 }
 
@@ -343,4 +354,20 @@ export function getHostBridgeConfigurationHint(provider: HostProvider): string {
 export function getDelegateBridgeConfigurationHint(provider: HostProvider): string {
     const providerEnv = getProviderDelegateBridgeEnvNames(provider);
     return `Set ${providerEnv.command} and ${providerEnv.args}, set CORVUS_DELEGATE_BRIDGE_CMD and CORVUS_DELEGATE_BRIDGE_ARGS_JSON, or bind a provider-native delegation adapter.`;
+}
+
+export function buildHostSkillActivationEnvelope(request: HostSkillActivationRequest): string {
+    return [
+        '[CORVUS_SKILL_ACTIVATION]',
+        `SKILL_ID: ${request.skill_id}`,
+        request.role ? `ROLE: ${request.role}` : '',
+        `INTENT: ${request.intent}`,
+        `PROJECT_ROOT: ${request.project_root}`,
+        request.target_paths && request.target_paths.length > 0
+            ? `TARGET_PATHS: ${request.target_paths.join(', ')}`
+            : '',
+        'PAYLOAD:',
+        JSON.stringify(request.payload ?? {}, null, 2),
+        '[/CORVUS_SKILL_ACTIVATION]',
+    ].filter(Boolean).join('\n');
 }

@@ -1,0 +1,24 @@
+{
+  "id": "xo-phase2-bead-05",
+  "title": "Disclosure Shaping And Trust-Preserving Guardian Summaries",
+  "rationale": "Guardian visibility must preserve trust rather than become transcript voyeurism. This bead shapes disclosures into bounded summaries, decisions, and safety-relevant signals instead of raw child transcript dumps.",
+  "targets": [
+    "/home/morderith/Corvus/XO/src/tutor/disclosure_summary.ts",
+    "/home/morderith/Corvus/XO/src/guardian/shell.ts"
+  ],
+  "target_symbol": "buildGuardianSummary",
+  "depends_on": [
+    "xo-phase2-bead-04"
+  ],
+  "focus_hint": "Summaries should expose lesson progress, support needs, interventions, and safety-relevant events while suppressing unnecessary verbatim child language by default.",
+  "acceptance_criteria": [
+    "Guardian summaries are structured and omit full transcript replay by default",
+    "Summary builder includes lesson progress, intervention points, and next recommended guardian actions",
+    "Disclosure policy distinguishes routine progress from escalation-relevant detail",
+    "Generated summaries preserve child trust boundaries while remaining useful to guardians"
+  ],
+  "checker_shell": "cd /home/morderith/Corvus/XO && npm run test:node -- tests/tutor/disclosure_summary.spec.ts",
+  "test_file_path": "/home/morderith/Corvus/XO/tests/tutor/disclosure_summary.spec.ts",
+  "test_file_content": "import { describe, expect, it } from 'vitest';\nimport { buildGuardianSummary } from '../../src/tutor/disclosure_summary';\n\ndescribe('buildGuardianSummary', () => {\n  it('returns structured summary fields instead of transcript dumps', () => {\n    const summary = buildGuardianSummary({\n      sessionId: 'sess-1',\n      lessonId: 'lesson-1',\n      progress: 'completed-step-2',\n      interventions: ['pause'],\n      transcript: ['child said something sensitive']\n    });\n    expect(summary.transcript).toBeUndefined();\n    expect(summary.progress).toBe('completed-step-2');\n  });\n});\n",
+  "target_file_skeleton": "export interface GuardianSummary {\n  sessionId: string;\n  lessonId: string;\n  progress: string;\n  interventions: string[];\n  nextGuardianAction?: string;\n  safetyFlags?: string[];\n}\n\nexport function buildGuardianSummary(input: {\n  sessionId: string;\n  lessonId: string;\n  progress: string;\n  interventions: string[];\n  transcript?: string[];\n}): GuardianSummary {\n  return {\n    sessionId: input.sessionId,\n    lessonId: input.lessonId,\n    progress: input.progress,\n    interventions: input.interventions\n  };\n}\n"
+}

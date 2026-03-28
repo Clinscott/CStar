@@ -1,0 +1,24 @@
+{
+  "id": "xo-phase2-bead-01",
+  "title": "Session Envelope Law And Fail-Closed Validation",
+  "rationale": "Phase 2 must not generate tutoring behavior unless the runtime can prove guardian-started, one-child, lesson-scoped session state. This bead hardens the substrate entry point so all later tutoring acts inherit fail-closed validation.",
+  "targets": [
+    "/home/morderith/Corvus/XO/src/storage/schema.ts",
+    "/home/morderith/Corvus/XO/src/projection/engine.ts"
+  ],
+  "target_symbol": "SessionEnvelope",
+  "depends_on": [
+    "pb-xo-phase2-supervised-tutor"
+  ],
+  "focus_hint": "Start with schema and validation boundaries. Reject missing child identity, missing guardian authorization, missing lesson binding, and any attempt to open multi-child context in child mode.",
+  "acceptance_criteria": [
+    "Runtime defines a canonical session envelope type with child_id, guardian actor, lesson binding, and status",
+    "Tutor execution path fails closed when the envelope is absent, stale, cross-child, or lesson-free",
+    "Child mode retrieval remains scoped to the active child only",
+    "Projection layer exposes enough envelope state for downstream playback and tutoring without widening scope"
+  ],
+  "checker_shell": "cd /home/morderith/Corvus/XO && npm run test:node -- tests/session-envelope/session_envelope.spec.ts",
+  "test_file_path": "/home/morderith/Corvus/XO/tests/session-envelope/session_envelope.spec.ts",
+  "test_file_content": "import { describe, expect, it } from 'vitest';\nimport { validateSessionEnvelope } from '../../src/tutor/session_envelope';\n\ndescribe('validateSessionEnvelope', () => {\n  it('accepts a guardian-started one-child lesson-bound envelope', () => {\n    expect(() => validateSessionEnvelope({\n      sessionId: 'sess-1',\n      childId: 'child-1',\n      guardianId: 'guardian-1',\n      lessonId: 'lesson-1',\n      mode: 'child',\n      startedBy: 'guardian',\n      status: 'active'\n    })).not.toThrow();\n  });\n\n  it('rejects tutoring without lesson binding', () => {\n    expect(() => validateSessionEnvelope({\n      sessionId: 'sess-2',\n      childId: 'child-1',\n      guardianId: 'guardian-1',\n      mode: 'child',\n      startedBy: 'guardian',\n      status: 'active'\n    } as any)).toThrow(/lesson/i);\n  });\n\n  it('rejects non-guardian child sessions', () => {\n    expect(() => validateSessionEnvelope({\n      sessionId: 'sess-3',\n      childId: 'child-1',\n      guardianId: 'guardian-1',\n      lessonId: 'lesson-1',\n      mode: 'child',\n      startedBy: 'child',\n      status: 'active'\n    })).toThrow(/guardian/i);\n  });\n});\n",
+  "target_file_skeleton": "export interface SessionEnvelope {\n  sessionId: string;\n  childId: string;\n  guardianId: string;\n  lessonId: string;\n  mode: 'child' | 'guardian_review';\n  startedBy: 'guardian';\n  status: 'active' | 'paused' | 'ended' | 'escalated';\n}\n\nexport function validateSessionEnvelope(envelope: SessionEnvelope): SessionEnvelope {\n  return envelope;\n}\n"
+}

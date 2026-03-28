@@ -269,7 +269,7 @@ describe('TypeScript Mimir client bridge (CS-P1-02)', () => {
 
     it('prefers synapse_db in auto mode when running inside an interactive Codex session with an explicit broker', async () => {
         const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-mimir-codex-auto-broker-'));
-        const dbPath = path.join(tmpRoot, '.agents', 'synapse.db');
+        const dbPath = path.join(tmpRoot, '.stats', 'synapse.db');
         fs.mkdirSync(path.dirname(dbPath), { recursive: true });
         const now = Date.now();
         saveHallOneMindBroker({
@@ -367,7 +367,7 @@ describe('TypeScript Mimir client bridge (CS-P1-02)', () => {
 
     it('uses the synapse database contract and returns a completed response', async () => {
         const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-mimir-db-'));
-        const dbPath = path.join(tmpRoot, '.agents', 'synapse.db');
+        const dbPath = path.join(tmpRoot, '.stats', 'synapse.db');
         fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 
         const client = new MimirClient({

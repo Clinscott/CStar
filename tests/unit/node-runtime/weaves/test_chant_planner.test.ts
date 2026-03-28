@@ -6,6 +6,8 @@ import path from 'node:path';
 import {
     getSessionStringMetadata,
     getSessionNumberMetadata,
+    buildResearchPayload,
+    buildArchitectPayload,
     buildAutobotInvocation,
     isTerminalPlanningStatus,
     asStringArray,
@@ -105,5 +107,29 @@ describe('Chant Planner Unit Tests', () => {
         const result = persistArchitectProposal('/root', 'repo-1', 'session-1', proposal);
         assert.equal(result.beadIds.length, 1);
         assert.ok(result.beadIds[0].includes('bead1'));
+    });
+
+    it('buildResearchPayload preserves the original trace-bearing chant query as rationale', () => {
+        const payload: any = {
+            query: '// Corvus Star Trace [Ω]\nIntent Category: ORCHESTRATE\nIntent: test',
+            project_root: '/root',
+            cwd: '/root',
+        };
+
+        const result = buildResearchPayload(payload, 'normalized intent');
+        assert.equal(result.intent, 'normalized intent');
+        assert.equal(result.rationale, payload.query);
+    });
+
+    it('buildArchitectPayload preserves the original trace-bearing chant query as rationale', () => {
+        const payload: any = {
+            query: '// Corvus Star Trace [Ω]\nIntent Category: ORCHESTRATE\nIntent: test',
+            project_root: '/root',
+            cwd: '/root',
+        };
+
+        const result = buildArchitectPayload(payload, 'normalized intent', { summary: 'research' });
+        assert.equal(result.intent, 'normalized intent');
+        assert.equal(result.rationale, payload.query);
     });
 });

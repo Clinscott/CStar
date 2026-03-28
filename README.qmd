@@ -20,6 +20,41 @@ cstar start
 - **Activates the Ravens**: Starts the background daemons (Muninn for Memory, Huginn for Thought).
 - **Handshake Complete**: Establishes the `PENNYONE_HANDSHAKE` for 3D codebase visualization.
 
+## Host Installs
+
+Corvus Star now ships its Gemini and Codex install surfaces from this repository. There is no secondary distribution repository to maintain.
+
+### Local Host Bootstrap
+
+```bash
+npm run install:gemini-local
+npm run install:codex-local
+npm run install:hosts-local
+```
+
+- `install:gemini-local` links this repository into `~/.gemini/extensions/corvus-star`
+- `install:codex-local` installs the generated plugin into `~/plugins/corvus-star` and updates `~/.agents/plugins/marketplace.json`
+- `install:hosts-local` performs both operations
+
+### Release Preparation
+
+```bash
+npm run release:prepare
+```
+
+This single command:
+- regenerates registry-backed distribution manifests
+- validates them for drift
+- builds publishable Gemini and Codex bundle directories
+- archives those bundles into `dist/releases/`
+
+### Release Publishing
+
+- Tagged pushes matching `v*` trigger the distribution release workflow
+- The workflow publishes GitHub Release assets from this same repository
+- Release archives are emitted under `dist/releases/`
+- Expanded host bundle directories are emitted under `dist/host-distributions/`
+
 ---
 
 ## ◈ THE RITUAL: CHANTS & CRYSTALLIZATION

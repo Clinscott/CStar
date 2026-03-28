@@ -102,6 +102,11 @@ export class ResearchWeave implements RuntimeAdapter<ResearchWeavePayload> {
                         provider,
                         projectRoot: workspaceRoot,
                         source: branches.length > 0 ? `runtime:research:branch:${index}` : 'runtime:research',
+                        metadata: {
+                            transport_mode: 'host_session',
+                            one_mind_boundary: 'primary',
+                            execution_role: 'primary',
+                        },
                         systemPrompt: 'You are the Corvus Star Research Agent. Return strict JSON only.',
                         prompt: buildResearchPrompt(payload.intent, workspaceRoot, branches.length > 0 ? question : undefined),
                     });

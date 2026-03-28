@@ -10,6 +10,7 @@ export interface HostTextRequest {
     projectRoot: string;
     source: string;
     env?: NodeJS.ProcessEnv;
+    metadata?: Record<string, unknown>;
 }
 
 export type HostTextInvoker = (request: HostTextRequest) => Promise<string>;
@@ -26,6 +27,7 @@ export async function defaultHostTextInvoker(request: HostTextRequest): Promise<
         source: request.source,
         provider: request.provider,
         env: request.env,
+        metadata: request.metadata,
     });
     return result.text;
 }

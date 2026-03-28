@@ -98,7 +98,7 @@ export async function fulfillOracleSynapseRequest(
     options: OracleSamplingOptions,
     dependencies: OracleDependencies = {},
 ): Promise<string> {
-    const dbPath = path.join(options.projectRoot, '.agents', 'synapse.db');
+    const dbPath = path.join(options.projectRoot, '.stats', 'synapse.db');
     const repair = ensureHealthySynapseDb(dbPath);
     if (repair.recovered) {
         console.warn(`[ORACLE] Synapse DB was corrupt and has been rebuilt. Backup: ${repair.backupPath}`);

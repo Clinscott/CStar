@@ -98,7 +98,7 @@ function updateSynapseRecord(
     status: 'COMPLETED' | 'FAILED',
     responseOrError: string,
 ): void {
-    const dbPath = path.join(rootPath, '.agents', 'synapse.db');
+    const dbPath = path.join(rootPath, '.stats', 'synapse.db');
     ensureHealthySynapseDb(dbPath);
     const db = new Database(dbPath);
     try {

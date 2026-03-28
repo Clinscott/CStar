@@ -12,7 +12,11 @@ describe('ResearchWeave Unit Tests', () => {
 
     it('execute succeeds when host returns valid JSON', async () => {
         const dispatchPort: any = {};
-        const hostTextInvoker = async () => '{"summary": "Research findings", "research_artifacts": ["A"]}';
+        let capturedRequest: Record<string, unknown> | null = null;
+        const hostTextInvoker = async (request: Record<string, unknown>) => {
+            capturedRequest = request;
+            return '{"summary": "Research findings", "research_artifacts": ["A"]}';
+        };
         const weave = new ResearchWeave(dispatchPort, hostTextInvoker);
         
         mock.method(deps, 'resolveRuntimeHostProvider', () => 'codex');
@@ -27,6 +31,11 @@ describe('ResearchWeave Unit Tests', () => {
         assert.equal(result.output, 'Research findings');
         assert.equal(result.metadata?.context_policy, 'project');
         assert.deepEqual(result.metadata?.research_artifacts, ['A']);
+        assert.deepEqual(capturedRequest?.metadata, {
+            transport_mode: 'host_session',
+            one_mind_boundary: 'primary',
+            execution_role: 'primary',
+        });
         mock.reset();
     });
 

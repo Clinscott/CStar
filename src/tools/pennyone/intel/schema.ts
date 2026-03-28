@@ -236,6 +236,32 @@ export function ensureHallSchema(database: Database.Database, rootPath: string):
             FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id)
         );
 
+        CREATE TABLE IF NOT EXISTS hall_skill_activations (
+            activation_id TEXT PRIMARY KEY,
+            repo_id TEXT NOT NULL,
+            bead_id TEXT,
+            session_id TEXT,
+            skill_id TEXT NOT NULL,
+            adapter_id TEXT,
+            role TEXT,
+            status TEXT NOT NULL,
+            intent TEXT NOT NULL,
+            target_path TEXT,
+            payload_json TEXT,
+            result_summary TEXT,
+            error_text TEXT,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL,
+            completed_at INTEGER,
+            metadata_json TEXT,
+            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id),
+            FOREIGN KEY(bead_id) REFERENCES hall_beads(bead_id),
+            FOREIGN KEY(session_id) REFERENCES hall_planning_sessions(session_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_hall_skill_activations_repo_status
+        ON hall_skill_activations(repo_id, status, created_at);
+
         CREATE TABLE IF NOT EXISTS hall_skill_proposals (
             proposal_id TEXT PRIMARY KEY,
             repo_id TEXT NOT NULL,
@@ -378,6 +404,43 @@ export function ensureHallSchema(database: Database.Database, rootPath: string):
         CREATE INDEX IF NOT EXISTS idx_hall_git_diffs_commit ON hall_git_diffs(commit_hash);
         CREATE INDEX IF NOT EXISTS idx_hall_git_diffs_file ON hall_git_diffs(repo_id, file_path);
 
+        CREATE TABLE IF NOT EXISTS hall_documents (
+            document_id TEXT PRIMARY KEY,
+            repo_id TEXT NOT NULL,
+            root_path TEXT NOT NULL,
+            path TEXT NOT NULL,
+            title TEXT NOT NULL,
+            doc_kind TEXT NOT NULL,
+            status TEXT NOT NULL,
+            latest_version_id TEXT NOT NULL,
+            latest_content_hash TEXT NOT NULL,
+            latest_summary TEXT,
+            metadata_json TEXT,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL,
+            UNIQUE(repo_id, path),
+            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_hall_documents_repo_path ON hall_documents(repo_id, path);
+
+        CREATE TABLE IF NOT EXISTS hall_document_versions (
+            version_id TEXT PRIMARY KEY,
+            document_id TEXT NOT NULL,
+            repo_id TEXT NOT NULL,
+            content_hash TEXT NOT NULL,
+            title TEXT NOT NULL,
+            summary TEXT,
+            content TEXT NOT NULL,
+            source_label TEXT,
+            metadata_json TEXT,
+            created_at INTEGER NOT NULL,
+            FOREIGN KEY(document_id) REFERENCES hall_documents(document_id),
+            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_hall_document_versions_document ON hall_document_versions(document_id, created_at DESC);
+
         CREATE TABLE IF NOT EXISTS hall_mounted_spokes (
             spoke_id TEXT PRIMARY KEY,
             repo_id TEXT NOT NULL,
@@ -407,6 +470,27 @@ export function ensureHallSchema(database: Database.Database, rootPath: string):
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             root_path TEXT NOT NULL UNIQUE
+        );
+
+        CREATE TABLE IF NOT EXISTS norn_beads (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            description TEXT,
+            status TEXT,
+            agent_id TEXT,
+            assigned_raven TEXT,
+            timestamp INTEGER
+        );
+
+        CREATE TABLE IF NOT EXISTS mission_traces (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            mission_id TEXT,
+            file_path TEXT,
+            target_metric TEXT,
+            initial_score REAL,
+            final_score REAL,
+            justification TEXT,
+            status TEXT,
+            timestamp INTEGER
         );
 
         CREATE TABLE IF NOT EXISTS sessions (
@@ -449,6 +533,13 @@ export function ensureHallSchema(database: Database.Database, rootPath: string):
             header,
             content,
             timestamp UNINDEXED
+        );
+
+        CREATE VIRTUAL TABLE IF NOT EXISTS hall_documents_fts USING fts5(
+            path UNINDEXED,
+            title,
+            summary,
+            content
         );
 
         DROP VIEW IF EXISTS hall_repository_projection;
@@ -545,6 +636,19 @@ export function ensureHallSchema(database: Database.Database, rootPath: string):
                 header,
                 content,
                 timestamp UNINDEXED
+            );
+        `,
+    );
+
+    ensureVirtualTable(
+        database,
+        'hall_documents_fts',
+        `
+            CREATE VIRTUAL TABLE hall_documents_fts USING fts5(
+                path UNINDEXED,
+                title,
+                summary,
+                content
             );
         `,
     );

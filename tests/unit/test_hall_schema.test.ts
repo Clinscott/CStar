@@ -8,14 +8,19 @@ import {
     closeDb,
     getDb,
     getHallBeads,
+    getHallDocument,
+    getHallDocumentVersion,
     getHallEpisodicMemory,
     getHallSkillProposal,
     getHallRepositoryRecord,
     getHallSummary,
+    listHallDocumentVersions,
     listHallEpisodicMemory,
     listHallSkillProposals,
     migrateLegacyHallRecords,
     recordHallScan,
+    restoreHallDocumentVersion,
+    saveHallDocumentSnapshot,
     saveHallEpisodicMemory,
     saveHallValidationRun,
     saveHallSkillProposal,
@@ -426,5 +431,50 @@ describe('Hall schema canonicalization (CS-P1-03)', () => {
         assert.deepStrictEqual(memory?.metadata, { source: 'unit-test', bead_intent: 'Persist tactical summary' });
         assert.strictEqual(memories.length, 1);
         assert.strictEqual(memories[0]?.memory_id, 'memory-1');
+    });
+
+    it('persists versioned Hall documents and restores prior content', () => {
+        getDb();
+        upsertHallRepository({
+            root_path: tmpRoot,
+            name: path.basename(tmpRoot),
+            status: 'AWAKE',
+            active_persona: 'ODIN',
+            baseline_gungnir_score: 88,
+            intent_integrity: 92,
+            metadata: { source: 'test' },
+            created_at: 1700000000000,
+            updated_at: 1700000000000,
+        });
+
+        const first = saveHallDocumentSnapshot({
+            root_path: tmpRoot,
+            document_path: 'docs/foundation/XO_MEMORY_MODEL.md',
+            content: '# XO Memory Model\n\nFirst summary line.\n',
+            doc_kind: 'foundation',
+            created_at: 1700000001000,
+        });
+        const second = saveHallDocumentSnapshot({
+            root_path: tmpRoot,
+            document_path: 'docs/foundation/XO_MEMORY_MODEL.md',
+            content: '# XO Memory Model\n\nSecond summary line.\n',
+            doc_kind: 'foundation',
+            created_at: 1700000002000,
+        });
+
+        const document = getHallDocument(tmpRoot, 'docs/foundation/XO_MEMORY_MODEL.md');
+        const latestVersion = getHallDocumentVersion(second.version.version_id);
+        const versions = listHallDocumentVersions(first.document.document_id);
+        const restorePath = path.join(tmpRoot, 'restore', 'XO_MEMORY_MODEL.md');
+        const restored = restoreHallDocumentVersion(first.version.version_id, restorePath);
+
+        assert.ok(document);
+        assert.equal(document?.latest_version_id, second.version.version_id);
+        assert.equal(document?.title, 'XO Memory Model');
+        assert.equal(document?.latest_summary, 'Second summary line.');
+        assert.equal(latestVersion?.summary, 'Second summary line.');
+        assert.equal(versions.length, 2);
+        assert.equal(restored.path, restorePath.replace(/\\/g, '/'));
+        assert.equal(fs.readFileSync(restorePath, 'utf-8'), '# XO Memory Model\n\nFirst summary line.\n');
     });
 });

@@ -10,7 +10,11 @@ import {
     getHallRepositoryRecord,
     recordHallFile,
     recordHallScan,
+    saveHallDocumentSnapshot,
+    saveHallPlanningSession,
+    saveHallSkillProposal,
     saveHallMountedSpoke,
+    upsertHallBead,
     updateFtsIndex,
     upsertHallRepository,
 } from '../../src/tools/pennyone/intel/database.ts';
@@ -186,5 +190,138 @@ describe('PennyOne Unified Search (Phase 5)', () => {
 
         assert.doesNotMatch(output, /Hall of Records currently inaccessible/i);
         assert.match(output, /XO_CHARTER\.md/i);
+    });
+
+    test('searchMatrix surfaces planning sessions and beads for known Hall repositories', async () => {
+        const xoRoot = path.join(tmpRoot, 'XO');
+        const xoRepoId = buildHallRepositoryId(xoRoot.replace(/\\/g, '/'));
+        upsertHallRepository({
+            root_path: tmpRoot,
+            name: path.basename(tmpRoot),
+            status: 'AWAKE',
+            active_persona: 'ALFRED',
+            baseline_gungnir_score: 7.4,
+            intent_integrity: 90,
+            created_at: 1700000000000,
+            updated_at: 1700000000000,
+        });
+        upsertHallRepository({
+            root_path: xoRoot,
+            name: 'XO',
+            status: 'AWAKE',
+            active_persona: 'ALFRED',
+            baseline_gungnir_score: 7.4,
+            intent_integrity: 90,
+            created_at: 1700000000001,
+            updated_at: 1700000000001,
+        });
+        saveHallPlanningSession({
+            session_id: 'chant-session:xo-phase1-runtime',
+            repo_id: xoRepoId,
+            skill_id: 'chant',
+            status: 'PLAN_READY',
+            user_intent: 'Convert the XO implementation plan into bounded CStar development beads.',
+            normalized_intent: 'Plan XO phase one implementation beads.',
+            summary: 'XO Phase 1 runtime plan',
+            current_bead_id: 'xo-phase1-schema-store',
+            created_at: 1700000000100,
+            updated_at: 1700000000100,
+            metadata: {},
+        });
+        upsertHallBead({
+            bead_id: 'xo-phase1-schema-store',
+            repo_id: xoRepoId,
+            target_kind: 'SECTOR',
+            target_ref: 'chant-session:xo-phase1-runtime',
+            target_path: 'src/domain',
+            rationale: 'Canonical schema and storage substrate',
+            contract_refs: ['docs/planning/XO_IMPLEMENTATION_PLAN.md'],
+            baseline_scores: {},
+            acceptance_criteria: 'Canonical XO records can be created and validated without UI.',
+            status: 'OPEN',
+            source_kind: 'CHANT',
+            created_at: 1700000000200,
+            updated_at: 1700000000200,
+        });
+        saveHallSkillProposal({
+            proposal_id: 'proposal:chant-session:xo-phase1-runtime:xo-phase1-schema-store',
+            repo_id: xoRepoId,
+            skill_id: 'chant',
+            bead_id: 'xo-phase1-schema-store',
+            target_path: 'src/domain',
+            proposal_path: path.join(xoRoot, '.agents', 'proposals', 'xo-phase1-schema-store.json'),
+            status: 'PROPOSED',
+            summary: 'Canonical schema and storage substrate',
+            created_at: 1700000000300,
+            updated_at: 1700000000300,
+            metadata: {},
+        });
+
+        let output = '';
+        const originalWrite = process.stdout.write.bind(process.stdout);
+        process.stdout.write = ((chunk: string | Uint8Array) => {
+            output += chunk.toString();
+            return true;
+        }) as typeof process.stdout.write;
+
+        try {
+            await searchMatrix('chant-session:xo-phase1-runtime xo-phase1-schema-store', tmpRoot);
+        } finally {
+            process.stdout.write = originalWrite;
+        }
+
+        assert.match(output, /PLAN/i);
+        assert.match(output, /chant-session:xo-phase1-runtime/i);
+        assert.match(output, /BEAD/i);
+        assert.match(output, /xo-phase1-schema-store/i);
+        assert.match(output, /src\/domain/i);
+    });
+
+    test('searchMatrix surfaces Hall-backed doctrine documents', async () => {
+        const xoRoot = path.join(tmpRoot, 'XO');
+        upsertHallRepository({
+            root_path: tmpRoot,
+            name: path.basename(tmpRoot),
+            status: 'AWAKE',
+            active_persona: 'ALFRED',
+            baseline_gungnir_score: 7.4,
+            intent_integrity: 90,
+            created_at: 1700000000000,
+            updated_at: 1700000000000,
+        });
+        upsertHallRepository({
+            root_path: xoRoot,
+            name: 'XO',
+            status: 'AWAKE',
+            active_persona: 'ALFRED',
+            baseline_gungnir_score: 7.4,
+            intent_integrity: 90,
+            created_at: 1700000000001,
+            updated_at: 1700000000001,
+        });
+        saveHallDocumentSnapshot({
+            root_path: xoRoot,
+            document_path: 'docs/foundation/XO_MEMORY_MODEL.md',
+            content: '# XO Memory Model\n\nDurable memory for long-horizon educational adaptation.\n',
+            doc_kind: 'foundation',
+            created_at: 1700000000500,
+        });
+
+        let output = '';
+        const originalWrite = process.stdout.write.bind(process.stdout);
+        process.stdout.write = ((chunk: string | Uint8Array) => {
+            output += chunk.toString();
+            return true;
+        }) as typeof process.stdout.write;
+
+        try {
+            await searchMatrix('long-horizon educational adaptation', tmpRoot);
+        } finally {
+            process.stdout.write = originalWrite;
+        }
+
+        assert.match(output, /DOC/i);
+        assert.match(output, /XO_MEMORY_MODEL\.md/i);
+        assert.match(output, /XO Memory Model/i);
     });
 });

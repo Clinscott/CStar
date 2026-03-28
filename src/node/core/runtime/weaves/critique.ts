@@ -87,6 +87,11 @@ export class CritiqueWeave implements RuntimeAdapter<CritiqueWeavePayload> {
                         projectRoot: workspaceRoot,
                         source: focusArea ? `runtime:critique:branch:${index}` : 'runtime:critique',
                         env: { ...process.env, ...context.env } as NodeJS.ProcessEnv,
+                        metadata: {
+                            transport_mode: 'host_session',
+                            one_mind_boundary: 'primary',
+                            execution_role: 'primary',
+                        },
                         systemPrompt: 'You are the Corvus Star Adversarial Critique Agent. Return strict JSON only.',
                         prompt: buildCritiquePrompt(payload, focusArea),
                     });

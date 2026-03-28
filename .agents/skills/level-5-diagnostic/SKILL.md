@@ -1,3 +1,11 @@
+---
+name: level-5-diagnostic
+description: "Use when executing a comprehensive, read-only diagnostic of the Corvus Star framework to identify structural weaknesses and generate actionable follow-up beads."
+tier: SKILL
+risk: safe
+source: internal
+---
+
 # 🧿 LEVEL 5 DIAGNOSTIC
 
 > **ROLE:** The Omni-Auditor

@@ -1,0 +1,25 @@
+{
+  "id": "xo-phase2-bead-07",
+  "title": "Verification Matrix Regression Harness And Exit Scoring",
+  "rationale": "Phase 2 should not ship on feature completion alone. This bead assembles the Lore, Isolation, and Audit evidence into a regression harness and explicit exit score for supervised tutoring readiness.",
+  "targets": [
+    "/home/morderith/Corvus/XO/src/verification/audit.ts",
+    "/home/morderith/Corvus/XO/tests/verification/xo_phase2_regression.spec.ts",
+    "/home/morderith/Corvus/XO/docs/planning/XO_PHASE_2_IMPLEMENTATION_PLAN.md"
+  ],
+  "target_symbol": "runXoPhase2VerificationMatrix",
+  "depends_on": [
+    "xo-phase2-bead-06"
+  ],
+  "focus_hint": "Turn the prior six beads into a coherent matrix: session law, playback integrity, lesson-bound acts, guardian continuity, disclosure shaping, and escalation traceability. Include an exit score rather than a binary pass/fail only.",
+  "acceptance_criteria": [
+    "Regression harness covers one-child scope preservation, lesson-bound tutoring, disclosure boundaries, escalation traceability, and guardian oversight continuity",
+    "Verification output maps findings to Lore, Isolation, and Audit evidence",
+    "Exit scoring blocks completion when any non-negotiable supervised tutor invariant regresses",
+    "Final verification references existing Phase 1 audit surfaces instead of inventing separate governance"
+  ],
+  "checker_shell": "cd /home/morderith/Corvus/XO && npm run test:node -- tests/verification/xo_phase2_regression.spec.ts",
+  "test_file_path": "/home/morderith/Corvus/XO/tests/verification/xo_phase2_regression.spec.ts",
+  "test_file_content": "import { describe, expect, it } from 'vitest';\nimport { runXoPhase2VerificationMatrix } from '../../src/verification/xo_phase2_matrix';\n\ndescribe('runXoPhase2VerificationMatrix', () => {\n  it('requires all supervised tutor invariants for a passing exit score', () => {\n    const result = runXoPhase2VerificationMatrix({\n      invariants: {\n        oneChildScope: true,\n        lessonBoundTutoring: true,\n        guardianAuthority: true,\n        disclosureBoundary: true,\n        escalationTraceability: true\n      }\n    });\n    expect(result.passed).toBe(true);\n    expect(result.score).toBeGreaterThanOrEqual(0.95);\n  });\n});\n",
+  "target_file_skeleton": "export interface XoPhase2VerificationInput {\n  invariants: {\n    oneChildScope: boolean;\n    lessonBoundTutoring: boolean;\n    guardianAuthority: boolean;\n    disclosureBoundary: boolean;\n    escalationTraceability: boolean;\n  };\n}\n\nexport function runXoPhase2VerificationMatrix(input: XoPhase2VerificationInput) {\n  const passed = Object.values(input.invariants).every(Boolean);\n  return {\n    passed,\n    score: passed ? 1 : 0,\n    evidence: input.invariants\n  };\n}\n"
+}

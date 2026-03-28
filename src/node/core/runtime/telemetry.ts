@@ -1,7 +1,7 @@
 import { database } from  '../../../tools/pennyone/intel/database.js';
 
 const deps = {
-    getDb: (rootPath: string = '.') => database.getDb(rootPath),
+    getDb: (rootPath: string) => database.getDb(rootPath),
 };
 
 export { deps };
@@ -34,7 +34,7 @@ export class OrchestratorTelemetryBridge {
         exit_code?: number;
         duration_ms?: number;
     }): Promise<void> {
-        const db = deps.getDb();
+        const db = deps.getDb(this.projectRoot);
         
         // Find existing validation run or create a new one for this execution
         const validationId = `orch-run:${beadId}:${Date.now()}`;

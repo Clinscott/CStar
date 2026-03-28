@@ -39,7 +39,7 @@ describe('Oracle command spoke (CS-P1-02)', () => {
 
     it('fulfills Synapse records through the shared host bridge and marks them completed', async () => {
         const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-oracle-command-'));
-        const dbPath = path.join(tmpRoot, '.agents', 'synapse.db');
+        const dbPath = path.join(tmpRoot, '.stats', 'synapse.db');
         fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 
         const db = new Database(dbPath);
@@ -225,7 +225,7 @@ describe('Oracle command spoke (CS-P1-02)', () => {
 
     it('threads provider override through Synapse fulfillment path', async () => {
         const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-oracle-command-'));
-        const dbPath = path.join(tmpRoot, '.agents', 'synapse.db');
+        const dbPath = path.join(tmpRoot, '.stats', 'synapse.db');
         fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 
         const db = new Database(dbPath);

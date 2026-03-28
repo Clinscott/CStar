@@ -1,0 +1,40 @@
+{
+  "name": "corvus-star",
+  "version": "1.0.0",
+  "description": "c, c+, c++, c#, c*",
+  "author": {
+    "name": "Craig Linscott"
+  },
+  "homepage": "https://github.com/Clinscott/CStar#readme",
+  "repository": "git+https://github.com/Clinscott/CStar.git",
+  "license": "ISC",
+  "keywords": [
+    "corvus",
+    "cstar",
+    "sprt",
+    "gungnir",
+    "calculus"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Corvus Star",
+    "shortDescription": "Kernel-first Corvus integration for Codex.",
+    "longDescription": "Routes Codex through the authoritative CStar runtime, Hall, and registry-backed host support model.",
+    "developerName": "Craig Linscott",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/Clinscott/CStar#readme",
+    "privacyPolicyURL": "https://github.com/Clinscott/CStar#readme",
+    "termsOfServiceURL": "https://github.com/Clinscott/CStar#readme",
+    "defaultPrompt": [
+      "Use CStar Hall before broad local search.",
+      "Route Corvus work through ./cstar and node bin/cstar.js.",
+      "Keep registry and runtime contracts authoritative."
+    ],
+    "brandColor": "#0F6E5B"
+  }
+}

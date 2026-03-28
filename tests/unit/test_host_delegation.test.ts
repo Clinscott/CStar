@@ -37,12 +37,13 @@ describe('Host delegated execution bridge', () => {
 
     it('expands delegate bridge placeholders', () => {
         const args = expandDelegateBridgeArgs(
-            ['delegate.py', '--request', '{request_path}', '--result', '{result_path}', '--cwd', '{project_root}', '--provider', '{provider}'],
+            ['delegate.py', '--request', '{request_path}', '--result', '{result_path}', '--cwd', '{project_root}', '--provider', '{provider}', '--role', '{subagent_profile}'],
             {
                 request_path: '/tmp/request.json',
                 result_path: '/tmp/result.json',
                 project_root: '/repo/root',
                 provider: 'codex',
+                subagent_profile: 'architect',
             },
         );
 
@@ -56,6 +57,8 @@ describe('Host delegated execution bridge', () => {
             '/repo/root',
             '--provider',
             'codex',
+            '--role',
+            'architect',
         ]);
     });
 
@@ -69,6 +72,7 @@ describe('Host delegated execution bridge', () => {
                 repo_root: tmpRoot,
                 boundary: 'subagent',
                 task_kind: 'implementation',
+                subagent_profile: 'backend',
                 prompt: 'Implement the bounded bead.',
                 target_paths: ['src/example.ts'],
                 acceptance_criteria: ['The file compiles.'],
@@ -121,22 +125,38 @@ describe('Host delegated execution bridge', () => {
         assert.equal(result.status, 'completed');
     });
 
-    it('fails closed when no delegate bridge is configured for the provider', async () => {
-        await assert.rejects(
-            requestHostDelegatedExecution(
-                {
-                    request_id: 'req-missing',
-                    repo_root: '/tmp/corvus-no-bridge',
-                    boundary: 'subagent',
-                    task_kind: 'research',
-                    prompt: 'Investigate the bounded issue.',
+    it('falls back to provider-native host CLI delegation when no bridge is configured', async () => {
+        const result = await requestHostDelegatedExecution(
+            {
+                request_id: 'req-native',
+                repo_root: '/tmp/corvus-no-bridge',
+                boundary: 'subagent',
+                task_kind: 'research',
+                subagent_profile: 'architect',
+                prompt: 'Investigate the bounded issue.',
+            },
+            {
+                CODEX_SHELL: '1',
+                CODEX_THREAD_ID: 'thread-1',
+            },
+            {
+                execRunner: async (command, args) => {
+                    assert.equal(command, 'codex');
+                    assert.ok(args.includes('exec'));
+                    const prompt = args[args.length - 1] ?? '';
+                    assert.match(prompt, /SPECIALIST ROLE: Architecture Orchestrator \(architect\)/);
+                    assert.match(prompt, /Investigate the bounded issue\./);
+                    return {
+                        stdout: '```json\n{"result":"native"}\n```',
+                        stderr: '',
+                    };
                 },
-                {
-                    CODEX_SHELL: '1',
-                    CODEX_THREAD_ID: 'thread-1',
-                },
-            ),
-            /configured delegated-execution bridge/i,
+            },
         );
+
+        assert.equal(result.provider, 'codex');
+        assert.equal(result.status, 'completed');
+        assert.match(result.raw_text ?? '', /native/);
+        assert.equal(result.metadata?.subagent_profile, 'architect');
     });
 });

@@ -79,7 +79,7 @@ describe('One Mind broker scaffold', () => {
         const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-one-mind-fulfill-'));
         const now = Date.now();
         const repoId = buildHallRepositoryId(normalizeHallPath(tmpRoot));
-        const dbPath = path.join(tmpRoot, '.agents', 'synapse.db');
+        const dbPath = path.join(tmpRoot, '.stats', 'synapse.db');
         ensureHealthySynapseDb(dbPath);
         const synapseDb = new Database(dbPath);
         try {

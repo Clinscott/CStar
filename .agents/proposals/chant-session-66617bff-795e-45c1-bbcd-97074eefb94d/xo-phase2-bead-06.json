@@ -1,0 +1,25 @@
+{
+  "id": "xo-phase2-bead-06",
+  "title": "Live Safety Classification Escalation And Immutable Session Audit",
+  "rationale": "Capability widening is unsafe without live safety classification and durable traceability. This bead classifies tutoring events in-session, escalates when thresholds are crossed, and records an immutable audit trail for review.",
+  "targets": [
+    "/home/morderith/Corvus/XO/src/verification/audit.ts",
+    "/home/morderith/Corvus/XO/src/tutor/safety_monitor.ts",
+    "/home/morderith/Corvus/XO/src/storage/schema.ts"
+  ],
+  "target_symbol": "classifyTutoringEvent",
+  "depends_on": [
+    "xo-phase2-bead-05"
+  ],
+  "focus_hint": "Keep the classifier narrow and auditable. Focus on escalation triggers, guardian notification, and append-only audit records tied to the active session envelope.",
+  "acceptance_criteria": [
+    "Runtime classifies tutoring events into routine, review, or escalate bands",
+    "Escalation path records why the event was flagged and what guardian action occurred",
+    "Audit trail is append-only and session-linked for later verification",
+    "Safety audit covers lesson-bound tutoring drift, disclosure boundary violations, and guardian oversight discontinuity"
+  ],
+  "checker_shell": "cd /home/morderith/Corvus/XO && npm run test:node -- tests/tutor/safety_monitor.spec.ts",
+  "test_file_path": "/home/morderith/Corvus/XO/tests/tutor/safety_monitor.spec.ts",
+  "test_file_content": "import { describe, expect, it } from 'vitest';\nimport { classifyTutoringEvent } from '../../src/tutor/safety_monitor';\n\ndescribe('classifyTutoringEvent', () => {\n  it('escalates lesson drift attempts', () => {\n    const result = classifyTutoringEvent({ type: 'lesson_drift', sessionId: 'sess-1' });\n    expect(result.band).toBe('escalate');\n  });\n\n  it('marks routine lesson progress as routine', () => {\n    const result = classifyTutoringEvent({ type: 'progress_update', sessionId: 'sess-1' });\n    expect(result.band).toBe('routine');\n  });\n});\n",
+  "target_file_skeleton": "export type SafetyBand = 'routine' | 'review' | 'escalate';\n\nexport interface SafetyDecision {\n  sessionId: string;\n  band: SafetyBand;\n  reason: string;\n}\n\nexport function classifyTutoringEvent(input: { type: string; sessionId: string }): SafetyDecision {\n  return { sessionId: input.sessionId, band: 'routine', reason: input.type };\n}\n"
+}

@@ -5,21 +5,24 @@ risk: safety-critical
 source: internal
 ---
 
-# 🔱 ORCHESTRATOR SKILL (v1.0)
+# 🔱 ORCHESTRATOR SKILL (v1.1)
 
 ## When to Use
 - Use when starting the automated restoration of the estate.
 - Use when processing a backlog of Linscott Breaches or technical debt beads.
 
 ## MANDATE
-Govern the autonomous execution spine, ensuring every change is verified through Lore, Isolation, and Audit.
+Govern the estate skill scheduler. Hall beads are the work ledger, skill activations are the execution primitive, and host differences must be reduced to thin activation adapters.
+Treat parent beads as coordination contracts that must shatter into bounded child beads before skill activation.
 
 ## LOGIC PROTOCOL
-1. **BEAD ACQUISITION**: Identify 'SET' status beads from the PennyOne Hall DB.
-2. **ENVIRONMENT ISOLATION**: Prepare a clean runtime context for the task.
-3. **SWARM DISPATCH**: Execute the implementation weave (e.g., Taliesin, Evolve) for the bead.
-4. **VERIFICATION GATE**: Run the Triad of Verification (feature, unit test, gungnir).
-5. **EPISODIC COMMIT**: Record the tactical summary and transition the bead to 'RESOLVED'.
+1. **BEAD ACQUISITION**: Identify released `SET` beads from the PennyOne Hall DB.
+2. **PARENT SHATTERING**: If the bead is a parent or wide planning/state bead, shatter it into bounded child beads and keep the parent unresolved until the children complete.
+3. **CAPABILITY ROUTING**: Map each executable child bead to the right skill and role before any host-specific transport is considered.
+4. **ACTIVATION LEDGER**: Persist a Hall skill-activation record for each dispatched child bead.
+5. **SWARM DISPATCH**: Execute the mapped skill for that child bead and keep the Hall activation record synchronized with reality.
+6. **VERIFICATION GATE**: Run the Triad of Verification (feature, unit test, gungnir).
+7. **EPISODIC COMMIT**: Record the tactical summary and transition the bead to the next review state.
 
 ## USAGE
 `cstar orchestrate --limit 5 --parallel 3`

@@ -1,0 +1,24 @@
+{
+  "id": "xo-phase2-bead-02",
+  "title": "Lesson Playback State Machine",
+  "rationale": "Before tutoring broadens interactivity, the system must reliably play lesson content with explicit pause, resume, and interrupt semantics inside the validated session envelope. This keeps tutoring anchored to canonical lesson progression rather than free-form drift.",
+  "targets": [
+    "/home/morderith/Corvus/XO/src/projection/engine.ts",
+    "/home/morderith/Corvus/XO/src/tutor/lesson_playback.ts"
+  ],
+  "target_symbol": "LessonPlaybackMachine",
+  "depends_on": [
+    "xo-phase2-bead-01"
+  ],
+  "focus_hint": "Build explicit playback states and transitions that consume canonical lesson records from Phase 1. Do not let playback escape the active lesson or bypass session validation.",
+  "acceptance_criteria": [
+    "Lesson playback exposes deterministic states such as idle, presenting, paused, interrupted, completed",
+    "Pause, resume, and interrupt transitions preserve the same session envelope and lesson binding",
+    "Playback cannot advance content for a different child or different lesson",
+    "Playback emits structured state snapshots that later tutoring acts can consume"
+  ],
+  "checker_shell": "cd /home/morderith/Corvus/XO && npm run test:node -- tests/tutor/lesson_playback.spec.ts",
+  "test_file_path": "/home/morderith/Corvus/XO/tests/tutor/lesson_playback.spec.ts",
+  "test_file_content": "import { describe, expect, it } from 'vitest';\nimport { createLessonPlaybackMachine } from '../../src/tutor/lesson_playback';\n\ndescribe('LessonPlaybackMachine', () => {\n  it('supports pause and resume without changing lesson scope', () => {\n    const machine = createLessonPlaybackMachine({ sessionId: 'sess-1', childId: 'child-1', guardianId: 'guardian-1', lessonId: 'lesson-1', mode: 'child', startedBy: 'guardian', status: 'active' });\n    machine.start();\n    machine.pause();\n    machine.resume();\n    expect(machine.snapshot().lessonId).toBe('lesson-1');\n    expect(machine.snapshot().state).toBe('presenting');\n  });\n\n  it('marks interrupt explicitly for guardian takeover', () => {\n    const machine = createLessonPlaybackMachine({ sessionId: 'sess-1', childId: 'child-1', guardianId: 'guardian-1', lessonId: 'lesson-1', mode: 'child', startedBy: 'guardian', status: 'active' });\n    machine.start();\n    machine.interrupt('guardian_review');\n    expect(machine.snapshot().state).toBe('interrupted');\n    expect(machine.snapshot().reason).toBe('guardian_review');\n  });\n});\n",
+  "target_file_skeleton": "import type { SessionEnvelope } from './session_envelope';\n\nexport type LessonPlaybackState = 'idle' | 'presenting' | 'paused' | 'interrupted' | 'completed';\n\nexport interface LessonPlaybackSnapshot {\n  state: LessonPlaybackState;\n  lessonId: string;\n  cursor: number;\n  reason?: string;\n}\n\nexport function createLessonPlaybackMachine(envelope: SessionEnvelope) {\n  return {\n    start() {},\n    pause() {},\n    resume() {},\n    interrupt(_reason: string) {},\n    snapshot(): LessonPlaybackSnapshot {\n      return { state: 'idle', lessonId: envelope.lessonId, cursor: 0 };\n    }\n  };\n}\n"
+}

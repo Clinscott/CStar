@@ -1,4 +1,6 @@
 import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import { 
     RuntimeContext, 
     WeaveInvocation, 
@@ -13,6 +15,21 @@ import { getGungnirOverall } from  '../../../types/gungnir.js';
 import { resolveEstateTarget } from  './estate_targeting.js';
 import { upsertHallBead, getHallBead } from  '../../../tools/pennyone/intel/database.js';
 import { buildHallRepositoryId, normalizeHallPath } from  '../../../types/hall.js';
+
+function resolveSkillAdapterAlias(workspaceRoot: string, skillId: string): string {
+    const manifestPath = path.join(workspaceRoot, '.agents', 'skill_registry.json');
+    if (!fs.existsSync(manifestPath)) {
+        return skillId;
+    }
+
+    try {
+        const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as { entries?: Record<string, { execution?: { adapter_id?: string } }> };
+        const entry = manifest.entries?.[skillId];
+        return entry?.execution?.adapter_id?.trim() || skillId;
+    } catch {
+        return skillId;
+    }
+}
 
 /**
  * [Ω] THE CANONICAL RUNTIME DISPATCHER (v1.0)
@@ -61,7 +78,9 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
      */
     public async dispatch<T>(invocation: WeaveInvocation<T> | import('../skills/types.js').SkillBead<T>): Promise<WeaveResult> {
         const isSkillBead = 'skill_id' in invocation;
-        const weaveId = isSkillBead ? invocation.skill_id : invocation.weave_id;
+        const weaveId = isSkillBead
+            ? resolveSkillAdapterAlias(process.env.CSTAR_PROJECT_ROOT || registry.getRoot(), invocation.skill_id)
+            : invocation.weave_id;
         const payload = isSkillBead ? invocation.params : invocation.payload;
         const target = isSkillBead ? undefined : invocation.target;
         const session = isSkillBead ? undefined : invocation.session;
@@ -89,19 +108,21 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
             };
         }
 
+        registry.setRoot(estateTarget.workspaceRoot);
+
         const context: RuntimeContext = {
             mission_id: `MISSION-${crypto.randomInt(10000, 99999)}`,
             bead_id: (payload as any)?.bead_id || (isSkillBead ? invocation.id : `bead_mission_${Date.now()}`),
             trace_id: crypto.randomUUID(),
             persona: this.deps.activePersona.name,
             workspace_root: estateTarget.workspaceRoot,
-            operator_mode: session?.mode ?? 'cli',
+            operator_mode: isSkillBead ? 'subkernel' : session?.mode ?? 'cli',
             target_domain: estateTarget.targetDomain,
-            interactive: session?.interactive ?? true,
+            interactive: isSkillBead ? false : session?.interactive ?? true,
             spoke_name: estateTarget.spokeName,
             spoke_root: estateTarget.spokeRoot,
             requested_root: estateTarget.requestedRoot,
-            session_id: session?.session_id,
+            session_id: isSkillBead ? undefined : session?.session_id,
             env: process.env,
             timestamp: Date.now()
         };
@@ -168,7 +189,7 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
             repo_id: repoId,
             target_kind: isSkillBead ? 'SKILL' : 'WEAVE',
             target_ref: weaveId,
-            target_path: estateTarget.requestedRoot || null,
+            target_path: isSkillBead ? invocation.target_path : estateTarget.requestedRoot || null,
             rationale: `Execution of ${weaveId} under mission ${context.mission_id}`,
             status: 'IN_PROGRESS',
             assigned_agent: context.persona === 'O.D.I.N.' ? 'ONE-MIND' : 'ALFRED',

@@ -169,7 +169,7 @@ async def test_mimir_client_uses_builtin_gemini_cli_scaffold(tmp_path, monkeypat
 async def test_mimir_client_prefers_synapse_db_in_auto_mode_for_interactive_codex(tmp_path):
     async def oracle_runner(synapse_id: int) -> None:
         _complete_prompt(
-            tmp_path / ".agents" / "synapse.db",
+            tmp_path / ".stats" / "synapse.db",
             synapse_id,
             "Codex interactive synapse response",
         )
@@ -218,9 +218,9 @@ async def test_mimir_client_prefers_detected_codex_provider_before_gemini_fallba
 @pytest.mark.asyncio
 async def test_mimir_client_reads_synapse_completion(tmp_path):
     async def oracle_runner(synapse_id: int) -> None:
-        prompt = _read_prompt(tmp_path / ".agents" / "synapse.db", synapse_id)
+        prompt = _read_prompt(tmp_path / ".stats" / "synapse.db", synapse_id)
         _complete_prompt(
-            tmp_path / ".agents" / "synapse.db",
+            tmp_path / ".stats" / "synapse.db",
             synapse_id,
             f"Completed: {prompt}",
         )
@@ -243,7 +243,7 @@ async def test_mimir_client_reads_synapse_completion(tmp_path):
 @pytest.mark.asyncio
 async def test_mimir_client_uses_synapse_cache_before_oracle(tmp_path):
     invoked = False
-    db_path = tmp_path / ".agents" / "synapse.db"
+    db_path = tmp_path / ".stats" / "synapse.db"
     db_path.parent.mkdir(parents=True, exist_ok=True)
 
     with sqlite3.connect(str(db_path)) as conn:
@@ -286,8 +286,8 @@ async def test_mimir_client_uses_synapse_cache_before_oracle(tmp_path):
 @pytest.mark.asyncio
 async def test_mimir_client_compatibility_wrappers_use_canonical_request(tmp_path):
     async def oracle_runner(synapse_id: int) -> None:
-        prompt = _read_prompt(tmp_path / ".agents" / "synapse.db", synapse_id)
-        _complete_prompt(tmp_path / ".agents" / "synapse.db", synapse_id, f"OK: {prompt}")
+        prompt = _read_prompt(tmp_path / ".stats" / "synapse.db", synapse_id)
+        _complete_prompt(tmp_path / ".stats" / "synapse.db", synapse_id, f"OK: {prompt}")
 
     client = MimirClient(
         project_root=tmp_path,

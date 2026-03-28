@@ -1,0 +1,77 @@
+name: Distribution Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-distributions:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Node.js 20
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+
+    - name: Install dependencies
+      run: npm install --legacy-peer-deps
+
+    - name: Generate distribution artifacts
+      run: |
+        npm run build:distributions
+        npm run validate:distributions
+        npm run build:release-bundles
+        npm run build:release-archives
+
+    - name: Upload Gemini extension bundle
+      uses: actions/upload-artifact@v4
+      with:
+        name: corvus-star-gemini-extension
+        path: dist/host-distributions/gemini-extension
+        if-no-files-found: error
+
+    - name: Upload Codex plugin bundle
+      uses: actions/upload-artifact@v4
+      with:
+        name: corvus-star-codex-plugin
+        path: dist/host-distributions/codex-plugin
+        if-no-files-found: error
+
+    - name: Upload distribution manifest
+      uses: actions/upload-artifact@v4
+      with:
+        name: corvus-star-distribution-manifest
+        path: dist/host-distributions/manifest.json
+        if-no-files-found: error
+
+    - name: Upload release archives
+      uses: actions/upload-artifact@v4
+      with:
+        name: corvus-star-release-archives
+        path: |
+          dist/releases/*.tar.gz
+          dist/releases/manifest.json
+        if-no-files-found: error
+
+    - name: Publish GitHub Release
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          dist/releases/*.tar.gz
+          dist/releases/manifest.json
+          dist/host-distributions/manifest.json
+        generate_release_notes: true
+        body: |
+          Registry-backed host distributions generated from the authoritative Corvus Star repository.
+
+          Included assets:
+          - Gemini extension archive
+          - Codex plugin archive
+          - Release archive manifest
+          - Host distribution manifest

@@ -299,9 +299,10 @@ function writePlanningSession(record: HallPlanningSessionRecord): void {
     deps.database.saveHallPlanningSession(record);
 }
 
-function buildResearchPayload(payload: ChantWeavePayload, normalizedIntent: string): ResearchWeavePayload {
+export function buildResearchPayload(payload: ChantWeavePayload, normalizedIntent: string): ResearchWeavePayload {
     return {
         intent: normalizedIntent,
+        rationale: payload.query,
         project_root: payload.project_root,
         cwd: payload.cwd,
         dry_run: payload.dry_run,
@@ -326,7 +327,7 @@ function normalizeResearchPayload(result: WeaveResult): Record<string, unknown> 
     };
 }
 
-function buildArchitectPayload(
+export function buildArchitectPayload(
     payload: ChantWeavePayload,
     normalizedIntent: string,
     researchPayload: Record<string, unknown>,
@@ -334,6 +335,7 @@ function buildArchitectPayload(
     return {
         action: 'build_proposal',
         intent: normalizedIntent,
+        rationale: payload.query,
         research: augmentResearchPayloadForArchitect(payload.project_root, researchPayload),
         project_root: payload.project_root,
         cwd: payload.cwd,

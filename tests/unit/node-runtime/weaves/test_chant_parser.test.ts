@@ -48,6 +48,21 @@ describe('Chant Parser Unit Tests', () => {
         assert.equal(normalizeIntent('  hello    world  '), 'hello world');
     });
 
+    it('normalizeIntent strips the trace block before routing on the real intent body', () => {
+        const input = `// Corvus Star Trace [Ω]
+Intent Category: ORCHESTRATE
+Intent: Build the thing
+Selection: WEAVE: orchestrate
+Trajectory: STABLE: reason
+Mimir's Well: ◈ a | ◈ b
+Gungnir Verdict: [L: 4.0 | S: 4.0 | I: 4.0 | Ω: 80%]
+Confidence: 0.9
+
+Plan XO implementation beads for phase 1`;
+
+        assert.equal(normalizeIntent(input), 'Plan XO implementation beads for phase 1');
+    });
+
     it('hasAnyToken returns true if any token matches', () => {
         assert.ok(hasAnyToken(['a', 'b', 'c'], ['b', 'd']));
         assert.ok(!hasAnyToken(['a', 'c'], ['b', 'd']));

@@ -59,7 +59,7 @@ class MimirClient:
         poll_attempts: int = 20,
     ) -> None:
         self.project_root = project_root or Path(__file__).resolve().parent.parent.parent
-        self.db_path = self.project_root / ".agents" / "synapse.db"
+        self.db_path = self.project_root / ".stats" / "synapse.db"
         self.env = env if env is not None else dict(os.environ)
         self.host_session_active = host_session_active
         self.host_provider = host_provider

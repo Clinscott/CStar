@@ -1,0 +1,25 @@
+{
+  "id": "xo-phase2-bead-03",
+  "title": "Lesson-Bound Tutoring Acts And Scoped Prompt Assembly",
+  "rationale": "Phase 2 needs tutoring responses, but only as bounded acts derived from the active lesson state and one-child projection. This bead introduces tutoring primitives without opening an unrestricted chat surface.",
+  "targets": [
+    "/home/morderith/Corvus/XO/src/tutor/acts.ts",
+    "/home/morderith/Corvus/XO/src/tutor/prompt_assembly.ts",
+    "/home/morderith/Corvus/XO/src/projection/engine.ts"
+  ],
+  "target_symbol": "buildTutoringAct",
+  "depends_on": [
+    "xo-phase2-bead-02"
+  ],
+  "focus_hint": "Keep the act vocabulary narrow: explain, ask-check, encourage, clarify-next-step. Assemble prompts only from active lesson state, child-scoped projection, and policy guardrails.",
+  "acceptance_criteria": [
+    "Tutoring act builder accepts only validated session and active lesson playback context",
+    "Prompt assembly excludes cross-child data and refuses lesson-free prompts",
+    "Tutoring acts are enumerated and bounded rather than free-form arbitrary generations",
+    "Responses carry enough metadata for guardian review and later safety audit"
+  ],
+  "checker_shell": "cd /home/morderith/Corvus/XO && npm run test:node -- tests/tutor/tutoring_acts.spec.ts",
+  "test_file_path": "/home/morderith/Corvus/XO/tests/tutor/tutoring_acts.spec.ts",
+  "test_file_content": "import { describe, expect, it } from 'vitest';\nimport { buildTutoringAct } from '../../src/tutor/acts';\n\ndescribe('buildTutoringAct', () => {\n  it('builds a scoped tutoring act from lesson state only', () => {\n    const act = buildTutoringAct({\n      session: { sessionId: 'sess-1', childId: 'child-1', guardianId: 'guardian-1', lessonId: 'lesson-1', mode: 'child', startedBy: 'guardian', status: 'active' },\n      playback: { state: 'presenting', lessonId: 'lesson-1', cursor: 2 },\n      projection: { childId: 'child-1', strengths: ['counting'] }\n    });\n    expect(act.lessonId).toBe('lesson-1');\n    expect(act.childId).toBe('child-1');\n  });\n\n  it('rejects cross-child projection data', () => {\n    expect(() => buildTutoringAct({\n      session: { sessionId: 'sess-1', childId: 'child-1', guardianId: 'guardian-1', lessonId: 'lesson-1', mode: 'child', startedBy: 'guardian', status: 'active' },\n      playback: { state: 'presenting', lessonId: 'lesson-1', cursor: 2 },\n      projection: { childId: 'child-2' }\n    } as any)).toThrow(/child/i);\n  });\n});\n",
+  "target_file_skeleton": "import type { SessionEnvelope } from './session_envelope';\nimport type { LessonPlaybackSnapshot } from './lesson_playback';\n\nexport type TutoringActKind = 'explain' | 'ask_check' | 'encourage' | 'clarify_next_step';\n\nexport interface TutoringAct {\n  kind: TutoringActKind;\n  childId: string;\n  lessonId: string;\n  prompt: string;\n}\n\nexport function buildTutoringAct(input: {\n  session: SessionEnvelope;\n  playback: LessonPlaybackSnapshot;\n  projection: { childId: string; [key: string]: unknown };\n}): TutoringAct {\n  return {\n    kind: 'explain',\n    childId: input.session.childId,\n    lessonId: input.session.lessonId,\n    prompt: ''\n  };\n}\n"
+}

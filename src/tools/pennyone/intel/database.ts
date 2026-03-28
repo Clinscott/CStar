@@ -23,8 +23,10 @@ import {
     getHallPlanningSession, 
     saveHallPlanningSession, 
     listHallPlanningSessions,
+    saveHallSkillActivation,
     saveHallSkillProposal,
     getHallSkillProposal,
+    listHallSkillActivations,
     listHallSkillProposals,
     getSessionsWithSummaries as getRecentAgentPings,
     registerSpoke,
@@ -48,6 +50,9 @@ import {
 } from './one_mind_controller.js';
 import { 
     getHallRepositoryRecord, 
+    listHallRepositories,
+    getHallDocumentRecord,
+    getHallDocumentVersion,
     upsertHallRepository, 
     recordHallScan,
     getHallFileByPath,
@@ -67,6 +72,10 @@ import {
     removeHallMountedSpoke,
     migrateLegacyHallRecords,
     getHallSummary,
+    listHallDocuments,
+    listHallDocumentVersions,
+    restoreHallDocumentVersion,
+    saveHallDocumentSnapshot,
     updateFtsIndex,
     updateChronicleIndex,
     searchIntents as searchHallFiles
@@ -115,13 +124,14 @@ export class HallDatabase {
     public deleteHallBead = deleteHallBead;
     public upsertBeadCritique = upsertBeadCritique;
     public getBeadCritiques = getBeadCritiques;
-    public getEpisodicMemory = getEpisodicMemory;
+    public getEpisodicMemory = getEpisodicMemoryById;
     public saveEpisodicMemory = saveEpisodicMemory;
     public getValidationRuns = getValidationRuns;
     public saveValidationRun = saveValidationRun;
     public getHallPlanningSession = getHallPlanningSession;
     public saveHallPlanningSession = saveHallPlanningSession;
     public listHallPlanningSessions = listHallPlanningSessions;
+    public saveHallSkillActivation = saveHallSkillActivation;
     public getHallOneMindBroker = getHallOneMindBroker;
     public getHallOneMindRequest = getHallOneMindRequest;
     public saveHallOneMindBranch = saveHallOneMindBranch;
@@ -132,6 +142,7 @@ export class HallDatabase {
     public listHallOneMindBranches = listHallOneMindBranches;
     public summarizeHallOneMindBranches = summarizeHallOneMindBranches;
     public listHallOneMindRequests = listHallOneMindRequests;
+    public listHallSkillActivations = listHallSkillActivations;
     public saveHallSkillProposal = saveHallSkillProposal;
     public listHallSkillProposals = listHallSkillProposals;
     public getHallSkillProposal = getHallSkillProposal;
@@ -139,6 +150,13 @@ export class HallDatabase {
     public registerSpoke = registerSpoke;
     public saveHallSkillObservation = saveHallSkillObservation;
     public getHallRepository = getHallRepositoryRecord;
+    public listHallRepositories = listHallRepositories;
+    public getHallDocument = getHallDocumentRecord;
+    public listHallDocuments = listHallDocuments;
+    public getHallDocumentVersion = getHallDocumentVersion;
+    public listHallDocumentVersions = listHallDocumentVersions;
+    public saveHallDocumentSnapshot = saveHallDocumentSnapshot;
+    public restoreHallDocumentVersion = restoreHallDocumentVersion;
     public saveHallRepository = upsertHallRepository;
     public saveHallScan = recordHallScan;
     public getHallFile = getHallFileByPath;
@@ -179,6 +197,14 @@ export function closeDb(): void {
     database.close();
 }
 
+export function listHallEpisodicMemory(rootPath: string = registry.getRoot(), beadId?: string) {
+    void rootPath;
+    if (!beadId) {
+        return [];
+    }
+    return getEpisodicMemory(beadId);
+}
+
 // Re-export all controller logic with unified names for backward compatibility
 export {
     upsertHallBead,
@@ -192,9 +218,8 @@ export {
     upsertBeadCritique,
     getBeadCritiques,
     getEpisodicMemory,
-    getEpisodicMemory as getHallEpisodicMemory,
-    getEpisodicMemory as listHallEpisodicMemory,
     getEpisodicMemoryById,
+    getEpisodicMemoryById as getHallEpisodicMemory,
     saveEpisodicMemory,
     saveEpisodicMemory as saveHallEpisodicMemory,
     getValidationRuns,
@@ -206,6 +231,7 @@ export {
     saveHallPlanningSession,
     listHallPlanningSessions,
     listHallPlanningSessions as getHallPlanningSessions,
+    saveHallSkillActivation,
     claimHallOneMindRequest,
     claimNextHallOneMindRequest,
     getHallOneMindBroker,
@@ -216,6 +242,7 @@ export {
     listHallOneMindBranches,
     summarizeHallOneMindBranches,
     listHallOneMindRequests,
+    listHallSkillActivations,
     saveHallSkillProposal,
     listHallSkillProposals,
     listHallSkillProposals as getSkillProposals,
@@ -229,6 +256,14 @@ export {
     getPingsForSession,
     getHallRepositoryRecord,
     getHallRepositoryRecord as getHallRepository,
+    listHallRepositories,
+    getHallDocumentRecord,
+    getHallDocumentRecord as getHallDocument,
+    getHallDocumentVersion,
+    listHallDocuments,
+    listHallDocumentVersions,
+    saveHallDocumentSnapshot,
+    restoreHallDocumentVersion,
     upsertHallRepository,
     upsertHallRepository as saveHallRepository,
     recordHallScan,

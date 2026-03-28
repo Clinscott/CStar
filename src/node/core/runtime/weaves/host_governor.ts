@@ -449,9 +449,9 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
             prompt: [
                 'Take a big step back and reassess using first principles.',
                 'Review the candidate Hall beads and decide which may be promoted to SET now.',
-                'Approve only beads that are aligned with the CStar framework, micro-bounded for the local SovereignWorker, and backed by explicit checker_shell validation.',
+                'Approve only beads that are aligned with the CStar framework, bounded enough for one concrete skill activation, and backed by explicit checker_shell validation.',
                 `Micro-bounded means: at most ${policy.max_total_targets} total target(s), exactly ${policy.max_implementation_targets} implementation target(s) outside tests/docs, and concise acceptance criteria capped at ${policy.max_acceptance_items} item(s).`,
-                'Defer anything ambiguous, architectural, cross-cutting, or weakly specified.',
+                'Defer anything ambiguous, architectural, cross-cutting, or weakly specified. Think in skill loops: implementation, review, verification.',
                 'Return strict JSON only in this format:',
                 '{ "approved_bead_ids": ["..."], "deferred_bead_ids": ["..."], "reason_code": "...", "notes": "..." }',
                 '',
@@ -504,20 +504,22 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
                 UPDATE hall_beads
                 SET status = 'SET',
                     assigned_agent = ?,
-                    triage_reason = NULL,
+                    triage_reason = ?,
                     updated_at = ?
                 WHERE bead_id = ? AND repo_id = ?
             `);
             for (const beadId of approvedBeadIds) {
                 const bead = beads.find(b => b.id === beadId);
-                let agent = 'SOVEREIGN-WORKER';
+                let agent = 'AUTOBOT';
+                let triageReason = 'Approved for skill activation loop.';
                 if (bead) {
                     const targets = getBeadTargets(bead);
                     if (!fitsLocalWorkerFileBudget(projectRoot, targets, policy)) {
-                        agent = 'HOST-WORKER';
+                        agent = 'ONE-MIND';
+                        triageReason = 'Approved for host skill activation loop.';
                     }
                 }
-                promoteBead.run(agent, updatedAt, beadId, repoId);
+                promoteBead.run(agent, triageReason, updatedAt, beadId, repoId);
             }
 
             const linkedProposals = listHallSkillProposals(projectRoot, { statuses: ['PROPOSED', 'VALIDATED'] })

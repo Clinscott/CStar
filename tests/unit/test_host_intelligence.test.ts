@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { requestHostText } from  '../../src/core/host_intelligence.js';
 
 describe('Host intelligence bridge (CS-P1-02)', () => {
-    it('forces host-session transport through the shared Mimir bridge', async () => {
+    it('defaults to auto transport through the shared Mimir bridge', async () => {
         let capturedRequest: Record<string, unknown> | undefined;
 
         const result = await requestHostText(
@@ -35,7 +35,7 @@ describe('Host intelligence bridge (CS-P1-02)', () => {
 
         assert.equal(result.provider, 'claude');
         assert.equal(result.text, 'Shared bridge response.');
-        assert.equal(capturedRequest?.transport_mode, 'host_session');
+        assert.equal(capturedRequest?.transport_mode, 'auto');
         assert.equal(capturedRequest?.system_prompt, 'Respond in one sentence.');
     });
 
@@ -51,7 +51,7 @@ describe('Host intelligence bridge (CS-P1-02)', () => {
         );
     });
 
-    it('uses direct host-session transport in an interactive Codex session when no broker is configured', async () => {
+    it('leaves transport resolution to Mimir in an interactive Codex session when no broker is configured', async () => {
         let capturedRequest: Record<string, unknown> | undefined;
 
         const result = await requestHostText(
@@ -81,10 +81,10 @@ describe('Host intelligence bridge (CS-P1-02)', () => {
 
         assert.equal(result.provider, 'codex');
         assert.equal(result.text, 'Synapse-backed response.');
-        assert.equal(capturedRequest?.transport_mode, 'host_session');
+        assert.equal(capturedRequest?.transport_mode, 'auto');
     });
 
-    it('uses synapse_db when an interactive broker is explicitly configured', async () => {
+    it('leaves broker-aware transport resolution to Mimir when an interactive broker is explicitly configured', async () => {
         let capturedRequest: Record<string, unknown> | undefined;
 
         const result = await requestHostText(
@@ -114,6 +114,40 @@ describe('Host intelligence bridge (CS-P1-02)', () => {
 
         assert.equal(result.provider, 'codex');
         assert.equal(result.text, 'Broker-backed response.');
+        assert.equal(capturedRequest?.transport_mode, 'auto');
+    });
+
+    it('honors an explicit transport override when provided', async () => {
+        let capturedRequest: Record<string, unknown> | undefined;
+
+        const result = await requestHostText(
+            {
+                prompt: 'Explain the host bridge.',
+                projectRoot: '/tmp/corvus-host-intelligence',
+                source: 'test-suite',
+                env: { CODEX_SHELL: '1', CODEX_THREAD_ID: 'thread-1' },
+                metadata: { transport_mode: 'synapse_db' },
+            },
+            {
+                clientFactory: () => ({
+                    request: async (request) => {
+                        capturedRequest = request as Record<string, unknown>;
+                        return {
+                            status: 'success',
+                            raw_text: 'Explicit transport response.',
+                            trace: {
+                                correlation_id: 'host-intelligence-codex-explicit-test',
+                                transport_mode: 'synapse_db',
+                                cached: false,
+                            },
+                        };
+                    },
+                }),
+            },
+        );
+
+        assert.equal(result.provider, 'codex');
+        assert.equal(result.text, 'Explicit transport response.');
         assert.equal(capturedRequest?.transport_mode, 'synapse_db');
     });
 });

@@ -1,0 +1,24 @@
+{
+  "id": "pb-xo-phase2-supervised-tutor",
+  "title": "XO Phase 2 Supervised Tutor Program Envelope",
+  "rationale": "Create the parent bead that codifies the non-negotiable operating law for all Phase 2 work: one-child scope, guardian-started sessions, lesson-bound tutoring only, trust-preserving disclosure, and first-class guardian authority. This bead exists to hold the contract and sequence for the seven child beads.",
+  "targets": [
+    "/home/morderith/Corvus/XO/docs/planning/XO_PHASE_2_IMPLEMENTATION_PLAN.md",
+    "/home/morderith/Corvus/XO/docs/planning/XO_PHASE_2_CHANT_IMPLEMENTATION_ROUTING.md",
+    "/home/morderith/Corvus/XO/docs/planning/XO_PHASE_2_CHANT_HANDOFF.md"
+  ],
+  "target_symbol": "XO Phase 2 program contract",
+  "depends_on": [],
+  "focus_hint": "Treat this as the governance bead for sequencing and acceptance, not an implementation bead. Every child bead must inherit the same safety and trust constraints.",
+  "acceptance_criteria": [
+    "Parent bead lists xo-phase2-bead-01 through xo-phase2-bead-07 in execution order",
+    "Program contract states no tutor response without a valid one-child session envelope",
+    "Program contract states tutoring remains lesson-bound and guardian-governed",
+    "Program contract states summaries are disclosure-shaped and never transcript dumps",
+    "Program contract defines verification burden as Lore, Isolation, and Audit across all child beads"
+  ],
+  "checker_shell": "cd /home/morderith/Corvus/XO && rg -n \"xo-phase2-bead-0[1-7]|one-child|lesson-bound|guardian|summary|audit\" docs/planning/XO_PHASE_2_IMPLEMENTATION_PLAN.md docs/planning/XO_PHASE_2_CHANT_IMPLEMENTATION_ROUTING.md docs/planning/XO_PHASE_2_CHANT_HANDOFF.md",
+  "test_file_path": "/home/morderith/Corvus/XO/tests/planning/xo_phase2_program_contract.spec.ts",
+  "test_file_content": "import { describe, expect, it } from 'vitest';\nimport fs from 'node:fs';\n\nconst authorityFiles = [\n  'docs/planning/XO_PHASE_2_IMPLEMENTATION_PLAN.md',\n  'docs/planning/XO_PHASE_2_CHANT_IMPLEMENTATION_ROUTING.md',\n  'docs/planning/XO_PHASE_2_CHANT_HANDOFF.md',\n];\n\ndescribe('XO Phase 2 planning authority', () => {\n  it('preserves the supervised tutor non-negotiables', () => {\n    const corpus = authorityFiles.map((file) => fs.readFileSync(file, 'utf8')).join('\\n');\n    expect(corpus).toMatch(/xo-phase2-bead-01/);\n    expect(corpus).toMatch(/xo-phase2-bead-07/);\n    expect(corpus).toMatch(/single-child|one-child/i);\n    expect(corpus).toMatch(/lesson-bound/i);\n    expect(corpus).toMatch(/guardian/i);\n    expect(corpus).toMatch(/summary|disclosure/i);\n  });\n});\n",
+  "target_file_skeleton": "export interface XoPhase2ProgramContract {\n  parentBeadId: 'pb-xo-phase2-supervised-tutor';\n  childBeadOrder: string[];\n  invariants: {\n    requireOneChildEnvelope: true;\n    requireLessonBoundTutoring: true;\n    requireGuardianAuthority: true;\n    forbidTranscriptDumpSummaries: true;\n    requireAuditCoverage: true;\n  };\n}\n"
+}

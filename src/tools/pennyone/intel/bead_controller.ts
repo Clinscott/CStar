@@ -40,8 +40,8 @@ export function upsertHallBead(record: HallBeadRecord): void {
             rationale = excluded.rationale,
             contract_refs_json = excluded.contract_refs_json,
             baseline_scores_json = excluded.baseline_scores_json,
-            acceptance_criteria = excluded.acceptance_criteria,
-            checker_shell = excluded.checker_shell,
+            acceptance_criteria = COALESCE(excluded.acceptance_criteria, hall_beads.acceptance_criteria),
+            checker_shell = COALESCE(excluded.checker_shell, hall_beads.checker_shell),
             status = excluded.status,
             assigned_agent = excluded.assigned_agent,
             source_kind = excluded.source_kind,
@@ -52,13 +52,15 @@ export function upsertHallBead(record: HallBeadRecord): void {
             updated_at = excluded.updated_at
     `;
     try {
+        const targetKind = record.target_kind ?? 'FILE';
+        const targetRef = record.target_ref ?? record.target_path;
         db.prepare(sql).run(
             record.bead_id,
             record.repo_id,
             record.scan_id,
             record.legacy_id,
-            record.target_kind,
-            record.target_ref,
+            targetKind,
+            targetRef,
             record.target_path,
             record.rationale,
             stringifyJson(record.contract_refs),
@@ -112,9 +114,9 @@ export function getHallBeads(rootOrRepoId: string, statuses?: HallBeadStatus[]):
     let rows: any[];
     if (statuses && statuses.length > 0) {
         const placeholders = statuses.map(() => '?').join(', ');
-        rows = db.prepare(`SELECT * FROM hall_beads WHERE repo_id = ? AND status IN (${placeholders})`).all(repoId, ...statuses) as any[];
+        rows = db.prepare(`SELECT * FROM hall_beads WHERE repo_id = ? AND status IN (${placeholders}) ORDER BY created_at ASC, bead_id ASC`).all(repoId, ...statuses) as any[];
     } else {
-        rows = db.prepare('SELECT * FROM hall_beads WHERE repo_id = ?').all(repoId) as any[];
+        rows = db.prepare('SELECT * FROM hall_beads WHERE repo_id = ? ORDER BY created_at ASC, bead_id ASC').all(repoId) as any[];
     }
     return rows.map(row => materializeSovereignBead({
         ...row,
@@ -126,7 +128,7 @@ export function getHallBeads(rootOrRepoId: string, statuses?: HallBeadStatus[]):
 
 export function getHallBeadsByStatus(repoId: string, status: HallBeadStatus): SovereignBead[] {
     const db = database.getDb();
-    const rows = db.prepare('SELECT * FROM hall_beads WHERE repo_id = ? AND status = ?').all(repoId, status) as any[];
+    const rows = db.prepare('SELECT * FROM hall_beads WHERE repo_id = ? AND status = ? ORDER BY created_at ASC, bead_id ASC').all(repoId, status) as any[];
     return rows.map(row => materializeSovereignBead({
         ...row,
         contract_refs: parseJson(row.contract_refs_json, []),
@@ -137,7 +139,7 @@ export function getHallBeadsByStatus(repoId: string, status: HallBeadStatus): So
 
 export function getHallBeadsBySource(repoId: string, sourceKind: string): SovereignBead[] {
     const db = database.getDb();
-    const rows = db.prepare('SELECT * FROM hall_beads WHERE repo_id = ? AND source_kind = ?').all(repoId, sourceKind) as any[];
+    const rows = db.prepare('SELECT * FROM hall_beads WHERE repo_id = ? AND source_kind = ? ORDER BY created_at ASC, bead_id ASC').all(repoId, sourceKind) as any[];
     return rows.map(row => materializeSovereignBead({
         ...row,
         contract_refs: parseJson(row.contract_refs_json, []),
@@ -148,7 +150,7 @@ export function getHallBeadsBySource(repoId: string, sourceKind: string): Sovere
 
 export function getHallBeadsByEpic(repoId: string, epicId: string): SovereignBead[] {
     const db = database.getDb();
-    const rows = db.prepare('SELECT * FROM hall_beads WHERE repo_id = ? AND target_ref = ?').all(repoId, epicId) as any[];
+    const rows = db.prepare('SELECT * FROM hall_beads WHERE repo_id = ? AND target_ref = ? ORDER BY created_at ASC, bead_id ASC').all(repoId, epicId) as any[];
     return rows.map(row => materializeSovereignBead({
         ...row,
         contract_refs: parseJson(row.contract_refs_json, []),

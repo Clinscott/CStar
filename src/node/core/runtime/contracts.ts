@@ -208,6 +208,7 @@ export interface EvolveWeaveMetadata extends Record<string, unknown> {
 
 export interface ResearchWeavePayload {
     intent: string;
+    rationale?: string;
     subquestions?: string[];
     project_root: string;
     cwd: string;
@@ -256,6 +257,7 @@ export interface HostWorkerWeaveMetadata extends Record<string, unknown> {
 export interface ArchitectWeavePayload {
     action?: 'build_proposal' | 'review_critique';
     intent?: string;
+    rationale?: string;
     research?: Record<string, unknown>;
     bead?: Record<string, unknown>;
     critique_payload?: Record<string, unknown>;
@@ -357,6 +359,8 @@ export interface OrchestrateWeavePayload {
 
 export interface OrchestrateWeaveMetadata extends Record<string, unknown> {
     context_policy?: OperationalContextPolicy;
+    planning_session_id?: string;
+    selected_bead_ids?: string[];
     bead_outcomes?: Record<string, {
         status: string;
         exit_code?: number;

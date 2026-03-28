@@ -26,6 +26,12 @@ export type HallSkillProposalStatus =
     | 'PROMOTED'
     | 'REJECTED'
     | 'SUPERSEDED';
+export type HallSkillActivationStatus =
+    | 'PENDING'
+    | 'ACTIVE'
+    | 'COMPLETED'
+    | 'FAILED'
+    | 'CANCELLED';
 export type HallPlanningSessionStatus =
     | 'INTENT_RECEIVED'
     | 'RESEARCH_PHASE'
@@ -164,6 +170,26 @@ export interface HallSkillObservation {
     outcome: string;
     observation: string;
     created_at: number;
+    metadata?: Record<string, unknown>;
+}
+
+export interface HallSkillActivationRecord {
+    activation_id: string;
+    repo_id: string;
+    bead_id?: string;
+    session_id?: string;
+    skill_id: string;
+    adapter_id?: string;
+    role?: string;
+    status: HallSkillActivationStatus;
+    intent: string;
+    target_path?: string;
+    payload?: Record<string, unknown>;
+    result_summary?: string;
+    error_text?: string;
+    created_at: number;
+    updated_at: number;
+    completed_at?: number;
     metadata?: Record<string, unknown>;
 }
 
@@ -321,6 +347,35 @@ export interface HallGitCommitRecord {
     committed_at: number;
     message: string;
     parent_hashes: string[];
+}
+
+export interface HallDocumentRecord {
+    document_id: string;
+    repo_id: string;
+    root_path: string;
+    path: string;
+    title: string;
+    doc_kind: string;
+    status: 'ACTIVE' | 'ARCHIVED';
+    latest_version_id: string;
+    latest_content_hash: string;
+    latest_summary?: string;
+    metadata?: Record<string, unknown>;
+    created_at: number;
+    updated_at: number;
+}
+
+export interface HallDocumentVersionRecord {
+    version_id: string;
+    document_id: string;
+    repo_id: string;
+    content_hash: string;
+    title: string;
+    summary?: string;
+    content: string;
+    source_label?: string;
+    metadata?: Record<string, unknown>;
+    created_at: number;
 }
 
 export interface HallGitDiffRecord {

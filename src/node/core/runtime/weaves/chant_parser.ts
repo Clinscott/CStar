@@ -171,7 +171,18 @@ export function tokenize(query: string): string[] {
 }
 
 export function normalizeIntent(query: string): string {
-    return query.trim().replace(/\s+/g, ' ');
+    const trimmed = query.trim();
+    if (!trimmed.startsWith('// Corvus Star Trace [Ω]')) {
+        return trimmed.replace(/\s+/g, ' ');
+    }
+
+    const lines = trimmed.split(/\r?\n/);
+    const bodyStart = lines.findIndex((line, index) => index > 0 && line.trim() === '');
+    const body = bodyStart >= 0
+        ? lines.slice(bodyStart + 1).join(' ')
+        : lines.filter((line) => !line.startsWith('// Corvus Star Trace [Ω]') && !/^[A-Za-z' ]+:\s/.test(line)).join(' ');
+
+    return body.trim().replace(/\s+/g, ' ');
 }
 
 export function hasAnyToken(tokens: string[], values: string[]): boolean {

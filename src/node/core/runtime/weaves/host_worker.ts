@@ -3,14 +3,15 @@ import path from 'node:path';
 
 import { execa } from 'execa';
 
-import { mimir } from '../../../../core/mimir_client.js';
+import { buildHostSubagentPrompt, resolveHostSubagentProfile } from '../../../../core/host_subagents.js';
+import { buildHostSkillActivationEnvelope } from '../../../../core/host_session.js';
+import { MimirClient } from '../../../../core/mimir_client.js';
 import {
     requestHostDelegatedExecution,
     type DelegatedExecutionRequest,
     type DelegatedExecutionResult,
 } from '../../../../core/host_delegation.js';
 import { getHallBeads } from '../../../../tools/pennyone/intel/database.js';
-import { buildHallRepositoryId, normalizeHallPath } from '../../../../types/hall.js';
 import type { SovereignBead } from '../../../../types/bead.js';
 import type {
     HostWorkerWeavePayload,
@@ -23,12 +24,12 @@ import type {
 
 export interface HostWorkerDependencies {
     runner?: typeof execa;
-    getBeads?: (repoId: string) => SovereignBead[];
+    getBeads?: (projectRoot: string) => SovereignBead[];
     delegateExecution?: (
         request: DelegatedExecutionRequest,
         env: NodeJS.ProcessEnv,
     ) => Promise<DelegatedExecutionResult | { handle_id: string; provider: 'gemini' | 'codex' | 'claude'; status: 'queued' | 'running'; correlation_id?: string }>;
-    requestViaMimir?: typeof mimir.request;
+    createMimirClient?: (projectRoot: string, env: NodeJS.ProcessEnv) => Pick<MimirClient, 'request'>;
     existsSync?: typeof fs.existsSync;
     readFileSync?: typeof fs.readFileSync;
     mkdirSync?: typeof fs.mkdirSync;
@@ -52,7 +53,7 @@ function parseAcceptanceCriteria(raw: unknown): string[] {
 
 function buildWorkerPrompt(bead: SovereignBead, targetPath: string, targetContent: string, testContents: string): string {
     return [
-        'You are the Corvus Star Host Worker.',
+        'You are the Corvus Star legacy implementation adapter.',
         'Your task is to implement the requested changes to pass the provided TDD tests.',
         `BEAD RATIONALE: ${bead.rationale}`,
         `ACCEPTANCE CRITERIA: ${bead.acceptance_criteria ?? ''}`,
@@ -75,7 +76,7 @@ function buildWorkerPrompt(bead: SovereignBead, targetPath: string, targetConten
     ].join('\n');
 }
 
-function shouldFallbackToHall(error: unknown): boolean {
+function shouldFallbackToDirectHost(error: unknown): boolean {
     const message = error instanceof Error ? error.message : String(error);
     return /configured delegated-execution bridge/i.test(message)
         || /host agent session inactive/i.test(message)
@@ -87,7 +88,7 @@ export class HostWorkerWeave implements RuntimeAdapter<HostWorkerWeavePayload> {
     private readonly runner: typeof execa;
     private readonly getBeads: (repoId: string) => SovereignBead[];
     private readonly delegateExecution: NonNullable<HostWorkerDependencies['delegateExecution']>;
-    private readonly requestViaMimir: typeof mimir.request;
+    private readonly createMimirClient: NonNullable<HostWorkerDependencies['createMimirClient']>;
     private readonly existsSync: typeof fs.existsSync;
     private readonly readFileSync: typeof fs.readFileSync;
     private readonly mkdirSync: typeof fs.mkdirSync;
@@ -95,9 +96,11 @@ export class HostWorkerWeave implements RuntimeAdapter<HostWorkerWeavePayload> {
 
     public constructor(deps: HostWorkerDependencies = {}) {
         this.runner = deps.runner ?? execa;
-        this.getBeads = deps.getBeads ?? ((repoId: string) => getHallBeads(repoId));
+        this.getBeads = deps.getBeads ?? ((projectRoot: string) => getHallBeads(projectRoot));
         this.delegateExecution = deps.delegateExecution ?? requestHostDelegatedExecution;
-        this.requestViaMimir = deps.requestViaMimir ?? mimir.request.bind(mimir);
+        this.createMimirClient = deps.createMimirClient ?? ((projectRoot: string, env: NodeJS.ProcessEnv) => (
+            new MimirClient({ projectRoot, env })
+        ));
         this.existsSync = deps.existsSync ?? fs.existsSync;
         this.readFileSync = deps.readFileSync ?? fs.readFileSync;
         this.mkdirSync = deps.mkdirSync ?? fs.mkdirSync;
@@ -110,8 +113,7 @@ export class HostWorkerWeave implements RuntimeAdapter<HostWorkerWeavePayload> {
     ): Promise<WeaveResult> {
         const payload = invocation.payload;
         const projectRoot = payload.project_root || context.workspace_root;
-        const repoId = buildHallRepositoryId(normalizeHallPath(projectRoot));
-        const beads = this.getBeads(repoId);
+        const beads = this.getBeads(projectRoot);
         const bead = beads.find((entry) => entry.id === payload.bead_id);
 
         if (!bead) {
@@ -120,6 +122,15 @@ export class HostWorkerWeave implements RuntimeAdapter<HostWorkerWeavePayload> {
                 status: 'FAILURE',
                 output: '',
                 error: `Bead ${payload.bead_id} not found.`,
+            };
+        }
+
+        if (bead.target_kind && !['FILE', 'VALIDATION', 'CONTRACT'].includes(bead.target_kind)) {
+            return {
+                weave_id: this.id,
+                status: 'FAILURE',
+                output: '',
+                error: `Host worker is a legacy file-implementation adapter and cannot execute ${bead.target_kind} beads. Schedule a skill activation instead.`,
             };
         }
 
@@ -148,12 +159,35 @@ export class HostWorkerWeave implements RuntimeAdapter<HostWorkerWeavePayload> {
         }
 
         const prompt = buildWorkerPrompt(bead, targetPath, targetContent, testContents);
+        const subagentProfile = resolveHostSubagentProfile(bead);
+        const activationEnvelope = buildHostSkillActivationEnvelope({
+            skill_id: 'host-worker',
+            role: subagentProfile,
+            intent: bead.rationale,
+            project_root: projectRoot,
+            target_paths: [targetPath, ...testPaths],
+            payload: {
+                bead_id: payload.bead_id,
+                acceptance_criteria: parseAcceptanceCriteria(bead.acceptance_criteria),
+                checker_shell: bead.checker_shell ?? null,
+                target_path: targetPath,
+            },
+        });
+        const specializedPrompt = buildHostSubagentPrompt(subagentProfile, prompt, {
+            boundary: 'subagent',
+            task_kind: 'implementation',
+            target_paths: [targetPath, ...testPaths],
+            acceptance_criteria: parseAcceptanceCriteria(bead.acceptance_criteria),
+            checker_shell: bead.checker_shell ?? null,
+        });
+        const activationPrompt = `${activationEnvelope}\n\n${specializedPrompt}`;
         const env = { ...process.env, ...context.env } as NodeJS.ProcessEnv;
         const delegateRequest: DelegatedExecutionRequest = {
             request_id: `host-worker:${payload.bead_id}`,
             repo_root: projectRoot,
             boundary: 'subagent',
             task_kind: 'implementation',
+            subagent_profile: subagentProfile,
             prompt,
             target_paths: [targetPath, ...testPaths],
             acceptance_criteria: parseAcceptanceCriteria(bead.acceptance_criteria),
@@ -163,6 +197,7 @@ export class HostWorkerWeave implements RuntimeAdapter<HostWorkerWeavePayload> {
                 caller_source: 'runtime:host-worker',
                 one_mind_boundary: 'subagent',
                 execution_role: 'subagent',
+                subagent_profile: subagentProfile,
             },
         };
 
@@ -186,22 +221,23 @@ export class HostWorkerWeave implements RuntimeAdapter<HostWorkerWeavePayload> {
                     throw new Error(`Delegate bridge returned non-terminal status '${delegatedResult.status}'.`);
                 }
             } catch (error) {
-                if (!shouldFallbackToHall(error)) {
+                if (!shouldFallbackToDirectHost(error)) {
                     throw error;
                 }
 
-                const response = await this.requestViaMimir({
-                    prompt,
+                const response = await this.createMimirClient(projectRoot, env).request({
+                    prompt: activationPrompt,
                     caller: { source: 'runtime:host-worker', sector_path: targetPath },
                     metadata: {
                         one_mind_boundary: 'subagent',
                         execution_role: 'subagent',
+                        subagent_profile: subagentProfile,
                     },
-                    transport_mode: 'synapse_db',
+                    transport_mode: 'host_session',
                 });
 
                 if (response.status !== 'success' || !response.raw_text) {
-                    throw new Error(response.error || 'Failed to retrieve code from One Mind.');
+                    throw new Error(response.error || 'Failed to retrieve code from direct host inference.');
                 }
 
                 newContent = extractCodeBlock(response.raw_text);
@@ -223,6 +259,7 @@ export class HostWorkerWeave implements RuntimeAdapter<HostWorkerWeavePayload> {
                 context_policy: 'project',
                 delegated,
                 provider: delegatedProvider,
+                subagent_profile: subagentProfile,
             };
             return {
                 weave_id: this.id,

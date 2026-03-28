@@ -1,5 +1,6 @@
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
+import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -101,7 +102,7 @@ export class MimirClient {
 
     public constructor(options: MimirClientOptions = {}) {
         this.projectRoot = options.projectRoot ?? DEFAULT_PROJECT_ROOT;
-        this.dbPath = options.dbPath ?? path.join(this.projectRoot, '.agents', 'synapse.db');
+        this.dbPath = options.dbPath ?? path.join(this.projectRoot, '.stats', 'synapse.db');
         this.env = options.env ?? process.env;
         this.hostSessionActive = options.hostSessionActive;
         this.hostProvider = options.hostProvider;
@@ -549,6 +550,7 @@ export class MimirClient {
     }
 
     private ensureDb(): void {
+        fs.mkdirSync(path.dirname(this.dbPath), { recursive: true });
         const result = ensureHealthySynapseDb(this.dbPath);
         if (result.recovered) {
             console.warn(`[MIMIR] Synapse DB was corrupt and has been rebuilt. Backup: ${result.backupPath}`);

@@ -4,6 +4,7 @@ import { normalizeHallPath, buildHallRepositoryId } from '../../../types/hall.js
 import {
     HallPlanningSessionRecord,
     HallPlanningSessionStatus,
+    HallSkillActivationRecord,
     HallSkillProposalRecord,
     HallSkillObservation,
 } from '../../../types/hall.js';
@@ -30,6 +31,105 @@ export function saveHallSkillObservation(record: HallSkillObservation): void {
         record.created_at,
         stringifyJson(record.metadata),
     );
+}
+
+export function saveHallSkillActivation(record: HallSkillActivationRecord): void {
+    const db = database.getDb();
+    db.prepare(`
+        INSERT INTO hall_skill_activations (
+            activation_id, repo_id, bead_id, session_id, skill_id, adapter_id, role, status,
+            intent, target_path, payload_json, result_summary, error_text,
+            created_at, updated_at, completed_at, metadata_json
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(activation_id) DO UPDATE SET
+            bead_id = excluded.bead_id,
+            session_id = excluded.session_id,
+            skill_id = excluded.skill_id,
+            adapter_id = excluded.adapter_id,
+            role = excluded.role,
+            status = excluded.status,
+            intent = excluded.intent,
+            target_path = excluded.target_path,
+            payload_json = excluded.payload_json,
+            result_summary = excluded.result_summary,
+            error_text = excluded.error_text,
+            updated_at = excluded.updated_at,
+            completed_at = excluded.completed_at,
+            metadata_json = excluded.metadata_json
+    `).run(
+        record.activation_id,
+        record.repo_id,
+        record.bead_id ?? null,
+        record.session_id ?? null,
+        record.skill_id,
+        record.adapter_id ?? null,
+        record.role ?? null,
+        record.status,
+        record.intent,
+        record.target_path ? normalizeHallPath(record.target_path) : null,
+        stringifyJson(record.payload),
+        record.result_summary ?? null,
+        record.error_text ?? null,
+        record.created_at,
+        record.updated_at,
+        record.completed_at ?? null,
+        stringifyJson(record.metadata),
+    );
+}
+
+export function listHallSkillActivations(
+    rootPath: string = registry.getRoot(),
+    options: {
+        bead_id?: string;
+        session_id?: string;
+        statuses?: HallSkillActivationRecord['status'][];
+    } = {},
+): HallSkillActivationRecord[] {
+    const db = database.getDb();
+    const repoId = buildHallRepositoryId(normalizeHallPath(rootPath));
+    const params: Array<string> = [repoId];
+    let sql = `
+        SELECT activation_id, repo_id, bead_id, session_id, skill_id, adapter_id, role, status,
+               intent, target_path, payload_json, result_summary, error_text,
+               created_at, updated_at, completed_at, metadata_json
+        FROM hall_skill_activations
+        WHERE repo_id = ?
+    `;
+
+    if (options.bead_id) {
+        sql += ' AND bead_id = ?';
+        params.push(options.bead_id);
+    }
+    if (options.session_id) {
+        sql += ' AND session_id = ?';
+        params.push(options.session_id);
+    }
+    if (options.statuses && options.statuses.length > 0) {
+        sql += ` AND status IN (${options.statuses.map(() => '?').join(', ')})`;
+        params.push(...options.statuses);
+    }
+
+    sql += ' ORDER BY created_at ASC';
+    const rows = db.prepare(sql).all(...params) as Array<Record<string, unknown>>;
+    return rows.map((row) => ({
+        activation_id: String(row.activation_id),
+        repo_id: String(row.repo_id),
+        bead_id: row.bead_id ? String(row.bead_id) : undefined,
+        session_id: row.session_id ? String(row.session_id) : undefined,
+        skill_id: String(row.skill_id),
+        adapter_id: row.adapter_id ? String(row.adapter_id) : undefined,
+        role: row.role ? String(row.role) : undefined,
+        status: row.status as HallSkillActivationRecord['status'],
+        intent: String(row.intent),
+        target_path: row.target_path ? String(row.target_path) : undefined,
+        payload: parseJson<Record<string, unknown>>(row.payload_json as string | null, {}),
+        result_summary: row.result_summary ? String(row.result_summary) : undefined,
+        error_text: row.error_text ? String(row.error_text) : undefined,
+        created_at: Number(row.created_at ?? 0),
+        updated_at: Number(row.updated_at ?? 0),
+        completed_at: row.completed_at ? Number(row.completed_at) : undefined,
+        metadata: parseJson<Record<string, unknown>>(row.metadata_json as string | null, {}),
+    }));
 }
 
 export function saveHallPlanningSession(record: HallPlanningSessionRecord): void {

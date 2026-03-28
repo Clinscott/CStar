@@ -7,6 +7,7 @@ import type { RuntimeContext } from '../../src/node/core/runtime/contracts.js';
 const bead = {
     id: 'bead-123',
     status: 'SET',
+    target_kind: 'FILE',
     target_path: 'src/example.ts',
     checker_shell: 'node checker.js',
     contract_refs: ['tests/example.test.ts'],
@@ -34,7 +35,6 @@ describe('Host worker delegated execution bridge', () => {
         let written = '';
         const calls: Array<{ cmd: string; args: string[]; cwd: string }> = [];
         let delegatedRequest: any;
-        let mimirCalled = false;
 
         const weave = new HostWorkerWeave({
             getBeads: () => [bead],
@@ -47,10 +47,6 @@ describe('Host worker delegated execution bridge', () => {
                     raw_text: '```ts\nexport const value = 1;\n```',
                     summary: 'Completed through Codex subagent bridge.',
                 };
-            },
-            requestViaMimir: async () => {
-                mimirCalled = true;
-                throw new Error('mimir should not be used when delegation succeeds');
             },
             existsSync: (target) => target.includes('example'),
             readFileSync: (target) => target.includes('example.test.ts') ? 'test body' : 'export const oldValue = 0;',
@@ -76,35 +72,42 @@ describe('Host worker delegated execution bridge', () => {
         assert.equal(result.metadata?.context_policy, 'project');
         assert.equal(result.metadata?.delegated, true);
         assert.equal(result.metadata?.provider, 'codex');
-        assert.equal(mimirCalled, false);
+        assert.equal(result.metadata?.subagent_profile, 'tester');
         assert.equal(delegatedRequest.boundary, 'subagent');
         assert.equal(delegatedRequest.task_kind, 'implementation');
+        assert.equal(delegatedRequest.subagent_profile, 'tester');
         assert.deepEqual(delegatedRequest.acceptance_criteria, ['It works.', 'Tests pass.']);
         assert.match(written, /export const value = 1;/);
         assert.equal(calls.length, 1);
         assert.equal(calls[0]?.cmd, 'node');
     });
 
-    it('falls back to the Hall-backed synapse path when no delegate bridge is configured', async () => {
+    it('falls back to direct host-session inference when delegation cannot proceed', async () => {
         let written = '';
         let mimirTransport = '';
+        let mimirMetadata: Record<string, unknown> | undefined;
+        let mimirPrompt = '';
 
         const weave = new HostWorkerWeave({
             getBeads: () => [bead],
             delegateExecution: async () => {
-                throw new Error('Provider codex does not have a configured delegated-execution bridge.');
+                throw new Error('Host Agent session inactive.');
             },
-            requestViaMimir: async (request) => {
-                mimirTransport = String((request as any).transport_mode ?? '');
-                return {
-                    status: 'success',
-                    raw_text: '```ts\nexport const fallbackValue = 2;\n```',
-                    trace: {
-                        correlation_id: 'host-worker-fallback',
-                        transport_mode: 'synapse_db',
-                    },
-                } as any;
-            },
+            createMimirClient: () => ({
+                request: async (request) => {
+                    mimirTransport = String((request as any).transport_mode ?? '');
+                    mimirMetadata = (request as any).metadata;
+                    mimirPrompt = String((request as any).prompt ?? '');
+                    return {
+                        status: 'success',
+                        raw_text: '```ts\nexport const fallbackValue = 2;\n```',
+                        trace: {
+                            correlation_id: 'host-worker-fallback',
+                            transport_mode: 'host_session',
+                        },
+                    } as any;
+                },
+            }),
             existsSync: (target) => target.includes('example'),
             readFileSync: (target) => target.includes('example.test.ts') ? 'test body' : 'export const oldValue = 0;',
             mkdirSync: () => undefined as any,
@@ -125,7 +128,10 @@ describe('Host worker delegated execution bridge', () => {
         assert.equal(result.status, 'SUCCESS');
         assert.equal(result.metadata?.context_policy, 'project');
         assert.equal(result.metadata?.delegated, false);
-        assert.equal(mimirTransport, 'synapse_db');
+        assert.equal(result.metadata?.subagent_profile, 'tester');
+        assert.equal(mimirTransport, 'host_session');
+        assert.equal(mimirMetadata?.subagent_profile, 'tester');
+        assert.match(mimirPrompt, /SPECIALIST ROLE: Verification Specialist \(tester\)/);
         assert.match(written, /export const fallbackValue = 2;/);
     });
 });

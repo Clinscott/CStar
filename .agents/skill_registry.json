@@ -1506,7 +1506,8 @@
       "instruction_path": ".agents/skills/research/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar research"
+        "cli": "cstar research",
+        "adapter_id": "weave:research"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -1527,6 +1528,34 @@
         "tests/unit/node-runtime/weaves/test_research.test.ts"
       ],
       "runtime_trigger": "research"
+    },
+    "critique": {
+      "tier": "SKILL",
+      "description": "Adversarially stress-test a proposed bead or architecture path against current Hall truth.",
+      "instruction_path": ".agents/skills/architect/SKILL.md",
+      "execution": {
+        "mode": "kernel-backed",
+        "adapter_id": "weave:critique"
+      },
+      "viability": "ACTIVE",
+      "risk": "safe",
+      "authority_path": ".agents/skills/architect",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/architect/SKILL.md",
+      "owner_runtime": "runtime-kernel",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/architect/SKILL.md"
+      ],
+      "tests": [
+        "tests/unit/node-runtime/weaves/test_critique.test.ts"
+      ],
+      "runtime_trigger": "critique"
     },
     "ritual": {
       "tier": "SKILL",

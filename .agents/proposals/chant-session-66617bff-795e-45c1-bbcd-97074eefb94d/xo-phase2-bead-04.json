@@ -1,0 +1,24 @@
+{
+  "id": "xo-phase2-bead-04",
+  "title": "Guardian Live Oversight And Review Controls",
+  "rationale": "Guardian authority must remain first-class during live tutoring. This bead gives the guardian explicit review, interrupt, approve, and redirect controls over lesson-bound tutoring behavior.",
+  "targets": [
+    "/home/morderith/Corvus/XO/src/guardian/shell.ts",
+    "/home/morderith/Corvus/XO/src/tutor/guardian_review.ts"
+  ],
+  "target_symbol": "GuardianReviewController",
+  "depends_on": [
+    "xo-phase2-bead-03"
+  ],
+  "focus_hint": "Extend the existing guardian shell rather than inventing a parallel surface. Every control path should preserve session law and leave an auditable trace.",
+  "acceptance_criteria": [
+    "Guardian shell can view live tutoring state and pending acts for the active child session",
+    "Guardian can pause, interrupt, approve, or redirect a tutoring act without widening scope",
+    "Guardian review mode cleanly transitions back into child mode when approved",
+    "Guardian controls are authoritative over automated tutoring decisions"
+  ],
+  "checker_shell": "cd /home/morderith/Corvus/XO && npm run test:node -- tests/guardian/guardian_review.spec.ts",
+  "test_file_path": "/home/morderith/Corvus/XO/tests/guardian/guardian_review.spec.ts",
+  "test_file_content": "import { describe, expect, it } from 'vitest';\nimport { createGuardianReviewController } from '../../src/tutor/guardian_review';\n\ndescribe('GuardianReviewController', () => {\n  it('allows guardian interruption and approval', () => {\n    const controller = createGuardianReviewController();\n    const interrupted = controller.interrupt({ sessionId: 'sess-1', reason: 'guardian_review' });\n    const approved = controller.approve({ sessionId: 'sess-1', actId: 'act-1' });\n    expect(interrupted.authority).toBe('guardian');\n    expect(approved.authority).toBe('guardian');\n  });\n});\n",
+  "target_file_skeleton": "export interface GuardianReviewDecision {\n  authority: 'guardian';\n  sessionId: string;\n  action: 'interrupt' | 'approve' | 'redirect' | 'pause';\n  reason?: string;\n}\n\nexport function createGuardianReviewController() {\n  return {\n    interrupt(input: { sessionId: string; reason: string }): GuardianReviewDecision {\n      return { authority: 'guardian', sessionId: input.sessionId, action: 'interrupt', reason: input.reason };\n    },\n    approve(input: { sessionId: string; actId: string }): GuardianReviewDecision {\n      return { authority: 'guardian', sessionId: input.sessionId, action: 'approve', reason: input.actId };\n    }\n  };\n}\n"
+}
