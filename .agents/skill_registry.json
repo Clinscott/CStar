@@ -561,7 +561,8 @@
       "description": "Translate lore fragments into staged code artifacts through the Taliesin Forge pipeline.",
       "instruction_path": ".agents/skills/forge/SKILL.md",
       "execution": {
-        "mode": "kernel-backed",
+        "mode": "agent-native",
+        "cli": "cstar forge",
         "adapter_id": "weave:forge"
       },
       "viability": "ACTIVE",
@@ -569,11 +570,11 @@
       "authority_path": ".agents/skills/forge",
       "entrypoint_path": ".agents/skills/forge/scripts/forge.py",
       "contract_path": ".agents/skills/forge/forge.feature",
-      "owner_runtime": "cstar-kernel",
+      "owner_runtime": "host-agent",
       "host_support": {
-        "gemini": "supported",
-        "codex": "supported",
-        "claude": "supported"
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
       },
       "recursion_policy": "leaf",
       "contracts": [
@@ -871,7 +872,8 @@
       "description": "Parse natural-language chants into executable skill flight paths and routing plans.",
       "instruction_path": ".agents/skills/chant/SKILL.md",
       "execution": {
-        "mode": "kernel-backed",
+        "mode": "agent-native",
+        "cli": "cstar chant",
         "adapter_id": "weave:chant"
       },
       "viability": "ACTIVE",
@@ -879,11 +881,11 @@
       "authority_path": ".agents/skills/chant",
       "entrypoint_path": ".agents/skills/chant/scripts/chant.py",
       "contract_path": ".agents/skills/chant/chant.feature",
-      "owner_runtime": "cstar-kernel",
+      "owner_runtime": "host-agent",
       "host_support": {
-        "gemini": "supported",
-        "codex": "supported",
-        "claude": "supported"
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
       },
       "recursion_policy": "bounded-orchestrator",
       "contracts": [
@@ -990,7 +992,7 @@
       "description": "Orchestrates the CStar framework and Model Context Protocol (MCP) interactions.",
       "instruction_path": ".agents/skills/corvus-control/SKILL.md",
       "execution": {
-        "mode": "kernel-backed",
+        "mode": "agent-native",
         "cli": "cstar"
       },
       "viability": "ACTIVE",
@@ -998,11 +1000,11 @@
       "authority_path": ".agents/skills/corvus-control",
       "entrypoint_path": null,
       "contract_path": ".agents/skills/corvus-control/corvus-control.feature",
-      "owner_runtime": "cstar-kernel",
+      "owner_runtime": "host-agent",
       "host_support": {
-        "gemini": "supported",
-        "codex": "supported",
-        "claude": "supported"
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
       },
       "recursion_policy": "leaf",
       "contracts": [
@@ -1262,18 +1264,19 @@
       "description": "Manage the Model Context Protocol (MCP) bridge for host agents.",
       "instruction_path": ".agents/skills/bifrost/SKILL.md",
       "execution": {
-        "mode": "kernel-backed"
+        "mode": "agent-native",
+        "cli": "cstar bifrost"
       },
       "viability": "ACTIVE",
       "risk": "safe",
       "authority_path": ".agents/skills/bifrost",
       "entrypoint_path": null,
       "contract_path": ".agents/skills/bifrost/SKILL.md",
-      "owner_runtime": "cstar-kernel",
+      "owner_runtime": "host-agent",
       "host_support": {
-        "gemini": "supported",
-        "codex": "supported",
-        "claude": "supported"
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
       },
       "recursion_policy": "leaf",
       "contracts": [
@@ -1443,7 +1446,8 @@
       "description": "Coordinate autonomous repository improvement by selecting debt targets.",
       "instruction_path": ".agents/skills/ravens/SKILL.md",
       "execution": {
-        "mode": "kernel-backed",
+        "mode": "agent-native",
+        "cli": "cstar ravens",
         "adapter_id": "weave:ravens"
       },
       "viability": "ACTIVE",
@@ -1451,11 +1455,11 @@
       "authority_path": ".agents/skills/ravens",
       "entrypoint_path": ".agents/skills/ravens/scripts/ravens.py",
       "contract_path": ".agents/skills/ravens/ravens.feature",
-      "owner_runtime": "cstar-kernel",
+      "owner_runtime": "host-agent",
       "host_support": {
-        "gemini": "supported",
-        "codex": "supported",
-        "claude": "supported"
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
       },
       "recursion_policy": "bounded-orchestrator",
       "contracts": [
@@ -1534,7 +1538,7 @@
       "description": "Adversarially stress-test a proposed bead or architecture path against current Hall truth.",
       "instruction_path": ".agents/skills/architect/SKILL.md",
       "execution": {
-        "mode": "kernel-backed",
+        "mode": "agent-native",
         "adapter_id": "weave:critique"
       },
       "viability": "ACTIVE",
@@ -1542,7 +1546,7 @@
       "authority_path": ".agents/skills/architect",
       "entrypoint_path": null,
       "contract_path": ".agents/skills/architect/SKILL.md",
-      "owner_runtime": "runtime-kernel",
+      "owner_runtime": "host-agent",
       "host_support": {
         "gemini": "native-session",
         "codex": "exec-bridge",
@@ -1680,7 +1684,8 @@
       "description": "Awaken the system pulse, initiate agent loops, and bootstrap the runtime.",
       "instruction_path": ".agents/skills/start/SKILL.md",
       "execution": {
-        "mode": "kernel-backed",
+        "mode": "agent-native",
+        "cli": "cstar start",
         "adapter_id": "weave:start"
       },
       "viability": "ACTIVE",
@@ -1688,11 +1693,11 @@
       "authority_path": ".agents/skills/start",
       "entrypoint_path": null,
       "contract_path": ".agents/skills/start/SKILL.md",
-      "owner_runtime": "cstar-kernel",
+      "owner_runtime": "host-agent",
       "host_support": {
-        "gemini": "supported",
-        "codex": "supported",
-        "claude": "supported"
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
       },
       "recursion_policy": "bounded-orchestrator",
       "contracts": [
@@ -1855,7 +1860,8 @@
       "description": "Monitor repository anomalies, lore violations, and system drift.",
       "instruction_path": ".agents/skills/warden/SKILL.md",
       "execution": {
-        "mode": "kernel-backed",
+        "mode": "agent-native",
+        "cli": "cstar warden",
         "adapter_id": "weave:warden"
       },
       "viability": "ACTIVE",
@@ -1863,11 +1869,11 @@
       "authority_path": ".agents/skills/warden",
       "entrypoint_path": ".agents/skills/warden/scripts/warden.py",
       "contract_path": ".agents/skills/warden/warden.feature",
-      "owner_runtime": "cstar-kernel",
+      "owner_runtime": "host-agent",
       "host_support": {
-        "gemini": "supported",
-        "codex": "supported",
-        "claude": "supported"
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
       },
       "recursion_policy": "leaf",
       "contracts": [
@@ -1886,7 +1892,8 @@
       "description": "Autonomous repair of Linscott breaches from the Hall of Records.",
       "instruction_path": ".agents/weaves/restoration.md",
       "execution": {
-        "mode": "kernel-backed",
+        "mode": "agent-native",
+        "cli": "cstar restoration",
         "adapter_id": "weave:restoration"
       },
       "viability": "ACTIVE",
@@ -1894,11 +1901,11 @@
       "authority_path": ".agents/weaves/restoration.md",
       "entrypoint_path": null,
       "contract_path": ".agents/weaves/restoration.md",
-      "owner_runtime": "cstar-kernel",
+      "owner_runtime": "host-agent",
       "host_support": {
-        "gemini": "supported",
-        "codex": "supported",
-        "claude": "supported"
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
       },
       "recursion_policy": "bounded-composite",
       "contracts": [
@@ -1917,7 +1924,8 @@
       "description": "Onboard and topology-scan new Spoke repositories.",
       "instruction_path": ".agents/weaves/expansion.md",
       "execution": {
-        "mode": "kernel-backed",
+        "mode": "agent-native",
+        "cli": "cstar expansion",
         "adapter_id": "weave:expansion"
       },
       "viability": "ACTIVE",
@@ -1925,11 +1933,11 @@
       "authority_path": ".agents/weaves/expansion.md",
       "entrypoint_path": null,
       "contract_path": ".agents/weaves/expansion.md",
-      "owner_runtime": "cstar-kernel",
+      "owner_runtime": "host-agent",
       "host_support": {
-        "gemini": "supported",
-        "codex": "supported",
-        "claude": "supported"
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
       },
       "recursion_policy": "bounded-composite",
       "contracts": [
@@ -1948,7 +1956,8 @@
       "description": "Continuously audit the estate against Gungnir standards.",
       "instruction_path": ".agents/weaves/vigilance.md",
       "execution": {
-        "mode": "kernel-backed",
+        "mode": "agent-native",
+        "cli": "cstar vigilance",
         "adapter_id": "weave:vigilance"
       },
       "viability": "ACTIVE",
@@ -1956,11 +1965,11 @@
       "authority_path": ".agents/weaves/vigilance.md",
       "entrypoint_path": null,
       "contract_path": ".agents/weaves/vigilance.md",
-      "owner_runtime": "cstar-kernel",
+      "owner_runtime": "host-agent",
       "host_support": {
-        "gemini": "supported",
-        "codex": "supported",
-        "claude": "supported"
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
       },
       "recursion_policy": "bounded-composite",
       "contracts": [

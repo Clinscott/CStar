@@ -1,5 +1,8 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { RuntimeDispatcher } from  '../../../src/node/core/runtime/dispatcher.js';
 import { WeaveInvocation, WeaveResult } from  '../../../src/node/core/runtime/contracts.js';
 import { registry } from  '../../../src/tools/pennyone/pathRegistry.js';
@@ -141,5 +144,239 @@ describe('RuntimeDispatcher', () => {
 
         assert.strictEqual(result.status, 'TRANSITIONAL');
         assert.strictEqual(mockAdapter.execute.mock.callCount(), 1);
+    });
+
+    it('routes agent-native skill beads through the host bridge before runtime state updates', async () => {
+        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-host-skill-dispatch-'));
+        fs.mkdirSync(path.join(tmpRoot, '.agents'), { recursive: true });
+        fs.writeFileSync(
+            path.join(tmpRoot, '.agents', 'skill_registry.json'),
+            JSON.stringify({
+                entries: {
+                    hall: {
+                        execution: {
+                            mode: 'agent-native',
+                        },
+                        host_support: {
+                            codex: 'exec-bridge',
+                        },
+                        runtime_trigger: 'hall',
+                    },
+                },
+            }),
+        );
+        registry.setRoot(tmpRoot);
+
+        const hostTextInvoker = mock.fn(async () => ({
+            provider: 'codex' as const,
+            text: 'Host fulfilled hall search.',
+        }));
+        const updateMission = mock.fn();
+        const dispatcher = RuntimeDispatcher.createIsolated({
+            // @ts-ignore
+            stateRegistry: { updateMission, updateFramework: mock.fn() },
+            // @ts-ignore
+            hostTextInvoker,
+            activePersona: { name: 'ALFRED' },
+        });
+
+        process.env.CODEX_SHELL = '1';
+        process.env.CODEX_THREAD_ID = 'thread-host-skill';
+
+        const result = await dispatcher.dispatch({
+            id: 'activation:hall:1',
+            skill_id: 'hall',
+            target_path: 'src/core/host_session.ts',
+            intent: 'find host bridge state',
+            params: {
+                query: 'host bridge state',
+                project_root: tmpRoot,
+                cwd: tmpRoot,
+            },
+            status: 'PENDING',
+            priority: 1,
+        });
+
+        delete process.env.CODEX_SHELL;
+        delete process.env.CODEX_THREAD_ID;
+
+        assert.strictEqual(result.status, 'SUCCESS');
+        assert.strictEqual(result.output, 'Host fulfilled hall search.');
+        assert.strictEqual(result.metadata?.adapter, 'host-session:agent-native-skill');
+        assert.strictEqual(hostTextInvoker.mock.callCount(), 1);
+        assert.strictEqual(updateMission.mock.callCount(), 0);
+    });
+
+    it('asks the host to supervise a failed kernel-backed skill and retries once when directed', async () => {
+        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-kernel-recovery-retry-'));
+        fs.mkdirSync(path.join(tmpRoot, '.agents'), { recursive: true });
+        fs.writeFileSync(
+            path.join(tmpRoot, '.agents', 'skill_registry.json'),
+            JSON.stringify({
+                entries: {
+                    autobot: {
+                        execution: {
+                            mode: 'kernel-backed',
+                            adapter_id: 'weave:autobot',
+                        },
+                        host_support: {
+                            codex: 'supported',
+                        },
+                        runtime_trigger: 'autobot',
+                    },
+                },
+            }),
+        );
+        registry.setRoot(tmpRoot);
+
+        let attempts = 0;
+        const autobotAdapter = {
+            id: 'weave:autobot',
+            execute: mock.fn(async (): Promise<WeaveResult> => {
+                attempts += 1;
+                if (attempts === 1) {
+                    return {
+                        weave_id: 'weave:autobot',
+                        status: 'FAILURE',
+                        output: '',
+                        error: 'checker process crashed',
+                    };
+                }
+                return {
+                    weave_id: 'weave:autobot',
+                    status: 'SUCCESS',
+                    output: 'retry succeeded',
+                };
+            }),
+        };
+        const hostTextInvoker = mock.fn(async () => ({
+            provider: 'codex' as const,
+            text: JSON.stringify({
+                action: 'retry',
+                summary: 'Transient checker failure. Retry once.',
+                operator_message: 'Retrying autobot after transient checker failure.',
+            }),
+        }));
+        const dispatcher = RuntimeDispatcher.createIsolated({
+            // @ts-ignore
+            stateRegistry: { updateMission: mock.fn(), updateFramework: mock.fn() },
+            // @ts-ignore
+            hostTextInvoker,
+            activePersona: { name: 'ALFRED' },
+        });
+        dispatcher.registerAdapter(autobotAdapter);
+
+        process.env.CODEX_SHELL = '1';
+        process.env.CODEX_THREAD_ID = 'thread-kernel-retry';
+
+        const result = await dispatcher.dispatch({
+            id: 'activation:autobot:1',
+            skill_id: 'autobot',
+            target_path: 'src/example.ts',
+            intent: 'execute bounded bead',
+            params: {
+                bead_id: 'bead-1',
+                project_root: tmpRoot,
+                cwd: tmpRoot,
+                source: 'runtime',
+            },
+            status: 'PENDING',
+            priority: 1,
+        });
+
+        delete process.env.CODEX_SHELL;
+        delete process.env.CODEX_THREAD_ID;
+
+        assert.strictEqual(result.status, 'SUCCESS');
+        assert.strictEqual(result.output, 'retry succeeded');
+        assert.strictEqual(hostTextInvoker.mock.callCount(), 1);
+        assert.strictEqual(autobotAdapter.execute.mock.callCount(), 2);
+        assert.equal((result.metadata as any)?.host_recovery?.action, 'retry');
+    });
+
+    it('can escalate a failed kernel-backed skill to the host governor for replanning', async () => {
+        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-kernel-recovery-replan-'));
+        fs.mkdirSync(path.join(tmpRoot, '.agents'), { recursive: true });
+        fs.writeFileSync(
+            path.join(tmpRoot, '.agents', 'skill_registry.json'),
+            JSON.stringify({
+                entries: {
+                    autobot: {
+                        execution: {
+                            mode: 'kernel-backed',
+                            adapter_id: 'weave:autobot',
+                        },
+                        host_support: {
+                            codex: 'supported',
+                        },
+                        runtime_trigger: 'autobot',
+                    },
+                },
+            }),
+        );
+        registry.setRoot(tmpRoot);
+
+        const autobotAdapter = {
+            id: 'weave:autobot',
+            execute: mock.fn(async (): Promise<WeaveResult> => ({
+                weave_id: 'weave:autobot',
+                status: 'FAILURE',
+                output: '',
+                error: 'bead payload is invalid for execution',
+            })),
+        };
+        const governorAdapter = {
+            id: 'weave:host-governor',
+            execute: mock.fn(async (): Promise<WeaveResult> => ({
+                weave_id: 'weave:host-governor',
+                status: 'SUCCESS',
+                output: 'Replanned and promoted a corrected bead.',
+            })),
+        };
+        const hostTextInvoker = mock.fn(async () => ({
+            provider: 'codex' as const,
+            text: JSON.stringify({
+                action: 'replan',
+                summary: 'Execution route is wrong.',
+                operator_message: 'Replan this bead through the host governor.',
+                recovery_task: 'Replan the failed autobot bead with corrected execution boundaries.',
+            }),
+        }));
+        const dispatcher = RuntimeDispatcher.createIsolated({
+            // @ts-ignore
+            stateRegistry: { updateMission: mock.fn(), updateFramework: mock.fn() },
+            // @ts-ignore
+            hostTextInvoker,
+            activePersona: { name: 'ALFRED' },
+        });
+        dispatcher.registerAdapter(autobotAdapter);
+        dispatcher.registerAdapter(governorAdapter);
+
+        process.env.CODEX_SHELL = '1';
+        process.env.CODEX_THREAD_ID = 'thread-kernel-replan';
+
+        const result = await dispatcher.dispatch({
+            id: 'activation:autobot:2',
+            skill_id: 'autobot',
+            target_path: 'src/example.ts',
+            intent: 'execute bounded bead',
+            params: {
+                bead_id: 'bead-2',
+                project_root: tmpRoot,
+                cwd: tmpRoot,
+                source: 'runtime',
+            },
+            status: 'PENDING',
+            priority: 1,
+        });
+
+        delete process.env.CODEX_SHELL;
+        delete process.env.CODEX_THREAD_ID;
+
+        assert.strictEqual(result.status, 'SUCCESS');
+        assert.strictEqual(result.output, 'Replanned and promoted a corrected bead.');
+        assert.strictEqual(hostTextInvoker.mock.callCount(), 1);
+        assert.strictEqual(governorAdapter.execute.mock.callCount(), 1);
+        assert.equal((result.metadata as any)?.host_recovery?.action, 'replan');
     });
 });

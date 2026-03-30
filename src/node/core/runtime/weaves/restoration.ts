@@ -10,6 +10,61 @@ import {
 } from '../contracts.ts';
 import { getHallBeadsByStatus, getHallBeadsByEpic } from  '../../../../tools/pennyone/intel/database.js';
 import chalk from 'chalk';
+import * as hostBridge from './host_bridge.js';
+
+export const deps = {
+    getHallBeadsByStatus,
+    getHallBeadsByEpic,
+    resolveRuntimeHostProvider: hostBridge.resolveRuntimeHostProvider,
+    extractJsonObject: hostBridge.extractJsonObject,
+};
+
+interface RestorationSupervisorDecision {
+    action: 'execute_now' | 'replan' | 'observe_only';
+    reason?: string;
+}
+
+function buildRestorationSupervisorPrompt(input: {
+    beadIds: string[];
+    epic?: string;
+    maxBeads: number;
+}): string {
+    return [
+        'You are supervising CStar restoration routing.',
+        'Decide whether this restoration request should execute now, replan through chant, or observe only.',
+        'Choose execute_now for bounded, ready repair work.',
+        'Choose replan when the current restoration request is ambiguous, under-scoped, or should be decomposed differently.',
+        'Choose observe_only when the system should report readiness without mutating anything.',
+        'Return JSON only.',
+        JSON.stringify({
+            bead_ids: input.beadIds,
+            epic: input.epic ?? null,
+            max_beads: input.maxBeads,
+            response_schema: {
+                action: 'execute_now | replan | observe_only',
+                reason: 'string',
+            },
+        }, null, 2),
+    ].join('\n\n');
+}
+
+function normalizeRestorationDecision(raw: string): RestorationSupervisorDecision | null {
+    try {
+        const parsed = deps.extractJsonObject(raw);
+        const action = parsed.action === 'execute_now' || parsed.action === 'replan' || parsed.action === 'observe_only'
+            ? parsed.action
+            : null;
+        if (!action) {
+            return null;
+        }
+        return {
+            action,
+            reason: typeof parsed.reason === 'string' ? parsed.reason.trim() : undefined,
+        };
+    } catch {
+        return null;
+    }
+}
 
 /**
  * 🔱 RESTORATION WEAVE
@@ -18,7 +73,10 @@ import chalk from 'chalk';
 export class RestorationWeave implements RuntimeAdapter<RestorationWeavePayload> {
     public readonly id = 'weave:restoration';
 
-    public constructor(private readonly dispatchPort: RuntimeDispatchPort) {}
+    public constructor(
+        private readonly dispatchPort: RuntimeDispatchPort,
+        private readonly hostTextInvoker: hostBridge.HostTextInvoker = hostBridge.defaultHostTextInvoker,
+    ) {}
 
     public async execute(
         invocation: WeaveInvocation<RestorationWeavePayload>,
@@ -33,9 +91,9 @@ export class RestorationWeave implements RuntimeAdapter<RestorationWeavePayload>
         if (payload.bead_ids && payload.bead_ids.length > 0) {
             beads = payload.bead_ids.map(id => ({ id }));
         } else if (payload.epic) {
-            beads = getHallBeadsByEpic(repoId, payload.epic);
+            beads = deps.getHallBeadsByEpic(repoId, payload.epic);
         } else {
-            beads = getHallBeadsByStatus(repoId, 'SET');
+            beads = deps.getHallBeadsByStatus(repoId, 'SET');
         }
 
         if (beads.length === 0) {
@@ -48,6 +106,69 @@ export class RestorationWeave implements RuntimeAdapter<RestorationWeavePayload>
 
         const limit = payload.max_beads || 1;
         const targetBeads = beads.slice(0, limit);
+        const hostProvider = deps.resolveRuntimeHostProvider(context);
+
+        if (hostProvider) {
+            try {
+                const raw = await this.hostTextInvoker({
+                    provider: hostProvider,
+                    projectRoot: projectRoot,
+                    source: 'runtime:restoration',
+                    systemPrompt: 'Return JSON only. Decide restoration routing.',
+                    prompt: buildRestorationSupervisorPrompt({
+                        beadIds: targetBeads.map((bead: any) => bead.id),
+                        epic: payload.epic,
+                        maxBeads: limit,
+                    }),
+                    env: { ...process.env, ...context.env } as NodeJS.ProcessEnv,
+                    metadata: {
+                        runtime_weave: 'restoration',
+                        decision: 'restoration-supervisor',
+                        transport_mode: 'session-required',
+                    },
+                });
+                const decision = normalizeRestorationDecision(raw);
+                if (decision?.action === 'observe_only') {
+                    return {
+                        weave_id: this.id,
+                        status: 'TRANSITIONAL',
+                        output: `[ALFRED]: Restoration observation only. ${decision.reason ?? 'No repair execution requested.'}`.trim(),
+                        metadata: {
+                            supervisor_decision: decision.action,
+                            supervisor_reason: decision.reason,
+                            bead_ids: targetBeads.map((bead: any) => bead.id),
+                        },
+                    };
+                }
+                if (decision?.action === 'replan') {
+                    const chantResult = await this.dispatchPort.dispatch({
+                        weave_id: 'weave:chant',
+                        payload: {
+                            query: `Replan restoration for bead(s): ${targetBeads.map((bead: any) => bead.id).join(', ')}`,
+                            project_root: projectRoot,
+                            cwd: context.workspace_root,
+                            source: 'runtime',
+                        },
+                    });
+                    return {
+                        weave_id: this.id,
+                        status: chantResult.status,
+                        output: chantResult.output,
+                        error: chantResult.error,
+                        metadata: {
+                            ...(chantResult.metadata ?? {}),
+                            delegated_weave_id: 'weave:chant',
+                            supervisor_decision: decision.action,
+                            supervisor_reason: decision.reason,
+                            bead_ids: targetBeads.map((bead: any) => bead.id),
+                        },
+                    };
+                }
+            } catch {
+                // Fall through to bounded local execution.
+            }
+        }
+
         const outcomes: any[] = [];
 
         console.log(chalk.cyan(`\n ◤ RESTORATION WEAVE: ADVANCING ${targetBeads.length} SECTOR(S) ◢ `));

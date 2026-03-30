@@ -20,6 +20,12 @@ export interface HostDelegateBridgeConfig {
     args: string[];
 }
 
+export type CapabilityExecutionMode =
+    | 'agent-native'
+    | 'kernel-backed'
+    | 'policy-only'
+    | 'unknown';
+
 export interface HostSkillActivationRequest {
     skill_id: string;
     role?: string;
@@ -32,6 +38,9 @@ export interface HostSkillActivationRequest {
 interface RegistryEntry {
     runtime_trigger?: string;
     host_support?: Partial<Record<HostProvider, string>>;
+    execution?: {
+        mode?: string;
+    };
 }
 
 interface RegistryManifest {
@@ -216,6 +225,20 @@ function normalizeHostSupportStatus(value: string | undefined): HostSupportStatu
     return 'unknown';
 }
 
+function normalizeCapabilityExecutionMode(value: string | undefined): CapabilityExecutionMode {
+    const normalized = value?.trim().toLowerCase();
+    if (normalized === 'agent-native') {
+        return 'agent-native';
+    }
+    if (normalized === 'kernel-backed') {
+        return 'kernel-backed';
+    }
+    if (normalized === 'policy-only') {
+        return 'policy-only';
+    }
+    return 'unknown';
+}
+
 export function isHostSupportStatusAllowed(status: HostSupportStatus | null | undefined): boolean {
     return status === null || status === undefined || SUPPORTED_HOST_STATUSES.has(status);
 }
@@ -239,6 +262,22 @@ export function getCapabilityHostSupport(
     }
 
     return normalizeHostSupportStatus(matchedEntry.host_support[provider]);
+}
+
+export function getCapabilityExecutionMode(
+    projectRoot: string,
+    capability: string,
+): CapabilityExecutionMode {
+    const entries = getRegistryEntries(loadRegistryManifest(projectRoot));
+    const normalizedCapability = capability.trim().toLowerCase();
+    if (!normalizedCapability) {
+        return 'unknown';
+    }
+
+    const directEntry = entries[normalizedCapability];
+    const matchedEntry = directEntry
+        ?? Object.values(entries).find((entry) => String(entry.runtime_trigger ?? '').trim().toLowerCase() === normalizedCapability);
+    return normalizeCapabilityExecutionMode(matchedEntry?.execution?.mode);
 }
 
 export function explainCapabilityHostSupport(
@@ -369,5 +408,17 @@ export function buildHostSkillActivationEnvelope(request: HostSkillActivationReq
         'PAYLOAD:',
         JSON.stringify(request.payload ?? {}, null, 2),
         '[/CORVUS_SKILL_ACTIVATION]',
+    ].filter(Boolean).join('\n');
+}
+
+export function buildHostNativeSkillPrompt(request: HostSkillActivationRequest): string {
+    const targetPaths = request.target_paths?.filter((entry) => entry.trim().length > 0) ?? [];
+    return [
+        buildHostSkillActivationEnvelope(request),
+        '',
+        'Execute this Corvus skill natively inside the current host session.',
+        'Do not invoke `cstar`, `node`, or a runtime dispatcher to fulfill it.',
+        'Use the authoritative skill instructions directly so Hall and trace continuity remain in-session.',
+        targetPaths.length > 0 ? `Focus targets: ${targetPaths.join(', ')}` : '',
     ].filter(Boolean).join('\n');
 }

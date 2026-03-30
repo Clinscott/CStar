@@ -12,8 +12,8 @@ source: internal
 
 
 ## MANDATE
-Act as the primary entrypoint and session shell for Corvus Star. Parse natural language "Chants" into Hall-backed skill plans by delegating research, planning, and synthesis to specialized skills and weaves. Manage the collaborative session lifecycle and facilitate the handoff between planning and execution.
-Phase 1 authority: `cstar chant "<query>"` resolves through the woven runtime.
+Act as the public host-native entrypoint and session shell for Corvus Star. Parse natural language "Chants" into Hall-backed skill plans by delegating research, planning, and synthesis to specialized skills and bounded kernel primitives. Manage the collaborative session lifecycle and facilitate the handoff between planning and execution.
+Phase 1 authority: `cstar chant "<query>"` resolves through a host-supervised public front over woven runtime executors.
 Chant is the **shell**, not the **planner**. It orchestrates the flow:
 1. **Routing**: Direct dispatch for known built-in capabilities.
 2. **Session Lifecycle**: Create and resume collaborative planning sessions in the Hall.
@@ -26,6 +26,11 @@ Chant is the **shell**, not the **planner**. It orchestrates the flow:
 4. **PLANNING DELEGATION**: Activate the architect/planner path to synthesize research and Hall truth into a structured bead graph.
 5. **HUMAN ADJUDICATION**: Present proposals to the operator for review and approval (State: `PROPOSAL_REVIEW`).
 6. **EXECUTION HANDOFF**: Release `SET` beads to `orchestrate`, which converts them into Hall skill activations (State: `FORGE_EXECUTION`).
+
+## RUNTIME BOUNDARY
+- Public chant reasoning belongs to the host session.
+- Kernel weaves remain the bounded executors for routing, planning persistence, and execution handoff.
+- Do not treat the woven runtime as the public mind; treat it as the executor beneath the host shell.
 
 ## HANDOFF DISCIPLINE
 - AutoBot is the default sub-agent for implementation handoff.

@@ -158,7 +158,11 @@ function getDisplayDescription(metadata: PackageMetadata): string {
         return metadata.description.trim();
     }
 
-    return 'Kernel-first host integration for the Corvus Star runtime.';
+    return 'Host-native supervisor integration for the Corvus Star runtime.';
+}
+
+function formatCapabilityLine(entry: CapabilityExport): string {
+    return `- \`${entry.id}\` (${entry.tier}, ${entry.hostSupportStatus})`;
 }
 
 function getCapabilitiesForHost(projectRoot: string, provider: HostProvider): CapabilityExport[] {
@@ -200,12 +204,12 @@ function buildGeminiContextContent(projectRoot: string, capabilities: Capability
         '`./cstar hall "<query>"`',
         '`./cstar chant "<query>"`',
     ];
-    const topCapabilities = capabilities.slice(0, 12).map((entry) => `- \`${entry.id}\` (${entry.tier})`);
+    const topCapabilities = capabilities.slice(0, 12).map(formatCapabilityLine);
 
     return [
         '# Corvus Star',
         '',
-        `> Kernel-first Gemini CLI extension for the authoritative CStar runtime.`,
+        `> Host-native Gemini CLI extension for the authoritative CStar runtime.`,
         '',
         '## Identity',
         `- Package: \`${metadata.name ?? 'corvusstar'}\` v${metadata.version ?? '0.0.0'}`,
@@ -223,7 +227,9 @@ function buildGeminiContextContent(projectRoot: string, capabilities: Capability
         '## Host Behavior',
         '- Read `AGENTS.qmd` at session start before making structural claims.',
         '- Use `./cstar hall "<query>"` for estate discovery before ad hoc search.',
-        '- Keep runtime logic in the kernel; do not fork Gemini-specific capability definitions.',
+        '- Keep reasoning, planning, critique, and recovery in the host session when the registry marks a capability host-executable.',
+        '- Keep deterministic local primitives in the kernel; do not fork Gemini-specific capability definitions.',
+        '- Treat `native-session` and `exec-bridge` capabilities as host-routed, and treat `supported` capabilities as kernel-backed launch surfaces.',
         '',
         `## Exported Gemini Capabilities (${capabilities.length})`,
         ...(topCapabilities.length > 0 ? topCapabilities : ['- None exported.']),
@@ -253,8 +259,8 @@ function buildCodexPluginManifestContent(projectRoot: string): string {
         mcpServers: './.mcp.json',
         interface: {
             displayName: 'Corvus Star',
-            shortDescription: 'Kernel-first Corvus integration for Codex.',
-            longDescription: 'Routes Codex through the authoritative CStar runtime, Hall, and registry-backed host support model.',
+            shortDescription: 'Host-native Corvus integration for Codex.',
+            longDescription: 'Routes Codex through the authoritative CStar runtime, Hall, and host-native supervisor model with explicit kernel primitives.',
             developerName: author.name,
             category: 'Developer Tools',
             capabilities: ['Interactive', 'Write'],
@@ -265,6 +271,7 @@ function buildCodexPluginManifestContent(projectRoot: string): string {
                 'Use CStar Hall before broad local search.',
                 'Route Corvus work through ./cstar and node bin/cstar.js.',
                 'Keep registry and runtime contracts authoritative.',
+                'Treat host-executable capabilities as supervisor paths and kernel-backed capabilities as bounded local primitives.',
             ],
             brandColor: '#0F6E5B',
         },
@@ -272,7 +279,7 @@ function buildCodexPluginManifestContent(projectRoot: string): string {
 }
 
 function buildCodexPluginSkillContent(capabilities: CapabilityExport[]): string {
-    const topCapabilities = capabilities.slice(0, 12).map((entry) => `- \`${entry.id}\` (${entry.tier})`);
+    const topCapabilities = capabilities.slice(0, 12).map(formatCapabilityLine);
 
     return [
         '---',
@@ -291,6 +298,7 @@ function buildCodexPluginSkillContent(capabilities: CapabilityExport[]): string 
         '- Prefer `./cstar hall "<query>"` before broad local scans.',
         '- Use `./cstar <command>` or `node bin/cstar.js <command>` as canonical launchers.',
         '- Keep host-specific packaging separate from kernel logic.',
+        '- Treat `native-session` and `exec-bridge` capabilities as host-routed work, and `supported` capabilities as kernel-backed launch surfaces.',
         '',
         `## Exported Codex Capabilities (${capabilities.length})`,
         ...(topCapabilities.length > 0 ? topCapabilities : ['- None exported.']),
@@ -340,12 +348,14 @@ function buildDistributionReadmeContent(geminiCapabilities: CapabilityExport[], 
         '## Gemini CLI',
         '- Install from the repository root so `gemini-extension.json` and `GEMINI.md` are available.',
         '- The extension exposes registry-filtered capabilities and MCP server wiring from the kernel root.',
+        '- Gemini context is generated around the host-native supervisor model: host cognition, kernel primitives.',
         '- Local bootstrap: `npm run install:gemini-local`',
         '',
         '## Codex',
         '- The repo-local plugin lives under `plugins/corvus-star/`.',
         '- The marketplace entry lives under `.agents/plugins/marketplace.json`.',
         '- The plugin points back to the same kernel root through `.mcp.json`.',
+        '- Codex install surfaces are generated from the same registry-backed host/kernel split as Gemini.',
         '- Local bootstrap: `npm run install:codex-local`',
         '',
         '## Combined Local Bootstrap',
@@ -365,6 +375,7 @@ function buildDistributionReadmeContent(geminiCapabilities: CapabilityExport[], 
         '## CI',
         '- Pull requests and pushes should fail if generated install artifacts drift from the registry-backed source.',
         '- Tagged pushes and manual runs can publish host-ready bundle artifacts from `dist/host-distributions/`.',
+        '- Sync local `~/.gemini` and `~/.codex` installs from these generated artifacts instead of hand-editing host surfaces.',
         '',
     ].join('\n');
 }

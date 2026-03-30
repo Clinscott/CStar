@@ -8,6 +8,13 @@ import {
     RuntimeAdapter,
     RuntimeDispatchPort,
 } from './contracts.ts';
+import { requestHostText, type HostTextRequest } from '../../../core/host_intelligence.js';
+import {
+    buildHostNativeSkillPrompt,
+    explainCapabilityHostSupport,
+    getCapabilityExecutionMode,
+    resolveHostProvider,
+} from '../../../core/host_session.js';
 import { StateRegistry } from  '../state.js';
 import { activePersona } from  '../../../tools/pennyone/personaRegistry.js';
 import { registry } from  '../../../tools/pennyone/pathRegistry.js';
@@ -31,6 +38,64 @@ function resolveSkillAdapterAlias(workspaceRoot: string, skillId: string): strin
     }
 }
 
+type HostRecoveryAction = 'retry' | 'replan' | 'abandon';
+
+interface HostRecoveryDecision {
+    action?: unknown;
+    summary?: unknown;
+    operator_message?: unknown;
+    recovery_task?: unknown;
+}
+
+function extractJsonObject(raw: string): Record<string, unknown> {
+    const start = raw.indexOf('{');
+    const end = raw.lastIndexOf('}');
+    if (start === -1 || end === -1 || end < start) {
+        throw new Error('Host recovery did not return a JSON object.');
+    }
+    return JSON.parse(raw.slice(start, end + 1)) as Record<string, unknown>;
+}
+
+function normalizeHostRecoveryAction(value: unknown): HostRecoveryAction {
+    const normalized = typeof value === 'string' ? value.trim().toLowerCase() : '';
+    if (normalized === 'retry') {
+        return 'retry';
+    }
+    if (normalized === 'replan') {
+        return 'replan';
+    }
+    return 'abandon';
+}
+
+function buildKernelRecoveryPrompt(input: {
+    weaveId: string;
+    skillId?: string;
+    workspaceRoot: string;
+    error: string;
+    payload: unknown;
+    context: RuntimeContext;
+}): string {
+    return [
+        'You are supervising a failed CStar kernel execution.',
+        'Decide the next bounded recovery action and return strict JSON only.',
+        'Allowed actions: retry, replan, abandon.',
+        'Choose retry only for transient or obviously recoverable execution faults.',
+        'Choose replan when the failure implies the current bead or execution route is wrong.',
+        'Choose abandon when no safe automatic correction is justified.',
+        'Format:',
+        '{ "action": "retry|replan|abandon", "summary": "...", "operator_message": "...", "recovery_task": "..." }',
+        '',
+        `WEAVE_ID: ${input.weaveId}`,
+        input.skillId ? `SKILL_ID: ${input.skillId}` : '',
+        `WORKSPACE_ROOT: ${input.workspaceRoot}`,
+        `MISSION_ID: ${input.context.mission_id}`,
+        `TRACE_ID: ${input.context.trace_id}`,
+        `ERROR: ${input.error}`,
+        'PAYLOAD:',
+        JSON.stringify(input.payload ?? {}, null, 2),
+    ].filter(Boolean).join('\n');
+}
+
 /**
  * [Ω] THE CANONICAL RUNTIME DISPATCHER (v1.0)
  * Purpose: The singular authority for command and skill execution.
@@ -44,6 +109,7 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
         stateRegistry: typeof StateRegistry;
         resolveEstateTarget: typeof resolveEstateTarget;
         activePersona: typeof activePersona;
+        hostTextInvoker: (request: HostTextRequest) => Promise<{ provider: 'gemini' | 'codex' | 'claude'; text: string }>;
     };
 
     private constructor(deps?: Partial<typeof RuntimeDispatcher.prototype.deps>) {
@@ -51,6 +117,7 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
             stateRegistry: deps?.stateRegistry ?? StateRegistry,
             resolveEstateTarget: deps?.resolveEstateTarget ?? resolveEstateTarget,
             activePersona: deps?.activePersona ?? activePersona,
+            hostTextInvoker: deps?.hostTextInvoker ?? requestHostText,
         };
     }
 
@@ -78,12 +145,20 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
      */
     public async dispatch<T>(invocation: WeaveInvocation<T> | import('../skills/types.js').SkillBead<T>): Promise<WeaveResult> {
         const isSkillBead = 'skill_id' in invocation;
+        const workspaceRoot = process.env.CSTAR_PROJECT_ROOT || registry.getRoot();
         const weaveId = isSkillBead
-            ? resolveSkillAdapterAlias(process.env.CSTAR_PROJECT_ROOT || registry.getRoot(), invocation.skill_id)
+            ? resolveSkillAdapterAlias(workspaceRoot, invocation.skill_id)
             : invocation.weave_id;
         const payload = isSkillBead ? invocation.params : invocation.payload;
         const target = isSkillBead ? undefined : invocation.target;
         const session = isSkillBead ? undefined : invocation.session;
+
+        if (isSkillBead) {
+            const nativeHostResult = await this.tryExecuteSkillBeadViaHostSession(invocation, workspaceRoot);
+            if (nativeHostResult) {
+                return nativeHostResult;
+            }
+        }
 
         const adapter = this.adapters.get(weaveId);
 
@@ -209,14 +284,47 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
                 this.deps.stateRegistry.updateFramework({ gungnir_score: getGungnirOverall(result.metrics_delta) });
             }
 
+            if (result.status === 'FAILURE') {
+                const recovered = await this.tryRecoverKernelFailure({
+                    adapter,
+                    invocationToPass,
+                    context,
+                    workspaceRoot: estateTarget.workspaceRoot,
+                    weaveId,
+                    payload,
+                    initialResult: result,
+                    skillId: isSkillBead ? invocation.skill_id : undefined,
+                });
+                if (recovered) {
+                    return recovered;
+                }
+            }
+
             return result;
         } catch (err: any) {
-            return {
+            const failureResult: WeaveResult = {
                 weave_id: weaveId,
                 status: 'FAILURE',
                 output: '',
                 error: `[ALFRED]: "The execution of weave/skill '${weaveId}' has suffered a catastrophic failure: ${err.message}"`
             };
+            const invocationToPass: WeaveInvocation<any> = isSkillBead
+                ? { weave_id: weaveId, payload: payload, target: target, session: session }
+                : invocation;
+            const recovered = await this.tryRecoverKernelFailure({
+                adapter,
+                invocationToPass,
+                context,
+                workspaceRoot: estateTarget.workspaceRoot,
+                weaveId,
+                payload,
+                initialResult: failureResult,
+                skillId: isSkillBead ? invocation.skill_id : undefined,
+            });
+            if (recovered) {
+                return recovered;
+            }
+            return failureResult;
         }
     }
 
@@ -240,5 +348,229 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
 
     public clearAdapters(): void {
         this.adapters.clear();
+    }
+
+    private async tryRecoverKernelFailure(args: {
+        adapter: RuntimeAdapter;
+        invocationToPass: WeaveInvocation<any>;
+        context: RuntimeContext;
+        workspaceRoot: string;
+        weaveId: string;
+        payload: unknown;
+        initialResult: WeaveResult;
+        skillId?: string;
+    }): Promise<WeaveResult | null> {
+        const { adapter, invocationToPass, context, workspaceRoot, weaveId, payload, initialResult, skillId } = args;
+        if (weaveId === 'weave:host-governor') {
+            return null;
+        }
+
+        const executionMode = skillId ? getCapabilityExecutionMode(workspaceRoot, skillId) : 'kernel-backed';
+        if (skillId && executionMode !== 'kernel-backed') {
+            return null;
+        }
+
+        const provider = resolveHostProvider({ ...process.env, ...context.env } as NodeJS.ProcessEnv);
+        if (!provider) {
+            return null;
+        }
+
+        try {
+            const hostResponse = await this.deps.hostTextInvoker({
+                prompt: buildKernelRecoveryPrompt({
+                    weaveId,
+                    skillId,
+                    workspaceRoot,
+                    error: initialResult.error ?? 'Unknown kernel failure.',
+                    payload,
+                    context,
+                }),
+                projectRoot: workspaceRoot,
+                source: `runtime:recovery:${weaveId}`,
+                provider,
+                env: { ...process.env, ...context.env } as NodeJS.ProcessEnv,
+                metadata: {
+                    transport_mode: 'host_session',
+                    one_mind_boundary: 'primary',
+                    execution_mode: 'kernel-recovery',
+                    failed_weave_id: weaveId,
+                    failed_skill_id: skillId ?? null,
+                },
+            });
+            const decision = extractJsonObject(hostResponse.text) as HostRecoveryDecision;
+            const action = normalizeHostRecoveryAction(decision.action);
+            const summary = typeof decision.summary === 'string' ? decision.summary.trim() : '';
+            const operatorMessage = typeof decision.operator_message === 'string' ? decision.operator_message.trim() : '';
+            const recoveryTask = typeof decision.recovery_task === 'string' ? decision.recovery_task.trim() : '';
+
+            if (action === 'retry') {
+                const retryResult = await adapter.execute(invocationToPass, context);
+                return {
+                    ...retryResult,
+                    metadata: {
+                        ...(retryResult.metadata ?? {}),
+                        host_recovery: {
+                            action,
+                            provider,
+                            summary,
+                            operator_message: operatorMessage,
+                            attempted: true,
+                            succeeded: retryResult.status !== 'FAILURE',
+                        },
+                    },
+                };
+            }
+
+            if (action === 'replan') {
+                const governorResult = await this.dispatch({
+                    weave_id: 'weave:host-governor',
+                    payload: {
+                        task: recoveryTask || operatorMessage || summary || `Recover from failed kernel execution: ${weaveId}`,
+                        auto_execute: true,
+                        auto_replan_blocked: true,
+                        max_parallel: 1,
+                        project_root: workspaceRoot,
+                        cwd: workspaceRoot,
+                        source: 'runtime',
+                    },
+                    session: {
+                        mode: 'subkernel',
+                        interactive: false,
+                        session_id: context.session_id,
+                    },
+                });
+                return {
+                    ...governorResult,
+                    metadata: {
+                        ...(governorResult.metadata ?? {}),
+                        host_recovery: {
+                            action,
+                            provider,
+                            summary,
+                            operator_message: operatorMessage,
+                            attempted: true,
+                            failed_weave_id: weaveId,
+                            failed_skill_id: skillId ?? null,
+                        },
+                    },
+                };
+            }
+
+            return {
+                ...initialResult,
+                metadata: {
+                    ...(initialResult.metadata ?? {}),
+                    host_recovery: {
+                        action,
+                        provider,
+                        summary,
+                        operator_message: operatorMessage,
+                        attempted: true,
+                        failed_weave_id: weaveId,
+                        failed_skill_id: skillId ?? null,
+                    },
+                },
+            };
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            return {
+                ...initialResult,
+                metadata: {
+                    ...(initialResult.metadata ?? {}),
+                    host_recovery: {
+                        action: 'abandon',
+                        provider,
+                        attempted: true,
+                        failed_weave_id: weaveId,
+                        failed_skill_id: skillId ?? null,
+                        recovery_error: message,
+                    },
+                },
+            };
+        }
+    }
+
+    private async tryExecuteSkillBeadViaHostSession<T>(
+        invocation: import('../skills/types.js').SkillBead<T>,
+        workspaceRoot: string,
+    ): Promise<WeaveResult | null> {
+        const executionMode = getCapabilityExecutionMode(workspaceRoot, invocation.skill_id);
+        if (executionMode !== 'agent-native') {
+            return null;
+        }
+
+        const provider = resolveHostProvider(process.env);
+        if (!provider) {
+            return null;
+        }
+
+        const hostSupportError = explainCapabilityHostSupport(workspaceRoot, invocation.skill_id, provider);
+        if (hostSupportError) {
+            return {
+                weave_id: invocation.skill_id,
+                status: 'FAILURE',
+                output: '',
+                error: hostSupportError,
+            };
+        }
+
+        const activationPayload = invocation.params && typeof invocation.params === 'object' && !Array.isArray(invocation.params)
+            ? invocation.params as Record<string, unknown>
+            : { value: invocation.params };
+        const targetPaths = Array.from(new Set([
+            String(invocation.target_path ?? '').trim(),
+            ...Object.values(activationPayload)
+                .filter((value): value is string => typeof value === 'string')
+                .filter((value) => /[\\/]|\.([a-z0-9]+)$/i.test(value)),
+        ].filter(Boolean)));
+
+        try {
+            const prompt = buildHostNativeSkillPrompt({
+                skill_id: invocation.skill_id,
+                intent: invocation.intent,
+                project_root: workspaceRoot,
+                target_paths: targetPaths,
+                payload: activationPayload,
+            });
+
+            const result = await this.deps.hostTextInvoker({
+                prompt,
+                projectRoot: workspaceRoot,
+                source: `runtime:skill:${invocation.skill_id}`,
+                provider,
+                env: process.env,
+                metadata: {
+                    transport_mode: 'host_session',
+                    one_mind_boundary: 'primary',
+                    execution_mode: 'agent-native',
+                    skill_id: invocation.skill_id,
+                },
+            });
+
+            return {
+                weave_id: invocation.skill_id,
+                status: 'SUCCESS',
+                output: result.text,
+                metadata: {
+                    adapter: 'host-session:agent-native-skill',
+                    execution_mode: executionMode,
+                    provider: result.provider,
+                    target_paths: targetPaths,
+                },
+            };
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            return {
+                weave_id: invocation.skill_id,
+                status: 'FAILURE',
+                output: '',
+                error: `Host-native skill activation failed for '${invocation.skill_id}': ${message}`,
+                metadata: {
+                    adapter: 'host-session:agent-native-skill',
+                    execution_mode: executionMode,
+                    target_paths: targetPaths,
+                },
+            };
+        }
     }
 }

@@ -19,8 +19,8 @@
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Corvus Star",
-    "shortDescription": "Kernel-first Corvus integration for Codex.",
-    "longDescription": "Routes Codex through the authoritative CStar runtime, Hall, and registry-backed host support model.",
+    "shortDescription": "Host-native Corvus integration for Codex.",
+    "longDescription": "Routes Codex through the authoritative CStar runtime, Hall, and host-native supervisor model with explicit kernel primitives.",
     "developerName": "Craig Linscott",
     "category": "Developer Tools",
     "capabilities": [
@@ -33,7 +33,8 @@
     "defaultPrompt": [
       "Use CStar Hall before broad local search.",
       "Route Corvus work through ./cstar and node bin/cstar.js.",
-      "Keep registry and runtime contracts authoritative."
+      "Keep registry and runtime contracts authoritative.",
+      "Treat host-executable capabilities as supervisor paths and kernel-backed capabilities as bounded local primitives."
     ],
     "brandColor": "#0F6E5B"
   }

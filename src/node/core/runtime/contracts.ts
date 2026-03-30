@@ -409,6 +409,15 @@ export interface VigilanceWeavePayload {
     cwd: string;
 }
 
+export interface WardenWeavePayload {
+    project_root: string;
+    cwd: string;
+    aggressive?: boolean;
+    spoke?: string;
+    scan_id?: string;
+    source?: 'cli' | 'python_adapter' | 'runtime';
+}
+
 /**
  * [🔱] THE RUNTIME ADAPTER
  * Adapters wrap legacy or specialized execution paths (Python, CLI scripts, direct Node modules)

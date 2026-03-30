@@ -12,13 +12,19 @@ source: internal
 
 
 ## MANDATE
-Orchestrate the autonomous improvement of the repository by targeting technical debt, forging repairs, and verifying sovereignty.
+Act as the public host-native maintenance front for autonomous repository improvement by targeting technical debt, shaping maintenance intent, and delegating bounded execution to Ravens kernel primitives.
 
 ## LOGIC PROTOCOL
-1. **TARGET ACQUISITION**: Select high-priority refactoring targets from the PennyOne Tech Debt Ledger.
-2. **ORACLE CONSULTATION**: Consult the Gungnir Oracle for refactoring strategies and intent analysis.
-3. **CRUCIBLE VALIDATION**: Forge candidate artifacts and verify them against the Gungnir Calculus.
-4. **SOVEREIGN DEPLOYMENT**: Deploy verified repairs to the mainline and record mission traces.
+1. **INTENT NORMALIZATION**: Decide whether the public maintenance request should execute now or remain observational.
+2. **TARGET ACQUISITION**: Select high-priority refactoring targets from the PennyOne Tech Debt Ledger.
+3. **ORACLE CONSULTATION**: Consult the Gungnir Oracle for refactoring strategies and intent analysis.
+4. **BOUNDED EXECUTION HANDOFF**: Delegate sweep and cycle mechanics to Ravens kernel primitives.
+5. **SOVEREIGN DEPLOYMENT**: Record mission traces and verified outcomes in the Hall.
+
+## RUNTIME BOUNDARY
+- Public ravens supervision belongs to the host session.
+- `weave:ravens`, `weave:ravens-cycle`, and related stage executors remain bounded kernel primitives.
+- Scope selection and maintenance intent are public host concerns; sweep mechanics are local runtime work.
 
 ## USAGE
 `cstar ravens --cycle [--path <dir>]`

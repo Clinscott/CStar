@@ -11,7 +11,8 @@ risk: safe
 Use to resolve "OPEN" beads or "Linscott Breaches" in the Hall of Records. This weave automates the loop of identifying debt, proposing a fix, and recording the success.
 
 ## 🛠️ EXECUTION MODE
-**Kernel-Backed**: Must be dispatched via the Node.js `RuntimeDispatcher` using adapter `weave:restoration`.
+**Public Contract**: Host-native repair supervision.
+**Bounded Executor**: `weave:restoration` remains the kernel executor for evolve and distill mechanics.
 
 ## 📥 SIGNATURE (API)
 **Invocation**: `weave:restoration`
@@ -29,6 +30,10 @@ interface RestorationWeavePayload {
 ## 📤 EXPECTED OUTCOME
 *   Returns `WeaveResult` with `metadata.outcomes` mapping each Bead ID to its resolution status.
 *   Mutates `hall_episodic_memory` upon success.
+
+## 🧭 SUPERVISOR RULE
+- The host decides whether restoration should `execute_now`, `replan`, or `observe_only`.
+- The kernel remains responsible for the bounded implementation path once execution is approved.
 
 ## 🧩 INTERNAL SKILL CHAIN
 `skill:hall` -> `skill:evolve` -> `skill:trace` -> `skill:distill`

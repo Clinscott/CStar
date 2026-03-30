@@ -1,42 +1,43 @@
-import { 
-    RuntimeAdapter, 
-    RuntimeContext, 
-    WeaveInvocation, 
-    WeaveResult, 
-    VigilanceWeavePayload,
+import {
+    RuntimeAdapter,
+    RuntimeContext,
     RuntimeDispatchPort,
-    RavensCycleWeavePayload,
+    WeaveInvocation,
+    WeaveResult,
     WardenWeavePayload,
 } from '../contracts.ts';
-import chalk from 'chalk';
 import * as hostBridge from './host_bridge.js';
+import { Warden } from '../../../../tools/pennyone/intel/warden.js';
 
 export const deps = {
     resolveRuntimeHostProvider: hostBridge.resolveRuntimeHostProvider,
     extractJsonObject: hostBridge.extractJsonObject,
+    createWarden: (ledgerPath?: string) => new Warden(ledgerPath),
 };
 
-interface VigilanceSupervisorDecision {
+interface WardenSupervisorDecision {
     action: 'execute_now' | 'replan' | 'observe_only';
     reason?: string;
 }
 
-function buildVigilanceSupervisorPrompt(input: {
+function buildWardenSupervisorPrompt(input: {
+    workspaceRoot: string;
     aggressive: boolean;
     spoke?: string;
-    workspaceRoot: string;
+    scanId?: string;
 }): string {
     return [
-        'You are supervising CStar vigilance routing.',
-        'Decide whether this vigilance request should execute now, replan through chant, or observe only.',
-        'Choose execute_now for bounded audit work.',
-        'Choose replan when the audit request needs decomposition or a better mission shape.',
-        'Choose observe_only when the system should report posture without running the sweep.',
+        'You are supervising CStar warden routing.',
+        'Decide whether this warden request should execute now, replan through chant, or observe only.',
+        'Choose execute_now for bounded anomaly and drift evaluation.',
+        'Choose replan when the request needs decomposition, a broader mission, or different targeting.',
+        'Choose observe_only when the system should report posture without mutating the debt ledger.',
         'Return JSON only.',
         JSON.stringify({
+            workspace_root: input.workspaceRoot,
             aggressive: input.aggressive,
             spoke: input.spoke ?? null,
-            workspace_root: input.workspaceRoot,
+            scan_id: input.scanId ?? null,
             response_schema: {
                 action: 'execute_now | replan | observe_only',
                 reason: 'string',
@@ -45,7 +46,7 @@ function buildVigilanceSupervisorPrompt(input: {
     ].join('\n\n');
 }
 
-function normalizeVigilanceDecision(raw: string): VigilanceSupervisorDecision | null {
+function normalizeWardenDecision(raw: string): WardenSupervisorDecision | null {
     try {
         const parsed = deps.extractJsonObject(raw);
         const action = parsed.action === 'execute_now' || parsed.action === 'replan' || parsed.action === 'observe_only'
@@ -63,12 +64,8 @@ function normalizeVigilanceDecision(raw: string): VigilanceSupervisorDecision | 
     }
 }
 
-/**
- * 🔱 VIGILANCE WEAVE
- * Logic: Audit (Ravens) -> Evaluate (Warden) -> Map (Chronicle)
- */
-export class VigilanceWeave implements RuntimeAdapter<VigilanceWeavePayload> {
-    public readonly id = 'weave:vigilance';
+export class WardenWeave implements RuntimeAdapter<WardenWeavePayload> {
+    public readonly id = 'weave:warden';
 
     public constructor(
         private readonly dispatchPort: RuntimeDispatchPort,
@@ -76,8 +73,8 @@ export class VigilanceWeave implements RuntimeAdapter<VigilanceWeavePayload> {
     ) {}
 
     public async execute(
-        invocation: WeaveInvocation<VigilanceWeavePayload>,
-        context: RuntimeContext
+        invocation: WeaveInvocation<WardenWeavePayload>,
+        context: RuntimeContext,
     ): Promise<WeaveResult> {
         const payload = invocation.payload;
         const projectRoot = payload.project_root || context.workspace_root;
@@ -87,32 +84,34 @@ export class VigilanceWeave implements RuntimeAdapter<VigilanceWeavePayload> {
             try {
                 const raw = await this.hostTextInvoker({
                     provider: hostProvider,
-                    projectRoot: projectRoot,
-                    source: 'runtime:vigilance',
-                    systemPrompt: 'Return JSON only. Decide vigilance routing.',
-                    prompt: buildVigilanceSupervisorPrompt({
+                    projectRoot,
+                    source: 'runtime:warden',
+                    systemPrompt: 'Return JSON only. Decide warden routing.',
+                    prompt: buildWardenSupervisorPrompt({
+                        workspaceRoot: projectRoot,
                         aggressive: Boolean(payload.aggressive),
                         spoke: payload.spoke,
-                        workspaceRoot: projectRoot,
+                        scanId: payload.scan_id,
                     }),
                     env: { ...process.env, ...context.env } as NodeJS.ProcessEnv,
                     metadata: {
-                        runtime_weave: 'vigilance',
-                        decision: 'vigilance-supervisor',
+                        runtime_weave: 'warden',
+                        decision: 'warden-supervisor',
                         transport_mode: 'session-required',
                     },
                 });
-                const decision = normalizeVigilanceDecision(raw);
+                const decision = normalizeWardenDecision(raw);
                 if (decision?.action === 'observe_only') {
                     return {
                         weave_id: this.id,
                         status: 'TRANSITIONAL',
-                        output: `[ALFRED]: Vigilance observation only. ${decision.reason ?? 'No audit execution requested.'}`.trim(),
+                        output: `[ALFRED]: Warden observation only. ${decision.reason ?? 'No ledger update requested.'}`.trim(),
                         metadata: {
                             supervisor_decision: decision.action,
                             supervisor_reason: decision.reason,
                             aggressive: Boolean(payload.aggressive),
                             spoke: payload.spoke ?? null,
+                            scan_id: payload.scan_id ?? null,
                         },
                     };
                 }
@@ -120,7 +119,7 @@ export class VigilanceWeave implements RuntimeAdapter<VigilanceWeavePayload> {
                     const chantResult = await this.dispatchPort.dispatch({
                         weave_id: 'weave:chant',
                         payload: {
-                            query: `Replan vigilance sweep${payload.spoke ? ` for spoke ${payload.spoke}` : ''}${payload.aggressive ? ' with aggressive audit' : ''}`,
+                            query: `Replan warden evaluation${payload.spoke ? ` for spoke ${payload.spoke}` : ''}${payload.aggressive ? ' with aggressive anomaly focus' : ''}`,
                             project_root: projectRoot,
                             cwd: context.workspace_root,
                             source: 'runtime',
@@ -138,6 +137,7 @@ export class VigilanceWeave implements RuntimeAdapter<VigilanceWeavePayload> {
                             supervisor_reason: decision.reason,
                             aggressive: Boolean(payload.aggressive),
                             spoke: payload.spoke ?? null,
+                            scan_id: payload.scan_id ?? null,
                         },
                     };
                 }
@@ -146,59 +146,19 @@ export class VigilanceWeave implements RuntimeAdapter<VigilanceWeavePayload> {
             }
         }
 
-        console.log(chalk.cyan(`\n ◤ VIGILANCE WEAVE: DEEP SYSTEM AUDIT ◢ `));
-
-        // 1. Release the Ravens (Ravens:cycle)
-        console.log(chalk.dim('  ↳ Releasing Raven Wardens...'));
-        const ravenResult = await this.dispatchPort.dispatch<RavensCycleWeavePayload>({
-            weave_id: 'weave:ravens-cycle',
-            payload: {
-                project_root: projectRoot,
-                cwd: context.workspace_root,
-                dry_run: false
-            }
-        });
-
-        if (ravenResult.status !== 'SUCCESS') {
-            return ravenResult;
-        }
-
-        // 2. Evaluate anomalies and drift through the bounded Warden primitive
-        console.log(chalk.dim(`  ↳ Running Warden evaluation${payload.aggressive ? ' under aggressive posture' : ''}...`));
-        const wardenResult = await this.dispatchPort.dispatch<WardenWeavePayload>({
-            weave_id: 'weave:warden',
-            payload: {
-                project_root: projectRoot,
-                cwd: context.workspace_root,
-                aggressive: Boolean(payload.aggressive),
-                spoke: payload.spoke,
-                source: 'runtime',
-            }
-        });
-
-        if (wardenResult.status === 'FAILURE') {
-            return {
-                weave_id: this.id,
-                status: 'FAILURE',
-                output: '',
-                error: wardenResult.error ?? 'Warden evaluation failed.',
-                metadata: {
-                    delegated_weave_id: 'weave:warden',
-                    ravens: ravenResult.metadata,
-                    warden: wardenResult.metadata,
-                },
-            };
-        }
+        const warden = deps.createWarden();
+        await warden.evaluateProjection(projectRoot, payload.scan_id);
 
         return {
             weave_id: this.id,
             status: 'SUCCESS',
-            output: `[ALFRED]: Vigilance sweep complete. System integrity verified. ${ravenResult.output} ${wardenResult.output}`.trim(),
+            output: `[ALFRED]: Warden evaluation complete. Drift and anomaly ledger refreshed${payload.aggressive ? ' under aggressive posture' : ''}.`,
             metadata: {
-                delegated_weave_id: 'weave:warden',
-                ravens: ravenResult.metadata,
-                warden: wardenResult.metadata,
-            }
+                aggressive: Boolean(payload.aggressive),
+                spoke: payload.spoke ?? null,
+                scan_id: payload.scan_id ?? null,
+                ledger_refreshed: true,
+            },
         };
     }
 }

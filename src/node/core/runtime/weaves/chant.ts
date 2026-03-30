@@ -5,6 +5,7 @@ import {
     getCapabilityHostSupport,
     resolveHostProvider,
 } from '../../../../core/host_session.js';
+import * as hostBridge from './host_bridge.js';
 import type {
     RuntimeAdapter,
     RuntimeDispatchPort,
@@ -21,6 +22,7 @@ export const deps = {
     registry: registry,
     parser: Object.assign({}, parser),
     planner: Object.assign({}, planner),
+    hostTextInvoker: hostBridge.defaultHostTextInvoker,
 };
 
 function shouldPreferPlanningLoop(lowerTokens: string[], existingSession: unknown): boolean {
@@ -38,6 +40,83 @@ function shouldPreferPlanningLoop(lowerTokens: string[], existingSession: unknow
         'roadmap',
     ]);
     return lowerTokens.some((token) => planningHints.has(token));
+}
+
+function parsePlanningPreference(raw: string): boolean | null {
+    try {
+        const parsed = hostBridge.extractJsonObject(raw);
+        return parsed.prefer_planning === true;
+    } catch {
+        return null;
+    }
+}
+
+function buildPlanningPreferencePrompt(input: {
+    normalizedIntent: string;
+    lowerTokens: string[];
+    heuristicPreferPlanning: boolean;
+    activeHostProvider: string;
+}): string {
+    return [
+        'You are supervising CStar chant routing.',
+        'Decide only whether this request should enter the collaborative planning loop before any generic intent-category fallback runs.',
+        'Prefer planning for architecture, ambiguity, decomposition, or multi-step work.',
+        'Prefer direct routing only when the request is plainly actionable without decomposition.',
+        'Return JSON only.',
+        JSON.stringify({
+            provider: input.activeHostProvider,
+            normalized_intent: input.normalizedIntent,
+            tokens: input.lowerTokens,
+            heuristic_prefer_planning: input.heuristicPreferPlanning,
+            response_schema: {
+                prefer_planning: 'boolean',
+                reason: 'string',
+            },
+        }, null, 2),
+    ].join('\n\n');
+}
+
+async function resolvePlanningPreference(input: {
+    payload: ChantWeavePayload;
+    context: RuntimeContext;
+    normalizedIntent: string;
+    lowerTokens: string[];
+    existingSession: unknown;
+    activeHostProvider: ReturnType<typeof resolveHostProvider>;
+}): Promise<boolean> {
+    if (input.existingSession) {
+        return true;
+    }
+
+    const heuristicPreferPlanning = shouldPreferPlanningLoop(input.lowerTokens, input.existingSession);
+    if (!input.activeHostProvider) {
+        return heuristicPreferPlanning;
+    }
+
+    try {
+        const raw = await deps.hostTextInvoker({
+            prompt: buildPlanningPreferencePrompt({
+                normalizedIntent: input.normalizedIntent,
+                lowerTokens: input.lowerTokens,
+                heuristicPreferPlanning,
+                activeHostProvider: input.activeHostProvider,
+            }),
+            systemPrompt: 'Return JSON only. Decide whether chant should enter the planning loop.',
+            provider: input.activeHostProvider,
+            projectRoot: input.payload.project_root,
+            source: 'chant:planning-preference',
+            env: { ...process.env, ...input.context.env } as NodeJS.ProcessEnv,
+            metadata: {
+                runtime_weave: 'chant',
+                decision: 'planning-preference',
+                heuristic_prefer_planning: heuristicPreferPlanning,
+                transport_mode: 'session-required',
+            },
+        });
+        return parsePlanningPreference(raw) ?? heuristicPreferPlanning;
+    } catch {
+        return heuristicPreferPlanning;
+    }
 }
 
 export class ChantWeave implements RuntimeAdapter<ChantWeavePayload> {
@@ -60,13 +139,20 @@ export class ChantWeave implements RuntimeAdapter<ChantWeavePayload> {
         const registryManifest = deps.parser.loadRegistryManifest(payload.project_root);
         const activeHostProvider = resolveHostProvider(context.env);
         const existingSession = context.session_id ? deps.database.getHallPlanningSession(context.session_id) : null;
+        const planningPreferred = await resolvePlanningPreference({
+            payload,
+            context,
+            normalizedIntent,
+            lowerTokens,
+            existingSession,
+            activeHostProvider,
+        });
         
         // Fast-Track bypasses planning if it's a direct command or we aren't in a planning loop
         const isPlanningLoop = existingSession !== null && existingSession.status !== 'COMPLETED' && existingSession.status !== 'FAILED';
         const builtIn = isPlanningLoop ? null : deps.parser.resolveBuiltInWeave(lowerTokens, payload, normalizedIntent);
         const registryResolution = builtIn ? null : deps.parser.resolveRegistryInvocation(tokens, payload, registryManifest, activeHostProvider);
         const skillResolution = (builtIn || registryResolution) ? null : deps.parser.resolveSkillInvocation(tokens, payload, skills);
-        const planningPreferred = shouldPreferPlanningLoop(lowerTokens, existingSession);
         // Intent Category resolution is now a fallback after registry-backed direct resolution.
         const intentResolution = (builtIn || registryResolution || skillResolution || planningPreferred)
             ? null

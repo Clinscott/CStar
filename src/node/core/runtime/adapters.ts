@@ -2,13 +2,16 @@ import fs from 'node:fs';
 import { join } from 'node:path';
 import { execa } from 'execa';
 
+import { buildResultPlanningSummary } from '../operator_resume.js';
 import { executeHostGovernorResume } from '../operator_resume.js';
 import { ANS } from  '../ans.js';
+import type { HostProvider } from '../../../core/host_session.js';
 import { resolveHostProvider } from  '../../../core/host_session.js';
 import { RavensCycleWeave } from  './weaves/ravens_cycle.js';
 import { RestorationWeave } from  './weaves/restoration.js';
 import { EstateExpansionWeave } from  './weaves/expansion.js';
 import { VigilanceWeave } from  './weaves/vigilance.js';
+import { defaultHostTextInvoker, extractJsonObject, type HostTextInvoker } from './weaves/host_bridge.js';
 import { discoverLegacyCommands, resolvePythonPath } from  './adapters/legacy_commands.js';
 import {
     loadRavensSweepTargets,
@@ -16,6 +19,7 @@ import {
 } from './adapters/ravens_utils.ts';
 import {
     DynamicCommandPayload,
+    RavensAction,
     RavensWeavePayload,
     RuntimeAdapter,
     RuntimeDispatchPort,
@@ -30,10 +34,193 @@ export { RestorationWeave } from  './weaves/restoration.js';
 export { EstateExpansionWeave } from  './weaves/expansion.js';
 export { VigilanceWeave } from  './weaves/vigilance.js';
 
+export const runtimeAdapterDeps = {
+    resolveHostProvider,
+    extractJsonObject,
+};
+
+interface StartSupervisorDecision {
+    action: 'resume_governor' | 'wake_only';
+    reason?: string;
+}
+
+interface RavensSupervisorDecision {
+    mode: 'execute_now' | 'observe_only';
+    action?: RavensAction;
+    spoke?: string;
+    reason?: string;
+}
+
+function buildStartSupervisorPrompt(input: {
+    task: string;
+    workspaceRoot: string;
+    planningSummary?: string;
+    hostProvider: HostProvider;
+}): string {
+    return [
+        'You are supervising CStar start routing.',
+        'Decide whether the start request should resume the host governor or wake the kernel only.',
+        'Choose resume_governor when the operator likely wants host-governed continuation, planning, or pending Hall work.',
+        'Choose wake_only when the request is a plain wake/bootstrap with no need to resume host governance.',
+        'Return JSON only.',
+        JSON.stringify({
+            provider: input.hostProvider,
+            task: input.task,
+            workspace_root: input.workspaceRoot,
+            planning_summary: input.planningSummary ?? null,
+            response_schema: {
+                action: 'resume_governor | wake_only',
+                reason: 'string',
+            },
+        }, null, 2),
+    ].join('\n\n');
+}
+
+function parseStartSupervisorDecision(raw: string): StartSupervisorDecision | null {
+    try {
+        const parsed = extractJsonObject(raw);
+        const action = parsed.action === 'resume_governor' || parsed.action === 'wake_only'
+            ? parsed.action
+            : null;
+        if (!action) {
+            return null;
+        }
+        return {
+            action,
+            reason: typeof parsed.reason === 'string' ? parsed.reason.trim() : undefined,
+        };
+    } catch {
+        return null;
+    }
+}
+
+function buildRavensSupervisorPrompt(input: {
+    requestedAction: RavensAction;
+    spoke?: string;
+    shadowForge: boolean;
+    workspaceRoot: string;
+}): string {
+    return [
+        'You are supervising CStar ravens routing.',
+        'Normalize the public ravens request before bounded kernel execution.',
+        'Choose execute_now when the sweep or cycle should run now.',
+        'Choose observe_only when the system should report posture without running the maintenance path.',
+        'You may keep or normalize the requested action to one of: start, sweep, cycle, status, stop.',
+        'Return JSON only.',
+        JSON.stringify({
+            requested_action: input.requestedAction,
+            spoke: input.spoke ?? null,
+            shadow_forge: input.shadowForge,
+            workspace_root: input.workspaceRoot,
+            response_schema: {
+                mode: 'execute_now | observe_only',
+                action: 'start | sweep | cycle | status | stop',
+                spoke: 'string | null',
+                reason: 'string',
+            },
+        }, null, 2),
+    ].join('\n\n');
+}
+
+function parseRavensSupervisorDecision(raw: string): RavensSupervisorDecision | null {
+    try {
+        const parsed = runtimeAdapterDeps.extractJsonObject(raw);
+        const mode = parsed.mode === 'execute_now' || parsed.mode === 'observe_only'
+            ? parsed.mode
+            : null;
+        const action = parsed.action === 'start'
+            || parsed.action === 'sweep'
+            || parsed.action === 'cycle'
+            || parsed.action === 'status'
+            || parsed.action === 'stop'
+            ? parsed.action
+            : undefined;
+        const spoke = typeof parsed.spoke === 'string' && parsed.spoke.trim()
+            ? parsed.spoke.trim()
+            : undefined;
+        if (!mode) {
+            return null;
+        }
+        return {
+            mode,
+            action,
+            spoke,
+            reason: typeof parsed.reason === 'string' ? parsed.reason.trim() : undefined,
+        };
+    } catch {
+        return null;
+    }
+}
+
 export class StartAdapter implements RuntimeAdapter<StartWeavePayload> {
     public readonly id = 'weave:start';
 
-    public constructor(private readonly dispatchPort?: RuntimeDispatchPort) {}
+    public constructor(
+        private readonly dispatchPort?: RuntimeDispatchPort,
+        private readonly hostTextInvoker: HostTextInvoker = defaultHostTextInvoker,
+    ) {}
+
+    private async resolveStartMode(
+        payload: StartWeavePayload,
+        context: RuntimeContext,
+        hostProvider: HostProvider | null,
+    ): Promise<{
+        action: 'resume_governor' | 'wake_only';
+        reason?: string;
+        source: 'explicit-loki' | 'host-supervisor' | 'host-provider-default';
+    }> {
+        if (payload.loki) {
+            return {
+                action: 'resume_governor',
+                source: 'explicit-loki',
+                reason: 'Explicit Loki mode requests host-governor resume.',
+            };
+        }
+
+        if (!hostProvider) {
+            return {
+                action: 'wake_only',
+                source: 'host-provider-default',
+            };
+        }
+
+        const planningSummary = buildResultPlanningSummary(context.workspace_root);
+        try {
+            const raw = await this.hostTextInvoker({
+                prompt: buildStartSupervisorPrompt({
+                    task: payload.task?.trim() ?? '',
+                    workspaceRoot: context.workspace_root,
+                    planningSummary,
+                    hostProvider,
+                }),
+                systemPrompt: 'Return JSON only. Decide whether start should resume host governor or wake only.',
+                provider: hostProvider,
+                projectRoot: context.workspace_root,
+                source: 'start:supervisor',
+                env: { ...process.env, ...context.env } as NodeJS.ProcessEnv,
+                metadata: {
+                    runtime_weave: 'start',
+                    decision: 'start-supervisor',
+                    planning_summary: planningSummary ?? null,
+                    transport_mode: 'session-required',
+                },
+            });
+            const decision = parseStartSupervisorDecision(raw);
+            if (decision) {
+                return {
+                    ...decision,
+                    source: 'host-supervisor',
+                };
+            }
+        } catch {
+            // Fall through to the established host-provider default.
+        }
+
+        return {
+            action: 'resume_governor',
+            source: 'host-provider-default',
+        };
+    }
 
     public async execute(
         invocation: WeaveInvocation<StartWeavePayload>,
@@ -51,7 +238,9 @@ export class StartAdapter implements RuntimeAdapter<StartWeavePayload> {
         }
 
         if (!payload.target) {
-            if (payload.loki || hostProvider) {
+            const startMode = await this.resolveStartMode(payload, context, hostProvider);
+
+            if (startMode.action === 'resume_governor') {
                 if (!this.dispatchPort) {
                     return {
                         weave_id: this.id,
@@ -98,7 +287,9 @@ export class StartAdapter implements RuntimeAdapter<StartWeavePayload> {
                         adapter: 'runtime:start-resume',
                         delegated_weave_id: 'weave:host-governor',
                         resume_provider: resumeResult.provider,
-                        resume_mode: payload.loki ? 'explicit-loki' : 'host-session',
+                        resume_mode: startMode.source === 'explicit-loki' ? 'explicit-loki' : 'host-session',
+                        supervisor_decision_source: startMode.source,
+                        supervisor_reason: startMode.reason,
                         resume_requested: true,
                     },
                 };
@@ -109,7 +300,12 @@ export class StartAdapter implements RuntimeAdapter<StartWeavePayload> {
                 weave_id: this.id,
                 status: 'TRANSITIONAL',
                 output: 'The system is awake and synchronized. The Corvus kernel is active.',
-                metadata: { adapter: 'runtime:ans-kernel' },
+                metadata: {
+                    adapter: 'runtime:ans-kernel',
+                    supervisor_decision_source: startMode.source,
+                    supervisor_reason: startMode.reason,
+                    resume_requested: false,
+                },
             };
         }
 
@@ -132,6 +328,7 @@ export class RavensAdapter implements RuntimeAdapter<RavensWeavePayload> {
     public constructor(
         private readonly cycleWeave: RuntimeAdapter<{ project_root: string; cwd: string }> = new RavensCycleWeave(),
         private readonly repoLoader: (projectRoot: string, requestedSpoke?: string) => RavensSweepTarget[] = loadRavensSweepTargets,
+        private readonly hostTextInvoker: HostTextInvoker = defaultHostTextInvoker,
     ) {}
 
     private async executeCycleForTarget(
@@ -164,7 +361,54 @@ export class RavensAdapter implements RuntimeAdapter<RavensWeavePayload> {
     ): Promise<WeaveResult> {
         const projectRoot = context.workspace_root;
         const wardenDir = join(projectRoot, 'src', 'sentinel', 'wardens');
-        const payload = invocation.payload;
+        const payload = { ...invocation.payload };
+        const hostProvider = runtimeAdapterDeps.resolveHostProvider({ ...process.env, ...context.env } as NodeJS.ProcessEnv);
+
+        if (hostProvider && payload.action !== 'status' && payload.action !== 'stop') {
+            try {
+                const raw = await this.hostTextInvoker({
+                    prompt: buildRavensSupervisorPrompt({
+                        requestedAction: payload.action,
+                        spoke: payload.spoke,
+                        shadowForge: Boolean(payload.shadow_forge),
+                        workspaceRoot: projectRoot,
+                    }),
+                    systemPrompt: 'Return JSON only. Normalize ravens routing before bounded kernel execution.',
+                    provider: hostProvider,
+                    projectRoot,
+                    source: 'ravens:supervisor',
+                    env: { ...process.env, ...context.env } as NodeJS.ProcessEnv,
+                    metadata: {
+                        runtime_weave: 'ravens',
+                        decision: 'ravens-supervisor',
+                        transport_mode: 'session-required',
+                    },
+                });
+                const decision = parseRavensSupervisorDecision(raw);
+                if (decision?.mode === 'observe_only') {
+                    return {
+                        weave_id: this.id,
+                        status: 'TRANSITIONAL',
+                        output: `[ALFRED]: Ravens observation only. ${decision.reason ?? 'No maintenance sweep requested.'}`.trim(),
+                        metadata: {
+                            adapter: 'runtime:ravens-host-observe',
+                            supervisor_mode: decision.mode,
+                            supervisor_reason: decision.reason,
+                            requested_action: payload.action,
+                            normalized_action: decision.action ?? payload.action,
+                            spoke: decision.spoke ?? payload.spoke ?? null,
+                        },
+                    };
+                }
+                if (decision?.mode === 'execute_now') {
+                    payload.action = decision.action ?? payload.action;
+                    payload.spoke = decision.spoke ?? payload.spoke;
+                }
+            } catch {
+                // Fall through to bounded local execution.
+            }
+        }
+
         const sweepTargets = this.repoLoader(projectRoot, payload.spoke);
 
         if (payload.spoke && sweepTargets.length === 0) {
@@ -192,6 +436,7 @@ export class RavensAdapter implements RuntimeAdapter<RavensWeavePayload> {
                     ...(cycleResult.metadata ?? {}),
                     adapter: 'runtime:ravens-cycle-wrapper',
                     delegated_weave_id: 'weave:ravens-cycle',
+                    supervisor_mode: hostProvider ? 'execute_now' : undefined,
                     target_slug: cycleTarget.slug,
                     target_domain: cycleTarget.domain,
                     target_repo_root: cycleTarget.repo_root,
@@ -268,6 +513,7 @@ export class RavensAdapter implements RuntimeAdapter<RavensWeavePayload> {
                 estate_targets: sweepTargets,
                 target_repos: sweepTargets.map((target) => target.repo_root),
                 shadow_forge: payload.shadow_forge ?? false,
+                supervisor_mode: hostProvider ? 'execute_now' : undefined,
                 isolated_failures: sweepResults.filter((result) => result.status === 'FAILURE'),
             },
         };

@@ -4,8 +4,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { RavensAdapter } from  '../../src/node/core/runtime/adapters.js';
+import { RavensAdapter, runtimeAdapterDeps } from  '../../src/node/core/runtime/adapters.js';
 import type { RuntimeContext, WeaveInvocation } from  '../../src/node/core/runtime/contracts.js';
+import { mock } from 'node:test';
 
 function createContext(workspaceRoot: string): RuntimeContext {
     return {
@@ -147,5 +148,80 @@ describe('Ravens lifecycle adapter (kernel cleanup)', () => {
         assert.equal(result.status, 'SUCCESS');
         assert.equal(result.metadata?.adapter, 'runtime:ravens-cycle-wrapper');
         assert.equal((result.metadata?.cycle_result as any)?.mission_id, 'ravens-cycle:test');
+    });
+
+    it('can return observe-only when the host supervisor declines maintenance execution', async () => {
+        const adapter = new RavensAdapter(
+            undefined as any,
+            () => [buildTarget(tmpRoot)],
+            async () => JSON.stringify({
+                mode: 'observe_only',
+                reason: 'Stay observational until the operator approves the sweep.',
+            }),
+        );
+
+        mock.method(runtimeAdapterDeps, 'resolveHostProvider', () => 'codex' as any);
+        mock.method(runtimeAdapterDeps, 'extractJsonObject', (text: string) => JSON.parse(text));
+
+        const result = await adapter.execute(
+            {
+                weave_id: 'weave:ravens',
+                payload: { action: 'start' },
+            },
+            createContext(tmpRoot),
+        );
+
+        assert.equal(result.status, 'TRANSITIONAL');
+        assert.equal(result.metadata?.adapter, 'runtime:ravens-host-observe');
+        assert.equal(result.metadata?.supervisor_mode, 'observe_only');
+        mock.reset();
+    });
+
+    it('can normalize public maintenance intent while still delegating to bounded cycle execution', async () => {
+        let delegated = 0;
+        const adapter = new RavensAdapter(
+            {
+                id: 'weave:ravens-cycle',
+                execute: async () => {
+                    delegated += 1;
+                    return {
+                        weave_id: 'weave:ravens-cycle',
+                        status: 'SUCCESS',
+                        output: 'Ravens cycle completed.',
+                        metadata: {
+                            cycle_result: {
+                                status: 'SUCCESS',
+                                summary: 'Ravens cycle completed.',
+                                mission_id: `ravens-cycle:${delegated}`,
+                                stages: [],
+                            },
+                        },
+                    };
+                },
+            } as any,
+            () => [buildTarget(tmpRoot)],
+            async () => JSON.stringify({
+                mode: 'execute_now',
+                action: 'cycle',
+                reason: 'Run a single bounded cycle instead of a broader sweep.',
+            }),
+        );
+
+        mock.method(runtimeAdapterDeps, 'resolveHostProvider', () => 'codex' as any);
+        mock.method(runtimeAdapterDeps, 'extractJsonObject', (text: string) => JSON.parse(text));
+
+        const result = await adapter.execute(
+            {
+                weave_id: 'weave:ravens',
+                payload: { action: 'start' },
+            },
+            createContext(tmpRoot),
+        );
+
+        assert.equal(delegated, 1);
+        assert.equal(result.status, 'SUCCESS');
+        assert.equal(result.metadata?.adapter, 'runtime:ravens-cycle-wrapper');
+        assert.equal(result.metadata?.supervisor_mode, 'execute_now');
+        mock.reset();
     });
 });

@@ -131,17 +131,21 @@ describe('distribution generator', () => {
         const geminiContext = build.files[1]?.content ?? '';
         assert.match(geminiContext, /node bin\/cstar\.js <command>/);
         assert.match(geminiContext, /Exported Gemini Capabilities \(3\)/);
+        assert.match(geminiContext, /Host-native Gemini CLI extension/);
+        assert.match(geminiContext, /host session when the registry marks a capability host-executable/);
+        assert.match(geminiContext, /`hall` \(PRIME, native-session\)/);
 
         const codexPlugin = JSON.parse(build.files[2]?.content ?? '{}') as {
             name?: string;
             skills?: string;
             mcpServers?: string;
-            interface?: { displayName?: string; capabilities?: string[] };
+            interface?: { displayName?: string; capabilities?: string[]; shortDescription?: string };
         };
         assert.equal(codexPlugin.name, 'corvus-star');
         assert.equal(codexPlugin.skills, './skills/');
         assert.equal(codexPlugin.mcpServers, './.mcp.json');
         assert.deepEqual(codexPlugin.interface?.capabilities, ['Interactive', 'Write']);
+        assert.equal(codexPlugin.interface?.shortDescription, 'Host-native Corvus integration for Codex.');
 
         const codexMcp = JSON.parse(build.files[3]?.content ?? '{}') as {
             mcpServers?: Record<string, { cwd?: string }>;
@@ -155,8 +159,10 @@ describe('distribution generator', () => {
 
         const pluginReadme = build.files[5]?.content ?? '';
         assert.match(pluginReadme, /repo-local plugin lives under `plugins\/corvus-star\/`/);
+        assert.match(pluginReadme, /same registry-backed host\/kernel split as Gemini/);
 
         const distReadme = build.files[7]?.content ?? '';
         assert.match(distReadme, /npm run build:distributions/);
+        assert.match(distReadme, /Sync local `~\/\.gemini` and `~\/\.codex` installs/);
     });
 });

@@ -91,4 +91,47 @@ describe('ChantWeave Unit Tests', () => {
         assert.equal(result.output, 'Planned successfully');
         mock.reset();
     });
+
+    it('lets the host force the planning loop before intent-category fallback', async () => {
+        const weave = new ChantWeave({} as any);
+
+        mock.method(deps.parser, 'normalizeIntent', (q: string) => q);
+        mock.method(deps.parser, 'tokenize', () => ['repair', 'the', 'runtime']);
+        mock.method(deps.parser, 'loadSkillTriggers', () => new Set());
+        mock.method(deps.parser, 'loadRegistryManifest', () => ({ entries: {} }));
+        mock.method(deps.parser, 'resolveBuiltInWeave', () => null);
+        mock.method(deps.parser, 'resolveRegistryInvocation', () => null);
+        mock.method(deps.parser, 'resolveSkillInvocation', () => null);
+        const intentFallback = mock.fn(() => ({
+            kind: 'intent_category',
+            trigger: 'restoration',
+            summary: 'Fallback restoration',
+            invocation: { weave_id: 'weave:restoration', payload: {} },
+        }));
+        mock.method(deps.parser, 'resolveByIntentCategory', intentFallback);
+        mock.method(deps.database, 'getHallPlanningSession', () => null);
+        mock.method(deps, 'hostTextInvoker', async () => JSON.stringify({
+            prefer_planning: true,
+            reason: 'Needs decomposition',
+        }));
+        mock.method(deps.planner, 'runPlanningLoop', async (): Promise<WeaveResult> => ({
+            weave_id: 'weave:chant',
+            status: 'SUCCESS',
+            output: 'Planned by host preference',
+        }));
+
+        const result = await weave.execute({
+            weave_id: 'weave:chant',
+            payload: { query: 'repair the runtime', cwd: '.', project_root: '.' },
+        }, {
+            workspace_root: '.',
+            env: { CODEX_SHELL: '1', CODEX_THREAD_ID: 'thread-1' },
+            session_id: undefined,
+        } as any);
+
+        assert.equal(result.status, 'SUCCESS');
+        assert.equal(result.output, 'Planned by host preference');
+        assert.equal(intentFallback.mock.callCount(), 0);
+        mock.reset();
+    });
 });

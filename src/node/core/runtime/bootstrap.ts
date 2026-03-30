@@ -21,6 +21,7 @@ import { DistillWeave } from  './weaves/distill.js';
 import { OrchestrateWeave } from  './weaves/orchestrate.js';
 import { HostGovernorWeave } from  './weaves/host_governor.js';
 import { TemporalLearningWeave } from  './weaves/temporal_learning.js';
+import { WardenWeave } from './weaves/warden.js';
 import { UniversalAdapter } from './universal_adapter.js';
 import { registry } from '../../../tools/pennyone/pathRegistry.js';
 import fs from 'node:fs';
@@ -59,6 +60,7 @@ export function bootstrapRuntime(dispatcher: RuntimeDispatcher = RuntimeDispatch
         new TemporalLearningWeave(),
         new RestorationWeave(dispatcher),
         new EstateExpansionWeave(dispatcher),
+        new WardenWeave(dispatcher),
         new VigilanceWeave(dispatcher),
     ];
 

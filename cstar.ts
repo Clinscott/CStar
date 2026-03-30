@@ -390,7 +390,17 @@ const program = new Command();
             if (query) {
                 const projectRoot = registry.getRoot();
                 const dispatchPort = RuntimeDispatcher.getInstance();
-                const result = await dispatchPort.dispatch(buildPennyOneInvocation({ search: query }, projectRoot));
+                const result = hostSessionActive
+                    ? await dispatchPort.dispatch({
+                        id: `CLI-HALL-${Date.now()}`,
+                        skill_id: 'hall',
+                        target_path: projectRoot,
+                        intent: query,
+                        params: { query, project_root: projectRoot, cwd: process.cwd() },
+                        status: 'PENDING',
+                        priority: 1,
+                    })
+                    : await dispatchPort.dispatch(buildPennyOneInvocation({ search: query }, projectRoot));
                 renderStandardCommandResult(result, projectRoot);
                 return;
             }

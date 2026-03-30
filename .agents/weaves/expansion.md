@@ -11,7 +11,8 @@ risk: safe
 Use when mounting a new repository (Spoke) into the Corvus Star Estate. This weave automates the linking, initial structural scan, and architectural mapping.
 
 ## 🛠️ EXECUTION MODE
-**Kernel-Backed**: Must be dispatched via the Node.js `RuntimeDispatcher` using adapter `weave:expansion`.
+**Public Contract**: Host-native onboarding supervision.
+**Bounded Executor**: `weave:expansion` remains the kernel executor for import, scan, and topology mechanics.
 
 ## 📥 SIGNATURE (API)
 **Invocation**: `weave:expansion`
@@ -29,6 +30,10 @@ interface EstateExpansionWeavePayload {
 *   New entry in `hall_mounted_spokes`.
 *   Complete FTS5 index in `hall_files` for the new spoke.
 *   Updated `matrix-graph.json` reflecting the new node.
+
+## 🧭 SUPERVISOR RULE
+- The host decides whether expansion should `execute_now`, `replan`, or `observe_only`.
+- The kernel remains responsible for the bounded import, scan, and topology path once execution is approved.
 
 ## 🧩 INTERNAL SKILL CHAIN
 `skill:spoke` -> `skill:scan` -> `skill:agentic-ingest` -> `skill:matrix`

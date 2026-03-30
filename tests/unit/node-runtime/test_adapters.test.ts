@@ -2,6 +2,7 @@ import { describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import { StartAdapter, DynamicCommandAdapter } from  '../../../src/node/core/runtime/adapters.js';
 import { RuntimeContext, WeaveInvocation } from  '../../../src/node/core/runtime/contracts.js';
+import { ANS } from '../../../src/node/core/ans.js';
 
 describe('Runtime Adapters', () => {
     describe('StartAdapter', () => {
@@ -36,23 +37,32 @@ describe('Runtime Adapters', () => {
                     metadata: {}
                 }))
             };
+            const wakeMock = mock.method(ANS, 'wake', async () => undefined);
             
-            // @ts-ignore
-            const adapter = new StartAdapter(mockDispatchPort);
-            const invocation: WeaveInvocation<any> = {
-                weave_id: 'weave:start',
-                payload: { loki: true }
-            };
-            const context: RuntimeContext = {
-                workspace_root: '.',
-                env: {},
-                // ... rest of context
-            } as any;
+            try {
+                // @ts-ignore
+                const adapter = new StartAdapter(mockDispatchPort, async () => JSON.stringify({
+                    action: 'resume_governor',
+                    reason: 'Explicit resume path.',
+                }));
+                const invocation: WeaveInvocation<any> = {
+                    weave_id: 'weave:start',
+                    payload: { loki: true }
+                };
+                const context: RuntimeContext = {
+                    workspace_root: '.',
+                    env: {},
+                    // ... rest of context
+                } as any;
 
-            const result = await adapter.execute(invocation, context);
-            assert.strictEqual(mockDispatchPort.dispatch.mock.callCount(), 1);
-            assert.strictEqual(result.status, 'SUCCESS');
-            assert.ok(result.output?.includes('governor-output'));
+                const result = await adapter.execute(invocation, context);
+                assert.strictEqual(wakeMock.mock.callCount(), 1);
+                assert.strictEqual(mockDispatchPort.dispatch.mock.callCount(), 1);
+                assert.strictEqual(result.status, 'SUCCESS');
+                assert.ok(result.output?.includes('governor-output'));
+            } finally {
+                wakeMock.mock.restore();
+            }
         });
     });
 

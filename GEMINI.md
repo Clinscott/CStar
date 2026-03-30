@@ -1,6 +1,6 @@
 # Corvus Star
 
-> Kernel-first Gemini CLI extension for the authoritative CStar runtime.
+> Host-native Gemini CLI extension for the authoritative CStar runtime.
 
 ## Identity
 - Package: `corvusstar` v1.0.0
@@ -21,21 +21,23 @@
 ## Host Behavior
 - Read `AGENTS.qmd` at session start before making structural claims.
 - Use `./cstar hall "<query>"` for estate discovery before ad hoc search.
-- Keep runtime logic in the kernel; do not fork Gemini-specific capability definitions.
+- Keep reasoning, planning, critique, and recovery in the host session when the registry marks a capability host-executable.
+- Keep deterministic local primitives in the kernel; do not fork Gemini-specific capability definitions.
+- Treat `native-session` and `exec-bridge` capabilities as host-routed, and treat `supported` capabilities as kernel-backed launch surfaces.
 
-## Exported Gemini Capabilities (67)
-- `_archive` (SKILL)
-- `agentic-ingest` (PRIME)
-- `annex` (SKILL)
-- `autobot` (SKILL)
-- `bifrost` (SKILL)
-- `bookmark-weaver` (SKILL)
-- `cachebro` (SKILL)
-- `calculus` (PRIME)
-- `chant` (WEAVE)
-- `chronicle` (SKILL)
-- `consciousness` (SKILL)
-- `contract_hardening` (WEAVE)
+## Exported Gemini Capabilities (68)
+- `_archive` (SKILL, native-session)
+- `agentic-ingest` (PRIME, native-session)
+- `annex` (SKILL, native-session)
+- `autobot` (SKILL, supported)
+- `bifrost` (SKILL, native-session)
+- `bookmark-weaver` (SKILL, native-session)
+- `cachebro` (SKILL, native-session)
+- `calculus` (PRIME, native-session)
+- `chant` (WEAVE, native-session)
+- `chronicle` (SKILL, native-session)
+- `consciousness` (SKILL, native-session)
+- `contract_hardening` (WEAVE, native-session)
 
 ## Notes
 - This extension is generated from the registry-backed distribution builder.

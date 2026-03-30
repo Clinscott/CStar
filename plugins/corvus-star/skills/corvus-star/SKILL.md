@@ -14,17 +14,18 @@ description: "Use when operating inside the Corvus Star estate so Codex follows 
 - Prefer `./cstar hall "<query>"` before broad local scans.
 - Use `./cstar <command>` or `node bin/cstar.js <command>` as canonical launchers.
 - Keep host-specific packaging separate from kernel logic.
+- Treat `native-session` and `exec-bridge` capabilities as host-routed work, and `supported` capabilities as kernel-backed launch surfaces.
 
-## Exported Codex Capabilities (67)
-- `_archive` (SKILL)
-- `agentic-ingest` (PRIME)
-- `annex` (SKILL)
-- `autobot` (SKILL)
-- `bifrost` (SKILL)
-- `bookmark-weaver` (SKILL)
-- `cachebro` (SKILL)
-- `calculus` (PRIME)
-- `chant` (WEAVE)
-- `chronicle` (SKILL)
-- `consciousness` (SKILL)
-- `contract_hardening` (WEAVE)
+## Exported Codex Capabilities (68)
+- `_archive` (SKILL, exec-bridge)
+- `agentic-ingest` (PRIME, exec-bridge)
+- `annex` (SKILL, exec-bridge)
+- `autobot` (SKILL, supported)
+- `bifrost` (SKILL, exec-bridge)
+- `bookmark-weaver` (SKILL, exec-bridge)
+- `cachebro` (SKILL, exec-bridge)
+- `calculus` (PRIME, exec-bridge)
+- `chant` (WEAVE, exec-bridge)
+- `chronicle` (SKILL, exec-bridge)
+- `consciousness` (SKILL, exec-bridge)
+- `contract_hardening` (WEAVE, exec-bridge)

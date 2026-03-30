@@ -137,7 +137,10 @@ describe('Start runtime adapter (CS-P4-01)', () => {
     it('uses start as a wake-and-resume trigger when a host session is active', async () => {
         const wakeMock = mock.method(ANS, 'wake', async () => undefined);
         const capture = new CaptureDispatchPort();
-        const adapter = new StartAdapter(capture);
+        const adapter = new StartAdapter(capture, async () => JSON.stringify({
+            action: 'resume_governor',
+            reason: 'Pending host-governed mission detected.',
+        }));
 
         try {
             const result = await adapter.execute(
@@ -158,6 +161,40 @@ describe('Start runtime adapter (CS-P4-01)', () => {
             assert.equal(result.metadata?.resume_provider, 'codex');
             assert.equal(result.metadata?.resume_mode, 'host-session');
             assert.equal(result.metadata?.adapter, 'runtime:start-resume');
+            assert.equal(result.metadata?.supervisor_decision_source, 'host-supervisor');
+            assert.equal(result.metadata?.supervisor_reason, 'Pending host-governed mission detected.');
+        } finally {
+            wakeMock.mock.restore();
+        }
+    });
+
+    it('can wake the kernel without resuming governor when the host supervisor says wake-only', async () => {
+        const wakeMock = mock.method(ANS, 'wake', async () => undefined);
+        const capture = new CaptureDispatchPort();
+        const adapter = new StartAdapter(capture, async () => JSON.stringify({
+            action: 'wake_only',
+            reason: 'No pending host-governed work.',
+        }));
+
+        try {
+            const result = await adapter.execute(
+                {
+                    weave_id: 'weave:start',
+                    payload: {
+                        task: '',
+                        ledger: 'C:\\temp\\ledger',
+                    },
+                },
+                createContext('C:\\Users\\Craig\\Corvus\\CorvusStar', { CODEX_SHELL: '1' }),
+            );
+
+            assert.equal(wakeMock.mock.callCount(), 1);
+            assert.equal(result.status, 'TRANSITIONAL');
+            assert.equal(capture.invocation, null);
+            assert.equal(result.metadata?.adapter, 'runtime:ans-kernel');
+            assert.equal(result.metadata?.supervisor_decision_source, 'host-supervisor');
+            assert.equal(result.metadata?.supervisor_reason, 'No pending host-governed work.');
+            assert.equal(result.metadata?.resume_requested, false);
         } finally {
             wakeMock.mock.restore();
         }

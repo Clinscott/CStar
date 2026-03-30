@@ -12,18 +12,19 @@ source: internal
 
 
 ## MANDATE
-Translate high-fidelity Lore Fragments (.qmd or .feature) into production-ready Code Artifacts that strictly adhere to the Linscott Standard.
+Translate high-fidelity canonical inputs into staged Code Artifacts through a host-supervised forge front that strictly adheres to the Linscott Standard.
 
 ## LOGIC PROTOCOL
-1. **LORE CONSUMPTION**: Read and analyze the provided lore file path.
-2. **PROMPT ENGINEERING**: Construct a direct SDK strike for the One Mind (Gemini-2.0-flash).
-3. **ARTIFACT WEAVING**: Generate raw JSON containing the `target_path` and `code`.
+1. **CANONICAL INTAKE**: Resolve the bead-backed or canonical forge request and reject freeform lore as execution authority.
+2. **HOST REASONING**: Let the host session own candidate shaping, rationale, and artifact intent.
+3. **ARTIFACT WEAVING**: Generate the structured candidate envelope for the bounded TALIESIN executor.
 4. **STAGING**: Materialize the code into `.agents/forge_staged/` as a non-authoritative review artifact and emit a structured staging envelope.
 
 ## CONSTRAINTS
 - Output MUST be valid JSON.
 - Never output Markdown wrappers or chat filler.
 - All code must include comprehensive docstrings and strict typing.
+- Public forge reasoning belongs to the host session; local runtime execution is the bounded staging primitive, not the public mind.
 - `.agents/forge_staged/` is staging only. Promotion still requires Hall, sovereign beads, and validation.
 
 ## USAGE
