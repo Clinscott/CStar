@@ -5,7 +5,7 @@ import {
     getCapabilityHostSupport,
     resolveHostProvider,
 } from '../../../../core/host_session.js';
-import * as hostBridge from './host_bridge.js';
+import * as hostBridge from '../weaves/host_bridge.js';
 import type {
     RuntimeAdapter,
     RuntimeDispatchPort,
@@ -94,32 +94,56 @@ async function resolvePlanningPreference(input: {
     }
 
     try {
-        const raw = await deps.hostTextInvoker({
-            prompt: buildPlanningPreferencePrompt({
-                normalizedIntent: input.normalizedIntent,
-                lowerTokens: input.lowerTokens,
-                heuristicPreferPlanning,
-                activeHostProvider: input.activeHostProvider,
-            }),
-            systemPrompt: 'Return JSON only. Decide whether chant should enter the planning loop.',
-            provider: input.activeHostProvider,
-            projectRoot: input.payload.project_root,
-            source: 'chant:planning-preference',
-            env: { ...process.env, ...input.context.env } as NodeJS.ProcessEnv,
-            metadata: {
-                runtime_weave: 'chant',
-                decision: 'planning-preference',
-                heuristic_prefer_planning: heuristicPreferPlanning,
-                transport_mode: 'session-required',
-            },
-        });
+        const defaultTimeoutMs = input.activeHostProvider === 'codex' && process.env.CODEX_SHELL !== '1'
+            ? 300000
+            : 12000;
+        const timeoutMsRaw = Number(
+            process.env.CSTAR_CHANT_HOST_TIMEOUT_MS
+            ?? process.env.CSTAR_HOST_SESSION_TIMEOUT_MS
+            ?? process.env.CORVUS_HOST_SESSION_TIMEOUT_MS
+            ?? defaultTimeoutMs,
+        );
+        const timeoutMs = Number.isFinite(timeoutMsRaw) && timeoutMsRaw > 0 ? timeoutMsRaw : defaultTimeoutMs;
+        let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+        const raw = await (async () => {
+            try {
+                return await Promise.race([
+                    deps.hostTextInvoker({
+                        prompt: buildPlanningPreferencePrompt({
+                            normalizedIntent: input.normalizedIntent,
+                            lowerTokens: input.lowerTokens,
+                            heuristicPreferPlanning,
+                            activeHostProvider: input.activeHostProvider,
+                        }),
+                        systemPrompt: 'Return JSON only. Decide whether chant should enter the planning loop.',
+                        provider: input.activeHostProvider,
+                        projectRoot: input.payload.project_root,
+                        source: 'chant:planning-preference',
+                        env: { ...process.env, ...input.context.env } as NodeJS.ProcessEnv,
+                        metadata: {
+                            runtime_weave: 'chant',
+                            decision: 'planning-preference',
+                            heuristic_prefer_planning: heuristicPreferPlanning,
+                            transport_mode: 'host_session',
+                        },
+                    }),
+                    new Promise<string>((_, reject) => {
+                        timeoutHandle = setTimeout(() => reject(new Error(`chant planning-preference timeout after ${timeoutMs}ms`)), timeoutMs);
+                    }),
+                ]);
+            } finally {
+                if (timeoutHandle) {
+                    clearTimeout(timeoutHandle);
+                }
+            }
+        })();
         return parsePlanningPreference(raw) ?? heuristicPreferPlanning;
     } catch {
         return heuristicPreferPlanning;
     }
 }
 
-export class ChantWeave implements RuntimeAdapter<ChantWeavePayload> {
+export class ChantHostWorkflow implements RuntimeAdapter<ChantWeavePayload> {
     public readonly id = 'weave:chant';
 
     public constructor(private readonly dispatchPort: RuntimeDispatchPort) {}
@@ -273,7 +297,14 @@ export class ChantWeave implements RuntimeAdapter<ChantWeavePayload> {
                 };
             }
 
-            const childResult = await this.dispatchPort.dispatch(resolution.invocation);
+            const childResult = await this.dispatchPort.dispatch({
+                ...resolution.invocation,
+                session: {
+                    mode: 'subkernel',
+                    interactive: false,
+                    session_id: context.session_id,
+                },
+            });
             const emittedBeads = Array.isArray(childResult.metadata?.emitted_beads)
                 ? (childResult.metadata?.emitted_beads as string[])
                 : [];
@@ -357,3 +388,5 @@ export class ChantWeave implements RuntimeAdapter<ChantWeavePayload> {
         });
     }
 }
+
+export { ChantHostWorkflow as ChantWeave };

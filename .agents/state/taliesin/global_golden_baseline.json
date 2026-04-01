@@ -1,0 +1,21 @@
+{
+  "writing_skill": 72,
+  "entertainment_value": 86,
+  "plot_devices": 80,
+  "story_coherence": 95,
+  "voice_signature": "Sensory-dense mythic prose anchored in color/heat metaphors. Rhythmic parallelism using triad structures. High-mythic vocabulary spikes in pivotal transitions. Melancholic wonder.",
+  "north_stars": [
+    { "chapter": 15, "axis": "Writing Skill", "description": "The shattering glass/lilac fire sequence." },
+    { "chapter": 44, "axis": "Atmospheric Weight", "description": "The light-absorbing cloak in the gold field." },
+    { "chapter": 1, "axis": "Imagery", "description": "The trees lit on fire establish the color-anchor." }
+  ],
+  "golden_benchmarks": {
+    "writing_skill": "Prologue: The Man in the Forever Fog (88%)",
+    "entertainment_value": "Ch 30: The Legendary White Spot / Burger Sequence (92%)",
+    "plot_devices": "Prophecy: Two men and four brothers (85%)",
+    "story_coherence": "Ch 11: I AM TIME / Memory Theft (96%)"
+  },
+  "fidelity_floor": 90.0,
+  "global_median_avg": 83.25,
+  "timestamp": 1774924800
+}

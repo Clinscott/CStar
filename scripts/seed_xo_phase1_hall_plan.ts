@@ -1,6 +1,6 @@
 import path from 'node:path';
 
-import { persistArchitectProposal } from '../src/node/core/runtime/weaves/chant_planner.ts';
+import { persistArchitectProposal } from '../src/node/core/runtime/host_workflows/chant_planner.ts';
 import { saveHallPlanningSession, getHallPlanningSession, listHallSkillProposals } from '../src/tools/pennyone/intel/session_manager.ts';
 import { getHallBeads } from '../src/tools/pennyone/intel/bead_controller.ts';
 import { upsertHallRepository } from '../src/tools/pennyone/intel/repository_manager.ts';

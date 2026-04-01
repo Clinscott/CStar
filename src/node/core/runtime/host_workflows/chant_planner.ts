@@ -10,6 +10,7 @@ import type {
     HallOneMindBranchDigest,
 } from '../../../../types/hall.js';
 import { buildHallRepositoryId, normalizeHallPath } from '../../../../types/hall.js';
+import { executeArchitectService } from './architect_service.js';
 import type {
     AutobotWeavePayload,
     RuntimeDispatchPort,
@@ -18,7 +19,7 @@ import type {
     WeaveResult,
     ChantWeavePayload,
     ResearchWeavePayload,
-    ArchitectWeavePayload,
+    ArchitectServicePayload,
 } from '../contracts.ts';
 
 const AUTOBOT_NOTE_LIMIT = 4_000;
@@ -32,6 +33,7 @@ export const deps = {
     database: Object.assign({}, database),
     hallTypes: Object.assign({}, hallTypes),
     fs: Object.assign({}, fs),
+    executeArchitectService,
 };
 
 type ArchitectProposal = {
@@ -331,7 +333,7 @@ export function buildArchitectPayload(
     payload: ChantWeavePayload,
     normalizedIntent: string,
     researchPayload: Record<string, unknown>,
-): ArchitectWeavePayload {
+): ArchitectServicePayload {
     return {
         action: 'build_proposal',
         intent: normalizedIntent,
@@ -671,7 +673,7 @@ export async function runPlanningLoop(
         }
     }
 
-    const architectSummary = 'Research Phase complete. Synthesizing proposal via Architect...';
+    const architectSummary = 'Research Phase complete. Synthesizing proposal inside chant planning...';
     persistPlanningSessionSnapshot({
         sessionId,
         repoId,
@@ -682,19 +684,17 @@ export async function runPlanningLoop(
         userIntent,
         metadata: {
             ...baseMetadata,
-            phase_in_flight: 'weave:architect',
+            phase_in_flight: 'chant:architect-service',
             research_payload: researchPayload,
             branch_ledger_digest: branchLedgerDigest ?? getBranchLedgerDigest(researchPayload?.branch_ledger_digest),
         },
         createdAt,
     });
 
-    const architectResult = await dispatchPort.dispatch<ArchitectWeavePayload>({
-        weave_id: 'weave:architect',
-        payload: buildArchitectPayload(payload, normalizedIntent, researchPayload),
-        session: invocation.session,
-        target: invocation.target,
-    });
+    const architectResult = await deps.executeArchitectService(
+        buildArchitectPayload(payload, normalizedIntent, researchPayload),
+        context,
+    );
 
     if (architectResult.status === 'FAILURE') {
         persistPlanningSessionSnapshot({
@@ -707,7 +707,7 @@ export async function runPlanningLoop(
             userIntent,
             metadata: {
                 ...baseMetadata,
-                phase_in_flight: 'weave:architect',
+                phase_in_flight: 'chant:architect-service',
                 research_payload: researchPayload,
                 branch_ledger_digest: branchLedgerDigest ?? getBranchLedgerDigest(researchPayload?.branch_ledger_digest),
             },

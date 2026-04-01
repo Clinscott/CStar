@@ -116,6 +116,17 @@ Corvus Star operates using distinct personas and a specific linguistic framework
 
 ---
 
+## 🔱 Architectural Mandates
+
+Corvus Star adheres to a strict hierarchy of cognitive execution:
+
+- **Host-Native First**: All high-level functional capabilities (Taliesin, Analysis, Optimization, Content Generation) are developed as host-native skills. They reside in the Host Space (Ring 3) and utilize the Synaptic Link directly for maximum reasoning power.
+- **Kernel for Steel**: The **Node.js Runtime** is reserved exclusively for **Architectural Skills**—the deterministic steel required for process control, filesystem locking, orchestration, and bridge management (Ring 0 primitives).
+- **The 90% Floor**: All manuscript and narrative mutations (e.g., Fallows Hallow) must maintain a minimum of 90% stylistic and logical coherence to the original source.
+- **Cognitive Decoupling**: We do not collapse host cognition into brittle Node runtime paths unless architectural necessity demands it.
+
+---
+
 ## 🏆 The Sterling Mandate
 Every modification must be validated across the Triad of Verification:
 - **Lore**: A `.feature` contract defining behavior.

@@ -241,14 +241,17 @@ def infer_contract_path(authority_path: str | None) -> str | None:
 
 def infer_owner_runtime(entry_name: str, entry: dict[str, Any]) -> str:
     execution_mode = str(entry.get("execution", {}).get("mode") or "").strip().lower()
+    ownership_model = str(entry.get("execution", {}).get("ownership_model") or "").strip().lower()
     tier = str(entry.get("tier") or "").strip().upper()
 
-    if execution_mode == "kernel-backed":
-        return "cstar-kernel"
     if tier == "SPELL":
         return "policy-layer"
-    if entry_name in {"chant", "orchestrate", "ravens", "start"}:
-        return "cstar-runtime"
+    if ownership_model == "kernel-primitive":
+        return "cstar-kernel"
+    if ownership_model == "host-workflow":
+        return "host-agent"
+    if execution_mode == "kernel-backed":
+        return "cstar-kernel"
     return "host-agent"
 
 
@@ -483,6 +486,16 @@ def collect_authority_issues(entries: dict[str, dict[str, Any]]) -> list[dict[st
                     }
                 )
 
+        execution_mode = str(entry.get("execution", {}).get("mode") or "").strip().lower()
+        ownership_model = str(entry.get("execution", {}).get("ownership_model") or "").strip().lower()
+        if execution_mode in {"agent-native", "kernel-backed"} and ownership_model not in {"host-workflow", "kernel-primitive"}:
+            issues.append(
+                {
+                    "entry": name,
+                    "missing_fields": ["execution.ownership_model"],
+                }
+            )
+
     return issues
 
 
@@ -507,7 +520,10 @@ def build_registry_manifest() -> dict[str, Any]:
                     "tier": "SKILL",
                     "description": "",
                     "instruction_path": f"{authority_entry['authority_path']}/SKILL.md" if authority_entry["authority_path"] else None,
-                    "execution": {"mode": "agent-native"},
+                    "execution": {
+                        "mode": "agent-native",
+                        "ownership_model": "host-workflow",
+                    },
                     "viability": "ACTIVE",
                     "risk": "safe",
                 },

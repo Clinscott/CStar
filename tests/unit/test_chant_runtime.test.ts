@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 import { buildChantInvocation } from  '../../src/node/core/commands/dispatcher.js';
-import { ChantWeave } from  '../../src/node/core/runtime/weaves/chant.js';
+import { ChantWeave } from  '../../src/node/core/runtime/host_workflows/chant.js';
 import type { RuntimeDispatchPort, RuntimeContext, WeaveInvocation, WeaveResult } from  '../../src/node/core/runtime/contracts.js';
 import { closeDb, getHallPlanningSession } from  '../../src/tools/pennyone/intel/database.js';
 import { registry } from  '../../src/tools/pennyone/pathRegistry.js';

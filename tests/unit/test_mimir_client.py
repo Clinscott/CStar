@@ -216,6 +216,28 @@ async def test_mimir_client_prefers_detected_codex_provider_before_gemini_fallba
 
 
 @pytest.mark.asyncio
+async def test_mimir_client_keeps_thread_only_codex_on_direct_host_transport(tmp_path):
+    observed: list[tuple[str, str]] = []
+
+    async def host_session_runner(prompt: str, provider: str) -> str:
+        observed.append((provider, prompt))
+        return "Codex thread-only direct response"
+
+    client = MimirClient(
+        project_root=tmp_path,
+        env={"CODEX_THREAD_ID": "thread-1"},
+        host_session_runner=host_session_runner,
+    )
+
+    response = await client.request({"prompt": "Explain the active bridge."})
+
+    assert response.status == "success"
+    assert response.trace.transport_mode == "host_session"
+    assert response.raw_text == "Codex thread-only direct response"
+    assert observed == [("codex", "Explain the active bridge.")]
+
+
+@pytest.mark.asyncio
 async def test_mimir_client_reads_synapse_completion(tmp_path):
     async def oracle_runner(synapse_id: int) -> None:
         prompt = _read_prompt(tmp_path / ".stats" / "synapse.db", synapse_id)

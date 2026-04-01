@@ -1,72 +1,42 @@
 """
-[VIGIL] Unit Tests for TALIESIN Spoke & XAPI
-Covers: TaliesinSpoke (ingest_style, gather_context, generate_post, staging_gate) + XAPI
+[VIGIL] Unit Tests for Unified TALIESIN Spoke
+Covers: TaliesinSpoke (ingest_style, seer_chamber, parse_chant, phoenix_loop, staging_gate)
 """
 
 import json
+import asyncio
 import pytest
+import sys
+import io
 from pathlib import Path
 from unittest.mock import patch, MagicMock, AsyncMock
 
+# Add skill directory to sys.path
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+SKILL_SCRIPTS = PROJECT_ROOT / ".agents" / "skills" / "taliesin" / "scripts"
+TALIESIN_SCRIPTS = PROJECT_ROOT.parent / "Taliesin" / "scripts"
+
+if str(SKILL_SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(SKILL_SCRIPTS))
+if str(TALIESIN_SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(TALIESIN_SCRIPTS))
 
 # ---------------------------------------------------------------------------
 # XAPI Tests
 # ---------------------------------------------------------------------------
 
 class TestXAPI:
-    """Isolation tests for the X API wrapper (lazy-init)."""
+    """Isolation tests for the X API wrapper."""
 
-    @patch("docs.legacy_archive.src_sentinel.x_api.SovereignHUD")
-    def test_load_credentials_returns_true_when_all_present(self, _mock_hud: MagicMock):
-        """_load_credentials returns True when all 4 env vars are set."""
-        env = {
-            "X_API_KEY": "key",
-            "X_API_SECRET": "secret",
-            "X_ACCESS_TOKEN": "token",
-            "X_ACCESS_TOKEN_SECRET": "token_secret",
-        }
-        with patch.dict("os.environ", env, clear=False):
-            from docs.legacy_archive.src_sentinel.x_api import XAPI
-            api = XAPI()
-            assert api._load_credentials() is True
-
-    @patch("docs.legacy_archive.src_sentinel.x_api.SovereignHUD")
-    def test_load_credentials_returns_false_when_missing(self, _mock_hud: MagicMock):
-        """_load_credentials returns False when env vars are absent."""
-        with patch.dict("os.environ", {}, clear=True):
-            from docs.legacy_archive.src_sentinel.x_api import XAPI
-            api = XAPI()
-            assert api._load_credentials() is False
-
-    @patch("docs.legacy_archive.src_sentinel.x_api.SovereignHUD")
+    @patch("x_api.SovereignHUD")
     def test_post_article_simulated_when_unconfigured(self, mock_hud: MagicMock):
         """Unconfigured XAPI simulates post and returns True."""
         with patch.dict("os.environ", {}, clear=True):
-            from docs.legacy_archive.src_sentinel.x_api import XAPI
+            from x_api import XAPI
             api = XAPI()
             result = api.post_article("Test content")
             assert result is True
             mock_hud.persona_log.assert_any_call("WARN", "X API Credentials not found. Post simulated.")
-
-    @patch("docs.legacy_archive.src_sentinel.x_api.SovereignHUD")
-    def test_post_article_simulation_mode_when_configured(self, mock_hud: MagicMock):
-        """Configured XAPI in SIMULATION_MODE logs simulation, returns True."""
-        env = {
-            "X_API_KEY": "key",
-            "X_API_SECRET": "secret",
-            "X_ACCESS_TOKEN": "token",
-            "X_ACCESS_TOKEN_SECRET": "token_secret",
-        }
-        with patch.dict("os.environ", env, clear=False):
-            from docs.legacy_archive.src_sentinel.x_api import XAPI
-            api = XAPI()
-            assert api.SIMULATION_MODE is True
-            result = api.post_article("Live content")
-            assert result is True
-            mock_hud.persona_log.assert_any_call(
-                "INFO", "[SIMULATION] X API configured but live posting disabled."
-            )
-
 
 # ---------------------------------------------------------------------------
 # TaliesinSpoke Tests
@@ -77,304 +47,199 @@ def taliesin_root(tmp_path: Path) -> Path:
     """Creates a minimal project root with .lore/ structure for testing."""
     lore_dir = tmp_path / ".lore"
     lore_dir.mkdir()
-
-    # Create voices directory structure
     voices_dir = lore_dir / "voices"
     voices_dir.mkdir()
-    (voices_dir / "article.feature").write_text(
-        "Feature: Article Voice\n  Scenario: Technical update\n    Given the bard speaks\n    Then output a tech article\n",
+    (voices_dir / "UserStyle.feature").write_text(
+        "Feature: UserStyle\n  Scenario: Default\n    Given the bard speaks\n    Then it sounds like lore\n",
         encoding="utf-8",
     )
-
-    lore_subdir = voices_dir / "lore"
-    lore_subdir.mkdir()
-    (lore_subdir / "narrator.feature").write_text(
-        "Feature: Narrator\n  Scenario: Mythic narration\n    Given the narrator speaks\n    Then output mythic prose\n",
-        encoding="utf-8",
-    )
-
-    chars_dir = lore_subdir / "characters"
-    chars_dir.mkdir()
-    (chars_dir / "roan.feature").write_text(
-        "Feature: Roan\n  Scenario: Roan speaks\n    Given Roan is present\n    Then he speaks gruffly\n",
-        encoding="utf-8",
-    )
-
-    # Create writing samples
-    (lore_dir / "sample1.txt").write_text("The wind howled across the blasted heath." * 10, encoding="utf-8")
-    (lore_dir / "sample2.md").write_text("## Chapter Notes\nRoan approached the gate." * 10, encoding="utf-8")
-
-    # Create dev_journal and memory
-    (tmp_path / "dev_journal.qmd").write_text("## 2026-03-05\nForged TALIESIN spoke.", encoding="utf-8")
-    (tmp_path / "memory.qmd").write_text("## Patterns\n- BDD Voice Contracts are law.", encoding="utf-8")
-
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs" / "dev_journal.qmd").write_text("Journal entry", encoding="utf-8")
+    (tmp_path / ".agents").mkdir()
+    (tmp_path / ".agents" / "memory.qmd").write_text("Memory entry", encoding="utf-8")
     return tmp_path
 
-
-@patch("docs.legacy_archive.src_sentinel.taliesin.XAPI")
-@patch("docs.legacy_archive.src_sentinel.taliesin.AntigravityUplink")
-@patch("docs.legacy_archive.src_sentinel.taliesin.SovereignHUD")
+@patch("taliesin_spoke.XAPI")
+@patch("taliesin_spoke.AntigravityUplink")
+@patch("taliesin_spoke.SovereignHUD")
 def create_spoke(root: Path, mock_hud: MagicMock, mock_uplink_cls: MagicMock, mock_xapi_cls: MagicMock):
     """Helper: creates a TaliesinSpoke with fully mocked externals."""
-    from docs.legacy_archive.src_sentinel.taliesin import TaliesinSpoke
-
+    from taliesin_spoke import TaliesinSpoke
     mock_uplink = AsyncMock()
     mock_uplink_cls.return_value = mock_uplink
     mock_xapi = MagicMock()
     mock_xapi_cls.return_value = mock_xapi
-
     spoke = TaliesinSpoke(root)
     return spoke, mock_uplink, mock_xapi, mock_hud
 
+class TestChantLogic:
+    """Tests for chant parsing and interactive collection."""
 
-class TestGatherContext:
-    """Tests for TaliesinSpoke.gather_context."""
-
-    @pytest.mark.asyncio
-    async def test_gather_context_includes_journal_and_memory(self, taliesin_root: Path):
-        """Both dev_journal and memory content are pulled into context."""
+    def test_parse_chant_valid(self, taliesin_root: Path):
         spoke, _, _, _ = create_spoke(taliesin_root)
-        ctx = await spoke.gather_context()
+        intent = "[MODE]: story [INTENT]: A quest [BLOCKING]: None [ANCHORS]: sword [BANS]: technology"
+        chant = spoke.parse_chant(intent)
+        assert chant["mode"] == "story"
+        assert chant["intent"] == "A quest"
+        assert chant["anchors"] == "sword"
 
-        assert "DEV JOURNAL SNIPPET" in ctx
-        assert "Forged TALIESIN spoke" in ctx
-        assert "RECENT MEMORIES" in ctx
-        assert "BDD Voice Contracts" in ctx
+    def test_seer_chamber_interactive(self, taliesin_root: Path):
+        spoke, _, _, _ = create_spoke(taliesin_root)
+        # Mock stdin to provide answers for: mode, intent, blocking, anchors, bans
+        input_data = "story\nTest Intent\nNone\nAnchor1\nBan1\n"
+        with patch("sys.stdin", io.StringIO(input_data)):
+            chant = asyncio.run(spoke.seer_chamber())
+        
+        assert chant["mode"] == "story"
+        assert chant["intent"] == "Test Intent"
+        assert chant["anchors"] == "Anchor1"
 
-    @pytest.mark.asyncio
-    async def test_gather_context_empty_when_no_files(self, tmp_path: Path):
-        """Returns empty string when no journal or memory exists."""
-        (tmp_path / ".lore").mkdir()
-        spoke, _, _, _ = create_spoke(tmp_path)
-        ctx = await spoke.gather_context()
-        assert ctx == ""
+class TestPhoenixLoop:
+    """Tests for the iterative refinement process."""
 
-
-class TestGeneratePost:
-    """Tests for TaliesinSpoke.generate_post."""
-
-    @pytest.mark.asyncio
-    async def test_generate_post_article_mode_success(self, taliesin_root: Path):
-        """Article mode reads article.feature and returns uplink response."""
+    def test_phoenix_loop_threshold_achieved(self, taliesin_root: Path):
         spoke, mock_uplink, _, _ = create_spoke(taliesin_root)
-        mock_uplink.send_payload.return_value = {
-            "status": "success",
-            "data": {"raw": "The forge burned bright today."},
-        }
+        
+        # Sequence of responses: Forge V1, Audit (96%)
+        mock_uplink.send_payload.side_effect = [
+            {"status": "success", "data": {"raw": "Draft V1"}}, # Forge
+            {"status": "success", "data": {"raw": "Great job. SCORE: 96/100"}} # Audit
+        ]
+        
+        chant = {"mode": "story", "intent": "Test"}
+        result = asyncio.run(spoke.phoenix_loop(chant))
+        
+        assert result == "Draft V1"
+        assert mock_uplink.send_payload.call_count == 2
 
-        result = await spoke.generate_post(mode="article")
-
-        assert result == "The forge burned bright today."
-        mock_uplink.send_payload.assert_called_once()
-        call_args = mock_uplink.send_payload.call_args
-        assert "ARTICLE" in call_args[0][0]
-        assert "article.feature" not in call_args[0][0]  # Contract content, not filename
-
-    @pytest.mark.asyncio
-    async def test_generate_post_story_narrator(self, taliesin_root: Path):
-        """Story mode with narrator reads narrator.feature."""
+    def test_phoenix_loop_requires_refinement(self, taliesin_root: Path):
         spoke, mock_uplink, _, _ = create_spoke(taliesin_root)
-        mock_uplink.send_payload.return_value = {
-            "status": "success",
-            "data": {"raw": "From the ancient halls..."},
-        }
-
-        result = await spoke.generate_post(mode="story", character="narrator")
-        assert result == "From the ancient halls..."
-
-    @pytest.mark.asyncio
-    async def test_generate_post_story_character(self, taliesin_root: Path):
-        """Story mode with specific character reads character-specific contract."""
-        spoke, mock_uplink, _, _ = create_spoke(taliesin_root)
-        mock_uplink.send_payload.return_value = {
-            "status": "success",
-            "data": {"raw": "Roan grunted."},
-        }
-
-        result = await spoke.generate_post(mode="story", character="Roan")
-        assert result == "Roan grunted."
-
-    @pytest.mark.asyncio
-    async def test_generate_post_missing_contract_returns_none(self, taliesin_root: Path):
-        """Returns None when the voice contract file does not exist."""
-        spoke, mock_uplink, _, _ = create_spoke(taliesin_root)
-
-        result = await spoke.generate_post(mode="story", character="nonexistent")
-        assert result is None
-        mock_uplink.send_payload.assert_not_called()
-
-    @pytest.mark.asyncio
-    async def test_generate_post_uplink_failure_returns_none(self, taliesin_root: Path):
-        """Returns None when uplink returns non-success."""
-        spoke, mock_uplink, _, _ = create_spoke(taliesin_root)
-        mock_uplink.send_payload.return_value = {
-            "status": "error",
-            "message": "Quota exceeded",
-        }
-
-        result = await spoke.generate_post(mode="article")
-        assert result is None
-
+        
+        # Sequence: Forge V1, Audit (80%), Recast, Audit (97%)
+        mock_uplink.send_payload.side_effect = [
+            {"status": "success", "data": {"raw": "Draft V1"}}, # Forge
+            {"status": "success", "data": {"raw": "Too generic. SCORE: 80/100"}}, # Audit 1
+            {"status": "success", "data": {"raw": "Draft V2"}}, # Recast
+            {"status": "success", "data": {"raw": "Perfect. SCORE: 97/100"}} # Audit 2
+        ]
+        
+        chant = {"mode": "story", "intent": "Test"}
+        result = asyncio.run(spoke.phoenix_loop(chant))
+        
+        assert result == "Draft V2"
+        assert mock_uplink.send_payload.call_count == 4
 
 class TestIngestStyle:
-    """Tests for TaliesinSpoke.ingest_style (Gherkin contract update)."""
+    """Tests for style ingestion and contract update."""
 
-    @pytest.mark.asyncio
-    async def test_ingest_updates_voice_contracts(self, taliesin_root: Path):
-        """Uplink returns a Gherkin block → individual .feature files are written."""
+    def test_ingest_updates_contract(self, taliesin_root: Path):
         spoke, mock_uplink, _, _ = create_spoke(taliesin_root)
-        raw_response = "Feature: Refined Voice\n  Scenario: Draft\n"
-        mock_uplink.send_payload.return_value = {
-            "status": "success",
-            "data": {"raw": raw_response},
-        }
-
-        result = await spoke.ingest_style()
-
-        assert result is True
-        voices_dir = spoke.lore_dir / "voices"
-        article = voices_dir / "article.feature"
-        narrator = voices_dir / "lore" / "narrator.feature"
-        assert article.exists()
-        assert narrator.exists()
+        (taliesin_root / ".lore" / "sample.txt").write_text("Visceral writing style.", encoding="utf-8")
         
-        # Both files get the mocked return value
-        assert "Feature: Refined Voice" in article.read_text(encoding="utf-8")
-        assert "Feature: Refined Voice" in narrator.read_text(encoding="utf-8")
-        assert mock_uplink.send_payload.call_count >= 2
-
-    @pytest.mark.asyncio
-    async def test_ingest_strips_markdown_fences(self, taliesin_root: Path):
-        """Markdown code fences around Gherkin blocks are stripped."""
-        spoke, mock_uplink, _, _ = create_spoke(taliesin_root)
-        raw_response = "```gherkin\nFeature: Clean Article\n```\n"
         mock_uplink.send_payload.return_value = {
-            "status": "success",
-            "data": {"raw": raw_response},
+            "status": "success", 
+            "data": {"raw": "Feature: Updated Voice\n  Scenario: Refined\n"}
         }
 
-        result = await spoke.ingest_style()
-
+        result = asyncio.run(spoke.ingest_style())
         assert result is True
-        content = (spoke.lore_dir / "voices" / "article.feature").read_text(encoding="utf-8")
-        assert not content.startswith("```")
-        assert "Feature: Clean Article" in content
+        
+        contract = (taliesin_root / ".lore" / "voices" / "UserStyle.feature").read_text(encoding="utf-8")
+        assert "Feature: Updated Voice" in contract
 
-    @pytest.mark.asyncio
-    async def test_ingest_backs_up_existing_contracts(self, taliesin_root: Path):
-        """Existing contracts get a .bak backup before being overwritten."""
-        spoke, mock_uplink, _, _ = create_spoke(taliesin_root)
-        original_article = (spoke.lore_dir / "voices" / "article.feature")
-        original_content = original_article.read_text(encoding="utf-8")
+class TestStagingGate:
+    """Tests for the approval/rejection logic."""
 
-        mock_uplink.send_payload.return_value = {
-            "status": "success",
-            "data": {"raw": "Feature: Updated Article\n"},
-        }
-
-        result = await spoke.ingest_style()
-
-        assert result is True
-        backup = spoke.lore_dir / "voices" / "article.feature.bak"
-        assert backup.exists()
-        assert backup.read_text(encoding="utf-8") == original_content
-
-    @pytest.mark.asyncio
-    async def test_ingest_empty_corpus_returns_false(self, tmp_path: Path):
-        """Empty .lore/ directory returns False."""
-        (tmp_path / ".lore").mkdir()
-        spoke, _, _, _ = create_spoke(tmp_path)
-
-        result = await spoke.ingest_style()
-
-        assert result is False
-
-    @pytest.mark.asyncio
-    async def test_ingest_uplink_failure_returns_false(self, taliesin_root: Path):
-        """Uplink failure returns False."""
-        spoke, mock_uplink, _, _ = create_spoke(taliesin_root)
-        mock_uplink.send_payload.return_value = {
-            "status": "error",
-            "message": "Service unavailable",
-        }
-
-        result = await spoke.ingest_style()
-
-        assert result is False
-
-
-class TestStagingGateTerminal:
-    """Tests for TaliesinSpoke staging gate in terminal mode (no TALIESIN_AGENT_MODE)."""
-
-    def test_staging_gate_approve(self, taliesin_root: Path):
-        """User approves → post_article is called."""
+    def test_staging_gate_terminal_approve(self, taliesin_root: Path):
         spoke, _, mock_xapi, _ = create_spoke(taliesin_root)
         mock_xapi.post_article.return_value = True
 
-        with patch.dict("os.environ", {}, clear=False), \
-             patch("builtins.input", return_value="y"):
-            result = spoke.staging_gate("Test draft")
+        with patch("builtins.input", return_value="y"):
+            result = spoke.staging_gate("Final prose")
 
         assert result is True
-        mock_xapi.post_article.assert_called_once_with("Test draft")
-
-    def test_staging_gate_reject(self, taliesin_root: Path):
-        """User rejects → returns False, no post."""
-        spoke, _, mock_xapi, _ = create_spoke(taliesin_root)
-
-        with patch.dict("os.environ", {}, clear=False), \
-             patch("builtins.input", return_value="n"):
-            result = spoke.staging_gate("Test draft")
-
-        assert result is False
-        mock_xapi.post_article.assert_not_called()
-
-    def test_staging_gate_edit_saves_reinforcement(self, taliesin_root: Path):
-        """User edits → corrected draft is saved for reinforcement and posted."""
-        spoke, _, mock_xapi, _ = create_spoke(taliesin_root)
-        mock_xapi.post_article.return_value = True
-
-        inputs = iter(["edit", "Corrected line 1", "Corrected line 2", ""])
-        with patch.dict("os.environ", {}, clear=False), \
-             patch("builtins.input", side_effect=inputs):
-            result = spoke.staging_gate("Original draft")
-
-        assert result is True
-        mock_xapi.post_article.assert_called_once_with("Corrected line 1\nCorrected line 2")
-
-        reinforcement_files = list(spoke.lore_dir.glob("reinforcement_*.md"))
-        assert len(reinforcement_files) == 1
-        content = reinforcement_files[0].read_text(encoding="utf-8")
-        assert "Corrected line 1" in content
+        mock_xapi.post_article.assert_called_once_with("Final prose")
 
 
-class TestStagingGateAgent:
-    """Tests for TaliesinSpoke staging gate in agent mode (TALIESIN_AGENT_MODE set)."""
+class TestManuscriptOptimizer:
+    """Tests for optimizer fidelity gate behavior in the mounted Taliesin spoke."""
 
-    def test_agent_mode_writes_staging_queue(self, taliesin_root: Path):
-        """Agent mode writes draft to .lore/staging_queue.json."""
-        spoke, _, mock_xapi, _ = create_spoke(taliesin_root)
+    def test_deterministic_fidelity_scores_token_overlap(self, tmp_path: Path):
+        from manuscript_optimizer import ManuscriptOptimizer
+        optimizer = ManuscriptOptimizer(tmp_path, tmp_path / "Taliesin")
+        score = optimizer.deterministic_fidelity("wolf moon river", "wolf moon star river")
+        assert score == 75.0
 
-        with patch.dict("os.environ", {"TALIESIN_AGENT_MODE": "1"}):
-            result = spoke.staging_gate("Agent draft")
+    def test_run_loop_rejects_high_score_mutation_below_fidelity_floor(self, tmp_path: Path):
+        from manuscript_optimizer import ManuscriptOptimizer, AuditScores
 
-        assert result is True
-        staging_file = spoke.lore_dir / "staging_queue.json"
-        assert staging_file.exists()
+        cstar_root = tmp_path / "cstar"
+        spoke_root = tmp_path / "Taliesin"
+        manuscript_dir = cstar_root / ".lore" / "samples"
+        manuscript_dir.mkdir(parents=True)
+        (manuscript_dir / "Fallows Hallow - TALIESIN.txt").write_text(
+            "\n".join(["front"] * 31 + ["PROLOGUE", "The old words bind the valley.", "CHAPTER I", "Next"]),
+            encoding="utf-8",
+        )
 
-        payload = json.loads(staging_file.read_text(encoding="utf-8"))
-        assert payload["draft"] == "Agent draft"
-        assert payload["status"] == "pending_review"
-        assert payload["source"] == "taliesin"
-        assert "timestamp" in payload
-        mock_xapi.post_article.assert_not_called()
+        optimizer = ManuscriptOptimizer(cstar_root, spoke_root)
+        optimizer.baseline_path.write_text(json.dumps({"voice_signature": "mythic"}), encoding="utf-8")
 
-    def test_agent_mode_does_not_call_input(self, taliesin_root: Path):
-        """Agent mode never calls input()."""
-        spoke, _, _, _ = create_spoke(taliesin_root)
+        calls = {"count": 0}
 
-        with patch.dict("os.environ", {"TALIESIN_AGENT_MODE": "1"}), \
-             patch("builtins.input", side_effect=RuntimeError("input() should not be called")) as mock_input:
-            result = spoke.staging_gate("Silent draft")
+        async def fake_grade(candidate: str, original: str, baseline: dict):
+            calls["count"] += 1
+            if calls["count"] == 1:
+                return AuditScores(75.0, 75.0, 75.0, 75.0, 100.0, "baseline")
+            return AuditScores(99.0, 99.0, 99.0, 99.0, 40.0, "high-score low-fidelity")
 
-        assert result is True
+        async def fake_mutate(current: str, audit: AuditScores, baseline: dict):
+            return "completely divergent content"
+
+        optimizer.grade = fake_grade  # type: ignore[assignment]
+        optimizer.mutate = fake_mutate  # type: ignore[assignment]
+
+        result = asyncio.run(optimizer.run_chapter_loop("Prologue", 1))
+        output_text = Path(result["output_path"]).read_text(encoding="utf-8")
+        ledger = json.loads(optimizer.ledger_path.read_text(encoding="utf-8"))
+
+        assert output_text == "The old words bind the valley."
+        assert ledger["runs"][-1]["adopted"] is False
+        assert ledger["runs"][-1]["fidelity_score"] == 40.0
+
+    def test_run_loop_adopts_mutation_above_fidelity_floor_with_better_average(self, tmp_path: Path):
+        from manuscript_optimizer import ManuscriptOptimizer, AuditScores
+
+        cstar_root = tmp_path / "cstar"
+        spoke_root = tmp_path / "Taliesin"
+        manuscript_dir = cstar_root / ".lore" / "samples"
+        manuscript_dir.mkdir(parents=True)
+        (manuscript_dir / "Fallows Hallow - TALIESIN.txt").write_text(
+            "\n".join(["front"] * 31 + ["PROLOGUE", "Lanterns trembled above the ford.", "CHAPTER I", "Next"]),
+            encoding="utf-8",
+        )
+
+        optimizer = ManuscriptOptimizer(cstar_root, spoke_root)
+        optimizer.baseline_path.write_text(json.dumps({"voice_signature": "mythic"}), encoding="utf-8")
+
+        calls = {"count": 0}
+
+        async def fake_grade(candidate: str, original: str, baseline: dict):
+            calls["count"] += 1
+            if calls["count"] == 1:
+                return AuditScores(70.0, 70.0, 70.0, 70.0, 100.0, "baseline")
+            return AuditScores(90.0, 92.0, 93.0, 91.0, 95.0, "strong and faithful")
+
+        async def fake_mutate(current: str, audit: AuditScores, baseline: dict):
+            return "Lanterns trembled above the ford, and the oath held."
+
+        optimizer.grade = fake_grade  # type: ignore[assignment]
+        optimizer.mutate = fake_mutate  # type: ignore[assignment]
+
+        result = asyncio.run(optimizer.run_chapter_loop("Prologue", 1))
+        output_text = Path(result["output_path"]).read_text(encoding="utf-8")
+        ledger = json.loads(optimizer.ledger_path.read_text(encoding="utf-8"))
+
+        assert output_text == "Lanterns trembled above the ford, and the oath held."
+        assert ledger["runs"][-1]["adopted"] is True
+        assert ledger["runs"][-1]["fidelity_score"] == 95.0

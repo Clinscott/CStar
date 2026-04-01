@@ -32,12 +32,14 @@ def test_active_entries_gain_authority_fields() -> None:
     assert hall["owner_runtime"] == "host-agent"
     assert hall["host_support"]["gemini"] == "native-session"
     assert hall["host_support"]["codex"] == "exec-bridge"
+    assert hall["execution"]["ownership_model"] == "host-workflow"
     assert hall["recursion_policy"] == "leaf"
     assert hall["contracts"] == [".agents/skills/hall/SKILL.md"]
 
     assert chant["authority_path"] == ".agents/skills/chant"
-    assert chant["owner_runtime"] == "cstar-kernel"
-    assert chant["host_support"]["codex"] == "supported"
+    assert chant["owner_runtime"] == "host-agent"
+    assert chant["host_support"]["codex"] == "exec-bridge"
+    assert chant["execution"]["ownership_model"] == "host-workflow"
     assert chant["recursion_policy"] == "bounded-orchestrator"
     assert ".agents/skills/chant/chant.feature" in chant["contracts"]
 
@@ -55,3 +57,15 @@ def test_audit_demotes_archive_and_requires_zero_active_authority_issues() -> No
     archive_entry = manifest["entries"]["_archive"]
     assert archive_entry["viability"] == "DEPRECATED"
     assert manifest["authority_audit"]["authority_issues"] == []
+
+
+def test_execution_bearing_entries_require_explicit_ownership_model() -> None:
+    manifest = build_registry_manifest()
+
+    for name, entry in manifest["entries"].items():
+        if entry.get("viability") != "ACTIVE":
+            continue
+        execution_mode = str(entry.get("execution", {}).get("mode") or "").strip().lower()
+        if execution_mode not in {"agent-native", "kernel-backed"}:
+            continue
+        assert entry["execution"]["ownership_model"] in {"host-workflow", "kernel-primitive"}, name

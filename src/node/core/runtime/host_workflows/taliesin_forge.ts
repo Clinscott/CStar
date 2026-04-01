@@ -41,7 +41,7 @@ function extractEnvelope(raw: string): TaliesinForgeWeaveMetadata & { status?: s
     };
 }
 
-export class TaliesinForgeWeave implements RuntimeAdapter<TaliesinForgeWeavePayload> {
+export class TaliesinForgeHostWorkflow implements RuntimeAdapter<TaliesinForgeWeavePayload> {
     public readonly id = 'weave:taliesin-forge';
 
     public constructor(private readonly runner: typeof execa = execa) {}
@@ -83,10 +83,12 @@ export class TaliesinForgeWeave implements RuntimeAdapter<TaliesinForgeWeavePayl
             status: success ? 'SUCCESS' : 'FAILURE',
             output: String(
                 envelope.summary
-                ?? (success ? 'TALIESIN candidate staged for validation.' : 'TALIESIN forge failed.')
+                ?? (success ? 'TALIESIN candidate staged for validation.' : 'TALIESIN forge failed.'),
             ),
             error: success ? undefined : String(envelope.error ?? envelope.summary ?? 'TALIESIN forge failed.'),
             metadata: envelope,
         };
     }
 }
+
+export { TaliesinForgeHostWorkflow as TaliesinForgeWeave };

@@ -16,7 +16,7 @@ import {
     resolveIntentCategoryFromGrammar,
     resolveByIntentCategory,
     deps,
-} from '../../../../src/node/core/runtime/weaves/chant_parser.ts';
+} from '../../../../src/node/core/runtime/host_workflows/chant_parser.ts';
 
 describe('Chant Parser Unit Tests', () => {
     afterEach(() => {

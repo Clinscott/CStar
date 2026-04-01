@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, it } from 'node:test';
+import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -11,7 +11,8 @@ import type {
     WeaveInvocation,
     WeaveResult,
 } from '../../src/node/core/runtime/contracts.ts';
-import { ChantWeave } from  '../../src/node/core/runtime/weaves/chant.js';
+import { ChantWeave } from  '../../src/node/core/runtime/host_workflows/chant.js';
+import { deps as plannerDeps } from '../../src/node/core/runtime/host_workflows/chant_planner.ts';
 import {
     closeDb,
     getDb,
@@ -53,34 +54,6 @@ class PlanningDispatchPort implements RuntimeDispatchPort {
             };
         }
 
-        if (invocation.weave_id === 'weave:architect') {
-            return {
-                weave_id: invocation.weave_id,
-                status: 'SUCCESS',
-                output: 'Architect proposal synthesis complete.',
-                metadata: {
-                    architect_proposal: {
-                        proposal_summary: 'Build a tiny slug utility with a standard-library-only CLI.',
-                        beads: [
-                            {
-                                id: 'title-slug',
-                                title: 'Implement title slug utility',
-                                rationale: 'Create the missing utility required by the README smoke task.',
-                                targets: ['title_slug.py', 'tests/test_title_slug.py', 'README.md'],
-                                depends_on: [],
-                                acceptance_criteria: [
-                                    'Expose slugify(text: str) -> str.',
-                                    'CLI prints a stable slug for the provided title.',
-                                    'Bundled unittest suite passes.',
-                                ],
-                                checker_shell: 'python3 -m unittest discover -s tests -p \'test_*.py\' -q',
-                            },
-                        ],
-                    },
-                },
-            };
-        }
-
         throw new Error(`Unexpected weave dispatch in planning test: ${invocation.weave_id}`);
     }
 }
@@ -94,34 +67,6 @@ class TypeScriptPlanningDispatchPort implements RuntimeDispatchPort {
                 output: 'Research complete.',
                 metadata: {
                     research_artifacts: ['src/node/core/runtime/weaves/host_governor.ts'],
-                },
-            };
-        }
-
-        if (invocation.weave_id === 'weave:architect') {
-            return {
-                weave_id: invocation.weave_id,
-                status: 'SUCCESS',
-                output: 'Architect proposal synthesis complete.',
-                metadata: {
-                    architect_proposal: {
-                        proposal_summary: 'Capture host-governor validation follow-up as a test-only micro-bead.',
-                        beads: [
-                            {
-                                id: 'host-governor-verification',
-                                title: 'Add host-governor verification coverage',
-                                rationale: 'Preserve the validation contract for host-governor promotion.',
-                                targets: ['tests/unit/test_host_governor_runtime.test.ts'],
-                                depends_on: [],
-                                focus_hint: 'Limit edits to the promotion-validation assertions for host-governor.',
-                                acceptance_criteria: [
-                                    'Host-governor validation coverage is updated.',
-                                    'The TypeScript unit suite remains green.',
-                                ],
-                                checker_shell: 'node --test tests/unit/test_host_governor_runtime.test.ts',
-                            },
-                        ],
-                    },
                 },
             };
         }
@@ -171,6 +116,7 @@ describe('Chant AutoBot handoff', () => {
     });
 
     afterEach(() => {
+        mock.reset();
         closeDb();
     });
 
@@ -308,6 +254,31 @@ describe('Chant AutoBot handoff', () => {
     it('persists architect proposals as OPEN chant beads before the SET gate', async () => {
         const repoId = buildHallRepositoryId(normalizeHallPath(tmpRoot));
         const dispatchPort = new PlanningDispatchPort();
+        mock.method(plannerDeps, 'executeArchitectService', async () => ({
+            weave_id: 'weave:architect',
+            status: 'SUCCESS',
+            output: 'Architect proposal synthesis complete.',
+            metadata: {
+                architect_proposal: {
+                    proposal_summary: 'Build a tiny slug utility with a standard-library-only CLI.',
+                    beads: [
+                        {
+                            id: 'title-slug',
+                            title: 'Implement title slug utility',
+                            rationale: 'Create the missing utility required by the README smoke task.',
+                            targets: ['title_slug.py', 'tests/test_title_slug.py', 'README.md'],
+                            depends_on: [],
+                            acceptance_criteria: [
+                                'Expose slugify(text: str) -> str.',
+                                'CLI prints a stable slug for the provided title.',
+                                'Bundled unittest suite passes.',
+                            ],
+                            checker_shell: 'python3 -m unittest discover -s tests -p \'test_*.py\' -q',
+                        },
+                    ],
+                },
+            },
+        }));
         const chant = new ChantWeave(dispatchPort);
         const result = await chant.execute(
             {
@@ -385,6 +356,31 @@ describe('Chant AutoBot handoff', () => {
         fs.mkdirSync(path.join(tmpRoot, 'scripts'), { recursive: true });
         fs.writeFileSync(path.join(tmpRoot, 'scripts', 'run-tsx.mjs'), '// stub\n', 'utf-8');
 
+        mock.method(plannerDeps, 'executeArchitectService', async () => ({
+            weave_id: 'weave:architect',
+            status: 'SUCCESS',
+            output: 'Architect proposal synthesis complete.',
+            metadata: {
+                architect_proposal: {
+                    proposal_summary: 'Capture host-governor validation follow-up as a test-only micro-bead.',
+                    beads: [
+                        {
+                            id: 'host-governor-verification',
+                            title: 'Add host-governor verification coverage',
+                            rationale: 'Preserve the validation contract for host-governor promotion.',
+                            targets: ['tests/unit/test_host_governor_runtime.test.ts'],
+                            depends_on: [],
+                            focus_hint: 'Limit edits to the promotion-validation assertions for host-governor.',
+                            acceptance_criteria: [
+                                'Host-governor validation coverage is updated.',
+                                'The TypeScript unit suite remains green.',
+                            ],
+                            checker_shell: 'node --test tests/unit/test_host_governor_runtime.test.ts',
+                        },
+                    ],
+                },
+            },
+        }));
         const chant = new ChantWeave(new TypeScriptPlanningDispatchPort());
         const result = await chant.execute(
             {

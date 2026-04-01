@@ -1,6 +1,6 @@
 ---
 title: "Skill Authority Report"
-generated_at: "2026-03-26 12:49:33"
+generated_at: "2026-04-01 07:36:21"
 authoritative_root: ".agents/skills"
 ---
 
@@ -9,7 +9,7 @@ authoritative_root: ".agents/skills"
 `.agents/skills/` is the authoritative woven-skill registry for Phase 1.
 Any `src/skills/local/` surface is transitional and must be classified rather than guessed.
 
-- Authoritative skills: `58`
+- Authoritative skills: `64`
 - Transitional local entries: `13`
 - Duplicate definitions: `4`
 - Active capability authority issues: `0`
@@ -49,6 +49,17 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contracts: `.agents/skills/annex/annex.feature`
 - Tests: `tests/contracts/test_annex.py, tests/empire_tests/test_annex_empire.py, tests/empire_tests/test_annex_preservation_empire.py`
 
+### artifact-forge
+- Authority Path: `.agents/skills/artifact-forge`
+- Entrypoint: `none`
+- Contract: `.agents/skills/artifact-forge/SKILL.md`
+- Runtime Trigger: `artifact-forge`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/artifact-forge/SKILL.md`
+- Tests: `tests/unit/test_artifact_forge.test.ts, tests/empire_tests/test_skill_forge_empire.py, tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py`
+
 ### autobot
 - Authority Path: `.agents/skills/autobot`
 - Entrypoint: `.agents/skills/autobot/scripts/autobot.py`
@@ -65,8 +76,8 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Entrypoint: `none`
 - Contract: `.agents/skills/bifrost/SKILL.md`
 - Runtime Trigger: `bifrost`
-- Owner Runtime: `cstar-kernel`
-- Host Support: `{"gemini": "supported", "codex": "supported", "claude": "supported"}`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/bifrost/SKILL.md`
 - Tests: `tests/unit/engine/test_bifrost.py, tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py, tests/unit/test_evolve_skill.py`
@@ -109,8 +120,8 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Entrypoint: `.agents/skills/chant/scripts/chant.py`
 - Contract: `.agents/skills/chant/chant.feature`
 - Runtime Trigger: `chant`
-- Owner Runtime: `cstar-kernel`
-- Host Support: `{"gemini": "supported", "codex": "supported", "claude": "supported"}`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `bounded-orchestrator`
 - Contracts: `.agents/skills/chant/chant.feature`
 - Tests: `tests/unit/test_chant_runtime.test.ts, tests/unit/node-runtime/weaves/test_chant.test.ts`
@@ -142,18 +153,29 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Entrypoint: `none`
 - Contract: `.agents/skills/corvus-control/corvus-control.feature`
 - Runtime Trigger: `corvus-control`
-- Owner Runtime: `cstar-kernel`
-- Host Support: `{"gemini": "supported", "codex": "supported", "claude": "supported"}`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/corvus-control/corvus-control.feature`
 - Tests: `tests/unit/engine/ravens/test_coordinator.py, tests/unit/engine/ravens/test_git_spoke.py, tests/unit/engine/ravens/test_muninn_hunter.py, tests/unit/engine/ravens/test_ravens_cycle.py`
+
+### critique
+- Authority Path: `.agents/skills/critique`
+- Entrypoint: `none`
+- Contract: `.agents/skills/critique/SKILL.md`
+- Runtime Trigger: `critique`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/architect/SKILL.md`
+- Tests: `tests/unit/node-runtime/weaves/test_critique.test.ts`
 
 ### distill
 - Authority Path: `.agents/skills/distill`
 - Entrypoint: `none`
 - Contract: `.agents/skills/distill/SKILL.md`
 - Runtime Trigger: `distill`
-- Owner Runtime: `host-agent`
+- Owner Runtime: `cstar-kernel`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/distill/SKILL.md`
@@ -208,11 +230,11 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Entrypoint: `.agents/skills/forge/scripts/forge.py`
 - Contract: `.agents/skills/forge/forge.feature`
 - Runtime Trigger: `forge`
-- Owner Runtime: `cstar-kernel`
-- Host Support: `{"gemini": "supported", "codex": "supported", "claude": "supported"}`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/forge/forge.feature`
-- Tests: `tests/unit/test_forge_candidate.py, tests/unit/test_taliesin_forge_runtime.test.ts, tests/unit/engine/ravens/test_ravens_runtime.py, tests/unit/node-runtime/adapters/test_legacy_commands.test.ts`
+- Tests: `tests/unit/test_forge_candidate.py, tests/unit/test_artifact_forge.test.ts, tests/unit/engine/ravens/test_ravens_runtime.py, tests/unit/node-runtime/adapters/test_legacy_commands.test.ts`
 
 ### gatekeeper
 - Authority Path: `.agents/skills/gatekeeper`
@@ -246,6 +268,17 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/hall/SKILL.md`
 - Tests: `tests/unit/test_hall_schema.py, tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py, tests/unit/test_evolve_skill.py`
+
+### host-subagent-handoff
+- Authority Path: `.agents/skills/host-subagent-handoff`
+- Entrypoint: `none`
+- Contract: `.agents/skills/host-subagent-handoff/SKILL.md`
+- Runtime Trigger: `host-subagent-handoff`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/host-subagent-handoff/SKILL.md`
+- Tests: `tests/unit/engine/test_skill_learning.py, tests/unit/node-runtime/weaves/test_host_governor.test.ts, tests/unit/node-runtime/weaves/test_host_worker.test.ts, tests/unit/test_autobot_skill.py`
 
 ### hunt
 - Authority Path: `.agents/skills/hunt`
@@ -312,6 +345,17 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/manifest/SKILL.md`
 - Tests: `tests/unit/test_skill_registry_audit.py, tests/unit/test_state_registry_projection.test.ts, tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py`
+
+### manuscript-optimizer
+- Authority Path: `.agents/skills/taliesin-optimizer/SKILL.md`
+- Entrypoint: `none`
+- Contract: `.agents/skills/taliesin-optimizer/SKILL.md`
+- Runtime Trigger: `taliesin-optimizer`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `../Taliesin/contracts/taliesin.feature`
+- Tests: `tests/unit/test_taliesin_optimizer.py`
 
 ### matrix
 - Authority Path: `.agents/skills/matrix`
@@ -428,8 +472,8 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Entrypoint: `.agents/skills/ravens/scripts/ravens.py`
 - Contract: `.agents/skills/ravens/ravens.feature`
 - Runtime Trigger: `ravens`
-- Owner Runtime: `cstar-kernel`
-- Host Support: `{"gemini": "supported", "codex": "supported", "claude": "supported"}`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `bounded-orchestrator`
 - Contracts: `.agents/skills/ravens/ravens.feature`
 - Tests: `tests/unit/engine/ravens/test_muninn_hunter.py, tests/unit/engine/ravens/test_coordinator.py, tests/unit/engine/ravens/test_git_spoke.py, tests/unit/engine/ravens/test_ravens_cycle.py`
@@ -538,8 +582,8 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Entrypoint: `none`
 - Contract: `.agents/skills/start/SKILL.md`
 - Runtime Trigger: `start`
-- Owner Runtime: `cstar-kernel`
-- Host Support: `{"gemini": "supported", "codex": "supported", "claude": "supported"}`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `bounded-orchestrator`
 - Contracts: `.agents/skills/start/SKILL.md`
 - Tests: `tests/unit/test_start_runtime.test.ts`
@@ -579,14 +623,36 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 
 ### taliesin
 - Authority Path: `.agents/skills/taliesin`
-- Entrypoint: `.agents/skills/taliesin/scripts/taliesin.py`
+- Entrypoint: `none`
 - Contract: `.agents/skills/taliesin/taliesin.feature`
 - Runtime Trigger: `taliesin`
 - Owner Runtime: `host-agent`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
-- Contracts: `.agents/skills/taliesin/taliesin.feature`
+- Contracts: `../Taliesin/contracts/taliesin.feature`
 - Tests: `tests/unit/test_taliesin.py`
+
+### taliesin-optimizer
+- Authority Path: `.agents/skills/taliesin-optimizer`
+- Entrypoint: `none`
+- Contract: `.agents/skills/taliesin-optimizer/SKILL.md`
+- Runtime Trigger: `taliesin-optimizer`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `../Taliesin/contracts/taliesin.feature`
+- Tests: `tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py, tests/unit/test_evolve_skill.py, tests/unit/test_memory_skill_compat.py`
+
+### taliesin-story-forge
+- Authority Path: `.agents/skills/taliesin/SKILL.md`
+- Entrypoint: `none`
+- Contract: `.agents/skills/taliesin/SKILL.md`
+- Runtime Trigger: `taliesin-story-forge`
+- Owner Runtime: `host-agent`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `../Taliesin/contracts/taliesin.feature`
+- Tests: `tests/unit/test_taliesin_story_forge.test.ts`
 
 ### taste-skill
 - Authority Path: `.agents/skills/taste-skill`
@@ -649,7 +715,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/warden/warden.feature`
 - Runtime Trigger: `warden`
 - Owner Runtime: `cstar-kernel`
-- Host Support: `{"gemini": "supported", "codex": "supported", "claude": "supported"}`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/warden/warden.feature`
 - Tests: `tests/quarantine/test_base_warden.py, tests/quarantine/test_freya_warden.py, tests/quarantine/test_session_warden_determinism_empire.py, tests/quarantine/test_warden_burnin.py`

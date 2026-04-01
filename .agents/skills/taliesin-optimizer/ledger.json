@@ -1,0 +1,10 @@
+{
+  "project": "Fallows Hallow",
+  "active_bead": null,
+  "global_best": {
+    "score": 97.5,
+    "genome_path": ".lore/voices/OptimizedGenome.txt",
+    "timestamp": "2026-03-30T22:00:00Z"
+  },
+  "history": []
+}

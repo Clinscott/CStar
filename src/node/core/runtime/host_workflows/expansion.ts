@@ -8,7 +8,7 @@ import {
     PennyOneWeavePayload
 } from '../contracts.ts';
 import chalk from 'chalk';
-import * as hostBridge from './host_bridge.js';
+import * as hostBridge from '../weaves/host_bridge.js';
 
 export const deps = {
     resolveRuntimeHostProvider: hostBridge.resolveRuntimeHostProvider,
@@ -70,7 +70,7 @@ function normalizeExpansionDecision(raw: string): ExpansionSupervisorDecision | 
  * 🔱 ESTATE EXPANSION WEAVE
  * Logic: Link (Spoke) -> Scan (PennyOne) -> Ingest (Oracle) -> Verify (Vitals)
  */
-export class EstateExpansionWeave implements RuntimeAdapter<EstateExpansionWeavePayload> {
+export class EstateExpansionHostWorkflow implements RuntimeAdapter<EstateExpansionWeavePayload> {
     public readonly id = 'weave:expansion';
 
     public constructor(
@@ -200,3 +200,5 @@ export class EstateExpansionWeave implements RuntimeAdapter<EstateExpansionWeave
         };
     }
 }
+
+export { EstateExpansionHostWorkflow as EstateExpansionWeave };

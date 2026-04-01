@@ -8,7 +8,7 @@ import {
     WeaveInvocation,
     WeaveResult,
 } from '../contracts.ts';
-import * as hostBridge from  './host_bridge.js';
+import * as hostBridge from  '../weaves/host_bridge.js';
 import { saveHallOneMindBranch, summarizeHallOneMindBranches } from '../../../../tools/pennyone/intel/database.js';
 import { buildHallRepositoryId, normalizeHallPath } from '../../../../types/hall.js';
 import type { HallOneMindBranchRecord } from '../../../../types/hall.js';
@@ -72,7 +72,7 @@ function buildResearchBranchMetadata(
     };
 }
 
-export class ResearchWeave implements RuntimeAdapter<ResearchWeavePayload> {
+export class ResearchHostWorkflow implements RuntimeAdapter<ResearchWeavePayload> {
     public readonly id = 'weave:research';
 
     public constructor(
@@ -88,7 +88,7 @@ export class ResearchWeave implements RuntimeAdapter<ResearchWeavePayload> {
 
         const provider = deps.resolveRuntimeHostProvider(context);
 
-        if (provider === 'codex') {
+        if (provider && provider !== 'gemini') {
             try {
                 const workspaceRoot = payload.project_root || context.workspace_root;
                 const branches = payload.subquestions && payload.subquestions.length > 0
@@ -98,18 +98,42 @@ export class ResearchWeave implements RuntimeAdapter<ResearchWeavePayload> {
                 const branchGroupId = buildResearchBranchGroupId(payload, context);
                 const now = Date.now();
                 const branchResults = await Promise.all(branchQuestions.map(async (question, index) => {
-                    const rawText = await this.hostTextInvoker({
-                        provider,
-                        projectRoot: workspaceRoot,
-                        source: branches.length > 0 ? `runtime:research:branch:${index}` : 'runtime:research',
-                        metadata: {
-                            transport_mode: 'host_session',
-                            one_mind_boundary: 'primary',
-                            execution_role: 'primary',
-                        },
-                        systemPrompt: 'You are the Corvus Star Research Agent. Return strict JSON only.',
-                        prompt: buildResearchPrompt(payload.intent, workspaceRoot, branches.length > 0 ? question : undefined),
-                    });
+                    const defaultTimeoutMs = provider === 'codex' && process.env.CODEX_SHELL !== '1'
+                        ? 300000
+                        : 15000;
+                    const timeoutMsRaw = Number(
+                        process.env.CSTAR_RESEARCH_HOST_TIMEOUT_MS
+                        ?? process.env.CSTAR_HOST_SESSION_TIMEOUT_MS
+                        ?? process.env.CORVUS_HOST_SESSION_TIMEOUT_MS
+                        ?? defaultTimeoutMs,
+                    );
+                    const timeoutMs = Number.isFinite(timeoutMsRaw) && timeoutMsRaw > 0 ? timeoutMsRaw : defaultTimeoutMs;
+                    let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+                    const rawText = await (async () => {
+                        try {
+                            return await Promise.race([
+                                this.hostTextInvoker({
+                                    provider,
+                                    projectRoot: workspaceRoot,
+                                    source: branches.length > 0 ? `runtime:research:branch:${index}` : 'runtime:research',
+                                    metadata: {
+                                        transport_mode: 'host_session',
+                                        one_mind_boundary: 'primary',
+                                        execution_role: 'primary',
+                                    },
+                                    systemPrompt: 'You are the Corvus Star Research Agent. Return strict JSON only.',
+                                    prompt: buildResearchPrompt(payload.intent, workspaceRoot, branches.length > 0 ? question : undefined),
+                                }),
+                                new Promise<string>((_, reject) => {
+                                    timeoutHandle = setTimeout(() => reject(new Error(`research host-session timeout after ${timeoutMs}ms`)), timeoutMs);
+                                }),
+                            ]);
+                        } finally {
+                            if (timeoutHandle) {
+                                clearTimeout(timeoutHandle);
+                            }
+                        }
+                    })();
                     const parsed = deps.extractJsonObject(rawText) as ResearchHostResponse;
                     const normalized = normalizeResearchResponse(parsed);
                     const record: HallOneMindBranchRecord = {
@@ -175,7 +199,7 @@ export class ResearchWeave implements RuntimeAdapter<ResearchWeavePayload> {
                     weave_id: this.id,
                     status: 'FAILURE',
                     output: '',
-                    error: `The Research Agent failed through the Codex host session: ${message}`,
+                    error: `The Research Agent failed through the ${provider} host session: ${message}`,
                 };
             }
         }
@@ -213,3 +237,5 @@ Instructions:
         };
     }
 }
+
+export { ResearchHostWorkflow as ResearchWeave };

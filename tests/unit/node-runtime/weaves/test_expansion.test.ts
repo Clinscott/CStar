@@ -1,7 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { EstateExpansionWeave, deps } from '../../../../src/node/core/runtime/weaves/expansion.js';
+import { EstateExpansionWeave, deps } from '../../../../src/node/core/runtime/host_workflows/expansion.js';
 
 describe('EstateExpansionWeave Unit Tests', () => {
     it('can return observe-only when the host supervisor declines onboarding execution', async () => {

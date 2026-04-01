@@ -1,4 +1,4 @@
-import { describe, it, mock } from 'node:test';
+import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -8,6 +8,35 @@ import { WeaveInvocation, WeaveResult } from  '../../../src/node/core/runtime/co
 import { registry } from  '../../../src/tools/pennyone/pathRegistry.js';
 
 describe('RuntimeDispatcher', () => {
+    const hostEnvKeys = [
+        'CODEX_SHELL',
+        'CODEX_THREAD_ID',
+        'CORVUS_HOST_PROVIDER',
+        'CORVUS_HOST_SESSION_ACTIVE',
+        'GEMINI_CLI_ACTIVE',
+        'GEMINI_CLI',
+    ] as const;
+    let originalHostEnv: Partial<Record<(typeof hostEnvKeys)[number], string | undefined>>;
+
+    beforeEach(() => {
+        originalHostEnv = Object.fromEntries(hostEnvKeys.map((key) => [key, process.env[key]]));
+        for (const key of hostEnvKeys) {
+            delete process.env[key];
+        }
+    });
+
+    afterEach(() => {
+        for (const key of hostEnvKeys) {
+            const value = originalHostEnv[key];
+            if (value === undefined) {
+                delete process.env[key];
+            } else {
+                process.env[key] = value;
+            }
+        }
+        mock.reset();
+    });
+
     it('should correctly dispatch to a registered adapter', async () => {
         const workspaceRoot = registry.getRoot();
         const mockAdapter = {
@@ -146,6 +175,90 @@ describe('RuntimeDispatcher', () => {
         assert.strictEqual(mockAdapter.execute.mock.callCount(), 1);
     });
 
+    it('allows pennyone normalize maintenance calls from the CLI without a trace block', async () => {
+        const workspaceRoot = registry.getRoot();
+        const mockAdapter = {
+            id: 'weave:pennyone',
+            execute: mock.fn(async (): Promise<WeaveResult> => ({
+                weave_id: 'weave:pennyone',
+                status: 'TRANSITIONAL',
+                output: 'PennyOne normalize completed.',
+            })),
+        };
+
+        const dispatcher = RuntimeDispatcher.createIsolated({
+            // @ts-ignore
+            resolveEstateTarget: () => ({ workspaceRoot, targetDomain: 'brain', requestedRoot: workspaceRoot }),
+            // @ts-ignore
+            stateRegistry: { updateMission: () => {}, updateFramework: () => {} },
+            activePersona: { name: 'ALFRED' },
+        });
+
+        dispatcher.registerAdapter(mockAdapter);
+
+        const result = await dispatcher.dispatch({
+            weave_id: 'weave:pennyone',
+            payload: {
+                action: 'normalize',
+                path: '.',
+            },
+            session: {
+                mode: 'cli',
+                interactive: true,
+            },
+            target: {
+                domain: 'brain',
+                workspace_root: workspaceRoot,
+                requested_path: workspaceRoot,
+            },
+        });
+
+        assert.strictEqual(result.status, 'TRANSITIONAL');
+        assert.strictEqual(mockAdapter.execute.mock.callCount(), 1);
+    });
+
+    it('allows pennyone report observation calls from the CLI without a trace block', async () => {
+        const workspaceRoot = registry.getRoot();
+        const mockAdapter = {
+            id: 'weave:pennyone',
+            execute: mock.fn(async (): Promise<WeaveResult> => ({
+                weave_id: 'weave:pennyone',
+                status: 'TRANSITIONAL',
+                output: 'PennyOne report completed.',
+            })),
+        };
+
+        const dispatcher = RuntimeDispatcher.createIsolated({
+            // @ts-ignore
+            resolveEstateTarget: () => ({ workspaceRoot, targetDomain: 'brain', requestedRoot: workspaceRoot }),
+            // @ts-ignore
+            stateRegistry: { updateMission: () => {}, updateFramework: () => {} },
+            activePersona: { name: 'ALFRED' },
+        });
+
+        dispatcher.registerAdapter(mockAdapter);
+
+        const result = await dispatcher.dispatch({
+            weave_id: 'weave:pennyone',
+            payload: {
+                action: 'report',
+                path: '.',
+            },
+            session: {
+                mode: 'cli',
+                interactive: true,
+            },
+            target: {
+                domain: 'brain',
+                workspace_root: workspaceRoot,
+                requested_path: workspaceRoot,
+            },
+        });
+
+        assert.strictEqual(result.status, 'TRANSITIONAL');
+        assert.strictEqual(mockAdapter.execute.mock.callCount(), 1);
+    });
+
     it('routes agent-native skill beads through the host bridge before runtime state updates', async () => {
         const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-host-skill-dispatch-'));
         fs.mkdirSync(path.join(tmpRoot, '.agents'), { recursive: true });
@@ -205,6 +318,197 @@ describe('RuntimeDispatcher', () => {
         assert.strictEqual(result.metadata?.adapter, 'host-session:agent-native-skill');
         assert.strictEqual(hostTextInvoker.mock.callCount(), 1);
         assert.strictEqual(updateMission.mock.callCount(), 0);
+    });
+
+    it('fails closed when chant forbids kernel fallback and no host session is active', async () => {
+        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-chant-host-required-'));
+        fs.mkdirSync(path.join(tmpRoot, '.agents'), { recursive: true });
+        fs.writeFileSync(
+            path.join(tmpRoot, '.agents', 'skill_registry.json'),
+            JSON.stringify({
+                entries: {
+                    chant: {
+                        execution: {
+                            mode: 'agent-native',
+                            adapter_id: 'weave:chant',
+                            allow_kernel_fallback: false,
+                        },
+                        host_support: {
+                            codex: 'exec-bridge',
+                        },
+                        runtime_trigger: 'chant',
+                    },
+                },
+            }),
+        );
+        registry.setRoot(tmpRoot);
+
+        delete process.env.CODEX_SHELL;
+        delete process.env.CODEX_THREAD_ID;
+        delete process.env.CORVUS_HOST_PROVIDER;
+        process.env.CORVUS_HOST_SESSION_ACTIVE = '0';
+
+        const chantAdapter = {
+            id: 'weave:chant',
+            execute: mock.fn(async (): Promise<WeaveResult> => ({
+                weave_id: 'weave:chant',
+                status: 'SUCCESS',
+                output: 'legacy node chant should not execute',
+            })),
+        };
+        const dispatcher = RuntimeDispatcher.createIsolated({
+            activePersona: { name: 'ODIN' },
+        });
+        dispatcher.registerAdapter(chantAdapter);
+
+        const result = await dispatcher.dispatch({
+            id: 'activation:chant:1',
+            skill_id: 'chant',
+            target_path: tmpRoot,
+            intent: 'plan the next Taliesin migration step',
+            params: {
+                query: 'plan the next Taliesin migration step',
+                project_root: tmpRoot,
+                cwd: tmpRoot,
+            },
+            status: 'PENDING',
+            priority: 1,
+        });
+
+        assert.strictEqual(result.status, 'FAILURE');
+        assert.match(result.error ?? '', /requires an active host session/i);
+        assert.strictEqual(result.metadata?.kernel_fallback_policy, 'forbidden');
+        assert.strictEqual(chantAdapter.execute.mock.callCount(), 0);
+        delete process.env.CORVUS_HOST_SESSION_ACTIVE;
+    });
+
+    it('fails closed when chant host activation errors and kernel fallback is forbidden', async () => {
+        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-chant-host-error-'));
+        fs.mkdirSync(path.join(tmpRoot, '.agents'), { recursive: true });
+        fs.writeFileSync(
+            path.join(tmpRoot, '.agents', 'skill_registry.json'),
+            JSON.stringify({
+                entries: {
+                    chant: {
+                        execution: {
+                            mode: 'agent-native',
+                            adapter_id: 'weave:chant',
+                            allow_kernel_fallback: false,
+                        },
+                        host_support: {
+                            codex: 'exec-bridge',
+                        },
+                        runtime_trigger: 'chant',
+                    },
+                },
+            }),
+        );
+        registry.setRoot(tmpRoot);
+
+        process.env.CODEX_SHELL = '1';
+        process.env.CODEX_THREAD_ID = 'thread-chant-host-error';
+
+        const chantAdapter = {
+            id: 'weave:chant',
+            execute: mock.fn(async (): Promise<WeaveResult> => ({
+                weave_id: 'weave:chant',
+                status: 'SUCCESS',
+                output: 'legacy node chant should not execute',
+            })),
+        };
+        const hostTextInvoker = mock.fn(async () => {
+            throw new Error('bridge timeout');
+        });
+        const dispatcher = RuntimeDispatcher.createIsolated({
+            hostTextInvoker,
+            activePersona: { name: 'ODIN' },
+        });
+        dispatcher.registerAdapter(chantAdapter);
+
+        const result = await dispatcher.dispatch({
+            id: 'activation:chant:2',
+            skill_id: 'chant',
+            target_path: tmpRoot,
+            intent: 'plan the next Taliesin migration step',
+            params: {
+                query: 'plan the next Taliesin migration step',
+                project_root: tmpRoot,
+                cwd: tmpRoot,
+            },
+            status: 'PENDING',
+            priority: 1,
+        });
+
+        delete process.env.CODEX_SHELL;
+        delete process.env.CODEX_THREAD_ID;
+
+        assert.strictEqual(result.status, 'FAILURE');
+        assert.match(result.error ?? '', /Host-native skill activation failed for 'chant': bridge timeout/);
+        assert.strictEqual(result.metadata?.kernel_fallback_policy, 'forbidden');
+        assert.strictEqual(chantAdapter.execute.mock.callCount(), 0);
+        assert.strictEqual(hostTextInvoker.mock.callCount(), 1);
+    });
+
+    it('blocks direct weave execution when the registry marks the adapter as a host-workflow with forbidden fallback', async () => {
+        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-host-weave-deny-'));
+        fs.mkdirSync(path.join(tmpRoot, '.agents'), { recursive: true });
+        fs.writeFileSync(
+            path.join(tmpRoot, '.agents', 'skill_registry.json'),
+            JSON.stringify({
+                entries: {
+                    chant: {
+                        execution: {
+                            mode: 'agent-native',
+                            adapter_id: 'weave:chant',
+                            ownership_model: 'host-workflow',
+                            allow_kernel_fallback: false,
+                        },
+                        runtime_trigger: 'chant',
+                    },
+                },
+            }),
+        );
+        registry.setRoot(tmpRoot);
+
+        const chantAdapter = {
+            id: 'weave:chant',
+            execute: mock.fn(async (): Promise<WeaveResult> => ({
+                weave_id: 'weave:chant',
+                status: 'SUCCESS',
+                output: 'node chant should not execute',
+            })),
+        };
+        const dispatcher = RuntimeDispatcher.createIsolated({
+            // @ts-ignore
+            resolveEstateTarget: () => ({ workspaceRoot: tmpRoot, targetDomain: 'brain', requestedRoot: tmpRoot }),
+            // @ts-ignore
+            stateRegistry: { updateMission: mock.fn(), updateFramework: mock.fn() },
+            activePersona: { name: 'ODIN' },
+        });
+        dispatcher.registerAdapter(chantAdapter);
+
+        const result = await dispatcher.dispatch({
+            weave_id: 'weave:chant',
+            payload: {
+                query: '// Corvus Star Trace [Ω]\nIntent: test direct weave path',
+                project_root: tmpRoot,
+                cwd: tmpRoot,
+            },
+            session: {
+                mode: 'subkernel',
+                interactive: false,
+            },
+            target: {
+                domain: 'brain',
+                workspace_root: tmpRoot,
+                requested_path: tmpRoot,
+            },
+        });
+
+        assert.strictEqual(result.status, 'FAILURE');
+        assert.match(result.error ?? '', /host-workflow/i);
+        assert.equal(result.metadata?.ownership_model, 'host-workflow');
+        assert.strictEqual(chantAdapter.execute.mock.callCount(), 0);
     });
 
     it('asks the host to supervise a failed kernel-backed skill and retries once when directed', async () => {

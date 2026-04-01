@@ -34,7 +34,8 @@
       "Use CStar Hall before broad local search.",
       "Route Corvus work through ./cstar and node bin/cstar.js.",
       "Keep registry and runtime contracts authoritative.",
-      "Treat host-executable capabilities as supervisor paths and kernel-backed capabilities as bounded local primitives."
+      "Treat host-executable capabilities as supervisor paths and kernel-backed capabilities as bounded local primitives.",
+      "Public host fronts with forbidden kernel fallback must fail closed when the host session is absent."
     ],
     "brandColor": "#0F6E5B"
   }

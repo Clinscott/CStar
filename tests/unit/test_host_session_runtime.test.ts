@@ -9,6 +9,8 @@ import {
     explainCapabilityHostSupport,
     getCapabilityExecutionMode,
     getCapabilityHostSupport,
+    getCapabilityKernelFallbackPolicy,
+    getCapabilityOwnershipModel,
     isHostSupportStatusAllowed,
 } from '../../src/core/host_session.js';
 
@@ -24,6 +26,7 @@ describe('Host session runtime support metadata', () => {
                         runtime_trigger: 'hall',
                         execution: {
                             mode: 'agent-native',
+                            ownership_model: 'host-workflow',
                         },
                         host_support: {
                             gemini: 'native-session',
@@ -35,11 +38,78 @@ describe('Host session runtime support metadata', () => {
                         runtime_trigger: 'silver_shield',
                         execution: {
                             mode: 'policy-only',
+                            ownership_model: 'host-workflow',
                         },
                         host_support: {
                             gemini: 'policy-only',
                             codex: 'policy-only',
                             claude: 'policy-only',
+                        },
+                    },
+                    chant: {
+                        runtime_trigger: 'chant',
+                        execution: {
+                            mode: 'agent-native',
+                            adapter_id: 'weave:chant',
+                            allow_kernel_fallback: false,
+                            ownership_model: 'host-workflow',
+                        },
+                        host_support: {
+                            gemini: 'native-session',
+                            codex: 'exec-bridge',
+                            claude: 'exec-bridge',
+                        },
+                    },
+                    ravens: {
+                        runtime_trigger: 'ravens',
+                        execution: {
+                            mode: 'agent-native',
+                            allow_kernel_fallback: false,
+                            ownership_model: 'host-workflow',
+                        },
+                        host_support: {
+                            gemini: 'native-session',
+                            codex: 'exec-bridge',
+                            claude: 'exec-bridge',
+                        },
+                    },
+                    start: {
+                        runtime_trigger: 'start',
+                        execution: {
+                            mode: 'agent-native',
+                            allow_kernel_fallback: false,
+                            ownership_model: 'host-workflow',
+                        },
+                        host_support: {
+                            gemini: 'native-session',
+                            codex: 'exec-bridge',
+                            claude: 'exec-bridge',
+                        },
+                    },
+                    research: {
+                        runtime_trigger: 'research',
+                        execution: {
+                            mode: 'agent-native',
+                            allow_kernel_fallback: false,
+                            ownership_model: 'host-workflow',
+                        },
+                        host_support: {
+                            gemini: 'native-session',
+                            codex: 'exec-bridge',
+                            claude: 'exec-bridge',
+                        },
+                    },
+                    critique: {
+                        runtime_trigger: 'critique',
+                        execution: {
+                            mode: 'agent-native',
+                            allow_kernel_fallback: false,
+                            ownership_model: 'host-workflow',
+                        },
+                        host_support: {
+                            gemini: 'native-session',
+                            codex: 'exec-bridge',
+                            claude: 'exec-bridge',
                         },
                     },
                 },
@@ -51,8 +121,47 @@ describe('Host session runtime support metadata', () => {
         assert.equal(getCapabilityHostSupport(tmpRoot, 'silver_shield', 'codex'), 'policy-only');
         assert.equal(getCapabilityExecutionMode(tmpRoot, 'hall'), 'agent-native');
         assert.equal(getCapabilityExecutionMode(tmpRoot, 'silver_shield'), 'policy-only');
+        assert.equal(getCapabilityOwnershipModel(tmpRoot, 'hall'), 'host-workflow');
+        assert.equal(getCapabilityOwnershipModel(tmpRoot, 'critique'), 'host-workflow');
+        assert.equal(getCapabilityExecutionMode(tmpRoot, 'weave:chant'), 'agent-native');
+        assert.equal(getCapabilityOwnershipModel(tmpRoot, 'weave:chant'), 'host-workflow');
+        assert.equal(getCapabilityKernelFallbackPolicy(tmpRoot, 'weave:chant'), 'forbidden');
+        assert.equal(getCapabilityKernelFallbackPolicy(tmpRoot, 'chant'), 'forbidden');
+        assert.equal(getCapabilityKernelFallbackPolicy(tmpRoot, 'ravens'), 'forbidden');
+        assert.equal(getCapabilityKernelFallbackPolicy(tmpRoot, 'start'), 'forbidden');
+        assert.equal(getCapabilityKernelFallbackPolicy(tmpRoot, 'research'), 'forbidden');
+        assert.equal(getCapabilityKernelFallbackPolicy(tmpRoot, 'critique'), 'forbidden');
+        assert.equal(getCapabilityKernelFallbackPolicy(tmpRoot, 'hall'), 'allowed');
         assert.equal(isHostSupportStatusAllowed(getCapabilityHostSupport(tmpRoot, 'hall', 'codex')), true);
         assert.equal(isHostSupportStatusAllowed(getCapabilityHostSupport(tmpRoot, 'silver_shield', 'codex')), false);
+    });
+
+    it('defaults ownership by execution mode when the registry omits an explicit model', () => {
+        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-host-ownership-defaults-'));
+        fs.mkdirSync(path.join(tmpRoot, '.agents'), { recursive: true });
+        fs.writeFileSync(
+            path.join(tmpRoot, '.agents', 'skill_registry.json'),
+            JSON.stringify({
+                entries: {
+                    autobot: {
+                        runtime_trigger: 'autobot',
+                        execution: {
+                            mode: 'kernel-backed',
+                        },
+                    },
+                    hall: {
+                        runtime_trigger: 'hall',
+                        execution: {
+                            mode: 'agent-native',
+                        },
+                    },
+                },
+            }),
+            'utf-8',
+        );
+
+        assert.equal(getCapabilityOwnershipModel(tmpRoot, 'autobot'), 'kernel-primitive');
+        assert.equal(getCapabilityOwnershipModel(tmpRoot, 'hall'), 'host-workflow');
     });
 
     it('explains unsupported capabilities with registry-backed wording', () => {

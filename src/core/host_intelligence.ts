@@ -39,11 +39,14 @@ export async function requestHostText(
     }
 
     const clientFactory = dependencies.clientFactory ?? ((options: MimirClientOptions) => new MimirClient(options));
+    const timeoutRaw = Number(env.CSTAR_HOST_SESSION_TIMEOUT_MS ?? env.CORVUS_HOST_SESSION_TIMEOUT_MS ?? '');
+    const hostSessionTimeoutMs = Number.isFinite(timeoutRaw) && timeoutRaw > 0 ? timeoutRaw : undefined;
     const client = clientFactory({
         projectRoot: request.projectRoot,
         env,
         hostSessionActive: true,
         hostProvider: provider,
+        hostSessionTimeoutMs,
     });
 
     const intelligenceRequest = {

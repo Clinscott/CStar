@@ -261,6 +261,8 @@ if __name__ == "__main__":
 
 import pytest
 
+DRAFT_TEST_MESSAGE = "Generated draft test scaffold requires implementation."
+
 class Test{name.title().replace('_', '')}:
     """
     Test suite for {name}.
@@ -268,13 +270,11 @@ class Test{name.title().replace('_', '')}:
 
     def test_basic_functionality(self):
         """Test basic operation."""
-        # TODO: Implement test
-        assert True
+        pytest.skip(DRAFT_TEST_MESSAGE)
 
     def test_edge_case_empty_input(self):
         """Test behavior with empty input."""
-        # TODO: Implement edge case
-        assert True
+        pytest.skip(DRAFT_TEST_MESSAGE)
 
 
 if __name__ == "__main__":

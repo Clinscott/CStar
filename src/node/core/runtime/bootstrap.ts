@@ -4,19 +4,20 @@ import {
     PennyOneAdapter, 
     RavensAdapter, 
     StartAdapter,
-    RestorationWeave,
-    EstateExpansionWeave,
-    VigilanceWeave
+    RestorationHostWorkflow,
+    EstateExpansionHostWorkflow,
+    VigilanceHostWorkflow
 } from  './adapters.js';
 import { AutoBotWeave } from  './weaves/autobot.js';
 import { HostWorkerWeave } from  './weaves/host_worker.js';
-import { ChantWeave } from  './weaves/chant.js';
+import { ChantHostWorkflow } from  './host_workflows/chant.js';
 import { EvolveWeave } from  './weaves/evolve.js';
 import { RavensCycleWeave, RavensStageContractAdapter } from  './weaves/ravens_cycle.js';
-import { TaliesinForgeWeave } from  './weaves/taliesin_forge.js';
-import { ResearchWeave } from  './weaves/research.js';
-import { CritiqueWeave } from  './weaves/critique.js';
-import { ArchitectWeave } from  './weaves/architect.js';
+import { ArtifactForgeHostWorkflow } from  './host_workflows/artifact_forge.js';
+import { TaliesinForgeHostWorkflow } from  './host_workflows/taliesin_forge.js';
+import { ResearchHostWorkflow } from  './host_workflows/research.js';
+import { CritiqueHostWorkflow } from  './host_workflows/critique.js';
+import { ArchitectCompatibilityAdapter } from  './compat/architect.js';
 import { DistillWeave } from  './weaves/distill.js';
 import { OrchestrateWeave } from  './weaves/orchestrate.js';
 import { HostGovernorWeave } from  './weaves/host_governor.js';
@@ -30,12 +31,14 @@ import { bootstrapEnv } from '../../../../scripts/env_bootstrap.js';
 
 /**
  * [Ω] RUNTIME BOOTSTRAP
- * Purpose: Initialize the canonical dispatcher with built-in weaves and adapters.
+ * Purpose: Initialize the canonical kernel dispatcher with bounded adapters and registry-backed workflow records.
  */
 export function bootstrapRuntime(dispatcher: RuntimeDispatcher = RuntimeDispatcher.getInstance()): RuntimeDispatcher {
     // Environmental Bootstrap
     bootstrapEnv();
 
+    // These adapters are kernel-visible records and bounded primitives.
+    // Many expose host-native skills/weaves above the kernel rather than Node-owned cognition.
     const adapters = [
         new StartAdapter(dispatcher),
         new RavensAdapter(),
@@ -47,21 +50,22 @@ export function bootstrapRuntime(dispatcher: RuntimeDispatcher = RuntimeDispatch
         new PennyOneAdapter(),
         new AutoBotWeave(),
         new HostWorkerWeave(),
-        new ChantWeave(dispatcher),
-        new ResearchWeave(dispatcher),
+        new ChantHostWorkflow(dispatcher),
+        new ResearchHostWorkflow(dispatcher),
         new DistillWeave(),
-        new CritiqueWeave(dispatcher),
-        new ArchitectWeave(dispatcher),
+        new CritiqueHostWorkflow(dispatcher),
+        new ArchitectCompatibilityAdapter(dispatcher),
         new EvolveWeave(),
-        new TaliesinForgeWeave(),
+        new ArtifactForgeHostWorkflow(),
+        new TaliesinForgeHostWorkflow(),
         new DynamicCommandAdapter(),
         new OrchestrateWeave(dispatcher),
         new HostGovernorWeave(dispatcher),
         new TemporalLearningWeave(),
-        new RestorationWeave(dispatcher),
-        new EstateExpansionWeave(dispatcher),
+        new RestorationHostWorkflow(dispatcher),
+        new EstateExpansionHostWorkflow(dispatcher),
         new WardenWeave(dispatcher),
-        new VigilanceWeave(dispatcher),
+        new VigilanceHostWorkflow(dispatcher),
     ];
 
     for (const adapter of adapters) {
@@ -70,7 +74,7 @@ export function bootstrapRuntime(dispatcher: RuntimeDispatcher = RuntimeDispatch
         }
     }
 
-    // Dynamic Discovery: Universal Adapters
+    // Dynamic Discovery: registry-backed adapter records for host-native capabilities and bounded primitives.
     try {
         const root = process.env.CSTAR_PROJECT_ROOT || registry.getRoot();
         const skillRegistryPath = join(root, '.agents', 'skill_registry.json');

@@ -8,6 +8,16 @@ import { resolveWorkspaceRoot, withCliWorkspaceTarget, type WorkspaceRootSource 
 export function buildPennyOneInvocation(options: {
     scan?: string | boolean;
     refreshIntents?: string | boolean;
+    normalize?: string | boolean;
+    report?: string | boolean;
+    artifacts?: string | boolean;
+    status?: string | boolean;
+    kind?: 'normalize' | 'report' | 'maintenance';
+    limit?: string;
+    since?: string;
+    sinceDate?: string;
+    json?: boolean;
+    estate?: boolean;
     view?: boolean;
     clean?: boolean;
     stats?: boolean;
@@ -43,6 +53,64 @@ export function buildPennyOneInvocation(options: {
                 action: 'refresh_intents',
                 path: typeof options.refreshIntents === 'string' ? options.refreshIntents : '.',
             },
+        }, workspaceRoot);
+    }
+
+    if (options.normalize) {
+        return withCliWorkspaceTarget({
+            weave_id: 'weave:pennyone',
+            payload: {
+                action: 'normalize',
+                path: typeof options.normalize === 'string' ? options.normalize : '.',
+                estate: options.estate ?? false,
+            },
+        }, workspaceRoot);
+    }
+
+    if (options.report) {
+        return withCliWorkspaceTarget({
+            weave_id: 'weave:pennyone',
+            payload: {
+                action: 'report',
+                path: typeof options.report === 'string' ? options.report : '.',
+                estate: options.estate ?? false,
+            },
+        }, workspaceRoot);
+    }
+
+    if (options.artifacts) {
+        const payload: PennyOneWeavePayload = {
+            action: 'artifacts',
+            path: typeof options.artifacts === 'string' ? options.artifacts : '.',
+            estate: options.estate ?? false,
+            artifact_kind: options.kind,
+            limit: options.limit ? Number.parseInt(options.limit, 10) : undefined,
+            since: options.since,
+        };
+        if (options.sinceDate) {
+            payload.since_date = options.sinceDate;
+        }
+        return withCliWorkspaceTarget({
+            weave_id: 'weave:pennyone',
+            payload,
+        }, workspaceRoot);
+    }
+
+    if (options.status) {
+        const payload: PennyOneWeavePayload = {
+            action: 'status',
+            path: typeof options.status === 'string' ? options.status : '.',
+            estate: options.estate ?? false,
+            artifact_kind: options.kind,
+            limit: options.limit ? Number.parseInt(options.limit, 10) : undefined,
+            since: options.since,
+        };
+        if (options.sinceDate) {
+            payload.since_date = options.sinceDate;
+        }
+        return withCliWorkspaceTarget({
+            weave_id: 'weave:pennyone',
+            payload,
         }, workspaceRoot);
     }
 
@@ -111,6 +179,16 @@ export function registerPennyOneCommand(
         .description('Operation PennyOne: 3D Neural Matrix & Repository Stats')
         .option('-s, --scan [path]', 'Scan the repository for stats and Gungnir scores', '.')
         .option('--refresh-intents [path]', 'Re-enrich Hall records that still carry the offline semantic-intent placeholder')
+        .option('--normalize [path]', 'Backfill explicit Hall authority metadata for legacy beads, planning sessions, skill proposals, and documents')
+        .option('--report [path]', 'Report recent Hall normalize receipts and current per-root Hall hygiene without mutating state')
+        .option('--artifacts [path]', 'List recent PennyOne maintenance artifacts already recorded in Hall without recomputing them')
+        .option('--status [path]', 'Return combined Hall hygiene status with latest receipts, reports, and maintenance artifacts')
+        .option('--kind <kind>', 'Filter maintenance artifacts by kind: normalize, report, or maintenance')
+        .option('--limit <count>', 'Limit listed maintenance artifacts per root')
+        .option('--since <window>', 'Filter maintenance artifacts newer than a relative window such as 24h, 7d, or 30m')
+        .option('--since-date <date>', 'Filter maintenance artifacts on or after an absolute UTC date in YYYY-MM-DD form')
+        .option('--json', 'Emit machine-readable JSON instead of formatted text')
+        .option('--estate', 'Apply the selected PennyOne maintenance action across every canonical Hall repository in the current estate database')
         .option('-v, --view', 'Spin up the 3D Gungnir Matrix visualization bridge')
         .option('-c, --clean', 'Purge the .stats/ directory and all archived sessions')
         .option('--stats', 'View long-term agent activity and logic loop analytics')
@@ -121,6 +199,16 @@ export function registerPennyOneCommand(
         .action(async (options: {
             scan?: string | boolean;
             refreshIntents?: string | boolean;
+            normalize?: string | boolean;
+            report?: string | boolean;
+            artifacts?: string | boolean;
+            status?: string | boolean;
+            kind?: 'normalize' | 'report' | 'maintenance';
+            limit?: string;
+            since?: string;
+            sinceDate?: string;
+            json?: boolean;
+            estate?: boolean;
             view?: boolean;
             clean?: boolean;
             stats?: boolean;
@@ -130,7 +218,25 @@ export function registerPennyOneCommand(
             topology?: boolean;
         }) => {
             const workspaceRoot = resolveWorkspaceRoot(workspaceRootSource);
-            const result = await dispatchPort.dispatch(buildPennyOneInvocation(options, workspaceRoot));
-            renderStandardCommandResult(result, workspaceRoot);
+            const previousJsonOutput = process.env.CSTAR_JSON_OUTPUT;
+            if (options.json) {
+                process.env.CSTAR_JSON_OUTPUT = '1';
+            }
+            try {
+                const result = await dispatchPort.dispatch(buildPennyOneInvocation(options, workspaceRoot));
+                if (options.json) {
+                    process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+                    return;
+                }
+                renderStandardCommandResult(result, workspaceRoot);
+            } finally {
+                if (options.json) {
+                    if (previousJsonOutput === undefined) {
+                        delete process.env.CSTAR_JSON_OUTPUT;
+                    } else {
+                        process.env.CSTAR_JSON_OUTPUT = previousJsonOutput;
+                    }
+                }
+            }
         });
 }

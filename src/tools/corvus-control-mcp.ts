@@ -175,22 +175,25 @@ export function createCorvusControlServer(dependencies: ControlPlaneDependencies
     const commandRunner = dependencies.commandRunner ?? execa;
 
     server.tool(
-        'taliesin_forge',
-        'Forge code from a canonical bead-backed TALIESIN request.',
+        'artifact_forge',
+        'Forge code from a canonical bead-backed request.',
         {
             beadId: z.string().describe('Canonical bead id to forge from'),
-            persona: z.string().optional().describe('Optional TALIESIN persona override'),
+            persona: z.string().optional().describe('Optional persona override (default: ODIN)'),
             model: z.string().optional().describe('Optional model override'),
         },
         async ({ beadId, persona, model }) => {
             const missionId = `FORGE-${Date.now()}`;
-            await logTrace(missionId, 'CREATION', 'STARTED', `Forging from bead: ${beadId}`);
+            await logTrace(missionId, 'CREATION', 'STARTED', `Forging artifact from bead: ${beadId}`);
 
             try {
                 const cstarPath = path.join(PROJECT_ROOT, 'bin/cstar.js');
-                const args = ['forge', '--bead-id', beadId];
-                if (persona) args.push('--persona', persona);
-                if (model) args.push('--model', model);
+                // The root cstar.ts handles 'forge' command by dispatching to weave:artifact-forge
+                const args = ['run-skill', 'weave:artifact-forge', '--payload', JSON.stringify({
+                    bead_id: beadId,
+                    persona: persona || 'ODIN',
+                    model: model
+                })];
 
                 const { stdout, stderr } = await commandRunner('node', [cstarPath, ...args]);
                 await logTrace(missionId, 'CREATION', 'SUCCESS', `Artifact forged for bead: ${beadId}`);
@@ -198,9 +201,46 @@ export function createCorvusControlServer(dependencies: ControlPlaneDependencies
                     content: [{ type: 'text', text: stdout || stderr }],
                 };
             } catch (error: any) {
-                await logTrace(missionId, 'CREATION', 'ERROR', `Forge failed: ${error.message}`);
+                await logTrace(missionId, 'CREATION', 'ERROR', `Artifact forge failed: ${error.message}`);
                 return {
-                    content: [{ type: 'text', text: `Forge failed: ${error.message}` }],
+                    content: [{ type: 'text', text: `Artifact forge failed: ${error.message}` }],
+                    isError: true,
+                };
+            }
+        },
+    );
+
+    server.tool(
+        'taliesin_forge',
+        'Materialize a manuscript chapter (storytelling) using the Autonomic Narrative Engine.',
+        {
+            scenario: z.string().describe('Opening scenario overview'),
+            details: z.string().describe('Narrative details to hit'),
+            conclusion: z.string().describe('Required conclusion'),
+            chars: z.array(z.string()).describe('List of characters involved'),
+        },
+        async ({ scenario, details, conclusion, chars }) => {
+            const missionId = `STORY-${Date.now()}`;
+            await logTrace(missionId, 'NARRATIVE', 'STARTED', `Forging story scene: ${scenario.slice(0, 30)}`);
+
+            try {
+                const cstarPath = path.join(PROJECT_ROOT, 'bin/cstar.js');
+                const args = ['run-skill', 'weave:taliesin-forge', '--payload', JSON.stringify({
+                    scenario,
+                    details,
+                    conclusion,
+                    chars
+                })];
+
+                const { stdout, stderr } = await commandRunner('node', [cstarPath, ...args]);
+                await logTrace(missionId, 'NARRATIVE', 'SUCCESS', `Story scene forged successfully.`);
+                return {
+                    content: [{ type: 'text', text: stdout || stderr }],
+                };
+            } catch (error: any) {
+                await logTrace(missionId, 'NARRATIVE', 'ERROR', `Story forge failed: ${error.message}`);
+                return {
+                    content: [{ type: 'text', text: `Story forge failed: ${error.message}` }],
                     isError: true,
                 };
             }
@@ -392,7 +432,8 @@ Corvus Star uses the Model Context Protocol (MCP) to unify Node.js intelligence 
    - consult_oracle: (SKILL) Consult Gungnir Oracle for deep analysis.
 
 2. corvus-control (The Bridge)
-   - taliesin_forge: (SKILL) Forge code from canonical bead-backed requests.
+   - artifact_forge: (SKILL) Forge code from canonical bead-backed requests.
+   - taliesin_forge: (SKILL) Materialize a manuscript chapter (storytelling).
    - execute_cstar_command: Run core CLI commands (start, odin, ravens).
    - run_workflow: Execute high-level Sovereign workflows.
    - get_system_vitals: Monitor system health and suggestions.

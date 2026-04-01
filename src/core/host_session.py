@@ -54,7 +54,7 @@ def is_interactive_host_session(env: dict[str, str] | None = None) -> bool:
     if provider == "gemini":
         return current_env.get("GEMINI_CLI_ACTIVE") == "true" or current_env.get("GEMINI_CLI") == "1"
     if provider == "codex":
-        return current_env.get("CODEX_SHELL") == "1" or bool(current_env.get("CODEX_THREAD_ID"))
+        return current_env.get("CODEX_SHELL") == "1"
     return False
 
 

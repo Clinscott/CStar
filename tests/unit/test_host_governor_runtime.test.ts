@@ -377,7 +377,7 @@ describe('Host governor runtime weave', () => {
                     'src/node/core/runtime/adapters.ts',
                     'src/node/core/runtime/dispatcher.ts',
                     'src/node/core/runtime/bootstrap.ts',
-                    'src/node/core/runtime/weaves/chant.ts',
+                    'src/node/core/runtime/host_workflows/chant.ts',
                 ],
             },
             created_at: now + 1,

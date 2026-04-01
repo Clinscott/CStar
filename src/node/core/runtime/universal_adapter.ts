@@ -12,6 +12,7 @@ export interface RegistryEntry {
         cli?: string;
         adapter_id?: string;
         script_path?: string;
+        ownership_model?: string;
     };
 }
 
@@ -29,6 +30,19 @@ export class UniversalAdapter implements RuntimeAdapter {
     }
 
     public async execute(invocation: WeaveInvocation<any>, context: RuntimeContext): Promise<WeaveResult> {
+        if (this.config.execution.ownership_model === 'host-workflow') {
+            return {
+                weave_id: this.id,
+                status: 'FAILURE',
+                output: '',
+                error: `[ALFRED]: "Capability '${this.id}' is cataloged as a host-workflow. The Node kernel may register it, but must not execute it."`,
+                metadata: {
+                    execution_boundary: 'host-native-required',
+                    ownership_model: 'host-workflow',
+                },
+            };
+        }
+
         // If it's kernel-backed and has a script path, delegate to Python adapter
         if (this.config.execution.mode === 'kernel-backed' && this.config.execution.script_path) {
             const pythonAdapter = new PythonSkillAdapter(this.id, this.config.execution.script_path);

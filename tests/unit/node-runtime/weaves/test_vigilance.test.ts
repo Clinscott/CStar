@@ -1,7 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { VigilanceWeave, deps } from '../../../../src/node/core/runtime/weaves/vigilance.js';
+import { VigilanceWeave, deps } from '../../../../src/node/core/runtime/host_workflows/vigilance.js';
 
 describe('VigilanceWeave Unit Tests', () => {
     it('can return observe-only when the host supervisor declines execution', async () => {

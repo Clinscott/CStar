@@ -1,18 +1,18 @@
 {
   "version": "2.0",
-  "generated_at": 1774543773111,
+  "generated_at": 1775043381870,
   "tiers": {
     "PRIME": {
-      "description": "Atomic operations (observe/reason/mutate/isolate)"
+      "description": "Atomic host-native or kernel-primitive operations used as the smallest bounded units."
     },
     "SKILL": {
-      "description": "Discrete functional capabilities"
+      "description": "Discrete host-native capabilities that may invoke bounded kernel primitives when the registry allows it."
     },
     "WEAVE": {
-      "description": "Linear chains of skills/primes"
+      "description": "Host-native workflow compositions that weave multiple skills/primes into a larger effect while the kernel catalogs and dispatches them."
     },
     "SPELL": {
-      "description": "Recursive feedback loops over weaves"
+      "description": "Host-native recursive policies and workflow loops over skills/weaves; not a Node-runtime ownership tier."
     }
   },
   "intent_grammar": {
@@ -152,7 +152,8 @@
       "instruction_path": ".agents/skills/hall/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar hall"
+        "cli": "cstar hall",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -184,7 +185,8 @@
       "instruction_path": ".agents/skills/mimir/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar hall"
+        "cli": "cstar hall",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -216,7 +218,8 @@
       "instruction_path": ".agents/skills/vitals/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar vitals"
+        "cli": "cstar vitals",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -248,7 +251,8 @@
       "instruction_path": ".agents/skills/status/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar status"
+        "cli": "cstar status",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -281,7 +285,8 @@
       "execution": {
         "mode": "kernel-backed",
         "cli": "cstar metrics",
-        "script_path": ".agents/skills/metrics/scripts/metrics.py"
+        "script_path": ".agents/skills/metrics/scripts/metrics.py",
+        "ownership_model": "kernel-primitive"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -314,7 +319,8 @@
       "execution": {
         "mode": "kernel-backed",
         "cli": "cstar scan",
-        "script_path": ".agents/skills/scan/scripts/scan.py"
+        "script_path": ".agents/skills/scan/scripts/scan.py",
+        "ownership_model": "kernel-primitive"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -344,7 +350,8 @@
       "instruction_path": ".agents/skills/manifest/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar manifest"
+        "cli": "cstar manifest",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -376,7 +383,8 @@
       "instruction_path": ".agents/skills/qmd_search/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar qmd_search"
+        "cli": "cstar qmd_search",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -408,7 +416,8 @@
       "instruction_path": ".agents/skills/oracle/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar oracle"
+        "cli": "cstar oracle",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -438,7 +447,8 @@
       "instruction_path": ".agents/skills/calculus/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar calculus"
+        "cli": "cstar calculus",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -470,7 +480,8 @@
       "instruction_path": ".agents/skills/trace/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar trace"
+        "cli": "cstar trace",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -499,7 +510,8 @@
       "instruction_path": ".agents/skills/style/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar style"
+        "cli": "cstar style",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -530,7 +542,8 @@
       "description": "Direct One Mind conduit for recording file intelligence into the Hall of Records.",
       "instruction_path": ".agents/skills/agentic-ingest/SKILL.md",
       "execution": {
-        "mode": "agent-native"
+        "mode": "agent-native",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -558,12 +571,14 @@
     "forge": {
       "tier": "PRIME",
       "prime_category": "mutation",
-      "description": "Translate lore fragments into staged code artifacts through the Taliesin Forge pipeline.",
+      "description": "Translate lore fragments into staged code artifacts through the Artifact Forge pipeline.",
       "instruction_path": ".agents/skills/forge/SKILL.md",
       "execution": {
         "mode": "agent-native",
         "cli": "cstar forge",
-        "adapter_id": "weave:forge"
+        "adapter_id": "weave:artifact-forge",
+        "allow_kernel_fallback": false,
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -582,7 +597,7 @@
       ],
       "tests": [
         "tests/unit/test_forge_candidate.py",
-        "tests/unit/test_taliesin_forge_runtime.test.ts",
+        "tests/unit/test_artifact_forge.test.ts",
         "tests/unit/engine/ravens/test_ravens_runtime.py",
         "tests/unit/node-runtime/adapters/test_legacy_commands.test.ts"
       ],
@@ -595,7 +610,8 @@
       "instruction_path": ".agents/skills/scribe/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar scribe"
+        "cli": "cstar scribe",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -627,7 +643,8 @@
       "instruction_path": ".agents/skills/report/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar report"
+        "cli": "cstar report",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -658,7 +675,8 @@
       "instruction_path": ".agents/skills/jailing/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar jailing"
+        "cli": "cstar jailing",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -690,7 +708,8 @@
       "instruction_path": ".agents/skills/gatekeeper/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar gatekeeper"
+        "cli": "cstar gatekeeper",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "high-authority",
@@ -722,7 +741,8 @@
       "instruction_path": ".agents/skills/locks/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar locks"
+        "cli": "cstar locks",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -747,13 +767,43 @@
       ],
       "runtime_trigger": "locks"
     },
+    "manuscript-optimizer": {
+      "tier": "SKILL",
+      "description": "The Karpathy Auto-Researcher Loop for high-fidelity narrative optimization.",
+      "instruction_path": ".agents/skills/taliesin-optimizer/SKILL.md",
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar taliesin-optimizer",
+        "ownership_model": "host-workflow"
+      },
+      "viability": "ACTIVE",
+      "risk": "safe",
+      "authority_path": ".agents/skills/taliesin-optimizer/SKILL.md",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/taliesin-optimizer/SKILL.md",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        "../Taliesin/contracts/taliesin.feature"
+      ],
+      "tests": [
+        "tests/unit/test_taliesin_optimizer.py"
+      ],
+      "runtime_trigger": "taliesin-optimizer"
+    },
     "annex": {
       "tier": "SKILL",
       "description": "Audit the repository for structural weaknesses and create annexation plans.",
       "instruction_path": ".agents/skills/annex/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar annex"
+        "cli": "cstar annex",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -783,7 +833,8 @@
       "instruction_path": ".agents/skills/autobot/SKILL.md",
       "execution": {
         "mode": "kernel-backed",
-        "adapter_id": "weave:autobot"
+        "adapter_id": "weave:autobot",
+        "ownership_model": "kernel-primitive"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -811,7 +862,8 @@
       "instruction_path": ".agents/skills/bookmark-weaver/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar bookmark-weaver"
+        "cli": "cstar bookmark-weaver",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -842,7 +894,8 @@
       "instruction_path": ".agents/skills/cachebro/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar cachebro"
+        "cli": "cstar cachebro",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -874,7 +927,9 @@
       "execution": {
         "mode": "agent-native",
         "cli": "cstar chant",
-        "adapter_id": "weave:chant"
+        "adapter_id": "weave:chant",
+        "allow_kernel_fallback": false,
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -903,7 +958,8 @@
       "instruction_path": ".agents/skills/chronicle/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar chronicle"
+        "cli": "cstar chronicle",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -934,14 +990,15 @@
       "instruction_path": ".agents/skills/distill/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar distill"
+        "cli": "cstar distill",
+        "ownership_model": "kernel-primitive"
       },
       "viability": "ACTIVE",
       "risk": "safe",
       "authority_path": ".agents/skills/distill",
       "entrypoint_path": null,
       "contract_path": ".agents/skills/distill/SKILL.md",
-      "owner_runtime": "host-agent",
+      "owner_runtime": "cstar-kernel",
       "host_support": {
         "gemini": "native-session",
         "codex": "exec-bridge",
@@ -962,7 +1019,8 @@
       "instruction_path": ".agents/skills/consciousness/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar consciousness"
+        "cli": "cstar consciousness",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -993,7 +1051,8 @@
       "instruction_path": ".agents/skills/corvus-control/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar"
+        "cli": "cstar",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -1024,7 +1083,8 @@
       "instruction_path": ".agents/skills/edda/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar edda"
+        "cli": "cstar edda",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -1055,7 +1115,8 @@
       "instruction_path": ".agents/skills/empire/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar empire"
+        "cli": "cstar empire",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -1085,7 +1146,8 @@
       "description": "The Core CStar Kernel. Manages the execution spine and runtime dispatcher.",
       "instruction_path": ".agents/skills/engine/SKILL.md",
       "execution": {
-        "mode": "kernel-backed"
+        "mode": "kernel-backed",
+        "ownership_model": "kernel-primitive"
       },
       "viability": "ACTIVE",
       "risk": "safety-critical",
@@ -1116,7 +1178,8 @@
       "instruction_path": ".agents/skills/evolve/SKILL.md",
       "execution": {
         "mode": "kernel-backed",
-        "adapter_id": "weave:evolve"
+        "adapter_id": "weave:evolve",
+        "ownership_model": "kernel-primitive"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -1144,7 +1207,8 @@
       "instruction_path": ".agents/skills/gherkin/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar gherkin"
+        "cli": "cstar gherkin",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -1175,7 +1239,8 @@
       "instruction_path": ".agents/skills/hunt/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar hunt"
+        "cli": "cstar hunt",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -1206,7 +1271,8 @@
       "instruction_path": ".agents/skills/linter/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar linter"
+        "cli": "cstar linter",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -1234,7 +1300,8 @@
       "instruction_path": ".agents/skills/matrix/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar matrix"
+        "cli": "cstar matrix",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -1265,7 +1332,8 @@
       "instruction_path": ".agents/skills/bifrost/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar bifrost"
+        "cli": "cstar bifrost",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -1296,7 +1364,8 @@
       "instruction_path": ".agents/skills/norn/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar norn"
+        "cli": "cstar norn",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -1326,7 +1395,8 @@
       "instruction_path": ".agents/skills/one-mind/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar one-mind"
+        "cli": "cstar one-mind",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -1357,7 +1427,8 @@
       "instruction_path": ".agents/skills/orchestrate/SKILL.md",
       "execution": {
         "mode": "kernel-backed",
-        "adapter_id": "weave:orchestrate"
+        "adapter_id": "weave:orchestrate",
+        "ownership_model": "kernel-primitive"
       },
       "viability": "ACTIVE",
       "risk": "safety-critical",
@@ -1388,7 +1459,8 @@
       "instruction_path": ".agents/skills/personas/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar personas"
+        "cli": "cstar personas",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -1419,7 +1491,8 @@
       "instruction_path": ".agents/skills/promotion/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar promotion"
+        "cli": "cstar promotion",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -1448,7 +1521,9 @@
       "execution": {
         "mode": "agent-native",
         "cli": "cstar ravens",
-        "adapter_id": "weave:ravens"
+        "adapter_id": "weave:ravens",
+        "allow_kernel_fallback": false,
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -1473,13 +1548,45 @@
       ],
       "runtime_trigger": "ravens"
     },
+    "research": {
+      "tier": "SKILL",
+      "description": "Use when running fixed-budget experiments against immutable targets and recording successful optimizations into behavioral contracts.",
+      "instruction_path": ".agents/skills/research/SKILL.md",
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar research",
+        "adapter_id": "weave:research",
+        "allow_kernel_fallback": false,
+        "ownership_model": "host-workflow"
+      },
+      "viability": "ACTIVE",
+      "risk": "safe",
+      "authority_path": ".agents/skills/research",
+      "entrypoint_path": ".agents/skills/research/scripts/research.py",
+      "contract_path": ".agents/skills/research/SKILL.md",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/research/SKILL.md"
+      ],
+      "tests": [
+        "tests/unit/node-runtime/weaves/test_research.test.ts"
+      ],
+      "runtime_trigger": "research"
+    },
     "redactor": {
       "tier": "SKILL",
       "description": "Mask secrets in logs, reports, and terminal output before data leaves.",
       "instruction_path": ".agents/skills/redactor/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar redactor"
+        "cli": "cstar redactor",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -1504,48 +1611,21 @@
       ],
       "runtime_trigger": "redactor"
     },
-    "research": {
-      "tier": "SKILL",
-      "description": "Run fixed-budget experiments against immutable targets to record optimizations.",
-      "instruction_path": ".agents/skills/research/SKILL.md",
-      "execution": {
-        "mode": "agent-native",
-        "cli": "cstar research",
-        "adapter_id": "weave:research"
-      },
-      "viability": "ACTIVE",
-      "risk": "safe",
-      "authority_path": ".agents/skills/research",
-      "entrypoint_path": ".agents/skills/research/scripts/research.py",
-      "contract_path": ".agents/skills/research/SKILL.md",
-      "owner_runtime": "host-agent",
-      "host_support": {
-        "gemini": "native-session",
-        "codex": "exec-bridge",
-        "claude": "exec-bridge"
-      },
-      "recursion_policy": "leaf",
-      "contracts": [
-        ".agents/skills/research/SKILL.md"
-      ],
-      "tests": [
-        "tests/unit/node-runtime/weaves/test_research.test.ts"
-      ],
-      "runtime_trigger": "research"
-    },
     "critique": {
       "tier": "SKILL",
       "description": "Adversarially stress-test a proposed bead or architecture path against current Hall truth.",
-      "instruction_path": ".agents/skills/architect/SKILL.md",
+      "instruction_path": ".agents/skills/critique/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "adapter_id": "weave:critique"
+        "adapter_id": "weave:critique",
+        "allow_kernel_fallback": false,
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
-      "authority_path": ".agents/skills/architect",
+      "authority_path": ".agents/skills/critique",
       "entrypoint_path": null,
-      "contract_path": ".agents/skills/architect/SKILL.md",
+      "contract_path": ".agents/skills/critique/SKILL.md",
       "owner_runtime": "host-agent",
       "host_support": {
         "gemini": "native-session",
@@ -1567,7 +1647,8 @@
       "instruction_path": ".agents/skills/ritual/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar ritual"
+        "cli": "cstar ritual",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -1598,7 +1679,8 @@
       "instruction_path": ".agents/skills/spoke/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar spoke"
+        "cli": "cstar spoke",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -1626,7 +1708,8 @@
       "instruction_path": ".agents/skills/sprt/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar sprt"
+        "cli": "cstar sprt",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -1657,7 +1740,8 @@
       "instruction_path": ".agents/skills/stability/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar stability"
+        "cli": "cstar stability",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -1686,7 +1770,9 @@
       "execution": {
         "mode": "agent-native",
         "cli": "cstar start",
-        "adapter_id": "weave:start"
+        "adapter_id": "weave:start",
+        "allow_kernel_fallback": false,
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -1714,7 +1800,8 @@
       "instruction_path": ".agents/skills/sterling/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar sterling"
+        "cli": "cstar sterling",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -1738,16 +1825,17 @@
     },
     "taliesin": {
       "tier": "SKILL",
-      "description": "Refine and enforce Corvus Star persona voice across system outputs.",
+      "description": "The Bard of the Sector. Analyzes writing style and generates high-fidelity narrative, editorial, or social content through an interactive Q&A process and the Phoenix Loop.",
       "instruction_path": ".agents/skills/taliesin/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar taliesin"
+        "cli": "cstar taliesin",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
       "authority_path": ".agents/skills/taliesin",
-      "entrypoint_path": ".agents/skills/taliesin/scripts/taliesin.py",
+      "entrypoint_path": null,
       "contract_path": ".agents/skills/taliesin/taliesin.feature",
       "owner_runtime": "host-agent",
       "host_support": {
@@ -1757,7 +1845,7 @@
       },
       "recursion_policy": "leaf",
       "contracts": [
-        ".agents/skills/taliesin/taliesin.feature"
+        "../Taliesin/contracts/taliesin.feature"
       ],
       "tests": [
         "tests/unit/test_taliesin.py"
@@ -1769,7 +1857,8 @@
       "description": "Craft deliberate frontend interfaces with strong typography and anti-slop rules.",
       "instruction_path": ".agents/skills/taste-skill/SKILL.md",
       "execution": {
-        "mode": "agent-native"
+        "mode": "agent-native",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -1800,7 +1889,8 @@
       "instruction_path": ".agents/skills/telemetry/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar telemetry"
+        "cli": "cstar telemetry",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -1830,7 +1920,8 @@
       "description": "Generate self-contained HTML pages for diagrams and project recaps.",
       "instruction_path": ".agents/skills/visual-explainer/SKILL.md",
       "execution": {
-        "mode": "agent-native"
+        "mode": "agent-native",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -1862,14 +1953,15 @@
       "execution": {
         "mode": "agent-native",
         "cli": "cstar warden",
-        "adapter_id": "weave:warden"
+        "adapter_id": "weave:warden",
+        "ownership_model": "kernel-primitive"
       },
       "viability": "ACTIVE",
       "risk": "safe",
       "authority_path": ".agents/skills/warden",
       "entrypoint_path": ".agents/skills/warden/scripts/warden.py",
       "contract_path": ".agents/skills/warden/warden.feature",
-      "owner_runtime": "host-agent",
+      "owner_runtime": "cstar-kernel",
       "host_support": {
         "gemini": "native-session",
         "codex": "exec-bridge",
@@ -1894,7 +1986,9 @@
       "execution": {
         "mode": "agent-native",
         "cli": "cstar restoration",
-        "adapter_id": "weave:restoration"
+        "adapter_id": "weave:restoration",
+        "allow_kernel_fallback": false,
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -1926,7 +2020,9 @@
       "execution": {
         "mode": "agent-native",
         "cli": "cstar expansion",
-        "adapter_id": "weave:expansion"
+        "adapter_id": "weave:expansion",
+        "allow_kernel_fallback": false,
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -1958,7 +2054,9 @@
       "execution": {
         "mode": "agent-native",
         "cli": "cstar vigilance",
-        "adapter_id": "weave:vigilance"
+        "adapter_id": "weave:vigilance",
+        "allow_kernel_fallback": false,
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -1988,7 +2086,8 @@
       "description": "Build new features through chant, forge, and evolve cycles.",
       "instruction_path": ".agents/weaves/creation_loop.md",
       "execution": {
-        "mode": "agent-native"
+        "mode": "agent-native",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -2018,7 +2117,8 @@
       "description": "Enforce Sterling Compliance across Gherkin layers.",
       "instruction_path": ".agents/weaves/contract_hardening.md",
       "execution": {
-        "mode": "agent-native"
+        "mode": "agent-native",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -2048,7 +2148,8 @@
       "description": "Record and analyze architectural decisions back to Mimir's Well.",
       "instruction_path": ".agents/weaves/living_architecture.md",
       "execution": {
-        "mode": "agent-native"
+        "mode": "agent-native",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -2078,7 +2179,8 @@
       "description": "Safely theorize and run bounded tests against legacy sectors.",
       "instruction_path": ".agents/weaves/secure_speculation.md",
       "execution": {
-        "mode": "agent-native"
+        "mode": "agent-native",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -2108,7 +2210,8 @@
       "description": "Manage distributed AutoBot execution queues.",
       "instruction_path": ".agents/weaves/ephemeral_grid.md",
       "execution": {
-        "mode": "kernel-backed"
+        "mode": "kernel-backed",
+        "ownership_model": "kernel-primitive"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -2138,7 +2241,8 @@
       "description": "Recursively decompose logic that falls below 4.0 Gungnir score.",
       "instruction_path": ".agents/spells/shattering_strike.md",
       "execution": {
-        "mode": "agent-native"
+        "mode": "agent-native",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -2166,7 +2270,8 @@
       "description": "Self-healing loop that recasts weaves upon test failure.",
       "instruction_path": ".agents/spells/phoenix_loop.md",
       "execution": {
-        "mode": "agent-native"
+        "mode": "agent-native",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -2194,7 +2299,8 @@
       "description": "Auto-sanitize sectors where the Style score drops below 6.0.",
       "instruction_path": ".agents/spells/silver_shield.md",
       "execution": {
-        "mode": "agent-native"
+        "mode": "agent-native",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -2222,7 +2328,8 @@
       "description": "Omniscient post-commit scan to keep the Gungnir matrix updated.",
       "instruction_path": ".agents/spells/living_well.md",
       "execution": {
-        "mode": "agent-native"
+        "mode": "agent-native",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -2250,7 +2357,8 @@
       "description": "",
       "instruction_path": ".agents/skills/_archive/SKILL.md",
       "execution": {
-        "mode": "agent-native"
+        "mode": "agent-native",
+        "ownership_model": "host-workflow"
       },
       "viability": "DEPRECATED",
       "risk": "safe",
@@ -2278,7 +2386,8 @@
       "description": "",
       "instruction_path": ".agents/skills/level-5-diagnostic/SKILL.md",
       "execution": {
-        "mode": "agent-native"
+        "mode": "agent-native",
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
@@ -2302,10 +2411,134 @@
         "tests/unit/test_memory_skill_compat.py"
       ],
       "runtime_trigger": "level-5-diagnostic"
+    },
+    "taliesin-optimizer": {
+      "tier": "WEAVE",
+      "description": "The Karpathy Auto-Researcher Loop. Systematically improves Fallows Hallow manuscript across Writing, Entertainment, Plot, and Coherence axes, maintaining a 90% fidelity floor.",
+      "instruction_path": ".agents/skills/taliesin-optimizer/SKILL.md",
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar taliesin-optimizer",
+        "ownership_model": "host-workflow"
+      },
+      "viability": "ACTIVE",
+      "risk": "safe",
+      "authority_path": ".agents/skills/taliesin-optimizer",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/taliesin-optimizer/SKILL.md",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        "../Taliesin/contracts/taliesin.feature"
+      ],
+      "tests": [
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/test_autobot_skill.py",
+        "tests/unit/test_evolve_skill.py",
+        "tests/unit/test_memory_skill_compat.py"
+      ],
+      "runtime_trigger": "taliesin-optimizer"
+    },
+    "taliesin-story-forge": {
+      "tier": "WEAVE",
+      "description": "Materialize high-fidelity manuscript chapters using the Phoenix Loop and Karpathy-hardened style instructions.",
+      "instruction_path": ".agents/skills/taliesin/SKILL.md",
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar taliesin-story-forge",
+        "adapter_id": "weave:taliesin-forge",
+        "ownership_model": "host-workflow"
+      },
+      "viability": "ACTIVE",
+      "risk": "safe",
+      "authority_path": ".agents/skills/taliesin/SKILL.md",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/taliesin/SKILL.md",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        "../Taliesin/contracts/taliesin.feature"
+      ],
+      "tests": [
+        "tests/unit/test_taliesin_story_forge.test.ts"
+      ],
+      "runtime_trigger": "taliesin-story-forge"
+    },
+    "artifact-forge": {
+      "tier": "SKILL",
+      "description": "",
+      "instruction_path": ".agents/skills/artifact-forge/SKILL.md",
+      "execution": {
+        "mode": "agent-native",
+        "ownership_model": "host-workflow"
+      },
+      "viability": "ACTIVE",
+      "risk": "safe",
+      "runtime_trigger": "artifact-forge",
+      "authority_path": ".agents/skills/artifact-forge",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/artifact-forge/SKILL.md",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/artifact-forge/SKILL.md"
+      ],
+      "tests": [
+        "tests/unit/test_artifact_forge.test.ts",
+        "tests/empire_tests/test_skill_forge_empire.py",
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/test_autobot_skill.py"
+      ]
+    },
+    "host-subagent-handoff": {
+      "tier": "SKILL",
+      "description": "",
+      "instruction_path": ".agents/skills/host-subagent-handoff/SKILL.md",
+      "execution": {
+        "mode": "agent-native",
+        "ownership_model": "host-workflow"
+      },
+      "viability": "ACTIVE",
+      "risk": "safe",
+      "runtime_trigger": "host-subagent-handoff",
+      "authority_path": ".agents/skills/host-subagent-handoff",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/host-subagent-handoff/SKILL.md",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/host-subagent-handoff/SKILL.md"
+      ],
+      "tests": [
+        "tests/unit/engine/test_skill_learning.py",
+        "tests/unit/node-runtime/weaves/test_host_governor.test.ts",
+        "tests/unit/node-runtime/weaves/test_host_worker.test.ts",
+        "tests/unit/test_autobot_skill.py"
+      ]
     }
   },
   "authority_audit": {
-    "generated_at": 1774543773111,
+    "generated_at": 1775043381870,
     "authoritative_root": ".agents/skills",
     "duplicates": [
       {

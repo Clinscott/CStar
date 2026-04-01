@@ -8,6 +8,13 @@
   },
   {
     "pillar": "General Subsystems",
+    "file": "scripts/extract_user_style.py",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "General Subsystems",
     "file": "scripts/harvest_intents.py",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
@@ -58,8 +65,23 @@
   },
   {
     "pillar": "General Subsystems",
+    "file": "scripts/taliesin_karpathy_loop.py",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "General Subsystems",
+    "file": "scripts/gatekeeper.py",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "General Subsystems",
     "file": "scripts/audit_skill_registry.py",
     "issues": [
+      "File weight critical (652 lines).",
       "Linscott Breach: Missing 1:1 unit test.",
       "Textual Rot: Mentions outdated concept 'Phase 1'."
     ]
@@ -67,20 +89,6 @@
   {
     "pillar": "General Subsystems",
     "file": "scripts/project_beads_to_qmd.py",
-    "issues": [
-      "Linscott Breach: Missing 1:1 unit test."
-    ]
-  },
-  {
-    "pillar": "General Subsystems",
-    "file": "src/scratch_plan_b.py",
-    "issues": [
-      "Linscott Breach: Missing 1:1 unit test."
-    ]
-  },
-  {
-    "pillar": "General Subsystems",
-    "file": "src/scratch_forge.py",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
     ]
@@ -211,6 +219,20 @@
     "file": "src/core/host_session.py",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "General Subsystems",
+    "file": "src/core/synapse_db.py",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "General Subsystems",
+    "file": "src/core/mimir_client.py",
+    "issues": [
+      "File weight critical (425 lines)."
     ]
   },
   {
@@ -451,83 +473,6 @@
   },
   {
     "pillar": "Woven Skills",
-    "file": ".agents/skills/daemon.py",
-    "issues": [
-      "Linscott Breach: Missing 1:1 unit test."
-    ]
-  },
-  {
-    "pillar": "Woven Skills",
-    "file": ".agents/skills/network.py",
-    "issues": [
-      "Linscott Breach: Missing 1:1 unit test."
-    ]
-  },
-  {
-    "pillar": "Woven Skills",
-    "file": ".agents/skills/ravens.py",
-    "issues": [
-      "Linscott Breach: Missing 1:1 unit test."
-    ]
-  },
-  {
-    "pillar": "Woven Skills",
-    "file": ".agents/skills/unblock.py",
-    "issues": [
-      "Linscott Breach: Missing 1:1 unit test."
-    ]
-  },
-  {
-    "pillar": "Woven Skills",
-    "file": ".agents/skills/synapse.py",
-    "issues": [
-      "Linscott Breach: Missing 1:1 unit test."
-    ]
-  },
-  {
-    "pillar": "Woven Skills",
-    "file": ".agents/skills/_template.py",
-    "issues": [
-      "Linscott Breach: Missing 1:1 unit test."
-    ]
-  },
-  {
-    "pillar": "Woven Skills",
-    "file": ".agents/skills/banana.py",
-    "issues": [
-      "Linscott Breach: Missing 1:1 unit test."
-    ]
-  },
-  {
-    "pillar": "Woven Skills",
-    "file": ".agents/skills/trace.py",
-    "issues": [
-      "Linscott Breach: Missing 1:1 unit test."
-    ]
-  },
-  {
-    "pillar": "Woven Skills",
-    "file": ".agents/skills/audit.py",
-    "issues": [
-      "Linscott Breach: Missing 1:1 unit test."
-    ]
-  },
-  {
-    "pillar": "Woven Skills",
-    "file": ".agents/skills/persona.py",
-    "issues": [
-      "Linscott Breach: Missing 1:1 unit test."
-    ]
-  },
-  {
-    "pillar": "Woven Skills",
-    "file": ".agents/skills/heimdall.py",
-    "issues": [
-      "Linscott Breach: Missing 1:1 unit test."
-    ]
-  },
-  {
-    "pillar": "Woven Skills",
     "file": ".agents/skills/jailing/scripts/jailing.py",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
@@ -536,6 +481,27 @@
   {
     "pillar": "Woven Skills",
     "file": ".agents/skills/oracle/scripts/oracle.py",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Woven Skills",
+    "file": ".agents/skills/taliesin/scripts/taliesin_main.py",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Woven Skills",
+    "file": ".agents/skills/taliesin/scripts/x_api.py",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Woven Skills",
+    "file": ".agents/skills/taliesin/scripts/taliesin_spoke.py",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
     ]
@@ -584,14 +550,77 @@
   },
   {
     "pillar": "Woven Skills",
-    "file": ".agents/skills/warden/scripts/warden.py",
+    "file": ".agents/skills/_archive/_loose_scripts/daemon.py",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
     ]
   },
   {
     "pillar": "Woven Skills",
-    "file": ".agents/skills/memory/scripts/memory.py",
+    "file": ".agents/skills/_archive/_loose_scripts/network.py",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Woven Skills",
+    "file": ".agents/skills/_archive/_loose_scripts/ravens.py",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Woven Skills",
+    "file": ".agents/skills/_archive/_loose_scripts/unblock.py",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Woven Skills",
+    "file": ".agents/skills/_archive/_loose_scripts/synapse.py",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Woven Skills",
+    "file": ".agents/skills/_archive/_loose_scripts/_template.py",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Woven Skills",
+    "file": ".agents/skills/_archive/_loose_scripts/banana.py",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Woven Skills",
+    "file": ".agents/skills/_archive/_loose_scripts/trace.py",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Woven Skills",
+    "file": ".agents/skills/_archive/_loose_scripts/audit.py",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Woven Skills",
+    "file": ".agents/skills/_archive/_loose_scripts/persona.py",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Woven Skills",
+    "file": ".agents/skills/_archive/_loose_scripts/heimdall.py",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
     ]
@@ -668,6 +697,13 @@
   },
   {
     "pillar": "Woven Skills",
+    "file": ".agents/skills/scribe/scripts/memory.py",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Woven Skills",
     "file": ".agents/skills/autobot/scripts/autobot.py",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test.",
@@ -700,7 +736,14 @@
   },
   {
     "pillar": "Woven Skills",
-    "file": ".agents/skills/one-mind/scripts/one-mind.py",
+    "file": ".agents/skills/one-mind/scripts/fulfill.py",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Woven Skills",
+    "file": ".agents/skills/one-mind/scripts/ingest.py",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
     ]
@@ -708,6 +751,13 @@
   {
     "pillar": "Woven Skills",
     "file": ".agents/skills/trace/scripts/trace.py",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Woven Skills",
+    "file": ".agents/skills/taliesin-optimizer/scripts/taliesin_optimizer.py",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
     ]
@@ -744,13 +794,71 @@
     "pillar": "Kernel (Node.js)",
     "file": "cstar.ts",
     "issues": [
-      "File weight critical (465 lines).",
+      "File weight critical (501 lines).",
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "General Subsystems",
+    "file": "scripts/engrave_sessions.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "General Subsystems",
+    "file": "scripts/check_schema.ts",
+    "issues": [
       "Linscott Breach: Missing 1:1 unit test."
     ]
   },
   {
     "pillar": "General Subsystems",
     "file": "scripts/migrate_p1_history.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "General Subsystems",
+    "file": "scripts/seed_xo_phase1_hall_plan.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test.",
+      "Textual Rot: Mentions outdated concept 'Hermes'.",
+      "Textual Rot: Mentions outdated concept 'Phase 1'."
+    ]
+  },
+  {
+    "pillar": "General Subsystems",
+    "file": "scripts/env_bootstrap.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "General Subsystems",
+    "file": "scripts/install_codex_plugin.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "General Subsystems",
+    "file": "scripts/install_host_integrations.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "General Subsystems",
+    "file": "scripts/prepare_release.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "General Subsystems",
+    "file": "scripts/ingest_xo_doctrine_to_hall.ts",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
     ]
@@ -764,6 +872,21 @@
   },
   {
     "pillar": "General Subsystems",
+    "file": "scripts/seed_xo_phase2_hall_plan.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test.",
+      "Textual Rot: Mentions outdated concept 'Phase 1'."
+    ]
+  },
+  {
+    "pillar": "General Subsystems",
+    "file": "scripts/verify_xo_phase1_hall_plan.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "General Subsystems",
     "file": "scripts/verify_router.ts",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
@@ -771,7 +894,63 @@
   },
   {
     "pillar": "General Subsystems",
+    "file": "scripts/engrave_journal.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "General Subsystems",
     "file": "scripts/p1_analytics.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "General Subsystems",
+    "file": "scripts/seed_plan_beads.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "General Subsystems",
+    "file": "scripts/build_release_archives.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "General Subsystems",
+    "file": "scripts/build_distributions.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "General Subsystems",
+    "file": "scripts/install_gemini_extension.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "General Subsystems",
+    "file": "scripts/seed_engram_beads.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "General Subsystems",
+    "file": "scripts/build_release_bundles.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "General Subsystems",
+    "file": "scripts/resolve_xo_phase2_hall_review.ts",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
     ]
@@ -794,6 +973,7 @@
     "pillar": "General Subsystems",
     "file": "src/tools/corvus-control-mcp.ts",
     "issues": [
+      "File weight critical (423 lines).",
       "Linscott Breach: Missing 1:1 unit test."
     ]
   },
@@ -801,13 +981,36 @@
     "pillar": "General Subsystems",
     "file": "src/core/mimir_client.ts",
     "issues": [
-      "File weight critical (477 lines)."
+      "File weight critical (639 lines)."
+    ]
+  },
+  {
+    "pillar": "General Subsystems",
+    "file": "src/core/synapse_db.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
     ]
   },
   {
     "pillar": "General Subsystems",
     "file": "src/core/host_session.ts",
     "issues": [
+      "File weight critical (424 lines).",
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "General Subsystems",
+    "file": "src/packaging/installers.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "General Subsystems",
+    "file": "src/packaging/distributions.ts",
+    "issues": [
+      "File weight critical (559 lines).",
       "Linscott Breach: Missing 1:1 unit test."
     ]
   },
@@ -850,6 +1053,7 @@
     "pillar": "General Subsystems",
     "file": "src/types/hall.ts",
     "issues": [
+      "File weight critical (415 lines).",
       "Linscott Breach: Missing 1:1 unit test."
     ]
   },
@@ -981,6 +1185,20 @@
   },
   {
     "pillar": "Kernel (Node.js)",
+    "file": "src/node/core/one_mind_broker/fulfillment.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Kernel (Node.js)",
+    "file": "src/node/core/one_mind_broker/manager.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Kernel (Node.js)",
     "file": "src/node/core/commands/vitals.ts",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
@@ -989,6 +1207,27 @@
   {
     "pillar": "Kernel (Node.js)",
     "file": "src/node/core/commands/spoke.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Kernel (Node.js)",
+    "file": "src/node/core/commands/os-integration.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Kernel (Node.js)",
+    "file": "src/node/core/commands/trace.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Kernel (Node.js)",
+    "file": "src/node/core/commands/hall-doc.ts",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
     ]
@@ -1004,7 +1243,7 @@
     "pillar": "Kernel (Node.js)",
     "file": "src/node/core/commands/dispatcher.ts",
     "issues": [
-      "File weight critical (448 lines)."
+      "File weight critical (449 lines)."
     ]
   },
   {
@@ -1037,14 +1276,14 @@
   },
   {
     "pillar": "Kernel (Node.js)",
-    "file": "src/node/core/commands/start.ts",
+    "file": "src/node/core/commands/one-mind.ts",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
     ]
   },
   {
     "pillar": "Kernel (Node.js)",
-    "file": "src/node/core/commands/mcp.ts",
+    "file": "src/node/core/commands/start.ts",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
     ]
@@ -1060,20 +1299,77 @@
     "pillar": "Kernel (Node.js)",
     "file": "src/node/core/tui/operator_tui.ts",
     "issues": [
-      "File weight critical (401 lines).",
+      "File weight critical (435 lines).",
       "Linscott Breach: Missing 1:1 unit test."
     ]
   },
   {
     "pillar": "Kernel (Node.js)",
-    "file": "src/node/core/runtime/weaves/host_bridge.ts",
+    "file": "src/node/core/runtime/host_governor_policy.ts",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
     ]
   },
   {
     "pillar": "Kernel (Node.js)",
-    "file": "src/node/core/runtime/weaves/taliesin_forge.ts",
+    "file": "src/node/core/runtime/skill_activation.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Kernel (Node.js)",
+    "file": "src/node/core/runtime/dispatcher.ts",
+    "issues": [
+      "File weight critical (576 lines)."
+    ]
+  },
+  {
+    "pillar": "Kernel (Node.js)",
+    "file": "src/node/core/runtime/python_adapter.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Kernel (Node.js)",
+    "file": "src/node/core/runtime/adapters.ts",
+    "issues": [
+      "File weight critical (559 lines)."
+    ]
+  },
+  {
+    "pillar": "Kernel (Node.js)",
+    "file": "src/node/core/runtime/contracts.ts",
+    "issues": [
+      "File weight critical (430 lines)."
+    ]
+  },
+  {
+    "pillar": "Kernel (Node.js)",
+    "file": "src/node/core/runtime/universal_adapter.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Kernel (Node.js)",
+    "file": "src/node/core/runtime/weaves/distill.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Kernel (Node.js)",
+    "file": "src/node/core/runtime/weaves/chant_planner.ts",
+    "issues": [
+      "File weight critical (817 lines).",
+      "Textual Rot: Mentions outdated concept 'Hermes'."
+    ]
+  },
+  {
+    "pillar": "Kernel (Node.js)",
+    "file": "src/node/core/runtime/weaves/host_bridge.ts",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
     ]
@@ -1096,14 +1392,14 @@
     "pillar": "Kernel (Node.js)",
     "file": "src/node/core/runtime/weaves/host_governor.ts",
     "issues": [
-      "File weight critical (950 lines)."
+      "File weight critical (1007 lines)."
     ]
   },
   {
     "pillar": "Kernel (Node.js)",
     "file": "src/node/core/runtime/weaves/orchestrate.ts",
     "issues": [
-      "Linscott Breach: Missing 1:1 unit test."
+      "File weight critical (551 lines)."
     ]
   },
   {
@@ -1115,9 +1411,9 @@
   },
   {
     "pillar": "Kernel (Node.js)",
-    "file": "src/node/core/runtime/weaves/compress.ts",
+    "file": "src/node/core/runtime/weaves/chant_parser.ts",
     "issues": [
-      "Linscott Breach: Missing 1:1 unit test."
+      "File weight critical (520 lines)."
     ]
   },
   {
@@ -1171,6 +1467,13 @@
   },
   {
     "pillar": "Memory (PennyOne)",
+    "file": "src/tools/pennyone/index.ts",
+    "issues": [
+      "File weight critical (406 lines)."
+    ]
+  },
+  {
+    "pillar": "Memory (PennyOne)",
     "file": "src/tools/pennyone/live/watcher.ts",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
@@ -1201,7 +1504,7 @@
     "pillar": "Memory (PennyOne)",
     "file": "src/tools/pennyone/intel/repository_manager.ts",
     "issues": [
-      "File weight critical (654 lines).",
+      "File weight critical (1070 lines).",
       "Linscott Breach: Missing 1:1 unit test."
     ]
   },
@@ -1244,13 +1547,7 @@
     "pillar": "Memory (PennyOne)",
     "file": "src/tools/pennyone/intel/session_manager.ts",
     "issues": [
-      "Linscott Breach: Missing 1:1 unit test."
-    ]
-  },
-  {
-    "pillar": "Memory (PennyOne)",
-    "file": "src/tools/pennyone/intel/warden.ts",
-    "issues": [
+      "File weight critical (469 lines).",
       "Linscott Breach: Missing 1:1 unit test."
     ]
   },
@@ -1277,6 +1574,14 @@
   },
   {
     "pillar": "Memory (PennyOne)",
+    "file": "src/tools/pennyone/intel/one_mind_controller.ts",
+    "issues": [
+      "File weight critical (461 lines).",
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Memory (PennyOne)",
     "file": "src/tools/pennyone/intel/semantic.ts",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
@@ -1293,7 +1598,7 @@
     "pillar": "Memory (PennyOne)",
     "file": "src/tools/pennyone/intel/schema.ts",
     "issues": [
-      "File weight critical (456 lines).",
+      "File weight critical (733 lines).",
       "Linscott Breach: Missing 1:1 unit test."
     ]
   },
@@ -1425,14 +1730,14 @@
   },
   {
     "pillar": "General Subsystems",
-    "file": "scripts/mcp_bridge.js",
+    "file": "query_beads.js",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
     ]
   },
   {
     "pillar": "General Subsystems",
-    "file": "src/hello.js",
+    "file": "scripts/mcp_bridge.js",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
     ]

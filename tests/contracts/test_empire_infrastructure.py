@@ -51,6 +51,8 @@ class TestEmpireInfrastructure(unittest.TestCase):
                 content = f.read()
                 self.assertIn("class TestContract_example(unittest.TestCase):", content)
                 self.assertIn("# User is Premium [$]", content)
+                self.assertIn("self.skipTest(GENERATED_SCAFFOLD_MESSAGE)", content)
+                self.assertNotIn("TODO", content)
 
 if __name__ == '__main__':
     unittest.main()

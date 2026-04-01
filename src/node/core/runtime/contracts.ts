@@ -1,7 +1,7 @@
 /**
  * [Ω] THE CANONICAL RUNTIME CONTRACTS (v1.0)
- * Purpose: Define the authoritative interfaces for the Corvus Star Runtime.
- * Mandate: Execution must be structured, traced, and verifiable.
+ * Purpose: Define the authoritative interfaces for the Corvus Star kernel runtime.
+ * Mandate: The kernel catalogs, dispatches, monitors, and records work; host-native skills/weaves/spells own cognition and public workflow behavior.
  */
 
 import type { ForgeCandidateResult, ForgeValidationRequest } from  '../../../types/forge-candidate.js';
@@ -49,6 +49,7 @@ export interface RuntimeContext {
 }
 
 export interface WeaveInvocation<T = unknown> {
+    // A kernel-visible invocation record for a host-native workflow surface or bounded primitive.
     weave_id: string;
     payload: T;
     target?: WorkspaceTarget;
@@ -63,6 +64,7 @@ export interface SkillInvocation<T = unknown> {
 }
 
 export interface WeaveResult {
+    // The kernel records the outcome; the host owns the reasoning that produced it unless registry/runtime say otherwise.
     weave_id: string;
     status: WeaveStatus;
     output: string;
@@ -72,6 +74,7 @@ export interface WeaveResult {
 }
 
 export interface RuntimeDispatchPort {
+    // The dispatch port is a kernel registrar/dispatcher, not the public owner of higher-level workflow cognition.
     dispatch<T>(invocation: WeaveInvocation<T> | import('../skills/types.js').SkillBead<T>): Promise<WeaveResult>;
 }
 
@@ -115,11 +118,17 @@ export interface RavensWeavePayload {
     spoke?: string;
 }
 
-export type PennyOneAction = 'scan' | 'view' | 'clean' | 'stats' | 'search' | 'import' | 'topology' | 'refresh_intents';
+export type PennyOneAction = 'scan' | 'view' | 'clean' | 'stats' | 'search' | 'import' | 'topology' | 'refresh_intents' | 'normalize' | 'report' | 'artifacts' | 'status';
+export type PennyOneArtifactKind = 'normalize' | 'report' | 'maintenance';
 
 export interface PennyOneWeavePayload {
     action: PennyOneAction;
     path?: string;
+    estate?: boolean;
+    artifact_kind?: PennyOneArtifactKind;
+    limit?: number;
+    since?: string;
+    since_date?: string;
     query?: string;
     remote_url?: string;
     slug?: string;
@@ -254,7 +263,7 @@ export interface HostWorkerWeaveMetadata extends Record<string, unknown> {
     provider?: string | null;
 }
 
-export interface ArchitectWeavePayload {
+export interface ArchitectServicePayload {
     action?: 'build_proposal' | 'review_critique';
     intent?: string;
     rationale?: string;
@@ -265,6 +274,8 @@ export interface ArchitectWeavePayload {
     project_root?: string;
     cwd: string;
 }
+
+export type ArchitectWeavePayload = ArchitectServicePayload;
 
 export interface ArchitectProposalHostResponse {
     proposal_summary?: unknown;
@@ -307,12 +318,22 @@ export interface CompressWeavePayload {
     source?: 'cli' | 'python_adapter' | 'runtime';
 }
 
-export interface TaliesinForgeWeavePayload {
+export interface ArtifactForgeWeavePayload {
     bead_id?: string;
     persona?: string;
     model?: string;
     project_root: string;
     cwd: string;
+    source?: 'cli' | 'python_adapter';
+}
+
+export interface TaliesinStoryForgePayload {
+    scenario: string;
+    details: string;
+    conclusion: string;
+    chars: string[];
+    project_root?: string;
+    cwd?: string;
     source?: 'cli' | 'python_adapter';
 }
 
@@ -339,9 +360,18 @@ export interface RavensCycleWeaveMetadata extends Record<string, unknown> {
     cycle_result?: RavensCycleResult;
 }
 
-export interface TaliesinForgeWeaveMetadata extends Record<string, unknown> {
+export interface ArtifactForgeWeaveMetadata extends Record<string, unknown> {
     candidate?: ForgeCandidateResult;
     validation_request?: ForgeValidationRequest;
+}
+
+export interface TaliesinStoryForgeMetadata extends Record<string, unknown> {
+    status: string;
+    chapter_number?: number;
+    path?: string;
+    prose?: string;
+    summary?: string;
+    error?: string;
 }
 
 export interface OrchestrateWeavePayload {

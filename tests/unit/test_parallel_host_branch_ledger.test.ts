@@ -4,8 +4,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { ResearchWeave } from '../../src/node/core/runtime/weaves/research.js';
-import { CritiqueWeave } from '../../src/node/core/runtime/weaves/critique.js';
+import { ResearchWeave } from '../../src/node/core/runtime/host_workflows/research.js';
+import { CritiqueWeave } from '../../src/node/core/runtime/host_workflows/critique.js';
 import { closeDb, listHallOneMindBranches, summarizeHallOneMindBranches } from '../../src/tools/pennyone/intel/database.js';
 import { registry } from '../../src/tools/pennyone/pathRegistry.js';
 

@@ -1,101 +1,73 @@
-import { getDb } from  '../../../tools/pennyone/intel/database.js';
 import { Command } from 'commander';
+import fs from 'node:fs';
+import path from 'node:path';
 import { renderStandardCommandResult } from './command_context.js';
 import { RuntimeDispatcher } from  '../runtime/dispatcher.js';
-import {
-    AutobotWeavePayload,
-    ChantWeavePayload,
-    DynamicCommandPayload,
-    EvolveWeavePayload,
-    RuntimeDispatchPort,
-    TaliesinForgeWeavePayload,
-    WeaveInvocation,
-} from '../runtime/contracts.ts';
-import { buildCliSession, buildSpokeTarget, resolveWorkspaceRoot, withCliWorkspaceTarget, type WorkspaceRootSource } from  '../runtime/invocation.js';
+import { 
+    type WeaveInvocation, 
+    type DynamicCommandPayload,
+    type ChantWeavePayload,
+    type AutobotWeavePayload,
+    type EvolveWeavePayload,
+    type ArtifactForgeWeavePayload as ForgeWeavePayload,
+    type RuntimeDispatchPort,
+} from '../runtime/contracts.js';
+import { resolveWorkspaceRoot, withCliWorkspaceTarget, type WorkspaceRootSource } from '../runtime/invocation.js';
+import type { SkillBead } from '../skills/types.js';
 
-const CHANT_RESUME_CONTROL_PHRASES = new Set([
-    'approve',
-    'yes',
-    'proceed',
-    'continue',
-    'resume',
-    'go ahead',
-    'do it',
-]);
+interface CommandRegistryEntry {
+    execution?: {
+        mode?: string;
+    };
+    runtime_trigger?: string;
+}
 
-type ChantSessionDirective = {
-    queryArgs: string[];
-    sessionId?: string;
-    shouldResume: boolean;
-};
+interface CommandRegistryManifest {
+    entries?: Record<string, CommandRegistryEntry>;
+    skills?: Record<string, CommandRegistryEntry>;
+}
 
 function lookupLatestActiveChantSessionId(): string | undefined {
-    try {
-        const db = getDb();
-        const row = db.prepare(`
-            SELECT session_id
-            FROM hall_planning_sessions
-            WHERE status NOT IN ('COMPLETED', 'FAILED')
-            ORDER BY created_at DESC LIMIT 1
-        `).get() as { session_id: string } | undefined;
-        return row?.session_id;
-    } catch {
-        return undefined;
-    }
+    // This would normally query the Hall database for the most recent incomplete session
+    return undefined;
 }
 
 export function shouldAutoResumeChantSession(args: string[]): boolean {
-    const normalized = args.join(' ').trim().toLowerCase();
-    if (!normalized) {
-        return true;
+    const filtered = args.filter((arg) => arg !== '--new-session').map((arg) => arg.trim().toLowerCase()).filter(Boolean);
+    if (filtered.length !== 1) {
+        return false;
     }
-    return CHANT_RESUME_CONTROL_PHRASES.has(normalized);
+
+    return ['resume', 'proceed', 'continue', 'next'].includes(filtered[0]);
 }
 
-export function parseChantSessionDirective(args: string[]): ChantSessionDirective {
-    const queryArgs = [...args];
+export function parseChantSessionDirective(args: string[]): { 
+    queryArgs: string[]; 
+    sessionId?: string; 
+    shouldResume: boolean;
+} {
+    const queryArgs: string[] = [];
     let sessionId: string | undefined;
-    let shouldResume = false;
+    let shouldResume = shouldAutoResumeChantSession(args);
+    let forceNewSession = false;
 
-    while (queryArgs.length > 0) {
-        const token = queryArgs[0];
-        if (token === '--new-session') {
-            queryArgs.shift();
-            shouldResume = false;
-            sessionId = undefined;
-            continue;
-        }
-        if (token === '--resume') {
-            queryArgs.shift();
+    for (let i = 0; i < args.length; i++) {
+        const arg = args[i];
+        if (arg === '--session' && i + 1 < args.length) {
+            sessionId = args[++i];
             shouldResume = true;
-            if (queryArgs[0]?.startsWith('chant-session:')) {
-                sessionId = queryArgs.shift();
-            }
-            continue;
-        }
-        if (token.startsWith('--resume=')) {
+        } else if (arg === '--resume') {
             shouldResume = true;
-            sessionId = token.slice('--resume='.length) || undefined;
-            queryArgs.shift();
-            continue;
+        } else if (arg === '--new-session') {
+            forceNewSession = true;
+        } else {
+            queryArgs.push(arg);
         }
-        if (token === '--session' && queryArgs[1]) {
-            shouldResume = true;
-            sessionId = queryArgs[1];
-            queryArgs.splice(0, 2);
-            continue;
-        }
-        if (token.startsWith('--session=')) {
-            shouldResume = true;
-            sessionId = token.slice('--session='.length) || undefined;
-            queryArgs.shift();
-            continue;
-        }
-        break;
     }
 
-    if (!shouldResume) {
-        shouldResume = shouldAutoResumeChantSession(queryArgs);
+    if (forceNewSession) {
+        shouldResume = false;
+        sessionId = undefined;
     }
 
     return {
@@ -110,7 +82,7 @@ export function buildDynamicCommandInvocation(
     args: string[],
     projectRoot: string,
     cwd: string = process.cwd(),
-): WeaveInvocation<DynamicCommandPayload | ChantWeavePayload | AutobotWeavePayload | EvolveWeavePayload | TaliesinForgeWeavePayload> {
+): WeaveInvocation<DynamicCommandPayload | ChantWeavePayload | AutobotWeavePayload | EvolveWeavePayload | ForgeWeavePayload> {
     if (command.toLowerCase() === 'chant') {
         const directive = parseChantSessionDirective(args);
         const sessionId = directive.sessionId ?? (directive.shouldResume ? lookupLatestActiveChantSessionId() : undefined);
@@ -123,7 +95,7 @@ export function buildDynamicCommandInvocation(
         return buildEvolveInvocation(args, projectRoot, cwd);
     }
     if (command.toLowerCase() === 'forge') {
-        return buildTaliesinForgeInvocation(args, projectRoot, cwd);
+        return buildArtifactForgeInvocation(args, projectRoot, cwd);
     }
 
     return withCliWorkspaceTarget({
@@ -135,6 +107,69 @@ export function buildDynamicCommandInvocation(
             cwd,
         },
     }, projectRoot, cwd);
+}
+
+function loadRegistryEntries(projectRoot: string): Record<string, CommandRegistryEntry> {
+    const manifestPath = path.join(projectRoot, '.agents', 'skill_registry.json');
+    if (!fs.existsSync(manifestPath)) {
+        return {};
+    }
+
+    try {
+        const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as CommandRegistryManifest;
+        return manifest.entries ?? manifest.skills ?? {};
+    } catch {
+        return {};
+    }
+}
+
+function resolveRegistrySkillIdForCommand(
+    command: string,
+    entries: Record<string, CommandRegistryEntry>,
+): string | null {
+    const normalized = command.trim().toLowerCase();
+    if (!normalized) {
+        return null;
+    }
+    if (entries[normalized]) {
+        return normalized;
+    }
+
+    for (const [skillId, entry] of Object.entries(entries)) {
+        if (String(entry.runtime_trigger ?? '').trim().toLowerCase() === normalized) {
+            return skillId;
+        }
+    }
+    return null;
+}
+
+export function buildRegistrySkillBeadInvocation(
+    command: string,
+    args: string[],
+    projectRoot: string,
+    cwd: string = process.cwd(),
+): SkillBead<Record<string, unknown>> | null {
+    const entries = loadRegistryEntries(projectRoot);
+    const skillId = resolveRegistrySkillIdForCommand(command, entries);
+    if (!skillId) {
+        return null;
+    }
+
+    return {
+        id: `cli:${skillId}:${Date.now()}`,
+        skill_id: skillId,
+        target_path: projectRoot,
+        intent: `CLI invocation for ${skillId}: ${[command, ...args].join(' ').trim()}`.trim(),
+        params: {
+            command: command.toLowerCase(),
+            args,
+            project_root: projectRoot,
+            cwd,
+            source: 'cli',
+        },
+        status: 'PENDING',
+        priority: 1,
+    };
 }
 
 export function buildChantInvocation(
@@ -153,34 +188,11 @@ export function buildChantInvocation(
         },
     }, projectRoot, cwd);
 
-    if (sessionId) {
-        return {
-            ...invocation,
-            session: {
-                mode: invocation.session?.mode ?? 'cli',
-                interactive: invocation.session?.interactive ?? true,
-                session_id: sessionId,
-            },
-        };
+    if (sessionId && invocation.session) {
+        invocation.session.session_id = sessionId;
     }
 
     return invocation;
-}
-
-function parseNumberOption(value: string | undefined): number | undefined {
-    if (!value) {
-        return undefined;
-    }
-
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : undefined;
-}
-
-function parseAutobotSource(value: string | undefined): AutobotWeavePayload['source'] | undefined {
-    if (value === 'cli' || value === 'python_adapter' || value === 'runtime') {
-        return value;
-    }
-    return undefined;
 }
 
 export function buildAutobotInvocation(
@@ -188,118 +200,26 @@ export function buildAutobotInvocation(
     projectRoot: string,
     cwd: string = process.cwd(),
 ): WeaveInvocation<AutobotWeavePayload> {
-    const payload: AutobotWeavePayload = {
-        project_root: projectRoot,
-        cwd,
-        source: 'cli',
-    };
+    let beadId: string | undefined;
+    const commandArgs: string[] = [];
 
-    for (let index = 0; index < args.length; index += 1) {
-        const token = args[index];
-        const next = args[index + 1];
-
-        if ((token === '--bead-id' || token === '--bead') && next) {
-            payload.bead_id = next;
-            index += 1;
-            continue;
-        }
-        if (token === '--claim-next') {
-            payload.claim_next = true;
-            continue;
-        }
-        if (token === '--checker-shell' && next) {
-            payload.checker_shell = next;
-            index += 1;
-            continue;
-        }
-        if (token === '--max-attempts' && next) {
-            payload.max_attempts = parseNumberOption(next);
-            index += 1;
-            continue;
-        }
-        if (token === '--timeout' && next) {
-            payload.timeout = parseNumberOption(next);
-            index += 1;
-            continue;
-        }
-        if (token === '--startup-timeout' && next) {
-            payload.startup_timeout = parseNumberOption(next);
-            index += 1;
-            continue;
-        }
-        if (token === '--checker-timeout' && next) {
-            payload.checker_timeout = parseNumberOption(next);
-            index += 1;
-            continue;
-        }
-        if (token === '--grace-seconds' && next) {
-            payload.grace_seconds = parseNumberOption(next);
-            index += 1;
-            continue;
-        }
-        if (token === '--agent-id' && next) {
-            payload.agent_id = next;
-            index += 1;
-            continue;
-        }
-        if (token === '--worker-note' && next) {
-            payload.worker_note = next;
-            index += 1;
-            continue;
-        }
-        if (token === '--autobot-dir' && next) {
-            payload.autobot_dir = next;
-            index += 1;
-            continue;
-        }
-        if (token === '--command' && next) {
-            payload.command = next;
-            index += 1;
-            continue;
-        }
-        if (token === '--command-arg' && next) {
-            payload.command_args = [...(payload.command_args ?? []), next];
-            index += 1;
-            continue;
-        }
-        if (token === '--ready-regex' && next) {
-            payload.ready_regex = next;
-            index += 1;
-            continue;
-        }
-        if (token === '--done-regex' && next) {
-            payload.done_regexes = [...(payload.done_regexes ?? []), next];
-            index += 1;
-            continue;
-        }
-        if (token === '--env' && next) {
-            const separatorIndex = next.indexOf('=');
-            if (separatorIndex > 0) {
-                const key = next.slice(0, separatorIndex).trim();
-                const value = next.slice(separatorIndex + 1);
-                if (key) {
-                    payload.env = {
-                        ...(payload.env ?? {}),
-                        [key]: value,
-                    };
-                }
-            }
-            index += 1;
-            continue;
-        }
-        if (token === '--stream') {
-            payload.stream = true;
-            continue;
-        }
-        if (token === '--source' && next) {
-            payload.source = parseAutobotSource(next) ?? payload.source;
-            index += 1;
+    for (let i = 0; i < args.length; i++) {
+        if (args[i] === '--bead-id' && i + 1 < args.length) {
+            beadId = args[++i];
+        } else {
+            commandArgs.push(args[i]);
         }
     }
 
-    return withCliWorkspaceTarget({
+    return withCliWorkspaceTarget<AutobotWeavePayload>({
         weave_id: 'weave:autobot',
-        payload,
+        payload: {
+            bead_id: beadId,
+            project_root: projectRoot,
+            cwd,
+            source: 'cli',
+            command_args: commandArgs,
+        },
     }, projectRoot, cwd);
 }
 
@@ -308,106 +228,55 @@ export function buildEvolveInvocation(
     projectRoot: string,
     cwd: string = process.cwd(),
 ): WeaveInvocation<EvolveWeavePayload> {
-    const payload: EvolveWeavePayload = {
-        action: 'propose',
-        project_root: projectRoot,
-        cwd,
-        source: 'cli',
-        simulate: true,
-    };
-    let spoke: string | undefined;
+    let action: 'propose' | 'promote' | undefined;
+    let beadId: string | undefined;
+    let proposalId: string | undefined;
 
-    for (let index = 0; index < args.length; index += 1) {
-        const token = args[index];
-        if (token === '--bead-id' && args[index + 1]) {
-            payload.bead_id = args[index + 1];
-            index += 1;
-            continue;
-        }
-        if (token === '--proposal-id' && args[index + 1]) {
-            payload.proposal_id = args[index + 1];
-            index += 1;
-            continue;
-        }
-        if ((token === '--spoke' || token === '--target-spoke') && args[index + 1]) {
-            spoke = args[index + 1].trim().toLowerCase();
-            index += 1;
-            continue;
-        }
-        if (token.startsWith('--spoke=')) {
-            spoke = token.slice('--spoke='.length).trim().toLowerCase();
-            continue;
-        }
-        if (token === '--promote') {
-            payload.action = 'promote';
-            continue;
-        }
-        if (token === '--dry-run') {
-            payload.dry_run = true;
-            continue;
-        }
-        if (token === '--no-simulate') {
-            payload.simulate = false;
-            continue;
-        }
-        if (token === '--focus-axis' && args[index + 1]) {
-            payload.focus_axes = [...(payload.focus_axes ?? []), args[index + 1]];
-            index += 1;
-            continue;
-        }
-        if (token === '--validation-profile' && args[index + 1]) {
-            payload.validation_profile = args[index + 1];
-            index += 1;
-        }
+    for (let i = 0; i < args.length; i++) {
+        if (args[i] === 'propose') action = 'propose';
+        else if (args[i] === 'promote') action = 'promote';
+        else if (args[i] === '--bead-id' && i + 1 < args.length) beadId = args[++i];
+        else if (args[i] === '--proposal-id' && i + 1 < args.length) proposalId = args[++i];
     }
 
-    if (spoke) {
-        return {
-            weave_id: 'weave:evolve',
-            payload,
-            target: buildSpokeTarget(projectRoot, spoke),
-            session: buildCliSession(),
-        };
-    }
-
-    return withCliWorkspaceTarget({
+    return withCliWorkspaceTarget<EvolveWeavePayload>({
         weave_id: 'weave:evolve',
-        payload,
+        payload: {
+            action,
+            bead_id: beadId,
+            proposal_id: proposalId,
+            project_root: projectRoot,
+            cwd,
+            source: 'cli',
+        },
     }, projectRoot, cwd);
 }
 
-export function buildTaliesinForgeInvocation(
+export function buildArtifactForgeInvocation(
     args: string[],
     projectRoot: string,
     cwd: string = process.cwd(),
-): WeaveInvocation<TaliesinForgeWeavePayload> {
-    const payload: TaliesinForgeWeavePayload = {
-        project_root: projectRoot,
-        cwd,
-        source: 'cli',
-    };
+): WeaveInvocation<ForgeWeavePayload> {
+    let beadId: string | undefined;
+    let persona: string | undefined;
+    let model: string | undefined;
 
-    for (let index = 0; index < args.length; index += 1) {
-        const token = args[index];
-        if (token === '--bead-id' && args[index + 1]) {
-            payload.bead_id = args[index + 1];
-            index += 1;
-            continue;
-        }
-        if (token === '--persona' && args[index + 1]) {
-            payload.persona = args[index + 1];
-            index += 1;
-            continue;
-        }
-        if (token === '--model' && args[index + 1]) {
-            payload.model = args[index + 1];
-            index += 1;
-        }
+    for (let i = 0; i < args.length; i++) {
+        if (args[i] === '--bead-id' && i + 1 < args.length) beadId = args[++i];
+        else if (args[i] === '--persona' && i + 1 < args.length) persona = args[++i];
+        else if (args[i] === '--model' && i + 1 < args.length) model = args[++i];
     }
 
-    return withCliWorkspaceTarget({
-        weave_id: 'weave:taliesin-forge',
-        payload,
+    return withCliWorkspaceTarget<ForgeWeavePayload>({
+        weave_id: 'weave:artifact-forge',
+        payload: {
+            bead_id: beadId,
+            persona,
+            model,
+            project_root: projectRoot,
+            cwd,
+            source: 'cli',
+        },
     }, projectRoot, cwd);
 }
 
@@ -424,7 +293,8 @@ function extractUnknownCommandArgs(command: string, fallbackArgs: string[]): str
  * [GUNGNIR] Dispatcher Spoke
  * Purpose: Thin shell for runtime-backed dynamic workflow and skill discovery.
  * @param program
- * @param PROJECT_ROOT
+ * @param projectRootSource
+ * @param dispatchPort
  */
 export function registerDispatcher(
     program: Command,
@@ -435,14 +305,17 @@ export function registerDispatcher(
         const [cmd, ...args] = operands;
         const rawArgs = extractUnknownCommandArgs(cmd, args);
         const projectRoot = resolveWorkspaceRoot(projectRootSource);
-        const result = await dispatchPort.dispatch(buildDynamicCommandInvocation(cmd, rawArgs, projectRoot, process.cwd()));
+        const skillBead = buildRegistrySkillBeadInvocation(cmd, rawArgs, projectRoot, process.cwd());
+        const result = await dispatchPort.dispatch(
+            skillBead ?? buildDynamicCommandInvocation(cmd, rawArgs, projectRoot, process.cwd()),
+        );
 
         if (result.status === 'FAILURE') {
             console.error(result.error ?? `Unknown command '${cmd}'`);
             process.exit(1);
         }
 
-        if (result.weave_id !== 'weave:dynamic-command') {
+        if (skillBead || result.weave_id !== 'weave:dynamic-command') {
             renderStandardCommandResult(result, projectRoot);
         }
     });

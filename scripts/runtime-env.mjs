@@ -5,13 +5,24 @@ import { fileURLToPath } from 'node:url';
 export const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 export const PROJECT_ROOT = path.resolve(SCRIPT_DIR, '..');
 
-export function buildStableTempEnv(baseEnv = process.env) {
+export function buildStableTempEnv(baseEnv = process.env, options = {}) {
     const env = { ...baseEnv };
+    const projectRoot = options.projectRoot ?? PROJECT_ROOT;
+    const launchCwd = options.launchCwd ?? process.cwd();
     if (process.platform !== 'win32') {
         const stableTmp = env.TMPDIR || '/tmp';
         env.TMPDIR = stableTmp;
         env.TEMP = stableTmp;
         env.TMP = stableTmp;
+    }
+    if (!env.CSTAR_PROJECT_ROOT) {
+        env.CSTAR_PROJECT_ROOT = projectRoot;
+    }
+    if (!env.CSTAR_WORKSPACE_ROOT) {
+        env.CSTAR_WORKSPACE_ROOT = projectRoot;
+    }
+    if (!env.CSTAR_LAUNCH_CWD) {
+        env.CSTAR_LAUNCH_CWD = launchCwd;
     }
     return env;
 }

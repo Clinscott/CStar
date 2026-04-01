@@ -312,6 +312,43 @@ describe('TypeScript Mimir client bridge (CS-P1-02)', () => {
         assert.strictEqual(hallRequests[0]?.metadata?.synapse_id !== undefined, true);
     });
 
+    it('keeps thread-only Codex sessions on direct host transport even when a broker record exists', async () => {
+        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-mimir-codex-thread-only-'));
+        const now = Date.now();
+        saveHallOneMindBroker({
+            repo_id: buildHallRepositoryId(normalizeHallPath(tmpRoot)),
+            status: 'READY',
+            binding_state: 'BOUND',
+            fulfillment_ready: true,
+            provider: 'codex',
+            session_id: 'thread-1',
+            control_plane: 'hall',
+            metadata: { source: 'unit-test' },
+            created_at: now,
+            updated_at: now,
+        }, tmpRoot);
+
+        const client = new MimirClient({
+            projectRoot: tmpRoot,
+            env: { CODEX_THREAD_ID: 'thread-1' },
+            hostSessionInvoker: async () => 'Codex thread-only direct response',
+        });
+
+        const response = await client.request({
+            prompt: 'Explain the current bridge.',
+            caller: { source: 'test-suite' },
+        });
+
+        const hallRequests = listHallOneMindRequests(tmpRoot);
+        assert.strictEqual(response.status, 'success');
+        assert.strictEqual(response.trace.transport_mode, 'host_session');
+        assert.strictEqual(response.raw_text, 'Codex thread-only direct response');
+        assert.strictEqual(hallRequests.length, 1);
+        assert.strictEqual(hallRequests[0]?.request_status, 'COMPLETED');
+        assert.strictEqual(hallRequests[0]?.transport_preference, 'host_session');
+        assert.strictEqual(hallRequests[0]?.metadata?.synapse_id, undefined);
+    });
+
     it('uses the env-detected Codex provider before the Gemini fallback when hostSessionActive is true', async () => {
         const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-mimir-codex-detected-'));
         const prompts: Array<{ provider: string; prompt: string }> = [];

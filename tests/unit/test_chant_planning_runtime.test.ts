@@ -1,10 +1,11 @@
-import { afterEach, beforeEach, describe, it } from 'node:test';
+import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { ChantWeave } from  '../../src/node/core/runtime/weaves/chant.js';
+import { ChantWeave } from  '../../src/node/core/runtime/host_workflows/chant.js';
+import { deps as plannerDeps } from '../../src/node/core/runtime/host_workflows/chant_planner.ts';
 import type { RuntimeDispatchPort, RuntimeContext, WeaveInvocation, WeaveResult } from  '../../src/node/core/runtime/contracts.js';
 import { closeDb, getHallPlanningSession, saveHallOneMindBranch, saveHallPlanningSession } from  '../../src/tools/pennyone/intel/database.js';
 import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
@@ -89,49 +90,6 @@ class InspectPlanningDispatchPort implements RuntimeDispatchPort {
             };
         }
 
-        if (invocation.weave_id === 'weave:architect') {
-            const session = getHallPlanningSession(sessionId);
-            assert.ok(session);
-            assert.equal(session?.status, 'RESEARCH_PHASE');
-            assert.match(session?.summary ?? '', /Synthesizing proposal via Architect/i);
-            assert.equal(session?.metadata?.phase_in_flight, 'weave:architect');
-            assert.equal((session?.metadata?.research_payload as Record<string, unknown> | undefined)?.summary, 'Repository research complete.');
-            assert.deepEqual((session?.metadata?.research_payload as Record<string, unknown> | undefined)?.research_artifacts, ['README.md', 'src/runtime.ts']);
-            const digest = (session?.metadata?.branch_ledger_digest as Record<string, unknown> | undefined);
-            assert.ok(digest);
-            assert.equal(digest?.total_branches, 2);
-            assert.equal(digest?.group_count, 1);
-            const research = (invocation.payload as { research?: Record<string, unknown> }).research;
-            assert.equal(research?.summary, 'Repository research complete.');
-            assert.deepEqual(research?.research_artifacts, ['README.md', 'src/runtime.ts']);
-            assert.equal((research?.branch_ledger_digest as Record<string, unknown> | undefined)?.total_branches, 2);
-            assert.ok(Array.isArray(research?.local_worker_file_budgets));
-            const budgets = research?.local_worker_file_budgets as Array<Record<string, unknown>>;
-            assert.ok(budgets.some((entry) => entry.path === 'README.md' && entry.local_worker_fit === true));
-            assert.ok(budgets.some((entry) => entry.path === 'src/runtime.ts' && entry.local_worker_fit === true));
-
-            return {
-                weave_id: invocation.weave_id,
-                status: 'SUCCESS',
-                output: 'Architect proposal ready.',
-                metadata: {
-                    architect_proposal: {
-                        proposal_summary: 'Implement the runtime improvement as a bounded bead.',
-                        beads: [
-                            {
-                                id: 'bounded-runtime-improvement',
-                                title: 'Implement bounded runtime improvement',
-                                rationale: 'Carry forward the researched runtime changes.',
-                                targets: ['src/runtime.ts'],
-                                depends_on: [],
-                                acceptance_criteria: ['Bounded runtime improvement exists.'],
-                            },
-                        ],
-                    },
-                },
-            };
-        }
-
         return {
             weave_id: invocation.weave_id,
             status: 'SUCCESS',
@@ -143,31 +101,7 @@ class InspectPlanningDispatchPort implements RuntimeDispatchPort {
 
 class ArchitectOnlyDispatchPort implements RuntimeDispatchPort {
     public async dispatch<T>(invocation: WeaveInvocation<T>): Promise<WeaveResult> {
-        assert.equal(invocation.weave_id, 'weave:architect');
-        const research = (invocation.payload as { research?: Record<string, unknown> }).research;
-        assert.equal(research?.summary, 'Stored research context.');
-        assert.deepEqual(research?.research_artifacts, ['tests/test_runtime.py']);
-        assert.ok(Array.isArray(research?.local_worker_file_budgets));
-        return {
-            weave_id: invocation.weave_id,
-            status: 'SUCCESS',
-            output: 'Architect proposal ready.',
-            metadata: {
-                architect_proposal: {
-                    proposal_summary: 'Resume from stored research context.',
-                    beads: [
-                        {
-                            id: 'resume-research-phase',
-                            title: 'Resume research phase proposal',
-                            rationale: 'Use stored research payload during resume.',
-                            targets: ['tests/test_runtime.py'],
-                            depends_on: [],
-                            acceptance_criteria: ['Stored research payload was used.'],
-                        },
-                    ],
-                },
-            },
-        };
+        throw new Error(`Unexpected weave dispatch in ArchitectOnlyDispatchPort: ${invocation.weave_id}`);
     }
 }
 
@@ -216,10 +150,31 @@ describe('Chant collaborative planning (CS-P7-03)', () => {
     });
 
     afterEach(() => {
+        mock.reset();
         closeDb();
     });
 
     it('advances collaborative planning into proposal review for a concrete request', async () => {
+        mock.method(plannerDeps, 'executeArchitectService', async () => ({
+            weave_id: 'weave:architect',
+            status: 'SUCCESS',
+            output: 'Architect proposal ready.',
+            metadata: {
+                architect_proposal: {
+                    proposal_summary: 'Bounded runtime planning proposal.',
+                    beads: [
+                        {
+                            id: 'bounded-runtime-plan',
+                            title: 'Bounded runtime plan',
+                            rationale: 'Keep the planning request inside one bounded proposal.',
+                            targets: ['src/runtime.ts'],
+                            depends_on: [],
+                            acceptance_criteria: ['A bounded runtime plan exists.'],
+                        },
+                    ],
+                },
+            },
+        }));
         const chant = new ChantWeave(new NoopDispatchPort());
         const result = await chant.execute(
             {
@@ -253,6 +208,26 @@ describe('Chant collaborative planning (CS-P7-03)', () => {
     });
 
     it('maintains a multi-turn planning session across follow-up prompts', async () => {
+        mock.method(plannerDeps, 'executeArchitectService', async () => ({
+            weave_id: 'weave:architect',
+            status: 'SUCCESS',
+            output: 'Architect proposal ready.',
+            metadata: {
+                architect_proposal: {
+                    proposal_summary: 'Follow-up planning proposal.',
+                    beads: [
+                        {
+                            id: 'follow-up-runtime-plan',
+                            title: 'Follow-up runtime plan',
+                            rationale: 'Carry the multi-turn planning session forward as one bounded bead.',
+                            targets: ['src/runtime.ts'],
+                            depends_on: [],
+                            acceptance_criteria: ['The follow-up planning session stays resumable.'],
+                        },
+                    ],
+                },
+            },
+        }));
         const chant = new ChantWeave(new NoopDispatchPort());
         const first = await chant.execute(
             {
@@ -313,6 +288,47 @@ describe('Chant collaborative planning (CS-P7-03)', () => {
     });
 
     it('persists in-flight planning state before blocking phases and carries research into architect synthesis', async () => {
+        mock.method(plannerDeps, 'executeArchitectService', async (payload: any) => {
+            const session = getHallPlanningSession('chant-session:TRACE-PLAN');
+            assert.ok(session);
+            assert.equal(session?.status, 'RESEARCH_PHASE');
+            assert.match(session?.summary ?? '', /Synthesizing proposal inside chant planning/i);
+            assert.equal(session?.metadata?.phase_in_flight, 'chant:architect-service');
+            assert.equal((session?.metadata?.research_payload as Record<string, unknown> | undefined)?.summary, 'Repository research complete.');
+            assert.deepEqual((session?.metadata?.research_payload as Record<string, unknown> | undefined)?.research_artifacts, ['README.md', 'src/runtime.ts']);
+            const digest = (session?.metadata?.branch_ledger_digest as Record<string, unknown> | undefined);
+            assert.ok(digest);
+            assert.equal(digest?.total_branches, 2);
+            assert.equal(digest?.group_count, 1);
+            const research = payload.research;
+            assert.equal(research?.summary, 'Repository research complete.');
+            assert.deepEqual(research?.research_artifacts, ['README.md', 'src/runtime.ts']);
+            assert.equal((research?.branch_ledger_digest as Record<string, unknown> | undefined)?.total_branches, 2);
+            assert.ok(Array.isArray(research?.local_worker_file_budgets));
+            const budgets = research?.local_worker_file_budgets as Array<Record<string, unknown>>;
+            assert.ok(budgets.some((entry) => entry.path === 'README.md' && entry.local_worker_fit === true));
+            assert.ok(budgets.some((entry) => entry.path === 'src/runtime.ts' && entry.local_worker_fit === true));
+            return {
+                weave_id: 'weave:architect',
+                status: 'SUCCESS',
+                output: 'Architect proposal ready.',
+                metadata: {
+                    architect_proposal: {
+                        proposal_summary: 'Implement the runtime improvement as a bounded bead.',
+                        beads: [
+                            {
+                                id: 'bounded-runtime-improvement',
+                                title: 'Implement bounded runtime improvement',
+                                rationale: 'Carry forward the researched runtime changes.',
+                                targets: ['src/runtime.ts'],
+                                depends_on: [],
+                                acceptance_criteria: ['Bounded runtime improvement exists.'],
+                            },
+                        ],
+                    },
+                },
+            };
+        });
         const chant = new ChantWeave(new InspectPlanningDispatchPort());
         const result = await chant.execute(
             {
@@ -349,6 +365,32 @@ describe('Chant collaborative planning (CS-P7-03)', () => {
     });
 
     it('reuses stored research payload when resuming from RESEARCH_PHASE', async () => {
+        mock.method(plannerDeps, 'executeArchitectService', async (payload: any) => {
+            const research = payload.research;
+            assert.equal(research?.summary, 'Stored research context.');
+            assert.deepEqual(research?.research_artifacts, ['tests/test_runtime.py']);
+            assert.ok(Array.isArray(research?.local_worker_file_budgets));
+            return {
+                weave_id: 'weave:architect',
+                status: 'SUCCESS',
+                output: 'Architect proposal ready.',
+                metadata: {
+                    architect_proposal: {
+                        proposal_summary: 'Resume from stored research context.',
+                        beads: [
+                            {
+                                id: 'resume-research-phase',
+                                title: 'Resume research phase proposal',
+                                rationale: 'Use stored research payload during resume.',
+                                targets: ['tests/test_runtime.py'],
+                                depends_on: [],
+                                acceptance_criteria: ['Stored research payload was used.'],
+                            },
+                        ],
+                    },
+                },
+            };
+        });
         const sessionId = 'chant-session:resume-research';
         saveHallPlanningSession({
             session_id: sessionId,
@@ -357,7 +399,7 @@ describe('Chant collaborative planning (CS-P7-03)', () => {
             status: 'RESEARCH_PHASE',
             user_intent: 'Resume the stalled planning session.',
             normalized_intent: 'Resume the stalled planning session.',
-            summary: 'Research Phase complete. Synthesizing proposal via Architect...',
+            summary: 'Research Phase complete. Synthesizing proposal inside chant planning...',
             created_at: Date.now(),
             updated_at: Date.now(),
             metadata: {

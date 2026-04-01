@@ -6,6 +6,7 @@ This repository generates host install artifacts from the authoritative registry
 - Install from the repository root so `gemini-extension.json` and `GEMINI.md` are available.
 - The extension exposes registry-filtered capabilities and MCP server wiring from the kernel root.
 - Gemini context is generated around the host-native supervisor model: host cognition, kernel primitives.
+- Public host fronts marked as no-fallback are expected to fail closed when the host session is unavailable.
 - Local bootstrap: `npm run install:gemini-local`
 
 ## Codex
@@ -13,14 +14,15 @@ This repository generates host install artifacts from the authoritative registry
 - The marketplace entry lives under `.agents/plugins/marketplace.json`.
 - The plugin points back to the same kernel root through `.mcp.json`.
 - Codex install surfaces are generated from the same registry-backed host/kernel split as Gemini.
+- Public host fronts marked as no-fallback are expected to fail closed when the host session is unavailable.
 - Local bootstrap: `npm run install:codex-local`
 
 ## Combined Local Bootstrap
 - `npm run install:hosts-local`
 
 ## Export Summary
-- Gemini executable capabilities: 68
-- Codex executable capabilities: 68
+- Gemini executable capabilities: 72
+- Codex executable capabilities: 72
 
 ## Regeneration
 - `npm run build:distributions`

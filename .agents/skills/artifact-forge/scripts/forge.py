@@ -1,7 +1,8 @@
 """
-[SPOKE] Taliesin Forge (The Living Lore Compiler)
-Lore: "When the Bard sings, the world shifts to match the melody."
-Purpose: Materialize validation-ready forge candidates from canonical bead-backed requests.
+[SPOKE] Artifact Forge (The Living Lore Compiler)
+Lore: "Creation is Dominion."
+Purpose: Materialize validation-ready code artifacts from canonical bead-backed requests.
+Persona: O.D.I.N. / ALFRED
 """
 
 from __future__ import annotations
@@ -14,7 +15,7 @@ from pathlib import Path
 from typing import Any
 
 # Add project root to sys.path
-project_root = Path(__file__).resolve().parents[2]
+project_root = Path(__file__).resolve().parents[4]
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
@@ -27,32 +28,28 @@ from src.core.engine.forge_candidate import (
 )
 from src.core.sovereign_hud import SovereignHUD
 from src.cstar.core.uplink import AntigravityUplink
-from docs.legacy_archive.src_sentinel.taliesin import TaliesinSpoke
 
-MARKER = "__CORVUS_TALIESIN__"
+MARKER = "__CORVUS_ARTIFACT_FORGE__"
 
 
-class TaliesinForge:
+class ArtifactForge:
     """
-    [Omega] The Forge of the Bard.
+    [Omega] The Forge of the Kernel.
     Canonical authority for bead-backed code candidate generation.
     """
 
     def __init__(self, root_path: Path):
         self.root = root_path
         self.uplink = AntigravityUplink()
-        self.taliesin = TaliesinSpoke(root_path)
 
     async def forge_candidate(self, request: ForgeCandidateRequest) -> ForgeCandidateResult | None:
         """Forge a validation-ready candidate from a canonical request envelope."""
-        SovereignHUD.log("INFO", f"Taliesin Forge igniting for bead {request.bead_id}: {request.target_path}")
-        candidate_brief = await self.taliesin.build_candidate_brief(request)
+        SovereignHUD.log("INFO", f"Artifact Forge igniting for bead {request.bead_id}: {request.target_path}")
 
         prompt = (
-            "ACT AS: The Taliesin Forge Architect.\n"
+            "ACT AS: The Corvus Star Systems Architect.\n"
             "MANDATE: Produce a validation-ready candidate from the canonical forge request.\n\n"
             f"FORGE REQUEST:\n```json\n{json.dumps(request.to_dict(), indent=2)}\n```\n\n"
-            f"FORGE BRIEF:\n{candidate_brief}\n\n"
             "CONSTRAINTS:\n"
             "1. Output MUST be a valid JSON object.\n"
             "2. Fields: 'target_path', 'code', 'summary', and optional 'required_validations'.\n"
@@ -64,7 +61,7 @@ class TaliesinForge:
         response = await self.uplink.send_payload(
             prompt,
             {
-                "persona": request.operator_constraints.get("persona", "TALIESIN"),
+                "persona": request.operator_constraints.get("persona", "ODIN"),
                 "model": request.operator_constraints.get("model", "gemini-3-flash-preview"),
                 "system_prompt": request.operator_constraints.get("system_prompt", "Output ONLY valid JSON."),
             },
@@ -84,33 +81,18 @@ class TaliesinForge:
             SovereignHUD.log("ERROR", f"Forge materialization failed: {exc}")
             return None
 
-    async def weave_code_from_lore(self, lore_file_path: Path) -> bool:
-        """
-        Compatibility-only lore adapter.
-        Runtime forge no longer mints work units from lore during live execution.
-        """
-        if not lore_file_path.exists():
-            SovereignHUD.log("FAIL", f"Lore file not found: {lore_file_path}")
-            return False
-
-        SovereignHUD.log(
-            "FAIL",
-            "Legacy lore-file forge is no longer canonical. Create a bead and invoke TALIESIN with --bead-id.",
-        )
-        return False
-
     async def forge_candidate_from_bead(
         self,
         bead_id: str,
         *,
         operator_constraints: dict[str, Any] | None = None,
     ) -> ForgeCandidateResult | None:
-        """Convenience entrypoint for direct bead-driven TALIESIN execution."""
+        """Convenience entrypoint for direct bead-driven execution."""
         request = build_forge_request_from_bead(
             self.root,
             bead_id,
             operator_constraints=operator_constraints
-            or {"persona": "TALIESIN", "model": "gemini-3-flash-preview"},
+            or {"persona": "ODIN", "model": "gemini-3-flash-preview"},
         )
         return await self.forge_candidate(request)
 
@@ -120,19 +102,7 @@ def _emit_cli_payload(payload: dict[str, Any]) -> None:
 
 
 async def _run_cli(args: argparse.Namespace) -> int:
-    if args.lore_file:
-        _emit_cli_payload(
-            {
-                "status": "FAILURE",
-                "summary": "Legacy lore-file forge is no longer canonical. Create a bead and invoke TALIESIN with --bead-id.",
-                "error": "Compatibility-only lore adapter rejected for canonical runtime execution.",
-                "compatibility_mode": "lore_adapter",
-                "lore_file": str(Path(args.lore_file)),
-            }
-        )
-        return 1
-
-    forge = TaliesinForge(project_root)
+    forge = ArtifactForge(project_root)
     try:
         result = await forge.forge_candidate_from_bead(
             args.bead_id,
@@ -156,7 +126,7 @@ async def _run_cli(args: argparse.Namespace) -> int:
         _emit_cli_payload(
             {
                 "status": "FAILURE",
-                "summary": f"TALIESIN forge did not materialize a candidate for bead {args.bead_id}.",
+                "summary": f"Artifact forge did not materialize a candidate for bead {args.bead_id}.",
                 "error": "Forge materialization returned no candidate.",
                 "bead_id": args.bead_id,
             }
@@ -180,12 +150,12 @@ async def _run_cli(args: argparse.Namespace) -> int:
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="TALIESIN forge runtime entrypoint"
+        description="Artifact forge runtime entrypoint"
     )
-    parser.add_argument("--bead-id", help="Canonical bead id to forge from.")
+    parser.add_argument("--bead-id", required=True, help="Canonical bead id to forge from.")
     parser.add_argument(
         "--persona",
-        default="TALIESIN",
+        default="ODIN",
         help="Persona override for the forge request.",
     )
     parser.add_argument(
@@ -193,18 +163,12 @@ def _build_parser() -> argparse.ArgumentParser:
         default="gemini-3-flash-preview",
         help="Model override for the forge request.",
     )
-    parser.add_argument(
-        "--lore-file",
-        help="Compatibility-only lore adapter path. Canonical runtime forge rejects this mode.",
-    )
     return parser
 
 
 def main() -> None:
     parser = _build_parser()
     args = parser.parse_args()
-    if not args.bead_id and not args.lore_file:
-        parser.error("TALIESIN forge requires --bead-id.")
     raise SystemExit(asyncio.run(_run_cli(args)))
 
 

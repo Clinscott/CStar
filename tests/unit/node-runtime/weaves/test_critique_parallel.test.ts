@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { CritiqueWeave } from '../../../../src/node/core/runtime/weaves/critique.js';
+import { CritiqueWeave } from '../../../../src/node/core/runtime/host_workflows/critique.js';
 
 describe('CritiqueWeave parallel focus-area behavior', () => {
     it('merges bounded focus-area critiques in input order', async () => {
@@ -10,13 +10,13 @@ describe('CritiqueWeave parallel focus-area behavior', () => {
                 needs_revision: true,
                 critique: 'Tighten the acceptance criteria.',
                 evidence_source: 'repo:contracts',
-                proposed_path: 'src/node/core/runtime/weaves/chant.ts',
+                proposed_path: 'src/node/core/runtime/host_workflows/chant.ts',
             }),
             JSON.stringify({
                 needs_revision: false,
                 critique: 'The checker shell is acceptable.',
                 evidence_source: 'repo:validation',
-                proposed_path: 'src/node/core/runtime/weaves/chant.ts',
+                proposed_path: 'src/node/core/runtime/host_workflows/chant.ts',
             }),
         ];
         let index = 0;

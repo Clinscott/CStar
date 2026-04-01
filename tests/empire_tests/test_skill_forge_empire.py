@@ -25,3 +25,12 @@ def test_validate_skill_safety(tmp_path):
     good_code = "print('hello')"
     is_valid, msg = forge.validate_skill(good_code)
     assert is_valid is True
+
+
+def test_generate_test_template_skips_incomplete_drafts(tmp_path):
+    forge = SkillForge(str(tmp_path))
+    content = forge._generate_test_template("login_check", "SOURCE", [])
+
+    assert "pytest.skip(DRAFT_TEST_MESSAGE)" in content
+    assert "assert True" not in content
+    assert "TODO" not in content

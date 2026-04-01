@@ -37,6 +37,23 @@ describe('Unified One Mind bridge policy', () => {
         assert.equal(decision.reason, 'interactive-host-session-bus');
     });
 
+    it('treats thread-only Codex environments as direct exec-bridge sessions, not an interactive bus', () => {
+        const decision = resolveOneMindDecision(
+            {
+                prompt: 'Explain the bridge.',
+                transport_mode: 'auto',
+                caller: { source: 'pennyone:intel:batch-intent' },
+                metadata: {},
+            },
+            { CODEX_THREAD_ID: 'thread-1' },
+            { brokerActive: true },
+        );
+
+        assert.equal(decision.boundary, 'primary');
+        assert.equal(decision.transportMode, 'host_session');
+        assert.equal(decision.reason, 'ambient-host-session');
+    });
+
     it('routes delegated subagent requests away from the primary host', () => {
         const decision = resolveOneMindDecision(
             {

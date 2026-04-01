@@ -3,6 +3,10 @@ import { normalizeHallPath, buildHallRepositoryId } from  '../../../types/hall.j
 import fs from 'node:fs';
 import path from 'node:path';
 
+function shouldEmitPennyOneDebugLogs(): boolean {
+    return process.env.CSTAR_DEBUG_LOGS === '1';
+}
+
 export function parseJson<T>(value: string | null | undefined, fallback: T): T {
     if (!value) {
         return fallback;
@@ -59,7 +63,9 @@ function ensureVirtualTable(database: Database.Database, tableName: string, crea
 export function ensureHallSchema(database: Database.Database, rootPath: string): void {
     const normalizedRoot = normalizeHallPath(rootPath);
     const repoId = buildHallRepositoryId(normalizedRoot);
-    console.log(`[DEBUG] ensureHallSchema: rootPath=${rootPath}, normalizedRoot=${normalizedRoot}, repoId=${repoId}`);
+    if (shouldEmitPennyOneDebugLogs()) {
+        console.log(`[DEBUG] ensureHallSchema: rootPath=${rootPath}, normalizedRoot=${normalizedRoot}, repoId=${repoId}`);
+    }
     const legacyState = getLegacyState(rootPath);
     const framework = legacyState.framework ?? {};
     const now = Date.now();
@@ -176,6 +182,7 @@ export function ensureHallSchema(database: Database.Database, rootPath: string):
             resolution_note TEXT,
             resolved_validation_id TEXT,
             superseded_by TEXT,
+            metadata_json TEXT,
             created_at INTEGER NOT NULL,
             updated_at INTEGER NOT NULL,
             UNIQUE(repo_id, legacy_id),
@@ -614,6 +621,7 @@ export function ensureHallSchema(database: Database.Database, rootPath: string):
     ensureColumn(database, 'hall_planning_sessions', 'metadata_json', 'TEXT');
     ensureColumn(database, 'hall_beads', 'architect_opinion', 'TEXT');
     ensureColumn(database, 'hall_beads', 'critique_payload_json', 'TEXT');
+    ensureColumn(database, 'hall_beads', 'metadata_json', 'TEXT');
 
     ensureVirtualTable(
         database,

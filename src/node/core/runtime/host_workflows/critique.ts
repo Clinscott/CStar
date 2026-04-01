@@ -6,7 +6,7 @@ import {
     WeaveInvocation,
     WeaveResult,
 } from '../contracts.ts';
-import { defaultHostTextInvoker, extractJsonObject, resolveRuntimeHostProvider, type HostTextInvoker } from  './host_bridge.js';
+import { defaultHostTextInvoker, extractJsonObject, resolveRuntimeHostProvider, type HostTextInvoker } from  '../weaves/host_bridge.js';
 import { saveHallOneMindBranch, summarizeHallOneMindBranches } from '../../../../tools/pennyone/intel/database.js';
 import { buildHallRepositoryId, normalizeHallPath, type HallOneMindBranchRecord } from '../../../../types/hall.js';
 
@@ -58,7 +58,7 @@ function buildCritiqueBranchMetadata(
     };
 }
 
-export class CritiqueWeave implements RuntimeAdapter<CritiqueWeavePayload> {
+export class CritiqueHostWorkflow implements RuntimeAdapter<CritiqueWeavePayload> {
     public readonly id = 'weave:critique';
 
     public constructor(
@@ -188,3 +188,5 @@ export class CritiqueWeave implements RuntimeAdapter<CritiqueWeavePayload> {
         };
     }
 }
+
+export { CritiqueHostWorkflow as CritiqueWeave };

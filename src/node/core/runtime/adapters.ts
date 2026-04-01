@@ -8,9 +8,9 @@ import { ANS } from  '../ans.js';
 import type { HostProvider } from '../../../core/host_session.js';
 import { resolveHostProvider } from  '../../../core/host_session.js';
 import { RavensCycleWeave } from  './weaves/ravens_cycle.js';
-import { RestorationWeave } from  './weaves/restoration.js';
-import { EstateExpansionWeave } from  './weaves/expansion.js';
-import { VigilanceWeave } from  './weaves/vigilance.js';
+import { RestorationHostWorkflow } from  './host_workflows/restoration.js';
+import { EstateExpansionHostWorkflow } from  './host_workflows/expansion.js';
+import { VigilanceHostWorkflow } from  './host_workflows/vigilance.js';
 import { defaultHostTextInvoker, extractJsonObject, type HostTextInvoker } from './weaves/host_bridge.js';
 import { discoverLegacyCommands, resolvePythonPath } from  './adapters/legacy_commands.js';
 import {
@@ -30,9 +30,9 @@ import {
 } from './contracts.ts';
 
 export { PennyOneAdapter } from  './weaves/pennyone.js';
-export { RestorationWeave } from  './weaves/restoration.js';
-export { EstateExpansionWeave } from  './weaves/expansion.js';
-export { VigilanceWeave } from  './weaves/vigilance.js';
+export { RestorationHostWorkflow, RestorationHostWorkflow as RestorationWeave } from  './host_workflows/restoration.js';
+export { EstateExpansionHostWorkflow, EstateExpansionHostWorkflow as EstateExpansionWeave } from  './host_workflows/expansion.js';
+export { VigilanceHostWorkflow, VigilanceHostWorkflow as VigilanceWeave } from  './host_workflows/vigilance.js';
 
 export const runtimeAdapterDeps = {
     resolveHostProvider,

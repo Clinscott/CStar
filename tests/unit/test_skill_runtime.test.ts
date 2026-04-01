@@ -49,4 +49,36 @@ describe('Skill Runtime Contract (CS-P1-01)', () => {
         assert.strictEqual(result.status, 'FAILURE');
         assert.ok(result.error?.includes('unable to resolve'));
     });
+
+    it('should refuse to execute host-workflow entries through the universal adapter', async () => {
+        const hostWorkflowAdapter = new UniversalAdapter('mock_host_workflow', {
+            tier: 'WEAVE',
+            description: 'Host-native workflow record',
+            execution: {
+                mode: 'agent-native',
+                cli: 'echo should-not-run',
+                ownership_model: 'host-workflow',
+            },
+        });
+
+        const result = await hostWorkflowAdapter.execute({
+            weave_id: 'mock_host_workflow',
+            payload: {},
+        }, {
+            mission_id: 'MISSION-1',
+            bead_id: 'bead-1',
+            trace_id: 'trace-1',
+            persona: 'ODIN',
+            workspace_root: process.cwd(),
+            operator_mode: 'subkernel',
+            target_domain: 'brain',
+            interactive: false,
+            env: process.env,
+            timestamp: Date.now(),
+        });
+
+        assert.strictEqual(result.status, 'FAILURE');
+        assert.ok(result.error?.includes('must not execute'));
+        assert.equal(result.metadata?.ownership_model, 'host-workflow');
+    });
 });

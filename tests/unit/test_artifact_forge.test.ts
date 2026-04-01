@@ -1,15 +1,16 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { buildTaliesinForgeInvocation } from  '../../src/node/core/commands/dispatcher.js';
+import { buildArtifactForgeInvocation } from  '../../src/node/core/commands/dispatcher.js';
 import type { RuntimeContext } from  '../../src/node/core/runtime/contracts.js';
-import { TaliesinForgeWeave } from  '../../src/node/core/runtime/weaves/taliesin_forge.js';
+import { ArtifactForgeWeave } from  '../../src/node/core/runtime/host_workflows/artifact_forge.js';
 
 function createContext(workspaceRoot: string): RuntimeContext {
     return {
-        mission_id: 'MISSION-TALIESIN',
-        trace_id: 'TRACE-TALIESIN',
-        persona: 'TALIESIN',
+        mission_id: 'MISSION-ARTIFACT-FORGE',
+        bead_id: 'bead-1',
+        trace_id: 'TRACE-ARTIFACT-FORGE',
+        persona: 'ODIN',
         workspace_root: workspaceRoot,
         operator_mode: 'cli',
         target_domain: 'brain',
@@ -19,19 +20,19 @@ function createContext(workspaceRoot: string): RuntimeContext {
     };
 }
 
-describe('TALIESIN forge runtime (CS-P4-00)', () => {
+describe('Artifact forge runtime', () => {
     it('builds a canonical forge invocation from CLI flags', () => {
         assert.deepEqual(
-            buildTaliesinForgeInvocation(
-                ['--bead-id', 'bead-1', '--persona', 'TALIESIN', '--model', 'gemini-test'],
+            buildArtifactForgeInvocation(
+                ['--bead-id', 'bead-1', '--persona', 'ODIN', '--model', 'gemini-test'],
                 'C:\\Users\\Craig\\Corvus\\CorvusStar',
                 'C:\\Users\\Craig\\Corvus\\CorvusStar',
             ),
             {
-                weave_id: 'weave:taliesin-forge',
+                weave_id: 'weave:artifact-forge',
                 payload: {
                     bead_id: 'bead-1',
-                    persona: 'TALIESIN',
+                    persona: 'ODIN',
                     model: 'gemini-test',
                     project_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
                     cwd: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
@@ -51,8 +52,8 @@ describe('TALIESIN forge runtime (CS-P4-00)', () => {
     });
 
     it('returns the staged candidate envelope from the runtime weave', async () => {
-        const weave = new TaliesinForgeWeave((async () => ({
-            stdout: `${'__CORVUS_TALIESIN__'}${JSON.stringify({
+        const weave = new ArtifactForgeWeave((async () => ({
+            stdout: `${'__CORVUS_ARTIFACT_FORGE__'}${JSON.stringify({
                 status: 'SUCCESS',
                 summary: 'Candidate forged for src/core/forge_target.py',
                 candidate: {
@@ -100,7 +101,7 @@ describe('TALIESIN forge runtime (CS-P4-00)', () => {
 
         const result = await weave.execute(
             {
-                weave_id: 'weave:taliesin-forge',
+                weave_id: 'weave:artifact-forge',
                 payload: {
                     bead_id: 'bead-1',
                     project_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
@@ -119,11 +120,11 @@ describe('TALIESIN forge runtime (CS-P4-00)', () => {
     });
 
     it('fails fast when bead id is missing', async () => {
-        const weave = new TaliesinForgeWeave((async () => ({ stdout: '' })) as any);
+        const weave = new ArtifactForgeWeave((async () => ({ stdout: '' })) as any);
 
         const result = await weave.execute(
             {
-                weave_id: 'weave:taliesin-forge',
+                weave_id: 'weave:artifact-forge',
                 payload: {
                     project_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
                     cwd: 'C:\\Users\\Craig\\Corvus\\CorvusStar',

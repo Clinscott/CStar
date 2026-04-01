@@ -17,7 +17,7 @@ import {
     augmentResearchPayloadForArchitect,
     persistArchitectProposal,
     deps,
-} from '../../../../src/node/core/runtime/weaves/chant_planner.ts';
+} from '../../../../src/node/core/runtime/host_workflows/chant_planner.ts';
 
 describe('Chant Planner Unit Tests', () => {
     describe('Metadata Utilities', () => {

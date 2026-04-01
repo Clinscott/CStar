@@ -1,6 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert';
-import { updateFtsIndex, searchIntents, getRecentSessions, getPingsForSession, getDb } from  '../../src/tools/pennyone/intel/database.js';
+import {
+    updateChronicleIndex,
+    updateFtsIndex,
+    searchIntents,
+    getRecentSessions,
+    getPingsForSession,
+    getDb,
+} from  '../../src/tools/pennyone/intel/database.js';
 
 test('Well of Mimir FTS5 Operations', async () => {
     const testPath = 'src/core/annex.py';
@@ -32,6 +39,28 @@ test('Well of Mimir FTS5 Operations', async () => {
     const db = getDb();
     const count = db.prepare('SELECT count(*) as count FROM intents_fts WHERE path = ?').get(testPath) as any;
     assert.strictEqual(count.count, 1, 'Should UPSERT, not duplicate');
+});
+
+test('Well of Mimir FTS5 ranking demotes archived lore behind live runtime authority', async () => {
+    const probe = 'rankprobe-fts-chant-architect-authority';
+    updateChronicleIndex(
+        'docs/legacy_archive/root_docs/tasks.qmd',
+        `Archived architect doctrine ${probe}`,
+        `Architect owns proposal synthesis ${probe}.`,
+    );
+    updateFtsIndex(
+        'src/node/core/runtime/host_workflows/chant_planner.ts',
+        `Live chant planning authority ${probe}`,
+        'Open chant planner',
+    );
+
+    const results = searchIntents(probe);
+    const liveIndex = results.findIndex((result) => result.path === 'src/node/core/runtime/host_workflows/chant_planner.ts');
+    const archivedIndex = results.findIndex((result) => result.path === 'docs/legacy_archive/root_docs/tasks.qmd');
+
+    assert.notStrictEqual(liveIndex, -1, 'Should return the live runtime authority result');
+    assert.notStrictEqual(archivedIndex, -1, 'Should return the archived lore result');
+    assert.ok(liveIndex < archivedIndex, 'Live runtime authority should outrank archived lore');
 });
 
 test('Session Query Operations', async () => {

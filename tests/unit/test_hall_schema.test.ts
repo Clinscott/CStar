@@ -22,8 +22,16 @@ import {
     restoreHallDocumentVersion,
     saveHallDocumentSnapshot,
     saveHallEpisodicMemory,
+    saveHallPlanningSession,
     saveHallValidationRun,
     saveHallSkillProposal,
+    backfillHallBeadMetadata,
+    backfillHallDocumentMetadata,
+    backfillHallPlanningSessionMetadata,
+    backfillHallSkillProposalMetadata,
+    listHallRepositories,
+    reconcileLegacyHallRepositoryAliases,
+    getHallPlanningSession,
     upsertHallRepository,
     upsertHallBead,
 } from '../../src/tools/pennyone/intel/database.ts';
@@ -105,6 +113,54 @@ describe('Hall schema canonicalization (CS-P1-03)', () => {
         const legacyBead = getHallBeads(tmpRoot).find((bead) => bead.id === 'legacy-bead:1');
         assert.strictEqual(legacyBead?.status, 'NEEDS_TRIAGE');
         assert.strictEqual(legacyBead?.source_kind, 'LEGACY_IMPORT');
+    });
+
+    it('reconciles legacy relative repository aliases onto the canonical absolute root', () => {
+        const db = getDb();
+        const canonicalRepoId = buildHallRepositoryId(tmpRoot.replace(/\\/g, '/'));
+
+        db.prepare(`
+            INSERT INTO hall_repositories (
+                repo_id, root_path, name, status, active_persona, baseline_gungnir_score,
+                intent_integrity, metadata_json, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(
+            'repo:.',
+            '.',
+            '.',
+            'DORMANT',
+            'ALFRED',
+            0,
+            0,
+            JSON.stringify({ source: 'legacy-sovereign-projection' }),
+            1,
+            2,
+        );
+
+        db.prepare(`
+            INSERT INTO hall_skill_proposals (
+                proposal_id, repo_id, skill_id, status, created_at, updated_at, metadata_json
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        `).run(
+            'proposal:legacy-alias',
+            'repo:.',
+            'chant',
+            'PROPOSED',
+            10,
+            20,
+            JSON.stringify({}),
+        );
+
+        assert.equal(reconcileLegacyHallRepositoryAliases(tmpRoot), 1);
+
+        const repositories = listHallRepositories().map((entry) => entry.root_path);
+        assert.ok(!repositories.includes('.'));
+
+        const canonical = getHallRepositoryRecord(tmpRoot);
+        assert.equal(canonical?.repo_id, canonicalRepoId);
+
+        const proposal = getHallSkillProposal('proposal:legacy-alias');
+        assert.equal(proposal?.repo_id, canonicalRepoId);
     });
 
     it('makes StateRegistry read hall-backed projection values', () => {
@@ -273,6 +329,104 @@ describe('Hall schema canonicalization (CS-P1-03)', () => {
         assert.strictEqual(beads[0]?.target_ref, 'src/core/vector.py');
         assert.strictEqual(beads[0]?.baseline_scores.overall, 2.1);
         assert.strictEqual(beads[0]?.checker_shell, 'node --test tests/unit/test_hall_schema.test.ts');
+        assert.equal(beads[0]?.metadata?.authority_tier, 'reference');
+        assert.equal(beads[0]?.metadata?.archived, false);
+    });
+
+    it('infers explicit authority metadata for Hall beads and planning sessions', () => {
+        getDb();
+        const repoId = buildHallRepositoryId(tmpRoot.replace(/\\/g, '/'));
+
+        upsertHallBead({
+            bead_id: 'bead-archived-doctrine',
+            repo_id: repoId,
+            target_path: 'docs/legacy_archive/root_docs/tasks.qmd',
+            rationale: 'Archived doctrine bead.',
+            status: 'SUPERSEDED',
+            created_at: 1700000000200,
+            updated_at: 1700000000200,
+        });
+        saveHallPlanningSession({
+            session_id: 'chant-session:authority-metadata',
+            repo_id: repoId,
+            skill_id: 'chant',
+            status: 'PROPOSAL_REVIEW',
+            user_intent: 'Verify authority metadata persistence.',
+            normalized_intent: 'Verify authority metadata persistence.',
+            summary: 'Authority metadata session',
+            created_at: 1700000000300,
+            updated_at: 1700000000300,
+        });
+
+        const archivedBead = getHallBeads(tmpRoot).find((bead) => bead.id === 'bead-archived-doctrine');
+        const planningSession = getHallPlanningSession('chant-session:authority-metadata');
+
+        assert.equal(archivedBead?.metadata?.authority_tier, 'archive');
+        assert.equal(archivedBead?.metadata?.archived, true);
+        assert.equal(planningSession?.metadata?.authority_tier, 'live_authority');
+        assert.equal(planningSession?.metadata?.archived, false);
+    });
+
+    it('backfills missing authority metadata for legacy Hall beads and planning sessions', () => {
+        const db = getDb();
+        const repoId = buildHallRepositoryId(tmpRoot.replace(/\\/g, '/'));
+
+        upsertHallBead({
+            bead_id: 'bead-legacy-backfill',
+            repo_id: repoId,
+            target_path: 'docs/legacy_archive/root_docs/tasks.qmd',
+            rationale: 'Legacy archived doctrine.',
+            status: 'ARCHIVED',
+            metadata: {},
+            created_at: 1700000000400,
+            updated_at: 1700000000400,
+        });
+        saveHallPlanningSession({
+            session_id: 'chant-session:legacy-backfill',
+            repo_id: repoId,
+            skill_id: 'chant',
+            status: 'PROPOSAL_REVIEW',
+            user_intent: 'Legacy planning session.',
+            normalized_intent: 'Legacy planning session.',
+            metadata: {},
+            created_at: 1700000000500,
+            updated_at: 1700000000500,
+        });
+
+        db.prepare('UPDATE hall_beads SET metadata_json = NULL WHERE bead_id = ?').run('bead-legacy-backfill');
+        db.prepare('UPDATE hall_planning_sessions SET metadata_json = NULL WHERE session_id = ?').run('chant-session:legacy-backfill');
+
+        assert.equal(backfillHallBeadMetadata(tmpRoot), 1);
+        assert.equal(backfillHallPlanningSessionMetadata(tmpRoot), 1);
+
+        const beadMetadataRow = db.prepare('SELECT metadata_json FROM hall_beads WHERE bead_id = ?').get('bead-legacy-backfill') as { metadata_json: string | null };
+        const sessionMetadataRow = db.prepare('SELECT metadata_json FROM hall_planning_sessions WHERE session_id = ?').get('chant-session:legacy-backfill') as { metadata_json: string | null };
+
+        assert.match(beadMetadataRow.metadata_json ?? '', /"authority_tier":"archive"/);
+        assert.match(beadMetadataRow.metadata_json ?? '', /"archived":true/);
+        assert.match(sessionMetadataRow.metadata_json ?? '', /"authority_tier":"live_authority"/);
+        assert.match(sessionMetadataRow.metadata_json ?? '', /"archived":false/);
+    });
+
+    it('backfills missing authority metadata for legacy Hall documents', () => {
+        const db = getDb();
+
+        saveHallDocumentSnapshot({
+            root_path: tmpRoot,
+            document_path: 'docs/legacy_archive/ARCHITECT_PLAN.md',
+            content: '# Architect Plan\n\nLegacy archived doctrine.\n',
+            doc_kind: 'legacy',
+            metadata: {},
+            created_at: 1700000000600,
+        });
+
+        db.prepare('UPDATE hall_documents SET metadata_json = NULL WHERE path = ?').run('docs/legacy_archive/ARCHITECT_PLAN.md');
+
+        assert.equal(backfillHallDocumentMetadata(tmpRoot), 1);
+
+        const documentMetadataRow = db.prepare('SELECT metadata_json FROM hall_documents WHERE path = ?').get('docs/legacy_archive/ARCHITECT_PLAN.md') as { metadata_json: string | null };
+        assert.match(documentMetadataRow.metadata_json ?? '', /"authority_tier":"archive"/);
+        assert.match(documentMetadataRow.metadata_json ?? '', /"archived":true/);
     });
 
     it('preserves checker_shell when a bead is status-updated without re-supplying validation', () => {
@@ -391,9 +545,44 @@ describe('Hall schema canonicalization (CS-P1-03)', () => {
         assert.strictEqual(proposal?.skill_id, 'evolve');
         assert.strictEqual(proposal?.validation_id, 'validation-1');
         assert.strictEqual(proposal?.status, 'PROPOSED');
-        assert.deepStrictEqual(proposal?.metadata, { source: 'unit-test' });
+        assert.deepStrictEqual(proposal?.metadata, {
+            source: 'unit-test',
+            authority_tier: 'reference',
+            archived: false,
+        });
         assert.strictEqual(proposals.length, 1);
         assert.strictEqual(proposals[0]?.proposal_path, '.agents/proposals/evolve/proposal_evolve_1.json');
+    });
+
+    it('backfills Hall skill proposal metadata for legacy proposal rows', () => {
+        getDb();
+        const repoId = buildHallRepositoryId(tmpRoot.replace(/\\/g, '/'));
+
+        saveHallSkillProposal({
+            proposal_id: 'proposal:legacy-live',
+            repo_id: repoId,
+            skill_id: 'chant',
+            target_path: 'src/node/core/runtime/host_workflows/chant.ts',
+            status: 'PROPOSED',
+            created_at: 1700000000000,
+            updated_at: 1700000000000,
+            metadata: { source: 'unit-test' },
+        });
+
+        const db = getDb();
+        db.prepare('UPDATE hall_skill_proposals SET metadata_json = ? WHERE proposal_id = ?').run(
+            JSON.stringify({ source: 'unit-test' }),
+            'proposal:legacy-live',
+        );
+
+        assert.equal(backfillHallSkillProposalMetadata(tmpRoot), 1);
+
+        const proposal = getHallSkillProposal('proposal:legacy-live');
+        assert.deepStrictEqual(proposal?.metadata, {
+            source: 'unit-test',
+            authority_tier: 'live_authority',
+            archived: false,
+        });
     });
 
     it('persists Hall episodic memory as narrative thread history', () => {
@@ -472,6 +661,8 @@ describe('Hall schema canonicalization (CS-P1-03)', () => {
         assert.equal(document?.latest_version_id, second.version.version_id);
         assert.equal(document?.title, 'XO Memory Model');
         assert.equal(document?.latest_summary, 'Second summary line.');
+        assert.equal(document?.metadata?.authority_tier, 'reference');
+        assert.equal(document?.metadata?.archived, false);
         assert.equal(latestVersion?.summary, 'Second summary line.');
         assert.equal(versions.length, 2);
         assert.equal(restored.path, restorePath.replace(/\\/g, '/'));

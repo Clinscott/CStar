@@ -1,26 +1,29 @@
 ---
 name: taliesin
-description: "Use when refining and enforcing Corvus Star persona voice across system outputs, lore, and subsystem interactions."
+description: "The Bard of the Sector. Analyzes writing style and generates high-fidelity narrative, editorial, or social content through an interactive Q&A process and the Phoenix Loop."
 risk: safe
 source: internal
 ---
 
-# 🔱 TALIESIN VOICE SYNERGY SKILL (v1.0)
+# 🔱 TALIESIN VOICE SYNERGY SKILL (v2.1)
 
-## When to Use
-- Use when refining and enforcing Corvus Star persona voice across system outputs, lore, and subsystem interactions.
+## The Sovereign Mandate
+TALIESIN is a conversational **Process**. It collects narrative intent through a guided Q&A (The Seer's Chamber) and refines the output until it reaches >95% style cohesion.
 
+## Interactive Workflow (The Seer's Chamber)
+When invoked without a formatted chant, TALIESIN will prompt for:
+1.  **MODE**: Story, Blog, or Social.
+2.  **INTENT**: The core message or goal.
+3.  **BLOCKING**: Key events, physical movements, or structural beats.
+4.  **ANCHORS**: Specific words or phrases to anchor the style (EAS).
+5.  **BANS**: Words or patterns to strictly avoid (NDS).
 
-## MANDATE
-Develop, refine, and enforce the textual articulation and stylistic voice of the entire Corvus Star system. Ensure O.D.I.N., A.L.F.R.E.D., and the One Mind speak with high fidelity, evolving through continuous learning and cross-subsystem interaction.
-
-## LOGIC PROTOCOL
-1. **VOICE EXTRACTION**: Analyze repository lore, dev journals, and character contracts to extract linguistic patterns.
-2. **STYLISTIC AUDIT**: Evaluate the output of other skills (One Mind, Report, Oracle) for voice consistency and narrative resonance.
-3. **REFINEMENT LOOP**: Continuously improve persona-aware dialogue by injecting refined cadence, vocabulary, and signatures.
-4. **SYNERGISTIC INJECTION**: Act as a stylistic middleware that "wraps" system intelligence in the correct persona voice.
+## Internal Workflow: The Phoenix Loop
+1.  **Drafting**: Generates a V1 based on the collected intent and the Voice Contract.
+2.  **Auditing**: Automatically critiques the draft for generic AI patterns or style drift.
+3.  **Recasting**: Iteratively refines the prose until the internal Cohesion Score > 95%.
 
 ## USAGE
-`cstar taliesin --refine --text <raw_output> --persona <id>`
-`cstar taliesin --audit-lore`
-`cstar taliesin --learn --source <path>`
+`cstar taliesin` (Enters the interactive Seer's Chamber)
+`cstar taliesin "learn"` (Extracts style from .lore/samples/)
+`cstar taliesin "[MODE]: ... [INTENT]: ..."` (Legacy bypass for automated pipelines)

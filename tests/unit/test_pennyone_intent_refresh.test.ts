@@ -28,8 +28,47 @@ describe('PennyOne semantic intent hardening (CS-P1-03)', () => {
     const originalRoot = registry.getRoot();
     const originalCodeShell = process.env.CODEX_SHELL;
     const originalCodeThread = process.env.CODEX_THREAD_ID;
+    const originalHostSessionOverride = process.env.CORVUS_HOST_SESSION_ACTIVE;
     let tmpRoot: string;
     let samplePath: string;
+    let repoId: string;
+
+    const seedOfflineIntentRecord = (scanId = 'scan-refresh') => {
+        upsertHallRepository({
+            root_path: tmpRoot,
+            name: path.basename(tmpRoot),
+            status: 'AWAKE',
+            active_persona: 'ODIN',
+            baseline_gungnir_score: 7.4,
+            intent_integrity: 41,
+            created_at: 1700000000000,
+            updated_at: 1700000000000,
+        });
+        recordHallScan({
+            scan_id: scanId,
+            repo_id: repoId,
+            scan_kind: 'unit-test',
+            status: 'COMPLETED',
+            baseline_gungnir_score: 7.4,
+            started_at: 1700000000000,
+            completed_at: 1700000000100,
+            metadata: { source: 'unit-test' },
+        });
+        recordHallFile({
+            repo_id: repoId,
+            scan_id: scanId,
+            path: samplePath,
+            content_hash: 'sample-hash',
+            language: 'ts',
+            gungnir_score: 7.4,
+            matrix: createGungnirMatrix({ logic: 7, style: 7, intel: 8 }),
+            imports: [],
+            exports: ['answer'],
+            intent_summary: OFFLINE_INTENT_PLACEHOLDER,
+            interaction_summary: 'Standard',
+            created_at: 1700000000200,
+        });
+    };
 
     beforeEach(() => {
         tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-p1-intent-'));
@@ -45,6 +84,7 @@ describe('PennyOne semantic intent hardening (CS-P1-03)', () => {
         }
         process.chdir(tmpRoot);
         registry.setRoot(tmpRoot);
+        repoId = buildHallRepositoryId(tmpRoot.replace(/\\/g, '/'));
         closeDb();
 
         mock.method(ChronicleIndexer.prototype, 'index', async () => undefined);
@@ -75,6 +115,12 @@ describe('PennyOne semantic intent hardening (CS-P1-03)', () => {
             process.env.CODEX_THREAD_ID = originalCodeThread;
         }
 
+        if (originalHostSessionOverride === undefined) {
+            delete process.env.CORVUS_HOST_SESSION_ACTIVE;
+        } else {
+            process.env.CORVUS_HOST_SESSION_ACTIVE = originalHostSessionOverride;
+        }
+
         try {
             fs.rmSync(tmpRoot, { recursive: true, force: true });
         } catch {
@@ -83,6 +129,7 @@ describe('PennyOne semantic intent hardening (CS-P1-03)', () => {
     });
 
     it('fails closed instead of persisting the offline placeholder during an active host session', async () => {
+        process.env.CORVUS_HOST_SESSION_ACTIVE = '1';
         process.env.CODEX_SHELL = '1';
         process.env.CODEX_THREAD_ID = 'thread-intent-hardening';
 
@@ -99,41 +146,7 @@ describe('PennyOne semantic intent hardening (CS-P1-03)', () => {
     });
 
     it('re-enriches Hall records that still carry the offline semantic-intent placeholder', async () => {
-        const repoId = buildHallRepositoryId(tmpRoot.replace(/\\/g, '/'));
-        upsertHallRepository({
-            root_path: tmpRoot,
-            name: path.basename(tmpRoot),
-            status: 'AWAKE',
-            active_persona: 'ODIN',
-            baseline_gungnir_score: 7.4,
-            intent_integrity: 41,
-            created_at: 1700000000000,
-            updated_at: 1700000000000,
-        });
-        recordHallScan({
-            scan_id: 'scan-refresh',
-            repo_id: repoId,
-            scan_kind: 'unit-test',
-            status: 'COMPLETED',
-            baseline_gungnir_score: 7.4,
-            started_at: 1700000000000,
-            completed_at: 1700000000100,
-            metadata: { source: 'unit-test' },
-        });
-        recordHallFile({
-            repo_id: repoId,
-            scan_id: 'scan-refresh',
-            path: samplePath,
-            content_hash: 'sample-hash',
-            language: 'ts',
-            gungnir_score: 7.4,
-            matrix: createGungnirMatrix({ logic: 7, style: 7, intel: 8 }),
-            imports: [],
-            exports: ['answer'],
-            intent_summary: OFFLINE_INTENT_PLACEHOLDER,
-            interaction_summary: 'Standard',
-            created_at: 1700000000200,
-        });
+        seedOfflineIntentRecord();
 
         mock.method(defaultProvider, 'getBatchIntent', async (items) =>
             items.map(() => ({ intent: 'Fresh semantic intent', interaction: 'Fresh semantic protocol' })),
@@ -149,5 +162,69 @@ describe('PennyOne semantic intent hardening (CS-P1-03)', () => {
         });
         assert.equal(refreshedRecord?.intent_summary, 'Fresh semantic intent');
         assert.equal(refreshedRecord?.interaction_summary, 'Fresh semantic protocol');
+    });
+
+    it('fails closed for intent refresh when host session is active and semantic intelligence is unavailable', async () => {
+        process.env.CORVUS_HOST_SESSION_ACTIVE = '1';
+        process.env.CODEX_SHELL = '1';
+        process.env.CODEX_THREAD_ID = 'thread-intent-refresh-hardening';
+        seedOfflineIntentRecord();
+
+        mock.method(defaultProvider, 'getBatchIntent', async () => {
+            throw new Error('Host bridge unavailable.');
+        });
+
+        await assert.rejects(
+            refreshOfflineIntents('src'),
+            /intent refresh failed during an active host session/i,
+        );
+
+        const unchangedRecord = getHallFileByPath(samplePath, tmpRoot, 'scan-refresh');
+        assert.equal(unchangedRecord?.intent_summary, OFFLINE_INTENT_PLACEHOLDER);
+    });
+
+    it('returns explicit degraded accounting when intent refresh intelligence fails offline', async () => {
+        process.env.CORVUS_HOST_SESSION_ACTIVE = '0';
+        delete process.env.CODEX_SHELL;
+        delete process.env.CODEX_THREAD_ID;
+        seedOfflineIntentRecord();
+
+        mock.method(defaultProvider, 'getBatchIntent', async () => {
+            throw new Error('Transient provider fault.');
+        });
+
+        const result = await refreshOfflineIntents('src');
+        const unchangedRecord = getHallFileByPath(samplePath, tmpRoot, 'scan-refresh');
+
+        assert.deepStrictEqual(result, {
+            refreshed: 0,
+            failed: 1,
+            total_candidates: 1,
+        });
+        assert.equal(unchangedRecord?.intent_summary, OFFLINE_INTENT_PLACEHOLDER);
+    });
+
+    it('continues refresh pass when a single record write fails', async () => {
+        process.env.CORVUS_HOST_SESSION_ACTIVE = '0';
+        delete process.env.CODEX_SHELL;
+        delete process.env.CODEX_THREAD_ID;
+        seedOfflineIntentRecord();
+
+        mock.method(defaultProvider, 'getBatchIntent', async (items) =>
+            items.map(() => ({ intent: '', interaction: 'Fresh semantic protocol' })),
+        );
+        mock.method(defaultProvider, 'getIntent', async () => {
+            throw new Error('Disk write denied.');
+        });
+
+        const result = await refreshOfflineIntents('src');
+        const unchangedRecord = getHallFileByPath(samplePath, tmpRoot, 'scan-refresh');
+
+        assert.deepStrictEqual(result, {
+            refreshed: 0,
+            failed: 1,
+            total_candidates: 1,
+        });
+        assert.equal(unchangedRecord?.intent_summary, OFFLINE_INTENT_PLACEHOLDER);
     });
 });

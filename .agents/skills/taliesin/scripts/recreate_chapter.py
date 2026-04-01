@@ -88,11 +88,18 @@ class RecreateChapterPipeline:
         SovereignHUD.persona_log("INFO", "[NARRATOR] Weaving prose...")
         narrator_contract = (self.voices_dir / "narrator.feature").read_text(encoding='utf-8')
         
+        # Check for Optimized Genome from the Karpathy Loop
+        optimized_genome = ""
+        genome_path = self.lore_dir / "voices" / "OptimizedGenome.txt"
+        if genome_path.exists():
+            optimized_genome = f"\n### OPTIMIZED STYLE GENOME:\n{genome_path.read_text(encoding='utf-8')}\n"
+        
         reaction_text = "\n\n".join([f"[{char} REACTION]:\n{txt}" for char, txt in reactions.items()])
         
         prompt = (
             "You are the Narrator of Fallows Hallow. Weave the following blocking and character reactions into cohesive prose.\n\n"
             f"NARRATOR CONTRACT:\n{narrator_contract}\n\n"
+            f"{optimized_genome}"
             f"SCENE SCENARIO:\n{scenario}\n\n"
             f"DIRECTOR BLOCKING:\n{blocking}\n\n"
             f"CHARACTER REACTIONS (STRICTLY ADHERE TO THESE):\n{reaction_text}\n\n"

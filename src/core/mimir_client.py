@@ -56,7 +56,7 @@ class MimirClient:
         host_session_runner: HostSessionRunner | None = None,
         oracle_runner: OracleRunner | None = None,
         poll_interval: float = 0.1,
-        poll_attempts: int = 20,
+        poll_attempts: int = 2000,
     ) -> None:
         self.project_root = project_root or Path(__file__).resolve().parent.parent.parent
         self.db_path = self.project_root / ".stats" / "synapse.db"

@@ -1,4 +1,4 @@
-import type { HallBeadRecord, HallBeadStatus, HallBeadTargetKind } from  './hall.js';
+import type { HallBeadRecord, HallBeadStatus, HallBeadTargetKind, HallContextMetadata } from  './hall.js';
 
 export interface SovereignBead {
     id: string;
@@ -21,6 +21,7 @@ export interface SovereignBead {
     superseded_by?: string;
     architect_opinion?: string;
     critique_payload?: Record<string, unknown>;
+    metadata?: HallContextMetadata;
     created_at: number;
     updated_at: number;
 }
@@ -47,6 +48,7 @@ export function materializeSovereignBead(record: HallBeadRecord): SovereignBead 
         superseded_by: record.superseded_by,
         architect_opinion: record.architect_opinion,
         critique_payload: record.critique_payload ? { ...record.critique_payload } : undefined,
+        metadata: record.metadata ? { ...record.metadata } : undefined,
         created_at: record.created_at,
         updated_at: record.updated_at,
     };

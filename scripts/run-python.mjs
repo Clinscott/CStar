@@ -6,7 +6,10 @@ import { PROJECT_ROOT, buildStableTempEnv, resolveProjectPython } from './runtim
 const result = spawnSync(resolveProjectPython(PROJECT_ROOT), process.argv.slice(2), {
     stdio: 'inherit',
     cwd: PROJECT_ROOT,
-    env: buildStableTempEnv(),
+    env: buildStableTempEnv(process.env, {
+        projectRoot: PROJECT_ROOT,
+        launchCwd: process.cwd(),
+    }),
 });
 
 if (result.error) {

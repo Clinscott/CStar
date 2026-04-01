@@ -356,6 +356,7 @@ export async function refreshOfflineIntents(targetPath: string): Promise<IntentR
         data: FileData;
     }> = [];
     let failed = 0;
+    const hostSessionActive = isHostSessionActive();
 
     for (const record of candidates) {
         try {
@@ -377,29 +378,50 @@ export async function refreshOfflineIntents(targetPath: string): Promise<IntentR
         };
     }
 
-    const batchIntents = await defaultProvider.getBatchIntent(
-        prepared.map((item) => ({
-            code: item.code,
-            data: item.data,
-        })),
-    );
+    let batchIntents: Array<{ intent: string; interaction: string }>;
+    try {
+        batchIntents = await defaultProvider.getBatchIntent(
+            prepared.map((item) => ({
+                code: item.code,
+                data: item.data,
+            })),
+        );
+    } catch (intentError: unknown) {
+        const message = intentError instanceof Error ? intentError.message : String(intentError);
+        if (hostSessionActive) {
+            throw new Error(`Intent refresh failed during an active host session: ${message}`);
+        }
+        console.warn(`[WARNING] Intent refresh intelligence generation failed: ${message}`);
+        return {
+            refreshed: 0,
+            failed: failed + prepared.length,
+            total_candidates: candidates.length,
+        };
+    }
 
+    let refreshed = 0;
     for (let index = 0; index < prepared.length; index += 1) {
-        const item = prepared[index];
-        const intentData = batchIntents[index];
-        const { intent, interaction } = await writeReport(item.data, targetRepoRoot, item.code, intentData);
-        updateHallFileIntent({
-            repo_id: repoId,
-            scan_id: item.record.scan_id,
-            path: item.record.path,
-            intent_summary: intent,
-            interaction_summary: interaction,
-        });
-        updateFtsIndex(item.record.path, intent, interaction);
+        try {
+            const item = prepared[index];
+            const intentData = batchIntents[index];
+            const { intent, interaction } = await writeReport(item.data, targetRepoRoot, item.code, intentData);
+            updateHallFileIntent({
+                repo_id: repoId,
+                scan_id: item.record.scan_id,
+                path: item.record.path,
+                intent_summary: intent,
+                interaction_summary: interaction,
+            });
+            updateFtsIndex(item.record.path, intent, interaction);
+            refreshed += 1;
+        } catch (error: unknown) {
+            failed += 1;
+            console.warn(`[WARNING] Failed to apply refreshed intent for ${prepared[index]?.record.path}: ${error instanceof Error ? error.message : String(error)}`);
+        }
     }
 
     return {
-        refreshed: prepared.length,
+        refreshed,
         failed,
         total_candidates: candidates.length,
     };

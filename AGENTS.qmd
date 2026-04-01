@@ -1,4 +1,17 @@
-# 🔱 THE AGENT PROTOCOLS (CORVUS STAR)
+## ◈ THE SUPREME DIRECTIVE: HOST-NATIVE FIRST
+Corvus Star (C*) operates on a **Host-Native First** development philosophy.
+- **Functional Skills**: All high-level functional capabilities (Taliesin, Analysis, Optimization, Content Generation) MUST be developed as **Host-Native** skills. They reside in the Host Space (Ring 3) and utilize the Synaptic Link directly.
+- **Kernel Space**: The **Node.js Runtime** is reserved exclusively for deterministic kernel primitives: monitoring, assignment, Hall/state cataloging, process control, filesystem locking, orchestration bookkeeping, and bridge management.
+- **Cognitive Decoupling**: We do not collapse host cognition into brittle Node runtime paths unless architectural necessity (Ring 0 primitives) demands it. 
+
+### ▷ Implementation Mandate
+1. Use `native-session` or `exec-bridge` for all new capability development.
+2. Maintain the **90% Fidelity Floor** for all narrative and lore optimization loops.
+3. Every functional change must be grounded in a host-traceable Bead.
+
+---
+
+## 🔱 THE AGENT PROTOCOLS (CORVUS STAR)
 
 > [!CRITICAL]
 > **OPERATIONAL DOMAIN: CORVUS STAR FRAMEWORK**
@@ -13,9 +26,9 @@
 Corvus Star operates as a **Woven Skill Architecture**. 
 The **One Mind** (You) selects the tier of intervention required:
 
-1.  **SKILL (Atomic)**: Direct file or state manipulation.
-2.  **WEAVE (Intentional)**: Linear chains of skills to achieve a technical mission.
-3.  **SPELL (Recursive)**: Governance or recursion policy. Do not assume a spell is directly executable unless the registry marks it `runtime-backed`.
+1.  **SKILL (Atomic)**: Host-native capability activation or bounded primitive use.
+2.  **WEAVE (Intentional)**: Host-native workflow composition that chains multiple skills/primes to achieve a technical mission. The kernel may catalog and dispatch a weave, but it is not the public mind that owns it.
+3.  **SPELL (Recursive)**: Host-native governance or recursion policy over skills/weaves. Do not assume a spell is directly executable unless the registry marks it `runtime-backed`.
 
 ---
 
@@ -49,7 +62,7 @@ Atomic operations that read, reason, or mutate the estate.
 ---
 
 ## 3. TIER 2: INTENTIONAL WEAVES (THE CLOTH)
-Linear chains of Skills used for technical outcomes. 
+Host-native workflow compositions used for technical outcomes. The Node kernel records, dispatches, and monitors them but must not redefine them as kernel-owned cognition.
 
 | Weave | When | Why | Filepath |
 | :--- | :--- | :--- | :--- |
@@ -61,7 +74,7 @@ Linear chains of Skills used for technical outcomes.
 ---
 
 ## 4. TIER 3: SOVEREIGN SPELLS (THE MAGIC)
-Recursive policies that govern the estate through Feedback Gates. The current spell layer is policy-only unless the registry says otherwise.
+Host-native recursive policies that govern the estate through Feedback Gates. The current spell layer is policy-only unless the registry says otherwise.
 
 | Spell | Classification | Desired State | Feedback Gate | Filepath |
 | :--- | :--- | :--- | :--- |
@@ -75,7 +88,7 @@ Recursive policies that govern the estate through Feedback Gates. The current sp
 ## 5. THE BEAD-DRIVEN MANDATE (UNIFIED NERVOUS SYSTEM)
 Every technical operation in Corvus Star MUST be anchored to a **Bead** in the Hall of Records.
 
-**Rule:** The Kernel (Engine) will automatically create or claim a Bead ID for every dispatch. No work may exist outside the memory of Mimir.
+**Rule:** The Kernel (Engine) will automatically create or claim a Bead ID for every dispatch, assignment, and catalog update. No work may exist outside the memory of Mimir.
 
 1.  **Parent Beads**: Represent high-level Missions or Epics (e.g., `pb-kernel`).
 2.  **Child Beads**: Represent atomic tasks (e.g., `bead:child:restoration`).

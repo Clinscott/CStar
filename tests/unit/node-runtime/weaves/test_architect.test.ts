@@ -1,19 +1,20 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { ArchitectWeave, deps } from  '../../../../src/node/core/runtime/weaves/architect.js';
+import { ArchitectCompatibilityAdapter } from  '../../../../src/node/core/runtime/compat/architect.js';
+import { deps } from  '../../../../src/node/core/runtime/host_workflows/architect_service.js';
 
-describe('ArchitectWeave Unit Tests', () => {
+describe('ArchitectCompatibilityAdapter Unit Tests', () => {
     it('initializes correctly', () => {
         const dispatchPort: any = {};
-        const weave = new ArchitectWeave(dispatchPort);
+        const weave = new ArchitectCompatibilityAdapter(dispatchPort);
         assert.equal(weave.id, 'weave:architect');
     });
 
     it('build_proposal succeeds when host returns valid JSON', async () => {
         const dispatchPort: any = {};
         const hostTextInvoker = async () => '{"proposal_summary": "summary", "beads": []}';
-        const weave = new ArchitectWeave(dispatchPort, hostTextInvoker);
+        const weave = new ArchitectCompatibilityAdapter(dispatchPort, hostTextInvoker);
         
         mock.method(deps, 'resolveRuntimeHostProvider', () => 'codex');
         mock.method(deps, 'extractJsonObject', (text: string) => JSON.parse(text));
@@ -31,7 +32,7 @@ describe('ArchitectWeave Unit Tests', () => {
 
     it('build_proposal fails when no provider is found', async () => {
         const dispatchPort: any = {};
-        const weave = new ArchitectWeave(dispatchPort);
+        const weave = new ArchitectCompatibilityAdapter(dispatchPort);
         
         mock.method(deps, 'resolveRuntimeHostProvider', () => null);
 
@@ -48,7 +49,7 @@ describe('ArchitectWeave Unit Tests', () => {
     it('review_critique succeeds', async () => {
         const dispatchPort: any = {};
         const hostTextInvoker = async () => '{"is_approved": true, "architect_opinion": "Good work"}';
-        const weave = new ArchitectWeave(dispatchPort, hostTextInvoker);
+        const weave = new ArchitectCompatibilityAdapter(dispatchPort, hostTextInvoker);
         
         mock.method(deps, 'resolveRuntimeHostProvider', () => 'codex');
         mock.method(deps, 'extractJsonObject', (text: string) => JSON.parse(text));
@@ -66,7 +67,7 @@ describe('ArchitectWeave Unit Tests', () => {
     it('build_proposal fails when the host response omits beads', async () => {
         const dispatchPort: any = {};
         const hostTextInvoker = async () => '{"proposal_summary": "summary"}';
-        const weave = new ArchitectWeave(dispatchPort, hostTextInvoker);
+        const weave = new ArchitectCompatibilityAdapter(dispatchPort, hostTextInvoker);
 
         mock.method(deps, 'resolveRuntimeHostProvider', () => 'codex');
         mock.method(deps, 'extractJsonObject', (text: string) => JSON.parse(text));
@@ -84,7 +85,7 @@ describe('ArchitectWeave Unit Tests', () => {
     it('review_critique fails when the host response omits approval state', async () => {
         const dispatchPort: any = {};
         const hostTextInvoker = async () => '{"architect_opinion": "Good work"}';
-        const weave = new ArchitectWeave(dispatchPort, hostTextInvoker);
+        const weave = new ArchitectCompatibilityAdapter(dispatchPort, hostTextInvoker);
 
         mock.method(deps, 'resolveRuntimeHostProvider', () => 'codex');
         mock.method(deps, 'extractJsonObject', (text: string) => JSON.parse(text));

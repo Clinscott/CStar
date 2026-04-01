@@ -9,7 +9,7 @@ import {
     WardenWeavePayload,
 } from '../contracts.ts';
 import chalk from 'chalk';
-import * as hostBridge from './host_bridge.js';
+import * as hostBridge from '../weaves/host_bridge.js';
 
 export const deps = {
     resolveRuntimeHostProvider: hostBridge.resolveRuntimeHostProvider,
@@ -67,7 +67,7 @@ function normalizeVigilanceDecision(raw: string): VigilanceSupervisorDecision | 
  * 🔱 VIGILANCE WEAVE
  * Logic: Audit (Ravens) -> Evaluate (Warden) -> Map (Chronicle)
  */
-export class VigilanceWeave implements RuntimeAdapter<VigilanceWeavePayload> {
+export class VigilanceHostWorkflow implements RuntimeAdapter<VigilanceWeavePayload> {
     public readonly id = 'weave:vigilance';
 
     public constructor(
@@ -202,3 +202,5 @@ export class VigilanceWeave implements RuntimeAdapter<VigilanceWeavePayload> {
         };
     }
 }
+
+export { VigilanceHostWorkflow as VigilanceWeave };

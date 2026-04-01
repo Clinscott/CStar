@@ -324,4 +324,296 @@ describe('PennyOne Unified Search (Phase 5)', () => {
         assert.match(output, /XO_MEMORY_MODEL\.md/i);
         assert.match(output, /XO Memory Model/i);
     });
+
+    test('searchMatrix demotes archived FTS doctrine behind live runtime authority documents', async () => {
+        const probe = 'rankprobe-fts-doc-chant-authority';
+        const xoRoot = path.join(tmpRoot, 'XO');
+        upsertHallRepository({
+            root_path: tmpRoot,
+            name: path.basename(tmpRoot),
+            status: 'AWAKE',
+            active_persona: 'ALFRED',
+            baseline_gungnir_score: 7.4,
+            intent_integrity: 90,
+            created_at: 1700000000000,
+            updated_at: 1700000000000,
+        });
+        upsertHallRepository({
+            root_path: xoRoot,
+            name: 'XO',
+            status: 'AWAKE',
+            active_persona: 'ALFRED',
+            baseline_gungnir_score: 7.4,
+            intent_integrity: 90,
+            created_at: 1700000000001,
+            updated_at: 1700000000001,
+        });
+        saveHallDocumentSnapshot({
+            root_path: xoRoot,
+            document_path: 'docs/legacy_archive/ARCHITECT_PLAN.md',
+            content: `# Archived Architect Plan\n\nArchitect owns proposal synthesis ${probe}.\n`,
+            doc_kind: 'legacy',
+            created_at: 1700000000600,
+        });
+        saveHallDocumentSnapshot({
+            root_path: xoRoot,
+            document_path: 'src/node/core/runtime/host_workflows/chant_planner.ts',
+            content: `// Live chant planner authority ${probe}\n`,
+            doc_kind: 'runtime',
+            created_at: 1700000000601,
+        });
+
+        let output = '';
+        const originalWrite = process.stdout.write.bind(process.stdout);
+        process.stdout.write = ((chunk: string | Uint8Array) => {
+            output += chunk.toString();
+            return true;
+        }) as typeof process.stdout.write;
+
+        try {
+            await searchMatrix(probe, tmpRoot);
+        } finally {
+            process.stdout.write = originalWrite;
+        }
+
+        const liveIndex = output.indexOf('chant_planner.ts');
+        const archivedIndex = output.indexOf('ARCHITECT_PLAN.md');
+
+        assert.notStrictEqual(liveIndex, -1);
+        assert.notStrictEqual(archivedIndex, -1);
+        assert.ok(liveIndex < archivedIndex, 'Live runtime authority document should rank ahead of archived doctrine');
+    });
+
+    test('searchMatrix boosts fresh maintenance artifacts for maintenance-oriented queries', async () => {
+        const probe = 'rankprobe-maintenance-hygiene-normalize';
+        const xoRoot = path.join(tmpRoot, 'XO');
+        upsertHallRepository({
+            root_path: tmpRoot,
+            name: path.basename(tmpRoot),
+            status: 'AWAKE',
+            active_persona: 'ALFRED',
+            baseline_gungnir_score: 7.4,
+            intent_integrity: 90,
+            created_at: 1700000000000,
+            updated_at: 1700000000000,
+        });
+        upsertHallRepository({
+            root_path: xoRoot,
+            name: 'XO',
+            status: 'AWAKE',
+            active_persona: 'ALFRED',
+            baseline_gungnir_score: 7.4,
+            intent_integrity: 90,
+            created_at: 1700000000001,
+            updated_at: 1700000000001,
+        });
+        saveHallDocumentSnapshot({
+            root_path: xoRoot,
+            document_path: 'docs/foundation/HALL_MAINTENANCE_GUIDE.md',
+            content: `# Hall Maintenance Guide\n\nNormalize hygiene report doctrine ${probe}.\n`,
+            doc_kind: 'doctrine',
+            created_at: 1700000000600,
+        });
+        saveHallDocumentSnapshot({
+            root_path: xoRoot,
+            document_path: 'docs/reports/hall/hygiene-reports/1700000000601.json',
+            content: JSON.stringify({
+                summary: `Fresh hall hygiene report ${probe}`,
+                receipt_state: 'fresh',
+            }, null, 2),
+            doc_kind: 'maintenance',
+            title: 'PennyOne Hall Hygiene Report',
+            summary: `Fresh hall hygiene report ${probe}`,
+            metadata: {
+                report_kind: 'pennyone-hall-hygiene',
+                source: 'pennyone-report',
+                archived: false,
+                authority_tier: 'reference',
+            },
+            created_at: Date.now(),
+        });
+
+        let output = '';
+        const originalWrite = process.stdout.write.bind(process.stdout);
+        process.stdout.write = ((chunk: string | Uint8Array) => {
+            output += chunk.toString();
+            return true;
+        }) as typeof process.stdout.write;
+
+        try {
+            await searchMatrix(`maintenance hygiene report normalize ${probe}`, tmpRoot);
+        } finally {
+            process.stdout.write = originalWrite;
+        }
+
+        const maintenanceIndex = output.indexOf('hygiene-reports/1700000000601.json');
+        const doctrineIndex = output.indexOf('HALL_MAINTENANCE_GUIDE.md');
+
+        assert.notStrictEqual(maintenanceIndex, -1);
+        assert.notStrictEqual(doctrineIndex, -1);
+        assert.ok(maintenanceIndex < doctrineIndex, 'Fresh maintenance artifact should rank ahead of generic doctrine for maintenance queries');
+    });
+
+    test('searchMatrix surfaces maintenance receipts ahead of doctrine for short artifact probes', async () => {
+        const probe = 'mx';
+        const xoRoot = path.join(tmpRoot, 'XO');
+        upsertHallRepository({
+            root_path: tmpRoot,
+            name: path.basename(tmpRoot),
+            status: 'AWAKE',
+            active_persona: 'ALFRED',
+            baseline_gungnir_score: 7.4,
+            intent_integrity: 90,
+            created_at: 1700000000000,
+            updated_at: 1700000000000,
+        });
+        upsertHallRepository({
+            root_path: xoRoot,
+            name: 'XO',
+            status: 'AWAKE',
+            active_persona: 'ALFRED',
+            baseline_gungnir_score: 7.4,
+            intent_integrity: 90,
+            created_at: 1700000000001,
+            updated_at: 1700000000001,
+        });
+        saveHallDocumentSnapshot({
+            root_path: xoRoot,
+            document_path: 'docs/foundation/HALL_HEURISTIC_GUIDE.md',
+            content: '# Hall Heuristic Guide\n\nmx maintenance doctrine baseline.\n',
+            doc_kind: 'doctrine',
+            created_at: 1700000000600,
+        });
+        saveHallDocumentSnapshot({
+            root_path: xoRoot,
+            document_path: 'docs/reports/hall/normalize-receipts/1700000000602.json',
+            content: JSON.stringify({
+                summary: 'mx normalize receipt',
+                receipt_state: 'fresh',
+            }, null, 2),
+            doc_kind: 'maintenance',
+            title: 'PennyOne Normalize Receipt',
+            summary: 'mx normalize receipt',
+            metadata: {
+                receipt_kind: 'pennyone-normalize',
+                source: 'pennyone-normalize',
+                archived: false,
+                authority_tier: 'reference',
+            },
+            created_at: Date.now(),
+        });
+
+        let output = '';
+        const originalWrite = process.stdout.write.bind(process.stdout);
+        process.stdout.write = ((chunk: string | Uint8Array) => {
+            output += chunk.toString();
+            return true;
+        }) as typeof process.stdout.write;
+
+        try {
+            await searchMatrix(probe, tmpRoot);
+        } finally {
+            process.stdout.write = originalWrite;
+        }
+
+        const maintenanceIndex = output.indexOf('normalize-receipts/1700000000602.json');
+        const doctrineIndex = output.indexOf('HALL_HEURISTIC_GUIDE.md');
+
+        assert.notStrictEqual(maintenanceIndex, -1);
+        assert.notStrictEqual(doctrineIndex, -1);
+        assert.ok(maintenanceIndex < doctrineIndex, 'Maintenance receipt should rank ahead of generic doctrine for short artifact probes');
+    });
+
+    test('searchMatrix boosts maintenance status snapshots ahead of component maintenance artifacts', async () => {
+        const probe = 'rankprobe-maintenance-status-view';
+        const xoRoot = path.join(tmpRoot, 'XO');
+        upsertHallRepository({
+            root_path: tmpRoot,
+            name: path.basename(tmpRoot),
+            status: 'AWAKE',
+            active_persona: 'ALFRED',
+            baseline_gungnir_score: 7.4,
+            intent_integrity: 90,
+            created_at: 1700000000000,
+            updated_at: 1700000000000,
+        });
+        upsertHallRepository({
+            root_path: xoRoot,
+            name: 'XO',
+            status: 'AWAKE',
+            active_persona: 'ALFRED',
+            baseline_gungnir_score: 7.4,
+            intent_integrity: 90,
+            created_at: 1700000000001,
+            updated_at: 1700000000001,
+        });
+        saveHallDocumentSnapshot({
+            root_path: xoRoot,
+            document_path: 'docs/reports/hall/normalize-receipts/1700000000603.json',
+            content: JSON.stringify({ summary: `Normalize receipt ${probe}` }, null, 2),
+            doc_kind: 'maintenance',
+            title: 'PennyOne Normalize Receipt',
+            summary: `Normalize receipt ${probe}`,
+            metadata: {
+                receipt_kind: 'pennyone-normalize',
+                source: 'pennyone-normalize',
+                archived: false,
+                authority_tier: 'reference',
+            },
+            created_at: 1700000000603,
+        });
+        saveHallDocumentSnapshot({
+            root_path: xoRoot,
+            document_path: 'docs/reports/hall/hygiene-reports/1700000000604.json',
+            content: JSON.stringify({ summary: `Hygiene report ${probe}` }, null, 2),
+            doc_kind: 'maintenance',
+            title: 'PennyOne Hall Hygiene Report',
+            summary: `Hygiene report ${probe}`,
+            metadata: {
+                report_kind: 'pennyone-hall-hygiene',
+                source: 'pennyone-report',
+                archived: false,
+                authority_tier: 'reference',
+            },
+            created_at: 1700000000604,
+        });
+        saveHallDocumentSnapshot({
+            root_path: xoRoot,
+            document_path: 'docs/reports/hall/status-reports/1700000000605.json',
+            content: JSON.stringify({ summary: `Maintenance status ${probe}` }, null, 2),
+            doc_kind: 'maintenance',
+            title: 'PennyOne Hall Maintenance Status',
+            summary: `Maintenance status ${probe}`,
+            metadata: {
+                status_kind: 'pennyone-maintenance-status',
+                source: 'pennyone-status',
+                archived: false,
+                authority_tier: 'reference',
+            },
+            created_at: 1700000000605,
+        });
+
+        let output = '';
+        const originalWrite = process.stdout.write.bind(process.stdout);
+        process.stdout.write = ((chunk: string | Uint8Array) => {
+            output += chunk.toString();
+            return true;
+        }) as typeof process.stdout.write;
+
+        try {
+            await searchMatrix(`maintenance ${probe}`, tmpRoot);
+        } finally {
+            process.stdout.write = originalWrite;
+        }
+
+        const statusIndex = output.indexOf('status-reports/1700000000605.json');
+        const reportIndex = output.indexOf('hygiene-reports/1700000000604.json');
+        const receiptIndex = output.indexOf('normalize-receipts/1700000000603.json');
+
+        assert.notStrictEqual(statusIndex, -1);
+        assert.notStrictEqual(reportIndex, -1);
+        assert.notStrictEqual(receiptIndex, -1);
+        assert.ok(statusIndex < reportIndex, 'Maintenance status should rank ahead of hygiene report for status queries');
+        assert.ok(reportIndex < receiptIndex, 'Hygiene report should rank ahead of normalize receipt for status queries');
+    });
 });

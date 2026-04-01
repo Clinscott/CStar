@@ -13,6 +13,8 @@ import {
     buildHostNativeSkillPrompt,
     explainCapabilityHostSupport,
     getCapabilityExecutionMode,
+    getCapabilityKernelFallbackPolicy,
+    getCapabilityOwnershipModel,
     resolveHostProvider,
 } from '../../../core/host_session.js';
 import { StateRegistry } from  '../state.js';
@@ -45,6 +47,28 @@ interface HostRecoveryDecision {
     summary?: unknown;
     operator_message?: unknown;
     recovery_task?: unknown;
+}
+
+function buildHostWorkflowKernelExecutionError(capabilityId: string): WeaveResult {
+    return {
+        weave_id: capabilityId,
+        status: 'FAILURE',
+        output: '',
+        error: `Capability '${capabilityId}' is cataloged as a host-workflow and cannot execute on the Node kernel.`,
+        metadata: {
+            execution_boundary: 'host-native-required',
+            ownership_model: 'host-workflow',
+        },
+    };
+}
+
+function resolveHostEnvelopeTimeoutMs(envName: string, defaultMs: number, env: NodeJS.ProcessEnv = process.env): number {
+    const provider = resolveHostProvider(env);
+    const defaultForProvider = provider === 'codex' && env.CODEX_SHELL !== '1'
+        ? Math.max(defaultMs, 300000)
+        : defaultMs;
+    const raw = Number(env[envName] ?? env.CSTAR_HOST_SESSION_TIMEOUT_MS ?? env.CORVUS_HOST_SESSION_TIMEOUT_MS ?? defaultForProvider);
+    return Number.isFinite(raw) && raw > 0 ? raw : defaultForProvider;
 }
 
 function extractJsonObject(raw: string): Record<string, unknown> {
@@ -152,12 +176,19 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
         const payload = isSkillBead ? invocation.params : invocation.payload;
         const target = isSkillBead ? undefined : invocation.target;
         const session = isSkillBead ? undefined : invocation.session;
+        const ownershipCapabilityId = isSkillBead ? invocation.skill_id : weaveId;
+        const ownershipModel = getCapabilityOwnershipModel(workspaceRoot, ownershipCapabilityId);
+        const kernelFallbackPolicy = getCapabilityKernelFallbackPolicy(workspaceRoot, ownershipCapabilityId);
 
         if (isSkillBead) {
             const nativeHostResult = await this.tryExecuteSkillBeadViaHostSession(invocation, workspaceRoot);
             if (nativeHostResult) {
                 return nativeHostResult;
             }
+        }
+
+        if (ownershipModel === 'host-workflow' && kernelFallbackPolicy === 'forbidden') {
+            return buildHostWorkflowKernelExecutionError(isSkillBead ? invocation.skill_id : weaveId);
         }
 
         const adapter = this.adapters.get(weaveId);
@@ -207,7 +238,7 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
         const hasTrace = query.includes('// Corvus Star Trace [Ω]');
         const isInternalOS = ['weave:host-governor', 'weave:dynamic-command', 'weave:restoration', 'weave:creation_loop', 'weave:orchestrate'].includes(weaveId);
         const isObservationInvocation = ['weave:status', 'weave:hall', 'weave:vitals', 'weave:manifest'].includes(weaveId)
-            || (weaveId === 'weave:pennyone' && ['search', 'stats', 'topology', 'view', 'scan'].includes(String((payload as any)?.action ?? '').trim()));
+            || (weaveId === 'weave:pennyone' && ['search', 'stats', 'topology', 'view', 'scan', 'refresh_intents', 'normalize', 'report', 'artifacts', 'status'].includes(String((payload as any)?.action ?? '').trim()));
         
         if (context.operator_mode === 'cli' && !isInternalOS && weaveId !== 'weave:chant' && !hasTrace) {
              // Only enforce on primary entry points (chant, skills, etc.)
@@ -275,7 +306,16 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
         try {
             // If it's a SkillBead, wrap it into a WeaveInvocation to pass down
             const invocationToPass: WeaveInvocation<any> = isSkillBead 
-                ? { weave_id: weaveId, payload: payload, target: target, session: session } 
+                ? {
+                    weave_id: weaveId,
+                    payload: payload,
+                    target: target,
+                    session: {
+                        mode: 'subkernel',
+                        interactive: false,
+                        session_id: context.session_id,
+                    },
+                } 
                 : invocation;
             const result = await adapter.execute(invocationToPass, context);
             
@@ -309,7 +349,16 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
                 error: `[ALFRED]: "The execution of weave/skill '${weaveId}' has suffered a catastrophic failure: ${err.message}"`
             };
             const invocationToPass: WeaveInvocation<any> = isSkillBead
-                ? { weave_id: weaveId, payload: payload, target: target, session: session }
+                ? {
+                    weave_id: weaveId,
+                    payload: payload,
+                    target: target,
+                    session: {
+                        mode: 'subkernel',
+                        interactive: false,
+                        session_id: context.session_id,
+                    },
+                }
                 : invocation;
             const recovered = await this.tryRecoverKernelFailure({
                 adapter,
@@ -365,8 +414,14 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
             return null;
         }
 
-        const executionMode = skillId ? getCapabilityExecutionMode(workspaceRoot, skillId) : 'kernel-backed';
-        if (skillId && executionMode !== 'kernel-backed') {
+        const ownershipCapabilityId = skillId ?? weaveId;
+        const ownershipModel = getCapabilityOwnershipModel(workspaceRoot, ownershipCapabilityId);
+        if (ownershipModel !== 'kernel-primitive') {
+            return null;
+        }
+
+        const executionMode = getCapabilityExecutionMode(workspaceRoot, ownershipCapabilityId);
+        if (executionMode !== 'kernel-backed') {
             return null;
         }
 
@@ -499,8 +554,26 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
             return null;
         }
 
+        const kernelFallbackPolicy = getCapabilityKernelFallbackPolicy(workspaceRoot, invocation.skill_id);
+        const fallbackAdapterId = resolveSkillAdapterAlias(workspaceRoot, invocation.skill_id);
+        const canFallbackToKernel = kernelFallbackPolicy !== 'forbidden'
+            && (fallbackAdapterId !== invocation.skill_id || this.adapters.has(invocation.skill_id));
+
         const provider = resolveHostProvider(process.env);
         if (!provider) {
+            if (kernelFallbackPolicy === 'forbidden') {
+                return {
+                    weave_id: invocation.skill_id,
+                    status: 'FAILURE',
+                    output: '',
+                    error: `Skill '${invocation.skill_id}' requires an active host session and forbids kernel fallback.`,
+                    metadata: {
+                        adapter: 'host-session:agent-native-skill',
+                        execution_mode: executionMode,
+                        kernel_fallback_policy: kernelFallbackPolicy,
+                    },
+                };
+            }
             return null;
         }
 
@@ -523,6 +596,7 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
                 .filter((value): value is string => typeof value === 'string')
                 .filter((value) => /[\\/]|\.([a-z0-9]+)$/i.test(value)),
         ].filter(Boolean)));
+        const timeoutMs = resolveHostEnvelopeTimeoutMs('CSTAR_HOST_SKILL_TIMEOUT_MS', 20000);
 
         try {
             const prompt = buildHostNativeSkillPrompt({
@@ -532,34 +606,49 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
                 target_paths: targetPaths,
                 payload: activationPayload,
             });
+            let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+            try {
+                const result = await Promise.race([
+                    this.deps.hostTextInvoker({
+                        prompt,
+                        projectRoot: workspaceRoot,
+                        source: `runtime:skill:${invocation.skill_id}`,
+                        provider,
+                        env: process.env,
+                        metadata: {
+                            transport_mode: 'host_session',
+                            one_mind_boundary: 'primary',
+                            execution_mode: 'agent-native',
+                            skill_id: invocation.skill_id,
+                        },
+                    }),
+                    new Promise<never>((_, reject) => {
+                        timeoutHandle = setTimeout(() => reject(new Error(`host-session timeout after ${timeoutMs}ms`)), timeoutMs);
+                    }),
+                ]);
 
-            const result = await this.deps.hostTextInvoker({
-                prompt,
-                projectRoot: workspaceRoot,
-                source: `runtime:skill:${invocation.skill_id}`,
-                provider,
-                env: process.env,
-                metadata: {
-                    transport_mode: 'host_session',
-                    one_mind_boundary: 'primary',
-                    execution_mode: 'agent-native',
-                    skill_id: invocation.skill_id,
-                },
-            });
-
-            return {
-                weave_id: invocation.skill_id,
-                status: 'SUCCESS',
-                output: result.text,
-                metadata: {
-                    adapter: 'host-session:agent-native-skill',
-                    execution_mode: executionMode,
-                    provider: result.provider,
-                    target_paths: targetPaths,
-                },
-            };
+                return {
+                    weave_id: invocation.skill_id,
+                    status: 'SUCCESS',
+                    output: result.text,
+                    metadata: {
+                        adapter: 'host-session:agent-native-skill',
+                        execution_mode: executionMode,
+                        provider: result.provider,
+                        kernel_fallback_policy: kernelFallbackPolicy,
+                        target_paths: targetPaths,
+                    },
+                };
+            } finally {
+                if (timeoutHandle) {
+                    clearTimeout(timeoutHandle);
+                }
+            }
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
+            if (canFallbackToKernel) {
+                return null;
+            }
             return {
                 weave_id: invocation.skill_id,
                 status: 'FAILURE',
@@ -568,6 +657,7 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
                 metadata: {
                     adapter: 'host-session:agent-native-skill',
                     execution_mode: executionMode,
+                    kernel_fallback_policy: kernelFallbackPolicy,
                     target_paths: targetPaths,
                 },
             };

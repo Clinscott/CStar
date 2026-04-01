@@ -2,6 +2,7 @@ import { join } from 'node:path';
 import fs from 'node:fs';
 import { 
     upsertHallBead, 
+    backfillHallBeadMetadata,
     getHallBead, 
     getBeadCount, 
     getHallBeads,
@@ -21,6 +22,8 @@ import {
 } from './bead_controller.js';
 import { 
     getHallPlanningSession, 
+    backfillHallPlanningSessionMetadata,
+    backfillHallSkillProposalMetadata,
     saveHallPlanningSession, 
     listHallPlanningSessions,
     saveHallSkillActivation,
@@ -53,6 +56,8 @@ import {
     listHallRepositories,
     getHallDocumentRecord,
     getHallDocumentVersion,
+    backfillHallDocumentMetadata,
+    reconcileLegacyHallRepositoryAliases,
     upsertHallRepository, 
     recordHallScan,
     getHallFileByPath,
@@ -115,6 +120,7 @@ export class HallDatabase {
 
     // Facade Methods
     public upsertHallBead = upsertHallBead;
+    public backfillHallBeadMetadata = backfillHallBeadMetadata;
     public getHallBead = getHallBead;
     public getBeadCount = getBeadCount;
     public getHallBeads = getHallBeads;
@@ -129,6 +135,8 @@ export class HallDatabase {
     public getValidationRuns = getValidationRuns;
     public saveValidationRun = saveValidationRun;
     public getHallPlanningSession = getHallPlanningSession;
+    public backfillHallPlanningSessionMetadata = backfillHallPlanningSessionMetadata;
+    public backfillHallSkillProposalMetadata = backfillHallSkillProposalMetadata;
     public saveHallPlanningSession = saveHallPlanningSession;
     public listHallPlanningSessions = listHallPlanningSessions;
     public saveHallSkillActivation = saveHallSkillActivation;
@@ -151,7 +159,9 @@ export class HallDatabase {
     public saveHallSkillObservation = saveHallSkillObservation;
     public getHallRepository = getHallRepositoryRecord;
     public listHallRepositories = listHallRepositories;
+    public reconcileLegacyHallRepositoryAliases = reconcileLegacyHallRepositoryAliases;
     public getHallDocument = getHallDocumentRecord;
+    public backfillHallDocumentMetadata = backfillHallDocumentMetadata;
     public listHallDocuments = listHallDocuments;
     public getHallDocumentVersion = getHallDocumentVersion;
     public listHallDocumentVersions = listHallDocumentVersions;
@@ -208,6 +218,7 @@ export function listHallEpisodicMemory(rootPath: string = registry.getRoot(), be
 // Re-export all controller logic with unified names for backward compatibility
 export {
     upsertHallBead,
+    backfillHallBeadMetadata,
     getHallBead,
     getBeadCount,
     getHallBeads,
@@ -228,6 +239,8 @@ export {
     saveValidationRun as saveHallValidationRun,
     saveTrace,
     getHallPlanningSession,
+    backfillHallPlanningSessionMetadata,
+    backfillHallSkillProposalMetadata,
     saveHallPlanningSession,
     listHallPlanningSessions,
     listHallPlanningSessions as getHallPlanningSessions,
@@ -257,9 +270,11 @@ export {
     getHallRepositoryRecord,
     getHallRepositoryRecord as getHallRepository,
     listHallRepositories,
+    reconcileLegacyHallRepositoryAliases,
     getHallDocumentRecord,
     getHallDocumentRecord as getHallDocument,
     getHallDocumentVersion,
+    backfillHallDocumentMetadata,
     listHallDocuments,
     listHallDocumentVersions,
     saveHallDocumentSnapshot,

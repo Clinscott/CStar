@@ -6,6 +6,7 @@ import { database } from './database.js';
 import { parseJson, stringifyJson, getLegacyState } from './schema.js';
 import { normalizeHallPath, buildHallRepositoryId } from '../../../types/hall.js';
 import {
+    HallDocumentMetadata,
     HallRepositoryRecord,
     HallRepositorySummary,
     HallScanRecord,
@@ -300,8 +301,8 @@ export function getHallRepositoryRecord(rootPath: string = registry.getRoot()): 
     };
 }
 
-export function listHallRepositories(): HallRepositoryRecord[] {
-    const db = database.getDb();
+export function listHallRepositories(rootPath: string = registry.getRoot()): HallRepositoryRecord[] {
+    const db = database.getDb(rootPath);
     const rows = db.prepare(`
         SELECT repo_id, root_path, name, status, active_persona, baseline_gungnir_score,
                intent_integrity, metadata_json, created_at, updated_at
@@ -323,6 +324,108 @@ export function listHallRepositories(): HallRepositoryRecord[] {
     }));
 }
 
+export function reconcileLegacyHallRepositoryAliases(rootPath: string = registry.getRoot()): number {
+    const db = database.getDb();
+    const canonicalRoot = normalizeHallPath(rootPath);
+    const canonicalRepoId = buildHallRepositoryId(canonicalRoot);
+    const aliases = db.prepare(`
+        SELECT repo_id, root_path, name, status, active_persona, baseline_gungnir_score,
+               intent_integrity, metadata_json, created_at, updated_at
+        FROM hall_repositories
+        WHERE root_path NOT LIKE '/%'
+    `).all() as Array<Record<string, unknown>>;
+
+    if (aliases.length === 0) {
+        return 0;
+    }
+
+    const repoLinkedTables = [
+        'hall_scans',
+        'hall_files',
+        'hall_episodic_memory',
+        'hall_beads',
+        'hall_bead_critiques',
+        'hall_validation_runs',
+        'hall_skill_observations',
+        'hall_skill_activations',
+        'hall_skill_proposals',
+        'hall_planning_sessions',
+        'hall_one_mind_broker',
+        'hall_one_mind_requests',
+        'hall_one_mind_branches',
+        'hall_git_commits',
+        'hall_git_diffs',
+        'hall_documents',
+        'hall_document_versions',
+        'hall_mounted_spokes',
+    ];
+
+    const reconcile = db.transaction(() => {
+        let updated = 0;
+
+        for (const alias of aliases) {
+            const aliasRepoId = String(alias.repo_id);
+            const aliasRoot = String(alias.root_path);
+            if (aliasRepoId === canonicalRepoId && aliasRoot === canonicalRoot) {
+                continue;
+            }
+
+            const existingCanonical = db.prepare(`
+                SELECT repo_id, metadata_json, created_at, updated_at
+                FROM hall_repositories
+                WHERE repo_id = ?
+                LIMIT 1
+            `).get(canonicalRepoId) as Record<string, unknown> | undefined;
+
+            if (!existingCanonical) {
+                db.prepare(`
+                    INSERT INTO hall_repositories (
+                        repo_id, root_path, name, status, active_persona, baseline_gungnir_score,
+                        intent_integrity, metadata_json, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `).run(
+                    canonicalRepoId,
+                    canonicalRoot,
+                    path.basename(canonicalRoot),
+                    String(alias.status),
+                    String(alias.active_persona),
+                    Number(alias.baseline_gungnir_score ?? 0),
+                    Number(alias.intent_integrity ?? 0),
+                    alias.metadata_json ?? null,
+                    Number(alias.created_at ?? Date.now()),
+                    Number(alias.updated_at ?? Date.now()),
+                );
+            } else {
+                const mergedMetadata = {
+                    ...parseJson<Record<string, unknown>>(alias.metadata_json as string | null, {}),
+                    ...parseJson<Record<string, unknown>>(existingCanonical.metadata_json as string | null, {}),
+                };
+                db.prepare(`
+                    UPDATE hall_repositories
+                    SET metadata_json = ?, created_at = ?, updated_at = ?
+                    WHERE repo_id = ?
+                `).run(
+                    stringifyJson(mergedMetadata),
+                    Math.min(Number(existingCanonical.created_at ?? Date.now()), Number(alias.created_at ?? Date.now())),
+                    Math.max(Number(existingCanonical.updated_at ?? 0), Number(alias.updated_at ?? 0)),
+                    canonicalRepoId,
+                );
+            }
+
+            for (const tableName of repoLinkedTables) {
+                db.prepare(`UPDATE ${tableName} SET repo_id = ? WHERE repo_id = ?`).run(canonicalRepoId, aliasRepoId);
+            }
+
+            db.prepare('DELETE FROM hall_repositories WHERE repo_id = ?').run(aliasRepoId);
+            updated += 1;
+        }
+
+        return updated;
+    });
+
+    return reconcile();
+}
+
 function deriveDocumentTitle(content: string, fallbackPath: string): string {
     const firstHeading = content.match(/^#\s+(.+)$/m)?.[1]?.trim();
     if (firstHeading) return firstHeading;
@@ -337,6 +440,33 @@ function deriveDocumentSummary(content: string): string | undefined {
         .filter((line) => !line.startsWith('#'));
     const summary = lines[0];
     return summary ? summary.slice(0, 280) : undefined;
+}
+
+function inferDocumentAuthorityTier(relativePath: string): HallDocumentMetadata['authority_tier'] {
+    const normalized = relativePath.replace(/\\/g, '/').toLowerCase();
+    if (normalized.includes('/docs/legacy_archive/') || normalized.startsWith('docs/legacy_archive/')) {
+        return 'archive';
+    }
+    if (normalized.includes('/src/node/core/runtime/host_workflows/')
+        || normalized.includes('/src/node/core/runtime/compat/')
+        || normalized.endsWith('/.agents/skill_registry.json')
+        || normalized.endsWith('/agents.qmd')) {
+        return 'live_authority';
+    }
+    return 'reference';
+}
+
+function normalizeHallDocumentMetadata(relativePath: string, metadata?: Record<string, unknown>): HallDocumentMetadata {
+    const normalized: HallDocumentMetadata = { ...(metadata ?? {}) };
+    const authorityTier = normalized.authority_tier ?? inferDocumentAuthorityTier(relativePath);
+    const archived = typeof normalized.archived === 'boolean'
+        ? normalized.archived
+        : authorityTier === 'archive';
+    return {
+        ...normalized,
+        authority_tier: authorityTier,
+        archived,
+    };
 }
 
 export function saveHallDocumentSnapshot(input: {
@@ -360,6 +490,7 @@ export function saveHallDocumentSnapshot(input: {
     const contentHash = crypto.createHash('sha256').update(input.content).digest('hex');
     const title = input.title?.trim() || deriveDocumentTitle(input.content, relativePath);
     const summary = input.summary?.trim() || deriveDocumentSummary(input.content);
+    const metadata = normalizeHallDocumentMetadata(relativePath, input.metadata);
     const existing = db.prepare(`
         SELECT document_id, latest_version_id, latest_content_hash, title, doc_kind, status, latest_summary, metadata_json, created_at, updated_at
         FROM hall_documents
@@ -383,7 +514,7 @@ export function saveHallDocumentSnapshot(input: {
             latest_version_id: String(existing.latest_version_id),
             latest_content_hash: String(existing.latest_content_hash),
             latest_summary: existing.latest_summary ? String(existing.latest_summary) : summary,
-            metadata: parseJson<Record<string, unknown>>(existing.metadata_json as string | null, {}),
+            metadata: parseJson<Record<string, unknown>>(existing.metadata_json as string | null, metadata),
             created_at: Number(existing.created_at ?? now),
             updated_at: Number(existing.updated_at ?? now),
         };
@@ -422,7 +553,7 @@ export function saveHallDocumentSnapshot(input: {
         versionId,
         contentHash,
         summary ?? null,
-        stringifyJson(input.metadata),
+        stringifyJson(metadata),
         existing?.created_at ? Number(existing.created_at) : now,
         now,
     );
@@ -440,7 +571,7 @@ export function saveHallDocumentSnapshot(input: {
         summary ?? null,
         input.content,
         input.source_label ?? null,
-        stringifyJson(input.metadata),
+        stringifyJson(metadata),
         now,
     );
 
@@ -529,6 +660,34 @@ export function listHallDocuments(rootPath: string = registry.getRoot()): HallDo
         created_at: Number(row.created_at ?? 0),
         updated_at: Number(row.updated_at ?? 0),
     }));
+}
+
+export function backfillHallDocumentMetadata(rootPath: string = registry.getRoot()): number {
+    const db = database.getDb();
+    const repoId = buildHallRepositoryId(normalizeHallPath(rootPath));
+    const rows = db.prepare(`
+        SELECT path, metadata_json
+        FROM hall_documents
+        WHERE repo_id = ?
+    `).all(repoId) as Array<Record<string, unknown>>;
+
+    let updated = 0;
+    for (const row of rows) {
+        const relativePath = String(row.path);
+        const existing = parseJson<HallDocumentMetadata>(row.metadata_json as string | null, {});
+        if (existing.authority_tier && typeof existing.archived === 'boolean') {
+            continue;
+        }
+        const metadata = normalizeHallDocumentMetadata(relativePath, existing);
+        db.prepare('UPDATE hall_documents SET metadata_json = ? WHERE repo_id = ? AND path = ?').run(
+            stringifyJson(metadata),
+            repoId,
+            relativePath,
+        );
+        updated += 1;
+    }
+
+    return updated;
 }
 
 export function getHallDocumentVersion(versionId: string): HallDocumentVersionRecord | null {
@@ -1012,6 +1171,113 @@ export function updateChronicleIndex(sourceFile: string, header: string, content
         .run(sourceFile, header, content, timestamp);
 }
 
+function normalizeSearchPath(value: string | undefined): string {
+    return (value ?? '').replace(/\\/g, '/').toLowerCase();
+}
+
+function isArchivedSearchPath(value: string | undefined): boolean {
+    const normalized = normalizeSearchPath(value);
+    return normalized.includes('/docs/legacy_archive/') || normalized.includes('/legacy_archive/');
+}
+
+function isCurrentAuthoritySearchPath(value: string | undefined): boolean {
+    const normalized = normalizeSearchPath(value);
+    return normalized.includes('/src/node/core/runtime/host_workflows/')
+        || normalized.includes('/src/node/core/runtime/compat/')
+        || normalized.endsWith('/.agents/skill_registry.json')
+        || normalized.endsWith('/agents.qmd');
+}
+
+function parseDocumentSearchMetadata(value: unknown): HallDocumentMetadata {
+    return parseJson<HallDocumentMetadata>(typeof value === 'string' ? value : null, {});
+}
+
+function isMaintenanceQuery(query: string): boolean {
+    const normalized = query.toLowerCase();
+    return [
+        'maintenance',
+        'status',
+        'statuses',
+        'normalize',
+        'normalization',
+        'hygiene',
+        'receipt',
+        'receipts',
+        'report',
+        'reports',
+    ].some((token) => normalized.includes(token));
+}
+
+function isMaintenanceArtifact(metadata: HallDocumentMetadata): boolean {
+    return metadata.receipt_kind === 'pennyone-normalize'
+        || metadata.report_kind === 'pennyone-hall-hygiene'
+        || metadata.status_kind === 'pennyone-maintenance-status';
+}
+
+function getMaintenanceArtifactBaseBoost(metadata: HallDocumentMetadata): number {
+    if (metadata.status_kind === 'pennyone-maintenance-status') {
+        return 45;
+    }
+    if (metadata.report_kind === 'pennyone-hall-hygiene') {
+        return 35;
+    }
+    if (metadata.receipt_kind === 'pennyone-normalize') {
+        return 30;
+    }
+    return 0;
+}
+
+function getMaintenanceRecencyBoost(updatedAt: number | undefined): number {
+    if (!updatedAt || !Number.isFinite(updatedAt)) {
+        return 0;
+    }
+
+    const ageMs = Math.max(0, Date.now() - updatedAt);
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    const sevenDayMs = 7 * oneDayMs;
+
+    if (ageMs <= oneDayMs) {
+        return 25;
+    }
+
+    if (ageMs <= sevenDayMs) {
+        return 15;
+    }
+
+    if (ageMs <= 30 * oneDayMs) {
+        return 5;
+    }
+
+    return 0;
+}
+
+function scoreIndexedSearchResult(
+    result: { path?: string; rank?: number; type?: string; metadata_json?: string | null; updated_at?: number | null },
+    query: string,
+): number {
+    let score = typeof result.rank === 'number' ? result.rank : Number.POSITIVE_INFINITY;
+    const metadata = parseDocumentSearchMetadata(result.metadata_json);
+
+    if (metadata.archived === true || isArchivedSearchPath(result.path)) {
+        score += 40;
+    }
+
+    if (metadata.authority_tier === 'live_authority' || isCurrentAuthoritySearchPath(result.path)) {
+        score -= 20;
+    }
+
+    if (result.type === 'DOC' || result.type === 'LORE') {
+        score += 5;
+    }
+
+    if (isMaintenanceQuery(query) && result.type === 'DOC' && isMaintenanceArtifact(metadata)) {
+        score -= getMaintenanceArtifactBaseBoost(metadata);
+        score -= getMaintenanceRecencyBoost(typeof result.updated_at === 'number' ? result.updated_at : undefined);
+    }
+
+    return score;
+}
+
 export function searchIntents(query: string): any[] {
     const db = database.getDb();
     const safeQuery = buildSafeFtsQuery(query);
@@ -1041,13 +1307,15 @@ export function searchIntents(query: string): any[] {
     `).all(safeQuery) as any[];
 
     const documentResults = db.prepare(`
-        SELECT path, title as intent, COALESCE(summary, content) as interaction_protocol, rank, 'DOC' as type
-        FROM hall_documents_fts
+        SELECT fts.path, fts.title as intent, COALESCE(fts.summary, fts.content) as interaction_protocol, docs.metadata_json, docs.updated_at, fts.rank, 'DOC' as type
+        FROM hall_documents_fts AS fts
+        LEFT JOIN hall_documents AS docs ON docs.path = fts.path
         WHERE hall_documents_fts MATCH ?
         ORDER BY rank
     `).all(safeQuery) as any[];
 
-    return [...codeResults, ...loreResults, ...episodicResults, ...documentResults].sort((a, b) => a.rank - b.rank);
+    return [...codeResults, ...loreResults, ...episodicResults, ...documentResults]
+        .sort((a, b) => scoreIndexedSearchResult(a, query) - scoreIndexedSearchResult(b, query));
 }
 
 function buildSafeFtsQuery(query: string): string {

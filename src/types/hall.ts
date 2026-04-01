@@ -50,6 +50,7 @@ export type HallMountedSpokeStatus = 'active' | 'disconnected' | 'pending';
 export type HallMountedSpokeTrust = 'trusted' | 'observe' | 'quarantined';
 export type HallMountedSpokeWritePolicy = 'read_write' | 'read_only';
 export type HallMountedSpokeProjectionStatus = 'current' | 'stale' | 'missing';
+export type HallAuthorityTier = 'live_authority' | 'reference' | 'archive';
 export type HallOneMindBrokerStatus = 'OFFLINE' | 'READY' | 'ERROR';
 export type HallOneMindBindingState = 'UNBOUND' | 'BOUND';
 export type HallOneMindRequestStatus = 'PENDING' | 'CLAIMED' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
@@ -107,6 +108,11 @@ export interface HallEvidence {
     research_refs?: string[];
 }
 
+export interface HallContextMetadata extends Record<string, unknown> {
+    archived?: boolean;
+    authority_tier?: HallAuthorityTier;
+}
+
 export interface HallBeadCritiqueRecord {
     critique_id: string;
     bead_id: string;
@@ -143,6 +149,7 @@ export interface HallBeadRecord {
     superseded_by?: string;
     architect_opinion?: string;
     critique_payload?: Record<string, unknown>;
+    metadata?: HallContextMetadata;
     created_at: number;
     updated_at: number;
 }
@@ -221,7 +228,7 @@ export interface HallSkillProposalRecord {
     promotion_note?: string;
     promoted_at?: number;
     promoted_by?: string;
-    metadata?: Record<string, unknown>;
+    metadata?: HallContextMetadata;
 }
 
 export interface HallPlanningSessionRecord {
@@ -237,7 +244,7 @@ export interface HallPlanningSessionRecord {
     latest_question?: string;
     architect_opinion?: string;
     current_bead_id?: string;
-    metadata?: Record<string, unknown>;
+    metadata?: HallContextMetadata;
 }
 
 export interface HallMountedSpokeRecord {
@@ -364,6 +371,8 @@ export interface HallDocumentRecord {
     created_at: number;
     updated_at: number;
 }
+
+export interface HallDocumentMetadata extends HallContextMetadata {}
 
 export interface HallDocumentVersionRecord {
     version_id: string;

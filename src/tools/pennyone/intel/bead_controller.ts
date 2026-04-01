@@ -1,5 +1,6 @@
 import { 
     HallBeadRecord, 
+    HallContextMetadata,
     HallBeadStatus, 
     HallBeadCritiqueRecord, 
     HallEpisodicMemoryRecord, 
@@ -9,6 +10,10 @@ import { database } from './database.js';
 import { SovereignBead, materializeSovereignBead } from  '../../../types/bead.js';
 import { registry } from '../pathRegistry.js';
 import { buildHallRepositoryId, normalizeHallPath } from '../../../types/hall.js';
+
+function shouldEmitPennyOneDebugLogs(): boolean {
+    return process.env.CSTAR_DEBUG_LOGS === '1';
+}
 
 function stringifyJson(value: unknown): string {
     return JSON.stringify(value ?? {});
@@ -23,16 +28,49 @@ function parseJson<T>(value: string | null | undefined, fallback: T): T {
     }
 }
 
+function inferBeadAuthorityTier(record: Pick<HallBeadRecord, 'target_path' | 'status'>): HallContextMetadata['authority_tier'] {
+    const normalizedPath = (record.target_path ?? '').replace(/\\/g, '/').toLowerCase();
+    if (record.status === 'ARCHIVED' || record.status === 'SUPERSEDED') {
+        return 'archive';
+    }
+    if (normalizedPath.includes('/docs/legacy_archive/') || normalizedPath.startsWith('docs/legacy_archive/')) {
+        return 'archive';
+    }
+    if (normalizedPath.includes('/src/node/core/runtime/host_workflows/')
+        || normalizedPath.includes('/src/node/core/runtime/compat/')
+        || normalizedPath.endsWith('/.agents/skill_registry.json')
+        || normalizedPath.endsWith('/agents.qmd')) {
+        return 'live_authority';
+    }
+    return 'reference';
+}
+
+function normalizeBeadMetadata(record: HallBeadRecord): HallContextMetadata {
+    const metadata: HallContextMetadata = { ...(record.metadata ?? {}) };
+    const authorityTier = metadata.authority_tier ?? inferBeadAuthorityTier(record);
+    const archived = typeof metadata.archived === 'boolean'
+        ? metadata.archived
+        : authorityTier === 'archive';
+    return {
+        ...metadata,
+        authority_tier: authorityTier,
+        archived,
+    };
+}
+
 export function upsertHallBead(record: HallBeadRecord): void {
     const db = database.getDb();
-    console.log(`[DEBUG] upsertHallBead: id=${record.bead_id}, status=${record.status}`);
+    if (shouldEmitPennyOneDebugLogs()) {
+        console.log(`[DEBUG] upsertHallBead: id=${record.bead_id}, status=${record.status}`);
+    }
+    const metadata = normalizeBeadMetadata(record);
     const sql = `
         INSERT INTO hall_beads (
             bead_id, repo_id, scan_id, legacy_id, target_kind, target_ref, target_path, 
             rationale, contract_refs_json, baseline_scores_json, acceptance_criteria, 
             checker_shell, status, assigned_agent, source_kind, triage_reason, 
-            resolution_note, resolved_validation_id, superseded_by, architect_opinion, critique_payload_json, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            resolution_note, resolved_validation_id, superseded_by, architect_opinion, critique_payload_json, metadata_json, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(bead_id) DO UPDATE SET
             target_kind = excluded.target_kind,
             target_ref = excluded.target_ref,
@@ -49,6 +87,7 @@ export function upsertHallBead(record: HallBeadRecord): void {
             resolution_note = excluded.resolution_note,
             architect_opinion = excluded.architect_opinion,
             critique_payload_json = excluded.critique_payload_json,
+            metadata_json = excluded.metadata_json,
             updated_at = excluded.updated_at
     `;
     try {
@@ -76,12 +115,17 @@ export function upsertHallBead(record: HallBeadRecord): void {
             record.superseded_by,
             record.architect_opinion,
             stringifyJson(record.critique_payload),
+            stringifyJson(metadata),
             record.created_at,
             record.updated_at
         );
-        console.log(`[DEBUG] upsertHallBead: SUCCESS for ${record.bead_id}`);
+        if (shouldEmitPennyOneDebugLogs()) {
+            console.log(`[DEBUG] upsertHallBead: SUCCESS for ${record.bead_id}`);
+        }
     } catch (err: any) {
-        console.error(`[DEBUG] upsertHallBead: FAILURE for ${record.bead_id}: ${err.message}`);
+        if (shouldEmitPennyOneDebugLogs()) {
+            console.error(`[DEBUG] upsertHallBead: FAILURE for ${record.bead_id}: ${err.message}`);
+        }
         throw err;
     }
 }
@@ -95,7 +139,8 @@ export function getHallBead(beadId: string): SovereignBead | null {
         ...row,
         contract_refs: parseJson(row.contract_refs_json, []),
         baseline_scores: parseJson(row.baseline_scores_json, {}),
-        critique_payload: parseJson(row.critique_payload_json, {})
+        critique_payload: parseJson(row.critique_payload_json, {}),
+        metadata: parseJson(row.metadata_json, {})
     });
 }
 
@@ -122,7 +167,8 @@ export function getHallBeads(rootOrRepoId: string, statuses?: HallBeadStatus[]):
         ...row,
         contract_refs: parseJson(row.contract_refs_json, []),
         baseline_scores: parseJson(row.baseline_scores_json, {}),
-        critique_payload: parseJson(row.critique_payload_json, {})
+        critique_payload: parseJson(row.critique_payload_json, {}),
+        metadata: parseJson(row.metadata_json, {})
     }));
 }
 
@@ -133,7 +179,8 @@ export function getHallBeadsByStatus(repoId: string, status: HallBeadStatus): So
         ...row,
         contract_refs: parseJson(row.contract_refs_json, []),
         baseline_scores: parseJson(row.baseline_scores_json, {}),
-        critique_payload: parseJson(row.critique_payload_json, {})
+        critique_payload: parseJson(row.critique_payload_json, {}),
+        metadata: parseJson(row.metadata_json, {})
     }));
 }
 
@@ -144,7 +191,8 @@ export function getHallBeadsBySource(repoId: string, sourceKind: string): Sovere
         ...row,
         contract_refs: parseJson(row.contract_refs_json, []),
         baseline_scores: parseJson(row.baseline_scores_json, {}),
-        critique_payload: parseJson(row.critique_payload_json, {})
+        critique_payload: parseJson(row.critique_payload_json, {}),
+        metadata: parseJson(row.metadata_json, {})
     }));
 }
 
@@ -155,8 +203,44 @@ export function getHallBeadsByEpic(repoId: string, epicId: string): SovereignBea
         ...row,
         contract_refs: parseJson(row.contract_refs_json, []),
         baseline_scores: parseJson(row.baseline_scores_json, {}),
-        critique_payload: parseJson(row.critique_payload_json, {})
+        critique_payload: parseJson(row.critique_payload_json, {}),
+        metadata: parseJson(row.metadata_json, {})
     }));
+}
+
+export function backfillHallBeadMetadata(rootPath: string = registry.getRoot()): number {
+    const db = database.getDb();
+    const repoId = buildHallRepositoryId(normalizeHallPath(rootPath));
+    const rows = db.prepare(`
+        SELECT bead_id, repo_id, target_path, status, metadata_json
+        FROM hall_beads
+        WHERE repo_id = ?
+    `).all(repoId) as Array<Record<string, unknown>>;
+
+    let updated = 0;
+    for (const row of rows) {
+        const existing = parseJson<HallContextMetadata>(row.metadata_json as string | null, {});
+        if (existing.authority_tier && typeof existing.archived === 'boolean') {
+            continue;
+        }
+        const metadata = normalizeBeadMetadata({
+            bead_id: String(row.bead_id),
+            repo_id: String(row.repo_id),
+            rationale: '',
+            status: row.status as HallBeadRecord['status'],
+            target_path: row.target_path ? String(row.target_path) : undefined,
+            created_at: 0,
+            updated_at: 0,
+            metadata: existing,
+        });
+        db.prepare('UPDATE hall_beads SET metadata_json = ? WHERE bead_id = ?').run(
+            stringifyJson(metadata),
+            String(row.bead_id),
+        );
+        updated += 1;
+    }
+
+    return updated;
 }
 
 export function deleteHallBead(beadId: string): void {

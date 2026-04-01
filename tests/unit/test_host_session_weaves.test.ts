@@ -5,10 +5,10 @@ import os from 'node:os';
 import path from 'node:path';
 
 import type { RuntimeContext, RuntimeDispatchPort, WeaveInvocation, WeaveResult } from  '../../src/node/core/runtime/contracts.js';
-import { ArchitectWeave } from  '../../src/node/core/runtime/weaves/architect.js';
-import { CompressWeave } from  '../../src/node/core/runtime/weaves/compress.js';
-import { CritiqueWeave } from  '../../src/node/core/runtime/weaves/critique.js';
-import { ResearchWeave } from  '../../src/node/core/runtime/weaves/research.js';
+import { ArchitectCompatibilityAdapter } from  '../../src/node/core/runtime/compat/architect.js';
+import { DistillWeave } from  '../../src/node/core/runtime/weaves/distill.js';
+import { CritiqueWeave } from  '../../src/node/core/runtime/host_workflows/critique.js';
+import { ResearchWeave } from  '../../src/node/core/runtime/host_workflows/research.js';
 import { closeDb, getHallEpisodicMemory, upsertHallBead, upsertHallRepository } from  '../../src/tools/pennyone/intel/database.js';
 import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
 import { buildHallRepositoryId } from  '../../src/types/hall.js';
@@ -152,7 +152,7 @@ describe('Host-session runtime weaves', () => {
                 needs_revision: true,
                 critique: 'The bead should narrow the acceptance criteria.',
                 evidence_source: 'repo:local',
-                proposed_path: 'src/node/core/runtime/weaves/chant.ts',
+                proposed_path: 'src/node/core/runtime/host_workflows/chant.ts',
             }),
         );
 
@@ -171,7 +171,7 @@ describe('Host-session runtime weaves', () => {
         assert.equal(result.status, 'SUCCESS');
         assert.match(result.output, /narrow the acceptance criteria/i);
         assert.equal(result.metadata?.provider, 'codex');
-        assert.equal((result.metadata?.critique_payload as { proposed_path?: string }).proposed_path, 'src/node/core/runtime/weaves/chant.ts');
+        assert.equal((result.metadata?.critique_payload as { proposed_path?: string }).proposed_path, 'src/node/core/runtime/host_workflows/chant.ts');
     });
 
     it('lets critique fan out bounded focus areas through parallel Codex host inference', async () => {
@@ -180,13 +180,13 @@ describe('Host-session runtime weaves', () => {
                 needs_revision: true,
                 critique: 'Tighten the acceptance criteria.',
                 evidence_source: 'repo:contracts',
-                proposed_path: 'src/node/core/runtime/weaves/chant.ts',
+                proposed_path: 'src/node/core/runtime/host_workflows/chant.ts',
             }),
             JSON.stringify({
                 needs_revision: false,
                 critique: 'The checker shell is acceptable.',
                 evidence_source: 'repo:validation',
-                proposed_path: 'src/node/core/runtime/weaves/chant.ts',
+                proposed_path: 'src/node/core/runtime/host_workflows/chant.ts',
             }),
         ];
         let index = 0;
@@ -213,11 +213,11 @@ describe('Host-session runtime weaves', () => {
     });
 
     it('lets architect execute through the Codex host session', async () => {
-        const weave = new ArchitectWeave(new NoopDispatchPort(), async () =>
+        const weave = new ArchitectCompatibilityAdapter(new NoopDispatchPort(), async () =>
             JSON.stringify({
                 is_approved: false,
                 architect_opinion: 'Adopt the narrower path and keep the worker brief bounded.',
-                final_proposed_path: 'src/node/core/runtime/weaves/chant.ts',
+                final_proposed_path: 'src/node/core/runtime/host_workflows/chant.ts',
             }),
         );
 
@@ -240,7 +240,7 @@ describe('Host-session runtime weaves', () => {
 
     it('tells architect to emit host-governable beads with repo-native checker shells', async () => {
         let capturedPrompt = '';
-        const weave = new ArchitectWeave(new NoopDispatchPort(), async (request) => {
+        const weave = new ArchitectCompatibilityAdapter(new NoopDispatchPort(), async (request) => {
             capturedPrompt = request.prompt;
             return JSON.stringify({
                 proposal_summary: 'Emit one bounded bead.',
@@ -281,7 +281,7 @@ describe('Host-session runtime weaves', () => {
         assert.match(capturedPrompt, /emit multiple smaller beads/i);
     });
 
-    it('lets compress execute through the Codex host session and persist memory', async () => {
+    it('lets distill execute through the Codex host session and persist memory', async () => {
         const repoId = buildHallRepositoryId(tmpRoot.replace(/\\/g, '/'));
         upsertHallRepository({
             root_path: tmpRoot,
@@ -303,10 +303,10 @@ describe('Host-session runtime weaves', () => {
             updated_at: 1700000000000,
         });
 
-        const weave = new CompressWeave(async () =>
+        const weave = new DistillWeave(async () =>
             JSON.stringify({
                 tactical_summary: 'Codex compressed the successful tactical changes.',
-                files_touched: ['src/node/core/runtime/weaves/chant.ts'],
+                files_touched: ['src/node/core/runtime/host_workflows/chant.ts'],
                 successes: ['Bounded the worker brief'],
                 bead_id: 'bead-codex',
             }),
@@ -333,7 +333,7 @@ describe('Host-session runtime weaves', () => {
         const memory = getHallEpisodicMemory(String(result.metadata?.memory_id), tmpRoot);
         assert.ok(memory);
         assert.equal(memory?.tactical_summary, 'Codex compressed the successful tactical changes.');
-        assert.deepStrictEqual(memory?.files_touched, ['src/node/core/runtime/weaves/chant.ts']);
+        assert.deepStrictEqual(memory?.files_touched, ['src/node/core/runtime/host_workflows/chant.ts']);
         assert.deepStrictEqual(memory?.successes, ['Bounded the worker brief']);
         assert.equal(memory?.metadata?.provider, 'codex');
     });

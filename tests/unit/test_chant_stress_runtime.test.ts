@@ -1,10 +1,11 @@
-import { afterEach, beforeEach, describe, it } from 'node:test';
+import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { ChantWeave } from  '../../src/node/core/runtime/weaves/chant.js';
+import { ChantWeave } from  '../../src/node/core/runtime/host_workflows/chant.js';
+import { deps as plannerDeps } from '../../src/node/core/runtime/host_workflows/chant_planner.ts';
 import type { RuntimeContext, RuntimeDispatchPort, WeaveInvocation, WeaveResult } from  '../../src/node/core/runtime/contracts.js';
 import {
     closeDb,
@@ -63,36 +64,6 @@ class StressPlanningDispatchPort implements RuntimeDispatchPort {
             };
         }
 
-        if (invocation.weave_id === 'weave:architect') {
-            const intent = String((invocation.payload as { intent?: unknown }).intent ?? '');
-            const scenario = resolveScenario(intent);
-            return {
-                weave_id: invocation.weave_id,
-                status: 'SUCCESS',
-                output: `Architect proposal ready for ${scenario.key} planning.`,
-                metadata: {
-                    architect_proposal: {
-                        proposal_summary: `Build the ${scenario.key} chant workload with explicit validation.`,
-                        beads: Array.from({ length: scenario.beadCount }, (_unused, index) => ({
-                            id: `${scenario.key}-bead-${index + 1}`,
-                            title: `${scenario.key} chant bead ${index + 1}`,
-                            rationale: `Implement ${scenario.key} workload slice ${index + 1}.`,
-                            targets: [
-                                `src/${scenario.key}/module_${index + 1}.ts`,
-                                `tests/${scenario.key}/test_module_${index + 1}.ts`,
-                            ],
-                            depends_on: index === 0 ? [] : [`${scenario.key}-bead-${index}`],
-                            acceptance_criteria: [
-                                `Implement ${scenario.key} workload slice ${index + 1}.`,
-                                `Validation for ${scenario.key} workload slice ${index + 1} passes.`,
-                            ],
-                            checker_shell: `node --test tests/${scenario.key}/test_module_${index + 1}.ts`,
-                        })),
-                    },
-                },
-            };
-        }
-
         throw new Error(`Unexpected weave dispatch in chant stress test: ${invocation.weave_id}`);
     }
 }
@@ -136,11 +107,41 @@ describe('Chant stress progression (CS-P7-03)', () => {
     });
 
     afterEach(() => {
+        mock.reset();
         closeDb();
     });
 
     it('scales from scratch planning to heavier multi-bead workloads without corrupting Hall state', async () => {
         const dispatchPort = new StressPlanningDispatchPort();
+        mock.method(plannerDeps, 'executeArchitectService', async (payload: Record<string, unknown>) => {
+            const intent = String(payload.intent ?? '');
+            const scenario = resolveScenario(intent);
+            return {
+                weave_id: 'weave:architect',
+                status: 'SUCCESS',
+                output: `Architect proposal ready for ${scenario.key} planning.`,
+                metadata: {
+                    architect_proposal: {
+                        proposal_summary: `Build the ${scenario.key} chant workload with explicit validation.`,
+                        beads: Array.from({ length: scenario.beadCount }, (_unused, index) => ({
+                            id: `${scenario.key}-bead-${index + 1}`,
+                            title: `${scenario.key} chant bead ${index + 1}`,
+                            rationale: `Implement ${scenario.key} workload slice ${index + 1}.`,
+                            targets: [
+                                `src/${scenario.key}/module_${index + 1}.ts`,
+                                `tests/${scenario.key}/test_module_${index + 1}.ts`,
+                            ],
+                            depends_on: index === 0 ? [] : [`${scenario.key}-bead-${index}`],
+                            acceptance_criteria: [
+                                `Implement ${scenario.key} workload slice ${index + 1}.`,
+                                `Validation for ${scenario.key} workload slice ${index + 1} passes.`,
+                            ],
+                            checker_shell: `node --test tests/${scenario.key}/test_module_${index + 1}.ts`,
+                        })),
+                    },
+                },
+            };
+        });
         const chant = new ChantWeave(dispatchPort);
         const runs = [
             {
@@ -198,11 +199,8 @@ describe('Chant stress progression (CS-P7-03)', () => {
 
         assert.deepStrictEqual(dispatchPort.invocations, [
             'weave:research',
-            'weave:architect',
             'weave:research',
-            'weave:architect',
             'weave:research',
-            'weave:architect',
         ]);
 
         const sessions = listHallPlanningSessions(tmpRoot);

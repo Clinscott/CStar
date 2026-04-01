@@ -15,6 +15,10 @@ interface RegistryEntry {
     description?: string;
     runtime_trigger?: string;
     host_support?: Partial<Record<HostProvider, string>>;
+    execution?: {
+        allow_kernel_fallback?: boolean;
+        ownership_model?: string;
+    };
 }
 
 interface RegistryManifest {
@@ -49,6 +53,8 @@ export interface CapabilityExport {
     description: string;
     runtimeTrigger: string;
     hostSupportStatus: HostSupportStatus;
+    allowKernelFallback: boolean;
+    ownershipModel: 'host-workflow' | 'kernel-primitive';
 }
 
 export interface GeneratedFile {
@@ -162,11 +168,23 @@ function getDisplayDescription(metadata: PackageMetadata): string {
 }
 
 function formatCapabilityLine(entry: CapabilityExport): string {
-    return `- \`${entry.id}\` (${entry.tier}, ${entry.hostSupportStatus})`;
+    const fallbackSuffix = entry.allowKernelFallback ? 'kernel fallback allowed' : 'kernel fallback forbidden';
+    return `- \`${entry.id}\` (${entry.tier}, ${entry.hostSupportStatus}, ${entry.ownershipModel}, ${fallbackSuffix})`;
 }
 
 function getCapabilitiesForHost(projectRoot: string, provider: HostProvider): CapabilityExport[] {
     const entries = getRegistryEntries(loadRegistryManifest(projectRoot));
+
+    const normalizeOwnershipModel = (value: string | undefined, hostSupportStatus: HostSupportStatus): 'host-workflow' | 'kernel-primitive' => {
+        const normalized = value?.trim().toLowerCase();
+        if (normalized === 'kernel-primitive') {
+            return 'kernel-primitive';
+        }
+        if (normalized === 'host-workflow') {
+            return 'host-workflow';
+        }
+        return hostSupportStatus === 'supported' ? 'kernel-primitive' : 'host-workflow';
+    };
 
     return Object.entries(entries)
         .map(([id, entry]) => {
@@ -177,6 +195,8 @@ function getCapabilitiesForHost(projectRoot: string, provider: HostProvider): Ca
                 description: String(entry.description ?? '').trim(),
                 runtimeTrigger: String(entry.runtime_trigger ?? id),
                 hostSupportStatus,
+                allowKernelFallback: entry.execution?.allow_kernel_fallback !== false,
+                ownershipModel: normalizeOwnershipModel(entry.execution?.ownership_model, hostSupportStatus),
             };
         })
         .filter((entry) => EXECUTABLE_HOST_STATUSES.has(entry.hostSupportStatus))
@@ -230,6 +250,8 @@ function buildGeminiContextContent(projectRoot: string, capabilities: Capability
         '- Keep reasoning, planning, critique, and recovery in the host session when the registry marks a capability host-executable.',
         '- Keep deterministic local primitives in the kernel; do not fork Gemini-specific capability definitions.',
         '- Treat `native-session` and `exec-bridge` capabilities as host-routed, and treat `supported` capabilities as kernel-backed launch surfaces.',
+        '- Treat `host-workflow` entries as host-owned cognition/workflow surfaces and `kernel-primitive` entries as deterministic kernel control-plane primitives.',
+        '- Public host fronts marked with kernel fallback forbidden must fail closed when no host session is active; they must not degrade into legacy kernel cognition.',
         '',
         `## Exported Gemini Capabilities (${capabilities.length})`,
         ...(topCapabilities.length > 0 ? topCapabilities : ['- None exported.']),
@@ -272,6 +294,7 @@ function buildCodexPluginManifestContent(projectRoot: string): string {
                 'Route Corvus work through ./cstar and node bin/cstar.js.',
                 'Keep registry and runtime contracts authoritative.',
                 'Treat host-executable capabilities as supervisor paths and kernel-backed capabilities as bounded local primitives.',
+                'Public host fronts with forbidden kernel fallback must fail closed when the host session is absent.',
             ],
             brandColor: '#0F6E5B',
         },
@@ -299,6 +322,8 @@ function buildCodexPluginSkillContent(capabilities: CapabilityExport[]): string 
         '- Use `./cstar <command>` or `node bin/cstar.js <command>` as canonical launchers.',
         '- Keep host-specific packaging separate from kernel logic.',
         '- Treat `native-session` and `exec-bridge` capabilities as host-routed work, and `supported` capabilities as kernel-backed launch surfaces.',
+        '- Treat `host-workflow` entries as host-owned cognition/workflow surfaces and `kernel-primitive` entries as deterministic kernel control-plane primitives.',
+        '- Public host fronts marked with forbidden kernel fallback must fail closed instead of dropping into legacy kernel cognition.',
         '',
         `## Exported Codex Capabilities (${capabilities.length})`,
         ...(topCapabilities.length > 0 ? topCapabilities : ['- None exported.']),
@@ -349,6 +374,7 @@ function buildDistributionReadmeContent(geminiCapabilities: CapabilityExport[], 
         '- Install from the repository root so `gemini-extension.json` and `GEMINI.md` are available.',
         '- The extension exposes registry-filtered capabilities and MCP server wiring from the kernel root.',
         '- Gemini context is generated around the host-native supervisor model: host cognition, kernel primitives.',
+        '- Public host fronts marked as no-fallback are expected to fail closed when the host session is unavailable.',
         '- Local bootstrap: `npm run install:gemini-local`',
         '',
         '## Codex',
@@ -356,6 +382,7 @@ function buildDistributionReadmeContent(geminiCapabilities: CapabilityExport[], 
         '- The marketplace entry lives under `.agents/plugins/marketplace.json`.',
         '- The plugin points back to the same kernel root through `.mcp.json`.',
         '- Codex install surfaces are generated from the same registry-backed host/kernel split as Gemini.',
+        '- Public host fronts marked as no-fallback are expected to fail closed when the host session is unavailable.',
         '- Local bootstrap: `npm run install:codex-local`',
         '',
         '## Combined Local Bootstrap',

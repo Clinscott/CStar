@@ -26,6 +26,14 @@ export type CapabilityExecutionMode =
     | 'policy-only'
     | 'unknown';
 
+export type CapabilityOwnershipModel =
+    | 'host-workflow'
+    | 'kernel-primitive';
+
+export type CapabilityKernelFallbackPolicy =
+    | 'allowed'
+    | 'forbidden';
+
 export interface HostSkillActivationRequest {
     skill_id: string;
     role?: string;
@@ -40,12 +48,33 @@ interface RegistryEntry {
     host_support?: Partial<Record<HostProvider, string>>;
     execution?: {
         mode?: string;
+        adapter_id?: string;
+        allow_kernel_fallback?: boolean;
+        ownership_model?: string;
     };
 }
 
 interface RegistryManifest {
     entries?: Record<string, RegistryEntry>;
     skills?: Record<string, RegistryEntry>;
+}
+
+function findRegistryEntry(entries: Record<string, RegistryEntry>, capability: string): RegistryEntry | null {
+    const normalizedCapability = capability.trim().toLowerCase();
+    if (!normalizedCapability) {
+        return null;
+    }
+
+    const directEntry = entries[normalizedCapability];
+    if (directEntry) {
+        return directEntry;
+    }
+
+    return Object.values(entries).find((entry) => {
+        const runtimeTrigger = String(entry.runtime_trigger ?? '').trim().toLowerCase();
+        const adapterId = String(entry.execution?.adapter_id ?? '').trim().toLowerCase();
+        return runtimeTrigger === normalizedCapability || adapterId === normalizedCapability;
+    }) ?? null;
 }
 
 const SUPPORTED_HOST_STATUSES = new Set<HostSupportStatus>([
@@ -96,12 +125,17 @@ export function isHostSessionActive(env: NodeJS.ProcessEnv = process.env): boole
 }
 
 export function isInteractiveHostSession(env: NodeJS.ProcessEnv = process.env): boolean {
+    const override = normalizeFlag(env.CORVUS_HOST_SESSION_ACTIVE);
+    if (override === false) {
+        return false;
+    }
+
     const provider = detectHostProvider(env);
     if (provider === 'gemini') {
         return env.GEMINI_CLI_ACTIVE === 'true' || env.GEMINI_CLI === '1';
     }
     if (provider === 'codex') {
-        return env.CODEX_SHELL === '1' || Boolean(env.CODEX_THREAD_ID);
+        return env.CODEX_SHELL === '1';
     }
     return false;
 }
@@ -249,14 +283,7 @@ export function getCapabilityHostSupport(
     provider: HostProvider,
 ): HostSupportStatus | null {
     const entries = getRegistryEntries(loadRegistryManifest(projectRoot));
-    const normalizedCapability = capability.trim().toLowerCase();
-    if (!normalizedCapability) {
-        return null;
-    }
-
-    const directEntry = entries[normalizedCapability];
-    const matchedEntry = directEntry
-        ?? Object.values(entries).find((entry) => String(entry.runtime_trigger ?? '').trim().toLowerCase() === normalizedCapability);
+    const matchedEntry = findRegistryEntry(entries, capability);
     if (!matchedEntry?.host_support) {
         return null;
     }
@@ -269,15 +296,37 @@ export function getCapabilityExecutionMode(
     capability: string,
 ): CapabilityExecutionMode {
     const entries = getRegistryEntries(loadRegistryManifest(projectRoot));
-    const normalizedCapability = capability.trim().toLowerCase();
-    if (!normalizedCapability) {
-        return 'unknown';
+    const matchedEntry = findRegistryEntry(entries, capability);
+    return normalizeCapabilityExecutionMode(matchedEntry?.execution?.mode);
+}
+
+export function getCapabilityOwnershipModel(
+    projectRoot: string,
+    capability: string,
+): CapabilityOwnershipModel {
+    const entries = getRegistryEntries(loadRegistryManifest(projectRoot));
+    const matchedEntry = findRegistryEntry(entries, capability);
+    const explicit = matchedEntry?.execution?.ownership_model?.trim().toLowerCase();
+    if (explicit === 'kernel-primitive') {
+        return 'kernel-primitive';
+    }
+    if (explicit === 'host-workflow') {
+        return 'host-workflow';
     }
 
-    const directEntry = entries[normalizedCapability];
-    const matchedEntry = directEntry
-        ?? Object.values(entries).find((entry) => String(entry.runtime_trigger ?? '').trim().toLowerCase() === normalizedCapability);
-    return normalizeCapabilityExecutionMode(matchedEntry?.execution?.mode);
+    return normalizeCapabilityExecutionMode(matchedEntry?.execution?.mode) === 'kernel-backed'
+        ? 'kernel-primitive'
+        : 'host-workflow';
+}
+
+export function getCapabilityKernelFallbackPolicy(
+    projectRoot: string,
+    capability: string,
+): CapabilityKernelFallbackPolicy {
+    const entries = getRegistryEntries(loadRegistryManifest(projectRoot));
+    const matchedEntry = findRegistryEntry(entries, capability);
+
+    return matchedEntry?.execution?.allow_kernel_fallback === false ? 'forbidden' : 'allowed';
 }
 
 export function explainCapabilityHostSupport(

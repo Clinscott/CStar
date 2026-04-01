@@ -10,7 +10,7 @@ import {
 } from '../contracts.ts';
 import { getHallBeadsByStatus, getHallBeadsByEpic } from  '../../../../tools/pennyone/intel/database.js';
 import chalk from 'chalk';
-import * as hostBridge from './host_bridge.js';
+import * as hostBridge from '../weaves/host_bridge.js';
 
 export const deps = {
     getHallBeadsByStatus,
@@ -70,7 +70,7 @@ function normalizeRestorationDecision(raw: string): RestorationSupervisorDecisio
  * 🔱 RESTORATION WEAVE
  * Logic: Identify (Hall) -> Implement (Evolve) -> Verify (Trace) -> Remember (Compress)
  */
-export class RestorationWeave implements RuntimeAdapter<RestorationWeavePayload> {
+export class RestorationHostWorkflow implements RuntimeAdapter<RestorationWeavePayload> {
     public readonly id = 'weave:restoration';
 
     public constructor(
@@ -225,3 +225,5 @@ export class RestorationWeave implements RuntimeAdapter<RestorationWeavePayload>
         };
     }
 }
+
+export { RestorationHostWorkflow as RestorationWeave };

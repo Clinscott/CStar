@@ -3,6 +3,10 @@ import path from 'path';
 
 import fs from 'fs';
 
+function shouldEmitPennyOneDebugLogs(): boolean {
+    return process.env.CSTAR_DEBUG_LOGS === '1';
+}
+
 function isAbsolutePath(input: string): boolean {
     return path.isAbsolute(input) || path.win32.isAbsolute(input) || path.posix.isAbsolute(input);
 }
@@ -36,6 +40,24 @@ function dirnameForPath(input: string): string {
     return path.posix.dirname(input);
 }
 
+function getImportMetaDirname(): string | undefined {
+    const candidate = (import.meta as ImportMeta & { dirname?: unknown }).dirname;
+    return typeof candidate === 'string' && candidate.trim().length > 0
+        ? candidate
+        : undefined;
+}
+
+function hasProjectMarker(currentDir: string): boolean {
+    const packageJsonPath = path.join(currentDir, 'package.json');
+    const agentConfigPath = path.join(currentDir, '.agents', 'config.json');
+    const estateAgentConfigPath = path.join(currentDir, 'CStar', '.agents', 'config.json');
+    const estateEntrypointPath = path.join(currentDir, 'CStar', 'cstar');
+    return fs.existsSync(packageJsonPath)
+        || fs.existsSync(agentConfigPath)
+        || fs.existsSync(estateAgentConfigPath)
+        || fs.existsSync(estateEntrypointPath);
+}
+
 function relativeBetween(from: string, to: string): string {
     if (process.platform === 'win32') {
         return usesWindowsPathApi(from) || usesWindowsPathApi(to)
@@ -63,9 +85,15 @@ export class PathRegistry {
      */
     private findProjectRoot(startPath?: string): string {
         try {
-            let currentDir = startPath
+            const initialCandidate = startPath
                 ? (isAbsolutePath(startPath) ? normalizeSeparators(startPath) : path.resolve(startPath))
-                : import.meta.dirname;
+                : getImportMetaDirname();
+
+            if (typeof initialCandidate !== 'string' || initialCandidate.trim().length === 0) {
+                throw new Error('PathRegistry could not derive an initial project-root candidate.');
+            }
+
+            let currentDir = initialCandidate;
             
             // [🔱] THE ONE MIND: Cross-platform Sanitization
             if (process.platform !== 'win32' && /^[A-Za-z]:/.test(currentDir)) {
@@ -78,6 +106,10 @@ export class PathRegistry {
                 currentDir = currentDir.slice(1);
             }
 
+            if (typeof currentDir !== 'string' || currentDir.trim().length === 0) {
+                throw new Error('PathRegistry derived an invalid current directory.');
+            }
+
             if (fs.existsSync(currentDir) && !fs.statSync(currentDir).isDirectory()) {
                 currentDir = dirnameForPath(currentDir);
             }
@@ -85,10 +117,7 @@ export class PathRegistry {
             let previousDir = '';
 
             while (currentDir !== previousDir) {
-                const packageJsonPath = path.join(currentDir, 'package.json');
-                const agentConfigPath = path.join(currentDir, '.agents', 'config.json');
-
-                if (fs.existsSync(packageJsonPath) || fs.existsSync(agentConfigPath)) {
+                if (hasProjectMarker(currentDir)) {
                     return currentDir.replace(/\\/g, '/');
                 }
 
@@ -123,7 +152,9 @@ export class PathRegistry {
         const resolvedRoot = isAbsolutePath(newRoot)
             ? normalizeSeparators(newRoot)
             : path.resolve(newRoot).replace(/\\/g, '/');
-        console.log(`[DEBUG] PathRegistry.setRoot: ${resolvedRoot}`);
+        if (shouldEmitPennyOneDebugLogs()) {
+            console.log(`[DEBUG] PathRegistry.setRoot: ${resolvedRoot}`);
+        }
         this.root = resolvedRoot;
     }
 
@@ -228,4 +259,3 @@ export class PathRegistry {
 }
 
 export const registry = PathRegistry.getInstance();
-

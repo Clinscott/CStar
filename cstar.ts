@@ -54,6 +54,7 @@ const program = new Command();
     const isHelpOrVersion = process.argv.includes('--help') || process.argv.includes('-h') || process.argv.includes('--version') || process.argv.includes('-V');
     const isStart = process.argv.includes('start');
     const isSilent = process.argv.includes('--silent');
+    const isJsonOutput = process.argv.includes('--json');
     const shouldStartTui = !isHelpOrVersion && shouldLaunchOperatorTui(process.argv.slice(2));
     const hostSessionActive = isHostSessionActive();
     const hostProvider = resolveHostProvider();
@@ -62,7 +63,7 @@ const program = new Command();
         await runStartupCeremony();
     }
 
-    if (hostSessionActive && !isHelpOrVersion && !isSilent) {
+    if (hostSessionActive && !isHelpOrVersion && !isSilent && !isJsonOutput) {
         console.log(chalk.bgMagenta.white.bold(getHostProviderBanner(hostProvider)));
         console.log(chalk.magenta(' ' + '━'.repeat(40) + '\n'));
     }
@@ -279,14 +280,19 @@ const program = new Command();
             }
 
             const result = await dispatchPort.dispatch({
-                weave_id: 'weave:chant',
-                payload: {
+                id: `cli:chant:${Date.now()}`,
+                skill_id: 'chant',
+                target_path: projectRoot,
+                intent: queryString,
+                params: {
                     query: queryString,
                     project_root: projectRoot,
                     cwd: process.cwd(),
                     dry_run: options.dryRun,
                     source: 'cli'
-                }
+                },
+                status: 'PENDING',
+                priority: 1,
             });
 
             if (result.status === 'SUCCESS' || result.status === 'TRANSITIONAL') {
@@ -390,17 +396,7 @@ const program = new Command();
             if (query) {
                 const projectRoot = registry.getRoot();
                 const dispatchPort = RuntimeDispatcher.getInstance();
-                const result = hostSessionActive
-                    ? await dispatchPort.dispatch({
-                        id: `CLI-HALL-${Date.now()}`,
-                        skill_id: 'hall',
-                        target_path: projectRoot,
-                        intent: query,
-                        params: { query, project_root: projectRoot, cwd: process.cwd() },
-                        status: 'PENDING',
-                        priority: 1,
-                    })
-                    : await dispatchPort.dispatch(buildPennyOneInvocation({ search: query }, projectRoot));
+                const result = await dispatchPort.dispatch(buildPennyOneInvocation({ search: query }, projectRoot));
                 renderStandardCommandResult(result, projectRoot);
                 return;
             }

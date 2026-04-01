@@ -2,6 +2,7 @@ import { database } from './database.js';
 import { parseJson, stringifyJson } from './schema.js';
 import { normalizeHallPath, buildHallRepositoryId } from '../../../types/hall.js';
 import {
+    HallContextMetadata,
     HallPlanningSessionRecord,
     HallPlanningSessionStatus,
     HallSkillActivationRecord,
@@ -11,6 +12,64 @@ import {
 import { AgentPing } from '../types.js';
 import { registry } from '../pathRegistry.js';
 import path from 'node:path';
+
+function isLiveAuthorityPath(value: string | undefined): boolean {
+    const normalized = (value ?? '').replace(/\\/g, '/').toLowerCase();
+    return normalized.includes('/src/node/core/runtime/host_workflows/')
+        || normalized.includes('/src/node/core/runtime/compat/')
+        || normalized.endsWith('/.agents/skill_registry.json')
+        || normalized.endsWith('/agents.qmd')
+        || normalized.startsWith('src/node/core/runtime/host_workflows/')
+        || normalized.startsWith('src/node/core/runtime/compat/')
+        || normalized === '.agents/skill_registry.json'
+        || normalized === 'agents.qmd';
+}
+
+function inferProposalAuthorityTier(record: Pick<HallSkillProposalRecord, 'status' | 'target_path' | 'contract_path' | 'proposal_path'>): HallContextMetadata['authority_tier'] {
+    if (record.status === 'REJECTED' || record.status === 'SUPERSEDED') {
+        return 'archive';
+    }
+
+    const paths = [record.target_path, record.contract_path, record.proposal_path];
+    if (paths.some((entry) => {
+        const normalized = (entry ?? '').replace(/\\/g, '/').toLowerCase();
+        return normalized.includes('/docs/legacy_archive/') || normalized.startsWith('docs/legacy_archive/');
+    })) {
+        return 'archive';
+    }
+
+    if (paths.some((entry) => isLiveAuthorityPath(entry))) {
+        return 'live_authority';
+    }
+
+    return 'reference';
+}
+
+function normalizeSessionMetadata(record: HallPlanningSessionRecord): HallContextMetadata {
+    const metadata: HallContextMetadata = { ...(record.metadata ?? {}) };
+    const authorityTier = metadata.authority_tier ?? 'live_authority';
+    const archived = typeof metadata.archived === 'boolean'
+        ? metadata.archived
+        : false;
+    return {
+        ...metadata,
+        authority_tier: authorityTier,
+        archived,
+    };
+}
+
+function normalizeProposalMetadata(record: HallSkillProposalRecord): HallContextMetadata {
+    const metadata: HallContextMetadata = { ...(record.metadata ?? {}) };
+    const authorityTier = metadata.authority_tier ?? inferProposalAuthorityTier(record);
+    const archived = typeof metadata.archived === 'boolean'
+        ? metadata.archived
+        : authorityTier === 'archive';
+    return {
+        ...metadata,
+        authority_tier: authorityTier,
+        archived,
+    };
+}
 
 export function saveHallSkillObservation(record: HallSkillObservation): void {
     const db = database.getDb();
@@ -134,6 +193,7 @@ export function listHallSkillActivations(
 
 export function saveHallPlanningSession(record: HallPlanningSessionRecord): void {
     const db = database.getDb();
+    const metadata = normalizeSessionMetadata(record);
     db.prepare(`
         INSERT INTO hall_planning_sessions (
             session_id, repo_id, skill_id, status, user_intent, normalized_intent,
@@ -162,12 +222,13 @@ export function saveHallPlanningSession(record: HallPlanningSessionRecord): void
         record.current_bead_id ?? null,
         record.created_at,
         record.updated_at,
-        stringifyJson(record.metadata),
+        stringifyJson(metadata),
     );
 }
 
 export function saveHallSkillProposal(record: HallSkillProposalRecord): void {
     const db = database.getDb();
+    const metadata = normalizeProposalMetadata(record);
     db.prepare(`
         INSERT INTO hall_skill_proposals (
             proposal_id, repo_id, skill_id, bead_id, validation_id, target_path, contract_path,
@@ -204,7 +265,7 @@ export function saveHallSkillProposal(record: HallSkillProposalRecord): void {
         record.promoted_by ?? null,
         record.created_at,
         record.updated_at,
-        stringifyJson(record.metadata),
+        stringifyJson(metadata),
     );
 }
 
@@ -239,7 +300,7 @@ export function getHallSkillProposal(proposalId: string): HallSkillProposalRecor
         promoted_by: row.promoted_by ? String(row.promoted_by) : undefined,
         created_at: Number(row.created_at ?? 0),
         updated_at: Number(row.updated_at ?? 0),
-        metadata: parseJson<Record<string, unknown>>(row.metadata_json as string | null, {}),
+        metadata: parseJson<HallContextMetadata>(row.metadata_json as string | null, {}),
     };
 }
 
@@ -270,7 +331,7 @@ export function getHallPlanningSession(sessionId: string): HallPlanningSessionRe
         current_bead_id: row.current_bead_id ? String(row.current_bead_id) : undefined,
         created_at: Number(row.created_at ?? 0),
         updated_at: Number(row.updated_at ?? 0),
-        metadata: parseJson<Record<string, unknown>>(row.metadata_json as string | null, {}),
+        metadata: parseJson<HallContextMetadata>(row.metadata_json as string | null, {}),
     };
 }
 
@@ -319,7 +380,7 @@ export function listHallSkillProposals(
         promoted_by: row.promoted_by ? String(row.promoted_by) : undefined,
         created_at: Number(row.created_at ?? 0),
         updated_at: Number(row.updated_at ?? 0),
-        metadata: parseJson<Record<string, unknown>>(row.metadata_json as string | null, {}),
+        metadata: parseJson<HallContextMetadata>(row.metadata_json as string | null, {}),
     }));
 }
 
@@ -358,8 +419,75 @@ export function listHallPlanningSessions(
         latest_question: row.latest_question ? String(row.latest_question) : undefined,
         created_at: Number(row.created_at ?? 0),
         updated_at: Number(row.updated_at ?? 0),
-        metadata: parseJson<Record<string, unknown>>(row.metadata_json as string | null, {}),
+        metadata: parseJson<HallContextMetadata>(row.metadata_json as string | null, {}),
     }));
+}
+
+export function backfillHallPlanningSessionMetadata(rootPath: string = registry.getRoot()): number {
+    const db = database.getDb();
+    const repoId = buildHallRepositoryId(normalizeHallPath(rootPath));
+    const rows = db.prepare(`
+        SELECT session_id, metadata_json
+        FROM hall_planning_sessions
+        WHERE repo_id = ?
+    `).all(repoId) as Array<Record<string, unknown>>;
+
+    let updated = 0;
+    for (const row of rows) {
+        const existing = parseJson<HallContextMetadata>(row.metadata_json as string | null, {});
+        if (existing.authority_tier && typeof existing.archived === 'boolean') {
+            continue;
+        }
+        const metadata: HallContextMetadata = {
+            ...existing,
+            authority_tier: existing.authority_tier ?? 'live_authority',
+            archived: typeof existing.archived === 'boolean' ? existing.archived : false,
+        };
+        db.prepare('UPDATE hall_planning_sessions SET metadata_json = ? WHERE session_id = ?').run(
+            stringifyJson(metadata),
+            String(row.session_id),
+        );
+        updated += 1;
+    }
+
+    return updated;
+}
+
+export function backfillHallSkillProposalMetadata(rootPath: string = registry.getRoot()): number {
+    const db = database.getDb();
+    const repoId = buildHallRepositoryId(normalizeHallPath(rootPath));
+    const rows = db.prepare(`
+        SELECT proposal_id, status, target_path, contract_path, proposal_path, metadata_json
+        FROM hall_skill_proposals
+        WHERE repo_id = ?
+    `).all(repoId) as Array<Record<string, unknown>>;
+
+    let updated = 0;
+    for (const row of rows) {
+        const existing = parseJson<HallContextMetadata>(row.metadata_json as string | null, {});
+        if (existing.authority_tier && typeof existing.archived === 'boolean') {
+            continue;
+        }
+        const metadata = normalizeProposalMetadata({
+            proposal_id: String(row.proposal_id),
+            repo_id: repoId,
+            skill_id: '',
+            status: row.status as HallSkillProposalRecord['status'],
+            created_at: 0,
+            updated_at: 0,
+            target_path: row.target_path ? String(row.target_path) : undefined,
+            contract_path: row.contract_path ? String(row.contract_path) : undefined,
+            proposal_path: row.proposal_path ? String(row.proposal_path) : undefined,
+            metadata: existing,
+        });
+        db.prepare('UPDATE hall_skill_proposals SET metadata_json = ? WHERE proposal_id = ?').run(
+            stringifyJson(metadata),
+            String(row.proposal_id),
+        );
+        updated += 1;
+    }
+
+    return updated;
 }
 
 export function registerSpoke(targetRepo: string): number {

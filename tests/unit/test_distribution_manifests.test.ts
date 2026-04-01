@@ -46,6 +46,9 @@ function createProjectRoot(): string {
                     tier: 'PRIME',
                     description: 'Hall lookup',
                     runtime_trigger: 'hall',
+                    execution: {
+                        ownership_model: 'host-workflow',
+                    },
                     host_support: {
                         gemini: 'native-session',
                         codex: 'exec-bridge',
@@ -55,6 +58,10 @@ function createProjectRoot(): string {
                     tier: 'WEAVE',
                     description: 'Chant routing',
                     runtime_trigger: 'chant',
+                    execution: {
+                        ownership_model: 'host-workflow',
+                        allow_kernel_fallback: false,
+                    },
                     host_support: {
                         gemini: 'supported',
                         codex: 'supported',
@@ -73,6 +80,9 @@ function createProjectRoot(): string {
                     tier: 'SKILL',
                     description: 'Unsupported for codex',
                     runtime_trigger: 'oracle',
+                    execution: {
+                        ownership_model: 'kernel-primitive',
+                    },
                     host_support: {
                         gemini: 'supported',
                         codex: 'unsupported',
@@ -133,7 +143,8 @@ describe('distribution generator', () => {
         assert.match(geminiContext, /Exported Gemini Capabilities \(3\)/);
         assert.match(geminiContext, /Host-native Gemini CLI extension/);
         assert.match(geminiContext, /host session when the registry marks a capability host-executable/);
-        assert.match(geminiContext, /`hall` \(PRIME, native-session\)/);
+        assert.match(geminiContext, /host-owned cognition\/workflow surfaces and `kernel-primitive` entries/);
+        assert.match(geminiContext, /`hall` \(PRIME, native-session, host-workflow, kernel fallback allowed\)/);
 
         const codexPlugin = JSON.parse(build.files[2]?.content ?? '{}') as {
             name?: string;
@@ -160,6 +171,7 @@ describe('distribution generator', () => {
         const pluginReadme = build.files[5]?.content ?? '';
         assert.match(pluginReadme, /repo-local plugin lives under `plugins\/corvus-star\/`/);
         assert.match(pluginReadme, /same registry-backed host\/kernel split as Gemini/);
+        assert.match(pluginReadme, /fail closed when the host session is unavailable/);
 
         const distReadme = build.files[7]?.content ?? '';
         assert.match(distReadme, /npm run build:distributions/);

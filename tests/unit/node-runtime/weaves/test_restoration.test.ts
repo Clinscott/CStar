@@ -1,7 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { RestorationWeave, deps } from '../../../../src/node/core/runtime/weaves/restoration.js';
+import { RestorationWeave, deps } from '../../../../src/node/core/runtime/host_workflows/restoration.js';
 
 describe('RestorationWeave Unit Tests', () => {
     it('can return observe-only when the host supervisor declines execution', async () => {
