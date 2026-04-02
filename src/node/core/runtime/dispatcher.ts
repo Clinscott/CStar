@@ -236,7 +236,7 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
         // [🔱] THE TRACE SELECTION GATE: Enforce Trace for CLI operations
         const query = (payload as any)?.query || (payload as any)?.rationale || '';
         const hasTrace = query.includes('// Corvus Star Trace [Ω]');
-        const isInternalOS = ['weave:host-governor', 'weave:dynamic-command', 'weave:restoration', 'weave:creation_loop', 'weave:orchestrate'].includes(weaveId);
+        const isInternalOS = ['weave:start', 'weave:host-governor', 'weave:dynamic-command', 'weave:restoration', 'weave:creation_loop', 'weave:orchestrate'].includes(weaveId);
         const isObservationInvocation = ['weave:status', 'weave:hall', 'weave:vitals', 'weave:manifest'].includes(weaveId)
             || (weaveId === 'weave:pennyone' && ['search', 'stats', 'topology', 'view', 'scan', 'refresh_intents', 'normalize', 'report', 'artifacts', 'status'].includes(String((payload as any)?.action ?? '').trim()));
         

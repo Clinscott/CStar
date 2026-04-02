@@ -22,6 +22,7 @@ import { DistillWeave } from  './weaves/distill.js';
 import { OrchestrateWeave } from  './weaves/orchestrate.js';
 import { HostGovernorWeave } from  './weaves/host_governor.js';
 import { TemporalLearningWeave } from  './weaves/temporal_learning.js';
+import { EstateRitualWeave } from './weaves/estate_ritual.js';
 import { WardenWeave } from './weaves/warden.js';
 import { UniversalAdapter } from './universal_adapter.js';
 import { registry } from '../../../tools/pennyone/pathRegistry.js';
@@ -62,6 +63,7 @@ export function bootstrapRuntime(dispatcher: RuntimeDispatcher = RuntimeDispatch
         new OrchestrateWeave(dispatcher),
         new HostGovernorWeave(dispatcher),
         new TemporalLearningWeave(),
+        new EstateRitualWeave(dispatcher),
         new RestorationHostWorkflow(dispatcher),
         new EstateExpansionHostWorkflow(dispatcher),
         new WardenWeave(dispatcher),

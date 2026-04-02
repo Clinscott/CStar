@@ -861,20 +861,21 @@
       "description": "Autonomous ingest of bookmarks into the Hall Bead Ledger.",
       "instruction_path": ".agents/skills/bookmark-weaver/SKILL.md",
       "execution": {
-        "mode": "agent-native",
+        "mode": "kernel-backed",
         "cli": "cstar bookmark-weaver",
-        "ownership_model": "host-workflow"
+        "script_path": "scripts/bookmark_weaver.py",
+        "ownership_model": "kernel-primitive"
       },
       "viability": "ACTIVE",
       "risk": "safe",
       "authority_path": ".agents/skills/bookmark-weaver",
-      "entrypoint_path": null,
+      "entrypoint_path": "scripts/bookmark_weaver.py",
       "contract_path": ".agents/skills/bookmark-weaver/SKILL.md",
-      "owner_runtime": "host-agent",
+      "owner_runtime": "cstar-kernel",
       "host_support": {
-        "gemini": "native-session",
-        "codex": "exec-bridge",
-        "claude": "exec-bridge"
+        "gemini": "supported",
+        "codex": "supported",
+        "claude": "supported"
       },
       "recursion_policy": "leaf",
       "contracts": [
@@ -1768,22 +1769,22 @@
       "description": "Awaken the system pulse, initiate agent loops, and bootstrap the runtime.",
       "instruction_path": ".agents/skills/start/SKILL.md",
       "execution": {
-        "mode": "agent-native",
+        "mode": "kernel-backed",
         "cli": "cstar start",
         "adapter_id": "weave:start",
-        "allow_kernel_fallback": false,
-        "ownership_model": "host-workflow"
+        "allow_kernel_fallback": true,
+        "ownership_model": "kernel-primitive"
       },
       "viability": "ACTIVE",
       "risk": "safe",
       "authority_path": ".agents/skills/start",
       "entrypoint_path": null,
       "contract_path": ".agents/skills/start/SKILL.md",
-      "owner_runtime": "host-agent",
+      "owner_runtime": "cstar-kernel",
       "host_support": {
-        "gemini": "native-session",
-        "codex": "exec-bridge",
-        "claude": "exec-bridge"
+        "gemini": "supported",
+        "codex": "supported",
+        "claude": "supported"
       },
       "recursion_policy": "bounded-orchestrator",
       "contracts": [
@@ -2173,6 +2174,26 @@
         "tests/unit/node-runtime/weaves/test_chant_planner.test.ts"
       ],
       "runtime_trigger": "living_architecture"
+    },
+    "estate-ritual": {
+      "tier": "WEAVE",
+      "description": "Execute the daily maintenance ritual (Update, Ingest, Swarm).",
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar ritual",
+        "adapter_id": "weave:estate-ritual",
+        "ownership_model": "host-workflow"
+      },
+      "viability": "ACTIVE",
+      "risk": "safe",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "bounded-composite",
+      "runtime_trigger": "estate-ritual"
     },
     "secure_speculation": {
       "tier": "WEAVE",

@@ -1,6 +1,7 @@
 import fs from 'node:fs';
-import { join } from 'node:path';
+import path, { join } from 'node:path';
 import { execa } from 'execa';
+import { spawnSync } from 'node:child_process';
 
 import { buildResultPlanningSummary } from '../operator_resume.js';
 import { executeHostGovernorResume } from '../operator_resume.js';
@@ -229,6 +230,9 @@ export class StartAdapter implements RuntimeAdapter<StartWeavePayload> {
         const payload = invocation.payload;
         const hostProvider = resolveHostProvider({ ...process.env, ...context.env } as NodeJS.ProcessEnv);
 
+        // [🔱] THE ESTATE UPDATE HOOK
+        const updateOutput = this.performEstateUpdateHook(context.workspace_root);
+
         if (payload.verbose) {
             process.env.CSTAR_VERBOSE = 'true';
         }
@@ -245,7 +249,7 @@ export class StartAdapter implements RuntimeAdapter<StartWeavePayload> {
                     return {
                         weave_id: this.id,
                         status: 'FAILURE',
-                        output: '',
+                        output: updateOutput,
                         error: 'Host-governor routing is unavailable because the runtime dispatch port is not attached.',
                     };
                 }
@@ -279,9 +283,7 @@ export class StartAdapter implements RuntimeAdapter<StartWeavePayload> {
                 return {
                     ...governorResult,
                     weave_id: this.id,
-                    output: governorResult.output
-                        ? `The system is awake and synchronized. ${governorResult.output}`.trim()
-                        : 'The system is awake and synchronized.',
+                    output: `${updateOutput}\n\n${governorResult.output || 'The system is awake and synchronized.'}`.trim(),
                     metadata: {
                         ...(governorResult.metadata ?? {}),
                         adapter: 'runtime:start-resume',
@@ -299,7 +301,7 @@ export class StartAdapter implements RuntimeAdapter<StartWeavePayload> {
             return {
                 weave_id: this.id,
                 status: 'TRANSITIONAL',
-                output: 'The system is awake and synchronized. The Corvus kernel is active.',
+                output: `${updateOutput}\n\n[RITUAL] Kernel Awakening Complete.`.trim(),
                 metadata: {
                     adapter: 'runtime:ans-kernel',
                     supervisor_decision_source: startMode.source,
@@ -312,13 +314,41 @@ export class StartAdapter implements RuntimeAdapter<StartWeavePayload> {
         return {
             weave_id: this.id,
             status: 'FAILURE',
-            output: '',
+            output: updateOutput,
             error: `Target-driven start is no longer canonical for '${payload.target}'. Create or select a bead and dispatch TALIESIN with --bead-id.`,
             metadata: {
                 adapter: 'compatibility:start-target-rejected',
                 rejected_target: payload.target,
             },
         };
+    }
+
+    private performEstateUpdateHook(projectRoot: string): string {
+        const outputs: string[] = ['[RITUAL] Synchronizing Estate...'];
+        
+        // Update CStar
+        const cstarUpdate = spawnSync('git', ['pull'], { cwd: projectRoot, encoding: 'utf-8' });
+        if (cstarUpdate.stdout && !cstarUpdate.stdout.includes('Already up to date')) {
+            outputs.push(' • CStar updated.');
+        }
+
+        const statePath = path.join(projectRoot, '.agents', 'sovereign_state.json');
+        if (fs.existsSync(statePath)) {
+            try {
+                const state = JSON.parse(fs.readFileSync(statePath, 'utf-8'));
+                const spokes = state.managed_spokes || [];
+                for (const spoke of spokes) {
+                    if (spoke.root_path && fs.existsSync(path.join(spoke.root_path, '.git'))) {
+                        const spokeUpdate = spawnSync('git', ['pull'], { cwd: spoke.root_path, encoding: 'utf-8' });
+                        if (spokeUpdate.stdout && !spokeUpdate.stdout.includes('Already up to date')) {
+                            outputs.push(` • Spoke '${spoke.slug}' updated.`);
+                        }
+                    }
+                }
+            } catch { /* ignore */ }
+        }
+
+        return outputs.length > 1 ? outputs.join('\n') : '[RITUAL] Estate is current.';
     }
 }
 
