@@ -105,21 +105,26 @@ def parse_structured_payload(raw_text: str) -> Any:
     except Exception:
         pass
 
+    # [Ω] DEEP STRIP: Find the first actual JSON boundary to ignore leading CLI warnings/banners
     object_start = text.find("{")
-    object_end = text.rfind("}")
-    if object_start != -1 and object_end != -1 and object_end > object_start:
-        try:
-            return json.loads(text[object_start:object_end + 1])
-        except Exception:
-            pass
-
     array_start = text.find("[")
-    array_end = text.rfind("]")
-    if array_start != -1 and array_end != -1 and array_end > array_start:
-        try:
-            return json.loads(text[array_start:array_end + 1])
-        except Exception:
-            return None
+    
+    start = -1
+    if object_start != -1 and array_start != -1:
+        start = min(object_start, array_start)
+    else:
+        start = max(object_start, array_start)
+
+    if start != -1:
+        object_end = text.rfind("}")
+        array_end = text.rfind("]")
+        end = max(object_end, array_end)
+        
+        if end > start:
+            try:
+                return json.loads(text[start : end + 1])
+            except Exception:
+                pass
 
     return None
 

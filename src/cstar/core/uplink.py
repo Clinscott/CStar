@@ -27,15 +27,24 @@ def clean_cli_output(text: str) -> str:
     ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
     cleaned = ansi_escape.sub('', text).strip()
 
+    # [Ω] DEEP STRIP: Find the first actual JSON boundary to ignore leading CLI warnings/banners
     object_start = cleaned.find("{")
-    object_end = cleaned.rfind("}")
-    if object_start != -1 and object_end != -1 and object_end > object_start:
-        return cleaned[object_start:object_end + 1].strip()
-
     array_start = cleaned.find("[")
-    array_end = cleaned.rfind("]")
-    if array_start != -1 and array_end != -1 and array_end > array_start:
-        return cleaned[array_start:array_end + 1].strip()
+    
+    start = -1
+    if object_start != -1 and array_start != -1:
+        start = min(object_start, array_start)
+    else:
+        start = max(object_start, array_start)
+
+    if start != -1:
+        # Find corresponding end
+        object_end = cleaned.rfind("}")
+        array_end = cleaned.rfind("]")
+        end = max(object_end, array_end)
+        
+        if end > start:
+            return cleaned[start:end + 1].strip()
 
     return cleaned
 

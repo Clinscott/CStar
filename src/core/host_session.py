@@ -30,7 +30,7 @@ def detect_host_provider(env: dict[str, str] | None = None) -> HostProvider | No
     if override in {"gemini", "codex", "claude"}:
         return override  # type: ignore[return-value]
 
-    if current_env.get("GEMINI_CLI_ACTIVE") == "true":
+    if current_env.get("GEMINI_CLI_ACTIVE") == "true" or current_env.get("GEMINI_CLI") == "1":
         return "gemini"
 
     if current_env.get("CODEX_SHELL") == "1" or current_env.get("CODEX_THREAD_ID"):

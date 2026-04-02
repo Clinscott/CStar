@@ -99,8 +99,12 @@ def resolve_one_mind_decision(
     if boundary in {"subagent", "autobot"}:
         return OneMindDecision(boundary=boundary, transport_mode="synapse_db", reason=f"delegated-{boundary}-boundary")
 
+    # [🔱] BROKER OVERRIDE: Allow environment to force or disable the broker bus.
+    env_broker_active = _normalize_flag(current_env.get("CORVUS_ONE_MIND_BROKER_ACTIVE"))
+    effective_broker_active = broker_active if env_broker_active is None else env_broker_active
+
     if is_interactive_host_session(current_env):
-        if broker_active is True or _is_interactive_one_mind_broker_active(current_env):
+        if effective_broker_active is True:
             return OneMindDecision(boundary=boundary, transport_mode="synapse_db", reason="interactive-host-session-bus")
         return OneMindDecision(boundary=boundary, transport_mode="host_session", reason="interactive-host-session-direct")
 

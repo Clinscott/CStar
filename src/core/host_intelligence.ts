@@ -55,7 +55,7 @@ export async function requestHostText(
         correlation_id: request.correlationId,
         caller: { source: request.source },
         metadata: request.metadata ?? {},
-        transport_mode: request.metadata?.transport_mode as any ?? 'auto',
+        transport_mode: (request.metadata?.transport_mode as any) ?? 'host_session',
     };
     const response = await client.request({
         ...intelligenceRequest,

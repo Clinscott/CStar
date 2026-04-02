@@ -115,8 +115,12 @@ export function resolveOneMindDecision(
         };
     }
 
+    // [🔱] BROKER OVERRIDE: Allow environment to force or disable the broker bus.
+    const envBrokerActive = normalizeFlag(env.CORVUS_ONE_MIND_BROKER_ACTIVE);
+    const effectiveBrokerActive = envBrokerActive !== undefined ? envBrokerActive : options.brokerActive;
+
     if (isInteractiveHostSession(env)) {
-        if (options.brokerActive === true || isLegacyInteractiveOneMindBrokerActive(env)) {
+        if (effectiveBrokerActive === true) {
             return {
                 boundary,
                 transportMode: 'synapse_db',
