@@ -81,7 +81,7 @@
     "pillar": "General Subsystems",
     "file": "scripts/audit_skill_registry.py",
     "issues": [
-      "File weight critical (652 lines).",
+      "File weight critical (668 lines).",
       "Linscott Breach: Missing 1:1 unit test.",
       "Textual Rot: Mentions outdated concept 'Phase 1'."
     ]
@@ -362,7 +362,7 @@
     "pillar": "Core Engine (Python)",
     "file": "src/core/engine/autobot_skill.py",
     "issues": [
-      "File weight critical (1711 lines).",
+      "File weight critical (1684 lines).",
       "Textual Rot: Mentions outdated concept 'Hermes'."
     ]
   },
@@ -502,6 +502,14 @@
   {
     "pillar": "Woven Skills",
     "file": ".agents/skills/taliesin/scripts/taliesin_spoke.py",
+    "issues": [
+      "File weight critical (463 lines).",
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Woven Skills",
+    "file": ".agents/skills/taliesin/scripts/taliesin_forge.py",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
     ]
@@ -714,6 +722,7 @@
     "pillar": "Woven Skills",
     "file": ".agents/skills/level-5-diagnostic/scripts/diagnostic.py",
     "issues": [
+      "File weight critical (442 lines).",
       "Linscott Breach: Missing 1:1 unit test.",
       "Textual Rot: Mentions outdated concept 'Hermes'.",
       "Textual Rot: Mentions outdated concept 'Python Dispatcher Monolith'.",
@@ -757,6 +766,20 @@
   },
   {
     "pillar": "Woven Skills",
+    "file": ".agents/skills/artifact-forge/scripts/forge.py",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Woven Skills",
+    "file": ".agents/skills/taliesin-optimizer/scripts/manuscript_optimizer.py",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Woven Skills",
     "file": ".agents/skills/taliesin-optimizer/scripts/taliesin_optimizer.py",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
@@ -794,7 +817,7 @@
     "pillar": "Kernel (Node.js)",
     "file": "cstar.ts",
     "issues": [
-      "File weight critical (501 lines).",
+      "File weight critical (491 lines).",
       "Linscott Breach: Missing 1:1 unit test."
     ]
   },
@@ -973,7 +996,7 @@
     "pillar": "General Subsystems",
     "file": "src/tools/corvus-control-mcp.ts",
     "issues": [
-      "File weight critical (423 lines).",
+      "File weight critical (464 lines).",
       "Linscott Breach: Missing 1:1 unit test."
     ]
   },
@@ -981,7 +1004,7 @@
     "pillar": "General Subsystems",
     "file": "src/core/mimir_client.ts",
     "issues": [
-      "File weight critical (639 lines)."
+      "File weight critical (612 lines)."
     ]
   },
   {
@@ -995,7 +1018,14 @@
     "pillar": "General Subsystems",
     "file": "src/core/host_session.ts",
     "issues": [
-      "File weight critical (424 lines).",
+      "File weight critical (486 lines).",
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "General Subsystems",
+    "file": "src/core/context_loader.ts",
+    "issues": [
       "Linscott Breach: Missing 1:1 unit test."
     ]
   },
@@ -1010,7 +1040,7 @@
     "pillar": "General Subsystems",
     "file": "src/packaging/distributions.ts",
     "issues": [
-      "File weight critical (559 lines).",
+      "File weight critical (585 lines).",
       "Linscott Breach: Missing 1:1 unit test."
     ]
   },
@@ -1053,7 +1083,7 @@
     "pillar": "General Subsystems",
     "file": "src/types/hall.ts",
     "issues": [
-      "File weight critical (415 lines).",
+      "File weight critical (424 lines).",
       "Linscott Breach: Missing 1:1 unit test."
     ]
   },
@@ -1075,7 +1105,9 @@
     "pillar": "Kernel (Node.js)",
     "file": "src/node/core/state.ts",
     "issues": [
-      "Linscott Breach: Missing 1:1 unit test."
+      "File weight critical (433 lines).",
+      "Linscott Breach: Missing 1:1 unit test.",
+      "Textual Rot: Mentions outdated concept 'Hermes'."
     ]
   },
   {
@@ -1241,13 +1273,6 @@
   },
   {
     "pillar": "Kernel (Node.js)",
-    "file": "src/node/core/commands/dispatcher.ts",
-    "issues": [
-      "File weight critical (449 lines)."
-    ]
-  },
-  {
-    "pillar": "Kernel (Node.js)",
     "file": "src/node/core/commands/run-skill.ts",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
@@ -1290,16 +1315,9 @@
   },
   {
     "pillar": "Kernel (Node.js)",
-    "file": "src/node/core/commands/pennyone.ts",
-    "issues": [
-      "Linscott Breach: Missing 1:1 unit test."
-    ]
-  },
-  {
-    "pillar": "Kernel (Node.js)",
     "file": "src/node/core/tui/operator_tui.ts",
     "issues": [
-      "File weight critical (435 lines).",
+      "File weight critical (580 lines).",
       "Linscott Breach: Missing 1:1 unit test."
     ]
   },
@@ -1321,7 +1339,7 @@
     "pillar": "Kernel (Node.js)",
     "file": "src/node/core/runtime/dispatcher.ts",
     "issues": [
-      "File weight critical (576 lines)."
+      "File weight critical (710 lines)."
     ]
   },
   {
@@ -1335,19 +1353,62 @@
     "pillar": "Kernel (Node.js)",
     "file": "src/node/core/runtime/adapters.ts",
     "issues": [
-      "File weight critical (559 lines)."
+      "File weight critical (589 lines)."
     ]
   },
   {
     "pillar": "Kernel (Node.js)",
     "file": "src/node/core/runtime/contracts.ts",
     "issues": [
-      "File weight critical (430 lines)."
+      "File weight critical (469 lines)."
     ]
   },
   {
     "pillar": "Kernel (Node.js)",
     "file": "src/node/core/runtime/universal_adapter.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Kernel (Node.js)",
+    "file": "src/node/core/runtime/host_workflows/chant_planner.ts",
+    "issues": [
+      "File weight critical (822 lines).",
+      "Textual Rot: Mentions outdated concept 'Hermes'."
+    ]
+  },
+  {
+    "pillar": "Kernel (Node.js)",
+    "file": "src/node/core/runtime/host_workflows/taliesin_forge.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Kernel (Node.js)",
+    "file": "src/node/core/runtime/host_workflows/critique.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Kernel (Node.js)",
+    "file": "src/node/core/runtime/host_workflows/chant_parser.ts",
+    "issues": [
+      "File weight critical (520 lines)."
+    ]
+  },
+  {
+    "pillar": "Kernel (Node.js)",
+    "file": "src/node/core/runtime/host_workflows/architect_service.ts",
+    "issues": [
+      "Linscott Breach: Missing 1:1 unit test."
+    ]
+  },
+  {
+    "pillar": "Kernel (Node.js)",
+    "file": "src/node/core/runtime/weaves/estate_ritual.ts",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
     ]
@@ -1361,22 +1422,7 @@
   },
   {
     "pillar": "Kernel (Node.js)",
-    "file": "src/node/core/runtime/weaves/chant_planner.ts",
-    "issues": [
-      "File weight critical (817 lines).",
-      "Textual Rot: Mentions outdated concept 'Hermes'."
-    ]
-  },
-  {
-    "pillar": "Kernel (Node.js)",
     "file": "src/node/core/runtime/weaves/host_bridge.ts",
-    "issues": [
-      "Linscott Breach: Missing 1:1 unit test."
-    ]
-  },
-  {
-    "pillar": "Kernel (Node.js)",
-    "file": "src/node/core/runtime/weaves/critique.ts",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
     ]
@@ -1399,7 +1445,7 @@
     "pillar": "Kernel (Node.js)",
     "file": "src/node/core/runtime/weaves/orchestrate.ts",
     "issues": [
-      "File weight critical (551 lines)."
+      "File weight critical (615 lines)."
     ]
   },
   {
@@ -1411,16 +1457,9 @@
   },
   {
     "pillar": "Kernel (Node.js)",
-    "file": "src/node/core/runtime/weaves/chant_parser.ts",
-    "issues": [
-      "File weight critical (520 lines)."
-    ]
-  },
-  {
-    "pillar": "Kernel (Node.js)",
     "file": "src/node/core/runtime/weaves/pennyone.ts",
     "issues": [
-      "Linscott Breach: Missing 1:1 unit test."
+      "File weight critical (850 lines)."
     ]
   },
   {
@@ -1469,7 +1508,7 @@
     "pillar": "Memory (PennyOne)",
     "file": "src/tools/pennyone/index.ts",
     "issues": [
-      "File weight critical (406 lines)."
+      "File weight critical (482 lines)."
     ]
   },
   {
@@ -1490,6 +1529,7 @@
     "pillar": "Memory (PennyOne)",
     "file": "src/tools/pennyone/live/search.ts",
     "issues": [
+      "File weight critical (501 lines).",
       "Linscott Breach: Missing 1:1 unit test."
     ]
   },
@@ -1504,7 +1544,7 @@
     "pillar": "Memory (PennyOne)",
     "file": "src/tools/pennyone/intel/repository_manager.ts",
     "issues": [
-      "File weight critical (1070 lines).",
+      "File weight critical (1368 lines).",
       "Linscott Breach: Missing 1:1 unit test."
     ]
   },
@@ -1547,7 +1587,7 @@
     "pillar": "Memory (PennyOne)",
     "file": "src/tools/pennyone/intel/session_manager.ts",
     "issues": [
-      "File weight critical (469 lines).",
+      "File weight critical (597 lines).",
       "Linscott Breach: Missing 1:1 unit test."
     ]
   },
@@ -1582,6 +1622,13 @@
   },
   {
     "pillar": "Memory (PennyOne)",
+    "file": "src/tools/pennyone/intel/bead_controller.ts",
+    "issues": [
+      "File weight critical (449 lines)."
+    ]
+  },
+  {
+    "pillar": "Memory (PennyOne)",
     "file": "src/tools/pennyone/intel/semantic.ts",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
@@ -1598,7 +1645,7 @@
     "pillar": "Memory (PennyOne)",
     "file": "src/tools/pennyone/intel/schema.ts",
     "issues": [
-      "File weight critical (733 lines).",
+      "File weight critical (693 lines).",
       "Linscott Breach: Missing 1:1 unit test."
     ]
   },
@@ -1724,13 +1771,6 @@
   {
     "pillar": "General Subsystems",
     "file": "eslint.config.js",
-    "issues": [
-      "Linscott Breach: Missing 1:1 unit test."
-    ]
-  },
-  {
-    "pillar": "General Subsystems",
-    "file": "query_beads.js",
     "issues": [
       "Linscott Breach: Missing 1:1 unit test."
     ]

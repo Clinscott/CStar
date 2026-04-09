@@ -19,6 +19,7 @@ import {
 } from '../contracts.ts';
 
 const NORMALIZE_RECEIPT_STALE_MS = 7 * 24 * 60 * 60 * 1000;
+type ReceiptState = 'missing' | 'stale' | 'fresh';
 
 function buildNormalizeReceiptPath(createdAt: number): string {
     return `docs/reports/hall/normalize-receipts/${createdAt}.json`;
@@ -463,7 +464,7 @@ export class PennyOneAdapter implements RuntimeAdapter<PennyOneWeavePayload> {
                 const latest_receipt = database.listHallDocuments(rootPath)
                     .filter((document) => document.doc_kind === 'maintenance' && document.metadata?.receipt_kind === 'pennyone-normalize')
                     .sort((a, b) => b.updated_at - a.updated_at)[0];
-                const receipt_state = !latest_receipt
+                const receipt_state: ReceiptState = !latest_receipt
                     ? 'missing'
                     : (reported_at - Number(latest_receipt.updated_at ?? 0) > NORMALIZE_RECEIPT_STALE_MS ? 'stale' : 'fresh');
                 return {
@@ -654,7 +655,7 @@ export class PennyOneAdapter implements RuntimeAdapter<PennyOneWeavePayload> {
                     .sort((left, right) => right.updated_at - left.updated_at);
                 const latestReceipt = documents.find((document) => document.metadata?.receipt_kind === 'pennyone-normalize');
                 const latestReport = documents.find((document) => document.metadata?.report_kind === 'pennyone-hall-hygiene');
-                const receipt_state = !latestReceipt
+                const receipt_state: ReceiptState = !latestReceipt
                     ? 'missing'
                     : (now - Number(latestReceipt.updated_at ?? 0) > NORMALIZE_RECEIPT_STALE_MS ? 'stale' : 'fresh');
                 const artifacts = documents

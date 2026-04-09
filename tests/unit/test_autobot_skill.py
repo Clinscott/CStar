@@ -5,9 +5,9 @@ import textwrap
 from pathlib import Path
 
 from src.core.engine.autobot_skill import (
-    DEFAULT_HERMES_API_KEY,
-    DEFAULT_HERMES_BASE_URL,
-    DEFAULT_HERMES_MODEL,
+    DEFAULT_SOVEREIGN_API_KEY,
+    DEFAULT_SOVEREIGN_BASE_URL,
+    DEFAULT_SOVEREIGN_MODEL,
     build_base_env,
     build_bead_command,
     build_bead_prompt,
@@ -65,7 +65,7 @@ def test_build_command_defaults_to_local_hermes_binary_and_model(tmp_path: Path)
 
     command = build_command(None, [], autobot_dir=tmp_path)
 
-    assert command == [str(hermes), "chat", "-m", DEFAULT_HERMES_MODEL]
+    assert command == [str(hermes), "chat", "-m", DEFAULT_SOVEREIGN_MODEL]
 
 
 def test_build_bead_command_appends_query_and_quiet_mode(tmp_path: Path) -> None:
@@ -75,7 +75,7 @@ def test_build_bead_command_appends_query_and_quiet_mode(tmp_path: Path) -> None
 
     command = build_bead_command(None, [], autobot_dir=tmp_path, task_prompt="fix the bead")
 
-    assert command == [str(hermes), "chat", "-m", DEFAULT_HERMES_MODEL, "-q", "fix the bead", "-Q"]
+    assert command == [str(hermes), "chat", "-m", DEFAULT_SOVEREIGN_MODEL, "-q", "fix the bead", "-Q"]
 
 
 def test_build_base_env_applies_local_defaults_but_allows_overrides() -> None:
@@ -92,8 +92,8 @@ def test_build_base_env_applies_local_defaults_but_allows_overrides() -> None:
     assert env["CORVUS_EXTRA"] == "1"
 
     defaults = build_base_env()
-    assert defaults["OPENAI_BASE_URL"] == DEFAULT_HERMES_BASE_URL
-    assert defaults["OPENAI_API_KEY"] == DEFAULT_HERMES_API_KEY
+    assert defaults["OPENAI_BASE_URL"] == DEFAULT_SOVEREIGN_BASE_URL
+    assert defaults["OPENAI_API_KEY"] == DEFAULT_SOVEREIGN_API_KEY
 
 
 def test_build_bead_prompt_uses_worker_note_as_authoritative_brief_without_duplication(tmp_path: Path) -> None:

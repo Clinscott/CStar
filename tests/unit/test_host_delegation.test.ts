@@ -6,11 +6,13 @@ import path from 'node:path';
 
 import {
     requestHostDelegatedExecution,
+    resolveHostDelegatedExecution,
     type DelegatedExecutionRequest,
 } from '../../src/core/host_delegation.js';
 import {
     expandDelegateBridgeArgs,
     resolveConfiguredDelegateBridge,
+    resolveConfiguredDelegatePollBridge,
 } from '../../src/core/host_session.js';
 
 describe('Host delegated execution bridge', () => {
@@ -60,6 +62,29 @@ describe('Host delegated execution bridge', () => {
             '--role',
             'architect',
         ]);
+    });
+
+    it('resolves provider-specific delegate poll bridge configuration', () => {
+        const bridge = resolveConfiguredDelegatePollBridge(
+            {
+                CORVUS_CODEX_DELEGATE_POLL_BRIDGE_CMD: 'python3',
+                CORVUS_CODEX_DELEGATE_POLL_BRIDGE_ARGS_JSON: JSON.stringify([
+                    'poll.py',
+                    '--handle',
+                    '{handle_id}',
+                    '--request',
+                    '{request_id}',
+                    '--result',
+                    '{result_path}',
+                ]),
+            },
+            'codex',
+        );
+
+        assert.deepEqual(bridge, {
+            command: 'python3',
+            args: ['poll.py', '--handle', '{handle_id}', '--request', '{request_id}', '--result', '{result_path}'],
+        });
     });
 
     it('submits structured delegated work through a configured bridge and reads the result file', async () => {
@@ -158,5 +183,55 @@ describe('Host delegated execution bridge', () => {
         assert.equal(result.status, 'completed');
         assert.match(result.raw_text ?? '', /native/);
         assert.equal(result.metadata?.subagent_profile, 'architect');
+    });
+
+    it('resolves a delegated handle through a configured poll bridge', async () => {
+        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-delegate-poll-'));
+
+        const result = await resolveHostDelegatedExecution(
+            {
+                handle_id: 'handle-queued',
+                request_id: 'req-queued',
+                repo_root: tmpRoot,
+                provider: 'codex',
+                subagent_profile: 'architect',
+            },
+            {
+                CODEX_SHELL: '1',
+                CODEX_THREAD_ID: 'thread-1',
+                CORVUS_CODEX_DELEGATE_POLL_BRIDGE_CMD: 'delegate-poll',
+                CORVUS_CODEX_DELEGATE_POLL_BRIDGE_ARGS_JSON: JSON.stringify([
+                    '--handle',
+                    '{handle_id}',
+                    '--request',
+                    '{request_id}',
+                    '--result',
+                    '{result_path}',
+                    '--cwd',
+                    '{project_root}',
+                ]),
+            },
+            {
+                execRunner: async (_command, args) => {
+                    const resultPath = args[args.indexOf('--result') + 1];
+                    assert.equal(args[args.indexOf('--handle') + 1], 'handle-queued');
+                    assert.equal(args[args.indexOf('--request') + 1], 'req-queued');
+                    fs.writeFileSync(
+                        resultPath,
+                        JSON.stringify({
+                            handle_id: 'handle-queued',
+                            provider: 'codex',
+                            status: 'completed',
+                            raw_text: '{"summary":"resolved"}',
+                        }),
+                        'utf-8',
+                    );
+                    return { stdout: '', stderr: '' };
+                },
+            },
+        );
+
+        assert.equal(result.status, 'completed');
+        assert.equal(result.handle_id, 'handle-queued');
     });
 });

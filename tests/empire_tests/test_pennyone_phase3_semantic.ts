@@ -2,19 +2,20 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import path from 'node:path';
 import fs from 'node:fs';
+import os from 'node:os';
 import { SemanticIndexer } from '../../src/tools/pennyone/intel/semantic.js';
 
 describe('PennyOne Phase 3: Semantic Intelligence', () => {
     
     it('should resolve cross-file dependencies via symbol registry', async () => {
-        const root = process.cwd();
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'pennyone-semantic-'));
         const indexer = new SemanticIndexer(root);
         
         const fileA = path.resolve(root, 'integration_test_a.ts');
         const fileB = path.resolve(root, 'integration_test_b.ts');
 
         fs.writeFileSync(fileB, 'export const SharedLogic = 42;');
-        fs.writeFileSync(fileA, 'import { SharedLogic } from  './integration_test_b.js'; console.log(SharedLogic);');
+        fs.writeFileSync(fileA, "import { SharedLogic } from './integration_test_b.js'; console.log(SharedLogic);");
 
         try {
             const graph = await indexer.index([fileA, fileB]);
@@ -30,10 +31,11 @@ describe('PennyOne Phase 3: Semantic Intelligence', () => {
             
             // Logic score check (Phase 3 requirement)
             assert.ok(nodeA.logic <= 10, 'Logic score should be calculated');
+            assert.equal(typeof nodeA.cluster, 'number', 'File A should have a semantic cluster');
+            assert.equal(typeof nodeB.cluster, 'number', 'File B should have a semantic cluster');
 
         } finally {
-            if (fs.existsSync(fileA)) fs.unlinkSync(fileA);
-            if (fs.existsSync(fileB)) fs.unlinkSync(fileB);
+            fs.rmSync(root, { recursive: true, force: true });
         }
     });
 });

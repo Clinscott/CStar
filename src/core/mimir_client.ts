@@ -64,6 +64,46 @@ function getDefaultCliBridgeArgs(provider: Exclude<HostProvider, 'codex'>, promp
     return ['--approval-mode', 'plan', '-p', prompt];
 }
 
+function shouldRequireNativeCodexInvoker(
+    request: ReturnType<typeof normalizeIntelligenceRequest>,
+    provider: HostProvider,
+): boolean {
+    if (provider !== 'codex') {
+        return false;
+    }
+
+    const executionMode = typeof request.metadata?.execution_mode === 'string'
+        ? request.metadata.execution_mode.trim().toLowerCase()
+        : '';
+    if (executionMode === 'agent-native') {
+        return true;
+    }
+
+    const requireAgentHarness = request.metadata?.require_agent_harness;
+    if (requireAgentHarness === true) {
+        return true;
+    }
+    if (typeof requireAgentHarness === 'string') {
+        const normalized = requireAgentHarness.trim().toLowerCase();
+        if (['1', 'true', 'yes', 'on'].includes(normalized)) {
+            return true;
+        }
+    }
+
+    const traceCritical = request.metadata?.trace_critical;
+    if (traceCritical === true) {
+        return true;
+    }
+    if (typeof traceCritical === 'string') {
+        const normalized = traceCritical.trim().toLowerCase();
+        if (['1', 'true', 'yes', 'on'].includes(normalized)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 export interface MimirClientOptions {
     projectRoot?: string;
     dbPath?: string;
@@ -194,6 +234,7 @@ export class MimirClient {
     ): Promise<IntelligenceResponse> {
         const effectivePrompt = buildEffectivePrompt(request);
         const provider = this.resolveHostProvider();
+        const requireNativeCodexInvoker = shouldRequireNativeCodexInvoker(request, provider);
         this.writeHallRequestRecord(request, decision, {
             request_status: 'PENDING',
             transport_preference: 'host_session',
@@ -204,7 +245,9 @@ export class MimirClient {
         });
 
         try {
-            const rawText = await this.invokeHostSession(effectivePrompt, provider);
+            const rawText = await this.invokeHostSession(effectivePrompt, provider, {
+                forbidCodexExecFallback: requireNativeCodexInvoker,
+            });
             const response = buildIntelligenceSuccess(request, rawText, 'host_session');
             this.writeHallRequestRecord(request, decision, {
                 request_status: 'COMPLETED',
@@ -221,46 +264,19 @@ export class MimirClient {
             const message = error instanceof Error ? error.message : String(error);
             const disableLocalFallback = this.env.CORVUS_DISABLE_LOCAL_LLM_FALLBACK === 'true'
                 || this.env.CORVUS_DISABLE_LOCAL_LLM_FALLBACK === '1';
-            
-            // FALLBACK TO LOCAL LLM
-            if (!disableLocalFallback) {
-                console.warn(`[MIMIR] Host session failed (${message}). Falling back to Local LLM...`);
-                try {
-                    const localResponse = await fetch(`${LOCAL_LLM_URL}/chat/completions`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            model: 'deepseek',
-                            messages: [
-                                { role: 'system', content: request.system_prompt ?? 'You are a CStar internal intelligence agent.' },
-                                { role: 'user', content: request.prompt }
-                            ],
-                            temperature: 0
-                        })
-                    });
 
-                    if (localResponse.ok) {
-                        const data = await localResponse.json() as any;
-                        const text = data.choices?.[0]?.message?.content;
-                        if (text) {
-                            const response = buildIntelligenceSuccess(request, text, 'synapse_db');
-                            this.writeHallRequestRecord(request, decision, {
-                                request_status: 'COMPLETED',
-                                transport_preference: 'host_session',
-                                response_text: text,
-                                completed_at: Date.now(),
-                                metadata: {
-                                    decision_reason: decision.reason,
-                                    provider,
-                                    fallback_transport: 'local_llm',
-                                },
-                            });
-                            return response;
-                        }
-                    }
-                } catch (fallbackError) {
-                    console.error(`[MIMIR] Local fallback also failed: ${fallbackError}`);
-                }
+            if (!disableLocalFallback && !requireNativeCodexInvoker) {
+                this.writeHallRequestRecord(request, decision, {
+                    request_status: 'PENDING',
+                    transport_preference: 'synapse_db',
+                    metadata: {
+                        decision_reason: decision.reason,
+                        provider,
+                        fallback_transport: 'synapse_db',
+                        host_session_error: message,
+                    },
+                });
+                return this.requestViaSynapse(request, decision);
             }
 
             this.writeHallRequestRecord(request, decision, {
@@ -332,7 +348,11 @@ export class MimirClient {
         }
     }
 
-    private async invokeHostSession(prompt: string, provider: HostProvider): Promise<string> {
+    private async invokeHostSession(
+        prompt: string,
+        provider: HostProvider,
+        options: { forbidCodexExecFallback?: boolean } = {},
+    ): Promise<string> {
         if (this.hostSessionInvoker) {
             const response = await this.hostSessionInvoker(prompt, provider);
             const normalized = String(response ?? '').trim();
@@ -340,6 +360,12 @@ export class MimirClient {
                 return normalized;
             }
             throw new Error(`Host provider ${provider} returned no output.`);
+        }
+
+        if (provider === 'codex' && options.forbidCodexExecFallback) {
+            throw new Error(
+                'Codex host-session execution requires an injected hostSessionInvoker. Shell bridge and synapse fallback are forbidden for agent-harness-required work.',
+            );
         }
 
         const configuredBridgeResponse = await this.invokeConfiguredHostBridge(prompt, provider);

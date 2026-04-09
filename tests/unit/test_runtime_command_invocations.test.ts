@@ -10,6 +10,7 @@ import {
     buildDynamicCommandInvocation,
     parseChantSessionDirective,
     registerDispatcher,
+    resolveRegistryCommandActivation,
     shouldAutoResumeChantSession,
 } from '../../src/node/core/commands/dispatcher.ts';
 import { RuntimeDispatchPort, WeaveInvocation, WeaveResult } from  '../../src/node/core/runtime/contracts.js';
@@ -632,30 +633,39 @@ describe('Command shells convert CLI args into runtime invocations (CS-P1-01)', 
         });
     });
 
-    it('chant fallback builds the chant weave invocation', () => {
-        const invocation = buildDynamicCommandInvocation(
-            'chant',
-            ['scan the hall'],
-            'C:\\Users\\Craig\\Corvus\\CorvusStar',
-            'C:\\Users\\Craig\\Corvus\\CorvusStar',
-        );
+    it('blocks chant from shell dispatch when entry_surface is host-only', () => {
+        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-chant-surface-'));
+        try {
+            fs.mkdirSync(path.join(tmpRoot, '.agents'), { recursive: true });
+            fs.writeFileSync(
+                path.join(tmpRoot, '.agents', 'skill_registry.json'),
+                JSON.stringify({
+                    entries: {
+                        chant: {
+                            entry_surface: 'host-only',
+                            execution: { mode: 'agent-native' },
+                            runtime_trigger: 'chant',
+                        },
+                    },
+                }),
+                'utf-8',
+            );
 
-        assert.equal(invocation.weave_id, 'weave:chant');
-        assert.deepStrictEqual(invocation.payload, {
-            query: 'scan the hall',
-            project_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-            cwd: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-            source: 'cli',
-        });
-        assert.deepStrictEqual(invocation.target, {
-            domain: 'brain',
-            workspace_root: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-            requested_path: 'C:\\Users\\Craig\\Corvus\\CorvusStar',
-        });
-        assert.equal(invocation.session?.mode, 'cli');
-        assert.equal(invocation.session?.interactive, true);
-        if (invocation.session?.session_id) {
-            assert.match(invocation.session.session_id, /^chant-session:/);
+            const activation = resolveRegistryCommandActivation(
+                'chant',
+                ['scan the hall'],
+                tmpRoot,
+                tmpRoot,
+            );
+
+            assert.equal(activation.kind, 'blocked');
+            if (activation.kind === 'blocked') {
+                assert.equal(activation.skillId, 'chant');
+                assert.equal(activation.surface, 'host-only');
+                assert.match(activation.error, /host-only/i);
+            }
+        } finally {
+            fs.rmSync(tmpRoot, { recursive: true, force: true });
         }
     });
 

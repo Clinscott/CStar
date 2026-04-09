@@ -6,10 +6,14 @@ import { WardenWeave, deps } from '../../../../src/node/core/runtime/weaves/ward
 describe('WardenWeave Unit Tests', () => {
     it('can return observe-only when the host supervisor declines execution', async () => {
         const dispatchPort: any = { dispatch: mock.fn(async () => ({ status: 'SUCCESS', output: 'unused' })) };
-        const weave = new WardenWeave(dispatchPort, async () => JSON.stringify({
-            action: 'observe_only',
-            reason: 'Keep the ledger stable for now.',
-        }));
+        let capturedRequest: any;
+        const weave = new WardenWeave(dispatchPort, async (request) => {
+            capturedRequest = request;
+            return JSON.stringify({
+                action: 'observe_only',
+                reason: 'Keep the ledger stable for now.',
+            });
+        });
 
         mock.method(deps, 'resolveRuntimeHostProvider', () => 'codex');
         mock.method(deps, 'extractJsonObject', (text: string) => JSON.parse(text));
@@ -28,6 +32,9 @@ describe('WardenWeave Unit Tests', () => {
         assert.equal(result.status, 'TRANSITIONAL');
         assert.equal(result.metadata?.supervisor_decision, 'observe_only');
         assert.equal(dispatchPort.dispatch.mock.callCount(), 0);
+        assert.equal(capturedRequest?.metadata?.trace_critical, true);
+        assert.equal(capturedRequest?.metadata?.require_agent_harness, true);
+        assert.equal(capturedRequest?.metadata?.transport_mode, 'host_session');
         mock.reset();
     });
 

@@ -301,7 +301,6 @@ server.tool(
 
 server.tool(
     'dispatch_autobot',
-...
     'Execute a planned Bead using the local Sovereign Worker (DeepSeek/llama.cpp) via the Pointer Protocol. This runs the implementation locally and returns a concise summary of the result, protecting your context window.',
     {
         bead_id: z.string().describe('The ID of the Bead in the Hall of Records to execute.'),

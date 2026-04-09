@@ -14,6 +14,10 @@ export type TargetDomain = 'brain' | 'spoke' | 'estate' | 'external';
 export type CapabilityTier = 'PRIME' | 'SKILL' | 'WEAVE' | 'SPELL';
 export type SpellClassification = 'runtime-backed' | 'policy-only' | 'deprecated';
 export type OperationalContextPolicy = 'project' | 'silent';
+export type RuntimeTraceDesignationSource =
+    | 'explicit_trace_block'
+    | 'dispatcher_synthesized'
+    | 'payload_trace_contract';
 
 export const CAPABILITY_TIERS: CapabilityTier[] = ['PRIME', 'SKILL', 'WEAVE', 'SPELL'];
 export const SPELL_CLASSIFICATIONS: SpellClassification[] = ['runtime-backed', 'policy-only', 'deprecated'];
@@ -22,6 +26,20 @@ export interface OperatorSession {
     mode: OperatorMode;
     interactive: boolean;
     session_id?: string;
+}
+
+export interface RuntimeTraceContract {
+    intent_category?: string;
+    intent?: string;
+    selection_tier?: string;
+    selection_name?: string;
+    trajectory_status?: string;
+    trajectory_reason?: string;
+    mimirs_well: string[];
+    gungnir_verdict?: string;
+    confidence?: number;
+    body?: string;
+    canonical_intent?: string;
 }
 
 export interface WorkspaceTarget {
@@ -44,6 +62,8 @@ export interface RuntimeContext {
     spoke_root?: string;
     requested_root?: string;
     session_id?: string;
+    trace_contract?: RuntimeTraceContract;
+    trace_designation_source?: RuntimeTraceDesignationSource;
     env: Record<string, string | undefined>;
     timestamp: number;
 }
@@ -219,6 +239,7 @@ export interface ResearchWeavePayload {
     intent: string;
     rationale?: string;
     subquestions?: string[];
+    subagent_profile?: string;
     project_root: string;
     cwd: string;
     dry_run?: boolean;
@@ -365,6 +386,9 @@ export interface ArtifactForgeWeaveMetadata extends Record<string, unknown> {
     validation_request?: ForgeValidationRequest;
 }
 
+export type TaliesinForgeWeavePayload = ArtifactForgeWeavePayload;
+export type TaliesinForgeWeaveMetadata = ArtifactForgeWeaveMetadata;
+
 export interface TaliesinStoryForgeMetadata extends Record<string, unknown> {
     status: string;
     chapter_number?: number;
@@ -435,6 +459,12 @@ export interface EstateExpansionWeavePayload {
 export interface VigilanceWeavePayload {
     spoke?: string;
     aggressive?: boolean;
+    project_root: string;
+    cwd: string;
+}
+
+export interface EngraveWeavePayload {
+    session_file_path?: string;
     project_root: string;
     cwd: string;
 }

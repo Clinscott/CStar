@@ -1,10 +1,12 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { renderOperationalContext } from './command_context.js';
+import { buildSurfaceBlockError } from './dispatcher.js';
 import { RuntimeDispatcher } from '../runtime/dispatcher.js';
 import { SkillBead } from '../skills/types.js';
 import { getGungnirOverall } from '../../../types/gungnir.js';
 import { registry } from '../../../tools/pennyone/pathRegistry.js';
+import { loadRegistryEntries, resolveEntrySurface } from '../runtime/entry_surface.js';
 
 /**
  * [🔱] THE SKILL RUN COMMAND
@@ -19,18 +21,28 @@ export function registerRunSkillCommand(program: Command) {
         .option('-p, --params <json>', 'JSON parameters for the skill')
         .action(async (id: string, options: { target?: string, intent?: string, params?: string }) => {
             const dispatcher = RuntimeDispatcher.getInstance();
+            const projectRoot = registry.getRoot();
+            const normalizedId = id.trim().toLowerCase();
+            const registryEntry = loadRegistryEntries(projectRoot)[normalizedId];
+            if (registryEntry) {
+                const surface = resolveEntrySurface(registryEntry, normalizedId);
+                if (surface !== 'cli') {
+                    console.error(chalk.red(buildSurfaceBlockError(normalizedId, surface)));
+                    return;
+                }
+            }
             
             const bead: SkillBead = {
                 id: `CLI-RUN-${Date.now()}`,
-                skill_id: id,
+                skill_id: normalizedId,
                 target_path: options.target || '.',
-                intent: options.intent || `Direct CLI invocation of skill ${id}`,
+                intent: options.intent || `Direct CLI invocation of skill ${normalizedId}`,
                 params: options.params ? JSON.parse(options.params) : {},
                 status: 'PENDING',
                 priority: 1
             };
 
-            console.log(chalk.cyan(`\n ◤ DISPATCHING SKILL: ${id} ◢ `));
+            console.log(chalk.cyan(`\n ◤ DISPATCHING SKILL: ${normalizedId} ◢ `));
             console.log(chalk.dim('━'.repeat(40)));
 
             try {

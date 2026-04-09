@@ -6,8 +6,10 @@ Feature: Level 5 Diagnostic
   Scenario: Execute a full diagnostic scan
     Given the Level 5 Diagnostic skill is activated
     When the diagnostic scans the Kernel, Memory, Estate, Enforcers, Evolutionary, and Autonomous pillars
-    Then it must register a Parent Bead for each pillar
-    And it must spawn Child Beads to audit specific target files
-    And it must generate a "LEVEL_5_DIAGNOSTIC_REPORT.md" artifact
-    And it must populate PennyOne with OPEN actionable implementation beads for any discovered issues
-    And the file system must not be mutated (except for the report and database inserts)
+    Then it must group findings by pillar
+    And it must identify child-level follow-up targets
+    And it must fail loud on stale shell chant references, direct host provider bypasses, and non-hermetic unit tests
+    And it must generate "LEVEL_5_DIAGNOSTIC_REPORT.md" and "LEVEL_5_DIAGNOSTIC_FINDINGS.json" artifacts
+    And it must not print or invoke a shell "cstar chant" handoff
+    And it must not populate PennyOne or mutate hooks, settings, source, or manifests
+    And the file system must not be mutated except for the diagnostic artifacts

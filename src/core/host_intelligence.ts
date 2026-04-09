@@ -2,6 +2,7 @@ import type { IntelligenceResponse } from  '../types/intelligence-contract.js';
 import { MimirClient, type MimirClientOptions } from  './mimir_client.js';
 import type { HostProvider } from  './host_session.js';
 import { resolveHostProvider } from  './host_session.js';
+import { loadCascadingContext } from './context_loader.js';
 
 export interface HostTextRequest {
     prompt: string;
@@ -22,9 +23,25 @@ export interface HostTextResult {
 
 export type HostTextClient = Pick<MimirClient, 'request'>;
 export type HostTextClientFactory = (options: MimirClientOptions) => HostTextClient;
+export type HostSessionInvoker = NonNullable<MimirClientOptions['hostSessionInvoker']>;
+
+let sharedHostSessionInvoker: HostSessionInvoker | undefined;
 
 export interface HostTextDependencies {
     clientFactory?: HostTextClientFactory;
+    hostSessionInvoker?: HostSessionInvoker;
+}
+
+export function bindSharedHostSessionInvoker(invoker: HostSessionInvoker): () => void {
+    const previous = sharedHostSessionInvoker;
+    sharedHostSessionInvoker = invoker;
+    return () => {
+        sharedHostSessionInvoker = previous;
+    };
+}
+
+export function clearSharedHostSessionInvoker(): void {
+    sharedHostSessionInvoker = undefined;
 }
 
 export async function requestHostText(
@@ -39,6 +56,7 @@ export async function requestHostText(
     }
 
     const clientFactory = dependencies.clientFactory ?? ((options: MimirClientOptions) => new MimirClient(options));
+    const hostSessionInvoker = dependencies.hostSessionInvoker ?? sharedHostSessionInvoker;
     const timeoutRaw = Number(env.CSTAR_HOST_SESSION_TIMEOUT_MS ?? env.CORVUS_HOST_SESSION_TIMEOUT_MS ?? '');
     const hostSessionTimeoutMs = Number.isFinite(timeoutRaw) && timeoutRaw > 0 ? timeoutRaw : undefined;
     const client = clientFactory({
@@ -46,12 +64,18 @@ export async function requestHostText(
         env,
         hostSessionActive: true,
         hostProvider: provider,
+        hostSessionInvoker,
         hostSessionTimeoutMs,
     });
 
+    const cascadingContext = loadCascadingContext(request.projectRoot);
+    const finalSystemPrompt = request.systemPrompt
+        ? `${request.systemPrompt}\n\n${cascadingContext}`
+        : cascadingContext;
+
     const intelligenceRequest = {
         prompt: request.prompt,
-        system_prompt: request.systemPrompt,
+        system_prompt: finalSystemPrompt || undefined,
         correlation_id: request.correlationId,
         caller: { source: request.source },
         metadata: request.metadata ?? {},

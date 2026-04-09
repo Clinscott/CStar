@@ -13,7 +13,7 @@ source: internal
 
 ## MANDATE
 Act as the public host-native entrypoint and session shell for Corvus Star. Parse natural language "Chants" into Hall-backed skill plans by delegating research, planning, and synthesis to specialized skills and bounded kernel primitives. Manage the collaborative session lifecycle and facilitate the handoff between planning and execution.
-Phase 1 authority: `cstar chant "<query>"` resolves through a host-supervised public front over woven runtime executors.
+Authority: chant is activated by the host-native skill/runtime bridge, not by a public shell command.
 Chant is the **shell**, not the **planner**. It orchestrates the flow:
 1. **Routing**: Direct dispatch for known built-in capabilities.
 2. **Session Lifecycle**: Create and resume collaborative planning sessions in the Hall.
@@ -40,4 +40,6 @@ Chant is the **shell**, not the **planner**. It orchestrates the flow:
 - If critique is not the current task, do not spend context on critique history beyond the latest actionable point.
 
 ## USAGE
-`cstar chant "<query>"`
+Activate the `chant` skill from the active host session. Do not invoke chant through the CStar shell.
+For Codex, host-native execution means the active agent performs the chant workflow directly in-session and keeps continuity with a canonical `corvus-host-plan` block.
+If a runtime bridge is involved, treat `RuntimeDispatcher.dispatch(SkillBead)` with an injected `hostSessionInvoker` as the only authoritative Codex bridge. `codex exec` fallback is not the planning path.

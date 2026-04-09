@@ -33,6 +33,7 @@ def test_active_entries_gain_authority_fields() -> None:
     assert hall["host_support"]["gemini"] == "native-session"
     assert hall["host_support"]["codex"] == "exec-bridge"
     assert hall["execution"]["ownership_model"] == "host-workflow"
+    assert hall["entry_surface"] == "cli"
     assert hall["recursion_policy"] == "leaf"
     assert hall["contracts"] == [".agents/skills/hall/SKILL.md"]
 
@@ -40,12 +41,14 @@ def test_active_entries_gain_authority_fields() -> None:
     assert chant["owner_runtime"] == "host-agent"
     assert chant["host_support"]["codex"] == "exec-bridge"
     assert chant["execution"]["ownership_model"] == "host-workflow"
+    assert chant["entry_surface"] == "host-only"
     assert chant["recursion_policy"] == "bounded-orchestrator"
     assert ".agents/skills/chant/chant.feature" in chant["contracts"]
 
     assert silver_shield["authority_path"] == ".agents/spells/silver_shield.md"
     assert silver_shield["owner_runtime"] == "policy-layer"
     assert silver_shield["spell_classification"] == "policy-only"
+    assert silver_shield["entry_surface"] == "host-only"
     assert silver_shield["host_support"]["codex"] == "policy-only"
     assert silver_shield["recursion_policy"] == "policy-only"
     assert "tests/unit/test_heimdall_shield_empire.py" in silver_shield["tests"]
@@ -69,3 +72,12 @@ def test_execution_bearing_entries_require_explicit_ownership_model() -> None:
         if execution_mode not in {"agent-native", "kernel-backed"}:
             continue
         assert entry["execution"]["ownership_model"] in {"host-workflow", "kernel-primitive"}, name
+
+
+def test_active_entries_gain_explicit_entry_surfaces() -> None:
+    manifest = build_registry_manifest()
+
+    for name, entry in manifest["entries"].items():
+        if entry.get("viability") != "ACTIVE":
+            continue
+        assert entry["entry_surface"] in {"cli", "host-only", "compatibility"}, name

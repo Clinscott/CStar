@@ -9,6 +9,7 @@ interface MatrixFilePayload {
     intent?: string;
     interaction_protocol?: string;
     dependencies?: unknown;
+    cluster?: number;
 }
 
 interface MatrixProjectionPayload {
@@ -104,6 +105,10 @@ export const getStar = (path: string): [number, number, number] => {
     if (p.includes('src/tools/pennyone/vis')) return STELLAR_MAP.epsilon;
     if (p.includes('src/tools')) return STELLAR_MAP.delta;
     if (p.includes('tests/')) return STELLAR_MAP.beta;
+    return STELLAR_MAP.alpha;
+};
+
+/')) return STELLAR_MAP.beta;
     return STELLAR_MAP.alpha;
 };
 

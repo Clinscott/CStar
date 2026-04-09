@@ -26,6 +26,8 @@ Corvus Star is not limited to a single repository.
 ## 4. The Memory Plane: PennyOne, Engrams, & The Hall
 Because your context window is limited, CStar maintains its own layered memory architecture inspired by MemOS and Hermes.
 *   **The Hall of Records (`pennyone.db`)**: The framework's SQLite database acts as a unified knowledge graph.
+*   **Functional Clustering (Louvain/Leiden)**: [Ω] GUNGNIR UPGRADE: PennyOne (v2.5) automatically groups files into functional clusters using graphology-based community detection on the dependency graph. This reflects the logical architecture beyond the file-system hierarchy.
+*   **Host-Agent Delegation**: Intelligence scans no longer rely on low-level batch inference. Instead, PennyOne delegates sector analysis to specialized Host sub-agents (e.g., `codebase_investigator`) that return structured JSON intent and interaction protocols.
 *   **Engrams (Episodic Memory)**: Every time a task (Bead) is completed, the `distill` weave autonomously runs a "Memory Flush." It summarizes the intent, the code changes, and saves them into the database as a structured Engram.
 *   **Mimir (`cstar hall`)**: When you query the Hall via MCP (`search_by_intent`) or CLI (`cstar hall`), Mimir doesn't just search current code; it searches the FTS5 index of all past Engrams. This allows you to recall historical context (e.g., "Why did we implement X in session 97?").
 

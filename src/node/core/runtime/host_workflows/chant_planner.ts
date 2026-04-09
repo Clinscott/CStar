@@ -21,6 +21,8 @@ import type {
     ResearchWeavePayload,
     ArchitectServicePayload,
 } from '../contracts.ts';
+import type { ParsedTraceSelectionGate } from './chant_parser.js';
+import { inheritTraceInvocation } from '../trace_inheritance.js';
 
 const AUTOBOT_NOTE_LIMIT = 4_000;
 const AUTOBOT_SECTION_LIMIT = 420;
@@ -291,6 +293,26 @@ function buildSessionId(context: RuntimeContext, repoId: string): string {
     return `chant-session:${repoId}:${Date.now()}`;
 }
 
+function buildTraceContractMetadata(traceSelection: ParsedTraceSelectionGate | null | undefined): Record<string, unknown> | undefined {
+    if (!traceSelection) {
+        return undefined;
+    }
+
+    return {
+        intent_category: traceSelection.intent_category,
+        intent: traceSelection.intent,
+        selection_tier: traceSelection.selection_tier,
+        selection_name: traceSelection.selection_name,
+        trajectory_status: traceSelection.trajectory_status,
+        trajectory_reason: traceSelection.trajectory_reason,
+        mimirs_well: [...traceSelection.mimirs_well],
+        gungnir_verdict: traceSelection.gungnir_verdict,
+        confidence: traceSelection.confidence,
+        body: traceSelection.body,
+        canonical_intent: traceSelection.canonical_intent,
+    };
+}
+
 function mergeNormalizedIntent(existingSession: HallPlanningSessionRecord | null, normalizedIntent: string): string {
     if (!existingSession) return normalizedIntent;
     if (existingSession.normalized_intent.includes(normalizedIntent)) return existingSession.normalized_intent;
@@ -449,6 +471,50 @@ function buildProposalReviewOutput(proposalSummary: string, beadIds: string[]): 
     return `${proposalSummary} Review the proposal in Hall and mark it SET when ready to execute. Current lead bead: ${next}.`;
 }
 
+function shouldFallbackProposalOnArchitectFailure(error: string | undefined): boolean {
+    const normalized = String(error ?? '').toLowerCase();
+    return normalized.includes('requires an active host session');
+}
+
+function clearPlanningFailureMetadata(metadata: Record<string, unknown>): Record<string, unknown> {
+    const next = { ...metadata };
+    delete next.failure_phase;
+    delete next.failure_error;
+    delete next.recovery_hint;
+    delete next.failure_timestamp;
+    return next;
+}
+
+function buildPlanningRecoveryHint(phase: 'weave:research' | 'chant:architect-service', error: string | undefined): string {
+    const normalized = String(error ?? '').toLowerCase();
+    if (normalized.includes('active host session')) {
+        return 'Restore or bind the host planning provider, then rerun chant.';
+    }
+    if (normalized.includes('timeout')) {
+        return 'Inspect the delegated planning bridge for hangs or stalled workers, then rerun chant.';
+    }
+    if (phase === 'weave:research') {
+        return 'Inspect the research adapter or bridge, then rerun chant when the planning surface is healthy.';
+    }
+    return 'Inspect the architect synthesis provider path or allow fallback proposal seeding before rerunning chant.';
+}
+
+function withPlanningFailureMetadata(
+    metadata: Record<string, unknown>,
+    phase: 'weave:research' | 'chant:architect-service',
+    error: string | undefined,
+    failureTimestamp: number,
+): Record<string, unknown> {
+    return {
+        ...clearPlanningFailureMetadata(metadata),
+        phase_in_flight: phase,
+        failure_phase: phase,
+        failure_error: error ?? `${phase} failed.`,
+        recovery_hint: buildPlanningRecoveryHint(phase, error),
+        failure_timestamp: failureTimestamp,
+    };
+}
+
 function persistPlanningSessionSnapshot(data: {
     sessionId: string;
     repoId: string;
@@ -463,6 +529,9 @@ function persistPlanningSessionSnapshot(data: {
     metadata: Record<string, unknown>;
     createdAt?: number;
 }): void {
+    const metadata = data.sessionStatus === 'FAILED'
+        ? { ...data.metadata }
+        : clearPlanningFailureMetadata(data.metadata);
     writePlanningSession({
         session_id: data.sessionId,
         repo_id: data.repoId,
@@ -476,7 +545,7 @@ function persistPlanningSessionSnapshot(data: {
         current_bead_id: data.currentBeadId,
         created_at: data.createdAt ?? data.now,
         updated_at: data.now,
-        metadata: data.metadata,
+        metadata,
     });
 }
 
@@ -505,6 +574,7 @@ export async function runPlanningLoop(
     existingSession: HallPlanningSessionRecord | null,
     normalizedIntent: string,
     lowerTokens: string[],
+    traceSelection?: ParsedTraceSelectionGate | null,
 ): Promise<WeaveResult> {
     const payload = invocation.payload;
     const now = Date.now();
@@ -513,11 +583,21 @@ export async function runPlanningLoop(
     const createdAt = existingSession?.created_at ?? now;
     const mergedIntent = mergeNormalizedIntent(existingSession, normalizedIntent);
     const userIntent = existingSession?.user_intent ?? normalizedIntent;
-    const baseMetadata = {
+    const traceContract = buildTraceContractMetadata(traceSelection);
+    const baseMetadata: Record<string, unknown> & {
+        trace_id: string;
+        bead_ids?: string[];
+        proposal_ids?: string[];
+        branch_ledger_digest?: unknown;
+    } = {
         ...(existingSession?.metadata ?? {}),
         trace_id: typeof existingSession?.metadata?.trace_id === 'string' && existingSession.metadata.trace_id.trim()
             ? existingSession.metadata.trace_id.trim()
             : context.trace_id,
+        ...(traceContract ? {
+            trace_contract_version: 1,
+            trace_contract: traceContract,
+        } : {}),
     };
 
     if (existingSession && existingSession.status === 'PLAN_CONCRETE') {
@@ -537,7 +617,9 @@ export async function runPlanningLoop(
             };
         }
 
-        const autobotResult = await dispatchPort.dispatch(buildAutobotInvocation(payload, existingSession, beadId));
+        const autobotResult = await dispatchPort.dispatch(
+            inheritTraceInvocation(buildAutobotInvocation(payload, existingSession, beadId), context),
+        );
         const summary = `AutoBot received bead ${beadId}. Review the worker result before promoting the bead.`;
         persistPlanningSessionSnapshot({
             sessionId,
@@ -630,25 +712,26 @@ export async function runPlanningLoop(
         });
 
         if (researchResult.status === 'FAILURE') {
+            const failureTime = Date.now();
+            const failureMessage = researchResult.error ?? 'Research phase failed.';
             persistPlanningSessionSnapshot({
                 sessionId,
                 repoId,
                 sessionStatus: 'FAILED',
                 normalizedIntent: mergedIntent,
                 summary: 'Research Phase failed.',
-                now: Date.now(),
+                now: failureTime,
                 userIntent,
-                metadata: {
+                metadata: withPlanningFailureMetadata({
                     ...baseMetadata,
-                    phase_in_flight: 'weave:research',
-                },
+                }, 'weave:research', failureMessage, failureTime),
                 createdAt,
             });
             return {
                 weave_id: 'weave:chant',
                 status: 'FAILURE',
                 output: '',
-                error: researchResult.error ?? 'Research phase failed.',
+                error: failureMessage,
                 metadata: {
                     context_policy: 'project',
                     normalized_intent: normalizedIntent,
@@ -697,27 +780,75 @@ export async function runPlanningLoop(
     );
 
     if (architectResult.status === 'FAILURE') {
+        if (shouldFallbackProposalOnArchitectFailure(architectResult.error)) {
+            const normalizedProposal = normalizeArchitectProposal(
+                normalizedIntent,
+                payload.project_root,
+                {},
+            );
+            const persisted = persistArchitectProposal(payload.project_root, repoId, sessionId, {
+                proposal_summary: normalizedProposal.proposalSummary,
+                beads: normalizedProposal.beads,
+            });
+            const reviewOutput = buildProposalReviewOutput(normalizedProposal.proposalSummary, persisted.beadIds);
+            persistPlanningSessionSnapshot({
+                sessionId,
+                repoId,
+                sessionStatus: 'PROPOSAL_REVIEW',
+                normalizedIntent: mergedIntent,
+                summary: reviewOutput,
+                now: Date.now(),
+                userIntent,
+                currentBeadId: persisted.beadIds[0],
+                architectOpinion: normalizedProposal.proposalSummary,
+                metadata: {
+                    ...baseMetadata,
+                    phase_in_flight: null,
+                    research_payload: researchPayload,
+                    branch_ledger_digest: branchLedgerDigest ?? getBranchLedgerDigest(researchPayload?.branch_ledger_digest),
+                    architect_fallback: 'host-session-required',
+                    bead_ids: persisted.beadIds,
+                    proposal_ids: persisted.proposalIds,
+                },
+                createdAt,
+            });
+            return {
+                weave_id: 'weave:chant',
+                status: 'TRANSITIONAL',
+                output: reviewOutput,
+                metadata: {
+                    context_policy: 'project',
+                    normalized_intent: normalizedIntent,
+                    planning_session_id: sessionId,
+                    planning_status: 'PROPOSAL_REVIEW',
+                    bead_ids: persisted.beadIds,
+                    proposal_ids: persisted.proposalIds,
+                },
+            };
+        }
+
+        const failureTime = Date.now();
+        const failureMessage = architectResult.error ?? 'Architect phase failed.';
         persistPlanningSessionSnapshot({
             sessionId,
             repoId,
             sessionStatus: 'FAILED',
             normalizedIntent: mergedIntent,
             summary: 'Architect synthesis failed.',
-            now: Date.now(),
+            now: failureTime,
             userIntent,
-            metadata: {
+            metadata: withPlanningFailureMetadata({
                 ...baseMetadata,
-                phase_in_flight: 'chant:architect-service',
                 research_payload: researchPayload,
                 branch_ledger_digest: branchLedgerDigest ?? getBranchLedgerDigest(researchPayload?.branch_ledger_digest),
-            },
+            }, 'chant:architect-service', failureMessage, failureTime),
             createdAt,
         });
         return {
             weave_id: 'weave:chant',
             status: 'FAILURE',
             output: '',
-            error: architectResult.error ?? 'Architect phase failed.',
+            error: failureMessage,
             metadata: {
                 context_policy: 'project',
                 normalized_intent: normalizedIntent,

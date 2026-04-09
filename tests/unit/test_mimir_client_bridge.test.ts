@@ -96,6 +96,31 @@ describe('TypeScript Mimir client bridge (CS-P1-02)', () => {
         assert.match(response.error ?? '', /gemini returned no output/i);
     });
 
+    it('routes getFileIntent through the canonical request path', async () => {
+        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-mimir-file-intent-'));
+        const client = new MimirClient({
+            projectRoot: tmpRoot,
+            env: {},
+        });
+
+        let capturedPrompt: string | undefined;
+        const originalRequest = client.request.bind(client);
+        client.request = (async (request) => {
+            capturedPrompt = request.prompt;
+            return {
+                status: 'success',
+                raw_text: 'File intent summary',
+                trace: { transport_mode: 'host_session' },
+            } as any;
+        }) as typeof client.request;
+
+        const intent = await client.getFileIntent('src/core/engine/vector.py');
+
+        assert.strictEqual(intent, 'File intent summary');
+        assert.strictEqual(capturedPrompt, 'What is the intent of sector: src/core/engine/vector.py?');
+        assert.notStrictEqual(client.request, originalRequest);
+    });
+
     it('uses the Codex host runner when the active provider is codex', async () => {
         const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-mimir-codex-'));
         const prompts: Array<{ provider: string; prompt: string }> = [];
@@ -400,6 +425,73 @@ describe('TypeScript Mimir client bridge (CS-P1-02)', () => {
         assert.strictEqual(response.raw_text, 'Codex interactive exec response');
         assert.strictEqual(calls.length, 1);
         assert.strictEqual(calls[0]?.command, 'codex');
+    });
+
+    it('fails closed for agent-native Codex work when only shell fallback is available', async () => {
+        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-mimir-codex-agent-native-'));
+        const calls: Array<{ command: string; args: string[]; cwd: string }> = [];
+        const client = new MimirClient({
+            projectRoot: tmpRoot,
+            env: { CODEX_SHELL: '1', CODEX_THREAD_ID: 'thread-1', CORVUS_DISABLE_LOCAL_LLM_FALLBACK: '1' },
+            hostSessionActive: true,
+            hostProvider: 'codex',
+            codexExecRunner: async (command, args, options) => {
+                calls.push({ command, args, cwd: options.cwd });
+                return { stdout: 'unexpected shell fallback', stderr: '' };
+            },
+        });
+
+        const response = await client.request({
+            prompt: 'Execute chant natively.',
+            caller: { source: 'test-suite' },
+            metadata: {
+                execution_mode: 'agent-native',
+            },
+        });
+
+        const hallRequests = listHallOneMindRequests(tmpRoot);
+        assert.strictEqual(response.status, 'error');
+        assert.strictEqual(response.trace.transport_mode, 'host_session');
+        assert.match(response.error ?? '', /requires an injected hostSessionInvoker/i);
+        assert.strictEqual(calls.length, 0);
+        assert.strictEqual(hallRequests.at(-1)?.request_status, 'FAILED');
+    });
+
+    it('fails closed for trace-critical Codex work without falling back to synapse_db', async () => {
+        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-mimir-codex-trace-critical-'));
+        const calls: Array<{ command: string; args: string[]; cwd: string }> = [];
+        let oracleCalls = 0;
+        const client = new MimirClient({
+            projectRoot: tmpRoot,
+            env: { CODEX_SHELL: '1', CODEX_THREAD_ID: 'thread-1' },
+            hostSessionActive: true,
+            hostProvider: 'codex',
+            codexExecRunner: async (command, args, options) => {
+                calls.push({ command, args, cwd: options.cwd });
+                return { stdout: 'unexpected shell fallback', stderr: '' };
+            },
+            oracleInvoker: async () => {
+                oracleCalls += 1;
+                throw new Error('unexpected synapse fallback');
+            },
+        });
+
+        const response = await client.request({
+            prompt: 'Decide the planning gate.',
+            caller: { source: 'test-suite' },
+            metadata: {
+                trace_critical: true,
+                require_agent_harness: true,
+            },
+        });
+
+        const hallRequests = listHallOneMindRequests(tmpRoot);
+        assert.strictEqual(response.status, 'error');
+        assert.strictEqual(response.trace.transport_mode, 'host_session');
+        assert.match(response.error ?? '', /agent-harness-required work/i);
+        assert.strictEqual(calls.length, 0);
+        assert.strictEqual(oracleCalls, 0);
+        assert.strictEqual(hallRequests.at(-1)?.request_status, 'FAILED');
     });
 
     it('uses the synapse database contract and returns a completed response', async () => {

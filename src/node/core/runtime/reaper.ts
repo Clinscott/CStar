@@ -61,7 +61,7 @@ export class OrchestratorReaper {
             // If the local worker failed, escalate to the Host Worker instead of blocking indefinitely.
             // [🔱] THE KERNEL TRAP: Auto-trigger Phoenix Loop for self-healing
             if (!currentAgent || currentAgent === 'SOVEREIGN-WORKER') {
-                finalStatus = 'RECAST';
+                finalStatus = 'SET';
                 assignedAgent = 'PHOENIX';
                 triageReason = `[Kernel Trap] Worker failed. Triggering 'spell:phoenix_loop' for autonomous self-healing.`;
             } else {

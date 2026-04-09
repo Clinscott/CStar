@@ -41,6 +41,14 @@ Active entries are being converged toward explicit authority metadata.
 
 These fields are part of the authority-convergence effort: the registry should describe not just what a capability is called, but where it lives, how it executes, and how it is verified.
 
+### 5. Shell Discovery Companion
+The registry is capability authority, but the shell contract lives in the registered `cstar` command tree.
+
+For proper discovery and use:
+*   Use `.agents/skill_registry.json` for capability identity, execution ownership, and contract anchors.
+*   Use `cstar manifest --json` or `cstar skill-info <id> --json` for the merged operator-facing contract, including `invoke` metadata such as aliases, subcommands, options, examples, and JSON support.
+*   Treat Commander-derived `invoke` metadata as the authoritative shell shape when it is present, because it is extracted from the real registered CLI surfaces rather than maintained as prose.
+
 ---
 
 ## 📊 CURRENT ESTATE INVENTORY (Active Tiers)

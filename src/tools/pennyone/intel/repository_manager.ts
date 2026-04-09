@@ -1252,11 +1252,31 @@ function getMaintenanceRecencyBoost(updatedAt: number | undefined): number {
 }
 
 function scoreIndexedSearchResult(
-    result: { path?: string; rank?: number; type?: string; metadata_json?: string | null; updated_at?: number | null },
+    result: { path?: string; rank?: number; type?: string; metadata_json?: string | null; updated_at?: number | null; gungnir_score_json?: string | null },
     query: string,
 ): number {
     let score = typeof result.rank === 'number' ? result.rank : Number.POSITIVE_INFINITY;
     const metadata = parseDocumentSearchMetadata(result.metadata_json);
+
+    // [🔱] THE GUNGNIR BOOST: Prioritize high-fidelity results
+    if (result.gungnir_score_json) {
+        try {
+            const gungnir = JSON.parse(result.gungnir_score_json);
+            const omega = typeof gungnir.overall === 'number' ? gungnir.overall : 0;
+            const logic = typeof gungnir.logic === 'number' ? gungnir.logic : 0;
+
+            // Boost score based on Ω (0.0 to 10.0 scale)
+            // Subtracting from rank score (lower is better in FTS5)
+            score -= (omega * 5);
+
+            // Penalize low logic scores
+            if (logic < 5.0) {
+                score += 30;
+            }
+        } catch {
+            // Ignore parse errors
+        }
+    }
 
     if (metadata.archived === true || isArchivedSearchPath(result.path)) {
         score += 40;
@@ -1287,22 +1307,32 @@ export function searchIntents(query: string): any[] {
 
     const codeResults = db.prepare(`
         SELECT path, intent, interaction_protocol, rank, 'CODE' as type
-        FROM intents_fts 
-        WHERE intents_fts MATCH ? 
+        FROM intents_fts
+        WHERE intents_fts MATCH ?
         ORDER BY rank
     `).all(safeQuery) as any[];
 
     const loreResults = db.prepare(`
         SELECT source_file as path, header as intent, content as interaction_protocol, rank, 'LORE' as type
-        FROM chronicles_fts 
-        WHERE chronicles_fts MATCH ? 
+        FROM chronicles_fts
+        WHERE chronicles_fts MATCH ?
         ORDER BY rank
     `).all(safeQuery) as any[];
 
     const episodicResults = db.prepare(`
-        SELECT memory_id as path, tactical_summary as intent, metadata_json as interaction_protocol, rank, 'ENGRAM' as type
-        FROM hall_episodic_fts 
-        WHERE hall_episodic_fts MATCH ? 
+        SELECT
+            fts.memory_id as path,
+            fts.tactical_summary as intent,
+            fts.metadata_json as interaction_protocol,
+            fts.rank,
+            'ENGRAM' as type,
+            mem.metadata_json,
+            mem.updated_at,
+            beads.baseline_scores_json as gungnir_score_json
+        FROM hall_episodic_fts AS fts
+        JOIN hall_episodic_memory AS mem ON mem.memory_id = fts.memory_id
+        LEFT JOIN hall_beads AS beads ON beads.bead_id = mem.bead_id
+        WHERE hall_episodic_fts MATCH ?
         ORDER BY rank
     `).all(safeQuery) as any[];
 

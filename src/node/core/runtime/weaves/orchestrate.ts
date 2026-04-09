@@ -16,25 +16,100 @@ import { OrchestratorTelemetryBridge } from  '../telemetry.js';
 import { getHallBeads, saveHallSkillActivation, upsertHallBead } from  '../../../../tools/pennyone/intel/database.js';
 import { getHallPlanningSession, listHallPlanningSessions, saveHallPlanningSession } from '../../../../tools/pennyone/intel/session_manager.js';
 import { buildHallRepositoryId, normalizeHallPath } from  '../../../../types/hall.js';
+import { inheritTraceSkillBead } from '../trace_inheritance.js';
 import type { HallPlanningSessionRecord, HallPlanningSessionStatus } from '../../../../types/hall.js';
 import chalk from 'chalk';
 import type { SovereignBead } from '../../../../types/bead.js';
 import type { SkillBead } from '../../skills/types.js';
+import os from 'node:os';
 import {
     buildSkillActivationParams,
     createPendingSkillActivationRecord,
     planSkillActivationForBead,
+    type PlannedSkillActivation,
+    type PlanningExecutionHints,
 } from '../skill_activation.js';
+import { engraveReadyForReviewMemory } from '../episodic_memory.js';
 
 /**
  * [Ω] ORCHESTRATE WEAVE
  * Purpose: The sovereign execution engine for SET beads.
  * Mandate: Stateless, Deterministic, and Aggressively Reaped (Yo-Yo).
  */
-export function resolveExecutionRoute(bead: SovereignBead): 'AUTOBOT' | 'HOST-WORKER' | 'ONE-MIND' {
+function getPlanningTraceContract(session: HallPlanningSessionRecord | null): Record<string, unknown> | undefined {
+    const contract = session?.metadata?.trace_contract;
+    return contract && typeof contract === 'object' && !Array.isArray(contract)
+        ? contract as Record<string, unknown>
+        : undefined;
+}
+
+function getTraceSelectionName(session: HallPlanningSessionRecord | null): string | undefined {
+    const selectionName = getPlanningTraceContract(session)?.selection_name;
+    return typeof selectionName === 'string' && selectionName.trim()
+        ? selectionName.trim().toLowerCase()
+        : undefined;
+}
+
+export function derivePlanningExecutionHints(session: HallPlanningSessionRecord | null): PlanningExecutionHints | undefined {
+    const contract = getPlanningTraceContract(session);
+    const selectionName = getTraceSelectionName(session);
+    const selectionTier = typeof contract?.selection_tier === 'string' && contract.selection_tier.trim()
+        ? contract.selection_tier.trim().toUpperCase()
+        : undefined;
+    const intentCategory = typeof contract?.intent_category === 'string' && contract.intent_category.trim()
+        ? contract.intent_category.trim().toUpperCase()
+        : undefined;
+
+    let executionProfile: PlanningExecutionHints['execution_profile'];
+    if (selectionName === 'orchestrate') {
+        executionProfile = 'governance';
+    } else if (
+        (selectionName && ['creation_loop', 'restoration', 'evolve', 'forge', 'chant', 'contract_hardening'].includes(selectionName))
+        || (intentCategory && ['BUILD', 'REPAIR', 'EVOLVE', 'HARDEN', 'VERIFY'].includes(intentCategory))
+    ) {
+        executionProfile = 'implementation';
+    }
+
+    if (!session?.session_id && !selectionName && !selectionTier && !executionProfile) {
+        return undefined;
+    }
+
+    return {
+        planning_session_id: session?.session_id,
+        trace_selection_name: selectionName,
+        trace_selection_tier: selectionTier,
+        execution_profile: executionProfile,
+    };
+}
+
+function rankPlanningSessionForOrchestrate(session: HallPlanningSessionRecord): number {
+    const selectionName = getTraceSelectionName(session);
+    if (selectionName === 'orchestrate') {
+        return 0;
+    }
+    if (session.status === 'FORGE_EXECUTION') {
+        return 1;
+    }
+    if (session.status === 'PLAN_READY') {
+        return 2;
+    }
+    return 3;
+}
+
+export function resolveExecutionRoute(
+    bead: SovereignBead,
+    hints?: PlanningExecutionHints,
+): 'AUTOBOT' | 'HOST-WORKER' | 'ONE-MIND' {
     const assigned = String(bead.assigned_agent ?? '').trim().toUpperCase();
     if (assigned === 'AUTOBOT' || assigned === 'HOST-WORKER' || assigned === 'ONE-MIND') {
         return assigned;
+    }
+
+    if (hints?.execution_profile === 'implementation' && bead.id.includes(':child:technical')) {
+        return 'AUTOBOT';
+    }
+    if (hints?.execution_profile === 'governance' && bead.id.includes(':child:ledger')) {
+        return 'ONE-MIND';
     }
 
     const targetPath = String(bead.target_path ?? bead.target_ref ?? '').trim().toLowerCase();
@@ -80,10 +155,17 @@ export function resolveOrchestratePlanningSession(
     planningSessionId?: string,
 ): HallPlanningSessionRecord | null {
     if (typeof planningSessionId === 'string' && planningSessionId.trim()) {
-        return getHallPlanningSession(planningSessionId.trim());
+        return getHallPlanningSession(planningSessionId.trim(), projectRoot);
     }
 
-    const sessions = listHallPlanningSessions(projectRoot, { statuses: ORCHESTRATE_ACTIVE_SESSION_STATUSES });
+    const sessions = listHallPlanningSessions(projectRoot, { statuses: ORCHESTRATE_ACTIVE_SESSION_STATUSES })
+        .sort((left, right) => {
+            const rankDiff = rankPlanningSessionForOrchestrate(left) - rankPlanningSessionForOrchestrate(right);
+            if (rankDiff !== 0) {
+                return rankDiff;
+            }
+            return Number(right.updated_at ?? 0) - Number(left.updated_at ?? 0);
+        });
     return sessions[0] ?? null;
 }
 
@@ -161,25 +243,64 @@ function isChildBead(bead: SovereignBead): boolean {
     return targetRef.startsWith('bead:') || targetRef.startsWith('pb-');
 }
 
-function buildShardChildren(bead: SovereignBead): Array<{
+function buildShardChildren(
+    bead: SovereignBead,
+    hints?: PlanningExecutionHints,
+): Array<{
     id: string;
     agent: 'AUTOBOT' | 'HOST-WORKER' | 'ONE-MIND';
     kind: SovereignBead['target_kind'];
     rationale: string;
+    contract_refs: string[];
+    acceptance_criteria: string;
+    checker_shell?: string;
 }> {
+    const inheritedContractRefs = bead.contract_refs.length > 0
+        ? [...new Set(bead.contract_refs)]
+        : (bead.target_path ? [`file:${bead.target_path}`] : []);
+    const inheritedAcceptance = typeof bead.acceptance_criteria === 'string' && bead.acceptance_criteria.trim().length > 0
+        ? bead.acceptance_criteria.trim()
+        : `Complete the bounded follow-through for ${bead.target_path ?? bead.target_ref ?? bead.id}.`;
+
     if (isPlanningStateParent(bead)) {
+        if (hints?.execution_profile === 'implementation') {
+            return [
+                {
+                    id: `${bead.id}:child:architecture`,
+                    agent: 'ONE-MIND',
+                    kind: 'SECTOR',
+                    rationale: `Architectural decomposition for ${bead.id} under ${hints.trace_selection_name ?? 'implementation'} execution`,
+                    contract_refs: inheritedContractRefs,
+                    acceptance_criteria: inheritedAcceptance,
+                },
+                {
+                    id: `${bead.id}:child:technical`,
+                    agent: 'AUTOBOT',
+                    kind: 'VALIDATION',
+                    rationale: `Bounded implementation follow-through for ${bead.id} under ${hints.trace_selection_name ?? 'implementation'} execution`,
+                    contract_refs: inheritedContractRefs,
+                    acceptance_criteria: inheritedAcceptance,
+                    checker_shell: bead.checker_shell ?? undefined,
+                },
+            ];
+        }
+
         return [
             {
                 id: `${bead.id}:child:architecture`,
                 agent: 'ONE-MIND',
                 kind: 'WORKFLOW',
                 rationale: `Architectural decomposition and provider-fit planning for ${bead.id}`,
+                contract_refs: inheritedContractRefs,
+                acceptance_criteria: inheritedAcceptance,
             },
             {
                 id: `${bead.id}:child:ledger`,
                 agent: 'ONE-MIND',
                 kind: 'WORKFLOW',
                 rationale: `Hall/state mutation follow-through for ${bead.id}`,
+                contract_refs: inheritedContractRefs,
+                acceptance_criteria: inheritedAcceptance,
             },
         ];
     }
@@ -190,12 +311,17 @@ function buildShardChildren(bead: SovereignBead): Array<{
             agent: 'ONE-MIND',
             kind: 'SECTOR',
             rationale: `Architectural decomposition for ${bead.id}`,
+            contract_refs: inheritedContractRefs,
+            acceptance_criteria: inheritedAcceptance,
         },
         {
             id: `${bead.id}:child:technical`,
             agent: 'AUTOBOT',
             kind: 'VALIDATION',
             rationale: `Bounded implementation follow-through for ${bead.id}`,
+            contract_refs: inheritedContractRefs,
+            acceptance_criteria: inheritedAcceptance,
+            checker_shell: bead.checker_shell ?? undefined,
         },
     ];
 }
@@ -204,12 +330,13 @@ function attachShardChildrenToPlanningSession(
     session: HallPlanningSessionRecord | null,
     parentBeadId: string,
     childIds: string[],
+    projectRoot: string,
 ): void {
     if (!session || childIds.length === 0) {
         return;
     }
 
-    const persistedSession = getHallPlanningSession(session.session_id) ?? session;
+    const persistedSession = getHallPlanningSession(session.session_id, projectRoot) ?? session;
 
     const currentBeadIds = getSessionBeadIds(persistedSession);
     const nextBeadIds: string[] = [];
@@ -243,19 +370,38 @@ function buildActivationId(beadId: string, now: number): string {
     return `activation:${beadId}:${now}`;
 }
 
+function checkSystemVitals(): { ok: boolean; reason?: string; metrics?: any } {
+    const memory = process.memoryUsage();
+    const totalMem = os.totalmem();
+    const freeMem = os.freemem();
+    const usedMemPercent = ((totalMem - freeMem) / totalMem) * 100;
+    const heapUsedPercent = (memory.heapUsed / memory.heapTotal) * 100;
+
+    // [🔱] THE FAIL-FAST THRESHOLDS
+    if (usedMemPercent > 95) {
+        return { ok: false, reason: 'SYSTEM_OOM_RISK', metrics: { usedMemPercent } };
+    }
+    if (heapUsedPercent > 90) {
+        return { ok: false, reason: 'NODE_HEAP_PRESSURE', metrics: { heapUsedPercent } };
+    }
+
+    return { ok: true, metrics: { usedMemPercent, heapUsedPercent } };
+}
+
 function toSkillBead(
     activationId: string,
     bead: SovereignBead,
+    planned: PlannedSkillActivation,
     projectRoot: string,
     cwd: string,
+    hints?: PlanningExecutionHints,
 ): SkillBead<Record<string, unknown>> {
-    const planned = planSkillActivationForBead(bead);
     return {
         id: activationId,
         skill_id: planned.skill_id,
         target_path: planned.target_path || bead.target_path || projectRoot,
         intent: planned.intent,
-        params: buildSkillActivationParams(bead, planned, projectRoot, cwd),
+        params: buildSkillActivationParams(bead, planned, projectRoot, cwd, hints),
         status: 'PENDING',
         priority: 1,
     };
@@ -274,6 +420,17 @@ export class OrchestrateWeave implements RuntimeAdapter<OrchestrateWeavePayload>
         const payload = invocation.payload;
         const projectRoot = payload.project_root || context.workspace_root;
         
+        // [🔱] THE RESOURCE GATE: Fail-Fast if the body is failing
+        const vitals = checkSystemVitals();
+        if (!vitals.ok) {
+            return {
+                weave_id: this.id,
+                status: 'FAILURE',
+                output: '',
+                error: `[FAIL-FAST]: Orchestration aborted due to resource pressure: ${vitals.reason}. Metrics: ${JSON.stringify(vitals.metrics)}`
+            };
+        }
+
         // 1. Deterministic Spin-up: Orphan Adoption & Scheduling
         const scheduler = new OrchestratorScheduler(projectRoot);
         const telemetry = new OrchestratorTelemetryBridge(projectRoot);
@@ -282,6 +439,7 @@ export class OrchestrateWeave implements RuntimeAdapter<OrchestrateWeavePayload>
         const reapedZombies = await scheduler.reclaimZombies();
         const hallBeads = getHallBeads(projectRoot);
         const planningSelection = selectPlanningSessionBeadIds(projectRoot, hallBeads, payload.planning_session_id);
+        const planningHints = derivePlanningExecutionHints(planningSelection.planningSession);
         
         // Identify beads to process
         let targetBeads = payload.bead_ids || [];
@@ -339,7 +497,11 @@ export class OrchestrateWeave implements RuntimeAdapter<OrchestrateWeavePayload>
 
         // Process beads in parallel within the concurrency limit
         const limit = payload.max_parallel || 1;
+        let stopOrchestration = false;
+        let failReason = '';
+
         const tasks = targetBeads.slice(0, limit).map(async (beadId) => {
+            if (stopOrchestration) return;
             const start = Date.now();
             let bead: SovereignBead | undefined;
             try {
@@ -352,7 +514,7 @@ export class OrchestrateWeave implements RuntimeAdapter<OrchestrateWeavePayload>
                 if (bead.status === 'SET' && !isChild) {
                     console.log(chalk.magenta(`  ↳ [SWARM]: Shattering Mission ${beadId} into specialized tasks...`));
                     
-                    const children = buildShardChildren(bead as SovereignBead);
+                    const children = buildShardChildren(bead as SovereignBead, planningHints);
                     const childIds: string[] = [];
 
                     for (const child of children) {
@@ -361,7 +523,7 @@ export class OrchestrateWeave implements RuntimeAdapter<OrchestrateWeavePayload>
                             ...bead,
                             id: child.id,
                             assigned_agent: child.agent,
-                        } as SovereignBead);
+                        } as SovereignBead, planningHints);
 
                         upsertHallBead({
                             bead_id: child.id,
@@ -370,6 +532,9 @@ export class OrchestrateWeave implements RuntimeAdapter<OrchestrateWeavePayload>
                             target_ref: bead.id,
                             target_path: bead.target_path,
                             rationale: child.rationale,
+                            contract_refs: child.contract_refs,
+                            acceptance_criteria: child.acceptance_criteria,
+                            checker_shell: child.checker_shell,
                             status: 'SET',
                             assigned_agent: assignedAgent,
                             created_at: Date.now(),
@@ -378,7 +543,7 @@ export class OrchestrateWeave implements RuntimeAdapter<OrchestrateWeavePayload>
                         childIds.push(child.id);
                     }
 
-                    attachShardChildrenToPlanningSession(planningSelection.planningSession, beadId, childIds);
+                    attachShardChildrenToPlanningSession(planningSelection.planningSession, beadId, childIds, projectRoot);
                     
                     // Mark parent as IN_PROGRESS
                     upsertHallBead({
@@ -390,10 +555,10 @@ export class OrchestrateWeave implements RuntimeAdapter<OrchestrateWeavePayload>
                     return;
                 }
 
-                const executionRoute = resolveExecutionRoute(bead as SovereignBead);
+                const executionRoute = resolveExecutionRoute(bead as SovereignBead, planningHints);
                 if (this.dispatchPort) {
                     const now = Date.now();
-                    const planned = planSkillActivationForBead(bead as SovereignBead);
+                    const planned = planSkillActivationForBead(bead as SovereignBead, planningHints);
                     const activationId = buildActivationId(beadId, now);
                     const activationRecord = createPendingSkillActivationRecord(
                         repoId,
@@ -405,8 +570,15 @@ export class OrchestrateWeave implements RuntimeAdapter<OrchestrateWeavePayload>
                     );
                     saveHallSkillActivation(activationRecord);
 
-                    const skillBead = toSkillBead(activationId, bead as SovereignBead, projectRoot, context.workspace_root);
-                    const skillResult = await this.dispatchPort.dispatch(skillBead);
+                    const skillBead = toSkillBead(
+                        activationId,
+                        bead as SovereignBead,
+                        planned,
+                        projectRoot,
+                        context.workspace_root,
+                        planningHints,
+                    );
+                    const skillResult = await this.dispatchPort.dispatch(inheritTraceSkillBead(skillBead, context));
                     const completedAt = Date.now();
 
                     let finalStatus = 'IN_PROGRESS';
@@ -428,6 +600,11 @@ export class OrchestrateWeave implements RuntimeAdapter<OrchestrateWeavePayload>
                             updated_at: completedAt,
                             assigned_agent: planned.role?.toUpperCase(),
                         } as any);
+                    }
+
+                    if (finalStatus === 'BLOCKED' || finalStatus === 'FAILED') {
+                        stopOrchestration = true;
+                        failReason = `Bead ${beadId} ${finalStatus}: ${skillResult.error || 'Unknown skill error'}`;
                     }
 
                     saveHallSkillActivation({
@@ -470,6 +647,11 @@ export class OrchestrateWeave implements RuntimeAdapter<OrchestrateWeavePayload>
 
                     const finalStatus = await reaper.mapOutcome(beadId, workerResult);
                     
+                    if (finalStatus === 'BLOCKED' || finalStatus === 'FAILED') {
+                        stopOrchestration = true;
+                        failReason = `Bead ${beadId} ${finalStatus}: ${workerResult.stderr || 'Unknown worker error'}`;
+                    }
+
                     outcomes[beadId] = {
                         status: finalStatus,
                         exit_code: workerResult.exitCode,
@@ -481,29 +663,17 @@ export class OrchestrateWeave implements RuntimeAdapter<OrchestrateWeavePayload>
                 if (outcomes[beadId]?.status === 'READY_FOR_REVIEW' && this.dispatchPort) {
                     console.log(chalk.dim(`  ↳ Engraving episodic memory for ${beadId}...`));
                     try {
-                        const { execa } = await import('execa');
-                        const diffResult = await execa('git', ['diff', 'HEAD'], { cwd: projectRoot });
-                        await this.dispatchPort.dispatch<CompressWeavePayload>({
-                            weave_id: 'weave:distill',
-                            payload: {
-                                bead_id: beadId,
-                                bead_intent: bead.rationale,
-                                project_root: projectRoot,
-                                cwd: context.workspace_root,
-                                git_diff: diffResult.stdout,
-                                target_paths: bead.target_path ? [bead.target_path] : []
-                            },
-                            session: {
-                                mode: 'subkernel',
-                                interactive: false,
-                                session_id: invocation.session?.session_id,
-                            },
-                            target: {
-                                domain: invocation.target?.domain ?? context.target_domain,
-                                workspace_root: projectRoot,
-                                requested_path: projectRoot,
-                                spoke: invocation.target?.spoke,
-                            },
+                        await engraveReadyForReviewMemory({
+                            bead_id: beadId,
+                            bead_intent: bead.rationale,
+                            project_root: projectRoot,
+                            cwd: context.workspace_root,
+                            target_paths: bead.target_path ? [bead.target_path] : [],
+                            context,
+                            dispatchPort: this.dispatchPort,
+                            session_id: invocation.session?.session_id,
+                            target_domain: invocation.target?.domain ?? context.target_domain,
+                            spoke: invocation.target?.spoke,
                         });
                     } catch (e) {
                         // Ignore engraving failures so we don't break the orchestrator
@@ -513,19 +683,39 @@ export class OrchestrateWeave implements RuntimeAdapter<OrchestrateWeavePayload>
 
                 await telemetry.recordExecution(beadId, outcomes[beadId]!);
             } catch (err: any) {
-                outcomes[beadId] = {
-                    status: 'BLOCKED',
-                    error: err.message,
-                    duration_ms: Date.now() - start,
-                    route: bead ? resolveExecutionRoute(bead as SovereignBead) : undefined,
-                };
-            }
+                stopOrchestration = true;
+                failReason = `Critical failure processing bead ${beadId}: ${err.message}`;
+                    outcomes[beadId] = {
+                        status: 'BLOCKED',
+                        error: err.message,
+                        duration_ms: Date.now() - start,
+                        route: bead ? resolveExecutionRoute(bead as SovereignBead, planningHints) : undefined,
+                    };
+                }
         });
 
         await Promise.all(tasks);
 
         // 3. Forced Termination: Aggressive Reaping
         await this.processManager.reapAll();
+
+        if (stopOrchestration) {
+            console.error(chalk.red(`\n[FAIL-FAST]: Orchestration halted. ${failReason}`));
+            return {
+                weave_id: this.id,
+                status: 'FAILURE',
+                error: failReason,
+                output: `[ORCHESTRATOR]: Failed fast due to blocked bead.`,
+                metadata: {
+                    context_policy: 'project',
+                    bead_outcomes: outcomes,
+                    reaped_zombies: reapedZombies,
+                    total_processed: Object.keys(outcomes).length,
+                    planning_session_id: planningSelection.planningSession?.session_id,
+                    selected_bead_ids: targetBeads,
+                }
+            };
+        }
 
         return {
             weave_id: this.id,

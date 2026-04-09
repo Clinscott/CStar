@@ -136,6 +136,45 @@ export function saveHallSkillActivation(record: HallSkillActivationRecord): void
     );
 }
 
+export function getHallSkillActivation(
+    activationId: string,
+    rootPath: string = registry.getRoot(),
+): HallSkillActivationRecord | null {
+    const db = database.getDb(rootPath);
+    const row = db.prepare(`
+        SELECT activation_id, repo_id, bead_id, session_id, skill_id, adapter_id, role, status,
+               intent, target_path, payload_json, result_summary, error_text,
+               created_at, updated_at, completed_at, metadata_json
+        FROM hall_skill_activations
+        WHERE activation_id = ?
+        LIMIT 1
+    `).get(activationId) as Record<string, unknown> | undefined;
+
+    if (!row) {
+        return null;
+    }
+
+    return {
+        activation_id: String(row.activation_id),
+        repo_id: String(row.repo_id),
+        bead_id: row.bead_id ? String(row.bead_id) : undefined,
+        session_id: row.session_id ? String(row.session_id) : undefined,
+        skill_id: String(row.skill_id),
+        adapter_id: row.adapter_id ? String(row.adapter_id) : undefined,
+        role: row.role ? String(row.role) : undefined,
+        status: row.status as HallSkillActivationRecord['status'],
+        intent: String(row.intent),
+        target_path: row.target_path ? String(row.target_path) : undefined,
+        payload: parseJson<Record<string, unknown>>(row.payload_json as string | null, {}),
+        result_summary: row.result_summary ? String(row.result_summary) : undefined,
+        error_text: row.error_text ? String(row.error_text) : undefined,
+        created_at: Number(row.created_at ?? 0),
+        updated_at: Number(row.updated_at ?? 0),
+        completed_at: row.completed_at ? Number(row.completed_at) : undefined,
+        metadata: parseJson<Record<string, unknown>>(row.metadata_json as string | null, {}),
+    };
+}
+
 export function listHallSkillActivations(
     rootPath: string = registry.getRoot(),
     options: {
@@ -304,8 +343,11 @@ export function getHallSkillProposal(proposalId: string): HallSkillProposalRecor
     };
 }
 
-export function getHallPlanningSession(sessionId: string): HallPlanningSessionRecord | null {
-    const db = database.getDb();
+export function getHallPlanningSession(
+    sessionId: string,
+    rootPath: string = registry.getRoot(),
+): HallPlanningSessionRecord | null {
+    const db = database.getDb(rootPath);
     const row = db.prepare(`
         SELECT session_id, repo_id, skill_id, status, user_intent, normalized_intent,
                summary, latest_question, architect_opinion, current_bead_id, created_at, updated_at, metadata_json

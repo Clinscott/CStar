@@ -131,13 +131,8 @@ export class DistillWeave implements RuntimeAdapter<CompressWeavePayload> {
 
         if (provider) {
             try {
-                const rawText = await this.hostTextInvoker({
-                    provider,
-                    projectRoot: payload.project_root || context.workspace_root,
-                    source: 'runtime:distill',
-                    env: { ...process.env, ...context.env } as NodeJS.ProcessEnv,
-                    systemPrompt: 'You are the Corvus Star Context Distiller. Return strict JSON only.',
-                    prompt: `
+                const systemPrompt = 'You are the Corvus Star Context Distiller. Return strict JSON only.';
+                const prompt = `
 Bead ID: "${payload.bead_id}"
 Bead Intent: "${payload.bead_intent}"
 Candidate Diff:
@@ -155,8 +150,22 @@ Instructions:
   "successes": ["..."],
   "bead_id": "${payload.bead_id}"
 }
-`.trim(),
+`.trim();
+
+                const rawText = await this.hostTextInvoker({
+                    prompt,
+                    systemPrompt,
+                    provider,
+                    projectRoot: payload.project_root || context.workspace_root,
+                    source: 'runtime:weave:distill',
+                    env: context.env,
+                    metadata: {
+                        weave_id: this.id,
+                        bead_id: payload.bead_id,
+                        transport_mode: 'host_session',
+                    },
                 });
+
                 const parsed = extractJsonObject(rawText) as DistillHostResponse;
                 const normalized = normalizeDistillResponse(parsed);
                 return persistTacticalSummary(payload, context, {

@@ -28,7 +28,8 @@ dependencies = [
     "radon",
     "chromadb",
     "mcp",
-    "pytest-xdist"
+    "pytest-xdist",
+    "keyring"
 ]
 
 [project.scripts]

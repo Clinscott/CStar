@@ -11,6 +11,7 @@ import {
 import { getHallBeadsByStatus, getHallBeadsByEpic } from  '../../../../tools/pennyone/intel/database.js';
 import chalk from 'chalk';
 import * as hostBridge from '../weaves/host_bridge.js';
+import { inheritTraceInvocation } from '../trace_inheritance.js';
 
 export const deps = {
     getHallBeadsByStatus,
@@ -124,7 +125,9 @@ export class RestorationHostWorkflow implements RuntimeAdapter<RestorationWeaveP
                     metadata: {
                         runtime_weave: 'restoration',
                         decision: 'restoration-supervisor',
-                        transport_mode: 'session-required',
+                        trace_critical: true,
+                        require_agent_harness: true,
+                        transport_mode: 'host_session',
                     },
                 });
                 const decision = normalizeRestorationDecision(raw);
@@ -141,7 +144,7 @@ export class RestorationHostWorkflow implements RuntimeAdapter<RestorationWeaveP
                     };
                 }
                 if (decision?.action === 'replan') {
-                    const chantResult = await this.dispatchPort.dispatch({
+                    const chantResult = await this.dispatchPort.dispatch(inheritTraceInvocation({
                         weave_id: 'weave:chant',
                         payload: {
                             query: `Replan restoration for bead(s): ${targetBeads.map((bead: any) => bead.id).join(', ')}`,
@@ -149,7 +152,7 @@ export class RestorationHostWorkflow implements RuntimeAdapter<RestorationWeaveP
                             cwd: context.workspace_root,
                             source: 'runtime',
                         },
-                    });
+                    }, context));
                     return {
                         weave_id: this.id,
                         status: chantResult.status,

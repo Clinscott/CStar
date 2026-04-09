@@ -43,7 +43,6 @@ describe('Canonical Runtime Dispatcher (CS-P1-01)', () => {
             'weave:chant',
             'weave:distill',
             'weave:critique',
-            'weave:dynamic-command',
             'weave:evolve',
             'weave:orchestrate',
             'weave:pennyone',
@@ -122,19 +121,29 @@ describe('Canonical Runtime Dispatcher (CS-P1-01)', () => {
             }),
         );
         registry.setRoot(tmpRoot);
+        const previousProjectRoot = process.env.CSTAR_PROJECT_ROOT;
+        process.env.CSTAR_PROJECT_ROOT = tmpRoot;
 
-        const result = await dispatcher.dispatch({
-            id: 'activation:echo:1',
-            skill_id: 'echo_skill',
-            target_path: 'src/example.ts',
-            intent: 'run internal skill bead',
-            params: { message: 'skill echo complete' },
-            status: 'PENDING',
-            priority: 1,
-        });
+        try {
+            const result = await dispatcher.dispatch({
+                id: 'activation:echo:1',
+                skill_id: 'echo_skill',
+                target_path: 'src/example.ts',
+                intent: 'run internal skill bead',
+                params: { message: 'skill echo complete' },
+                status: 'PENDING',
+                priority: 1,
+            });
 
-        assert.strictEqual(result.status, 'SUCCESS');
-        assert.strictEqual(result.output, 'skill echo complete');
-        assert.strictEqual(result.metadata?.operator_mode, 'subkernel');
+            assert.strictEqual(result.status, 'SUCCESS');
+            assert.strictEqual(result.output, 'skill echo complete');
+            assert.strictEqual(result.metadata?.operator_mode, 'subkernel');
+        } finally {
+            if (previousProjectRoot === undefined) {
+                delete process.env.CSTAR_PROJECT_ROOT;
+            } else {
+                process.env.CSTAR_PROJECT_ROOT = previousProjectRoot;
+            }
+        }
     });
 });

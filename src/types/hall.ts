@@ -55,6 +55,18 @@ export type HallOneMindBrokerStatus = 'OFFLINE' | 'READY' | 'ERROR';
 export type HallOneMindBindingState = 'UNBOUND' | 'BOUND';
 export type HallOneMindRequestStatus = 'PENDING' | 'CLAIMED' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
 export type HallOneMindBranchStatus = 'COMPLETED' | 'FAILED';
+export type HallAgentPresenceStatus = 'SLEEPING' | 'THINKING' | 'WORKING' | 'WAITING_FOR_HANDOFF' | 'OFFLINE';
+export type HallCoordinationScopeKind = 'REPOSITORY' | 'SESSION' | 'TRACE' | 'BEAD' | 'TARGET';
+export type HallCoordinationEventKind =
+    | 'CLAIM'
+    | 'HANDOFF'
+    | 'BROADCAST'
+    | 'INFO'
+    | 'ALERT'
+    | 'PROGRESS'
+    | 'BLOCKER'
+    | 'DECISION'
+    | 'SUMMARY';
 
 export interface HallRepositoryRecord {
     repo_id: string;
@@ -343,6 +355,44 @@ export interface HallOneMindBranchDigest {
     groups: HallOneMindBranchDigestGroup[];
 }
 
+export interface HallAgentPresenceRecord {
+    repo_id: string;
+    agent_id: string;
+    name: string;
+    status: HallAgentPresenceStatus;
+    current_task?: string;
+    active_bead_id?: string;
+    session_id?: string;
+    trace_id?: string;
+    target_path?: string;
+    watch_paths?: string[];
+    pid?: number;
+    metadata?: Record<string, unknown>;
+    created_at: number;
+    updated_at: number;
+}
+
+export interface HallCoordinationEventRecord {
+    event_id: string;
+    repo_id: string;
+    thread_id: string;
+    scope_kind: HallCoordinationScopeKind;
+    scope_ref: string;
+    event_kind: HallCoordinationEventKind;
+    from_agent_id: string;
+    to_agent_id?: string;
+    session_id?: string;
+    trace_id?: string;
+    bead_id?: string;
+    target_path?: string;
+    rationale: string;
+    summary: string;
+    payload?: Record<string, unknown>;
+    metadata?: Record<string, unknown>;
+    created_at: number;
+    updated_at: number;
+}
+
 export interface HallGitCommitRecord {
     commit_hash: string;
     repo_id: string;
@@ -417,6 +467,31 @@ export interface HallRepositorySummary {
 
 export function normalizeHallPath(inputPath: string): string {
     return inputPath.replace(/\\/g, '/').replace(/\/+$/, '');
+}
+
+export function buildHallCoordinationThreadId(scope: {
+    repoId?: string;
+    beadId?: string;
+    sessionId?: string;
+    traceId?: string;
+    targetPath?: string;
+}): string {
+    if (scope.beadId?.trim()) {
+        return `bead:${scope.beadId.trim()}`;
+    }
+    if (scope.sessionId?.trim()) {
+        return `session:${scope.sessionId.trim()}`;
+    }
+    if (scope.traceId?.trim()) {
+        return `trace:${scope.traceId.trim()}`;
+    }
+    if (scope.targetPath?.trim()) {
+        return `target:${normalizeHallPath(scope.targetPath.trim())}`;
+    }
+    if (scope.repoId?.trim()) {
+        return `repo:${scope.repoId.trim()}:coordination`;
+    }
+    return 'repo:unknown:coordination';
 }
 
 export function buildHallRepositoryId(rootPath: string): string {

@@ -24,7 +24,7 @@ describe('Orchestrate routing policy', () => {
         assert.equal(route, 'AUTOBOT');
     });
 
-    it('prefers host-worker for docs or architecture-heavy beads', () => {
+    it('prefers one-mind for docs or architecture-heavy beads', () => {
         const route = resolveExecutionRoute({
             id: 'bead-docs',
             repo_id: 'repo:/tmp',
@@ -42,7 +42,7 @@ describe('Orchestrate routing policy', () => {
             updated_at: Date.now(),
         });
 
-        assert.equal(route, 'HOST-WORKER');
+        assert.equal(route, 'ONE-MIND');
     });
 
     it('honors explicit assigned-agent routing when already set', () => {

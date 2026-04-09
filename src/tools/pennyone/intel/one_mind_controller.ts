@@ -346,6 +346,7 @@ export function claimNextHallOneMindRequest(
     rootPath: string = registry.getRoot(),
     leaseOwner: string,
     statuses: HallOneMindRequestStatus[] = ['PENDING'],
+    boundaries: HallOneMindRequestRecord['boundary'][] = ['primary', 'subagent', 'autobot'],
 ): HallOneMindRequestRecord | null {
     const db = database.getDb(rootPath);
     const repoId = buildHallRepositoryId(normalizeHallPath(rootPath));
@@ -354,14 +355,14 @@ export function claimNextHallOneMindRequest(
         SELECT request_id
         FROM hall_one_mind_requests
         WHERE repo_id = ?
-          AND boundary = 'primary'
+          AND boundary IN (${boundaries.map(() => '?').join(', ')})
           AND request_status IN (${statuses.map(() => '?').join(', ')})
         ORDER BY created_at ASC
         LIMIT 1
     `;
 
     const claim = db.transaction(() => {
-        const row = db.prepare(findSql).get(repoId, ...statuses) as { request_id?: string } | undefined;
+        const row = db.prepare(findSql).get(repoId, ...boundaries, ...statuses) as { request_id?: string } | undefined;
         if (!row?.request_id) {
             return null;
         }
@@ -396,6 +397,7 @@ export function claimHallOneMindRequest(
     rootPath: string = registry.getRoot(),
     leaseOwner: string,
     statuses: HallOneMindRequestStatus[] = ['PENDING'],
+    boundaries: HallOneMindRequestRecord['boundary'][] = ['primary', 'subagent', 'autobot'],
 ): HallOneMindRequestRecord | null {
     const db = database.getDb(rootPath);
     const now = Date.now();
@@ -406,9 +408,9 @@ export function claimHallOneMindRequest(
             claimed_at = ?,
             updated_at = ?
         WHERE request_id = ?
-          AND boundary = 'primary'
+          AND boundary IN (${boundaries.map(() => '?').join(', ')})
           AND request_status IN (${statuses.map(() => '?').join(', ')})
-    `).run(leaseOwner, now, now, requestId, ...statuses);
+    `).run(leaseOwner, now, now, requestId, ...boundaries, ...statuses);
 
     if (Number(result.changes ?? 0) === 0) {
         return null;

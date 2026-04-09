@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { RuntimeDispatcher } from  '../../../src/node/core/runtime/dispatcher.js';
 import { WeaveInvocation, WeaveResult } from  '../../../src/node/core/runtime/contracts.js';
+import { getHallBead } from '../../../src/tools/pennyone/intel/database.js';
 import { registry } from  '../../../src/tools/pennyone/pathRegistry.js';
 
 describe('RuntimeDispatcher', () => {
@@ -36,6 +37,71 @@ describe('RuntimeDispatcher', () => {
         }
         mock.reset();
     });
+
+    function createAgentStateFixture(agentId: 'gemini' | 'autobot' | 'codex' | 'droid' = 'gemini') {
+        const state = {
+            framework: {
+                active_persona: 'ALFRED',
+                status: 'AGENT_LOOP',
+                gungnir_score: 0,
+                intent_integrity: 0,
+                last_awakening: Date.now(),
+            },
+            agents: {
+                gemini: {
+                    id: 'gemini',
+                    name: 'Gemini',
+                    status: 'SLEEPING',
+                    last_seen: 0,
+                },
+                codex: {
+                    id: 'codex',
+                    name: 'Codex',
+                    status: 'SLEEPING',
+                    last_seen: 0,
+                },
+                autobot: {
+                    id: 'autobot',
+                    name: 'AutoBot (Hermes)',
+                    status: 'SLEEPING',
+                    last_seen: 0,
+                },
+                droid: {
+                    id: 'droid',
+                    name: 'Droid',
+                    status: 'SLEEPING',
+                    last_seen: 0,
+                },
+            },
+            blackboard: [] as Array<{ from: string; to: string; message: string; type: string; at?: number }>,
+        };
+        const saves: Array<typeof state> = [];
+        const blackboardPosts: Array<{ from: string; to: string; message: string; type: string }> = [];
+        const stateRegistry = {
+            get: mock.fn(() => state),
+            save: mock.fn((nextState: typeof state) => {
+                saves.push({
+                    ...nextState,
+                    framework: { ...nextState.framework },
+                    agents: {
+                        gemini: { ...nextState.agents.gemini },
+                        codex: { ...nextState.agents.codex },
+                        autobot: { ...nextState.agents.autobot },
+                        droid: { ...nextState.agents.droid },
+                    },
+                    blackboard: [...(nextState.blackboard || [])],
+                });
+            }),
+            postToBlackboard: mock.fn((entry: { from: string; to: string; message: string; type: string }) => {
+                blackboardPosts.push(entry);
+                state.blackboard = [...state.blackboard, { ...entry, at: Date.now() }];
+            }),
+            updateMission: mock.fn(),
+            updateFramework: mock.fn(),
+        };
+
+        return { state, saves, blackboardPosts, stateRegistry, agentId };
+    }
 
     it('should correctly dispatch to a registered adapter', async () => {
         const workspaceRoot = registry.getRoot();
@@ -259,7 +325,166 @@ describe('RuntimeDispatcher', () => {
         assert.strictEqual(mockAdapter.execute.mock.callCount(), 1);
     });
 
-    it('routes agent-native skill beads through the host bridge before runtime state updates', async () => {
+    it('rejects malformed chant trace blocks from the CLI before execution', async () => {
+        const workspaceRoot = registry.getRoot();
+        const chantAdapter = {
+            id: 'weave:chant',
+            execute: mock.fn(async (): Promise<WeaveResult> => ({
+                weave_id: 'weave:chant',
+                status: 'SUCCESS',
+                output: 'should not execute',
+            })),
+        };
+
+        const dispatcher = RuntimeDispatcher.createIsolated({
+            // @ts-ignore
+            resolveEstateTarget: () => ({ workspaceRoot, targetDomain: 'brain', requestedRoot: workspaceRoot }),
+            // @ts-ignore
+            stateRegistry: { updateMission: () => {}, updateFramework: () => {} },
+            activePersona: { name: 'ALFRED' },
+        });
+        dispatcher.registerAdapter(chantAdapter);
+
+        const result = await dispatcher.dispatch({
+            weave_id: 'weave:chant',
+            payload: {
+                query: `// Corvus Star Trace [Ω]
+Intent: malformed chant trace
+Selection: orchestrate
+Trajectory: STABLE
+Confidence: 1.4`,
+                project_root: workspaceRoot,
+                cwd: workspaceRoot,
+            },
+            session: {
+                mode: 'cli',
+                interactive: true,
+            },
+            target: {
+                domain: 'brain',
+                workspace_root: workspaceRoot,
+                requested_path: workspaceRoot,
+            },
+        });
+
+        assert.strictEqual(result.status, 'FAILURE');
+        assert.match(result.error ?? '', /machine-valid/);
+        assert.match(result.error ?? '', /Missing Intent Category/);
+        assert.match(result.error ?? '', /Selection must follow/);
+        assert.strictEqual(chantAdapter.execute.mock.callCount(), 0);
+    });
+
+    it('accepts machine-valid chant trace blocks from the CLI', async () => {
+        const workspaceRoot = registry.getRoot();
+        const chantAdapter = {
+            id: 'weave:chant',
+            execute: mock.fn(async (): Promise<WeaveResult> => ({
+                weave_id: 'weave:chant',
+                status: 'SUCCESS',
+                output: 'chant accepted',
+            })),
+        };
+
+        const dispatcher = RuntimeDispatcher.createIsolated({
+            // @ts-ignore
+            resolveEstateTarget: () => ({ workspaceRoot, targetDomain: 'brain', requestedRoot: workspaceRoot }),
+            // @ts-ignore
+            stateRegistry: { updateMission: () => {}, updateFramework: () => {} },
+            activePersona: { name: 'ALFRED' },
+        });
+        dispatcher.registerAdapter(chantAdapter);
+
+        const result = await dispatcher.dispatch({
+            weave_id: 'weave:chant',
+            payload: {
+                query: `// Corvus Star Trace [Ω]
+Intent Category: ORCHESTRATE
+Intent: Make chant the only intake gate
+Selection: WEAVE: orchestrate
+Trajectory: STABLE: Persist and surface the designation for agents.
+Mimir's Well: ◈ CStar/AGENTS.qmd | ◈ src/node/core/runtime/dispatcher.ts
+Gungnir Verdict: [L: 4.7 | S: 4.5 | I: 4.8 | Ω: 93%]
+Confidence: 0.94
+
+Seed the Hall contract for the scheduler migration.`,
+                project_root: workspaceRoot,
+                cwd: workspaceRoot,
+            },
+            session: {
+                mode: 'cli',
+                interactive: true,
+            },
+            target: {
+                domain: 'brain',
+                workspace_root: workspaceRoot,
+                requested_path: workspaceRoot,
+            },
+        });
+
+        assert.strictEqual(result.status, 'SUCCESS');
+        assert.strictEqual(result.output, 'chant accepted');
+        assert.strictEqual(chantAdapter.execute.mock.callCount(), 1);
+    });
+
+    it('synthesizes a runtime trace contract for direct CLI executions without a human-authored trace block', async () => {
+        const workspaceRoot = registry.getRoot();
+        const mockAdapter = {
+            id: 'weave:evolve',
+            execute: mock.fn(async (): Promise<WeaveResult> => ({
+                weave_id: 'weave:evolve',
+                status: 'SUCCESS',
+                output: 'evolve accepted',
+            })),
+        };
+
+        const dispatcher = RuntimeDispatcher.createIsolated({
+            // @ts-ignore
+            resolveEstateTarget: () => ({ workspaceRoot, targetDomain: 'brain', requestedRoot: workspaceRoot }),
+            // @ts-ignore
+            stateRegistry: { updateMission: mock.fn(), updateFramework: () => {} },
+            activePersona: { name: 'ALFRED' },
+        });
+        dispatcher.registerAdapter(mockAdapter);
+
+        const result = await dispatcher.dispatch({
+            weave_id: 'weave:evolve',
+            payload: {
+                action: 'propose',
+                bead_id: 'bead-runtime-1',
+                project_root: workspaceRoot,
+                cwd: workspaceRoot,
+                source: 'cli',
+            },
+            session: {
+                mode: 'cli',
+                interactive: true,
+            },
+            target: {
+                domain: 'brain',
+                workspace_root: workspaceRoot,
+                requested_path: workspaceRoot,
+            },
+        });
+
+        assert.strictEqual(result.status, 'SUCCESS');
+        assert.deepEqual(result.metadata?.trace_contract, {
+            intent_category: 'EVOLVE',
+            intent: 'Evolve bead bead-runtime-1.',
+            selection_tier: 'WEAVE',
+            selection_name: 'evolve',
+            trajectory_status: 'STABLE',
+            trajectory_reason: 'Dispatcher synthesized the designation from the explicit weave invocation.',
+            mimirs_well: ['src/node/core/runtime/dispatcher.ts'],
+            confidence: 0.72,
+            canonical_intent: 'Evolve bead bead-runtime-1.',
+        });
+        assert.strictEqual(result.metadata?.trace_designation_source, 'dispatcher_synthesized');
+        const executionBead = getHallBead(String(result.metadata?.execution_bead_id));
+        assert.equal(executionBead?.status, 'RESOLVED');
+        assert.deepEqual(executionBead?.metadata?.trace_contract, result.metadata?.trace_contract);
+    });
+
+    it('routes agent-native skill beads through the host bridge while still recording runtime mission state', async () => {
         const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-host-skill-dispatch-'));
         fs.mkdirSync(path.join(tmpRoot, '.agents'), { recursive: true });
         fs.writeFileSync(
@@ -317,7 +542,89 @@ describe('RuntimeDispatcher', () => {
         assert.strictEqual(result.output, 'Host fulfilled hall search.');
         assert.strictEqual(result.metadata?.adapter, 'host-session:agent-native-skill');
         assert.strictEqual(hostTextInvoker.mock.callCount(), 1);
-        assert.strictEqual(updateMission.mock.callCount(), 0);
+        assert.strictEqual(updateMission.mock.callCount(), 1);
+    });
+
+    it('marks the agent WORKING then SLEEPING and posts a blackboard event during successful dispatch', async () => {
+        const workspaceRoot = registry.getRoot();
+        const fixture = createAgentStateFixture('gemini');
+        const mockAdapter = {
+            id: 'weave:test-state',
+            execute: mock.fn(async (): Promise<WeaveResult> => ({
+                weave_id: 'weave:test-state',
+                status: 'SUCCESS',
+                output: 'state transition complete',
+            })),
+        };
+        const dispatcher = RuntimeDispatcher.createIsolated({
+            // @ts-ignore
+            resolveEstateTarget: () => ({ workspaceRoot, targetDomain: 'brain', requestedRoot: workspaceRoot }),
+            // @ts-ignore
+            stateRegistry: fixture.stateRegistry,
+            activePersona: { name: 'ALFRED' },
+        });
+
+        dispatcher.registerAdapter(mockAdapter);
+
+        const result = await dispatcher.dispatch({
+            weave_id: 'weave:test-state',
+            payload: {},
+            session: {
+                mode: 'subkernel',
+                interactive: false,
+            },
+        });
+
+        assert.strictEqual(result.status, 'SUCCESS');
+        assert.strictEqual(result.output, 'state transition complete');
+        assert.strictEqual(mockAdapter.execute.mock.callCount(), 1);
+        assert.strictEqual(fixture.saves.length, 2);
+        assert.strictEqual(fixture.saves[0].agents.gemini.status, 'WORKING');
+        assert.ok(fixture.saves[0].agents.gemini.active_bead_id);
+        assert.strictEqual(fixture.saves[1].agents.gemini.status, 'SLEEPING');
+        assert.strictEqual(fixture.saves[1].agents.gemini.active_bead_id, undefined);
+        assert.strictEqual(fixture.blackboardPosts.length, 1);
+        assert.match(fixture.blackboardPosts[0].message, /^Starting task: weave:test-state :: /);
+        assert.strictEqual(fixture.blackboardPosts[0].from, 'ALFRED');
+        assert.strictEqual(fixture.blackboardPosts[0].to, 'gemini');
+    });
+
+    it('still restores the agent to SLEEPING and posts the blackboard event when dispatch fails', async () => {
+        const workspaceRoot = registry.getRoot();
+        const fixture = createAgentStateFixture('gemini');
+        const mockAdapter = {
+            id: 'weave:test-failure',
+            execute: mock.fn(async (): Promise<WeaveResult> => {
+                throw new Error('Explosion');
+            }),
+        };
+        const dispatcher = RuntimeDispatcher.createIsolated({
+            // @ts-ignore
+            resolveEstateTarget: () => ({ workspaceRoot, targetDomain: 'brain', requestedRoot: workspaceRoot }),
+            // @ts-ignore
+            stateRegistry: fixture.stateRegistry,
+            activePersona: { name: 'ALFRED' },
+        });
+
+        dispatcher.registerAdapter(mockAdapter);
+
+        const result = await dispatcher.dispatch({
+            weave_id: 'weave:test-failure',
+            payload: {},
+            session: {
+                mode: 'subkernel',
+                interactive: false,
+            },
+        });
+
+        assert.strictEqual(result.status, 'FAILURE');
+        assert.ok(result.error?.includes('catastrophic failure: Explosion'));
+        assert.strictEqual(mockAdapter.execute.mock.callCount(), 1);
+        assert.strictEqual(fixture.saves.length, 2);
+        assert.strictEqual(fixture.saves[0].agents.gemini.status, 'WORKING');
+        assert.strictEqual(fixture.saves[1].agents.gemini.status, 'SLEEPING');
+        assert.strictEqual(fixture.blackboardPosts.length, 1);
+        assert.match(fixture.blackboardPosts[0].message, /^Starting task: weave:test-failure :: /);
     });
 
     it('fails closed when chant forbids kernel fallback and no host session is active', async () => {
@@ -470,45 +777,63 @@ describe('RuntimeDispatcher', () => {
         );
         registry.setRoot(tmpRoot);
 
-        const chantAdapter = {
-            id: 'weave:chant',
-            execute: mock.fn(async (): Promise<WeaveResult> => ({
+        const originalProjectRoot = process.env.CSTAR_PROJECT_ROOT;
+        const originalWorkspaceRoot = process.env.CSTAR_WORKSPACE_ROOT;
+        process.env.CSTAR_PROJECT_ROOT = tmpRoot;
+        process.env.CSTAR_WORKSPACE_ROOT = tmpRoot;
+
+        try {
+            const chantAdapter = {
+                id: 'weave:chant',
+                execute: mock.fn(async (): Promise<WeaveResult> => ({
+                    weave_id: 'weave:chant',
+                    status: 'SUCCESS',
+                    output: 'node chant should not execute',
+                })),
+            };
+            const dispatcher = RuntimeDispatcher.createIsolated({
+                // @ts-ignore
+                resolveEstateTarget: () => ({ workspaceRoot: tmpRoot, targetDomain: 'brain', requestedRoot: tmpRoot }),
+                // @ts-ignore
+                stateRegistry: { updateMission: mock.fn(), updateFramework: mock.fn() },
+                activePersona: { name: 'ODIN' },
+            });
+            dispatcher.registerAdapter(chantAdapter);
+
+            const result = await dispatcher.dispatch({
                 weave_id: 'weave:chant',
-                status: 'SUCCESS',
-                output: 'node chant should not execute',
-            })),
-        };
-        const dispatcher = RuntimeDispatcher.createIsolated({
-            // @ts-ignore
-            resolveEstateTarget: () => ({ workspaceRoot: tmpRoot, targetDomain: 'brain', requestedRoot: tmpRoot }),
-            // @ts-ignore
-            stateRegistry: { updateMission: mock.fn(), updateFramework: mock.fn() },
-            activePersona: { name: 'ODIN' },
-        });
-        dispatcher.registerAdapter(chantAdapter);
+                payload: {
+                    query: '// Corvus Star Trace [Ω]\nIntent: test direct weave path',
+                    project_root: tmpRoot,
+                    cwd: tmpRoot,
+                },
+                session: {
+                    mode: 'subkernel',
+                    interactive: false,
+                },
+                target: {
+                    domain: 'brain',
+                    workspace_root: tmpRoot,
+                    requested_path: tmpRoot,
+                },
+            });
 
-        const result = await dispatcher.dispatch({
-            weave_id: 'weave:chant',
-            payload: {
-                query: '// Corvus Star Trace [Ω]\nIntent: test direct weave path',
-                project_root: tmpRoot,
-                cwd: tmpRoot,
-            },
-            session: {
-                mode: 'subkernel',
-                interactive: false,
-            },
-            target: {
-                domain: 'brain',
-                workspace_root: tmpRoot,
-                requested_path: tmpRoot,
-            },
-        });
-
-        assert.strictEqual(result.status, 'FAILURE');
-        assert.match(result.error ?? '', /host-workflow/i);
-        assert.equal(result.metadata?.ownership_model, 'host-workflow');
-        assert.strictEqual(chantAdapter.execute.mock.callCount(), 0);
+            assert.strictEqual(result.status, 'FAILURE');
+            assert.match(result.error ?? '', /host-workflow/i);
+            assert.equal(result.metadata?.ownership_model, 'host-workflow');
+            assert.strictEqual(chantAdapter.execute.mock.callCount(), 0);
+        } finally {
+            if (originalProjectRoot === undefined) {
+                delete process.env.CSTAR_PROJECT_ROOT;
+            } else {
+                process.env.CSTAR_PROJECT_ROOT = originalProjectRoot;
+            }
+            if (originalWorkspaceRoot === undefined) {
+                delete process.env.CSTAR_WORKSPACE_ROOT;
+            } else {
+                process.env.CSTAR_WORKSPACE_ROOT = originalWorkspaceRoot;
+            }
+        }
     });
 
     it('asks the host to supervise a failed kernel-backed skill and retries once when directed', async () => {

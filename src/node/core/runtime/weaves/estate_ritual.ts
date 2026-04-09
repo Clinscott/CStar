@@ -8,6 +8,7 @@ import {
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import fs from 'node:fs';
+import { inheritTraceInvocation, inheritTraceSkillBead } from '../trace_inheritance.js';
 
 export interface EstateRitualPayload {
     include_spokes?: boolean;
@@ -38,20 +39,20 @@ export class EstateRitualWeave implements RuntimeAdapter<EstateRitualPayload> {
 
         // 2. INGEST (Bookmark Weaver)
         results.push('\n--- [STAGE 2: THE INGEST] ---');
-        const ingestResult = await this.dispatchPort.dispatch({
+        const ingestResult = await this.dispatchPort.dispatch(inheritTraceSkillBead({
             skill_id: 'bookmark-weaver',
             target_path: projectRoot,
             intent: 'Daily bookmark ingestion ritual.',
             params: {},
             status: 'PENDING',
             priority: 1
-        } as any);
+        } as any, context));
         results.push(ingestResult.status === 'SUCCESS' ? (ingestResult.output || 'Ingestion complete.') : `Ingestion failed: ${ingestResult.error}`);
 
         // 3. THE SWARM (Host Governor Resume)
         if (invocation.payload.auto_execute !== false) {
             results.push('\n--- [STAGE 3: THE SWARM] ---');
-            const governorResult = await this.dispatchPort.dispatch({
+            const governorResult = await this.dispatchPort.dispatch(inheritTraceInvocation({
                 weave_id: 'weave:host-governor',
                 payload: {
                     task: 'Daily autonomous maintenance swarm.',
@@ -63,7 +64,7 @@ export class EstateRitualWeave implements RuntimeAdapter<EstateRitualPayload> {
                     source: 'ritual',
                 },
                 session: invocation.session,
-            });
+            }, context));
             results.push(governorResult.status === 'SUCCESS' ? (governorResult.output || 'Swarm initiated.') : `Swarm failed: ${governorResult.error}`);
         }
 

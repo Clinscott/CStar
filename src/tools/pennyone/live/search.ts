@@ -486,8 +486,8 @@ export async function searchMatrix(query: string, _targetPath: string = '.'): Pr
         process.stdout.write(HUD.boxNote(`Found ${totalHits} Hall matches via heuristic scan.`));
         process.stdout.write(HUD.boxBottom());
 
-    } catch (err) {
-        process.stdout.write(HUD.boxRow('ERROR', 'Hall of Records currently inaccessible.', chalk.red));
+    } catch (err: any) {
+        process.stdout.write(HUD.boxRow('ERROR', `Hall of Records currently inaccessible: ${err.message}`, chalk.red));
         process.stdout.write(HUD.boxBottom());
     }
 }

@@ -11,6 +11,13 @@ export interface PlannedSkillActivation {
     metadata?: Record<string, unknown>;
 }
 
+export interface PlanningExecutionHints {
+    planning_session_id?: string;
+    trace_selection_name?: string;
+    trace_selection_tier?: string;
+    execution_profile?: 'governance' | 'implementation';
+}
+
 function hasChecker(bead: SovereignBead): boolean {
     return typeof bead.checker_shell === 'string' && bead.checker_shell.trim().length > 0;
 }
@@ -27,13 +34,72 @@ function isCodeLike(targetPath: string): boolean {
     return /\.(ts|tsx|js|jsx|py|go|rs|java|c|cc|cpp|h)$/i.test(targetPath);
 }
 
-export function planSkillActivationForBead(bead: SovereignBead): PlannedSkillActivation {
+function withPlanningHints(
+    metadata: Record<string, unknown>,
+    hints: PlanningExecutionHints | undefined,
+): Record<string, unknown> {
+    if (!hints) {
+        return metadata;
+    }
+
+    return {
+        ...metadata,
+        planning_session_id: hints.planning_session_id,
+        trace_selection_name: hints.trace_selection_name,
+        trace_selection_tier: hints.trace_selection_tier,
+        trace_execution_profile: hints.execution_profile,
+    };
+}
+
+export function planSkillActivationForBead(
+    bead: SovereignBead,
+    hints?: PlanningExecutionHints,
+): PlannedSkillActivation {
     const targetPath = String(bead.target_path ?? bead.target_ref ?? '').trim();
     const normalizedTarget = targetPath.toLowerCase();
     const rationale = String(bead.rationale ?? '').trim();
     const isWorkflowTarget = bead.target_kind === 'WORKFLOW' || bead.target_kind === 'REPOSITORY' || bead.target_kind === 'OTHER';
     const targetsPlanningState = typeof bead.target_ref === 'string' && bead.target_ref.startsWith('chant-session:');
     const architectureHeavy = typeof bead.architect_opinion === 'string' && bead.architect_opinion.trim().length > 0;
+    const isTechnicalChild = bead.id.includes(':child:technical');
+    const isLedgerChild = bead.id.includes(':child:ledger');
+
+    if (hints?.execution_profile === 'implementation' && isTechnicalChild) {
+        return {
+            skill_id: 'autobot',
+            adapter_id: 'weave:autobot',
+            role: 'backend',
+            intent: rationale || `Execute implementation child ${bead.id}`,
+            target_path: targetPath || undefined,
+            payload: {
+                bead_id: bead.id,
+                checker_shell: bead.checker_shell,
+            },
+            metadata: withPlanningHints({
+                activation_class: 'implementation',
+                source_bead_id: bead.id,
+            }, hints),
+        };
+    }
+
+    if (hints?.execution_profile === 'governance' && isLedgerChild) {
+        return {
+            skill_id: 'research',
+            adapter_id: 'weave:research',
+            role: 'governance',
+            intent: rationale || `Governance follow-through for ${bead.id}`,
+            target_path: targetPath || undefined,
+            payload: {
+                intent: rationale || `Governance follow-through for ${bead.id}`,
+                rationale: bead.rationale,
+                subquestions: [targetPath].filter(Boolean),
+            },
+            metadata: withPlanningHints({
+                activation_class: 'governance',
+                source_bead_id: bead.id,
+            }, hints),
+        };
+    }
 
     if (isWorkflowTarget || targetsPlanningState || architectureHeavy) {
         return {
@@ -47,10 +113,10 @@ export function planSkillActivationForBead(bead: SovereignBead): PlannedSkillAct
                 rationale: bead.rationale,
                 subquestions: [targetPath].filter(Boolean),
             },
-            metadata: {
+            metadata: withPlanningHints({
                 activation_class: 'planning',
                 source_bead_id: bead.id,
-            },
+            }, hints),
         };
     }
 
@@ -65,10 +131,10 @@ export function planSkillActivationForBead(bead: SovereignBead): PlannedSkillAct
                 bead_id: bead.id,
                 target_path: targetPath,
             },
-            metadata: {
+            metadata: withPlanningHints({
                 activation_class: 'review',
                 source_bead_id: bead.id,
-            },
+            }, hints),
         };
     }
 
@@ -83,10 +149,10 @@ export function planSkillActivationForBead(bead: SovereignBead): PlannedSkillAct
                 bead_id: bead.id,
                 checker_shell: bead.checker_shell,
             },
-            metadata: {
+            metadata: withPlanningHints({
                 activation_class: hasChecker(bead) ? 'verification' : 'documentation',
                 source_bead_id: bead.id,
-            },
+            }, hints),
         };
     }
 
@@ -100,10 +166,10 @@ export function planSkillActivationForBead(bead: SovereignBead): PlannedSkillAct
             payload: {
                 bead_id: bead.id,
             },
-            metadata: {
+            metadata: withPlanningHints({
                 activation_class: 'implementation',
                 source_bead_id: bead.id,
-            },
+            }, hints),
         };
     }
 
@@ -117,10 +183,10 @@ export function planSkillActivationForBead(bead: SovereignBead): PlannedSkillAct
             intent: rationale || `Investigate ${bead.id}`,
             rationale: bead.rationale,
         },
-        metadata: {
+        metadata: withPlanningHints({
             activation_class: 'observation',
             source_bead_id: bead.id,
-        },
+        }, hints),
     };
 }
 
@@ -155,10 +221,15 @@ export function buildSkillActivationParams(
     planned: PlannedSkillActivation,
     projectRoot: string,
     cwd: string,
+    hints?: PlanningExecutionHints,
 ): Record<string, unknown> {
     const base = {
         project_root: projectRoot,
         cwd,
+        planning_session_id: hints?.planning_session_id,
+        trace_selection_name: hints?.trace_selection_name,
+        trace_selection_tier: hints?.trace_selection_tier,
+        trace_execution_profile: hints?.execution_profile,
     };
 
     if (planned.adapter_id === 'weave:research') {
@@ -167,6 +238,7 @@ export function buildSkillActivationParams(
             intent: planned.intent,
             rationale: bead.rationale,
             subquestions: Array.isArray(planned.payload?.subquestions) ? planned.payload?.subquestions : undefined,
+            subagent_profile: planned.role,
         };
     }
 

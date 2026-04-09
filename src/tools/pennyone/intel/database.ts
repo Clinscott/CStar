@@ -21,6 +21,7 @@ import {
     saveTrace
 } from './bead_controller.js';
 import { 
+    getHallSkillActivation,
     getHallPlanningSession, 
     backfillHallPlanningSessionMetadata,
     backfillHallSkillProposalMetadata,
@@ -51,6 +52,13 @@ import {
     saveHallOneMindRequest,
     summarizeHallOneMindBranches,
 } from './one_mind_controller.js';
+import {
+    getHallAgentPresence,
+    listHallAgentPresence,
+    listHallCoordinationEvents,
+    saveHallAgentPresence,
+    saveHallCoordinationEvent,
+} from './agent_coordination_controller.js';
 import { 
     getHallRepositoryRecord, 
     listHallRepositories,
@@ -139,6 +147,7 @@ export class HallDatabase {
     public backfillHallSkillProposalMetadata = backfillHallSkillProposalMetadata;
     public saveHallPlanningSession = saveHallPlanningSession;
     public listHallPlanningSessions = listHallPlanningSessions;
+    public getHallSkillActivation = getHallSkillActivation;
     public saveHallSkillActivation = saveHallSkillActivation;
     public getHallOneMindBroker = getHallOneMindBroker;
     public getHallOneMindRequest = getHallOneMindRequest;
@@ -150,6 +159,11 @@ export class HallDatabase {
     public listHallOneMindBranches = listHallOneMindBranches;
     public summarizeHallOneMindBranches = summarizeHallOneMindBranches;
     public listHallOneMindRequests = listHallOneMindRequests;
+    public saveHallAgentPresence = saveHallAgentPresence;
+    public getHallAgentPresence = getHallAgentPresence;
+    public listHallAgentPresence = listHallAgentPresence;
+    public saveHallCoordinationEvent = saveHallCoordinationEvent;
+    public listHallCoordinationEvents = listHallCoordinationEvents;
     public listHallSkillActivations = listHallSkillActivations;
     public saveHallSkillProposal = saveHallSkillProposal;
     public listHallSkillProposals = listHallSkillProposals;
@@ -182,6 +196,7 @@ export class HallDatabase {
     public getHallMountedSpoke = getHallMountedSpoke;
     public listHallMountedSpokes = listHallMountedSpokes;
     public saveHallMountedSpoke = saveHallMountedSpoke;
+    public removeHallMountedSpoke = removeHallMountedSpoke;
     public getHallSummary = getHallSummary;
     public updateFtsIndex = updateFtsIndex;
     public updateChronicleIndex = updateChronicleIndex;
@@ -244,6 +259,7 @@ export {
     saveHallPlanningSession,
     listHallPlanningSessions,
     listHallPlanningSessions as getHallPlanningSessions,
+    getHallSkillActivation,
     saveHallSkillActivation,
     claimHallOneMindRequest,
     claimNextHallOneMindRequest,
@@ -255,6 +271,11 @@ export {
     listHallOneMindBranches,
     summarizeHallOneMindBranches,
     listHallOneMindRequests,
+    saveHallAgentPresence,
+    getHallAgentPresence,
+    listHallAgentPresence,
+    saveHallCoordinationEvent,
+    listHallCoordinationEvents,
     listHallSkillActivations,
     saveHallSkillProposal,
     listHallSkillProposals,

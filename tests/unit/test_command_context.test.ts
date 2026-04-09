@@ -9,7 +9,7 @@ import {
     resetCommandContextDedupe,
     shouldProjectOperationalContext,
 } from '../../src/node/core/commands/command_context.js';
-import { closeDb, saveHallPlanningSession } from '../../src/tools/pennyone/intel/database.js';
+import { closeDb, getHallBead, saveHallPlanningSession, upsertHallBead } from '../../src/tools/pennyone/intel/database.js';
 import { registry } from '../../src/tools/pennyone/pathRegistry.js';
 import { buildHallRepositoryId, normalizeHallPath } from '../../src/types/hall.js';
 
@@ -257,5 +257,76 @@ describe('Command context renderer', () => {
         assert.equal(lines.length, 2);
         assert.match(lines[0] ?? '', /trace=PROPOSAL_REVIEW \| TRACE-HALL \| \{R=1 A=1\} \| Proposal ready\./);
         assert.match(lines[1] ?? '', /note=Persist this host context\./);
+    });
+
+    it('emits and persists runtime trace context for non-planning executions', () => {
+        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-command-context-runtime-'));
+        registry.setRoot(tmpRoot);
+        closeDb();
+        resetCommandContextDedupe();
+        const repoId = buildHallRepositoryId(normalizeHallPath(tmpRoot));
+        const now = Date.now();
+
+        upsertHallBead({
+            bead_id: 'mission-runtime-1',
+            repo_id: repoId,
+            target_kind: 'OTHER',
+            target_ref: 'weave:evolve',
+            rationale: 'Mission execution: weave:evolve',
+            status: 'OPEN',
+            created_at: now,
+            updated_at: now,
+        });
+        upsertHallBead({
+            bead_id: 'mission-runtime-1:exec:weave:evolve:1',
+            repo_id: repoId,
+            target_kind: 'WEAVE',
+            target_ref: 'weave:evolve',
+            target_path: 'src/runtime.ts',
+            rationale: 'Execution of weave:evolve under mission MISSION-10001',
+            status: 'RESOLVED',
+            created_at: now,
+            updated_at: now,
+        });
+
+        const lines: string[] = [];
+        const restore = mock.method(console, 'log', (...args: unknown[]) => {
+            lines.push(args.map((value) => String(value)).join(' '));
+        });
+
+        try {
+            renderOperationalContext({
+                weave_id: 'weave:evolve',
+                status: 'SUCCESS',
+                output: 'ok',
+                metadata: {
+                    mission_bead_id: 'mission-runtime-1',
+                    execution_bead_id: 'mission-runtime-1:exec:weave:evolve:1',
+                    trace_contract: {
+                        intent_category: 'EVOLVE',
+                        intent: 'Evolve bead bead-runtime-1.',
+                        selection_tier: 'WEAVE',
+                        selection_name: 'evolve',
+                        trajectory_status: 'STABLE',
+                        trajectory_reason: 'Dispatcher synthesized the designation from the explicit weave invocation.',
+                        mimirs_well: ['src/node/core/runtime/dispatcher.ts'],
+                        confidence: 0.72,
+                        canonical_intent: 'Evolve bead bead-runtime-1.',
+                    },
+                    notes: 'Review the execution bead before promoting follow-up work.',
+                },
+            }, tmpRoot);
+        } finally {
+            restore.mock.restore();
+            closeDb();
+        }
+
+        assert.equal(lines.length, 2);
+        assert.match(lines[0] ?? '', /trace=SUCCESS \| WEAVE: evolve \| EVOLVE \| Evolve bead bead-runtime-1\./);
+        assert.match(lines[1] ?? '', /note=Review the execution bead before promoting follow-up work\./);
+
+        const executionBead = getHallBead('mission-runtime-1:exec:weave:evolve:1');
+        assert.equal((executionBead?.metadata?.host_cli_context as Record<string, unknown>)?.trace_line, 'trace=SUCCESS | WEAVE: evolve | EVOLVE | Evolve bead bead-runtime-1.');
+        assert.equal((executionBead?.metadata?.host_cli_context as Record<string, unknown>)?.note_line, 'note=Review the execution bead before promoting follow-up work.');
     });
 });

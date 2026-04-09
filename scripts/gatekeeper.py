@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
-import subprocess
 import os
+import json
 from pathlib import Path
 
 # [Ω] CSTAR GATEKEEPER KERNEL ENFORCER (v1.0)
@@ -22,39 +22,31 @@ def get_project_root():
         return cwd
     return Path(__file__).resolve().parent.parent
 
-def run_cstar(cmd):
-    """Run a cstar command and return the output."""
+def read_inert_state():
+    """Read the persisted CStar state without starting the TypeScript runtime."""
     project_root = get_project_root()
+    state_path = project_root / ".agents" / "sovereign_state.json"
+    if not state_path.exists():
+        return {}
     try:
-        # Use npx tsx cstar.ts for reliability in this environment
-        result = subprocess.run(
-            ["npx", "tsx", str(project_root / "cstar.ts"), *cmd.split()],
-            cwd=str(project_root),
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        return result.stdout
-    except subprocess.CalledProcessError as e:
-        print(f"[KERNEL PANIC]: {e.stderr}")
-        return None
+        return json.loads(state_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as e:
+        print(f"[KERNEL PANIC]: Could not read inert CStar state: {e}")
+        return {}
 
 def main():
     print("◤ C* GATEKEEPER: SCANNING FOR LINSCOTT BREACHES ◢")
     
-    # 1. Check Gungnir Integrity
-    status_output = run_cstar("status")
-    if not status_output:
-        print("[FAIL]: Could not handshake with Kernel.")
-        sys.exit(1)
+    # 1. Check persisted Gungnir Integrity without launching CStar.
+    state = read_inert_state()
+    framework = state.get("framework", {})
         
     # 2. Extract Gungnir Score (Naive check)
-    # GUNGNIR Ω:      0.00
-    for line in status_output.splitlines():
-        if "GUNGNIR Ω:" in line:
-            score = float(line.split(":")[-1].strip())
-            print(f"  • Current Gungnir Score: {score}")
-            break
+    score = framework.get("gungnir_score")
+    if isinstance(score, (int, float)):
+        print(f"  • Current Gungnir Score: {score}")
+    else:
+        print("  • Current Gungnir Score: unknown (state missing)")
 
     # 3. Check for Linscott Breach (Missing tests)
     # Run the 'calculus' skill if available

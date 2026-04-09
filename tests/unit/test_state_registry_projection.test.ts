@@ -12,6 +12,8 @@ import {
 } from '../../src/node/core/state.ts';
 import {
     closeDb,
+    listHallAgentPresence,
+    listHallCoordinationEvents,
     getHallRepositoryRecord,
     getHallSummary,
     listHallMountedSpokes,
@@ -257,5 +259,36 @@ describe('State registry projection boundary (CS-P2-00)', () => {
         assert.equal(fs.existsSync(path.join(controlRoot, '.agents', 'sovereign_state.json')), true);
         assert.equal(fs.existsSync(path.join(workspaceRoot, '.agents', 'sovereign_state.json')), false);
         assert.ok(getHallRepositoryRecord(controlRoot));
+    });
+
+    it('mirrors roster focus and blackboard handoffs into Hall coordination records', () => {
+        const state = StateRegistry.get();
+        state.framework.bead_id = 'bead-sync-1';
+        state.agents.codex.status = 'WORKING';
+        state.agents.codex.current_task = 'Investigate the Hall contract';
+        state.agents.codex.active_bead_id = 'bead-sync-1';
+        state.agents.codex.last_seen = 1700000003333;
+
+        StateRegistry.save(state);
+        StateRegistry.postToBlackboard({
+            from: 'ALFRED',
+            to: 'codex',
+            message: 'Read the coordination ledger before editing.',
+            type: 'HANDOFF',
+        });
+
+        const roster = listHallAgentPresence(controlRoot, { statuses: ['WORKING'] });
+        const events = listHallCoordinationEvents(controlRoot, { beadId: 'bead-sync-1' });
+
+        assert.equal(roster.length, 1);
+        assert.equal(roster[0]?.agent_id, 'codex');
+        assert.equal(roster[0]?.current_task, 'Investigate the Hall contract');
+        assert.equal(roster[0]?.active_bead_id, 'bead-sync-1');
+
+        assert.equal(events.length, 1);
+        assert.equal(events[0]?.event_kind, 'HANDOFF');
+        assert.equal(events[0]?.from_agent_id, 'ALFRED');
+        assert.equal(events[0]?.to_agent_id, 'codex');
+        assert.equal(events[0]?.summary, 'Read the coordination ledger before editing.');
     });
 });

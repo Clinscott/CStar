@@ -2,6 +2,11 @@ import { getParser, TreeSitter } from  '../parser.js';
 import { crawlRepository } from  '../crawler.js';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+const { UndirectedGraph } = require('graphology') as { UndirectedGraph: new () => any };
+const louvain = require('graphology-communities-louvain') as (graph: any) => Record<string, number>;
 
 export interface SemanticSymbol {
     name: string;
@@ -10,8 +15,16 @@ export interface SemanticSymbol {
     path: string;
 }
 
+export interface SemanticFileResult {
+    path: string;
+    dependencies: string[];
+    symbols: any[];
+    logic: number;
+    cluster?: number;
+}
+
 /**
- * PennyOne Semantic Indexer (v2.0)
+ * PennyOne Semantic Indexer (v2.5)
  * Purpose: Transition from heuristic string matching to symbol-aware dependency resolution.
  * Mandate: Linscott Standard / SCIP Alignment
  */
@@ -25,7 +38,7 @@ export class SemanticIndexer {
 
     public async index(manualFiles?: string[]) {
         const files = manualFiles || await crawlRepository(this.root);
-        const results = [];
+        const results: SemanticFileResult[] = [];
 
         // 1. DEFINITIONS
         for (const file of files) {
@@ -42,20 +55,41 @@ export class SemanticIndexer {
             }
         }
 
-        // 2. USAGES
+        // 2. USAGES & DEPENDENCIES
+        const graph = new UndirectedGraph();
         for (const file of files) {
             try {
+                const absPath = path.resolve(file);
+                if (!graph.hasNode(absPath)) graph.addNode(absPath);
+
                 const data = await this.analyzeSemantically(file);
                 results.push(data);
+
+                // Add edges to graph for clustering
+                data.dependencies.forEach(dep => {
+                    const absDep = path.resolve(dep);
+                    if (!graph.hasNode(absDep)) graph.addNode(absDep);
+                    if (!graph.hasEdge(absPath, absDep)) {
+                        graph.addEdge(absPath, absDep);
+                    }
+                });
             } catch {
                 // Skip
             }
         }
 
+        // 3. COMMUNITY DETECTION (Leiden/Louvain)
+        // [Ω] GUNGNIR UPGRADE: Grouping symbols into functional clusters automatically.
+        const clusters = louvain(graph);
+        results.forEach(res => {
+            res.cluster = clusters[res.path];
+        });
+
         return {
-            version: '2.0.0-semantic',
+            version: '2.5.0-semantic',
             scanned_at: new Date().toISOString(),
-            files: results
+            files: results,
+            clusters
         };
     }
 
@@ -93,12 +127,12 @@ export class SemanticIndexer {
                 for (const m of matches) {
                     const nameCapture = m.captures.find(c => c.name === 'name');
                     const symbolCapture = m.captures.find(c => c.name === 'symbol');
-                    
+
                     if (nameCapture && nameCapture.node.text === symbol_name && symbolCapture) {
                         return symbolCapture.node.text;
                     }
                 }
-            } catch (e) { 
+            } catch (e) {
                 // console.error(`Query error for pattern ${p}:`, e);
             }
         }
@@ -187,5 +221,3 @@ export class SemanticIndexer {
         };
     }
 }
-
-

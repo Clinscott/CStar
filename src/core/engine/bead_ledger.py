@@ -24,6 +24,7 @@ PROJECTION_MARKERS = {
     "SUPERSEDED": "[~]",
 }
 NON_EXECUTABLE_CONTRACT_PREFIXES = ("lore:", "workflow:", "registry:")
+SYSTEM_TELEMETRY_PREFIXES = ("Mission execution:", "Execution of ")
 
 
 def _normalize_contract_ref(ref: Any) -> str | None:
@@ -825,23 +826,27 @@ class BeadLedger:
         )
 
     def _format_projection_line(self, bead: SovereignBead) -> str:
+        def clean(value: str | None) -> str:
+            return re.sub(r"\s+", " ", value or "").strip()
+
         marker = PROJECTION_MARKERS.get(bead.status, "[ ]")
-        target = bead.target_path or bead.target_ref or f"{bead.target_kind.lower()}:unscoped"
+        target = clean(bead.target_path or bead.target_ref or f"{bead.target_kind.lower()}:unscoped")
         overall = self._overall_score(bead)
         contract_suffix = ""
         if bead.contract_refs:
-            contract_suffix = f" | contracts: {', '.join(bead.contract_refs)}"
-        assignment_suffix = f" | agent: {bead.assigned_agent}" if bead.assigned_agent else ""
-        acceptance_suffix = f" | acceptance: {bead.acceptance_criteria}" if bead.acceptance_criteria else ""
-        triage_suffix = f" | triage: {bead.triage_reason}" if bead.triage_reason else ""
-        resolution_suffix = f" | note: {bead.resolution_note}" if bead.resolution_note else ""
-        validation_suffix = f" | validation: {bead.resolved_validation_id}" if bead.resolved_validation_id else ""
-        superseded_suffix = f" | superseded_by: {bead.superseded_by}" if bead.superseded_by else ""
-        return (
-            f"- {marker} [{bead.id}] `{target}` :: {bead.rationale}"
+            contract_suffix = f" | contracts: {', '.join(clean(ref) for ref in bead.contract_refs)}"
+        assignment_suffix = f" | agent: {clean(bead.assigned_agent)}" if bead.assigned_agent else ""
+        acceptance_suffix = f" | acceptance: {clean(bead.acceptance_criteria)}" if bead.acceptance_criteria else ""
+        triage_suffix = f" | triage: {clean(bead.triage_reason)}" if bead.triage_reason else ""
+        resolution_suffix = f" | note: {clean(bead.resolution_note)}" if bead.resolution_note else ""
+        validation_suffix = f" | validation: {clean(bead.resolved_validation_id)}" if bead.resolved_validation_id else ""
+        superseded_suffix = f" | superseded_by: {clean(bead.superseded_by)}" if bead.superseded_by else ""
+        line = (
+            f"- {marker} [{bead.id}] `{target}` :: {clean(bead.rationale)}"
             f" | scan: {bead.scan_id} | baseline: {overall:.2f}"
             f"{assignment_suffix}{contract_suffix}{acceptance_suffix}{triage_suffix}{resolution_suffix}{validation_suffix}{superseded_suffix}"
         )
+        return line.rstrip()
 
     @staticmethod
     def _overall_score(bead: SovereignBead) -> float:
@@ -954,6 +959,23 @@ class BeadLedger:
             superseded_by=bead.superseded_by,
         )
 
+        if self._is_system_execution_telemetry(normalized):
+            normalized.status = "ARCHIVED"
+            normalized.assigned_agent = None
+            normalized.triage_reason = None
+            normalized.resolution_note = (
+                normalized.resolution_note
+                or "System execution telemetry retained outside the actionable bead backlog."
+            )
+            normalized.updated_at = self._now() if normalized != bead else normalized.updated_at
+            return normalized
+
+        normalized = self._backfill_initialization_fields(normalized)
+        if self._can_reopen_from_initialization_triage(normalized):
+            normalized.status = "OPEN"
+            normalized.assigned_agent = None
+            normalized.triage_reason = None
+
         has_validation = self._find_accepted_validation_id(conn, normalized.id) is not None
 
         if normalized.status in ("OPEN", "IN_PROGRESS", "READY_FOR_REVIEW"):
@@ -1009,6 +1031,166 @@ class BeadLedger:
 
         normalized.updated_at = self._now() if normalized != bead else normalized.updated_at
         return normalized
+
+    @staticmethod
+    def _is_system_execution_telemetry(bead: SovereignBead) -> bool:
+        if bead.source_kind != "SYSTEM":
+            return False
+        if bead.status not in {"OPEN", "IN_PROGRESS", "READY_FOR_REVIEW", "NEEDS_TRIAGE"}:
+            return False
+        rationale = bead.rationale.strip()
+        if not any(rationale.startswith(prefix) for prefix in SYSTEM_TELEMETRY_PREFIXES):
+            return False
+        return bead.target_kind in {"SYSTEM", "WEAVE", "SKILL"}
+
+    def _backfill_initialization_fields(self, bead: SovereignBead) -> SovereignBead:
+        contract_refs = list(bead.contract_refs)
+        acceptance_criteria = bead.acceptance_criteria
+
+        if bead.source_kind == "LEVEL_5_DIAGNOSTIC":
+            if not contract_refs:
+                contract_refs = self._derive_contract_refs(bead)
+            if not acceptance_criteria:
+                acceptance_criteria = self._derive_diagnostic_acceptance_criteria(bead)
+        elif bead.source_kind == "LEVEL_5_RESTORATION":
+            if not contract_refs:
+                contract_refs = self._derive_contract_refs(bead)
+            if not acceptance_criteria:
+                acceptance_criteria = self._derive_restoration_acceptance_criteria(bead)
+        elif bead.source_kind == "SYSTEM" and bead.id.endswith((":child:architecture", ":child:technical", ":child:ledger")):
+            if not contract_refs:
+                contract_refs = self._derive_contract_refs(bead)
+            if not acceptance_criteria:
+                acceptance_criteria = self._derive_system_child_acceptance_criteria(bead)
+        elif bead.source_kind == "SYSTEM" and not contract_refs and acceptance_criteria and bead.target_path:
+            contract_refs = self._derive_contract_refs(bead)
+
+        if contract_refs == bead.contract_refs and acceptance_criteria == bead.acceptance_criteria:
+            return bead
+
+        return SovereignBead(
+            id=bead.id,
+            repo_id=bead.repo_id,
+            scan_id=bead.scan_id,
+            target_kind=bead.target_kind,
+            target_ref=bead.target_ref,
+            target_path=bead.target_path,
+            rationale=bead.rationale,
+            contract_refs=contract_refs,
+            baseline_scores=dict(bead.baseline_scores),
+            acceptance_criteria=acceptance_criteria,
+            checker_shell=bead.checker_shell,
+            status=bead.status,
+            assigned_agent=bead.assigned_agent,
+            created_at=bead.created_at,
+            updated_at=bead.updated_at,
+            legacy_id=bead.legacy_id,
+            source_kind=bead.source_kind,
+            triage_reason=bead.triage_reason,
+            resolution_note=bead.resolution_note,
+            resolved_validation_id=bead.resolved_validation_id,
+            superseded_by=bead.superseded_by,
+        )
+
+    @staticmethod
+    def _dedupe_lines(lines: Sequence[str]) -> str:
+        seen: set[str] = set()
+        ordered: list[str] = []
+        for line in lines:
+            clean = " ".join(str(line).split()).strip()
+            if not clean or clean in seen:
+                continue
+            seen.add(clean)
+            ordered.append(clean)
+        return "\n".join(ordered)
+
+    def _derive_contract_refs(self, bead: SovereignBead) -> list[str]:
+        target_path = normalize_hall_path(bead.target_path) if bead.target_path else None
+        target_ref = normalize_hall_path(bead.target_ref) if bead.target_ref and ("/" in bead.target_ref or "\\" in bead.target_ref) else bead.target_ref
+
+        if bead.target_kind in {"FILE", "VALIDATION"} and target_path:
+            return [f"file:{target_path}"]
+        if bead.target_kind == "SECTOR":
+            sector = target_path or target_ref
+            if sector:
+                return [f"sector:{sector}"]
+        if bead.target_kind in {"WORKFLOW", "WEAVE", "SKILL", "SYSTEM"}:
+            ref = target_ref or target_path
+            if ref:
+                return [f"runtime:{ref}"]
+        if target_path:
+            return [f"file:{target_path}"]
+        if target_ref:
+            return [f"runtime:{target_ref}"]
+        return []
+
+    def _derive_diagnostic_acceptance_criteria(self, bead: SovereignBead) -> str:
+        target = bead.target_path or bead.target_ref or bead.id
+        rationale = bead.rationale
+        lowered = rationale.lower()
+        lines = [
+            f"Resolve the cited diagnostic findings for {target}.",
+            f"Record canonical validation evidence for {target}.",
+        ]
+        if "missing explicit 1:1 unit test" in lowered or "linscott breach" in lowered:
+            lines.insert(0, f"Add or update a focused 1:1 test that exercises {target}.")
+        if "file weight exceeds 500 lines" in lowered or "high complexity risk" in lowered:
+            lines.insert(0, f"Reduce complexity in {target} through bounded extraction or simplification without changing intended behavior.")
+        if "legacy/action term found" in lowered or "legacy" in lowered:
+            lines.insert(0, f"Remove stale legacy terminology in {target} so the file matches current CStar authority.")
+        return self._dedupe_lines(lines)
+
+    def _derive_restoration_acceptance_criteria(self, bead: SovereignBead) -> str:
+        scope = bead.target_path or bead.target_ref or bead.id
+        match = re.search(r"(\d+)\s+Linscott Breaches?", bead.rationale)
+        breach_count = match.group(1) if match else None
+        lines = [
+            f"Run the restoration sweep for {scope}.",
+            f"Record canonical validation evidence for the remediation work in {scope}.",
+        ]
+        if breach_count:
+            lines.insert(1, f"Reduce or decompose the cited {breach_count} Linscott breaches in {scope} into bounded follow-through work.")
+        return self._dedupe_lines(lines)
+
+    def _derive_system_child_acceptance_criteria(self, bead: SovereignBead) -> str:
+        target = bead.target_path or bead.target_ref or bead.id
+        rationale = bead.rationale.strip()
+        if rationale.startswith("Architectural decomposition and provider-fit planning for "):
+            return self._dedupe_lines([
+                f"Produce a bounded provider-fit architecture plan for {target}.",
+                "Leave the planning session ready for the next deterministic execution path.",
+            ])
+        if rationale.startswith("Hall/state mutation follow-through for "):
+            return self._dedupe_lines([
+                f"Complete the required Hall/state mutation follow-through for {target}.",
+                "Record the resulting Hall mutation in the canonical ledger.",
+            ])
+        if rationale.startswith("Architectural decomposition for "):
+            return self._dedupe_lines([
+                f"Produce a bounded architecture/decomposition plan for {target}.",
+                "Leave the follow-through scoped tightly enough for the next worker pass.",
+            ])
+        return self._dedupe_lines([
+            f"Complete the bounded follow-through for {target}.",
+            "Record the resulting validation or ledger evidence.",
+        ])
+
+    def _can_reopen_from_initialization_triage(self, bead: SovereignBead) -> bool:
+        if bead.status != "NEEDS_TRIAGE":
+            return False
+        if bead.source_kind not in {"LEVEL_5_DIAGNOSTIC", "LEVEL_5_RESTORATION", "SYSTEM"}:
+            return False
+        if bead.triage_reason not in {
+            "Missing canonical target identity.",
+            "Missing acceptance criteria.",
+            "Missing canonical contract references.",
+        }:
+            return False
+        return (
+            self._has_target_identity(bead)
+            and bool(bead.acceptance_criteria)
+            and self.has_executable_contract_refs(bead.contract_refs)
+        )
 
     def _infer_target_identity(self, bead: SovereignBead) -> tuple[str, str | None, str | None]:
         target_kind = self._normalize_target_kind(bead.target_kind, bead.target_path)

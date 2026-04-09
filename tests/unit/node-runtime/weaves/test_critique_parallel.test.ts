@@ -1,7 +1,7 @@
-import { describe, it } from 'node:test';
+import { describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { CritiqueWeave } from '../../../../src/node/core/runtime/host_workflows/critique.js';
+import { CritiqueWeave, deps } from '../../../../src/node/core/runtime/host_workflows/critique.js';
 
 describe('CritiqueWeave parallel focus-area behavior', () => {
     it('merges bounded focus-area critiques in input order', async () => {
@@ -20,7 +20,17 @@ describe('CritiqueWeave parallel focus-area behavior', () => {
             }),
         ];
         let index = 0;
-        const weave = new CritiqueWeave({} as any, async () => responses[index++] ?? responses[responses.length - 1]);
+        const weave = new CritiqueWeave({} as any);
+        mock.method(deps, 'requestHostDelegatedExecution', async () => ({
+            handle_id: `delegate-${index}`,
+            provider: 'codex',
+            status: 'completed',
+            raw_text: responses[index++] ?? responses[responses.length - 1],
+            metadata: {
+                execution_surface: 'host-cli-inference',
+                delegation_mode: 'provider-native',
+            },
+        }));
 
         const result = await weave.execute(
             {
@@ -45,5 +55,44 @@ describe('CritiqueWeave parallel focus-area behavior', () => {
         assert.match(result.output, /\[contracts\] Tighten the acceptance criteria\./);
         assert.match(result.output, /\[validation\] The checker shell is acceptable\./);
         assert.equal((result.metadata?.critique_payload as { needs_revision?: boolean }).needs_revision, true);
+        mock.reset();
+    });
+
+    it('queues delegated critique requests when a poll bridge is configured', async () => {
+        const savedRequests: Array<Record<string, unknown>> = [];
+        const weave = new CritiqueWeave({} as any);
+        mock.method(deps, 'resolveConfiguredDelegatePollBridge', () => ({
+            command: 'delegate-poll',
+            args: ['--handle', '{handle_id}', '--result', '{result_path}'],
+        }));
+        mock.method(deps, 'saveHallOneMindRequest', (record: Record<string, unknown>) => {
+            savedRequests.push(record);
+        });
+
+        const result = await weave.execute(
+            {
+                weave_id: 'weave:critique',
+                payload: {
+                    bead: { title: 'Current bead' },
+                    research: { summary: 'Local research' },
+                    focus_areas: ['contracts', 'validation'],
+                    cwd: '.',
+                    project_root: '.',
+                },
+            } as any,
+            {
+                workspace_root: '.',
+                env: { CODEX_SHELL: '1', CODEX_THREAD_ID: 'thread-1' },
+                bead_id: 'activation:critique:1',
+                trace_id: 'trace-critique-queued',
+                mission_id: 'mission-critique-queued',
+            } as any,
+        );
+
+        assert.equal(result.status, 'TRANSITIONAL');
+        assert.equal(savedRequests.length, 2);
+        assert.equal(savedRequests[0]?.metadata?.activation_id, 'activation:critique:1');
+        assert.equal(savedRequests[0]?.metadata?.branch_group_id, 'critique:trace-critique-queued');
+        mock.reset();
     });
 });

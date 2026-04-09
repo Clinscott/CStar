@@ -105,7 +105,11 @@ class ArchitectOnlyDispatchPort implements RuntimeDispatchPort {
     }
 }
 
-function createContext(workspaceRoot: string, sessionId?: string): RuntimeContext {
+function createContext(
+    workspaceRoot: string,
+    sessionId?: string,
+    traceContract?: RuntimeContext['trace_contract'],
+): RuntimeContext {
     return {
         mission_id: 'MISSION-CHANT-PLAN',
         trace_id: `TRACE-${sessionId ?? 'PLAN'}`,
@@ -115,6 +119,8 @@ function createContext(workspaceRoot: string, sessionId?: string): RuntimeContex
         target_domain: 'brain',
         interactive: true,
         session_id: sessionId,
+        trace_contract: traceContract,
+        trace_designation_source: traceContract ? 'dispatcher_synthesized' : undefined,
         env: {},
         timestamp: Date.now(),
     };
@@ -285,6 +291,148 @@ describe('Chant collaborative planning (CS-P7-03)', () => {
         assert.ok(session);
         assert.equal(session?.status, 'PROPOSAL_REVIEW');
         assert.match(session?.normalized_intent ?? '', /FOLLOW_UP:/);
+    });
+
+    it('persists the structured trace contract into Hall planning metadata', async () => {
+        mock.method(plannerDeps, 'executeArchitectService', async () => ({
+            weave_id: 'weave:architect',
+            status: 'SUCCESS',
+            output: 'Architect proposal ready.',
+            metadata: {
+                architect_proposal: {
+                    proposal_summary: 'Trace contract planning proposal.',
+                    beads: [
+                        {
+                            id: 'trace-contract-plan',
+                            title: 'Persist trace contract',
+                            rationale: 'Carry the designated trace fields into Hall.',
+                            targets: ['src/runtime.ts'],
+                            depends_on: [],
+                            acceptance_criteria: ['The trace contract is durable in Hall metadata.'],
+                        },
+                    ],
+                },
+            },
+        }));
+        const chant = new ChantWeave(new NoopDispatchPort());
+        const result = await chant.execute(
+            {
+                weave_id: 'weave:chant',
+                payload: {
+                    query: `// Corvus Star Trace [Ω]
+Intent Category: ORCHESTRATE
+Intent: Make chant the only intake gate
+Selection: WEAVE: orchestrate
+Trajectory: STABLE: Persist the designation for future agents.
+Mimir's Well: ◈ CStar/AGENTS.qmd | ◈ src/node/core/runtime/dispatcher.ts
+Gungnir Verdict: [L: 4.7 | S: 4.5 | I: 4.8 | Ω: 93%]
+Confidence: 0.94
+
+Seed the Hall contract for the scheduler migration.`,
+                    project_root: tmpRoot,
+                    cwd: tmpRoot,
+                    source: 'cli',
+                },
+                target: {
+                    domain: 'brain',
+                    workspace_root: tmpRoot,
+                    requested_path: tmpRoot,
+                },
+                session: {
+                    mode: 'tui',
+                    interactive: true,
+                },
+            },
+            createContext(tmpRoot),
+        );
+
+        const sessionId = String(result.metadata?.planning_session_id);
+        const session = getHallPlanningSession(sessionId);
+        assert.ok(session);
+        assert.deepEqual(session?.metadata?.trace_contract, {
+            intent_category: 'ORCHESTRATE',
+            intent: 'Make chant the only intake gate',
+            selection_tier: 'WEAVE',
+            selection_name: 'orchestrate',
+            trajectory_status: 'STABLE',
+            trajectory_reason: 'Persist the designation for future agents.',
+            mimirs_well: ['CStar/AGENTS.qmd', 'src/node/core/runtime/dispatcher.ts'],
+            gungnir_verdict: '[L: 4.7 | S: 4.5 | I: 4.8 | Ω: 93%]',
+            confidence: 0.94,
+            body: 'Seed the Hall contract for the scheduler migration.',
+            canonical_intent: 'Seed the Hall contract for the scheduler migration.',
+        });
+        assert.equal(session?.metadata?.trace_contract_version, 1);
+    });
+
+    it('persists a dispatcher-supplied trace contract when chant runs without an explicit trace block', async () => {
+        mock.method(plannerDeps, 'executeArchitectService', async () => ({
+            weave_id: 'weave:architect',
+            status: 'SUCCESS',
+            output: 'Architect proposal ready.',
+            metadata: {
+                architect_proposal: {
+                    proposal_summary: 'Synthetic trace contract planning proposal.',
+                    beads: [
+                        {
+                            id: 'synthetic-trace-plan',
+                            title: 'Persist synthetic trace contract',
+                            rationale: 'Honor dispatcher-provided trace designation for agent flows.',
+                            targets: ['src/runtime.ts'],
+                            depends_on: [],
+                            acceptance_criteria: ['The synthetic trace contract is durable in Hall metadata.'],
+                        },
+                    ],
+                },
+            },
+        }));
+        const chant = new ChantWeave(new NoopDispatchPort());
+        const result = await chant.execute(
+            {
+                weave_id: 'weave:chant',
+                payload: {
+                    query: 'plan the next bounded runtime change',
+                    project_root: tmpRoot,
+                    cwd: tmpRoot,
+                    source: 'cli',
+                },
+                target: {
+                    domain: 'brain',
+                    workspace_root: tmpRoot,
+                    requested_path: tmpRoot,
+                },
+                session: {
+                    mode: 'tui',
+                    interactive: true,
+                },
+            },
+            createContext(tmpRoot, undefined, {
+                intent_category: 'ORCHESTRATE',
+                intent: 'Plan the next bounded runtime change.',
+                selection_tier: 'WEAVE',
+                selection_name: 'chant',
+                trajectory_status: 'STABLE',
+                trajectory_reason: 'Dispatcher synthesized the designation from the explicit weave invocation.',
+                mimirs_well: ['src/node/core/runtime/dispatcher.ts'],
+                confidence: 0.72,
+                canonical_intent: 'Plan the next bounded runtime change.',
+            }),
+        );
+
+        const sessionId = String(result.metadata?.planning_session_id);
+        const session = getHallPlanningSession(sessionId);
+        assert.ok(session);
+        assert.deepEqual(session?.metadata?.trace_contract, {
+            intent_category: 'ORCHESTRATE',
+            intent: 'Plan the next bounded runtime change.',
+            selection_tier: 'WEAVE',
+            selection_name: 'chant',
+            trajectory_status: 'STABLE',
+            trajectory_reason: 'Dispatcher synthesized the designation from the explicit weave invocation.',
+            mimirs_well: ['src/node/core/runtime/dispatcher.ts'],
+            confidence: 0.72,
+            canonical_intent: 'Plan the next bounded runtime change.',
+        });
     });
 
     it('persists in-flight planning state before blocking phases and carries research into architect synthesis', async () => {

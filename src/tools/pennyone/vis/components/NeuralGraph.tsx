@@ -169,10 +169,11 @@ export const NeuralGraph: React.FC<{ onRefresh?: () => void }> = ({ onRefresh })
             {/* [🚀] INSTANCED LOGIC NODES */}
             <Instances range={logicNodes.length}>
                 <icosahedronGeometry args={[15, 1]} />
-                <meshStandardMaterial emissive="#ffffff" emissiveIntensity={0.5} />
+                <meshStandardMaterial emissiveIntensity={0.5} />
                 {logicNodes.map((node, i) => (
                     <Instance 
                         key={`logic-${node.path}`} 
+                        color={getClusterColor(node.cluster)}
                         position={[node.x || 0, node.y || 0, node.z || 0]} 
                         onClick={(e) => { e.stopPropagation(); handleNodeClick(node); }}
                         onPointerOver={(e) => { e.stopPropagation(); setHovered({ type: 'LOGIC', id: i }); document.body.style.cursor = 'pointer'; }}
@@ -184,15 +185,30 @@ export const NeuralGraph: React.FC<{ onRefresh?: () => void }> = ({ onRefresh })
             {/* [🚀] INSTANCED PYTHON NODES */}
             <Instances range={pyNodes.length}>
                 <tetrahedronGeometry args={[18, 0]} />
-                <meshStandardMaterial emissive="#ffffff" emissiveIntensity={0.5} />
+                <meshStandardMaterial emissiveIntensity={0.5} />
                 {pyNodes.map((node, i) => (
                     <Instance 
                         key={`py-${node.path}`} 
+                        color={getClusterColor(node.cluster)}
                         position={[node.x || 0, node.y || 0, node.z || 0]} 
                         onClick={(e) => { e.stopPropagation(); handleNodeClick(node); }}
                         onPointerOver={(e) => { e.stopPropagation(); setHovered({ type: 'PYTHON', id: i }); document.body.style.cursor = 'pointer'; }}
                         onPointerOut={() => { setHovered(null); document.body.style.cursor = 'auto'; }}
                     />
+                ))}
+            </Instances>
+
+            {allNodes.filter(n => (n.gravity || 0) > 50 || (Number((n.matrix as any)?.logic) || 10) < 4.0).map((node) => (
+                <FresnelAura key={`aura-${node.path}`} node={node} />
+            ))}
+
+            {allNodes.map((node) => <TextLabel key={`label-${node.path}`} node={node} />)}
+
+            {selectedNode && <SelectionHighlight node={selectedNode} />}
+        </group>
+    );
+};
+              />
                 ))}
             </Instances>
 

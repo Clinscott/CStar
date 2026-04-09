@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, it } from 'node:test';
+import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -7,8 +7,8 @@ import path from 'node:path';
 import type { RuntimeContext, RuntimeDispatchPort, WeaveInvocation, WeaveResult } from  '../../src/node/core/runtime/contracts.js';
 import { ArchitectCompatibilityAdapter } from  '../../src/node/core/runtime/compat/architect.js';
 import { DistillWeave } from  '../../src/node/core/runtime/weaves/distill.js';
-import { CritiqueWeave } from  '../../src/node/core/runtime/host_workflows/critique.js';
-import { ResearchWeave } from  '../../src/node/core/runtime/host_workflows/research.js';
+import { CritiqueWeave, deps as critiqueDeps } from  '../../src/node/core/runtime/host_workflows/critique.js';
+import { ResearchWeave, deps as researchDeps } from  '../../src/node/core/runtime/host_workflows/research.js';
 import { closeDb, getHallEpisodicMemory, upsertHallBead, upsertHallRepository } from  '../../src/tools/pennyone/intel/database.js';
 import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
 import { buildHallRepositoryId } from  '../../src/types/hall.js';
@@ -54,15 +54,24 @@ describe('Host-session runtime weaves', () => {
 
     afterEach(() => {
         closeDb();
+        mock.reset();
     });
 
     it('lets research execute through the Codex host session', async () => {
-        const weave = new ResearchWeave(new NoopDispatchPort(), async () =>
-            JSON.stringify({
+        const weave = new ResearchWeave(new NoopDispatchPort());
+        mock.method(researchDeps, 'requestHostDelegatedExecution', async () => ({
+            handle_id: 'delegate-1',
+            provider: 'codex',
+            status: 'completed',
+            raw_text: JSON.stringify({
                 summary: 'Codex summarized the intent and identified the next planning step.',
                 research_artifacts: ['repo:local'],
             }),
-        );
+            metadata: {
+                execution_surface: 'host-cli-inference',
+                delegation_mode: 'provider-native',
+            },
+        }));
 
         const result = await weave.execute(
             {
@@ -95,7 +104,17 @@ describe('Host-session runtime weaves', () => {
             }),
         ];
         let index = 0;
-        const weave = new ResearchWeave(new NoopDispatchPort(), async () => responses[index++] ?? responses[responses.length - 1]);
+        const weave = new ResearchWeave(new NoopDispatchPort());
+        mock.method(researchDeps, 'requestHostDelegatedExecution', async () => ({
+            handle_id: `delegate-${index}`,
+            provider: 'codex',
+            status: 'completed',
+            raw_text: responses[index++] ?? responses[responses.length - 1],
+            metadata: {
+                execution_surface: 'host-cli-inference',
+                delegation_mode: 'provider-native',
+            },
+        }));
 
         const result = await weave.execute(
             {
@@ -120,12 +139,20 @@ describe('Host-session runtime weaves', () => {
     });
 
     it('lets research execute through a non-Codex host provider when the runtime host bridge is configured', async () => {
-        const weave = new ResearchWeave(new NoopDispatchPort(), async () =>
-            JSON.stringify({
+        const weave = new ResearchWeave(new NoopDispatchPort());
+        mock.method(researchDeps, 'requestHostDelegatedExecution', async () => ({
+            handle_id: 'delegate-claude',
+            provider: 'claude',
+            status: 'completed',
+            raw_text: JSON.stringify({
                 summary: 'Claude summarized the intent and identified the next planning step.',
                 research_artifacts: ['repo:claude'],
             }),
-        );
+            metadata: {
+                execution_surface: 'host-cli-inference',
+                delegation_mode: 'provider-native',
+            },
+        }));
 
         const result = await weave.execute(
             {
@@ -147,14 +174,22 @@ describe('Host-session runtime weaves', () => {
     });
 
     it('lets critique execute through the Codex host session', async () => {
-        const weave = new CritiqueWeave(new NoopDispatchPort(), async () =>
-            JSON.stringify({
+        const weave = new CritiqueWeave(new NoopDispatchPort());
+        mock.method(critiqueDeps, 'requestHostDelegatedExecution', async () => ({
+            handle_id: 'delegate-critique-1',
+            provider: 'codex',
+            status: 'completed',
+            raw_text: JSON.stringify({
                 needs_revision: true,
                 critique: 'The bead should narrow the acceptance criteria.',
                 evidence_source: 'repo:local',
                 proposed_path: 'src/node/core/runtime/host_workflows/chant.ts',
             }),
-        );
+            metadata: {
+                execution_surface: 'host-cli-inference',
+                delegation_mode: 'provider-native',
+            },
+        }));
 
         const result = await weave.execute(
             {
@@ -190,7 +225,17 @@ describe('Host-session runtime weaves', () => {
             }),
         ];
         let index = 0;
-        const weave = new CritiqueWeave(new NoopDispatchPort(), async () => responses[index++] ?? responses[responses.length - 1]);
+        const weave = new CritiqueWeave(new NoopDispatchPort());
+        mock.method(critiqueDeps, 'requestHostDelegatedExecution', async () => ({
+            handle_id: `delegate-critique-${index}`,
+            provider: 'codex',
+            status: 'completed',
+            raw_text: responses[index++] ?? responses[responses.length - 1],
+            metadata: {
+                execution_surface: 'host-cli-inference',
+                delegation_mode: 'provider-native',
+            },
+        }));
 
         const result = await weave.execute(
             {

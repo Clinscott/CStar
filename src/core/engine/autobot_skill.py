@@ -19,7 +19,6 @@ from pathlib import Path
 from typing import Any, Sequence
 
 from src.core.engine.bead_ledger import BeadLedger, SovereignBead
-from src.core.engine.sovereign_worker import SovereignWorker
 from src.core.engine.validation_result import (
     ValidationCheck,
     create_validation_result,
@@ -28,7 +27,7 @@ from src.core.engine.validation_result import (
 
 DEFAULT_PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_AUTOBOT_DIR = Path("/home/morderith/Corvus/AutoBot")
-DEFAULT_SOVEREIGN_MODEL = "deepseek"
+DEFAULT_SOVEREIGN_MODEL = os.environ.get("CORVUS_AUTOBOT_MODEL", os.environ.get("CSTAR_SOVEREIGN_MODEL", "deepseek"))
 DEFAULT_SOVEREIGN_BASE_URL = "http://localhost:11434/v1"
 DEFAULT_SOVEREIGN_API_KEY = "sk-dummy-string"
 DEFAULT_READY_REGEX = r"(?:^|\n)\s*❯\s*$"
@@ -616,7 +615,7 @@ def default_hermes_command(autobot_dir: Path) -> str:
 
 
 def default_hermes_command_args() -> list[str]:
-    return ["chat", "-m", DEFAULT_HERMES_MODEL]
+    return ["chat", "-m", DEFAULT_SOVEREIGN_MODEL]
 
 
 def build_command(command: str | None, command_args: Sequence[str], *, autobot_dir: Path) -> list[str]:
@@ -645,8 +644,8 @@ def build_bead_command(
 
 def build_base_env(env: dict[str, str] | None = None) -> dict[str, str]:
     merged = {
-        "OPENAI_BASE_URL": DEFAULT_HERMES_BASE_URL,
-        "OPENAI_API_KEY": DEFAULT_HERMES_API_KEY,
+        "OPENAI_BASE_URL": DEFAULT_SOVEREIGN_BASE_URL,
+        "OPENAI_API_KEY": DEFAULT_SOVEREIGN_API_KEY,
     }
     merged.update(env or {})
     return merged
@@ -1224,42 +1223,16 @@ def run_bead_mode(args: argparse.Namespace, base_env: dict[str, str]) -> AutoBot
             task_prompt=task_prompt,
         )
         try:
-            # PIVOT: Using CStar-native SovereignWorker instead of Hermes CLI
-            worker = SovereignWorker(
-                project_root=args.project_root,
-                model=DEFAULT_HERMES_MODEL,
-                base_url=DEFAULT_HERMES_BASE_URL,
-                max_turns=10
+            hermes_result, command_result = run_bead_query(
+                bead_command,
+                cwd=args.autobot_dir,
+                timeout_seconds=args.timeout,
+                grace_seconds=args.grace_seconds,
+                stream_output=not args.no_stream,
+                extra_env=bead_env,
+                done_regexes=[*args.done_regex, re.escape(done_sentinel)],
             )
-            
-            system_prompt = (
-                "You are a CStar Sovereign Worker. Your goal is to complete the user's task by using tools.\n"
-                "You MUST use tools via XML: <invoke name='tool_name'><arg_name>value</arg_name></invoke>.\n"
-                "Available tools: read_file, write_file, run_shell_command, list_directory.\n"
-                "Think in <thought> tags before acting.\n"
-                "When finished, summarize your work and end with the word DONE."
-            )
-            
-            start_time = time.time()
-            transcript = worker.run(system_prompt, task_prompt)
-            elapsed = time.time() - start_time
-            
-            hermes_result = RunResult(
-                success=True,
-                reason="SovereignWorker completed task loop.",
-                matched_pattern="DONE",
-                returncode=0,
-                elapsed_seconds=elapsed
-            )
-            
-            command_result = CommandResult(
-                command=["sovereign_worker", "--project-root", str(args.project_root)],
-                returncode=0,
-                timed_out=False,
-                elapsed_seconds=elapsed,
-                output=transcript
-            )
-            
+
             artifact = persist_attempt_artifact(
                 project_root=args.project_root,
                 bead=bead,

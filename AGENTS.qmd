@@ -9,6 +9,12 @@ Corvus Star (C*) operates on a **Host-Native First** development philosophy.
 2. Maintain the **90% Fidelity Floor** for all narrative and lore optimization loops.
 3. Every functional change must be grounded in a host-traceable Bead.
 
+### ▷ Codex Host-Only Contract
+- Capabilities marked `entry_surface: host-only` execute inside the active agent harness, not through public shell commands.
+- In Codex, the authoritative runtime seam is `RuntimeDispatcher.dispatch(SkillBead)` with an injected `hostSessionInvoker`. External `codex exec` fallback is compatibility transport only.
+- Shell routes must fail closed for `host-only` skills. If a shell path appears to work, treat it as architectural drift and repair it.
+- Reference: `docs/integrations/host_native_skill_contract.md`
+
 ---
 
 ## 🔱 THE AGENT PROTOCOLS (CORVUS STAR)

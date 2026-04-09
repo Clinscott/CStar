@@ -155,7 +155,7 @@ describe('Orchestrator Internal Spokes [Ω]', () => {
 
             const noteIndex = calls[0]?.args.indexOf('--worker-note') ?? -1;
             const note = noteIndex >= 0 ? calls[0]?.args[noteIndex + 1] : '';
-            assert.match(note ?? '', /Local Hermes micro-bead/i);
+            assert.match(note ?? '', /Local SovereignWorker micro-bead/i);
             assert.match(note ?? '', /Do not invent imports, dependencies, commands, or files/i);
             assert.match(note ?? '', /Target file role: Runtime worker target/i);
             assert.doesNotMatch(note ?? '', /PennyOne imports/i);
@@ -174,7 +174,7 @@ describe('Orchestrator Internal Spokes [Ω]', () => {
             assert.strictEqual(result, 'NEEDS_TRIAGE', 'Empty success should trigger triage');
         });
 
-        it('maps timeout exit codes to BLOCKED', async () => {
+        it('maps timeout exit codes to SET for host-worker escalation', async () => {
             const reaper = new OrchestratorReaper(tmpRoot);
             const result = await reaper.mapOutcome('test-bead-id', {
                 exitCode: 124,
@@ -182,7 +182,7 @@ describe('Orchestrator Internal Spokes [Ω]', () => {
                 stderr: 'timeout signal',
                 timedOut: true
             });
-            assert.strictEqual(result, 'BLOCKED', 'Timeout must block the bead');
+            assert.strictEqual(result, 'SET', 'Timeout should return the bead to SET for host-worker escalation');
         });
 
         it('preserves resolved Hall status after a successful checked worker run', async () => {

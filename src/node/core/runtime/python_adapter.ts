@@ -4,6 +4,7 @@ import { createGungnirMatrix } from '../../../types/gungnir.js';
 import { getPythonPath } from '../python_utils.js';
 import path from 'node:path';
 import { RegistryEntry } from './universal_adapter.js';
+import { StateRegistry } from '../state.js';
 
 /**
  * [🔱] PYTHON SKILL ADAPTER
@@ -43,7 +44,7 @@ export class PythonSkillAdapter implements RuntimeAdapter {
                 }
             }
             
-            const result = await execa(pythonPath, args, {
+            const child = execa(pythonPath, args, {
                 cwd: context.workspace_root,
                 env: { 
                     ...context.env, 
@@ -53,6 +54,27 @@ export class PythonSkillAdapter implements RuntimeAdapter {
                 input: payloadJson, // Also provide via stdin for versatility
                 reject: false
             });
+
+            const agentLabel = this.id.includes('autobot') ? 'AutoBot' : 'Python';
+            child.stdout?.on('data', (data) => {
+                const lines = data.toString().split('\n');
+                for (const line of lines) {
+                    if (line.trim()) {
+                        StateRegistry.pushTerminalLog(`[${agentLabel}] ${line.trim()}`);
+                    }
+                }
+            });
+
+            child.stderr?.on('data', (data) => {
+                const lines = data.toString().split('\n');
+                for (const line of lines) {
+                    if (line.trim()) {
+                        StateRegistry.pushTerminalLog(`[${agentLabel}:ERR] ${line.trim()}`);
+                    }
+                }
+            });
+
+            const result = await child;
 
             // Try to parse Python output as JSON if possible
             let output = result.stdout;

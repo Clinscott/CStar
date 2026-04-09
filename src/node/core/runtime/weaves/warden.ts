@@ -8,6 +8,7 @@ import {
 } from '../contracts.ts';
 import * as hostBridge from './host_bridge.js';
 import { Warden } from '../../../../tools/pennyone/intel/warden.js';
+import { inheritTraceInvocation } from '../trace_inheritance.js';
 
 export const deps = {
     resolveRuntimeHostProvider: hostBridge.resolveRuntimeHostProvider,
@@ -97,7 +98,9 @@ export class WardenWeave implements RuntimeAdapter<WardenWeavePayload> {
                     metadata: {
                         runtime_weave: 'warden',
                         decision: 'warden-supervisor',
-                        transport_mode: 'session-required',
+                        trace_critical: true,
+                        require_agent_harness: true,
+                        transport_mode: 'host_session',
                     },
                 });
                 const decision = normalizeWardenDecision(raw);
@@ -116,7 +119,7 @@ export class WardenWeave implements RuntimeAdapter<WardenWeavePayload> {
                     };
                 }
                 if (decision?.action === 'replan') {
-                    const chantResult = await this.dispatchPort.dispatch({
+                    const chantResult = await this.dispatchPort.dispatch(inheritTraceInvocation({
                         weave_id: 'weave:chant',
                         payload: {
                             query: `Replan warden evaluation${payload.spoke ? ` for spoke ${payload.spoke}` : ''}${payload.aggressive ? ' with aggressive anomaly focus' : ''}`,
@@ -124,7 +127,7 @@ export class WardenWeave implements RuntimeAdapter<WardenWeavePayload> {
                             cwd: context.workspace_root,
                             source: 'runtime',
                         },
-                    });
+                    }, context));
                     return {
                         weave_id: this.id,
                         status: chantResult.status,

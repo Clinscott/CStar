@@ -10,6 +10,7 @@ import {
 } from '../contracts.ts';
 import chalk from 'chalk';
 import * as hostBridge from '../weaves/host_bridge.js';
+import { inheritTraceInvocation } from '../trace_inheritance.js';
 
 export const deps = {
     resolveRuntimeHostProvider: hostBridge.resolveRuntimeHostProvider,
@@ -99,7 +100,9 @@ export class VigilanceHostWorkflow implements RuntimeAdapter<VigilanceWeavePaylo
                     metadata: {
                         runtime_weave: 'vigilance',
                         decision: 'vigilance-supervisor',
-                        transport_mode: 'session-required',
+                        trace_critical: true,
+                        require_agent_harness: true,
+                        transport_mode: 'host_session',
                     },
                 });
                 const decision = normalizeVigilanceDecision(raw);
@@ -117,7 +120,7 @@ export class VigilanceHostWorkflow implements RuntimeAdapter<VigilanceWeavePaylo
                     };
                 }
                 if (decision?.action === 'replan') {
-                    const chantResult = await this.dispatchPort.dispatch({
+                    const chantResult = await this.dispatchPort.dispatch(inheritTraceInvocation({
                         weave_id: 'weave:chant',
                         payload: {
                             query: `Replan vigilance sweep${payload.spoke ? ` for spoke ${payload.spoke}` : ''}${payload.aggressive ? ' with aggressive audit' : ''}`,
@@ -125,7 +128,7 @@ export class VigilanceHostWorkflow implements RuntimeAdapter<VigilanceWeavePaylo
                             cwd: context.workspace_root,
                             source: 'runtime',
                         },
-                    });
+                    }, context));
                     return {
                         weave_id: this.id,
                         status: chantResult.status,

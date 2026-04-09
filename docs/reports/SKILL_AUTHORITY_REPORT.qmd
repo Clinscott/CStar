@@ -1,6 +1,6 @@
 ---
 title: "Skill Authority Report"
-generated_at: "2026-04-01 07:36:21"
+generated_at: "2026-04-09 07:06:18"
 authoritative_root: ".agents/skills"
 ---
 
@@ -9,7 +9,7 @@ authoritative_root: ".agents/skills"
 `.agents/skills/` is the authoritative woven-skill registry for Phase 1.
 Any `src/skills/local/` surface is transitional and must be classified rather than guessed.
 
-- Authoritative skills: `64`
+- Authoritative skills: `65`
 - Transitional local entries: `13`
 - Duplicate definitions: `4`
 - Active capability authority issues: `0`
@@ -22,10 +22,23 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `none`
 - Runtime Trigger: `_archive`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `none`
 - Tests: `tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py, tests/unit/test_evolve_skill.py, tests/unit/test_memory_skill_compat.py`
+
+### agent-browser
+- Authority Path: `.agents/skills/agent-browser`
+- Entrypoint: `none`
+- Contract: `.agents/skills/agent-browser/SKILL.md`
+- Runtime Trigger: `agent-browser`
+- Owner Runtime: `host-agent`
+- Entry Surface: `cli`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Recursion Policy: `leaf`
+- Contracts: `.agents/skills/agent-browser/SKILL.md`
+- Tests: `tests/unit/test_agent_browser.test.ts`
 
 ### agentic-ingest
 - Authority Path: `.agents/skills/agentic-ingest`
@@ -33,6 +46,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/agentic-ingest/SKILL.md`
 - Runtime Trigger: `agentic-ingest`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/agentic-ingest/SKILL.md`
@@ -44,6 +58,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/annex/annex.feature`
 - Runtime Trigger: `annex`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/annex/annex.feature`
@@ -55,6 +70,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/artifact-forge/SKILL.md`
 - Runtime Trigger: `artifact-forge`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/artifact-forge/SKILL.md`
@@ -66,6 +82,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/autobot/contract.json`
 - Runtime Trigger: `autobot`
 - Owner Runtime: `cstar-kernel`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "supported", "codex": "supported", "claude": "supported"}`
 - Recursion Policy: `bounded-orchestrator`
 - Contracts: `.agents/skills/autobot/contract.json`
@@ -77,6 +94,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/bifrost/SKILL.md`
 - Runtime Trigger: `bifrost`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/bifrost/SKILL.md`
@@ -87,8 +105,9 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Entrypoint: `none`
 - Contract: `.agents/skills/bookmark-weaver/SKILL.md`
 - Runtime Trigger: `bookmark-weaver`
-- Owner Runtime: `host-agent`
-- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Owner Runtime: `cstar-kernel`
+- Entry Surface: `cli`
+- Host Support: `{"gemini": "supported", "codex": "supported", "claude": "supported"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/bookmark-weaver/SKILL.md`
 - Tests: `tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py, tests/unit/test_evolve_skill.py, tests/unit/test_memory_skill_compat.py`
@@ -99,6 +118,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/cachebro/cachebro.feature`
 - Runtime Trigger: `cachebro`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/cachebro/cachebro.feature`
@@ -110,6 +130,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/calculus/calculus.feature`
 - Runtime Trigger: `calculus`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/calculus/calculus.feature`
@@ -121,9 +142,10 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/chant/chant.feature`
 - Runtime Trigger: `chant`
 - Owner Runtime: `host-agent`
+- Entry Surface: `host-only`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `bounded-orchestrator`
-- Contracts: `.agents/skills/chant/chant.feature`
+- Contracts: `.agents/skills/chant/chant.feature, .agents/weaves/chant.md`
 - Tests: `tests/unit/test_chant_runtime.test.ts, tests/unit/node-runtime/weaves/test_chant.test.ts`
 
 ### chronicle
@@ -132,6 +154,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/chronicle/SKILL.md`
 - Runtime Trigger: `chronicle`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/chronicle/SKILL.md`
@@ -143,6 +166,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/consciousness/consciousness.feature`
 - Runtime Trigger: `consciousness`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/consciousness/consciousness.feature`
@@ -154,6 +178,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/corvus-control/corvus-control.feature`
 - Runtime Trigger: `corvus-control`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/corvus-control/corvus-control.feature`
@@ -165,6 +190,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/critique/SKILL.md`
 - Runtime Trigger: `critique`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/architect/SKILL.md`
@@ -176,6 +202,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/distill/SKILL.md`
 - Runtime Trigger: `distill`
 - Owner Runtime: `cstar-kernel`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/distill/SKILL.md`
@@ -187,6 +214,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/edda/edda.feature`
 - Runtime Trigger: `edda`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/edda/edda.feature`
@@ -198,6 +226,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/empire/empire.feature`
 - Runtime Trigger: `empire`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/empire/empire.feature`
@@ -209,6 +238,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/engine/engine.feature`
 - Runtime Trigger: `engine`
 - Owner Runtime: `cstar-kernel`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "supported", "codex": "supported", "claude": "supported"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/engine/engine.feature`
@@ -220,6 +250,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/evolve/contract.json`
 - Runtime Trigger: `evolve`
 - Owner Runtime: `cstar-kernel`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "supported", "codex": "supported", "claude": "supported"}`
 - Recursion Policy: `bounded-orchestrator`
 - Contracts: `.agents/skills/evolve/contract.json`
@@ -231,6 +262,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/forge/forge.feature`
 - Runtime Trigger: `forge`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/forge/forge.feature`
@@ -242,6 +274,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/gatekeeper/SKILL.md`
 - Runtime Trigger: `gatekeeper`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/gatekeeper/SKILL.md`
@@ -253,6 +286,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/gherkin/gherkin.feature`
 - Runtime Trigger: `gherkin`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/gherkin/gherkin.feature`
@@ -264,6 +298,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/hall/SKILL.md`
 - Runtime Trigger: `hall`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/hall/SKILL.md`
@@ -275,6 +310,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/host-subagent-handoff/SKILL.md`
 - Runtime Trigger: `host-subagent-handoff`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/host-subagent-handoff/SKILL.md`
@@ -286,6 +322,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/hunt/hunt.feature`
 - Runtime Trigger: `hunt`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/hunt/hunt.feature`
@@ -297,6 +334,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/jailing/jailing.feature`
 - Runtime Trigger: `jailing`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/jailing/jailing.feature`
@@ -308,6 +346,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/level-5-diagnostic/level-5-diagnostic.feature`
 - Runtime Trigger: `level-5-diagnostic`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/level-5-diagnostic/level-5-diagnostic.feature`
@@ -319,6 +358,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/linter/linter.feature`
 - Runtime Trigger: `linter`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/linter/linter.feature`
@@ -330,6 +370,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/locks/locks.feature`
 - Runtime Trigger: `locks`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/locks/locks.feature`
@@ -341,6 +382,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/manifest/SKILL.md`
 - Runtime Trigger: `manifest`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/manifest/SKILL.md`
@@ -352,6 +394,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/taliesin-optimizer/SKILL.md`
 - Runtime Trigger: `taliesin-optimizer`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `../Taliesin/contracts/taliesin.feature`
@@ -363,6 +406,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/matrix/matrix.feature`
 - Runtime Trigger: `matrix`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/matrix/matrix.feature`
@@ -374,6 +418,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/metrics/metrics.feature`
 - Runtime Trigger: `metrics`
 - Owner Runtime: `cstar-kernel`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "supported", "codex": "supported", "claude": "supported"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/metrics/metrics.feature`
@@ -385,6 +430,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/mimir/mimir.feature`
 - Runtime Trigger: `mimir`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/mimir/mimir.feature`
@@ -396,6 +442,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/norn/norn.feature`
 - Runtime Trigger: `norn`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/norn/norn.feature`
@@ -407,6 +454,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/one-mind/one-mind.feature`
 - Runtime Trigger: `one-mind`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/one-mind/one-mind.feature`
@@ -418,6 +466,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/oracle/oracle.feature`
 - Runtime Trigger: `oracle`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/oracle/oracle.feature`
@@ -429,6 +478,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/orchestrate/SKILL.md`
 - Runtime Trigger: `orchestrate`
 - Owner Runtime: `cstar-kernel`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "supported", "codex": "supported", "claude": "supported"}`
 - Recursion Policy: `bounded-orchestrator`
 - Contracts: `.agents/skills/orchestrate/SKILL.md`
@@ -440,6 +490,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/personas/personas.feature`
 - Runtime Trigger: `personas`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/personas/personas.feature`
@@ -451,6 +502,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/promotion/promotion.feature`
 - Runtime Trigger: `promotion`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/promotion/promotion.feature`
@@ -462,6 +514,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/qmd_search/SKILL.md`
 - Runtime Trigger: `qmd_search`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/qmd_search/SKILL.md`
@@ -473,9 +526,10 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/ravens/ravens.feature`
 - Runtime Trigger: `ravens`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `bounded-orchestrator`
-- Contracts: `.agents/skills/ravens/ravens.feature`
+- Contracts: `.agents/skills/ravens/ravens.feature, .agents/weaves/ravens.md`
 - Tests: `tests/unit/engine/ravens/test_muninn_hunter.py, tests/unit/engine/ravens/test_coordinator.py, tests/unit/engine/ravens/test_git_spoke.py, tests/unit/engine/ravens/test_ravens_cycle.py`
 
 ### redactor
@@ -484,6 +538,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/redactor/redactor.feature`
 - Runtime Trigger: `redactor`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/redactor/redactor.feature`
@@ -495,6 +550,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/report/report.feature`
 - Runtime Trigger: `report`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/report/report.feature`
@@ -506,6 +562,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/research/SKILL.md`
 - Runtime Trigger: `research`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/research/SKILL.md`
@@ -517,6 +574,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/ritual/ritual.feature`
 - Runtime Trigger: `ritual`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/ritual/ritual.feature`
@@ -527,8 +585,9 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Entrypoint: `.agents/skills/scan/scripts/scan.py`
 - Contract: `.agents/skills/scan/scan.feature`
 - Runtime Trigger: `scan`
-- Owner Runtime: `cstar-kernel`
-- Host Support: `{"gemini": "supported", "codex": "supported", "claude": "supported"}`
+- Owner Runtime: `host-agent`
+- Entry Surface: `cli`
+- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/scan/scan.feature`
 - Tests: `tests/empire_tests/test_security_scan_empire.py, tests/node/pennyone/scan_logic.test.ts`
@@ -539,6 +598,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/scribe/SKILL.md`
 - Runtime Trigger: `scribe`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/scribe/SKILL.md`
@@ -550,6 +610,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/spoke/SKILL.md`
 - Runtime Trigger: `spoke`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/spoke/SKILL.md`
@@ -561,6 +622,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/sprt/sprt.feature`
 - Runtime Trigger: `sprt`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/sprt/sprt.feature`
@@ -572,6 +634,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/stability/stability.feature`
 - Runtime Trigger: `stability`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/stability/stability.feature`
@@ -582,10 +645,11 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Entrypoint: `none`
 - Contract: `.agents/skills/start/SKILL.md`
 - Runtime Trigger: `start`
-- Owner Runtime: `host-agent`
-- Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
+- Owner Runtime: `cstar-kernel`
+- Entry Surface: `cli`
+- Host Support: `{"gemini": "supported", "codex": "supported", "claude": "supported"}`
 - Recursion Policy: `bounded-orchestrator`
-- Contracts: `.agents/skills/start/SKILL.md`
+- Contracts: `.agents/skills/start/SKILL.md, .agents/weaves/start.md`
 - Tests: `tests/unit/test_start_runtime.test.ts`
 
 ### status
@@ -594,6 +658,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/status/SKILL.md`
 - Runtime Trigger: `status`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/status/SKILL.md`
@@ -605,6 +670,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/sterling/sterling.feature`
 - Runtime Trigger: `sterling`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/sterling/sterling.feature`
@@ -616,6 +682,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/style/style.feature`
 - Runtime Trigger: `style`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/style/style.feature`
@@ -627,6 +694,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/taliesin/taliesin.feature`
 - Runtime Trigger: `taliesin`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `../Taliesin/contracts/taliesin.feature`
@@ -638,9 +706,10 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/taliesin-optimizer/SKILL.md`
 - Runtime Trigger: `taliesin-optimizer`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
-- Contracts: `../Taliesin/contracts/taliesin.feature`
+- Contracts: `../Taliesin/contracts/taliesin.feature, .agents/weaves/taliesin-optimizer.md`
 - Tests: `tests/unit/engine/test_skill_learning.py, tests/unit/test_autobot_skill.py, tests/unit/test_evolve_skill.py, tests/unit/test_memory_skill_compat.py`
 
 ### taliesin-story-forge
@@ -649,9 +718,10 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/taliesin/SKILL.md`
 - Runtime Trigger: `taliesin-story-forge`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
-- Contracts: `../Taliesin/contracts/taliesin.feature`
+- Contracts: `../Taliesin/contracts/taliesin.feature, .agents/weaves/taliesin-story-forge.md`
 - Tests: `tests/unit/test_taliesin_story_forge.test.ts`
 
 ### taste-skill
@@ -660,6 +730,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/taste-skill/taste-skill.feature`
 - Runtime Trigger: `taste-skill`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/taste-skill/taste-skill.feature`
@@ -671,6 +742,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/telemetry/telemetry.feature`
 - Runtime Trigger: `telemetry`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/telemetry/telemetry.feature`
@@ -682,6 +754,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/trace/trace.feature`
 - Runtime Trigger: `trace`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/trace/trace.feature`
@@ -693,6 +766,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/visual-explainer/visual-explainer.feature`
 - Runtime Trigger: `visual-explainer`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/visual-explainer/visual-explainer.feature`
@@ -704,6 +778,7 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Contract: `.agents/skills/vitals/SKILL.md`
 - Runtime Trigger: `vitals`
 - Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/vitals/SKILL.md`
@@ -714,7 +789,8 @@ Any `src/skills/local/` surface is transitional and must be classified rather th
 - Entrypoint: `.agents/skills/warden/scripts/warden.py`
 - Contract: `.agents/skills/warden/warden.feature`
 - Runtime Trigger: `warden`
-- Owner Runtime: `cstar-kernel`
+- Owner Runtime: `host-agent`
+- Entry Surface: `cli`
 - Host Support: `{"gemini": "native-session", "codex": "exec-bridge", "claude": "exec-bridge"}`
 - Recursion Policy: `leaf`
 - Contracts: `.agents/skills/warden/warden.feature`

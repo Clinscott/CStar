@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-export type HostProvider = 'gemini' | 'codex' | 'claude';
+export type HostProvider = 'gemini' | 'codex' | 'claude' | 'droid';
 export type HostSupportStatus =
     | 'supported'
     | 'native-session'
@@ -16,6 +16,11 @@ export interface HostBridgeConfig {
 }
 
 export interface HostDelegateBridgeConfig {
+    command: string;
+    args: string[];
+}
+
+export interface HostDelegatePollBridgeConfig {
     command: string;
     args: string[];
 }
@@ -100,8 +105,8 @@ function normalizeFlag(value: string | undefined): boolean | undefined {
 
 export function detectHostProvider(env: NodeJS.ProcessEnv = process.env): HostProvider | null {
     const override = env.CORVUS_HOST_PROVIDER?.trim().toLowerCase();
-    if (override === 'gemini' || override === 'codex' || override === 'claude') {
-        return override;
+    if (override === 'gemini' || override === 'codex' || override === 'claude' || override === 'droid') {
+        return override as HostProvider;
     }
 
     if (env.CODEX_SHELL === '1' || Boolean(env.CODEX_THREAD_ID)) {
@@ -110,6 +115,10 @@ export function detectHostProvider(env: NodeJS.ProcessEnv = process.env): HostPr
 
     if (env.GEMINI_CLI_ACTIVE === 'true' || env.GEMINI_CLI === '1') {
         return 'gemini';
+    }
+
+    if (env.DROID_CLI_ACTIVE === 'true') {
+        return 'droid';
     }
 
     return null;
@@ -136,6 +145,9 @@ export function isInteractiveHostSession(env: NodeJS.ProcessEnv = process.env): 
     }
     if (provider === 'codex') {
         return env.CODEX_SHELL === '1';
+    }
+    if (provider === 'droid') {
+        return env.DROID_CLI_ACTIVE === 'true';
     }
     return false;
 }
@@ -164,6 +176,9 @@ export function getHostProviderBanner(provider: HostProvider | null): string {
     if (provider === 'claude') {
         return ' ◤ CLAUDE CLI INTEGRATION ACTIVE ◢ ';
     }
+    if (provider === 'droid') {
+        return ' ◤ DROID CLI INTEGRATION ACTIVE ◢ ';
+    }
     return ' ◤ GEMINI CLI INTEGRATION ACTIVE ◢ ';
 }
 
@@ -173,6 +188,9 @@ export function getHostMindLabel(provider: HostProvider | null): string {
     }
     if (provider === 'claude') {
         return 'CLAUDE HOST';
+    }
+    if (provider === 'droid') {
+        return 'DROID-CONTROL';
     }
     if (provider === 'gemini') {
         return 'GEMINI-3.1-PRO';
@@ -210,6 +228,14 @@ function getProviderBridgeEnvNames(provider: HostProvider): { command: string; a
 
 function getProviderDelegateBridgeEnvNames(provider: HostProvider): { command: string; args: string } {
     const prefix = `CORVUS_${provider.toUpperCase()}_DELEGATE_BRIDGE`;
+    return {
+        command: `${prefix}_CMD`,
+        args: `${prefix}_ARGS_JSON`,
+    };
+}
+
+function getProviderDelegatePollBridgeEnvNames(provider: HostProvider): { command: string; args: string } {
+    const prefix = `CORVUS_${provider.toUpperCase()}_DELEGATE_POLL_BRIDGE`;
     return {
         command: `${prefix}_CMD`,
         args: `${prefix}_ARGS_JSON`,
@@ -398,6 +424,30 @@ export function resolveConfiguredDelegateBridge(
     return null;
 }
 
+export function resolveConfiguredDelegatePollBridge(
+    env: NodeJS.ProcessEnv = process.env,
+    provider: HostProvider,
+): HostDelegatePollBridgeConfig | null {
+    const providerEnv = getProviderDelegatePollBridgeEnvNames(provider);
+    const providerCommand = env[providerEnv.command]?.trim();
+    if (providerCommand) {
+        return {
+            command: providerCommand,
+            args: parseBridgeArgsJson(env[providerEnv.args], providerEnv.args),
+        };
+    }
+
+    const sharedCommand = env.CORVUS_DELEGATE_POLL_BRIDGE_CMD?.trim();
+    if (sharedCommand) {
+        return {
+            command: sharedCommand,
+            args: parseBridgeArgsJson(env.CORVUS_DELEGATE_POLL_BRIDGE_ARGS_JSON, 'CORVUS_DELEGATE_POLL_BRIDGE_ARGS_JSON'),
+        };
+    }
+
+    return null;
+}
+
 export function expandHostBridgeArgs(
     template: string[],
     values: {
@@ -422,6 +472,8 @@ export function expandDelegateBridgeArgs(
         project_root: string;
         provider: HostProvider;
         subagent_profile: string;
+        request_id?: string;
+        handle_id?: string;
     },
 ): string[] {
     return template.map((entry) =>
@@ -430,7 +482,9 @@ export function expandDelegateBridgeArgs(
             .replaceAll('{result_path}', values.result_path)
             .replaceAll('{project_root}', values.project_root)
             .replaceAll('{provider}', values.provider)
-            .replaceAll('{subagent_profile}', values.subagent_profile),
+            .replaceAll('{subagent_profile}', values.subagent_profile)
+            .replaceAll('{request_id}', values.request_id ?? '')
+            .replaceAll('{handle_id}', values.handle_id ?? ''),
     );
 }
 
@@ -442,6 +496,11 @@ export function getHostBridgeConfigurationHint(provider: HostProvider): string {
 export function getDelegateBridgeConfigurationHint(provider: HostProvider): string {
     const providerEnv = getProviderDelegateBridgeEnvNames(provider);
     return `Set ${providerEnv.command} and ${providerEnv.args}, set CORVUS_DELEGATE_BRIDGE_CMD and CORVUS_DELEGATE_BRIDGE_ARGS_JSON, or bind a provider-native delegation adapter.`;
+}
+
+export function getDelegatePollBridgeConfigurationHint(provider: HostProvider): string {
+    const providerEnv = getProviderDelegatePollBridgeEnvNames(provider);
+    return `Set ${providerEnv.command} and ${providerEnv.args}, or set CORVUS_DELEGATE_POLL_BRIDGE_CMD and CORVUS_DELEGATE_POLL_BRIDGE_ARGS_JSON to resolve in-flight delegated handles.`;
 }
 
 export function buildHostSkillActivationEnvelope(request: HostSkillActivationRequest): string {

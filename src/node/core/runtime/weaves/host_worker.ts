@@ -8,6 +8,7 @@ import { buildHostSkillActivationEnvelope } from '../../../../core/host_session.
 import { MimirClient } from '../../../../core/mimir_client.js';
 import {
     requestHostDelegatedExecution,
+    type DelegatedExecutionHandle,
     type DelegatedExecutionRequest,
     type DelegatedExecutionResult,
 } from '../../../../core/host_delegation.js';
@@ -28,7 +29,7 @@ export interface HostWorkerDependencies {
     delegateExecution?: (
         request: DelegatedExecutionRequest,
         env: NodeJS.ProcessEnv,
-    ) => Promise<DelegatedExecutionResult | { handle_id: string; provider: 'gemini' | 'codex' | 'claude'; status: 'queued' | 'running'; correlation_id?: string }>;
+    ) => Promise<DelegatedExecutionResult | DelegatedExecutionHandle>;
     createMimirClient?: (projectRoot: string, env: NodeJS.ProcessEnv) => Pick<MimirClient, 'request'>;
     existsSync?: typeof fs.existsSync;
     readFileSync?: typeof fs.readFileSync;

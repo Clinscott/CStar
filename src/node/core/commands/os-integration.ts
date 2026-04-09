@@ -71,12 +71,13 @@ export function registerOsCommands(program: Command) {
                     console.log(chalk.green('    ◈ GATEKEEPER: Armed (pre-commit).'));
                 }
 
-                // Post-commit: Muninn Daemon
+                // Post-commit: observation-only guard. Do not launch background
+                // ravens/orchestrate work from git hooks.
                 const postCommitDest = path.join(hookDir, 'post-commit');
-                const postCommitContent = `#!/bin/bash\n# [Ω] CStar Muninn Daemon\nnode ${path.join(PROJECT_ROOT, 'bin/cstar.js')} ravens --action cycle > /dev/null 2>&1 &\n`;
+                const postCommitContent = `#!/bin/bash\n# [Ω] CStar post-commit hook\n# Observation-only: do not launch ravens/orchestrate from git hooks.\nexit 0\n`;
                 fs.writeFileSync(postCommitDest, postCommitContent);
                 fs.chmodSync(postCommitDest, '755');
-                console.log(chalk.green('    ◈ MUNINN: Daemonized (post-commit).'));
+                console.log(chalk.green('    ◈ MUNINN: Observation-only (post-commit).'));
             } else {
                 console.log(chalk.yellow('    [WARN] No .git directory found. Gatekeeper bypassed.'));
             }

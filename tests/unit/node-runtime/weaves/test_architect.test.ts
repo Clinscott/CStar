@@ -13,7 +13,11 @@ describe('ArchitectCompatibilityAdapter Unit Tests', () => {
 
     it('build_proposal succeeds when host returns valid JSON', async () => {
         const dispatchPort: any = {};
-        const hostTextInvoker = async () => '{"proposal_summary": "summary", "beads": []}';
+        let capturedRequest: any;
+        const hostTextInvoker = async (request: any) => {
+            capturedRequest = request;
+            return '{"proposal_summary": "summary", "beads": []}';
+        };
         const weave = new ArchitectCompatibilityAdapter(dispatchPort, hostTextInvoker);
         
         mock.method(deps, 'resolveRuntimeHostProvider', () => 'codex');
@@ -27,6 +31,10 @@ describe('ArchitectCompatibilityAdapter Unit Tests', () => {
         assert.equal(result.status, 'SUCCESS');
         assert.equal(result.metadata?.delegated, true);
         assert.equal((result.metadata?.architect_proposal as any).proposal_summary, 'summary');
+        assert.equal(capturedRequest?.metadata?.decision, 'build_proposal');
+        assert.equal(capturedRequest?.metadata?.trace_critical, true);
+        assert.equal(capturedRequest?.metadata?.require_agent_harness, true);
+        assert.equal(capturedRequest?.metadata?.transport_mode, 'host_session');
         mock.reset();
     });
 
@@ -48,7 +56,11 @@ describe('ArchitectCompatibilityAdapter Unit Tests', () => {
 
     it('review_critique succeeds', async () => {
         const dispatchPort: any = {};
-        const hostTextInvoker = async () => '{"is_approved": true, "architect_opinion": "Good work"}';
+        let capturedRequest: any;
+        const hostTextInvoker = async (request: any) => {
+            capturedRequest = request;
+            return '{"is_approved": true, "architect_opinion": "Good work"}';
+        };
         const weave = new ArchitectCompatibilityAdapter(dispatchPort, hostTextInvoker);
         
         mock.method(deps, 'resolveRuntimeHostProvider', () => 'codex');
@@ -61,6 +73,10 @@ describe('ArchitectCompatibilityAdapter Unit Tests', () => {
 
         assert.equal(result.status, 'SUCCESS');
         assert.equal(result.output, 'Good work');
+        assert.equal(capturedRequest?.metadata?.decision, 'review_critique');
+        assert.equal(capturedRequest?.metadata?.trace_critical, true);
+        assert.equal(capturedRequest?.metadata?.require_agent_harness, true);
+        assert.equal(capturedRequest?.metadata?.transport_mode, 'host_session');
         mock.reset();
     });
 

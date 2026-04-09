@@ -314,3 +314,63 @@ def test_bead_ledger_can_block_failed_autonomous_work(tmp_path):
     assert blocked.assigned_agent is None
     assert blocked.triage_reason == "Watcher rejected the validated candidate."
     assert blocked.resolution_note == "Autonomous promotion failed and requires review."
+
+
+def test_bead_ledger_backfills_diagnostic_beads_with_actionable_fields(tmp_path):
+    seed_hall(tmp_path)
+    hall = HallOfRecords(tmp_path)
+    repo = hall.bootstrap_repository()
+    hall.upsert_bead(
+        HallBeadRecord(
+            bead_id="bead:diag:fix:test",
+            repo_id=repo.repo_id,
+            scan_id="scan-1",
+            target_kind="FILE",
+            target_ref="Kernel",
+            target_path="src/core/sample.py",
+            rationale="[Diagnostic]: Kernel -> src/core/sample.py requires review. Findings: Missing explicit 1:1 unit test (Linscott Breach Risk).",
+            status="NEEDS_TRIAGE",
+            source_kind="LEVEL_5_DIAGNOSTIC",
+            triage_reason="Missing acceptance criteria.",
+            created_at=1700000000600,
+            updated_at=1700000000600,
+        )
+    )
+
+    ledger = BeadLedger(tmp_path)
+    ledger.normalize_existing_beads()
+    bead = ledger.get_bead("bead:diag:fix:test")
+    assert bead is not None
+    assert bead.status == "OPEN"
+    assert bead.triage_reason is None
+    assert bead.contract_refs == ["file:src/core/sample.py"]
+    assert "focused 1:1 test" in (bead.acceptance_criteria or "")
+
+
+def test_bead_ledger_archives_system_execution_telemetry(tmp_path):
+    seed_hall(tmp_path)
+    hall = HallOfRecords(tmp_path)
+    repo = hall.bootstrap_repository()
+    hall.upsert_bead(
+        HallBeadRecord(
+            bead_id="bead_mission_telemetry",
+            repo_id=repo.repo_id,
+            scan_id="scan-1",
+            target_kind="WEAVE",
+            target_ref="weave:orchestrate",
+            rationale="Execution of weave:orchestrate under mission MISSION-12345",
+            status="NEEDS_TRIAGE",
+            source_kind="SYSTEM",
+            triage_reason="Missing acceptance criteria.",
+            created_at=1700000000700,
+            updated_at=1700000000700,
+        )
+    )
+
+    ledger = BeadLedger(tmp_path)
+    ledger.normalize_existing_beads()
+    bead = ledger.get_bead("bead_mission_telemetry")
+    assert bead is not None
+    assert bead.status == "ARCHIVED"
+    assert bead.triage_reason is None
+    assert "telemetry retained" in (bead.resolution_note or "").lower()

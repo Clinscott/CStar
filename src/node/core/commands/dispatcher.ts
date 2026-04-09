@@ -1,35 +1,48 @@
 import { Command } from 'commander';
-import fs from 'node:fs';
-import path from 'node:path';
+import { join } from 'node:path';
 import { renderStandardCommandResult } from './command_context.js';
 import { RuntimeDispatcher } from  '../runtime/dispatcher.js';
+import { listHallPlanningSessions } from '../../../tools/pennyone/intel/database.js';
+import type { HallPlanningSessionStatus } from '../../../types/hall.js';
+import { buildPennyOneInvocation } from './pennyone.js';
+import { buildRavensInvocation } from './ravens.js';
+import { buildStartInvocation } from './start.js';
+import {
+    loadRegistryEntries,
+    resolveEntrySurface,
+    resolveRegistryEntryForCommand,
+    type EntrySurface,
+} from '../runtime/entry_surface.js';
 import { 
     type WeaveInvocation, 
-    type DynamicCommandPayload,
     type ChantWeavePayload,
     type AutobotWeavePayload,
     type EvolveWeavePayload,
     type ArtifactForgeWeavePayload as ForgeWeavePayload,
+    type PennyOneWeavePayload,
+    type RavensWeavePayload,
+    type StartWeavePayload,
     type RuntimeDispatchPort,
 } from '../runtime/contracts.js';
 import { resolveWorkspaceRoot, withCliWorkspaceTarget, type WorkspaceRootSource } from '../runtime/invocation.js';
 import type { SkillBead } from '../skills/types.js';
+const ACTIVE_CHANT_STATUSES: HallPlanningSessionStatus[] = [
+    'INTENT_RECEIVED',
+    'RESEARCH_PHASE',
+    'PROPOSAL_REVIEW',
+    'BEAD_CRITIQUE_LOOP',
+    'BEAD_USER_REVIEW',
+    'PLAN_CONCRETE',
+    'FORGE_EXECUTION',
+    'NEEDS_INPUT',
+    'PLAN_READY',
+    'ROUTED',
+];
 
-interface CommandRegistryEntry {
-    execution?: {
-        mode?: string;
-    };
-    runtime_trigger?: string;
-}
-
-interface CommandRegistryManifest {
-    entries?: Record<string, CommandRegistryEntry>;
-    skills?: Record<string, CommandRegistryEntry>;
-}
-
-function lookupLatestActiveChantSessionId(): string | undefined {
-    // This would normally query the Hall database for the most recent incomplete session
-    return undefined;
+function lookupLatestActiveChantSessionId(projectRoot: string): string | undefined {
+    const sessions = listHallPlanningSessions(projectRoot, { statuses: ACTIVE_CHANT_STATUSES })
+        .filter((session) => session.skill_id === 'chant');
+    return sessions[0]?.session_id;
 }
 
 export function shouldAutoResumeChantSession(args: string[]): boolean {
@@ -82,12 +95,75 @@ export function buildDynamicCommandInvocation(
     args: string[],
     projectRoot: string,
     cwd: string = process.cwd(),
-): WeaveInvocation<DynamicCommandPayload | ChantWeavePayload | AutobotWeavePayload | EvolveWeavePayload | ForgeWeavePayload> {
-    if (command.toLowerCase() === 'chant') {
-        const directive = parseChantSessionDirective(args);
-        const sessionId = directive.sessionId ?? (directive.shouldResume ? lookupLatestActiveChantSessionId() : undefined);
-        return buildChantInvocation(directive.queryArgs, projectRoot, cwd, sessionId);
+): WeaveInvocation<StartWeavePayload | RavensWeavePayload | PennyOneWeavePayload | AutobotWeavePayload | EvolveWeavePayload | ForgeWeavePayload> {
+    if (command.toLowerCase() === 'start') {
+        const taskIndex = args.findIndex((arg) => arg === '--task');
+        const ledgerIndex = args.findIndex((arg) => arg === '--ledger');
+        const target = args.find((arg) => !arg.startsWith('-'));
+        const task = taskIndex >= 0 && args[taskIndex + 1]
+            ? args[taskIndex + 1]
+            : args.filter((arg) => !arg.startsWith('-')).slice(1).join(' ');
+        const ledger = ledgerIndex >= 0 && args[ledgerIndex + 1]
+            ? args[ledgerIndex + 1]
+            : join(projectRoot, 'ledger');
+
+        return buildStartInvocation(target, {
+            task,
+            ledger,
+            loki: args.includes('--loki'),
+            debug: args.includes('--debug'),
+            verbose: args.includes('--verbose') || args.includes('-v'),
+        }, projectRoot);
     }
+
+    if (command.toLowerCase() === 'ravens') {
+        const action = ['start', 'sweep', 'cycle', 'stop', 'status']
+            .includes(args[0]?.toLowerCase() ?? '')
+            ? (args[0].toLowerCase() as 'start' | 'sweep' | 'cycle' | 'stop' | 'status')
+            : 'status';
+        const spokeIndex = args.findIndex((arg) => arg === '--spoke');
+        return buildRavensInvocation(action, {
+            shadowForge: args.includes('--shadow-forge'),
+            spoke: spokeIndex >= 0 ? args[spokeIndex + 1] : undefined,
+        }, projectRoot);
+    }
+
+    if (command.toLowerCase() === 'pennyone' || command.toLowerCase() === 'p1') {
+        const [head, ...tail] = args;
+        const lowered = head?.toLowerCase();
+        if (lowered === 'search') {
+            return buildPennyOneInvocation({ search: tail.join(' ') }, projectRoot);
+        }
+        if (lowered === 'stats') {
+            return buildPennyOneInvocation({ stats: true }, projectRoot);
+        }
+        if (lowered === 'topology') {
+            return buildPennyOneInvocation({ topology: true }, projectRoot);
+        }
+        if (lowered === 'view') {
+            return buildPennyOneInvocation({ view: true }, projectRoot);
+        }
+        if (lowered === 'clean') {
+            return buildPennyOneInvocation({ clean: true }, projectRoot);
+        }
+        if (lowered === 'status') {
+            return buildPennyOneInvocation({ status: '.' }, projectRoot);
+        }
+        if (lowered === 'report') {
+            return buildPennyOneInvocation({ report: '.' }, projectRoot);
+        }
+        if (lowered === 'normalize') {
+            return buildPennyOneInvocation({ normalize: '.' }, projectRoot);
+        }
+        if (lowered === 'artifacts') {
+            return buildPennyOneInvocation({ artifacts: '.' }, projectRoot);
+        }
+        if (lowered === 'refresh-intents') {
+            return buildPennyOneInvocation({ refreshIntents: '.' }, projectRoot);
+        }
+        return buildPennyOneInvocation({ scan: '.' }, projectRoot);
+    }
+
     if (command.toLowerCase() === 'autobot') {
         return buildAutobotInvocation(args, projectRoot, cwd);
     }
@@ -98,49 +174,61 @@ export function buildDynamicCommandInvocation(
         return buildArtifactForgeInvocation(args, projectRoot, cwd);
     }
 
-    return withCliWorkspaceTarget({
-        weave_id: 'weave:dynamic-command',
-        payload: {
-            command: command.toLowerCase(),
-            args,
-            project_root: projectRoot,
-            cwd,
-        },
-    }, projectRoot, cwd);
+    throw new Error(`No canonical runtime invocation exists for command '${command}'.`);
 }
 
-function loadRegistryEntries(projectRoot: string): Record<string, CommandRegistryEntry> {
-    const manifestPath = path.join(projectRoot, '.agents', 'skill_registry.json');
-    if (!fs.existsSync(manifestPath)) {
-        return {};
-    }
+type RegistryCommandActivation =
+    | { kind: 'none' }
+    | { kind: 'blocked'; skillId: string; surface: EntrySurface; error: string }
+    | { kind: 'skill'; bead: SkillBead<Record<string, unknown>> };
 
-    try {
-        const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as CommandRegistryManifest;
-        return manifest.entries ?? manifest.skills ?? {};
-    } catch {
-        return {};
+export function buildSurfaceBlockError(skillId: string, surface: EntrySurface): string {
+    if (surface === 'host-only') {
+        return `Capability '${skillId}' is host-only (entry_surface=host-only) and cannot run from shell dispatch. Activate it through the host-native runtime bridge.`;
     }
+    return `Capability '${skillId}' is marked entry_surface=compatibility, but legacy compatibility command execution is disabled.`;
 }
 
-function resolveRegistrySkillIdForCommand(
+export function resolveRegistryCommandActivation(
     command: string,
-    entries: Record<string, CommandRegistryEntry>,
-): string | null {
-    const normalized = command.trim().toLowerCase();
-    if (!normalized) {
-        return null;
-    }
-    if (entries[normalized]) {
-        return normalized;
+    args: string[],
+    projectRoot: string,
+    cwd: string = process.cwd(),
+): RegistryCommandActivation {
+    const entries = loadRegistryEntries(projectRoot);
+    const resolved = resolveRegistryEntryForCommand(entries, command);
+    if (!resolved) {
+        return { kind: 'none' };
     }
 
-    for (const [skillId, entry] of Object.entries(entries)) {
-        if (String(entry.runtime_trigger ?? '').trim().toLowerCase() === normalized) {
-            return skillId;
-        }
+    const surface = resolveEntrySurface(resolved.entry, resolved.skillId);
+    if (surface !== 'cli') {
+        return {
+            kind: 'blocked',
+            skillId: resolved.skillId,
+            surface,
+            error: buildSurfaceBlockError(resolved.skillId, surface),
+        };
     }
-    return null;
+
+    return {
+        kind: 'skill',
+        bead: {
+            id: `cli:${resolved.skillId}:${Date.now()}`,
+            skill_id: resolved.skillId,
+            target_path: projectRoot,
+            intent: `CLI invocation for ${resolved.skillId}: ${[command, ...args].join(' ').trim()}`.trim(),
+            params: {
+                command: command.toLowerCase(),
+                args,
+                project_root: projectRoot,
+                cwd,
+                source: 'cli',
+            },
+            status: 'PENDING',
+            priority: 1,
+        },
+    };
 }
 
 export function buildRegistrySkillBeadInvocation(
@@ -149,27 +237,8 @@ export function buildRegistrySkillBeadInvocation(
     projectRoot: string,
     cwd: string = process.cwd(),
 ): SkillBead<Record<string, unknown>> | null {
-    const entries = loadRegistryEntries(projectRoot);
-    const skillId = resolveRegistrySkillIdForCommand(command, entries);
-    if (!skillId) {
-        return null;
-    }
-
-    return {
-        id: `cli:${skillId}:${Date.now()}`,
-        skill_id: skillId,
-        target_path: projectRoot,
-        intent: `CLI invocation for ${skillId}: ${[command, ...args].join(' ').trim()}`.trim(),
-        params: {
-            command: command.toLowerCase(),
-            args,
-            project_root: projectRoot,
-            cwd,
-            source: 'cli',
-        },
-        status: 'PENDING',
-        priority: 1,
-    };
+    const activation = resolveRegistryCommandActivation(command, args, projectRoot, cwd);
+    return activation.kind === 'skill' ? activation.bead : null;
 }
 
 export function buildChantInvocation(
@@ -188,6 +257,10 @@ export function buildChantInvocation(
         },
     }, projectRoot, cwd);
 
+    if (!sessionId) {
+        sessionId = lookupLatestActiveChantSessionId(projectRoot);
+    }
+
     if (sessionId && invocation.session) {
         invocation.session.session_id = sessionId;
     }
@@ -201,25 +274,58 @@ export function buildAutobotInvocation(
     cwd: string = process.cwd(),
 ): WeaveInvocation<AutobotWeavePayload> {
     let beadId: string | undefined;
+    let checkerShell: string | undefined;
+    let timeout: number | undefined;
+    let agentId: string | undefined;
+    let workerNote: string | undefined;
+    let source: 'runtime' | 'cli' = 'cli';
     const commandArgs: string[] = [];
 
     for (let i = 0; i < args.length; i++) {
         if (args[i] === '--bead-id' && i + 1 < args.length) {
             beadId = args[++i];
+        } else if (args[i] === '--checker-shell' && i + 1 < args.length) {
+            checkerShell = args[++i];
+        } else if (args[i] === '--timeout' && i + 1 < args.length) {
+            const parsed = Number(args[++i]);
+            timeout = Number.isFinite(parsed) ? parsed : undefined;
+        } else if (args[i] === '--agent-id' && i + 1 < args.length) {
+            agentId = args[++i];
+        } else if (args[i] === '--worker-note' && i + 1 < args.length) {
+            workerNote = args[++i];
+        } else if (args[i] === '--source' && i + 1 < args.length) {
+            const value = String(args[++i]).trim().toLowerCase();
+            source = value === 'runtime' ? 'runtime' : 'cli';
         } else {
             commandArgs.push(args[i]);
         }
     }
 
+    const payload: AutobotWeavePayload = {
+        bead_id: beadId,
+        project_root: projectRoot,
+        cwd,
+        source,
+    };
+    if (checkerShell) {
+        payload.checker_shell = checkerShell;
+    }
+    if (timeout !== undefined) {
+        payload.timeout = timeout;
+    }
+    if (agentId) {
+        payload.agent_id = agentId;
+    }
+    if (workerNote) {
+        payload.worker_note = workerNote;
+    }
+    if (commandArgs.length > 0) {
+        payload.command_args = commandArgs;
+    }
+
     return withCliWorkspaceTarget<AutobotWeavePayload>({
         weave_id: 'weave:autobot',
-        payload: {
-            bead_id: beadId,
-            project_root: projectRoot,
-            cwd,
-            source: 'cli',
-            command_args: commandArgs,
-        },
+        payload,
     }, projectRoot, cwd);
 }
 
@@ -305,17 +411,31 @@ export function registerDispatcher(
         const [cmd, ...args] = operands;
         const rawArgs = extractUnknownCommandArgs(cmd, args);
         const projectRoot = resolveWorkspaceRoot(projectRootSource);
-        const skillBead = buildRegistrySkillBeadInvocation(cmd, rawArgs, projectRoot, process.cwd());
-        const result = await dispatchPort.dispatch(
-            skillBead ?? buildDynamicCommandInvocation(cmd, rawArgs, projectRoot, process.cwd()),
-        );
+        const activation = resolveRegistryCommandActivation(cmd, rawArgs, projectRoot, process.cwd());
+        if (activation.kind === 'blocked') {
+            console.error(activation.error);
+            process.exit(1);
+        }
 
+        let invocation: SkillBead<unknown> | WeaveInvocation<unknown> | null = null;
+        if (activation.kind === 'skill') {
+            invocation = activation.bead;
+        } else if (['autobot', 'evolve', 'forge'].includes(cmd.toLowerCase())) {
+            invocation = buildDynamicCommandInvocation(cmd, rawArgs, projectRoot, process.cwd());
+        }
+
+        if (!invocation) {
+            console.error(`Unknown command '${cmd}'. Legacy dynamic command execution is disabled.`);
+            process.exit(1);
+        }
+
+        const result = await dispatchPort.dispatch(invocation);
         if (result.status === 'FAILURE') {
             console.error(result.error ?? `Unknown command '${cmd}'`);
             process.exit(1);
         }
 
-        if (skillBead || result.weave_id !== 'weave:dynamic-command') {
+        if (activation.kind === 'skill' || result.weave_id !== 'weave:dynamic-command') {
             renderStandardCommandResult(result, projectRoot);
         }
     });

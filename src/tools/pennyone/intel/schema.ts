@@ -378,6 +378,62 @@ export function ensureHallSchema(database: Database.Database, rootPath: string):
         CREATE INDEX IF NOT EXISTS idx_hall_one_mind_branches_trace
         ON hall_one_mind_branches(repo_id, trace_id, created_at);
 
+        CREATE TABLE IF NOT EXISTS hall_agent_presence (
+            repo_id TEXT NOT NULL,
+            agent_id TEXT NOT NULL,
+            name TEXT NOT NULL,
+            status TEXT NOT NULL,
+            current_task TEXT,
+            active_bead_id TEXT,
+            session_id TEXT,
+            trace_id TEXT,
+            target_path TEXT,
+            watch_paths_json TEXT,
+            pid INTEGER,
+            metadata_json TEXT,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL,
+            PRIMARY KEY(repo_id, agent_id),
+            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_hall_agent_presence_repo_status
+        ON hall_agent_presence(repo_id, status, updated_at);
+
+        CREATE INDEX IF NOT EXISTS idx_hall_agent_presence_repo_bead
+        ON hall_agent_presence(repo_id, active_bead_id, updated_at);
+
+        CREATE TABLE IF NOT EXISTS hall_coordination_events (
+            event_id TEXT PRIMARY KEY,
+            repo_id TEXT NOT NULL,
+            thread_id TEXT NOT NULL,
+            scope_kind TEXT NOT NULL,
+            scope_ref TEXT NOT NULL,
+            event_kind TEXT NOT NULL,
+            from_agent_id TEXT NOT NULL,
+            to_agent_id TEXT,
+            session_id TEXT,
+            trace_id TEXT,
+            bead_id TEXT,
+            target_path TEXT,
+            rationale TEXT NOT NULL,
+            summary TEXT NOT NULL,
+            payload_json TEXT,
+            metadata_json TEXT,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL,
+            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_hall_coordination_events_repo_thread
+        ON hall_coordination_events(repo_id, thread_id, created_at);
+
+        CREATE INDEX IF NOT EXISTS idx_hall_coordination_events_repo_scope
+        ON hall_coordination_events(repo_id, scope_kind, scope_ref, created_at);
+
+        CREATE INDEX IF NOT EXISTS idx_hall_coordination_events_repo_bead
+        ON hall_coordination_events(repo_id, bead_id, created_at);
+
         CREATE TABLE IF NOT EXISTS hall_git_commits (
             commit_hash TEXT PRIMARY KEY,
             repo_id TEXT NOT NULL,
@@ -549,54 +605,6 @@ export function ensureHallSchema(database: Database.Database, rootPath: string):
             content
         );
 
-        DROP VIEW IF EXISTS hall_repository_projection;
-        CREATE VIEW hall_repository_projection AS
-        SELECT
-            r.repo_id,
-            r.root_path,
-            r.name,
-            r.status,
-            r.active_persona,
-            r.baseline_gungnir_score,
-            r.intent_integrity,
-            (
-                SELECT s.scan_id
-                FROM hall_scans s
-                WHERE s.repo_id = r.repo_id
-                ORDER BY COALESCE(s.completed_at, s.started_at) DESC
-                LIMIT 1
-            ) AS last_scan_id,
-            (
-                SELECT s.status
-                FROM hall_scans s
-                WHERE s.repo_id = r.repo_id
-                ORDER BY COALESCE(s.completed_at, s.started_at) DESC
-                LIMIT 1
-            ) AS last_scan_status,
-            (
-                SELECT COALESCE(s.completed_at, s.started_at)
-                FROM hall_scans s
-                WHERE s.repo_id = r.repo_id
-                ORDER BY COALESCE(s.completed_at, s.started_at) DESC
-                LIMIT 1
-            ) AS last_scan_at,
-            (
-                SELECT COUNT(*)
-                FROM hall_beads b
-                WHERE b.repo_id = r.repo_id
-                  AND b.status IN ('OPEN', 'SET-PENDING', 'SET', 'IN_PROGRESS', 'READY_FOR_REVIEW')
-            ) AS open_beads,
-            (
-                SELECT COUNT(*)
-                FROM hall_validation_runs v
-                WHERE v.repo_id = r.repo_id
-            ) AS validation_runs,
-            (
-                SELECT MAX(v.created_at)
-                FROM hall_validation_runs v
-                WHERE v.repo_id = r.repo_id
-            ) AS last_validation_at
-        FROM hall_repositories r;
     `);
 
     ensureColumn(database, 'hall_beads', 'target_kind', "TEXT NOT NULL DEFAULT 'FILE'");

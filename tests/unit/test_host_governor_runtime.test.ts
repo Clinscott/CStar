@@ -617,9 +617,12 @@ describe('Host governor runtime weave', () => {
         };
 
         let capturedPrompt = '';
+        let capturedRequest: { metadata?: Record<string, unknown> } | undefined;
         const weave = new HostGovernorWeave(
             dispatchPort,
-            async ({ prompt }) => {
+            async (request) => {
+                capturedRequest = request;
+                const { prompt } = request;
                 capturedPrompt = String(prompt);
                 return JSON.stringify({
                     approved_bead_ids: ['bead-digest-safe'],
@@ -648,6 +651,10 @@ describe('Host governor runtime weave', () => {
         assert.match(capturedPrompt, /PLANNING BRANCH DIGEST:/);
         assert.match(capturedPrompt, /Layout findings stay bounded/);
         assert.match(capturedPrompt, /branch_kinds/);
+        assert.equal(capturedRequest?.metadata?.trace_critical, true);
+        assert.equal(capturedRequest?.metadata?.require_agent_harness, true);
+        assert.equal(capturedRequest?.metadata?.transport_mode, 'host_session');
+        assert.equal(capturedRequest?.metadata?.planning_session_id, sessionId);
     });
 
     it('persists machine-readable reason codes to triage_reason for deferred beads', async () => {

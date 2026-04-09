@@ -2,11 +2,12 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 
 import { isHostSessionActive, resolveHostProvider } from '../../../core/host_session.js';
-import { listHallPlanningSessions } from '../../../tools/pennyone/intel/database.js';
+import { listHallAgentPresence, listHallCoordinationEvents, listHallPlanningSessions } from '../../../tools/pennyone/intel/database.js';
 import { formatPlanningSessionSummary } from '../operator_resume.js';
 import { ensureOneMindBroker, getOneMindBrokerStatus, stopOneMindBroker } from '../one_mind_broker/manager.js';
 import { fulfillNextOneMindRequest, fulfillOneMindRequestById, getOneMindQueueSummary, seedHallBrokerIfMissing } from '../one_mind_broker/fulfillment.js';
 import { resolveWorkspaceRoot, type WorkspaceRootSource } from '../runtime/invocation.js';
+import { type HallAgentPresenceRecord, type HallCoordinationEventRecord } from '../../../types/hall.js';
 
 export interface OneMindStatusPayload {
     broker: {
@@ -27,6 +28,14 @@ export interface OneMindStatusPayload {
         completed: number;
         failed: number;
     };
+}
+
+export interface OneMindAgentPresencePayload {
+    agents: HallAgentPresenceRecord[];
+}
+
+export interface OneMindCoordinationEventsPayload {
+    events: HallCoordinationEventRecord[];
 }
 
 function renderStatus(status: Awaited<ReturnType<typeof getOneMindBrokerStatus>>): void {
@@ -88,6 +97,33 @@ export function buildOneMindStatusPayload(
     };
 }
 
+export function buildOneMindAgentPresencePayload(rootPath: string): OneMindAgentPresencePayload {
+    return {
+        agents: listHallAgentPresence(rootPath),
+    };
+}
+
+export function buildOneMindCoordinationEventsPayload(
+    rootPath: string,
+    options: {
+        threadId?: string;
+        beadId?: string;
+        sessionId?: string;
+        traceId?: string;
+        limit?: number;
+    } = {},
+): OneMindCoordinationEventsPayload {
+    return {
+        events: listHallCoordinationEvents(rootPath, {
+            threadId: options.threadId,
+            beadId: options.beadId,
+            sessionId: options.sessionId,
+            traceId: options.traceId,
+            limit: options.limit,
+        }),
+    };
+}
+
 export function registerOneMindCommand(
     program: Command,
     workspaceRootSource: WorkspaceRootSource = process.cwd(),
@@ -95,6 +131,58 @@ export function registerOneMindCommand(
     const command = program
         .command('one-mind')
         .description('Inspect or manage the Hall-backed One Mind broker state');
+
+    command
+        .command('agents')
+        .description('Show the Hall-backed multi-agent roster and active focus')
+        .option('--json', 'Emit machine-readable JSON instead of formatted text')
+        .action((options: { json?: boolean }) => {
+            const rootPath = resolveWorkspaceRoot(workspaceRootSource);
+            const payload = buildOneMindAgentPresencePayload(rootPath);
+            if (options.json) {
+                process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
+                return;
+            }
+            if (payload.agents.length === 0) {
+                console.log(chalk.dim('agents=none'));
+                return;
+            }
+            for (const agent of payload.agents) {
+                console.log(chalk.cyan(`[AGENT] ${agent.agent_id} status=${agent.status} bead=${agent.active_bead_id ?? 'none'} task=${agent.current_task ?? 'none'}`));
+            }
+        });
+
+    command
+        .command('events')
+        .description('Show the Hall-backed multi-agent coordination event ledger')
+        .option('--thread <id>', 'Filter to a coordination thread id')
+        .option('--bead <id>', 'Filter to a bead id')
+        .option('--session <id>', 'Filter to a planning session id')
+        .option('--trace <id>', 'Filter to a trace id')
+        .option('--limit <n>', 'Maximum events to show', '20')
+        .option('--json', 'Emit machine-readable JSON instead of formatted text')
+        .action((options: { thread?: string; bead?: string; session?: string; trace?: string; limit?: string; json?: boolean }) => {
+            const rootPath = resolveWorkspaceRoot(workspaceRootSource);
+            const payload = buildOneMindCoordinationEventsPayload(rootPath, {
+                threadId: options.thread,
+                beadId: options.bead,
+                sessionId: options.session,
+                traceId: options.trace,
+                limit: Math.max(1, Number(options.limit ?? '20') || 20),
+            });
+            if (options.json) {
+                process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
+                return;
+            }
+            if (payload.events.length === 0) {
+                console.log(chalk.dim('events=none'));
+                return;
+            }
+            for (const event of payload.events) {
+                console.log(chalk.cyan(`[EVENT] ${event.event_kind} thread=${event.thread_id} from=${event.from_agent_id} to=${event.to_agent_id ?? 'all'}`));
+                console.log(chalk.dim(`scope=${event.scope_kind}:${event.scope_ref} bead=${event.bead_id ?? 'none'} summary=${event.summary}`));
+            }
+        });
 
     command
         .command('status')
@@ -165,6 +253,10 @@ export function registerOneMindCommand(
                 console.log(chalk.yellow('[ALFRED]: "No pending Hall One Mind requests."'));
                 return;
             }
+            if (result.outcome === 'deferred') {
+                console.log(chalk.yellow(`[ALFRED]: "One Mind request ${result.requestId} remains in flight."`));
+                return;
+            }
             if (result.outcome === 'failed') {
                 const target = result.requestId ? ` for ${result.requestId}` : '';
                 console.error(chalk.red(`[ALFRED]: "One Mind fulfillment failed${target}: ${result.error}"`));
@@ -182,6 +274,10 @@ export function registerOneMindCommand(
             if (result.outcome === 'failed') {
                 console.error(chalk.red(`[ALFRED]: "One Mind fulfillment failed for ${requestId}: ${result.error}"`));
                 process.exit(1);
+            }
+            if (result.outcome === 'deferred') {
+                console.log(chalk.yellow(`[ALFRED]: "One Mind request ${requestId} remains in flight."`));
+                return;
             }
             if (result.outcome === 'idle') {
                 console.log(chalk.yellow('[ALFRED]: "No pending Hall One Mind requests."'));
@@ -219,6 +315,13 @@ export function registerOneMindCommand(
                     if (result.outcome === 'fulfilled') {
                         lastActivityAt = Date.now();
                         console.log(chalk.green(`[ALFRED]: "One Mind fulfilled ${result.requestId}."`));
+                        continue;
+                    }
+
+                    if (result.outcome === 'deferred') {
+                        lastActivityAt = Date.now();
+                        console.log(chalk.dim(`[ALFRED]: "One Mind request ${result.requestId} is still running."`));
+                        await sleep(pollMs);
                         continue;
                     }
 

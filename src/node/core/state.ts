@@ -1,11 +1,18 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { randomUUID } from 'node:crypto';
 import { registry } from '../../tools/pennyone/pathRegistry.js';
 import { activePersona } from '../../tools/pennyone/personaRegistry.js';
 import {
     database,
 } from '../../tools/pennyone/intel/database.ts';
-import type { HallMountedSpokeRecord } from  '../../types/hall.js';
+import {
+    buildHallCoordinationThreadId,
+    buildHallRepositoryId,
+    normalizeHallPath,
+    type HallMountedSpokeRecord,
+    type HallCoordinationEventKind,
+} from  '../../types/hall.js';
 
 export interface FrameworkState {
     status: 'AWAKE' | 'DORMANT' | 'AGENT_LOOP';
@@ -50,12 +57,33 @@ export interface OperatorConsoleProjection {
     theme: 'alfred' | 'odin' | 'matrix';
 }
 
+export interface AgentState {
+    id: string;
+    name: string;
+    status: 'SLEEPING' | 'THINKING' | 'WORKING' | 'WAITING_FOR_HANDOFF' | 'OFFLINE';
+    last_seen: number;
+    current_task?: string;
+    active_bead_id?: string;
+    pid?: number;
+}
+
+export interface BlackboardEntry {
+    at: number;
+    from: string;
+    to?: string;
+    message: string;
+    type: 'HANDOFF' | 'BROADCAST' | 'INFO' | 'ALERT';
+}
+
 export interface SovereignState {
     framework: FrameworkState;
     identity: SystemIdentity;
     hall_of_records: HallOfRecordsMetadata;
     managed_spokes: ManagedSpokeProjection[];
     operator_console: OperatorConsoleProjection;
+    agents: Record<string, AgentState>;
+    blackboard: BlackboardEntry[];
+    terminal_logs: string[];
     [key: string]: unknown;
 }
 
@@ -65,6 +93,9 @@ type SovereignProjectionMetadata = {
     hall_of_records?: HallOfRecordsMetadata;
     managed_spokes?: ManagedSpokeProjection[];
     operator_console?: OperatorConsoleProjection;
+    agents?: Record<string, AgentState>;
+    blackboard?: BlackboardEntry[];
+    terminal_logs?: string[];
     extras?: Record<string, unknown>;
 };
 
@@ -76,8 +107,25 @@ type SovereignStatePatch = {
     };
     managed_spokes?: ManagedSpokeProjection[];
     operator_console?: Partial<OperatorConsoleProjection>;
+    agents?: Record<string, AgentState>;
+    blackboard?: BlackboardEntry[];
+    terminal_logs?: string[];
     [key: string]: unknown;
 };
+
+function mapBlackboardTypeToCoordinationKind(entryType: BlackboardEntry['type']): HallCoordinationEventKind {
+    switch (entryType) {
+        case 'HANDOFF':
+            return 'HANDOFF';
+        case 'BROADCAST':
+            return 'BROADCAST';
+        case 'ALERT':
+            return 'ALERT';
+        case 'INFO':
+        default:
+            return 'INFO';
+    }
+}
 
 function projectManagedSpoke(record: HallMountedSpokeRecord): ManagedSpokeProjection {
     return {
@@ -152,6 +200,14 @@ export class StateRegistry {
                 verbose_stream: true,
                 theme: 'matrix',
             },
+            agents: {
+                gemini: { id: 'gemini', name: 'Gemini', status: 'SLEEPING', last_seen: 0 },
+                codex: { id: 'codex', name: 'Codex', status: 'SLEEPING', last_seen: 0 },
+                autobot: { id: 'autobot', name: 'AutoBot (Hermes)', status: 'SLEEPING', last_seen: 0 },
+                droid: { id: 'droid', name: 'Droid', status: 'OFFLINE', last_seen: 0 }
+            },
+            blackboard: [],
+            terminal_logs: []
         };
     }
 
@@ -176,7 +232,7 @@ export class StateRegistry {
             return base;
         }
 
-        const { framework, identity, hall_of_records, managed_spokes, operator_console, ...extras } = patch;
+        const { framework, identity, hall_of_records, managed_spokes, operator_console, agents, blackboard, terminal_logs, ...extras } = patch;
         return {
             ...base,
             ...extras,
@@ -196,6 +252,9 @@ export class StateRegistry {
             operator_console: operator_console
                 ? { ...base.operator_console, ...operator_console }
                 : base.operator_console,
+            agents: agents ? { ...base.agents, ...agents } : base.agents,
+            blackboard: blackboard ?? base.blackboard,
+            terminal_logs: terminal_logs ?? base.terminal_logs,
         };
     }
 
@@ -249,6 +308,31 @@ export class StateRegistry {
         }
     }
 
+    private static syncHallAgentPresence(agents: Record<string, AgentState>): void {
+        const controlRoot = this.getControlRoot();
+        const repoId = database.getHallRepository(controlRoot)?.repo_id
+            ?? buildHallRepositoryId(normalizeHallPath(controlRoot));
+        const now = Date.now();
+
+        for (const [agentKey, agent] of Object.entries(agents ?? {})) {
+            database.saveHallAgentPresence({
+                repo_id: repoId,
+                agent_id: agent.id || agentKey,
+                name: agent.name || agentKey,
+                status: agent.status,
+                current_task: agent.current_task,
+                active_bead_id: agent.active_bead_id,
+                pid: agent.pid,
+                metadata: {
+                    projection_source: 'state_registry',
+                    roster_key: agentKey,
+                },
+                created_at: now,
+                updated_at: agent.last_seen > 0 ? agent.last_seen : now,
+            }, controlRoot);
+        }
+    }
+
     private static extractHallProjection(): SovereignStatePatch {
         const record = database.getHallRepository(this.getControlRoot());
         const metadata = (record?.metadata ?? {}) as Record<string, unknown>;
@@ -265,12 +349,15 @@ export class StateRegistry {
             hall_of_records: projection.hall_of_records,
             managed_spokes: projection.managed_spokes,
             operator_console: projection.operator_console,
+            agents: projection.agents,
+            blackboard: projection.blackboard,
+            terminal_logs: projection.terminal_logs,
         };
     }
 
     private static buildMetadata(state: SovereignState): Record<string, unknown> {
         const existingMetadata = (database.getHallRepository(this.getControlRoot())?.metadata ?? {}) as Record<string, unknown>;
-        const { framework, identity, hall_of_records, managed_spokes, operator_console, ...extras } = state;
+        const { framework, identity, hall_of_records, managed_spokes, operator_console, agents, blackboard, terminal_logs, ...extras } = state;
         const projectedSpokes = this.readHallMountedSpokes();
 
         return {
@@ -287,6 +374,9 @@ export class StateRegistry {
                 hall_of_records,
                 managed_spokes: projectedSpokes.length > 0 ? projectedSpokes : managed_spokes,
                 operator_console,
+                agents,
+                blackboard,
+                terminal_logs,
                 extras,
             },
         };
@@ -309,7 +399,7 @@ export class StateRegistry {
         try {
             const hallSummary = database.getHallSummary(this.getControlRoot());
             if (hallSummary) {
-                const metadata = (hallSummary.metadata ?? {}) as any;
+                const metadata = (database.getHallRepository(this.getControlRoot())?.metadata ?? {}) as any;
                 const projection = metadata[this.SOVEREIGN_PROJECTION_KEY] as any;
                 
                 state.framework = {
@@ -345,6 +435,51 @@ export class StateRegistry {
         this.save(state);
     }
 
+    static postToBlackboard(entry: Omit<BlackboardEntry, 'at'>) {
+        const state = this.get();
+        const fullEntry: BlackboardEntry = { ...entry, at: Date.now() };
+        state.blackboard = [...(state.blackboard || []), fullEntry].slice(-100); // Keep last 100
+        this.save(state);
+
+        try {
+            const controlRoot = this.getControlRoot();
+            const repoId = database.getHallRepository(controlRoot)?.repo_id
+                ?? buildHallRepositoryId(normalizeHallPath(controlRoot));
+            const beadId = state.framework.bead_id;
+            const threadId = buildHallCoordinationThreadId({ repoId, beadId });
+            database.saveHallCoordinationEvent({
+                event_id: `coord:${randomUUID()}`,
+                repo_id: repoId,
+                thread_id: threadId,
+                scope_kind: beadId ? 'BEAD' : 'REPOSITORY',
+                scope_ref: beadId ?? repoId,
+                event_kind: mapBlackboardTypeToCoordinationKind(fullEntry.type),
+                from_agent_id: fullEntry.from,
+                to_agent_id: fullEntry.to,
+                bead_id: beadId,
+                rationale: `War Room ${fullEntry.type.toLowerCase()} event mirrored into the Hall coordination ledger.`,
+                summary: fullEntry.message,
+                payload: {
+                    blackboard_type: fullEntry.type,
+                    at: fullEntry.at,
+                },
+                metadata: {
+                    projection_source: 'state_registry.blackboard',
+                },
+                created_at: fullEntry.at,
+                updated_at: fullEntry.at,
+            }, controlRoot);
+        } catch {
+            // Blackboard projection must remain best-effort.
+        }
+    }
+
+    static pushTerminalLog(line: string) {
+        const state = this.get();
+        state.terminal_logs = [...(state.terminal_logs || []), line].slice(-50); // Keep last 50 lines
+        this.save(state);
+    }
+
     static save(state: SovereignState) {
         const materialized = this.ensureStateShape(state);
         const controlRoot = this.getControlRoot();
@@ -366,6 +501,7 @@ export class StateRegistry {
                 updated_at: Date.now(),
             });
             this.syncHallMountedSpokes(materialized.managed_spokes);
+            this.syncHallAgentPresence(materialized.agents);
         } catch {
             // Compatibility state writes should not fail if Hall is temporarily unavailable.
         }

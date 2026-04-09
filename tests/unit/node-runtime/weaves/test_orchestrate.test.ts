@@ -139,6 +139,81 @@ describe('Orchestrate weave planning session routing', () => {
         assert.deepEqual(updatedSession?.metadata?.active_execution_bead_ids, [selectedBeadId]);
     });
 
+    it('prefers an orchestrate-designated active session over newer generic active sessions', () => {
+        const now = Date.now();
+        const orchestrateSessionId = 'chant-session:orchestrate-designated';
+        const genericSessionId = 'chant-session:generic-active';
+        const orchestrateBeadId = 'bead:orchestrate-selected';
+        const genericBeadId = 'bead:generic-selected';
+
+        upsertHallBead({
+            bead_id: orchestrateBeadId,
+            repo_id: repoId,
+            target_kind: 'FILE',
+            target_path: 'src/node/core/runtime/weaves/orchestrate.ts',
+            rationale: 'Execute the designated orchestrate session.',
+            status: 'SET',
+            created_at: now,
+            updated_at: now,
+        } as any);
+        upsertHallBead({
+            bead_id: genericBeadId,
+            repo_id: repoId,
+            target_kind: 'FILE',
+            target_path: 'src/node/core/runtime/weaves/chant.ts',
+            rationale: 'Execute the newer generic session.',
+            status: 'SET',
+            created_at: now + 1,
+            updated_at: now + 1,
+        } as any);
+
+        saveHallPlanningSession({
+            session_id: genericSessionId,
+            repo_id: repoId,
+            skill_id: 'chant',
+            status: 'FORGE_EXECUTION',
+            user_intent: 'Execute the generic active session.',
+            normalized_intent: 'execute the generic active session',
+            summary: 'Generic session is newer.',
+            created_at: now,
+            updated_at: now + 20,
+            metadata: {
+                bead_ids: [genericBeadId],
+                trace_contract: {
+                    selection_tier: 'WEAVE',
+                    selection_name: 'creation_loop',
+                },
+            },
+        });
+
+        saveHallPlanningSession({
+            session_id: orchestrateSessionId,
+            repo_id: repoId,
+            skill_id: 'chant',
+            status: 'PLAN_READY',
+            user_intent: 'Execute the orchestrate-designated session.',
+            normalized_intent: 'execute the orchestrate-designated session',
+            summary: 'Orchestrate-designated session should win.',
+            created_at: now,
+            updated_at: now + 10,
+            metadata: {
+                bead_ids: [orchestrateBeadId],
+                trace_contract: {
+                    selection_tier: 'WEAVE',
+                    selection_name: 'orchestrate',
+                },
+            },
+        });
+
+        const planningSelection = selectPlanningSessionBeadIds(tmpRoot, [
+            { id: genericBeadId, status: 'SET' } as any,
+            { id: orchestrateBeadId, status: 'SET' } as any,
+        ]);
+
+        assert.equal(planningSelection.planningSession?.session_id, orchestrateSessionId);
+        assert.deepEqual(planningSelection.beadIds, [orchestrateBeadId]);
+    });
+
     it('shatters session-backed parent beads into ONE-MIND children and stitches them into the planning session', async () => {
         const now = Date.now();
         const sessionId = 'chant-session:parent-shatter';
@@ -151,6 +226,8 @@ describe('Orchestrate weave planning session routing', () => {
             target_ref: sessionId,
             target_path: 'src/node/core/runtime/hall/*',
             rationale: 'Refresh Hall proposal state as a coordination parent bead.',
+            contract_refs: ['file:src/node/core/runtime/weaves/orchestrate.ts'],
+            acceptance_criteria: 'Refresh the planning state without losing released beads.',
             checker_shell: 'node --test tests/unit/node-runtime/weaves/test_orchestrate.test.ts',
             status: 'SET',
             created_at: now,
@@ -206,6 +283,10 @@ describe('Orchestrate weave planning session routing', () => {
         assert.equal(ledgerChild?.assigned_agent, 'ONE-MIND');
         assert.equal(architectureChild?.target_ref, parentBeadId);
         assert.equal(ledgerChild?.target_ref, parentBeadId);
+        assert.deepEqual(architectureChild?.contract_refs, ['file:src/node/core/runtime/weaves/orchestrate.ts']);
+        assert.equal(architectureChild?.acceptance_criteria, 'Refresh the planning state without losing released beads.');
+        assert.deepEqual(ledgerChild?.contract_refs, ['file:src/node/core/runtime/weaves/orchestrate.ts']);
+        assert.equal(ledgerChild?.acceptance_criteria, 'Refresh the planning state without losing released beads.');
 
         const updatedSession = getHallPlanningSession(sessionId);
         assert.equal(updatedSession?.status, 'FORGE_EXECUTION');
@@ -213,6 +294,76 @@ describe('Orchestrate weave planning session routing', () => {
             parentBeadId,
             `${parentBeadId}:child:architecture`,
             `${parentBeadId}:child:ledger`,
+        ]);
+    });
+
+    it('shatters implementation-designated parent beads into technical follow-through children', async () => {
+        const now = Date.now();
+        const sessionId = 'chant-session:implementation-shatter';
+        const parentBeadId = 'bead-creation-loop-parent';
+
+        upsertHallBead({
+            bead_id: parentBeadId,
+            repo_id: repoId,
+            target_kind: 'FILE',
+            target_ref: sessionId,
+            target_path: 'src/node/core/runtime/weaves/chant.ts',
+            rationale: 'Execute the implementation-designated parent bead.',
+            acceptance_criteria: 'The implementation follow-through stays bounded.',
+            status: 'SET',
+            created_at: now,
+            updated_at: now,
+        } as any);
+
+        saveHallPlanningSession({
+            session_id: sessionId,
+            repo_id: repoId,
+            skill_id: 'chant',
+            status: 'PLAN_READY',
+            user_intent: 'Release the creation loop parent bead.',
+            normalized_intent: 'release the creation loop parent bead',
+            summary: 'Creation loop parent is released.',
+            created_at: now,
+            updated_at: now + 1,
+            metadata: {
+                bead_ids: [parentBeadId],
+                trace_contract: {
+                    selection_tier: 'WEAVE',
+                    selection_name: 'creation_loop',
+                    intent_category: 'BUILD',
+                },
+            },
+        });
+
+        const weave = new OrchestrateWeave();
+        const result = await weave.execute(
+            {
+                weave_id: 'weave:orchestrate',
+                payload: {
+                    project_root: tmpRoot,
+                    cwd: tmpRoot,
+                    limit: 1,
+                },
+            },
+            createContext(tmpRoot),
+        );
+
+        assert.equal(result.status, 'SUCCESS');
+
+        const architectureChild = getHallBead(`${parentBeadId}:child:architecture`);
+        const technicalChild = getHallBead(`${parentBeadId}:child:technical`);
+        const ledgerChild = getHallBead(`${parentBeadId}:child:ledger`);
+
+        assert.equal(architectureChild?.status, 'SET');
+        assert.equal(technicalChild?.status, 'SET');
+        assert.equal(technicalChild?.assigned_agent, 'AUTOBOT');
+        assert.equal(ledgerChild, null);
+
+        const updatedSession = getHallPlanningSession(sessionId);
+        assert.deepEqual(updatedSession?.metadata?.bead_ids, [
+            parentBeadId,
+            `${parentBeadId}:child:architecture`,
+            `${parentBeadId}:child:technical`,
         ]);
     });
 
@@ -352,5 +503,76 @@ describe('Orchestrate weave planning session routing', () => {
         assert.equal(activations[0]?.skill_id, 'research');
         assert.equal(activations[0]?.adapter_id, 'weave:research');
         assert.equal(activations[0]?.status, 'COMPLETED');
+    });
+
+    it('routes implementation-designated technical child beads through autobot and records trace hints', async () => {
+        const now = Date.now();
+        const sessionId = 'chant-session:implementation-child';
+        const beadId = 'bead-creation-loop-parent:child:technical';
+        const dispatchPort = new CaptureDispatchPort();
+
+        upsertHallBead({
+            bead_id: beadId,
+            repo_id: repoId,
+            target_kind: 'VALIDATION',
+            target_ref: 'bead-creation-loop-parent',
+            target_path: 'src/runtime',
+            rationale: 'Implementation child should stay on autobot.',
+            status: 'SET',
+            assigned_agent: 'AUTOBOT',
+            created_at: now,
+            updated_at: now,
+        } as any);
+
+        saveHallPlanningSession({
+            session_id: sessionId,
+            repo_id: repoId,
+            skill_id: 'chant',
+            status: 'FORGE_EXECUTION',
+            user_intent: 'Continue the implementation-designated session.',
+            normalized_intent: 'continue the implementation-designated session',
+            summary: 'Implementation child is ready.',
+            created_at: now,
+            updated_at: now + 1,
+            metadata: {
+                bead_ids: [beadId],
+                trace_contract: {
+                    selection_tier: 'WEAVE',
+                    selection_name: 'creation_loop',
+                    intent_category: 'BUILD',
+                },
+            },
+        });
+
+        const weave = new OrchestrateWeave(dispatchPort);
+        const result = await weave.execute(
+            {
+                weave_id: 'weave:orchestrate',
+                payload: {
+                    project_root: tmpRoot,
+                    cwd: tmpRoot,
+                    limit: 1,
+                },
+                session: {
+                    mode: 'cli',
+                    interactive: true,
+                    session_id: 'cli-session',
+                },
+            },
+            createContext(tmpRoot),
+        );
+
+        assert.equal(result.status, 'SUCCESS');
+        assert.equal(dispatchPort.invocations.length, 1);
+        assert.equal((dispatchPort.invocations[0] as any)?.skill_id, 'autobot');
+        assert.equal((dispatchPort.invocations[0] as any)?.params?.trace_selection_name, 'creation_loop');
+        assert.equal((dispatchPort.invocations[0] as any)?.params?.trace_execution_profile, 'implementation');
+
+        const activations = listHallSkillActivations(tmpRoot, { session_id: sessionId });
+        assert.equal(activations.length, 1);
+        assert.equal(activations[0]?.skill_id, 'autobot');
+        assert.equal(activations[0]?.adapter_id, 'weave:autobot');
+        assert.equal(activations[0]?.metadata?.trace_selection_name, 'creation_loop');
+        assert.equal(activations[0]?.metadata?.trace_execution_profile, 'implementation');
     });
 });

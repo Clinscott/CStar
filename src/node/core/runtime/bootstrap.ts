@@ -1,6 +1,5 @@
 import { RuntimeDispatcher } from  './dispatcher.js';
 import { 
-    DynamicCommandAdapter, 
     PennyOneAdapter, 
     RavensAdapter, 
     StartAdapter,
@@ -19,6 +18,7 @@ import { ResearchHostWorkflow } from  './host_workflows/research.js';
 import { CritiqueHostWorkflow } from  './host_workflows/critique.js';
 import { ArchitectCompatibilityAdapter } from  './compat/architect.js';
 import { DistillWeave } from  './weaves/distill.js';
+import { EngraveWeave } from  './weaves/engrave.js';
 import { OrchestrateWeave } from  './weaves/orchestrate.js';
 import { HostGovernorWeave } from  './weaves/host_governor.js';
 import { TemporalLearningWeave } from  './weaves/temporal_learning.js';
@@ -54,12 +54,12 @@ export function bootstrapRuntime(dispatcher: RuntimeDispatcher = RuntimeDispatch
         new ChantHostWorkflow(dispatcher),
         new ResearchHostWorkflow(dispatcher),
         new DistillWeave(),
+        new EngraveWeave(),
         new CritiqueHostWorkflow(dispatcher),
         new ArchitectCompatibilityAdapter(dispatcher),
-        new EvolveWeave(),
+        new EvolveWeave(dispatcher),
         new ArtifactForgeHostWorkflow(),
         new TaliesinForgeHostWorkflow(),
-        new DynamicCommandAdapter(),
         new OrchestrateWeave(dispatcher),
         new HostGovernorWeave(dispatcher),
         new TemporalLearningWeave(),

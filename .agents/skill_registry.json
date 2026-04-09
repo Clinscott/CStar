@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "generated_at": 1775043381870,
+  "generated_at": 1775732778213,
   "tiers": {
     "PRIME": {
       "description": "Atomic host-native or kernel-primitive operations used as the smallest bounded units."
@@ -75,7 +75,11 @@
         "status",
         "health",
         "look",
-        "show"
+        "show",
+        "browse",
+        "website",
+        "url",
+        "navigate"
       ],
       "default_path": "scan",
       "tier": "PRIME"
@@ -176,7 +180,8 @@
         "tests/unit/test_autobot_skill.py",
         "tests/unit/test_evolve_skill.py"
       ],
-      "runtime_trigger": "hall"
+      "runtime_trigger": "hall",
+      "entry_surface": "cli"
     },
     "mimir": {
       "tier": "PRIME",
@@ -209,7 +214,8 @@
         "tests/unit/test_mimir_gateway.test.ts",
         "tests/empire_tests/test_mimir_aesthetics_empire.py"
       ],
-      "runtime_trigger": "mimir"
+      "runtime_trigger": "mimir",
+      "entry_surface": "cli"
     },
     "vitals": {
       "tier": "PRIME",
@@ -242,7 +248,8 @@
         "tests/unit/health_memory.test.ts",
         "tests/unit/health_overall.test.ts"
       ],
-      "runtime_trigger": "vitals"
+      "runtime_trigger": "vitals",
+      "entry_surface": "cli"
     },
     "status": {
       "tier": "PRIME",
@@ -275,7 +282,8 @@
         "tests/unit/engine/test_skill_learning.py",
         "tests/unit/health_disk.test.ts"
       ],
-      "runtime_trigger": "status"
+      "runtime_trigger": "status",
+      "entry_surface": "cli"
     },
     "metrics": {
       "tier": "PRIME",
@@ -309,29 +317,29 @@
         "tests/unit/engine/ravens/test_git_spoke.py",
         "tests/unit/engine/ravens/test_muninn_hunter.py"
       ],
-      "runtime_trigger": "metrics"
+      "runtime_trigger": "metrics",
+      "entry_surface": "cli"
     },
     "scan": {
-      "tier": "PRIME",
+      "tier": "SKILL",
       "prime_category": "observation",
       "description": "Perform structural repository scans, extract symbols, and update the Gungnir matrix.",
       "instruction_path": ".agents/skills/scan/SKILL.md",
       "execution": {
-        "mode": "kernel-backed",
+        "mode": "agent-native",
         "cli": "cstar scan",
-        "script_path": ".agents/skills/scan/scripts/scan.py",
-        "ownership_model": "kernel-primitive"
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
       "authority_path": ".agents/skills/scan",
       "entrypoint_path": ".agents/skills/scan/scripts/scan.py",
       "contract_path": ".agents/skills/scan/scan.feature",
-      "owner_runtime": "cstar-kernel",
+      "owner_runtime": "host-agent",
       "host_support": {
-        "gemini": "supported",
-        "codex": "supported",
-        "claude": "supported"
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
       },
       "recursion_policy": "leaf",
       "contracts": [
@@ -341,7 +349,8 @@
         "tests/empire_tests/test_security_scan_empire.py",
         "tests/node/pennyone/scan_logic.test.ts"
       ],
-      "runtime_trigger": "scan"
+      "runtime_trigger": "scan",
+      "entry_surface": "cli"
     },
     "manifest": {
       "tier": "PRIME",
@@ -374,7 +383,8 @@
         "tests/unit/engine/test_skill_learning.py",
         "tests/unit/test_autobot_skill.py"
       ],
-      "runtime_trigger": "manifest"
+      "runtime_trigger": "manifest",
+      "entry_surface": "cli"
     },
     "qmd_search": {
       "tier": "PRIME",
@@ -407,7 +417,8 @@
         "tests/unit/test_autobot_skill.py",
         "tests/unit/test_evolve_skill.py"
       ],
-      "runtime_trigger": "qmd_search"
+      "runtime_trigger": "qmd_search",
+      "entry_surface": "cli"
     },
     "oracle": {
       "tier": "PRIME",
@@ -438,7 +449,8 @@
         "tests/unit/test_oracle_command.test.ts",
         "tests/unit/test_runtime_command_invocations.test.ts"
       ],
-      "runtime_trigger": "oracle"
+      "runtime_trigger": "oracle",
+      "entry_surface": "cli"
     },
     "calculus": {
       "tier": "PRIME",
@@ -471,7 +483,8 @@
         "tests/unit/test_gungnir_schema.py",
         "tests/unit/test_gungnir_schema.test.ts"
       ],
-      "runtime_trigger": "calculus"
+      "runtime_trigger": "calculus",
+      "entry_surface": "cli"
     },
     "trace": {
       "tier": "PRIME",
@@ -501,7 +514,8 @@
       "tests": [
         "tests/empire_tests/test_trace_viz_empire.py"
       ],
-      "runtime_trigger": "trace"
+      "runtime_trigger": "trace",
+      "entry_surface": "cli"
     },
     "style": {
       "tier": "PRIME",
@@ -534,7 +548,38 @@
         "tests/unit/test_evolve_skill.py",
         "tests/unit/test_memory_skill_compat.py"
       ],
-      "runtime_trigger": "style"
+      "runtime_trigger": "style",
+      "entry_surface": "cli"
+    },
+    "agent-browser": {
+      "tier": "SKILL",
+      "description": "High-performance browser automation CLI for AI agents.",
+      "instruction_path": ".agents/skills/agent-browser/SKILL.md",
+      "execution": {
+        "mode": "agent-native",
+        "cli": "cstar agent-browser",
+        "ownership_model": "host-workflow"
+      },
+      "viability": "ACTIVE",
+      "risk": "safe",
+      "authority_path": ".agents/skills/agent-browser",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/agent-browser/SKILL.md",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/agent-browser/SKILL.md"
+      ],
+      "tests": [
+        "tests/unit/test_agent_browser.test.ts"
+      ],
+      "runtime_trigger": "agent-browser",
+      "entry_surface": "cli"
     },
     "agentic-ingest": {
       "tier": "PRIME",
@@ -566,7 +611,8 @@
         "tests/unit/engine/test_vector_ingest.py",
         "tests/unit/test_autobot_skill.py"
       ],
-      "runtime_trigger": "agentic-ingest"
+      "runtime_trigger": "agentic-ingest",
+      "entry_surface": "cli"
     },
     "forge": {
       "tier": "PRIME",
@@ -601,7 +647,8 @@
         "tests/unit/engine/ravens/test_ravens_runtime.py",
         "tests/unit/node-runtime/adapters/test_legacy_commands.test.ts"
       ],
-      "runtime_trigger": "forge"
+      "runtime_trigger": "forge",
+      "entry_surface": "cli"
     },
     "scribe": {
       "tier": "PRIME",
@@ -634,7 +681,8 @@
         "tests/unit/test_evolve_skill.py",
         "tests/unit/test_memory_skill_compat.py"
       ],
-      "runtime_trigger": "scribe"
+      "runtime_trigger": "scribe",
+      "entry_surface": "cli"
     },
     "report": {
       "tier": "PRIME",
@@ -666,7 +714,8 @@
         "tests/empire_tests/test_report_engine_empire.py",
         "tests/quarantine/test_report_engine.py"
       ],
-      "runtime_trigger": "report"
+      "runtime_trigger": "report",
+      "entry_surface": "cli"
     },
     "jailing": {
       "tier": "PRIME",
@@ -699,7 +748,8 @@
         "tests/unit/test_evolve_skill.py",
         "tests/unit/test_memory_skill_compat.py"
       ],
-      "runtime_trigger": "jailing"
+      "runtime_trigger": "jailing",
+      "entry_surface": "cli"
     },
     "gatekeeper": {
       "tier": "PRIME",
@@ -732,7 +782,8 @@
         "tests/unit/test_evolve_skill.py",
         "tests/unit/test_memory_skill_compat.py"
       ],
-      "runtime_trigger": "gatekeeper"
+      "runtime_trigger": "gatekeeper",
+      "entry_surface": "cli"
     },
     "locks": {
       "tier": "PRIME",
@@ -765,7 +816,8 @@
         "tests/unit/test_evolve_skill.py",
         "tests/unit/test_memory_skill_compat.py"
       ],
-      "runtime_trigger": "locks"
+      "runtime_trigger": "locks",
+      "entry_surface": "cli"
     },
     "manuscript-optimizer": {
       "tier": "SKILL",
@@ -794,7 +846,8 @@
       "tests": [
         "tests/unit/test_taliesin_optimizer.py"
       ],
-      "runtime_trigger": "taliesin-optimizer"
+      "runtime_trigger": "taliesin-optimizer",
+      "entry_surface": "cli"
     },
     "annex": {
       "tier": "SKILL",
@@ -825,7 +878,8 @@
         "tests/empire_tests/test_annex_empire.py",
         "tests/empire_tests/test_annex_preservation_empire.py"
       ],
-      "runtime_trigger": "annex"
+      "runtime_trigger": "annex",
+      "entry_surface": "cli"
     },
     "autobot": {
       "tier": "SKILL",
@@ -854,7 +908,8 @@
       "tests": [
         "tests/unit/test_autobot_runtime.test.ts"
       ],
-      "runtime_trigger": "autobot"
+      "runtime_trigger": "autobot",
+      "entry_surface": "cli"
     },
     "bookmark-weaver": {
       "tier": "SKILL",
@@ -869,7 +924,7 @@
       "viability": "ACTIVE",
       "risk": "safe",
       "authority_path": ".agents/skills/bookmark-weaver",
-      "entrypoint_path": "scripts/bookmark_weaver.py",
+      "entrypoint_path": null,
       "contract_path": ".agents/skills/bookmark-weaver/SKILL.md",
       "owner_runtime": "cstar-kernel",
       "host_support": {
@@ -887,7 +942,8 @@
         "tests/unit/test_evolve_skill.py",
         "tests/unit/test_memory_skill_compat.py"
       ],
-      "runtime_trigger": "bookmark-weaver"
+      "runtime_trigger": "bookmark-weaver",
+      "entry_surface": "cli"
     },
     "cachebro": {
       "tier": "SKILL",
@@ -919,23 +975,23 @@
         "tests/unit/test_evolve_skill.py",
         "tests/unit/test_memory_skill_compat.py"
       ],
-      "runtime_trigger": "cachebro"
+      "runtime_trigger": "cachebro",
+      "entry_surface": "cli"
     },
     "chant": {
       "tier": "WEAVE",
       "description": "Parse natural-language chants into executable skill flight paths and routing plans.",
+      "entry_surface": "host-only",
       "instruction_path": ".agents/skills/chant/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar chant",
-        "adapter_id": "weave:chant",
         "allow_kernel_fallback": false,
         "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
       "authority_path": ".agents/skills/chant",
-      "entrypoint_path": ".agents/skills/chant/scripts/chant.py",
+      "entrypoint_path": null,
       "contract_path": ".agents/skills/chant/chant.feature",
       "owner_runtime": "host-agent",
       "host_support": {
@@ -945,7 +1001,8 @@
       },
       "recursion_policy": "bounded-orchestrator",
       "contracts": [
-        ".agents/skills/chant/chant.feature"
+        ".agents/skills/chant/chant.feature",
+        ".agents/weaves/chant.md"
       ],
       "tests": [
         "tests/unit/test_chant_runtime.test.ts",
@@ -983,14 +1040,15 @@
         "tests/unit/test_evolve_skill.py",
         "tests/unit/test_memory_skill_compat.py"
       ],
-      "runtime_trigger": "chronicle"
+      "runtime_trigger": "chronicle",
+      "entry_surface": "cli"
     },
     "distill": {
       "tier": "SKILL",
       "description": "Summarize tasks or git diffs into tactical summaries for episodic memory.",
       "instruction_path": ".agents/skills/distill/SKILL.md",
       "execution": {
-        "mode": "agent-native",
+        "mode": "kernel-backed",
         "cli": "cstar distill",
         "ownership_model": "kernel-primitive"
       },
@@ -1012,7 +1070,8 @@
       "tests": [
         "tests/unit/test_distill_runtime.test.ts"
       ],
-      "runtime_trigger": "distill"
+      "runtime_trigger": "distill",
+      "entry_surface": "cli"
     },
     "consciousness": {
       "tier": "SKILL",
@@ -1044,7 +1103,8 @@
         "tests/unit/test_evolve_skill.py",
         "tests/unit/test_memory_skill_compat.py"
       ],
-      "runtime_trigger": "consciousness"
+      "runtime_trigger": "consciousness",
+      "entry_surface": "cli"
     },
     "corvus-control": {
       "tier": "SKILL",
@@ -1076,7 +1136,8 @@
         "tests/unit/engine/ravens/test_muninn_hunter.py",
         "tests/unit/engine/ravens/test_ravens_cycle.py"
       ],
-      "runtime_trigger": "corvus-control"
+      "runtime_trigger": "corvus-control",
+      "entry_surface": "cli"
     },
     "edda": {
       "tier": "SKILL",
@@ -1108,7 +1169,8 @@
         "tests/empire_tests/test_edda_empire.py",
         "tests/empire_tests/test_edda_syntax_empire.py"
       ],
-      "runtime_trigger": "edda"
+      "runtime_trigger": "edda",
+      "entry_surface": "cli"
     },
     "empire": {
       "tier": "SKILL",
@@ -1140,7 +1202,8 @@
         "tests/unit/test_heimdall_shield_empire.py",
         "tests/unit/test_lease_manager_empire.py"
       ],
-      "runtime_trigger": "empire"
+      "runtime_trigger": "empire",
+      "entry_surface": "cli"
     },
     "engine": {
       "tier": "SKILL",
@@ -1171,7 +1234,8 @@
         "tests/unit/engine/ravens/test_muninn_hunter.py",
         "tests/unit/engine/ravens/test_ravens_cycle.py"
       ],
-      "runtime_trigger": "engine"
+      "runtime_trigger": "engine",
+      "entry_surface": "cli"
     },
     "evolve": {
       "tier": "WEAVE",
@@ -1200,7 +1264,8 @@
       "tests": [
         "tests/unit/test_evolve_runtime.test.ts"
       ],
-      "runtime_trigger": "evolve"
+      "runtime_trigger": "evolve",
+      "entry_surface": "cli"
     },
     "gherkin": {
       "tier": "SKILL",
@@ -1232,7 +1297,8 @@
         "tests/unit/test_evolve_skill.py",
         "tests/unit/test_memory_skill_compat.py"
       ],
-      "runtime_trigger": "gherkin"
+      "runtime_trigger": "gherkin",
+      "entry_surface": "cli"
     },
     "hunt": {
       "tier": "SKILL",
@@ -1264,7 +1330,8 @@
         "tests/unit/test_mimir_gateway.test.ts",
         "tests/empire_tests/test_mimir_aesthetics_empire.py"
       ],
-      "runtime_trigger": "hunt"
+      "runtime_trigger": "hunt",
+      "entry_surface": "cli"
     },
     "linter": {
       "tier": "SKILL",
@@ -1293,7 +1360,8 @@
       "tests": [
         "tests/empire_tests/test_prompt_linter_empire.py"
       ],
-      "runtime_trigger": "linter"
+      "runtime_trigger": "linter",
+      "entry_surface": "cli"
     },
     "matrix": {
       "tier": "SKILL",
@@ -1325,7 +1393,8 @@
         "tests/unit/test_evolve_skill.py",
         "tests/unit/test_memory_skill_compat.py"
       ],
-      "runtime_trigger": "matrix"
+      "runtime_trigger": "matrix",
+      "entry_surface": "cli"
     },
     "bifrost": {
       "tier": "SKILL",
@@ -1357,7 +1426,8 @@
         "tests/unit/test_autobot_skill.py",
         "tests/unit/test_evolve_skill.py"
       ],
-      "runtime_trigger": "bifrost"
+      "runtime_trigger": "bifrost",
+      "entry_surface": "cli"
     },
     "norn": {
       "tier": "SKILL",
@@ -1388,7 +1458,8 @@
         "tests/empire_tests/test_norn_campaign_empire.py",
         "tests/empire_tests/test_norn_empire.py"
       ],
-      "runtime_trigger": "norn"
+      "runtime_trigger": "norn",
+      "entry_surface": "cli"
     },
     "one-mind": {
       "tier": "SKILL",
@@ -1420,7 +1491,8 @@
         "tests/unit/test_mimir_client_bridge.test.ts",
         "tests/unit/test_intelligence_contract.test.ts"
       ],
-      "runtime_trigger": "one-mind"
+      "runtime_trigger": "one-mind",
+      "entry_surface": "cli"
     },
     "orchestrate": {
       "tier": "WEAVE",
@@ -1452,7 +1524,8 @@
         "tests/unit/node-runtime/weaves/test_architect.test.ts",
         "tests/unit/node-runtime/weaves/test_chant.test.ts"
       ],
-      "runtime_trigger": "orchestrate"
+      "runtime_trigger": "orchestrate",
+      "entry_surface": "cli"
     },
     "personas": {
       "tier": "SKILL",
@@ -1484,7 +1557,8 @@
         "tests/empire_tests/test_personas_empire.py",
         "tests/empire_tests/test_personas_retheme_empire.py"
       ],
-      "runtime_trigger": "personas"
+      "runtime_trigger": "personas",
+      "entry_surface": "cli"
     },
     "promotion": {
       "tier": "SKILL",
@@ -1513,7 +1587,8 @@
       "tests": [
         "tests/unit/test_muninn_promotion.py"
       ],
-      "runtime_trigger": "promotion"
+      "runtime_trigger": "promotion",
+      "entry_surface": "cli"
     },
     "ravens": {
       "tier": "WEAVE",
@@ -1539,7 +1614,8 @@
       },
       "recursion_policy": "bounded-orchestrator",
       "contracts": [
-        ".agents/skills/ravens/ravens.feature"
+        ".agents/skills/ravens/ravens.feature",
+        ".agents/weaves/ravens.md"
       ],
       "tests": [
         "tests/unit/engine/ravens/test_muninn_hunter.py",
@@ -1547,7 +1623,8 @@
         "tests/unit/engine/ravens/test_git_spoke.py",
         "tests/unit/engine/ravens/test_ravens_cycle.py"
       ],
-      "runtime_trigger": "ravens"
+      "runtime_trigger": "ravens",
+      "entry_surface": "cli"
     },
     "research": {
       "tier": "SKILL",
@@ -1578,7 +1655,8 @@
       "tests": [
         "tests/unit/node-runtime/weaves/test_research.test.ts"
       ],
-      "runtime_trigger": "research"
+      "runtime_trigger": "research",
+      "entry_surface": "cli"
     },
     "redactor": {
       "tier": "SKILL",
@@ -1610,7 +1688,8 @@
         "tests/unit/test_evolve_skill.py",
         "tests/unit/test_memory_skill_compat.py"
       ],
-      "runtime_trigger": "redactor"
+      "runtime_trigger": "redactor",
+      "entry_surface": "cli"
     },
     "critique": {
       "tier": "SKILL",
@@ -1640,7 +1719,8 @@
       "tests": [
         "tests/unit/node-runtime/weaves/test_critique.test.ts"
       ],
-      "runtime_trigger": "critique"
+      "runtime_trigger": "critique",
+      "entry_surface": "cli"
     },
     "ritual": {
       "tier": "SKILL",
@@ -1672,7 +1752,8 @@
         "tests/unit/test_evolve_skill.py",
         "tests/unit/test_memory_skill_compat.py"
       ],
-      "runtime_trigger": "ritual"
+      "runtime_trigger": "ritual",
+      "entry_surface": "cli"
     },
     "spoke": {
       "tier": "SKILL",
@@ -1701,7 +1782,8 @@
       "tests": [
         "tests/unit/test_spoke_runtime.test.ts"
       ],
-      "runtime_trigger": "spoke"
+      "runtime_trigger": "spoke",
+      "entry_surface": "cli"
     },
     "sprt": {
       "tier": "SKILL",
@@ -1733,7 +1815,8 @@
         "tests/unit/test_evolve_skill.py",
         "tests/unit/test_memory_skill_compat.py"
       ],
-      "runtime_trigger": "sprt"
+      "runtime_trigger": "sprt",
+      "entry_surface": "cli"
     },
     "stability": {
       "tier": "SKILL",
@@ -1762,7 +1845,8 @@
       "tests": [
         "tests/quarantine/test_stability.py"
       ],
-      "runtime_trigger": "stability"
+      "runtime_trigger": "stability",
+      "entry_surface": "cli"
     },
     "start": {
       "tier": "WEAVE",
@@ -1788,12 +1872,14 @@
       },
       "recursion_policy": "bounded-orchestrator",
       "contracts": [
-        ".agents/skills/start/SKILL.md"
+        ".agents/skills/start/SKILL.md",
+        ".agents/weaves/start.md"
       ],
       "tests": [
         "tests/unit/test_start_runtime.test.ts"
       ],
-      "runtime_trigger": "start"
+      "runtime_trigger": "start",
+      "entry_surface": "cli"
     },
     "sterling": {
       "tier": "SKILL",
@@ -1822,7 +1908,8 @@
       "tests": [
         "tests/unit/test_sterling_auditor.py"
       ],
-      "runtime_trigger": "sterling"
+      "runtime_trigger": "sterling",
+      "entry_surface": "cli"
     },
     "taliesin": {
       "tier": "SKILL",
@@ -1851,7 +1938,8 @@
       "tests": [
         "tests/unit/test_taliesin.py"
       ],
-      "runtime_trigger": "taliesin"
+      "runtime_trigger": "taliesin",
+      "entry_surface": "cli"
     },
     "taste-skill": {
       "tier": "SKILL",
@@ -1882,7 +1970,8 @@
         "tests/unit/test_autobot_skill.py",
         "tests/unit/test_evolve_skill.py"
       ],
-      "runtime_trigger": "taste-skill"
+      "runtime_trigger": "taste-skill",
+      "entry_surface": "cli"
     },
     "telemetry": {
       "tier": "SKILL",
@@ -1914,7 +2003,8 @@
         "tests/unit/test_autobot_skill.py",
         "tests/unit/test_evolve_skill.py"
       ],
-      "runtime_trigger": "telemetry"
+      "runtime_trigger": "telemetry",
+      "entry_surface": "cli"
     },
     "visual-explainer": {
       "tier": "SKILL",
@@ -1945,7 +2035,8 @@
         "tests/unit/test_evolve_skill.py",
         "tests/unit/test_memory_skill_compat.py"
       ],
-      "runtime_trigger": "visual-explainer"
+      "runtime_trigger": "visual-explainer",
+      "entry_surface": "cli"
     },
     "warden": {
       "tier": "SKILL",
@@ -1954,15 +2045,14 @@
       "execution": {
         "mode": "agent-native",
         "cli": "cstar warden",
-        "adapter_id": "weave:warden",
-        "ownership_model": "kernel-primitive"
+        "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
       "authority_path": ".agents/skills/warden",
       "entrypoint_path": ".agents/skills/warden/scripts/warden.py",
       "contract_path": ".agents/skills/warden/warden.feature",
-      "owner_runtime": "cstar-kernel",
+      "owner_runtime": "host-agent",
       "host_support": {
         "gemini": "native-session",
         "codex": "exec-bridge",
@@ -1978,7 +2068,8 @@
         "tests/quarantine/test_session_warden_determinism_empire.py",
         "tests/quarantine/test_warden_burnin.py"
       ],
-      "runtime_trigger": "warden"
+      "runtime_trigger": "warden",
+      "entry_surface": "cli"
     },
     "restoration": {
       "tier": "WEAVE",
@@ -2012,7 +2103,8 @@
         "tests/unit/node-runtime/weaves/test_chant_parser.test.ts",
         "tests/unit/node-runtime/weaves/test_chant_planner.test.ts"
       ],
-      "runtime_trigger": "restoration"
+      "runtime_trigger": "restoration",
+      "entry_surface": "cli"
     },
     "expansion": {
       "tier": "WEAVE",
@@ -2046,7 +2138,8 @@
         "tests/unit/node-runtime/weaves/test_chant_parser.test.ts",
         "tests/unit/node-runtime/weaves/test_chant_planner.test.ts"
       ],
-      "runtime_trigger": "expansion"
+      "runtime_trigger": "expansion",
+      "entry_surface": "cli"
     },
     "vigilance": {
       "tier": "WEAVE",
@@ -2080,7 +2173,8 @@
         "tests/unit/node-runtime/weaves/test_chant_parser.test.ts",
         "tests/unit/node-runtime/weaves/test_chant_planner.test.ts"
       ],
-      "runtime_trigger": "vigilance"
+      "runtime_trigger": "vigilance",
+      "entry_surface": "cli"
     },
     "creation_loop": {
       "tier": "WEAVE",
@@ -2111,7 +2205,8 @@
         "tests/unit/node-runtime/weaves/test_chant_parser.test.ts",
         "tests/unit/node-runtime/weaves/test_chant_planner.test.ts"
       ],
-      "runtime_trigger": "creation_loop"
+      "runtime_trigger": "creation_loop",
+      "entry_surface": "cli"
     },
     "contract_hardening": {
       "tier": "WEAVE",
@@ -2142,7 +2237,8 @@
         "tests/unit/node-runtime/weaves/test_chant_parser.test.ts",
         "tests/unit/node-runtime/weaves/test_chant_planner.test.ts"
       ],
-      "runtime_trigger": "contract_hardening"
+      "runtime_trigger": "contract_hardening",
+      "entry_surface": "cli"
     },
     "living_architecture": {
       "tier": "WEAVE",
@@ -2173,27 +2269,40 @@
         "tests/unit/node-runtime/weaves/test_chant_parser.test.ts",
         "tests/unit/node-runtime/weaves/test_chant_planner.test.ts"
       ],
-      "runtime_trigger": "living_architecture"
+      "runtime_trigger": "living_architecture",
+      "entry_surface": "cli"
     },
     "estate-ritual": {
       "tier": "WEAVE",
       "description": "Execute the daily maintenance ritual (Update, Ingest, Swarm).",
+      "instruction_path": "src/node/core/runtime/weaves/estate_ritual.ts",
       "execution": {
-        "mode": "agent-native",
+        "mode": "kernel-backed",
         "cli": "cstar ritual",
         "adapter_id": "weave:estate-ritual",
-        "ownership_model": "host-workflow"
+        "ownership_model": "kernel-primitive"
       },
       "viability": "ACTIVE",
       "risk": "safe",
-      "owner_runtime": "host-agent",
+      "authority_path": "src/node/core/runtime/weaves/estate_ritual.ts",
+      "entrypoint_path": null,
+      "contract_path": "src/node/core/runtime/weaves/estate_ritual.ts",
+      "owner_runtime": "cstar-kernel",
       "host_support": {
-        "gemini": "native-session",
-        "codex": "exec-bridge",
-        "claude": "exec-bridge"
+        "gemini": "supported",
+        "codex": "supported",
+        "claude": "supported"
       },
       "recursion_policy": "bounded-composite",
-      "runtime_trigger": "estate-ritual"
+      "contracts": [
+        "src/node/core/runtime/weaves/estate_ritual.ts"
+      ],
+      "tests": [
+        "tests/unit/node-runtime/test_estate_targeting.test.ts",
+        "tests/unit/test_ravens_estate_runtime.test.ts"
+      ],
+      "runtime_trigger": "estate-ritual",
+      "entry_surface": "cli"
     },
     "secure_speculation": {
       "tier": "WEAVE",
@@ -2224,7 +2333,8 @@
         "tests/unit/node-runtime/weaves/test_chant_parser.test.ts",
         "tests/unit/node-runtime/weaves/test_chant_planner.test.ts"
       ],
-      "runtime_trigger": "secure_speculation"
+      "runtime_trigger": "secure_speculation",
+      "entry_surface": "cli"
     },
     "ephemeral_grid": {
       "tier": "WEAVE",
@@ -2255,7 +2365,8 @@
         "tests/unit/node-runtime/weaves/test_chant_parser.test.ts",
         "tests/unit/node-runtime/weaves/test_chant_planner.test.ts"
       ],
-      "runtime_trigger": "ephemeral_grid"
+      "runtime_trigger": "ephemeral_grid",
+      "entry_surface": "cli"
     },
     "shattering_strike": {
       "tier": "SPELL",
@@ -2284,7 +2395,8 @@
         "tests/unit/test_skill_registry_audit.py"
       ],
       "runtime_trigger": "shattering_strike",
-      "spell_classification": "policy-only"
+      "spell_classification": "policy-only",
+      "entry_surface": "host-only"
     },
     "phoenix_loop": {
       "tier": "SPELL",
@@ -2313,7 +2425,8 @@
         "tests/unit/test_skill_registry_audit.py"
       ],
       "runtime_trigger": "phoenix_loop",
-      "spell_classification": "policy-only"
+      "spell_classification": "policy-only",
+      "entry_surface": "host-only"
     },
     "silver_shield": {
       "tier": "SPELL",
@@ -2342,7 +2455,8 @@
         "tests/unit/test_heimdall_shield_empire.py"
       ],
       "runtime_trigger": "silver_shield",
-      "spell_classification": "policy-only"
+      "spell_classification": "policy-only",
+      "entry_surface": "host-only"
     },
     "living_well": {
       "tier": "SPELL",
@@ -2371,7 +2485,8 @@
         "tests/unit/test_skill_registry_audit.py"
       ],
       "runtime_trigger": "living_well",
-      "spell_classification": "policy-only"
+      "spell_classification": "policy-only",
+      "entry_surface": "host-only"
     },
     "_archive": {
       "tier": "SKILL",
@@ -2400,7 +2515,8 @@
         "tests/unit/test_evolve_skill.py",
         "tests/unit/test_memory_skill_compat.py"
       ],
-      "runtime_trigger": "_archive"
+      "runtime_trigger": "_archive",
+      "entry_surface": "cli"
     },
     "level-5-diagnostic": {
       "tier": "SKILL",
@@ -2431,7 +2547,8 @@
         "tests/unit/test_evolve_skill.py",
         "tests/unit/test_memory_skill_compat.py"
       ],
-      "runtime_trigger": "level-5-diagnostic"
+      "runtime_trigger": "level-5-diagnostic",
+      "entry_surface": "cli"
     },
     "taliesin-optimizer": {
       "tier": "WEAVE",
@@ -2455,7 +2572,8 @@
       },
       "recursion_policy": "leaf",
       "contracts": [
-        "../Taliesin/contracts/taliesin.feature"
+        "../Taliesin/contracts/taliesin.feature",
+        ".agents/weaves/taliesin-optimizer.md"
       ],
       "tests": [
         "tests/unit/engine/test_skill_learning.py",
@@ -2463,7 +2581,8 @@
         "tests/unit/test_evolve_skill.py",
         "tests/unit/test_memory_skill_compat.py"
       ],
-      "runtime_trigger": "taliesin-optimizer"
+      "runtime_trigger": "taliesin-optimizer",
+      "entry_surface": "cli"
     },
     "taliesin-story-forge": {
       "tier": "WEAVE",
@@ -2488,12 +2607,14 @@
       },
       "recursion_policy": "leaf",
       "contracts": [
-        "../Taliesin/contracts/taliesin.feature"
+        "../Taliesin/contracts/taliesin.feature",
+        ".agents/weaves/taliesin-story-forge.md"
       ],
       "tests": [
         "tests/unit/test_taliesin_story_forge.test.ts"
       ],
-      "runtime_trigger": "taliesin-story-forge"
+      "runtime_trigger": "taliesin-story-forge",
+      "entry_surface": "cli"
     },
     "artifact-forge": {
       "tier": "SKILL",
@@ -2524,7 +2645,8 @@
         "tests/empire_tests/test_skill_forge_empire.py",
         "tests/unit/engine/test_skill_learning.py",
         "tests/unit/test_autobot_skill.py"
-      ]
+      ],
+      "entry_surface": "cli"
     },
     "host-subagent-handoff": {
       "tier": "SKILL",
@@ -2555,11 +2677,42 @@
         "tests/unit/node-runtime/weaves/test_host_governor.test.ts",
         "tests/unit/node-runtime/weaves/test_host_worker.test.ts",
         "tests/unit/test_autobot_skill.py"
-      ]
+      ],
+      "entry_surface": "cli"
+    },
+    "engrave": {
+      "tier": "WEAVE",
+      "description": "Convert ephemeral .agents/memory/session_*.json files into structured Engram nodes.",
+      "instruction_path": "src/node/core/runtime/weaves/engrave.ts",
+      "execution": {
+        "mode": "kernel-backed",
+        "adapter_id": "weave:engrave",
+        "ownership_model": "kernel-primitive"
+      },
+      "viability": "ACTIVE",
+      "risk": "safe",
+      "authority_path": "src/node/core/runtime/weaves/engrave.ts",
+      "entrypoint_path": null,
+      "contract_path": "src/node/core/runtime/weaves/engrave.ts",
+      "owner_runtime": "cstar-kernel",
+      "host_support": {
+        "gemini": "supported",
+        "codex": "supported",
+        "claude": "supported"
+      },
+      "recursion_policy": "bounded-composite",
+      "contracts": [
+        "src/node/core/runtime/weaves/engrave.ts"
+      ],
+      "tests": [
+        "tests/unit/node-runtime/weaves/test_engrave.test.ts"
+      ],
+      "runtime_trigger": "engrave",
+      "entry_surface": "cli"
     }
   },
   "authority_audit": {
-    "generated_at": 1775043381870,
+    "generated_at": 1775732778213,
     "authoritative_root": ".agents/skills",
     "duplicates": [
       {

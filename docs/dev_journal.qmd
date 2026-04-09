@@ -727,3 +727,35 @@ Achieved 100.0% accuracy on the N=1000 benchmark dataset using an overfit-correc
 - **Corvus Star** is now 100% resilient to common AI code-quality failures.
 - **Gauntlet Reliability**: Increased from ~60% to **100%** on target tests.
 - **Next**: Observing the ravens in a live cycle with the new Bifrost shield active.
+
+## 2026-04-05 - AutoBot Model Surface Architectural Decomposition (Research)
+### Trace Selection Gate
+```text
+// Corvus Star Trace [Ω]
+Intent Category: [RESEARCH]
+Intent: Architectural decomposition for bead-locate-autobot-model-surface
+Selection: SKILL: research
+Trajectory: STABLE: Research completed, model surface located.
+Mimir's Well: ◈ src/core/engine/autobot_skill.py | ◈ src/core/engine/sovereign_worker.py
+Gungnir Verdict: [L: 0.0 | S: 0.0 | I: 0.0 | Ω: 0%]
+Confidence: 1.0
+```
+
+### Summary
+**Hypothesis:** By exposing the hardcoded `deepseek` string to a configuration map or environment variable in `autobot_skill.py` and `sovereign_worker.py`, we can successfully register the `Gemma 4 4B` model surface without breaking existing sovereign functionality.
+**Findings:** The default model is currently hardcoded to `deepseek` across two core engine files (`src/core/engine/autobot_skill.py` and `src/core/engine/sovereign_worker.py`).
+
+### Architectural Decisions
+- **Configurable Worker Model**: Found the exact locations to apply the update. Moving from a hardcoded `deepseek` constant to an environment variable fallback or explicitly overriding it.
+- **Result**: Decomposition complete. Moving to next bead `bead-update-autobot-model-surface`.
+
+### Corvus Host Plan
+```corvus-host-plan
+{
+  "mission_id": "bead_mission_1775351410599",
+  "active_host_plan": "Restore Hall discovery, then install or register Gemma 4 4B on the supported AutoBot model surface.",
+  "host_plan_status": "IN_PROGRESS",
+  "next_bead": "bead-update-autobot-model-surface",
+  "focus_targets": ["src/core/engine/autobot_skill.py", "src/core/engine/sovereign_worker.py"]
+}
+```

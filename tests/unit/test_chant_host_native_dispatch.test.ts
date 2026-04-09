@@ -9,6 +9,29 @@ import type { WeaveResult } from '../../src/node/core/runtime/contracts.js';
 import { registry } from '../../src/tools/pennyone/pathRegistry.js';
 
 describe('chant host-native dispatch guardrail', () => {
+    it('keeps chant out of the public shell registry surface', () => {
+        const manifestPath = path.resolve(process.cwd(), '.agents', 'skill_registry.json');
+        const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as {
+            entries?: Record<string, {
+                execution?: Record<string, unknown>;
+                entrypoint_path?: unknown;
+                owner_runtime?: unknown;
+                runtime_trigger?: unknown;
+            }>;
+        };
+        const chant = manifest.entries?.chant;
+
+        assert.ok(chant, 'chant must remain registered as a host-native capability');
+        assert.equal(chant.runtime_trigger, 'chant');
+        assert.equal(chant.owner_runtime, 'host-agent');
+        assert.equal(chant.entrypoint_path, null);
+        assert.equal(chant.execution?.mode, 'agent-native');
+        assert.equal(chant.execution?.ownership_model, 'host-workflow');
+        assert.equal(chant.execution?.allow_kernel_fallback, false);
+        assert.equal(chant.execution?.cli, undefined);
+        assert.equal(chant.execution?.adapter_id, undefined);
+    });
+
     it('fails closed when chant forbids kernel fallback and no host session is active', async () => {
         const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-chant-host-required-'));
         fs.mkdirSync(path.join(tmpRoot, '.agents'), { recursive: true });

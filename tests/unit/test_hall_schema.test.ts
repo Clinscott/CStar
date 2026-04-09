@@ -7,6 +7,7 @@ import path from 'node:path';
 import {
     closeDb,
     getDb,
+    getHallAgentPresence,
     getHallBeads,
     getHallDocument,
     getHallDocumentVersion,
@@ -16,10 +17,14 @@ import {
     getHallSummary,
     listHallDocumentVersions,
     listHallEpisodicMemory,
+    listHallAgentPresence,
+    listHallCoordinationEvents,
     listHallSkillProposals,
     migrateLegacyHallRecords,
     recordHallScan,
     restoreHallDocumentVersion,
+    saveHallAgentPresence,
+    saveHallCoordinationEvent,
     saveHallDocumentSnapshot,
     saveHallEpisodicMemory,
     saveHallPlanningSession,
@@ -36,7 +41,7 @@ import {
     upsertHallBead,
 } from '../../src/tools/pennyone/intel/database.ts';
 import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
-import { buildHallRepositoryId } from  '../../src/types/hall.js';
+import { buildHallCoordinationThreadId, buildHallRepositoryId } from  '../../src/types/hall.js';
 import { StateRegistry } from  '../../src/node/core/state.js';
 
 describe('Hall schema canonicalization (CS-P1-03)', () => {
@@ -209,6 +214,58 @@ describe('Hall schema canonicalization (CS-P1-03)', () => {
         assert.strictEqual(state.framework.active_persona, 'ALFRED');
         assert.strictEqual(state.framework.gungnir_score, 91);
         assert.strictEqual(state.framework.intent_integrity, 96);
+    });
+
+    it('stores explicit Hall-native agent presence and coordination events', () => {
+        getDb();
+        const repoId = buildHallRepositoryId(tmpRoot.replace(/\\/g, '/'));
+        const threadId = buildHallCoordinationThreadId({ repoId, beadId: 'bead-coord-1' });
+
+        saveHallAgentPresence({
+            repo_id: repoId,
+            agent_id: 'codex',
+            name: 'Codex',
+            status: 'WORKING',
+            current_task: 'Repair the runtime contract',
+            active_bead_id: 'bead-coord-1',
+            watch_paths: ['src/node/core/runtime/dispatcher.ts'],
+            created_at: 1700000007000,
+            updated_at: 1700000007000,
+        }, tmpRoot);
+
+        saveHallCoordinationEvent({
+            event_id: 'coord-1',
+            repo_id: repoId,
+            thread_id: threadId,
+            scope_kind: 'BEAD',
+            scope_ref: 'bead-coord-1',
+            event_kind: 'HANDOFF',
+            from_agent_id: 'alfred',
+            to_agent_id: 'codex',
+            bead_id: 'bead-coord-1',
+            rationale: 'Direct Codex to the runtime repair bead.',
+            summary: 'Inspect dispatcher routing before editing.',
+            payload: {
+                why: 'Target the runtime boundary first.',
+                where: 'src/node/core/runtime/dispatcher.ts',
+            },
+            created_at: 1700000008000,
+            updated_at: 1700000008000,
+        }, tmpRoot);
+
+        const presence = getHallAgentPresence('codex', tmpRoot);
+        const roster = listHallAgentPresence(tmpRoot, { statuses: ['WORKING'] });
+        const events = listHallCoordinationEvents(tmpRoot, { threadId, beadId: 'bead-coord-1' });
+
+        assert.ok(presence);
+        assert.equal(presence?.current_task, 'Repair the runtime contract');
+        assert.deepEqual(presence?.watch_paths, ['src/node/core/runtime/dispatcher.ts']);
+        assert.equal(roster.length, 1);
+        assert.equal(roster[0]?.agent_id, 'codex');
+        assert.equal(events.length, 1);
+        assert.equal(events[0]?.event_kind, 'HANDOFF');
+        assert.equal(events[0]?.to_agent_id, 'codex');
+        assert.equal(events[0]?.payload?.where, 'src/node/core/runtime/dispatcher.ts');
     });
 
     it('does not let stale sovereign_state projection overwrite hall authority after bootstrap', () => {

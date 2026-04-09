@@ -14,6 +14,7 @@ export interface FileData {
     is_api?: boolean;
     cachedDependencies?: string[];
     dependencies?: string[];
+    cluster?: number;
     justification?: string;
 }
 
@@ -49,6 +50,7 @@ export interface CompiledGraph {
         hash: string;
         endpoints?: string[];
         is_api?: boolean;
+        cluster?: number;
     }>;
     summary: {
         total_files: number;

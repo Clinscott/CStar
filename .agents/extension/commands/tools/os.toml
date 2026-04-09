@@ -1,14 +1,14 @@
 [tool.install]
 description = "Install CStar OS global mandates and git hooks into the host user space"
 command = "node"
-args = ["${extensionPath}/../../../bin/cstar.js", "os", "install"]
+args = ["${extensionPath}/bin/cstar.js", "os", "install"]
 
 [tool.uninstall]
 description = "Disengage CStar OS hooks and restore standard user space"
 command = "node"
-args = ["${extensionPath}/../../../bin/cstar.js", "os", "uninstall"]
+args = ["${extensionPath}/bin/cstar.js", "os", "uninstall"]
 
 [tool.status]
 description = "Retrieve system vitals and current framework state"
 command = "node"
-args = ["${extensionPath}/../../../bin/cstar.js", "status"]
+args = ["${extensionPath}/bin/cstar.js", "status"]

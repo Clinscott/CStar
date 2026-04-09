@@ -10,17 +10,26 @@ describe('ResearchWeave Unit Tests', () => {
         assert.equal(weave.id, 'weave:research');
     });
 
-    it('execute succeeds when host returns valid JSON', async () => {
+    it('execute succeeds when delegated research returns valid JSON', async () => {
         const dispatchPort: any = {};
         let capturedRequest: Record<string, unknown> | null = null;
-        const hostTextInvoker = async (request: Record<string, unknown>) => {
-            capturedRequest = request;
-            return '{"summary": "Research findings", "research_artifacts": ["A"]}';
-        };
-        const weave = new ResearchWeave(dispatchPort, hostTextInvoker);
+        const weave = new ResearchWeave(dispatchPort);
         
         mock.method(deps, 'resolveRuntimeHostProvider', () => 'codex');
         mock.method(deps, 'extractJsonObject', (text: string) => JSON.parse(text));
+        mock.method(deps, 'requestHostDelegatedExecution', async (request: Record<string, unknown>) => {
+            capturedRequest = request;
+            return {
+                handle_id: 'delegate-1',
+                provider: 'codex',
+                status: 'completed',
+                raw_text: '{"summary": "Research findings", "research_artifacts": ["A"]}',
+                metadata: {
+                    execution_surface: 'host-cli-inference',
+                    delegation_mode: 'provider-native',
+                },
+            };
+        });
 
         const result = await weave.execute({
             weave_id: 'weave:research',
@@ -31,10 +40,16 @@ describe('ResearchWeave Unit Tests', () => {
         assert.equal(result.output, 'Research findings');
         assert.equal(result.metadata?.context_policy, 'project');
         assert.deepEqual(result.metadata?.research_artifacts, ['A']);
+        assert.equal(capturedRequest?.boundary, 'subagent');
+        assert.equal(capturedRequest?.task_kind, 'research');
         assert.deepEqual(capturedRequest?.metadata, {
-            transport_mode: 'host_session',
-            one_mind_boundary: 'primary',
-            execution_role: 'primary',
+            mission_id: undefined,
+            trace_id: undefined,
+            session_id: null,
+            source: 'runtime:research',
+            one_mind_boundary: 'subagent',
+            execution_role: 'subagent',
+            subagent_profile: 'scout',
         });
         mock.reset();
     });
@@ -61,6 +76,9 @@ describe('ResearchWeave Unit Tests', () => {
         const weave = new ResearchWeave(dispatchPort, hostTextInvoker);
         
         mock.method(deps, 'resolveRuntimeHostProvider', () => 'codex');
+        mock.method(deps, 'requestHostDelegatedExecution', async () => {
+            throw new Error('Configured delegated-execution bridge missing for codex.');
+        });
 
         const result = await weave.execute({
             weave_id: 'weave:research',
@@ -79,6 +97,9 @@ describe('ResearchWeave Unit Tests', () => {
 
         mock.method(deps, 'resolveRuntimeHostProvider', () => 'codex');
         mock.method(deps, 'extractJsonObject', (text: string) => JSON.parse(text));
+        mock.method(deps, 'requestHostDelegatedExecution', async () => {
+            throw new Error('Configured delegated-execution bridge missing for codex.');
+        });
 
         const result = await weave.execute({
             weave_id: 'weave:research',
@@ -97,11 +118,20 @@ describe('ResearchWeave Unit Tests', () => {
             '{"summary": "Second branch.", "research_artifacts": ["B", "A"]}',
         ];
         let index = 0;
-        const hostTextInvoker = async () => responses[index++] ?? responses[responses.length - 1];
-        const weave = new ResearchWeave(dispatchPort, hostTextInvoker);
+        const weave = new ResearchWeave(dispatchPort);
 
         mock.method(deps, 'resolveRuntimeHostProvider', () => 'codex');
         mock.method(deps, 'extractJsonObject', (text: string) => JSON.parse(text));
+        mock.method(deps, 'requestHostDelegatedExecution', async () => ({
+            handle_id: `delegate-${index}`,
+            provider: 'codex',
+            status: 'completed',
+            raw_text: responses[index++] ?? responses[responses.length - 1],
+            metadata: {
+                execution_surface: 'host-cli-inference',
+                delegation_mode: 'provider-native',
+            },
+        }));
 
         const result = await weave.execute({
             weave_id: 'weave:research',
@@ -114,6 +144,69 @@ describe('ResearchWeave Unit Tests', () => {
         assert.equal(result.metadata?.parallel, true);
         assert.equal(result.metadata?.branch_count, 2);
         assert.deepEqual(result.metadata?.research_artifacts, ['A', 'B']);
+        mock.reset();
+    });
+
+    it('persists failed branch records when delegated research fails', async () => {
+        const dispatchPort: any = {};
+        const savedRecords: Array<Record<string, unknown>> = [];
+        const weave = new ResearchWeave(dispatchPort);
+
+        mock.method(deps, 'resolveRuntimeHostProvider', () => 'codex');
+        mock.method(deps, 'requestHostDelegatedExecution', async () => {
+            throw new Error('research delegated execution timeout after 5ms');
+        });
+        mock.method(deps, 'saveHallOneMindBranch', (record: Record<string, unknown>) => {
+            savedRecords.push(record);
+        });
+
+        const result = await weave.execute({
+            weave_id: 'weave:research',
+            payload: { intent: 'test', subquestions: ['alpha'], cwd: '.', project_root: '.' }
+        } as any, {
+            workspace_root: '.',
+            env: {},
+            trace_id: 'trace-research-failure',
+        } as any);
+
+        assert.equal(result.status, 'FAILURE');
+        assert.equal(savedRecords.length, 1);
+        assert.equal(savedRecords[0]?.status, 'FAILED');
+        assert.match(String(savedRecords[0]?.error_text ?? ''), /timeout/i);
+        mock.reset();
+    });
+
+    it('queues delegated research requests when a poll bridge is configured', async () => {
+        const dispatchPort: any = {};
+        const savedRequests: Array<Record<string, unknown>> = [];
+        const weave = new ResearchWeave(dispatchPort);
+
+        mock.method(deps, 'resolveRuntimeHostProvider', () => 'codex');
+        mock.method(deps, 'resolveConfiguredDelegatePollBridge', () => ({
+            command: 'delegate-poll',
+            args: ['--handle', '{handle_id}', '--result', '{result_path}'],
+        }));
+        mock.method(deps, 'saveHallOneMindRequest', (record: Record<string, unknown>) => {
+            savedRequests.push(record);
+        });
+
+        const result = await weave.execute({
+            weave_id: 'weave:research',
+            payload: { intent: 'test', subquestions: ['alpha', 'beta'], cwd: '.', project_root: '.' }
+        } as any, {
+            workspace_root: '.',
+            env: { CODEX_SHELL: '1' },
+            bead_id: 'activation:research:1',
+            trace_id: 'trace-research-queued',
+            mission_id: 'mission-research-queued',
+        } as any);
+
+        assert.equal(result.status, 'TRANSITIONAL');
+        assert.equal(savedRequests.length, 2);
+        assert.equal(savedRequests[0]?.boundary, 'subagent');
+        assert.equal(savedRequests[0]?.request_status, 'PENDING');
+        assert.equal(savedRequests[0]?.metadata?.activation_id, 'activation:research:1');
+        assert.equal(savedRequests[0]?.metadata?.branch_group_id, 'research:trace-research-queued:test');
         mock.reset();
     });
 });

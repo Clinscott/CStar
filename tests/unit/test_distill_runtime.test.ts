@@ -8,8 +8,8 @@ import type { RuntimeContext } from  '../../src/node/core/runtime/contracts.js';
 import { DistillWeave } from  '../../src/node/core/runtime/weaves/distill.js';
 import {
     closeDb,
+    getEpisodicMemory,
     getEpisodicMemoryById,
-    getHallEpisodicMemory,
     upsertHallBead,
     upsertHallRepository,
 } from '../../src/tools/pennyone/intel/database.ts';
@@ -183,7 +183,7 @@ describe('Context compressor runtime weave (CS-THREADS-P2)', () => {
 
         const memoryId = String(result.metadata?.memory_id);
         const memory = getEpisodicMemoryById(memoryId);
-        const beadMemories = getHallEpisodicMemory('bead-1');
+        const beadMemories = getEpisodicMemory('bead-1');
 
         assert.ok(memory);
         assert.equal(memory?.bead_id, 'bead-1');

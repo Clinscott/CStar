@@ -9,6 +9,7 @@ import {
 } from '../contracts.ts';
 import chalk from 'chalk';
 import * as hostBridge from '../weaves/host_bridge.js';
+import { inheritTraceInvocation } from '../trace_inheritance.js';
 
 export const deps = {
     resolveRuntimeHostProvider: hostBridge.resolveRuntimeHostProvider,
@@ -103,7 +104,9 @@ export class EstateExpansionHostWorkflow implements RuntimeAdapter<EstateExpansi
                     metadata: {
                         runtime_weave: 'expansion',
                         decision: 'expansion-supervisor',
-                        transport_mode: 'session-required',
+                        trace_critical: true,
+                        require_agent_harness: true,
+                        transport_mode: 'host_session',
                     },
                 });
                 const decision = normalizeExpansionDecision(raw);
@@ -124,7 +127,7 @@ export class EstateExpansionHostWorkflow implements RuntimeAdapter<EstateExpansi
                     };
                 }
                 if (decision?.action === 'replan') {
-                    const chantResult = await this.dispatchPort.dispatch({
+                    const chantResult = await this.dispatchPort.dispatch(inheritTraceInvocation({
                         weave_id: 'weave:chant',
                         payload: {
                             query: `Replan spoke expansion for ${payload.remote_url}${slug ? ` as ${slug}` : ''}`,
@@ -132,7 +135,7 @@ export class EstateExpansionHostWorkflow implements RuntimeAdapter<EstateExpansi
                             cwd: context.workspace_root,
                             source: 'runtime',
                         },
-                    });
+                    }, context));
                     return {
                         weave_id: this.id,
                         status: chantResult.status,

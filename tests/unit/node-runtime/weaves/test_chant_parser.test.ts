@@ -4,8 +4,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import {
+    parseTraceSelectionGate,
     tokenize,
     normalizeIntent,
+    validateTraceSelectionGate,
     hasAnyToken,
     loadRegistryManifest,
     loadSkillTriggers,
@@ -63,6 +65,62 @@ Plan XO implementation beads for phase 1`;
         assert.equal(normalizeIntent(input), 'Plan XO implementation beads for phase 1');
     });
 
+    it('normalizeIntent falls back to the declared trace intent when no freeform body exists', () => {
+        const input = `// Corvus Star Trace [Ω]
+Intent Category: BUILD
+Intent: Begin XO implementation planning
+Selection: WEAVE: creation_loop
+Trajectory: STABLE: The weave remains the right intake shell.
+Mimir's Well: ◈ CStar/AGENTS.qmd | ◈ src/node/core/runtime/host_workflows/chant.ts
+Gungnir Verdict: [L: 4.0 | S: 4.0 | I: 4.0 | Ω: 80%]
+Confidence: 0.9`;
+
+        assert.equal(normalizeIntent(input), 'Begin XO implementation planning');
+    });
+
+    it('parseTraceSelectionGate extracts the structured designation contract', () => {
+        const input = `// Corvus Star Trace [Ω]
+Intent Category: ORCHESTRATE
+Intent: Make chant the only intake gate
+Selection: WEAVE: orchestrate
+Trajectory: STABLE: Persist the designation instead of discarding it.
+Mimir's Well: ◈ CStar/AGENTS.qmd | ◈ src/node/core/runtime/dispatcher.ts
+Gungnir Verdict: [L: 4.7 | S: 4.5 | I: 4.8 | Ω: 93%]
+Confidence: 0.94
+
+Seed the Hall contract for the scheduler migration.`;
+
+        const trace = parseTraceSelectionGate(input);
+        assert.equal(trace?.intent_category, 'ORCHESTRATE');
+        assert.equal(trace?.intent, 'Make chant the only intake gate');
+        assert.equal(trace?.selection_tier, 'WEAVE');
+        assert.equal(trace?.selection_name, 'orchestrate');
+        assert.equal(trace?.trajectory_status, 'STABLE');
+        assert.equal(trace?.trajectory_reason, 'Persist the designation instead of discarding it.');
+        assert.deepEqual(trace?.mimirs_well, ['CStar/AGENTS.qmd', 'src/node/core/runtime/dispatcher.ts']);
+        assert.equal(trace?.gungnir_verdict, '[L: 4.7 | S: 4.5 | I: 4.8 | Ω: 93%]');
+        assert.equal(trace?.confidence, 0.94);
+        assert.equal(trace?.body, 'Seed the Hall contract for the scheduler migration.');
+        assert.equal(trace?.canonical_intent, 'Seed the Hall contract for the scheduler migration.');
+        assert.deepEqual(trace?.issues, []);
+    });
+
+    it('validateTraceSelectionGate reports missing and malformed fields', () => {
+        const input = `// Corvus Star Trace [Ω]
+Intent: malformed trace
+Selection: orchestrate
+Trajectory: STABLE
+Confidence: 1.8`;
+
+        const validation = validateTraceSelectionGate(input);
+        assert.equal(validation.valid, false);
+        assert.match(validation.errors.join(' '), /Missing Intent Category\./);
+        assert.match(validation.errors.join(' '), /Missing Mimir's Well\./);
+        assert.match(validation.errors.join(' '), /Selection must follow/);
+        assert.match(validation.errors.join(' '), /Trajectory must follow/);
+        assert.match(validation.errors.join(' '), /Confidence must be a number between 0.0 and 1.0/);
+    });
+
     it('hasAnyToken returns true if any token matches', () => {
         assert.ok(hasAnyToken(['a', 'b', 'c'], ['b', 'd']));
         assert.ok(!hasAnyToken(['a', 'c'], ['b', 'd']));
@@ -116,7 +174,7 @@ Plan XO implementation beads for phase 1`;
         const payload = { query: 'use test-skill', project_root: '.', cwd: '.' };
         const res = assertResolvedSkill(resolveSkillInvocation(['use', 'test-skill'], payload, skills));
         assert.equal(res.trigger, 'test-skill');
-        assert.equal((res.invocation.payload as any).command, 'test-skill');
+        assert.equal((res.invocation.params as any).command, 'test-skill');
     });
 
     it('resolveSkillInvocation resolves inline skill calls', () => {
@@ -149,7 +207,7 @@ Plan XO implementation beads for phase 1`;
         assert.equal(res.invocation.weave_id, 'weave:restoration');
     });
 
-    it('resolveRegistryInvocation routes registry-backed skills through dynamic command', () => {
+    it('resolveRegistryInvocation routes registry-backed skills through skill beads', () => {
         const payload = { query: 'use hall', project_root: '.', cwd: '.' };
         const manifest = {
             entries: {
@@ -160,7 +218,7 @@ Plan XO implementation beads for phase 1`;
             },
         };
         const res = assertResolvedSkill(resolveRegistryInvocation(['use', 'hall'], payload, manifest));
-        assert.equal((res.invocation.payload as any).command, 'hall');
+        assert.equal((res.invocation.params as any).command, 'hall');
     });
 
     it('resolveRegistryInvocation rejects policy-only spells as direct runtime commands', () => {

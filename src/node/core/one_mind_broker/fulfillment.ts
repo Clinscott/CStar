@@ -3,6 +3,7 @@ import Database from 'better-sqlite3';
 
 import {
     claimHallOneMindRequest,
+    getHallSkillActivation,
     claimNextHallOneMindRequest,
     getHallOneMindBroker,
     getHallOneMindRequest,
@@ -11,9 +12,16 @@ import {
     saveHallOneMindRequest,
 } from '../../../tools/pennyone/intel/database.js';
 import { requestHostText } from '../../../core/host_intelligence.js';
+import {
+    requestHostDelegatedExecution,
+    resolveHostDelegatedExecution,
+    type DelegatedExecutionRequest,
+} from '../../../core/host_delegation.js';
 import { ensureHealthySynapseDb } from '../../../core/synapse_db.js';
 import { buildHallRepositoryId, normalizeHallPath, type HallOneMindRequestRecord } from '../../../types/hall.js';
-import { isHostSessionActive, resolveConfiguredHostBridge, resolveHostProvider } from '../../../core/host_session.js';
+import { isHostSessionActive, resolveConfiguredDelegatePollBridge, resolveConfiguredHostBridge, resolveHostProvider } from '../../../core/host_session.js';
+import { reconcileDelegatedWorkflowRequest } from '../runtime/host_workflows/delegated_request_reconciler.js';
+import { StateRegistry } from '../state.js';
 
 export interface OneMindFulfillmentCapability {
     ready: boolean;
@@ -35,7 +43,7 @@ function resolveExecutionSurface(capability: OneMindFulfillmentCapability): stri
 }
 
 export interface OneMindFulfillmentResult {
-    outcome: 'fulfilled' | 'failed' | 'idle';
+    outcome: 'fulfilled' | 'failed' | 'idle' | 'deferred';
     requestId?: string;
     responseText?: string;
     error?: string;
@@ -43,6 +51,8 @@ export interface OneMindFulfillmentResult {
 
 export interface OneMindFulfillmentDependencies {
     hostTextInvoker?: typeof requestHostText;
+    delegatedExecutionInvoker?: typeof requestHostDelegatedExecution;
+    delegatedExecutionResolver?: typeof resolveHostDelegatedExecution;
 }
 
 function buildRepoId(rootPath: string): string {
@@ -127,6 +137,263 @@ function finalizeRequest(
     return nextRecord;
 }
 
+function withControlRoot<T>(rootPath: string, action: () => T): T {
+    const previous = process.env.CSTAR_CONTROL_ROOT;
+    process.env.CSTAR_CONTROL_ROOT = rootPath;
+    try {
+        return action();
+    } finally {
+        if (previous === undefined) {
+            delete process.env.CSTAR_CONTROL_ROOT;
+        } else {
+            process.env.CSTAR_CONTROL_ROOT = previous;
+        }
+    }
+}
+
+function asString(value: unknown): string | undefined {
+    if (typeof value !== 'string') {
+        return undefined;
+    }
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function resolveDelegatedTelemetryBeadId(rootPath: string, request: HallOneMindRequestRecord): string {
+    const activationId = asString(request.metadata?.activation_id);
+    if (activationId) {
+        const activation = getHallSkillActivation(activationId, rootPath);
+        const beadId = asString(activation?.bead_id);
+        if (beadId) {
+            return beadId;
+        }
+    }
+
+    return asString(request.metadata?.bead_id)
+        ?? asString(request.metadata?.source_bead_id)
+        ?? asString(request.metadata?.branch_id)
+        ?? request.request_id;
+}
+
+function ensureAgentFocusRecord(agentId: string, state: ReturnType<typeof StateRegistry.get>) {
+    if (state.agents[agentId]) {
+        return;
+    }
+    state.agents[agentId] = {
+        id: agentId,
+        name: agentId.charAt(0).toUpperCase() + agentId.slice(1),
+        status: 'SLEEPING',
+        last_seen: 0,
+    };
+}
+
+function markDelegatedRequestActive(rootPath: string, request: HallOneMindRequestRecord, provider: string): void {
+    const beadId = resolveDelegatedTelemetryBeadId(rootPath, request);
+    const runtimeWeave = asString(request.metadata?.runtime_weave) ?? asString(request.metadata?.task_kind) ?? 'delegated-request';
+    const missionId = asString(request.metadata?.mission_id) ?? `MISSION-ONE-MIND-${request.request_id}`;
+    const taskLabel = `Delegated fulfillment: ${request.request_id}`;
+
+    withControlRoot(rootPath, () => {
+        StateRegistry.updateMission(missionId, taskLabel, beadId);
+        const state = StateRegistry.get();
+        ensureAgentFocusRecord(provider, state);
+        state.agents[provider].status = 'WORKING';
+        state.agents[provider].active_bead_id = beadId;
+        state.agents[provider].current_task = taskLabel;
+        state.agents[provider].last_seen = Date.now();
+        StateRegistry.save(state);
+        StateRegistry.postToBlackboard({
+            from: state.framework.active_persona,
+            to: provider,
+            message: `Starting task: ${runtimeWeave} :: ${beadId}`,
+            type: 'INFO',
+        });
+    });
+}
+
+function markDelegatedRequestSettled(rootPath: string, provider: string): void {
+    withControlRoot(rootPath, () => {
+        const state = StateRegistry.get();
+        ensureAgentFocusRecord(provider, state);
+        state.agents[provider].status = 'SLEEPING';
+        state.agents[provider].active_bead_id = undefined;
+        state.agents[provider].current_task = undefined;
+        state.agents[provider].pid = undefined;
+        state.agents[provider].last_seen = Date.now();
+        StateRegistry.save(state);
+    });
+}
+
+function normalizeDelegatedBoundary(boundary: HallOneMindRequestRecord['boundary']): 'subagent' | 'autobot' {
+    return boundary === 'autobot' ? 'autobot' : 'subagent';
+}
+
+function buildDelegatedRequestFromHall(request: HallOneMindRequestRecord, rootPath: string): DelegatedExecutionRequest {
+    const metadata = request.metadata ?? {};
+    return {
+        request_id: request.request_id,
+        repo_root: rootPath,
+        boundary: normalizeDelegatedBoundary(request.boundary),
+        task_kind: String(metadata.task_kind ?? 'research') as DelegatedExecutionRequest['task_kind'],
+        subagent_profile: typeof metadata.subagent_profile === 'string' ? metadata.subagent_profile as DelegatedExecutionRequest['subagent_profile'] : undefined,
+        prompt: request.prompt,
+        target_paths: Array.isArray(metadata.target_paths)
+            ? metadata.target_paths.filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
+            : undefined,
+        acceptance_criteria: Array.isArray(metadata.acceptance_criteria)
+            ? metadata.acceptance_criteria.filter((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0)
+            : undefined,
+        checker_shell: typeof metadata.checker_shell === 'string' ? metadata.checker_shell : null,
+        metadata,
+    };
+}
+
+async function fulfillDelegatedRequest(
+    rootPath: string,
+    request: HallOneMindRequestRecord,
+    env: NodeJS.ProcessEnv,
+    dependencies: OneMindFulfillmentDependencies,
+): Promise<OneMindFulfillmentResult> {
+    const metadata = request.metadata ?? {};
+    const provider = typeof metadata.provider === 'string'
+        ? metadata.provider
+        : resolveHostProvider(env);
+    if (provider !== 'codex' && provider !== 'gemini' && provider !== 'claude') {
+        return {
+            outcome: 'failed',
+            requestId: request.request_id,
+            error: 'Delegated fulfillment requires a supported host provider.',
+        };
+    }
+
+    const delegatedExecutionInvoker = dependencies.delegatedExecutionInvoker ?? requestHostDelegatedExecution;
+    const delegatedExecutionResolver = dependencies.delegatedExecutionResolver ?? resolveHostDelegatedExecution;
+    const handleId = typeof metadata.handle_id === 'string' ? metadata.handle_id.trim() : '';
+    const subagentProfile = typeof metadata.subagent_profile === 'string' ? metadata.subagent_profile : undefined;
+
+    try {
+        const delegated = handleId
+            ? await delegatedExecutionResolver(
+                {
+                    handle_id: handleId,
+                    request_id: request.request_id,
+                    repo_root: rootPath,
+                    provider,
+                    subagent_profile: subagentProfile as any,
+                },
+                env,
+            )
+            : await delegatedExecutionInvoker(buildDelegatedRequestFromHall(request, rootPath), env);
+
+        if (delegated.status === 'completed') {
+            const completed = finalizeRequest(rootPath, request, {
+                request_status: 'COMPLETED',
+                transport_preference: 'host_session',
+                response_text: delegated.raw_text ?? delegated.summary ?? '',
+                error_text: undefined,
+                completed_at: Date.now(),
+                metadata: {
+                    provider: delegated.provider,
+                    handle_id: delegated.handle_id,
+                    execution_surface: delegated.metadata?.execution_surface ?? 'configured-delegate-bridge',
+                    fulfillment_mode: 'delegate_bridge',
+                    delegation_mode: delegated.metadata?.delegation_mode ?? 'configured-bridge',
+                    delegation_status: delegated.status,
+                    verification: delegated.verification ?? null,
+                    artifacts: delegated.artifacts ?? null,
+                },
+            });
+            await reconcileDelegatedWorkflowRequest(rootPath, completed, env);
+            markDelegatedRequestSettled(rootPath, delegated.provider);
+            return {
+                outcome: 'fulfilled',
+                requestId: completed.request_id,
+                responseText: completed.response_text,
+            };
+        }
+
+        if (delegated.status === 'failed' || delegated.status === 'cancelled') {
+            const failed = finalizeRequest(rootPath, request, {
+                request_status: 'FAILED',
+                error_text: delegated.error ?? `Delegated execution returned ${delegated.status}.`,
+                completed_at: Date.now(),
+                metadata: {
+                    provider: delegated.provider,
+                    handle_id: delegated.handle_id,
+                    execution_surface: delegated.metadata?.execution_surface ?? 'configured-delegate-bridge',
+                    fulfillment_mode: 'delegate_bridge',
+                    delegation_mode: delegated.metadata?.delegation_mode ?? 'configured-bridge',
+                    delegation_status: delegated.status,
+                },
+            });
+            await reconcileDelegatedWorkflowRequest(rootPath, failed, env);
+            markDelegatedRequestSettled(rootPath, delegated.provider);
+            return {
+                outcome: 'failed',
+                requestId: failed.request_id,
+                error: failed.error_text,
+            };
+        }
+
+        if (!resolveConfiguredDelegatePollBridge(env, delegated.provider)) {
+            const failed = finalizeRequest(rootPath, request, {
+                request_status: 'FAILED',
+                error_text: `Delegated execution for ${delegated.provider} returned non-terminal status '${delegated.status}' without a configured poll bridge.`,
+                completed_at: Date.now(),
+                metadata: {
+                    provider: delegated.provider,
+                    handle_id: delegated.handle_id,
+                    delegation_status: delegated.status,
+                    fulfillment_mode: 'delegate_bridge',
+                    execution_surface: delegated.metadata?.execution_surface ?? 'configured-delegate-bridge',
+                },
+            });
+            markDelegatedRequestSettled(rootPath, delegated.provider);
+            return {
+                outcome: 'failed',
+                requestId: failed.request_id,
+                error: failed.error_text,
+            };
+        }
+
+        const claimed = finalizeRequest(rootPath, request, {
+            request_status: 'CLAIMED',
+            transport_preference: 'host_session',
+            completed_at: undefined,
+            metadata: {
+                provider: delegated.provider,
+                handle_id: delegated.handle_id,
+                delegation_status: delegated.status,
+                fulfillment_mode: 'delegate_bridge',
+                execution_surface: delegated.metadata?.execution_surface ?? 'configured-delegate-bridge',
+                delegation_mode: delegated.metadata?.delegation_mode ?? 'configured-bridge',
+            },
+        });
+        return {
+            outcome: 'deferred',
+            requestId: claimed.request_id,
+        };
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        const failed = finalizeRequest(rootPath, request, {
+            request_status: 'FAILED',
+            error_text: message,
+            completed_at: Date.now(),
+            metadata: {
+                provider,
+                fulfillment_mode: 'delegate_bridge',
+            },
+        });
+        await reconcileDelegatedWorkflowRequest(rootPath, failed, env);
+        markDelegatedRequestSettled(rootPath, provider);
+        return {
+            outcome: 'failed',
+            requestId: failed.request_id,
+            error: failed.error_text,
+        };
+    }
+}
+
 export async function fulfillOneMindRequestById(
     rootPath: string,
     requestId: string,
@@ -169,7 +436,13 @@ export async function fulfillOneMindRequestById(
 
     const claimed = request.request_status === 'CLAIMED'
         ? request
-        : claimHallOneMindRequest(request.request_id, rootPath, `one-mind:${process.pid}`, ['PENDING']);
+        : claimHallOneMindRequest(
+            request.request_id,
+            rootPath,
+            `one-mind:${process.pid}`,
+            ['PENDING'],
+            [request.boundary],
+        );
 
     if (!claimed || claimed.request_id !== request.request_id) {
         return {
@@ -177,6 +450,21 @@ export async function fulfillOneMindRequestById(
             requestId,
             error: `Unable to claim request '${requestId}' for fulfillment.`,
         };
+    }
+
+    if (claimed.boundary !== 'primary') {
+        let requestForFulfillment = claimed;
+        const telemetryProvider = capability.provider ?? asString(claimed.metadata?.provider);
+        if (!asString(requestForFulfillment.metadata?.broker_state_started_at) && telemetryProvider) {
+            markDelegatedRequestActive(rootPath, requestForFulfillment, telemetryProvider);
+            requestForFulfillment = finalizeRequest(rootPath, requestForFulfillment, {
+                metadata: {
+                    broker_state_started_at: String(Date.now()),
+                    broker_state_provider: telemetryProvider,
+                },
+            });
+        }
+        return fulfillDelegatedRequest(rootPath, requestForFulfillment, env, dependencies);
     }
 
     try {
@@ -259,7 +547,14 @@ export async function fulfillNextOneMindRequest(
             error: `One Mind fulfillment unavailable: ${capability.reason}`,
         };
     }
-    const request = claimNextHallOneMindRequest(rootPath, `one-mind:${process.pid}`, ['PENDING']);
+    const claimedDelegated = listHallOneMindRequests(rootPath, ['CLAIMED'])
+        .filter((request) => request.boundary !== 'primary')
+        .sort((left, right) => left.created_at - right.created_at)[0];
+    if (claimedDelegated) {
+        return fulfillOneMindRequestById(rootPath, claimedDelegated.request_id, env, dependencies);
+    }
+
+    const request = claimNextHallOneMindRequest(rootPath, `one-mind:${process.pid}`, ['PENDING'], ['primary', 'subagent', 'autobot']);
     if (!request) {
         return { outcome: 'idle' };
     }

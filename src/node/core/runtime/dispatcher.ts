@@ -1,14 +1,16 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import { 
-    RuntimeContext, 
-    WeaveInvocation, 
-    WeaveResult, 
+import {
+    RuntimeContext,
+    RuntimeTraceContract,
+    RuntimeTraceDesignationSource,
+    WeaveInvocation,
+    WeaveResult,
     RuntimeAdapter,
     RuntimeDispatchPort,
 } from './contracts.ts';
-import { requestHostText, type HostTextRequest } from '../../../core/host_intelligence.js';
+import { requestHostText, type HostTextRequest, type HostTextResult } from '../../../core/host_intelligence.js';
 import {
     buildHostNativeSkillPrompt,
     explainCapabilityHostSupport,
@@ -22,8 +24,17 @@ import { activePersona } from  '../../../tools/pennyone/personaRegistry.js';
 import { registry } from  '../../../tools/pennyone/pathRegistry.js';
 import { getGungnirOverall } from  '../../../types/gungnir.js';
 import { resolveEstateTarget } from  './estate_targeting.js';
+import {
+    TRACE_SELECTION_HEADER,
+    getRegistryIntentCategories,
+    loadRegistryManifest,
+    resolveIntentCategoryFromGrammar,
+    tokenize,
+    validateTraceSelectionGate,
+} from './host_workflows/chant_parser.js';
+import { inheritTraceInvocation } from './trace_inheritance.js';
 import { upsertHallBead, getHallBead } from  '../../../tools/pennyone/intel/database.js';
-import { buildHallRepositoryId, normalizeHallPath } from  '../../../types/hall.js';
+import { buildHallRepositoryId, normalizeHallPath, type HallBeadStatus } from  '../../../types/hall.js';
 
 function resolveSkillAdapterAlias(workspaceRoot: string, skillId: string): string {
     const manifestPath = path.join(workspaceRoot, '.agents', 'skill_registry.json');
@@ -47,6 +58,13 @@ interface HostRecoveryDecision {
     summary?: unknown;
     operator_message?: unknown;
     recovery_task?: unknown;
+}
+
+interface InvocationTraceResolution {
+    contract: RuntimeTraceContract | null;
+    source: RuntimeTraceDesignationSource | null;
+    explicit: boolean;
+    errors: string[];
 }
 
 function buildHostWorkflowKernelExecutionError(capabilityId: string): WeaveResult {
@@ -78,6 +96,436 @@ function extractJsonObject(raw: string): Record<string, unknown> {
         throw new Error('Host recovery did not return a JSON object.');
     }
     return JSON.parse(raw.slice(start, end + 1)) as Record<string, unknown>;
+}
+
+function buildTraceSelectionGateError(
+    weaveId: string,
+    validationErrors: string[],
+    planningOnly: boolean,
+): string {
+    const prefix = planningOnly
+        ? '[KERNEL PANIC]: Trace Selection Gate Breach. Planning sessions must resolve to a machine-valid Corvus Star trace contract.'
+        : `[KERNEL PANIC]: Trace Selection Gate Breach. The command '${weaveId}' must resolve to a machine-valid Corvus Star trace contract.`;
+
+    if (validationErrors.length === 0) {
+        return `${prefix} Provide a valid '// Corvus Star Trace [Ω]' block or a runtime surface the dispatcher can designate safely.`.trim();
+    }
+
+    return `${prefix} ${validationErrors.join(' ')}`.trim();
+}
+
+function compactTraceText(value: unknown): string | undefined {
+    if (typeof value !== 'string') {
+        return undefined;
+    }
+    const normalized = value.replace(/\s+/g, ' ').trim();
+    return normalized || undefined;
+}
+
+function normalizeTraceContract(value: unknown): RuntimeTraceContract | null {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+        return null;
+    }
+
+    const normalized = value as Record<string, unknown>;
+    const mimirsWell = Array.isArray(normalized.mimirs_well)
+        ? normalized.mimirs_well
+            .map((entry) => compactTraceText(entry))
+            .filter((entry): entry is string => Boolean(entry))
+        : [];
+    const contract: RuntimeTraceContract = {
+        mimirs_well: mimirsWell,
+    };
+
+    const stringKeys: Array<
+        'intent_category'
+        | 'intent'
+        | 'selection_tier'
+        | 'selection_name'
+        | 'trajectory_status'
+        | 'trajectory_reason'
+        | 'gungnir_verdict'
+        | 'body'
+        | 'canonical_intent'
+    > = [
+        'intent_category',
+        'intent',
+        'selection_tier',
+        'selection_name',
+        'trajectory_status',
+        'trajectory_reason',
+        'gungnir_verdict',
+        'body',
+        'canonical_intent',
+    ];
+    for (const key of stringKeys) {
+        const compacted = compactTraceText(normalized[key]);
+        if (compacted) {
+            contract[key] = compacted;
+        }
+    }
+
+    if (typeof normalized.confidence === 'number' && Number.isFinite(normalized.confidence)) {
+        contract.confidence = normalized.confidence;
+    }
+
+    if (!contract.selection_tier || !contract.selection_name) {
+        return null;
+    }
+
+    return contract;
+}
+
+function normalizeTraceDesignationSource(value: unknown): RuntimeTraceDesignationSource | null {
+    if (value === 'explicit_trace_block' || value === 'dispatcher_synthesized' || value === 'payload_trace_contract') {
+        return value;
+    }
+    return null;
+}
+
+function extractExplicitTraceCandidate(values: string[]): string | null {
+    for (const value of values) {
+        const index = value.indexOf(TRACE_SELECTION_HEADER);
+        if (index >= 0) {
+            return value.slice(index).trim();
+        }
+    }
+    return null;
+}
+
+function extractInvocationNarratives(
+    payload: unknown,
+    skillIntent?: string,
+): string[] {
+    const values: string[] = [];
+    if (typeof skillIntent === 'string' && skillIntent.trim()) {
+        values.push(skillIntent.trim());
+    }
+
+    if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
+        for (const key of ['query', 'rationale', 'task', 'intent', 'description', 'summary', 'prompt']) {
+            const raw = (payload as Record<string, unknown>)[key];
+            if (typeof raw === 'string' && raw.trim()) {
+                values.push(raw.trim());
+            }
+        }
+    }
+
+    return Array.from(new Set(values));
+}
+
+function resolveSelectionName(weaveId: string, skillId?: string): string {
+    if (skillId) {
+        return skillId.trim();
+    }
+    return weaveId.startsWith('weave:') ? weaveId.slice('weave:'.length) : weaveId;
+}
+
+function summarizeInvocationIntent(
+    weaveId: string,
+    payload: unknown,
+    skillIntent?: string,
+): string {
+    const narrative = extractInvocationNarratives(payload, skillIntent)[0];
+    if (narrative) {
+        return compactTraceText(narrative) ?? narrative.trim();
+    }
+
+    const record = payload && typeof payload === 'object' && !Array.isArray(payload)
+        ? payload as Record<string, unknown>
+        : {};
+    const beadId = compactTraceText(record.bead_id);
+    const proposalId = compactTraceText(record.proposal_id);
+    const action = compactTraceText(record.action);
+
+    switch (weaveId) {
+        case 'weave:orchestrate':
+            return 'Dispatch the released Hall bead graph for execution.';
+        case 'weave:evolve':
+            return proposalId
+                ? `Promote proposal ${proposalId}.`
+                : beadId
+                    ? `Evolve bead ${beadId}.`
+                    : `Run ${action ?? 'propose'} on the evolve surface.`;
+        case 'weave:start':
+            return 'Start the Corvus Star runtime loop.';
+        case 'weave:host-governor':
+            return 'Govern and release the active Hall execution plan.';
+        case 'weave:restoration':
+            return 'Repair a broken Corvus Star surface through restoration.';
+        case 'weave:autobot':
+            return beadId
+                ? `Execute bounded implementation work for ${beadId}.`
+                : 'Execute bounded implementation work through autobot.';
+        case 'weave:host-worker':
+            return beadId
+                ? `Execute host-native implementation work for ${beadId}.`
+                : 'Execute host-native implementation work.';
+        case 'weave:ravens':
+            return `Run ravens action ${action ?? 'status'}.`;
+        case 'weave:pennyone':
+            return `Run PennyOne action ${action ?? 'scan'}.`;
+        case 'weave:chant':
+            return 'Plan and designate bounded Corvus Star work.';
+        default:
+            return `Execute ${resolveSelectionName(weaveId)}.`;
+    }
+}
+
+function inferTraceIntentCategory(
+    workspaceRoot: string,
+    selectionName: string,
+    weaveId: string,
+    summary: string,
+    payload: unknown,
+): string | undefined {
+    const grammar = getRegistryIntentCategories(loadRegistryManifest(workspaceRoot));
+    const lowerTokens = tokenize(summary).map((token) => token.toLowerCase());
+    const grammarMatch = resolveIntentCategoryFromGrammar(lowerTokens, grammar);
+    if (grammarMatch?.category) {
+        return grammarMatch.category;
+    }
+
+    const action = payload && typeof payload === 'object' && !Array.isArray(payload)
+        ? compactTraceText((payload as Record<string, unknown>).action)?.toLowerCase()
+        : undefined;
+    const normalizedSelection = selectionName.trim().toLowerCase();
+
+    if (weaveId === 'weave:pennyone') {
+        if (action === 'normalize') {
+            return 'HARDEN';
+        }
+        return 'OBSERVE';
+    }
+    if (weaveId === 'weave:ravens') {
+        return action === 'status' ? 'OBSERVE' : 'ORCHESTRATE';
+    }
+    if (['chant', 'orchestrate', 'host-governor', 'start', 'creation_loop'].includes(normalizedSelection)) {
+        return 'ORCHESTRATE';
+    }
+    if (['restoration'].includes(normalizedSelection)) {
+        return 'REPAIR';
+    }
+    if (['evolve', 'temporal-learning'].includes(normalizedSelection)) {
+        return 'EVOLVE';
+    }
+    if (['autobot', 'host-worker', 'forge'].includes(normalizedSelection)) {
+        return 'BUILD';
+    }
+    if (['hall', 'scan', 'manifest', 'status', 'vitals'].includes(normalizedSelection)) {
+        return 'OBSERVE';
+    }
+    if (['calculus'].includes(normalizedSelection)) {
+        return 'SCORE';
+    }
+    return undefined;
+}
+
+function buildSyntheticTraceContract(input: {
+    workspaceRoot: string;
+    weaveId: string;
+    selectionTier: 'SKILL' | 'WEAVE';
+    selectionName: string;
+    payload: unknown;
+    skillIntent?: string;
+    targetPath?: string;
+}): RuntimeTraceContract {
+    const summary = summarizeInvocationIntent(input.weaveId, input.payload, input.skillIntent);
+    const targetPath = compactTraceText(input.targetPath);
+    const mimirsWell = ['src/node/core/runtime/dispatcher.ts'];
+    const normalizedWorkspaceRoot = input.workspaceRoot.replace(/\\/g, '/').replace(/\/+$/, '');
+    const normalizedTargetPath = targetPath?.replace(/\\/g, '/').replace(/\/+$/, '');
+    if (
+        targetPath
+        && normalizedTargetPath
+        && normalizedTargetPath !== normalizedWorkspaceRoot
+        && (targetPath.includes('/') || targetPath.includes('\\') || targetPath.startsWith('.'))
+    ) {
+        mimirsWell.push(targetPath);
+    }
+
+    const intentCategory = inferTraceIntentCategory(
+        input.workspaceRoot,
+        input.selectionName,
+        input.weaveId,
+        summary,
+        input.payload,
+    );
+
+    return {
+        intent_category: intentCategory,
+        intent: summary,
+        selection_tier: input.selectionTier,
+        selection_name: input.selectionName,
+        trajectory_status: 'STABLE',
+        trajectory_reason: `Dispatcher synthesized the designation from the explicit ${input.selectionTier.toLowerCase()} invocation.`,
+        mimirs_well: Array.from(new Set(mimirsWell)),
+        confidence: 0.72,
+        canonical_intent: summary,
+    };
+}
+
+function resolveInvocationTraceContract(input: {
+    workspaceRoot: string;
+    weaveId: string;
+    payload: unknown;
+    operatorMode: RuntimeContext['operator_mode'];
+    skillId?: string;
+    skillIntent?: string;
+    targetPath?: string;
+    allowObservationFallback: boolean;
+}): InvocationTraceResolution {
+    const narratives = extractInvocationNarratives(input.payload, input.skillIntent);
+    const explicitTrace = extractExplicitTraceCandidate(narratives);
+
+    if (explicitTrace) {
+        const validation = validateTraceSelectionGate(explicitTrace);
+        if (!validation.valid || !validation.trace) {
+            return {
+                contract: null,
+                source: null,
+                explicit: true,
+                errors: validation.errors,
+            };
+        }
+        return {
+            contract: {
+                intent_category: validation.trace.intent_category,
+                intent: validation.trace.intent,
+                selection_tier: validation.trace.selection_tier,
+                selection_name: validation.trace.selection_name,
+                trajectory_status: validation.trace.trajectory_status,
+                trajectory_reason: validation.trace.trajectory_reason,
+                mimirs_well: validation.trace.mimirs_well,
+                gungnir_verdict: validation.trace.gungnir_verdict,
+                confidence: validation.trace.confidence,
+                body: validation.trace.body,
+                canonical_intent: validation.trace.canonical_intent,
+            },
+            source: 'explicit_trace_block',
+            explicit: true,
+            errors: [],
+        };
+    }
+
+    const payloadRecord = input.payload && typeof input.payload === 'object' && !Array.isArray(input.payload)
+        ? input.payload as Record<string, unknown>
+        : null;
+    const payloadTrace = payloadRecord
+        ? normalizeTraceContract(payloadRecord.trace_contract)
+        : null;
+    if (payloadTrace) {
+        return {
+            contract: payloadTrace,
+            source: normalizeTraceDesignationSource(payloadRecord?.trace_designation_source) ?? 'payload_trace_contract',
+            explicit: false,
+            errors: [],
+        };
+    }
+
+    if (input.operatorMode !== 'cli' || input.allowObservationFallback) {
+        return {
+            contract: null,
+            source: null,
+            explicit: false,
+            errors: [],
+        };
+    }
+
+    return {
+        contract: buildSyntheticTraceContract({
+            workspaceRoot: input.workspaceRoot,
+            weaveId: input.weaveId,
+            selectionTier: input.skillId ? 'SKILL' : 'WEAVE',
+            selectionName: resolveSelectionName(input.weaveId, input.skillId),
+            payload: input.payload,
+            skillIntent: input.skillIntent,
+            targetPath: input.targetPath,
+        }),
+        source: 'dispatcher_synthesized',
+        explicit: false,
+        errors: [],
+    };
+}
+
+function mergeRuntimeTraceMetadata(input: {
+    metadata?: Record<string, unknown>;
+    context: RuntimeContext;
+    weaveId: string;
+    traceContract: RuntimeTraceContract | null;
+    traceSource: RuntimeTraceDesignationSource | null;
+    executionBeadId?: string;
+}): Record<string, unknown> | undefined {
+    if (!input.traceContract && !input.traceSource) {
+        return input.metadata;
+    }
+
+    const metadata = {
+        ...(input.metadata ?? {}),
+    };
+
+    if (!metadata.context_policy) {
+        metadata.context_policy = 'project';
+    }
+
+    metadata.trace_id = input.context.trace_id;
+    metadata.mission_id = input.context.mission_id;
+    metadata.mission_bead_id = input.context.bead_id;
+    if (input.executionBeadId) {
+        metadata.execution_bead_id = input.executionBeadId;
+    }
+    metadata.trace_scope = 'runtime';
+    metadata.trace_weave_id = input.weaveId;
+    if (input.traceSource) {
+        metadata.trace_designation_source = input.traceSource;
+    }
+    if (input.traceContract) {
+        metadata.trace_contract_version = 1;
+        metadata.trace_contract = input.traceContract;
+    }
+
+    return metadata;
+}
+
+function mapExecutionResultToBeadStatus(result: WeaveResult): HallBeadStatus {
+    if (result.status === 'SUCCESS') {
+        return 'RESOLVED';
+    }
+    if (result.status === 'TRANSITIONAL') {
+        return 'READY_FOR_REVIEW';
+    }
+    return 'BLOCKED';
+}
+
+function extractInheritedExecutionMetadata(payload: Record<string, unknown>): Record<string, unknown> {
+    const inherited: Record<string, unknown> = {};
+
+    for (const key of [
+        'planning_session_id',
+        'trace_selection_name',
+        'trace_selection_tier',
+        'trace_execution_profile',
+    ] as const) {
+        const value = compactTraceText(payload[key]);
+        if (value) {
+            inherited[key] = value;
+        }
+    }
+
+    return inherited;
+}
+
+function resolveSkillBeadOperatorMode(payload: unknown): RuntimeContext['operator_mode'] {
+    if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
+        const source = compactTraceText((payload as Record<string, unknown>).source)?.toLowerCase();
+        if (source === 'cli') {
+            return 'cli';
+        }
+        if (source === 'automation') {
+            return 'automation';
+        }
+    }
+    return 'subkernel';
 }
 
 function normalizeHostRecoveryAction(value: unknown): HostRecoveryAction {
@@ -133,7 +581,7 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
         stateRegistry: typeof StateRegistry;
         resolveEstateTarget: typeof resolveEstateTarget;
         activePersona: typeof activePersona;
-        hostTextInvoker: (request: HostTextRequest) => Promise<{ provider: 'gemini' | 'codex' | 'claude'; text: string }>;
+        hostTextInvoker: (request: HostTextRequest) => Promise<HostTextResult>;
     };
 
     private constructor(deps?: Partial<typeof RuntimeDispatcher.prototype.deps>) {
@@ -180,28 +628,6 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
         const ownershipModel = getCapabilityOwnershipModel(workspaceRoot, ownershipCapabilityId);
         const kernelFallbackPolicy = getCapabilityKernelFallbackPolicy(workspaceRoot, ownershipCapabilityId);
 
-        if (isSkillBead) {
-            const nativeHostResult = await this.tryExecuteSkillBeadViaHostSession(invocation, workspaceRoot);
-            if (nativeHostResult) {
-                return nativeHostResult;
-            }
-        }
-
-        if (ownershipModel === 'host-workflow' && kernelFallbackPolicy === 'forbidden') {
-            return buildHostWorkflowKernelExecutionError(isSkillBead ? invocation.skill_id : weaveId);
-        }
-
-        const adapter = this.adapters.get(weaveId);
-
-        if (!adapter) {
-            return {
-                weave_id: weaveId,
-                status: 'FAILURE',
-                output: '',
-                error: `[ALFRED]: "I am unable to resolve the weave/skill '${weaveId}', sir. The spine remains disconnected for this path."`
-            };
-        }
-
         let estateTarget;
         try {
             estateTarget = this.deps.resolveEstateTarget(target);
@@ -216,96 +642,191 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
 
         registry.setRoot(estateTarget.workspaceRoot);
 
+        const operatorMode = isSkillBead
+            ? resolveSkillBeadOperatorMode(payload)
+            : session?.mode ?? 'cli';
+        const isObservationInvocation = ['weave:status', 'weave:hall', 'weave:vitals', 'weave:manifest'].includes(weaveId)
+            || (weaveId === 'weave:pennyone' && ['search', 'stats', 'topology', 'view', 'scan', 'refresh_intents', 'normalize', 'report', 'artifacts', 'status'].includes(String((payload as any)?.action ?? '').trim()));
+        const traceResolution = resolveInvocationTraceContract({
+            workspaceRoot: estateTarget.workspaceRoot,
+            weaveId,
+            payload,
+            operatorMode,
+            skillId: isSkillBead ? invocation.skill_id : undefined,
+            skillIntent: isSkillBead ? invocation.intent : undefined,
+            targetPath: isSkillBead ? invocation.target_path : estateTarget.requestedRoot,
+            allowObservationFallback: isObservationInvocation,
+        });
+
+        if (operatorMode === 'cli' && traceResolution.explicit && traceResolution.errors.length > 0) {
+            return {
+                weave_id: weaveId,
+                status: 'FAILURE',
+                output: '',
+                error: buildTraceSelectionGateError(
+                    weaveId,
+                    traceResolution.errors,
+                    weaveId === 'weave:chant',
+                ),
+            };
+        }
+
+        if (operatorMode === 'cli' && !isObservationInvocation && !traceResolution.contract) {
+            return {
+                weave_id: weaveId,
+                status: 'FAILURE',
+                output: '',
+                error: buildTraceSelectionGateError(weaveId, traceResolution.errors, weaveId === 'weave:chant'),
+            };
+        }
+
         const context: RuntimeContext = {
             mission_id: `MISSION-${crypto.randomInt(10000, 99999)}`,
             bead_id: (payload as any)?.bead_id || (isSkillBead ? invocation.id : `bead_mission_${Date.now()}`),
             trace_id: crypto.randomUUID(),
             persona: this.deps.activePersona.name,
             workspace_root: estateTarget.workspaceRoot,
-            operator_mode: isSkillBead ? 'subkernel' : session?.mode ?? 'cli',
+            operator_mode: operatorMode,
             target_domain: estateTarget.targetDomain,
             interactive: isSkillBead ? false : session?.interactive ?? true,
             spoke_name: estateTarget.spokeName,
             spoke_root: estateTarget.spokeRoot,
             requested_root: estateTarget.requestedRoot,
             session_id: isSkillBead ? undefined : session?.session_id,
+            trace_contract: traceResolution.contract ?? undefined,
+            trace_designation_source: traceResolution.source ?? undefined,
             env: process.env,
             timestamp: Date.now()
         };
 
-        // [🔱] THE TRACE SELECTION GATE: Enforce Trace for CLI operations
-        const query = (payload as any)?.query || (payload as any)?.rationale || '';
-        const hasTrace = query.includes('// Corvus Star Trace [Ω]');
-        const isInternalOS = ['weave:start', 'weave:host-governor', 'weave:dynamic-command', 'weave:restoration', 'weave:creation_loop', 'weave:orchestrate'].includes(weaveId);
-        const isObservationInvocation = ['weave:status', 'weave:hall', 'weave:vitals', 'weave:manifest'].includes(weaveId)
-            || (weaveId === 'weave:pennyone' && ['search', 'stats', 'topology', 'view', 'scan', 'refresh_intents', 'normalize', 'report', 'artifacts', 'status'].includes(String((payload as any)?.action ?? '').trim()));
-        
-        if (context.operator_mode === 'cli' && !isInternalOS && weaveId !== 'weave:chant' && !hasTrace) {
-             // Only enforce on primary entry points (chant, skills, etc.)
-             // status, hall, and pennyone observation paths are allowed for observation.
-             if (isObservationInvocation) {
-                 // Allowed observation
-             } else {
-                return {
-                    weave_id: weaveId,
-                    status: 'FAILURE',
-                    output: '',
-                    error: `[KERNEL PANIC]: Trace Selection Gate Breach. The command '${weaveId}' MUST begin with the '// Corvus Star Trace [Ω]' block.`
-                };
-             }
-        }
-        
-        // If it's a chant call, it MUST have the trace.
-        if (weaveId === 'weave:chant' && context.operator_mode === 'cli' && !hasTrace) {
-             return {
-                weave_id: weaveId,
-                status: 'FAILURE',
-                output: '',
-                error: `[KERNEL PANIC]: Trace Selection Gate Breach. All Planning sessions (chant) MUST begin with the '// Corvus Star Trace [Ω]' block.`
-            };
-        }
-
         // [🔱] THE BEAD-DRIVEN MANDATE: Ensure the Hall tracks the Engine
         const repoId = buildHallRepositoryId(normalizeHallPath(context.workspace_root));
         const existingBead = getHallBead(context.bead_id);
-        
-        if (!existingBead) {
-            // Strike a new Parent Mission Bead if it doesn't exist
-            upsertHallBead({
-                bead_id: context.bead_id,
-                repo_id: repoId,
-                target_kind: 'SYSTEM',
-                target_ref: weaveId,
-                target_path: estateTarget.requestedRoot || null,
-                rationale: `Mission execution: ${weaveId}`,
-                status: 'OPEN',
-                source_kind: 'SYSTEM',
-                created_at: Date.now(),
-                updated_at: Date.now()
-            } as any);
-        }
+        this.upsertMissionBead({
+            repoId,
+            beadId: context.bead_id,
+            weaveId,
+            requestedRoot: estateTarget.requestedRoot,
+            existingBead,
+            traceContract: traceResolution.contract,
+            traceSource: traceResolution.source,
+            context,
+        });
 
         // Update Global State: Mission Identity
         this.deps.stateRegistry.updateMission(context.mission_id, `Executing weave/skill: ${weaveId}`, context.bead_id);
 
         // [🔱] THE FRACTAL STRIKE: Create a Child Bead for this specific execution
         const childBeadId = `${context.bead_id}:exec:${weaveId}:${Date.now()}`;
-        upsertHallBead({
-            bead_id: childBeadId,
-            repo_id: repoId,
-            target_kind: isSkillBead ? 'SKILL' : 'WEAVE',
-            target_ref: weaveId,
-            target_path: isSkillBead ? invocation.target_path : estateTarget.requestedRoot || null,
-            rationale: `Execution of ${weaveId} under mission ${context.mission_id}`,
+        const assignedAgent = context.persona === 'O.D.I.N.' ? 'ONE-MIND' : 'ALFRED';
+        this.upsertExecutionBead({
+            beadId: childBeadId,
+            repoId,
+            weaveId,
+            targetKind: isSkillBead ? 'SKILL' : 'WEAVE',
+            targetPath: isSkillBead ? invocation.target_path : estateTarget.requestedRoot,
+            assignedAgent,
+            context,
+            traceContract: traceResolution.contract,
+            traceSource: traceResolution.source,
             status: 'IN_PROGRESS',
-            assigned_agent: context.persona === 'O.D.I.N.' ? 'ONE-MIND' : 'ALFRED',
-            created_at: Date.now(),
-            updated_at: Date.now()
-        } as any);
+        });
+
+        // --- WAR ROOM HANDSHAKE ---
+        // Map personae/weave to agents for the Roster
+        const targetAgentId = weaveId === 'weave:autobot' ? 'autobot' :
+                             weaveId.includes('droid') ? 'droid' :
+                             resolveHostProvider(process.env) || 'gemini';
+
+        const stateRegistry = this.deps.stateRegistry as any;
+        const canTrackAgentState = typeof stateRegistry?.get === 'function'
+            && typeof stateRegistry?.save === 'function';
+        const canPostBlackboard = typeof stateRegistry?.postToBlackboard === 'function';
+        const state = canTrackAgentState ? stateRegistry.get() : undefined;
+        const restoreAgentState = () => {
+            const finalState = canTrackAgentState ? stateRegistry.get() : undefined;
+            if (finalState?.agents && finalState.agents[targetAgentId]) {
+                finalState.agents[targetAgentId].status = 'SLEEPING';
+                finalState.agents[targetAgentId].active_bead_id = undefined;
+                finalState.agents[targetAgentId].pid = undefined;
+                stateRegistry.save(finalState);
+            }
+        };
+        if (state?.agents && state.agents[targetAgentId]) {
+            state.agents[targetAgentId].status = 'WORKING';
+            state.agents[targetAgentId].active_bead_id = childBeadId;
+            state.agents[targetAgentId].last_seen = Date.now();
+            stateRegistry.save(state);
+
+            if (canPostBlackboard) {
+                stateRegistry.postToBlackboard({
+                    from: state.framework.active_persona,
+                    to: targetAgentId,
+                    message: `Starting task: ${weaveId} :: ${childBeadId}`,
+                    type: 'INFO'
+                });
+            }
+        }
+
+        const finalizeResult = (result: WeaveResult): WeaveResult => {
+            const finalized: WeaveResult = {
+                ...result,
+                metadata: mergeRuntimeTraceMetadata({
+                    metadata: result.metadata,
+                    context,
+                    weaveId,
+                    traceContract: traceResolution.contract,
+                    traceSource: traceResolution.source,
+                    executionBeadId: childBeadId,
+                }),
+            };
+            this.upsertExecutionBead({
+                beadId: childBeadId,
+                repoId,
+                weaveId,
+                targetKind: isSkillBead ? 'SKILL' : 'WEAVE',
+                targetPath: isSkillBead ? invocation.target_path : estateTarget.requestedRoot,
+                assignedAgent,
+                context,
+                traceContract: traceResolution.contract,
+                traceSource: traceResolution.source,
+                existingBead: getHallBead(childBeadId),
+                status: mapExecutionResultToBeadStatus(finalized),
+                output: finalized.output,
+                error: finalized.error,
+                metadata: finalized.metadata,
+            });
+            return finalized;
+        };
+
+        if (isSkillBead) {
+            const nativeHostResult = await this.tryExecuteSkillBeadViaHostSession(invocation, estateTarget.workspaceRoot);
+            if (nativeHostResult) {
+                restoreAgentState();
+                return finalizeResult(nativeHostResult);
+            }
+        }
+
+        if (ownershipModel === 'host-workflow' && kernelFallbackPolicy === 'forbidden') {
+            restoreAgentState();
+            const forbidden = buildHostWorkflowKernelExecutionError(isSkillBead ? invocation.skill_id : weaveId);
+            return finalizeResult(forbidden);
+        }
+
+        const adapter = this.adapters.get(weaveId);
+        if (!adapter) {
+            restoreAgentState();
+            return finalizeResult({
+                weave_id: weaveId,
+                status: 'FAILURE',
+                output: '',
+                error: `[ALFRED]: "I am unable to resolve the weave/skill '${weaveId}', sir. The spine remains disconnected for this path."`,
+            });
+        }
 
         try {
             // If it's a SkillBead, wrap it into a WeaveInvocation to pass down
-            const invocationToPass: WeaveInvocation<any> = isSkillBead 
+            const invocationToPass: WeaveInvocation<any> = isSkillBead
                 ? {
                     weave_id: weaveId,
                     payload: payload,
@@ -315,15 +836,18 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
                         interactive: false,
                         session_id: context.session_id,
                     },
-                } 
+                }
                 : invocation;
             const result = await adapter.execute(invocationToPass, context);
-            
+
+            restoreAgentState();
+
             // Sync status if needed
             if (result.status === 'SUCCESS' && result.metrics_delta) {
                 this.deps.stateRegistry.updateFramework({ gungnir_score: getGungnirOverall(result.metrics_delta) });
             }
 
+            let finalResult = result;
             if (result.status === 'FAILURE') {
                 const recovered = await this.tryRecoverKernelFailure({
                     adapter,
@@ -336,12 +860,14 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
                     skillId: isSkillBead ? invocation.skill_id : undefined,
                 });
                 if (recovered) {
-                    return recovered;
+                    finalResult = recovered;
                 }
             }
 
-            return result;
+            return finalizeResult(finalResult);
         } catch (err: any) {
+            restoreAgentState();
+
             const failureResult: WeaveResult = {
                 weave_id: weaveId,
                 status: 'FAILURE',
@@ -371,9 +897,9 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
                 skillId: isSkillBead ? invocation.skill_id : undefined,
             });
             if (recovered) {
-                return recovered;
+                return finalizeResult(recovered);
             }
-            return failureResult;
+            return finalizeResult(failureResult);
         }
     }
 
@@ -397,6 +923,113 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
 
     public clearAdapters(): void {
         this.adapters.clear();
+    }
+
+    private upsertMissionBead(input: {
+        repoId: string;
+        beadId: string;
+        weaveId: string;
+        requestedRoot?: string;
+        existingBead: ReturnType<typeof getHallBead>;
+        traceContract: RuntimeTraceContract | null;
+        traceSource: RuntimeTraceDesignationSource | null;
+        context: RuntimeContext;
+    }): void {
+        const now = Date.now();
+        const metadata = mergeRuntimeTraceMetadata({
+            metadata: input.existingBead?.metadata as Record<string, unknown> | undefined,
+            context: input.context,
+            weaveId: input.weaveId,
+            traceContract: input.traceContract,
+            traceSource: input.traceSource,
+        });
+
+        upsertHallBead({
+            bead_id: input.beadId,
+            repo_id: input.repoId,
+            scan_id: input.existingBead?.scan_id,
+            target_kind: input.existingBead?.target_kind ?? 'OTHER',
+            target_ref: input.existingBead?.target_ref ?? input.weaveId,
+            target_path: input.existingBead?.target_path ?? input.requestedRoot ?? null,
+            rationale: input.existingBead?.rationale ?? `Mission execution: ${input.weaveId}`,
+            contract_refs: input.existingBead?.contract_refs ?? [],
+            baseline_scores: input.existingBead?.baseline_scores ?? {},
+            acceptance_criteria: input.existingBead?.acceptance_criteria,
+            checker_shell: input.existingBead?.checker_shell,
+            status: input.existingBead?.status ?? 'OPEN',
+            assigned_agent: input.existingBead?.assigned_agent,
+            source_kind: input.existingBead?.source_kind ?? 'SYSTEM',
+            triage_reason: input.existingBead?.triage_reason,
+            resolution_note: input.existingBead?.resolution_note,
+            resolved_validation_id: input.existingBead?.resolved_validation_id,
+            superseded_by: input.existingBead?.superseded_by,
+            architect_opinion: input.existingBead?.architect_opinion,
+            critique_payload: input.existingBead?.critique_payload,
+            metadata,
+            created_at: input.existingBead?.created_at ?? now,
+            updated_at: now,
+        } as any);
+    }
+
+    private upsertExecutionBead(input: {
+        beadId: string;
+        repoId: string;
+        weaveId: string;
+        targetKind: 'SKILL' | 'WEAVE';
+        targetPath?: string;
+        assignedAgent: string;
+        context: RuntimeContext;
+        traceContract: RuntimeTraceContract | null;
+        traceSource: RuntimeTraceDesignationSource | null;
+        metadata?: Record<string, unknown>;
+        status: HallBeadStatus;
+        output?: string;
+        error?: string;
+        existingBead?: ReturnType<typeof getHallBead>;
+        createdAt?: number;
+    }): void {
+        const now = Date.now();
+        const metadata = mergeRuntimeTraceMetadata({
+            metadata: {
+                ...(input.existingBead?.metadata as Record<string, unknown> | undefined ?? {}),
+                ...(input.metadata ?? {}),
+                execution_status: input.status,
+                execution_output: compactTraceText(input.output),
+                execution_error: compactTraceText(input.error),
+                execution_completed_at: input.status === 'IN_PROGRESS' ? undefined : now,
+            },
+            context: input.context,
+            weaveId: input.weaveId,
+            traceContract: input.traceContract,
+            traceSource: input.traceSource,
+            executionBeadId: input.beadId,
+        });
+
+        upsertHallBead({
+            bead_id: input.beadId,
+            repo_id: input.repoId,
+            scan_id: input.existingBead?.scan_id,
+            target_kind: input.existingBead?.target_kind ?? input.targetKind,
+            target_ref: input.existingBead?.target_ref ?? input.weaveId,
+            target_path: input.existingBead?.target_path ?? input.targetPath ?? null,
+            rationale: input.existingBead?.rationale ?? `Execution of ${input.weaveId} under mission ${input.context.mission_id}`,
+            contract_refs: input.existingBead?.contract_refs ?? [],
+            baseline_scores: input.existingBead?.baseline_scores ?? {},
+            acceptance_criteria: input.existingBead?.acceptance_criteria,
+            checker_shell: input.existingBead?.checker_shell,
+            status: input.status,
+            assigned_agent: input.existingBead?.assigned_agent ?? input.assignedAgent,
+            source_kind: input.existingBead?.source_kind ?? 'SYSTEM',
+            triage_reason: input.existingBead?.triage_reason ?? compactTraceText(input.error),
+            resolution_note: input.existingBead?.resolution_note ?? compactTraceText(input.output),
+            resolved_validation_id: input.existingBead?.resolved_validation_id,
+            superseded_by: input.existingBead?.superseded_by,
+            architect_opinion: input.existingBead?.architect_opinion,
+            critique_payload: input.existingBead?.critique_payload,
+            metadata,
+            created_at: input.existingBead?.created_at ?? input.createdAt ?? now,
+            updated_at: now,
+        } as any);
     }
 
     private async tryRecoverKernelFailure(args: {
@@ -477,7 +1110,7 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
             }
 
             if (action === 'replan') {
-                const governorResult = await this.dispatch({
+                const governorResult = await this.dispatch(inheritTraceInvocation({
                     weave_id: 'weave:host-governor',
                     payload: {
                         task: recoveryTask || operatorMessage || summary || `Recover from failed kernel execution: ${weaveId}`,
@@ -493,7 +1126,7 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
                         interactive: false,
                         session_id: context.session_id,
                     },
-                });
+                }, context));
                 return {
                     ...governorResult,
                     metadata: {
@@ -590,6 +1223,7 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
         const activationPayload = invocation.params && typeof invocation.params === 'object' && !Array.isArray(invocation.params)
             ? invocation.params as Record<string, unknown>
             : { value: invocation.params };
+        const inheritedExecutionMetadata = extractInheritedExecutionMetadata(activationPayload);
         const targetPaths = Array.from(new Set([
             String(invocation.target_path ?? '').trim(),
             ...Object.values(activationPayload)
@@ -637,6 +1271,7 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
                         provider: result.provider,
                         kernel_fallback_policy: kernelFallbackPolicy,
                         target_paths: targetPaths,
+                        ...inheritedExecutionMetadata,
                     },
                 };
             } finally {
@@ -659,6 +1294,7 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
                     execution_mode: executionMode,
                     kernel_fallback_policy: kernelFallbackPolicy,
                     target_paths: targetPaths,
+                    ...inheritedExecutionMetadata,
                 },
             };
         }

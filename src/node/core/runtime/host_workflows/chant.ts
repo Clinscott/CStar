@@ -6,6 +6,7 @@ import {
     resolveHostProvider,
 } from '../../../../core/host_session.js';
 import * as hostBridge from '../weaves/host_bridge.js';
+import { inheritTraceInvocation, inheritTraceSkillBead } from '../trace_inheritance.js';
 import type {
     RuntimeAdapter,
     RuntimeDispatchPort,
@@ -89,12 +90,13 @@ async function resolvePlanningPreference(input: {
     }
 
     const heuristicPreferPlanning = shouldPreferPlanningLoop(input.lowerTokens, input.existingSession);
-    if (!input.activeHostProvider) {
+    const activeHostProvider = input.activeHostProvider;
+    if (!activeHostProvider) {
         return heuristicPreferPlanning;
     }
 
     try {
-        const defaultTimeoutMs = input.activeHostProvider === 'codex' && process.env.CODEX_SHELL !== '1'
+        const defaultTimeoutMs = activeHostProvider === 'codex' && process.env.CODEX_SHELL !== '1'
             ? 300000
             : 12000;
         const timeoutMsRaw = Number(
@@ -113,10 +115,10 @@ async function resolvePlanningPreference(input: {
                             normalizedIntent: input.normalizedIntent,
                             lowerTokens: input.lowerTokens,
                             heuristicPreferPlanning,
-                            activeHostProvider: input.activeHostProvider,
+                            activeHostProvider,
                         }),
                         systemPrompt: 'Return JSON only. Decide whether chant should enter the planning loop.',
-                        provider: input.activeHostProvider,
+                        provider: activeHostProvider,
                         projectRoot: input.payload.project_root,
                         source: 'chant:planning-preference',
                         env: { ...process.env, ...input.context.env } as NodeJS.ProcessEnv,
@@ -124,6 +126,8 @@ async function resolvePlanningPreference(input: {
                             runtime_weave: 'chant',
                             decision: 'planning-preference',
                             heuristic_prefer_planning: heuristicPreferPlanning,
+                            trace_critical: true,
+                            require_agent_harness: true,
                             transport_mode: 'host_session',
                         },
                     }),
@@ -156,6 +160,25 @@ export class ChantHostWorkflow implements RuntimeAdapter<ChantWeavePayload> {
             ...invocation.payload,
             project_root: invocation.payload.project_root || context.workspace_root || invocation.payload.cwd,
         };
+        const traceSelection = deps.parser.parseTraceSelectionGate(payload.query) ?? (
+            context.trace_contract
+                ? {
+                    raw_block: '',
+                    intent_category: context.trace_contract.intent_category,
+                    intent: context.trace_contract.intent,
+                    selection_tier: context.trace_contract.selection_tier,
+                    selection_name: context.trace_contract.selection_name,
+                    trajectory_status: context.trace_contract.trajectory_status,
+                    trajectory_reason: context.trace_contract.trajectory_reason,
+                    mimirs_well: [...(context.trace_contract.mimirs_well ?? [])],
+                    gungnir_verdict: context.trace_contract.gungnir_verdict,
+                    confidence: context.trace_contract.confidence,
+                    body: context.trace_contract.body,
+                    canonical_intent: context.trace_contract.canonical_intent ?? context.trace_contract.intent ?? payload.query.trim(),
+                    issues: [],
+                }
+                : null
+        );
         const normalizedIntent = deps.parser.normalizeIntent(payload.query);
         const tokens = deps.parser.tokenize(normalizedIntent);
         const lowerTokens = tokens.map((token) => token.toLowerCase());
@@ -297,14 +320,16 @@ export class ChantHostWorkflow implements RuntimeAdapter<ChantWeavePayload> {
                 };
             }
 
-            const childResult = await this.dispatchPort.dispatch({
-                ...resolution.invocation,
-                session: {
-                    mode: 'subkernel',
-                    interactive: false,
-                    session_id: context.session_id,
-                },
-            });
+            const childResult = resolution.kind === 'skill'
+                ? await this.dispatchPort.dispatch(inheritTraceSkillBead(resolution.invocation, context))
+                : await this.dispatchPort.dispatch(inheritTraceInvocation({
+                    ...resolution.invocation,
+                    session: {
+                        mode: 'subkernel',
+                        interactive: false,
+                        session_id: context.session_id,
+                    },
+                }, context));
             const emittedBeads = Array.isArray(childResult.metadata?.emitted_beads)
                 ? (childResult.metadata?.emitted_beads as string[])
                 : [];
@@ -324,7 +349,9 @@ export class ChantHostWorkflow implements RuntimeAdapter<ChantWeavePayload> {
                         selected_path: resolution.trigger,
                         emitted_beads: emittedBeads,
                         resolution: resolution.kind,
-                        child_weave_id: resolution.invocation.weave_id,
+                    child_weave_id: resolution.kind === 'skill'
+                        ? resolution.invocation.skill_id
+                        : resolution.invocation.weave_id,
                         planning_session_id: context.session_id ?? null,
                     },
                 };
@@ -339,7 +366,9 @@ export class ChantHostWorkflow implements RuntimeAdapter<ChantWeavePayload> {
                     selected_path: resolution.trigger,
                     emitted_beads: emittedBeads,
                     resolution: resolution.kind,
-                    child_weave_id: resolution.invocation.weave_id,
+                    child_weave_id: resolution.kind === 'skill'
+                        ? resolution.invocation.skill_id
+                        : resolution.invocation.weave_id,
                     child_status: childResult.status,
                     planning_session_id: context.session_id ?? null,
                 },
@@ -352,7 +381,8 @@ export class ChantHostWorkflow implements RuntimeAdapter<ChantWeavePayload> {
             context,
             existingSession,
             normalizedIntent,
-            lowerTokens
+            lowerTokens,
+            traceSelection,
         );
     }
 

@@ -94,6 +94,7 @@ describe('ChantWeave Unit Tests', () => {
 
     it('lets the host force the planning loop before intent-category fallback', async () => {
         const weave = new ChantWeave({} as any);
+        let capturedRequest: any;
 
         mock.method(deps.parser, 'normalizeIntent', (q: string) => q);
         mock.method(deps.parser, 'tokenize', () => ['repair', 'the', 'runtime']);
@@ -110,10 +111,13 @@ describe('ChantWeave Unit Tests', () => {
         }));
         mock.method(deps.parser, 'resolveByIntentCategory', intentFallback);
         mock.method(deps.database, 'getHallPlanningSession', () => null);
-        mock.method(deps, 'hostTextInvoker', async () => JSON.stringify({
-            prefer_planning: true,
-            reason: 'Needs decomposition',
-        }));
+        mock.method(deps, 'hostTextInvoker', async (request) => {
+            capturedRequest = request;
+            return JSON.stringify({
+                prefer_planning: true,
+                reason: 'Needs decomposition',
+            });
+        });
         mock.method(deps.planner, 'runPlanningLoop', async (): Promise<WeaveResult> => ({
             weave_id: 'weave:chant',
             status: 'SUCCESS',
@@ -132,6 +136,9 @@ describe('ChantWeave Unit Tests', () => {
         assert.equal(result.status, 'SUCCESS');
         assert.equal(result.output, 'Planned by host preference');
         assert.equal(intentFallback.mock.callCount(), 0);
+        assert.equal(capturedRequest?.metadata?.trace_critical, true);
+        assert.equal(capturedRequest?.metadata?.require_agent_harness, true);
+        assert.equal(capturedRequest?.metadata?.transport_mode, 'host_session');
         mock.reset();
     });
 });

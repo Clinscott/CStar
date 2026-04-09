@@ -8,6 +8,8 @@ import { buildHostSubagentPrompt, type HostSubagentProfile } from './host_subage
 import type { HostProvider } from './host_session.js';
 import {
     expandDelegateBridgeArgs,
+    getDelegatePollBridgeConfigurationHint,
+    resolveConfiguredDelegatePollBridge,
     resolveConfiguredDelegateBridge,
     resolveHostProvider,
 } from './host_session.js';
@@ -67,6 +69,14 @@ export interface HostDelegationDependencies {
             maxBuffer?: number;
         },
     ) => Promise<{ stdout: string; stderr: string }>;
+}
+
+export interface DelegatedExecutionResolutionRequest {
+    handle_id: string;
+    request_id: string;
+    repo_root: string;
+    provider: HostProvider;
+    subagent_profile?: HostSubagentProfile;
 }
 
 const defaultExecRunner = async (
@@ -252,6 +262,51 @@ export async function requestHostDelegatedExecution(
         const raw = filePayload.trim() || stdout.trim() || stderr.trim();
         if (!raw) {
             throw new Error(`Delegate bridge for provider ${provider} returned no output.`);
+        }
+
+        return parseBridgeResult(raw);
+    } finally {
+        await rm(scratchDir, { recursive: true, force: true }).catch(() => undefined);
+    }
+}
+
+export async function resolveHostDelegatedExecution(
+    request: DelegatedExecutionResolutionRequest,
+    env: NodeJS.ProcessEnv = process.env,
+    dependencies: HostDelegationDependencies = {},
+): Promise<DelegatedExecutionHandle | DelegatedExecutionResult> {
+    const bridge = resolveConfiguredDelegatePollBridge(env, request.provider);
+    if (!bridge) {
+        throw new Error(
+            `No delegated execution poll bridge is configured for ${request.provider}. ${getDelegatePollBridgeConfigurationHint(request.provider)}`,
+        );
+    }
+
+    const execRunner = dependencies.execRunner ?? defaultExecRunner;
+    const scratchDir = await mkdtemp(path.join(os.tmpdir(), 'corvus-delegate-poll-'));
+    const resultPath = path.join(scratchDir, 'result.json');
+
+    try {
+        const args = expandDelegateBridgeArgs(bridge.args, {
+            request_path: '',
+            result_path: resultPath,
+            project_root: request.repo_root,
+            provider: request.provider,
+            subagent_profile: request.subagent_profile ?? 'backend',
+            request_id: request.request_id,
+            handle_id: request.handle_id,
+        });
+
+        const { stdout, stderr } = await execRunner(bridge.command, args, {
+            cwd: request.repo_root,
+            env: { ...env },
+            maxBuffer: DEFAULT_DELEGATE_MAX_BUFFER,
+        });
+
+        const filePayload = await readFile(resultPath, 'utf-8').catch(() => '');
+        const raw = filePayload.trim() || stdout.trim() || stderr.trim();
+        if (!raw) {
+            throw new Error(`Delegate poll bridge for provider ${request.provider} returned no output.`);
         }
 
         return parseBridgeResult(raw);

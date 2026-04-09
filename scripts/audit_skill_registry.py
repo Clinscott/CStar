@@ -316,6 +316,23 @@ def infer_recursion_policy(entry_name: str, entry: dict[str, Any]) -> str:
     return "leaf"
 
 
+def infer_entry_surface(entry_name: str, entry: dict[str, Any]) -> str:
+    declared = str(entry.get("entry_surface") or "").strip().lower()
+    if declared in {"cli", "host-only", "compatibility"}:
+        return declared
+
+    tier = str(entry.get("tier") or "").strip().upper()
+    execution_mode = str(entry.get("execution", {}).get("mode") or "").strip().lower()
+    spell_classification = str(entry.get("spell_classification") or "").strip().lower()
+
+    if tier == "SPELL" or execution_mode == "policy-only" or spell_classification == "policy-only":
+        return "host-only"
+    if entry_name == "chant":
+        return "host-only"
+
+    return "cli"
+
+
 def infer_spell_classification(entry: dict[str, Any]) -> str | None:
     tier = str(entry.get("tier") or "").strip().upper()
     if tier != "SPELL":
@@ -436,6 +453,7 @@ def enrich_entry(entry_name: str, entry: dict[str, Any]) -> dict[str, Any]:
     spell_classification = infer_spell_classification(enriched)
     if spell_classification is not None:
         enriched["spell_classification"] = spell_classification
+    enriched["entry_surface"] = infer_entry_surface(entry_name, enriched)
     enriched["contracts"] = infer_contracts(contract_path, enriched)
     enriched["tests"] = infer_tests(entry_name, enriched)
     return enriched
@@ -448,6 +466,7 @@ def collect_authority_issues(entries: dict[str, dict[str, Any]]) -> list[dict[st
         "owner_runtime",
         "host_support",
         "recursion_policy",
+        "entry_surface",
         "contracts",
         "tests",
     ]
@@ -600,6 +619,7 @@ def render_report(manifest: dict[str, Any]) -> str:
                 f"- Contract: `{entry['contract_path'] or 'none'}`",
                 f"- Runtime Trigger: `{entry['runtime_trigger']}`",
                 f"- Owner Runtime: `{entry.get('owner_runtime') or 'none'}`",
+                f"- Entry Surface: `{entry.get('entry_surface') or 'none'}`",
                 f"- Host Support: `{json.dumps(entry.get('host_support', {}), ensure_ascii=True)}`",
                 f"- Recursion Policy: `{entry.get('recursion_policy') or 'none'}`",
                 f"- Contracts: `{', '.join(entry.get('contracts', [])) or 'none'}`",

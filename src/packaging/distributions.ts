@@ -222,7 +222,6 @@ function buildGeminiContextContent(projectRoot: string, capabilities: Capability
         '`./cstar <command>`',
         '`node bin/cstar.js <command>`',
         '`./cstar hall "<query>"`',
-        '`./cstar chant "<query>"`',
     ];
     const topCapabilities = capabilities.slice(0, 12).map(formatCapabilityLine);
 

@@ -24,6 +24,7 @@ import { registry } from  './pathRegistry.js';
 import { activePersona } from  './personaRegistry.js';
 import { ScanResult, FileData } from  './types.js';
 import { defaultProvider, OFFLINE_INTENT_PLACEHOLDER } from  './intel/llm.js';
+import { requestHostText } from  '../../core/host_intelligence.js';
 import chalk from 'chalk';
 import { buildHallRepositoryId } from  '../../types/hall.js';
 import { getGungnirOverall, patchGungnirMatrix } from  '../../types/gungnir.js';
@@ -52,28 +53,56 @@ export async function indexSector(filePath: string): Promise<FileData | null> {
 
         // 1. Local Analysis
         const data = await analyzeFile(code, absolutePath);
-        
+
         // 2. Semantic Analysis (Targeted)
         const indexer = new SemanticIndexer(path.dirname(absolutePath));
         const semanticGraph = await indexer.index();
         const semanticData = semanticGraph.files.find(f => registry.normalize(f.path) === normalizedPath);
-        
+
         if (semanticData) {
             data.matrix = patchGungnirMatrix(data.matrix, {
                 logic: (data.matrix.logic + semanticData.logic) / 2,
             });
             data.dependencies = semanticData.dependencies;
+            data.cluster = semanticData.cluster;
         }
 
-        // 3. Intelligence (Intent)
+        // 3. Intelligence (Intent) - Native Host Skill / Sub-Agent Delegation
         console.error(`[ALFRED] Analyzing intelligence for sector ${normalizedPath}...`);
-        const [{ intent, interaction }] = await defaultProvider.getBatchIntent([{ code, data }]);
-        data.intent = intent;
-        data.interaction_protocol = interaction;
+
+        const systemPrompt = `You are a specialized PennyOne Sub-Agent.
+Analyze the provided code and metadata.
+Respond ONLY with a valid JSON object: {"intent": "Brief purpose (2-3 sentences)", "interaction": "Key interactions (1-2 sentences)"}`;
+        const prompt = `FILE: ${absolutePath}\n\nCODE:\n\`\`\`\n${code}\n\`\`\`\n\nMETADATA:\n${JSON.stringify({
+            imports: data.imports,
+            exports: data.exports,
+            matrix: data.matrix
+        }, null, 2)}`;
+
+        const result = await requestHostText({
+            prompt,
+            systemPrompt,
+            projectRoot: registry.getRoot(),
+            source: 'pennyone:sector:sub-agent',
+            metadata: {
+                sub_agent: 'codebase_investigator',
+                response_format: 'json'
+            }
+        });
+
+        const jsonText = result.text.includes('```json')
+            ? result.text.split('```json')[1].split('```')[0].trim()
+            : result.text.includes('```')
+                ? result.text.split('```')[1].split('```')[0].trim()
+                : result.text.trim();
+
+        const intentData = JSON.parse(jsonText);
+        data.intent = intentData.intent;
+        data.interaction_protocol = intentData.interaction;
         data.hash = currentHash;
 
         // 4. Global Memory Update (SQLite)
-        updateFtsIndex(absolutePath, intent, interaction);
+        updateFtsIndex(absolutePath, data.intent ?? '', data.interaction_protocol ?? '');
 
         // PennyOne projections are derived from Hall records, never patched directly.
         const repoId = buildHallRepositoryId(targetRepoRoot);
@@ -191,6 +220,7 @@ export async function runScan(targetPath: string, force = false): Promise<FileDa
                 data.matrix = patchGungnirMatrix(data.matrix, {
                     logic: (data.matrix.logic + semanticData.logic) / 2,
                 });
+                data.cluster = semanticData.cluster;
             }
             analyzedFiles.push({ code, data, needsIntent: true });
         } catch (error: unknown) {
@@ -198,16 +228,14 @@ export async function runScan(targetPath: string, force = false): Promise<FileDa
         }
     }
 
-    // Phase 2: High-Fidelity Intelligence (Batch Size 10 for stability)
+    // Phase 2: High-Fidelity Intelligence (Sub-Agent Delegation)
     const filesNeedingIntent = analyzedFiles.filter(af => af.needsIntent);
-    const BATCH_SIZE = 10;
 
-    for (let i = 0; i < filesNeedingIntent.length; i += BATCH_SIZE) {
-        const batch = filesNeedingIntent.slice(i, i + BATCH_SIZE);
-        const batchNum = Math.floor(i/BATCH_SIZE) + 1;
-        const totalBatches = Math.ceil(filesNeedingIntent.length/BATCH_SIZE);
-        
-        // [🔱] THE HEARTBEAT: Explicit progress logs and telemetry
+    for (let i = 0; i < filesNeedingIntent.length; i++) {
+        const item = filesNeedingIntent[i];
+        const batchNum = i + 1;
+        const totalBatches = filesNeedingIntent.length;
+
         const status = {
             batch: batchNum,
             total_batches: totalBatches,
@@ -218,49 +246,69 @@ export async function runScan(targetPath: string, force = false): Promise<FileDa
             fsSync.writeFileSync(path.join(registry.getRoot(), '.agents', 'scan_heartbeat.json'), JSON.stringify(status, null, 2));
         } catch { /* Ignore telemetry errors */ }
 
-        console.log(chalk.cyan(` ◈ [HEARTBEAT] Processing Intelligence Batch ${batchNum}/${totalBatches}...`));
-        
+        console.log(chalk.cyan(` ◈ [AGENT] Analyzing Sector ${batchNum}/${totalBatches}: ${registry.normalize(item.data.path)}`));
+
         try {
-            let batchIntents;
+            let intentData: { intent: string; interaction: string };
             try {
-                batchIntents = await defaultProvider.getBatchIntent(batch.map(b => ({ code: b.code, data: b.data })));
+                const systemPrompt = `You are a specialized PennyOne Sub-Agent.
+Analyze the provided code and metadata.
+Respond ONLY with a valid JSON object: {"intent": "Brief purpose (2-3 sentences)", "interaction": "Key interactions (1-2 sentences)"}`;
+                const prompt = `FILE: ${item.data.path}\n\nCODE:\n\`\`\`\n${item.code}\n\`\`\`\n\nMETADATA:\n${JSON.stringify({
+                    imports: item.data.imports,
+                    exports: item.data.exports,
+                    matrix: item.data.matrix
+                }, null, 2)}`;
+
+                const result = await requestHostText({
+                    prompt,
+                    systemPrompt,
+                    projectRoot: registry.getRoot(),
+                    source: 'pennyone:scan:sub-agent',
+                    metadata: {
+                        sub_agent: 'codebase_investigator',
+                        response_format: 'json'
+                    }
+                });
+
+                // Extract JSON from potential markdown wrappers
+                const jsonText = result.text.includes('```json')
+                    ? result.text.split('```json')[1].split('```')[0].trim()
+                    : result.text.includes('```')
+                      ? result.text.split('```')[1].split('```')[0].trim()
+                      : result.text.trim();
+
+                intentData = JSON.parse(jsonText);
             } catch (intentError: any) {
                 if (hostSessionActive) {
-                    throw new Error(`Batch ${batchNum} semantic intent failed during an active host session: ${intentError.message}`);
+                    throw new Error(`Sector analysis failed for ${item.data.path}: ${intentError.message}`);
                 }
-                console.warn(chalk.yellow(`[WARNING] Batch ${batchNum} intelligence generation failed: ${intentError.message}. Using fallback metadata.`));
-                batchIntents = batch.map(() => ({ 
-                    intent: OFFLINE_INTENT_PLACEHOLDER, 
-                    interaction: 'Standard' 
-                }));
+                console.warn(chalk.yellow(`[WARNING] Intelligence generation failed for ${item.data.path}: ${intentError.message}. Using fallback.`));
+                intentData = {
+                    intent: OFFLINE_INTENT_PLACEHOLDER,
+                    interaction: 'Standard'
+                };
             }
-            
-            // Map intents back to data and write reports
-            for (let j = 0; j < batch.length; j++) {
-                const intentData = batchIntents[j];
-                const fileData = batch[j].data;
-                const { intent, interaction } = await writeReport(fileData, targetPath, batch[j].code, intentData);
-                fileData.intent = intent;
-                fileData.interaction_protocol = interaction;
 
-                // [🔱] WELL OF MIMIR: Update FTS Index
-                updateFtsIndex(fileData.path, intent, interaction);
-            }
-            
-            console.log(chalk.dim(` ✔ Batch ${batchNum} finalized.`));
-            
-            // Update heartbeat to idle between batches
+            const fileData = item.data;
+            const { intent, interaction } = await writeReport(fileData, targetPath, item.code, intentData);
+            fileData.intent = intent;
+            fileData.interaction_protocol = interaction;
+
+            updateFtsIndex(fileData.path, intent, interaction);
+            console.log(chalk.dim(` ✔ Sector ${batchNum} finalized.`));
+
+            // Update heartbeat
             status.status = 'WAITING';
             status.last_update = Date.now();
             try {
                 fsSync.writeFileSync(path.join(registry.getRoot(), '.agents', 'scan_heartbeat.json'), JSON.stringify(status, null, 2));
             } catch { }
 
-            // [Ω] ANTI-HANG: Brief delay between batches to allow the Host to breathe
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // Prevent host throttling
+            await new Promise(resolve => setTimeout(resolve, 500));
         } catch (e: any) {
             console.error(chalk.red(`[CRITICAL FAILURE] Intelligence scan aborted: ${e.message}`));
-            // Re-throw to halt the entire scan process as per mandate
             throw e;
         }
     }
@@ -378,14 +426,20 @@ export async function refreshOfflineIntents(targetPath: string): Promise<IntentR
         };
     }
 
-    let batchIntents: Array<{ intent: string; interaction: string }>;
+    let batchIntents: Array<{ intent: string; interaction: string }> = [];
     try {
-        batchIntents = await defaultProvider.getBatchIntent(
-            prepared.map((item) => ({
-                code: item.code,
-                data: item.data,
-            })),
-        );
+        for (const item of prepared) {
+            const systemPrompt = `You are a specialized PennyOne Sub-Agent. Respond ONLY with JSON: {"intent": "...", "interaction": "..."}`;
+            const prompt = `FILE: ${item.record.path}\nCODE:\n${item.code}`;
+            const result = await requestHostText({
+                prompt,
+                systemPrompt,
+                projectRoot: registry.getRoot(),
+                source: 'pennyone:refresh:sub-agent'
+            });
+            const jsonText = result.text.includes('```json') ? result.text.split('```json')[1].split('```')[0].trim() : result.text.trim();
+            batchIntents.push(JSON.parse(jsonText));
+        }
     } catch (intentError: unknown) {
         const message = intentError instanceof Error ? intentError.message : String(intentError);
         if (hostSessionActive) {

@@ -151,13 +151,17 @@ describe('Ravens lifecycle adapter (kernel cleanup)', () => {
     });
 
     it('can return observe-only when the host supervisor declines maintenance execution', async () => {
+        let capturedRequest: { metadata?: Record<string, unknown> } | undefined;
         const adapter = new RavensAdapter(
             undefined as any,
             () => [buildTarget(tmpRoot)],
-            async () => JSON.stringify({
-                mode: 'observe_only',
-                reason: 'Stay observational until the operator approves the sweep.',
-            }),
+            async (request) => {
+                capturedRequest = request;
+                return JSON.stringify({
+                    mode: 'observe_only',
+                    reason: 'Stay observational until the operator approves the sweep.',
+                });
+            },
         );
 
         mock.method(runtimeAdapterDeps, 'resolveHostProvider', () => 'codex' as any);
@@ -174,11 +178,15 @@ describe('Ravens lifecycle adapter (kernel cleanup)', () => {
         assert.equal(result.status, 'TRANSITIONAL');
         assert.equal(result.metadata?.adapter, 'runtime:ravens-host-observe');
         assert.equal(result.metadata?.supervisor_mode, 'observe_only');
+        assert.equal(capturedRequest?.metadata?.trace_critical, true);
+        assert.equal(capturedRequest?.metadata?.require_agent_harness, true);
+        assert.equal(capturedRequest?.metadata?.transport_mode, 'host_session');
         mock.reset();
     });
 
     it('can normalize public maintenance intent while still delegating to bounded cycle execution', async () => {
         let delegated = 0;
+        let capturedRequest: { metadata?: Record<string, unknown> } | undefined;
         const adapter = new RavensAdapter(
             {
                 id: 'weave:ravens-cycle',
@@ -200,11 +208,14 @@ describe('Ravens lifecycle adapter (kernel cleanup)', () => {
                 },
             } as any,
             () => [buildTarget(tmpRoot)],
-            async () => JSON.stringify({
-                mode: 'execute_now',
-                action: 'cycle',
-                reason: 'Run a single bounded cycle instead of a broader sweep.',
-            }),
+            async (request) => {
+                capturedRequest = request;
+                return JSON.stringify({
+                    mode: 'execute_now',
+                    action: 'cycle',
+                    reason: 'Run a single bounded cycle instead of a broader sweep.',
+                });
+            },
         );
 
         mock.method(runtimeAdapterDeps, 'resolveHostProvider', () => 'codex' as any);
@@ -222,6 +233,9 @@ describe('Ravens lifecycle adapter (kernel cleanup)', () => {
         assert.equal(result.status, 'SUCCESS');
         assert.equal(result.metadata?.adapter, 'runtime:ravens-cycle-wrapper');
         assert.equal(result.metadata?.supervisor_mode, 'execute_now');
+        assert.equal(capturedRequest?.metadata?.trace_critical, true);
+        assert.equal(capturedRequest?.metadata?.require_agent_harness, true);
+        assert.equal(capturedRequest?.metadata?.transport_mode, 'host_session');
         mock.reset();
     });
 });

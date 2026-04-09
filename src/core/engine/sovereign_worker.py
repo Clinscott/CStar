@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import re
 import time
 import requests
@@ -48,20 +49,21 @@ class CStarBridge:
             return f"Error executing command: {str(e)}"
 
     def _resolve_path(self, path_str: str) -> Path:
-        logging.info(f"Resolving path: '{path_str}'")
+        logging.info(f"Resolving path: '{path_str}' against root: '{self.project_root}'")
         if not path_str:
-            # RETURN NONE or RAISE if empty to avoid root directory errors
             raise ValueError("Empty path provided to _resolve_path")
         
         p = Path(path_str)
         if p.is_absolute():
             try:
+                # If it's absolute but within project_root, keep it
                 p.relative_to(self.project_root)
                 return p
             except ValueError:
+                # If it's absolute but outside, re-base it
                 return self.project_root / path_str.lstrip("/")
         
-        return self.project_root / path_str
+        return self.project_root / p
 
     def _read_file(self, path: str) -> str:
         if not path:
@@ -102,7 +104,7 @@ class CStarBridge:
 @dataclass
 class SovereignWorker:
     project_root: Path
-    model: str = "deepseek"
+    model: str = field(default_factory=lambda: os.environ.get("CORVUS_AUTOBOT_MODEL", os.environ.get("CSTAR_SOVEREIGN_MODEL", "deepseek")))
     base_url: str = "http://localhost:11434/v1"
     max_turns: int = 10
 
@@ -126,10 +128,11 @@ class SovereignWorker:
                 self.messages = [self.messages[0]] + self.messages[-8:]
 
             response = self._call_llm()
-            if response.startswith("Error"):
-                logging.error(response)
+            if response.startswith("Error") or "Error:" in response:
+                logging.error(f"Worker saw LLM error: {response}")
                 transcript.append(f"SYSTEM: {response}")
-                break
+                # If we see an error, we should probably stop and report it
+                return "\n\n".join(transcript)
 
             self.messages.append({"role": "assistant", "content": response})
             transcript.append(f"ASSISTANT: {response}")

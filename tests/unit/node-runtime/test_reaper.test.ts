@@ -70,7 +70,7 @@ describe('Orchestrator Reaper Unit Tests', () => {
         mock.reset();
     });
 
-    it('should map general failure to SET/HOST-WORKER escalation if sovereign', async () => {
+    it('should map general failure to SET/PHOENIX escalation if sovereign', async () => {
         const mockDb = {
             prepare: mock.fn((query: string) => ({
                 get: mock.fn(() => ({ status: 'SET', assigned_agent: 'SOVEREIGN-WORKER', triage_reason: 'some failure' })),

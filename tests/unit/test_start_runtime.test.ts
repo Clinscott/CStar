@@ -78,7 +78,7 @@ describe('Start runtime adapter (CS-P4-01)', () => {
 
             assert.equal(wakeMock.mock.callCount(), 1);
             assert.equal(result.status, 'TRANSITIONAL');
-            assert.match(result.output, /kernel is active/i);
+            assert.match(result.output, /Kernel Awakening Complete/i);
         } finally {
             wakeMock.mock.restore();
         }
@@ -137,10 +137,14 @@ describe('Start runtime adapter (CS-P4-01)', () => {
     it('uses start as a wake-and-resume trigger when a host session is active', async () => {
         const wakeMock = mock.method(ANS, 'wake', async () => undefined);
         const capture = new CaptureDispatchPort();
-        const adapter = new StartAdapter(capture, async () => JSON.stringify({
-            action: 'resume_governor',
-            reason: 'Pending host-governed mission detected.',
-        }));
+        let capturedRequest: { metadata?: Record<string, unknown> } | undefined;
+        const adapter = new StartAdapter(capture, async (request) => {
+            capturedRequest = request;
+            return JSON.stringify({
+                action: 'resume_governor',
+                reason: 'Pending host-governed mission detected.',
+            });
+        });
 
         try {
             const result = await adapter.execute(
@@ -163,6 +167,9 @@ describe('Start runtime adapter (CS-P4-01)', () => {
             assert.equal(result.metadata?.adapter, 'runtime:start-resume');
             assert.equal(result.metadata?.supervisor_decision_source, 'host-supervisor');
             assert.equal(result.metadata?.supervisor_reason, 'Pending host-governed mission detected.');
+            assert.equal(capturedRequest?.metadata?.trace_critical, true);
+            assert.equal(capturedRequest?.metadata?.require_agent_harness, true);
+            assert.equal(capturedRequest?.metadata?.transport_mode, 'host_session');
         } finally {
             wakeMock.mock.restore();
         }
@@ -171,10 +178,14 @@ describe('Start runtime adapter (CS-P4-01)', () => {
     it('can wake the kernel without resuming governor when the host supervisor says wake-only', async () => {
         const wakeMock = mock.method(ANS, 'wake', async () => undefined);
         const capture = new CaptureDispatchPort();
-        const adapter = new StartAdapter(capture, async () => JSON.stringify({
-            action: 'wake_only',
-            reason: 'No pending host-governed work.',
-        }));
+        let capturedRequest: { metadata?: Record<string, unknown> } | undefined;
+        const adapter = new StartAdapter(capture, async (request) => {
+            capturedRequest = request;
+            return JSON.stringify({
+                action: 'wake_only',
+                reason: 'No pending host-governed work.',
+            });
+        });
 
         try {
             const result = await adapter.execute(
@@ -195,6 +206,9 @@ describe('Start runtime adapter (CS-P4-01)', () => {
             assert.equal(result.metadata?.supervisor_decision_source, 'host-supervisor');
             assert.equal(result.metadata?.supervisor_reason, 'No pending host-governed work.');
             assert.equal(result.metadata?.resume_requested, false);
+            assert.equal(capturedRequest?.metadata?.trace_critical, true);
+            assert.equal(capturedRequest?.metadata?.require_agent_harness, true);
+            assert.equal(capturedRequest?.metadata?.transport_mode, 'host_session');
         } finally {
             wakeMock.mock.restore();
         }

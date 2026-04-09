@@ -20,13 +20,13 @@ describe('Runtime Adapters', () => {
                 operator_mode: 'cli',
                 target_domain: 'brain',
                 interactive: true,
-                env: {},
+                env: { CORVUS_HOST_SESSION_ACTIVE: 'false' },
                 timestamp: Date.now()
             };
 
             const result = await adapter.execute(invocation, context);
             assert.strictEqual(result.status, 'TRANSITIONAL');
-            assert.ok(result.output?.includes('system is awake'));
+            assert.ok(result.output?.includes('Kernel Awakening Complete'));
         });
 
         it('should delegate to host-governor if loki is true', async () => {

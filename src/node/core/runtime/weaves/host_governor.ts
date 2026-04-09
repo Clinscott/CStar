@@ -33,6 +33,7 @@ import type { ChantWeavePayload } from  '../contracts.js';
 import { resolveHostGovernorPolicy } from  '../host_governor_policy.js';
 import type { HostProvider } from  '../../../../core/host_session.js';
 import { defaultHostTextInvoker, extractJsonObject, resolveRuntimeHostProvider, type HostTextInvoker } from  './host_bridge.js';
+import { inheritTraceInvocation } from '../trace_inheritance.js';
 
 interface ReplanResult {
     invoked: boolean;
@@ -466,6 +467,15 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
                 `POLICY:\n${JSON.stringify(policy, null, 2)}`,
                 `CANDIDATES:\n${JSON.stringify(summarizeCandidates(projectRoot, candidates, policy), null, 2)}`,
             ].filter(Boolean).join('\n'),
+            metadata: {
+                runtime_weave: 'host-governor',
+                decision: 'govern-candidates',
+                trace_critical: true,
+                require_agent_harness: true,
+                transport_mode: 'host_session',
+                source,
+                planning_session_id: planningSessionId,
+            },
         });
 
         const decision = normalizeApprovedIds(extractJsonObject(rawText) as HostGovernorDecision, candidates);
@@ -558,6 +568,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
         payload: HostGovernorWeavePayload,
         projectRoot: string,
         policy: HostGovernorPolicy,
+        context: RuntimeContext,
     ): Promise<ReplanResult> {
         const beadIds = blockedBeads.map((bead) => bead.id);
         if (beadIds.length === 0) {
@@ -570,7 +581,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
             return { invoked: false, beadIds: [] };
         }
 
-        const chantResult = await this.dispatchPort.dispatch<ChantWeavePayload>({
+        const chantResult = await this.dispatchPort.dispatch<ChantWeavePayload>(inheritTraceInvocation({
             weave_id: 'weave:chant',
             payload: {
                 query: buildBlockedBeadReplanQuery(projectRoot, beadsToReplan, policy),
@@ -583,7 +594,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
                 interactive: invocation.session?.interactive ?? true,
             },
             target: invocation.target,
-        });
+        }, context));
 
         const planningSessionId = typeof chantResult.metadata?.planning_session_id === 'string'
             ? chantResult.metadata.planning_session_id
@@ -677,6 +688,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
                     payload,
                     projectRoot,
                     policy,
+                    context,
                 )
                 : { invoked: false, beadIds: [] } satisfies ReplanResult;
 
@@ -715,7 +727,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
 
             const replannedPass = governancePasses[0];
             if (!payload.dry_run && payload.auto_execute && replannedPass && replannedPass.promotedBeadIds.length > 0) {
-                const replannedOrchestrate = await this.dispatchPort.dispatch<OrchestrateWeavePayload>({
+                const replannedOrchestrate = await this.dispatchPort.dispatch<OrchestrateWeavePayload>(inheritTraceInvocation({
                     weave_id: 'weave:orchestrate',
                     payload: {
                         bead_ids: replannedPass.promotedBeadIds,
@@ -726,7 +738,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
                     },
                     session: invocation.session,
                     target: invocation.target,
-                });
+                }, context));
 
                 if (replannedOrchestrate.status === 'FAILURE') {
                     return {
@@ -838,7 +850,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
         governancePasses.push(existingPass);
 
         if (!payload.dry_run && payload.auto_execute && existingPass.promotedBeadIds.length > 0) {
-            const orchestrateResult = await this.dispatchPort.dispatch<OrchestrateWeavePayload>({
+            const orchestrateResult = await this.dispatchPort.dispatch<OrchestrateWeavePayload>(inheritTraceInvocation({
                 weave_id: 'weave:orchestrate',
                 payload: {
                     bead_ids: existingPass.promotedBeadIds,
@@ -849,7 +861,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
                 },
                 session: invocation.session,
                 target: invocation.target,
-            });
+            }, context));
             orchestrateResults.push(orchestrateResult);
 
             if (orchestrateResult.status === 'FAILURE') {
@@ -869,11 +881,11 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
             if (payload.auto_replan_blocked !== false) {
                 const blockedBeads = getProjectBeads(projectRoot, ['BLOCKED', 'NEEDS_TRIAGE'])
                     .filter((bead) => existingPass.promotedBeadIds.includes(bead.id));
-                replanResult = await this.triggerBlockedBeadReplan(blockedBeads, invocation, payload, projectRoot, policy);
+                replanResult = await this.triggerBlockedBeadReplan(blockedBeads, invocation, payload, projectRoot, policy, context);
             }
         } else if (!payload.dry_run && payload.auto_replan_blocked !== false) {
             const blockedBeads = getProjectBeads(projectRoot, ['BLOCKED', 'NEEDS_TRIAGE']);
-            replanResult = await this.triggerBlockedBeadReplan(blockedBeads, invocation, payload, projectRoot, policy);
+            replanResult = await this.triggerBlockedBeadReplan(blockedBeads, invocation, payload, projectRoot, policy, context);
         }
 
         if (replanResult.planningSessionId) {
@@ -891,7 +903,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
                 if (replannedPass) {
                     governancePasses.push(replannedPass);
                     if (!payload.dry_run && payload.auto_execute && replannedPass.promotedBeadIds.length > 0) {
-                        const orchestrateResult = await this.dispatchPort.dispatch<OrchestrateWeavePayload>({
+                        const orchestrateResult = await this.dispatchPort.dispatch<OrchestrateWeavePayload>(inheritTraceInvocation({
                             weave_id: 'weave:orchestrate',
                             payload: {
                                 bead_ids: replannedPass.promotedBeadIds,
@@ -902,7 +914,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
                             },
                             session: invocation.session,
                             target: invocation.target,
-                        });
+                        }, context));
                         orchestrateResults.push(orchestrateResult);
 
                         if (orchestrateResult.status === 'FAILURE') {

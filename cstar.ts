@@ -26,17 +26,24 @@ import { registerOsCommands } from './src/node/core/commands/os-integration.ts';
 import { registerOneMindCommand } from './src/node/core/commands/one-mind.ts';
 import { registerTraceCommand } from './src/node/core/commands/trace.ts';
 import { registerHallDocumentCommand } from './src/node/core/commands/hall-doc.ts';
+import { registerCapabilityDiscoveryCommands } from './src/node/core/commands/capability_discovery_commands.js';
+import {
+    buildCapabilityInfoPayload,
+    buildCapabilityManifestPayload,
+    renderCapabilityInfoLines,
+    renderCapabilityManifestLines,
+} from './src/node/core/commands/capability_discovery.js';
 import { renderOperationalContext, renderStandardCommandResult } from './src/node/core/commands/command_context.ts';
 import { getLaunchCwd, installWorkspaceSelectionHook, selectWorkspaceRoot } from './src/node/core/launcher.ts';
 import { StateRegistry } from './src/node/core/state.ts';
 import { registry } from './src/tools/pennyone/pathRegistry.ts';
+import { summarizeCommandSurfaces } from './src/node/core/runtime/entry_surface.ts';
 import { runOperatorTui, shouldLaunchOperatorTui } from './src/node/core/tui/operator_tui.ts';
 import { getHostProviderBanner, isHostSessionActive, resolveHostProvider } from './src/core/host_session.ts';
-import { resumeHostGovernorIfAvailable } from './src/node/core/operator_resume.ts';
 
 /**
  * 🔱 GUNGNIR CONTROL PLANE (v2.0)
- * Purpose: Sovereign entry point for Corvus Star. 
+ * Purpose: Sovereign entry point for Corvus Star.
  * Standard: Linscott Protocol ([L] > 4.0 Compliance).
  */
 
@@ -45,8 +52,20 @@ const PROJECT_ROOT = __dirname;
 process.env.CSTAR_CONTROL_ROOT = process.env.CSTAR_CONTROL_ROOT || PROJECT_ROOT;
 const pkgPath = join(PROJECT_ROOT, 'package.json');
 const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+const commandSurfaces = summarizeCommandSurfaces(PROJECT_ROOT);
+const hostOnlySurfaceSummary = commandSurfaces.hostOnly.length > 0
+    ? `  Host-only capabilities: ${commandSurfaces.hostOnly.slice(0, 6).join(', ')}${commandSurfaces.hostOnly.length > 6 ? ', ...' : ''}\n`
+    : '';
+const legacySurfaceSummary = commandSurfaces.compatibility.length > 0
+    ? `  Legacy compatibility capabilities: ${commandSurfaces.compatibility.join(', ')}\n`
+    : '  Legacy compatibility capabilities: disabled\n';
 const launchCwd = getLaunchCwd();
 const selectedWorkspaceRoot = selectWorkspaceRoot(process.argv.slice(2), launchCwd);
+
+function getActiveAdapterIds(): Set<string> {
+    const dispatcher = RuntimeDispatcher.getInstance();
+    return new Set<string>(Array.from(((dispatcher as any).adapters as Map<string, any>).keys()));
+}
 
 const program = new Command();
 
@@ -96,13 +115,16 @@ const program = new Command();
   oracle           Consult the One Mind Host Agent via direct sampling.
   one-mind         Inspect or fulfill Hall-backed One Mind broker requests.
   trace           Show the active Hall-backed planning trace for the host CLI.
-  [skill]          Directly invoke any evolved skill from the ecosystem (e.g., 'cstar scribe').
-  [workflow]       Execute high-level workflows (e.g., 'cstar lets-go', 'cstar plan').
+  [skill]          Directly invoke CLI-exposed skills from the registry.
+
+◈ CAPABILITY SURFACES
+  CLI-exposed capabilities: ${commandSurfaces.cli.length}
+${hostOnlySurfaceSummary}${legacySurfaceSummary}
 
 ◈ PERSONA PROTOCOL
-  The framework dynamically adjusts its logic and aesthetics based on the active persona 
+  The framework dynamically adjusts its logic and aesthetics based on the active persona
   defined in .agents/config.json.
-  
+
   IF "O.D.I.N.": Focus on high-velocity creation and architectural disruption.
   IF "ALFRED":   Focus on maintenance, safety, and steady optimization.
 
@@ -133,6 +155,46 @@ const program = new Command();
     registerDispatcher(program, () => registry.getRoot());
 
     program
+        .command('broadcast <message...>')
+        .description('Post a global message to the War Room Blackboard')
+        .action(async (message: string[]) => {
+            const text = message.join(' ');
+            const state = StateRegistry.get();
+            StateRegistry.postToBlackboard({
+                from: state.framework.active_persona,
+                message: text,
+                type: 'BROADCAST'
+            });
+            console.log(chalk.green(`[BROADCAST]: ${text}`));
+        });
+
+    program
+        .command('hand <agent> <context...>')
+        .description('Pass task focus and context to a specific agent')
+        .action(async (agent: string, context: string[]) => {
+            const targetAgent = agent.toLowerCase();
+            const text = context.join(' ');
+            const state = StateRegistry.get();
+
+            if (state.agents && state.agents[targetAgent]) {
+                state.agents[targetAgent].status = 'WORKING';
+                state.agents[targetAgent].current_task = text;
+                StateRegistry.save(state);
+
+                StateRegistry.postToBlackboard({
+                    from: state.framework.active_persona,
+                    to: targetAgent,
+                    message: text,
+                    type: 'HANDOFF'
+                });
+                console.log(chalk.green(`[HANDOFF]: Context passed to ${targetAgent}.`));
+            } else {
+                console.error(chalk.red(`[FAILURE]: Unknown agent '${targetAgent}'.`));
+                process.exit(1);
+            }
+        });
+
+    program
         .command('orchestrate')
         .description('Initiate a sovereign execution cycle for SET beads')
         .option('-l, --limit <n>', 'Maximum beads to process in this tick', '1')
@@ -142,7 +204,7 @@ const program = new Command();
         .action(async (options: { limit: string, parallel: string, timeout: string, dryRun?: boolean }) => {
             const projectRoot = registry.getRoot();
             const dispatchPort = RuntimeDispatcher.getInstance();
-            
+
             console.log(chalk.cyan('\n ◤ ORCHESTRATOR: SWARM DISPATCH ◢ '));
             console.log(chalk.dim('━'.repeat(40)));
 
@@ -266,82 +328,15 @@ const program = new Command();
         });
 
     program
-        .command('chant [query...]')
-        .description('Initiate a collaborative planning session (ChantWeave)')
-        .option('-d, --dry-run', 'Simulate the session without persisting changes')
-        .action(async (query: string[], options: { dryRun?: boolean }) => {
-            const dispatchPort = RuntimeDispatcher.getInstance();
-            const projectRoot = registry.getRoot();
-            const queryString = query.join(' ');
-
-            if (!queryString) {
-                console.error(chalk.red('\n[FAILURE]: A query is required for Chant.'));
-                process.exit(1);
-            }
-
-            const result = await dispatchPort.dispatch({
-                id: `cli:chant:${Date.now()}`,
-                skill_id: 'chant',
-                target_path: projectRoot,
-                intent: queryString,
-                params: {
-                    query: queryString,
-                    project_root: projectRoot,
-                    cwd: process.cwd(),
-                    dry_run: options.dryRun,
-                    source: 'cli'
-                },
-                status: 'PENDING',
-                priority: 1,
-            });
-
-            if (result.status === 'SUCCESS' || result.status === 'TRANSITIONAL') {
-                if (result.output) {
-                    console.log(`\n${result.output}`);
-                }
-                renderOperationalContext(result, projectRoot);
-                if (result.metadata?.emitted_beads) {
-                    const beads = result.metadata.emitted_beads as string[];
-                    console.log(chalk.cyan('\n ◤ EMITTED BEADS ◢ '));
-                    beads.forEach(b => console.log(chalk.blue(`  • ${b}`)));
-                }
-            } else {
-                console.error(chalk.red(`\n[FAILURE]: ${result.error}`));
-                process.exit(1);
-            }
-        });
-
-    program
         .command('status')
         .description('Retrieve system vitals and current framework state')
         .action(async () => {
-            const resumeResult = await resumeHostGovernorIfAvailable(RuntimeDispatcher.getInstance(), {
-                workspaceRoot: registry.getRoot(),
-                cwd: process.cwd(),
-                env: process.env,
-                task: 'Resume host-governed status review.',
-                source: 'cli',
-            });
             const snapshot = StateRegistry.get();
             const state = snapshot.framework;
             console.log(chalk.cyan('\n ◤ FRAMEWORK STATE REPORT ◢ '));
             console.log(chalk.dim('━'.repeat(40)));
             console.log(`${chalk.bold('KERNEL:')}         ${chalk.green('RING 0 (ACTIVE)')}`);
-            if (resumeResult.resumed) {
-                if (resumeResult.governorResult?.status === 'FAILURE') {
-                    console.log(`${chalk.bold('HOST RESUME:')}    ${chalk.red(resumeResult.governorResult.error ?? 'resume failed')}`);
-                } else {
-                    const detail = resumeResult.governorResult?.output?.trim()
-                        ? ` ${chalk.dim(resumeResult.governorResult.output.trim())}`
-                        : '';
-                    console.log(
-                        `${chalk.bold('HOST RESUME:')}    ${chalk.green('synchronized')} ${chalk.magenta(`(${resumeResult.provider})`)}${detail}`,
-                    );
-                    if (resumeResult.planningSummary) {
-                        console.log(`${chalk.bold('TRACE:')}          ${chalk.dim(resumeResult.planningSummary)}`);
-                    }
-                }
-            }
+            console.log(`${chalk.bold('HOST RESUME:')}    ${chalk.dim('disabled for observation-only status')}`);
             console.log(`${chalk.bold('STATUS:')}         ${state.status === 'AWAKE' ? chalk.green(state.status) : chalk.yellow(state.status)}`);
             console.log(`${chalk.bold('PERSONA:')}        ${chalk.magenta(state.active_persona)}`);
             console.log(`${chalk.bold('WORKSPACE:')}      ${chalk.blue(registry.getRoot())}`);
@@ -354,14 +349,14 @@ const program = new Command();
             if (state.mission_id) {
                 console.log(`${chalk.bold('MISSION ID:')}     ${chalk.blue(state.mission_id)}`);
             }
-            
+
             const integrity = state.intent_integrity || 0;
             let integrityColor = chalk.red;
             if (integrity >= 90) integrityColor = chalk.green;
             else if (integrity >= 70) integrityColor = chalk.yellow;
-            
+
             console.log(`${chalk.bold('INTEGRITY:')}      ${integrityColor(integrity.toFixed(1) + '%')}`);
-            
+
             // [Ω] CHRONICLE INTEGRATION
             const chroniclePath = join(PROJECT_ROOT, '.agents', 'skills', 'chronicle', 'state_map.json');
             if (fs.existsSync(chroniclePath)) {
@@ -427,67 +422,32 @@ const program = new Command();
             console.log(chalk.dim('\n' + '━'.repeat(60) + '\n'));
         });
 
-    program
-        .command('manifest')
-        .description('List all registered Agent Skills and runtime Weaves')
-        .action(() => {
-            const registryPath = join(PROJECT_ROOT, '.agents', 'skill_registry.json');
-            if (!fs.existsSync(registryPath)) {
-                console.error(chalk.red('Skill registry not found.'));
+    registerCapabilityDiscoveryCommands(program, {
+        manifest: (options: { json?: boolean }) => {
+            const payload = buildCapabilityManifestPayload(PROJECT_ROOT, getActiveAdapterIds());
+            if (options.json) {
+                process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
                 return;
             }
-
-            const skillRegistry = JSON.parse(fs.readFileSync(registryPath, 'utf-8'));
-            const dispatcher = RuntimeDispatcher.getInstance();
-            const activeAdapters = (dispatcher as any).adapters as Map<string, any>;
-
-            console.log(chalk.cyan('\n ◤ AGENT SKILL REGISTRY ◢ '));
-            console.log(chalk.dim('━'.repeat(60)));
-            
-            console.log(chalk.bold('◈ AUTHENTICATED SKILLS'));
-            Object.keys(skillRegistry.entries).sort().forEach(name => {
-                const skill = skillRegistry.entries[name];
-                const status = activeAdapters.has(`weave:${name}`) || activeAdapters.has(name) 
-                    ? chalk.green('ACTIVE') 
-                    : chalk.dim('LOADED');
-                console.log(`  ${chalk.white(name.padEnd(25))} [${status}] ${chalk.blue(skill.source)}`);
-            });
-
-            console.log(chalk.bold('\n◈ RUNTIME WEAVES'));
-            Array.from(activeAdapters.keys()).sort().forEach(id => {
-                if (id.startsWith('weave:')) {
-                    console.log(`  ${chalk.magenta(id)}`);
-                }
-            });
-
-            console.log(chalk.dim('\n' + '━'.repeat(60) + '\n'));
-        });
-
-    program
-        .command('skill-info <name>')
-        .description('Inspect the mandate and logic protocol of a specific skill')
-        .action((name: string) => {
-            const skillDir = join(PROJECT_ROOT, '.agents', 'skills', name);
-            const skillMd = join(skillDir, 'SKILL.md');
-            
-            if (fs.existsSync(skillMd)) {
-                console.log(chalk.cyan(`\n ◤ SKILL MANDATE: ${name.toUpperCase()} ◢ `));
-                console.log(chalk.dim('━'.repeat(60)));
-                console.log(fs.readFileSync(skillMd, 'utf-8'));
-                console.log(chalk.dim('━'.repeat(60) + '\n'));
-            } else {
-                console.log(chalk.yellow(`No SKILL.md found for '${name}'. Attempting registry lookup...`));
-                const registryPath = join(PROJECT_ROOT, '.agents', 'skill_registry.json');
-                if (fs.existsSync(registryPath)) {
-                    const registry = JSON.parse(fs.readFileSync(registryPath, 'utf-8'));
-                    if (registry.entries[name]) {
-                        console.log(JSON.stringify(registry.entries[name], null, 2));
-                    } else {
-                        console.error(chalk.red(`Skill '${name}' not found in registry.`));
-                    }
-                }
+            for (const line of renderCapabilityManifestLines(payload)) {
+                console.log(line);
             }
-        });
+        },
+        skillInfo: (name: string, options: { json?: boolean }) => {
+            const payload = buildCapabilityInfoPayload(PROJECT_ROOT, name, getActiveAdapterIds());
+            if (!payload) {
+                console.error(chalk.red(`Capability '${name}' not found in registry.`));
+                process.exit(1);
+            }
+            if (options.json) {
+                process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
+                return;
+            }
+            for (const line of renderCapabilityInfoLines(payload)) {
+                console.log(line);
+            }
+        },
+    });
 
     try {
         program.parse(process.argv);

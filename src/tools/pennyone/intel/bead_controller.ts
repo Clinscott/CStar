@@ -1,15 +1,16 @@
-import { 
-    HallBeadRecord, 
+import {
+    HallBeadRecord,
     HallContextMetadata,
-    HallBeadStatus, 
-    HallBeadCritiqueRecord, 
-    HallEpisodicMemoryRecord, 
-    HallValidationRun 
+    HallBeadStatus,
+    HallBeadCritiqueRecord,
+    HallEpisodicMemoryRecord,
+    HallValidationRun
 } from '../../../types/hall.ts';
 import { database } from './database.js';
 import { SovereignBead, materializeSovereignBead } from  '../../../types/bead.js';
 import { registry } from '../pathRegistry.js';
 import { buildHallRepositoryId, normalizeHallPath } from '../../../types/hall.js';
+import { StateRegistry } from '../../../node/core/state.js';
 
 function shouldEmitPennyOneDebugLogs(): boolean {
     return process.env.CSTAR_DEBUG_LOGS === '1';
@@ -58,6 +59,20 @@ function normalizeBeadMetadata(record: HallBeadRecord): HallContextMetadata {
     };
 }
 
+function emitBeadStatusEvent(record: HallBeadRecord): void {
+    const status = record.status;
+    if (status === 'RESOLVED' || status === 'NEEDS_TRIAGE' || status === 'BLOCKED') {
+        const agent = record.assigned_agent ?? 'system';
+        const target = record.target_ref ?? record.target_path ?? record.bead_id;
+
+        StateRegistry.postToBlackboard({
+            from: agent,
+            message: `Bead ${status}: ${target} :: ${record.rationale}`,
+            type: status === 'RESOLVED' ? 'INFO' : 'ALERT'
+        });
+    }
+}
+
 export function upsertHallBead(record: HallBeadRecord): void {
     const db = database.getDb();
     if (shouldEmitPennyOneDebugLogs()) {
@@ -66,9 +81,9 @@ export function upsertHallBead(record: HallBeadRecord): void {
     const metadata = normalizeBeadMetadata(record);
     const sql = `
         INSERT INTO hall_beads (
-            bead_id, repo_id, scan_id, legacy_id, target_kind, target_ref, target_path, 
-            rationale, contract_refs_json, baseline_scores_json, acceptance_criteria, 
-            checker_shell, status, assigned_agent, source_kind, triage_reason, 
+            bead_id, repo_id, scan_id, legacy_id, target_kind, target_ref, target_path,
+            rationale, contract_refs_json, baseline_scores_json, acceptance_criteria,
+            checker_shell, status, assigned_agent, source_kind, triage_reason,
             resolution_note, resolved_validation_id, superseded_by, architect_opinion, critique_payload_json, metadata_json, created_at, updated_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(bead_id) DO UPDATE SET
@@ -119,6 +134,9 @@ export function upsertHallBead(record: HallBeadRecord): void {
             record.created_at,
             record.updated_at
         );
+
+        emitBeadStatusEvent(record);
+
         if (shouldEmitPennyOneDebugLogs()) {
             console.log(`[DEBUG] upsertHallBead: SUCCESS for ${record.bead_id}`);
         }
@@ -252,8 +270,8 @@ export function upsertBeadCritique(record: HallBeadCritiqueRecord): void {
     const db = database.getDb();
     const sql = `
         INSERT INTO hall_bead_critiques (
-            critique_id, bead_id, repo_id, agent_id, agent_expertise, 
-            critique, proposed_path, evidence_json, is_architect_approved, 
+            critique_id, bead_id, repo_id, agent_id, agent_expertise,
+            critique, proposed_path, evidence_json, is_architect_approved,
             architect_feedback, created_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(critique_id) DO UPDATE SET
@@ -313,7 +331,7 @@ export function saveEpisodicMemory(record: HallEpisodicMemoryRecord): void {
     const db = database.getDb();
     const sql = `
         INSERT INTO hall_episodic_memory (
-            memory_id, bead_id, repo_id, tactical_summary, files_touched_json, 
+            memory_id, bead_id, repo_id, tactical_summary, files_touched_json,
             successes_json, metadata_json, created_at, updated_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(memory_id) DO UPDATE SET
@@ -384,7 +402,7 @@ export function saveValidationRun(record: HallValidationRun): void {
     const db = database.getDb();
     const sql = `
         INSERT INTO hall_validation_runs (
-            validation_id, repo_id, scan_id, bead_id, target_path, verdict, 
+            validation_id, repo_id, scan_id, bead_id, target_path, verdict,
             sprt_verdict, pre_scores_json, post_scores_json, benchmark_json, notes, created_at, legacy_trace_id
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(validation_id) DO UPDATE SET

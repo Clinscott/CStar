@@ -1,6 +1,13 @@
 import { database } from  '../../../tools/pennyone/intel/database.js';
 
-const deps = {
+interface TelemetryDb {
+    prepare(sql: string): {
+        run(...args: unknown[]): unknown;
+        get(...args: unknown[]): unknown;
+    };
+}
+
+const deps: { getDb(rootPath: string): TelemetryDb } = {
     getDb: (rootPath: string) => database.getDb(rootPath),
 };
 

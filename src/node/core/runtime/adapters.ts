@@ -203,7 +203,9 @@ export class StartAdapter implements RuntimeAdapter<StartWeavePayload> {
                     runtime_weave: 'start',
                     decision: 'start-supervisor',
                     planning_summary: planningSummary ?? null,
-                    transport_mode: 'session-required',
+                    trace_critical: true,
+                    require_agent_harness: true,
+                    transport_mode: 'host_session',
                 },
             });
             const decision = parseStartSupervisorDecision(raw);
@@ -411,7 +413,9 @@ export class RavensAdapter implements RuntimeAdapter<RavensWeavePayload> {
                     metadata: {
                         runtime_weave: 'ravens',
                         decision: 'ravens-supervisor',
-                        transport_mode: 'session-required',
+                        trace_critical: true,
+                        require_agent_harness: true,
+                        transport_mode: 'host_session',
                     },
                 });
                 const decision = parseRavensSupervisorDecision(raw);

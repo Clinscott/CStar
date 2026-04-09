@@ -92,7 +92,8 @@ function buildCompiledGraph(
                 .filter((d): d is string => d !== null && d !== registry.normalize(r.path)),
             hash: r.hash,
             endpoints: r.endpoints,
-            is_api: r.is_api
+            is_api: r.is_api,
+            cluster: r.cluster
         })),
         summary: {
             total_files: results.length,

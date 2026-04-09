@@ -3,7 +3,8 @@ import path from 'node:path';
 
 import { execa } from 'execa';
 
-import type { EvolveWeaveMetadata, EvolveWeavePayload, RuntimeAdapter, RuntimeContext, WeaveInvocation, WeaveResult } from  '../contracts.js';
+import type { EvolveWeaveMetadata, EvolveWeavePayload, RuntimeAdapter, RuntimeContext, WeaveInvocation, WeaveResult, RuntimeDispatchPort } from  '../contracts.js';
+import { inheritTraceInvocation } from '../trace_inheritance.js';
 
 function resolvePythonPath(projectRoot: string): string {
     const windows = path.join(projectRoot, '.venv', 'Scripts', 'python.exe');
@@ -29,7 +30,10 @@ function extractJsonObject(raw: string): Record<string, unknown> {
 export class EvolveWeave implements RuntimeAdapter<EvolveWeavePayload> {
     public readonly id = 'weave:evolve';
 
-    public constructor(private readonly runner: typeof execa = execa) {}
+    public constructor(
+        private readonly dispatchPort?: RuntimeDispatchPort,
+        private readonly runner: typeof execa = execa
+    ) {}
 
     public async execute(
         invocation: WeaveInvocation<EvolveWeavePayload>,
@@ -69,6 +73,37 @@ export class EvolveWeave implements RuntimeAdapter<EvolveWeavePayload> {
             ...result,
             context_policy: 'project',
         };
+
+        // [🔱] THE ADVERSARIAL GATE: Critique the proposal
+        if (result.status === 'SUCCESS' && metadata.proposal_id && this.dispatchPort) {
+            console.log(`  ↳ [EVOLVE]: Triggering adversarial critique for proposal ${metadata.proposal_id}...`);
+
+            const critiqueResult = await this.dispatchPort.dispatch(inheritTraceInvocation({
+                weave_id: 'weave:critique',
+                payload: {
+                    bead: { id: payload.bead_id || 'unknown', title: payload.bead_id || 'unknown' },
+                    research: { rationale: result.summary, proposal_path: metadata.proposal_path },
+                    context: `Adversarial review for evolutionary mutation: ${metadata.proposal_id}`,
+                    project_root: kernelRoot,
+                    cwd: targetRoot
+                } as any,
+                session: invocation.session
+            }, context));
+
+            if (critiqueResult.status === 'SUCCESS' && (critiqueResult.metadata as any)?.critique_payload?.needs_revision === true) {
+                return {
+                    weave_id: this.id,
+                    status: 'FAILURE',
+                    output: critiqueResult.output,
+                    error: `[FAIL-FAST]: Evolutionary proposal REJECTED by adversarial critique. ${critiqueResult.output}`,
+                    metadata: {
+                        ...metadata,
+                        critique_failed: true,
+                        critique_output: critiqueResult.output
+                    }
+                };
+            }
+        }
 
         return {
             weave_id: this.id,

@@ -13,7 +13,8 @@ export type HostSubagentProfile =
     | 'refactorer'
     | 'performance'
     | 'api_designer'
-    | 'scout';
+    | 'scout'
+    | 'droid';
 
 export interface HostSubagentSpec {
     id: HostSubagentProfile;
@@ -87,6 +88,11 @@ const HOST_SUBAGENT_SPECS: Record<HostSubagentProfile, HostSubagentSpec> = {
         title: 'Scout',
         instruction: 'Own codebase reconnaissance and evidence gathering. Return high-signal findings that reduce ambiguity for the next worker.',
     },
+    droid: {
+        id: 'droid',
+        title: 'Droid Control',
+        instruction: 'Own low-level hardware orchestration, background terminal management, and cross-agent state handoffs. Ensure the war room state is synchronized and background processes are monitored.',
+    },
 };
 
 function hasKeyword(value: string, keywords: string[]): boolean {
@@ -157,6 +163,10 @@ export function resolveHostSubagentProfile(bead: SovereignBead): HostSubagentPro
 
     if (hasKeyword(beadText, ['research', 'discover', 'inventory', 'map the codebase', 'recon'])) {
         return 'scout';
+    }
+
+    if (hasKeyword(beadText, ['droid', 'hardware', 'background terminal', 'handoff', 'blackboard', 'war room'])) {
+        return 'droid';
     }
 
     if (bead.target_kind === 'WORKFLOW' || bead.target_kind === 'REPOSITORY' || hasKeyword(beadText, ['architecture', 'phase', 'decomposition', 'provider-fit', 'scheduler'])) {

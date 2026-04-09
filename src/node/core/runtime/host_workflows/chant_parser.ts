@@ -5,6 +5,7 @@ import type {
     WeaveInvocation,
     ChantWeavePayload,
 } from '../contracts.ts';
+import type { SkillBead } from '../../skills/types.js';
 
 export type DirectChantResolution =
     | {
@@ -16,7 +17,7 @@ export type DirectChantResolution =
     | {
           kind: 'skill';
           trigger: string;
-          invocation: WeaveInvocation<unknown>;
+          invocation: SkillBead<Record<string, unknown>>;
           summary: string;
       }
     | {
@@ -93,6 +94,28 @@ export interface RegistryManifest {
     }>;
 }
 
+export interface ParsedTraceSelectionGate {
+    raw_block: string;
+    intent_category?: string;
+    intent?: string;
+    selection_tier?: string;
+    selection_name?: string;
+    trajectory_status?: string;
+    trajectory_reason?: string;
+    mimirs_well: string[];
+    gungnir_verdict?: string;
+    confidence?: number;
+    body?: string;
+    canonical_intent: string;
+    issues: string[];
+}
+
+export interface TraceSelectionGateValidation {
+    valid: boolean;
+    errors: string[];
+    trace: ParsedTraceSelectionGate | null;
+}
+
 export const INTENT_CATEGORIES: Record<string, {
     triggers: string[];
     default_path: string;
@@ -110,6 +133,18 @@ export const INTENT_CATEGORIES: Record<string, {
     GUARD:       { triggers: ['protect', 'shield', 'lock', 'guard', 'drift'], default_path: 'silver_shield', tier: 'SPELL' },
     DOCUMENT:    { triggers: ['document', 'explain', 'chronicle', 'architecture'], default_path: 'living_architecture', tier: 'WEAVE' },
 };
+
+export const TRACE_SELECTION_HEADER = '// Corvus Star Trace [Ω]';
+
+const TRACE_SELECTION_REQUIRED_FIELDS = [
+    'Intent Category',
+    'Intent',
+    'Selection',
+    'Trajectory',
+    'Mimir\'s Well',
+    'Gungnir Verdict',
+    'Confidence',
+] as const;
 
 export const deps = {
     fs: Object.assign({}, fs),
@@ -170,19 +205,209 @@ export function tokenize(query: string): string[] {
         .filter(Boolean);
 }
 
-export function normalizeIntent(query: string): string {
+function compactTraceText(value: string | undefined): string | undefined {
+    const normalized = String(value ?? '').replace(/\s+/g, ' ').trim();
+    return normalized || undefined;
+}
+
+function splitTraceHeader(lines: string[]): { headerLines: string[]; bodyLines: string[] } {
+    const headerLines: string[] = [lines[0] ?? ''];
+    let bodyStart = lines.length;
+
+    for (let index = 1; index < lines.length; index += 1) {
+        const line = lines[index] ?? '';
+        const trimmed = line.trim();
+
+        if (!trimmed) {
+            headerLines.push(line);
+            bodyStart = index + 1;
+            break;
+        }
+
+        if (/^[A-Za-z' ]+:\s/.test(line)) {
+            headerLines.push(line);
+            continue;
+        }
+
+        bodyStart = index;
+        break;
+    }
+
+    return {
+        headerLines,
+        bodyLines: lines.slice(bodyStart),
+    };
+}
+
+function parseTraceSelectionDirective(value: string | undefined): {
+    tier?: string;
+    name?: string;
+    error?: string;
+} {
+    const trimmed = compactTraceText(value);
+    if (!trimmed) {
+        return { error: 'Selection is missing.' };
+    }
+
+    const match = trimmed.match(/^(SKILL|WEAVE|SPELL|PRIME)\s*:\s*(.+)$/i);
+    if (!match) {
+        return { error: 'Selection must follow "<TIER>: <name>".' };
+    }
+
+    const selectionName = compactTraceText(match[2]);
+    if (!selectionName) {
+        return { error: 'Selection path is missing.' };
+    }
+
+    return {
+        tier: match[1].toUpperCase(),
+        name: selectionName,
+    };
+}
+
+function parseTraceTrajectory(value: string | undefined): {
+    status?: string;
+    reason?: string;
+    error?: string;
+} {
+    const trimmed = compactTraceText(value);
+    if (!trimmed) {
+        return { error: 'Trajectory is missing.' };
+    }
+
+    const match = trimmed.match(/^(STABLE|OSCILLATING|FAILED)\s*:\s*(.+)$/i);
+    if (!match) {
+        return { error: 'Trajectory must follow "<STATE>: <reason>".' };
+    }
+
+    const reason = compactTraceText(match[2]);
+    if (!reason) {
+        return { error: 'Trajectory reason is missing.' };
+    }
+
+    return {
+        status: match[1].toUpperCase(),
+        reason,
+    };
+}
+
+function parseTraceConfidence(value: string | undefined): {
+    confidence?: number;
+    error?: string;
+} {
+    const trimmed = compactTraceText(value);
+    if (!trimmed) {
+        return { error: 'Confidence is missing.' };
+    }
+
+    const confidence = Number(trimmed);
+    if (!Number.isFinite(confidence) || confidence < 0 || confidence > 1) {
+        return { error: 'Confidence must be a number between 0.0 and 1.0.' };
+    }
+
+    return { confidence };
+}
+
+export function parseTraceSelectionGate(query: string): ParsedTraceSelectionGate | null {
     const trimmed = query.trim();
-    if (!trimmed.startsWith('// Corvus Star Trace [Ω]')) {
-        return trimmed.replace(/\s+/g, ' ');
+    if (!trimmed.startsWith(TRACE_SELECTION_HEADER)) {
+        return null;
     }
 
     const lines = trimmed.split(/\r?\n/);
-    const bodyStart = lines.findIndex((line, index) => index > 0 && line.trim() === '');
-    const body = bodyStart >= 0
-        ? lines.slice(bodyStart + 1).join(' ')
-        : lines.filter((line) => !line.startsWith('// Corvus Star Trace [Ω]') && !/^[A-Za-z' ]+:\s/.test(line)).join(' ');
+    const { headerLines, bodyLines } = splitTraceHeader(lines);
+    const fieldValues: Record<string, string> = {};
 
-    return body.trim().replace(/\s+/g, ' ');
+    for (const line of headerLines.slice(1)) {
+        const match = line.match(/^([A-Za-z' ]+):\s*(.*)$/);
+        if (!match) {
+            continue;
+        }
+        fieldValues[match[1].trim()] = match[2] ?? '';
+    }
+
+    const issues: string[] = [];
+    for (const field of TRACE_SELECTION_REQUIRED_FIELDS) {
+        if (!compactTraceText(fieldValues[field])) {
+            issues.push(`Missing ${field}.`);
+        }
+    }
+
+    const intentCategory = compactTraceText(fieldValues['Intent Category']);
+    if (intentCategory && !INTENT_CATEGORIES[intentCategory.toUpperCase()]) {
+        issues.push(`Intent Category '${intentCategory}' is not in the closed grammar.`);
+    }
+
+    const selection = parseTraceSelectionDirective(fieldValues.Selection);
+    if (selection.error) {
+        issues.push(selection.error);
+    }
+
+    const trajectory = parseTraceTrajectory(fieldValues.Trajectory);
+    if (trajectory.error) {
+        issues.push(trajectory.error);
+    }
+
+    const mimirsWell = compactTraceText(fieldValues["Mimir's Well"])
+        ? compactTraceText(fieldValues["Mimir's Well"])!
+            .split('|')
+            .map((entry) => entry.replace(/^\s*◈\s*/, '').trim())
+            .filter(Boolean)
+        : [];
+    if (compactTraceText(fieldValues["Mimir's Well"]) && mimirsWell.length === 0) {
+        issues.push('Mimir\'s Well must contain at least one source.');
+    }
+
+    const confidenceResult = parseTraceConfidence(fieldValues.Confidence);
+    if (confidenceResult.error) {
+        issues.push(confidenceResult.error);
+    }
+
+    const body = compactTraceText(bodyLines.join(' '));
+    const intent = compactTraceText(fieldValues.Intent);
+
+    return {
+        raw_block: headerLines.join('\n').trimEnd(),
+        intent_category: intentCategory?.toUpperCase(),
+        intent,
+        selection_tier: selection.tier,
+        selection_name: selection.name,
+        trajectory_status: trajectory.status,
+        trajectory_reason: trajectory.reason,
+        mimirs_well: mimirsWell,
+        gungnir_verdict: compactTraceText(fieldValues['Gungnir Verdict']),
+        confidence: confidenceResult.confidence,
+        body,
+        canonical_intent: body ?? intent ?? '',
+        issues,
+    };
+}
+
+export function validateTraceSelectionGate(query: string): TraceSelectionGateValidation {
+    const trace = parseTraceSelectionGate(query);
+    if (!trace) {
+        return {
+            valid: false,
+            errors: ['Missing // Corvus Star Trace [Ω] header.'],
+            trace: null,
+        };
+    }
+
+    const errors = trace.issues.filter(Boolean);
+    return {
+        valid: errors.length === 0,
+        errors,
+        trace,
+    };
+}
+
+export function normalizeIntent(query: string): string {
+    const trace = parseTraceSelectionGate(query);
+    if (trace) {
+        return trace.canonical_intent.replace(/\s+/g, ' ').trim();
+    }
+
+    return query.trim().replace(/\s+/g, ' ');
 }
 
 export function hasAnyToken(tokens: string[], values: string[]): boolean {
@@ -237,11 +462,11 @@ export function resolveByIntentCategory(
         };
     }
 
-    // SKILLs and PRIMEs use the dynamic command adapter
+    // SKILLs and PRIMEs activate as canonical skill beads.
     return {
-        kind: 'weave',
+        kind: 'skill',
         trigger: match.default_path,
-        invocation: buildDynamicSkillInvocation(
+        invocation: buildSkillBeadInvocation(
             match.default_path,
             [],
             payload.project_root,
@@ -270,20 +495,26 @@ export function resolveIntentCategoryFromGrammar(
     return null;
 }
 
-export function buildDynamicSkillInvocation(
+export function buildSkillBeadInvocation(
     command: string,
     args: string[],
     projectRoot: string,
     cwd: string,
-): WeaveInvocation<{ command: string; args: string[]; project_root: string; cwd: string }> {
+): SkillBead<Record<string, unknown>> {
     return {
-        weave_id: 'weave:dynamic-command',
-        payload: {
+        id: `chant:${command}:${Date.now()}`,
+        skill_id: command,
+        target_path: projectRoot,
+        intent: `Chant activation for ${command}`,
+        params: {
             command,
             args,
             project_root: projectRoot,
             cwd,
+            source: 'chant',
         },
+        status: 'PENDING',
+        priority: 1,
     };
 }
 
@@ -411,7 +642,7 @@ export function resolveSkillInvocation(
         return {
             kind: 'skill',
             trigger: candidate,
-            invocation: buildDynamicSkillInvocation(candidate, originalArgs, payload.project_root, payload.cwd),
+            invocation: buildSkillBeadInvocation(candidate, originalArgs, payload.project_root, payload.cwd),
             summary: `Resolved chant to skill '${candidate}'.`,
         };
     }
@@ -429,7 +660,7 @@ export function resolveSkillInvocation(
             return {
                 kind: 'skill',
                 trigger: token,
-                invocation: buildDynamicSkillInvocation(token, [], payload.project_root, payload.cwd),
+                invocation: buildSkillBeadInvocation(token, [], payload.project_root, payload.cwd),
                 summary: `Resolved chant to inline skill '${token}'.`,
             };
         }
@@ -491,7 +722,7 @@ export function resolveRegistryInvocation(
         return {
             kind: 'skill',
             trigger,
-            invocation: buildDynamicSkillInvocation(trigger, args, payload.project_root, payload.cwd),
+            invocation: buildSkillBeadInvocation(trigger, args, payload.project_root, payload.cwd),
             summary: `Resolved chant from registry to capability '${trigger}'.`,
         };
     };

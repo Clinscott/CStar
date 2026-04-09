@@ -1,11 +1,11 @@
-import { afterEach, beforeEach, describe, it } from 'node:test';
+import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { ResearchWeave } from '../../src/node/core/runtime/host_workflows/research.js';
-import { CritiqueWeave } from '../../src/node/core/runtime/host_workflows/critique.js';
+import { ResearchWeave, deps as researchDeps } from '../../src/node/core/runtime/host_workflows/research.js';
+import { CritiqueWeave, deps as critiqueDeps } from '../../src/node/core/runtime/host_workflows/critique.js';
 import { closeDb, listHallOneMindBranches, summarizeHallOneMindBranches } from '../../src/tools/pennyone/intel/database.js';
 import { registry } from '../../src/tools/pennyone/pathRegistry.js';
 
@@ -21,6 +21,7 @@ describe('Parallel host branch ledger persistence', () => {
 
     afterEach(() => {
         closeDb();
+        mock.reset();
     });
 
     it('persists filtered research and critique branch records into the Hall', async () => {
@@ -29,7 +30,17 @@ describe('Parallel host branch ledger persistence', () => {
             JSON.stringify({ summary: 'Tests branch summary.', research_artifacts: ['repo:tests'] }),
         ];
         let researchIndex = 0;
-        const researchWeave = new ResearchWeave({} as any, async () => researchResponses[researchIndex++] ?? researchResponses[researchResponses.length - 1]);
+        const researchWeave = new ResearchWeave({} as any);
+        mock.method(researchDeps, 'requestHostDelegatedExecution', async () => ({
+            handle_id: `delegate-${researchIndex}`,
+            provider: 'codex',
+            status: 'completed',
+            raw_text: researchResponses[researchIndex++] ?? researchResponses[researchResponses.length - 1],
+            metadata: {
+                execution_surface: 'host-cli-inference',
+                delegation_mode: 'provider-native',
+            },
+        }));
 
         await researchWeave.execute(
             {
@@ -71,7 +82,17 @@ describe('Parallel host branch ledger persistence', () => {
             }),
         ];
         let critiqueIndex = 0;
-        const critiqueWeave = new CritiqueWeave({} as any, async () => critiqueResponses[critiqueIndex++] ?? critiqueResponses[critiqueResponses.length - 1]);
+        const critiqueWeave = new CritiqueWeave({} as any);
+        mock.method(critiqueDeps, 'requestHostDelegatedExecution', async () => ({
+            handle_id: `delegate-critique-${critiqueIndex}`,
+            provider: 'codex',
+            status: 'completed',
+            raw_text: critiqueResponses[critiqueIndex++] ?? critiqueResponses[critiqueResponses.length - 1],
+            metadata: {
+                execution_surface: 'host-cli-inference',
+                delegation_mode: 'provider-native',
+            },
+        }));
 
         await critiqueWeave.execute(
             {

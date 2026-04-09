@@ -6,10 +6,14 @@ import { EstateExpansionWeave, deps } from '../../../../src/node/core/runtime/ho
 describe('EstateExpansionWeave Unit Tests', () => {
     it('can return observe-only when the host supervisor declines onboarding execution', async () => {
         const dispatchPort: any = { dispatch: mock.fn(async () => ({ status: 'SUCCESS', output: 'unused' })) };
-        const weave = new EstateExpansionWeave(dispatchPort, async () => JSON.stringify({
-            action: 'observe_only',
-            reason: 'Wait for a safer onboarding window.',
-        }));
+        let capturedRequest: any;
+        const weave = new EstateExpansionWeave(dispatchPort, async (request) => {
+            capturedRequest = request;
+            return JSON.stringify({
+                action: 'observe_only',
+                reason: 'Wait for a safer onboarding window.',
+            });
+        });
 
         mock.method(deps, 'resolveRuntimeHostProvider', () => 'codex');
         mock.method(deps, 'extractJsonObject', (text: string) => JSON.parse(text));
@@ -29,6 +33,9 @@ describe('EstateExpansionWeave Unit Tests', () => {
         assert.equal(result.status, 'TRANSITIONAL');
         assert.equal(result.metadata?.supervisor_decision, 'observe_only');
         assert.equal(dispatchPort.dispatch.mock.callCount(), 0);
+        assert.equal(capturedRequest?.metadata?.trace_critical, true);
+        assert.equal(capturedRequest?.metadata?.require_agent_harness, true);
+        assert.equal(capturedRequest?.metadata?.transport_mode, 'host_session');
         mock.reset();
     });
 

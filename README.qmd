@@ -124,6 +124,7 @@ Corvus Star adheres to a strict hierarchy of cognitive execution:
 - **Kernel for Steel**: The **Node.js Runtime** is reserved exclusively for **Architectural Skills**—the deterministic steel required for process control, filesystem locking, orchestration, and bridge management (Ring 0 primitives).
 - **The 90% Floor**: All manuscript and narrative mutations (e.g., Fallows Hallow) must maintain a minimum of 90% stylistic and logical coherence to the original source.
 - **Cognitive Decoupling**: We do not collapse host cognition into brittle Node runtime paths unless architectural necessity demands it.
+- **Codex Host Contract**: In Codex, `host-only` skills must execute in-session through the active agent harness. External `codex exec` fallback is compatibility transport, not the planning authority. See `docs/integrations/host_native_skill_contract.md`.
 
 ---
 
