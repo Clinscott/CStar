@@ -12,6 +12,8 @@ import { buildHallRepositoryId, normalizeHallPath, type HallOneMindBranchRecord 
 import { requestHostDelegatedExecution } from '../../../../core/host_delegation.js';
 import type { DelegatedExecutionResult } from '../../../../core/host_delegation.js';
 import { resolveConfiguredDelegatePollBridge } from '../../../../core/host_session.js';
+import { getHostSubagentSpec, type HostSubagentProfile } from '../../../../core/host_subagents.js';
+import { formatCouncilAntiBehavior, listDefaultCouncilProtocols, type CouncilExpertProtocol } from '../../../../core/council_experts.js';
 
 export interface CritiqueWeavePayload {
     bead: Record<string, unknown>;
@@ -30,11 +32,44 @@ export const deps = {
     resolveConfiguredDelegatePollBridge,
 };
 
-function buildCritiquePrompt(payload: CritiqueWeavePayload, focusArea?: string): string {
+interface CritiqueCouncilBranch {
+    label: string;
+    focusArea: string;
+    profile: HostSubagentProfile;
+    protocol?: CouncilExpertProtocol;
+}
+
+const DEFAULT_CRITIQUE_COUNCIL: CritiqueCouncilBranch[] = listDefaultCouncilProtocols().map((protocol) => ({
+    label: protocol.label,
+    profile: protocol.profile,
+    focusArea: protocol.lens,
+    protocol,
+}));
+
+function buildCritiqueBranches(payload: CritiqueWeavePayload): CritiqueCouncilBranch[] {
+    const focusAreas = payload.focus_areas?.map((entry) => entry.trim()).filter(Boolean) ?? [];
+    if (focusAreas.length > 0) {
+        return focusAreas.map((focusArea) => ({
+            label: focusArea,
+            focusArea,
+            profile: 'reviewer',
+        }));
+    }
+
+    return DEFAULT_CRITIQUE_COUNCIL;
+}
+
+function buildCritiquePrompt(payload: CritiqueWeavePayload, branch: CritiqueCouncilBranch): string {
+    const spec = getHostSubagentSpec(branch.profile);
     return [
         'Stress-test the proposed bead against the supplied research and return strict JSON only.',
         'Expected format: { "needs_revision": boolean, "critique": "...", "evidence_source": "...", "proposed_path": "..." }',
-        focusArea ? `FOCUS AREA: ${focusArea}` : '',
+        `Council Expert: ${branch.label} (${spec.title})`,
+        `Expert Lens: ${spec.instruction}`,
+        branch.protocol ? `Protocol: ${branch.protocol.protocol}` : '',
+        branch.protocol ? `Anti-Behavior: ${formatCouncilAntiBehavior(branch.protocol)}` : '',
+        branch.protocol ? `Root Persona Overlay: ${branch.protocol.root_persona_directive}` : '',
+        `FOCUS AREA: ${branch.focusArea}`,
         '',
         `PROPOSED BEAD:\n${JSON.stringify(payload.bead, null, 2)}`,
         '',
@@ -117,8 +152,7 @@ export class CritiqueHostWorkflow implements RuntimeAdapter<CritiqueWeavePayload
 
         if (provider) {
             try {
-                const focusAreas = payload.focus_areas?.map((entry) => entry.trim()).filter(Boolean) ?? [];
-                const branches = focusAreas.length > 0 ? focusAreas : [undefined];
+                const branches = buildCritiqueBranches(payload);
                 const branchGroupId = buildCritiqueBranchGroupId(context);
                 const workspaceRoot = payload.project_root || context.workspace_root;
                 const now = Date.now();
@@ -128,10 +162,9 @@ export class CritiqueHostWorkflow implements RuntimeAdapter<CritiqueWeavePayload
                 const hasDelegatePollBridge = deps.resolveConfiguredDelegatePollBridge(runtimeEnv, provider);
 
                 if (hasDelegatePollBridge) {
-                    const requestIds = branches.map((focusArea, index) => {
-                        const prompt = buildCritiquePrompt(payload, focusArea);
+                    const requestIds = branches.map((branch, index) => {
+                        const prompt = buildCritiquePrompt(payload, branch);
                         const branchId = `${branchGroupId}:${index}`;
-                        const branchLabel = focusArea ?? 'full-critique';
                         const source = `runtime:critique:branch:${index}`;
                         deps.saveHallOneMindRequest({
                             request_id: `${branchId}:request`,
@@ -153,14 +186,15 @@ export class CritiqueHostWorkflow implements RuntimeAdapter<CritiqueWeavePayload
                                 branch_id: branchId,
                                 branch_group_id: branchGroupId,
                                 branch_kind: 'critique',
-                                branch_label: branchLabel,
+                                branch_label: branch.label,
                                 branch_index: index,
                                 branch_count: branches.length,
                                 source,
                                 one_mind_boundary: 'subagent',
                                 execution_role: 'subagent',
                                 execution_boundary: 'subagent',
-                                subagent_profile: 'reviewer',
+                                subagent_profile: branch.profile,
+                                council_expert: branch.label,
                             },
                             created_at: now,
                             updated_at: now,
@@ -171,7 +205,7 @@ export class CritiqueHostWorkflow implements RuntimeAdapter<CritiqueWeavePayload
                     return {
                         weave_id: this.id,
                         status: 'TRANSITIONAL',
-                        output: `Queued ${branches.length} delegated critique branch(es) for broker fulfillment.`,
+                        output: `Queued ${branches.length} delegated critique council branch(es) for broker fulfillment.`,
                         metadata: {
                             context_policy: 'project',
                             delegated: true,
@@ -186,8 +220,8 @@ export class CritiqueHostWorkflow implements RuntimeAdapter<CritiqueWeavePayload
                     };
                 }
 
-                const parsedBranches = await Promise.all(branches.map(async (focusArea, index) => {
-                    const prompt = buildCritiquePrompt(payload, focusArea);
+                const parsedBranches = await Promise.all(branches.map(async (branch, index) => {
+                    const prompt = buildCritiquePrompt(payload, branch);
                     const branchId = `${branchGroupId}:${index}`;
                     const recordBase: Omit<HallOneMindBranchRecord, 'status'> = {
                         branch_id: branchId,
@@ -195,7 +229,7 @@ export class CritiqueHostWorkflow implements RuntimeAdapter<CritiqueWeavePayload
                         source_weave: this.id,
                         branch_group_id: branchGroupId,
                         branch_kind: 'critique',
-                        branch_label: focusArea ?? 'full-critique',
+                        branch_label: branch.label,
                         branch_index: index,
                         provider,
                         session_id: context.session_id,
@@ -213,7 +247,8 @@ export class CritiqueHostWorkflow implements RuntimeAdapter<CritiqueWeavePayload
                             trace_id: context.trace_id,
                             session_id: context.session_id ?? null,
                             execution_boundary: 'subagent',
-                            subagent_profile: 'reviewer',
+                            subagent_profile: branch.profile,
+                            council_expert: branch.label,
                         };
 
                         try {
@@ -224,7 +259,7 @@ export class CritiqueHostWorkflow implements RuntimeAdapter<CritiqueWeavePayload
                                         repo_root: workspaceRoot,
                                         boundary: 'subagent',
                                         task_kind: 'critique',
-                                        subagent_profile: 'reviewer',
+                                        subagent_profile: branch.profile,
                                         prompt,
                                         target_paths: [workspaceRoot],
                                         metadata: {
@@ -235,7 +270,8 @@ export class CritiqueHostWorkflow implements RuntimeAdapter<CritiqueWeavePayload
                                             session_id: context.session_id ?? null,
                                             one_mind_boundary: 'subagent',
                                             execution_role: 'subagent',
-                                            subagent_profile: 'reviewer',
+                                            subagent_profile: branch.profile,
+                                            council_expert: branch.label,
                                         },
                                     },
                                     runtimeEnv,
@@ -290,7 +326,7 @@ export class CritiqueHostWorkflow implements RuntimeAdapter<CritiqueWeavePayload
                             rawText = await withTimeout(
                                 this.hostTextInvoker({
                                     prompt,
-                                    systemPrompt: 'You are the Corvus Star Adversarial Critique Agent. Return strict JSON only.',
+                                    systemPrompt: `You are the Corvus Star Council Expert ${branch.label}. Return strict JSON only.`,
                                     provider,
                                     projectRoot: workspaceRoot,
                                     source: 'critique:host-workflow',
@@ -303,7 +339,8 @@ export class CritiqueHostWorkflow implements RuntimeAdapter<CritiqueWeavePayload
                                         session_id: context.session_id ?? null,
                                         one_mind_boundary: 'subagent',
                                         execution_role: 'subagent',
-                                        subagent_profile: 'reviewer',
+                                        subagent_profile: branch.profile,
+                                        council_expert: branch.label,
                                     },
                                 }),
                                 timeoutMs,
@@ -329,7 +366,7 @@ export class CritiqueHostWorkflow implements RuntimeAdapter<CritiqueWeavePayload
                         }, workspaceRoot);
                         return {
                             kind: 'completed' as const,
-                            focus_area: focusArea,
+                            focus_area: branch.label,
                             parsed,
                         };
                     } catch (error) {
@@ -345,7 +382,8 @@ export class CritiqueHostWorkflow implements RuntimeAdapter<CritiqueWeavePayload
                                 trace_id: context.trace_id,
                                 session_id: context.session_id ?? null,
                                 execution_boundary: 'subagent',
-                                subagent_profile: 'reviewer',
+                                subagent_profile: branch.profile,
+                                council_expert: branch.label,
                             },
                         }, workspaceRoot);
                         return { kind: 'failed' as const, error: message };

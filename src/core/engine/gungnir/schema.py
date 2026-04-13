@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import asdict, dataclass
 from typing import Any, Mapping
 
 GUNGNIR_SCHEMA_VERSION = "1.0"
+LOGGER = logging.getLogger(__name__)
 
 GUNGNIR_AXIS_KEYS = (
     "logic",
@@ -24,12 +26,25 @@ GUNGNIR_PROJECTION_KEYS = (
 )
 
 
-def _as_metric(value: Any, fallback: float = 0.0) -> float:
+def _as_metric(value: Any, fallback: float = 0.0, *, field_name: str | None = None) -> float:
     try:
         numeric = float(value)
     except (TypeError, ValueError):
+        if value is not None:
+            LOGGER.warning(
+                "Invalid Gungnir metric for %s; falling back to %.4f. value=%r",
+                field_name or "<unknown>",
+                fallback,
+                value,
+            )
         return fallback
     if numeric != numeric or numeric in (float("inf"), float("-inf")):
+        LOGGER.warning(
+            "Non-finite Gungnir metric for %s; falling back to %.4f. value=%r",
+            field_name or "<unknown>",
+            fallback,
+            value,
+        )
         return fallback
     return round(numeric, 4)
 
@@ -64,23 +79,25 @@ def build_gungnir_matrix(
     data = dict(matrix_to_dict(payload))
     data.update(overrides)
 
-    logic = _as_metric(data.get("logic"))
-    style = _as_metric(data.get("style"))
-    intel = _as_metric(data.get("intel"))
-    gravity = _as_metric(data.get("gravity"))
-    vigil = _as_metric(data.get("vigil"))
-    evolution = _as_metric(data.get("evolution"))
-    anomaly = _as_metric(data.get("anomaly"))
+    logic = _as_metric(data.get("logic"), field_name="logic")
+    style = _as_metric(data.get("style"), field_name="style")
+    intel = _as_metric(data.get("intel"), field_name="intel")
+    gravity = _as_metric(data.get("gravity"), field_name="gravity")
+    vigil = _as_metric(data.get("vigil"), field_name="vigil")
+    evolution = _as_metric(data.get("evolution"), field_name="evolution")
+    anomaly = _as_metric(data.get("anomaly"), field_name="anomaly")
     sovereignty = _as_metric(
         data.get("sovereignty"),
         _average([logic, style, intel, vigil, evolution]),
+        field_name="sovereignty",
     )
-    aesthetic = _as_metric(data.get("aesthetic"), _average([logic, style, intel]))
-    stability = _as_metric(data.get("stability"), logic)
-    coupling = _as_metric(data.get("coupling"), gravity)
+    aesthetic = _as_metric(data.get("aesthetic"), _average([logic, style, intel]), field_name="aesthetic")
+    stability = _as_metric(data.get("stability"), logic, field_name="stability")
+    coupling = _as_metric(data.get("coupling"), gravity, field_name="coupling")
     overall = _as_metric(
         data.get("overall"),
         _average([logic, style, intel, vigil, evolution, sovereignty]) - (anomaly * 0.5),
+        field_name="overall",
     )
 
     return GungnirMatrix(
@@ -117,4 +134,3 @@ def matrix_to_dict(payload: Mapping[str, Any] | GungnirMatrix | None = None) -> 
 
 def get_gungnir_overall(payload: Mapping[str, Any] | GungnirMatrix | None = None) -> float:
     return build_gungnir_matrix(payload).overall
-

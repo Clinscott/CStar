@@ -14,7 +14,13 @@ export type HostSubagentProfile =
     | 'performance'
     | 'api_designer'
     | 'scout'
-    | 'droid';
+    | 'droid'
+    | 'torvalds'
+    | 'karpathy'
+    | 'hamilton'
+    | 'shannon'
+    | 'dean'
+    | 'carmack';
 
 export interface HostSubagentSpec {
     id: HostSubagentProfile;
@@ -92,6 +98,36 @@ const HOST_SUBAGENT_SPECS: Record<HostSubagentProfile, HostSubagentSpec> = {
         id: 'droid',
         title: 'Droid Control',
         instruction: 'Own low-level hardware orchestration, background terminal management, and cross-agent state handoffs. Ensure the war room state is synchronized and background processes are monitored.',
+    },
+    torvalds: {
+        id: 'torvalds',
+        title: 'Torvalds Protocol',
+        instruction: 'Apply a Torvalds-style first-principles systems critique. Attack bloat, vague abstractions, leaky ownership, bad interfaces, and code paths that cannot survive real maintainers.',
+    },
+    karpathy: {
+        id: 'karpathy',
+        title: 'Karpathy Protocol',
+        instruction: 'Apply an AI-systems critique. Attack weak data loops, model/tool boundaries, eval gaps, context-window misuse, and missing deterministic interfaces around probabilistic components.',
+    },
+    hamilton: {
+        id: 'hamilton',
+        title: 'Hamilton Protocol',
+        instruction: 'Apply a fault-tolerance and safety critique. Attack missing invariants, unsafe state transitions, weak rollback behavior, and control paths that fail under stress.',
+    },
+    shannon: {
+        id: 'shannon',
+        title: 'Shannon Protocol',
+        instruction: 'Apply an information-theory critique. Attack noisy signals, ambiguous encodings, weak compression, poor observability, and channels that cannot preserve the needed signal.',
+    },
+    dean: {
+        id: 'dean',
+        title: 'Dean Protocol',
+        instruction: 'Apply a distributed-systems critique. Attack partitions, coordination bottlenecks, stale state, poor leases, non-idempotent retries, and scale assumptions.',
+    },
+    carmack: {
+        id: 'carmack',
+        title: 'Carmack Protocol',
+        instruction: 'Apply a performance and simplicity critique. Attack unnecessary layers, hidden allocations, hot-path waste, weak instrumentation, and designs that are not mechanically sympathetic.',
     },
 };
 

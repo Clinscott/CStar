@@ -14,30 +14,11 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.core.sovereign_hud import SovereignHUD
-from src.core.annex import HeimdallWarden
-from src.core.engine.alfred_observer import AlfredOverwatch
-from src.core.engine.atomic_gpt import AnomalyWarden
-from src.core.metrics import ProjectMetricsEngine
 from src.core.engine.ravens_stage import RavensCycleResult
 from src.cstar.core.uplink import AntigravityUplink
 
 # Import the core logic from MuninnHeart
 from src.core.engine.ravens.muninn_heart import MuninnHeart 
-
-# Alias for legacy test compatibility
-GungnirValidator = MuninnCrucible
-GungnirSPRT = MuninnCrucible
-NornWarden = NornWarden
-TheWatcher = MuninnHunter
-FreyaWarden = FreyaWarden
-HeimdallWarden = HeimdallWarden
-MimirWarden = MimirWarden
-ValkyrieWarden = ValkyrieWarden
-
-
-def bootstrap() -> None:
-    SovereignBootstrap.execute()
 
 class Muninn:
     """

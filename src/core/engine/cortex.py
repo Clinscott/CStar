@@ -4,6 +4,7 @@ Lore: "The library of the All-Father's laws."
 Purpose: Ingests project documentation to provide semantic knowledge to the agent.
 """
 
+import asyncio
 import re
 from pathlib import Path
 from typing import Any
@@ -38,6 +39,7 @@ class Cortex:
         }
 
         self.knowledge_map: dict[str, Path] = {}
+        self.source_mtimes: dict[str, int] = {}
         for name, rel_path in doc_targets.items():
             path = self.project_root / rel_path
             if path.exists():
@@ -55,39 +57,79 @@ class Cortex:
         from src.core.sovereign_hud import SovereignHUD
 
         for name, path in self.knowledge_map.items():
-            if not path.exists():
-                continue
-            try:
-                # Size guard for the Cortex (1MB limit)
-                if path.stat().st_size > 1 * 1024 * 1024:
-                    SovereignHUD.persona_log("WARN", f"Cortex: Doc too large to digest: {name}")
-                    continue
-
-                content = path.read_text(encoding='utf-8')
-
-                # Chunk by Headers (Markdown)
-                sections = re.split(r'(^#+ .*$)', content, flags=re.MULTILINE)
-
-                current_header = name
-
-                if sections and not sections[0].startswith('#'):
-                     self.brain.add_skill(f"{name} > Intro", sections[0].strip())
-
-                for i in range(len(sections)):
-                    section = sections[i].strip()
-                    if not section:
-                        continue
-
-                    if section.startswith('#'):
-                        current_header = f"{name} > {section.lstrip('#').strip()}"
-                    else:
-                        self.brain.add_skill(current_header, section)
-            except (OSError, PermissionError) as e:
-                SovereignHUD.persona_log("FAIL", f"Cortex Ingest Failed: {name} ({e!s})")
-            except Exception:
-                SovereignHUD.persona_log("WARN", f"Cortex Warning: Failed to digest {name}")
+            self.update_document(name)
 
         self.brain.build_index()
+
+    def _read_sections(self, name: str, path: Path) -> list[tuple[str, str]]:
+        # Size guard for the Cortex (1MB limit)
+        if path.stat().st_size > 1 * 1024 * 1024:
+            raise ValueError(f"Cortex: Doc too large to digest: {name}")
+
+        content = path.read_text(encoding="utf-8")
+
+        sections = re.split(r"(^#+ .*$)", content, flags=re.MULTILINE)
+        current_header = name
+        digested: list[tuple[str, str]] = []
+
+        if sections and not sections[0].startswith("#"):
+            intro = sections[0].strip()
+            if intro:
+                digested.append((f"{name} > Intro", intro))
+
+        for section in sections:
+            chunk = section.strip()
+            if not chunk:
+                continue
+
+            if chunk.startswith("#"):
+                current_header = f"{name} > {chunk.lstrip('#').strip()}"
+            else:
+                digested.append((current_header, chunk))
+
+        return digested
+
+    def update_document(self, name: str) -> bool:
+        """Re-ingests a single Cortex source and records its latest mtime."""
+        from src.core.sovereign_hud import SovereignHUD
+
+        path = self.knowledge_map.get(name)
+        if path is None or not path.exists():
+            self.source_mtimes.pop(name, None)
+            return False
+
+        try:
+            for trigger, text in self._read_sections(name, path):
+                self.brain.add_skill(trigger, text)
+            self.source_mtimes[name] = path.stat().st_mtime_ns
+            return True
+        except ValueError as e:
+            SovereignHUD.persona_log("WARN", str(e))
+            self.source_mtimes.pop(name, None)
+            return False
+        except (OSError, PermissionError) as e:
+            SovereignHUD.persona_log("FAIL", f"Cortex Ingest Failed: {name} ({e!s})")
+            self.source_mtimes.pop(name, None)
+            return False
+        except Exception:
+            SovereignHUD.persona_log("WARN", f"Cortex Warning: Failed to digest {name}")
+            self.source_mtimes.pop(name, None)
+            return False
+
+    def refresh(self) -> bool:
+        """Refreshes changed documentation sources and rebuilds the index when needed."""
+        changed = False
+        for name, path in self.knowledge_map.items():
+            if not path.exists():
+                continue
+            current_mtime = path.stat().st_mtime_ns
+            if self.source_mtimes.get(name) != current_mtime:
+                if self.update_document(name):
+                    changed = True
+
+        if changed:
+            self.brain.build_index()
+        return changed
 
     def query(self, text: str) -> list[dict[str, Any]]:
         """
@@ -99,4 +141,19 @@ class Cortex:
         Returns:
             A list of matching knowledge results.
         """
-        return self.brain.search(text)
+        self.refresh()
+        return self._run_search(text)
+
+    def search(self, text: str) -> list[dict[str, Any]]:
+        """Compatibility alias for callers that still use the older search surface."""
+        return self.query(text)
+
+    def _run_search(self, text: str) -> list[dict[str, Any]]:
+        result = self.brain.search(text)
+        if asyncio.iscoroutine(result):
+            try:
+                asyncio.get_running_loop()
+            except RuntimeError:
+                return asyncio.run(result)
+            raise RuntimeError("Cortex.query() cannot await async search inside an active event loop.")
+        return result

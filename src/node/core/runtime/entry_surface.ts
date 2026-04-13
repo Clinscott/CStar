@@ -7,11 +7,15 @@ export interface SurfaceRegistryEntry {
     tier?: string;
     runtime_trigger?: string;
     entry_surface?: string;
+    terminal_required?: boolean;
     spell_classification?: string;
     owner_runtime?: string;
+    entrypoint_path?: string | null;
     host_support?: Record<string, string>;
     execution?: {
         mode?: string;
+        requires_terminal?: boolean;
+        terminal_contract?: string;
     };
 }
 
@@ -80,6 +84,16 @@ export function resolveEntrySurface(entry: SurfaceRegistryEntry, capabilityId: s
     }
 
     return 'cli';
+}
+
+export function requiresTerminalExecution(entry: SurfaceRegistryEntry): boolean {
+    if (entry.terminal_required === true) {
+        return true;
+    }
+    if (entry.execution?.requires_terminal === true) {
+        return true;
+    }
+    return String(entry.execution?.terminal_contract ?? '').trim().toLowerCase() === 'required';
 }
 
 export function resolveRegistryEntryForCommand(

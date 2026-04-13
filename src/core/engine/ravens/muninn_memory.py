@@ -78,6 +78,15 @@ class MuninnMemory:
         trace_file.write_text(json.dumps(trace, indent=2), encoding='utf-8')
         return observation_id
 
+    def log_cycle_completion(self, cycle_count: int, total_errors: int) -> str:
+        """Records the completion of a Muninn cycle in Hall observations."""
+        return self.record_stage_observation(
+            "memory",
+            "SUCCESS" if total_errors == 0 else "FAILURE",
+            f"Cycle {cycle_count} completed with {total_errors} errors.",
+            {"cycle_count": cycle_count, "total_errors": total_errors},
+        )
+
     def sync_intent_integrity_from_sprt(self) -> float | None:
         """Syncs intent integrity into Hall first and mirrors the sovereign projection for compatibility."""
         ledger_path = self.root / ".agents" / "sprt_ledger.json"

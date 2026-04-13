@@ -88,6 +88,48 @@ def test_bead_ledger_allows_distinct_same_file_work_but_dedupes_exact_duplicates
     assert len(ledger.list_beads()) == 2
 
 
+def test_bead_ledger_dedupes_normalized_rationale_and_acceptance_text(tmp_path):
+    seed_hall(tmp_path)
+    ledger = BeadLedger(tmp_path)
+
+    first = ledger.upsert_bead(
+        target_path="src/core/sample.py",
+        rationale="Improve `logic` in the sample path!",
+        contract_refs=["contract:logic"],
+        acceptance_criteria="Raise LOGIC above 5.0.",
+    )
+    duplicate = ledger.upsert_bead(
+        target_path="src/core/sample.py",
+        rationale=" improve logic in   the sample path ",
+        contract_refs=["contract:logic"],
+        acceptance_criteria="raise logic above 5.0",
+    )
+
+    assert duplicate.id == first.id
+    assert len(ledger.list_beads()) == 1
+
+
+def test_bead_ledger_dedupes_near_duplicate_same_contract_and_acceptance(tmp_path):
+    seed_hall(tmp_path)
+    ledger = BeadLedger(tmp_path)
+
+    first = ledger.upsert_bead(
+        target_path="src/core/sample.py",
+        rationale="Repair logic in the sample path",
+        contract_refs=["contract:logic"],
+        acceptance_criteria="Raise logic above 5.0.",
+    )
+    duplicate = ledger.upsert_bead(
+        target_path="src/core/sample.py",
+        rationale="Repair the logic for sample path",
+        contract_refs=["contract:logic"],
+        acceptance_criteria="Raise logic above 5.0.",
+    )
+
+    assert duplicate.id == first.id
+    assert len(ledger.list_beads()) == 1
+
+
 def test_bead_ledger_blocks_non_actionable_active_beads(tmp_path):
     seed_hall(tmp_path)
     hall = HallOfRecords(tmp_path)
@@ -175,6 +217,60 @@ def test_claim_next_bead_is_atomic_under_concurrent_agents(tmp_path):
     assert materialized is not None
     assert materialized.status == "IN_PROGRESS"
     assert materialized.assigned_agent in {"RAVEN-A", "RAVEN-B"}
+
+
+def test_claim_next_bead_retries_after_contention_and_claims_remaining_work(tmp_path):
+    seed_hall(tmp_path)
+    ledger = BeadLedger(tmp_path)
+    first = ledger.upsert_bead(
+        bead_id="bead-first",
+        target_path="src/core/sample.py",
+        rationale="Repair the first sample path",
+        contract_refs=["contracts:sample-repair"],
+        acceptance_criteria="Raise the baseline above 5.0.",
+    )
+    second = ledger.upsert_bead(
+        bead_id="bead-second",
+        target_path="src/core/sample.py",
+        rationale="Repair the second sample path",
+        contract_refs=["contracts:sample-repair:second"],
+        acceptance_criteria="Raise the style baseline above 5.0.",
+    )
+
+    barrier = threading.Barrier(3)
+    results: list[dict[str, object] | None] = []
+    errors: list[BaseException] = []
+
+    def runner(agent_id: str) -> None:
+        try:
+            local_ledger = BeadLedger(tmp_path)
+            barrier.wait(timeout=5)
+            results.append(local_ledger.claim_next_bead(agent_id))
+        except BaseException as exc:  # pragma: no cover - concurrency test diagnostics
+            errors.append(exc)
+
+    threads = [
+        threading.Thread(target=runner, args=("RAVEN-A",)),
+        threading.Thread(target=runner, args=("RAVEN-B",)),
+    ]
+    for thread in threads:
+        thread.start()
+    barrier.wait(timeout=5)
+    for thread in threads:
+        thread.join()
+
+    assert not errors
+
+    claimed = [result for result in results if result is not None]
+    claimed_ids = {result["id"] for result in claimed}
+
+    assert len(claimed) == 2
+    assert claimed_ids == {first.id, second.id}
+
+    first_record = ledger.get_bead(first.id)
+    second_record = ledger.get_bead(second.id)
+    assert first_record is not None and first_record.status == "IN_PROGRESS"
+    assert second_record is not None and second_record.status == "IN_PROGRESS"
 
 
 def test_claim_next_bead_prioritizes_set_gate_work(tmp_path):

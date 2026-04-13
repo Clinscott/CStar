@@ -1300,11 +1300,22 @@ function scoreIndexedSearchResult(
 
 export function searchIntents(query: string): any[] {
     const db = database.getDb();
-    const safeQuery = buildSafeFtsQuery(query);
-    if (!safeQuery) {
+    const safeQueries = buildSafeFtsQueries(query);
+    if (safeQueries.length === 0) {
         return [];
     }
 
+    for (const [index, safeQuery] of safeQueries.entries()) {
+        const results = searchIndexedTables(db, safeQuery, query);
+        if (results.length > 0) {
+            return index === 0 ? results : results.slice(0, 30);
+        }
+    }
+
+    return [];
+}
+
+function searchIndexedTables(db: Database.Database, safeQuery: string, originalQuery: string): any[] {
     const codeResults = db.prepare(`
         SELECT path, intent, interaction_protocol, rank, 'CODE' as type
         FROM intents_fts
@@ -1345,17 +1356,17 @@ export function searchIntents(query: string): any[] {
     `).all(safeQuery) as any[];
 
     return [...codeResults, ...loreResults, ...episodicResults, ...documentResults]
-        .sort((a, b) => scoreIndexedSearchResult(a, query) - scoreIndexedSearchResult(b, query));
+        .sort((a, b) => scoreIndexedSearchResult(a, originalQuery) - scoreIndexedSearchResult(b, originalQuery));
 }
 
-function buildSafeFtsQuery(query: string): string {
+function buildSafeFtsQueries(query: string): string[] {
     const tokens = query
         .split(/[^A-Za-z0-9_]+/g)
         .map((token) => token.trim())
         .filter(Boolean);
 
     if (tokens.length === 0) {
-        return '';
+        return [];
     }
 
     const primaryTokens = tokens.filter((token) => token.length >= 3 && /[A-Za-z]/.test(token));
@@ -1363,6 +1374,9 @@ function buildSafeFtsQuery(query: string): string {
         ? primaryTokens
         : tokens.filter((token) => token.length >= 2 && /[A-Za-z]/.test(token));
     const safeTokens = fallbackTokens.length > 0 ? fallbackTokens : tokens;
+    const quotedTokens = safeTokens.map((token) => `"${token.replace(/"/g, '""')}"`);
+    const strictQuery = quotedTokens.join(' ');
+    const broadQuery = quotedTokens.join(' OR ');
 
-    return safeTokens.map((token) => `"${token.replace(/"/g, '""')}"`).join(' ');
+    return strictQuery === broadQuery ? [strictQuery] : [strictQuery, broadQuery];
 }

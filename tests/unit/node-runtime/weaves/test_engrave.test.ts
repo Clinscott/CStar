@@ -212,4 +212,62 @@ describe('Engrave weave', () => {
         assert.equal(secondPass.metadata?.files_processed, 0);
         assert.match(secondPass.output, /No ephemeral session files found/i);
     });
+
+    it('archives a session_learned event for persona and CStar learning', async () => {
+        const memoryDir = path.join(tmpRoot, '.agents', 'memory');
+        fs.mkdirSync(memoryDir, { recursive: true });
+
+        const beadId = 'session-learning-test';
+        const sessionFileName = 'session_learning.json';
+        writeSessionFile(memoryDir, sessionFileName, [
+            {
+                cmd: 'session_learned',
+                bead_id: beadId,
+                task: 'Session established that ALFRED should favor conservative learning handoffs.',
+                target: '.agents/memory.qmd',
+                files_touched: ['.agents/memory.qmd', 'src/tools/pennyone/personaRegistry.ts'],
+                successes: ['Persona and CStar learning event captured.'],
+                ts: 1700000100,
+                result: {
+                    status: 'success',
+                    message: 'Session learning captured.',
+                },
+                metadata: {
+                    source: 'unit-test',
+                    active_persona: 'A.L.F.R.E.D.',
+                    learning_scope: ['cstar', 'persona'],
+                },
+            },
+        ]);
+
+        const weave = new EngraveWeave();
+        const result = await weave.execute(
+            {
+                weave_id: 'weave:engrave',
+                payload: {
+                    project_root: tmpRoot,
+                    cwd: tmpRoot,
+                },
+            } as WeaveInvocation<any>,
+            createContext(tmpRoot),
+        );
+
+        assert.equal(result.status, 'SUCCESS');
+        assert.equal(result.metadata?.engrams_saved, 1);
+        assert.ok(fs.existsSync(path.join(memoryDir, 'archive', sessionFileName)));
+
+        const memories = listHallEpisodicMemory(tmpRoot, beadId);
+        assert.equal(memories.length, 1);
+        assert.equal(memories[0]?.tactical_summary, 'Session established that ALFRED should favor conservative learning handoffs.');
+        assert.deepEqual(memories[0]?.files_touched, ['.agents/memory.qmd', 'src/tools/pennyone/personaRegistry.ts']);
+        assert.deepEqual(memories[0]?.successes, ['Persona and CStar learning event captured.']);
+        assert.deepEqual(memories[0]?.metadata, {
+            source: 'unit-test',
+            session_file: sessionFileName,
+            original_ts: 1700000100,
+            event_kind: 'session_learned',
+            active_persona: 'A.L.F.R.E.D.',
+            learning_scope: ['cstar', 'persona'],
+        });
+    });
 });

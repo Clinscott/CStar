@@ -19,6 +19,45 @@ from src.core.sovereign_hud import SovereignHUD
 from src.core.engine.bead_ledger import BeadLedger
 from src.core.mimir_client import mimir
 
+
+def _active_persona() -> str:
+    config_path = project_root / ".agents" / "config.json"
+    try:
+        data = json.loads(config_path.read_text(encoding="utf-8"))
+        return str(data.get("system", {}).get("persona") or data.get("persona") or "ALFRED")
+    except Exception:
+        return "ALFRED"
+
+
+def _write_session_learning_event(summary: str, *, repairs_performed: list[str], dream_manifested: bool) -> Path:
+    memory_dir = project_root / ".agents" / "memory"
+    memory_dir.mkdir(parents=True, exist_ok=True)
+    now = time.time()
+    session_path = memory_dir / f"session_{int(now * 1000)}.json"
+    persona = _active_persona()
+    event = {
+        "cmd": "session_learned",
+        "bead_id": f"session-learning:{int(now * 1000)}",
+        "task": summary.strip(),
+        "target": ".agents/memory.qmd",
+        "files_touched": [".agents/memory.qmd"],
+        "successes": ["Session learning consolidated for CStar and the active persona."],
+        "ts": int(now),
+        "result": {
+            "status": "success",
+            "message": "Session learning event captured.",
+        },
+        "metadata": {
+            "source": "dormancy",
+            "active_persona": persona,
+            "learning_scope": ["cstar", "persona"],
+            "repairs_performed": repairs_performed,
+            "dream_manifested": dream_manifested,
+        },
+    }
+    session_path.write_text(json.dumps([event], indent=2) + "\n", encoding="utf-8")
+    return session_path
+
 async def consolidated_memory():
     """REM Sleep: Consolidate actions, repair the matrix, and Dream of the Future."""
     SovereignHUD.log("INFO", "Entering REM Sleep: Consolidating Neural Matrix...")
@@ -129,8 +168,14 @@ async def consolidated_memory():
 
         with open(memory_path, "a", encoding="utf-8") as f:
             f.write(summary)
+
+        learning_event_path = _write_session_learning_event(
+            summary,
+            repairs_performed=repairs_performed,
+            dream_manifested=dream_manifested,
+        )
             
-        SovereignHUD.log("SUCCESS", "Memory Consolidation & Dream Cycle Complete.")
+        SovereignHUD.log("SUCCESS", f"Memory Consolidation & Dream Cycle Complete. Session learning staged at {learning_event_path}.")
 
     except Exception as e:
         SovereignHUD.log("WARN", f"REM Sleep interrupted: {e}")

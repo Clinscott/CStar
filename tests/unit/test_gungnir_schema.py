@@ -42,6 +42,25 @@ def test_gungnir_schema_serializes_canonical_fields() -> None:
     assert get_gungnir_overall(payload) == 8.1
 
 
+def test_gungnir_schema_warns_on_invalid_supplied_metric(caplog) -> None:
+    caplog.set_level("WARNING", logger="src.core.engine.gungnir.schema")
+
+    matrix = build_gungnir_matrix({"logic": "corrupt", "style": 6, "intel": 6})
+
+    assert matrix.logic == 0.0
+    assert matrix.style == 6.0
+    assert any("Invalid Gungnir metric for logic" in record.message for record in caplog.records)
+
+
+def test_gungnir_schema_warns_on_non_finite_metric(caplog) -> None:
+    caplog.set_level("WARNING", logger="src.core.engine.gungnir.schema")
+
+    matrix = build_gungnir_matrix({"overall": float("nan"), "logic": 6, "style": 6, "intel": 6})
+
+    assert matrix.overall == 3.6
+    assert any("Non-finite Gungnir metric for overall" in record.message for record in caplog.records)
+
+
 def test_universal_gungnir_emits_canonical_matrix_projection() -> None:
     matrix = UniversalGungnir().score_matrix("def alpha():\n    return 1\n", ".py")
 

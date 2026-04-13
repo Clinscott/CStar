@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any, Sequence
 
 from src.core.engine.bead_ledger import BeadLedger, SovereignBead
+from src.core.engine.heimdall_shield import HeimdallShield, ShieldTrip
 from src.core.engine.validation_result import (
     ValidationCheck,
     create_validation_result,
@@ -41,6 +42,12 @@ WORKER_NOTE_LIMIT = 6_000
 
 ANSI_CSI_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
 ANSI_OSC_RE = re.compile(r"\x1b\][^\x07]*(?:\x07|\x1b\\)")
+BEAD_SECRET_PATTERNS = [
+    re.compile(r"\bsk-[A-Za-z0-9_-]{20,}\b"),
+    re.compile(r"\b[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b"),
+    re.compile(r"\bAWS_(?:ACCESS_KEY_ID|SECRET_ACCESS_KEY)\b"),
+    re.compile(r"\bBearer\s+[A-Za-z0-9._~+/=-]{16,}\b", re.IGNORECASE),
+]
 
 
 class OverseerError(RuntimeError):
@@ -69,6 +76,34 @@ class QueryCommandError(OverseerError):
     def __init__(self, message: str, *, command_result: CommandResult) -> None:
         super().__init__(message)
         self.command_result = command_result
+
+
+def validate_checker_shell(checker_shell: str) -> None:
+    """Block destructive checker commands before any shell execution."""
+    try:
+        HeimdallShield().enforce(checker_shell)
+    except ShieldTrip as exc:
+        raise LaunchError(f"Checker command rejected by Heimdall: {exc}") from exc
+
+
+def audit_bead_contract_content(bead: SovereignBead) -> None:
+    """Block dangerous bead content before it is sent to autonomous execution."""
+    fields = {
+        "rationale": bead.rationale,
+        "acceptance_criteria": bead.acceptance_criteria or "",
+        "checker_shell": bead.checker_shell or "",
+        "contract_refs": "\n".join(bead.contract_refs),
+    }
+    shield = HeimdallShield()
+    for field_name, content in fields.items():
+        if not content:
+            continue
+        is_safe, reason = shield.evaluate_command(content)
+        if not is_safe:
+            raise LaunchError(f"Bead content rejected by Heimdall in {field_name}: {reason}")
+        for pattern in BEAD_SECRET_PATTERNS:
+            if pattern.search(content):
+                raise LaunchError(f"Bead content rejected by Heimdall in {field_name}: secret-like content detected")
 
 
 @dataclass
@@ -461,6 +496,7 @@ def run_preflight_checker(
     """Run the bead checker once before any Hermes attempt."""
     if not checker_shell:
         return None
+    validate_checker_shell(checker_shell)
 
     checker_env = dict(extra_env or {})
     checker_env["CORVUS_PROJECT_ROOT"] = str(project_root)
@@ -644,6 +680,7 @@ def build_bead_command(
 
 def build_base_env(env: dict[str, str] | None = None) -> dict[str, str]:
     merged = {
+        "HERMES_INFERENCE_PROVIDER": "custom",
         "OPENAI_BASE_URL": DEFAULT_SOVEREIGN_BASE_URL,
         "OPENAI_API_KEY": DEFAULT_SOVEREIGN_API_KEY,
     }
@@ -1124,6 +1161,16 @@ def run_bead_mode(args: argparse.Namespace, base_env: dict[str, str]) -> AutoBot
         f"[autobot] claimed bead {bead.id} for {args.agent_id} targeting {bead.target_path or bead.target_ref}.",
         file=sys.stderr,
     )
+    try:
+        audit_bead_contract_content(bead)
+    except LaunchError as exc:
+        block_failed_bead(
+            ledger,
+            bead,
+            triage_reason="Bead content rejected by Heimdall.",
+            resolution_note=str(exc),
+        )
+        raise
 
     retry_feedback: str | None = None
     last_validation_id: str | None = None
@@ -1346,9 +1393,10 @@ def run_bead_mode(args: argparse.Namespace, base_env: dict[str, str]) -> AutoBot
                     "matched_pattern": hermes_result.matched_pattern,
                     "attempt_artifacts": [item.to_dict() for item in attempt_artifacts],
                 },
-            )
+        )
 
         print(f"[autobot] running checker for bead {bead.id}.", file=sys.stderr)
+        validate_checker_shell(args.checker_shell)
         checker_env = dict(bead_env)
         checker_env.update(
             {

@@ -14,6 +14,7 @@ import { EstateExpansionHostWorkflow } from  './host_workflows/expansion.js';
 import { VigilanceHostWorkflow } from  './host_workflows/vigilance.js';
 import { defaultHostTextInvoker, extractJsonObject, type HostTextInvoker } from './weaves/host_bridge.js';
 import { discoverLegacyCommands, resolvePythonPath } from  './adapters/legacy_commands.js';
+import { resolvePersonaPolicy } from '../../../tools/pennyone/personaRegistry.js';
 import {
     loadRavensSweepTargets,
     RavensSweepTarget,
@@ -100,6 +101,8 @@ function buildRavensSupervisorPrompt(input: {
     spoke?: string;
     shadowForge: boolean;
     workspaceRoot: string;
+    persona: string;
+    investigationPolicy: Record<string, unknown>;
 }): string {
     return [
         'You are supervising CStar ravens routing.',
@@ -107,8 +110,11 @@ function buildRavensSupervisorPrompt(input: {
         'Choose execute_now when the sweep or cycle should run now.',
         'Choose observe_only when the system should report posture without running the maintenance path.',
         'You may keep or normalize the requested action to one of: start, sweep, cycle, status, stop.',
+        'Apply the active persona investigation policy to how quickly the route moves from observation to execution.',
         'Return JSON only.',
         JSON.stringify({
+            active_persona: input.persona,
+            persona_investigation_policy: input.investigationPolicy,
             requested_action: input.requestedAction,
             spoke: input.spoke ?? null,
             shadow_forge: input.shadowForge,
@@ -395,6 +401,7 @@ export class RavensAdapter implements RuntimeAdapter<RavensWeavePayload> {
         const wardenDir = join(projectRoot, 'src', 'sentinel', 'wardens');
         const payload = { ...invocation.payload };
         const hostProvider = runtimeAdapterDeps.resolveHostProvider({ ...process.env, ...context.env } as NodeJS.ProcessEnv);
+        const personaPolicy = resolvePersonaPolicy(context.persona);
 
         if (hostProvider && payload.action !== 'status' && payload.action !== 'stop') {
             try {
@@ -404,6 +411,8 @@ export class RavensAdapter implements RuntimeAdapter<RavensWeavePayload> {
                         spoke: payload.spoke,
                         shadowForge: Boolean(payload.shadow_forge),
                         workspaceRoot: projectRoot,
+                        persona: context.persona,
+                        investigationPolicy: personaPolicy.investigation,
                     }),
                     systemPrompt: 'Return JSON only. Normalize ravens routing before bounded kernel execution.',
                     provider: hostProvider,
@@ -413,6 +422,8 @@ export class RavensAdapter implements RuntimeAdapter<RavensWeavePayload> {
                     metadata: {
                         runtime_weave: 'ravens',
                         decision: 'ravens-supervisor',
+                        persona: context.persona,
+                        persona_investigation_policy: personaPolicy.investigation,
                         trace_critical: true,
                         require_agent_harness: true,
                         transport_mode: 'host_session',

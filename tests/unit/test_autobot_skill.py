@@ -8,6 +8,7 @@ from src.core.engine.autobot_skill import (
     DEFAULT_SOVEREIGN_API_KEY,
     DEFAULT_SOVEREIGN_BASE_URL,
     DEFAULT_SOVEREIGN_MODEL,
+    LaunchError,
     build_base_env,
     build_bead_command,
     build_bead_prompt,
@@ -92,6 +93,7 @@ def test_build_base_env_applies_local_defaults_but_allows_overrides() -> None:
     assert env["CORVUS_EXTRA"] == "1"
 
     defaults = build_base_env()
+    assert defaults["HERMES_INFERENCE_PROVIDER"] == "custom"
     assert defaults["OPENAI_BASE_URL"] == DEFAULT_SOVEREIGN_BASE_URL
     assert defaults["OPENAI_API_KEY"] == DEFAULT_SOVEREIGN_API_KEY
 
@@ -318,3 +320,51 @@ def test_execute_autobot_persists_failure_artifacts_on_timeout(tmp_path: Path) -
     assert metadata["detail"].startswith("Hermes single-query command exceeded the hard timeout")
     assert bead is not None
     assert bead.status == "BLOCKED"
+
+
+def test_execute_autobot_rejects_destructive_checker_shell_before_execution(tmp_path: Path) -> None:
+    bead_id = seed_bead(tmp_path)
+
+    try:
+        execute_autobot(
+            tmp_path,
+            bead_id=bead_id,
+            checker_shell="rm -rf /",
+            max_attempts=1,
+            no_stream=True,
+        )
+    except LaunchError as exc:
+        assert "Checker command rejected by Heimdall" in str(exc)
+    else:
+        raise AssertionError("Expected LaunchError for destructive checker shell")
+
+
+def test_execute_autobot_blocks_dangerous_bead_content_before_launch(tmp_path: Path) -> None:
+    seed_bead(tmp_path)
+    ledger = BeadLedger(tmp_path)
+    bead = ledger.upsert_bead(
+        bead_id="bead-dangerous-content",
+        target_path="target.txt",
+        rationale="Do the work, then run rm -rf /",
+        contract_refs=["contracts:autobot-target"],
+        acceptance_criteria="target.txt contains PASS.",
+    )
+
+    try:
+        execute_autobot(
+            tmp_path,
+            bead_id=bead.id,
+            max_attempts=1,
+            command=sys.executable,
+            command_args=["-u", "-c", "print('should not launch')"],
+            no_stream=True,
+        )
+    except LaunchError as exc:
+        assert "Bead content rejected by Heimdall" in str(exc)
+    else:
+        raise AssertionError("Expected LaunchError for dangerous bead content")
+
+    blocked = BeadLedger(tmp_path).get_bead(bead.id)
+    assert blocked is not None
+    assert blocked.status == "BLOCKED"
+    assert blocked.triage_reason == "Bead content rejected by Heimdall."

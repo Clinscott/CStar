@@ -467,17 +467,20 @@ Seed the Hall contract for the scheduler migration.`,
         });
 
         assert.strictEqual(result.status, 'SUCCESS');
-        assert.deepEqual(result.metadata?.trace_contract, {
-            intent_category: 'EVOLVE',
-            intent: 'Evolve bead bead-runtime-1.',
-            selection_tier: 'WEAVE',
-            selection_name: 'evolve',
-            trajectory_status: 'STABLE',
-            trajectory_reason: 'Dispatcher synthesized the designation from the explicit weave invocation.',
-            mimirs_well: ['src/node/core/runtime/dispatcher.ts'],
-            confidence: 0.72,
-            canonical_intent: 'Evolve bead bead-runtime-1.',
-        });
+        const traceContract = result.metadata?.trace_contract as Record<string, any>;
+        assert.equal(traceContract.intent_category, 'EVOLVE');
+        assert.equal(traceContract.intent, 'Evolve bead bead-runtime-1.');
+        assert.equal(traceContract.selection_tier, 'WEAVE');
+        assert.equal(traceContract.selection_name, 'evolve');
+        assert.equal(traceContract.trajectory_status, 'STABLE');
+        assert.equal(traceContract.trajectory_reason, 'Dispatcher synthesized the designation from the explicit weave invocation.');
+        assert.deepEqual(traceContract.mimirs_well, ['src/node/core/runtime/dispatcher.ts']);
+        assert.equal(traceContract.confidence, 0.72);
+        assert.equal(traceContract.canonical_intent, 'Evolve bead bead-runtime-1.');
+        assert.equal(traceContract.council_expert?.label, 'CARMACK');
+        assert.match(traceContract.council_expert?.root_persona_directive ?? '', /performance pragmatist/i);
+        assert.equal(result.metadata?.council_expert, traceContract.council_expert);
+        assert.equal(result.metadata?.root_persona_directive, traceContract.council_expert?.root_persona_directive);
         assert.strictEqual(result.metadata?.trace_designation_source, 'dispatcher_synthesized');
         const executionBead = getHallBead(String(result.metadata?.execution_bead_id));
         assert.equal(executionBead?.status, 'RESOLVED');

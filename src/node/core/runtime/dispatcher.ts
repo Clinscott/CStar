@@ -35,6 +35,7 @@ import {
 import { inheritTraceInvocation } from './trace_inheritance.js';
 import { upsertHallBead, getHallBead } from  '../../../tools/pennyone/intel/database.js';
 import { buildHallRepositoryId, normalizeHallPath, type HallBeadStatus } from  '../../../types/hall.js';
+import { enrichTraceContractWithCouncil } from '../../../core/council_experts.js';
 
 function resolveSkillAdapterAlias(workspaceRoot: string, skillId: string): string {
     const manifestPath = path.join(workspaceRoot, '.agents', 'skill_registry.json');
@@ -168,12 +169,16 @@ function normalizeTraceContract(value: unknown): RuntimeTraceContract | null {
     if (typeof normalized.confidence === 'number' && Number.isFinite(normalized.confidence)) {
         contract.confidence = normalized.confidence;
     }
+    const councilExpert = normalized.council_expert;
+    if (councilExpert && typeof councilExpert === 'object' && !Array.isArray(councilExpert)) {
+        contract.council_expert = councilExpert as RuntimeTraceContract['council_expert'];
+    }
 
     if (!contract.selection_tier || !contract.selection_name) {
         return null;
     }
 
-    return contract;
+    return enrichTraceContractWithCouncil(contract);
 }
 
 function normalizeTraceDesignationSource(value: unknown): RuntimeTraceDesignationSource | null {
@@ -352,7 +357,7 @@ function buildSyntheticTraceContract(input: {
         input.payload,
     );
 
-    return {
+    return enrichTraceContractWithCouncil({
         intent_category: intentCategory,
         intent: summary,
         selection_tier: input.selectionTier,
@@ -362,7 +367,7 @@ function buildSyntheticTraceContract(input: {
         mimirs_well: Array.from(new Set(mimirsWell)),
         confidence: 0.72,
         canonical_intent: summary,
-    };
+    });
 }
 
 function resolveInvocationTraceContract(input: {
@@ -389,7 +394,7 @@ function resolveInvocationTraceContract(input: {
             };
         }
         return {
-            contract: {
+            contract: enrichTraceContractWithCouncil({
                 intent_category: validation.trace.intent_category,
                 intent: validation.trace.intent,
                 selection_tier: validation.trace.selection_tier,
@@ -401,7 +406,7 @@ function resolveInvocationTraceContract(input: {
                 confidence: validation.trace.confidence,
                 body: validation.trace.body,
                 canonical_intent: validation.trace.canonical_intent,
-            },
+            }),
             source: 'explicit_trace_block',
             explicit: true,
             errors: [],
@@ -482,6 +487,10 @@ function mergeRuntimeTraceMetadata(input: {
     if (input.traceContract) {
         metadata.trace_contract_version = 1;
         metadata.trace_contract = input.traceContract;
+        if (input.traceContract.council_expert) {
+            metadata.council_expert = input.traceContract.council_expert;
+            metadata.root_persona_directive = input.traceContract.council_expert.root_persona_directive;
+        }
     }
 
     return metadata;
@@ -695,6 +704,8 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
             session_id: isSkillBead ? undefined : session?.session_id,
             trace_contract: traceResolution.contract ?? undefined,
             trace_designation_source: traceResolution.source ?? undefined,
+            council_expert: traceResolution.contract?.council_expert,
+            root_persona_directive: traceResolution.contract?.council_expert?.root_persona_directive,
             env: process.env,
             timestamp: Date.now()
         };

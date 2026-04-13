@@ -151,7 +151,7 @@ describe('Ravens lifecycle adapter (kernel cleanup)', () => {
     });
 
     it('can return observe-only when the host supervisor declines maintenance execution', async () => {
-        let capturedRequest: { metadata?: Record<string, unknown> } | undefined;
+        let capturedRequest: { prompt?: string; metadata?: Record<string, unknown> } | undefined;
         const adapter = new RavensAdapter(
             undefined as any,
             () => [buildTarget(tmpRoot)],
@@ -178,6 +178,9 @@ describe('Ravens lifecycle adapter (kernel cleanup)', () => {
         assert.equal(result.status, 'TRANSITIONAL');
         assert.equal(result.metadata?.adapter, 'runtime:ravens-host-observe');
         assert.equal(result.metadata?.supervisor_mode, 'observe_only');
+        assert.match(capturedRequest?.prompt ?? '', /persona_investigation_policy/);
+        assert.equal(capturedRequest?.metadata?.persona, 'ALFRED');
+        assert.deepEqual((capturedRequest?.metadata?.persona_investigation_policy as any)?.repairBias, 'prefer conservative fixes with explicit rollback awareness and focused tests');
         assert.equal(capturedRequest?.metadata?.trace_critical, true);
         assert.equal(capturedRequest?.metadata?.require_agent_harness, true);
         assert.equal(capturedRequest?.metadata?.transport_mode, 'host_session');
@@ -186,7 +189,7 @@ describe('Ravens lifecycle adapter (kernel cleanup)', () => {
 
     it('can normalize public maintenance intent while still delegating to bounded cycle execution', async () => {
         let delegated = 0;
-        let capturedRequest: { metadata?: Record<string, unknown> } | undefined;
+        let capturedRequest: { prompt?: string; metadata?: Record<string, unknown> } | undefined;
         const adapter = new RavensAdapter(
             {
                 id: 'weave:ravens-cycle',

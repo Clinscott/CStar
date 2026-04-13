@@ -151,6 +151,10 @@ function getRuntimeTraceContract(result: WeaveResult): RuntimeTraceContract | un
     }
 
     const normalized = contract as Record<string, unknown>;
+    const councilExpert = normalized.council_expert && typeof normalized.council_expert === 'object' && !Array.isArray(normalized.council_expert)
+        ? normalized.council_expert as RuntimeTraceContract['council_expert']
+        : undefined;
+
     return {
         intent_category: typeof normalized.intent_category === 'string' ? normalized.intent_category : undefined,
         intent: typeof normalized.intent === 'string' ? normalized.intent : undefined,
@@ -165,6 +169,7 @@ function getRuntimeTraceContract(result: WeaveResult): RuntimeTraceContract | un
         confidence: typeof normalized.confidence === 'number' ? normalized.confidence : undefined,
         body: typeof normalized.body === 'string' ? normalized.body : undefined,
         canonical_intent: typeof normalized.canonical_intent === 'string' ? normalized.canonical_intent : undefined,
+        council_expert: councilExpert,
     };
 }
 
@@ -181,7 +186,7 @@ function formatDesignation(contract: RuntimeTraceContract | undefined): string |
 function buildRuntimeTraceLine(result: WeaveResult): string | undefined {
     const contract = getRuntimeTraceContract(result);
     const designation = formatDesignation(contract);
-    if (!designation) {
+    if (!contract || !designation) {
         return undefined;
     }
 
@@ -194,7 +199,8 @@ function buildRuntimeTraceLine(result: WeaveResult): string | undefined {
         120,
     );
     const category = contract.intent_category ? ` | ${contract.intent_category}` : '';
-    return `trace=${result.status} | ${designation}${category} | ${focus}`;
+    const expert = contract.council_expert?.label ? ` | expert=${contract.council_expert.label}` : '';
+    return `trace=${result.status} | ${designation}${category}${expert} | ${focus}`;
 }
 
 function getRuntimeContextBeadId(result: WeaveResult): string | undefined {

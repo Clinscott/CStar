@@ -91,10 +91,16 @@ export class EngraveWeave implements RuntimeAdapter<EngraveWeavePayload> {
 
                 // Process each event in the session
                 for (const event of sessionData) {
-                    if (event.cmd === 'forge_result' && event.result?.status === 'success') {
+                    if ((event.cmd === 'forge_result' || event.cmd === 'session_learned') && event.result?.status === 'success') {
                         const now = Date.now();
                         const beadId = event.bead_id || `session:${fileName}:${event.ts || now}`;
                         const memoryId = `engram:${beadId}:${now}`;
+                        const filesTouched = Array.isArray(event.files_touched)
+                            ? event.files_touched.filter((entry: unknown): entry is string => typeof entry === 'string' && entry.trim().length > 0).map((entry: string) => entry.trim())
+                            : (event.target ? [event.target] : []);
+                        const successes = Array.isArray(event.successes)
+                            ? event.successes.filter((entry: unknown): entry is string => typeof entry === 'string' && entry.trim().length > 0).map((entry: string) => entry.trim())
+                            : [event.result.message || 'Success'];
 
                         // [🔱] THE FOREIGN KEY ANCHOR: Ensure parent bead exists
                         const existingBead = getHallBead(beadId);
@@ -118,8 +124,8 @@ export class EngraveWeave implements RuntimeAdapter<EngraveWeavePayload> {
                             bead_id: beadId,
                             repo_id: repoId,
                             tactical_summary: event.task || event.result.message || 'Restored session engram.',
-                            files_touched: event.target ? [event.target] : [],
-                            successes: [event.result.message || 'Success'],
+                            files_touched: filesTouched,
+                            successes,
                             metadata: {
                                 source: 'engrave',
                                 session_file: fileName,

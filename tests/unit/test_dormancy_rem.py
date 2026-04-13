@@ -33,6 +33,11 @@ async def test_consolidated_memory_no_debt(mock_mimir, tmp_path):
         assert memory_file.exists()
         content = memory_file.read_text(encoding="utf-8")
         assert "No autonomous repairs required" in content
+        session_files = list((tmp_path / ".agents" / "memory").glob("session_*.json"))
+        assert len(session_files) == 1
+        session_events = json.loads(session_files[0].read_text(encoding="utf-8"))
+        assert session_events[0]["cmd"] == "session_learned"
+        assert session_events[0]["metadata"]["learning_scope"] == ["cstar", "persona"]
         
         # Verify mimir was closed
         mock_mimir.close.assert_called_once()

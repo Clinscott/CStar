@@ -33,7 +33,7 @@ function createContext(workspaceRoot: string): RuntimeContext {
         operator_mode: 'cli',
         target_domain: 'brain',
         interactive: true,
-        env: {},
+        env: { CORVUS_HOST_SESSION_ACTIVE: '0' },
         timestamp: Date.now(),
     };
 }

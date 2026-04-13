@@ -633,7 +633,7 @@ describe('Command shells convert CLI args into runtime invocations (CS-P1-01)', 
         });
     });
 
-    it('blocks chant from shell dispatch when entry_surface is host-only', () => {
+    it('blocks chant from terminal dispatch when entry_surface is host-only', () => {
         const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-chant-surface-'));
         try {
             fs.mkdirSync(path.join(tmpRoot, '.agents'), { recursive: true });
@@ -662,7 +662,7 @@ describe('Command shells convert CLI args into runtime invocations (CS-P1-01)', 
             if (activation.kind === 'blocked') {
                 assert.equal(activation.skillId, 'chant');
                 assert.equal(activation.surface, 'host-only');
-                assert.match(activation.error, /host-only/i);
+                assert.match(activation.error, /Terminal dispatch is forbidden/i);
             }
         } finally {
             fs.rmSync(tmpRoot, { recursive: true, force: true });
@@ -769,7 +769,7 @@ describe('Command shells convert CLI args into runtime invocations (CS-P1-01)', 
         });
     });
 
-    it('registry-backed command activation builds a skill bead instead of legacy dynamic-command', () => {
+    it('registry-backed command activation blocks terminal skill execution', () => {
         const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-command-registry-'));
         try {
             fs.mkdirSync(path.join(tmpRoot, '.agents'), { recursive: true });
@@ -793,16 +793,21 @@ describe('Command shells convert CLI args into runtime invocations (CS-P1-01)', 
                 tmpRoot,
             );
 
-            assert.ok(invocation);
-            assert.equal(invocation?.skill_id, 'orchestrate');
-            assert.equal(invocation?.target_path, tmpRoot);
-            assert.deepStrictEqual(invocation?.params, {
-                command: 'orchestrate',
-                args: ['--max-parallel', '1'],
-                project_root: tmpRoot,
-                cwd: tmpRoot,
-                source: 'cli',
-            });
+            assert.equal(invocation, null);
+
+            const activation = resolveRegistryCommandActivation(
+                'orchestrate',
+                ['--max-parallel', '1'],
+                tmpRoot,
+                tmpRoot,
+            );
+
+            assert.equal(activation.kind, 'blocked');
+            if (activation.kind === 'blocked') {
+                assert.equal(activation.skillId, 'orchestrate');
+                assert.equal(activation.surface, 'cli');
+                assert.match(activation.error, /Terminal dispatch is forbidden for skills/i);
+            }
         } finally {
             fs.rmSync(tmpRoot, { recursive: true, force: true });
         }

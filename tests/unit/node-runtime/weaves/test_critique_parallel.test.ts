@@ -95,4 +95,44 @@ describe('CritiqueWeave parallel focus-area behavior', () => {
         assert.equal(savedRequests[0]?.metadata?.branch_group_id, 'critique:trace-critique-queued');
         mock.reset();
     });
+
+    it('defaults critique to named council experts', async () => {
+        const savedRequests: Array<Record<string, unknown>> = [];
+        const weave = new CritiqueWeave({} as any);
+        mock.method(deps, 'resolveConfiguredDelegatePollBridge', () => ({
+            command: 'delegate-poll',
+            args: ['--handle', '{handle_id}', '--result', '{result_path}'],
+        }));
+        mock.method(deps, 'saveHallOneMindRequest', (record: Record<string, unknown>) => {
+            savedRequests.push(record);
+        });
+
+        const result = await weave.execute(
+            {
+                weave_id: 'weave:critique',
+                payload: {
+                    bead: { title: 'Current bead' },
+                    research: { summary: 'Local research' },
+                    cwd: '.',
+                    project_root: '.',
+                },
+            } as any,
+            {
+                workspace_root: '.',
+                env: { CODEX_SHELL: '1', CODEX_THREAD_ID: 'thread-1' },
+                bead_id: 'activation:critique:2',
+                trace_id: 'trace-critique-council',
+                mission_id: 'mission-critique-council',
+            } as any,
+        );
+
+        assert.equal(result.status, 'TRANSITIONAL');
+        assert.equal(savedRequests.length, 5);
+        assert.equal(savedRequests[0]?.metadata?.branch_label, 'TORVALDS');
+        assert.equal(savedRequests[0]?.metadata?.subagent_profile, 'torvalds');
+        assert.match(String(savedRequests[1]?.prompt ?? ''), /KARPATHY/);
+        assert.match(String(savedRequests[1]?.prompt ?? ''), /Anti-Behavior:/);
+        assert.match(String(savedRequests[1]?.prompt ?? ''), /Root Persona Overlay:/);
+        mock.reset();
+    });
 });

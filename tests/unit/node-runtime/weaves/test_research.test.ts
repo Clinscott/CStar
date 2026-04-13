@@ -12,18 +12,18 @@ describe('ResearchWeave Unit Tests', () => {
 
     it('execute succeeds when delegated research returns valid JSON', async () => {
         const dispatchPort: any = {};
-        let capturedRequest: Record<string, unknown> | null = null;
+        const capturedRequests: Array<Record<string, unknown>> = [];
         const weave = new ResearchWeave(dispatchPort);
         
         mock.method(deps, 'resolveRuntimeHostProvider', () => 'codex');
         mock.method(deps, 'extractJsonObject', (text: string) => JSON.parse(text));
         mock.method(deps, 'requestHostDelegatedExecution', async (request: Record<string, unknown>) => {
-            capturedRequest = request;
+            capturedRequests.push(request);
             return {
-                handle_id: 'delegate-1',
+                handle_id: `delegate-${capturedRequests.length}`,
                 provider: 'codex',
                 status: 'completed',
-                raw_text: '{"summary": "Research findings", "research_artifacts": ["A"]}',
+                raw_text: `{"summary": "Research findings ${capturedRequests.length}", "research_artifacts": ["A"]}`,
                 metadata: {
                     execution_surface: 'host-cli-inference',
                     delegation_mode: 'provider-native',
@@ -37,19 +37,24 @@ describe('ResearchWeave Unit Tests', () => {
         } as any, { workspace_root: '.', env: {} } as any);
 
         assert.equal(result.status, 'SUCCESS');
-        assert.equal(result.output, 'Research findings');
+        assert.match(result.output, /Research findings 1/);
         assert.equal(result.metadata?.context_policy, 'project');
         assert.deepEqual(result.metadata?.research_artifacts, ['A']);
-        assert.equal(capturedRequest?.boundary, 'subagent');
-        assert.equal(capturedRequest?.task_kind, 'research');
-        assert.deepEqual(capturedRequest?.metadata, {
+        assert.equal(result.metadata?.branch_count, 5);
+        assert.equal(capturedRequests.length, 5);
+        assert.equal(capturedRequests[0]?.boundary, 'subagent');
+        assert.equal(capturedRequests[0]?.task_kind, 'research');
+        assert.match(String(capturedRequests[0]?.prompt ?? ''), /Anti-Behavior:/);
+        assert.match(String(capturedRequests[0]?.prompt ?? ''), /Root Persona Overlay:/);
+        assert.deepEqual(capturedRequests[0]?.metadata, {
             mission_id: undefined,
             trace_id: undefined,
             session_id: null,
-            source: 'runtime:research',
+            source: 'runtime:research:branch:0',
             one_mind_boundary: 'subagent',
             execution_role: 'subagent',
-            subagent_profile: 'scout',
+            subagent_profile: 'torvalds',
+            council_expert: 'TORVALDS',
         });
         mock.reset();
     });
@@ -62,7 +67,7 @@ describe('ResearchWeave Unit Tests', () => {
 
         const result = await weave.execute({
             weave_id: 'weave:research',
-            payload: { intent: 'test', cwd: '.' }
+            payload: { intent: 'test', subagent_profile: 'architect', cwd: '.' }
         } as any, { workspace_root: '.', env: {} } as any);
 
         assert.equal(result.status, 'FAILURE');
@@ -82,7 +87,7 @@ describe('ResearchWeave Unit Tests', () => {
 
         const result = await weave.execute({
             weave_id: 'weave:research',
-            payload: { intent: 'test', cwd: '.' }
+            payload: { intent: 'test', subagent_profile: 'architect', cwd: '.' }
         } as any, { workspace_root: '.', env: {} } as any);
 
         assert.equal(result.status, 'FAILURE');

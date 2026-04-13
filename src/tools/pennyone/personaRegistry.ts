@@ -10,6 +10,67 @@ export interface ActivePersona {
     name: string;
     prefix: string;
     loreFile: string;
+    operatingPolicy: PersonaOperatingPolicy;
+}
+
+export interface PersonaOperatingPolicy {
+    planning: {
+        stance: string;
+        defaultProposalShape: string;
+        riskTolerance: 'low' | 'medium' | 'high';
+        executionGate: string;
+    };
+    investigation: {
+        stance: string;
+        firstPass: string;
+        escalation: string;
+        repairBias: string;
+    };
+}
+
+function hydratePersonaConfig(name: string): ActivePersona {
+    const upper = name.toUpperCase();
+    if (upper === 'O.D.I.N.' || upper === 'ODIN') {
+        return {
+            name: 'O.D.I.N.',
+            prefix: '[O.D.I.N.]',
+            loreFile: 'odin.qmd',
+            operatingPolicy: {
+                planning: {
+                    stance: 'high-velocity architectural strike',
+                    defaultProposalShape: 'favor decisive decomposition into parallelizable beads with explicit sovereignty and regression gates',
+                    riskTolerance: 'high',
+                    executionGate: 'proceed when scope is bounded and verification is named',
+                },
+                investigation: {
+                    stance: 'adversarial root-cause hunt',
+                    firstPass: 'attack invariants, ownership boundaries, stale assumptions, and systemic drift before local symptoms',
+                    escalation: 'escalate quickly from observation to repair plan when a breach is reproducible',
+                    repairBias: 'prefer structural correction over narrow patching when evidence shows recurring weakness',
+                },
+            },
+        };
+    }
+
+    return {
+        name: 'A.L.F.R.E.D.',
+        prefix: '[A.L.F.R.E.D.]',
+        loreFile: 'alfred.qmd',
+        operatingPolicy: {
+            planning: {
+                stance: 'cautious maintenance and steady optimization',
+                defaultProposalShape: 'favor the smallest reversible bead that preserves existing contracts and documents verification',
+                riskTolerance: 'low',
+                executionGate: 'require operator-visible review before broad or destructive execution',
+            },
+            investigation: {
+                stance: 'perimeter-first anomaly triage',
+                firstPass: 'inspect current state, recent failure evidence, and narrow repro paths before proposing change',
+                escalation: 'escalate from observation to repair only after the fault surface is bounded',
+                repairBias: 'prefer conservative fixes with explicit rollback awareness and focused tests',
+            },
+        },
+    };
 }
 
 export class PersonaRegistry {
@@ -50,21 +111,7 @@ export class PersonaRegistry {
     }
 
     private hydratePersona(name: string): ActivePersona {
-        const upper = name.toUpperCase();
-        if (upper === 'O.D.I.N.' || upper === 'ODIN') {
-            return {
-                name: 'O.D.I.N.',
-                prefix: '[O.D.I.N.]',
-                loreFile: 'odin.qmd'
-            };
-        }
-
-        // Default to ALFRED
-        return {
-            name: 'A.L.F.R.E.D.',
-            prefix: '[A.L.F.R.E.D.]',
-            loreFile: 'alfred.qmd'
-        };
+        return hydratePersonaConfig(name);
     }
 
     public getPersona(): ActivePersona {
@@ -74,4 +121,6 @@ export class PersonaRegistry {
 
 export const activePersona = PersonaRegistry.getInstance().getPersona();
 
-
+export function resolvePersonaPolicy(name: string | undefined): PersonaOperatingPolicy {
+    return hydratePersonaConfig(name ?? 'ALFRED').operatingPolicy;
+}

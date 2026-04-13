@@ -46,4 +46,24 @@ describe('Host subagent routing', () => {
         assert.match(prompt, /TASK KIND: critique/);
         assert.match(prompt, /Inspect the bead for regressions\./);
     });
+
+    it('exposes named council expert profiles', () => {
+        assert.equal(getHostSubagentSpec('torvalds').title, 'Torvalds Protocol');
+        assert.equal(getHostSubagentSpec('karpathy').title, 'Karpathy Protocol');
+
+        const prompt = buildHostSubagentPrompt(
+            'karpathy',
+            'Inspect the bead for model/runtime boundary failures.',
+            {
+                boundary: 'subagent',
+                task_kind: 'research',
+                target_paths: ['src/node/core/runtime/host_workflows/research.ts'],
+                acceptance_criteria: ['Surface deterministic interface gaps.'],
+                checker_shell: null,
+            },
+        );
+
+        assert.match(prompt, /SPECIALIST ROLE: Karpathy Protocol \(karpathy\)/);
+        assert.match(prompt, /AI-systems critique/);
+    });
 });

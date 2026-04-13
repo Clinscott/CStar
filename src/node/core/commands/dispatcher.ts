@@ -9,6 +9,7 @@ import { buildRavensInvocation } from './ravens.js';
 import { buildStartInvocation } from './start.js';
 import {
     loadRegistryEntries,
+    requiresTerminalExecution,
     resolveEntrySurface,
     resolveRegistryEntryForCommand,
     type EntrySurface,
@@ -95,7 +96,7 @@ export function buildDynamicCommandInvocation(
     args: string[],
     projectRoot: string,
     cwd: string = process.cwd(),
-): WeaveInvocation<StartWeavePayload | RavensWeavePayload | PennyOneWeavePayload | AutobotWeavePayload | EvolveWeavePayload | ForgeWeavePayload> {
+): WeaveInvocation<StartWeavePayload | RavensWeavePayload | PennyOneWeavePayload | ChantWeavePayload | AutobotWeavePayload | EvolveWeavePayload | ForgeWeavePayload> {
     if (command.toLowerCase() === 'start') {
         const taskIndex = args.findIndex((arg) => arg === '--task');
         const ledgerIndex = args.findIndex((arg) => arg === '--ledger');
@@ -184,9 +185,16 @@ type RegistryCommandActivation =
 
 export function buildSurfaceBlockError(skillId: string, surface: EntrySurface): string {
     if (surface === 'host-only') {
-        return `Capability '${skillId}' is host-only (entry_surface=host-only) and cannot run from shell dispatch. Activate it through the host-native runtime bridge.`;
+        return `Capability '${skillId}' is host-only (entry_surface=host-only). Terminal dispatch is forbidden for this workflow; activate it through the host-native skill bridge.`;
     }
     return `Capability '${skillId}' is marked entry_surface=compatibility, but legacy compatibility command execution is disabled.`;
+}
+
+export function buildTerminalSkillBlockError(skillId: string, surface: EntrySurface): string {
+    if (surface === 'cli') {
+        return `Capability '${skillId}' is a skill. Terminal dispatch is forbidden for skills; activate it through the host-native skill bridge unless the capability explicitly requires terminal execution.`;
+    }
+    return buildSurfaceBlockError(skillId, surface);
 }
 
 export function resolveRegistryCommandActivation(
@@ -202,32 +210,33 @@ export function resolveRegistryCommandActivation(
     }
 
     const surface = resolveEntrySurface(resolved.entry, resolved.skillId);
-    if (surface !== 'cli') {
+    if (surface === 'cli' && requiresTerminalExecution(resolved.entry)) {
         return {
-            kind: 'blocked',
-            skillId: resolved.skillId,
-            surface,
-            error: buildSurfaceBlockError(resolved.skillId, surface),
+            kind: 'skill',
+            bead: {
+                id: `cli:${resolved.skillId}:${Date.now()}`,
+                skill_id: resolved.skillId,
+                target_path: projectRoot,
+                intent: `CLI invocation for terminal-required skill ${resolved.skillId}: ${[command, ...args].join(' ').trim()}`.trim(),
+                params: {
+                    command: command.toLowerCase(),
+                    args,
+                    project_root: projectRoot,
+                    cwd,
+                    source: 'cli',
+                    terminal_required: true,
+                },
+                status: 'PENDING',
+                priority: 1,
+            },
         };
     }
 
     return {
-        kind: 'skill',
-        bead: {
-            id: `cli:${resolved.skillId}:${Date.now()}`,
-            skill_id: resolved.skillId,
-            target_path: projectRoot,
-            intent: `CLI invocation for ${resolved.skillId}: ${[command, ...args].join(' ').trim()}`.trim(),
-            params: {
-                command: command.toLowerCase(),
-                args,
-                project_root: projectRoot,
-                cwd,
-                source: 'cli',
-            },
-            status: 'PENDING',
-            priority: 1,
-        },
+        kind: 'blocked',
+        skillId: resolved.skillId,
+        surface,
+        error: buildTerminalSkillBlockError(resolved.skillId, surface),
     };
 }
 
@@ -246,6 +255,7 @@ export function buildChantInvocation(
     projectRoot: string,
     cwd: string = process.cwd(),
     sessionId?: string,
+    autoResume: boolean = true,
 ): WeaveInvocation<ChantWeavePayload> {
     const invocation = withCliWorkspaceTarget<ChantWeavePayload>({
         weave_id: 'weave:chant',
@@ -257,7 +267,7 @@ export function buildChantInvocation(
         },
     }, projectRoot, cwd);
 
-    if (!sessionId) {
+    if (!sessionId && autoResume) {
         sessionId = lookupLatestActiveChantSessionId(projectRoot);
     }
 
@@ -266,6 +276,21 @@ export function buildChantInvocation(
     }
 
     return invocation;
+}
+
+export function buildHostNativeChantInvocation(
+    args: string[],
+    projectRoot: string,
+    cwd: string = process.cwd(),
+): WeaveInvocation<ChantWeavePayload> {
+    const directive = parseChantSessionDirective(args);
+    return buildChantInvocation(
+        directive.queryArgs,
+        projectRoot,
+        cwd,
+        directive.sessionId,
+        directive.shouldResume,
+    );
 }
 
 export function buildAutobotInvocation(

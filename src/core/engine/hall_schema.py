@@ -12,7 +12,7 @@ from src.core.engine.gungnir.schema import GungnirMatrix, build_gungnir_matrix, 
 HallRepositoryStatus = Literal["DORMANT", "AWAKE", "AGENT_LOOP"]
 HallScanStatus = Literal["PENDING", "COMPLETED", "FAILED"]
 HallBeadStatus = Literal["OPEN", "SET-PENDING", "SET", "IN_PROGRESS", "READY_FOR_REVIEW", "NEEDS_TRIAGE", "BLOCKED", "RESOLVED", "ARCHIVED", "SUPERSEDED"]
-HallBeadTargetKind = Literal["FILE", "SECTOR", "REPOSITORY", "CONTRACT", "SPOKE", "WORKFLOW", "VALIDATION", "OTHER"]
+HallBeadTargetKind = Literal["FILE", "SECTOR", "REPOSITORY", "CONTRACT", "SPOKE", "WORKFLOW", "WEAVE", "SKILL", "SYSTEM", "VALIDATION", "OTHER"]
 HallValidationVerdict = Literal["ACCEPTED", "REJECTED", "INCONCLUSIVE", "SUCCESS", "FAILURE"]
 HallSkillProposalStatus = Literal["PROPOSED", "VALIDATED", "PROMOTED", "REJECTED", "SUPERSEDED"]
 HallPlanningSessionStatus = Literal[
@@ -31,6 +31,31 @@ HallPlanningSessionStatus = Literal[
 ]
 
 
+def _require_non_empty_str(field_name: str, value: Any) -> None:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{field_name} must be a non-empty string")
+
+
+def _require_status(field_name: str, value: Any, allowed: tuple[str, ...]) -> None:
+    if value not in allowed:
+        raise ValueError(f"{field_name} must be one of: {', '.join(allowed)}")
+
+
+def _require_non_negative_int(field_name: str, value: Any) -> None:
+    if not isinstance(value, int) or value < 0:
+        raise ValueError(f"{field_name} must be a non-negative integer")
+
+
+def _require_dict(field_name: str, value: Any) -> None:
+    if not isinstance(value, dict):
+        raise ValueError(f"{field_name} must be a dict")
+
+
+def _require_list(field_name: str, value: Any) -> None:
+    if not isinstance(value, list):
+        raise ValueError(f"{field_name} must be a list")
+
+
 @dataclass
 class HallRepositoryRecord:
     repo_id: str
@@ -44,6 +69,16 @@ class HallRepositoryRecord:
     created_at: int = 0
     updated_at: int = 0
 
+    def __post_init__(self) -> None:
+        _require_non_empty_str("repo_id", self.repo_id)
+        _require_non_empty_str("root_path", self.root_path)
+        _require_non_empty_str("name", self.name)
+        _require_status("status", self.status, ("DORMANT", "AWAKE", "AGENT_LOOP"))
+        _require_non_empty_str("active_persona", self.active_persona)
+        _require_dict("metadata", self.metadata)
+        _require_non_negative_int("created_at", self.created_at)
+        _require_non_negative_int("updated_at", self.updated_at)
+
 
 @dataclass
 class HallScanRecord:
@@ -55,6 +90,16 @@ class HallScanRecord:
     baseline_gungnir_score: float = 0.0
     completed_at: int | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        _require_non_empty_str("scan_id", self.scan_id)
+        _require_non_empty_str("repo_id", self.repo_id)
+        _require_non_empty_str("scan_kind", self.scan_kind)
+        _require_status("status", self.status, ("PENDING", "COMPLETED", "FAILED"))
+        _require_non_negative_int("started_at", self.started_at)
+        if self.completed_at is not None:
+            _require_non_negative_int("completed_at", self.completed_at)
+        _require_dict("metadata", self.metadata)
 
 
 @dataclass
@@ -71,6 +116,14 @@ class HallFileRecord:
     exports: list[str] = field(default_factory=list)
     intent_summary: str | None = None
     interaction_summary: str | None = None
+
+    def __post_init__(self) -> None:
+        _require_non_empty_str("repo_id", self.repo_id)
+        _require_non_empty_str("scan_id", self.scan_id)
+        _require_non_empty_str("path", self.path)
+        _require_non_negative_int("created_at", self.created_at)
+        _require_list("imports", self.imports)
+        _require_list("exports", self.exports)
 
 
 @dataclass
@@ -96,6 +149,17 @@ class HallBeadRecord:
     resolution_note: str | None = None
     resolved_validation_id: str | None = None
     superseded_by: str | None = None
+
+    def __post_init__(self) -> None:
+        _require_non_empty_str("bead_id", self.bead_id)
+        _require_non_empty_str("repo_id", self.repo_id)
+        _require_non_empty_str("rationale", self.rationale)
+        _require_non_negative_int("created_at", self.created_at)
+        _require_non_negative_int("updated_at", self.updated_at)
+        _require_status("target_kind", self.target_kind, ("FILE", "SECTOR", "REPOSITORY", "CONTRACT", "SPOKE", "WORKFLOW", "WEAVE", "SKILL", "SYSTEM", "VALIDATION", "OTHER"))
+        _require_status("status", self.status, ("OPEN", "SET-PENDING", "SET", "IN_PROGRESS", "READY_FOR_REVIEW", "NEEDS_TRIAGE", "BLOCKED", "RESOLVED", "ARCHIVED", "SUPERSEDED"))
+        _require_list("contract_refs", self.contract_refs)
+        _require_dict("baseline_scores", self.baseline_scores)
 
 
 @dataclass
@@ -187,6 +251,8 @@ def build_repo_id(root_path: str | Path) -> str:
 class HallOfRecords:
     """Canonical SQLite-backed Hall schema for repository scans and outcomes."""
 
+    BUSY_TIMEOUT_MS = 5000
+
     def __init__(self, project_root: Path | str):
         self.project_root = Path(project_root)
         self.db_path = self.project_root / ".stats" / "pennyone.db"
@@ -194,8 +260,13 @@ class HallOfRecords:
 
     def connect(self) -> sqlite3.Connection:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.db_path, timeout=self.BUSY_TIMEOUT_MS / 1000)
         conn.row_factory = sqlite3.Row
+        # Configure SQLite for concurrent read/write workloads on the Hall DB.
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute(f"PRAGMA busy_timeout={self.BUSY_TIMEOUT_MS}")
+        conn.execute("PRAGMA synchronous=NORMAL")
+        conn.execute("PRAGMA foreign_keys=ON")
         return conn
 
     def ensure_schema(self) -> None:

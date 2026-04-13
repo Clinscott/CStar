@@ -31,6 +31,19 @@ test('Well of Mimir FTS5 Operations', async () => {
     const resultsHyphen = searchIntents('pb-xo-foundation xo-bead-01 scope non-goals');
     assert.ok(Array.isArray(resultsHyphen), 'Should return a result array for bead-style queries');
 
+    // 3c. Search Index (Natural multi-term queries should not collapse to zero when one token is absent)
+    updateFtsIndex(
+        'src/tools/pennyone/personaRegistry.ts',
+        'persona active config behavior planning investigation operating policy',
+        'Open active persona registry',
+    );
+    const resultsNatural = searchIntents('persona active persona config agent behavior investigation');
+    assert.ok(
+        resultsNatural.some(r => r.path === 'src/tools/pennyone/personaRegistry.ts'),
+        'Should recover relevant records when broad natural-language queries contain extra terms',
+    );
+    assert.ok(resultsNatural.length <= 30, 'Broad fallback should stay bounded for operator-readable Hall output');
+
     // 4. Update existing path
     const updatedIntent = 'Updated intent.';
     updateFtsIndex(testPath, updatedIntent, testProtocol);

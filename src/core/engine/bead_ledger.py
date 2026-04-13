@@ -5,6 +5,7 @@ import re
 import time
 import uuid
 from dataclasses import dataclass, field
+from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any, Sequence
 
@@ -35,6 +36,32 @@ def _normalize_contract_ref(ref: Any) -> str | None:
 def _normalized_contract_refs(contract_refs: Sequence[str] | None) -> tuple[str, ...]:
     normalized = {_normalize_contract_ref(ref) for ref in (contract_refs or [])}
     return tuple(sorted(ref for ref in normalized if ref))
+
+
+def _normalize_duplicate_text(value: str | None) -> str | None:
+    if value is None:
+        return None
+    text = value.strip().lower()
+    if not text:
+        return None
+    text = text.replace("`", "")
+    text = re.sub(r"[^\w\s./:-]+", " ", text)
+    return re.sub(r"\s+", " ", text).strip(" .") or None
+
+
+def _duplicate_text_matches(left: str | None, right: str | None) -> bool:
+    if left == right:
+        return True
+    if not left or not right:
+        return False
+    left_tokens = set(left.split())
+    right_tokens = set(right.split())
+    if not left_tokens or not right_tokens:
+        return False
+    overlap = len(left_tokens & right_tokens) / len(left_tokens | right_tokens)
+    if overlap >= 0.70:
+        return True
+    return SequenceMatcher(None, left, right).ratio() >= 0.78
 
 
 def _has_executable_contract_refs(contract_refs: Sequence[str] | None) -> bool:
@@ -131,6 +158,8 @@ class SovereignBead:
 class BeadLedger:
     """Canonical Hall-backed sovereign bead system with a `tasks.qmd` projection."""
 
+    CLAIM_RETRY_LIMIT = 4
+
     def __init__(self, project_root: Path | str):
         self.project_root = Path(project_root)
         self.hall = HallOfRecords(self.project_root)
@@ -161,12 +190,19 @@ class BeadLedger:
 
     def claim_next_bead(self, agent_id: str) -> dict[str, Any] | None:
         self.normalize_existing_beads()
-        with self.connect() as conn:
-            conn.execute("BEGIN IMMEDIATE")
-            bead = self._select_next_claimable_bead(conn)
-            if bead is None:
-                return None
-            claimed = self._claim_bead_in_transaction(conn, bead, agent_id)
+        claimed = self._claim_selected_bead(agent_id, self._select_next_claimable_bead)
+
+        self.sync_tasks_projection()
+        return claimed.to_public_dict() if claimed else None
+
+    def claim_next_p1_scan_bead(self, agent_id: str) -> dict[str, Any] | None:
+        """
+        Claims the next claimable P1_SCAN bead for the given agent.
+        Restricts to beads that belong to a P1_SCAN scan record.
+        Returns None if no claimable P1_SCAN beads remain.
+        """
+        self.normalize_existing_beads()
+        claimed = self._claim_selected_bead(agent_id, self._select_next_p1_scan_bead)
 
         self.sync_tasks_projection()
         return claimed.to_public_dict() if claimed else None
@@ -174,7 +210,6 @@ class BeadLedger:
     def claim_bead(self, bead_id: str | int, agent_id: str) -> SovereignBead | None:
         self.normalize_existing_beads()
         with self.connect() as conn:
-            conn.execute("BEGIN IMMEDIATE")
             bead = self._get_bead_for_update(conn, bead_id)
             if bead is None or bead.status not in {"OPEN", "SET"} or not self._is_claimable(bead):
                 return None
@@ -507,6 +542,36 @@ class BeadLedger:
         )
         return beads[0] if beads else None
 
+    def _select_next_p1_scan_bead(self, conn) -> SovereignBead | None:
+        """
+        Selects the next claimable P1_SCAN bead, ordered by claim priority.
+        Filters to beads whose scan_id belongs to a scan with scan_kind = 'P1_SCAN'.
+        """
+        rows = conn.execute(
+            """
+            SELECT b.* FROM hall_beads b
+            JOIN hall_scans s ON s.scan_id = b.scan_id
+            WHERE b.repo_id = ? AND b.status IN ('SET', 'OPEN') AND s.scan_kind = 'P1_SCAN'
+            """,
+            (self.repository.repo_id,),
+        ).fetchall()
+        beads = sorted(
+            (self._row_to_bead(row) for row in rows if self._is_claimable(self._row_to_bead(row))),
+            key=self._claim_sort_key,
+        )
+        return beads[0] if beads else None
+
+    def _claim_selected_bead(self, agent_id: str, selector) -> SovereignBead | None:
+        for _ in range(self.CLAIM_RETRY_LIMIT):
+            with self.connect() as conn:
+                bead = selector(conn)
+                if bead is None:
+                    return None
+                claimed = self._claim_bead_in_transaction(conn, bead, agent_id)
+                if claimed is not None:
+                    return claimed
+        return None
+
     def _get_bead_for_update(self, conn, bead_id: str | int) -> SovereignBead | None:
         if isinstance(bead_id, int):
             row = conn.execute(
@@ -695,24 +760,22 @@ class BeadLedger:
             """
             SELECT * FROM hall_beads
             WHERE repo_id = ? AND status IN ('OPEN', 'IN_PROGRESS', 'READY_FOR_REVIEW', 'NEEDS_TRIAGE', 'BLOCKED')
-              AND (
-                rationale = ?
-                OR (? IS NOT NULL AND target_ref = ?)
-                OR (? IS NOT NULL AND target_path = ?)
-              )
             ORDER BY updated_at DESC
             """,
-            (self.repository.repo_id, rationale, target_ref, target_ref, target_path, target_path),
+            (self.repository.repo_id,),
         ).fetchall()
         wanted_contracts = self._normalized_contract_refs(contract_refs)
+        wanted_rationale = _normalize_duplicate_text(rationale)
+        wanted_acceptance = _normalize_duplicate_text(acceptance_criteria)
         for row in rows:
             row_kind = str(row["target_kind"] or "FILE")
             row_ref = str(row["target_ref"]) if row["target_ref"] else None
             row_target = str(row["target_path"]) if row["target_path"] else None
             if row_ref is None and row_kind == "FILE" and row_target is not None:
                 row_ref = row_target
-            row_rationale = str(row["rationale"])
+            row_rationale = _normalize_duplicate_text(str(row["rationale"]))
             row_acceptance = str(row["acceptance_criteria"]) if row["acceptance_criteria"] else None
+            normalized_acceptance = _normalize_duplicate_text(row_acceptance)
             row_contracts = self._normalized_contract_refs(self._parse_json(row["contract_refs_json"], []))
             if row_kind != target_kind:
                 continue
@@ -720,11 +783,11 @@ class BeadLedger:
                 continue
             if row_target != target_path:
                 continue
-            if row_rationale != rationale:
-                continue
-            if row_acceptance != acceptance_criteria:
+            if normalized_acceptance != wanted_acceptance:
                 continue
             if row_contracts != wanted_contracts:
+                continue
+            if not _duplicate_text_matches(row_rationale, wanted_rationale):
                 continue
             return row
         return None

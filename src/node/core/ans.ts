@@ -13,6 +13,7 @@ import { getPythonPath } from './python_utils.js';
 
 import { HUD } from './hud.js';
 import { StateRegistry } from  './state.js';
+import { EngraveWeave } from './runtime/weaves/engrave.js';
 
 /**
  * Autonomic Nervous System (ANS)
@@ -62,6 +63,35 @@ ${activePersona.prefix}: "Initiating global dormancy protocol..."`));
             });
         } catch (e) {
             console.error(chalk.red(`[ERROR] Dormancy transition failed: ${e instanceof Error ? e.message : String(e)}`));
+        }
+
+        try {
+            const engrave = new EngraveWeave();
+            const result = await engrave.execute({
+                weave_id: 'weave:engrave',
+                payload: {
+                    project_root: projectRoot,
+                    cwd: projectRoot,
+                },
+            }, {
+                mission_id: `MISSION-DORMANCY-${Date.now()}`,
+                bead_id: `bead:dormancy:${Date.now()}`,
+                trace_id: `trace:dormancy:${Date.now()}`,
+                persona: activePersona.name,
+                workspace_root: projectRoot,
+                operator_mode: 'cli',
+                target_domain: 'brain',
+                interactive: false,
+                env: process.env,
+                timestamp: Date.now(),
+            });
+            if (result.status === 'FAILURE') {
+                console.error(chalk.red(`[ERROR] Dormancy learning engrave failed: ${result.error}`));
+            } else {
+                console.error(chalk.green(`${activePersona.prefix} '${result.output}'`));
+            }
+        } catch (e) {
+            console.error(chalk.red(`[ERROR] Dormancy learning failed: ${e instanceof Error ? e.message : String(e)}`));
         }
 
         // [🔱] THE STATE: Sleep Synchronized

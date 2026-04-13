@@ -312,6 +312,11 @@ describe('Command context renderer', () => {
                         mimirs_well: ['src/node/core/runtime/dispatcher.ts'],
                         confidence: 0.72,
                         canonical_intent: 'Evolve bead bead-runtime-1.',
+                        council_expert: {
+                            id: 'carmack',
+                            label: 'CARMACK',
+                            root_persona_directive: 'Adapt the root persona into a performance pragmatist.',
+                        },
                     },
                     notes: 'Review the execution bead before promoting follow-up work.',
                 },
@@ -322,11 +327,11 @@ describe('Command context renderer', () => {
         }
 
         assert.equal(lines.length, 2);
-        assert.match(lines[0] ?? '', /trace=SUCCESS \| WEAVE: evolve \| EVOLVE \| Evolve bead bead-runtime-1\./);
+        assert.match(lines[0] ?? '', /trace=SUCCESS \| WEAVE: evolve \| EVOLVE \| expert=CARMACK \| Evolve bead bead-runtime-1\./);
         assert.match(lines[1] ?? '', /note=Review the execution bead before promoting follow-up work\./);
 
         const executionBead = getHallBead('mission-runtime-1:exec:weave:evolve:1');
-        assert.equal((executionBead?.metadata?.host_cli_context as Record<string, unknown>)?.trace_line, 'trace=SUCCESS | WEAVE: evolve | EVOLVE | Evolve bead bead-runtime-1.');
+        assert.equal((executionBead?.metadata?.host_cli_context as Record<string, unknown>)?.trace_line, 'trace=SUCCESS | WEAVE: evolve | EVOLVE | expert=CARMACK | Evolve bead bead-runtime-1.');
         assert.equal((executionBead?.metadata?.host_cli_context as Record<string, unknown>)?.note_line, 'note=Review the execution bead before promoting follow-up work.');
     });
 });

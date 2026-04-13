@@ -1,12 +1,20 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { renderOperationalContext } from './command_context.js';
-import { buildSurfaceBlockError } from './dispatcher.js';
+import { buildTerminalSkillBlockError } from './dispatcher.js';
 import { RuntimeDispatcher } from '../runtime/dispatcher.js';
 import { SkillBead } from '../skills/types.js';
-import { getGungnirOverall } from '../../../types/gungnir.js';
 import { registry } from '../../../tools/pennyone/pathRegistry.js';
-import { loadRegistryEntries, resolveEntrySurface } from '../runtime/entry_surface.js';
+import { loadRegistryEntries, requiresTerminalExecution, resolveEntrySurface } from '../runtime/entry_surface.js';
+
+function parseSkillParams(rawParams?: string): Record<string, unknown> {
+    if (!rawParams) {
+        return {};
+    }
+    const parsed = JSON.parse(rawParams) as unknown;
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+        ? parsed as Record<string, unknown>
+        : { value: parsed };
+}
 
 /**
  * [🔱] THE SKILL RUN COMMAND
@@ -19,51 +27,41 @@ export function registerRunSkillCommand(program: Command) {
         .option('-t, --target <path>', 'Target path for the skill')
         .option('-i, --intent <string>', 'Intent override for the execution')
         .option('-p, --params <json>', 'JSON parameters for the skill')
-        .action(async (id: string, options: { target?: string, intent?: string, params?: string }) => {
-            const dispatcher = RuntimeDispatcher.getInstance();
+        .action(async (id: string, _options: { target?: string, intent?: string, params?: string }) => {
             const projectRoot = registry.getRoot();
             const normalizedId = id.trim().toLowerCase();
             const registryEntry = loadRegistryEntries(projectRoot)[normalizedId];
             if (registryEntry) {
                 const surface = resolveEntrySurface(registryEntry, normalizedId);
-                if (surface !== 'cli') {
-                    console.error(chalk.red(buildSurfaceBlockError(normalizedId, surface)));
+                if (surface === 'cli' && requiresTerminalExecution(registryEntry)) {
+                    const dispatcher = RuntimeDispatcher.getInstance();
+                    const bead: SkillBead = {
+                        id: `CLI-RUN-${Date.now()}`,
+                        skill_id: normalizedId,
+                        target_path: _options.target || '.',
+                        intent: _options.intent || `Direct CLI invocation of terminal-required skill ${normalizedId}`,
+                        params: {
+                            ...parseSkillParams(_options.params),
+                            terminal_required: true,
+                            source: 'cli',
+                        },
+                        status: 'PENDING',
+                        priority: 1
+                    };
+                    const result = await dispatcher.dispatch(bead);
+                    if (result.status === 'FAILURE') {
+                        console.error(chalk.red(result.error ?? `Terminal-required skill '${normalizedId}' failed.`));
+                    } else {
+                        console.log(result.output);
+                    }
                     return;
                 }
-            }
-            
-            const bead: SkillBead = {
-                id: `CLI-RUN-${Date.now()}`,
-                skill_id: normalizedId,
-                target_path: options.target || '.',
-                intent: options.intent || `Direct CLI invocation of skill ${normalizedId}`,
-                params: options.params ? JSON.parse(options.params) : {},
-                status: 'PENDING',
-                priority: 1
-            };
-
-            console.log(chalk.cyan(`\n ◤ DISPATCHING SKILL: ${normalizedId} ◢ `));
-            console.log(chalk.dim('━'.repeat(40)));
-
-            try {
-                const result = await dispatcher.dispatch(bead);
-                
-                if (result.status === 'SUCCESS') {
-                    console.log(chalk.green(`\n✔ SKILL EXECUTION SUCCESSFUL`));
-                    console.log(`${chalk.bold('OUTPUT:')} ${result.output}`);
-                    renderOperationalContext(result, registry.getRoot());
-                    if (result.metrics_delta) {
-                        console.log(`${chalk.bold('GUNGNIR Ω:')} Delta updated.`);
-                    }
-                } else {
-                    console.error(chalk.red(`\n✖ SKILL EXECUTION FAILED`));
-                    console.error(`${chalk.bold('ERROR:')} ${result.error}`);
-                }
-            } catch (err: any) {
-                console.error(chalk.red(`\n✖ CRITICAL DISPATCH FAILURE`));
-                console.error(`${chalk.bold('ERROR:')} ${err.message}`);
+                console.error(chalk.red(buildTerminalSkillBlockError(normalizedId, surface)));
+                return;
             }
 
-            console.log(chalk.dim('━'.repeat(40) + '\n'));
+            console.error(chalk.red(
+                `Capability '${normalizedId}' is not registered as a terminal-required capability. Terminal dispatch is forbidden for skills.`,
+            ));
         });
 }

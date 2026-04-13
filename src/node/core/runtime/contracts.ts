@@ -7,6 +7,7 @@
 import type { ForgeCandidateResult, ForgeValidationRequest } from  '../../../types/forge-candidate.js';
 import type { GungnirMatrix } from  '../../../types/gungnir.js';
 import type { RavensCycleResult, RavensStageResult, RavensTargetIdentity } from  '../../../types/ravens-stage.js';
+import type { CouncilExpertProtocol } from '../../../core/council_experts.js';
 
 export type WeaveStatus = 'SUCCESS' | 'FAILURE' | 'TRANSITIONAL';
 export type OperatorMode = 'cli' | 'tui' | 'automation' | 'subkernel';
@@ -40,6 +41,7 @@ export interface RuntimeTraceContract {
     confidence?: number;
     body?: string;
     canonical_intent?: string;
+    council_expert?: CouncilExpertProtocol;
 }
 
 export interface WorkspaceTarget {
@@ -64,6 +66,8 @@ export interface RuntimeContext {
     session_id?: string;
     trace_contract?: RuntimeTraceContract;
     trace_designation_source?: RuntimeTraceDesignationSource;
+    council_expert?: CouncilExpertProtocol;
+    root_persona_directive?: string;
     env: Record<string, string | undefined>;
     timestamp: number;
 }

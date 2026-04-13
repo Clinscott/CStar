@@ -1,6 +1,8 @@
 import json
 import sqlite3
 
+import pytest
+
 from src.core.engine.hall_schema import (
     HallBeadRecord,
     HallEpisodicMemoryRecord,
@@ -9,8 +11,30 @@ from src.core.engine.hall_schema import (
     HallRepositoryRecord,
     HallSkillProposalRecord,
     HallScanRecord,
+    HallValidationRun,
     build_repo_id,
 )
+
+
+def test_hall_records_validate_required_fields():
+    with pytest.raises(ValueError, match="repo_id"):
+        HallRepositoryRecord(repo_id="", root_path="/tmp/repo", name="repo")
+
+    with pytest.raises(ValueError, match="status"):
+        HallRepositoryRecord(repo_id="repo:/tmp/repo", root_path="/tmp/repo", name="repo", status="BROKEN")
+
+    with pytest.raises(ValueError, match="rationale"):
+        HallBeadRecord(bead_id="bead-1", repo_id="repo:/tmp/repo", rationale="", created_at=1, updated_at=1)
+
+    with pytest.raises(ValueError, match="target_kind"):
+        HallBeadRecord(
+            bead_id="bead-1",
+            repo_id="repo:/tmp/repo",
+            rationale="Repair sample.",
+            target_kind="UNKNOWN",
+            created_at=1,
+            updated_at=1,
+        )
 
 
 def test_hall_schema_bootstraps_repository_projection(tmp_path):
@@ -163,6 +187,24 @@ def test_hall_schema_bootstrap_does_not_overwrite_existing_repository_authority(
     assert summary["active_persona"] == "ALFRED"
 
 
+def test_hall_schema_connect_applies_sqlite_hardening_pragmas(tmp_path):
+    agents_dir = tmp_path / ".agents"
+    agents_dir.mkdir()
+    (agents_dir / "sovereign_state.json").write_text(json.dumps({}), encoding="utf-8")
+
+    hall = HallOfRecords(tmp_path)
+    with hall.connect() as conn:
+        journal_mode = conn.execute("PRAGMA journal_mode").fetchone()[0]
+        busy_timeout = conn.execute("PRAGMA busy_timeout").fetchone()[0]
+        synchronous = conn.execute("PRAGMA synchronous").fetchone()[0]
+        foreign_keys = conn.execute("PRAGMA foreign_keys").fetchone()[0]
+
+    assert str(journal_mode).lower() == "wal"
+    assert int(busy_timeout) == hall.BUSY_TIMEOUT_MS
+    assert int(synchronous) == 1
+    assert int(foreign_keys) == 1
+
+
 def test_hall_schema_persists_skill_proposals_separately_from_observations(tmp_path):
     agents_dir = tmp_path / ".agents"
     agents_dir.mkdir()
@@ -170,6 +212,41 @@ def test_hall_schema_persists_skill_proposals_separately_from_observations(tmp_p
 
     hall = HallOfRecords(tmp_path)
     repo = hall.bootstrap_repository()
+    hall.record_scan(
+        HallScanRecord(
+            scan_id="scan-1",
+            repo_id=repo.repo_id,
+            scan_kind="unit-test",
+            status="COMPLETED",
+            started_at=1700000000000,
+            completed_at=1700000000100,
+            metadata={},
+        )
+    )
+    hall.upsert_bead(
+        HallBeadRecord(
+            bead_id="bead-1",
+            repo_id=repo.repo_id,
+            scan_id="scan-1",
+            rationale="Prepare evolve promotion.",
+            status="READY_FOR_REVIEW",
+            created_at=1700000000200,
+            updated_at=1700000000200,
+        )
+    )
+    hall.save_validation_run(
+        HallValidationRun(
+            validation_id="validation-1",
+            repo_id=repo.repo_id,
+            scan_id="scan-1",
+            bead_id="bead-1",
+            verdict="ACCEPTED",
+            created_at=1700000000300,
+            pre_scores={"overall": 7.0},
+            post_scores={"overall": 8.0},
+            notes="Validated for proposal persistence.",
+        )
+    )
     hall.save_skill_proposal(
         HallSkillProposalRecord(
             proposal_id="proposal:evolve-1",

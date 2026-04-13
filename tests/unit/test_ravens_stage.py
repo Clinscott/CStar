@@ -1,7 +1,7 @@
 import asyncio
 import json
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from src.core.engine.ravens_stage import RavensCycleResult, RavensHallReferenceSet, RavensStageResult, RavensTargetIdentity
 from src.core.engine.validation_result import create_validation_result
@@ -79,3 +79,31 @@ def test_muninn_heart_emits_structured_cycle_result(tmp_path: Path) -> None:
     assert result.stages[2].hall is not None
     assert result.stages[2].hall.validation_id is not None
     assert result.stages[3].status == "SUCCESS"
+
+
+def test_muninn_heart_wait_for_silence_requires_stable_repository_snapshot(tmp_path: Path, monkeypatch) -> None:
+    heart = MuninnHeart(tmp_path, MagicMock())
+    monkeypatch.setenv("MUNINN_SILENCE_INTERVAL", "0")
+    monkeypatch.setenv("MUNINN_SILENCE_ATTEMPTS", "2")
+
+    with patch.object(heart, "_repository_activity_snapshot", side_effect=[" M file.py\n", " M file.py\n"]) as snapshot, \
+         patch("src.core.engine.ravens.muninn_heart.time.sleep") as sleep:
+        heart._wait_for_silence()
+
+    assert snapshot.call_count == 2
+    sleep.assert_called_once_with(0.0)
+
+
+def test_muninn_heart_wait_for_silence_fails_when_repository_keeps_changing(tmp_path: Path, monkeypatch) -> None:
+    heart = MuninnHeart(tmp_path, MagicMock())
+    monkeypatch.setenv("MUNINN_SILENCE_INTERVAL", "0")
+    monkeypatch.setenv("MUNINN_SILENCE_ATTEMPTS", "2")
+
+    with patch.object(heart, "_repository_activity_snapshot", side_effect=["1", "2", "3"]), \
+         patch("src.core.engine.ravens.muninn_heart.time.sleep"):
+        try:
+            heart._wait_for_silence()
+        except RuntimeError as exc:
+            assert "did not settle" in str(exc)
+        else:
+            raise AssertionError("Expected unsettled repository activity to block flight.")

@@ -8,6 +8,7 @@ Purpose: Unified semantic router delegating to specialized spokes for intent res
 
 import os
 import asyncio
+from collections import OrderedDict
 from pathlib import Path
 from typing import Any
 
@@ -26,6 +27,8 @@ class SovereignVector:
     [O.D.I.N.] Sovereign Semantic Facade.
     Delegates logic to specialized spokes while maintaining a unified interface.
     """
+    SEARCH_CACHE_MAXSIZE = 512
+
     def __init__(
         self,
         thesaurus_path: str | Path | None = None,
@@ -35,7 +38,7 @@ class SovereignVector:
         self.project_root: Path = Path(__file__).resolve().parents[3]
         self.memory_db = MemoryDB(str(self.project_root))
         self.instruction_loader = InstructionLoader(str(self.project_root))
-        self._search_cache: dict[str, list[dict[str, Any]]] = {}
+        self._search_cache: OrderedDict[str, list[dict[str, Any]]] = OrderedDict()
 
         # Initialize Spokes
         self.config_spoke = VectorConfig(self.project_root)
@@ -86,7 +89,7 @@ class SovereignVector:
     async def search(self, query: str, mode: str = "neural") -> list[dict[str, Any]]:
         query_norm = self.normalize(query)
         if query_norm in self._search_cache:
-            return self._search_cache[query_norm]
+            return self._get_cached_search(query_norm)
 
         # 1. Lexical Fast-Paths
         if query_norm in self.corrections.get("phrase_mappings", {}):
@@ -96,8 +99,9 @@ class SovereignVector:
         # 2. Shadow Search
         shadow_results = self.shadow_spoke.search(query_norm)
         if shadow_results and shadow_results[0]["score"] >= 0.95: # Very high confidence shadow
-            self._search_cache[query_norm] = shadow_results[:5]
-            return shadow_results[:5]
+            cached_results = shadow_results[:5]
+            self._set_cached_search(query_norm, cached_results)
+            return cached_results
 
         # 3. Targeted Semantic Search
         top_domain = self.router_spoke.get_top_domain(query_norm, query)
@@ -122,8 +126,20 @@ class SovereignVector:
         ]
 
         final_results.sort(key=lambda x: x['score'], reverse=True)
-        self._search_cache[query_norm] = final_results
+        self._set_cached_search(query_norm, final_results)
         return final_results
+
+    def _get_cached_search(self, query_norm: str) -> list[dict[str, Any]]:
+        results = self._search_cache.pop(query_norm)
+        self._search_cache[query_norm] = results
+        return results
+
+    def _set_cached_search(self, query_norm: str, results: list[dict[str, Any]]) -> None:
+        if query_norm in self._search_cache:
+            self._search_cache.pop(query_norm)
+        self._search_cache[query_norm] = results
+        while len(self._search_cache) > self.SEARCH_CACHE_MAXSIZE:
+            self._search_cache.popitem(last=False)
 
     async def _neural_rerank(self, query: str, candidates: list[dict]) -> list[dict]:
         """[Ω] Consult the Oracle to verify the semantic winner."""

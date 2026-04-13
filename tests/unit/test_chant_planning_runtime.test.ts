@@ -211,6 +211,8 @@ describe('Chant collaborative planning (CS-P7-03)', () => {
         const session = getHallPlanningSession(sessionId);
         assert.ok(session);
         assert.equal(session?.status, 'PROPOSAL_REVIEW');
+        assert.equal(session?.metadata?.active_persona, 'ALFRED');
+        assert.deepEqual((session?.metadata?.persona_operating_policy as any)?.planning?.riskTolerance, 'low');
     });
 
     it('maintains a multi-turn planning session across follow-up prompts', async () => {

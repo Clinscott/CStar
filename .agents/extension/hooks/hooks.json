@@ -1,5 +1,12 @@
 {
   "hooks": {
+    "SessionStart": [
+      {
+        "name": "cstar-vitals",
+        "type": "command",
+        "command": "node ${extensionPath}/hooks/session_start.js"
+      }
+    ],
     "BeforeAgent": [
       {
         "matcher": "*",

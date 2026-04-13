@@ -10,6 +10,7 @@ import type {
     HallOneMindBranchDigest,
 } from '../../../../types/hall.js';
 import { buildHallRepositoryId, normalizeHallPath } from '../../../../types/hall.js';
+import { resolvePersonaPolicy } from '../../../../tools/pennyone/personaRegistry.js';
 import { executeArchitectService } from './architect_service.js';
 import type {
     AutobotWeavePayload,
@@ -584,6 +585,7 @@ export async function runPlanningLoop(
     const mergedIntent = mergeNormalizedIntent(existingSession, normalizedIntent);
     const userIntent = existingSession?.user_intent ?? normalizedIntent;
     const traceContract = buildTraceContractMetadata(traceSelection);
+    const personaPolicy = resolvePersonaPolicy(context.persona);
     const baseMetadata: Record<string, unknown> & {
         trace_id: string;
         bead_ids?: string[];
@@ -594,6 +596,11 @@ export async function runPlanningLoop(
         trace_id: typeof existingSession?.metadata?.trace_id === 'string' && existingSession.metadata.trace_id.trim()
             ? existingSession.metadata.trace_id.trim()
             : context.trace_id,
+        active_persona: context.persona,
+        persona_operating_policy: {
+            planning: personaPolicy.planning,
+            investigation: personaPolicy.investigation,
+        },
         ...(traceContract ? {
             trace_contract_version: 1,
             trace_contract: traceContract,

@@ -59,6 +59,16 @@ export interface TraceContractPayload {
     confidence?: number;
     body?: string;
     canonical_intent?: string;
+    council_expert?: {
+        id?: string;
+        label?: string;
+        profile?: string;
+        protocol?: string;
+        lens?: string;
+        anti_behavior?: string[];
+        root_persona_directive?: string;
+        selection_reason?: string;
+    };
 }
 
 export interface TraceLineagePayload {
@@ -284,6 +294,24 @@ function getTraceContractFromMetadata(metadata: Record<string, unknown> | undefi
     if (typeof normalized.canonical_intent === 'string' && normalized.canonical_intent.trim()) {
         payload.canonical_intent = normalized.canonical_intent.trim();
     }
+    if (normalized.council_expert && typeof normalized.council_expert === 'object' && !Array.isArray(normalized.council_expert)) {
+        const expert = normalized.council_expert as Record<string, unknown>;
+        const antiBehavior = asStringArray(expert.anti_behavior);
+        payload.council_expert = {
+            id: typeof expert.id === 'string' && expert.id.trim() ? expert.id.trim() : undefined,
+            label: typeof expert.label === 'string' && expert.label.trim() ? expert.label.trim() : undefined,
+            profile: typeof expert.profile === 'string' && expert.profile.trim() ? expert.profile.trim() : undefined,
+            protocol: typeof expert.protocol === 'string' && expert.protocol.trim() ? expert.protocol.trim() : undefined,
+            lens: typeof expert.lens === 'string' && expert.lens.trim() ? expert.lens.trim() : undefined,
+            anti_behavior: antiBehavior.length > 0 ? antiBehavior : undefined,
+            root_persona_directive: typeof expert.root_persona_directive === 'string' && expert.root_persona_directive.trim()
+                ? expert.root_persona_directive.trim()
+                : undefined,
+            selection_reason: typeof expert.selection_reason === 'string' && expert.selection_reason.trim()
+                ? expert.selection_reason.trim()
+                : undefined,
+        };
+    }
 
     return Object.keys(payload).length > 1 ? payload : undefined;
 }
@@ -395,13 +423,19 @@ function rankRuntimeTraceBead(bead: SovereignBead): number {
 function resolveLatestRuntimeTraceBead(rootPath: string): SovereignBead | null {
     const beads = getHallBeads(rootPath)
         .filter((bead) => bead.id.includes(':exec:'))
+        .filter((bead) => bead.status !== 'ARCHIVED' && bead.status !== 'SUPERSEDED')
+        .filter((bead) => (bead.metadata as Record<string, unknown> | undefined)?.archived !== true)
         .filter((bead) => getTraceContractFromMetadata(bead.metadata as Record<string, unknown> | undefined))
         .sort((left, right) => {
+            const updatedDiff = Number(right.updated_at ?? 0) - Number(left.updated_at ?? 0);
+            if (updatedDiff !== 0) {
+                return updatedDiff;
+            }
             const rankDiff = rankRuntimeTraceBead(left) - rankRuntimeTraceBead(right);
             if (rankDiff !== 0) {
                 return rankDiff;
             }
-            return Number(right.updated_at ?? 0) - Number(left.updated_at ?? 0);
+            return left.id.localeCompare(right.id);
         });
     return beads[0] ?? null;
 }
@@ -728,6 +762,15 @@ export function renderTraceHandoffLines(handoff: TraceAgentHandoffPayload | null
     if (handoff.designation?.trajectory_status) {
         lines.push(chalk.dim(`trajectory=${handoff.designation.trajectory_status}`));
     }
+    if (handoff.designation?.council_expert?.label) {
+        lines.push(chalk.dim(`expert=${handoff.designation.council_expert.label}`));
+    }
+    if (handoff.designation?.council_expert?.selection_reason) {
+        lines.push(chalk.dim(`expert_reason=${handoff.designation.council_expert.selection_reason}`));
+    }
+    if (handoff.designation?.council_expert?.anti_behavior?.length) {
+        lines.push(chalk.dim(`anti=${handoff.designation.council_expert.anti_behavior.slice(0, 2).join(' ')}`));
+    }
 
     if (handoff.lead_bead_id) {
         lines.push(chalk.dim(`lead_bead=${handoff.lead_bead_id}`));
@@ -848,6 +891,15 @@ export function renderTraceStatusLines(session: HallPlanningSessionRecord | null
     }
     if (payload.trace_contract?.trajectory_status) {
         lines.push(chalk.dim(`trajectory=${payload.trace_contract.trajectory_status}`));
+    }
+    if (payload.trace_contract?.council_expert?.label) {
+        lines.push(chalk.dim(`expert=${payload.trace_contract.council_expert.label}`));
+    }
+    if (payload.trace_contract?.council_expert?.selection_reason) {
+        lines.push(chalk.dim(`expert_reason=${payload.trace_contract.council_expert.selection_reason}`));
+    }
+    if (payload.trace_contract?.council_expert?.anti_behavior?.length) {
+        lines.push(chalk.dim(`anti=${payload.trace_contract.council_expert.anti_behavior.slice(0, 2).join(' ')}`));
     }
     if (payload.lineage?.trace_designation_source) {
         lines.push(chalk.dim(`designation_source=${payload.lineage.trace_designation_source}`));

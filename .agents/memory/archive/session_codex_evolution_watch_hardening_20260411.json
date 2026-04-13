@@ -1,0 +1,34 @@
+[
+  {
+    "cmd": "session_learned",
+    "bead_id": "session-learning:codex-evolution-watch-hardening-2026-04-11",
+    "task": "CStar learned that Evolution Watch reports must validate findings against current code before creating actionable work; A.L.F.R.E.D. should favor conservative report triage, suppress stale findings, and verify session learning through EngraveWeave into Hall episodic memory.",
+    "target": ".agents/memory.qmd",
+    "files_touched": [
+      "src/skills/local/CStarEvolutionWatch/scripts/evolution_watch.py",
+      "src/core/engine/bead_ledger.py",
+      "src/core/engine/hall_schema.py",
+      "src/core/engine/ravens/muninn_heart.py",
+      "src/core/engine/autobot_skill.py",
+      "tests/unit/test_evolution_watch.py"
+    ],
+    "successes": [
+      "Evolution Watch dry-run reached zero current findings after hardening.",
+      "Session learning was staged and engraved through the active EngraveWeave path."
+    ],
+    "ts": 1775960275,
+    "result": {
+      "status": "success",
+      "message": "Current session learning captured."
+    },
+    "metadata": {
+      "source": "codex-current-session",
+      "active_persona": "A.L.F.R.E.D.",
+      "learning_scope": [
+        "cstar",
+        "persona"
+      ],
+      "theme": "evolution-watch-hardening"
+    }
+  }
+]

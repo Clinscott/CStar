@@ -16,6 +16,7 @@
     "calculus"
   ],
   "skills": "./skills/",
+  "hooks": "./hooks.json",
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Corvus Star",
@@ -31,11 +32,9 @@
     "privacyPolicyURL": "https://github.com/Clinscott/CStar#readme",
     "termsOfServiceURL": "https://github.com/Clinscott/CStar#readme",
     "defaultPrompt": [
-      "Use CStar Hall before broad local search.",
-      "Route Corvus work through ./cstar and node bin/cstar.js.",
-      "Keep registry and runtime contracts authoritative.",
-      "Treat host-executable capabilities as supervisor paths and kernel-backed capabilities as bounded local primitives.",
-      "Public host fronts with forbidden kernel fallback must fail closed when the host session is absent."
+      "Resume CStar work through the Hall.",
+      "Find the active bead before editing.",
+      "Use the CStar trace handoff."
     ],
     "brandColor": "#0F6E5B"
   }

@@ -569,4 +569,89 @@ describe('Trace command', () => {
 
         closeDb();
     });
+
+    it('prefers the most recent runtime trace over stale blocked execution beads', () => {
+        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-trace-runtime-recency-'));
+        registry.setRoot(tmpRoot);
+        closeDb();
+        const repoId = buildHallRepositoryId(normalizeHallPath(tmpRoot));
+        const now = Date.now();
+        const traceContract = {
+            intent_category: 'EVOLVE',
+            intent: 'Evolve bead bead-runtime-1.',
+            selection_tier: 'WEAVE',
+            selection_name: 'evolve',
+            trajectory_status: 'STABLE',
+            trajectory_reason: 'Dispatcher synthesized the designation from the explicit weave invocation.',
+            mimirs_well: ['src/node/core/runtime/dispatcher.ts'],
+            confidence: 0.72,
+            canonical_intent: 'Evolve bead bead-runtime-1.',
+        };
+
+        upsertHallBead({
+            bead_id: 'mission-runtime-old:exec:weave:unknown:1',
+            repo_id: repoId,
+            target_kind: 'WEAVE',
+            target_ref: 'weave:unknown',
+            rationale: 'Execution of weave:unknown under mission MISSION-OLD',
+            status: 'BLOCKED',
+            created_at: now,
+            updated_at: now,
+            metadata: {
+                trace_id: 'TRACE-RUNTIME-OLD',
+                mission_bead_id: 'mission-runtime-old',
+                trace_contract: {
+                    ...traceContract,
+                    intent: 'Execute unknown.',
+                    selection_name: 'unknown',
+                    canonical_intent: 'Execute unknown.',
+                },
+            },
+        });
+        upsertHallBead({
+            bead_id: 'mission-runtime-new:exec:weave:evolve:1',
+            repo_id: repoId,
+            target_kind: 'WEAVE',
+            target_ref: 'weave:evolve',
+            target_path: 'src/runtime.ts',
+            rationale: 'Execution of weave:evolve under mission MISSION-NEW',
+            status: 'RESOLVED',
+            created_at: now + 1,
+            updated_at: now + 1,
+            metadata: {
+                trace_id: 'TRACE-RUNTIME-NEW',
+                mission_bead_id: 'mission-runtime-new',
+                trace_contract: traceContract,
+            },
+        });
+        upsertHallBead({
+            bead_id: 'mission-runtime-archived:exec:weave:unknown:1',
+            repo_id: repoId,
+            target_kind: 'WEAVE',
+            target_ref: 'weave:unknown',
+            rationale: 'Execution of archived weave:unknown under mission MISSION-ARCHIVED',
+            status: 'BLOCKED',
+            created_at: now + 2,
+            updated_at: now + 2,
+            metadata: {
+                archived: true,
+                trace_id: 'TRACE-RUNTIME-ARCHIVED',
+                mission_bead_id: 'mission-runtime-archived',
+                trace_contract: {
+                    ...traceContract,
+                    intent: 'Execute archived unknown.',
+                    selection_name: 'unknown',
+                    canonical_intent: 'Execute archived unknown.',
+                },
+            },
+        });
+
+        const payload = buildTraceStatusPayload(null, tmpRoot);
+        assert.equal(payload?.trace_id, 'TRACE-RUNTIME-NEW');
+        assert.equal(payload?.runtime_bead_id, 'mission-runtime-new:exec:weave:evolve:1');
+        assert.equal(payload?.status, 'RESOLVED');
+        assert.equal(payload?.agent_handoff.execution_gate, 'completed');
+
+        closeDb();
+    });
 });
