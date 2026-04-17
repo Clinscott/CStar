@@ -11,7 +11,7 @@ import { registerRavenCommand } from './ravens.js';
 import { registerRunSkillCommand } from './run-skill.js';
 import { registerSpokeCommand } from './spoke.js';
 import { registerStartCommand } from './start.js';
-import { registerTraceCommand } from './trace.js';
+import { registerAuguryCommand, registerTraceCommand } from './trace.js';
 import { registerTuiCommand } from './tui.js';
 import { registerVitalsCommand } from './vitals.js';
 import type { RuntimeDispatchPort, WeaveInvocation, WeaveResult } from '../runtime/contracts.js';
@@ -138,6 +138,7 @@ function buildCommandCatalog(): CommandCatalogEntry[] {
     registerBifrostCommand(program);
     registerOracleCommand(program, workspaceRoot);
     registerOneMindCommand(program, workspaceRoot);
+    registerAuguryCommand(program, workspaceRoot);
     registerTraceCommand(program, workspaceRoot);
     registerHallDocumentCommand(program);
     registerCapabilityDiscoveryCommands(program);

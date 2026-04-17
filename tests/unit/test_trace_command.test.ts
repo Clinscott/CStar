@@ -5,9 +5,13 @@ import os from 'node:os';
 import path from 'node:path';
 
 import {
+    buildAuguryDoctorPayload,
+    buildAuguryExplainPayload,
     buildTraceFailuresPayload,
     buildTraceHandoffPayload,
     buildTraceStatusPayload,
+    renderAuguryHandoffLines,
+    renderAuguryStatusLines,
     renderTraceHandoffLines,
     renderTraceFailureLines,
     renderTraceStatusLines,
@@ -21,6 +25,104 @@ function stripAnsi(value: string): string {
 }
 
 describe('Trace command', () => {
+    it('diagnoses and explains a clean active Augury for agents', () => {
+        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-augury-doctor-'));
+        const cstarRoot = path.join(tmpRoot, 'CStar');
+        fs.mkdirSync(cstarRoot, { recursive: true });
+        const repoId = buildHallRepositoryId(normalizeHallPath(cstarRoot));
+        const now = Date.now();
+        const session: any = {
+            session_id: 'chant-session:AUGURY-DOCTOR',
+            repo_id: repoId,
+            skill_id: 'chant',
+            status: 'PLAN_READY',
+            user_intent: 'improve game engine performance',
+            normalized_intent: 'improve game engine performance',
+            summary: 'Ready for bounded Augury diagnostics.',
+            created_at: now,
+            updated_at: now,
+            metadata: {
+                trace_id: 'AUGURY-DOCTOR',
+                target_domain: 'brain',
+                requested_root: cstarRoot,
+                augury_designation_source: 'payload_augury_contract',
+                augury_contract: {
+                    intent_category: 'BUILD',
+                    intent: 'Improve game engine performance.',
+                    selection_tier: 'SKILL',
+                    selection_name: 'hall',
+                    trajectory_status: 'STABLE',
+                    mimirs_well: ['src/game/engine.ts'],
+                    gungnir_verdict: '[L: 4.7 | S: 4.5 | I: 4.8 | Ω: 93%]',
+                    canonical_intent: 'improve game engine performance',
+                    council_expert: {
+                        id: 'carmack',
+                        label: 'CARMACK',
+                        lens: 'Attack unnecessary layers and hot-path waste.',
+                        selection_reason: 'game engine performance signal',
+                    },
+                },
+            },
+        };
+
+        const doctor = buildAuguryDoctorPayload(session, cstarRoot);
+        assert.equal(doctor.status, 'pass');
+        assert.equal(doctor.scope_ok, true);
+        assert.equal(doctor.route_ok, true);
+        assert.equal(doctor.expert_ok, true);
+        assert.equal(doctor.mimir_ok, true);
+        assert.equal(doctor.noise_score, 0);
+        assert.equal(doctor.active?.scope, 'brain:CStar');
+        assert.equal(doctor.active?.expert, 'CARMACK');
+        assert.deepEqual(doctor.warnings, []);
+
+        const explain = buildAuguryExplainPayload(session, cstarRoot);
+        assert.equal(explain.status, 'available');
+        assert.equal(explain.route?.designation, 'SKILL: hall');
+        assert.equal(explain.scope?.value, 'brain:CStar');
+        assert.equal(explain.scope?.target_domain, 'brain');
+        assert.equal(explain.scope?.requested_root, cstarRoot);
+        assert.equal(explain.expert?.label, 'CARMACK');
+        assert.deepEqual(explain.mimir?.targets, ['src/game/engine.ts']);
+        assert.match(explain.mode?.basis ?? '', /full Augury once/i);
+        assert.equal(explain.confidence?.source, 'missing');
+    });
+
+    it('warns agents when Augury has weak routing evidence', () => {
+        const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-augury-doctor-weak-'));
+        const repoId = buildHallRepositoryId(normalizeHallPath(tmpRoot));
+        const now = Date.now();
+        const session: any = {
+            session_id: 'chant-session:AUGURY-WEAK',
+            repo_id: repoId,
+            skill_id: 'chant',
+            status: 'PROPOSAL_REVIEW',
+            user_intent: 'weak augury',
+            normalized_intent: 'weak augury',
+            summary: 'Weak routing evidence.',
+            created_at: now,
+            updated_at: now,
+            metadata: {
+                trace_id: 'AUGURY-WEAK',
+                augury_contract: {
+                    intent_category: 'BUILD',
+                    intent: 'Build something.',
+                    selection_tier: 'UNKNOWN',
+                    selection_name: 'unknown',
+                    mimirs_well: [],
+                },
+            },
+        };
+
+        const doctor = buildAuguryDoctorPayload(session, tmpRoot);
+        assert.equal(doctor.status, 'fail');
+        assert.equal(doctor.expert_ok, false);
+        assert.equal(doctor.mimir_ok, false);
+        assert.match(doctor.warnings.join('\n'), /No Council expert/);
+        assert.match(doctor.warnings.join('\n'), /no Mimir targets/i);
+        assert.match(doctor.agent_next_action, /Repair the Augury contract/);
+    });
+
     it('renders a compact active planning trace summary for the host CLI', () => {
         const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-trace-command-'));
         registry.setRoot(tmpRoot);
@@ -196,7 +298,7 @@ describe('Trace command', () => {
                     canonical_intent: 'json trace',
                 },
                 host_cli_context: {
-                    trace_line: 'trace=PLAN_READY | TRACE-JSON | Ready for execution.',
+                    trace_line: 'handoff=PLAN_READY | TRACE-JSON | Ready for execution.',
                     note_line: 'note=Use the bounded runtime path and validate the lead bead before release.',
                     updated_at: now + 5,
                 },
@@ -264,14 +366,14 @@ describe('Trace command', () => {
         });
         assert.deepEqual(payload?.artifacts, ['src/runtime.ts']);
         assert.deepEqual(payload?.host_context, {
-            trace_line: 'trace=PLAN_READY | TRACE-JSON | Ready for execution.',
+            trace_line: 'handoff=PLAN_READY | TRACE-JSON | Ready for execution.',
             trace_summary: 'PLAN_READY | TRACE-JSON | Ready for execution.',
             note_line: 'note=Use the bounded runtime path and validate the lead bead before release.',
             note: 'Use the bounded runtime path and validate the lead bead before release.',
             updated_at: now + 5,
             updated_at_iso: new Date(now + 5).toISOString(),
         });
-        assert.deepEqual(payload?.trace_contract, {
+        assert.deepEqual(payload?.augury_contract, {
             intent_category: 'ORCHESTRATE',
             intent: 'Make chant the only intake gate',
             selection_tier: 'WEAVE',
@@ -283,13 +385,14 @@ describe('Trace command', () => {
             confidence: 0.94,
             canonical_intent: 'json trace',
         });
+        assert.deepEqual(payload?.trace_contract, payload?.augury_contract);
         assert.equal(payload?.agent_handoff.execution_gate, 'operator_release_required');
         assert.equal(payload?.agent_handoff.phase, 'PLAN_READY');
         assert.equal(payload?.agent_handoff.next_action, 'Use the bounded runtime path and validate the lead bead before release.');
         assert.equal(payload?.agent_handoff.resume_command, 'cstar hall "chant-session:TRACE-JSON"');
         assert.equal(payload?.agent_handoff.validation_command, 'npm test -- --run tests/unit/runtime.test.ts');
         assert.equal(payload?.agent_handoff.lead_bead_id, 'bead-json-1');
-        assert.deepEqual(payload?.agent_handoff.designation, payload?.trace_contract);
+        assert.deepEqual(payload?.agent_handoff.designation, payload?.augury_contract);
         assert.deepEqual(payload?.agent_handoff.target_paths, ['src/runtime.ts', 'tests/unit/runtime.test.ts']);
         assert.deepEqual(payload?.agent_handoff.checker_shells, ['npm test -- --run tests/unit/runtime.test.ts']);
         assert.deepEqual(payload?.agent_handoff.proposal_ids, ['proposal:TRACE-JSON:bead-json-1']);
@@ -320,6 +423,12 @@ describe('Trace command', () => {
         assert.equal(handoffLines[7], 'targets=src/runtime.ts, tests/unit/runtime.test.ts');
         assert.equal(handoffLines[8], 'validate=npm test -- --run tests/unit/runtime.test.ts');
         assert.equal(handoffLines[9], 'note=Use the bounded runtime path and validate the lead bead before release.');
+
+        const auguryStatusLines = renderAuguryStatusLines(session, tmpRoot).map(stripAnsi);
+        assert.equal(auguryStatusLines[0], '[AUGURY] PLAN_READY TRACE-JSON');
+        const auguryHandoffLines = renderAuguryHandoffLines(handoff).map(stripAnsi);
+        assert.equal(auguryHandoffLines[0], '[AUGURY_HANDOFF] gate=operator_release_required phase=PLAN_READY');
+        assert.equal(auguryHandoffLines[3], 'designation=WEAVE: orchestrate');
 
         closeDb();
     });
@@ -538,7 +647,7 @@ describe('Trace command', () => {
                     canonical_intent: 'Evolve bead bead-runtime-1.',
                 },
                 host_cli_context: {
-                    trace_line: 'trace=SUCCESS | WEAVE: evolve | EVOLVE | Evolve bead bead-runtime-1.',
+                    trace_line: 'augury=SUCCESS | WEAVE: evolve | EVOLVE | Evolve bead bead-runtime-1.',
                     note_line: 'note=Review the completed execution bead and seed follow-up work explicitly.',
                     updated_at: now + 2,
                 },
@@ -552,7 +661,7 @@ describe('Trace command', () => {
         assert.equal(payload?.mission_bead_id, 'mission-runtime-1');
         assert.equal(payload?.status, 'RESOLVED');
         assert.equal(payload?.focus, 'Evolve bead bead-runtime-1.');
-        assert.deepEqual(payload?.trace_contract, {
+        assert.deepEqual(payload?.augury_contract, {
             intent_category: 'EVOLVE',
             intent: 'Evolve bead bead-runtime-1.',
             selection_tier: 'WEAVE',
@@ -563,6 +672,7 @@ describe('Trace command', () => {
             confidence: 0.72,
             canonical_intent: 'Evolve bead bead-runtime-1.',
         });
+        assert.deepEqual(payload?.trace_contract, payload?.augury_contract);
         assert.equal(payload?.agent_handoff.resume_command, 'cstar hall "mission-runtime-1"');
         assert.equal(payload?.agent_handoff.next_action, 'Review the completed execution bead and seed follow-up work explicitly.');
         assert.deepEqual(payload?.agent_handoff.target_paths, ['src/runtime.ts']);

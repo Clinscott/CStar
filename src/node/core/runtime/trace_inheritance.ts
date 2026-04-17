@@ -5,25 +5,38 @@ function isPlainRecord(value: unknown): value is Record<string, unknown> {
     return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
-export function inheritTracePayload<T>(
+type AuguryInheritanceContext = Pick<RuntimeContext, 'augury_contract' | 'augury_designation_source' | 'trace_contract' | 'trace_designation_source' | 'session_id'>;
+
+export function inheritAuguryPayload<T>(
     payload: T,
-    context: Pick<RuntimeContext, 'trace_contract' | 'trace_designation_source' | 'session_id'>,
+    context: AuguryInheritanceContext,
 ): T {
     if (!isPlainRecord(payload)) {
         return payload;
     }
 
     const additions: Record<string, unknown> = {};
+    const auguryContract = context.augury_contract ?? context.trace_contract;
+    const augurySource = context.augury_designation_source ?? context.trace_designation_source;
 
-    if (context.trace_contract && !isPlainRecord(payload.trace_contract)) {
-        additions.trace_contract = context.trace_contract;
+    if (auguryContract && !isPlainRecord(payload.augury_contract)) {
+        additions.augury_contract = auguryContract;
+    }
+    if (auguryContract && !isPlainRecord(payload.trace_contract)) {
+        additions.trace_contract = auguryContract;
     }
 
     if (
-        context.trace_designation_source
+        augurySource
+        && typeof payload.augury_designation_source !== 'string'
+    ) {
+        additions.augury_designation_source = augurySource;
+    }
+    if (
+        augurySource
         && typeof payload.trace_designation_source !== 'string'
     ) {
-        additions.trace_designation_source = context.trace_designation_source;
+        additions.trace_designation_source = augurySource;
     }
 
     if (
@@ -46,7 +59,7 @@ export function inheritTracePayload<T>(
 
 export function inheritTraceInvocation<T>(
     invocation: WeaveInvocation<T>,
-    context: Pick<RuntimeContext, 'trace_contract' | 'trace_designation_source' | 'session_id'>,
+    context: AuguryInheritanceContext,
 ): WeaveInvocation<T> {
     if (!isPlainRecord(invocation.payload)) {
         return invocation;
@@ -54,17 +67,19 @@ export function inheritTraceInvocation<T>(
 
     return {
         ...invocation,
-        payload: inheritTracePayload(invocation.payload, context),
+        payload: inheritAuguryPayload(invocation.payload, context),
     };
 }
 
+export const inheritAuguryInvocation = inheritTraceInvocation;
+
 export function inheritTraceSkillBead<T>(
     bead: SkillBead<T>,
-    context: Pick<RuntimeContext, 'trace_contract' | 'trace_designation_source' | 'session_id'>,
+    context: AuguryInheritanceContext,
 ): SkillBead<T> {
     const params = isPlainRecord(bead.params)
-        ? inheritTracePayload(bead.params, context)
-        : inheritTracePayload({
+        ? inheritAuguryPayload(bead.params, context)
+        : inheritAuguryPayload({
             value: bead.params,
         }, context);
 
@@ -77,3 +92,8 @@ export function inheritTraceSkillBead<T>(
         params: params as T,
     };
 }
+
+export const inheritAugurySkillBead = inheritTraceSkillBead;
+
+/** @deprecated Use inheritAuguryPayload. */
+export const inheritTracePayload = inheritAuguryPayload;

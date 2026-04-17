@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 import {
+    buildAuguryLearningMetadata,
     buildHostNativeSkillPrompt,
     explainCapabilityHostSupport,
     getCapabilityExecutionMode,
@@ -203,5 +204,167 @@ describe('Host session runtime support metadata', () => {
         assert.match(prompt, /\[CORVUS_SKILL_ACTIVATION\]/);
         assert.match(prompt, /Do not invoke `cstar`, `node`, or a runtime dispatcher/i);
         assert.match(prompt, /Focus targets: src\/core\/host_session\.ts/);
+    });
+
+    it('injects Augury routing, council overlay, and Mimir targets into host-native skill prompts', () => {
+        const prompt = buildHostNativeSkillPrompt({
+            skill_id: 'hall',
+            intent: 'find the RPG engine state',
+            project_root: '/tmp/corvus-host-support-message-',
+            target_paths: ['FallowsHallowRPG/src/engine.ts'],
+            target_domain: 'spoke',
+            spoke_name: 'FallowsHallow-RPG',
+            requested_root: '/home/morderith/Corvus/FallowsHallow-RPG',
+            payload: { query: 'rpg engine state' },
+            augury_contract: {
+                intent_category: 'BUILD',
+                intent: 'Implement RPG engine code.',
+                selection_tier: 'SKILL',
+                selection_name: 'hall',
+                trajectory_status: 'STABLE',
+                trajectory_reason: 'Need engine context before edits.',
+                mimirs_well: [
+                    'FallowsHallowRPG/src/engine.ts',
+                    'FallowsHallowRPG/src/render-loop.ts',
+                    'FallowsHallowRPG/src/physics.ts',
+                    'FallowsHallowRPG/src/audio.ts',
+                ],
+                confidence: 0.91,
+                council_expert: {
+                    id: 'carmack',
+                    label: 'CARMACK',
+                    protocol: 'Performance, simplicity, measurement, and mechanical-sympathy critique.',
+                    lens: 'Attack unnecessary layers and hot-path waste.',
+                    root_persona_directive: 'Adapt the root persona into a performance pragmatist.',
+                    anti_behavior: ['Do not add layers when a direct mechanism is clear.'],
+                },
+            },
+        });
+
+        assert.match(prompt, /\[CORVUS_STAR_AUGURY\]/);
+        assert.match(prompt, /Mode: full/);
+        assert.match(prompt, /Route: BUILD -> SKILL: hall/);
+        assert.match(prompt, /Scope: spoke:FallowsHallow-RPG/);
+        assert.match(prompt, /Corvus Standard: CStar is the engine; spokes are managed extensions; keep work Hall\/Mimir traceable\./);
+        assert.match(prompt, /Code Standard: scoped changes; preserve unrelated work; verify focused behavior; leave no known broken surface\./);
+        assert.match(prompt, /Council Expert: CARMACK/);
+        assert.match(prompt, /Council Lens: Attack unnecessary layers and hot-path waste\./);
+        assert.match(prompt, /Guardrails: Do not add layers when a direct mechanism is clear\./);
+        assert.match(prompt, /Mimir's Well: FallowsHallowRPG\/src\/engine\.ts/);
+        assert.match(prompt, /FallowsHallowRPG\/src\/render-loop\.ts/);
+        assert.match(prompt, /FallowsHallowRPG\/src\/physics\.ts/);
+        assert.doesNotMatch(prompt, /FallowsHallowRPG\/src\/audio\.ts/);
+        assert.match(prompt, /Directive: Use this as routing context only/i);
+        assert.doesNotMatch(prompt, /Confidence:/);
+        assert.doesNotMatch(prompt, /Root Persona Overlay:/);
+    });
+
+    it('can render a lite Augury block for repeated host-native skill prompts', () => {
+        const prompt = buildHostNativeSkillPrompt({
+            skill_id: 'hall',
+            intent: 'find the RPG engine state',
+            project_root: '/tmp/corvus-host-support-message-',
+            target_paths: ['FallowsHallowRPG/src/engine.ts'],
+            target_domain: 'spoke',
+            spoke_name: 'FallowsHallow-RPG',
+            requested_root: '/home/morderith/Corvus/FallowsHallow-RPG',
+            payload: { query: 'rpg engine state' },
+            augury_mode: 'lite',
+            augury_contract: {
+                intent_category: 'BUILD',
+                intent: 'Implement RPG engine code.',
+                selection_tier: 'SKILL',
+                selection_name: 'hall',
+                mimirs_well: ['FallowsHallowRPG/src/engine.ts'],
+                council_expert: {
+                    id: 'carmack',
+                    label: 'CARMACK',
+                    protocol: 'Performance, simplicity, measurement, and mechanical-sympathy critique.',
+                    lens: 'Attack unnecessary layers and hot-path waste.',
+                    anti_behavior: ['Do not add layers when a direct mechanism is clear.'],
+                },
+            },
+        });
+
+        assert.match(prompt, /\[CORVUS_STAR_AUGURY\]/);
+        assert.match(prompt, /Mode: lite/);
+        assert.match(prompt, /Route: BUILD -> SKILL: hall/);
+        assert.match(prompt, /Scope: spoke:FallowsHallow-RPG/);
+        assert.match(prompt, /Intent: Implement RPG engine code\./);
+        assert.match(prompt, /Mimir's Well: FallowsHallowRPG\/src\/engine\.ts/);
+        assert.match(prompt, /Council Expert: CARMACK/);
+        assert.match(prompt, /Directive: Route only\. Consult targets before choosing a path\. Do not echo\./);
+        assert.doesNotMatch(prompt, /Corvus Standard:/);
+        assert.doesNotMatch(prompt, /Code Standard:/);
+        assert.doesNotMatch(prompt, /Council Lens:/);
+        assert.doesNotMatch(prompt, /Guardrails:/);
+        assert.doesNotMatch(prompt, /Confidence:/);
+    });
+
+    it('grounds foundational Augury work in brain:CStar instead of a spoke', () => {
+        const prompt = buildHostNativeSkillPrompt({
+            skill_id: 'hall',
+            intent: 'inspect Corvus Star Augury',
+            project_root: '/home/morderith/Corvus/CStar',
+            target_paths: ['src/core/host_session.ts'],
+            payload: { query: 'Corvus Star Augury' },
+            augury_contract: {
+                intent_category: 'OBSERVE',
+                intent: 'Inspect Corvus Star Augury usefulness.',
+                selection_tier: 'SKILL',
+                selection_name: 'hall',
+                mimirs_well: ['src/core/host_session.ts'],
+                council_expert: {
+                    id: 'shannon',
+                    label: 'SHANNON',
+                    protocol: 'Signal, information-flow, observability, and ambiguity critique.',
+                    lens: 'Attack noisy signals and ambiguous encodings.',
+                    root_persona_directive: 'Adapt the root persona into an information theorist.',
+                    anti_behavior: ['Do not collapse distinct states into one status.'],
+                },
+            },
+        });
+
+        assert.match(prompt, /Scope: brain:CStar/);
+        assert.doesNotMatch(prompt, /Scope: spoke:/);
+        assert.match(prompt, /Review Standard: findings first; cite files; call out regressions, risks, and missing tests\./);
+    });
+
+    it('keeps full Augury consult counts in learning metadata while capping prompt targets', () => {
+        const metadata = buildAuguryLearningMetadata({
+            intent_category: 'BUILD',
+            selection_tier: 'SKILL',
+            selection_name: 'hall',
+            confidence: 0.91,
+            confidence_source: 'explicit',
+            mimirs_well: ['one.ts', 'two.ts', 'three.ts', 'four.ts'],
+        }, {
+            session_id: 'chant-session:cap',
+            designation_source: 'explicit_augury_block',
+        });
+
+        assert.equal(metadata?.steering_block_version, 2);
+        assert.equal(metadata?.steering_mode, 'full');
+        assert.equal(metadata?.corvus_standard_version, 1);
+        assert.equal(typeof metadata?.contract_hash, 'string');
+        assert.equal(metadata?.confidence_source, 'explicit');
+        assert.equal(metadata?.mimirs_well_count, 4);
+        assert.equal(metadata?.mimirs_well_omitted_count, 1);
+        assert.equal(metadata?.session_id, 'chant-session:cap');
+    });
+
+    it('stores lite steering mode in learning metadata when provided', () => {
+        const metadata = buildAuguryLearningMetadata({
+            intent_category: 'BUILD',
+            selection_tier: 'SKILL',
+            selection_name: 'hall',
+            mimirs_well: ['one.ts'],
+        }, {
+            session_id: 'chant-session:lite',
+            steering_mode: 'lite',
+        });
+
+        assert.equal(metadata?.steering_mode, 'lite');
+        assert.equal(metadata?.session_id, 'chant-session:lite');
     });
 });

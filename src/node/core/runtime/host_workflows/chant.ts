@@ -122,14 +122,14 @@ async function resolvePlanningPreference(input: {
                         projectRoot: input.payload.project_root,
                         source: 'chant:planning-preference',
                         env: { ...process.env, ...input.context.env } as NodeJS.ProcessEnv,
-                        metadata: {
+                        metadata: hostBridge.withRuntimeAuguryMetadata({
                             runtime_weave: 'chant',
                             decision: 'planning-preference',
                             heuristic_prefer_planning: heuristicPreferPlanning,
                             trace_critical: true,
                             require_agent_harness: true,
                             transport_mode: 'host_session',
-                        },
+                        }, input.context),
                     }),
                     new Promise<string>((_, reject) => {
                         timeoutHandle = setTimeout(() => reject(new Error(`chant planning-preference timeout after ${timeoutMs}ms`)), timeoutMs);
@@ -160,21 +160,26 @@ export class ChantHostWorkflow implements RuntimeAdapter<ChantWeavePayload> {
             ...invocation.payload,
             project_root: invocation.payload.project_root || context.workspace_root || invocation.payload.cwd,
         };
+        const contextAugury = context.augury_contract ?? context.trace_contract;
         const traceSelection = deps.parser.parseTraceSelectionGate(payload.query) ?? (
-            context.trace_contract
+            contextAugury
                 ? {
                     raw_block: '',
-                    intent_category: context.trace_contract.intent_category,
-                    intent: context.trace_contract.intent,
-                    selection_tier: context.trace_contract.selection_tier,
-                    selection_name: context.trace_contract.selection_name,
-                    trajectory_status: context.trace_contract.trajectory_status,
-                    trajectory_reason: context.trace_contract.trajectory_reason,
-                    mimirs_well: [...(context.trace_contract.mimirs_well ?? [])],
-                    gungnir_verdict: context.trace_contract.gungnir_verdict,
-                    confidence: context.trace_contract.confidence,
-                    body: context.trace_contract.body,
-                    canonical_intent: context.trace_contract.canonical_intent ?? context.trace_contract.intent ?? payload.query.trim(),
+                    intent_category: contextAugury.intent_category,
+                    intent: contextAugury.intent,
+                    selection_tier: contextAugury.selection_tier,
+                    selection_name: contextAugury.selection_name,
+                    trajectory_status: contextAugury.trajectory_status,
+                    trajectory_reason: contextAugury.trajectory_reason,
+                    mimirs_well: [...(contextAugury.mimirs_well ?? [])],
+                    gungnir_verdict: contextAugury.gungnir_verdict,
+                    confidence: contextAugury.confidence,
+                    confidence_source: contextAugury.confidence_source
+                        ?? ((context.augury_designation_source ?? context.trace_designation_source) === 'dispatcher_synthesized'
+                            ? 'synthetic'
+                            : contextAugury.confidence === undefined ? 'missing' : 'explicit'),
+                    body: contextAugury.body,
+                    canonical_intent: contextAugury.canonical_intent ?? contextAugury.intent ?? payload.query.trim(),
                     issues: [],
                 }
                 : null

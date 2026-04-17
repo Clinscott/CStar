@@ -116,6 +116,8 @@ describe('distribution generator', () => {
                 'GEMINI.md',
                 path.join('plugins', 'corvus-star', '.codex-plugin', 'plugin.json'),
                 path.join('plugins', 'corvus-star', '.mcp.json'),
+                path.join('plugins', 'corvus-star', 'hooks.json'),
+                path.join('plugins', 'corvus-star', 'scripts', 'cstar_codex_post_write.sh'),
                 path.join('plugins', 'corvus-star', 'skills', 'corvus-star', 'SKILL.md'),
                 path.join('plugins', 'corvus-star', 'README.md'),
                 path.join('.agents', 'plugins', 'marketplace.json'),
@@ -144,6 +146,10 @@ describe('distribution generator', () => {
         assert.match(geminiContext, /Host-native Gemini CLI extension/);
         assert.match(geminiContext, /host session when the registry marks a capability host-executable/);
         assert.match(geminiContext, /host-owned cognition\/workflow surfaces and `kernel-primitive` entries/);
+        assert.match(geminiContext, /Corvus Star Augury \[Ω\]/);
+        assert.match(geminiContext, /Mode: full/);
+        assert.match(geminiContext, /Mode: lite/);
+        assert.match(geminiContext, /Confidence belongs in learning metadata/);
         assert.match(geminiContext, /`hall` \(PRIME, native-session, host-workflow, kernel fallback allowed\)/);
 
         const codexPlugin = JSON.parse(build.files[2]?.content ?? '{}') as {
@@ -156,25 +162,49 @@ describe('distribution generator', () => {
         assert.equal(codexPlugin.skills, './skills/');
         assert.equal(codexPlugin.mcpServers, './.mcp.json');
         assert.deepEqual(codexPlugin.interface?.capabilities, ['Interactive', 'Write']);
-        assert.equal(codexPlugin.interface?.shortDescription, 'Host-native Corvus integration for Codex.');
+        assert.equal(codexPlugin.interface?.shortDescription, 'Corvus Star Augury and Hall integration for Codex.');
 
         const codexMcp = JSON.parse(build.files[3]?.content ?? '{}') as {
             mcpServers?: Record<string, { cwd?: string }>;
         };
         assert.equal(codexMcp.mcpServers?.pennyone?.cwd, '../..');
 
-        const marketplace = JSON.parse(build.files[6]?.content ?? '{}') as {
+        const codexSkill = build.files[6]?.content ?? '';
+        assert.match(codexSkill, /Corvus Star Augury \[Ω\]/);
+        assert.match(codexSkill, /Mimir's Well/);
+        assert.match(codexSkill, /Council Expert/);
+
+        const marketplace = JSON.parse(build.files[8]?.content ?? '{}') as {
             plugins?: Array<{ source?: { path?: string } }>;
         };
         assert.equal(marketplace.plugins?.[0]?.source?.path, './plugins/corvus-star');
 
-        const pluginReadme = build.files[5]?.content ?? '';
+        const pluginReadme = build.files[7]?.content ?? '';
         assert.match(pluginReadme, /repo-local plugin lives under `plugins\/corvus-star\/`/);
         assert.match(pluginReadme, /same registry-backed host\/kernel split as Gemini/);
+        assert.match(pluginReadme, /full-first\/lite-after Corvus Star Augury display/);
         assert.match(pluginReadme, /fail closed when the host session is unavailable/);
 
-        const distReadme = build.files[7]?.content ?? '';
+        const distReadme = build.files[9]?.content ?? '';
         assert.match(distReadme, /npm run build:distributions/);
         assert.match(distReadme, /Sync local `~\/\.gemini` and `~\/\.codex` installs/);
+    });
+
+    it('guards generated host surfaces against legacy Trace display drift', () => {
+        const projectRoot = createProjectRoot();
+        const build = buildDistributions(projectRoot);
+        const forbiddenDisplayPatterns = [
+            /Corvus Star Trace/,
+            /TRACE SELECTION/,
+            /\/\/ Corvus Star Trace/,
+            /Confidence: \[0\.0/,
+            /Use the CStar trace handoff/,
+        ];
+
+        for (const file of build.files) {
+            for (const pattern of forbiddenDisplayPatterns) {
+                assert.doesNotMatch(file.content, pattern, `${file.relativePath} matched ${pattern}`);
+            }
+        }
     });
 });

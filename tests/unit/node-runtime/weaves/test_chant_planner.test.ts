@@ -111,7 +111,7 @@ describe('Chant Planner Unit Tests', () => {
 
     it('buildResearchPayload preserves the original trace-bearing chant query as rationale', () => {
         const payload: any = {
-            query: '// Corvus Star Trace [Ω]\nIntent Category: ORCHESTRATE\nIntent: test',
+            query: '// Corvus Star Augury [Ω]\nIntent Category: ORCHESTRATE\nIntent: test',
             project_root: '/root',
             cwd: '/root',
         };
@@ -123,7 +123,7 @@ describe('Chant Planner Unit Tests', () => {
 
     it('buildArchitectPayload preserves the original trace-bearing chant query as rationale', () => {
         const payload: any = {
-            query: '// Corvus Star Trace [Ω]\nIntent Category: ORCHESTRATE\nIntent: test',
+            query: '// Corvus Star Augury [Ω]\nIntent Category: ORCHESTRATE\nIntent: test',
             project_root: '/root',
             cwd: '/root',
         };

@@ -32,7 +32,7 @@ import {
 import type { ChantWeavePayload } from  '../contracts.js';
 import { resolveHostGovernorPolicy } from  '../host_governor_policy.js';
 import type { HostProvider } from  '../../../../core/host_session.js';
-import { defaultHostTextInvoker, extractJsonObject, resolveRuntimeHostProvider, type HostTextInvoker } from  './host_bridge.js';
+import { defaultHostTextInvoker, extractJsonObject, resolveRuntimeHostProvider, withRuntimeAuguryMetadata, type HostTextInvoker } from  './host_bridge.js';
 import { inheritTraceInvocation } from '../trace_inheritance.js';
 
 interface ReplanResult {
@@ -437,6 +437,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
         policy: HostGovernorPolicy,
         env: NodeJS.ProcessEnv,
         source: GovernancePassResult['source'],
+        context: RuntimeContext,
         planningSessionId?: string,
     ): Promise<GovernancePassResult> {
         const planningSession = planningSessionId ? getHallPlanningSession(planningSessionId) : null;
@@ -467,7 +468,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
                 `POLICY:\n${JSON.stringify(policy, null, 2)}`,
                 `CANDIDATES:\n${JSON.stringify(summarizeCandidates(projectRoot, candidates, policy), null, 2)}`,
             ].filter(Boolean).join('\n'),
-            metadata: {
+            metadata: withRuntimeAuguryMetadata({
                 runtime_weave: 'host-governor',
                 decision: 'govern-candidates',
                 trace_critical: true,
@@ -475,7 +476,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
                 transport_mode: 'host_session',
                 source,
                 planning_session_id: planningSessionId,
-            },
+            }, context),
         });
 
         const decision = normalizeApprovedIds(extractJsonObject(rawText) as HostGovernorDecision, candidates);
@@ -651,7 +652,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
             return null;
         }
 
-        return await this.evaluateCandidates(candidates, provider, projectRoot, payload, policy, env, 'replan', planningSessionId);
+        return await this.evaluateCandidates(candidates, provider, projectRoot, payload, policy, env, 'replan', context, planningSessionId);
     }
 
     public async execute(
@@ -837,7 +838,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
 
         let existingPass: GovernancePassResult;
         try {
-            existingPass = await this.evaluateCandidates(initialCandidates, provider, projectRoot, payload, policy, runtimeEnv, 'existing');
+            existingPass = await this.evaluateCandidates(initialCandidates, provider, projectRoot, payload, policy, runtimeEnv, 'existing', context);
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             return {

@@ -18,6 +18,11 @@
       "env": {
         "GEMINI_CLI_ACTIVE": "true"
       }
+    },
+    "vercel": {
+      "type": "http",
+      "url": "https://mcp.vercel.com",
+      "note": "Official Vercel MCP server. Uses OAuth on first connection."
     }
   }
 }

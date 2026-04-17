@@ -5,18 +5,20 @@
 
 ---
 
-## 🚀 START HERE (The Initial Trace)
+## 🚀 START HERE (The Initial Augury)
 If you have just awakened in this repository, follow these steps in order:
 
 1.  **READ `AGENTS.qmd`**: This is the Supreme Directive. It defines your hierarchy of power (Skills, Weaves, Spells).
-2.  **READ `THE_PACT.qmd`**: This defines your persona and synergy protocol.
-3.  **EXECUTE `cstar status`**: This synchronizes your internal state with the physical estate.
-4.  **TREAT PROSE AS DESCRIPTIVE**: If a document disagrees with `.agents/skill_registry.json` or runtime contracts, the registry/runtime wins.
+2.  **READ `NEXT_SESSION_AUGURY.md` IF RESUMING AUGURY WORK**: This is the current runway marker for the next Augury usefulness pass.
+3.  **READ `docs/augury-operator-handoff.md`**: This defines the Corvus Star Augury command order and field meanings.
+4.  **READ `THE_PACT.qmd`**: This defines your persona and synergy protocol.
+5.  **EXECUTE `cstar status`**: This synchronizes your internal state with the physical estate.
+6.  **TREAT PROSE AS DESCRIPTIVE**: If a document disagrees with `.agents/skill_registry.json` or runtime contracts, the registry/runtime wins.
 
 ---
 
 ## 🛠️ THE API HIERARCHY
-The framework uses three primary execution tiers plus one governance tier. To fulfill any prompt, perform a **Trace Selection** and then verify the registry classification before assuming execution semantics.
+The framework uses three primary execution tiers plus one governance tier. To fulfill any prompt, perform an **Augury Selection** and then verify the registry classification before assuming execution semantics.
 
 ### 1. TIER 1: SKILLS (Atomic)
 - **Location**: `.agents/skills/<name>/SKILL.md`

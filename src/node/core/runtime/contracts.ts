@@ -7,7 +7,7 @@
 import type { ForgeCandidateResult, ForgeValidationRequest } from  '../../../types/forge-candidate.js';
 import type { GungnirMatrix } from  '../../../types/gungnir.js';
 import type { RavensCycleResult, RavensStageResult, RavensTargetIdentity } from  '../../../types/ravens-stage.js';
-import type { CouncilExpertProtocol } from '../../../core/council_experts.js';
+import type { CouncilExpertCandidate, CouncilExpertProtocol } from '../../../core/council_experts.js';
 
 export type WeaveStatus = 'SUCCESS' | 'FAILURE' | 'TRANSITIONAL';
 export type OperatorMode = 'cli' | 'tui' | 'automation' | 'subkernel';
@@ -15,10 +15,14 @@ export type TargetDomain = 'brain' | 'spoke' | 'estate' | 'external';
 export type CapabilityTier = 'PRIME' | 'SKILL' | 'WEAVE' | 'SPELL';
 export type SpellClassification = 'runtime-backed' | 'policy-only' | 'deprecated';
 export type OperationalContextPolicy = 'project' | 'silent';
-export type RuntimeTraceDesignationSource =
-    | 'explicit_trace_block'
+export type RuntimeAuguryDesignationSource =
+    | 'explicit_augury_block'
     | 'dispatcher_synthesized'
-    | 'payload_trace_contract';
+    | 'payload_augury_contract'
+    | 'legacy_payload_trace_contract';
+
+/** @deprecated Use RuntimeAuguryDesignationSource. */
+export type RuntimeTraceDesignationSource = RuntimeAuguryDesignationSource;
 
 export const CAPABILITY_TIERS: CapabilityTier[] = ['PRIME', 'SKILL', 'WEAVE', 'SPELL'];
 export const SPELL_CLASSIFICATIONS: SpellClassification[] = ['runtime-backed', 'policy-only', 'deprecated'];
@@ -29,7 +33,7 @@ export interface OperatorSession {
     session_id?: string;
 }
 
-export interface RuntimeTraceContract {
+export interface RuntimeAuguryContract {
     intent_category?: string;
     intent?: string;
     selection_tier?: string;
@@ -39,10 +43,15 @@ export interface RuntimeTraceContract {
     mimirs_well: string[];
     gungnir_verdict?: string;
     confidence?: number;
+    confidence_source?: 'explicit' | 'missing' | 'synthetic';
     body?: string;
     canonical_intent?: string;
     council_expert?: CouncilExpertProtocol;
+    council_candidates?: CouncilExpertCandidate[];
 }
+
+/** @deprecated Use RuntimeAuguryContract. */
+export type RuntimeTraceContract = RuntimeAuguryContract;
 
 export interface WorkspaceTarget {
     domain: TargetDomain;
@@ -64,8 +73,12 @@ export interface RuntimeContext {
     spoke_root?: string;
     requested_root?: string;
     session_id?: string;
-    trace_contract?: RuntimeTraceContract;
-    trace_designation_source?: RuntimeTraceDesignationSource;
+    augury_contract?: RuntimeAuguryContract;
+    augury_designation_source?: RuntimeAuguryDesignationSource;
+    /** @deprecated Use augury_contract. */
+    trace_contract?: RuntimeAuguryContract;
+    /** @deprecated Use augury_designation_source. */
+    trace_designation_source?: RuntimeAuguryDesignationSource | 'explicit_trace_block' | 'payload_trace_contract';
     council_expert?: CouncilExpertProtocol;
     root_persona_directive?: string;
     env: Record<string, string | undefined>;

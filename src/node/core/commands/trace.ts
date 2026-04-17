@@ -79,6 +79,11 @@ export interface TraceLineagePayload {
     runtime_bead_id?: string;
     trace_scope?: string;
     trace_weave_id?: string;
+    target_domain?: string;
+    spoke_name?: string;
+    requested_root?: string;
+    augury_designation_source?: string;
+    /** @deprecated Use augury_designation_source. */
     trace_designation_source?: string;
 }
 
@@ -133,6 +138,8 @@ export interface TraceStatusPayload {
     artifacts: string[];
     failure?: TraceFailureDiagnosticsPayload;
     host_context?: TraceHostContextPayload;
+    augury_contract?: TraceContractPayload;
+    /** @deprecated Use augury_contract. */
     trace_contract?: TraceContractPayload;
     lineage?: TraceLineagePayload;
     agent_handoff: TraceAgentHandoffPayload;
@@ -153,6 +160,87 @@ export interface TraceFailureEntryPayload extends TraceStatusPayload {}
 export interface TraceFailuresPayload {
     count: number;
     sessions: TraceFailureEntryPayload[];
+}
+
+type AuguryDiagnosticStatus = 'pass' | 'warn' | 'fail';
+
+export interface AuguryDiagnosticCheck {
+    status: AuguryDiagnosticStatus;
+    ok: boolean;
+    message: string;
+    details?: Record<string, unknown>;
+}
+
+export interface AuguryDoctorPayload {
+    status: AuguryDiagnosticStatus;
+    score: number;
+    scope_ok: boolean;
+    route_ok: boolean;
+    expert_ok: boolean;
+    mimir_ok: boolean;
+    noise_score: number;
+    agent_next_action: string;
+    warnings: string[];
+    active?: {
+        origin?: 'planning_session' | 'runtime_execution';
+        handle?: string;
+        status?: string;
+        route?: string;
+        scope?: string;
+        expert?: string;
+        mimir_count: number;
+        target_paths: string[];
+    };
+    checks: {
+        scope: AuguryDiagnosticCheck;
+        route: AuguryDiagnosticCheck;
+        expert: AuguryDiagnosticCheck;
+        mimir: AuguryDiagnosticCheck;
+        noise: AuguryDiagnosticCheck;
+    };
+}
+
+export interface AuguryExplainPayload {
+    status: 'available' | 'missing';
+    route?: {
+        intent_category?: string;
+        intent?: string;
+        selection_tier?: string;
+        selection_name?: string;
+        designation?: string;
+        basis: string;
+    };
+    scope?: {
+        value: string;
+        basis: string;
+        target_domain?: string;
+        spoke_name?: string;
+        requested_root?: string;
+    };
+    expert?: {
+        id?: string;
+        label?: string;
+        lens?: string;
+        selection_reason?: string;
+        basis: string;
+    };
+    mimir?: {
+        targets: string[];
+        count: number;
+        prompt_limit: number;
+        omitted_from_prompt: number;
+        basis: string;
+    };
+    mode?: {
+        basis: string;
+    };
+    confidence?: {
+        value?: number;
+        source: 'explicit_or_stored' | 'missing';
+        basis: string;
+    };
+    agent_next_action: string;
+    warnings: string[];
 }
 
 function getPlanningBranchDigest(session: HallPlanningSessionRecord): HallOneMindBranchDigest | undefined {
@@ -204,6 +292,18 @@ function parsePrefixedContextValue(value: string | undefined, prefix: string): s
     return value.startsWith(prefix) ? value.slice(prefix.length).trim() : value.trim();
 }
 
+function parseHostContextSummary(value: string | undefined): string | undefined {
+    if (!value) {
+        return undefined;
+    }
+    for (const prefix of ['augury=', 'handoff=', 'trace=']) {
+        if (value.startsWith(prefix)) {
+            return value.slice(prefix.length).trim();
+        }
+    }
+    return value.trim();
+}
+
 function getFailureDiagnostics(session: HallPlanningSessionRecord): TraceFailureDiagnosticsPayload | undefined {
     const phase = getSessionStringMetadata(session, 'failure_phase')
         ?? getSessionStringMetadata(session, 'phase_in_flight');
@@ -244,7 +344,7 @@ function getHostContextFromMetadata(metadata: Record<string, unknown> | undefine
 
     return {
         trace_line: traceLine,
-        trace_summary: parsePrefixedContextValue(traceLine, 'trace='),
+        trace_summary: parseHostContextSummary(traceLine),
         note_line: noteLine,
         note: parsePrefixedContextValue(noteLine, 'note='),
         updated_at: updatedAt,
@@ -253,7 +353,7 @@ function getHostContextFromMetadata(metadata: Record<string, unknown> | undefine
 }
 
 function getTraceContractFromMetadata(metadata: Record<string, unknown> | undefined): TraceContractPayload | undefined {
-    const contract = metadata?.trace_contract;
+    const contract = metadata?.augury_contract ?? metadata?.trace_contract;
     if (!contract || typeof contract !== 'object' || Array.isArray(contract)) {
         return undefined;
     }
@@ -345,11 +445,25 @@ function getTraceLineageFromMetadata(
     const traceWeaveId = typeof metadata?.trace_weave_id === 'string' && metadata.trace_weave_id.trim()
         ? metadata.trace_weave_id.trim()
         : undefined;
+    const targetDomain = typeof metadata?.target_domain === 'string' && metadata.target_domain.trim()
+        ? metadata.target_domain.trim()
+        : undefined;
+    const spokeName = typeof metadata?.spoke_name === 'string' && metadata.spoke_name.trim()
+        ? metadata.spoke_name.trim()
+        : undefined;
+    const requestedRoot = typeof metadata?.requested_root === 'string' && metadata.requested_root.trim()
+        ? metadata.requested_root.trim()
+        : undefined;
+    const auguryDesignationSource = typeof metadata?.augury_designation_source === 'string' && metadata.augury_designation_source.trim()
+        ? metadata.augury_designation_source.trim()
+        : typeof metadata?.trace_designation_source === 'string' && metadata.trace_designation_source.trim()
+            ? metadata.trace_designation_source.trim()
+            : undefined;
     const traceDesignationSource = typeof metadata?.trace_designation_source === 'string' && metadata.trace_designation_source.trim()
         ? metadata.trace_designation_source.trim()
         : undefined;
 
-    if (!planningSessionId && !missionId && !missionBeadId && !runtimeBeadId && !traceScope && !traceWeaveId && !traceDesignationSource) {
+    if (!planningSessionId && !missionId && !missionBeadId && !runtimeBeadId && !traceScope && !traceWeaveId && !targetDomain && !spokeName && !requestedRoot && !auguryDesignationSource && !traceDesignationSource) {
         return undefined;
     }
 
@@ -361,6 +475,10 @@ function getTraceLineageFromMetadata(
         runtime_bead_id: runtimeBeadId,
         trace_scope: traceScope,
         trace_weave_id: traceWeaveId,
+        target_domain: targetDomain,
+        spoke_name: spokeName,
+        requested_root: requestedRoot,
+        augury_designation_source: auguryDesignationSource,
         trace_designation_source: traceDesignationSource,
     };
 }
@@ -554,7 +672,7 @@ function buildRuntimeTraceStatusPayload(bead: SovereignBead): TraceStatusPayload
             },
         } : {}),
         ...(handoff.host_context ? { host_context: handoff.host_context } : {}),
-        ...(traceContract ? { trace_contract: traceContract } : {}),
+        ...(traceContract ? { augury_contract: traceContract, trace_contract: traceContract } : {}),
         ...(lineage ? { lineage } : {}),
         agent_handoff: handoff,
         branches: [],
@@ -788,6 +906,376 @@ export function renderTraceHandoffLines(handoff: TraceAgentHandoffPayload | null
     return lines;
 }
 
+function rewriteTraceDisplayLabel(line: string): string {
+    return line
+        .replace('[TRACE]', '[AUGURY]')
+        .replace('[HANDOFF]', '[AUGURY_HANDOFF]')
+        .replace('trace=none', 'augury=none')
+        .replace('trace_failures=none', 'augury_failures=none');
+}
+
+export function renderAuguryStatusLines(session: HallPlanningSessionRecord | null, rootPath: string): string[] {
+    return renderTraceStatusLines(session, rootPath).map(rewriteTraceDisplayLabel);
+}
+
+export function renderAuguryHandoffLines(handoff: TraceAgentHandoffPayload | null): string[] {
+    return renderTraceHandoffLines(handoff).map(rewriteTraceDisplayLabel);
+}
+
+export function renderAuguryFailureLines(sessions: HallPlanningSessionRecord[], rootPath: string): string[] {
+    return renderTraceFailureLines(sessions, rootPath).map(rewriteTraceDisplayLabel);
+}
+
+function makeAuguryCheck(
+    status: AuguryDiagnosticStatus,
+    message: string,
+    details?: Record<string, unknown>,
+): AuguryDiagnosticCheck {
+    return {
+        status,
+        ok: status === 'pass',
+        message,
+        ...(details ? { details } : {}),
+    };
+}
+
+function inferAuguryScope(payload: TraceStatusPayload | null, rootPath: string): { value: string; basis: string } {
+    const lineage = payload?.lineage;
+    const projectName = rootPath.replace(/\\/g, '/').split('/').filter(Boolean).at(-1);
+    if (lineage?.spoke_name) {
+        return {
+            value: `spoke:${lineage.spoke_name}`,
+            basis: 'lineage.spoke_name',
+        };
+    }
+    if (lineage?.target_domain) {
+        const normalizedDomain = lineage.target_domain.toLowerCase();
+        if (normalizedDomain === 'brain') {
+            return {
+                value: `brain:${projectName || 'CStar'}`,
+                basis: 'lineage.target_domain + project_root basename',
+            };
+        }
+        if (normalizedDomain === 'spoke') {
+            return {
+                value: `spoke:${projectName && projectName !== 'CStar' ? projectName : 'unknown'}`,
+                basis: 'lineage.target_domain + project_root basename',
+            };
+        }
+        return {
+            value: lineage.target_domain,
+            basis: 'lineage.target_domain',
+        };
+    }
+    if (projectName === 'CStar') {
+        return {
+            value: 'brain:CStar',
+            basis: 'project_root basename',
+        };
+    }
+    return {
+        value: projectName || 'unknown',
+        basis: 'project_root basename',
+    };
+}
+
+function inferExpectedExpertLabels(contract: TraceContractPayload | undefined): string[] {
+    const text = [
+        contract?.intent_category,
+        contract?.intent,
+        contract?.selection_name,
+        ...(contract?.mimirs_well ?? []),
+    ].join(' ').toLowerCase();
+    const expected: string[] = [];
+    if (/\b(ai|llm|model|embedding|rag|neural|inference|prompt)\b/.test(text)) {
+        expected.push('KARPATHY');
+    }
+    if (/\b(game|render|physics|performance|hot-path|frame|fps|rpg)\b/.test(text)) {
+        expected.push('CARMACK');
+    }
+    if (/\b(distributed|orchestrate|scheduler|queue|broker|parallel|concurrency)\b/.test(text)) {
+        expected.push('DEAN');
+    }
+    if (/\b(observe|signal|trace|augury|telemetry|diagnostic|ambiguity|noise)\b/.test(text)) {
+        expected.push('SHANNON');
+    }
+    if (/\b(security|guard|safety|failure|recover|fault|invariant|policy)\b/.test(text)) {
+        expected.push('HAMILTON');
+    }
+    if (/\b(interface|api|kernel|linux|syscall)\b/.test(text)) {
+        expected.push('TORVALDS');
+    }
+    return uniqueStrings(expected);
+}
+
+function buildScopeCheck(payload: TraceStatusPayload | null, rootPath: string): AuguryDiagnosticCheck {
+    const scope = inferAuguryScope(payload, rootPath);
+    const lineage = payload?.lineage;
+    if (!payload) {
+        return makeAuguryCheck('fail', 'No active Augury state was found.');
+    }
+    if (lineage?.target_domain === 'spoke' && !lineage.spoke_name) {
+        return makeAuguryCheck('warn', 'Spoke scope is declared without a spoke name.', { scope });
+    }
+    if (lineage?.target_domain === 'brain' && lineage.spoke_name) {
+        return makeAuguryCheck('warn', 'Brain scope carries a spoke name; verify the target boundary.', { scope });
+    }
+    return makeAuguryCheck('pass', `Scope resolves to ${scope.value}.`, { scope });
+}
+
+function buildRouteCheck(contract: TraceContractPayload | undefined): AuguryDiagnosticCheck {
+    const allowedTiers = new Set(['SKILL', 'WEAVE', 'SPELL']);
+    const missing = [
+        contract?.intent_category ? '' : 'intent_category',
+        contract?.intent ? '' : 'intent',
+        contract?.selection_tier ? '' : 'selection_tier',
+        contract?.selection_name ? '' : 'selection_name',
+    ].filter(Boolean);
+    if (!contract) {
+        return makeAuguryCheck('fail', 'No Augury contract is attached to the active handoff.');
+    }
+    if (missing.length > 0) {
+        return makeAuguryCheck('fail', `Augury route is missing ${missing.join(', ')}.`, { missing });
+    }
+    if (!allowedTiers.has(String(contract.selection_tier).toUpperCase())) {
+        return makeAuguryCheck('warn', `Selection tier '${contract.selection_tier}' is not a canonical tier.`, {
+            allowed_tiers: Array.from(allowedTiers),
+        });
+    }
+    return makeAuguryCheck('pass', `Route resolves to ${formatTraceDesignation(contract)}.`);
+}
+
+function buildExpertCheck(contract: TraceContractPayload | undefined): AuguryDiagnosticCheck {
+    const expertLabel = (contract?.council_expert?.label ?? contract?.council_expert?.id)?.toUpperCase();
+    const expected = inferExpectedExpertLabels(contract);
+    if (!contract?.council_expert?.label && !contract?.council_expert?.id) {
+        return makeAuguryCheck('warn', 'No Council expert is attached to the Augury contract.', { expected });
+    }
+    if (expected.length > 0 && expertLabel && !expected.includes(expertLabel)) {
+        return makeAuguryCheck('warn', `Council expert ${expertLabel} may not match the strongest detected task signals.`, {
+            expected,
+            actual: expertLabel,
+        });
+    }
+    return makeAuguryCheck('pass', `Council expert resolves to ${contract.council_expert.label ?? contract.council_expert.id}.`, {
+        expected,
+    });
+}
+
+function isVagueMimirTarget(target: string): boolean {
+    const trimmed = target.trim();
+    if (!trimmed) {
+        return true;
+    }
+    return !trimmed.includes('/') && !trimmed.includes('\\') && !/\.[a-z0-9]+$/i.test(trimmed);
+}
+
+function buildMimirCheck(contract: TraceContractPayload | undefined): AuguryDiagnosticCheck {
+    const targets = contract?.mimirs_well ?? [];
+    const vagueTargets = targets.filter(isVagueMimirTarget);
+    if (targets.length === 0) {
+        return makeAuguryCheck('fail', 'Augury has no Mimir targets; agents lack a bounded discovery path.');
+    }
+    if (targets.length > 3) {
+        return makeAuguryCheck('warn', 'Augury has more than three Mimir targets; prompt injection will omit extras.', {
+            count: targets.length,
+            omitted_from_prompt: targets.length - 3,
+        });
+    }
+    if (vagueTargets.length > 0) {
+        return makeAuguryCheck('warn', 'Some Mimir targets are vague; prefer concrete files, dirs, or Hall handles.', {
+            vague_targets: vagueTargets,
+        });
+    }
+    return makeAuguryCheck('pass', `Mimir targets are bounded (${targets.length}).`, { count: targets.length });
+}
+
+function buildNoiseCheck(
+    checks: Array<AuguryDiagnosticCheck>,
+    payload: TraceStatusPayload | null,
+    contract: TraceContractPayload | undefined,
+): { check: AuguryDiagnosticCheck; noiseScore: number } {
+    const warningPenalty = checks.filter((check) => check.status === 'warn').length * 15;
+    const failurePenalty = checks.filter((check) => check.status === 'fail').length * 35;
+    const mimirPenalty = Math.max(0, (contract?.mimirs_well.length ?? 0) - 3) * 10;
+    const targetPenalty = Math.max(0, (payload?.agent_handoff.target_paths.length ?? 0) - 5) * 5;
+    const noiseScore = Math.min(100, warningPenalty + failurePenalty + mimirPenalty + targetPenalty);
+    if (noiseScore >= 70) {
+        return {
+            noiseScore,
+            check: makeAuguryCheck('fail', 'Augury has too much diagnostic risk for safe agent routing.', { noise_score: noiseScore }),
+        };
+    }
+    if (noiseScore > 25) {
+        return {
+            noiseScore,
+            check: makeAuguryCheck('warn', 'Augury is usable but has avoidable routing noise.', { noise_score: noiseScore }),
+        };
+    }
+    return {
+        noiseScore,
+        check: makeAuguryCheck('pass', 'Augury is compact enough for agent use.', { noise_score: noiseScore }),
+    };
+}
+
+function getAuguryWarnings(checks: Record<string, AuguryDiagnosticCheck>): string[] {
+    return Object.values(checks)
+        .filter((check) => check.status !== 'pass')
+        .map((check) => check.message);
+}
+
+function buildAuguryDoctorFromStatus(payload: TraceStatusPayload | null, rootPath: string): AuguryDoctorPayload {
+    const contract = payload?.augury_contract ?? payload?.trace_contract ?? payload?.agent_handoff.designation;
+    const scope = buildScopeCheck(payload, rootPath);
+    const route = buildRouteCheck(contract);
+    const expert = buildExpertCheck(contract);
+    const mimir = buildMimirCheck(contract);
+    const noise = buildNoiseCheck([scope, route, expert, mimir], payload, contract);
+    const checks = {
+        scope,
+        route,
+        expert,
+        mimir,
+        noise: noise.check,
+    };
+    const statuses = Object.values(checks).map((check) => check.status);
+    const status: AuguryDiagnosticStatus = statuses.includes('fail')
+        ? 'fail'
+        : statuses.includes('warn') ? 'warn' : 'pass';
+    const score = Math.max(0, 100 - noise.noiseScore);
+    const inferredScope = inferAuguryScope(payload, rootPath);
+
+    return {
+        status,
+        score,
+        scope_ok: scope.status === 'pass',
+        route_ok: route.status === 'pass',
+        expert_ok: expert.status === 'pass',
+        mimir_ok: mimir.status === 'pass',
+        noise_score: noise.noiseScore,
+        agent_next_action: status === 'fail'
+            ? 'Repair the Augury contract before editing or dispatching work.'
+            : payload?.agent_handoff.next_action ?? 'Run cstar augury handoff --json and choose the next bounded action.',
+        warnings: getAuguryWarnings(checks),
+        ...(payload ? {
+            active: {
+                origin: payload.origin,
+                handle: payload.handle ?? payload.session_id ?? payload.runtime_bead_id,
+                status: payload.status,
+                route: contract ? formatTraceDesignation(contract) : undefined,
+                scope: inferredScope.value,
+                expert: contract?.council_expert?.label ?? contract?.council_expert?.id,
+                mimir_count: contract?.mimirs_well.length ?? 0,
+                target_paths: payload.agent_handoff.target_paths,
+            },
+        } : {}),
+        checks,
+    };
+}
+
+export function buildAuguryDoctorPayload(
+    session: HallPlanningSessionRecord | null,
+    rootPath: string,
+): AuguryDoctorPayload {
+    return buildAuguryDoctorFromStatus(buildTraceStatusPayload(session, rootPath), rootPath);
+}
+
+function buildAuguryExplainFromStatus(payload: TraceStatusPayload | null, rootPath: string): AuguryExplainPayload {
+    const contract = payload?.augury_contract ?? payload?.trace_contract ?? payload?.agent_handoff.designation;
+    const scope = inferAuguryScope(payload, rootPath);
+    const warnings = buildAuguryDoctorFromStatus(payload, rootPath).warnings;
+    if (!payload || !contract) {
+        return {
+            status: 'missing',
+            agent_next_action: 'Create or recover an Augury contract before routing agent work.',
+            warnings: warnings.length > 0 ? warnings : ['No active Augury contract was found.'],
+        };
+    }
+
+    return {
+        status: 'available',
+        route: {
+            intent_category: contract.intent_category,
+            intent: contract.intent,
+            selection_tier: contract.selection_tier,
+            selection_name: contract.selection_name,
+            designation: formatTraceDesignation(contract),
+            basis: 'active Hall planning/runtime Augury contract',
+        },
+        scope: {
+            value: scope.value,
+            basis: scope.basis,
+            target_domain: payload.lineage?.target_domain,
+            spoke_name: payload.lineage?.spoke_name,
+            requested_root: payload.lineage?.requested_root,
+        },
+        expert: {
+            id: contract.council_expert?.id,
+            label: contract.council_expert?.label,
+            lens: contract.council_expert?.lens ?? contract.council_expert?.protocol,
+            selection_reason: contract.council_expert?.selection_reason,
+            basis: contract.council_expert?.selection_reason
+                ? 'council expert selection reason'
+                : 'contract council_expert field',
+        },
+        mimir: {
+            targets: contract.mimirs_well,
+            count: contract.mimirs_well.length,
+            prompt_limit: 3,
+            omitted_from_prompt: Math.max(0, contract.mimirs_well.length - 3),
+            basis: 'Augury Mimir targets bound the agent discovery path',
+        },
+        mode: {
+            basis: 'Host prompts use full Augury once per session/planning key, then lite Augury for subsequent calls.',
+        },
+        confidence: {
+            value: contract.confidence,
+            source: typeof contract.confidence === 'number' ? 'explicit_or_stored' : 'missing',
+            basis: 'Confidence is retained for learning metadata and is not displayed in Augury prompt blocks.',
+        },
+        agent_next_action: payload.agent_handoff.next_action,
+        warnings,
+    };
+}
+
+export function buildAuguryExplainPayload(
+    session: HallPlanningSessionRecord | null,
+    rootPath: string,
+): AuguryExplainPayload {
+    return buildAuguryExplainFromStatus(buildTraceStatusPayload(session, rootPath), rootPath);
+}
+
+function renderAuguryDoctorLines(payload: AuguryDoctorPayload): string[] {
+    const lines = [
+        chalk.cyan(`[AUGURY_DOCTOR] status=${payload.status} score=${payload.score} noise=${payload.noise_score}`),
+        chalk.dim(`next=${payload.agent_next_action}`),
+    ];
+    for (const [name, check] of Object.entries(payload.checks)) {
+        lines.push(chalk.dim(`${name}=${check.status} ${check.message}`));
+    }
+    return lines;
+}
+
+function renderAuguryExplainLines(payload: AuguryExplainPayload): string[] {
+    if (payload.status === 'missing') {
+        return [
+            chalk.cyan('[AUGURY_EXPLAIN] status=missing'),
+            chalk.dim(`next=${payload.agent_next_action}`),
+            ...payload.warnings.map((warning) => chalk.dim(`warning=${warning}`)),
+        ];
+    }
+    const mimirTargets = payload.mimir?.targets ?? [];
+    return [
+        chalk.cyan('[AUGURY_EXPLAIN] status=available'),
+        chalk.dim(`route=${payload.route?.designation ?? 'unknown'}`),
+        chalk.dim(`scope=${payload.scope?.value ?? 'unknown'} basis=${payload.scope?.basis ?? 'unknown'}`),
+        chalk.dim(`expert=${payload.expert?.label ?? payload.expert?.id ?? 'unknown'} basis=${payload.expert?.basis ?? 'unknown'}`),
+        chalk.dim(`mimir=${mimirTargets.length > 0 ? mimirTargets.slice(0, 3).join(', ') : 'none'}`),
+        chalk.dim(`mode=${payload.mode?.basis ?? 'unknown'}`),
+        chalk.dim(`next=${payload.agent_next_action}`),
+    ];
+}
+
 export function buildTraceStatusPayload(session: HallPlanningSessionRecord | null, rootPath: string): TraceStatusPayload | null {
     const hydrated = hydratePlanningSession(session, rootPath);
     if (!hydrated) {
@@ -825,7 +1313,7 @@ export function buildTraceStatusPayload(session: HallPlanningSessionRecord | nul
         artifacts: digest?.artifacts ?? [],
         ...(failure ? { failure } : {}),
         ...(handoff.host_context ? { host_context: handoff.host_context } : {}),
-        ...(traceContract ? { trace_contract: traceContract } : {}),
+        ...(traceContract ? { augury_contract: traceContract, trace_contract: traceContract } : {}),
         ...(lineage ? { lineage } : {}),
         agent_handoff: handoff,
         branches: (digest?.groups ?? []).map((group) => ({
@@ -882,27 +1370,28 @@ export function renderTraceStatusLines(session: HallPlanningSessionRecord | null
     ));
     lines.push(chalk.dim(`gate=${payload.agent_handoff.execution_gate}`));
     lines.push(chalk.dim(`resume=${payload.agent_handoff.resume_command}`));
-    const designation = formatTraceDesignation(payload.trace_contract);
+    const auguryContract = payload.augury_contract ?? payload.trace_contract;
+    const designation = formatTraceDesignation(auguryContract);
     if (designation) {
         lines.push(chalk.dim(`designation=${designation}`));
     }
-    if (payload.trace_contract?.intent_category) {
-        lines.push(chalk.dim(`category=${payload.trace_contract.intent_category}`));
+    if (auguryContract?.intent_category) {
+        lines.push(chalk.dim(`category=${auguryContract.intent_category}`));
     }
-    if (payload.trace_contract?.trajectory_status) {
-        lines.push(chalk.dim(`trajectory=${payload.trace_contract.trajectory_status}`));
+    if (auguryContract?.trajectory_status) {
+        lines.push(chalk.dim(`trajectory=${auguryContract.trajectory_status}`));
     }
-    if (payload.trace_contract?.council_expert?.label) {
-        lines.push(chalk.dim(`expert=${payload.trace_contract.council_expert.label}`));
+    if (auguryContract?.council_expert?.label) {
+        lines.push(chalk.dim(`expert=${auguryContract.council_expert.label}`));
     }
-    if (payload.trace_contract?.council_expert?.selection_reason) {
-        lines.push(chalk.dim(`expert_reason=${payload.trace_contract.council_expert.selection_reason}`));
+    if (auguryContract?.council_expert?.selection_reason) {
+        lines.push(chalk.dim(`expert_reason=${auguryContract.council_expert.selection_reason}`));
     }
-    if (payload.trace_contract?.council_expert?.anti_behavior?.length) {
-        lines.push(chalk.dim(`anti=${payload.trace_contract.council_expert.anti_behavior.slice(0, 2).join(' ')}`));
+    if (auguryContract?.council_expert?.anti_behavior?.length) {
+        lines.push(chalk.dim(`anti=${auguryContract.council_expert.anti_behavior.slice(0, 2).join(' ')}`));
     }
-    if (payload.lineage?.trace_designation_source) {
-        lines.push(chalk.dim(`designation_source=${payload.lineage.trace_designation_source}`));
+    if (payload.lineage?.augury_designation_source ?? payload.lineage?.trace_designation_source) {
+        lines.push(chalk.dim(`designation_source=${payload.lineage.augury_designation_source ?? payload.lineage.trace_designation_source}`));
     }
 
     if (payload.agent_handoff.lead_bead_id) {
@@ -997,7 +1486,7 @@ export function registerTraceCommand(
 ): void {
     const command = program
         .command('trace')
-        .description('Inspect the active Hall-backed planning or runtime trace');
+        .description('Compatibility alias for active Hall-backed Augury/runtime state');
 
     command
         .command('status')
@@ -1048,6 +1537,100 @@ export function registerTraceCommand(
                 return;
             }
             for (const line of renderTraceFailureLines(sessions, rootPath)) {
+                console.log(line);
+            }
+        });
+}
+
+export function registerAuguryCommand(
+    program: Command,
+    workspaceRootSource: WorkspaceRootSource = process.cwd(),
+): void {
+    const command = program
+        .command('augury')
+        .description('Inspect the active Hall-backed Corvus Star Augury state');
+
+    command
+        .command('status')
+        .description('Show the active planning or runtime Augury summary from Hall')
+        .option('--json', 'Emit machine-readable JSON instead of formatted text')
+        .action((options: { json?: boolean }) => {
+            const rootPath = resolveWorkspaceRoot(workspaceRootSource);
+            const payload = resolveActiveTraceStatusPayload(rootPath);
+            if (options.json) {
+                process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
+                return;
+            }
+            for (const line of payload ? renderAuguryStatusLines(
+                payload.origin === 'planning_session' ? resolveActivePlanningSession(rootPath) : null,
+                rootPath,
+            ) : [chalk.dim('augury=none')]) {
+                console.log(line);
+            }
+        });
+
+    command
+        .command('handoff')
+        .description('Show the active planning or runtime Augury as an agent-ready handoff packet')
+        .option('--json', 'Emit machine-readable JSON instead of formatted text')
+        .action((options: { json?: boolean }) => {
+            const rootPath = resolveWorkspaceRoot(workspaceRootSource);
+            const handoff = resolveActiveTraceHandoffPayload(rootPath);
+            if (options.json) {
+                process.stdout.write(`${JSON.stringify(handoff, null, 2)}\n`);
+                return;
+            }
+            for (const line of renderAuguryHandoffLines(handoff)) {
+                console.log(line);
+            }
+        });
+
+    command
+        .command('failures')
+        .description('List recent failed planning sessions from Hall as Augury recovery leads')
+        .option('-l, --limit <n>', 'Maximum failed sessions to show', '5')
+        .option('--json', 'Emit machine-readable JSON instead of formatted text')
+        .action((options: { limit?: string; json?: boolean }) => {
+            const rootPath = resolveWorkspaceRoot(workspaceRootSource);
+            const limit = parseTraceLimit(options.limit, 5);
+            const sessions = resolveFailedPlanningSessions(rootPath, limit);
+            if (options.json) {
+                process.stdout.write(`${JSON.stringify(buildTraceFailuresPayload(sessions, rootPath), null, 2)}\n`);
+                return;
+            }
+            for (const line of renderAuguryFailureLines(sessions, rootPath)) {
+                console.log(line);
+            }
+        });
+
+    command
+        .command('doctor')
+        .description('Diagnose whether the active Augury is safe and useful for agent routing')
+        .option('--json', 'Emit machine-readable JSON instead of formatted text')
+        .action((options: { json?: boolean }) => {
+            const rootPath = resolveWorkspaceRoot(workspaceRootSource);
+            const payload = buildAuguryDoctorFromStatus(resolveActiveTraceStatusPayload(rootPath), rootPath);
+            if (options.json) {
+                process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
+                return;
+            }
+            for (const line of renderAuguryDoctorLines(payload)) {
+                console.log(line);
+            }
+        });
+
+    command
+        .command('explain')
+        .description('Explain the active Augury route, scope, expert, and Mimir basis')
+        .option('--json', 'Emit machine-readable JSON instead of formatted text')
+        .action((options: { json?: boolean }) => {
+            const rootPath = resolveWorkspaceRoot(workspaceRootSource);
+            const payload = buildAuguryExplainFromStatus(resolveActiveTraceStatusPayload(rootPath), rootPath);
+            if (options.json) {
+                process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
+                return;
+            }
+            for (const line of renderAuguryExplainLines(payload)) {
                 console.log(line);
             }
         });

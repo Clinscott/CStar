@@ -1,18 +1,35 @@
 ---
 name: trace
-description: "The Neural Selection Gate. Analyzes prompts via the Intent Grammar to select the optimal tier of execution: Skill, Weave, or Spell."
+description: "Corvus Star Augury [Ω] selection block. Classifies user intent and emits the canonical designation fields: Intent Category, Intent, Selection, Mimir's Well, Gungnir Verdict, and Confidence."
 risk: safe
 source: internal
 ---
 
-# 🔱 TRACE: THE NEURAL SELECTION GATE (v3.0)
+# Corvus Star Augury [Ω]: Selection Block
 
 ## When to Use
-- **MANDATORY**: Must precede every agentic response.
-- Use to resolve a user's intent into the most potent execution Tier.
+- Use to resolve a user's request into the canonical Corvus Star Augury [Ω] designation block.
+- Use when a host, agent, planning document, or handoff needs the fields that explain intent, selected execution path, supporting Mimir sources, Gungnir verdict, and confidence.
+
+## Naming Boundary
+
+**Corvus Star Augury [Ω]** means only the selection/designation block below.
+
+It does **not** mean:
+
+- JSON session traces
+- telemetry traces
+- execution beads
+- trace visualization or replay
+- Hall failure/status summaries
+- `src/tools/trace_viz.py`
+
+Those systems must use names such as **session trace**, **telemetry trace**, **execution trace**, or **trace visualization**. Do not call them "Corvus Star Augury" unless they are carrying this exact selection block.
+
+Legacy compatibility: older documents may use `// Corvus Star Trace [Ω]`. Parsers may accept that header temporarily, but new content must use `// Corvus Star Augury [Ω]`.
 
 ## MANDATE
-Classify the user's request into one of the 11 Intent Categories using the closed grammar. Do not guess — if the request is ambiguous, ask the user to clarify.
+Classify the user's request into one of the 11 Intent Categories using the closed grammar. Do not guess; if the request is ambiguous, ask the user to clarify.
 
 ## THE INTENT GRAMMAR (The Prompt Compiler)
 Every request maps to **exactly one** category:
@@ -35,11 +52,11 @@ Every request maps to **exactly one** category:
 1. **CLASSIFY**: Match the user's request against the Intent Grammar trigger words.
 2. **SELECT**: Use the matched category's Default Path and Tier.
 3. **CONTEXT**: Identify the target files/sectors from the user's request.
-4. **EMIT**: Output the Trace [Ω] block before any tool calls.
+4. **EMIT**: Output the Corvus Star Augury [Ω] selection block before any tool calls.
 
-## TRACE FORMAT [Ω]
+## Corvus Star Augury [Ω] Format
 ```text
-// Corvus Star Trace [Ω]
+// Corvus Star Augury [Ω]
 Intent Category: [REPAIR | BUILD | VERIFY | SCORE | OBSERVE | HARDEN | EXPAND | EVOLVE | ORCHESTRATE | GUARD | DOCUMENT]
 Intent: [Brief goal statement]
 Selection: [SKILL | WEAVE | SPELL]: [Name of the selected path]

@@ -378,13 +378,13 @@ export class ResearchHostWorkflow implements RuntimeAdapter<ResearchWeavePayload
                                     provider,
                                     projectRoot: workspaceRoot,
                                     source,
-                                    metadata: {
+                                    metadata: hostBridge.withRuntimeAuguryMetadata({
                                         transport_mode: 'host_session',
                                         one_mind_boundary: 'subagent',
                                         execution_role: 'subagent',
                                         subagent_profile: branch.profile,
                                         council_expert: branch.label,
-                                    },
+                                    }, context),
                                     systemPrompt: `You are the Corvus Star Council Expert ${branch.label}. Return strict JSON only.`,
                                     prompt: buildResearchPrompt(payload.intent, workspaceRoot, branch),
                                 }),
@@ -495,7 +495,7 @@ export class ResearchHostWorkflow implements RuntimeAdapter<ResearchWeavePayload
         if (provider === 'gemini') {
             const directive = `
 [SUB_AGENT_DIRECTIVE]
-Task: You are the Corvus Star Council of Experts working through the Trace Gate.
+Task: You are the Corvus Star Council of Experts working through the Augury Gate.
 Model Hint: gemini-2.5-flash-lite
 Intent: "${payload.intent}"
 Council:

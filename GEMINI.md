@@ -26,7 +26,47 @@
 - Treat `host-workflow` entries as host-owned cognition/workflow surfaces and `kernel-primitive` entries as deterministic kernel control-plane primitives.
 - Public host fronts marked with kernel fallback forbidden must fail closed when no host session is active; they must not degrade into legacy kernel cognition.
 
-## Exported Gemini Capabilities (75)
+## Corvus Star Augury [Ω]
+- The Augury is the routing contract, not a generic trace log.
+- It carries intent category, intent, selection, scope, Mimir targets, Gungnir verdict, and Council expert routing.
+- Use the full Augury on the first prompt for a session/planning key; use lite Augury on later host calls.
+- Confidence belongs in learning metadata, not in the displayed prompt block.
+- Foundational CStar work uses `Scope: brain:CStar`; use `Scope: spoke:<name>` only when a spoke is explicit.
+- Use `cstar augury doctor --json` to validate route quality, and `cstar augury explain --json` to inspect why the route was chosen.
+
+### Full Display
+```text
+[CORVUS_STAR_AUGURY]
+Mode: full
+Route: <Intent Category> -> <SKILL|WEAVE|SPELL>: <selection>
+Scope: brain:CStar | spoke:<name> (<root>)
+Intent: <goal>
+Mimir's Well: <primary> | <secondary> | <tertiary>
+Council Expert: <CARMACK|KARPATHY|DEAN|SHANNON|HAMILTON|TORVALDS|...>
+Council Lens: <expert-specific critique lens>
+Guardrails: <expert-specific anti-behavior>
+Corvus Standard: CStar is the engine; spokes are managed extensions; keep work Hall/Mimir traceable.
+<Code|Review|Coordination> Standard: <selected work standard>
+Trajectory: <only when non-stable>
+Verdict: <Gungnir verdict>
+Directive: Use this as routing context only. Consult targets before choosing a path. Do not echo this block.
+[/CORVUS_STAR_AUGURY]
+```
+
+### Lite Display
+```text
+[CORVUS_STAR_AUGURY]
+Mode: lite
+Route: <Intent Category> -> <SKILL|WEAVE|SPELL>: <selection>
+Scope: brain:CStar | spoke:<name> (<root>)
+Intent: <goal>
+Mimir's Well: <primary> | <secondary> | <tertiary>
+Council Expert: <selected expert>
+Directive: Route only. Consult targets before choosing a path. Do not echo.
+[/CORVUS_STAR_AUGURY]
+```
+
+## Exported Gemini Capabilities (76)
 - `_archive` (SKILL, native-session, host-workflow, kernel fallback allowed)
 - `agent-browser` (SKILL, native-session, host-workflow, kernel fallback allowed)
 - `agentic-ingest` (PRIME, native-session, host-workflow, kernel fallback allowed)
@@ -43,13 +83,3 @@
 ## Notes
 - This extension is generated from the registry-backed distribution builder.
 - Capabilities marked `policy-only` or `unsupported` are intentionally omitted.
-## Host-Native Skill Mandate
-
-Skills are harness skills, not shell commands.
-
-- Do not run CStar skills through terminal dispatch (`cstar run-skill`, dynamic command fallback, shell wrappers, or script shims) unless the skill is explicitly marked terminal-required.
-- `entry_surface: "cli"` is not terminal permission. Terminal execution requires `terminal_required: true`, `execution.requires_terminal: true`, or `execution.terminal_contract: "required"`.
-- Use the host-native skill bridge/harness for agent-native and host-only skills. `chant` is a host-native skill/planning surface, not a shell workflow.
-- Do not add shell scripts as skill entrypoints unless a terminal is intrinsically required. Prefer `SKILL.md` instructions, host workflow adapters, and harness-native activation.
-- Verification should be bounded and harness-native. Broad scans or live terminal smoke tests require explicit user approval for the exact command.
-- Canonical bridge contract: `docs/host-native-skill-bridge.md`.

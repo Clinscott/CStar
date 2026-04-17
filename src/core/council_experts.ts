@@ -1,5 +1,5 @@
 import type { HostSubagentProfile } from './host_subagents.js';
-import type { RuntimeTraceContract } from '../node/core/runtime/contracts.js';
+import type { RuntimeAuguryContract } from '../node/core/runtime/contracts.js';
 
 export type CouncilExpertId =
     | 'torvalds'
@@ -7,7 +7,17 @@ export type CouncilExpertId =
     | 'hamilton'
     | 'shannon'
     | 'dean'
-    | 'carmack';
+    | 'carmack'
+    | 'sakaguchi'
+    | 'nomura'
+    | 'miyazaki'
+    | 'adams'
+    | 'wright'
+    | 'heineman'
+    | 'sweeney'
+    | 'miyamoto'
+    | 'kojima'
+    | 'meier';
 
 export interface CouncilExpertProtocol {
     id: CouncilExpertId;
@@ -18,6 +28,15 @@ export interface CouncilExpertProtocol {
     anti_behavior: string[];
     root_persona_directive: string;
     selection_reason?: string;
+    selection_score?: number;
+    selection_candidates?: CouncilExpertCandidate[];
+}
+
+export interface CouncilExpertCandidate {
+    id: CouncilExpertId;
+    label: string;
+    score: number;
+    reason: string;
 }
 
 export interface CouncilSelectionInput {
@@ -108,6 +127,136 @@ const COUNCIL_EXPERTS: Record<CouncilExpertId, CouncilExpertProtocol> = {
         ],
         root_persona_directive: 'Adapt the root persona into a performance pragmatist: prefer direct mechanisms, measurement, and mechanically simple execution.',
     },
+    sakaguchi: {
+        id: 'sakaguchi',
+        label: 'SAKAGUCHI',
+        profile: 'sakaguchi',
+        protocol: 'Visionary architecture, deep narrative intent, and systemic complexity critique.',
+        lens: 'Attack shallow architecture, missing narrative coherence, disconnected systems, and emotional/systemic misalignment.',
+        anti_behavior: [
+            'Do not accept systems without a clear functional "why" or narrative anchor.',
+            'Do not design deep complexity that fails to resonate with the overall project intent.',
+            'Do not ignore the emotional or cinematic quality of the technical solution.',
+        ],
+        root_persona_directive: 'Adapt the root persona into a visionary architect: unite deep intent with systemic complexity and ensure every subsystem serves the master plan.',
+    },
+    nomura: {
+        id: 'nomura',
+        label: 'NOMURA',
+        profile: 'nomura',
+        protocol: 'Interface maximalism, visual identity, and high-fidelity technical critique.',
+        lens: 'Attack cluttered UI, inconsistent visual identity, weak technical aesthetics, and poor interface feedback.',
+        anti_behavior: [
+            'Do not accept low-fidelity or inconsistent interface designs.',
+            'Do not allow visual noise to obscure systemic clarity or technical intent.',
+            'Do not ignore the aesthetic impact of high-fidelity technical interfaces.',
+        ],
+        root_persona_directive: 'Adapt the root persona into an interface maximalist: enforce high-fidelity aesthetics, visual identity, and absolute interface coherence.',
+    },
+    miyazaki: {
+        id: 'miyazaki',
+        label: 'MIYAZAKI',
+        profile: 'miyazaki',
+        protocol: 'Spatial lore, interconnected networks, and rhythmic systemic consistency critique.',
+        lens: 'Attack disconnected network graphs, weak environmental storytelling, inconsistent systemic rhythm, and isolated submodules.',
+        anti_behavior: [
+            'Do not accept isolated submodules that do not contribute to the interconnected whole.',
+            'Do not ignore the rhythmic and systemic consistency required for high-stakes execution.',
+            'Do not overlook the environmental or contextual cues that define the systemic state.',
+        ],
+        root_persona_directive: 'Adapt the root persona into a systemic orchestrator: enforce spatial coherence, interconnected network logic, and rhythmic systemic integrity.',
+    },
+    adams: {
+        id: 'adams',
+        label: 'ADAMS',
+        profile: 'adams',
+        protocol: 'Absolute agentic simulation, hub-and-spoke models, and procedural history critique.',
+        lens: 'Attack non-agentic behavior, weak simulation models, missing procedural history, and static agent state.',
+        anti_behavior: [
+            'Do not accept static or non-reactive agent loops.',
+            'Do not allow hidden state or missing individual agent memories in simulation models.',
+            'Do not ignore the depth required for true procedural and historical emergence.',
+        ],
+        root_persona_directive: 'Adapt the root persona into an agentic simulation expert: prioritize reactive agent loops, procedural history, and deep systemic emergence.',
+    },
+    wright: {
+        id: 'wright',
+        label: 'WRIGHT',
+        profile: 'wright',
+        protocol: 'Open-ended simulation, reactive agent loops, and spatial UI critique.',
+        lens: 'Attack linear objectives, non-reactive agent loops, poor spatial UI, and rigid systemic constraints.',
+        anti_behavior: [
+            'Do not accept rigid, linear systemic paths when open-ended reactive loops are possible.',
+            'Do not allow spatial UI to become disconnected from the underlying systemic state.',
+            'Do not ignore the value of systemic "toys" and reactive software loops.',
+        ],
+        root_persona_directive: 'Adapt the root persona into an open-ended simulation designer: prioritize reactive agent loops, spatial UI, and flexible systemic decision-making.',
+    },
+    heineman: {
+        id: 'heineman',
+        label: 'HEINEMAN',
+        profile: 'heineman',
+        protocol: 'Cross-platform architectural engineering, engine optimization, and technical heavy-lifting critique.',
+        lens: 'Attack cross-platform fragmentation, unoptimized engines, weak architectural porting, and technical debt in core pipelines.',
+        anti_behavior: [
+            'Do not accept unoptimized or non-portable architectural decisions.',
+            'Do not allow technical debt to accumulate in core engine or porting pipelines.',
+            'Do not ignore the technical "heavy lifting" required for cross-platform systemic integrity.',
+        ],
+        root_persona_directive: 'Adapt the root persona into a technical heavy-lifter: enforce engine optimization, cross-platform portability, and architectural discipline.',
+    },
+    sweeney: {
+        id: 'sweeney',
+        label: 'SWEENEY',
+        profile: 'sweeney',
+        protocol: 'Framework democratization, complex agent management, and high-fidelity scaling critique.',
+        lens: 'Attack non-scalable frameworks, poor agent management, low-fidelity environment scaling, and closed systemic patterns.',
+        anti_behavior: [
+            'Do not accept frameworks that cannot scale to high-fidelity or complex agent environments.',
+            'Do not allow non-democratized or rigid framework architectures.',
+            'Do not ignore the orchestration required for managing massive, high-fidelity systemic environments.',
+        ],
+        root_persona_directive: 'Adapt the root persona into a framework architect: prioritize framework scaling, democratized access, and complex agent orchestration.',
+    },
+    miyamoto: {
+        id: 'miyamoto',
+        label: 'MIYAMOTO',
+        profile: 'miyamoto',
+        protocol: 'Universal interaction, interaction polish, and fundamental grammar critique.',
+        lens: 'Attack clunky movement, unpolished interaction, weak systemic grammar, and poor accessibility.',
+        anti_behavior: [
+            'Do not accept unpolished or non-intuitive interaction patterns.',
+            'Do not allow the fundamental grammar of the system to become incoherent.',
+            'Do not ignore the value of universal systemic accessibility and interaction polish.',
+        ],
+        root_persona_directive: 'Adapt the root persona into a master of interaction: enforce fundamental grammar, interaction polish, and universal systemic accessibility.',
+    },
+    kojima: {
+        id: 'kojima',
+        label: 'KOJIMA',
+        profile: 'kojima',
+        protocol: 'Meta-systemic narrative, reactive networks, and social-strand connection critique.',
+        lens: 'Attack non-reactive networks, weak social/agent connections, shallow meta-narrative, and isolated player/AI states.',
+        anti_behavior: [
+            'Do not accept isolated systemic states that fail to form reactive networks.',
+            'Do not ignore the "social strand" or connection logic between agents and the system.',
+            'Do not overlook the meta-systemic narrative that emerges from network interactions.',
+        ],
+        root_persona_directive: 'Adapt the root persona into a meta-systemic designer: prioritize reactive network connections, social-strand logic, and emergent meta-narratives.',
+    },
+    meier: {
+        id: 'meier',
+        label: 'MEIER',
+        profile: 'meier',
+        protocol: 'Macro-strategic decision loops and global mission control critique.',
+        lens: 'Attack uninteresting choices, broken decision loops, poor strategic scaling, and weak mission control.',
+        anti_behavior: [
+            'Do not accept systemic loops that fail to provide a "series of interesting choices."',
+            'Do not allow macro-strategic scaling to lose its systemic grounding.',
+            'Do not ignore the global mission control perspective in strategic decision-making.',
+        ],
+        root_persona_directive: 'Adapt the root persona into a strategic mastermind: prioritize interesting choices, macro-strategic loops, and global mission control logic.',
+    },
 };
 
 export const DEFAULT_COUNCIL_EXPERT_IDS: CouncilExpertId[] = [
@@ -137,6 +286,10 @@ function includesAny(value: string, keywords: string[]): boolean {
     return keywords.some((keyword) => value.includes(keyword));
 }
 
+function includesAll(value: string, keywordGroups: string[][]): boolean {
+    return keywordGroups.every((keywords) => includesAny(value, keywords));
+}
+
 export function getCouncilExpertProtocol(id: CouncilExpertId): CouncilExpertProtocol {
     return COUNCIL_EXPERTS[id];
 }
@@ -149,45 +302,139 @@ export function formatCouncilAntiBehavior(expert: Pick<CouncilExpertProtocol, 'a
     return expert.anti_behavior.join(' ');
 }
 
-export function selectCouncilExpert(input: CouncilSelectionInput): CouncilExpertProtocol {
+function candidateOrder(id: CouncilExpertId): number {
+    return DEFAULT_COUNCIL_EXPERT_IDS.includes(id)
+        ? DEFAULT_COUNCIL_EXPERT_IDS.indexOf(id)
+        : DEFAULT_COUNCIL_EXPERT_IDS.length + Object.keys(COUNCIL_EXPERTS).indexOf(id);
+}
+
+function addCandidateScore(
+    scores: Map<CouncilExpertId, { score: number; reasons: string[] }>,
+    id: CouncilExpertId,
+    score: number,
+    reason: string,
+): void {
+    const existing = scores.get(id) ?? { score: 0, reasons: [] };
+    existing.score += score;
+    existing.reasons.push(reason);
+    scores.set(id, existing);
+}
+
+export function scoreCouncilExpertCandidates(input: CouncilSelectionInput): CouncilExpertCandidate[] {
     const text = haystack(input);
     const category = normalizeText(input.intent_category);
     const selectionName = normalizeText(input.selection_name);
-    let selected: CouncilExpertId = 'torvalds';
-    let reason = 'default systems-maintenance protocol for general Trace Gate work';
+    const scores = new Map<CouncilExpertId, { score: number; reasons: string[] }>();
 
-    if (category === 'harden' || includesAny(text, ['security', 'auth', 'secret', 'token', 'policy', 'permission', 'rollback', 'invariant', 'safety', 'fail'])) {
-        selected = 'hamilton';
-        reason = 'safety, hardening, invariant, or rollback-sensitive work';
-    } else if (includesAny(text, ['ai', 'llm', 'model', 'prompt', 'eval', 'embedding', 'context window', 'tool schema', 'agent', 'persona'])) {
-        selected = 'karpathy';
-        reason = 'AI-system, persona, eval, or model-boundary work';
-    } else if (category === 'orchestrate' || includesAny(text, ['orchestrate', 'scheduler', 'queue', 'lease', 'retry', 'distributed', 'parallel', 'concurrent', 'worker', 'spoke'])) {
-        selected = 'dean';
-        reason = 'orchestration, concurrency, retry, or distributed-state work';
-    } else if (category === 'observe' || includesAny(text, ['trace', 'log', 'signal', 'telemetry', 'observability', 'metadata', 'hall', 'search', 'mimir', 'lineage'])) {
-        selected = 'shannon';
-        reason = 'trace, observability, provenance, or signal-quality work';
-    } else if (category === 'score' || category === 'evolve' || includesAny(text, ['performance', 'latency', 'throughput', 'hot path', 'memory', 'allocation', 'benchmark', 'score'])) {
-        selected = 'carmack';
-        reason = 'measurement, performance, scoring, or hot-path work';
-    } else if (category === 'repair' || selectionName === 'restoration' || includesAny(text, ['debug', 'bug', 'broken', 'fix failure', 'root cause'])) {
-        selected = 'torvalds';
-        reason = 'repair or root-cause work needs strict systems-maintainer scrutiny';
+    // 1. SPECIFIC DOMAIN ARCHITECTS (High Specificity)
+    if (includesAll(text, [['game', 'gaming', 'rpg', 'fallows hallow', 'fallows-hallow', 'fallows_hallow'], ['code', 'engine', 'runtime', 'implementation', 'performance', 'render', 'loop', 'physics']])) {
+        addCandidateScore(scores, 'carmack', 10, 'game, RPG, engine, or mechanically intensive code work');
+    }
+    if (includesAny(text, ['absolute agentic', 'hub and spoke', 'agent memory', 'dwarf fortress', 'adams', 'procgen', 'procedural'])) {
+        addCandidateScore(scores, 'adams', 8, 'absolute agentic simulation or procedural history work');
+    }
+    if (includesAny(text, ['narrative', 'story', 'cinematic', 'emotional', 'theme', 'fantasy', 'square', 'sakaguchi'])) {
+        addCandidateScore(scores, 'sakaguchi', 8, 'narrative, cinematic, or emotional-systemic alignment');
+    }
+    if (includesAny(text, ['liquid glass', 'neon', 'maximalism', 'visual identity', 'nomura', 'aesthetics'])) {
+        addCandidateScore(scores, 'nomura', 8, 'high-fidelity technical interface or visual identity work');
+    }
+    if (includesAny(text, ['spatial lore', 'network graph', 'environmental storytelling', 'rhythmic', 'soulslike', 'miyazaki', 'interconnected'])) {
+        addCandidateScore(scores, 'miyazaki', 8, 'spatial lore, network graph, or interconnected systemic work');
+    }
+    if (includesAny(text, ['software toy', 'reactive agent', 'sims', 'open-ended', 'wright'])) {
+        addCandidateScore(scores, 'wright', 8, 'reactive agent loops or open-ended simulation work');
+    }
+    if (includesAny(text, ['cross-platform', 'porting', 'heavy lifting', 'heineman', 'legacy debt'])) {
+        addCandidateScore(scores, 'heineman', 8, 'cross-platform engineering or technical heavy-lifting work');
+    }
+    if (includesAny(text, ['framework democratization', 'unreal engine', 'sweeney', 'scaling framework', 'framework'])) {
+        addCandidateScore(scores, 'sweeney', 8, 'framework orchestration or high-fidelity scaling work');
+    }
+    if (includesAny(text, ['interaction polish', 'movement grammar', 'miyamoto', 'universal interaction'])) {
+        addCandidateScore(scores, 'miyamoto', 8, 'fundamental interaction grammar or systemic polish work');
+    }
+    if (includesAny(text, ['social strand', 'player-to-ai', 'kojima', 'meta-systemic'])) {
+        addCandidateScore(scores, 'kojima', 8, 'meta-systemic narrative or reactive network work');
+    }
+    if (includesAny(text, ['macro-strategic', '4x', 'mission control', 'civilization', 'meier', 'decision loop'])) {
+        addCandidateScore(scores, 'meier', 8, 'macro-strategic decision loops or mission control work');
     }
 
+    // 2. CORE SYSTEMS EXPERTS (Medium Specificity)
+    if (category === 'harden') {
+        addCandidateScore(scores, 'hamilton', 10, 'declared hardening intent');
+    }
+    if (includesAny(text, ['security', 'auth', 'secret', 'token', 'policy', 'permission', 'rollback', 'invariant', 'safety', 'fail'])) {
+        addCandidateScore(scores, 'hamilton', 7, 'safety, hardening, invariant, or rollback-sensitive work');
+    }
+    if (includesAny(text, ['ai system', 'ai inference', 'inference', 'llm', 'model', 'prompt', 'eval', 'embedding', 'context window', 'tool schema', 'karpathy'])) {
+        addCandidateScore(scores, 'karpathy', 7, 'AI-system, persona, eval, or model-boundary work');
+    }
+    if (category === 'orchestrate') {
+        addCandidateScore(scores, 'dean', 10, 'declared orchestration intent');
+    }
+    if (includesAny(text, ['orchestrate', 'scheduler', 'queue', 'lease', 'retry', 'distributed', 'parallel', 'concurrent', 'worker', 'spoke', 'dean'])) {
+        addCandidateScore(scores, 'dean', 7, 'orchestration, concurrency, retry, or distributed-state work');
+    }
+    if (category === 'observe') {
+        addCandidateScore(scores, 'shannon', 10, 'declared observation intent');
+    }
+    if (includesAny(text, ['trace', 'log', 'signal', 'telemetry', 'observability', 'metadata', 'hall', 'search', 'mimir', 'lineage', 'shannon'])) {
+        addCandidateScore(scores, 'shannon', 7, 'trace, observability, provenance, or signal-quality work');
+    }
+    if (category === 'score' || category === 'evolve') {
+        addCandidateScore(scores, 'carmack', 10, 'declared score or evolve intent');
+    }
+    if (includesAny(text, ['performance', 'latency', 'throughput', 'hot path', 'memory allocation', 'benchmark', 'score', 'bare metal', 'engine', 'carmack', 'rewrite'])) {
+        addCandidateScore(scores, 'carmack', 7, 'measurement, performance, scoring, engine, or hot-path work');
+    }
+
+    // 3. REPAIR & FALLBACK (Default Maintainer)
+    if (category === 'repair') {
+        addCandidateScore(scores, 'torvalds', 10, 'declared repair intent');
+    }
+    if (selectionName === 'restoration' || includesAny(text, ['debug', 'bug', 'broken', 'fix failure', 'root cause', 'torvalds', 'maintainer', 'fix'])) {
+        addCandidateScore(scores, 'torvalds', 7, 'repair or root-cause work needs strict systems-maintainer scrutiny');
+    }
+    if (scores.size === 0) {
+        addCandidateScore(scores, 'torvalds', 1, 'default systems-maintenance protocol for general Augury Gate work');
+    }
+
+    return [...scores.entries()]
+        .map(([id, scored]) => ({
+            id,
+            label: COUNCIL_EXPERTS[id].label,
+            score: scored.score,
+            reason: scored.reasons.join('; '),
+        }))
+        .sort((left, right) => right.score - left.score || candidateOrder(left.id) - candidateOrder(right.id));
+}
+
+export function selectCouncilExpert(input: CouncilSelectionInput): CouncilExpertProtocol {
+    const candidates = scoreCouncilExpertCandidates(input);
+    const selected = candidates[0] ?? {
+        id: 'torvalds' as CouncilExpertId,
+        label: 'TORVALDS',
+        score: 1,
+        reason: 'default systems-maintenance protocol for general Augury Gate work',
+    };
+
     return {
-        ...COUNCIL_EXPERTS[selected],
-        selection_reason: reason,
+        ...COUNCIL_EXPERTS[selected.id],
+        selection_reason: selected.reason,
+        selection_score: selected.score,
+        selection_candidates: candidates.slice(0, 3),
     };
 }
 
-export function enrichTraceContractWithCouncil(contract: RuntimeTraceContract): RuntimeTraceContract {
+export function enrichTraceContractWithCouncil(contract: RuntimeAuguryContract): RuntimeAuguryContract {
     if (contract.council_expert) {
         return contract;
     }
     return {
         ...contract,
         council_expert: selectCouncilExpert(contract),
+        council_candidates: scoreCouncilExpertCandidates(contract).slice(0, 3),
     };
 }

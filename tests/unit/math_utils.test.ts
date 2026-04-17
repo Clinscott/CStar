@@ -1,15 +1,17 @@
+import test from 'node:test';
+import assert from 'node:assert';
 import { multiply } from '../../src/node/core/runtime/math_utils.js';
 
-describe('multiply function', () => {
-    test('should multiply two numbers correctly', () => {
-        expect(multiply(2, 5)).toBe(10);
+test('multiply function', (t) => {
+    t.test('should multiply two numbers correctly', () => {
+        assert.strictEqual(multiply(2, 5), 10);
     });
 
-    test('should handle negative numbers correctly', () => {
-        expect(multiply(-3, 4)).toBe(-12);
+    t.test('should handle negative numbers correctly', () => {
+        assert.strictEqual(multiply(-3, 4), -12);
     });
 
-    test('should handle zero correctly', () => {
-        expect(multiply(0, 100)).toBe(0);
+    t.test('should handle zero correctly', () => {
+        assert.strictEqual(multiply(0, 100), 0);
     });
 });

@@ -759,3 +759,28 @@ Confidence: 1.0
   "focus_targets": ["src/core/engine/autobot_skill.py", "src/core/engine/sovereign_worker.py"]
 }
 ```
+
+## 2026-04-15 - NexplayNexus Spoke Mount
+### Summary
+- Mounted `/home/morderith/Corvus/NexplayNexus` into the Hall-backed estate roster as `nexplaynexus`.
+- Corrected the `cstar spoke link` command so explicit spoke paths are preserved instead of being promoted to the parent Estate root.
+
+### Verification
+- `node scripts/run-tsx.mjs --test tests/unit/test_spoke_command.test.ts tests/unit/test_spoke_runtime.test.ts tests/unit/node-runtime/test_estate_targeting.test.ts`
+
+## 2026-04-16 - Corvus Star Augury Preservation Handoff
+### Summary
+- Preserved the Corvus Star Augury refactor with an operator handoff at `docs/augury-operator-handoff.md`.
+- Added `NEXT_SESSION_AUGURY.md` as the root-level runway marker for the next Augury usefulness evaluator pass.
+- Clarified that Augury is the routing contract for an agentic turn, not a telemetry/session/execution trace or display-only artifact.
+- Locked the fresh-agent command order around `cstar augury doctor --json`, `cstar augury explain --json`, `cstar augury handoff --json`, then targeted Hall/Mimir discovery.
+- Updated `docs/HANDOFF.md` so new agents enter through Augury language instead of legacy trace-selection language.
+
+### Architectural Decisions
+- **Preservation over expansion**: With limited execution budget, the correct move was to document the operational contract and future learning lead instead of starting another runtime subsystem.
+- **Learning ledger as future dataset**: The Augury JSONL ledger is ready for later GEPA/DSPy prompt improvement, but GEPA/DSPy setup remains explicitly deferred.
+- **Read-only next step**: The next useful upgrade is an Augury usefulness evaluator that joins learning rows with Hall/runtime outcomes before any optimizer mutates prompts.
+
+### Current State
+- Corvus Star Augury has doctor/explain/handoff surfaces, full-first/lite-after host prompt steering, and learning metadata persistence.
+- Foundational Augury work is grounded as `brain:CStar`; spoke scope requires an explicit spoke.

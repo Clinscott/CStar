@@ -10,6 +10,19 @@ describe('Command catalog', () => {
         assert.ok(catalog.some((entry) => entry.name === 'manifest'));
         assert.ok(catalog.some((entry) => entry.name === 'skill-info'));
         assert.ok(catalog.some((entry) => entry.name === 'one-mind'));
+        assert.ok(catalog.some((entry) => entry.name === 'augury'));
+    });
+
+    it('captures canonical Augury handoff json support', () => {
+        const augury = findCommandCatalogEntry('augury');
+
+        assert.ok(augury);
+        assert.equal(augury?.command_path.join(' '), 'augury');
+        assert.equal(augury?.subcommands.some((entry) => entry.name === 'handoff' && entry.supports_json), true);
+        assert.equal(augury?.subcommands.some((entry) => entry.name === 'status' && entry.supports_json), true);
+        assert.equal(augury?.subcommands.some((entry) => entry.name === 'failures' && entry.supports_json), true);
+        assert.equal(augury?.subcommands.some((entry) => entry.name === 'doctor' && entry.supports_json), true);
+        assert.equal(augury?.subcommands.some((entry) => entry.name === 'explain' && entry.supports_json), true);
     });
 
     it('captures aliases, json support, and subcommands for one-mind', () => {

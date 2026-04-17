@@ -36,22 +36,22 @@ import { engraveReadyForReviewMemory } from '../episodic_memory.js';
  * Purpose: The sovereign execution engine for SET beads.
  * Mandate: Stateless, Deterministic, and Aggressively Reaped (Yo-Yo).
  */
-function getPlanningTraceContract(session: HallPlanningSessionRecord | null): Record<string, unknown> | undefined {
-    const contract = session?.metadata?.trace_contract;
+function getPlanningAuguryContract(session: HallPlanningSessionRecord | null): Record<string, unknown> | undefined {
+    const contract = session?.metadata?.augury_contract ?? session?.metadata?.trace_contract;
     return contract && typeof contract === 'object' && !Array.isArray(contract)
         ? contract as Record<string, unknown>
         : undefined;
 }
 
 function getTraceSelectionName(session: HallPlanningSessionRecord | null): string | undefined {
-    const selectionName = getPlanningTraceContract(session)?.selection_name;
+    const selectionName = getPlanningAuguryContract(session)?.selection_name;
     return typeof selectionName === 'string' && selectionName.trim()
         ? selectionName.trim().toLowerCase()
         : undefined;
 }
 
 export function derivePlanningExecutionHints(session: HallPlanningSessionRecord | null): PlanningExecutionHints | undefined {
-    const contract = getPlanningTraceContract(session);
+    const contract = getPlanningAuguryContract(session);
     const selectionName = getTraceSelectionName(session);
     const selectionTier = typeof contract?.selection_tier === 'string' && contract.selection_tier.trim()
         ? contract.selection_tier.trim().toUpperCase()

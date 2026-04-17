@@ -24,7 +24,7 @@ import { registerTuiCommand } from './src/node/core/commands/tui.ts';
 import { registerSpokeCommand } from './src/node/core/commands/spoke.ts';
 import { registerOsCommands } from './src/node/core/commands/os-integration.ts';
 import { registerOneMindCommand } from './src/node/core/commands/one-mind.ts';
-import { registerTraceCommand } from './src/node/core/commands/trace.ts';
+import { registerAuguryCommand, registerTraceCommand } from './src/node/core/commands/trace.ts';
 import { registerHallDocumentCommand } from './src/node/core/commands/hall-doc.ts';
 import { registerCapabilityDiscoveryCommands } from './src/node/core/commands/capability_discovery_commands.js';
 import {
@@ -146,6 +146,7 @@ ${hostOnlySurfaceSummary}${legacySurfaceSummary}
     registerBifrostCommand(program);
     registerOracleCommand(program, () => registry.getRoot());
     registerOneMindCommand(program, () => registry.getRoot());
+    registerAuguryCommand(program, () => registry.getRoot());
     registerTraceCommand(program, () => registry.getRoot());
     registerHallDocumentCommand(program);
     registerRunSkillCommand(program);

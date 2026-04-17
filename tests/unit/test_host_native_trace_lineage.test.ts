@@ -8,7 +8,16 @@ import { RuntimeDispatcher } from '../../src/node/core/runtime/dispatcher.js';
 import { getHallBead } from '../../src/tools/pennyone/intel/database.js';
 import { registry } from '../../src/tools/pennyone/pathRegistry.js';
 
-describe('host-native trace lineage', () => {
+function assertAuguryContractIncludesCoreFields(actual: unknown, expected: Record<string, unknown>): void {
+    assert.ok(actual && typeof actual === 'object' && !Array.isArray(actual));
+    assert.deepEqual(
+        Object.fromEntries(Object.keys(expected).map((key) => [key, (actual as Record<string, unknown>)[key]])),
+        expected,
+    );
+    assert.equal(typeof (actual as Record<string, unknown>).council_expert, 'object');
+}
+
+describe('host-native Augury lineage', () => {
     it('preserves planning lineage and designation source for inherited host-native skill dispatch', async () => {
         const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'corvus-host-trace-lineage-'));
         fs.mkdirSync(path.join(tmpRoot, '.agents'), { recursive: true });
@@ -69,8 +78,8 @@ describe('host-native trace lineage', () => {
                     project_root: tmpRoot,
                     cwd: tmpRoot,
                     planning_session_id: 'chant-session:TRACE-LINEAGE',
-                    trace_contract: traceContract,
-                    trace_designation_source: 'dispatcher_synthesized',
+                    augury_contract: traceContract,
+                    augury_designation_source: 'dispatcher_synthesized',
                 },
                 status: 'PENDING',
                 priority: 1,
@@ -79,14 +88,31 @@ describe('host-native trace lineage', () => {
             assert.strictEqual(result.status, 'SUCCESS');
             assert.strictEqual(result.output, 'Host fulfilled hall lineage request.');
             assert.strictEqual(result.metadata?.planning_session_id, 'chant-session:TRACE-LINEAGE');
+            assert.strictEqual(result.metadata?.augury_designation_source, 'dispatcher_synthesized');
             assert.strictEqual(result.metadata?.trace_designation_source, 'dispatcher_synthesized');
-            assert.deepEqual(result.metadata?.trace_contract, traceContract);
+            assertAuguryContractIncludesCoreFields(result.metadata?.augury_contract, traceContract);
+            assertAuguryContractIncludesCoreFields(result.metadata?.trace_contract, traceContract);
 
             const executionBead = getHallBead(String(result.metadata?.execution_bead_id));
             assert.equal(executionBead?.metadata?.planning_session_id, 'chant-session:TRACE-LINEAGE');
+            assert.equal(executionBead?.metadata?.augury_designation_source, 'dispatcher_synthesized');
             assert.equal(executionBead?.metadata?.trace_designation_source, 'dispatcher_synthesized');
-            assert.deepEqual(executionBead?.metadata?.trace_contract, traceContract);
+            assertAuguryContractIncludesCoreFields(executionBead?.metadata?.augury_contract, traceContract);
+            assertAuguryContractIncludesCoreFields(executionBead?.metadata?.trace_contract, traceContract);
             assert.strictEqual(hostTextInvoker.mock.callCount(), 1);
+            const hostPrompt = String(hostTextInvoker.mock.calls[0]?.arguments[0]?.prompt ?? '');
+            assert.match(hostPrompt, /\[CORVUS_STAR_AUGURY\]/);
+            assert.match(hostPrompt, /Mode: lite/);
+            assert.match(hostPrompt, /Council Expert: DEAN/);
+            assert.match(hostPrompt, /Mimir's Well: src\/node\/core\/runtime\/dispatcher\.ts/);
+            assert.match(hostPrompt, /Directive: Route only/i);
+            assert.doesNotMatch(hostPrompt, /Corvus Standard:/);
+            assert.doesNotMatch(hostPrompt, /Confidence:/);
+            assertAuguryContractIncludesCoreFields(hostTextInvoker.mock.calls[0]?.arguments[0]?.metadata?.augury_contract, traceContract);
+            assert.equal(hostTextInvoker.mock.calls[0]?.arguments[0]?.metadata?.augury_designation_source, 'dispatcher_synthesized');
+            assert.equal(hostTextInvoker.mock.calls[0]?.arguments[0]?.metadata?.augury_learning_metadata?.confidence, 0.91);
+            assert.equal(hostTextInvoker.mock.calls[0]?.arguments[0]?.metadata?.augury_learning_metadata?.steering_mode, 'lite');
+            assert.equal(hostTextInvoker.mock.calls[0]?.arguments[0]?.metadata?.augury_learning_metadata?.session_id, 'chant-session:TRACE-LINEAGE');
         } finally {
             delete process.env.CODEX_SHELL;
             delete process.env.CODEX_THREAD_ID;

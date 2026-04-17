@@ -1,6 +1,7 @@
 {
   "name": "corvus-star",
   "version": "1.0.0",
+  "description": "Corvus Star host-native extension with Hall discovery, Augury routing, and kernel-backed CStar control.",
   "contextFileName": "GEMINI.md",
   "mcpServers": {
     "pennyone": {

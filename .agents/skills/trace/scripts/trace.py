@@ -9,7 +9,12 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from src.tools.trace_viz import TraceVisualizer
 
 def main():
-    parser = argparse.ArgumentParser(description="Neural Trace Visualization: Visual replay of agent intent.")
+    parser = argparse.ArgumentParser(
+        description=(
+            "Session trace visualization: visual replay of JSON/session traces. "
+            "This is not the Corvus Star Augury [Ω] selection block."
+        )
+    )
     parser.add_argument("query", nargs="?", help="The natural language query to visualize")
     parser.add_argument("--file", "-f", help="Path to a JSON trace file to replay")
     parser.add_argument("--war-room", "-w", action="store_true", help="Enter Conflict Analysis Mode")

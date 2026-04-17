@@ -48,12 +48,14 @@ export function registerSpokeCommand(program: Command, projectRootSource: Worksp
                 process.exit(1);
             }
 
+            const mountedRoot = absolutePath.replace(/\\/g, '/');
+
             saveHallMountedSpoke({
                 spoke_id: `spoke:${normalizedSlug}`,
                 repo_id: repo.repo_id,
                 slug: normalizedSlug,
                 kind: (options.kind as 'local' | 'git' | 'mirror' | 'archive') ?? 'local',
-                root_path: registry.detectWorkspaceRoot(absolutePath),
+                root_path: mountedRoot,
                 remote_url: options.remoteUrl,
                 default_branch: options.branch,
                 mount_status: 'active',
@@ -68,7 +70,7 @@ export function registerSpokeCommand(program: Command, projectRootSource: Worksp
             });
 
             StateRegistry.save(StateRegistry.get());
-            console.log(chalk.green(`Mounted spoke '${normalizedSlug}' linked to ${registry.detectWorkspaceRoot(absolutePath)}.`));
+            console.log(chalk.green(`Mounted spoke '${normalizedSlug}' linked to ${mountedRoot}.`));
         });
 
     spoke

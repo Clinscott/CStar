@@ -3,8 +3,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {
     RuntimeContext,
-    RuntimeTraceContract,
-    RuntimeTraceDesignationSource,
+    RuntimeAuguryContract,
+    RuntimeAuguryDesignationSource,
     WeaveInvocation,
     WeaveResult,
     RuntimeAdapter,
@@ -12,6 +12,7 @@ import {
 } from './contracts.ts';
 import { requestHostText, type HostTextRequest, type HostTextResult } from '../../../core/host_intelligence.js';
 import {
+    buildAuguryLearningMetadata,
     buildHostNativeSkillPrompt,
     explainCapabilityHostSupport,
     getCapabilityExecutionMode,
@@ -25,7 +26,7 @@ import { registry } from  '../../../tools/pennyone/pathRegistry.js';
 import { getGungnirOverall } from  '../../../types/gungnir.js';
 import { resolveEstateTarget } from  './estate_targeting.js';
 import {
-    TRACE_SELECTION_HEADER,
+    TRACE_SELECTION_HEADERS,
     getRegistryIntentCategories,
     loadRegistryManifest,
     resolveIntentCategoryFromGrammar,
@@ -62,8 +63,8 @@ interface HostRecoveryDecision {
 }
 
 interface InvocationTraceResolution {
-    contract: RuntimeTraceContract | null;
-    source: RuntimeTraceDesignationSource | null;
+    contract: RuntimeAuguryContract | null;
+    source: RuntimeAuguryDesignationSource | null;
     explicit: boolean;
     errors: string[];
 }
@@ -105,11 +106,11 @@ function buildTraceSelectionGateError(
     planningOnly: boolean,
 ): string {
     const prefix = planningOnly
-        ? '[KERNEL PANIC]: Trace Selection Gate Breach. Planning sessions must resolve to a machine-valid Corvus Star trace contract.'
-        : `[KERNEL PANIC]: Trace Selection Gate Breach. The command '${weaveId}' must resolve to a machine-valid Corvus Star trace contract.`;
+        ? '[KERNEL PANIC]: Corvus Star Augury Gate Breach. Planning sessions must resolve to a machine-valid Corvus Star Augury contract.'
+        : `[KERNEL PANIC]: Corvus Star Augury Gate Breach. The command '${weaveId}' must resolve to a machine-valid Corvus Star Augury contract.`;
 
     if (validationErrors.length === 0) {
-        return `${prefix} Provide a valid '// Corvus Star Trace [Ω]' block or a runtime surface the dispatcher can designate safely.`.trim();
+        return `${prefix} Provide a valid '// Corvus Star Augury [Ω]' block or a runtime surface the dispatcher can designate safely.`.trim();
     }
 
     return `${prefix} ${validationErrors.join(' ')}`.trim();
@@ -123,7 +124,7 @@ function compactTraceText(value: unknown): string | undefined {
     return normalized || undefined;
 }
 
-function normalizeTraceContract(value: unknown): RuntimeTraceContract | null {
+function normalizeAuguryContract(value: unknown): RuntimeAuguryContract | null {
     if (!value || typeof value !== 'object' || Array.isArray(value)) {
         return null;
     }
@@ -134,7 +135,7 @@ function normalizeTraceContract(value: unknown): RuntimeTraceContract | null {
             .map((entry) => compactTraceText(entry))
             .filter((entry): entry is string => Boolean(entry))
         : [];
-    const contract: RuntimeTraceContract = {
+    const contract: RuntimeAuguryContract = {
         mimirs_well: mimirsWell,
     };
 
@@ -169,9 +170,15 @@ function normalizeTraceContract(value: unknown): RuntimeTraceContract | null {
     if (typeof normalized.confidence === 'number' && Number.isFinite(normalized.confidence)) {
         contract.confidence = normalized.confidence;
     }
+    if (normalized.confidence_source === 'explicit' || normalized.confidence_source === 'missing' || normalized.confidence_source === 'synthetic') {
+        contract.confidence_source = normalized.confidence_source;
+    }
     const councilExpert = normalized.council_expert;
     if (councilExpert && typeof councilExpert === 'object' && !Array.isArray(councilExpert)) {
-        contract.council_expert = councilExpert as RuntimeTraceContract['council_expert'];
+        contract.council_expert = councilExpert as RuntimeAuguryContract['council_expert'];
+    }
+    if (Array.isArray(normalized.council_candidates)) {
+        contract.council_candidates = normalized.council_candidates.filter((entry): entry is NonNullable<RuntimeAuguryContract['council_candidates']>[number] => Boolean(entry) && typeof entry === 'object' && !Array.isArray(entry));
     }
 
     if (!contract.selection_tier || !contract.selection_name) {
@@ -181,18 +188,26 @@ function normalizeTraceContract(value: unknown): RuntimeTraceContract | null {
     return enrichTraceContractWithCouncil(contract);
 }
 
-function normalizeTraceDesignationSource(value: unknown): RuntimeTraceDesignationSource | null {
-    if (value === 'explicit_trace_block' || value === 'dispatcher_synthesized' || value === 'payload_trace_contract') {
+function normalizeAuguryDesignationSource(value: unknown): RuntimeAuguryDesignationSource | null {
+    if (value === 'explicit_augury_block' || value === 'dispatcher_synthesized' || value === 'payload_augury_contract' || value === 'legacy_payload_trace_contract') {
         return value;
+    }
+    if (value === 'explicit_trace_block') {
+        return 'explicit_augury_block';
+    }
+    if (value === 'payload_trace_contract') {
+        return 'legacy_payload_trace_contract';
     }
     return null;
 }
 
 function extractExplicitTraceCandidate(values: string[]): string | null {
     for (const value of values) {
-        const index = value.indexOf(TRACE_SELECTION_HEADER);
-        if (index >= 0) {
-            return value.slice(index).trim();
+        for (const header of TRACE_SELECTION_HEADERS) {
+            const index = value.indexOf(header);
+            if (index >= 0) {
+                return value.slice(index).trim();
+            }
         }
     }
     return null;
@@ -334,7 +349,7 @@ function buildSyntheticTraceContract(input: {
     payload: unknown;
     skillIntent?: string;
     targetPath?: string;
-}): RuntimeTraceContract {
+}): RuntimeAuguryContract {
     const summary = summarizeInvocationIntent(input.weaveId, input.payload, input.skillIntent);
     const targetPath = compactTraceText(input.targetPath);
     const mimirsWell = ['src/node/core/runtime/dispatcher.ts'];
@@ -366,6 +381,7 @@ function buildSyntheticTraceContract(input: {
         trajectory_reason: `Dispatcher synthesized the designation from the explicit ${input.selectionTier.toLowerCase()} invocation.`,
         mimirs_well: Array.from(new Set(mimirsWell)),
         confidence: 0.72,
+        confidence_source: 'synthetic',
         canonical_intent: summary,
     });
 }
@@ -404,10 +420,11 @@ function resolveInvocationTraceContract(input: {
                 mimirs_well: validation.trace.mimirs_well,
                 gungnir_verdict: validation.trace.gungnir_verdict,
                 confidence: validation.trace.confidence,
+                confidence_source: validation.trace.confidence_source,
                 body: validation.trace.body,
                 canonical_intent: validation.trace.canonical_intent,
             }),
-            source: 'explicit_trace_block',
+            source: 'explicit_augury_block',
             explicit: true,
             errors: [],
         };
@@ -416,13 +433,18 @@ function resolveInvocationTraceContract(input: {
     const payloadRecord = input.payload && typeof input.payload === 'object' && !Array.isArray(input.payload)
         ? input.payload as Record<string, unknown>
         : null;
-    const payloadTrace = payloadRecord
-        ? normalizeTraceContract(payloadRecord.trace_contract)
+    const payloadAugury = payloadRecord
+        ? normalizeAuguryContract(payloadRecord.augury_contract)
         : null;
-    if (payloadTrace) {
+    const legacyPayloadTrace = !payloadAugury && payloadRecord
+        ? normalizeAuguryContract(payloadRecord.trace_contract)
+        : null;
+    const payloadContract = payloadAugury ?? legacyPayloadTrace;
+    if (payloadContract) {
         return {
-            contract: payloadTrace,
-            source: normalizeTraceDesignationSource(payloadRecord?.trace_designation_source) ?? 'payload_trace_contract',
+            contract: payloadContract,
+            source: normalizeAuguryDesignationSource(payloadRecord?.augury_designation_source ?? payloadRecord?.trace_designation_source)
+                ?? (payloadAugury ? 'payload_augury_contract' : 'legacy_payload_trace_contract'),
             explicit: false,
             errors: [],
         };
@@ -453,15 +475,16 @@ function resolveInvocationTraceContract(input: {
     };
 }
 
-function mergeRuntimeTraceMetadata(input: {
+function mergeRuntimeAuguryMetadata(input: {
     metadata?: Record<string, unknown>;
     context: RuntimeContext;
     weaveId: string;
-    traceContract: RuntimeTraceContract | null;
-    traceSource: RuntimeTraceDesignationSource | null;
+    auguryContract: RuntimeAuguryContract | null;
+    augurySource: RuntimeAuguryDesignationSource | null;
     executionBeadId?: string;
+    resultStatus?: string;
 }): Record<string, unknown> | undefined {
-    if (!input.traceContract && !input.traceSource) {
+    if (!input.auguryContract && !input.augurySource) {
         return input.metadata;
     }
 
@@ -476,20 +499,42 @@ function mergeRuntimeTraceMetadata(input: {
     metadata.trace_id = input.context.trace_id;
     metadata.mission_id = input.context.mission_id;
     metadata.mission_bead_id = input.context.bead_id;
+    metadata.target_domain = input.context.target_domain;
+    metadata.spoke_name = input.context.spoke_name ?? null;
+    metadata.spoke_root = input.context.spoke_root ?? null;
+    metadata.requested_root = input.context.requested_root ?? null;
     if (input.executionBeadId) {
         metadata.execution_bead_id = input.executionBeadId;
     }
     metadata.trace_scope = 'runtime';
     metadata.trace_weave_id = input.weaveId;
-    if (input.traceSource) {
-        metadata.trace_designation_source = input.traceSource;
+    if (input.augurySource) {
+        metadata.augury_designation_source = input.augurySource;
+        metadata.trace_designation_source = input.augurySource;
     }
-    if (input.traceContract) {
+    if (input.auguryContract) {
+        const planningSessionId = typeof metadata.planning_session_id === 'string' && metadata.planning_session_id.trim()
+            ? metadata.planning_session_id.trim()
+            : null;
+        metadata.augury_contract_version = 1;
+        metadata.augury_contract = input.auguryContract;
         metadata.trace_contract_version = 1;
-        metadata.trace_contract = input.traceContract;
-        if (input.traceContract.council_expert) {
-            metadata.council_expert = input.traceContract.council_expert;
-            metadata.root_persona_directive = input.traceContract.council_expert.root_persona_directive;
+        metadata.trace_contract = input.auguryContract;
+        metadata.augury_learning_metadata = buildAuguryLearningMetadata(input.auguryContract as unknown as Record<string, unknown>, {
+            session_id: input.context.session_id ?? planningSessionId,
+            planning_session_id: planningSessionId ?? input.context.session_id ?? null,
+            designation_source: input.augurySource ?? null,
+            prompt_surface: input.weaveId,
+            bead_id: input.executionBeadId ?? input.context.bead_id,
+            weave_id: input.weaveId,
+            result_status: input.resultStatus ?? null,
+            target_domain: input.context.target_domain,
+            spoke_name: input.context.spoke_name ?? null,
+            requested_root: input.context.requested_root ?? null,
+        });
+        if (input.auguryContract.council_expert) {
+            metadata.council_expert = input.auguryContract.council_expert;
+            metadata.root_persona_directive = input.auguryContract.council_expert.root_persona_directive;
         }
     }
 
@@ -702,6 +747,8 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
             spoke_root: estateTarget.spokeRoot,
             requested_root: estateTarget.requestedRoot,
             session_id: isSkillBead ? undefined : session?.session_id,
+            augury_contract: traceResolution.contract ?? undefined,
+            augury_designation_source: traceResolution.source ?? undefined,
             trace_contract: traceResolution.contract ?? undefined,
             trace_designation_source: traceResolution.source ?? undefined,
             council_expert: traceResolution.contract?.council_expert,
@@ -719,8 +766,8 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
             weaveId,
             requestedRoot: estateTarget.requestedRoot,
             existingBead,
-            traceContract: traceResolution.contract,
-            traceSource: traceResolution.source,
+            auguryContract: traceResolution.contract,
+            augurySource: traceResolution.source,
             context,
         });
 
@@ -738,8 +785,8 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
             targetPath: isSkillBead ? invocation.target_path : estateTarget.requestedRoot,
             assignedAgent,
             context,
-            traceContract: traceResolution.contract,
-            traceSource: traceResolution.source,
+            auguryContract: traceResolution.contract,
+            augurySource: traceResolution.source,
             status: 'IN_PROGRESS',
         });
 
@@ -782,13 +829,14 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
         const finalizeResult = (result: WeaveResult): WeaveResult => {
             const finalized: WeaveResult = {
                 ...result,
-                metadata: mergeRuntimeTraceMetadata({
+                metadata: mergeRuntimeAuguryMetadata({
                     metadata: result.metadata,
                     context,
                     weaveId,
-                    traceContract: traceResolution.contract,
-                    traceSource: traceResolution.source,
+                    auguryContract: traceResolution.contract,
+                    augurySource: traceResolution.source,
                     executionBeadId: childBeadId,
+                    resultStatus: result.status,
                 }),
             };
             this.upsertExecutionBead({
@@ -799,8 +847,8 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
                 targetPath: isSkillBead ? invocation.target_path : estateTarget.requestedRoot,
                 assignedAgent,
                 context,
-                traceContract: traceResolution.contract,
-                traceSource: traceResolution.source,
+                auguryContract: traceResolution.contract,
+                augurySource: traceResolution.source,
                 existingBead: getHallBead(childBeadId),
                 status: mapExecutionResultToBeadStatus(finalized),
                 output: finalized.output,
@@ -811,7 +859,7 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
         };
 
         if (isSkillBead) {
-            const nativeHostResult = await this.tryExecuteSkillBeadViaHostSession(invocation, estateTarget.workspaceRoot);
+            const nativeHostResult = await this.tryExecuteSkillBeadViaHostSession(invocation, estateTarget.workspaceRoot, context);
             if (nativeHostResult) {
                 restoreAgentState();
                 return finalizeResult(nativeHostResult);
@@ -942,17 +990,17 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
         weaveId: string;
         requestedRoot?: string;
         existingBead: ReturnType<typeof getHallBead>;
-        traceContract: RuntimeTraceContract | null;
-        traceSource: RuntimeTraceDesignationSource | null;
+        auguryContract: RuntimeAuguryContract | null;
+        augurySource: RuntimeAuguryDesignationSource | null;
         context: RuntimeContext;
     }): void {
         const now = Date.now();
-        const metadata = mergeRuntimeTraceMetadata({
+        const metadata = mergeRuntimeAuguryMetadata({
             metadata: input.existingBead?.metadata as Record<string, unknown> | undefined,
             context: input.context,
             weaveId: input.weaveId,
-            traceContract: input.traceContract,
-            traceSource: input.traceSource,
+            auguryContract: input.auguryContract,
+            augurySource: input.augurySource,
         });
 
         upsertHallBead({
@@ -990,8 +1038,8 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
         targetPath?: string;
         assignedAgent: string;
         context: RuntimeContext;
-        traceContract: RuntimeTraceContract | null;
-        traceSource: RuntimeTraceDesignationSource | null;
+        auguryContract: RuntimeAuguryContract | null;
+        augurySource: RuntimeAuguryDesignationSource | null;
         metadata?: Record<string, unknown>;
         status: HallBeadStatus;
         output?: string;
@@ -1000,7 +1048,7 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
         createdAt?: number;
     }): void {
         const now = Date.now();
-        const metadata = mergeRuntimeTraceMetadata({
+        const metadata = mergeRuntimeAuguryMetadata({
             metadata: {
                 ...(input.existingBead?.metadata as Record<string, unknown> | undefined ?? {}),
                 ...(input.metadata ?? {}),
@@ -1011,8 +1059,8 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
             },
             context: input.context,
             weaveId: input.weaveId,
-            traceContract: input.traceContract,
-            traceSource: input.traceSource,
+            auguryContract: input.auguryContract,
+            augurySource: input.augurySource,
             executionBeadId: input.beadId,
         });
 
@@ -1094,6 +1142,25 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
                     execution_mode: 'kernel-recovery',
                     failed_weave_id: weaveId,
                     failed_skill_id: skillId ?? null,
+                    ...(context.augury_contract ?? context.trace_contract ? {
+                        augury_contract: context.augury_contract ?? context.trace_contract,
+                        trace_contract: context.augury_contract ?? context.trace_contract,
+                        augury_learning_metadata: buildAuguryLearningMetadata((context.augury_contract ?? context.trace_contract) as unknown as Record<string, unknown>, {
+                            session_id: context.session_id ?? null,
+                            planning_session_id: context.session_id ?? null,
+                            designation_source: context.augury_designation_source ?? context.trace_designation_source ?? null,
+                            prompt_surface: `runtime:recovery:${weaveId}`,
+                            bead_id: context.bead_id,
+                            weave_id: weaveId,
+                            target_domain: context.target_domain,
+                            spoke_name: context.spoke_name ?? null,
+                            requested_root: context.requested_root ?? null,
+                        }),
+                    } : {}),
+                    ...(context.augury_designation_source ?? context.trace_designation_source ? {
+                        augury_designation_source: context.augury_designation_source ?? context.trace_designation_source,
+                        trace_designation_source: context.augury_designation_source ?? context.trace_designation_source,
+                    } : {}),
                 },
             });
             const decision = extractJsonObject(hostResponse.text) as HostRecoveryDecision;
@@ -1192,6 +1259,7 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
     private async tryExecuteSkillBeadViaHostSession<T>(
         invocation: import('../skills/types.js').SkillBead<T>,
         workspaceRoot: string,
+        context: RuntimeContext,
     ): Promise<WeaveResult | null> {
         const executionMode = getCapabilityExecutionMode(workspaceRoot, invocation.skill_id);
         if (executionMode !== 'agent-native') {
@@ -1250,7 +1318,17 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
                 project_root: workspaceRoot,
                 target_paths: targetPaths,
                 payload: activationPayload,
+                augury_contract: (context.augury_contract ?? context.trace_contract ?? activationPayload.augury_contract ?? activationPayload.trace_contract) as Record<string, unknown> | undefined,
+                augury_mode: 'lite',
+                target_domain: context.target_domain,
+                spoke_name: context.spoke_name,
+                requested_root: context.requested_root,
             });
+            const activationSessionId = typeof activationPayload.planning_session_id === 'string' && activationPayload.planning_session_id.trim()
+                ? activationPayload.planning_session_id.trim()
+                : typeof activationPayload.session_id === 'string' && activationPayload.session_id.trim()
+                    ? activationPayload.session_id.trim()
+                    : context.session_id ?? null;
             let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
             try {
                 const result = await Promise.race([
@@ -1265,6 +1343,36 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
                             one_mind_boundary: 'primary',
                             execution_mode: 'agent-native',
                             skill_id: invocation.skill_id,
+                            session_id: activationSessionId,
+                            planning_session_id: activationSessionId,
+                            trace_id: context.trace_id,
+                            bead_id: invocation.id,
+                            weave_id: `skill:${invocation.skill_id}`,
+                            target_domain: context.target_domain,
+                            spoke_name: context.spoke_name ?? null,
+                            spoke_root: context.spoke_root ?? null,
+                            requested_root: context.requested_root ?? null,
+                            ...(context.augury_contract ?? context.trace_contract ? {
+                                augury_contract: context.augury_contract ?? context.trace_contract,
+                                trace_contract: context.augury_contract ?? context.trace_contract,
+                                augury_learning_metadata: buildAuguryLearningMetadata((context.augury_contract ?? context.trace_contract) as unknown as Record<string, unknown>, {
+                                    session_id: activationSessionId,
+                                    planning_session_id: activationSessionId,
+                                    designation_source: context.augury_designation_source ?? context.trace_designation_source ?? null,
+                                    prompt_surface: `runtime:skill:${invocation.skill_id}`,
+                                    bead_id: invocation.id,
+                                    weave_id: `skill:${invocation.skill_id}`,
+                                    provider,
+                                    steering_mode: 'lite',
+                                    target_domain: context.target_domain,
+                                    spoke_name: context.spoke_name ?? null,
+                                    requested_root: context.requested_root ?? null,
+                                }),
+                            } : {}),
+                            ...(context.augury_designation_source ?? context.trace_designation_source ? {
+                                augury_designation_source: context.augury_designation_source ?? context.trace_designation_source,
+                                trace_designation_source: context.augury_designation_source ?? context.trace_designation_source,
+                            } : {}),
                         },
                     }),
                     new Promise<never>((_, reject) => {

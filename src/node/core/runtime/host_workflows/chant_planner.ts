@@ -24,6 +24,7 @@ import type {
 } from '../contracts.ts';
 import type { ParsedTraceSelectionGate } from './chant_parser.js';
 import { inheritTraceInvocation } from '../trace_inheritance.js';
+import { enrichTraceContractWithCouncil } from '../../../../core/council_experts.js';
 
 const AUTOBOT_NOTE_LIMIT = 4_000;
 const AUTOBOT_SECTION_LIMIT = 420;
@@ -294,24 +295,25 @@ function buildSessionId(context: RuntimeContext, repoId: string): string {
     return `chant-session:${repoId}:${Date.now()}`;
 }
 
-function buildTraceContractMetadata(traceSelection: ParsedTraceSelectionGate | null | undefined): Record<string, unknown> | undefined {
-    if (!traceSelection) {
+function buildAuguryContractMetadata(augurySelection: ParsedTraceSelectionGate | null | undefined): Record<string, unknown> | undefined {
+    if (!augurySelection) {
         return undefined;
     }
 
-    return {
-        intent_category: traceSelection.intent_category,
-        intent: traceSelection.intent,
-        selection_tier: traceSelection.selection_tier,
-        selection_name: traceSelection.selection_name,
-        trajectory_status: traceSelection.trajectory_status,
-        trajectory_reason: traceSelection.trajectory_reason,
-        mimirs_well: [...traceSelection.mimirs_well],
-        gungnir_verdict: traceSelection.gungnir_verdict,
-        confidence: traceSelection.confidence,
-        body: traceSelection.body,
-        canonical_intent: traceSelection.canonical_intent,
-    };
+    return enrichTraceContractWithCouncil({
+        intent_category: augurySelection.intent_category,
+        intent: augurySelection.intent,
+        selection_tier: augurySelection.selection_tier,
+        selection_name: augurySelection.selection_name,
+        trajectory_status: augurySelection.trajectory_status,
+        trajectory_reason: augurySelection.trajectory_reason,
+        mimirs_well: [...augurySelection.mimirs_well],
+        gungnir_verdict: augurySelection.gungnir_verdict,
+        confidence: augurySelection.confidence,
+        confidence_source: augurySelection.confidence_source,
+        body: augurySelection.body,
+        canonical_intent: augurySelection.canonical_intent,
+    });
 }
 
 function mergeNormalizedIntent(existingSession: HallPlanningSessionRecord | null, normalizedIntent: string): string {
@@ -584,7 +586,7 @@ export async function runPlanningLoop(
     const createdAt = existingSession?.created_at ?? now;
     const mergedIntent = mergeNormalizedIntent(existingSession, normalizedIntent);
     const userIntent = existingSession?.user_intent ?? normalizedIntent;
-    const traceContract = buildTraceContractMetadata(traceSelection);
+    const auguryContract = buildAuguryContractMetadata(traceSelection);
     const personaPolicy = resolvePersonaPolicy(context.persona);
     const baseMetadata: Record<string, unknown> & {
         trace_id: string;
@@ -601,9 +603,11 @@ export async function runPlanningLoop(
             planning: personaPolicy.planning,
             investigation: personaPolicy.investigation,
         },
-        ...(traceContract ? {
+        ...(auguryContract ? {
+            augury_contract_version: 1,
+            augury_contract: auguryContract,
             trace_contract_version: 1,
-            trace_contract: traceContract,
+            trace_contract: auguryContract,
         } : {}),
     };
 

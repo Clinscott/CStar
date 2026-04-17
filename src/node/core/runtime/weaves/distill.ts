@@ -8,7 +8,7 @@ import type {
     WeaveInvocation,
     WeaveResult,
 } from '../contracts.ts';
-import { defaultHostTextInvoker, extractJsonObject, resolveRuntimeHostProvider, type HostTextInvoker } from  './host_bridge.js';
+import { defaultHostTextInvoker, extractJsonObject, resolveRuntimeHostProvider, withRuntimeAuguryMetadata, type HostTextInvoker } from  './host_bridge.js';
 
 function normalizeStringList(values: string[] | undefined): string[] {
     return (values ?? [])
@@ -159,11 +159,11 @@ Instructions:
                     projectRoot: payload.project_root || context.workspace_root,
                     source: 'runtime:weave:distill',
                     env: context.env,
-                    metadata: {
+                    metadata: withRuntimeAuguryMetadata({
                         weave_id: this.id,
                         bead_id: payload.bead_id,
                         transport_mode: 'host_session',
-                    },
+                    }, context),
                 });
 
                 const parsed = extractJsonObject(rawText) as DistillHostResponse;

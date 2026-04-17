@@ -105,6 +105,7 @@ export interface ParsedTraceSelectionGate {
     mimirs_well: string[];
     gungnir_verdict?: string;
     confidence?: number;
+    confidence_source?: 'explicit' | 'missing';
     body?: string;
     canonical_intent: string;
     issues: string[];
@@ -134,7 +135,13 @@ export const INTENT_CATEGORIES: Record<string, {
     DOCUMENT:    { triggers: ['document', 'explain', 'chronicle', 'architecture'], default_path: 'living_architecture', tier: 'WEAVE' },
 };
 
-export const TRACE_SELECTION_HEADER = '// Corvus Star Trace [Ω]';
+export const CORVUS_STAR_AUGURY_HEADER = '// Corvus Star Augury [Ω]';
+export const LEGACY_TRACE_SELECTION_HEADER = '// Corvus Star Trace [Ω]';
+export const TRACE_SELECTION_HEADER = CORVUS_STAR_AUGURY_HEADER;
+export const TRACE_SELECTION_HEADERS = [
+    CORVUS_STAR_AUGURY_HEADER,
+    LEGACY_TRACE_SELECTION_HEADER,
+] as const;
 
 const TRACE_SELECTION_REQUIRED_FIELDS = [
     'Intent Category',
@@ -143,7 +150,6 @@ const TRACE_SELECTION_REQUIRED_FIELDS = [
     'Trajectory',
     'Mimir\'s Well',
     'Gungnir Verdict',
-    'Confidence',
 ] as const;
 
 export const deps = {
@@ -297,7 +303,7 @@ function parseTraceConfidence(value: string | undefined): {
 } {
     const trimmed = compactTraceText(value);
     if (!trimmed) {
-        return { error: 'Confidence is missing.' };
+        return {};
     }
 
     const confidence = Number(trimmed);
@@ -310,7 +316,7 @@ function parseTraceConfidence(value: string | undefined): {
 
 export function parseTraceSelectionGate(query: string): ParsedTraceSelectionGate | null {
     const trimmed = query.trim();
-    if (!trimmed.startsWith(TRACE_SELECTION_HEADER)) {
+    if (!TRACE_SELECTION_HEADERS.some((header) => trimmed.startsWith(header))) {
         return null;
     }
 
@@ -377,6 +383,7 @@ export function parseTraceSelectionGate(query: string): ParsedTraceSelectionGate
         mimirs_well: mimirsWell,
         gungnir_verdict: compactTraceText(fieldValues['Gungnir Verdict']),
         confidence: confidenceResult.confidence,
+        confidence_source: confidenceResult.confidence === undefined ? 'missing' : 'explicit',
         body,
         canonical_intent: body ?? intent ?? '',
         issues,
@@ -388,7 +395,7 @@ export function validateTraceSelectionGate(query: string): TraceSelectionGateVal
     if (!trace) {
         return {
             valid: false,
-            errors: ['Missing // Corvus Star Trace [Ω] header.'],
+            errors: ['Missing // Corvus Star Augury [Ω] header.'],
             trace: null,
         };
     }

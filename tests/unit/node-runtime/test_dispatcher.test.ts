@@ -198,7 +198,7 @@ describe('RuntimeDispatcher', () => {
         assert.ok(result.error?.includes('catastrophic failure: Explosion'));
     });
 
-    it('allows pennyone search observation calls from the CLI without a trace block', async () => {
+    it('allows pennyone search observation calls from the CLI without an Augury block', async () => {
         const workspaceRoot = registry.getRoot();
         const mockAdapter = {
             id: 'weave:pennyone',
@@ -241,7 +241,7 @@ describe('RuntimeDispatcher', () => {
         assert.strictEqual(mockAdapter.execute.mock.callCount(), 1);
     });
 
-    it('allows pennyone normalize maintenance calls from the CLI without a trace block', async () => {
+    it('allows pennyone normalize maintenance calls from the CLI without an Augury block', async () => {
         const workspaceRoot = registry.getRoot();
         const mockAdapter = {
             id: 'weave:pennyone',
@@ -283,7 +283,7 @@ describe('RuntimeDispatcher', () => {
         assert.strictEqual(mockAdapter.execute.mock.callCount(), 1);
     });
 
-    it('allows pennyone report observation calls from the CLI without a trace block', async () => {
+    it('allows pennyone report observation calls from the CLI without an Augury block', async () => {
         const workspaceRoot = registry.getRoot();
         const mockAdapter = {
             id: 'weave:pennyone',
@@ -325,7 +325,7 @@ describe('RuntimeDispatcher', () => {
         assert.strictEqual(mockAdapter.execute.mock.callCount(), 1);
     });
 
-    it('rejects malformed chant trace blocks from the CLI before execution', async () => {
+    it('rejects malformed chant Augury blocks from the CLI before execution', async () => {
         const workspaceRoot = registry.getRoot();
         const chantAdapter = {
             id: 'weave:chant',
@@ -348,7 +348,7 @@ describe('RuntimeDispatcher', () => {
         const result = await dispatcher.dispatch({
             weave_id: 'weave:chant',
             payload: {
-                query: `// Corvus Star Trace [Ω]
+                query: `// Corvus Star Augury [Ω]
 Intent: malformed chant trace
 Selection: orchestrate
 Trajectory: STABLE
@@ -374,7 +374,7 @@ Confidence: 1.4`,
         assert.strictEqual(chantAdapter.execute.mock.callCount(), 0);
     });
 
-    it('accepts machine-valid chant trace blocks from the CLI', async () => {
+    it('accepts machine-valid chant Augury blocks from the CLI', async () => {
         const workspaceRoot = registry.getRoot();
         const chantAdapter = {
             id: 'weave:chant',
@@ -397,7 +397,7 @@ Confidence: 1.4`,
         const result = await dispatcher.dispatch({
             weave_id: 'weave:chant',
             payload: {
-                query: `// Corvus Star Trace [Ω]
+                query: `// Corvus Star Augury [Ω]
 Intent Category: ORCHESTRATE
 Intent: Make chant the only intake gate
 Selection: WEAVE: orchestrate
@@ -426,7 +426,7 @@ Seed the Hall contract for the scheduler migration.`,
         assert.strictEqual(chantAdapter.execute.mock.callCount(), 1);
     });
 
-    it('synthesizes a runtime trace contract for direct CLI executions without a human-authored trace block', async () => {
+    it('synthesizes a runtime Augury contract for direct CLI executions without a human-authored Augury block', async () => {
         const workspaceRoot = registry.getRoot();
         const mockAdapter = {
             id: 'weave:evolve',
@@ -467,24 +467,27 @@ Seed the Hall contract for the scheduler migration.`,
         });
 
         assert.strictEqual(result.status, 'SUCCESS');
-        const traceContract = result.metadata?.trace_contract as Record<string, any>;
-        assert.equal(traceContract.intent_category, 'EVOLVE');
-        assert.equal(traceContract.intent, 'Evolve bead bead-runtime-1.');
-        assert.equal(traceContract.selection_tier, 'WEAVE');
-        assert.equal(traceContract.selection_name, 'evolve');
-        assert.equal(traceContract.trajectory_status, 'STABLE');
-        assert.equal(traceContract.trajectory_reason, 'Dispatcher synthesized the designation from the explicit weave invocation.');
-        assert.deepEqual(traceContract.mimirs_well, ['src/node/core/runtime/dispatcher.ts']);
-        assert.equal(traceContract.confidence, 0.72);
-        assert.equal(traceContract.canonical_intent, 'Evolve bead bead-runtime-1.');
-        assert.equal(traceContract.council_expert?.label, 'CARMACK');
-        assert.match(traceContract.council_expert?.root_persona_directive ?? '', /performance pragmatist/i);
-        assert.equal(result.metadata?.council_expert, traceContract.council_expert);
-        assert.equal(result.metadata?.root_persona_directive, traceContract.council_expert?.root_persona_directive);
+        const auguryContract = result.metadata?.augury_contract as Record<string, any>;
+        assert.equal(auguryContract.intent_category, 'EVOLVE');
+        assert.equal(auguryContract.intent, 'Evolve bead bead-runtime-1.');
+        assert.equal(auguryContract.selection_tier, 'WEAVE');
+        assert.equal(auguryContract.selection_name, 'evolve');
+        assert.equal(auguryContract.trajectory_status, 'STABLE');
+        assert.equal(auguryContract.trajectory_reason, 'Dispatcher synthesized the designation from the explicit weave invocation.');
+        assert.deepEqual(auguryContract.mimirs_well, ['src/node/core/runtime/dispatcher.ts']);
+        assert.equal(auguryContract.confidence, 0.72);
+        assert.equal(auguryContract.canonical_intent, 'Evolve bead bead-runtime-1.');
+        assert.equal(auguryContract.council_expert?.label, 'CARMACK');
+        assert.match(auguryContract.council_expert?.root_persona_directive ?? '', /performance pragmatist/i);
+        assert.equal(result.metadata?.council_expert, auguryContract.council_expert);
+        assert.equal(result.metadata?.root_persona_directive, auguryContract.council_expert?.root_persona_directive);
+        assert.strictEqual(result.metadata?.augury_designation_source, 'dispatcher_synthesized');
+        assert.deepEqual(result.metadata?.trace_contract, result.metadata?.augury_contract);
         assert.strictEqual(result.metadata?.trace_designation_source, 'dispatcher_synthesized');
         const executionBead = getHallBead(String(result.metadata?.execution_bead_id));
         assert.equal(executionBead?.status, 'RESOLVED');
-        assert.deepEqual(executionBead?.metadata?.trace_contract, result.metadata?.trace_contract);
+        assert.deepEqual(executionBead?.metadata?.augury_contract, result.metadata?.augury_contract);
+        assert.deepEqual(executionBead?.metadata?.trace_contract, result.metadata?.augury_contract);
     });
 
     it('routes agent-native skill beads through the host bridge while still recording runtime mission state', async () => {
@@ -806,7 +809,7 @@ Seed the Hall contract for the scheduler migration.`,
             const result = await dispatcher.dispatch({
                 weave_id: 'weave:chant',
                 payload: {
-                    query: '// Corvus Star Trace [Ω]\nIntent: test direct weave path',
+                    query: '// Corvus Star Augury [Ω]\nIntent: test direct weave path',
                     project_root: tmpRoot,
                     cwd: tmpRoot,
                 },

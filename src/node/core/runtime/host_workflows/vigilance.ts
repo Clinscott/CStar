@@ -97,13 +97,13 @@ export class VigilanceHostWorkflow implements RuntimeAdapter<VigilanceWeavePaylo
                         workspaceRoot: projectRoot,
                     }),
                     env: { ...process.env, ...context.env } as NodeJS.ProcessEnv,
-                    metadata: {
+                    metadata: hostBridge.withRuntimeAuguryMetadata({
                         runtime_weave: 'vigilance',
                         decision: 'vigilance-supervisor',
                         trace_critical: true,
                         require_agent_harness: true,
                         transport_mode: 'host_session',
-                    },
+                    }, context),
                 });
                 const decision = normalizeVigilanceDecision(raw);
                 if (decision?.action === 'observe_only') {

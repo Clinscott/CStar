@@ -26,7 +26,7 @@ Host-native skill activation must carry structured intent and payload:
 ```json
 {
   "skill_id": "chant",
-  "intent": "Plan bounded Corvus Star work through the Trace Gate.",
+  "intent": "Plan bounded Corvus Star work through the Augury Gate.",
   "project_root": "/home/morderith/Corvus/CStar",
   "target_paths": [],
   "payload": {

@@ -87,7 +87,7 @@ export async function executeArchitectService(
                     `USER INTENT: ${payload.intent}`,
                     `RESEARCH: ${JSON.stringify(payload.research, null, 2)}`,
                 ].join('\n'),
-                metadata: {
+                metadata: hostBridge.withRuntimeAuguryMetadata({
                     runtime_weave: 'architect',
                     decision: 'build_proposal',
                     persona: context.persona,
@@ -95,7 +95,7 @@ export async function executeArchitectService(
                     trace_critical: true,
                     require_agent_harness: true,
                     transport_mode: 'host_session',
-                },
+                }, context),
             });
             const parsed = deps.extractJsonObject(rawText) as ArchitectProposalHostResponse;
             const normalized = normalizeProposalResponse(parsed);
@@ -138,13 +138,13 @@ export async function executeArchitectService(
                     `PROPOSED BEAD:\n${JSON.stringify(payload.bead, null, 2)}`,
                     `SUB-AGENT CRITIQUE:\n${JSON.stringify(payload.critique_payload, null, 2)}`,
                 ].join('\n'),
-                metadata: {
+                metadata: hostBridge.withRuntimeAuguryMetadata({
                     runtime_weave: 'architect',
                     decision: 'review_critique',
                     trace_critical: true,
                     require_agent_harness: true,
                     transport_mode: 'host_session',
-                },
+                }, context),
             });
             const parsed = deps.extractJsonObject(rawText) as ArchitectReviewHostResponse;
             const normalized = normalizeReviewResponse(parsed);

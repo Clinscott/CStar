@@ -489,18 +489,17 @@
     "trace": {
       "tier": "PRIME",
       "prime_category": "reasoning",
-      "description": "The Neural Selection Gate. Analyzes prompts via the One Mind to select the optimal tier (Skill, Weave, Spell).",
+      "description": "Corvus Star Augury [Ω] selection block. Emits the canonical intent/designation fields: Intent Category, Intent, Selection, Mimir's Well, Gungnir Verdict, and Confidence. Not a session trace visualizer.",
       "instruction_path": ".agents/skills/trace/SKILL.md",
       "execution": {
         "mode": "agent-native",
-        "cli": "cstar trace",
         "ownership_model": "host-workflow"
       },
       "viability": "ACTIVE",
       "risk": "safe",
       "authority_path": ".agents/skills/trace",
-      "entrypoint_path": ".agents/skills/trace/scripts/trace.py",
-      "contract_path": ".agents/skills/trace/trace.feature",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/trace/SKILL.md",
       "owner_runtime": "host-agent",
       "host_support": {
         "gemini": "native-session",
@@ -509,13 +508,47 @@
       },
       "recursion_policy": "leaf",
       "contracts": [
-        ".agents/skills/trace/trace.feature"
+        ".agents/skills/trace/SKILL.md",
+        ".agents/skills/trace/trace.feature",
+        "docs/trace-naming-contract.md"
+      ],
+      "tests": [
+        "tests/unit/test_chant_planning_runtime.test.ts",
+        "tests/unit/test_trace_command.test.ts"
+      ],
+      "runtime_trigger": "trace",
+      "entry_surface": "host-harness"
+    },
+    "session-trace-viz": {
+      "tier": "PRIME",
+      "prime_category": "observation",
+      "description": "Session trace visualization and replay for JSON/session trace artifacts. This is not the Corvus Star Augury [Ω] selection block.",
+      "instruction_path": ".agents/skills/trace/SKILL.md",
+      "execution": {
+        "mode": "compatibility-only",
+        "cli": "python .agents/skills/trace/scripts/trace.py",
+        "ownership_model": "legacy-tooling"
+      },
+      "viability": "COMPATIBILITY",
+      "risk": "safe",
+      "authority_path": ".agents/skills/trace/scripts",
+      "entrypoint_path": ".agents/skills/trace/scripts/trace.py",
+      "contract_path": "docs/trace-naming-contract.md",
+      "owner_runtime": "legacy-python",
+      "host_support": {
+        "gemini": "blocked-agent-workflow",
+        "codex": "blocked-agent-workflow",
+        "claude": "blocked-agent-workflow"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        "docs/trace-naming-contract.md"
       ],
       "tests": [
         "tests/empire_tests/test_trace_viz_empire.py"
       ],
-      "runtime_trigger": "trace",
-      "entry_surface": "cli"
+      "runtime_trigger": "session-trace-viz",
+      "entry_surface": "compatibility-cli"
     },
     "style": {
       "tier": "PRIME",
@@ -2645,6 +2678,32 @@
         "tests/empire_tests/test_skill_forge_empire.py",
         "tests/unit/engine/test_skill_learning.py",
         "tests/unit/test_autobot_skill.py"
+      ],
+      "entry_surface": "cli"
+    },
+    "fallowshallow-rpg": {
+      "tier": "SKILL",
+      "description": "Develop, build, and scaffold the Fallows Hallow RPG.",
+      "instruction_path": ".agents/skills/fallowshallow-rpg/SKILL.md",
+      "execution": {
+        "mode": "agent-native",
+        "ownership_model": "host-workflow"
+      },
+      "viability": "ACTIVE",
+      "risk": "safe",
+      "runtime_trigger": "fallowshallow-rpg",
+      "authority_path": ".agents/skills/fallowshallow-rpg",
+      "entrypoint_path": null,
+      "contract_path": ".agents/skills/fallowshallow-rpg/SKILL.md",
+      "owner_runtime": "host-agent",
+      "host_support": {
+        "gemini": "native-session",
+        "codex": "exec-bridge",
+        "claude": "exec-bridge"
+      },
+      "recursion_policy": "leaf",
+      "contracts": [
+        ".agents/skills/fallowshallow-rpg/SKILL.md"
       ],
       "entry_surface": "cli"
     },

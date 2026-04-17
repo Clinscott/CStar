@@ -66,6 +66,8 @@ describe('release bundle generation', () => {
             [
                 '.codex-plugin/plugin.json',
                 '.mcp.json',
+                'hooks.json',
+                path.join('scripts', 'cstar_codex_post_write.sh'),
                 'README.md',
                 path.join('skills', 'corvus-star', 'SKILL.md'),
                 path.join('.agents', 'plugins', 'marketplace.json'),

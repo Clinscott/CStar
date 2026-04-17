@@ -108,7 +108,7 @@ class ArchitectOnlyDispatchPort implements RuntimeDispatchPort {
 function createContext(
     workspaceRoot: string,
     sessionId?: string,
-    traceContract?: RuntimeContext['trace_contract'],
+    auguryContract?: RuntimeContext['augury_contract'],
 ): RuntimeContext {
     return {
         mission_id: 'MISSION-CHANT-PLAN',
@@ -119,8 +119,10 @@ function createContext(
         target_domain: 'brain',
         interactive: true,
         session_id: sessionId,
-        trace_contract: traceContract,
-        trace_designation_source: traceContract ? 'dispatcher_synthesized' : undefined,
+        augury_contract: auguryContract,
+        augury_designation_source: auguryContract ? 'dispatcher_synthesized' : undefined,
+        trace_contract: auguryContract,
+        trace_designation_source: auguryContract ? 'dispatcher_synthesized' : undefined,
         env: {},
         timestamp: Date.now(),
     };
@@ -295,22 +297,22 @@ describe('Chant collaborative planning (CS-P7-03)', () => {
         assert.match(session?.normalized_intent ?? '', /FOLLOW_UP:/);
     });
 
-    it('persists the structured trace contract into Hall planning metadata', async () => {
+    it('persists the structured Augury contract into Hall planning metadata', async () => {
         mock.method(plannerDeps, 'executeArchitectService', async () => ({
             weave_id: 'weave:architect',
             status: 'SUCCESS',
             output: 'Architect proposal ready.',
             metadata: {
                 architect_proposal: {
-                    proposal_summary: 'Trace contract planning proposal.',
+                    proposal_summary: 'Augury contract planning proposal.',
                     beads: [
                         {
                             id: 'trace-contract-plan',
-                            title: 'Persist trace contract',
-                            rationale: 'Carry the designated trace fields into Hall.',
+                            title: 'Persist Augury contract',
+                            rationale: 'Carry the designated Augury fields into Hall.',
                             targets: ['src/runtime.ts'],
                             depends_on: [],
-                            acceptance_criteria: ['The trace contract is durable in Hall metadata.'],
+                            acceptance_criteria: ['The Augury contract is durable in Hall metadata.'],
                         },
                     ],
                 },
@@ -321,7 +323,7 @@ describe('Chant collaborative planning (CS-P7-03)', () => {
             {
                 weave_id: 'weave:chant',
                 payload: {
-                    query: `// Corvus Star Trace [Ω]
+                    query: `// Corvus Star Augury [Ω]
 Intent Category: ORCHESTRATE
 Intent: Make chant the only intake gate
 Selection: WEAVE: orchestrate
@@ -351,38 +353,39 @@ Seed the Hall contract for the scheduler migration.`,
         const sessionId = String(result.metadata?.planning_session_id);
         const session = getHallPlanningSession(sessionId);
         assert.ok(session);
-        assert.deepEqual(session?.metadata?.trace_contract, {
-            intent_category: 'ORCHESTRATE',
-            intent: 'Make chant the only intake gate',
-            selection_tier: 'WEAVE',
-            selection_name: 'orchestrate',
-            trajectory_status: 'STABLE',
-            trajectory_reason: 'Persist the designation for future agents.',
-            mimirs_well: ['CStar/AGENTS.qmd', 'src/node/core/runtime/dispatcher.ts'],
-            gungnir_verdict: '[L: 4.7 | S: 4.5 | I: 4.8 | Ω: 93%]',
-            confidence: 0.94,
-            body: 'Seed the Hall contract for the scheduler migration.',
-            canonical_intent: 'Seed the Hall contract for the scheduler migration.',
-        });
+        const contract = session?.metadata?.augury_contract as Record<string, any>;
+        assert.equal(contract.intent_category, 'ORCHESTRATE');
+        assert.equal(contract.intent, 'Make chant the only intake gate');
+        assert.equal(contract.selection_tier, 'WEAVE');
+        assert.equal(contract.selection_name, 'orchestrate');
+        assert.equal(contract.trajectory_status, 'STABLE');
+        assert.deepEqual(contract.mimirs_well, ['CStar/AGENTS.qmd', 'src/node/core/runtime/dispatcher.ts']);
+        assert.equal(contract.confidence, 0.94);
+        assert.equal(contract.confidence_source, 'explicit');
+        assert.equal(contract.council_expert?.id, 'dean');
+        assert.equal(contract.council_candidates?.[0]?.id, 'dean');
+        assert.equal(contract.canonical_intent, 'Seed the Hall contract for the scheduler migration.');
+        assert.deepEqual(session?.metadata?.trace_contract, session?.metadata?.augury_contract);
+        assert.equal(session?.metadata?.augury_contract_version, 1);
         assert.equal(session?.metadata?.trace_contract_version, 1);
     });
 
-    it('persists a dispatcher-supplied trace contract when chant runs without an explicit trace block', async () => {
+    it('persists a dispatcher-supplied Augury contract when chant runs without an explicit Augury block', async () => {
         mock.method(plannerDeps, 'executeArchitectService', async () => ({
             weave_id: 'weave:architect',
             status: 'SUCCESS',
             output: 'Architect proposal ready.',
             metadata: {
                 architect_proposal: {
-                    proposal_summary: 'Synthetic trace contract planning proposal.',
+                    proposal_summary: 'Synthetic Augury contract planning proposal.',
                     beads: [
                         {
                             id: 'synthetic-trace-plan',
-                            title: 'Persist synthetic trace contract',
-                            rationale: 'Honor dispatcher-provided trace designation for agent flows.',
+                            title: 'Persist synthetic Augury contract',
+                            rationale: 'Honor dispatcher-provided Augury designation for agent flows.',
                             targets: ['src/runtime.ts'],
                             depends_on: [],
-                            acceptance_criteria: ['The synthetic trace contract is durable in Hall metadata.'],
+                            acceptance_criteria: ['The synthetic Augury contract is durable in Hall metadata.'],
                         },
                     ],
                 },
@@ -424,17 +427,16 @@ Seed the Hall contract for the scheduler migration.`,
         const sessionId = String(result.metadata?.planning_session_id);
         const session = getHallPlanningSession(sessionId);
         assert.ok(session);
-        assert.deepEqual(session?.metadata?.trace_contract, {
-            intent_category: 'ORCHESTRATE',
-            intent: 'Plan the next bounded runtime change.',
-            selection_tier: 'WEAVE',
-            selection_name: 'chant',
-            trajectory_status: 'STABLE',
-            trajectory_reason: 'Dispatcher synthesized the designation from the explicit weave invocation.',
-            mimirs_well: ['src/node/core/runtime/dispatcher.ts'],
-            confidence: 0.72,
-            canonical_intent: 'Plan the next bounded runtime change.',
-        });
+        const contract = session?.metadata?.augury_contract as Record<string, any>;
+        assert.equal(contract.intent_category, 'ORCHESTRATE');
+        assert.equal(contract.intent, 'Plan the next bounded runtime change.');
+        assert.equal(contract.selection_tier, 'WEAVE');
+        assert.equal(contract.selection_name, 'chant');
+        assert.deepEqual(contract.mimirs_well, ['src/node/core/runtime/dispatcher.ts']);
+        assert.equal(contract.confidence, 0.72);
+        assert.equal(contract.confidence_source, 'synthetic');
+        assert.equal(contract.council_expert?.id, 'dean');
+        assert.deepEqual(session?.metadata?.trace_contract, session?.metadata?.augury_contract);
     });
 
     it('persists in-flight planning state before blocking phases and carries research into architect synthesis', async () => {

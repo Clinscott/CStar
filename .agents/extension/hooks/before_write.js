@@ -18,12 +18,14 @@ async function main() {
   }
 
   const content = tool_input.content || tool_input.instruction || '';
-  const hasTrace = content.includes('// Corvus Star Trace [Ω]');
+  const hasAugury = content.includes('// Corvus Star Augury [Ω]');
+  // Legacy trace headers remain accepted only for compatibility with older artifacts.
+  const hasLegacyTrace = content.includes('// Corvus Star Trace [Ω]');
 
-  if (!hasTrace) {
-      console.log(JSON.stringify({ 
-          decision: "deny", 
-          reason: `[KERNEL PANIC]: Linscott Breach Detected. You are attempting to modify '${filePath}' directly without a valid Corvus Star Trace [Ω] intent block. Delegate this to the 'autobot' subagent or use the 'chant-planner'.`,
+  if (!hasAugury && !hasLegacyTrace) {
+      console.log(JSON.stringify({
+          decision: "deny",
+          reason: `[KERNEL PANIC]: Linscott Breach Detected. You are attempting to modify '${filePath}' directly without a valid Corvus Star Augury [Ω] routing block. Select intent, Mimir targets, Council expert, and Gungnir verdict before writing.`,
           systemMessage: "⚠️ Operation blocked by CStar Gatekeeper"
       }));
       return;

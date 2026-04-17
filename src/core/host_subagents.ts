@@ -20,7 +20,17 @@ export type HostSubagentProfile =
     | 'hamilton'
     | 'shannon'
     | 'dean'
-    | 'carmack';
+    | 'carmack'
+    | 'sakaguchi'
+    | 'nomura'
+    | 'miyazaki'
+    | 'adams'
+    | 'wright'
+    | 'heineman'
+    | 'sweeney'
+    | 'miyamoto'
+    | 'kojima'
+    | 'meier';
 
 export interface HostSubagentSpec {
     id: HostSubagentProfile;
@@ -128,6 +138,56 @@ const HOST_SUBAGENT_SPECS: Record<HostSubagentProfile, HostSubagentSpec> = {
         id: 'carmack',
         title: 'Carmack Protocol',
         instruction: 'Apply a performance and simplicity critique. Attack unnecessary layers, hidden allocations, hot-path waste, weak instrumentation, and designs that are not mechanically sympathetic.',
+    },
+    sakaguchi: {
+        id: 'sakaguchi',
+        title: 'Sakaguchi Protocol',
+        instruction: 'Apply a Sakaguchi-style visionary architecture critique. Focus on the union of deep narrative intent with systemic complexity and emotional resonance.',
+    },
+    nomura: {
+        id: 'nomura',
+        title: 'Nomura Protocol',
+        instruction: 'Apply a Nomura-style interface maximalism critique. Focus on high-fidelity technical interfaces, visual identity, and aesthetic coherence.',
+    },
+    miyazaki: {
+        id: 'miyazaki',
+        title: 'Miyazaki Protocol',
+        instruction: 'Apply a Miyazaki-style spatial lore critique. Focus on interconnected network graphs, environmental storytelling, and rhythmic systemic consistency.',
+    },
+    adams: {
+        id: 'adams',
+        title: 'Adams Protocol',
+        instruction: 'Apply an Adams-style agentic simulation critique. Focus on hub-and-spoke simulation models, procedural history, and individual agent memories.',
+    },
+    wright: {
+        id: 'wright',
+        title: 'Wright Protocol',
+        instruction: 'Apply a Wright-style open-ended simulation critique. Focus on reactive agent loops, spatial UI, and software as a reactive system.',
+    },
+    heineman: {
+        id: 'heineman',
+        title: 'Heineman Protocol',
+        instruction: 'Apply a Heineman-style technical heavy-lifting critique. Focus on cross-platform architectural engineering, engine optimization, and porting discipline.',
+    },
+    sweeney: {
+        id: 'sweeney',
+        title: 'Sweeney Protocol',
+        instruction: 'Apply a Sweeney-style framework democratization critique. Focus on primary framework orchestration, complex agent management, and high-fidelity environment scaling.',
+    },
+    miyamoto: {
+        id: 'miyamoto',
+        title: 'Miyamoto Protocol',
+        instruction: 'Apply a Miyamoto-style universal interaction critique. Focus on fundamental grammar of movement, interaction polish, and universal systemic accessibility.',
+    },
+    kojima: {
+        id: 'kojima',
+        title: 'Kojima Protocol',
+        instruction: 'Apply a Kojima-style meta-systemic narrative critique. Focus on reactive networks, social-strand connections, and player-to-AI interaction loops.',
+    },
+    meier: {
+        id: 'meier',
+        title: 'Meier Protocol',
+        instruction: 'Apply a Meier-style macro-strategic decision loop critique. Focus on series of interesting choices and global mission control loops.',
     },
 };
 

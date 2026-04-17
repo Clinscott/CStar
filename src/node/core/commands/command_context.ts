@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 
-import type { RuntimeTraceContract, WeaveResult } from '../runtime/contracts.js';
+import type { RuntimeAuguryContract, WeaveResult } from '../runtime/contracts.js';
 import { getHallBead, saveHallPlanningSession, upsertHallBead } from '../../../tools/pennyone/intel/database.js';
 import type { HallPlanningSessionRecord } from '../../../types/hall.js';
 import { buildResultPlanningSummary, resolveResultPlanningSession } from '../operator_resume.js';
@@ -144,15 +144,15 @@ function persistBeadContextValue(
     });
 }
 
-function getRuntimeTraceContract(result: WeaveResult): RuntimeTraceContract | undefined {
-    const contract = result.metadata?.trace_contract;
+function getRuntimeAuguryContract(result: WeaveResult): RuntimeAuguryContract | undefined {
+    const contract = result.metadata?.augury_contract ?? result.metadata?.trace_contract;
     if (!contract || typeof contract !== 'object' || Array.isArray(contract)) {
         return undefined;
     }
 
     const normalized = contract as Record<string, unknown>;
     const councilExpert = normalized.council_expert && typeof normalized.council_expert === 'object' && !Array.isArray(normalized.council_expert)
-        ? normalized.council_expert as RuntimeTraceContract['council_expert']
+        ? normalized.council_expert as RuntimeAuguryContract['council_expert']
         : undefined;
 
     return {
@@ -173,7 +173,7 @@ function getRuntimeTraceContract(result: WeaveResult): RuntimeTraceContract | un
     };
 }
 
-function formatDesignation(contract: RuntimeTraceContract | undefined): string | undefined {
+function formatDesignation(contract: RuntimeAuguryContract | undefined): string | undefined {
     if (!contract) {
         return undefined;
     }
@@ -183,8 +183,8 @@ function formatDesignation(contract: RuntimeTraceContract | undefined): string |
     return contract.selection_name;
 }
 
-function buildRuntimeTraceLine(result: WeaveResult): string | undefined {
-    const contract = getRuntimeTraceContract(result);
+function buildRuntimeAuguryLine(result: WeaveResult): string | undefined {
+    const contract = getRuntimeAuguryContract(result);
     const designation = formatDesignation(contract);
     if (!contract || !designation) {
         return undefined;
@@ -200,7 +200,7 @@ function buildRuntimeTraceLine(result: WeaveResult): string | undefined {
     );
     const category = contract.intent_category ? ` | ${contract.intent_category}` : '';
     const expert = contract.council_expert?.label ? ` | expert=${contract.council_expert.label}` : '';
-    return `trace=${result.status} | ${designation}${category}${expert} | ${focus}`;
+    return `augury=${result.status} | ${designation}${category}${expert} | ${focus}`;
 }
 
 function getRuntimeContextBeadId(result: WeaveResult): string | undefined {
@@ -241,7 +241,7 @@ export function shouldProjectOperationalContext(result: WeaveResult): boolean {
     if (typeof result.metadata?.notes === 'string' && result.metadata.notes.trim()) {
         return true;
     }
-    if (getRuntimeTraceContract(result)) {
+    if (getRuntimeAuguryContract(result)) {
         return true;
     }
     return false;
@@ -267,8 +267,8 @@ export function renderOperationalContext(result: WeaveResult, workspaceRoot: str
     const planningSummary = buildResultPlanningSummary(workspaceRoot, result);
     const runtimeBeadId = getRuntimeContextBeadId(result);
     const traceLine = planningSummary
-        ? `trace=${planningSummary}`
-        : buildRuntimeTraceLine(result);
+        ? `handoff=${planningSummary}`
+        : buildRuntimeAuguryLine(result);
     if (traceLine) {
         const persistedTraceLine = planningSession
             ? getPersistedHostContextValue(planningSession, 'trace')

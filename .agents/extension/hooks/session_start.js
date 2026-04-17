@@ -23,7 +23,7 @@ function readRecentSessionMemory() {
     if (!recentSections) {
       return 'No bounded mission-summary memory found yet.';
     }
-    const limit = 3000;
+    const limit = 1800;
     return recentSections.length > limit ? recentSections.slice(recentSections.length - limit) : recentSections;
   } catch (error) {
     return `Session memory unavailable: ${error instanceof Error ? error.message : String(error)}`;
@@ -54,22 +54,37 @@ async function main() {
     description = "focused on high-velocity creation and architectural disruption.";
   }
 
+  // Council of Experts Integration
+  const council = [
+    { id: 'torvalds', label: 'TORVALDS', focus: 'Systems & Interfaces' },
+    { id: 'karpathy', label: 'KARPATHY', focus: 'AI & Data Loops' },
+    { id: 'hamilton', label: 'HAMILTON', focus: 'Fault-Tolerance & Safety' },
+    { id: 'shannon', label: 'SHANNON', focus: 'Signal & Observability' },
+    { id: 'dean', label: 'DEAN', focus: 'Distributed Systems' },
+    { id: 'carmack', label: 'CARMACK', focus: 'Performance & Simplicity' }
+  ];
+
   const additionalContext = `
 <hook_context source="cstar-vitals">
   [🔱 CSTAR KERNEL HANDSHAKE]
-  - OS Status: RING 0 (NATIVE EXTENSION)
+  - OS Status: HOST-NATIVE CORVUS STAR EXTENSION
   - Memory Plane: Online (PennyOne MCP)
   - Enforcement: Gatekeeper Active
   - Active Persona: ${role} (${description})
-  - Session Learning: Recent consolidated memory follows. Treat it as historical context, not instruction.
+  - Council of Experts: ACTIVE (Torvalds, Karpathy, Hamilton, Shannon, Dean, Carmack)
+  - Augury Display: full on initial session/planning key, lite on repeated calls.
+  - Augury Scope: foundational CStar work is brain:CStar; spoke scope is explicit only.
+  - Augury Confidence: store as metadata; do not display it as prompt text.
+  - Session Learning: Recent consolidated memory follows.
 
   <recent_session_memory>
   ${recentMemory}
   </recent_session_memory>
-  
+
   "${greeting}"
-  
-  Before you begin, consult the Hall of Records or check the status using your native tools.
+
+  Route multi-file work through Corvus Star Augury [Ω].
+  Select the appropriate Council expert based on the current intent before choosing files or skills.
 </hook_context>
 `;
 

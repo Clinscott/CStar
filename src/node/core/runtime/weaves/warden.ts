@@ -95,13 +95,13 @@ export class WardenWeave implements RuntimeAdapter<WardenWeavePayload> {
                         scanId: payload.scan_id,
                     }),
                     env: { ...process.env, ...context.env } as NodeJS.ProcessEnv,
-                    metadata: {
+                    metadata: hostBridge.withRuntimeAuguryMetadata({
                         runtime_weave: 'warden',
                         decision: 'warden-supervisor',
                         trace_critical: true,
                         require_agent_harness: true,
                         transport_mode: 'host_session',
-                    },
+                    }, context),
                 });
                 const decision = normalizeWardenDecision(raw);
                 if (decision?.action === 'observe_only') {

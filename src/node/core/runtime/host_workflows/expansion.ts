@@ -101,13 +101,13 @@ export class EstateExpansionHostWorkflow implements RuntimeAdapter<EstateExpansi
                         workspaceRoot: projectRoot,
                     }),
                     env: { ...process.env, ...context.env } as NodeJS.ProcessEnv,
-                    metadata: {
+                    metadata: hostBridge.withRuntimeAuguryMetadata({
                         runtime_weave: 'expansion',
                         decision: 'expansion-supervisor',
                         trace_critical: true,
                         require_agent_harness: true,
                         transport_mode: 'host_session',
-                    },
+                    }, context),
                 });
                 const decision = normalizeExpansionDecision(raw);
                 if (decision?.slug) {

@@ -331,7 +331,7 @@ export class CritiqueHostWorkflow implements RuntimeAdapter<CritiqueWeavePayload
                                     projectRoot: workspaceRoot,
                                     source: 'critique:host-workflow',
                                     env: context.env,
-                                    metadata: {
+                                    metadata: hostBridge.withRuntimeAuguryMetadata({
                                         runtime_weave: this.id,
                                         branch_group_id: branchGroupId,
                                         branch_index: index,
@@ -341,7 +341,7 @@ export class CritiqueHostWorkflow implements RuntimeAdapter<CritiqueWeavePayload
                                         execution_role: 'subagent',
                                         subagent_profile: branch.profile,
                                         council_expert: branch.label,
-                                    },
+                                    }, context),
                                 }),
                                 timeoutMs,
                                 'critique host-session',

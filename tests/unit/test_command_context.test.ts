@@ -111,7 +111,7 @@ describe('Command context renderer', () => {
         }
 
         assert.equal(lines.length, 2);
-        assert.match(lines[0] ?? '', /trace=PROPOSAL_REVIEW \| TRACE-AUTO \| \{R=2 A=1\} \| Proposal ready\./);
+        assert.match(lines[0] ?? '', /handoff=PROPOSAL_REVIEW \| TRACE-AUTO \| \{R=2 A=1\} \| Proposal ready\./);
         assert.match(lines[1] ?? '', /note=Governor approved a bounded path after reviewing the Hall trace\./);
     });
 
@@ -195,7 +195,7 @@ describe('Command context renderer', () => {
         }
 
         assert.equal(lines.length, 3);
-        assert.match(lines[0] ?? '', /trace=PROPOSAL_REVIEW \| TRACE-DEDUP \| \{R=1\} \| Proposal ready\./);
+        assert.match(lines[0] ?? '', /handoff=PROPOSAL_REVIEW \| TRACE-DEDUP \| \{R=1\} \| Proposal ready\./);
         assert.match(lines[1] ?? '', /note=Stable bounded path\./);
         assert.match(lines[2] ?? '', /note=State changed after review\./);
     });
@@ -255,7 +255,7 @@ describe('Command context renderer', () => {
         }
 
         assert.equal(lines.length, 2);
-        assert.match(lines[0] ?? '', /trace=PROPOSAL_REVIEW \| TRACE-HALL \| \{R=1 A=1\} \| Proposal ready\./);
+        assert.match(lines[0] ?? '', /handoff=PROPOSAL_REVIEW \| TRACE-HALL \| \{R=1 A=1\} \| Proposal ready\./);
         assert.match(lines[1] ?? '', /note=Persist this host context\./);
     });
 
@@ -327,11 +327,11 @@ describe('Command context renderer', () => {
         }
 
         assert.equal(lines.length, 2);
-        assert.match(lines[0] ?? '', /trace=SUCCESS \| WEAVE: evolve \| EVOLVE \| expert=CARMACK \| Evolve bead bead-runtime-1\./);
+        assert.match(lines[0] ?? '', /augury=SUCCESS \| WEAVE: evolve \| EVOLVE \| expert=CARMACK \| Evolve bead bead-runtime-1\./);
         assert.match(lines[1] ?? '', /note=Review the execution bead before promoting follow-up work\./);
 
         const executionBead = getHallBead('mission-runtime-1:exec:weave:evolve:1');
-        assert.equal((executionBead?.metadata?.host_cli_context as Record<string, unknown>)?.trace_line, 'trace=SUCCESS | WEAVE: evolve | EVOLVE | expert=CARMACK | Evolve bead bead-runtime-1.');
+        assert.equal((executionBead?.metadata?.host_cli_context as Record<string, unknown>)?.trace_line, 'augury=SUCCESS | WEAVE: evolve | EVOLVE | expert=CARMACK | Evolve bead bead-runtime-1.');
         assert.equal((executionBead?.metadata?.host_cli_context as Record<string, unknown>)?.note_line, 'note=Review the execution bead before promoting follow-up work.');
     });
 });

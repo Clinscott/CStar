@@ -12,7 +12,7 @@ import { RavensCycleWeave } from  './weaves/ravens_cycle.js';
 import { RestorationHostWorkflow } from  './host_workflows/restoration.js';
 import { EstateExpansionHostWorkflow } from  './host_workflows/expansion.js';
 import { VigilanceHostWorkflow } from  './host_workflows/vigilance.js';
-import { defaultHostTextInvoker, extractJsonObject, type HostTextInvoker } from './weaves/host_bridge.js';
+import { defaultHostTextInvoker, extractJsonObject, withRuntimeAuguryMetadata, type HostTextInvoker } from './weaves/host_bridge.js';
 import { discoverLegacyCommands, resolvePythonPath } from  './adapters/legacy_commands.js';
 import { resolvePersonaPolicy } from '../../../tools/pennyone/personaRegistry.js';
 import {
@@ -205,14 +205,14 @@ export class StartAdapter implements RuntimeAdapter<StartWeavePayload> {
                 projectRoot: context.workspace_root,
                 source: 'start:supervisor',
                 env: { ...process.env, ...context.env } as NodeJS.ProcessEnv,
-                metadata: {
+                metadata: withRuntimeAuguryMetadata({
                     runtime_weave: 'start',
                     decision: 'start-supervisor',
                     planning_summary: planningSummary ?? null,
                     trace_critical: true,
                     require_agent_harness: true,
                     transport_mode: 'host_session',
-                },
+                }, context),
             });
             const decision = parseStartSupervisorDecision(raw);
             if (decision) {
@@ -419,7 +419,7 @@ export class RavensAdapter implements RuntimeAdapter<RavensWeavePayload> {
                     projectRoot,
                     source: 'ravens:supervisor',
                     env: { ...process.env, ...context.env } as NodeJS.ProcessEnv,
-                    metadata: {
+                    metadata: withRuntimeAuguryMetadata({
                         runtime_weave: 'ravens',
                         decision: 'ravens-supervisor',
                         persona: context.persona,
@@ -427,7 +427,7 @@ export class RavensAdapter implements RuntimeAdapter<RavensWeavePayload> {
                         trace_critical: true,
                         require_agent_harness: true,
                         transport_mode: 'host_session',
-                    },
+                    }, context),
                 });
                 const decision = parseRavensSupervisorDecision(raw);
                 if (decision?.mode === 'observe_only') {

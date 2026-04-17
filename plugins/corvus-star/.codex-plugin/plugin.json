@@ -1,7 +1,7 @@
 {
   "name": "corvus-star",
   "version": "1.0.0",
-  "description": "c, c+, c++, c#, c*",
+  "description": "Host-native Corvus Star Augury, Hall, and CStar runtime integration.",
   "author": {
     "name": "Craig Linscott"
   },
@@ -20,8 +20,8 @@
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Corvus Star",
-    "shortDescription": "Host-native Corvus integration for Codex.",
-    "longDescription": "Routes Codex through the authoritative CStar runtime, Hall, and host-native supervisor model with explicit kernel primitives.",
+    "shortDescription": "Corvus Star Augury and Hall integration for Codex.",
+    "longDescription": "Routes Codex through CStar with full-first/lite-after Augury steering, Hall/Mimir discovery, Council expert assignment, and explicit host/kernel boundaries.",
     "developerName": "Craig Linscott",
     "category": "Developer Tools",
     "capabilities": [
@@ -32,9 +32,9 @@
     "privacyPolicyURL": "https://github.com/Clinscott/CStar#readme",
     "termsOfServiceURL": "https://github.com/Clinscott/CStar#readme",
     "defaultPrompt": [
-      "Resume CStar work through the Hall.",
-      "Find the active bead before editing.",
-      "Use the CStar trace handoff."
+      "Route CStar work through Corvus Star Augury [Ω].",
+      "Use Hall/Mimir discovery before broad local scans.",
+      "Keep confidence in Augury learning metadata."
     ],
     "brandColor": "#0F6E5B"
   }

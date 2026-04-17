@@ -1,14 +1,22 @@
 {
-  "name": "cstar-os",
+  "name": "corvus-star",
   "version": "1.0.0",
-  "description": "Corvus Star (C*) Sovereign Operating System Extension. Integrates deep repository memory, autonomous workers, and kernel-level validation hooks.",
+  "description": "Corvus Star (C*) host-native extension with Hall discovery, Augury routing, Council expert selection, and kernel-backed CStar control.",
   "contextFileName": "GEMINI.md",
   "mcpServers": {
     "pennyone": {
       "command": "node",
-      "args": ["${extensionPath}/../../../bin/pennyone-mcp.js"],
+      "args": ["${extensionPath}/../../bin/pennyone-mcp.js"],
       "env": {
-        "CSTAR_ROOT": "${extensionPath}/../../..",
+        "CSTAR_ROOT": "${extensionPath}/../..",
+        "NODE_ENV": "production"
+      }
+    },
+    "corvus-control": {
+      "command": "node",
+      "args": ["${extensionPath}/../../scripts/run-tsx.mjs", "${extensionPath}/../../src/tools/corvus-control-mcp.ts"],
+      "env": {
+        "CSTAR_ROOT": "${extensionPath}/../..",
         "NODE_ENV": "production"
       }
     }

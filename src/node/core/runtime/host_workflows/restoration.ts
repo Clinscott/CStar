@@ -122,13 +122,13 @@ export class RestorationHostWorkflow implements RuntimeAdapter<RestorationWeaveP
                         maxBeads: limit,
                     }),
                     env: { ...process.env, ...context.env } as NodeJS.ProcessEnv,
-                    metadata: {
+                    metadata: hostBridge.withRuntimeAuguryMetadata({
                         runtime_weave: 'restoration',
                         decision: 'restoration-supervisor',
                         trace_critical: true,
                         require_agent_harness: true,
                         transport_mode: 'host_session',
-                    },
+                    }, context),
                 });
                 const decision = normalizeRestorationDecision(raw);
                 if (decision?.action === 'observe_only') {
