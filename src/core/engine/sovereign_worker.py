@@ -104,7 +104,7 @@ class CStarBridge:
 @dataclass
 class SovereignWorker:
     project_root: Path
-    model: str = field(default_factory=lambda: os.environ.get("CORVUS_AUTOBOT_MODEL", os.environ.get("CSTAR_SOVEREIGN_MODEL", "deepseek")))
+    model: str = field(default_factory=lambda: os.environ.get("CORVUS_SOVEREIGN_MODEL", os.environ.get("CSTAR_SOVEREIGN_MODEL", "deepseek")))
     base_url: str = "http://localhost:11434/v1"
     max_turns: int = 10
 
@@ -140,7 +140,7 @@ class SovereignWorker:
             tool_calls = self._parse_tool_calls(response)
             
             if not tool_calls:
-                if any(s in response for s in ["DONE", "COMPLETED", "AUTOBOT_BEAD_COMPLETE"]):
+                if any(s in response for s in ["DONE", "COMPLETED"]):
                     logging.info("Worker signaling completion.")
                     break
                 logging.info("Worker produced text without tool calls or completion token.")

@@ -346,7 +346,7 @@ export function claimNextHallOneMindRequest(
     rootPath: string = registry.getRoot(),
     leaseOwner: string,
     statuses: HallOneMindRequestStatus[] = ['PENDING'],
-    boundaries: HallOneMindRequestRecord['boundary'][] = ['primary', 'subagent', 'autobot'],
+    boundaries: HallOneMindRequestRecord['boundary'][] = ['primary', 'subagent'],
 ): HallOneMindRequestRecord | null {
     const db = database.getDb(rootPath);
     const repoId = buildHallRepositoryId(normalizeHallPath(rootPath));
@@ -397,7 +397,7 @@ export function claimHallOneMindRequest(
     rootPath: string = registry.getRoot(),
     leaseOwner: string,
     statuses: HallOneMindRequestStatus[] = ['PENDING'],
-    boundaries: HallOneMindRequestRecord['boundary'][] = ['primary', 'subagent', 'autobot'],
+    boundaries: HallOneMindRequestRecord['boundary'][] = ['primary', 'subagent'],
 ): HallOneMindRequestRecord | null {
     const db = database.getDb(rootPath);
     const now = Date.now();

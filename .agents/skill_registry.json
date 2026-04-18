@@ -914,36 +914,6 @@
       "runtime_trigger": "annex",
       "entry_surface": "cli"
     },
-    "autobot": {
-      "tier": "SKILL",
-      "description": "Execute sovereign beads as an ephemeral worker with checker-gated retries.",
-      "instruction_path": ".agents/skills/autobot/SKILL.md",
-      "execution": {
-        "mode": "kernel-backed",
-        "adapter_id": "weave:autobot",
-        "ownership_model": "kernel-primitive"
-      },
-      "viability": "ACTIVE",
-      "risk": "safe",
-      "authority_path": ".agents/skills/autobot",
-      "entrypoint_path": ".agents/skills/autobot/scripts/autobot.py",
-      "contract_path": ".agents/skills/autobot/contract.json",
-      "owner_runtime": "cstar-kernel",
-      "host_support": {
-        "gemini": "supported",
-        "codex": "supported",
-        "claude": "supported"
-      },
-      "recursion_policy": "bounded-orchestrator",
-      "contracts": [
-        ".agents/skills/autobot/contract.json"
-      ],
-      "tests": [
-        "tests/unit/test_autobot_runtime.test.ts"
-      ],
-      "runtime_trigger": "autobot",
-      "entry_surface": "cli"
-    },
     "bookmark-weaver": {
       "tier": "SKILL",
       "description": "Autonomous ingest of bookmarks into the Hall Bead Ledger.",
@@ -2367,38 +2337,6 @@
         "tests/unit/node-runtime/weaves/test_chant_planner.test.ts"
       ],
       "runtime_trigger": "secure_speculation",
-      "entry_surface": "cli"
-    },
-    "ephemeral_grid": {
-      "tier": "WEAVE",
-      "description": "Manage distributed AutoBot execution queues.",
-      "instruction_path": ".agents/weaves/ephemeral_grid.md",
-      "execution": {
-        "mode": "kernel-backed",
-        "ownership_model": "kernel-primitive"
-      },
-      "viability": "ACTIVE",
-      "risk": "safe",
-      "authority_path": ".agents/weaves/ephemeral_grid.md",
-      "entrypoint_path": null,
-      "contract_path": ".agents/weaves/ephemeral_grid.md",
-      "owner_runtime": "cstar-kernel",
-      "host_support": {
-        "gemini": "supported",
-        "codex": "supported",
-        "claude": "supported"
-      },
-      "recursion_policy": "bounded-composite",
-      "contracts": [
-        ".agents/weaves/ephemeral_grid.md"
-      ],
-      "tests": [
-        "tests/unit/node-runtime/weaves/test_architect.test.ts",
-        "tests/unit/node-runtime/weaves/test_chant.test.ts",
-        "tests/unit/node-runtime/weaves/test_chant_parser.test.ts",
-        "tests/unit/node-runtime/weaves/test_chant_planner.test.ts"
-      ],
-      "runtime_trigger": "ephemeral_grid",
       "entry_surface": "cli"
     },
     "shattering_strike": {

@@ -55,7 +55,7 @@ export class PythonSkillAdapter implements RuntimeAdapter {
                 reject: false
             });
 
-            const agentLabel = this.id.includes('autobot') ? 'AutoBot' : 'Python';
+            const agentLabel = 'Python';
             child.stdout?.on('data', (data) => {
                 const lines = data.toString().split('\n');
                 for (const line of lines) {

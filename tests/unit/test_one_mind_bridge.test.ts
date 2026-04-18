@@ -70,22 +70,6 @@ describe('Unified One Mind bridge policy', () => {
         assert.equal(decision.reason, 'delegated-subagent-boundary');
     });
 
-    it('routes delegated autobot requests away from the primary host', () => {
-        const decision = resolveOneMindDecision(
-            {
-                prompt: 'Execute bead.',
-                transport_mode: 'auto',
-                caller: { source: 'runtime:autobot' },
-                metadata: { one_mind_boundary: 'autobot' },
-            },
-            { CODEX_SHELL: '1', CODEX_THREAD_ID: 'thread-1' },
-        );
-
-        assert.equal(decision.boundary, 'autobot');
-        assert.equal(decision.transportMode, 'synapse_db');
-        assert.equal(decision.reason, 'delegated-autobot-boundary');
-    });
-
     it('respects explicit transport overrides', () => {
         const decision = resolveOneMindDecision(
             {

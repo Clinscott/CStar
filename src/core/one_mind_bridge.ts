@@ -3,7 +3,7 @@ import { isHostSessionActive, isInteractiveHostSession } from './host_session.js
 
 type ResolvedIntelligenceTransport = 'host_session' | 'synapse_db';
 
-export type OneMindBoundary = 'primary' | 'subagent' | 'autobot';
+export type OneMindBoundary = 'primary' | 'subagent';
 
 export interface OneMindDecision {
     boundary: OneMindBoundary;
@@ -50,13 +50,6 @@ function classifySourceBoundary(source: string | undefined): OneMindBoundary {
     }
 
     if (
-        normalized.includes('autobot')
-        || normalized.includes('sovereign-worker')
-    ) {
-        return 'autobot';
-    }
-
-    if (
         normalized.includes('subagent')
         || normalized.includes('sub-agent')
         || normalized.includes('host-worker')
@@ -73,12 +66,12 @@ export function resolveOneMindBoundary(
     request: IntelligenceRequest | NormalizedIntelligenceRequest,
 ): OneMindBoundary {
     const explicitBoundary = readMetadataValue(request, 'one_mind_boundary');
-    if (explicitBoundary === 'autobot' || explicitBoundary === 'subagent' || explicitBoundary === 'primary') {
+    if (explicitBoundary === 'subagent' || explicitBoundary === 'primary') {
         return explicitBoundary;
     }
 
     const executionRole = readMetadataValue(request, 'execution_role');
-    if (executionRole === 'autobot' || executionRole === 'subagent' || executionRole === 'primary') {
+    if (executionRole === 'subagent' || executionRole === 'primary') {
         return executionRole;
     }
 
@@ -107,7 +100,7 @@ export function resolveOneMindDecision(
     }
 
     const boundary = resolveOneMindBoundary(request);
-    if (boundary === 'subagent' || boundary === 'autobot') {
+    if (boundary === 'subagent') {
         return {
             boundary,
             transportMode: 'synapse_db',

@@ -105,7 +105,7 @@ export interface ParsedTraceSelectionGate {
     mimirs_well: string[];
     gungnir_verdict?: string;
     confidence?: number;
-    confidence_source?: 'explicit' | 'missing';
+    confidence_source?: 'explicit' | 'missing' | 'synthetic';
     body?: string;
     canonical_intent: string;
     issues: string[];
@@ -130,7 +130,7 @@ export const INTENT_CATEGORIES: Record<string, {
     HARDEN:      { triggers: ['contract', 'comply', 'sterling', 'harden', 'gherkin'], default_path: 'contract_hardening', tier: 'WEAVE' },
     EXPAND:      { triggers: ['deploy', 'link', 'mount', 'spoke', 'onboard'], default_path: 'expansion', tier: 'WEAVE' },
     EVOLVE:      { triggers: ['optimize', 'refactor', 'evolve', 'improve'], default_path: 'evolve', tier: 'WEAVE' },
-    ORCHESTRATE: { triggers: ['plan', 'dispatch', 'autobot', 'orchestrate'], default_path: 'orchestrate', tier: 'WEAVE' },
+    ORCHESTRATE: { triggers: ['plan', 'dispatch', 'orchestrate'], default_path: 'orchestrate', tier: 'WEAVE' },
     GUARD:       { triggers: ['protect', 'shield', 'lock', 'guard', 'drift'], default_path: 'silver_shield', tier: 'SPELL' },
     DOCUMENT:    { triggers: ['document', 'explain', 'chronicle', 'architecture'], default_path: 'living_architecture', tier: 'WEAVE' },
 };

@@ -58,8 +58,6 @@ const ACTIVE_PLANNING_STATUSES: HallPlanningSessionStatus[] = [
     'RESEARCH_PHASE',
     'PROPOSAL_REVIEW',
     'BEAD_CRITIQUE_LOOP',
-    'BEAD_USER_REVIEW',
-    'PLAN_CONCRETE',
     'FORGE_EXECUTION',
     'NEEDS_INPUT',
     'PLAN_READY',
@@ -521,7 +519,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
             `);
             for (const beadId of approvedBeadIds) {
                 const bead = beads.find(b => b.id === beadId);
-                let agent = 'AUTOBOT';
+                let agent = 'HOST-WORKER';
                 let triageReason = 'Approved for skill activation loop.';
                 if (bead) {
                     const targets = getBeadTargets(bead);
@@ -636,6 +634,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
         payload: HostGovernorWeavePayload,
         policy: HostGovernorPolicy,
         env: NodeJS.ProcessEnv,
+        context: RuntimeContext,
         promotedCount: number,
         excludedBeadIds: string[],
     ): Promise<GovernancePassResult | null> {
@@ -702,6 +701,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
                         payload,
                         policy,
                         runtimeEnv,
+                        context,
                         0,
                         [],
                     );
@@ -898,6 +898,7 @@ export class HostGovernorWeave implements RuntimeAdapter<HostGovernorWeavePayloa
                     payload,
                     policy,
                     runtimeEnv,
+                    context,
                     uniqueStrings(governancePasses.flatMap((pass) => pass.promotedBeadIds)).length,
                     uniqueStrings(governancePasses.flatMap((pass) => pass.candidateBeadIds)),
                 );

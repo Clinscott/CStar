@@ -18,7 +18,7 @@ const execFileAsync = promisify(execFile);
 const DEFAULT_DELEGATE_MAX_BUFFER = 10 * 1024 * 1024;
 const DEFAULT_DELEGATE_REASONING_EFFORT = 'medium';
 
-export type DelegatedExecutionBoundary = 'subagent' | 'autobot';
+export type DelegatedExecutionBoundary = 'subagent';
 export type DelegatedExecutionTaskKind = 'research' | 'implementation' | 'verification' | 'critique';
 export type DelegatedExecutionStatus = 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
 

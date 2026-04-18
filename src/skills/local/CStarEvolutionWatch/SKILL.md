@@ -48,7 +48,7 @@ For each finding that shows promise during research:
 4. **Cross-reference**: link to at least 2 related pages (e.g., security concepts, SQLite patterns)
 5. **Log** the action in `log.md`
 
-Wiki lives at `~/wiki/` (configured in `~/.hermes/config.yaml`).
+Wiki lives at `~/wiki/` (configured in `~/.cstar/config.yaml`).
 
 ## Report Output
 
@@ -68,7 +68,7 @@ Recommended: daily at 07:00 Canada/Eastern, before human review.
 
 ```bash
 # Create the cron job
-hermes cron create \
+cstar cron create \
   --name "CStar Evolution Watch" \
   --prompt "Run the cstar-evolution-watch skill. Inspect CStar at /home/morderith/Corvus/CStar, run web research, file wiki entries, generate report to docs/reports/" \
   --schedule "0 7 * * *" \
@@ -90,4 +90,4 @@ None required. The skill self-contains all paths.
 
 - `docs/reports/CSTAR_EVOLUTION_WATCH_YYYY-MM-DD.md` — the daily report
 - `~/wiki/concepts/cstar-evolution-*.md` — filed research (Karpathy loop)
-- `~/.hermes/logs/cstar-evolution-watch.log` — run log
+- `~/.cstar/logs/cstar-evolution-watch.log` — run log

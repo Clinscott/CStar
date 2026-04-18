@@ -31,11 +31,11 @@ from typing import Optional
 # ---------------------------------------------------------------------------
 CSTAR_ROOT = Path(os.environ.get("CSTAR_ROOT", "/home/morderith/Corvus/CStar"))
 WIKI_ROOT = Path(os.environ.get("WIKI_ROOT", "/home/morderith/wiki"))
-HERMES_HOME = Path(os.environ.get("HERMES_HOME", Path.home() / ".hermes"))
+CSTAR_HOME = Path(os.environ.get("CSTAR_HOME", Path.home() / ".cstar"))
 REPORT_DEST = CSTAR_ROOT / "docs" / "reports"
-TIMING_DB = HERMES_HOME / "skill_timing.db"
-LAST_RUN_FILE = HERMES_HOME / ".cstar_evolution_lastrun"
-LOG_FILE = HERMES_HOME / "logs" / "cstar-evolution-watch.log"
+TIMING_DB = CSTAR_HOME / "skill_timing.db"
+LAST_RUN_FILE = CSTAR_HOME / ".cstar_evolution_lastrun"
+LOG_FILE = CSTAR_HOME / "logs" / "cstar-evolution-watch.log"
 
 REPORT_DEST.mkdir(parents=True, exist_ok=True)
 LOG_FILE.parent.mkdir(parents=True, exist_ok=True)

@@ -50,9 +50,6 @@ def _classify_source_boundary(source: str | None) -> OneMindBoundary:
     if not normalized:
         return "primary"
 
-    if "autobot" in normalized or "sovereign-worker" in normalized:
-        return "autobot"
-
     if (
         "subagent" in normalized
         or "sub-agent" in normalized
@@ -67,11 +64,11 @@ def _classify_source_boundary(source: str | None) -> OneMindBoundary:
 
 def resolve_one_mind_boundary(request: Any) -> OneMindBoundary:
     explicit_boundary = _read_metadata_value(request, "one_mind_boundary")
-    if explicit_boundary in {"primary", "subagent", "autobot"}:
+    if explicit_boundary in {"primary", "subagent"}:
         return explicit_boundary
 
     execution_role = _read_metadata_value(request, "execution_role")
-    if execution_role in {"primary", "subagent", "autobot"}:
+    if execution_role in {"primary", "subagent"}:
         return execution_role
 
     caller = getattr(request, "caller", None)
@@ -96,7 +93,7 @@ def resolve_one_mind_decision(
     if transport_mode == "synapse_db":
         return OneMindDecision(boundary=boundary, transport_mode="synapse_db", reason="explicit-synapse-db")
 
-    if boundary in {"subagent", "autobot"}:
+    if boundary in {"subagent"}:
         return OneMindDecision(boundary=boundary, transport_mode="synapse_db", reason=f"delegated-{boundary}-boundary")
 
     # [🔱] BROKER OVERRIDE: Allow environment to force or disable the broker bus.

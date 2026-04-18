@@ -273,10 +273,6 @@ function summarizeInvocationIntent(
             return 'Govern and release the active Hall execution plan.';
         case 'weave:restoration':
             return 'Repair a broken Corvus Star surface through restoration.';
-        case 'weave:autobot':
-            return beadId
-                ? `Execute bounded implementation work for ${beadId}.`
-                : 'Execute bounded implementation work through autobot.';
         case 'weave:host-worker':
             return beadId
                 ? `Execute host-native implementation work for ${beadId}.`
@@ -329,8 +325,7 @@ function inferTraceIntentCategory(
     if (['evolve', 'temporal-learning'].includes(normalizedSelection)) {
         return 'EVOLVE';
     }
-    if (['autobot', 'host-worker', 'forge'].includes(normalizedSelection)) {
-        return 'BUILD';
+    if (['host-worker', 'forge'].includes(normalizedSelection)) {        return 'BUILD';
     }
     if (['hall', 'scan', 'manifest', 'status', 'vitals'].includes(normalizedSelection)) {
         return 'OBSERVE';
@@ -792,8 +787,7 @@ export class RuntimeDispatcher implements RuntimeDispatchPort {
 
         // --- WAR ROOM HANDSHAKE ---
         // Map personae/weave to agents for the Roster
-        const targetAgentId = weaveId === 'weave:autobot' ? 'autobot' :
-                             weaveId.includes('droid') ? 'droid' :
+        const targetAgentId = weaveId.includes('droid') ? 'droid' :
                              resolveHostProvider(process.env) || 'gemini';
 
         const stateRegistry = this.deps.stateRegistry as any;

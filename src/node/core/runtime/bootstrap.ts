@@ -7,7 +7,6 @@ import {
     EstateExpansionHostWorkflow,
     VigilanceHostWorkflow
 } from  './adapters.js';
-import { AutoBotWeave } from  './weaves/autobot.js';
 import { HostWorkerWeave } from  './weaves/host_worker.js';
 import { ChantHostWorkflow } from  './host_workflows/chant.js';
 import { EvolveWeave } from  './weaves/evolve.js';
@@ -49,7 +48,6 @@ export function bootstrapRuntime(dispatcher: RuntimeDispatcher = RuntimeDispatch
         new RavensStageContractAdapter('validate'),
         new RavensStageContractAdapter('promote'),
         new PennyOneAdapter(),
-        new AutoBotWeave(),
         new HostWorkerWeave(),
         new ChantHostWorkflow(dispatcher),
         new ResearchHostWorkflow(dispatcher),

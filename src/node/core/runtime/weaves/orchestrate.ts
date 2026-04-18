@@ -99,14 +99,14 @@ function rankPlanningSessionForOrchestrate(session: HallPlanningSessionRecord): 
 export function resolveExecutionRoute(
     bead: SovereignBead,
     hints?: PlanningExecutionHints,
-): 'AUTOBOT' | 'HOST-WORKER' | 'ONE-MIND' {
+): 'HOST-WORKER' | 'ONE-MIND' {
     const assigned = String(bead.assigned_agent ?? '').trim().toUpperCase();
-    if (assigned === 'AUTOBOT' || assigned === 'HOST-WORKER' || assigned === 'ONE-MIND') {
+    if (assigned === 'HOST-WORKER' || assigned === 'ONE-MIND') {
         return assigned;
     }
 
     if (hints?.execution_profile === 'implementation' && bead.id.includes(':child:technical')) {
-        return 'AUTOBOT';
+        return 'HOST-WORKER';
     }
     if (hints?.execution_profile === 'governance' && bead.id.includes(':child:ledger')) {
         return 'ONE-MIND';
@@ -123,7 +123,7 @@ export function resolveExecutionRoute(
     const isWorkflowTarget = bead.target_kind === 'WORKFLOW' || bead.target_kind === 'REPOSITORY' || bead.target_kind === 'OTHER';
 
     if (isCodeTarget && hasChecker && !isArchitectureHeavy && !hasCritiqueTargets) {
-        return 'AUTOBOT';
+        return 'HOST-WORKER';
     }
     if (hasWildcardTarget || targetsPlanningState || isWorkflowTarget || isDocsTarget || isArchitectureHeavy || hasCritiqueTargets || !hasChecker) {
         return 'ONE-MIND';
@@ -248,7 +248,7 @@ function buildShardChildren(
     hints?: PlanningExecutionHints,
 ): Array<{
     id: string;
-    agent: 'AUTOBOT' | 'HOST-WORKER' | 'ONE-MIND';
+    agent: 'HOST-WORKER' | 'ONE-MIND';
     kind: SovereignBead['target_kind'];
     rationale: string;
     contract_refs: string[];
@@ -275,7 +275,7 @@ function buildShardChildren(
                 },
                 {
                     id: `${bead.id}:child:technical`,
-                    agent: 'AUTOBOT',
+                    agent: 'HOST-WORKER',
                     kind: 'VALIDATION',
                     rationale: `Bounded implementation follow-through for ${bead.id} under ${hints.trace_selection_name ?? 'implementation'} execution`,
                     contract_refs: inheritedContractRefs,
@@ -316,7 +316,7 @@ function buildShardChildren(
         },
         {
             id: `${bead.id}:child:technical`,
-            agent: 'AUTOBOT',
+            agent: 'HOST-WORKER',
             kind: 'VALIDATION',
             rationale: `Bounded implementation follow-through for ${bead.id}`,
             contract_refs: inheritedContractRefs,

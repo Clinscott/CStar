@@ -38,7 +38,7 @@ describe('RuntimeDispatcher', () => {
         mock.reset();
     });
 
-    function createAgentStateFixture(agentId: 'gemini' | 'autobot' | 'codex' | 'droid' = 'gemini') {
+    function createAgentStateFixture(agentId: 'gemini' | 'bookmark-weaver' | 'codex' | 'droid' = 'gemini') {
         const state = {
             framework: {
                 active_persona: 'ALFRED',
@@ -60,9 +60,9 @@ describe('RuntimeDispatcher', () => {
                     status: 'SLEEPING',
                     last_seen: 0,
                 },
-                autobot: {
-                    id: 'autobot',
-                    name: 'AutoBot (Hermes)',
+                'bookmark-weaver': {
+                    id: 'bookmark-weaver',
+                    name: 'Bookmark Weaver',
                     status: 'SLEEPING',
                     last_seen: 0,
                 },
@@ -86,7 +86,7 @@ describe('RuntimeDispatcher', () => {
                     agents: {
                         gemini: { ...nextState.agents.gemini },
                         codex: { ...nextState.agents.codex },
-                        autobot: { ...nextState.agents.autobot },
+                        'bookmark-weaver': { ...nextState.agents['bookmark-weaver'] },
                         droid: { ...nextState.agents.droid },
                     },
                     blackboard: [...(nextState.blackboard || [])],
@@ -849,15 +849,15 @@ Seed the Hall contract for the scheduler migration.`,
             path.join(tmpRoot, '.agents', 'skill_registry.json'),
             JSON.stringify({
                 entries: {
-                    autobot: {
+                    'bookmark-weaver': {
                         execution: {
                             mode: 'kernel-backed',
-                            adapter_id: 'weave:autobot',
+                            adapter_id: 'weave:bookmark-weaver',
                         },
                         host_support: {
                             codex: 'supported',
                         },
-                        runtime_trigger: 'autobot',
+                        runtime_trigger: 'bookmark-weaver',
                     },
                 },
             }),
@@ -865,20 +865,20 @@ Seed the Hall contract for the scheduler migration.`,
         registry.setRoot(tmpRoot);
 
         let attempts = 0;
-        const autobotAdapter = {
-            id: 'weave:autobot',
+        const weaverAdapter = {
+            id: 'weave:bookmark-weaver',
             execute: mock.fn(async (): Promise<WeaveResult> => {
                 attempts += 1;
                 if (attempts === 1) {
                     return {
-                        weave_id: 'weave:autobot',
+                        weave_id: 'weave:bookmark-weaver',
                         status: 'FAILURE',
                         output: '',
                         error: 'checker process crashed',
                     };
                 }
                 return {
-                    weave_id: 'weave:autobot',
+                    weave_id: 'weave:bookmark-weaver',
                     status: 'SUCCESS',
                     output: 'retry succeeded',
                 };
@@ -889,7 +889,7 @@ Seed the Hall contract for the scheduler migration.`,
             text: JSON.stringify({
                 action: 'retry',
                 summary: 'Transient checker failure. Retry once.',
-                operator_message: 'Retrying autobot after transient checker failure.',
+                operator_message: 'Retrying weaver after transient checker failure.',
             }),
         }));
         const dispatcher = RuntimeDispatcher.createIsolated({
@@ -899,14 +899,14 @@ Seed the Hall contract for the scheduler migration.`,
             hostTextInvoker,
             activePersona: { name: 'ALFRED' },
         });
-        dispatcher.registerAdapter(autobotAdapter);
+        dispatcher.registerAdapter(weaverAdapter);
 
         process.env.CODEX_SHELL = '1';
         process.env.CODEX_THREAD_ID = 'thread-kernel-retry';
 
         const result = await dispatcher.dispatch({
-            id: 'activation:autobot:1',
-            skill_id: 'autobot',
+            id: 'activation:weaver:1',
+            skill_id: 'bookmark-weaver',
             target_path: 'src/example.ts',
             intent: 'execute bounded bead',
             params: {
@@ -925,7 +925,7 @@ Seed the Hall contract for the scheduler migration.`,
         assert.strictEqual(result.status, 'SUCCESS');
         assert.strictEqual(result.output, 'retry succeeded');
         assert.strictEqual(hostTextInvoker.mock.callCount(), 1);
-        assert.strictEqual(autobotAdapter.execute.mock.callCount(), 2);
+        assert.strictEqual(weaverAdapter.execute.mock.callCount(), 2);
         assert.equal((result.metadata as any)?.host_recovery?.action, 'retry');
     });
 
@@ -936,25 +936,25 @@ Seed the Hall contract for the scheduler migration.`,
             path.join(tmpRoot, '.agents', 'skill_registry.json'),
             JSON.stringify({
                 entries: {
-                    autobot: {
+                    'bookmark-weaver': {
                         execution: {
                             mode: 'kernel-backed',
-                            adapter_id: 'weave:autobot',
+                            adapter_id: 'weave:bookmark-weaver',
                         },
                         host_support: {
                             codex: 'supported',
                         },
-                        runtime_trigger: 'autobot',
+                        runtime_trigger: 'bookmark-weaver',
                     },
                 },
             }),
         );
         registry.setRoot(tmpRoot);
 
-        const autobotAdapter = {
-            id: 'weave:autobot',
+        const weaverAdapter = {
+            id: 'weave:bookmark-weaver',
             execute: mock.fn(async (): Promise<WeaveResult> => ({
-                weave_id: 'weave:autobot',
+                weave_id: 'weave:bookmark-weaver',
                 status: 'FAILURE',
                 output: '',
                 error: 'bead payload is invalid for execution',
@@ -974,7 +974,7 @@ Seed the Hall contract for the scheduler migration.`,
                 action: 'replan',
                 summary: 'Execution route is wrong.',
                 operator_message: 'Replan this bead through the host governor.',
-                recovery_task: 'Replan the failed autobot bead with corrected execution boundaries.',
+                recovery_task: 'Replan the failed weaver bead with corrected execution boundaries.',
             }),
         }));
         const dispatcher = RuntimeDispatcher.createIsolated({
@@ -984,15 +984,15 @@ Seed the Hall contract for the scheduler migration.`,
             hostTextInvoker,
             activePersona: { name: 'ALFRED' },
         });
-        dispatcher.registerAdapter(autobotAdapter);
+        dispatcher.registerAdapter(weaverAdapter);
         dispatcher.registerAdapter(governorAdapter);
 
         process.env.CODEX_SHELL = '1';
         process.env.CODEX_THREAD_ID = 'thread-kernel-replan';
 
         const result = await dispatcher.dispatch({
-            id: 'activation:autobot:2',
-            skill_id: 'autobot',
+            id: 'activation:weaver:2',
+            skill_id: 'bookmark-weaver',
             target_path: 'src/example.ts',
             intent: 'execute bounded bead',
             params: {

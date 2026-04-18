@@ -13,7 +13,7 @@ import { buildHallRepositoryId, normalizeHallPath } from '../../../../types/hall
 import { resolvePersonaPolicy } from '../../../../tools/pennyone/personaRegistry.js';
 import { executeArchitectService } from './architect_service.js';
 import type {
-    AutobotWeavePayload,
+    RuntimeAuguryContract,
     RuntimeDispatchPort,
     RuntimeContext,
     WeaveInvocation,
@@ -26,12 +26,6 @@ import type { ParsedTraceSelectionGate } from './chant_parser.js';
 import { inheritTraceInvocation } from '../trace_inheritance.js';
 import { enrichTraceContractWithCouncil } from '../../../../core/council_experts.js';
 
-const AUTOBOT_NOTE_LIMIT = 4_000;
-const AUTOBOT_SECTION_LIMIT = 420;
-const AUTOBOT_MEMORY_LIMIT = 2;
-const AUTOBOT_CRITIQUE_LIMIT = 2;
-const LOCAL_WORKER_LINE_LIMIT = 1_200;
-
 export const deps = {
     path: Object.assign({}, path),
     database: Object.assign({}, database),
@@ -39,57 +33,6 @@ export const deps = {
     fs: Object.assign({}, fs),
     executeArchitectService,
 };
-
-type ArchitectProposal = {
-    proposal_summary?: unknown;
-    beads?: unknown;
-};
-
-type ArchitectProposalBead = {
-    id?: unknown;
-    title?: unknown;
-    rationale?: unknown;
-    targets?: unknown;
-    target_symbol?: unknown;
-    depends_on?: unknown;
-    focus_hint?: unknown;
-    acceptance_criteria?: unknown;
-    checker_shell?: unknown;
-    test_file_path?: unknown;
-    test_file_content?: unknown;
-    target_file_skeleton?: unknown;
-};
-
-export function compactText(value: string | undefined, limit: number = AUTOBOT_SECTION_LIMIT): string | undefined {
-    if (!value) return undefined;
-    const normalized = value.replace(/\s+/g, ' ').trim();
-    if (!normalized) return undefined;
-    if (normalized.length <= limit) return normalized;
-    return `${normalized.slice(0, Math.max(0, limit - 1)).trimEnd()}...`;
-}
-
-export function compactJson(value: unknown, limit: number = AUTOBOT_SECTION_LIMIT): string | undefined {
-    if (value === undefined) return undefined;
-    try {
-        return compactText(JSON.stringify(value), limit);
-    } catch {
-        return undefined;
-    }
-}
-
-export function pushSection(lines: string[], label: string, value: string | undefined): void {
-    if (value) lines.push(`${label}: ${value}`);
-}
-
-export function finalizeAutobotNote(lines: string[]): string {
-    const normalized = lines.map((line) => line.trimEnd()).filter(Boolean).join('\n');
-    if (normalized.length <= AUTOBOT_NOTE_LIMIT) return normalized;
-    return `${normalized.slice(0, Math.max(0, AUTOBOT_NOTE_LIMIT - 1)).trimEnd()}...`;
-}
-
-export function resolveAutobotBeadId(workspaceRoot: string, session: HallPlanningSessionRecord | null): string | undefined {
-    return session?.current_bead_id?.trim();
-}
 
 export function getSessionStringMetadata(session: HallPlanningSessionRecord | null, keys: string[]): string | undefined {
     const metadata = session?.metadata ?? {};
@@ -262,40 +205,13 @@ function normalizeArchitectProposal(
     return deriveFallbackProposal(intent, projectRoot);
 }
 
-export function buildAutobotWorkerNote(
-    workspaceRoot: string,
-    beadId: string,
-    session: HallPlanningSessionRecord | null,
-): string {
-    const repoId = buildHallRepositoryId(normalizeHallPath(workspaceRoot));
-    const bead = deps.database.getHallBeads(repoId).find((candidate: any) => candidate.id === beadId);
-    const lines = [
-        'Local Hermes micro-bead. Use only the context below unless the target file forces direct adjacent inspection.',
-        'Do not invent imports, dependencies, commands, or files. If something is not already present or directly verified in the repo, do not rely on it.',
-    ];
-    const focusHint = typeof bead?.critique_payload?.focus_hint === 'string' && bead.critique_payload.focus_hint.trim()
-        ? bead.critique_payload.focus_hint.trim()
-        : undefined;
-    const checkerShell = resolveAutobotCheckerShell(workspaceRoot, beadId, session);
-    const fileIntel = bead?.target_path
-        ? deps.database.getHallFile(bead.target_path, workspaceRoot, bead.scan_id || undefined)
-        : null;
-    pushSection(lines, 'Active bead', beadId);
-    pushSection(lines, 'Target path', bead?.target_path);
-    pushSection(lines, 'Focus hint', focusHint);
-    pushSection(lines, 'Checker shell', checkerShell);
-    pushSection(lines, 'Target file role', fileIntel?.intent_summary);
-    pushSection(lines, 'Bead rationale', bead?.rationale);
-    return finalizeAutobotNote(lines);
-}
-
 function buildSessionId(context: RuntimeContext, repoId: string): string {
     if (context.session_id?.trim()) return context.session_id.trim();
     if (context.trace_id?.trim()) return `chant-session:${context.trace_id.trim()}`;
     return `chant-session:${repoId}:${Date.now()}`;
 }
 
-function buildAuguryContractMetadata(augurySelection: ParsedTraceSelectionGate | null | undefined): Record<string, unknown> | undefined {
+function buildAuguryContractMetadata(augurySelection: ParsedTraceSelectionGate | null | undefined): RuntimeAuguryContract | undefined {
     if (!augurySelection) {
         return undefined;
     }
@@ -611,59 +527,7 @@ export async function runPlanningLoop(
         } : {}),
     };
 
-    if (existingSession && existingSession.status === 'PLAN_CONCRETE') {
-        const beadId = resolveAutobotBeadId(payload.project_root, existingSession);
-        if (!beadId) {
-            return {
-                weave_id: 'weave:chant',
-                status: 'FAILURE',
-                output: '',
-                error: 'Planning session is concrete but no executable bead could be resolved.',
-                metadata: {
-                    context_policy: 'project',
-                    normalized_intent: normalizedIntent,
-                    planning_session_id: sessionId,
-                    planning_status: 'FAILED',
-                },
-            };
-        }
-
-        const autobotResult = await dispatchPort.dispatch(
-            inheritTraceInvocation(buildAutobotInvocation(payload, existingSession, beadId), context),
-        );
-        const summary = `AutoBot received bead ${beadId}. Review the worker result before promoting the bead.`;
-        persistPlanningSessionSnapshot({
-            sessionId,
-            repoId,
-            sessionStatus: 'BEAD_USER_REVIEW',
-            normalizedIntent: mergedIntent,
-            summary,
-            now,
-            userIntent,
-            currentBeadId: beadId,
-            architectOpinion: existingSession.architect_opinion,
-            metadata: {
-                ...baseMetadata,
-                autobot_last_result: autobotResult.output,
-            },
-            createdAt,
-        });
-
-        return {
-            weave_id: 'weave:chant',
-            status: 'TRANSITIONAL',
-            output: summary,
-            metadata: {
-                context_policy: 'project',
-                normalized_intent: normalizedIntent,
-                planning_session_id: sessionId,
-                planning_status: 'BEAD_USER_REVIEW',
-                bead_ids: baseMetadata.bead_ids ?? [beadId],
-            },
-        };
-    }
-
-    if (existingSession && (existingSession.status === 'PROPOSAL_REVIEW' || existingSession.status === 'PLAN_READY')) {
+    if (existingSession && ['PROPOSAL_REVIEW', 'BEAD_CRITIQUE_LOOP', 'PLAN_READY', 'ROUTED'].includes(existingSession.status)) {
         persistPlanningSessionSnapshot({
             sessionId,
             repoId,
@@ -913,47 +777,5 @@ export async function runPlanningLoop(
             bead_ids: persisted.beadIds,
             proposal_ids: persisted.proposalIds,
         },
-    };
-}
-
-export function resolveAutobotCheckerShell(
-    workspaceRoot: string,
-    beadId: string,
-    session: HallPlanningSessionRecord | null,
-): string | undefined {
-    return getSessionStringMetadata(session, ['checker_shell']);
-}
-
-export function buildAutobotInvocation(
-    payload: ChantWeavePayload,
-    session: HallPlanningSessionRecord | null,
-    beadId: string,
-): WeaveInvocation<AutobotWeavePayload> {
-    const autobotPayload: AutobotWeavePayload = {
-        bead_id: beadId,
-        project_root: payload.project_root,
-        cwd: payload.cwd,
-        source: payload.source === 'python_adapter' ? 'python_adapter' : 'runtime',
-        worker_note: buildAutobotWorkerNote(payload.project_root, beadId, session),
-    };
-
-    const checkerShell = resolveAutobotCheckerShell(payload.project_root, beadId, session);
-    if (checkerShell) {
-        autobotPayload.checker_shell = checkerShell;
-    }
-
-    const maxAttempts = getSessionNumberMetadata(session, ['autobot_max_attempts', 'max_attempts']);
-    if (maxAttempts !== undefined) {
-        autobotPayload.max_attempts = maxAttempts;
-    }
-
-    const timeout = getSessionNumberMetadata(session, ['autobot_timeout', 'timeout']);
-    if (timeout !== undefined) {
-        autobotPayload.timeout = timeout;
-    }
-
-    return {
-        weave_id: 'weave:autobot',
-        payload: autobotPayload,
     };
 }

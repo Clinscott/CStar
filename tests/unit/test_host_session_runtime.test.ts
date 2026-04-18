@@ -144,8 +144,8 @@ describe('Host session runtime support metadata', () => {
             path.join(tmpRoot, '.agents', 'skill_registry.json'),
             JSON.stringify({
                 entries: {
-                    autobot: {
-                        runtime_trigger: 'autobot',
+                    norn: {
+                        runtime_trigger: 'norn',
                         execution: {
                             mode: 'kernel-backed',
                         },
@@ -161,7 +161,7 @@ describe('Host session runtime support metadata', () => {
             'utf-8',
         );
 
-        assert.equal(getCapabilityOwnershipModel(tmpRoot, 'autobot'), 'kernel-primitive');
+        assert.equal(getCapabilityOwnershipModel(tmpRoot, 'norn'), 'kernel-primitive');
         assert.equal(getCapabilityOwnershipModel(tmpRoot, 'hall'), 'host-workflow');
     });
 

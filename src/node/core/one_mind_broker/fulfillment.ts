@@ -224,8 +224,8 @@ function markDelegatedRequestSettled(rootPath: string, provider: string): void {
     });
 }
 
-function normalizeDelegatedBoundary(boundary: HallOneMindRequestRecord['boundary']): 'subagent' | 'autobot' {
-    return boundary === 'autobot' ? 'autobot' : 'subagent';
+function normalizeDelegatedBoundary(boundary: HallOneMindRequestRecord['boundary']): 'subagent' {
+    return 'subagent';
 }
 
 function buildDelegatedRequestFromHall(request: HallOneMindRequestRecord, rootPath: string): DelegatedExecutionRequest {
@@ -554,7 +554,7 @@ export async function fulfillNextOneMindRequest(
         return fulfillOneMindRequestById(rootPath, claimedDelegated.request_id, env, dependencies);
     }
 
-    const request = claimNextHallOneMindRequest(rootPath, `one-mind:${process.pid}`, ['PENDING'], ['primary', 'subagent', 'autobot']);
+    const request = claimNextHallOneMindRequest(rootPath, `one-mind:${process.pid}`, ['PENDING'], ['primary', 'subagent']);
     if (!request) {
         return { outcome: 'idle' };
     }

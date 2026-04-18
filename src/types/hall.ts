@@ -295,7 +295,7 @@ export interface HallOneMindRequestRecord {
     request_id: string;
     repo_id: string;
     caller_source: string;
-    boundary: 'primary' | 'subagent' | 'autobot';
+    boundary: 'primary' | 'subagent';
     request_status: HallOneMindRequestStatus;
     transport_preference?: 'host_session' | 'synapse_db';
     prompt: string;

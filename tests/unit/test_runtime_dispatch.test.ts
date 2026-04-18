@@ -39,7 +39,6 @@ describe('Canonical Runtime Dispatcher (CS-P1-01)', () => {
 
         const builtInAdapters = [
             'weave:architect',
-            'weave:autobot',
             'weave:chant',
             'weave:distill',
             'weave:critique',

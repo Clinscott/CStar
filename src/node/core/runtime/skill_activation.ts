@@ -66,14 +66,15 @@ export function planSkillActivationForBead(
 
     if (hints?.execution_profile === 'implementation' && isTechnicalChild) {
         return {
-            skill_id: 'autobot',
-            adapter_id: 'weave:autobot',
+            skill_id: 'research',
+            adapter_id: 'weave:research',
             role: 'backend',
-            intent: rationale || `Execute implementation child ${bead.id}`,
+            intent: rationale || `Investigate implementation child ${bead.id}`,
             target_path: targetPath || undefined,
             payload: {
-                bead_id: bead.id,
-                checker_shell: bead.checker_shell,
+                intent: rationale || `Investigate implementation child ${bead.id}`,
+                rationale: bead.rationale,
+                subquestions: [targetPath].filter(Boolean),
             },
             metadata: withPlanningHints({
                 activation_class: 'implementation',
@@ -140,14 +141,15 @@ export function planSkillActivationForBead(
 
     if (hasChecker(bead) || /\b(verify|validation|test)\b/i.test(rationale) || isDocsLike(normalizedTarget)) {
         return {
-            skill_id: 'autobot',
-            adapter_id: 'weave:autobot',
+            skill_id: 'research',
+            adapter_id: 'weave:research',
             role: hasChecker(bead) ? 'tester' : 'documenter',
-            intent: rationale || `Execute bounded bead ${bead.id}`,
+            intent: rationale || `Investigate bounded bead ${bead.id}`,
             target_path: targetPath || undefined,
             payload: {
-                bead_id: bead.id,
-                checker_shell: bead.checker_shell,
+                intent: rationale || `Investigate bounded bead ${bead.id}`,
+                rationale: bead.rationale,
+                subquestions: [targetPath].filter(Boolean),
             },
             metadata: withPlanningHints({
                 activation_class: hasChecker(bead) ? 'verification' : 'documentation',
@@ -158,13 +160,15 @@ export function planSkillActivationForBead(
 
     if (isCodeLike(normalizedTarget)) {
         return {
-            skill_id: 'autobot',
-            adapter_id: 'weave:autobot',
+            skill_id: 'research',
+            adapter_id: 'weave:research',
             role: 'backend',
-            intent: rationale || `Implement ${bead.id}`,
+            intent: rationale || `Investigate ${bead.id}`,
             target_path: targetPath || undefined,
             payload: {
-                bead_id: bead.id,
+                intent: rationale || `Investigate ${bead.id}`,
+                rationale: bead.rationale,
+                subquestions: [targetPath].filter(Boolean),
             },
             metadata: withPlanningHints({
                 activation_class: 'implementation',
@@ -264,16 +268,6 @@ export function buildSkillActivationParams(
             },
             context: bead.rationale,
             focus_areas: ['architecture', 'execution', 'verification'],
-        };
-    }
-
-    if (planned.adapter_id === 'weave:autobot') {
-        return {
-            ...base,
-            bead_id: bead.id,
-            checker_shell: bead.checker_shell,
-            source: 'runtime:orchestrate-skill',
-            worker_note: planned.intent,
         };
     }
 

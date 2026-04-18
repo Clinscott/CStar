@@ -17,7 +17,6 @@ import {
 import { 
     type WeaveInvocation, 
     type ChantWeavePayload,
-    type AutobotWeavePayload,
     type EvolveWeavePayload,
     type ArtifactForgeWeavePayload as ForgeWeavePayload,
     type PennyOneWeavePayload,
@@ -96,7 +95,7 @@ export function buildDynamicCommandInvocation(
     args: string[],
     projectRoot: string,
     cwd: string = process.cwd(),
-): WeaveInvocation<StartWeavePayload | RavensWeavePayload | PennyOneWeavePayload | ChantWeavePayload | AutobotWeavePayload | EvolveWeavePayload | ForgeWeavePayload> {
+): WeaveInvocation<StartWeavePayload | RavensWeavePayload | PennyOneWeavePayload | ChantWeavePayload | EvolveWeavePayload | ForgeWeavePayload> {
     if (command.toLowerCase() === 'start') {
         const taskIndex = args.findIndex((arg) => arg === '--task');
         const ledgerIndex = args.findIndex((arg) => arg === '--ledger');
@@ -165,9 +164,6 @@ export function buildDynamicCommandInvocation(
         return buildPennyOneInvocation({ scan: '.' }, projectRoot);
     }
 
-    if (command.toLowerCase() === 'autobot') {
-        return buildAutobotInvocation(args, projectRoot, cwd);
-    }
     if (command.toLowerCase() === 'evolve') {
         return buildEvolveInvocation(args, projectRoot, cwd);
     }
@@ -293,67 +289,6 @@ export function buildHostNativeChantInvocation(
     );
 }
 
-export function buildAutobotInvocation(
-    args: string[],
-    projectRoot: string,
-    cwd: string = process.cwd(),
-): WeaveInvocation<AutobotWeavePayload> {
-    let beadId: string | undefined;
-    let checkerShell: string | undefined;
-    let timeout: number | undefined;
-    let agentId: string | undefined;
-    let workerNote: string | undefined;
-    let source: 'runtime' | 'cli' = 'cli';
-    const commandArgs: string[] = [];
-
-    for (let i = 0; i < args.length; i++) {
-        if (args[i] === '--bead-id' && i + 1 < args.length) {
-            beadId = args[++i];
-        } else if (args[i] === '--checker-shell' && i + 1 < args.length) {
-            checkerShell = args[++i];
-        } else if (args[i] === '--timeout' && i + 1 < args.length) {
-            const parsed = Number(args[++i]);
-            timeout = Number.isFinite(parsed) ? parsed : undefined;
-        } else if (args[i] === '--agent-id' && i + 1 < args.length) {
-            agentId = args[++i];
-        } else if (args[i] === '--worker-note' && i + 1 < args.length) {
-            workerNote = args[++i];
-        } else if (args[i] === '--source' && i + 1 < args.length) {
-            const value = String(args[++i]).trim().toLowerCase();
-            source = value === 'runtime' ? 'runtime' : 'cli';
-        } else {
-            commandArgs.push(args[i]);
-        }
-    }
-
-    const payload: AutobotWeavePayload = {
-        bead_id: beadId,
-        project_root: projectRoot,
-        cwd,
-        source,
-    };
-    if (checkerShell) {
-        payload.checker_shell = checkerShell;
-    }
-    if (timeout !== undefined) {
-        payload.timeout = timeout;
-    }
-    if (agentId) {
-        payload.agent_id = agentId;
-    }
-    if (workerNote) {
-        payload.worker_note = workerNote;
-    }
-    if (commandArgs.length > 0) {
-        payload.command_args = commandArgs;
-    }
-
-    return withCliWorkspaceTarget<AutobotWeavePayload>({
-        weave_id: 'weave:autobot',
-        payload,
-    }, projectRoot, cwd);
-}
-
 export function buildEvolveInvocation(
     args: string[],
     projectRoot: string,
@@ -445,7 +380,7 @@ export function registerDispatcher(
         let invocation: SkillBead<unknown> | WeaveInvocation<unknown> | null = null;
         if (activation.kind === 'skill') {
             invocation = activation.bead;
-        } else if (['autobot', 'evolve', 'forge'].includes(cmd.toLowerCase())) {
+        } else if (['evolve', 'forge'].includes(cmd.toLowerCase())) {
             invocation = buildDynamicCommandInvocation(cmd, rawArgs, projectRoot, process.cwd());
         }
 
