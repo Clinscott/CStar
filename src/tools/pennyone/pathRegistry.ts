@@ -23,7 +23,9 @@ function resolveWithBase(base: string, ...segments: string[]): string {
     if (process.platform === 'win32') {
         return usesWindowsPathApi(base) ? path.win32.resolve(base, ...segments) : path.resolve(base, ...segments);
     }
-    return path.posix.resolve(base, ...segments);
+    // On non-Windows platforms, Windows paths (e.g. C:/Estate) are absolute paths
+    // that path.posix.resolve treats as relative. Use win32 API for Windows paths.
+    return usesWindowsPathApi(base) ? path.win32.resolve(base, ...segments) : path.posix.resolve(base, ...segments);
 }
 
 function joinWithBase(base: string, ...segments: string[]): string {
