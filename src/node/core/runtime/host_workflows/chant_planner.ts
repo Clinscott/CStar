@@ -26,6 +26,8 @@ import type { ParsedTraceSelectionGate } from './chant_parser.js';
 import { inheritTraceInvocation } from '../trace_inheritance.js';
 import { enrichTraceContractWithCouncil } from '../../../../core/council_experts.js';
 
+const LOCAL_WORKER_LINE_LIMIT = 1_200;
+
 function compactText(value: string, limit: number = 180): string {
     const normalized = value.replace(/\s+/g, ' ').trim();
     if (normalized.length <= limit) return normalized;
