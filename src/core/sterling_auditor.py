@@ -86,7 +86,9 @@ class SterlingAuditor:
                         report["tiers"]["tier3_audit"]["status"] = "SILVER"
                         report["tiers"]["tier3_audit"]["path"] = str(empire_test.relative_to(self.root))
                         break
-                except: pass
+                except OSError:
+                    # Best-effort: skip empire tests that cannot be read
+                    pass
 
         # --- CALCULUS ---
         silver_count = sum(1 for t in report["tiers"].values() if t["status"] == "SILVER")
