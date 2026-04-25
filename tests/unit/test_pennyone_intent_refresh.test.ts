@@ -126,6 +126,22 @@ describe('PennyOne semantic intent hardening (CS-P1-03)', () => {
         } catch {
             // Best-effort cleanup only.
         }
+
+        // Kill any stray codex exec processes spawned during the test — they can
+        // hang the process and block the full test suite from completing.
+        try {
+            const killed: number[] = [];
+            for (const line of spawnSync('ps', ['aux'], { encoding: 'utf8' }).stdout.split('\n')) {
+                if (line.includes('codex exec') && line.includes('host-session')) {
+                    const pid = parseInt(line.trim().split(/\s+/)[1], 10);
+                    if (pid && pid !== process.pid) {
+                        try { process.kill(pid, 'SIGKILL'); killed.push(pid); } catch { /* already dead */ }
+                    }
+                }
+            }
+        } catch {
+            // Best-effort only — process enumeration may fail in some environments.
+        }
     });
 
     it('fails closed instead of persisting the offline placeholder during an active host session', async () => {

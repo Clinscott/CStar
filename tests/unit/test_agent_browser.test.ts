@@ -28,7 +28,8 @@ describe('Skill: agent-browser', () => {
         assert.equal(entry?.execution?.mode, 'agent-native');
         assert.equal(entry?.execution?.ownership_model, 'host-workflow');
         assert.equal(entry?.execution?.allow_kernel_fallback, undefined);
-        assert.equal(entry?.entrypoint_path, '/home/morderith/Corvus/agent-browser/bin/agent-browser-linux-x64');
+        // entrypoint_path is null — binary path is environment-gated, not a registry contract
+        assert.equal(entry?.entrypoint_path, null);
     });
 
     runBrowserIntegration('runs the real browser checks only when explicitly enabled', () => {
