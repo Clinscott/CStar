@@ -131,7 +131,8 @@ describe('PennyOne semantic intent hardening (CS-P1-03)', () => {
         // hang the process and block the full test suite from completing.
         try {
             const killed: number[] = [];
-            for (const line of spawnSync('ps', ['aux'], { encoding: 'utf8' }).stdout.split('\n')) {
+            const psOutput = spawnSync('ps', ['aux'], { encoding: 'utf8', timeout: 5000 });
+            for (const line of psOutput.stdout.split('\n')) {
                 if (line.includes('codex exec') && line.includes('host-session')) {
                     const pid = parseInt(line.trim().split(/\s+/)[1], 10);
                     if (pid && pid !== process.pid) {
