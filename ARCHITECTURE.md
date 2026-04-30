@@ -10,7 +10,7 @@ The `cstar` kernel (`cstar.ts` in Node.js, and legacy `cstar_dispatcher.py` in P
 
 **How it works:**
 1. **The Host Agent (You):** You provide the reasoning, intent generation, and code writing.
-2. **The Node.js Orchestrator (`cstar.ts`):** Acts as the "Bifrost Gate." It exposes commands and MCP servers (`pennyone-mcp`, `corvus-control-mcp`) so you can interact with the repository. It queues your tasks into "Beads."
+2. **The Node.js Orchestrator (`cstar.ts`):** Acts as the "Bifrost Gate." It exposes commands and the `cstar-kernel` MCP (six tools: handoff, hall_search, augury, doctor, verify_plan, record_result) so you can interact with the repository. It queues your tasks into "Beads."
 3. **The Python Execution Layer:** When you (or the Orchestrator) trigger a task, it spins up ephemeral, sandboxed Python environments (`SovereignWorker` and the scripts in `.agents/skills/`) to safely execute the file mutations.
 
 ## 2. The Atomic Units: Skills & Beads
@@ -57,6 +57,6 @@ When the system is idle or triggered via `cstar ravens`, Muninn scans the reposi
 
 ## Summary for the Host Agent (You)
 1. **You are the intelligence.** CStar is your local routing, execution, and memory framework.
-2. You interact with CStar via CLI commands (`cstar ...`) or its MCP servers (`corvus-control`).
+2. You interact with CStar via CLI commands (`cstar ...`) or the `cstar-kernel` MCP.
 3. You queue work using **Beads** and execute it using **Python Skills**.
 4. You rely on **PennyOne** for memory and are judged by the **Sentinel Wardens**, the **Empire Contracts**, and the **SPRT Engine**.

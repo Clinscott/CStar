@@ -1,0 +1,5 @@
+▶ CorvusProcess: Empire Supervisor Logic
+  ✔ should correctly buffer and parse fragmented NDJSON data (21.947ms)
+  ✔ should emit SYSTEM_RESTART on daemon crash (1.1783ms)
+  ✔ should fall back to HUD_STREAM (0.7577ms)
+✔ CorvusProcess: Empire Supervisor Logic (24.8907ms)

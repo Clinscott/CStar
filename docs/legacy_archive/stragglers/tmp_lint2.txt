@@ -1,0 +1,10 @@
+src\cstar\core\tui.py:990:9: S110 `try`-`except`-`pass` detected, consider logging the exception
+src\cstar\core\tui.py:1004:9: S110 `try`-`except`-`pass` detected, consider logging the exception
+src\cstar\core\tui.py:1027:9: S110 `try`-`except`-`pass` detected, consider logging the exception
+src\cstar\core\tui.py:1039:9: S110 `try`-`except`-`pass` detected, consider logging the exception
+src\cstar\core\tui.py:1062:9: S110 `try`-`except`-`pass` detected, consider logging the exception
+src\cstar\core\tui.py:1093:9: S110 `try`-`except`-`pass` detected, consider logging the exception
+src\cstar\core\tui.py:1114:9: S110 `try`-`except`-`pass` detected, consider logging the exception
+src\cstar\core\tui.py:1132:9: S110 `try`-`except`-`pass` detected, consider logging the exception
+src\cstar\core\tui.py:1141:9: S110 `try`-`except`-`pass` detected, consider logging the exception
+Found 9 errors.

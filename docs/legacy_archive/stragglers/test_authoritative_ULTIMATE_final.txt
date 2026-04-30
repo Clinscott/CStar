@@ -1,0 +1,119 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.2, pytest-9.0.2, pluggy-1.6.0
+rootdir: C:\Users\Craig\Corvus\CorvusStar
+configfile: pyproject.toml
+plugins: anyio-4.12.1
+collected 208 items
+
+tests\empire_tests\temp_gauntlet\test_annex_empire.py ....               [  1%]
+tests\empire_tests\temp_gauntlet\test_dispatcher_empire.py ..            [  2%]
+tests\empire_tests\temp_gauntlet\test_edda_empire.py ..                  [  3%]
+tests\empire_tests\temp_gauntlet\test_engine_empire.py ....              [  5%]
+tests\empire_tests\temp_gauntlet\test_fishtest_empire.py .......         [  9%]
+tests\empire_tests\temp_gauntlet\test_harvest_empire.py .                [  9%]
+tests\empire_tests\temp_gauntlet\test_install_skill_empire.py ...        [ 11%]
+tests\empire_tests\temp_gauntlet\test_main_loop_empire.py ..             [ 12%]
+tests\empire_tests\temp_gauntlet\test_personas_empire.py .....           [ 14%]
+tests\empire_tests\temp_gauntlet\test_sanitizer_empire.py .......        [ 17%]
+tests\empire_tests\temp_gauntlet\test_set_persona_empire.py ..           [ 18%]
+tests\empire_tests\temp_gauntlet\test_skill_forge_empire.py ....         [ 20%]
+tests\empire_tests\temp_gauntlet\test_sv_engine_empire.py ..             [ 21%]
+tests\empire_tests\temp_gauntlet\test_temp_empire.py .                   [ 22%]
+tests\empire_tests\temp_gauntlet\test_ui_empire.py ......                [ 25%]
+tests\empire_tests\temp_gauntlet\test_utils_empire.py ...                [ 26%]
+tests\empire_tests\test___init___empire.py .                             [ 26%]
+tests\empire_tests\test_annex_empire.py .                                [ 27%]
+tests\empire_tests\test_annex_preservation_empire.py .                   [ 27%]
+tests\empire_tests\test_audit_dialogue_empire.py ..                      [ 28%]
+tests\empire_tests\test_benchmark_engine_empire.py .                     [ 29%]
+tests\empire_tests\test_bootstrap_empire.py ..                           [ 30%]
+tests\empire_tests\test_catalog_check_empire.py ..                       [ 31%]
+tests\empire_tests\test_check_pro_empire.py ..                           [ 32%]
+tests\empire_tests\test_cjk_check_empire.py ..                           [ 33%]
+tests\empire_tests\test_code_sanitizer_empire.py ....                    [ 35%]
+tests\empire_tests\test_code_sentinel_empire.py ..                       [ 36%]
+tests\empire_tests\test_collision_investigator_empire.py ...             [ 37%]
+tests\empire_tests\test_compile_failure_report_empire.py .               [ 37%]
+tests\empire_tests\test_compile_session_traces_empire.py ..              [ 38%]
+tests\empire_tests\test_contextual_persona.py ...                        [ 40%]
+tests\empire_tests\test_core_engine_empire.py .                          [ 40%]
+tests\empire_tests\test_cstar_dispatcher_empire.py .                     [ 41%]
+tests\empire_tests\test_daemon_singleton_empire.py ..                    [ 42%]
+tests\empire_tests\test_debt_viz_empire.py ..                            [ 43%]
+tests\empire_tests\test_debug_engine_empire.py ....                      [ 45%]
+tests\empire_tests\test_dedupe_corrections_empire.py ..                  [ 46%]
+tests\empire_tests\test_dispatcher_help_empire.py ..                     [ 47%]
+tests\empire_tests\test_edda_audit_empire.py ...                         [ 48%]
+tests\empire_tests\test_edda_empire.py .                                 [ 49%]
+tests\empire_tests\test_edda_syntax_empire.py ..                         [ 50%]
+tests\empire_tests\test_expand_thesaurus_empire.py ..                    [ 50%]
+tests\empire_tests\test_fishtest_empire.py ..                            [ 51%]
+tests\empire_tests\test_fix_muninn_empire.py .                           [ 52%]
+tests\empire_tests\test_freya_aesthetics_empire.py ..                    [ 53%]
+tests\empire_tests\test_generate_tests_empire.py .                       [ 53%]
+tests\empire_tests\test_harvest_responses_empire.py ..                   [ 54%]
+tests\empire_tests\test_hud_box_empire.py .                              [ 55%]
+tests\empire_tests\test_install_skill_empire.py ..                       [ 56%]
+tests\empire_tests\test_latency_check_empire.py ...                      [ 57%]
+tests\empire_tests\test_lightning_rod_empire.py ..                       [ 58%]
+tests\empire_tests\test_main_loop_empire.py ..                           [ 59%]
+tests\empire_tests\test_merge_traces_empire.py ...                       [ 61%]
+tests\empire_tests\test_metrics_empire.py ..                             [ 62%]
+tests\empire_tests\test_migrate_to_qmd_empire.py ...                     [ 63%]
+tests\empire_tests\test_muninn_empire.py .....                           [ 65%]
+tests\empire_tests\test_muninn_memory_idempotency_empire.py .            [ 66%]
+tests\empire_tests\test_muninn_naming_empire.py ..                       [ 67%]
+tests\empire_tests\test_muninn_real_empire.py ...                        [ 68%]
+tests\empire_tests\test_network_watcher_empire.py ..                     [ 69%]
+tests\empire_tests\test_norn_campaign_empire.py ..                       [ 70%]
+tests\empire_tests\test_overfit_corrections_empire.py .                  [ 71%]
+tests\empire_tests\test_overwatch_empire.py ..                           [ 72%]
+tests\empire_tests\test_persona_logic_empire.py .                        [ 72%]
+tests\empire_tests\test_personas_empire.py .....                         [ 75%]
+tests\empire_tests\test_personas_retheme_empire.py .                     [ 75%]
+tests\empire_tests\test_prompt_linter_empire.py .....                    [ 77%]
+tests\empire_tests\test_report_engine_empire.py ..                       [ 78%]
+tests\empire_tests\test_runecaster_audit_empire.py ....                  [ 80%]
+tests\empire_tests\test_scout_targets_empire.py .                        [ 81%]
+tests\empire_tests\test_security_scan_empire.py ...                      [ 82%]
+tests\empire_tests\test_sentinel_perf_empire.py ..                       [ 83%]
+tests\empire_tests\test_set_persona_empire.py ....                       [ 85%]
+tests\empire_tests\test_skill_forge_empire.py ...                        [ 87%]
+tests\empire_tests\test_sv_engine_empire.py ...                          [ 88%]
+tests\empire_tests\test_synapse_auth_empire.py ...                       [ 89%]
+tests\empire_tests\test_synapse_sync_empire.py ..                        [ 90%]
+tests\empire_tests\test_thewatcher_integrity_empire.py ...               [ 92%]
+tests\empire_tests\test_trace_viz_empire.py ..                           [ 93%]
+tests\empire_tests\test_tune_weights_empire.py ..                        [ 94%]
+tests\empire_tests\test_ui_empire.py .....                               [ 96%]
+tests\empire_tests\test_update_gemini_manifest_empire.py .               [ 97%]
+tests\empire_tests\test_utils_empire.py ...                              [ 98%]
+tests\empire_tests\test_valkyrie_audit_empire.py ..                      [ 99%]
+tests\empire_tests\test_verify_valkyrie_real_empire.py .                 [100%]
+
+============================== warnings summary ===============================
+tests/empire_tests/test_sv_engine_empire.py::TestSovereignEngineEmpire::test_run_basic_flow
+  C:\Users\Craig\AppData\Roaming\Python\Python314\site-packages\_pytest\threadexception.py:58: PytestUnhandledThreadExceptionWarning: Exception in thread Thread-21 (_read)
+  
+  Traceback (most recent call last):
+    File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+      self._context.run(self.run)
+      ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+    File "C:\Python314\Lib\threading.py", line 1024, in run
+      self._target(*self._args, **self._kwargs)
+      ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\Users\Craig\Corvus\CorvusStar\src\core\utils.py", line 54, in _read
+      try: q.put(sys.stdin.readline().strip().lower())
+                 ~~~~~~~~~~~~~~~~~~^^
+    File "C:\Users\Craig\AppData\Roaming\Python\Python314\site-packages\_pytest\capture.py", line 229, in read
+      raise OSError(
+          "pytest: reading from stdin while output is captured!  Consider using `-s`."
+      )
+  OSError: pytest: reading from stdin while output is captured!  Consider using `-s`.
+  
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 208 passed, 1 warning in 33.87s =======================

@@ -99,16 +99,14 @@ Every technical operation in Corvus Star MUST be anchored to a **Bead** in the H
 1.  **Parent Beads**: Represent high-level Missions or Epics (e.g., `pb-kernel`).
 2.  **Child Beads**: Represent atomic tasks (e.g., `bead:child:restoration`).
 3.  **Episodic Memory (Engrams)**: When a Bead reaches `READY_FOR_REVIEW`, the Orchestrator automatically triggers the `distill` weave. This fuses the task's intent and git diff into a searchable "Engram" in the Hall of Records. Agents can query past Engrams using the `mimir` skill or `cstar hall`.
-4.  **The Swarm**:
-    *   **One Mind**: Resolves architectural and lore-based child beads.
-    *   **AutoBot**: Resolves technical, repetitive, and testing-based child beads.
+4.  **The Swarm**: One Mind (the Host Agent) resolves all child beads. (Legacy AutoBot delegation has been decommissioned; source archived under `mind_archive/predecessors/_archive/autobot/`.)
 
 ```gherkin
 Feature: Swarm Collaboration
   Scenario: Resolving a complex mission
     Given a Parent Bead is struck in the Hall
     When the Orchestrator shatters the mission
-    Then Child Beads MUST be assigned to the optimal agent (One Mind or AutoBot)
+    Then Child Beads MUST be resolved by the One Mind
     And the Parent Bead MUST NOT resolve until all Children are 'RESOLVED'.
 ```
 

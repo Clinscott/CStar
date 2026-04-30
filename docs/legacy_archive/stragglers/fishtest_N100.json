@@ -1,0 +1,905 @@
+{
+  "baseline_accuracy": 100.0,
+  "test_cases": [
+    {
+      "query": "start workspace",
+      "expected": "/lets-go",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to kick off the process",
+      "expected": "/lets-go",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please speed up the inference",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please fix the auth",
+      "expected": "/investigate",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please release the app",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please push the site",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please outline the strategy",
+      "expected": "/plan",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to probe the performance",
+      "expected": "/test",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "test code",
+      "expected": "/test",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "architect system",
+      "expected": "/plan",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to enhance the aesthetics",
+      "expected": "SovereignFish",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to refine the code style",
+      "expected": "SovereignFish",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to investigate the issue",
+      "expected": "/investigate",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to test the code",
+      "expected": "/test",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to develop the api",
+      "expected": "/run-task",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please launch the server",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "spin up session",
+      "expected": "/lets-go",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "fix issue",
+      "expected": "/investigate",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please stylize the holographic",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "investigate anomaly",
+      "expected": "/investigate",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please spin up the workflow",
+      "expected": "/lets-go",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "construct api",
+      "expected": "/run-task",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please check the bug",
+      "expected": "/investigate",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "look into error",
+      "expected": "/investigate",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to check the drift",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "generate logic",
+      "expected": "/run-task",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "push server",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to fix the failure",
+      "expected": "/investigate",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to outline the strategy",
+      "expected": "/plan",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please stop the day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please check the auth",
+      "expected": "/investigate",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "monitor anomaly score",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "clean code style",
+      "expected": "SovereignFish",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "create logic",
+      "expected": "/run-task",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "test coverage",
+      "expected": "/test",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to implement the page",
+      "expected": "/run-task",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to deploy the site",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please diagnose the failure",
+      "expected": "/investigate",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please end the day",
+      "expected": "/wrap-it-up",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please monitor the health",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to transform the futuristic style",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please build the api",
+      "expected": "/run-task",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "look into failure",
+      "expected": "/investigate",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to diagnose the crash",
+      "expected": "/investigate",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please probe the reliability",
+      "expected": "/test",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please refine the aesthetics",
+      "expected": "SovereignFish",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please optimize the latency",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please generate the api",
+      "expected": "/run-task",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please trigger the playwright tests",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "look into issue",
+      "expected": "/investigate",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to probe the integrity",
+      "expected": "/test",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please execute the playwright tests",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please investigate the failure",
+      "expected": "/investigate",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to publish the site",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "inject sci-fi look",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please transform the futuristic style",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "execute browser automation",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to analyze the latency",
+      "expected": "/investigate",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please validate the integrity",
+      "expected": "/test",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to strategize the module",
+      "expected": "/plan",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "finalize archive",
+      "expected": "/wrap-it-up",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "publish production",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "benchmark coverage",
+      "expected": "/test",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please run the playwright tests",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to make the endpoint",
+      "expected": "/run-task",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please report the system status",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "make page",
+      "expected": "/run-task",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "audit issue",
+      "expected": "/investigate",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please audit the failure",
+      "expected": "/investigate",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please debug the crash",
+      "expected": "/investigate",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "optimize execution speed",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please implement the component",
+      "expected": "/run-task",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to inject the holographic",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please release the server",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please apply the futuristic style",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "begin workflow",
+      "expected": "/lets-go",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please build the page",
+      "expected": "/run-task",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "accelerate execution speed",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please validate the code",
+      "expected": "/test",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "strategize roadmap",
+      "expected": "/plan",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "speed up latency",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please deploy the production",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please optimize the performance",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please construct the component",
+      "expected": "/run-task",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to optimize the inference",
+      "expected": "GLOBAL:agent-lightning",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please test the integrity",
+      "expected": "/test",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "trigger playwright tests",
+      "expected": "GLOBAL:playwright-e2e",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "report health",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to design the system",
+      "expected": "/plan",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to ship the server",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please launch the live environment",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please design the strategy",
+      "expected": "/plan",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please plan the strategy",
+      "expected": "/plan",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "monitor system status",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please inject the sci-fi look",
+      "expected": "GLOBAL:ui-sci-fi",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "check anomaly score",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "please test the code",
+      "expected": "/test",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to check the system status",
+      "expected": "GLOBAL:agent-health",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "I want to strategize the architecture",
+      "expected": "/plan",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    },
+    {
+      "query": "publish live environment",
+      "expected": "GLOBAL:deployment-skill",
+      "min_score": 0.9,
+      "expected_mode": "vector",
+      "tags": [
+        "generated"
+      ]
+    }
+  ]
+}

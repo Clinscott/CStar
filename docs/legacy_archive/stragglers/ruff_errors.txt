@@ -1,0 +1,642 @@
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:26:1
+   |
+25 | # Shared Bootstrap
+26 | import sys
+   | ^^^^^^^^^^
+27 |
+28 | project_root = Path(__file__).resolve().parent.parent.parent
+   |
+
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:32:1
+   |
+30 |     sys.path.append(str(project_root))
+31 |
+32 | from src.core.bootstrap import bootstrap
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+33 |
+34 | bootstrap()
+   |
+
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:37:1
+   |
+36 | # Core Imports
+37 | from src.core.annex import HeimdallWarden
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+38 | from src.core.engine.alfred_observer import AlfredOverwatch
+39 | from src.core.engine.atomic_gpt import AnomalyWarden
+   |
+
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:38:1
+   |
+36 | # Core Imports
+37 | from src.core.annex import HeimdallWarden
+38 | from src.core.engine.alfred_observer import AlfredOverwatch
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+39 | from src.core.engine.atomic_gpt import AnomalyWarden
+   |
+
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:39:1
+   |
+37 | from src.core.annex import HeimdallWarden
+38 | from src.core.engine.alfred_observer import AlfredOverwatch
+39 | from src.core.engine.atomic_gpt import AnomalyWarden
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+40 |
+41 | # Gungnir Engine Imports
+   |
+
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:42:1
+   |
+41 | # Gungnir Engine Imports
+42 | from src.core.metrics import ProjectMetricsEngine
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+43 | from src.core.sovereign_hud import SovereignHUD
+44 | from src.cstar.core.uplink import AntigravityUplink
+   |
+
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:43:1
+   |
+41 | # Gungnir Engine Imports
+42 | from src.core.metrics import ProjectMetricsEngine
+43 | from src.core.sovereign_hud import SovereignHUD
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+44 | from src.cstar.core.uplink import AntigravityUplink
+45 | from src.core.engine.ravens.code_sanitizer import (
+   |
+
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:44:1
+   |
+42 | from src.core.metrics import ProjectMetricsEngine
+43 | from src.core.sovereign_hud import SovereignHUD
+44 | from src.cstar.core.uplink import AntigravityUplink
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+45 | from src.core.engine.ravens.code_sanitizer import (
+46 |     sanitize_code,
+   |
+
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:45:1
+   |
+43 |   from src.core.sovereign_hud import SovereignHUD
+44 |   from src.cstar.core.uplink import AntigravityUplink
+45 | / from src.core.engine.ravens.code_sanitizer import (
+46 | |     sanitize_code,
+47 | |     sanitize_test,
+48 | |     scan_and_enrich_imports,
+49 | | )
+   | |_^
+50 |
+51 |   # Stability Modules
+   |
+
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:52:1
+   |
+51 | # Stability Modules
+52 | from src.core.engine.ravens.stability import GungnirValidator, TheWatcher
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+53 |
+54 | # Warden Modules
+   |
+
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:55:1
+   |
+54 | # Warden Modules
+55 | from src.core.engine.wardens.base import BaseWarden
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+56 | from src.core.engine.wardens.norn import NornWarden
+57 | from src.tools.brave_search import BraveSearch
+   |
+
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:56:1
+   |
+54 | # Warden Modules
+55 | from src.core.engine.wardens.base import BaseWarden
+56 | from src.core.engine.wardens.norn import NornWarden
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+57 | from src.tools.brave_search import BraveSearch
+58 | from src.tools.gemini_search import GeminiSearch
+   |
+
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:57:1
+   |
+55 | from src.core.engine.wardens.base import BaseWarden
+56 | from src.core.engine.wardens.norn import NornWarden
+57 | from src.tools.brave_search import BraveSearch
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+58 | from src.tools.gemini_search import GeminiSearch
+59 | from tests.integration.project_fishtest import GungnirSPRT
+   |
+
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:58:1
+   |
+56 | from src.core.engine.wardens.norn import NornWarden
+57 | from src.tools.brave_search import BraveSearch
+58 | from src.tools.gemini_search import GeminiSearch
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+59 | from tests.integration.project_fishtest import GungnirSPRT
+   |
+
+E402 Module level import not at top of file
+  --> src\sentinel\muninn.py:59:1
+   |
+57 | from src.tools.brave_search import BraveSearch
+58 | from src.tools.gemini_search import GeminiSearch
+59 | from tests.integration.project_fishtest import GungnirSPRT
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+60 |
+61 | # Configure Logging
+   |
+
+S108 Probable insecure usage of temporary file or directory: "/tmp"
+  --> src\sentinel\muninn.py:64:25
+   |
+62 | log_file = "sovereign_activity.log"
+63 | if os.getenv("SHADOW_FORGE_WORKER") == "true":
+64 |     log_file = str(Path("/tmp") / log_file)
+   |                         ^^^^^^
+65 |
+66 | logging.basicConfig(
+   |
+
+ANN401 Dynamically typed expressions (typing.Any) are disallowed in `client`
+  --> src\sentinel\muninn.py:77:17
+   |
+75 |         self,
+76 |         target_path: str | None = None,
+77 |         client: Any | None = None,
+   |                 ^^^^^^^^^^
+78 |         use_bridge: bool = False,
+79 |         use_docker: bool = False
+   |
+
+E501 Line too long (109 > 100)
+   --> src\sentinel\muninn.py:147:101
+    |
+145 |         """Checks if the Antigravity Agent is currently active."""
+146 |         if os.getenv("CSTAR_AGENT_ACTIVE"):
+147 |             SovereignHUD.persona_log("INFO", "Active Agent Detected. Deferring execution to allowed entity.")
+    |                                                                                                     ^^^^^^^^^
+148 |             return True
+149 |         return False
+    |
+
+E501 Line too long (108 > 100)
+   --> src\sentinel\muninn.py:193:101
+    |
+191 |         persona = SovereignHUD.PERSONA
+192 |         try:
+193 |             return "gemini-3.1-pro-preview" if persona in ["ODIN", "ALFRED"] else "gemini-3.1-flash-preview"
+    |                                                                                                     ^^^^^^^^
+194 |         except Exception:
+195 |             return "gemini-3.1-flash-preview"
+    |
+
+ANN401 Dynamically typed expressions (typing.Any) are disallowed in `_sync_send`
+   --> src\sentinel\muninn.py:207:57
+    |
+205 |         return content
+206 |
+207 |     def _sync_send(self, prompt: str, context: dict) -> Any:
+    |                                                         ^^^
+208 |         """Safely executes the async uplink payload from a synchronous flow."""
+209 |         return asyncio.run(self.uplink.send_payload(prompt, context))
+    |
+
+S110 `try`-`except`-`pass` detected, consider logging the exception
+   --> src\sentinel\muninn.py:231:13
+    |
+229 |                             if target and target != "unknown":
+230 |                                 poor_files.append(target)
+231 |             except Exception: pass
+    |             ^^^^^^^^^^^^^^^^^^^^^^
+232 |         return list(set(poor_files))
+    |
+
+E701 Multiple statements on one line (colon)
+   --> src\sentinel\muninn.py:231:29
+    |
+229 |                             if target and target != "unknown":
+230 |                                 poor_files.append(target)
+231 |             except Exception: pass
+    |                             ^
+232 |         return list(set(poor_files))
+    |
+
+E501 Line too long (104 > 100)
+   --> src\sentinel\muninn.py:244:101
+    |
+242 |             SovereignHUD.persona_log("INFO", "Initiating the Hunt (Asynchronous Scan)...")
+243 |             all_breaches, scan_results = await self._execute_hunt_async()
+244 |             SovereignHUD.persona_log("INFO", f"Hunt complete. Breaches discovered: {len(all_breaches)}")
+    |                                                                                                     ^^^^
+245 |             return all_breaches, scan_results
+246 |         except Exception as e:
+    |
+
+E701 Multiple statements on one line (colon)
+   --> src\sentinel\muninn.py:259:45
+    |
+257 |         def get_score(b: dict[str, Any]) -> int:
+258 |             score = severity_map.get(b.get('severity', 'LOW').upper(), 0)
+259 |             if "HUGINN" in b.get('type', ''): score = max(score, 85)
+    |                                             ^
+260 |
+261 |             # Boost score if user reported poor performance on this file
+    |
+
+E501 Line too long (112 > 100)
+   --> src\sentinel\muninn.py:294:101
+    |
+292 |         is_structural = any(k in target_type for k in ('STRUCTURAL_BREACH', 'EDDA_', 'MIMIR_'))
+293 |
+294 |         if target_severity in ('CRITICAL', 'HIGH') or 'error' in target_action or is_aesthetic or is_structural:
+    |                                                                                                     ^^^^^^^^^^^^
+295 |             if is_aesthetic:
+296 |                 query = (
+    |
+
+E501 Line too long (107 > 100)
+   --> src\sentinel\muninn.py:320:101
+    |
+318 |         try:
+319 |             if self._check_agent_active():
+320 |                  SovereignHUD.persona_log("WARN", "Operation C*CLI: Agent is Active. Skipping Auto-Forge.")
+    |                                                                                                     ^^^^^^^
+321 |                  return False
+    |
+
+E501 Line too long (121 > 100)
+   --> src\sentinel\muninn.py:368:101
+    |
+366 |         return False
+367 |
+368 |     def _handle_gphs_regression(self, target: dict, selected_strategist: str, pre_gphs: float, post_gphs: float) -> bool:
+    |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^
+369 |         """Handles GPHS regression detection."""
+370 |         SovereignHUD.persona_log("FAIL", f"GPHS REGRESSION DETECTED (Delta: {post_gphs - pre_gphs:.4f}). Rolling back.")
+    |
+
+E501 Line too long (120 > 100)
+   --> src\sentinel\muninn.py:370:101
+    |
+368 |     def _handle_gphs_regression(self, target: dict, selected_strategist: str, pre_gphs: float, post_gphs: float) -> bool:
+369 |         """Handles GPHS regression detection."""
+370 |         SovereignHUD.persona_log("FAIL", f"GPHS REGRESSION DETECTED (Delta: {post_gphs - pre_gphs:.4f}). Rolling back.")
+    |                                                                                                     ^^^^^^^^^^^^^^^^^^^^
+371 |         self.observer.write_suggestion(
+372 |             self.observer.analyze_failure(target['file'], "GPHS Regression Detected"),
+    |
+
+E501 Line too long (108 > 100)
+   --> src\sentinel\muninn.py:401:101
+    |
+399 |             try:
+400 |                 task_data = json.loads(targeted_task)
+401 |                 SovereignHUD.persona_log("INFO", f"[WORKER] Executing targeted task: {task_data['action']}")
+    |                                                                                                     ^^^^^^^^
+402 |                 pre_gphs = self.metrics_engine.compute(str(self.root))
+403 |                 return self._forge_and_crucible_phase(task_data, pre_gphs)
+    |
+
+E701 Multiple statements on one line (colon)
+   --> src\sentinel\muninn.py:420:22
+    |
+418 |         target = self._select_target_phase(all_breaches)
+419 |         self._emit_metrics_summary(scan_results)
+420 |         if not target: return False
+    |                      ^
+421 |
+422 |         # 3. ENRICH
+    |
+
+W293 [*] Blank line contains whitespace
+   --> src\sentinel\muninn.py:480:1
+    |
+478 |             except Exception as e:
+479 |                 SovereignHUD.persona_log("WARN", f"Failed to scry into {warden_file.name}: {e}")
+480 |         
+    | ^^^^^^^^
+481 |         self._discovered_wardens = discovered
+482 |         return discovered
+    |
+help: Remove whitespace from blank line
+
+E501 Line too long (115 > 100)
+   --> src\sentinel\muninn.py:484:101
+    |
+482 |         return discovered
+483 |
+484 |     async def _dispatch_warden_scans(self, wardens: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, int]]:
+    |                                                                                                     ^^^^^^^^^^^^^^^
+485 |         """Executes previously discovered Wardens in parallel."""
+486 |         all_breaches = []
+    |
+
+E701 Multiple statements on one line (colon)
+   --> src\sentinel\muninn.py:506:31
+    |
+505 |         for name, w in wardens.items():
+506 |             if name == "ANNEX": continue
+    |                               ^
+507 |             if hasattr(w, 'scan_async'):
+508 |                 tasks.append(w.scan_async())
+    |
+
+SIM108 Use ternary operator `original_content = file_path.read_text(encoding='utf-8') if file_path.exists() else ""` instead of `if`-`else`-block
+   --> src\sentinel\muninn.py:545:9
+    |
+544 |           # Reading File Content
+545 | /         if file_path.exists():
+546 | |             original_content = file_path.read_text(encoding='utf-8')
+547 | |         else:
+548 | |             original_content = "" # New file creation
+    | |_________________________________^
+549 |
+550 |           SovereignHUD.persona_log("INFO", "Forging improvement...")
+    |
+help: Replace `if`-`else`-block with `original_content = file_path.read_text(encoding='utf-8') if file_path.exists() else ""`
+
+E501 Line too long (116 > 100)
+   --> src\sentinel\muninn.py:579:101
+    |
+577 |             # Watcher Record
+578 |             if not self.watcher.record_edit(target['file'], new_content):
+579 |                 SovereignHUD.persona_log("FAIL", "Watcher rejected the mutation: Potential oscillation or fatigue.")
+    |                                                                                                     ^^^^^^^^^^^^^^^^
+580 |                 # Rollback if watcher says NO
+581 |                 if Path(str(file_path) + ".bak").exists():
+    |
+
+E501 Line too long (117 > 100)
+   --> src\sentinel\muninn.py:602:101
+    |
+601 | …     if not prompt: # Fallback
+602 | …          search_str = f"\n[Context from Web]: {target['search_context']}" if target.get('search_context') else ""
+    |                                                                                                   ^^^^^^^^^^^^^^^^^
+603 | …          prompt = f"Create a pytest reproduction script for: {target['action']} in {target['file']}.{search_str}\nContext:\n{code_c…
+    |
+
+E501 Line too long (143 > 100)
+   --> src\sentinel\muninn.py:603:101
+    |
+601 | …
+602 | …t['search_context']}" if target.get('search_context') else ""
+603 | …ipt for: {target['action']} in {target['file']}.{search_str}\nContext:\n{code_context}"
+    |                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+604 | …
+605 | …
+    |
+
+E501 Line too long (106 > 100)
+   --> src\sentinel\muninn.py:614:101
+    |
+613 |             raw_data = response.get("data", {})
+614 |             raw_test = raw_data.get("code", "") if isinstance(raw_data, dict) else raw_data.get("raw", "")
+    |                                                                                                     ^^^^^^
+615 |
+616 |             clean_test = sanitize_test(raw_test, target['file'], self.root)
+    |
+
+E501 Line too long (104 > 100)
+   --> src\sentinel\muninn.py:629:101
+    |
+629 |     def _generate_implementation(self, target: dict, original_code: str, test_path: Path) -> str | None:
+    |                                                                                                     ^^^^
+630 |         """Generates the code fix ensuring it passes the test."""
+631 |         # Read the test we just made
+    |
+
+E501 Line too long (116 > 100)
+   --> src\sentinel\muninn.py:652:101
+    |
+651 | …     if not prompt:
+652 | …         search_str = f"\n[Context from Web]: {target['search_context']}" if target.get('search_context') else ""
+    |                                                                                                   ^^^^^^^^^^^^^^^^
+653 | …         prompt = f"Fix the issue: {target['action']}.{search_str}\nFile: {target['file']}\nCode:\n{augmented_code}\nTest:\n{test_co…
+    |
+
+E501 Line too long (142 > 100)
+   --> src\sentinel\muninn.py:653:101
+    |
+651 | …
+652 | …t['search_context']}" if target.get('search_context') else ""
+653 | …}.{search_str}\nFile: {target['file']}\nCode:\n{augmented_code}\nTest:\n{test_content}"
+    |                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+654 | …
+655 | …
+    |
+
+E501 Line too long (106 > 100)
+   --> src\sentinel\muninn.py:664:101
+    |
+663 |             raw_data = response.get("data", {})
+664 |             raw_code = raw_data.get("code", "") if isinstance(raw_data, dict) else raw_data.get("raw", "")
+    |                                                                                                     ^^^^^^
+665 |             return sanitize_code(raw_code)
+666 |         except Exception as e:
+    |
+
+S603 `subprocess` call: check for execution of untrusted input
+   --> src\sentinel\muninn.py:712:22
+    |
+711 |         try:
+712 |             result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    |                      ^^^^^^^^^^^^^^
+713 |             if result.returncode != 0:
+714 |                 SovereignHUD.persona_log("FAIL", "Gauntlet Verification Failed.")
+    |
+
+S603 `subprocess` call: check for execution of untrusted input
+   --> src\sentinel\muninn.py:732:26
+    |
+731 |         try:
+732 |             reg_result = subprocess.run(cmd_reg, capture_output=True, text=True, check=False)
+    |                          ^^^^^^^^^^^^^^
+733 |             if reg_result.returncode != 0:
+734 |                 SovereignHUD.persona_log("WARN", f"Regression flagged: {target_stem}")
+    |
+
+S603 `subprocess` call: check for execution of untrusted input
+   --> src\sentinel\muninn.py:751:23
+    |
+749 |             cmd = [sys.executable, "-m", "pytest", str(self.root / "tests" / "gauntlet"), "-q"]
+750 |             try:
+751 |                 res = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    |                       ^^^^^^^^^^^^^^
+752 |                 success = (res.returncode == 0)
+753 |             except Exception as e:
+    |
+
+E501 Line too long (103 > 100)
+   --> src\sentinel\muninn.py:798:101
+    |
+796 |         docker_exe = shutil.which("docker")
+797 |         if not docker_exe:
+798 |             SovereignHUD.persona_log("CRITICAL", "[ORCHESTRATOR] Docker executable not found in path.")
+    |                                                                                                     ^^^
+799 |             return False
+    |
+
+S603 `subprocess` call: check for execution of untrusted input
+   --> src\sentinel\muninn.py:802:25
+    |
+801 |         try:
+802 |             check_img = subprocess.run([docker_exe, "image", "inspect", image_name], capture_output=True, check=False)
+    |                         ^^^^^^^^^^^^^^
+803 |             if check_img.returncode != 0:
+804 |                 SovereignHUD.persona_log("FAIL", f"[ORCHESTRATOR] Docker Image '{image_name}' not found. Please build it first.")
+    |
+
+E501 Line too long (118 > 100)
+   --> src\sentinel\muninn.py:802:101
+    |
+801 |         try:
+802 |             check_img = subprocess.run([docker_exe, "image", "inspect", image_name], capture_output=True, check=False)
+    |                                                                                                     ^^^^^^^^^^^^^^^^^^
+803 |             if check_img.returncode != 0:
+804 |                 SovereignHUD.persona_log("FAIL", f"[ORCHESTRATOR] Docker Image '{image_name}' not found. Please build it first.")
+    |
+
+E501 Line too long (129 > 100)
+   --> src\sentinel\muninn.py:804:101
+    |
+802 |             check_img = subprocess.run([docker_exe, "image", "inspect", image_name], capture_output=True, check=False)
+803 |             if check_img.returncode != 0:
+804 |                 SovereignHUD.persona_log("FAIL", f"[ORCHESTRATOR] Docker Image '{image_name}' not found. Please build it first.")
+    |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+805 |                 return False
+806 |         except Exception:
+    |
+
+E501 Line too long (109 > 100)
+   --> src\sentinel\muninn.py:824:101
+    |
+823 |         try:
+824 |             SovereignHUD.persona_log("INFO", f"[ORCHESTRATOR] Starting transient worker {container_name}...")
+    |                                                                                                     ^^^^^^^^^
+825 |             result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    |
+
+S603 `subprocess` call: check for execution of untrusted input
+   --> src\sentinel\muninn.py:825:22
+    |
+823 |         try:
+824 |             SovereignHUD.persona_log("INFO", f"[ORCHESTRATOR] Starting transient worker {container_name}...")
+825 |             result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    |                      ^^^^^^^^^^^^^^
+826 |
+827 |             if result.returncode == 0:
+    |
+
+E501 Line too long (114 > 100)
+   --> src\sentinel\muninn.py:834:101
+    |
+832 |                 return self._promote_from_container(container_name, result.stdout)
+833 |             else:
+834 |                 SovereignHUD.persona_log("FAIL", f"[ORCHESTRATOR] Shadow Forge Failed (Code {result.returncode})")
+    |                                                                                                     ^^^^^^^^^^^^^^
+835 |                 SovereignHUD.persona_log("DEBUG", result.stderr)
+836 |                 return False
+    |
+
+S603 `subprocess` call: check for execution of untrusted input
+   --> src\sentinel\muninn.py:838:13
+    |
+836 |                 return False
+837 |         finally:
+838 |             subprocess.run([docker_exe, "rm", "-f", container_name], capture_output=True, check=False)
+    |             ^^^^^^^^^^^^^^
+839 |
+840 |     def _promote_from_container(self, container_name: str, stdout: str) -> bool:
+    |
+
+E501 Line too long (102 > 100)
+   --> src\sentinel\muninn.py:838:101
+    |
+836 |                 return False
+837 |         finally:
+838 |             subprocess.run([docker_exe, "rm", "-f", container_name], capture_output=True, check=False)
+    |                                                                                                     ^^
+839 |
+840 |     def _promote_from_container(self, container_name: str, stdout: str) -> bool:
+    |
+
+S603 `subprocess` call: check for execution of untrusted input
+   --> src\sentinel\muninn.py:856:13
+    |
+854 |             dest = self.root / target_clean
+855 |             SovereignHUD.persona_log("INFO", f"[ORCHESTRATOR] Promoting {target_clean} to host...")
+856 |             subprocess.run([docker_exe, "cp", f"{container_name}:/app/{target_clean}", str(dest)], check=True)
+    |             ^^^^^^^^^^^^^^
+857 |
+858 |         return True
+    |
+
+E501 Line too long (110 > 100)
+   --> src\sentinel\muninn.py:856:101
+    |
+854 |             dest = self.root / target_clean
+855 |             SovereignHUD.persona_log("INFO", f"[ORCHESTRATOR] Promoting {target_clean} to host...")
+856 |             subprocess.run([docker_exe, "cp", f"{container_name}:/app/{target_clean}", str(dest)], check=True)
+    |                                                                                                     ^^^^^^^^^^
+857 |
+858 |         return True
+    |
+
+E501 Line too long (114 > 100)
+   --> src\sentinel\muninn.py:870:101
+    |
+868 |                 return json.load(f)
+869 |         except Exception as e:
+870 |             SovereignHUD.persona_log("CRITICAL", f"Ledger corruption detected: {e}. Yielding empty memory state.")
+    |                                                                                                     ^^^^^^^^^^^^^^
+871 |             return {}
+    |
+
+E501 Line too long (109 > 100)
+   --> src\sentinel\muninn.py:907:101
+    |
+905 |         return blessed_precedents
+906 |
+907 |     def _write_directives(self, cursed_files: list[str], blessed_precedents: list[str], gphs: float) -> None:
+    |                                                                                                     ^^^^^^^^^
+908 |         """Formats and writes the directives markdown."""
+909 |         directives_path = self.root / ".agent" / "cortex_directives.md"
+    |
+
+E501 Line too long (104 > 100)
+   --> src\sentinel\muninn.py:926:101
+    |
+925 |         directives_path.write_text(md_content, encoding='utf-8')
+926 |         print(f"ODIN: 'The ledger has been read. The Runes of Wisdom are carved at {directives_path}.'")
+    |                                                                                                     ^^^^
+927 |
+928 |     def _distill_knowledge(self, target: dict[str, Any] | None = None, success: bool = False) -> None:
+    |
+
+E501 Line too long (102 > 100)
+   --> src\sentinel\muninn.py:928:101
+    |
+926 |         print(f"ODIN: 'The ledger has been read. The Runes of Wisdom are carved at {directives_path}.'")
+927 |
+928 |     def _distill_knowledge(self, target: dict[str, Any] | None = None, success: bool = False) -> None:
+    |                                                                                                     ^^
+929 |         """Acts as the subconscious of the framework."""
+930 |         data = self._parse_ledger()
+    |
+
+Found 60 errors.
+[*] 1 fixable with the `--fix` option.

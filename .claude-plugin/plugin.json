@@ -1,0 +1,9 @@
+{
+  "name": "corvus-star",
+  "description": "Corvus Star (CStar) kernel as a Claude Code plugin. Provides PennyOne memory, per-OAuth user profiles, and keyring-backed secret access for the ENM business suite.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Craig Linscott"
+  },
+  "homepage": "https://github.com/Clinscott/CStar"
+}

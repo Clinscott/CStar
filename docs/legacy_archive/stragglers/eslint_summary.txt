@@ -1,0 +1,36 @@
+
+File: C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\intel\database.ts
+  Line 121: [WARN] Prefer a more specific type to `any` (jsdoc/reject-any-type)
+
+File: C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\intel\gravity_db.ts
+  Line 9: [WARN] Missing JSDoc @returns declaration. (jsdoc/require-returns)
+
+File: C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\live\search.ts
+  Line 17: [WARN] Duplicate @param "_targetPath" (jsdoc/check-param-names)
+  Line 17: [ERROR] Missing JSDoc @param "_targetPath" description. (jsdoc/require-param-description)
+  Line 17: [WARN] Missing JSDoc @param "_targetPath" type. (jsdoc/require-param-type)
+  Line 18: [WARN] Prefer a more specific type to `any` (jsdoc/reject-any-type)
+
+File: C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\parser.ts
+  Line 32: [WARN] Prefer a more specific type to `any` (jsdoc/reject-any-type)
+  Line 37: [WARN] Prefer a more specific type to `any` (jsdoc/reject-any-type)
+  Line 40: [WARN] Missing JSDoc @returns declaration. (jsdoc/require-returns)
+  Line 42: [WARN] Missing JSDoc @param "filepath" type. (jsdoc/require-param-type)
+  Line 84: [WARN] Prefer a more specific type to `any` (jsdoc/reject-any-type)
+
+File: C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\pathRegistry.ts
+  Line 18: [WARN] Missing JSDoc @returns declaration. (jsdoc/require-returns)
+  Line 50: [WARN] Missing JSDoc @returns declaration. (jsdoc/require-returns)
+  Line 64: [WARN] Missing JSDoc @returns declaration. (jsdoc/require-returns)
+  Line 66: [WARN] Missing JSDoc @param "p" type. (jsdoc/require-param-type)
+  Line 77: [WARN] Missing JSDoc @returns declaration. (jsdoc/require-returns)
+  Line 79: [WARN] Missing JSDoc @param "sourceFile" type. (jsdoc/require-param-type)
+  Line 80: [WARN] Missing JSDoc @param "relativePath" type. (jsdoc/require-param-type)
+  Line 87: [WARN] Missing JSDoc @returns declaration. (jsdoc/require-returns)
+  Line 89: [WARN] Missing JSDoc @param "p" type. (jsdoc/require-param-type)
+
+File: C:\Users\Craig\Corvus\CorvusStar\src\tools\pennyone\personaRegistry.ts
+  Line 32: [WARN] Missing JSDoc @returns type. (jsdoc/require-returns-type)
+
+Total Errors: 1
+Total Warnings: 20

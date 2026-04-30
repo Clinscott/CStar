@@ -1,27 +1,15 @@
 {
   "mcpServers": {
-    "pennyone": {
+    "cstar-kernel": {
       "command": "node",
       "args": [
-        "bin/pennyone-mcp.js"
+        "bin/cstar-kernel-mcp.js"
       ],
       "cwd": "../..",
       "env": {
         "GEMINI_CLI_ACTIVE": "true"
       },
-      "note": "Authoritative Corvus Hall and PennyOne MCP surface."
-    },
-    "corvus-control": {
-      "command": "node",
-      "args": [
-        "scripts/run-tsx.mjs",
-        "src/tools/corvus-control-mcp.ts"
-      ],
-      "cwd": "../..",
-      "env": {
-        "GEMINI_CLI_ACTIVE": "true"
-      },
-      "note": "Kernel-backed Corvus workflow and control-plane MCP surface."
+      "note": "CStar kernel MCP — six-tool surface (handoff, hall_search, augury, doctor, verify_plan, record_result)."
     }
   }
 }

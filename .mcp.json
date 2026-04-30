@@ -1,28 +1,13 @@
 {
   "mcpServers": {
-    "pennyone": {
+    "cstar-kernel": {
       "command": "node",
       "args": [
-        "bin/pennyone-mcp.js"
+        "bin/cstar-kernel-mcp.js"
       ],
       "env": {
         "GEMINI_CLI_ACTIVE": "true"
       }
-    },
-    "corvus-control": {
-      "command": "npx",
-      "args": [
-        "tsx",
-        "src/tools/corvus-control-mcp.ts"
-      ],
-      "env": {
-        "GEMINI_CLI_ACTIVE": "true"
-      }
-    },
-    "vercel": {
-      "type": "http",
-      "url": "https://mcp.vercel.com",
-      "note": "Official Vercel MCP server. Uses OAuth on first connection."
     }
   }
 }

@@ -20,7 +20,7 @@
   "type": "module",
   "bin": {
     "cstar": "./bin/cstar.js",
-    "pennyone-mcp": "./bin/pennyone-mcp.js"
+    "cstar-kernel-mcp": "./bin/cstar-kernel-mcp.js"
   },
   "main": "cstar.ts",
   "directories": {

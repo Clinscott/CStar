@@ -1,0 +1,118 @@
+[ALFRED]: "PennyOne MCP Server online. Standard IO transport established."
+WARNING:root:Failed to validate request: 16 validation errors for ServerRequest
+PingRequest.method
+  Input should be 'ping' [type=literal_error, input_value='sampling/createMessage', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/literal_error
+CreateMessageRequest.params.maxTokens
+  Field required [type=missing, input_value={'messages': [{'role': 'u...n the repository lore.'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+ListRootsRequest.method
+  Input should be 'roots/list' [type=literal_error, input_value='sampling/createMessage', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/literal_error
+ElicitRequest.method
+  Input should be 'elicitation/create' [type=literal_error, input_value='sampling/createMessage', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/literal_error
+ElicitRequest.params.ElicitRequestURLParams.message
+  Field required [type=missing, input_value={'messages': [{'role': 'u...n the repository lore.'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+ElicitRequest.params.ElicitRequestURLParams.url
+  Field required [type=missing, input_value={'messages': [{'role': 'u...n the repository lore.'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+ElicitRequest.params.ElicitRequestURLParams.elicitationId
+  Field required [type=missing, input_value={'messages': [{'role': 'u...n the repository lore.'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+ElicitRequest.params.ElicitRequestFormParams.message
+  Field required [type=missing, input_value={'messages': [{'role': 'u...n the repository lore.'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+ElicitRequest.params.ElicitRequestFormParams.requestedSchema
+  Field required [type=missing, input_value={'messages': [{'role': 'u...n the repository lore.'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+GetTaskRequest.method
+  Input should be 'tasks/get' [type=literal_error, input_value='sampling/createMessage', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/literal_error
+GetTaskRequest.params.taskId
+  Field required [type=missing, input_value={'messages': [{'role': 'u...n the repository lore.'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+GetTaskPayloadRequest.method
+  Input should be 'tasks/result' [type=literal_error, input_value='sampling/createMessage', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/literal_error
+GetTaskPayloadRequest.params.taskId
+  Field required [type=missing, input_value={'messages': [{'role': 'u...n the repository lore.'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+ListTasksRequest.method
+  Input should be 'tasks/list' [type=literal_error, input_value='sampling/createMessage', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/literal_error
+CancelTaskRequest.method
+  Input should be 'tasks/cancel' [type=literal_error, input_value='sampling/createMessage', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/literal_error
+CancelTaskRequest.params.taskId
+  Field required [type=missing, input_value={'messages': [{'role': 'u...n the repository lore.'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+ERROR:asyncio:an error occurred during closing of asynchronous generator <async_generator object stdio_client at 0x000001A3A80DDE70>
+asyncgen: <async_generator object stdio_client at 0x000001A3A80DDE70>
+  + Exception Group Traceback (most recent call last):
+  |   File "C:\Users\Craig\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 783, in __aexit__
+  |     raise BaseExceptionGroup(
+  |         "unhandled errors in a TaskGroup", self._exceptions
+  |     ) from None
+  | BaseExceptionGroup: unhandled errors in a TaskGroup (1 sub-exception)
+  +-+---------------- 1 ----------------
+    | Traceback (most recent call last):
+    |   File "C:\Users\Craig\AppData\Roaming\Python\Python314\site-packages\mcp\client\stdio\__init__.py", line 189, in stdio_client
+    |     yield read_stream, write_stream
+    | GeneratorExit
+    +------------------------------------
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Craig\AppData\Roaming\Python\Python314\site-packages\mcp\client\stdio\__init__.py", line 183, in stdio_client
+    anyio.create_task_group() as tg,
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Craig\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 789, in __aexit__
+    if self.cancel_scope.__exit__(type(exc), exc, exc.__traceback__):
+       ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Craig\AppData\Roaming\Python\Python314\site-packages\anyio\_backends\_asyncio.py", line 461, in __exit__
+    raise RuntimeError(
+    ...<2 lines>...
+    )
+RuntimeError: Attempted to exit cancel scope in a different task than it was entered in
+[2m[13:48:41][0m [31m[INFO][0m Loaded existing trial from temp_prologue_trial_v8.txt [2m[0m
+[2m[13:48:41][0m [31m[INFO][0m Calculating Cohesion Score with EAS/NDS metrics... [2m[0m
+[2m[13:48:45][0m [31m[FAIL][0m Cohesion scoring failed: Direct Strike HTTP failure: {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 14.172929019s.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Learn more about Gemini API quotas",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+        "violations": [
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.5-flash"
+            },
+            "quotaValue": "20"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.RetryInfo",
+        "retryDelay": "14s"
+      }
+    ]
+  }
+}
+ [2m[0m

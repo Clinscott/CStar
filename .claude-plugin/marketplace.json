@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "corvus-star",
+  "description": "Local marketplace for the Corvus Star CStar plugin. The marketplace and the plugin share this repository so versions never drift.",
+  "owner": {
+    "name": "Craig Linscott"
+  },
+  "plugins": [
+    {
+      "name": "corvus-star",
+      "description": "CStar kernel as a Claude Code plugin — PennyOne memory, per-OAuth profiles, keyring secrets.",
+      "category": "productivity",
+      "source": ".",
+      "homepage": "https://github.com/Clinscott/CStar"
+    }
+  ]
+}

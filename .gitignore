@@ -73,3 +73,14 @@ src/tools/pennyone/vis/components/.stats/
 tests/tmp_memory_*/
 .venv.failed_*/
 src/tools/pennyone/intel/hall_records.db
+
+# Pass A cleanup
+logs/mcp/*.log
+logs/self-healing-*.md
+tsconfig.tsbuildinfo
+.agents/chroma_db_new/
+.agents/state/*.jsonl
+tmp_*/
+err
+out
+debug_*.mjs

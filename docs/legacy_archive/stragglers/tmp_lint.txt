@@ -1,0 +1,24 @@
+src\cstar\core\tui.py:32:37: F401 [*] `textual.widgets.Header` imported but unused
+src\cstar\core\tui.py:147:28: RUF001 String contains ambiguous `ᚲ` (RUNIC LETTER KAUNA). Did you mean `<` (LESS-THAN SIGN)?
+src\cstar\core\tui.py:147:31: RUF001 String contains ambiguous `ᚷ` (RUNIC LETTER GEBO GYFU G). Did you mean `X` (LATIN CAPITAL LETTER X)?
+src\cstar\core\tui.py:149:13: RUF001 String contains ambiguous `ᛁ` (RUNIC LETTER ISAZ IS ISS I). Did you mean `I` (LATIN CAPITAL LETTER I)?
+src\cstar\core\tui.py:242:5: S110 `try`-`except`-`pass` detected, consider logging the exception
+src\cstar\core\tui.py:424:9: SIM108 Use ternary operator `content = "\n".join(f" {bullet} {t}" for t in tasks) if tasks else f" {lore['empty_state']}"` instead of `if`-`else`-block
+src\cstar\core\tui.py:479:34: ANN401 Dynamically typed expressions (typing.Any) are disallowed in `**kwargs`
+src\cstar\core\tui.py:558:16: RUF012 Mutable class attributes should be annotated with `typing.ClassVar`
+src\cstar\core\tui.py:601:16: RUF012 Mutable class attributes should be annotated with `typing.ClassVar`
+src\cstar\core\tui.py:634:16: RUF012 Mutable class attributes should be annotated with `typing.ClassVar`
+src\cstar\core\tui.py:709:16: RUF012 Mutable class attributes should be annotated with `typing.ClassVar`
+src\cstar\core\tui.py:940:15: RUF012 Mutable class attributes should be annotated with `typing.ClassVar`
+src\cstar\core\tui.py:989:9: S110 `try`-`except`-`pass` detected, consider logging the exception
+src\cstar\core\tui.py:1003:9: S110 `try`-`except`-`pass` detected, consider logging the exception
+src\cstar\core\tui.py:1026:9: S110 `try`-`except`-`pass` detected, consider logging the exception
+src\cstar\core\tui.py:1038:9: S110 `try`-`except`-`pass` detected, consider logging the exception
+src\cstar\core\tui.py:1057:101: E501 Line too long (103 > 100)
+src\cstar\core\tui.py:1060:9: S110 `try`-`except`-`pass` detected, consider logging the exception
+src\cstar\core\tui.py:1091:9: S110 `try`-`except`-`pass` detected, consider logging the exception
+src\cstar\core\tui.py:1112:9: S110 `try`-`except`-`pass` detected, consider logging the exception
+src\cstar\core\tui.py:1130:9: S110 `try`-`except`-`pass` detected, consider logging the exception
+src\cstar\core\tui.py:1139:9: S110 `try`-`except`-`pass` detected, consider logging the exception
+Found 22 errors.
+[*] 1 fixable with the `--fix` option (1 hidden fix can be enabled with the `--unsafe-fixes` option).

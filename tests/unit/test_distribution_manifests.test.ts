@@ -137,8 +137,9 @@ describe('distribution generator', () => {
         };
         assert.equal(geminiManifest.contextFileName, 'GEMINI.md');
         assert.equal(geminiManifest.version, '2.4.6');
-        assert.equal(geminiManifest.mcpServers?.pennyone?.command, 'node');
-        assert.deepEqual(geminiManifest.mcpServers?.['corvus-control']?.args, ['scripts/run-tsx.mjs', 'src/tools/corvus-control-mcp.ts']);
+        assert.equal(geminiManifest.mcpServers?.['cstar-kernel']?.command, 'node');
+        assert.deepEqual(geminiManifest.mcpServers?.['cstar-kernel']?.args, ['bin/cstar-kernel-mcp.js']);
+        assert.deepEqual(Object.keys(geminiManifest.mcpServers ?? {}), ['cstar-kernel']);
 
         const geminiContext = build.files[1]?.content ?? '';
         assert.match(geminiContext, /node bin\/cstar\.js <command>/);
@@ -167,7 +168,7 @@ describe('distribution generator', () => {
         const codexMcp = JSON.parse(build.files[3]?.content ?? '{}') as {
             mcpServers?: Record<string, { cwd?: string }>;
         };
-        assert.equal(codexMcp.mcpServers?.pennyone?.cwd, '../..');
+        assert.equal(codexMcp.mcpServers?.['cstar-kernel']?.cwd, '../..');
 
         const codexSkill = build.files[6]?.content ?? '';
         assert.match(codexSkill, /Corvus Star Augury \[Ω\]/);

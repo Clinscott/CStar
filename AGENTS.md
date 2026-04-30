@@ -39,7 +39,7 @@ Intent grammar is descriptive. Runtime routing is registry-first; the grammar is
 | `HARDEN` | contract, comply, sterling, harden, gherkin | `contract_hardening` | WEAVE |
 | `EXPAND` | deploy, link, mount, spoke, onboard | `expansion` | WEAVE |
 | `EVOLVE` | optimize, refactor, evolve, improve | `evolve` | WEAVE |
-| `ORCHESTRATE` | plan, dispatch, autobot, orchestrate | `orchestrate` | WEAVE |
+| `ORCHESTRATE` | plan, dispatch, orchestrate | `orchestrate` | WEAVE |
 | `GUARD` | protect, shield, lock, guard, drift | `silver_shield` | SPELL (policy-only by default) |
 | `DOCUMENT` | document, explain, chronicle, architecture | `living_architecture` | WEAVE |
 

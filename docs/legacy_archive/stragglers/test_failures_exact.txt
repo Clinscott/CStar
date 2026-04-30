@@ -1,0 +1,31 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.2, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\Craig\Corvus\CorvusStar\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Craig\Corvus\CorvusStar
+configfile: pyproject.toml
+plugins: anyio-4.12.1, asyncio-1.3.0, bdd-8.1.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 1 item
+
+tests/augmented_intel/test_lexicon_lift.py::TestLexiconLift::test_lexicon_lift_trigger FAILED [100%]
+
+================================== FAILURES ===================================
+__________________ TestLexiconLift.test_lexicon_lift_trigger __________________
+tests\augmented_intel\test_lexicon_lift.py:38: in test_lexicon_lift_trigger
+    mock_vec = MockVector("dummy", "dummy", "dummy")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\augmented_intel\test_lexicon_lift.py:33: in __init__
+    self.vocab = {"tell", "me", "about"}
+    ^^^^^^^^^^
+E   AttributeError: property 'vocab' of 'TestLexiconLift.test_lexicon_lift_trigger.<locals>.MockVector' object has no setter
+---------------------------- Captured stdout call -----------------------------
+[31m[O.D.I.N.][0m Semantic Indexing Synchronized. Shadow Engine: 17 skills.
+============================== warnings summary ===============================
+.venv\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128
+  C:\Users\Craig\Corvus\CorvusStar\.venv\Lib\site-packages\chromadb\telemetry\opentelemetry\__init__.py:128: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(f):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/augmented_intel/test_lexicon_lift.py::TestLexiconLift::test_lexicon_lift_trigger
+======================== 1 failed, 1 warning in 6.29s =========================

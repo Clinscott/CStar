@@ -1,0 +1,27 @@
+
+E   Failed: DID NOT RAISE <class 'ValueError'>
+E   Failed: DID NOT RAISE <class 'ValueError'>
+FAILED tests/augmented_intel/test_lexicon_lift.py::TestLexiconLift::test_lexicon_lift_trigger
+FAILED tests/contracts/test_engine_contracts.py::TestEngine_contracts::test_transition
+FAILED tests/contracts/test_muninn.py::TestGauntletEscalation::test_escalates_to_pro_on_final_attempt
+FAILED tests/contracts/test_strategists_bonus.py::TestMimirWarden::test_valkyrie_precedes_beauty
+FAILED tests/empire_tests/test_aesthetic_steps.py::test_rendering_initialization
+FAILED tests/empire_tests/test_aesthetic_steps.py::test_data_pulse - playwrig...
+FAILED tests/empire_tests/test_aesthetic_steps.py::test_iconography - playwri...
+FAILED tests/empire_tests/test_check_pro_empire.py::test_script_checks_model_availability
+FAILED tests/empire_tests/test_forge_gungnir_empire.py::TestForgeGungnirCalculus::test_forge_detects_claustrophobic_python
+FAILED tests/empire_tests/test_forge_gungnir_empire.py::TestForgeGungnirCalculus::test_forge_detects_top_heavy_python
+FAILED tests/empire_tests/test_forge_gungnir_empire.py::TestForgeGungnirCalculus::test_forge_detects_ugly_react
+FAILED tests/empire_tests/test_forge_gungnir_empire.py::TestForgeGungnirCalculus::test_forge_passes_beautiful_code
+FAILED tests/empire_tests/test_forge_gungnir_empire.py::TestForgeGungnirCalculus::test_forge_passes_symmetric_react
+FAILED tests/empire_tests/test_huginn_empire.py::TestHuginnEmpire::test_scan_no_traces
+FAILED tests/empire_tests/test_huginn_empire.py::TestHuginnEmpire::test_scan_regex_hallucination
+FAILED tests/empire_tests/test_huginn_empire.py::TestHuginnEmpire::test_scan_regex_deviance
+FAILED tests/empire_tests/test_huginn_empire.py::TestHuginnEmpire::test_scan_neural_audit
+FAILED tests/empire_tests/test_muninn_empire.py::TestMuninnEmpire::test_init_no_key
+FAILED tests/empire_tests/test_muninn_naming_empire.py::test_muninn_run_instantiation
+FAILED tests/empire_tests/test_muninn_naming_empire.py::test_muninn_initialization_failure
+FAILED tests/empire_tests/test_sv_engine_empire.py::TestSovereignEngineEmpire::test_proactive_lexicon_lift
+FAILED tests/test_report_engine.py::TestReportEngine::test_signature_alfred
+22 failed, 405 passed, 1 skipped, 4 warnings in 129.82s (0:02:09)
+

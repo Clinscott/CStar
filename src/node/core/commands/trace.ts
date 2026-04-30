@@ -487,7 +487,7 @@ function getHostContext(session: HallPlanningSessionRecord): TraceHostContextPay
     return getHostContextFromMetadata(session.metadata as Record<string, unknown> | undefined);
 }
 
-function getTraceContract(session: HallPlanningSessionRecord): TraceContractPayload | undefined {
+export function getTraceContract(session: HallPlanningSessionRecord): TraceContractPayload | undefined {
     return getTraceContractFromMetadata(session.metadata as Record<string, unknown> | undefined);
 }
 
@@ -501,7 +501,7 @@ function formatTraceDesignation(contract: TraceContractPayload | undefined): str
     return contract.selection_name;
 }
 
-function hydratePlanningSession(
+export function hydratePlanningSession(
     session: HallPlanningSessionRecord | null,
     rootPath: string,
 ): HallPlanningSessionRecord | null {
@@ -511,7 +511,7 @@ function hydratePlanningSession(
     return getHallPlanningSession(session.session_id, rootPath) ?? session;
 }
 
-function resolveActivePlanningSession(rootPath: string): HallPlanningSessionRecord | null {
+export function resolveActivePlanningSession(rootPath: string): HallPlanningSessionRecord | null {
     const active = listHallPlanningSessions(rootPath, { statuses: ACTIVE_PLANNING_STATUSES });
     return hydratePlanningSession(active[0] ?? listHallPlanningSessions(rootPath)[0] ?? null, rootPath);
 }

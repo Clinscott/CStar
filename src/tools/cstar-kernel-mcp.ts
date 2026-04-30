@@ -1,0 +1,1575 @@
+import dotenv from 'dotenv';
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import fs from 'node:fs';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { z } from 'zod';
+import type {
+    HallBeadRecord,
+    HallBeadStatus,
+    HallBeadTargetKind,
+    HallValidationRun,
+} from '../types/hall.js';
+import type { SovereignBead } from '../types/bead.js';
+import { buildHallRepositoryId, normalizeHallPath } from '../types/hall.js';
+
+// [Ω] THE AWAKENING: Forcefully load local environment
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
+const PROJECT_ROOT = path.resolve(__dirname, '../../');
+dotenv.config({ path: path.join(PROJECT_ROOT, '.env') });
+
+import { registry } from './pennyone/pathRegistry.js';
+import { selectCouncilExpert } from '../core/council_experts.js';
+import { 
+    buildTraceAgentHandoffPayload, 
+    resolveActivePlanningSession,
+    buildAuguryDoctorPayload,
+    buildAuguryExplainPayload,
+    getTraceContract,
+    hydratePlanningSession
+} from '../node/core/commands/trace.js';
+import { database } from './pennyone/intel/database.js';
+
+/**
+ * CStar Kernel MCP (v3.1)
+ * Purpose: Minimal kernel access for host agents.
+ * Mandate: Compact kernel tools. Compact JSON. No ceremony.
+ */
+
+const server = new McpServer({
+    name: 'cstar-kernel',
+    version: '3.1.0',
+});
+
+const MCP_LOG_DIR = path.join(PROJECT_ROOT, 'logs', 'mcp');
+const MCP_LOG_PATH = path.join(MCP_LOG_DIR, 'mcp_bootstrap_error.log');
+const MCP_USAGE_STATE_RELATIVE_PATH = path.join('.agents', 'state', 'cstar-kernel-mcp-usage.jsonl');
+const MCP_USEFULNESS_STATE_RELATIVE_PATH = path.join('.agents', 'state', 'cstar-kernel-mcp-usefulness.jsonl');
+const MCP_USAGE_LOOKBACK_MS = 24 * 60 * 60 * 1000;
+
+function logBootstrapError(error: unknown): void {
+    try {
+        fs.mkdirSync(MCP_LOG_DIR, { recursive: true });
+        const stack = error instanceof Error ? error.stack ?? error.message : String(error);
+        fs.appendFileSync(MCP_LOG_PATH, `[${new Date().toISOString()}] ${stack}\n`, 'utf-8');
+    } catch {
+        // Diagnostics must never break the MCP surface.
+    }
+}
+
+interface McpUsageEvent {
+    ts: string;
+    tool: string;
+    ok: boolean;
+    duration_ms: number;
+    root: string;
+}
+
+interface McpUsefulnessEvent extends McpUsageEvent {
+    repo_id?: string;
+    action?: string;
+    bead_id?: string;
+    outcome_kind: string;
+    result_count?: number;
+    has_results?: boolean;
+    lead_bead_present?: boolean;
+    active_handoff?: boolean;
+    work_item_count?: number;
+    routed?: boolean;
+    expert?: string;
+    mimir_target_count?: number;
+    token_path_present?: boolean;
+    doctor_status?: string;
+    doctor_score?: number;
+    recommended_command_count?: number;
+    validation_present?: boolean;
+    verdict?: string;
+    validation_recorded?: boolean;
+    token_path_observation_recorded?: boolean;
+    token_path_episode_id?: string;
+}
+
+interface McpUsefulnessSummary {
+    total_calls_24h: number;
+    failures_24h: number;
+    bead_linked_call_pct: number;
+    calls_by_tool_24h: Record<string, number>;
+    calls_by_action_24h: Record<string, number>;
+    search_hit_rate: number | null;
+    handoff_active_rate: number | null;
+    augury_routed_rate: number | null;
+    verify_plan_useful_rate: number | null;
+    mcp_created_beads_24h: number;
+    mcp_claimed_beads_24h: number;
+    mcp_blocked_beads_24h: number;
+    mcp_resolved_beads_24h: number;
+    validations_recorded_24h: number;
+    token_path_advice_count_24h: number;
+    token_path_observation_count_24h: number;
+    token_path_observation_rate: number | null;
+    usefulness_warnings: string[];
+}
+
+interface McpTextResponse {
+    [key: string]: unknown;
+    content: Array<{ type: 'text'; text: string }>;
+    isError?: boolean;
+}
+
+type KernelCouncilExpert = {
+    signature_question?: string;
+    anti_behavior?: string[];
+    selection_candidates?: unknown[];
+};
+
+const HALL_BEAD_STATUSES: HallBeadStatus[] = [
+    'OPEN',
+    'SET-PENDING',
+    'SET',
+    'IN_PROGRESS',
+    'READY_FOR_REVIEW',
+    'NEEDS_TRIAGE',
+    'BLOCKED',
+    'RESOLVED',
+    'ARCHIVED',
+    'SUPERSEDED',
+];
+
+const HALL_BEAD_TARGET_KINDS: HallBeadTargetKind[] = [
+    'FILE',
+    'SECTOR',
+    'REPOSITORY',
+    'CONTRACT',
+    'SPOKE',
+    'WORKFLOW',
+    'VALIDATION',
+    'OTHER',
+];
+
+type BeadAction = 'get' | 'list' | 'create' | 'update_status' | 'claim' | 'resolve' | 'block';
+
+interface BeadToolArgs {
+    action: BeadAction;
+    bead_id?: string;
+    limit?: number;
+    statuses?: HallBeadStatus[];
+    target_kind?: HallBeadTargetKind;
+    target_path?: string;
+    target_ref?: string;
+    rationale?: string;
+    acceptance_criteria?: string;
+    checker_shell?: string;
+    contract_refs?: string[];
+    status?: HallBeadStatus;
+    assigned_agent?: string;
+    resolution_note?: string;
+    resolved_validation_id?: string;
+    triage_reason?: string;
+    metadata?: Record<string, unknown>;
+}
+
+function textResponse(payload: unknown, isError = false): McpTextResponse {
+    return {
+        content: [{ type: 'text', text: JSON.stringify(payload) }],
+        ...(isError ? { isError: true } : {}),
+    };
+}
+
+function compactBead(bead: SovereignBead | null): Record<string, unknown> | null {
+    if (!bead) {
+        return null;
+    }
+    return {
+        bead_id: bead.id,
+        status: bead.status,
+        target_kind: bead.target_kind,
+        target_ref: bead.target_ref,
+        target_path: bead.target_path,
+        rationale: bead.rationale.substring(0, 240),
+        acceptance_criteria: bead.acceptance_criteria?.substring(0, 300),
+        checker_shell: bead.checker_shell,
+        assigned_agent: bead.assigned_agent,
+        triage_reason: bead.triage_reason,
+        resolution_note: bead.resolution_note,
+        resolved_validation_id: bead.resolved_validation_id,
+        contract_refs: bead.contract_refs.slice(0, 5),
+        created_at: bead.created_at,
+        updated_at: bead.updated_at,
+    };
+}
+
+function requireString(value: unknown, field: string): string {
+    if (typeof value !== 'string' || value.trim().length === 0) {
+        throw new Error(`${field} is required.`);
+    }
+    return value.trim();
+}
+
+function generateBeadId(rationale: string): string {
+    const slug = rationale
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 48) || 'mcp-bead';
+    return `bead:mcp:${slug}-${Date.now().toString(36)}`;
+}
+
+function resolveActiveRepo(): { root: string; repoId: string } {
+    const root = registry.getRoot();
+    const repo = database.getHallRepository(root);
+    return {
+        root,
+        repoId: repo?.repo_id || buildHallRepositoryId(normalizeHallPath(root)),
+    };
+}
+
+function beadToRecord(bead: SovereignBead): HallBeadRecord {
+    return {
+        bead_id: bead.id,
+        repo_id: bead.repo_id,
+        scan_id: bead.scan_id || undefined,
+        target_kind: bead.target_kind,
+        target_ref: bead.target_ref,
+        target_path: bead.target_path,
+        rationale: bead.rationale,
+        contract_refs: bead.contract_refs,
+        baseline_scores: bead.baseline_scores,
+        acceptance_criteria: bead.acceptance_criteria,
+        checker_shell: bead.checker_shell,
+        status: bead.status,
+        assigned_agent: bead.assigned_agent,
+        source_kind: bead.source_kind,
+        triage_reason: bead.triage_reason,
+        resolution_note: bead.resolution_note,
+        resolved_validation_id: bead.resolved_validation_id,
+        superseded_by: bead.superseded_by,
+        architect_opinion: bead.architect_opinion,
+        critique_payload: bead.critique_payload,
+        metadata: bead.metadata,
+        created_at: bead.created_at,
+        updated_at: bead.updated_at,
+    };
+}
+
+function upsertBeadFromExisting(bead: SovereignBead, updates: Partial<HallBeadRecord>): SovereignBead | null {
+    const now = Date.now();
+    database.upsertHallBead({
+        ...beadToRecord(bead),
+        ...updates,
+        bead_id: bead.id,
+        repo_id: bead.repo_id,
+        created_at: bead.created_at,
+        updated_at: now,
+    });
+    return database.getHallBead(bead.id);
+}
+
+function resolveTelemetryRoot(): string {
+    try {
+        return registry.getRoot();
+    } catch {
+        return PROJECT_ROOT;
+    }
+}
+
+function appendMcpUsageEvent(event: McpUsageEvent): void {
+    try {
+        const root = event.root || resolveTelemetryRoot();
+        const usagePath = path.join(root, MCP_USAGE_STATE_RELATIVE_PATH);
+        fs.mkdirSync(path.dirname(usagePath), { recursive: true });
+        fs.appendFileSync(usagePath, `${JSON.stringify(event)}\n`, 'utf-8');
+    } catch {
+        // Telemetry must never break the control-plane surface.
+    }
+}
+
+function appendMcpUsefulnessEvent(event: McpUsefulnessEvent): void {
+    try {
+        const root = event.root || resolveTelemetryRoot();
+        const usefulnessPath = path.join(root, MCP_USEFULNESS_STATE_RELATIVE_PATH);
+        fs.mkdirSync(path.dirname(usefulnessPath), { recursive: true });
+        fs.appendFileSync(usefulnessPath, `${JSON.stringify(event)}\n`, 'utf-8');
+    } catch {
+        // Usefulness telemetry must never break MCP calls.
+    }
+}
+
+function readRecentJsonl<T>(relativePath: string, lookbackMs: number): T[] {
+    try {
+        const root = resolveTelemetryRoot();
+        const filePath = path.join(root, relativePath);
+        if (!fs.existsSync(filePath)) {
+            return [];
+        }
+        const now = Date.now();
+        return fs.readFileSync(filePath, 'utf-8')
+            .split('\n')
+            .filter((line) => line.trim().length > 0)
+            .flatMap((line) => {
+                try {
+                    const event = JSON.parse(line) as T & { ts?: unknown };
+                    if (typeof event.ts !== 'string') {
+                        return [];
+                    }
+                    const ts = Date.parse(event.ts);
+                    if (!Number.isFinite(ts) || now - ts > lookbackMs) {
+                        return [];
+                    }
+                    return [event as T];
+                } catch {
+                    return [];
+                }
+            });
+    } catch {
+        return [];
+    }
+}
+
+function readRecentProjectJsonl<T>(relativePath: string, lookbackMs: number): T[] {
+    try {
+        const filePath = path.join(PROJECT_ROOT, relativePath);
+        if (!fs.existsSync(filePath)) {
+            return [];
+        }
+        const now = Date.now();
+        return fs.readFileSync(filePath, 'utf-8')
+            .split('\n')
+            .filter((line) => line.trim().length > 0)
+            .flatMap((line) => {
+                try {
+                    const event = JSON.parse(line) as T & { ts?: unknown; occurred_at?: unknown };
+                    const timestamp = typeof event.ts === 'string'
+                        ? event.ts
+                        : typeof event.occurred_at === 'string'
+                            ? event.occurred_at
+                            : undefined;
+                    if (!timestamp) {
+                        return [];
+                    }
+                    const ts = Date.parse(timestamp);
+                    if (!Number.isFinite(ts) || now - ts > lookbackMs) {
+                        return [];
+                    }
+                    return [event as T];
+                } catch {
+                    return [];
+                }
+            });
+    } catch {
+        return [];
+    }
+}
+
+function summarizeRecentMcpUsage(): {
+    total_calls_24h: number;
+    failures_24h: number;
+    last_call_at: string | null;
+    tool_counts_24h: Record<string, number>;
+} {
+    try {
+        const root = resolveTelemetryRoot();
+        const usagePath = path.join(root, MCP_USAGE_STATE_RELATIVE_PATH);
+        if (!fs.existsSync(usagePath)) {
+            return {
+                total_calls_24h: 0,
+                failures_24h: 0,
+                last_call_at: null,
+                tool_counts_24h: {},
+            };
+        }
+
+        const now = Date.now();
+        const lines = fs.readFileSync(usagePath, 'utf-8')
+            .split('\n')
+            .filter((line) => line.trim().length > 0);
+
+        const toolCounts: Record<string, number> = {};
+        let total = 0;
+        let failures = 0;
+        let lastCallAt: string | null = null;
+
+        for (const line of lines) {
+            try {
+                const event = JSON.parse(line) as Partial<McpUsageEvent>;
+                if (typeof event.ts !== 'string' || typeof event.tool !== 'string') {
+                    continue;
+                }
+                const ts = Date.parse(event.ts);
+                if (!Number.isFinite(ts)) {
+                    continue;
+                }
+                if (!lastCallAt || ts > Date.parse(lastCallAt)) {
+                    lastCallAt = event.ts;
+                }
+                if (now - ts > MCP_USAGE_LOOKBACK_MS) {
+                    continue;
+                }
+                total += 1;
+                toolCounts[event.tool] = (toolCounts[event.tool] ?? 0) + 1;
+                if (event.ok === false) {
+                    failures += 1;
+                }
+            } catch {
+                // Ignore malformed rows.
+            }
+        }
+
+        return {
+            total_calls_24h: total,
+            failures_24h: failures,
+            last_call_at: lastCallAt,
+            tool_counts_24h: toolCounts,
+        };
+    } catch {
+        return {
+            total_calls_24h: 0,
+            failures_24h: 0,
+            last_call_at: null,
+            tool_counts_24h: {},
+        };
+    }
+}
+
+function incrementCount(counts: Record<string, number>, key: string | undefined): void {
+    if (!key) {
+        return;
+    }
+    counts[key] = (counts[key] ?? 0) + 1;
+}
+
+function rate(numerator: number, denominator: number): number | null {
+    if (denominator === 0) {
+        return null;
+    }
+    return Math.round((numerator / denominator) * 1000) / 1000;
+}
+
+export function summarizeUsefulnessEvents(events: McpUsefulnessEvent[]): McpUsefulnessSummary {
+    const callsByTool: Record<string, number> = {};
+    const callsByAction: Record<string, number> = {};
+    let failures = 0;
+    let beadLinked = 0;
+    let searchCalls = 0;
+    let searchHits = 0;
+    let handoffCalls = 0;
+    let activeHandoffs = 0;
+    let auguryCalls = 0;
+    let routedAugury = 0;
+    let verifyCalls = 0;
+    let usefulVerify = 0;
+    let beadCreates = 0;
+    let beadClaims = 0;
+    let beadBlocks = 0;
+    let beadResolves = 0;
+    let validations = 0;
+    let tokenPathAdvice = 0;
+    let tokenPathObservations = 0;
+
+    for (const event of events) {
+        incrementCount(callsByTool, event.tool);
+        incrementCount(callsByAction, event.action ? `${event.tool}:${event.action}` : event.tool);
+        if (!event.ok) {
+            failures += 1;
+        }
+        if (event.bead_id || event.lead_bead_present) {
+            beadLinked += 1;
+        }
+        if (event.tool === 'cstar_hall_search') {
+            searchCalls += 1;
+            if (event.has_results) {
+                searchHits += 1;
+            }
+        }
+        if (event.tool === 'cstar_handoff') {
+            handoffCalls += 1;
+            if (event.active_handoff) {
+                activeHandoffs += 1;
+            }
+        }
+        if (event.tool === 'cstar_augury') {
+            auguryCalls += 1;
+            if (event.routed) {
+                routedAugury += 1;
+            }
+            if (event.token_path_present) {
+                tokenPathAdvice += 1;
+            }
+        }
+        if (event.tool === 'cstar_verify_plan') {
+            verifyCalls += 1;
+            if ((event.recommended_command_count ?? 0) > 0 || event.validation_present) {
+                usefulVerify += 1;
+            }
+        }
+        if (event.tool === 'cstar_bead') {
+            if (event.action === 'create' && event.ok) beadCreates += 1;
+            if (event.action === 'claim' && event.ok) beadClaims += 1;
+            if (event.action === 'block' && event.ok) beadBlocks += 1;
+            if (event.action === 'resolve' && event.ok) beadResolves += 1;
+        }
+        if (event.tool === 'cstar_record_result' && event.validation_recorded && event.ok) {
+            validations += 1;
+            if (event.token_path_observation_recorded) {
+                tokenPathObservations += 1;
+            }
+        }
+    }
+
+    const warnings: string[] = [];
+    if (searchCalls >= 5 && beadCreates + beadClaims + beadBlocks + beadResolves === 0) {
+        warnings.push('High MCP search activity but no bead transitions.');
+    }
+    if (beadCreates > 0 && beadResolves === 0) {
+        warnings.push('MCP-created beads exist but none were resolved in the lookback window.');
+    }
+    if (validations > 0 && beadCreates + beadClaims + beadBlocks + beadResolves === 0) {
+        warnings.push('MCP validations recorded without corresponding bead state transitions.');
+    }
+    if (tokenPathAdvice >= 3 && tokenPathObservations === 0) {
+        warnings.push('Token-path advice is being generated but no observations were recorded.');
+    }
+
+    return {
+        total_calls_24h: events.length,
+        failures_24h: failures,
+        bead_linked_call_pct: events.length === 0 ? 0 : Math.round((beadLinked / events.length) * 1000) / 10,
+        calls_by_tool_24h: callsByTool,
+        calls_by_action_24h: callsByAction,
+        search_hit_rate: rate(searchHits, searchCalls),
+        handoff_active_rate: rate(activeHandoffs, handoffCalls),
+        augury_routed_rate: rate(routedAugury, auguryCalls),
+        verify_plan_useful_rate: rate(usefulVerify, verifyCalls),
+        mcp_created_beads_24h: beadCreates,
+        mcp_claimed_beads_24h: beadClaims,
+        mcp_blocked_beads_24h: beadBlocks,
+        mcp_resolved_beads_24h: beadResolves,
+        validations_recorded_24h: validations,
+        token_path_advice_count_24h: tokenPathAdvice,
+        token_path_observation_count_24h: tokenPathObservations,
+        token_path_observation_rate: rate(tokenPathObservations, tokenPathAdvice),
+        usefulness_warnings: warnings.slice(0, 5),
+    };
+}
+
+function summarizeRecentMcpUsefulness(): McpUsefulnessSummary {
+    return summarizeUsefulnessEvents(
+        readRecentJsonl<McpUsefulnessEvent>(MCP_USEFULNESS_STATE_RELATIVE_PATH, MCP_USAGE_LOOKBACK_MS),
+    );
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Augury token-path sidecar bridge.
+// Sidecar advisor lives outside this repo (Corvus/AuguryTokenPath). We call it
+// dynamically so the kernel keeps building when the sidecar isn't checked out.
+// Telemetry collected here feeds the sidecar's calibration loop — one-way pull.
+// ────────────────────────────────────────────────────────────────────────────
+
+interface TokenPathRoutingInput {
+    prompt?: string;
+    inferred_intent?: string;
+    intent_category?: string;
+    target_paths?: string[];
+    mimirs_well?: string[];
+    scope?: string;
+    selection_tier?: string;
+    selection_name?: string;
+    estimated_context_tokens?: number;
+    ambiguity_score?: number;
+    requires_external_research?: boolean;
+    verification_available?: boolean;
+}
+
+interface TokenPathRecommendation {
+    advisor: 'augury-token-path';
+    schema_version: number;
+    mode: string;
+    selected_policy: string;
+    scenario_class: string;
+    context_strategy: unknown;
+    budget: unknown;
+    decision_reason: string;
+    confidence: number;
+    rationale: string[];
+    expected_billable_tokens: number;
+    expected_raw_tokens: number;
+    requires_followup: boolean;
+    execution_deferred: boolean;
+    episode_id?: string;
+}
+
+interface TokenPathObservationPayload {
+    token_path_episode_id?: string;
+    scenario_class: string;
+    selected_policy: string;
+    advised_mode: string;
+    observed_raw_tokens_episode?: number;
+    observed_billable_tokens_episode?: number;
+    rounds?: number;
+    verification_result?: string;
+    terminal_outcome?: string;
+    actual_success?: boolean;
+    actual_completion?: boolean;
+    actual_verification_passed?: boolean;
+    actual_requires_followup?: boolean;
+    actual_deferred?: boolean;
+    notes?: string;
+}
+
+interface TokenPathAdviceRecord {
+    schema_version: '1.0.0';
+    ts: string;
+    episode_id: string;
+    occurred_at: string;
+    tool: 'cstar_augury';
+    prompt_hash: string;
+    bead_id?: string;
+    target_paths?: string[];
+    intent_category?: string;
+    selected_policy: string;
+    advised_mode: string;
+    scenario_class: string;
+    expected_raw_tokens?: number;
+    expected_billable_tokens?: number;
+    requires_followup?: boolean;
+    execution_deferred?: boolean;
+    confidence?: number;
+}
+
+const TOKEN_PATH_OBSERVATIONS_RELATIVE_PATH = path.join(
+    '.agents', 'state', 'augury-token-path-mcp-observations.jsonl',
+);
+const TOKEN_PATH_ADVICE_RELATIVE_PATH = path.join(
+    '.agents', 'state', 'augury-token-path-mcp-advice.jsonl',
+);
+
+function stableHash(input: string): string {
+    let hash = 2166136261;
+    for (let idx = 0; idx < input.length; idx += 1) {
+        hash ^= input.charCodeAt(idx);
+        hash = Math.imul(hash, 16777619);
+    }
+    return (hash >>> 0).toString(16).padStart(8, '0');
+}
+
+function generateTokenPathEpisodeId(): string {
+    return `mcp-tp-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 8)}`;
+}
+
+function resolveAuguryTokenPathRoot(): string {
+    const envRoot = process.env.AUGURY_TOKEN_PATH_ROOT;
+    if (envRoot && envRoot.trim().length > 0) {
+        return path.resolve(envRoot);
+    }
+    return path.resolve(PROJECT_ROOT, '..', 'AuguryTokenPath');
+}
+
+async function runTokenPathAdvisor(input: TokenPathRoutingInput): Promise<TokenPathRecommendation | null> {
+    try {
+        const sidecarRoot = resolveAuguryTokenPathRoot();
+        const entryPath = [
+            path.join(sidecarRoot, 'src', 'core', 'advisor_entry.ts'),
+            path.join(sidecarRoot, 'src', 'core', 'advisor_entry.js'),
+        ].find((candidate) => fs.existsSync(candidate));
+        if (!entryPath) {
+            return null;
+        }
+        const entryUrl = pathToFileURL(entryPath).href;
+        const mod = await import(entryUrl) as {
+            getTokenPathAdviceForRouting?: (i: TokenPathRoutingInput) => TokenPathRecommendation;
+        };
+        if (typeof mod.getTokenPathAdviceForRouting !== 'function') {
+            return null;
+        }
+        return mod.getTokenPathAdviceForRouting(input);
+    } catch (error) {
+        logBootstrapError(error);
+        return null;
+    }
+}
+
+function deriveObservationOutcome(payload: TokenPathObservationPayload, verdict?: string): {
+    actual_success: boolean;
+    actual_completion: boolean;
+    actual_verification_passed: boolean;
+    actual_requires_followup: boolean;
+    actual_deferred: boolean;
+} {
+    const terminal = payload.terminal_outcome;
+    const normalizedVerdict = verdict?.toUpperCase();
+    const successByVerdict = normalizedVerdict === 'SUCCESS' || normalizedVerdict === 'ACCEPTED';
+    const actualSuccess = payload.actual_success ?? (terminal === 'verified-success' || successByVerdict);
+    const actualCompletion = payload.actual_completion
+        ?? (terminal === 'verified-success' || terminal === 'completed-unverified' || actualSuccess);
+    const actualVerificationPassed = payload.actual_verification_passed
+        ?? (terminal === 'verified-success' || successByVerdict);
+    const actualRequiresFollowup = payload.actual_requires_followup
+        ?? (terminal === 'needs-followup' || normalizedVerdict === 'INCONCLUSIVE');
+    const actualDeferred = payload.actual_deferred ?? (terminal === 'deferred');
+
+    return {
+        actual_success: actualSuccess,
+        actual_completion: actualCompletion,
+        actual_verification_passed: actualVerificationPassed,
+        actual_requires_followup: actualRequiresFollowup,
+        actual_deferred: actualDeferred,
+    };
+}
+
+function appendTokenPathAdvice(
+    input: TokenPathRoutingInput,
+    recommendation: TokenPathRecommendation,
+    beadId?: string,
+): string | null {
+    const episodeId = recommendation.episode_id || generateTokenPathEpisodeId();
+    recommendation.episode_id = episodeId;
+    const record: TokenPathAdviceRecord = {
+        schema_version: '1.0.0',
+        ts: new Date().toISOString(),
+        episode_id: episodeId,
+        occurred_at: new Date().toISOString(),
+        tool: 'cstar_augury',
+        prompt_hash: stableHash(`${input.prompt || ''}\n${input.inferred_intent || ''}`),
+        bead_id: beadId,
+        target_paths: input.target_paths?.slice(0, 10),
+        intent_category: input.intent_category,
+        selected_policy: recommendation.selected_policy,
+        advised_mode: recommendation.mode,
+        scenario_class: recommendation.scenario_class,
+        expected_raw_tokens: recommendation.expected_raw_tokens,
+        expected_billable_tokens: recommendation.expected_billable_tokens,
+        requires_followup: recommendation.requires_followup,
+        execution_deferred: recommendation.execution_deferred,
+        confidence: recommendation.confidence,
+    };
+    const appendRecord = (root: string): void => {
+        const advicePath = path.join(root, TOKEN_PATH_ADVICE_RELATIVE_PATH);
+        fs.mkdirSync(path.dirname(advicePath), { recursive: true });
+        fs.appendFileSync(advicePath, `${JSON.stringify(record)}\n`, 'utf-8');
+    };
+    try {
+        appendRecord(PROJECT_ROOT);
+        return episodeId;
+    } catch (error) {
+        logBootstrapError(error);
+        try {
+            appendRecord(path.join('/tmp', 'cstar-kernel-mcp'));
+            return episodeId;
+        } catch (fallbackError) {
+            logBootstrapError(fallbackError);
+            return null;
+        }
+    }
+}
+
+function findRecentTokenPathAdvice(episodeId?: string, beadId?: string): TokenPathAdviceRecord | null {
+    const advice = readRecentProjectJsonl<TokenPathAdviceRecord>(TOKEN_PATH_ADVICE_RELATIVE_PATH, MCP_USAGE_LOOKBACK_MS);
+    const sorted = [...advice].sort((a, b) => Date.parse(b.occurred_at) - Date.parse(a.occurred_at));
+    if (episodeId) {
+        const byEpisode = sorted.find((record) => record.episode_id === episodeId);
+        if (byEpisode) {
+            return byEpisode;
+        }
+    }
+    if (beadId) {
+        const byBead = sorted.find((record) => record.bead_id === beadId);
+        if (byBead) {
+            return byBead;
+        }
+    }
+    return null;
+}
+
+function buildObservationFromAdvice(
+    advice: TokenPathAdviceRecord,
+    notes?: string,
+): TokenPathObservationPayload {
+    return {
+        token_path_episode_id: advice.episode_id,
+        scenario_class: advice.scenario_class,
+        selected_policy: advice.selected_policy,
+        advised_mode: advice.advised_mode,
+        observed_raw_tokens_episode: advice.expected_raw_tokens,
+        observed_billable_tokens_episode: advice.expected_billable_tokens,
+        terminal_outcome: 'completed-unverified',
+        notes,
+    };
+}
+
+function summarizeRecentTokenPathIntegration(): Record<string, unknown> {
+    const advice = readRecentProjectJsonl<TokenPathAdviceRecord>(TOKEN_PATH_ADVICE_RELATIVE_PATH, MCP_USAGE_LOOKBACK_MS);
+    const observations = readRecentProjectJsonl<Record<string, unknown>>(
+        TOKEN_PATH_OBSERVATIONS_RELATIVE_PATH,
+        MCP_USAGE_LOOKBACK_MS,
+    );
+    const adviceTimes = advice.map((record) => record.occurred_at).sort();
+    const observationTimes = observations
+        .map((record) => typeof record.occurred_at === 'string' ? record.occurred_at : undefined)
+        .filter((ts): ts is string => !!ts)
+        .sort();
+    const observedEpisodes = new Set(
+        observations
+            .map((record) => typeof record.token_path_episode_id === 'string' ? record.token_path_episode_id : undefined)
+            .filter((episodeId): episodeId is string => !!episodeId),
+    );
+    const successes = observations.filter((record) => record.actual_success === true).length;
+    return {
+        advisor_available: fs.existsSync(path.join(resolveAuguryTokenPathRoot(), 'src', 'core', 'advisor_entry.ts'))
+            || fs.existsSync(path.join(resolveAuguryTokenPathRoot(), 'src', 'core', 'advisor_entry.js')),
+        advice_count_24h: advice.length,
+        observation_count_24h: observations.length,
+        advice_observation_rate: rate(observedEpisodes.size, advice.length),
+        observed_success_rate: rate(successes, observations.length),
+        last_advice_at: adviceTimes.length > 0 ? adviceTimes[adviceTimes.length - 1] : null,
+        last_observation_at: observationTimes.length > 0 ? observationTimes[observationTimes.length - 1] : null,
+    };
+}
+
+function appendTokenPathObservation(
+    beadId: string,
+    payload: TokenPathObservationPayload,
+    verdict?: string,
+): string | null {
+    const observationId = `mcp-obs-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+    const outcome = deriveObservationOutcome(payload, verdict);
+    const record = {
+        schema_version: '1.0.0',
+        ts: new Date().toISOString(),
+        observation_id: observationId,
+        token_path_episode_id: payload.token_path_episode_id,
+        bead_id: beadId,
+        occurred_at: new Date().toISOString(),
+        scenario_class: payload.scenario_class,
+        selected_policy: payload.selected_policy,
+        advised_mode: payload.advised_mode,
+        observed_raw_tokens_episode: payload.observed_raw_tokens_episode,
+        observed_billable_tokens_episode: payload.observed_billable_tokens_episode,
+        rounds: payload.rounds,
+        verification_result: payload.verification_result,
+        terminal_outcome: payload.terminal_outcome,
+        ...outcome,
+        notes: payload.notes,
+    };
+    const appendRecord = (root: string): void => {
+        const obsPath = path.join(root, TOKEN_PATH_OBSERVATIONS_RELATIVE_PATH);
+        fs.mkdirSync(path.dirname(obsPath), { recursive: true });
+        fs.appendFileSync(obsPath, `${JSON.stringify(record)}\n`, 'utf-8');
+    };
+    try {
+        appendRecord(PROJECT_ROOT);
+        return observationId;
+    } catch (error) {
+        logBootstrapError(error);
+        try {
+            appendRecord(path.join('/tmp', 'cstar-kernel-mcp'));
+            return observationId;
+        } catch (fallbackError) {
+            logBootstrapError(fallbackError);
+            return null;
+        }
+    }
+}
+
+function parseTextResponsePayload(result: McpTextResponse): any {
+    try {
+        return JSON.parse(result.content[0]?.text ?? '{}');
+    } catch {
+        return {};
+    }
+}
+
+function resolveUsefulnessRepoId(root: string): string | undefined {
+    try {
+        return database.getHallRepository(root)?.repo_id || buildHallRepositoryId(normalizeHallPath(root));
+    } catch {
+        return undefined;
+    }
+}
+
+export function deriveMcpUsefulnessEvent(
+    base: McpUsageEvent,
+    args: unknown,
+    result?: McpTextResponse,
+): McpUsefulnessEvent {
+    const payload = result ? parseTextResponsePayload(result) : {};
+    const argRecord = args && typeof args === 'object' ? args as Record<string, unknown> : {};
+    const event: McpUsefulnessEvent = {
+        ...base,
+        action: typeof argRecord.action === 'string' ? argRecord.action : undefined,
+        bead_id: typeof argRecord.bead_id === 'string' ? argRecord.bead_id : undefined,
+        outcome_kind: base.ok ? 'ok' : 'error',
+    };
+
+    if (typeof payload?.bead_id === 'string') {
+        event.bead_id = payload.bead_id;
+    }
+    if (payload?.bead && typeof payload.bead.bead_id === 'string') {
+        event.bead_id = payload.bead.bead_id;
+    }
+
+    if (base.tool === 'cstar_hall_search') {
+        const count = Array.isArray(payload) ? payload.length : 0;
+        event.outcome_kind = count > 0 ? 'search_hit' : 'search_miss';
+        event.result_count = count;
+        event.has_results = count > 0;
+    } else if (base.tool === 'cstar_handoff') {
+        const active = payload?.status !== 'idle' && !payload?.error;
+        event.outcome_kind = active ? 'handoff_active' : 'handoff_idle';
+        event.active_handoff = active;
+        event.lead_bead_present = typeof payload?.lead_bead_id === 'string';
+        event.bead_id = typeof payload?.lead_bead_id === 'string' ? payload.lead_bead_id : event.bead_id;
+        event.work_item_count = Array.isArray(payload?.work_items) ? payload.work_items.length : 0;
+    } else if (base.tool === 'cstar_augury') {
+        event.outcome_kind = payload?.error ? 'augury_error' : 'augury_routed';
+        event.routed = !payload?.error && typeof payload?.intent_category === 'string';
+        event.expert = typeof payload?.expert === 'string' ? payload.expert : undefined;
+        event.mimir_target_count = Array.isArray(payload?.mimir_targets) ? payload.mimir_targets.length : 0;
+        event.token_path_present = !!payload?.token_path;
+        event.token_path_episode_id = typeof payload?.token_path?.episode_id === 'string'
+            ? payload.token_path.episode_id
+            : undefined;
+    } else if (base.tool === 'cstar_doctor') {
+        event.outcome_kind = payload?.status === 'healthy' ? 'doctor_healthy' : 'doctor_degraded';
+        event.doctor_status = typeof payload?.status === 'string' ? payload.status : undefined;
+        event.doctor_score = typeof payload?.score === 'number' ? payload.score : undefined;
+    } else if (base.tool === 'cstar_verify_plan') {
+        const commandCount = Array.isArray(payload?.recommended_commands) ? payload.recommended_commands.length : 0;
+        event.outcome_kind = commandCount > 0 || payload?.last_validation ? 'verify_plan_useful' : 'verify_plan_empty';
+        event.bead_id = typeof payload?.bead_id === 'string' ? payload.bead_id : event.bead_id;
+        event.recommended_command_count = commandCount;
+        event.validation_present = !!payload?.last_validation;
+    } else if (base.tool === 'cstar_bead') {
+        event.action = typeof payload?.action === 'string' ? payload.action : event.action;
+        event.outcome_kind = payload?.error ? 'bead_error' : `bead_${event.action || 'unknown'}`;
+        event.result_count = Array.isArray(payload?.beads) ? payload.beads.length : undefined;
+        event.has_results = Array.isArray(payload?.beads) ? payload.beads.length > 0 : undefined;
+    } else if (base.tool === 'cstar_record_result') {
+        event.outcome_kind = payload?.error ? 'validation_error' : 'validation_recorded';
+        event.bead_id = typeof payload?.bead_id === 'string' ? payload.bead_id : event.bead_id;
+        event.verdict = typeof payload?.verdict === 'string' ? payload.verdict : undefined;
+        event.validation_recorded = payload?.status === 'recorded';
+        event.token_path_observation_recorded = typeof payload?.token_path_observation_id === 'string';
+        event.token_path_episode_id = typeof payload?.token_path_episode_id === 'string'
+            ? payload.token_path_episode_id
+            : undefined;
+    }
+
+    return event;
+}
+
+function instrumentTool<TArgs>(
+    toolName: string,
+    handler: (args: TArgs) => Promise<McpTextResponse>,
+) {
+    return async (args: TArgs) => {
+        const startedAt = Date.now();
+        const root = resolveTelemetryRoot();
+        try {
+            const result = await handler(args);
+            const usageEvent = {
+                ts: new Date(startedAt).toISOString(),
+                tool: toolName,
+                ok: result.isError !== true,
+                duration_ms: Date.now() - startedAt,
+                root,
+            };
+            appendMcpUsageEvent(usageEvent);
+            appendMcpUsefulnessEvent({
+                ...deriveMcpUsefulnessEvent(usageEvent, args, result),
+                repo_id: resolveUsefulnessRepoId(root),
+            });
+            return result;
+        } catch (error) {
+            const usageEvent = {
+                ts: new Date(startedAt).toISOString(),
+                tool: toolName,
+                ok: false,
+                duration_ms: Date.now() - startedAt,
+                root,
+            };
+            appendMcpUsageEvent(usageEvent);
+            appendMcpUsefulnessEvent({
+                ...deriveMcpUsefulnessEvent(usageEvent, args),
+                repo_id: resolveUsefulnessRepoId(root),
+            });
+            throw error;
+        }
+    };
+}
+
+// 1. cstar_handoff
+export async function handleHandoff() {
+    try {
+        const root = registry.getRoot();
+        const session = resolveActivePlanningSession(root);
+        const handoff = buildTraceAgentHandoffPayload(session, root);
+        
+        if (!handoff) {
+            return textResponse({ status: 'idle' });
+        }
+
+        // Compact the handoff according to the mandate
+        const compactHandoff = {
+            execution_gate: handoff.execution_gate,
+            phase: handoff.phase,
+            next_action: handoff.next_action,
+            lead_bead_id: handoff.lead_bead_id,
+            target_paths: handoff.target_paths.slice(0, 5),
+            checker_shells: handoff.checker_shells.slice(0, 3),
+            work_items: handoff.work_items.slice(0, 3).map(w => ({
+                bead_id: w.bead_id,
+                status: w.status,
+                target_path: w.target_path
+            }))
+        };
+
+        return textResponse(compactHandoff);
+    } catch (error: any) {
+        return textResponse({ error: error.message }, true);
+    }
+}
+
+server.tool(
+    'cstar_handoff',
+    'Return compact active state from Augury/handoff logic.',
+    {},
+    instrumentTool('cstar_handoff', handleHandoff)
+);
+
+// 2. cstar_hall_search
+export async function handleHallSearch({ query, limit, types }: { query: string, limit?: number, types?: string[] }) {
+    try {
+        const actualLimit = Math.min(limit || 5, 10);
+        const results = database.searchIntents(query);
+        
+        // Apply type filtering
+        let filtered = results;
+        if (types && types.length > 0) {
+            const typeSet = new Set(types.map(t => t.toUpperCase()));
+            filtered = results.filter(r => typeSet.has(r.type));
+        }
+
+        const output = filtered.slice(0, actualLimit).map(r => ({
+            type: r.type,
+            path_or_id: r.path,
+            title: r.type === 'CODE' || r.type === 'DOC' ? path.basename(r.path) : (r.intent || 'Untitled'),
+            summary: (r.intent || '').substring(0, 240),
+            rank: r.rank
+        }));
+
+        return textResponse(output);
+    } catch (error: any) {
+        return textResponse({ error: error.message }, true);
+    }
+}
+
+server.tool(
+    'cstar_hall_search',
+    'Bounded Hall search across code/docs/engrams/beads/sessions.',
+    {
+        query: z.string().describe('The search query'),
+        limit: z.number().min(1).max(10).optional().default(5).describe('Result limit (max 10)'),
+        types: z.array(z.enum(['CODE', 'DOC', 'ENGRAM', 'BEAD', 'SESSION'])).optional().describe('Filter by types')
+    },
+    instrumentTool('cstar_hall_search', handleHallSearch)
+);
+
+// 3. cstar_augury
+export async function handleAugury({ prompt, inferred_intent, target_paths, scope }: { prompt: string, inferred_intent?: string, target_paths?: string[], scope?: string }) {
+    try {
+        let explain: ReturnType<typeof buildAuguryExplainPayload> = {
+            status: 'missing',
+            agent_next_action: 'Perform handoff to verify active state.',
+            warnings: [],
+        };
+        try {
+            const root = registry.getRoot();
+            const session = resolveActivePlanningSession(root);
+            explain = buildAuguryExplainPayload(session, root);
+        } catch (error) {
+            logBootstrapError(error);
+        }
+
+        let result: Record<string, unknown>;
+        let routingInput: TokenPathRoutingInput;
+
+        if (explain.status === 'available' && explain.route) {
+            const expert = explain.expert as (typeof explain.expert & KernelCouncilExpert);
+            const designation = explain.route.designation || '';
+            const colonIdx = designation.indexOf(':');
+            const selectionTier = colonIdx >= 0 ? designation.slice(0, colonIdx).trim() : designation.trim();
+            const selectionName = colonIdx >= 0 ? designation.slice(colonIdx + 1).trim() : undefined;
+            result = {
+                intent_category: explain.route.intent_category,
+                intent: explain.route.intent,
+                scope: explain.scope?.value || scope || 'brain:CStar',
+                selection: explain.route.designation,
+                expert: expert?.id,
+                expert_label: expert?.label,
+                expert_lens: expert?.lens,
+                expert_signature_question: expert?.signature_question,
+                expert_guardrails: expert?.anti_behavior?.slice(0, 3),
+                mimir_targets: explain.mimir?.targets.slice(0, 3) || (target_paths || []).slice(0, 3),
+                next_action: explain.agent_next_action || 'Perform handoff to verify active state.',
+                council_candidates: expert?.selection_candidates?.slice(0, 3) ?? [],
+                confidence: 1.0
+            };
+            routingInput = {
+                prompt,
+                inferred_intent,
+                intent_category: explain.route.intent_category,
+                target_paths,
+                mimirs_well: explain.mimir?.targets,
+                scope: explain.scope?.value || scope,
+                selection_tier: selectionTier || undefined,
+                selection_name: selectionName,
+            };
+        } else {
+            // Fallback for idle/missing state
+            const selectedExpert = selectCouncilExpert({
+                intent_category: 'ORCHESTRATE',
+                intent: inferred_intent || prompt.substring(0, 100),
+                selection_tier: 'SKILL',
+                selection_name: 'cstar-kernel',
+                mimirs_well: (target_paths || []).slice(0, 3),
+            }) as ReturnType<typeof selectCouncilExpert> & KernelCouncilExpert;
+            result = {
+                intent_category: 'ORCHESTRATE',
+                intent: inferred_intent || prompt.substring(0, 100),
+                scope: scope || 'brain:CStar',
+                selection: 'SKILL: cstar-kernel',
+                expert: selectedExpert.id,
+                expert_label: selectedExpert.label,
+                expert_lens: selectedExpert.lens,
+                expert_signature_question: selectedExpert.signature_question ?? '',
+                expert_guardrails: selectedExpert.anti_behavior.slice(0, 3),
+                mimir_targets: (target_paths || []).slice(0, 3),
+                next_action: 'Perform handoff to verify active state.',
+                council_candidates: selectedExpert.selection_candidates?.slice(0, 3) ?? [],
+                confidence: 0.9
+            };
+            routingInput = {
+                prompt,
+                inferred_intent,
+                intent_category: 'ORCHESTRATE',
+                target_paths,
+                scope,
+                selection_tier: 'SKILL',
+                selection_name: 'cstar-kernel',
+            };
+        }
+
+        const tokenPath = await runTokenPathAdvisor(routingInput);
+        if (tokenPath) {
+            appendTokenPathAdvice(routingInput, tokenPath);
+            result.token_path = tokenPath;
+        }
+
+        return textResponse(result);
+    } catch (error: any) {
+        return textResponse({ error: error.message }, true);
+    }
+}
+
+server.tool(
+    'cstar_augury',
+    'Route one mission without claiming host pre-inference control.',
+    {
+        prompt: z.string().describe('The user prompt or mission statement'),
+        inferred_intent: z.string().optional().describe('Optional inferred intent'),
+        target_paths: z.array(z.string()).optional().describe('Optional target paths'),
+        scope: z.string().optional().describe('Optional scope')
+    },
+    instrumentTool('cstar_augury', handleAugury)
+);
+
+// 4. cstar_doctor
+export async function handleDoctor() {
+    try {
+        const root = registry.getRoot();
+        const session = resolveActivePlanningSession(root);
+        const doctor = buildAuguryDoctorPayload(session, root);
+        const db = database.getDb(root);
+        const dbOk = db !== null;
+        const result = {
+            status: doctor.status === 'pass' ? 'healthy' : 'degraded',
+            score: doctor.score,
+            warnings: doctor.warnings,
+            active: true,
+            checks: {
+                database: dbOk,
+                registry: !!root,
+                augury: doctor.status === 'pass'
+            },
+            telemetry: summarizeRecentMcpUsage(),
+            usefulness: summarizeRecentMcpUsefulness(),
+            token_path: summarizeRecentTokenPathIntegration(),
+        };
+
+
+
+        return textResponse(result);
+    } catch (error: any) {
+        return textResponse({ status: 'fail', error: error.message }, true);
+    }
+}
+
+server.tool(
+    'cstar_doctor',
+    'Diagnose base kernel health and active Augury health.',
+    {},
+    instrumentTool('cstar_doctor', handleDoctor)
+);
+
+// 5. cstar_verify_plan
+export async function handleVerifyPlan() {
+    try {
+        const root = registry.getRoot();
+        const session = resolveActivePlanningSession(root);
+        const handoff = buildTraceAgentHandoffPayload(session, root);
+
+        let last_validation: { verdict: string; recorded_at: number; validation_id: string } | null = null;
+        if (handoff?.lead_bead_id) {
+            try {
+                const runs = database.getValidationRuns(handoff.lead_bead_id);
+                if (runs && runs.length > 0) {
+                    const sorted = [...runs].sort((a: any, b: any) => (b.created_at ?? 0) - (a.created_at ?? 0));
+                    const latest: any = sorted[0];
+                    last_validation = {
+                        verdict: String(latest.verdict ?? 'INCONCLUSIVE'),
+                        recorded_at: Number(latest.created_at ?? 0),
+                        validation_id: String(latest.validation_id ?? ''),
+                    };
+                }
+            } catch {
+                // last_validation stays null on lookup failure.
+            }
+        }
+
+        const result = {
+            recommended_commands: (handoff?.checker_shells || []).slice(0, 3),
+            reason: 'Verified from active bead checker shells.',
+            bead_id: handoff?.lead_bead_id,
+            target_paths: handoff?.target_paths || [],
+            last_validation,
+        };
+
+        return textResponse(result);
+    } catch (error: any) {
+        return textResponse({ error: error.message }, true);
+    }
+}
+
+server.tool(
+    'cstar_verify_plan',
+    'Recommend focused checks; do not run them.',
+    {},
+    instrumentTool('cstar_verify_plan', handleVerifyPlan)
+);
+
+// 6. cstar_bead
+export async function handleBead(args: BeadToolArgs) {
+    try {
+        const { root, repoId } = resolveActiveRepo();
+        const now = Date.now();
+
+        if (args.action === 'list') {
+            const limit = Math.min(args.limit || 5, 10);
+            const beads = database.getHallBeads(root, args.statuses);
+            return textResponse({
+                status: 'ok',
+                action: 'list',
+                count: Math.min(beads.length, limit),
+                beads: beads.slice(0, limit).map(compactBead),
+            });
+        }
+
+        if (args.action === 'create') {
+            const rationale = requireString(args.rationale, 'rationale');
+            const beadId = args.bead_id?.trim() || generateBeadId(rationale);
+            const targetKind = args.target_kind || (args.target_path ? 'FILE' : 'OTHER');
+            database.upsertHallBead({
+                bead_id: beadId,
+                repo_id: repoId,
+                target_kind: targetKind,
+                target_ref: args.target_ref || args.target_path,
+                target_path: args.target_path,
+                rationale,
+                contract_refs: args.contract_refs || [],
+                baseline_scores: {},
+                acceptance_criteria: args.acceptance_criteria,
+                checker_shell: args.checker_shell,
+                status: args.status || 'OPEN',
+                assigned_agent: args.assigned_agent,
+                source_kind: 'MCP',
+                metadata: {
+                    source: 'cstar-kernel-mcp',
+                    ...(args.metadata || {}),
+                },
+                created_at: now,
+                updated_at: now,
+            });
+            return textResponse({
+                status: 'created',
+                action: 'create',
+                bead: compactBead(database.getHallBead(beadId)),
+            });
+        }
+
+        const beadId = requireString(args.bead_id, 'bead_id');
+        const bead = database.getHallBead(beadId);
+        if (!bead) {
+            return textResponse({ error: `Bead not found: ${beadId}` }, true);
+        }
+
+        if (args.action === 'get') {
+            return textResponse({
+                status: 'ok',
+                action: 'get',
+                bead: compactBead(bead),
+            });
+        }
+
+        if (args.action === 'update_status') {
+            const status = args.status || (() => { throw new Error('status is required.'); })();
+            const updated = upsertBeadFromExisting(bead, {
+                status,
+                resolution_note: args.resolution_note ?? bead.resolution_note,
+                resolved_validation_id: args.resolved_validation_id ?? bead.resolved_validation_id,
+                triage_reason: args.triage_reason ?? bead.triage_reason,
+                metadata: {
+                    ...(bead.metadata || {}),
+                    ...(args.metadata || {}),
+                    updated_by: 'cstar-kernel-mcp',
+                },
+            });
+            return textResponse({
+                status: 'updated',
+                action: 'update_status',
+                bead: compactBead(updated),
+            });
+        }
+
+        if (args.action === 'claim') {
+            const assignedAgent = requireString(args.assigned_agent, 'assigned_agent');
+            const updated = upsertBeadFromExisting(bead, {
+                assigned_agent: assignedAgent,
+                status: args.status || 'IN_PROGRESS',
+                metadata: {
+                    ...(bead.metadata || {}),
+                    ...(args.metadata || {}),
+                    claimed_by: assignedAgent,
+                    claim_source: 'cstar-kernel-mcp',
+                },
+            });
+            return textResponse({
+                status: 'claimed',
+                action: 'claim',
+                bead: compactBead(updated),
+            });
+        }
+
+        if (args.action === 'resolve') {
+            const updated = upsertBeadFromExisting(bead, {
+                status: 'RESOLVED',
+                resolution_note: args.resolution_note || bead.resolution_note || 'Resolved through cstar-kernel MCP.',
+                resolved_validation_id: args.resolved_validation_id ?? bead.resolved_validation_id,
+                metadata: {
+                    ...(bead.metadata || {}),
+                    ...(args.metadata || {}),
+                    resolved_by: 'cstar-kernel-mcp',
+                },
+            });
+            return textResponse({
+                status: 'resolved',
+                action: 'resolve',
+                bead: compactBead(updated),
+            });
+        }
+
+        if (args.action === 'block') {
+            const triageReason = requireString(args.triage_reason || args.resolution_note, 'triage_reason');
+            const updated = upsertBeadFromExisting(bead, {
+                status: 'BLOCKED',
+                triage_reason: triageReason,
+                resolution_note: args.resolution_note ?? bead.resolution_note,
+                metadata: {
+                    ...(bead.metadata || {}),
+                    ...(args.metadata || {}),
+                    blocked_by: 'cstar-kernel-mcp',
+                },
+            });
+            return textResponse({
+                status: 'blocked',
+                action: 'block',
+                bead: compactBead(updated),
+            });
+        }
+
+        return textResponse({ error: `Unsupported bead action: ${args.action}` }, true);
+    } catch (error: any) {
+        return textResponse({ error: error.message }, true);
+    }
+}
+
+server.tool(
+    'cstar_bead',
+    'Create, inspect, claim, block, resolve, and list bounded Hall beads.',
+    {
+        action: z.enum(['get', 'list', 'create', 'update_status', 'claim', 'resolve', 'block']).describe('Bounded bead action'),
+        bead_id: z.string().optional().describe('Hall bead id'),
+        limit: z.number().min(1).max(10).optional().default(5).describe('Result limit for list'),
+        statuses: z.array(z.enum(HALL_BEAD_STATUSES as [HallBeadStatus, ...HallBeadStatus[]])).optional().describe('Optional list status filter'),
+        target_kind: z.enum(HALL_BEAD_TARGET_KINDS as [HallBeadTargetKind, ...HallBeadTargetKind[]]).optional().describe('Target kind for create'),
+        target_path: z.string().optional().describe('Target file/path'),
+        target_ref: z.string().optional().describe('Target reference'),
+        rationale: z.string().optional().describe('Bead rationale, required for create'),
+        acceptance_criteria: z.string().optional().describe('Acceptance criteria'),
+        checker_shell: z.string().optional().describe('Focused checker command'),
+        contract_refs: z.array(z.string()).optional().describe('Contract references'),
+        status: z.enum(HALL_BEAD_STATUSES as [HallBeadStatus, ...HallBeadStatus[]]).optional().describe('Status for create/update/claim'),
+        assigned_agent: z.string().optional().describe('Assigned agent for claim/create'),
+        resolution_note: z.string().optional().describe('Resolution or blocker note'),
+        resolved_validation_id: z.string().optional().describe('Validation id used for resolution'),
+        triage_reason: z.string().optional().describe('Reason for blocked/triage status'),
+        metadata: z.record(z.string(), z.unknown()).optional().describe('Small metadata object'),
+    },
+    instrumentTool('cstar_bead', handleBead)
+);
+
+// 7. cstar_record_result
+export async function handleRecordResult({ bead_id, verdict, notes, token_path_episode_id, token_path_observation }: {
+    bead_id: string,
+    verdict: string,
+    notes?: string,
+    token_path_episode_id?: string,
+    token_path_observation?: TokenPathObservationPayload,
+}) {
+    try {
+        let root = PROJECT_ROOT;
+        let repoId = 'cstar';
+        const validationId = `val-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+        let validationError: string | undefined;
+
+        try {
+            root = registry.getRoot();
+            const repo = database.getHallRepository(root);
+            repoId = repo?.repo_id || repoId;
+            database.saveValidationRun({
+                validation_id: validationId,
+                repo_id: repoId,
+                bead_id,
+                verdict: verdict as any,
+                notes: notes || '',
+                created_at: Date.now()
+            } satisfies HallValidationRun);
+        } catch (error) {
+            validationError = error instanceof Error ? error.message : String(error);
+            logBootstrapError(error);
+        }
+
+        let observationId: string | null = null;
+        let observationPayload = token_path_observation;
+        let linkedTokenPathEpisodeId = token_path_episode_id;
+        if (!observationPayload && token_path_episode_id) {
+            const advice = findRecentTokenPathAdvice(token_path_episode_id, bead_id);
+            if (advice) {
+                observationPayload = buildObservationFromAdvice(advice, notes);
+                linkedTokenPathEpisodeId = advice.episode_id;
+            }
+        }
+        if (observationPayload
+            && typeof observationPayload.scenario_class === 'string'
+            && typeof observationPayload.selected_policy === 'string'
+            && typeof observationPayload.advised_mode === 'string') {
+            if (linkedTokenPathEpisodeId && !observationPayload.token_path_episode_id) {
+                observationPayload = {
+                    ...observationPayload,
+                    token_path_episode_id: linkedTokenPathEpisodeId,
+                };
+            }
+            observationId = appendTokenPathObservation(bead_id, observationPayload, verdict);
+            linkedTokenPathEpisodeId = observationPayload.token_path_episode_id || linkedTokenPathEpisodeId;
+        }
+
+        const response: Record<string, unknown> = { status: 'recorded', bead_id, verdict, validation_id: validationId };
+        if (validationError) {
+            response.validation_warning = validationError;
+        }
+        if (observationId) {
+            response.token_path_observation_id = observationId;
+        }
+        if (linkedTokenPathEpisodeId) {
+            response.token_path_episode_id = linkedTokenPathEpisodeId;
+        }
+
+        return textResponse(response);
+    } catch (error: any) {
+        return textResponse({ error: error.message }, true);
+    }
+}
+
+server.tool(
+    'cstar_record_result',
+    'Append validation outcome and optionally connect it to a bead. Pass token_path_observation to feed the Augury token-path sidecar calibration loop.',
+    {
+        bead_id: z.string().describe('The ID of the bead being validated'),
+        verdict: z.enum(['ACCEPTED', 'REJECTED', 'INCONCLUSIVE', 'SUCCESS', 'FAILURE']).describe('The validation result'),
+        notes: z.string().optional().describe('Optional notes about the result'),
+        token_path_episode_id: z.string().optional().describe('Episode id from cstar_augury token_path. Enables automatic observation linking.'),
+        token_path_observation: z.object({
+            token_path_episode_id: z.string().optional().describe('Episode id from cstar_augury token_path'),
+            scenario_class: z.string().describe('Scenario class string from cstar_augury token_path block'),
+            selected_policy: z.string().describe('Policy id (e.g. advisor, lite-only, defer-escalate)'),
+            advised_mode: z.string().describe('Token-path mode the advisor selected'),
+            observed_raw_tokens_episode: z.number().nonnegative().optional(),
+            observed_billable_tokens_episode: z.number().nonnegative().optional(),
+            rounds: z.number().int().nonnegative().optional(),
+            verification_result: z.string().optional(),
+            terminal_outcome: z.string().optional(),
+            actual_success: z.boolean().optional(),
+            actual_completion: z.boolean().optional(),
+            actual_verification_passed: z.boolean().optional(),
+            actual_requires_followup: z.boolean().optional(),
+            actual_deferred: z.boolean().optional(),
+            notes: z.string().optional(),
+        }).optional().describe('Optional Augury token-path live observation; appended to .agents/state/augury-token-path-mcp-observations.jsonl for sidecar calibration.'),
+    },
+    instrumentTool('cstar_record_result', handleRecordResult)
+);
+
+
+
+
+async function main() {
+    const transport = new StdioServerTransport();
+    await server.connect(transport);
+    process.stdin.resume();
+    const keepAlive = setInterval(() => {
+        // Keep stdio MCP server alive while the host owns the pipe.
+    }, 60_000);
+    process.stdin.once('end', () => {
+        clearInterval(keepAlive);
+        process.exit(0);
+    });
+    process.stdin.once('close', () => {
+        clearInterval(keepAlive);
+        process.exit(0);
+    });
+    process.once('SIGTERM', () => {
+        clearInterval(keepAlive);
+        process.exit(0);
+    });
+}
+
+function isDirectKernelMcpLaunch(): boolean {
+    const entry = process.argv[1] ? path.resolve(process.argv[1]) : '';
+    return entry === fileURLToPath(import.meta.url);
+}
+
+if (process.env.CSTAR_KERNEL_MCP === '1' || isDirectKernelMcpLaunch()) {
+    main().catch((error) => {
+        console.error('Fatal error in CStar Kernel MCP:', error);
+        process.exit(1);
+    });
+}

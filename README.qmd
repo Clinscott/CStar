@@ -90,7 +90,7 @@ PennyOne represents the true operational state of the Corvus Star organism. It i
 - **Sovereign Configuration (`.agents/sovereign_state.json`)**: The fundamental anchor. This file tracks the active persona (e.g., A.L.F.R.E.D.), identity principles, and actively tracks editing metrics for source files. It formally delegates chronological memory to PennyOne.
 - **The Hall of Records (`.stats/`)**: The physical state, anchored by the `matrix-graph.json` compiled graph, housing Gungnir scores (Logic, Complexity, Gravity) and deduced intents for all analyzed files.
 - **Database Memory**: `pennyone.db` and `gravity.db` track real-time agent traversal, providing an intelligent compass for future scans without raw codebase blind-reads.
-- **Visualize**: `npx tsx bin/pennyone.js view` for full 3D topological telemetry and agent DVR playback.
+- **Visualize**: PennyOne 3D topological telemetry and agent DVR playback (legacy launcher archived under `mind_archive/legacy_mcp_source/pennyone.js`).
 
 ---
 
@@ -111,7 +111,7 @@ Corvus Star operates using distinct personas and a specific linguistic framework
 *   **The Crucible / The Gauntlet**: The strict testing and verification layers (Empire TDD) that code must pass before being finalized.
 *   **Gungnir Calculus**: The octal intelligence schema applied to every file: `[L]` Logic, `[S]` Style, `[I]` Intel, `[G]` Gravity, `[V]` Vigil, `[E]` Evolution, `[A]` Anomaly, `[Ω]` Sovereignty.
 *   **Mimir's Well**: The high-fidelity FTS5 SQLite engine that stores the framework's semantic lore.
-*   **The Bifröst Gate**: The `corvus-control` MCP server acting as the bridge between the Host Agent and the framework's skills.
+*   **The Bifröst Gate**: The `cstar-kernel` MCP — the six-tool kernel surface (`cstar_handoff`, `cstar_hall_search`, `cstar_augury`, `cstar_doctor`, `cstar_verify_plan`, `cstar_record_result`) acting as the bridge between the Host Agent and the framework.
 *   **Heimdall**: The auditor and security sentinel that intercepts and blocks structural breaches.
 
 ---

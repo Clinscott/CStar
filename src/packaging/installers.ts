@@ -82,23 +82,14 @@ export function installGeminiExtension(options: InstallOptions): { linkPath: str
 function buildCodexPluginMcpConfig(projectRoot: string): Record<string, unknown> {
     return {
         mcpServers: {
-            pennyone: {
+            'cstar-kernel': {
                 command: 'node',
-                args: ['bin/pennyone-mcp.js'],
+                args: ['bin/cstar-kernel-mcp.js'],
                 cwd: projectRoot,
                 env: {
                     GEMINI_CLI_ACTIVE: 'true',
                 },
-                note: 'Authoritative Corvus Hall and PennyOne MCP surface.',
-            },
-            'corvus-control': {
-                command: 'node',
-                args: ['scripts/run-tsx.mjs', 'src/tools/corvus-control-mcp.ts'],
-                cwd: projectRoot,
-                env: {
-                    GEMINI_CLI_ACTIVE: 'true',
-                },
-                note: 'Kernel-backed Corvus workflow and control-plane MCP surface.',
+                note: 'CStar kernel MCP — six-tool surface (handoff, hall_search, augury, doctor, verify_plan, record_result).',
             },
         },
     };
