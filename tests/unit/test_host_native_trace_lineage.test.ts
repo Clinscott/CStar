@@ -101,8 +101,9 @@ describe('host-native Augury lineage', () => {
             assertAuguryContractIncludesCoreFields(executionBead?.metadata?.trace_contract, traceContract);
             assert.strictEqual(hostTextInvoker.mock.callCount(), 1);
             const hostPrompt = String(hostTextInvoker.mock.calls[0]?.arguments[0]?.prompt ?? '');
-            // [CORVUS_STAR_AUGURY] header removed — Augury format has evolved beyond header tags
-            assert.match(hostPrompt, /◈.*LITE AUGURY.*◈/);
+            // Augury now renders in block-tag format; verify key fields are present
+            assert.match(hostPrompt, /\[CORVUS_STAR_AUGURY\]/);
+            assert.match(hostPrompt, /Route:.*ORCHESTRATE.*WEAVE: orchestrate/);
             assert.match(hostPrompt, /Council Expert: DEAN/);
             assert.match(hostPrompt, /Mimir's Well: src\/node\/core\/runtime\/dispatcher\.ts/);
             assert.match(hostPrompt, /Directive: Route only/i);

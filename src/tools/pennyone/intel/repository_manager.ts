@@ -1347,6 +1347,21 @@ function searchIndexedTables(db: Database.Database, safeQuery: string, originalQ
         ORDER BY rank
     `).all(safeQuery) as any[];
 
+    const lessonResults = db.prepare(`
+        SELECT
+            fts.lesson_id as path,
+            fts.title as intent,
+            fts.content as interaction_protocol,
+            fts.rank,
+            'LESSON' as type,
+            l.metadata_json,
+            l.updated_at
+        FROM hall_lessons_fts AS fts
+        JOIN hall_lessons AS l ON l.lesson_id = fts.lesson_id
+        WHERE hall_lessons_fts MATCH ?
+        ORDER BY rank
+    `).all(safeQuery) as any[];
+
     const documentResults = db.prepare(`
         SELECT fts.path, fts.title as intent, COALESCE(fts.summary, fts.content) as interaction_protocol, docs.metadata_json, docs.updated_at, fts.rank, 'DOC' as type
         FROM hall_documents_fts AS fts
@@ -1355,7 +1370,7 @@ function searchIndexedTables(db: Database.Database, safeQuery: string, originalQ
         ORDER BY rank
     `).all(safeQuery) as any[];
 
-    return [...codeResults, ...loreResults, ...episodicResults, ...documentResults]
+    return [...codeResults, ...loreResults, ...episodicResults, ...lessonResults, ...documentResults]
         .sort((a, b) => scoreIndexedSearchResult(a, originalQuery) - scoreIndexedSearchResult(b, originalQuery));
 }
 

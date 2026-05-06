@@ -1,7 +1,0 @@
----
-name: cachebro
-description: <p align="center">
----
-# cachebro
-
-Imported from https://github.com/glommer/cachebro

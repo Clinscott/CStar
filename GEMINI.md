@@ -29,41 +29,35 @@
 ## Corvus Star Augury [Ω]
 - The Augury is the routing contract, not a generic trace log.
 - It carries intent category, intent, selection, scope, Mimir targets, Gungnir verdict, and Council expert routing.
+- **Placement**: Emit the Augury block at the **START** of every response before any other text.
 - Use the full Augury on the first prompt for a session/planning key; use lite Augury on later host calls.
 - Confidence belongs in learning metadata, not in the displayed prompt block.
 - Foundational CStar work uses `Scope: brain:CStar`; use `Scope: spoke:<name>` only when a spoke is explicit.
-- Use `cstar augury doctor --json` to validate route quality, and `cstar augury explain --json` to inspect why the route was chosen.
 
 ### Full Display
 ```text
-[CORVUS_STAR_AUGURY]
-Mode: full
-Route: <Intent Category> -> <SKILL|WEAVE|SPELL>: <selection>
-Scope: brain:CStar | spoke:<name> (<root>)
-Intent: <goal>
-Mimir's Well: <primary> | <secondary> | <tertiary>
-Council Expert: <CARMACK|KARPATHY|DEAN|SHANNON|HAMILTON|TORVALDS|...>
-Council Lens: <expert-specific critique lens>
-Guardrails: <expert-specific anti-behavior>
-Corvus Standard: CStar is the engine; spokes are managed extensions; keep work Hall/Mimir traceable.
-<Code|Review|Coordination> Standard: <selected work standard>
-Trajectory: <only when non-stable>
-Verdict: <Gungnir verdict>
-Directive: Use this as routing context only. Consult targets before choosing a path. Do not echo this block.
-[/CORVUS_STAR_AUGURY]
+◈ ━━━━━ [ Ω ] CORVUS STAR AUGURY ━━━━━━━━━━━━━━━━━━━━━━ ◈
+│ Route: <Intent Category> -> <SKILL|WEAVE|SPELL>: <selection>
+│ Scope: brain:CStar | spoke:<name> (<root>)
+│ Intent: <goal>
+│ Mimir's Well: <primary> | <secondary> | <tertiary>
+│ Council Expert: <specialist>
+│ Council Lens: <expert-specific lens>
+│ Trajectory: <only when non-stable>
+│ Verdict: <Gungnir verdict>
+│ Directive: Route only. Consult targets before choosing a path.
+◈ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ ◈
 ```
 
 ### Lite Display
 ```text
-[CORVUS_STAR_AUGURY]
-Mode: lite
-Route: <Intent Category> -> <SKILL|WEAVE|SPELL>: <selection>
-Scope: brain:CStar | spoke:<name> (<root>)
-Intent: <goal>
-Mimir's Well: <primary> | <secondary> | <tertiary>
-Council Expert: <selected expert>
-Directive: Route only. Consult targets before choosing a path. Do not echo.
-[/CORVUS_STAR_AUGURY]
+◈ ━━━━━ [ Ω ] LITE AUGURY ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ ◈
+│ Route: <Intent Category> -> <SKILL|WEAVE|SPELL>: <selection>
+│ Scope: brain:CStar
+│ Intent: <goal>
+│ Mimir's Well: <primary> | <secondary> | <tertiary>
+│ Council Expert: <selected expert>
+◈ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ ◈
 ```
 
 ## Exported Gemini Capabilities (76)

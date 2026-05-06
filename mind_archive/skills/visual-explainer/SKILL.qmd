@@ -1,7 +1,0 @@
----
-name: visual-explainer
-description: <p>
----
-# visual-explainer
-
-Imported from https://github.com/nicobailon/visual-explainer

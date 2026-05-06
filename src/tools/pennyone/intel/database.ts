@@ -17,7 +17,7 @@ import {
     saveEpisodicMemory,
     getValidationRuns,
     getTracesForFile,
-    saveValidationRun,
+    saveValidationRun, listUnstudiedEngrams,
     saveTrace
 } from './bead_controller.js';
 import { 
@@ -93,6 +93,12 @@ import {
     updateChronicleIndex,
     searchIntents as searchHallFiles
 } from './repository_manager.js';
+import {
+    saveHallLesson,
+    getHallLesson,
+    listHallLessons,
+    getLessonTree
+} from './lesson_controller.js';
 import { ensureHallSchema } from './schema.js';
 import Database from 'better-sqlite3';
 import { registry } from '../pathRegistry.js';
@@ -202,6 +208,11 @@ export class HallDatabase {
     public updateChronicleIndex = updateChronicleIndex;
     public searchHallFiles = searchHallFiles;
     public searchIntents = searchHallFiles;
+    public saveHallLesson = saveHallLesson;
+    public getHallLesson = getHallLesson;
+    public listHallLessons = listHallLessons;
+    public getLessonTree = getLessonTree;
+    public listUnstudiedEngrams = listUnstudiedEngrams;
 }
 
 export const database = new HallDatabase();
@@ -220,6 +231,10 @@ export function getDb(rootPath: string = registry.getRoot()): Database.Database 
  */
 export function closeDb(): void {
     database.close();
+}
+
+export function listUnstudiedHallEngrams(sessionsOnly = true) {
+    return database.listUnstudiedEngrams(sessionsOnly);
 }
 
 export function listHallEpisodicMemory(rootPath: string = registry.getRoot(), beadId?: string) {
@@ -250,7 +265,6 @@ export {
     saveEpisodicMemory as saveHallEpisodicMemory,
     getValidationRuns,
     getTracesForFile,
-    saveValidationRun,
     saveValidationRun as saveHallValidationRun,
     saveTrace,
     getHallPlanningSession,
@@ -327,5 +341,10 @@ export {
     updateFtsIndex,
     updateChronicleIndex,
     searchHallFiles,
-    searchHallFiles as searchIntents
+    searchHallFiles as searchIntents,
+    saveHallLesson,
+    getHallLesson,
+    listHallLessons,
+    listUnstudiedEngrams,
+    getLessonTree
 };

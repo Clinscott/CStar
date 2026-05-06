@@ -142,12 +142,36 @@
         "document",
         "explain",
         "chronicle",
-        "architecture"
+        "architecture",
+        "study",
+        "harvest",
+        "learn"
       ],
-      "default_path": "living_architecture",
-      "tier": "WEAVE"
+      "default_path": "mimir-harvester",
+      "tier": "SKILL"
     }
   },
-  "entries": [],
+  "entries": [
+    {
+      "id": "mimir-harvester",
+      "title": "Mimir Harvester",
+      "description": "Autonomous study of episodic memory engrams and hierarchical lesson distillation.",
+      "tier": "SKILL",
+      "execution": {
+        "adapter_id": "weave:distill-lessons",
+        "language": "python",
+        "entry_point": "scripts/mimir_harvester.py"
+      },
+      "intent_categories": ["DOCUMENT"],
+      "contract": {
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "memory_id": { "type": "string", "description": "Specific engram to study" }
+          }
+        }
+      }
+    }
+  ],
   "authority_audit": []
 }

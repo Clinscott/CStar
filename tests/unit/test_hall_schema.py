@@ -162,7 +162,7 @@ def test_hall_schema_bootstrap_does_not_overwrite_existing_repository_authority(
             root_path=str(tmp_path).replace("\\", "/"),
             name=tmp_path.name,
             status="AGENT_LOOP",
-            active_persona="ALFRED",
+            active_persona="A.L.F.R.E.D.",
             baseline_gungnir_score=88.0,
             intent_integrity=96.0,
             metadata={
@@ -180,11 +180,11 @@ def test_hall_schema_bootstrap_does_not_overwrite_existing_repository_authority(
     summary = hall.get_repository_summary()
 
     assert record.status == "AGENT_LOOP"
-    assert record.active_persona == "ALFRED"
+    assert record.active_persona == "A.L.F.R.E.D."
     assert record.metadata["source"] == "hall-authority"
     assert summary is not None
     assert summary["status"] == "AGENT_LOOP"
-    assert summary["active_persona"] == "ALFRED"
+    assert summary["active_persona"] == "A.L.F.R.E.D."
 
 
 def test_hall_schema_connect_applies_sqlite_hardening_pragmas(tmp_path):

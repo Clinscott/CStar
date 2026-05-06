@@ -452,6 +452,28 @@ export interface EngraveWeavePayload {
     cwd: string;
 }
 
+export interface LessonDistillWeavePayload {
+    memory_id?: string;
+    bead_id?: string;
+    project_root: string;
+    cwd: string;
+}
+
+export interface LessonDistillHostResponse {
+    tree_nodes?: Array<{
+        level: 'TREE' | 'LIMB' | 'BRANCH' | 'LEAF' | 'CELL';
+        title: string;
+        content: string;
+        parent_title?: string;
+        tags?: string[];
+    }>;
+}
+
+export interface LessonDistillWeaveMetadata extends Record<string, unknown> {
+    lessons_created: number;
+    lesson_ids: string[];
+}
+
 export interface WardenWeavePayload {
     project_root: string;
     cwd: string;

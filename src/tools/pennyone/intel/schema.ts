@@ -137,6 +137,52 @@ export function ensureHallSchema(database: Database.Database, rootPath: string):
         CREATE INDEX IF NOT EXISTS idx_hall_episodic_memory_repo ON hall_episodic_memory(repo_id, created_at);
         CREATE INDEX IF NOT EXISTS idx_hall_episodic_memory_bead ON hall_episodic_memory(bead_id, created_at);
 
+        CREATE TABLE IF NOT EXISTS hall_lessons (
+            lesson_id TEXT PRIMARY KEY,
+            parent_lesson_id TEXT,
+            repo_id TEXT NOT NULL,
+            memory_id TEXT,
+            level TEXT NOT NULL,
+            title TEXT NOT NULL,
+            content TEXT NOT NULL,
+            metadata_json TEXT,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL,
+            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id),
+            FOREIGN KEY(memory_id) REFERENCES hall_episodic_memory(memory_id),
+            FOREIGN KEY(parent_lesson_id) REFERENCES hall_lessons(lesson_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_hall_lessons_repo ON hall_lessons(repo_id);
+        CREATE INDEX IF NOT EXISTS idx_hall_lessons_parent ON hall_lessons(parent_lesson_id);
+        CREATE INDEX IF NOT EXISTS idx_hall_lessons_memory ON hall_lessons(memory_id);
+
+        CREATE VIRTUAL TABLE IF NOT EXISTS hall_lessons_fts USING fts5(
+            lesson_id UNINDEXED,
+            level,
+            title,
+            content,
+            content='hall_lessons',
+            content_rowid='rowid'
+        );
+
+        CREATE TRIGGER IF NOT EXISTS hall_lessons_ai AFTER INSERT ON hall_lessons BEGIN
+            INSERT INTO hall_lessons_fts(rowid, lesson_id, level, title, content)
+            VALUES (new.rowid, new.lesson_id, new.level, new.title, new.content);
+        END;
+
+        CREATE TRIGGER IF NOT EXISTS hall_lessons_ad AFTER DELETE ON hall_lessons BEGIN
+            INSERT INTO hall_lessons_fts(hall_lessons_fts, rowid, lesson_id, level, title, content)
+            VALUES('delete', old.rowid, old.lesson_id, old.level, old.title, old.content);
+        END;
+
+        CREATE TRIGGER IF NOT EXISTS hall_lessons_au AFTER UPDATE ON hall_lessons BEGIN
+            INSERT INTO hall_lessons_fts(hall_lessons_fts, rowid, lesson_id, level, title, content)
+            VALUES('delete', old.rowid, old.lesson_id, old.level, old.title, old.content);
+            INSERT INTO hall_lessons_fts(rowid, lesson_id, level, title, content)
+            VALUES (new.rowid, new.lesson_id, new.level, new.title, new.content);
+        END;
+
         CREATE VIRTUAL TABLE IF NOT EXISTS hall_episodic_fts USING fts5(
             memory_id UNINDEXED,
             tactical_summary,

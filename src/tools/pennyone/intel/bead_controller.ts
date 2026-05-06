@@ -447,3 +447,22 @@ export function saveTrace(legacyRecord: any): void {
     };
     saveValidationRun(record);
 }
+
+export function listUnstudiedEngrams(sessionsOnly = true): HallEpisodicMemoryRecord[] {
+    const db = database.getDb();
+    const filterClause = sessionsOnly ? "WHERE memory_id LIKE 'engram_session_%'" : "";
+    const joinClause = sessionsOnly ? "AND" : "WHERE";
+    const sql = `
+        SELECT * FROM hall_episodic_memory 
+        ${filterClause}
+        ${joinClause} memory_id NOT IN (SELECT DISTINCT memory_id FROM hall_lessons WHERE memory_id IS NOT NULL)
+        ORDER BY created_at ASC
+    `;
+    const rows = db.prepare(sql).all() as any[];
+    return rows.map(row => ({
+        ...row,
+        files_touched: parseJson(row.files_touched_json, []),
+        successes: parseJson(row.successes_json, []),
+        metadata: parseJson(row.metadata_json, {})
+    }));
+}

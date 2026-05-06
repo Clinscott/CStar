@@ -7,7 +7,7 @@ from src.core.engine.ravens.ravens_cycle import main
 from src.core.engine.ravens_stage import RavensCycleResult
 
 def test_ravens_cycle_main():
-    mock_result = RavensCycleResult(status="SUCCESS", metrics={"test": 1.0})
+    mock_result = RavensCycleResult(status="SUCCESS", summary="test", mission_id="test-001", metadata={"test": 1.0})
     
     with patch("argparse.ArgumentParser.parse_args") as mock_args, \
          patch("src.core.engine.ravens.ravens_cycle.execute_ravens_cycle_contract", new_callable=AsyncMock) as mock_execute, \
@@ -26,4 +26,4 @@ def test_ravens_cycle_main():
         printed_arg = mock_print.call_args[0][0]
         printed_data = json.loads(printed_arg)
         assert printed_data["status"] == "SUCCESS"
-        assert printed_data["metrics"]["test"] == 1.0
+        assert printed_data["metadata"]["test"] == 1.0

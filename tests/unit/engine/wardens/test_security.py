@@ -31,9 +31,9 @@ def test_scour_hardcoded_keys(warden):
         mock_walk.return_value = [("/tmp/root/src", [], ["app.py"])]
         
         breaches = warden._scour_hardcoded_keys()
-        assert len(breaches) == 1
-        assert breaches[0]["type"] == "HARDCODED_SECRET"
-        assert "REDACT" in breaches[0]["action"]
+        assert len(breaches) == 2
+        assert all(b["type"] == "HARDCODED_SECRET" for b in breaches)
+        assert all("REDACT" in b["action"] for b in breaches)
 
 def test_scan_calls_submethods(warden):
     with patch.object(warden, "_scour_raw_env", return_value=[{"type": "E"}]), \

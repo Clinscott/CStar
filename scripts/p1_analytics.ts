@@ -8,7 +8,7 @@ import chalk from 'chalk';
  */
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
-const PROJECT_ROOT = path.join(__dirname, '..');
+const PROJECT_ROOT = path.join(__dirname, '..', '..');
 
 async function runAnalytics() {
     const db = getDb(PROJECT_ROOT);
@@ -18,6 +18,21 @@ async function runAnalytics() {
     
     console.log(chalk.cyan('\n ◤ GUNGNIR ANALYTICS: THE WHEEL ◢ '));
     console.log(chalk.cyan(' ' + '━'.repeat(45)));
+
+    // 0. Hall of Lessons
+    const totalLessons = db.prepare('SELECT COUNT(*) as count FROM hall_lessons').get() as any;
+    const unstudied = db.prepare(`
+        SELECT COUNT(*) as count 
+        FROM hall_episodic_memory 
+        WHERE memory_id NOT IN (SELECT DISTINCT memory_id FROM hall_lessons WHERE memory_id IS NOT NULL)
+    `).get() as any;
+
+    console.log(chalk.bold('\n   📚 HALL OF LESSONS'));
+    console.log(`   ◈ Total Knowledge Nodes: ${chalk.green(totalLessons.count)}`);
+    console.log(`   ◈ Unstudied Engrams: ${chalk.yellow(unstudied.count)}`);
+    if (unstudied.count > 0) {
+        console.log(chalk.dim('     Run \'cstar p1 --harvest\' to study unstudied engrams.'));
+    }
 
     if (spokes.length === 0) {
         console.log(chalk.yellow(' [INFO] No active spokes registered in the Hall of Records.'));

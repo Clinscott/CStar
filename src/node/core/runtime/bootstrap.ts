@@ -17,6 +17,8 @@ import { ResearchHostWorkflow } from  './host_workflows/research.js';
 import { CritiqueHostWorkflow } from  './host_workflows/critique.js';
 import { ArchitectCompatibilityAdapter } from  './compat/architect.js';
 import { DistillWeave } from  './weaves/distill.js';
+import { DistillLessonsWeave } from './weaves/distill_lessons.js';
+import { HarvestLessonsWeave } from './weaves/harvest_lessons.js';
 import { EngraveWeave } from  './weaves/engrave.js';
 import { OrchestrateWeave } from  './weaves/orchestrate.js';
 import { HostGovernorWeave } from  './weaves/host_governor.js';
@@ -52,6 +54,8 @@ export function bootstrapRuntime(dispatcher: RuntimeDispatcher = RuntimeDispatch
         new ChantHostWorkflow(dispatcher),
         new ResearchHostWorkflow(dispatcher),
         new DistillWeave(),
+        new DistillLessonsWeave(),
+        new HarvestLessonsWeave(dispatcher),
         new EngraveWeave(),
         new CritiqueHostWorkflow(dispatcher),
         new ArchitectCompatibilityAdapter(dispatcher),

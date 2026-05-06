@@ -111,7 +111,11 @@ def load_existing_registry() -> dict[str, Any]:
             "intent_grammar": {},
             "entries": {},
         }
-    return json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+    data = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+    # Normalize malformed entries (list) to entries (dict)
+    if isinstance(data.get("entries"), list):
+        data["entries"] = {}
+    return data
 
 
 def load_authoritative_skills() -> dict[str, dict[str, Any]]:

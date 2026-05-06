@@ -45,7 +45,7 @@ def reset_hud_async_state():
     SovereignHUD._CACHED_THEME = None
     SovereignHUD._CACHED_WIDTH = 64
     SovereignHUD._last_width = 64
-    SovereignHUD.PERSONA = "ALFRED"
+    SovereignHUD.PERSONA = "A.L.F.R.E.D."
     yield
     SovereignHUD._render_queue = None
     SovereignHUD._render_lock = None
@@ -53,7 +53,7 @@ def reset_hud_async_state():
     SovereignHUD._CACHED_THEME = None
     SovereignHUD._CACHED_WIDTH = 64
     SovereignHUD._last_width = 64
-    SovereignHUD.PERSONA = "ALFRED"
+    SovereignHUD.PERSONA = "A.L.F.R.E.D."
 
 
 # ===========================================================================

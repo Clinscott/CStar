@@ -7,7 +7,6 @@ import path from 'node:path';
 
 import { runScan } from  '../../src/tools/pennyone/index.js';
 import { ChronicleIndexer } from  '../../src/tools/pennyone/intel/chronicle.js';
-import { defaultProvider } from  '../../src/tools/pennyone/intel/llm.js';
 import { SemanticIndexer } from  '../../src/tools/pennyone/intel/semantic.js';
 import { Warden } from  '../../src/tools/pennyone/intel/warden.js';
 import {
@@ -19,6 +18,7 @@ import {
 import { registry } from  '../../src/tools/pennyone/pathRegistry.js';
 import { createGungnirMatrix } from  '../../src/types/gungnir.js';
 import { buildHallRepositoryId } from  '../../src/types/hall.js';
+import { requestHostText } from  '../../src/core/host_intelligence.js';
 
 describe('PennyOne projection gate hardening (CS-P2-01)', () => {
     const originalCwd = process.cwd();
@@ -88,9 +88,9 @@ describe('PennyOne projection gate hardening (CS-P2-01)', () => {
             evaluatedTargetRepo = targetRepo;
             evaluatedScanId = scanId;
         });
-        mock.method(defaultProvider, 'getBatchIntent', async (items) =>
-            items.map(() => ({ intent: 'Fresh Intent', interaction: 'Fresh Protocol' })),
-        );
+        mock.method(requestHostText, async () => ({
+            text: JSON.stringify({ intent: 'Fresh Intent', interaction: 'Fresh Protocol' }),
+        }));
 
         const results = await runScan('src');
         const graph = JSON.parse(

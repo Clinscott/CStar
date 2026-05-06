@@ -998,6 +998,31 @@ function instrumentTool<TArgs>(
 }
 
 // 1. cstar_handoff
+export async function handleHallMaintenance({ action, limit, memory_id }: { action: "study" | "harvest", limit?: number, memory_id?: string }) { 
+    try { 
+        const root = registry.getRoot(); 
+        if (action === "study") { 
+            if (!memory_id) return textResponse({ error: "study action requires memory_id" }, true); 
+            const result = await database.getDb().prepare("SELECT * FROM hall_episodic_memory WHERE memory_id = ?").get(memory_id); 
+            if (!result) return textResponse({ error: `Engram ${memory_id} not found` }, true); 
+            // Study logic is handled by the agent using the harvester skill 
+            return textResponse({ status: "ready_to_study", memory_id }); 
+        } 
+        if (action === "harvest") { 
+            const unstudied = database.listUnstudiedEngrams(true); 
+            const targetIds = unstudied.slice(0, limit || 5).map(e => e.memory_id); 
+            return textResponse({ 
+                status: "harvest_queue_ready", 
+                total_unstudied: unstudied.length, 
+                queue: targetIds 
+            }); 
+        } 
+        return textResponse({ error: "Invalid action" }, true); 
+    } catch (error: any) { 
+        return textResponse({ error: error.message }, true); 
+    } 
+} 
+
 export async function handleHandoff() {
     try {
         const root = registry.getRoot();
@@ -1028,6 +1053,17 @@ export async function handleHandoff() {
         return textResponse({ error: error.message }, true);
     }
 }
+
+server.tool( 
+    "cstar_hall_maintenance", 
+    "Maintenance operations for the Hall of Records (e.g. studying/harvesting lessons).", 
+    { 
+        action: z.enum(["study", "harvest"]).describe("The maintenance action to perform"), 
+        limit: z.number().min(1).max(20).optional().default(5).describe("Batch size for harvest"), 
+        memory_id: z.string().optional().describe("Target engram for study") 
+    }, 
+    instrumentTool("cstar_hall_maintenance", handleHallMaintenance) 
+); 
 
 server.tool(
     'cstar_handoff',
@@ -1065,11 +1101,11 @@ export async function handleHallSearch({ query, limit, types }: { query: string,
 
 server.tool(
     'cstar_hall_search',
-    'Bounded Hall search across code/docs/engrams/beads/sessions.',
+    'Bounded Hall search across code/docs/engrams/beads/sessions/lessons.',
     {
         query: z.string().describe('The search query'),
         limit: z.number().min(1).max(10).optional().default(5).describe('Result limit (max 10)'),
-        types: z.array(z.enum(['CODE', 'DOC', 'ENGRAM', 'BEAD', 'SESSION'])).optional().describe('Filter by types')
+        types: z.array(z.enum(['CODE', 'DOC', 'ENGRAM', 'BEAD', 'SESSION', 'LESSON'])).optional().describe('Filter by types')
     },
     instrumentTool('cstar_hall_search', handleHallSearch)
 );

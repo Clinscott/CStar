@@ -22,10 +22,12 @@ export function buildPennyOneInvocation(options: {
     clean?: boolean;
     stats?: boolean;
     search?: string;
+    learn?: string;
+    harvest?: boolean;
     import?: string;
     slug?: string;
     topology?: boolean;
-}, workspaceRoot: string): WeaveInvocation<PennyOneWeavePayload> {
+}, workspaceRoot: string): WeaveInvocation<PennyOneWeavePayload | LessonDistillWeavePayload | HarvestLessonsWeavePayload> {
     if (options.import) {
         return withCliWorkspaceTarget({
             weave_id: 'weave:pennyone',
@@ -33,6 +35,27 @@ export function buildPennyOneInvocation(options: {
                 action: 'import',
                 remote_url: options.import,
                 slug: options.slug,
+            },
+        }, workspaceRoot);
+    }
+
+    if (options.learn) {
+        return withCliWorkspaceTarget({
+            weave_id: 'weave:distill-lessons',
+            payload: {
+                memory_id: options.learn,
+                project_root: workspaceRoot,
+                cwd: process.cwd(),
+            },
+        }, workspaceRoot);
+    }
+
+    if (options.harvest) {
+        return withCliWorkspaceTarget({
+            weave_id: 'weave:harvest-lessons',
+            payload: {
+                project_root: workspaceRoot,
+                limit: options.limit ? Number.parseInt(options.limit, 10) : 5,
             },
         }, workspaceRoot);
     }
@@ -193,6 +216,8 @@ export function registerPennyOneCommand(
         .option('-c, --clean', 'Purge the .stats/ directory and all archived sessions')
         .option('--stats', 'View long-term agent activity and logic loop analytics')
         .option('--search <query>', 'Search the Hall of Records by intent, path, or API endpoint')
+        .option('--learn <memory_id>', 'Study and distill hierarchical lessons from an episodic memory engram')
+        .option('--harvest', 'Batch study all unstudied episodic memory engrams in the Hall')
         .option('--import <source>', 'Clone and project a public or local git repository into the estate gallery')
         .option('--slug <slug>', 'Override the imported repository slug')
         .option('--topology', 'Render the current estate topology summary')
@@ -213,6 +238,8 @@ export function registerPennyOneCommand(
             clean?: boolean;
             stats?: boolean;
             search?: string;
+            learn?: string;
+            harvest?: boolean;
             import?: string;
             slug?: string;
             topology?: boolean;

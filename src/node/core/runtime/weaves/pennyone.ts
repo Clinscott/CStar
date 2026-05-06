@@ -775,7 +775,7 @@ export class PennyOneAdapter implements RuntimeAdapter<PennyOneWeavePayload> {
         }
 
         if (payload.action === 'stats') {
-            const analyticsScript = join(projectRoot, 'scripts', 'p1_analytics.ts');
+            const analyticsScript = join(projectRoot, 'CStar', 'scripts', 'p1_analytics.ts');
             if (!fs.existsSync(analyticsScript)) {
                 return {
                     weave_id: this.id,
@@ -785,7 +785,7 @@ export class PennyOneAdapter implements RuntimeAdapter<PennyOneWeavePayload> {
                 };
             }
 
-            await execa(process.execPath, [join(projectRoot, 'scripts', 'run-tsx.mjs'), analyticsScript], {
+            await execa(process.execPath, [join(projectRoot, 'CStar', 'scripts', 'run-tsx.mjs'), analyticsScript], {
                 stdio: 'inherit',
                 cwd: projectRoot,
                 env: { ...process.env },
