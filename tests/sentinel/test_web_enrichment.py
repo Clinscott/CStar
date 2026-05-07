@@ -2,7 +2,7 @@
 from pathlib import Path
 from unittest.mock import patch
 
-from src.core.engine.ravens.code_sanitizer import BifrostGate
+from src.core.engine.utils.code_sanitizer import BifrostGate
 
 
 def test_scan_and_enrich_imports_valid_code():

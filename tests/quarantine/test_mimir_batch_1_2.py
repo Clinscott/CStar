@@ -5,7 +5,7 @@ import pytest
 
 from src.core.engine.dialogue import DialogueEngine
 from src.games.odin_protocol.engine.scenarios import SovereignScenarioEngine
-from src.core.engine.ravens.code_sanitizer import BifrostGate
+from src.core.engine.utils.code_sanitizer import BifrostGate
 from src.core.engine.ravens.muninn import Muninn
 from src.core.engine.wardens.norn import NornWarden
 from src.skills.install_skill import install_skill
