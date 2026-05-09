@@ -129,12 +129,12 @@ describe('Hall schema canonicalization (CS-P1-03)', () => {
                 repo_id, root_path, name, status, active_persona, baseline_gungnir_score,
                 intent_integrity, metadata_json, created_at, updated_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(
+        ).run(
             'repo:.',
             '.',
             '.',
             'DORMANT',
-            'ALFRED',
+            'A.L.F.R.E.D.',
             0,
             0,
             JSON.stringify({ source: 'legacy-sovereign-projection' }),
@@ -174,7 +174,7 @@ describe('Hall schema canonicalization (CS-P1-03)', () => {
             root_path: tmpRoot,
             name: path.basename(tmpRoot),
             status: 'AGENT_LOOP',
-            active_persona: 'ALFRED',
+            active_persona: 'A.L.F.R.E.D.',
             baseline_gungnir_score: 91,
             intent_integrity: 96,
             metadata: { source: 'test' },
@@ -274,7 +274,7 @@ describe('Hall schema canonicalization (CS-P1-03)', () => {
             root_path: tmpRoot,
             name: path.basename(tmpRoot),
             status: 'AGENT_LOOP',
-            active_persona: 'ALFRED',
+            active_persona: 'A.L.F.R.E.D.',
             baseline_gungnir_score: 93,
             intent_integrity: 97,
             metadata: {
