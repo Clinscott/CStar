@@ -26,17 +26,34 @@ import { registerOsCommands } from './src/node/core/commands/os-integration.ts';
 import { registerOneMindCommand } from './src/node/core/commands/one-mind.ts';
 import { registerAuguryCommand, registerTraceCommand } from './src/node/core/commands/trace.ts';
 import { registerHallDocumentCommand } from './src/node/core/commands/hall-doc.ts';
-import { registerCapabilityDiscoveryCommands } from './src/node/core/commands/capability_discovery_commands.js';
+import {
+    registerCapabilityDiscoveryCommands,
+    type ManifestCommandOptions,
+    type SkillInfoCommandOptions,
+} from './src/node/core/commands/capability_discovery_commands.js';
 import {
     buildCapabilityInfoPayload,
     buildCapabilityManifestPayload,
     renderCapabilityInfoLines,
     renderCapabilityManifestLines,
 } from './src/node/core/commands/capability_discovery.js';
+import {
+    walkSpokeSkills,
+    walkSpokeJournal,
+    type SpokeSkillManifest,
+} from './src/node/core/spokes/spoke_capability_walker.js';
 import { renderOperationalContext, renderStandardCommandResult } from './src/node/core/commands/command_context.ts';
 import { getLaunchCwd, installWorkspaceSelectionHook, selectWorkspaceRoot } from './src/node/core/launcher.ts';
 import { StateRegistry } from './src/node/core/state.ts';
 import { registry } from './src/tools/pennyone/pathRegistry.ts';
+import { database } from './src/tools/pennyone/intel/database.ts';
+import {
+    tallyContest as warGameTallyContest,
+    tallyAllContests as warGameTallyAll,
+    recentScores as warGameRecentScores,
+    byScenario as warGameByScenario,
+    getScoreByShot as warGameGetScoreByShot,
+} from './src/tools/war_game/score_trigger.ts';
 import { summarizeCommandSurfaces } from './src/node/core/runtime/entry_surface.ts';
 import { runOperatorTui, shouldLaunchOperatorTui } from './src/node/core/tui/operator_tui.ts';
 import { getHostProviderBanner, isHostSessionActive, resolveHostProvider } from './src/core/host_session.ts';
@@ -423,18 +440,328 @@ ${hostOnlySurfaceSummary}${legacySurfaceSummary}
             console.log(chalk.dim('\n' + '━'.repeat(60) + '\n'));
         });
 
+    // ─────────────────────────────────────────────────────────────────
+    // BEAD-CSTAR-WAR-GAME-SCORING-001 — war-game scoreboard CLI.
+    // Wraps the cstar_war_game_score MCP tool actions for operator use.
+    // ─────────────────────────────────────────────────────────────────
+    const warGame = program
+        .command('war-game')
+        .description('Inspect the kernel-arbitrated war-game scoreboard (e.g. USB Forge vs USB Sentry)');
+
+    warGame
+        .command('tally [contest_id]')
+        .description('Show running totals per contest, or for a single contest if specified')
+        .action((contestId?: string) => {
+            try {
+                const db = database.getDb();
+                const tallies = contestId
+                    ? (warGameTallyContest(db, contestId) ? [warGameTallyContest(db, contestId)!] : [])
+                    : warGameTallyAll(db);
+                if (tallies.length === 0) {
+                    if (contestId) {
+                        console.log(chalk.yellow(`No contest found with id '${contestId}'.`));
+                    } else {
+                        console.log(chalk.dim('No registered contests yet.'));
+                    }
+                    return;
+                }
+                console.log(chalk.cyan('\n ◤ WAR-GAME SCOREBOARD ◢ '));
+                console.log(chalk.dim('━'.repeat(70)));
+                console.log(
+                    chalk.bold(
+                        `${'CONTEST'.padEnd(34)} ${'DEFENDER'.padEnd(10)} ${'ATTACKER'.padEnd(10)} ${'INCONCL.'.padEnd(10)} ${'VIOLATIONS'}`,
+                    ),
+                );
+                for (const t of tallies) {
+                    const def = chalk.green(String(t.defender_points).padEnd(10));
+                    const atk = chalk.red(String(t.attacker_points).padEnd(10));
+                    const inc = chalk.dim(String(t.inconclusive_count).padEnd(10));
+                    const vio = t.protocol_violation_count > 0
+                        ? chalk.yellow(String(t.protocol_violation_count))
+                        : chalk.dim('0');
+                    console.log(
+                        `${t.contest_name.padEnd(34).slice(0, 34)} ${def} ${atk} ${inc} ${vio}`,
+                    );
+                    console.log(
+                        chalk.dim(
+                            `  ${t.attacker_label} vs ${t.defender_label}   total shots: ${t.total_shots}   ` +
+                            `def_blocked:${t.scores.defender_blocked} bypass:${t.scores.attacker_bypassed} ` +
+                            `false_pos:${t.scores.false_positive} baseline:${t.scores.baseline_pass}`,
+                        ),
+                    );
+                }
+                console.log(chalk.dim('━'.repeat(70) + '\n'));
+            } catch (error: any) {
+                console.error(chalk.red(`war-game tally failed: ${error.message}`));
+                process.exit(1);
+            }
+        });
+
+    warGame
+        .command('recent [n]')
+        .description('List the N most-recent scored events (default 10)')
+        .option('-c, --contest <id>', 'Filter to a single contest')
+        .action((nArg: string | undefined, options: { contest?: string }) => {
+            try {
+                const db = database.getDb();
+                const limit = nArg ? Math.max(1, Math.min(100, parseInt(nArg, 10) || 10)) : 10;
+                const rows = warGameRecentScores(db, options.contest ?? null, limit);
+                if (rows.length === 0) {
+                    console.log(chalk.dim('No scored events yet.'));
+                    return;
+                }
+                console.log(chalk.cyan(`\n ◤ RECENT WAR-GAME EVENTS (${rows.length}) ◢ `));
+                console.log(chalk.dim('━'.repeat(80)));
+                for (const r of rows) {
+                    const when = new Date(r.scored_at).toISOString();
+                    const outcomeColor =
+                        r.outcome === 'defender_blocked' ? chalk.green
+                        : r.outcome === 'attacker_bypassed' ? chalk.red
+                        : r.outcome === 'false_positive' ? chalk.red
+                        : r.outcome === 'protocol_violation' ? chalk.yellow
+                        : chalk.dim;
+                    console.log(
+                        `${chalk.dim(when)}  ${outcomeColor(r.outcome.padEnd(20))} ${r.scenario_id.padEnd(16)} ${chalk.blue(r.shot_id)}`,
+                    );
+                    if (r.observed_terminal_event) {
+                        console.log(chalk.dim(`    → ${r.observed_terminal_event}`));
+                    }
+                    if (r.inconclusive_reason) {
+                        console.log(chalk.dim(`    ⚠ ${r.inconclusive_reason}`));
+                    }
+                }
+                console.log(chalk.dim('━'.repeat(80) + '\n'));
+            } catch (error: any) {
+                console.error(chalk.red(`war-game recent failed: ${error.message}`));
+                process.exit(1);
+            }
+        });
+
+    warGame
+        .command('by-scenario <contest_id>')
+        .description('Show per-scenario outcome breakdown for a contest')
+        .action((contestId: string) => {
+            try {
+                const db = database.getDb();
+                const buckets = warGameByScenario(db, contestId);
+                if (buckets.length === 0) {
+                    console.log(chalk.dim(`No scored events for contest '${contestId}'.`));
+                    return;
+                }
+                console.log(chalk.cyan(`\n ◤ ${contestId} — BY SCENARIO ◢ `));
+                console.log(chalk.dim('━'.repeat(80)));
+                console.log(
+                    chalk.bold(
+                        `${'SCENARIO'.padEnd(20)} ${'DEF_BLK'.padEnd(8)} ${'BYPASS'.padEnd(8)} ${'FALSE_P'.padEnd(8)} ${'BASE'.padEnd(8)} ${'INCONCL'.padEnd(8)} ${'VIO'.padEnd(8)} TOTAL`,
+                    ),
+                );
+                for (const b of buckets) {
+                    console.log(
+                        `${b.scenario_id.padEnd(20)} ${chalk.green(String(b.scores.defender_blocked).padEnd(8))} ${chalk.red(String(b.scores.attacker_bypassed).padEnd(8))} ${chalk.red(String(b.scores.false_positive).padEnd(8))} ${String(b.scores.baseline_pass).padEnd(8)} ${chalk.dim(String(b.scores.inconclusive).padEnd(8))} ${chalk.yellow(String(b.scores.protocol_violation).padEnd(8))} ${b.total}`,
+                    );
+                }
+                console.log(chalk.dim('━'.repeat(80) + '\n'));
+            } catch (error: any) {
+                console.error(chalk.red(`war-game by-scenario failed: ${error.message}`));
+                process.exit(1);
+            }
+        });
+
+    warGame
+        .command('get <shot_id>')
+        .description('Look up the score row for a single shot')
+        .option('-c, --contest <id>', 'Narrow to a specific contest')
+        .action((shotId: string, options: { contest?: string }) => {
+            try {
+                const db = database.getDb();
+                const score = warGameGetScoreByShot(db, shotId, options.contest);
+                if (!score) {
+                    console.log(chalk.dim(`No score recorded for shot '${shotId}'.`));
+                    return;
+                }
+                console.log(chalk.cyan(`\n ◤ SHOT ${shotId} ◢ `));
+                console.log(chalk.dim('━'.repeat(60)));
+                console.log(`  ${chalk.dim('contest    ')}: ${chalk.blue(score.contest_id)}`);
+                console.log(`  ${chalk.dim('scenario   ')}: ${chalk.cyan(score.scenario_id)}`);
+                console.log(`  ${chalk.dim('outcome    ')}: ${chalk.bold(score.outcome)}`);
+                if (score.observed_terminal_event) {
+                    console.log(`  ${chalk.dim('observed   ')}: ${score.observed_terminal_event}`);
+                }
+                if (score.inconclusive_reason) {
+                    console.log(`  ${chalk.dim('note       ')}: ${chalk.yellow(score.inconclusive_reason)}`);
+                }
+                console.log(`  ${chalk.dim('scored_at  ')}: ${new Date(score.scored_at).toISOString()}`);
+                console.log(chalk.dim('━'.repeat(60) + '\n'));
+            } catch (error: any) {
+                console.error(chalk.red(`war-game get failed: ${error.message}`));
+                process.exit(1);
+            }
+        });
+
+    warGame
+        .command('list-contests')
+        .description('List registered war-game contests')
+        .action(() => {
+            try {
+                const db = database.getDb();
+                const rows = db.prepare(
+                    `SELECT contest_id, contest_name, attacker_label, defender_label,
+                            attacker_bead_id, defender_bead_id, created_at
+                     FROM war_game_contests ORDER BY created_at DESC`,
+                ).all() as Array<{ contest_id: string; contest_name: string; attacker_label: string; defender_label: string; attacker_bead_id: string | null; defender_bead_id: string | null; created_at: number }>;
+                if (rows.length === 0) {
+                    console.log(chalk.dim('No contests registered.'));
+                    return;
+                }
+                console.log(chalk.cyan(`\n ◤ REGISTERED CONTESTS (${rows.length}) ◢ `));
+                console.log(chalk.dim('━'.repeat(70)));
+                for (const r of rows) {
+                    console.log(`  ${chalk.blue(r.contest_id)}`);
+                    console.log(`    ${chalk.dim('name      ')}: ${r.contest_name}`);
+                    console.log(`    ${chalk.dim('attacker  ')}: ${chalk.red(r.attacker_label)}${r.attacker_bead_id ? `  (${r.attacker_bead_id})` : ''}`);
+                    console.log(`    ${chalk.dim('defender  ')}: ${chalk.green(r.defender_label)}${r.defender_bead_id ? `  (${r.defender_bead_id})` : ''}`);
+                    console.log(`    ${chalk.dim('registered')}: ${new Date(r.created_at).toISOString()}`);
+                }
+                console.log(chalk.dim('━'.repeat(70) + '\n'));
+            } catch (error: any) {
+                console.error(chalk.red(`war-game list-contests failed: ${error.message}`));
+                process.exit(1);
+            }
+        });
+
     registerCapabilityDiscoveryCommands(program, {
-        manifest: (options: { json?: boolean }) => {
-            const payload = buildCapabilityManifestPayload(PROJECT_ROOT, getActiveAdapterIds());
-            if (options.json) {
-                process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
+        manifest: (options: ManifestCommandOptions) => {
+            // Legacy byte-compat path: no scope flag, no spoke flag → produce the
+            // unwrapped manifest payload exactly as before BEAD-CSTAR-SPOKE-DISCOVERY-001.
+            const explicitScope = options.scope !== undefined;
+            const explicitSpoke = options.spoke !== undefined;
+            if (!explicitScope && !explicitSpoke) {
+                const legacyPayload = buildCapabilityManifestPayload(PROJECT_ROOT, getActiveAdapterIds());
+                if (options.json) {
+                    process.stdout.write(`${JSON.stringify(legacyPayload, null, 2)}\n`);
+                    return;
+                }
+                for (const line of renderCapabilityManifestLines(legacyPayload)) {
+                    console.log(line);
+                }
                 return;
             }
-            for (const line of renderCapabilityManifestLines(payload)) {
-                console.log(line);
+
+            const scope = options.scope ?? 'hub';
+            const hubPayload = scope === 'hub' || scope === 'all'
+                ? buildCapabilityManifestPayload(PROJECT_ROOT, getActiveAdapterIds())
+                : null;
+            const spokeEntries = scope === 'spoke' || scope === 'all'
+                ? walkSpokeSkills(options.spoke)
+                : [];
+
+            if (options.json) {
+                const hubCapabilities = (hubPayload?.capabilities ?? []).map((c) => ({ ...c, source: 'hub' }));
+                const spokeCapabilities = spokeEntries.map((s: SpokeSkillManifest) => ({
+                    id: s.id,
+                    bare_id: s.bare_id,
+                    source: 'spoke',
+                    source_spoke: s.spoke_slug,
+                    tier: s.tier,
+                    risk: s.risk,
+                    entry_surface: 'host-only',
+                    execution_mode: 'agent-native',
+                    owner_runtime: 'host-agent',
+                    authority_path: s.authority_path,
+                    active_in_runtime: false,
+                    validation: s.validation,
+                    validation_reason: s.validation_reason,
+                    shadows_hub_id: s.shadows_hub_id,
+                    name: s.name,
+                    description: s.description,
+                }));
+                const merged = [...hubCapabilities, ...spokeCapabilities].sort((a, b) => String(a.id).localeCompare(String(b.id)));
+                process.stdout.write(`${JSON.stringify({ scope, spoke: options.spoke ?? null, capabilities: merged }, null, 2)}\n`);
+                return;
+            }
+
+            // Text rendering: hub lines first (existing renderer), then spoke entries
+            if (hubPayload) {
+                for (const line of renderCapabilityManifestLines(hubPayload)) {
+                    console.log(line);
+                }
+            }
+            if (spokeEntries.length > 0) {
+                console.log('');
+                console.log(chalk.cyan('◤ SPOKE-LOCAL SKILLS ◢'));
+                console.log(chalk.dim('━'.repeat(60)));
+                for (const s of spokeEntries) {
+                    const flag = s.validation === 'ok' ? chalk.green('●') : (s.validation === 'quarantined' ? chalk.yellow('▲') : chalk.red('✗'));
+                    console.log(`${flag} ${chalk.bold(s.id.padEnd(40))} ${chalk.dim(s.tier.padEnd(7))} ${chalk.dim(s.risk)}`);
+                    if (s.validation !== 'ok' && s.validation_reason !== undefined) {
+                        console.log(`    ${chalk.dim(s.validation_reason)}`);
+                    }
+                }
+                console.log(chalk.dim('━'.repeat(60)));
             }
         },
-        skillInfo: (name: string, options: { json?: boolean }) => {
+        skillInfo: (name: string, options: SkillInfoCommandOptions) => {
+            if (name.includes(':')) {
+                const sep = name.indexOf(':');
+                const parsedSlug = name.slice(0, sep);
+                const bareId = name.slice(sep + 1);
+                const slug = options.spoke ?? parsedSlug;
+                const candidates = walkSpokeSkills(slug, { includeQuarantined: true });
+                const found = candidates.find((s) => s.bare_id === bareId);
+                if (!found) {
+                    console.error(chalk.red(`Spoke skill '${name}' not found.`));
+                    process.exit(1);
+                }
+                const payload = {
+                    capability: {
+                        id: found.id,
+                        bare_id: found.bare_id,
+                        source: 'spoke',
+                        source_spoke: found.spoke_slug,
+                        tier: found.tier,
+                        risk: found.risk,
+                        entry_surface: 'host-only',
+                        execution_mode: 'agent-native',
+                        owner_runtime: 'host-agent',
+                        authority_path: found.authority_path,
+                        validation: found.validation,
+                        validation_reason: found.validation_reason,
+                        shadows_hub_id: found.shadows_hub_id,
+                        name: found.name,
+                        description: found.description,
+                    },
+                    documentation: {
+                        kind: 'markdown',
+                        path: found.authority_path,
+                        readable: true,
+                        content: found.documentation,
+                    },
+                    invocation: {
+                        agent_hint: 'any-host-agent',
+                        working_dir: found.spoke_root,
+                        command: null,
+                        logic_protocol_anchor: 'see SKILL.md "LOGIC PROTOCOL" section',
+                    },
+                };
+                if (options.json) {
+                    process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
+                    return;
+                }
+                console.log(chalk.cyan(`\n◤ ${found.id} ◢`));
+                console.log(chalk.dim('━'.repeat(60)));
+                console.log(`${chalk.bold('tier       ')}: ${found.tier}`);
+                console.log(`${chalk.bold('risk       ')}: ${found.risk}`);
+                console.log(`${chalk.bold('spoke      ')}: ${found.spoke_slug}`);
+                console.log(`${chalk.bold('validation ')}: ${found.validation}`);
+                if (found.validation_reason !== undefined) {
+                    console.log(`${chalk.bold('reason     ')}: ${found.validation_reason}`);
+                }
+                console.log(`${chalk.bold('authority  ')}: ${found.authority_path}`);
+                console.log(`${chalk.bold('description')}: ${found.description}`);
+                console.log(chalk.dim('━'.repeat(60)));
+                console.log(`\n${found.documentation}`);
+                return;
+            }
             const payload = buildCapabilityInfoPayload(PROJECT_ROOT, name, getActiveAdapterIds());
             if (!payload) {
                 console.error(chalk.red(`Capability '${name}' not found in registry.`));
@@ -449,6 +776,55 @@ ${hostOnlySurfaceSummary}${legacySurfaceSummary}
             }
         },
     });
+
+    // BEAD-CSTAR-SPOKE-DISCOVERY-001 — `cstar spoke journal <slug>` subcommand.
+    const spokeCmd = program.commands.find((c) => c.name() === 'spoke');
+    if (spokeCmd) {
+        spokeCmd
+            .command('journal <slug>')
+            .description('Show the four-file journal state for a registered spoke (memory.md, tasks.md, wireframe.md, DEV_JOURNAL.md)')
+            .option('--json', 'Emit machine-readable JSON instead of formatted text')
+            .action((slug: string, options: { json?: boolean }) => {
+                const report = walkSpokeJournal(slug);
+                if (options.json) {
+                    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+                    return;
+                }
+                if (report.validation === 'spoke_not_found') {
+                    console.error(chalk.red(`Spoke '${slug}' is not registered.`));
+                    process.exit(1);
+                }
+                console.log(chalk.cyan(`\n◤ SPOKE JOURNAL — ${report.spoke} ◢`));
+                console.log(chalk.dim('━'.repeat(60)));
+                if (report.validation === 'mount_status_drift') {
+                    console.log(chalk.red(`mount_status_drift: ${report.root_path} no longer exists on disk`));
+                    console.log(chalk.dim('━'.repeat(60)));
+                    return;
+                }
+                console.log(`${chalk.bold('root_path  ')}: ${report.root_path}`);
+                console.log(chalk.dim('─'.repeat(60)));
+                for (const [key, file] of Object.entries(report.files)) {
+                    const flag = file.present ? (file.validation === 'ok' ? chalk.green('●') : chalk.yellow('▲')) : chalk.red('✗');
+                    console.log(`${flag} ${chalk.bold(key.padEnd(15))} ${file.path}`);
+                    if (file.summary !== undefined) {
+                        console.log(`    ${chalk.dim('summary    ')}: ${file.summary}`);
+                    }
+                    if (file.open_tasks !== undefined) {
+                        console.log(`    ${chalk.dim('open_tasks ')}: ${file.open_tasks}`);
+                    }
+                    if (file.prominent_functions !== undefined && file.prominent_functions.length > 0) {
+                        console.log(`    ${chalk.dim('functions  ')}: ${file.prominent_functions.slice(0, 5).join(', ')}${file.prominent_functions.length > 5 ? '…' : ''}`);
+                    }
+                    if (file.last_entry_timestamp !== undefined) {
+                        console.log(`    ${chalk.dim('last_entry ')}: ${file.last_entry_timestamp}`);
+                    }
+                    if (file.validation !== 'ok' && file.validation_reason !== undefined) {
+                        console.log(`    ${chalk.red(file.validation_reason)}`);
+                    }
+                }
+                console.log(chalk.dim('━'.repeat(60)));
+            });
+    }
 
     try {
         program.parse(process.argv);

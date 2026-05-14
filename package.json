@@ -30,7 +30,7 @@
   "scripts": {
     "test": "npm run test:node && npm run test:python",
     "test:python": "node scripts/run-python.mjs -m pytest tests/unit tests/integration tests/empire_tests tests/crucible",
-    "test:node": "node scripts/run-tsx.mjs --test tests/*.test.ts tests/unit/*.test.ts tests/crucible/*.ts",
+    "test:node": "node scripts/run-tsx.mjs --test tests/*.test.ts tests/unit/*.test.ts tests/unit/war_game/*.test.ts tests/unit/spoke_discovery/*.test.ts tests/integration/*.test.ts tests/crucible/*.ts",
     "test:ipc": "node scripts/run-tsx.mjs --test tests/integration/ipc/*.test.ts",
     "test:empire": "node scripts/run-tsx.mjs --test tests/empire_tests/test_corvus_process_empire.ts tests/empire_tests/test_gateway_empire.ts",
     "build:distributions": "node scripts/run-tsx.mjs scripts/build_distributions.ts",

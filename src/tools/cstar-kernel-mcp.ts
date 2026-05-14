@@ -9,6 +9,7 @@ import type {
     HallBeadRecord,
     HallBeadStatus,
     HallBeadTargetKind,
+    HallMountedSpokeRecord,
     HallValidationRun,
 } from '../types/hall.js';
 import type { SovereignBead } from '../types/bead.js';
@@ -30,6 +31,25 @@ import {
     hydratePlanningSession
 } from '../node/core/commands/trace.js';
 import { database } from './pennyone/intel/database.js';
+import {
+    walkSpokeSkills,
+    walkSpokeJournal,
+    type SpokeSkillManifest,
+} from '../node/core/spokes/spoke_capability_walker.js';
+import {
+    buildCapabilityManifestPayload,
+    buildCapabilityInfoPayload,
+} from '../node/core/commands/capability_discovery.js';
+import {
+    scoreEngramIfArbitrated,
+    registerContest as warGameRegisterContest,
+    tallyContest,
+    tallyAllContests,
+    recentScores,
+    byScenario,
+    getScoreByShot,
+    type RecordedEngram as WarGameRecordedEngram,
+} from './war_game/score_trigger.js';
 
 /**
  * CStar Kernel MCP (v3.1)
@@ -167,6 +187,33 @@ interface BeadToolArgs {
     resolved_validation_id?: string;
     triage_reason?: string;
     metadata?: Record<string, unknown>;
+    spoke?: string;
+}
+
+interface SpokeBeadImportArgs {
+    spoke: string;
+    bead_id?: string;
+    intent: string;
+    acceptance_criteria: string;
+    lore_path: string;
+    design_doc_path?: string;
+    wireframe_ref?: string;
+    threat_model_summary?: string;
+    contract_refs?: string[];
+    checker_shell?: string;
+    target_paths?: string[];
+    target_kind?: HallBeadTargetKind;
+    target_ref?: string;
+    augury_block?: string;
+    assigned_agent?: string;
+    status?: HallBeadStatus;
+    metadata?: Record<string, unknown>;
+}
+
+interface SpokeAnchor {
+    repoId: string;
+    spoke: HallMountedSpokeRecord | null;
+    metadata: Record<string, unknown> | null;
 }
 
 function textResponse(payload: unknown, isError = false): McpTextResponse {
@@ -222,6 +269,78 @@ function resolveActiveRepo(): { root: string; repoId: string } {
         root,
         repoId: repo?.repo_id || buildHallRepositoryId(normalizeHallPath(root)),
     };
+}
+
+/**
+ * Resolve the Hall repo a bead should be anchored to.
+ * - When `spokeSlug` is absent: anchor to the kernel's active repo (existing behavior).
+ * - When present: look up the spoke in `hall_mounted_spokes`. Reject hard if the spoke
+ *   is unregistered, inactive, quarantined, or read-only — no silent fallback to the
+ *   kernel repo, because that would land the bead in the wrong tray.
+ */
+export function resolveSpokeAnchor(spokeSlug: string | undefined | null): SpokeAnchor {
+    if (!spokeSlug || spokeSlug.trim().length === 0) {
+        const { repoId } = resolveActiveRepo();
+        return { repoId, spoke: null, metadata: null };
+    }
+    const slug = spokeSlug.trim();
+    const spoke = database.getHallMountedSpoke(slug);
+    if (!spoke) {
+        throw new Error(
+            `Spoke '${slug}' is not registered in the Hall estate. ` +
+            `Mount it with './cstar spoke link <slug> <root>' before submitting beads.`,
+        );
+    }
+    if (spoke.mount_status !== 'active') {
+        throw new Error(
+            `Spoke '${slug}' is not active (mount_status='${spoke.mount_status}'). ` +
+            `Re-link or repair the spoke before submitting beads.`,
+        );
+    }
+    if (spoke.trust_level === 'quarantined') {
+        throw new Error(
+            `Spoke '${slug}' is quarantined (trust_level='quarantined'). ` +
+            `Bead writes are refused until trust is restored.`,
+        );
+    }
+    if (spoke.write_policy !== 'read_write') {
+        throw new Error(
+            `Spoke '${slug}' has write_policy='${spoke.write_policy}'. ` +
+            `Bead writes require 'read_write'.`,
+        );
+    }
+    return {
+        repoId: spoke.repo_id,
+        spoke,
+        metadata: {
+            spoke_slug: spoke.slug,
+            spoke_id: spoke.spoke_id,
+            spoke_trust_level: spoke.trust_level,
+            spoke_write_policy: spoke.write_policy,
+            spoke_root: spoke.root_path,
+            spoke_kind: spoke.kind,
+        },
+    };
+}
+
+/**
+ * Verify a path declared by a spoke payload exists, resolved against the spoke's root.
+ * Absolute paths are honored as-is. Returns the resolved absolute path on success.
+ */
+export function resolveSpokeRelativePath(
+    spoke: HallMountedSpokeRecord,
+    relativeOrAbsolute: string,
+    fieldName: string,
+): string {
+    const candidate = path.isAbsolute(relativeOrAbsolute)
+        ? relativeOrAbsolute
+        : path.join(spoke.root_path, relativeOrAbsolute);
+    if (!fs.existsSync(candidate)) {
+        throw new Error(
+            `${fieldName} '${relativeOrAbsolute}' does not exist under spoke '${spoke.slug}' (resolved: ${candidate}).`,
+        );
+    }
+    return candidate;
 }
 
 function beadToRecord(bead: SovereignBead): HallBeadRecord {
@@ -1306,7 +1425,7 @@ server.tool(
 // 6. cstar_bead
 export async function handleBead(args: BeadToolArgs) {
     try {
-        const { root, repoId } = resolveActiveRepo();
+        const { root, repoId: kernelRepoId } = resolveActiveRepo();
         const now = Date.now();
 
         if (args.action === 'list') {
@@ -1322,6 +1441,8 @@ export async function handleBead(args: BeadToolArgs) {
 
         if (args.action === 'create') {
             const rationale = requireString(args.rationale, 'rationale');
+            const anchor = resolveSpokeAnchor(args.spoke);
+            const repoId = anchor.repoId || kernelRepoId;
             const beadId = args.bead_id?.trim() || generateBeadId(rationale);
             const targetKind = args.target_kind || (args.target_path ? 'FILE' : 'OTHER');
             database.upsertHallBead({
@@ -1340,6 +1461,7 @@ export async function handleBead(args: BeadToolArgs) {
                 source_kind: 'MCP',
                 metadata: {
                     source: 'cstar-kernel-mcp',
+                    ...(anchor.metadata || {}),
                     ...(args.metadata || {}),
                 },
                 created_at: now,
@@ -1348,6 +1470,8 @@ export async function handleBead(args: BeadToolArgs) {
             return textResponse({
                 status: 'created',
                 action: 'create',
+                spoke: anchor.spoke?.slug,
+                repo_id: repoId,
                 bead: compactBead(database.getHallBead(beadId)),
             });
         }
@@ -1469,8 +1593,128 @@ server.tool(
         resolved_validation_id: z.string().optional().describe('Validation id used for resolution'),
         triage_reason: z.string().optional().describe('Reason for blocked/triage status'),
         metadata: z.record(z.string(), z.unknown()).optional().describe('Small metadata object'),
+        spoke: z.string().optional().describe('Slug of a registered Hall spoke. When set on create, the bead is anchored to that spoke\'s repo_id instead of the kernel\'s. Unregistered, quarantined, or read-only spokes are rejected.'),
     },
     instrumentTool('cstar_bead', handleBead)
+);
+
+// 6b. cstar_spoke_bead_import
+//
+// Rich Bead-import surface for spokes (SecureSphere, etc.). Differs from
+// `cstar_bead create` in that it accepts a curated handoff payload:
+//   - lore_path  : required Gherkin .feature file (Sterling Mandate leg 1)
+//   - design_doc_path / wireframe_ref / threat_model_summary / augury_block
+// All path fields are resolved against the spoke's root. Spoke must be
+// registered, active, trusted, and read_write — otherwise rejected hard.
+export async function handleSpokeBeadImport(args: SpokeBeadImportArgs) {
+    try {
+        const slug = requireString(args.spoke, 'spoke');
+        const intent = requireString(args.intent, 'intent');
+        const acceptance = requireString(args.acceptance_criteria, 'acceptance_criteria');
+        const lorePath = requireString(args.lore_path, 'lore_path');
+
+        const anchor = resolveSpokeAnchor(slug);
+        if (!anchor.spoke) {
+            throw new Error(`Spoke '${slug}' did not resolve to a Hall record.`);
+        }
+
+        const resolvedLore = resolveSpokeRelativePath(anchor.spoke, lorePath, 'lore_path');
+        const resolvedDesignDoc = args.design_doc_path
+            ? resolveSpokeRelativePath(anchor.spoke, args.design_doc_path, 'design_doc_path')
+            : undefined;
+
+        const targetPaths = (args.target_paths || []).filter((p) => p.trim().length > 0);
+        const primaryTargetPath = targetPaths[0];
+        const extraTargetPaths = targetPaths.slice(1);
+        const targetKind = args.target_kind || (primaryTargetPath ? 'FILE' : 'SPOKE');
+        const beadId = args.bead_id?.trim() || generateBeadId(intent);
+        const now = Date.now();
+
+        const contractRefs = [
+            ...(args.contract_refs || []),
+            `lore:${path.relative(anchor.spoke.root_path, resolvedLore)}`,
+        ];
+
+        const spokeMetadata: Record<string, unknown> = {
+            ...(anchor.metadata || {}),
+            lore_path: path.relative(anchor.spoke.root_path, resolvedLore),
+            lore_absolute_path: resolvedLore,
+        };
+        if (resolvedDesignDoc) {
+            spokeMetadata.design_doc_path = path.relative(anchor.spoke.root_path, resolvedDesignDoc);
+            spokeMetadata.design_doc_absolute_path = resolvedDesignDoc;
+        }
+        if (args.wireframe_ref) {
+            spokeMetadata.wireframe_ref = args.wireframe_ref;
+        }
+        if (args.threat_model_summary) {
+            spokeMetadata.threat_model_summary = args.threat_model_summary.slice(0, 4000);
+        }
+        if (args.augury_block) {
+            spokeMetadata.augury_block = args.augury_block.slice(0, 4000);
+        }
+        if (extraTargetPaths.length > 0) {
+            spokeMetadata.extra_target_paths = extraTargetPaths;
+        }
+
+        database.upsertHallBead({
+            bead_id: beadId,
+            repo_id: anchor.repoId,
+            target_kind: targetKind,
+            target_ref: args.target_ref || primaryTargetPath || `spoke://${anchor.spoke.slug}`,
+            target_path: primaryTargetPath,
+            rationale: intent,
+            contract_refs: contractRefs,
+            baseline_scores: {},
+            acceptance_criteria: acceptance,
+            checker_shell: args.checker_shell,
+            status: args.status || 'OPEN',
+            assigned_agent: args.assigned_agent,
+            source_kind: 'MCP',
+            metadata: {
+                source: 'cstar-kernel-mcp:spoke_bead_import',
+                ...spokeMetadata,
+                ...(args.metadata || {}),
+            },
+            created_at: now,
+            updated_at: now,
+        });
+
+        return textResponse({
+            status: 'created',
+            action: 'spoke_bead_import',
+            spoke: anchor.spoke.slug,
+            repo_id: anchor.repoId,
+            bead: compactBead(database.getHallBead(beadId)),
+        });
+    } catch (error: any) {
+        return textResponse({ error: error.message }, true);
+    }
+}
+
+server.tool(
+    'cstar_spoke_bead_import',
+    'Import a rich Bead payload from a registered spoke. Anchors the bead to the spoke\'s repo, validates Lore (.feature) on disk, and embeds design/wireframe/threat-model/augury references in metadata. Hard-rejects unregistered, inactive, quarantined, or read-only spokes.',
+    {
+        spoke: z.string().describe('Registered spoke slug (must exist in hall_mounted_spokes).'),
+        bead_id: z.string().optional().describe('Pre-assigned bead id; generated if omitted.'),
+        intent: z.string().describe('Bead rationale / mission statement.'),
+        acceptance_criteria: z.string().describe('Concrete completion criteria.'),
+        lore_path: z.string().describe('Path to a Gherkin .feature file (Sterling Mandate leg 1), relative to spoke root or absolute. Must exist.'),
+        design_doc_path: z.string().optional().describe('Path to the design record (e.g. docs/design/*.md), relative to spoke root or absolute. Must exist if provided.'),
+        wireframe_ref: z.string().optional().describe('Wireframe path or anchor for UI-binding beads.'),
+        threat_model_summary: z.string().optional().describe('Short threat-model summary (truncated to 4 KiB).'),
+        contract_refs: z.array(z.string()).optional().describe('Additional contract references.'),
+        checker_shell: z.string().optional().describe('Focused checker command.'),
+        target_paths: z.array(z.string()).optional().describe('Target paths; first is primary, rest stored in metadata.'),
+        target_kind: z.enum(HALL_BEAD_TARGET_KINDS as [HallBeadTargetKind, ...HallBeadTargetKind[]]).optional().describe('Override target kind; defaults to FILE if target_paths given, else SPOKE.'),
+        target_ref: z.string().optional().describe('Target reference override; defaults to primary target_path or spoke URI.'),
+        augury_block: z.string().optional().describe('Captured Corvus Star Augury block for the work (truncated to 4 KiB).'),
+        assigned_agent: z.string().optional().describe('Assigned agent.'),
+        status: z.enum(HALL_BEAD_STATUSES as [HallBeadStatus, ...HallBeadStatus[]]).optional().describe('Initial status; defaults to OPEN.'),
+        metadata: z.record(z.string(), z.unknown()).optional().describe('Extra metadata merged after spoke + lore stamping.'),
+    },
+    instrumentTool('cstar_spoke_bead_import', handleSpokeBeadImport)
 );
 
 // 7. cstar_record_result
@@ -1575,6 +1819,389 @@ server.tool(
 );
 
 
+// ─────────────────────────────────────────────────────────────────────────────
+// BEAD-CSTAR-WAR-GAME-SCORING-001 — Dead-drop write surface + arbitration.
+//
+// cstar_engram_record:  Spokes publish arbitrary-intent Engrams to the Hall.
+// cstar_war_game_score: Operator queries the scoring infrastructure.
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface EngramRecordArgs {
+    intent: string;
+    bead_id: string;
+    spoke?: string;
+    metadata?: Record<string, unknown>;
+    memory_id?: string;
+}
+
+export async function handleEngramRecord(args: EngramRecordArgs) {
+    try {
+        const intent = requireString(args.intent, 'intent');
+        const beadId = requireString(args.bead_id, 'bead_id');
+        const metadata = args.metadata ?? {};
+
+        // Resolve spoke (if specified). Reuses the trust+write-policy gate
+        // already used by cstar_spoke_bead_import. Spokes that are quarantined
+        // or read_only are rejected hard.
+        let anchor;
+        if (args.spoke) {
+            anchor = resolveSpokeAnchor(args.spoke);
+        } else {
+            const { repoId } = resolveActiveRepo();
+            anchor = { repoId, spoke: null, metadata: null };
+        }
+
+        const now = Date.now();
+        const memoryId = args.memory_id?.trim() || `engram_${intent.replace(/[^a-zA-Z0-9_-]/g, '_')}_${now}_${Math.random().toString(36).substring(2, 8)}`;
+
+        // Persist via direct insert so the FTS triggers fire and the row is
+        // queryable BEFORE the scoring trigger runs.
+        database.getDb().prepare(
+            `INSERT INTO hall_episodic_memory (
+                memory_id, bead_id, repo_id, tactical_summary, files_touched_json,
+                successes_json, metadata_json, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ).run(
+            memoryId,
+            beadId,
+            anchor.repoId,
+            intent,
+            '[]',
+            '[]',
+            JSON.stringify(metadata),
+            now,
+            now,
+        );
+
+        // Fire the score trigger AFTER the row is persisted. Fail-soft —
+        // any error inside the trigger is logged and swallowed, never
+        // propagated to the caller.
+        const recorded: WarGameRecordedEngram = {
+            memory_id: memoryId,
+            bead_id: beadId,
+            repo_id: anchor.repoId,
+            intent,
+            metadata,
+            created_at: now,
+        };
+
+        // Skip scoring for kernel-emitted scored Engrams to prevent recursion.
+        let scoreResults: ReturnType<typeof scoreEngramIfArbitrated> = [];
+        if (!intent.startsWith('cstar/war-game/scored/')) {
+            scoreResults = scoreEngramIfArbitrated(database.getDb(), recorded);
+        }
+
+        return textResponse({
+            status: 'recorded',
+            memory_id: memoryId,
+            intent,
+            bead_id: beadId,
+            repo_id: anchor.repoId,
+            score_results: scoreResults.length > 0 ? scoreResults : undefined,
+        });
+    } catch (error: any) {
+        return textResponse({ error: error.message }, true);
+    }
+}
+
+server.tool(
+    'cstar_engram_record',
+    'Publish an Engram to the Hall. Spokes use this as the dead-drop write surface for cross-system events (e.g. usb-forge/shot-fired/*, usb-sentry/verdict/*). Fires the war-game scoring trigger for any Engram whose intent matches a registered contest defender prefix.',
+    {
+        intent: z.string().describe('Free-form intent string, e.g. "usb-forge/shot-fired/FORGE-MS-002". Used as the tactical_summary for FTS search.'),
+        bead_id: z.string().describe('Parent bead anchor (required by hall_episodic_memory FK).'),
+        spoke: z.string().optional().describe('Optional spoke slug. When set, the spoke must be active, trusted, and read_write — otherwise rejected hard.'),
+        metadata: z.record(z.string(), z.unknown()).optional().describe('Free-form Engram payload (JSON-serializable). Carries shot_id, terminal_event, expected, etc. for war-game arbitration.'),
+        memory_id: z.string().optional().describe('Optional pre-assigned memory_id; auto-generated if omitted.'),
+    },
+    instrumentTool('cstar_engram_record', handleEngramRecord)
+);
+
+
+interface WarGameScoreArgs {
+    action: 'register_contest' | 'tally' | 'recent' | 'by_scenario' | 'get_score' | 'list_contests';
+    contest_id?: string;
+    shot_id?: string;
+    limit?: number;
+
+    // register_contest fields
+    contest_name?: string;
+    attacker_label?: string;
+    defender_label?: string;
+    attacker_bead_id?: string;
+    defender_bead_id?: string;
+    attacker_intent_prefix?: string;
+    defender_intent_prefix?: string;
+    shot_id_path?: string;
+    expected_path?: string;
+    terminal_event_path?: string;
+    terminal_event_class_map?: { block: string[]; complete: string[]; inconclusive: string[] };
+    scenario_compatibility_map?: Record<string, string[]>;
+    metadata?: Record<string, unknown>;
+}
+
+export async function handleWarGameScore(args: WarGameScoreArgs) {
+    try {
+        const db = database.getDb();
+        switch (args.action) {
+            case 'register_contest': {
+                const contestId = requireString(args.contest_id, 'contest_id');
+                const contestName = requireString(args.contest_name, 'contest_name');
+                const attackerLabel = requireString(args.attacker_label, 'attacker_label');
+                const defenderLabel = requireString(args.defender_label, 'defender_label');
+                const attackerPrefix = requireString(args.attacker_intent_prefix, 'attacker_intent_prefix');
+                const defenderPrefix = requireString(args.defender_intent_prefix, 'defender_intent_prefix');
+                if (!args.terminal_event_class_map) {
+                    return textResponse({ error: 'terminal_event_class_map is required' }, true);
+                }
+                if (!args.scenario_compatibility_map) {
+                    return textResponse({ error: 'scenario_compatibility_map is required' }, true);
+                }
+                const { repoId } = resolveActiveRepo();
+                warGameRegisterContest(db, {
+                    contest_id: contestId,
+                    repo_id: repoId,
+                    contest_name: contestName,
+                    attacker_label: attackerLabel,
+                    defender_label: defenderLabel,
+                    attacker_bead_id: args.attacker_bead_id ?? null,
+                    defender_bead_id: args.defender_bead_id ?? null,
+                    attacker_intent_prefix: attackerPrefix,
+                    defender_intent_prefix: defenderPrefix,
+                    shot_id_path: args.shot_id_path,
+                    expected_path: args.expected_path,
+                    terminal_event_path: args.terminal_event_path,
+                    terminal_event_class_map: args.terminal_event_class_map,
+                    scenario_compatibility_map: args.scenario_compatibility_map,
+                    metadata: args.metadata,
+                });
+                return textResponse({ status: 'registered', contest_id: contestId });
+            }
+            case 'tally': {
+                if (args.contest_id) {
+                    const tally = tallyContest(db, args.contest_id);
+                    if (!tally) return textResponse({ error: `contest '${args.contest_id}' not found` }, true);
+                    return textResponse({ status: 'ok', action: 'tally', tally });
+                }
+                const tallies = tallyAllContests(db);
+                return textResponse({ status: 'ok', action: 'tally', tallies });
+            }
+            case 'recent': {
+                const limit = args.limit ?? 10;
+                const rows = recentScores(db, args.contest_id ?? null, limit);
+                return textResponse({ status: 'ok', action: 'recent', scores: rows });
+            }
+            case 'by_scenario': {
+                const contestId = requireString(args.contest_id, 'contest_id');
+                const buckets = byScenario(db, contestId);
+                return textResponse({ status: 'ok', action: 'by_scenario', contest_id: contestId, buckets });
+            }
+            case 'get_score': {
+                const shotId = requireString(args.shot_id, 'shot_id');
+                const row = getScoreByShot(db, shotId, args.contest_id);
+                return textResponse({ status: 'ok', action: 'get_score', score: row });
+            }
+            case 'list_contests': {
+                const rows = db.prepare(
+                    `SELECT contest_id, contest_name, attacker_label, defender_label,
+                            attacker_bead_id, defender_bead_id, created_at
+                     FROM war_game_contests ORDER BY created_at DESC`,
+                ).all();
+                return textResponse({ status: 'ok', action: 'list_contests', contests: rows });
+            }
+            default:
+                return textResponse({ error: `Unsupported war_game_score action: ${args.action}` }, true);
+        }
+    } catch (error: any) {
+        return textResponse({ error: error.message }, true);
+    }
+}
+
+server.tool(
+    'cstar_war_game_score',
+    'Query and manage war-game scoring. Actions: register_contest, tally, recent, by_scenario, get_score, list_contests. Scoring itself fires automatically when cstar_engram_record receives an Engram whose intent matches a registered contest defender prefix.',
+    {
+        action: z.enum(['register_contest', 'tally', 'recent', 'by_scenario', 'get_score', 'list_contests']).describe('Bounded scoring action'),
+        contest_id: z.string().optional().describe('Contest identifier (required for register_contest, by_scenario; optional filter for tally/recent/get_score)'),
+        shot_id: z.string().optional().describe('Shot identifier (required for get_score)'),
+        limit: z.number().int().min(1).max(100).optional().describe('Result limit for recent (default 10)'),
+        contest_name: z.string().optional().describe('Human label for the contest (register_contest)'),
+        attacker_label: z.string().optional().describe('Short attacker identifier, e.g. "claude:forge" (register_contest)'),
+        defender_label: z.string().optional().describe('Short defender identifier, e.g. "codex:sentry" (register_contest)'),
+        attacker_bead_id: z.string().optional().describe('Anchoring bead for the attacker side (register_contest)'),
+        defender_bead_id: z.string().optional().describe('Anchoring bead for the defender side (register_contest)'),
+        attacker_intent_prefix: z.string().optional().describe('Engram intent prefix that identifies attacker shot-fired writes, e.g. "usb-forge/shot-fired/" (register_contest)'),
+        defender_intent_prefix: z.string().optional().describe('Engram intent prefix that identifies defender verdict writes, e.g. "usb-sentry/verdict/" (register_contest)'),
+        shot_id_path: z.string().optional().describe('Dotted JSONPath for shot_id, default "metadata.shot_id" (register_contest)'),
+        expected_path: z.string().optional().describe('Dotted JSONPath for attacker expected outcome, default "metadata.expected" (register_contest)'),
+        terminal_event_path: z.string().optional().describe('Dotted JSONPath for defender terminal_event, default "metadata.terminal_event" (register_contest)'),
+        terminal_event_class_map: z.object({
+            block: z.array(z.string()),
+            complete: z.array(z.string()),
+            inconclusive: z.array(z.string()),
+        }).optional().describe('Maps terminal_event strings to their class (block/complete/inconclusive) (register_contest)'),
+        scenario_compatibility_map: z.record(z.string(), z.array(z.string())).optional().describe('Per-scenario_id allowed terminal_events; structural-violation detection uses this (register_contest)'),
+        metadata: z.record(z.string(), z.unknown()).optional().describe('Optional contest metadata'),
+    },
+    instrumentTool('cstar_war_game_score', handleWarGameScore)
+);
+
+
+// ─────────────────────────────────────────────────────────────────────────
+// BEAD-CSTAR-SPOKE-DISCOVERY-001 — F3 tools.
+// Read-only, announce-only spoke awareness. Kernel walks; host executes.
+// ─────────────────────────────────────────────────────────────────────────
+
+interface SpokeCapabilityRecord {
+    id: string;
+    bare_id: string;
+    source: 'spoke';
+    source_spoke: string;
+    tier: string;
+    risk: string;
+    entry_surface: 'host-only';
+    execution_mode: 'agent-native';
+    owner_runtime: 'host-agent';
+    authority_path: string;
+    active_in_runtime: false;
+    validation: string;
+    validation_reason?: string;
+    shadows_hub_id: boolean;
+    name: string;
+    description: string;
+}
+
+function adaptSpokeManifestToCapability(s: SpokeSkillManifest): SpokeCapabilityRecord {
+    return {
+        id: s.id,
+        bare_id: s.bare_id,
+        source: 'spoke',
+        source_spoke: s.spoke_slug,
+        tier: s.tier,
+        risk: s.risk,
+        entry_surface: 'host-only',
+        execution_mode: 'agent-native',
+        owner_runtime: 'host-agent',
+        authority_path: s.authority_path,
+        active_in_runtime: false,
+        validation: s.validation,
+        validation_reason: s.validation_reason,
+        shadows_hub_id: s.shadows_hub_id,
+        name: s.name,
+        description: s.description,
+    };
+}
+
+const LOGIC_PROTOCOL_RE = /^#{1,6}.*LOGIC PROTOCOL.*$/im;
+
+function extractLogicProtocolAnchor(content: string): string | null {
+    const m = LOGIC_PROTOCOL_RE.exec(content);
+    return m === null ? null : m[0].trim();
+}
+
+async function handleManifest({ scope = 'hub', spoke }: { scope?: 'hub' | 'spoke' | 'all'; spoke?: string }) {
+    try {
+        const projectRoot = registry.getRoot();
+        const hubPayload = scope === 'hub' || scope === 'all'
+            ? buildCapabilityManifestPayload(projectRoot)
+            : null;
+        const spokeManifests = scope === 'spoke' || scope === 'all'
+            ? walkSpokeSkills(spoke)
+            : [];
+
+        const hubEntries = (hubPayload?.capabilities ?? []).map((c) => ({
+            ...c,
+            source: 'hub' as const,
+        }));
+        const spokeEntries = spokeManifests.map(adaptSpokeManifestToCapability);
+        const capabilities = [...hubEntries, ...spokeEntries].sort((a, b) =>
+            String(a.id).localeCompare(String(b.id))
+        );
+
+        return textResponse({ scope, spoke: spoke ?? null, capabilities });
+    } catch (error: any) {
+        return textResponse({ error: error.message }, true);
+    }
+}
+
+async function handleSkillInfo({ id, spoke }: { id: string; spoke?: string }) {
+    try {
+        const projectRoot = registry.getRoot();
+
+        if (id.includes(':')) {
+            // Spoke skill: namespaced as <slug>:<bare_id>.
+            const sep = id.indexOf(':');
+            const parsedSlug = id.slice(0, sep);
+            const bareId = id.slice(sep + 1);
+            const slug = spoke ?? parsedSlug;
+
+            const candidates = walkSpokeSkills(slug, { includeQuarantined: true });
+            const found = candidates.find((s) => s.bare_id === bareId);
+            if (found === undefined) {
+                return textResponse({ error: `spoke skill not found: ${id}` }, true);
+            }
+            return textResponse({
+                capability: adaptSpokeManifestToCapability(found),
+                documentation: {
+                    kind: 'markdown',
+                    path: found.authority_path,
+                    readable: true,
+                    content: found.documentation,
+                },
+                invocation: {
+                    agent_hint: 'any-host-agent',
+                    working_dir: found.spoke_root,
+                    command: null,
+                    logic_protocol_anchor: extractLogicProtocolAnchor(found.documentation),
+                },
+            });
+        }
+
+        // Hub skill: delegate to the existing capability discovery path.
+        const payload = buildCapabilityInfoPayload(projectRoot, id);
+        return textResponse(payload);
+    } catch (error: any) {
+        return textResponse({ error: error.message }, true);
+    }
+}
+
+async function handleSpokeJournal({ spoke }: { spoke: string }) {
+    try {
+        const report = walkSpokeJournal(spoke);
+        return textResponse(report);
+    } catch (error: any) {
+        return textResponse({ error: error.message }, true);
+    }
+}
+
+server.tool(
+    'cstar_manifest',
+    'Capability discovery. Returns the kernel registry merged with spoke-local skill manifests, namespaced as <slug>:<id>. Read-only; announce-only per Host-Native First (BEAD-CSTAR-SPOKE-DISCOVERY-001).',
+    {
+        scope: z.enum(['hub', 'spoke', 'all']).optional().default('hub').describe('Capability source: hub (kernel registry), spoke (spoke-local), or all (merged)'),
+        spoke: z.string().optional().describe('When set with scope=spoke or scope=all, narrows spoke walk to this slug'),
+    },
+    instrumentTool('cstar_manifest', handleManifest)
+);
+
+server.tool(
+    'cstar_skill_info',
+    'Per-capability contract view. Resolves <slug>:<id> to the spoke walker (returning SKILL.md content + invocation metadata for host-agent execution), and bare ids to the kernel registry.',
+    {
+        id: z.string().describe('Capability id; bare for hub, <slug>:<bare> for spoke'),
+        spoke: z.string().optional().describe('Optional override of the spoke slug parsed from id'),
+    },
+    instrumentTool('cstar_skill_info', handleSkillInfo)
+);
+
+server.tool(
+    'cstar_spoke_journal',
+    'Four-file journal state for a registered spoke: memory.md, tasks.md, wireframe.md, DEV_JOURNAL.md. Returns presence, mtime, sha256, size_bytes, summary. Memory-file drift between .agent/ and .agents/ is flagged.',
+    {
+        spoke: z.string().describe('Slug of a registered spoke'),
+    },
+    instrumentTool('cstar_spoke_journal', handleSpokeJournal)
+);
 
 
 async function main() {
