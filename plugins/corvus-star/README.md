@@ -23,8 +23,8 @@ This repository generates host install artifacts from the authoritative registry
 - `npm run install:hosts-local`
 
 ## Export Summary
-- Gemini executable capabilities: 76
-- Codex executable capabilities: 76
+- Gemini executable capabilities: 0
+- Codex executable capabilities: 0
 
 ## Regeneration
 - `npm run build:distributions`

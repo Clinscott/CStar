@@ -1,19 +1,19 @@
 {
   "name": "corvus-star",
   "version": "1.0.0",
-  "description": "Corvus Star host-native extension backed by the cstar-kernel MCP (Hall discovery, Augury routing, kernel-backed CStar control).",
+  "description": "Corvus Star host-native extension with Hall discovery, Augury routing, and kernel-backed CStar control.",
   "contextFileName": "GEMINI.md",
   "mcpServers": {
     "cstar-kernel": {
       "command": "node",
       "args": [
-        "${extensionPath}/bin/cstar-kernel-mcp.js"
+        "bin/cstar-kernel-mcp.js"
       ],
       "cwd": ".",
       "env": {
         "GEMINI_CLI_ACTIVE": "true"
       },
-      "note": "CStar kernel MCP — the only supported surface."
+      "note": "CStar kernel MCP — 20-tool surface. See docs/integrations/cstar-kernel-mcp.md for the full API reference."
     }
   }
 }

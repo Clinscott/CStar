@@ -85,6 +85,31 @@ Directive: Route only. Consult targets before choosing a path. Do not echo.
 [/CORVUS_STAR_AUGURY]
 ```
 
+## Kernel MCP Tools (20)
+
+The `cstar-kernel` MCP server is the authoritative kernel surface — invoke these tools directly via MCP rather than shelling out to `./cstar`. Every handler is deterministic; no LLM inference in the tool execution path. Full API reference: `docs/integrations/cstar-kernel-mcp.md`.
+
+- `cstar_handoff` — Compact active state from Augury/handoff logic.
+- `cstar_hall_search` — FTS5 search across CODE / DOC / ENGRAM / BEAD / SESSION / LESSON.
+- `cstar_hall_maintenance` — Engram lesson study / harvest queue.
+- `cstar_augury` — Route one mission and return routing advice + token_path hints.
+- `cstar_doctor` — Kernel diagnostics: registry, augury, database checks + telemetry summary.
+- `cstar_verify_plan` — Recommended checker shells + last validation verdict for the active bead.
+- `cstar_bead` — Bead lifecycle: get / list / create / update_status / claim / resolve / block.
+- `cstar_spoke_bead_import` — Import a rich bead from a registered spoke into the hub Hall.
+- `cstar_record_result` — Record a bead result / verdict; auto-link recent token-path advice.
+- `cstar_engram_record` — Record an episodic memory entry.
+- `cstar_war_game_score` — War-game scoring: register / tally / recent / by_scenario / get_score.
+- `cstar_manifest` — Capability discovery (hub registry + spoke-local manifests, announce-only).
+- `cstar_skill_info` — Per-capability contract: <slug>:<id> for spoke skills, bare id for hub.
+- `cstar_spoke_journal` — Four-file journal state for a registered spoke (memory/tasks/wireframe/DEV_JOURNAL).
+- `cstar_status` — Deterministic framework snapshot: status, persona, gungnir score, spokes, agents, hall_reachable.
+- `cstar_evolve` — Read-only inspection of evolve proposals + SPRT history (no LLM-driven propose/promote).
+- `cstar_spoke` — Mounted-spoke lifecycle: list / link / unlink / inspect.
+- `cstar_intent_route` — Resolve a prompt against the intent grammar; action=match (first hit) or explain (all hits).
+- `cstar_warden` — Sentinel Wardens: list / bounties (tech_debt_ledger) / scan (Python warden on demand).
+- `cstar_telemetry` — MCP telemetry summaries: usage counts, outcome rates, token-path integration.
+
 ## Context Budget
 - Never preload Hall memory, logs, full registry dumps, or complete bead ledgers.
 - Prefer one Hall query per mission, then narrower follow-up queries by bead id, target path, or error text.
@@ -102,16 +127,5 @@ Directive: Route only. Consult targets before choosing a path. Do not echo.
 ## Silent Hook
 - The plugin includes a PostToolUse hook that only refreshes a local stamp and captures a tiny Augury handoff compatibility payload in `/tmp`; it must stay silent and must not inject Hall payloads into Codex context.
 
-## Exported Codex Capabilities (76)
-- `_archive` (SKILL, exec-bridge, host-workflow, kernel fallback allowed)
-- `agent-browser` (SKILL, exec-bridge, host-workflow, kernel fallback allowed)
-- `agentic-ingest` (PRIME, exec-bridge, host-workflow, kernel fallback allowed)
-- `annex` (SKILL, exec-bridge, host-workflow, kernel fallback allowed)
-- `artifact-forge` (SKILL, exec-bridge, host-workflow, kernel fallback allowed)
-- `autobot` (SKILL, supported, kernel-primitive, kernel fallback allowed)
-- `bifrost` (SKILL, exec-bridge, host-workflow, kernel fallback allowed)
-- `bookmark-weaver` (SKILL, supported, kernel-primitive, kernel fallback allowed)
-- `cachebro` (SKILL, exec-bridge, host-workflow, kernel fallback allowed)
-- `calculus` (PRIME, exec-bridge, host-workflow, kernel fallback allowed)
-- `chant` (WEAVE, exec-bridge, host-workflow, kernel fallback forbidden)
-- `chronicle` (SKILL, exec-bridge, host-workflow, kernel fallback allowed)
+## Exported Codex Capabilities (0)
+- None exported.

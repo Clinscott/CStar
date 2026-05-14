@@ -9,7 +9,7 @@
       "env": {
         "GEMINI_CLI_ACTIVE": "true"
       },
-      "note": "CStar kernel MCP — six-tool surface (handoff, hall_search, augury, doctor, verify_plan, record_result)."
+      "note": "CStar kernel MCP — 20-tool surface. See docs/integrations/cstar-kernel-mcp.md for the full API reference."
     }
   }
 }

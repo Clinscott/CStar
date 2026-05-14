@@ -299,12 +299,14 @@ function buildGeminiContextContent(projectRoot: string, capabilities: Capability
         '- Public host fronts marked with kernel fallback forbidden must fail closed when no host session is active; they must not degrade into legacy kernel cognition.',
         '',
         ...buildAuguryDisplaySection(),
+        ...buildKernelMcpToolsSection(),
         `## Exported Gemini Capabilities (${capabilities.length})`,
         ...(topCapabilities.length > 0 ? topCapabilities : ['- None exported.']),
         '',
         '## Notes',
         '- This extension is generated from the registry-backed distribution builder.',
         '- Capabilities marked `policy-only` or `unsupported` are intentionally omitted.',
+        '- The `cstar-kernel` MCP server is wired up by `mcpServers` in `gemini-extension.json` — invoke kernel tools directly through MCP, not via shell.',
         '',
     ].join('\n');
 }
@@ -398,6 +400,7 @@ function buildCodexPluginSkillContent(capabilities: CapabilityExport[]): string 
         '- Do not run shell `cstar chant` for host-only planning. In Codex, perform the host-native planning and critique in-session, using Hall/Augury state commands for bounded state and evidence.',
         '',
         ...buildAuguryDisplaySection(),
+        ...buildKernelMcpToolsSection(),
         '## Context Budget',
         '- Never preload Hall memory, logs, full registry dumps, or complete bead ledgers.',
         '- Prefer one Hall query per mission, then narrower follow-up queries by bead id, target path, or error text.',
@@ -465,6 +468,37 @@ function buildCodexPostWriteHookContent(projectRoot: string): string {
     ].join('\n');
 }
 
+/**
+ * The cstar-kernel MCP tool inventory, in registration order.
+ * Source of truth: `src/tools/cstar-kernel-mcp.ts#server.tool(...)` calls.
+ * Update this list when a tool is added, renamed, or removed.
+ * Drift is caught by `npm run validate:distributions` (this content is
+ * embedded in GEMINI.md and the Codex SKILL.md, so a stale list will fail
+ * the validate-distributions check).
+ */
+const KERNEL_MCP_TOOLS: ReadonlyArray<{ name: string; purpose: string }> = [
+    { name: 'cstar_handoff', purpose: 'Compact active state from Augury/handoff logic.' },
+    { name: 'cstar_hall_search', purpose: 'FTS5 search across CODE / DOC / ENGRAM / BEAD / SESSION / LESSON.' },
+    { name: 'cstar_hall_maintenance', purpose: 'Engram lesson study / harvest queue.' },
+    { name: 'cstar_augury', purpose: 'Route one mission and return routing advice + token_path hints.' },
+    { name: 'cstar_doctor', purpose: 'Kernel diagnostics: registry, augury, database checks + telemetry summary.' },
+    { name: 'cstar_verify_plan', purpose: 'Recommended checker shells + last validation verdict for the active bead.' },
+    { name: 'cstar_bead', purpose: 'Bead lifecycle: get / list / create / update_status / claim / resolve / block.' },
+    { name: 'cstar_spoke_bead_import', purpose: 'Import a rich bead from a registered spoke into the hub Hall.' },
+    { name: 'cstar_record_result', purpose: 'Record a bead result / verdict; auto-link recent token-path advice.' },
+    { name: 'cstar_engram_record', purpose: 'Record an episodic memory entry.' },
+    { name: 'cstar_war_game_score', purpose: 'War-game scoring: register / tally / recent / by_scenario / get_score.' },
+    { name: 'cstar_manifest', purpose: 'Capability discovery (hub registry + spoke-local manifests, announce-only).' },
+    { name: 'cstar_skill_info', purpose: 'Per-capability contract: <slug>:<id> for spoke skills, bare id for hub.' },
+    { name: 'cstar_spoke_journal', purpose: 'Four-file journal state for a registered spoke (memory/tasks/wireframe/DEV_JOURNAL).' },
+    { name: 'cstar_status', purpose: 'Deterministic framework snapshot: status, persona, gungnir score, spokes, agents, hall_reachable.' },
+    { name: 'cstar_evolve', purpose: 'Read-only inspection of evolve proposals + SPRT history (no LLM-driven propose/promote).' },
+    { name: 'cstar_spoke', purpose: 'Mounted-spoke lifecycle: list / link / unlink / inspect.' },
+    { name: 'cstar_intent_route', purpose: 'Resolve a prompt against the intent grammar; action=match (first hit) or explain (all hits).' },
+    { name: 'cstar_warden', purpose: 'Sentinel Wardens: list / bounties (tech_debt_ledger) / scan (Python warden on demand).' },
+    { name: 'cstar_telemetry', purpose: 'MCP telemetry summaries: usage counts, outcome rates, token-path integration.' },
+];
+
 function buildMcpServers(rootCwd: string | undefined): Record<string, McpServerConfig> {
     return {
         'cstar-kernel': {
@@ -474,9 +508,20 @@ function buildMcpServers(rootCwd: string | undefined): Record<string, McpServerC
             env: {
                 GEMINI_CLI_ACTIVE: 'true',
             },
-            note: 'CStar kernel MCP — six-tool surface (handoff, hall_search, augury, doctor, verify_plan, record_result).',
+            note: `CStar kernel MCP — ${KERNEL_MCP_TOOLS.length}-tool surface. See docs/integrations/cstar-kernel-mcp.md for the full API reference.`,
         },
     };
+}
+
+function buildKernelMcpToolsSection(): string[] {
+    return [
+        `## Kernel MCP Tools (${KERNEL_MCP_TOOLS.length})`,
+        '',
+        'The `cstar-kernel` MCP server is the authoritative kernel surface — invoke these tools directly via MCP rather than shelling out to `./cstar`. Every handler is deterministic; no LLM inference in the tool execution path. Full API reference: `docs/integrations/cstar-kernel-mcp.md`.',
+        '',
+        ...KERNEL_MCP_TOOLS.map(({ name, purpose }) => `- \`${name}\` — ${purpose}`),
+        '',
+    ];
 }
 
 function buildGeminiMcpServers(): Record<string, McpServerConfig> {
