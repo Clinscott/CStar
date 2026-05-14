@@ -651,6 +651,58 @@ export function ensureHallSchema(database: Database.Database, rootPath: string):
             content
         );
 
+        -- BEAD-CSTAR-WAR-GAME-SCORING-001 — war-game arbitration tables.
+        -- The kernel scores attacker-vs-defender Engram conversations without
+        -- trusting either combatant's self-report. See docs/beads/cstar-war-game-scoring-001.md.
+
+        CREATE TABLE IF NOT EXISTS war_game_contests (
+            contest_id TEXT PRIMARY KEY,
+            repo_id TEXT NOT NULL,
+            contest_name TEXT NOT NULL,
+            attacker_label TEXT NOT NULL,
+            defender_label TEXT NOT NULL,
+            attacker_bead_id TEXT,
+            defender_bead_id TEXT,
+            attacker_intent_prefix TEXT NOT NULL,
+            defender_intent_prefix TEXT NOT NULL,
+            shot_id_path TEXT NOT NULL DEFAULT 'metadata.shot_id',
+            expected_path TEXT NOT NULL DEFAULT 'metadata.expected',
+            terminal_event_path TEXT NOT NULL DEFAULT 'metadata.terminal_event',
+            terminal_event_class_map_json TEXT NOT NULL,
+            scenario_compatibility_map_json TEXT NOT NULL,
+            metadata_json TEXT,
+            created_at INTEGER NOT NULL,
+            FOREIGN KEY(repo_id) REFERENCES hall_repositories(repo_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_war_game_contests_repo
+            ON war_game_contests(repo_id);
+        CREATE INDEX IF NOT EXISTS idx_war_game_contests_defender_prefix
+            ON war_game_contests(defender_intent_prefix);
+
+        CREATE TABLE IF NOT EXISTS war_game_scores (
+            score_id TEXT PRIMARY KEY,
+            contest_id TEXT NOT NULL,
+            shot_id TEXT NOT NULL,
+            scenario_id TEXT NOT NULL,
+            outcome TEXT NOT NULL,
+            expected_summary TEXT,
+            observed_terminal_event TEXT,
+            inconclusive_reason TEXT,
+            attacker_engram_intent TEXT NOT NULL,
+            defender_engram_intent TEXT NOT NULL,
+            scored_at INTEGER NOT NULL,
+            UNIQUE(contest_id, shot_id),
+            FOREIGN KEY(contest_id) REFERENCES war_game_contests(contest_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_war_game_scores_contest
+            ON war_game_scores(contest_id, scored_at);
+        CREATE INDEX IF NOT EXISTS idx_war_game_scores_outcome
+            ON war_game_scores(contest_id, outcome);
+        CREATE INDEX IF NOT EXISTS idx_war_game_scores_shot
+            ON war_game_scores(shot_id);
+
     `);
 
     ensureColumn(database, 'hall_beads', 'target_kind', "TEXT NOT NULL DEFAULT 'FILE'");

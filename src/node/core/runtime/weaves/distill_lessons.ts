@@ -14,6 +14,15 @@ import { randomUUID } from 'node:crypto';
 import { execa } from 'execa';
 import path from 'node:path';
 
+/**
+ * [Ω] STABILITY: Truncate large text fields to prevent local model (LiteRT) context saturation.
+ * 8000 characters is approximately 2000 tokens, a safe threshold for Gemma 1B.
+ */
+function truncateText(text: string, maxChars: number = 8000): string {
+    if (text.length <= maxChars) return text;
+    return text.slice(0, maxChars) + '\n\n[... TRUNCATED TO PREVENT LOCAL MODEL CONTEXT OVERFLOW ...]';
+}
+
 export class DistillLessonsWeave implements RuntimeAdapter<LessonDistillWeavePayload> {
     public readonly id = 'weave:distill-lessons';
 
@@ -62,6 +71,12 @@ export class DistillLessonsWeave implements RuntimeAdapter<LessonDistillWeavePay
 
         try {
             const systemPrompt = 'You are the Corvus Star Lesson Harvester. Return strict JSON only.';
+            
+            // [Ω] STABILITY: Sanitize and truncate inputs to protect LiteRT
+            const sanitizedSummary = truncateText(engram.tactical_summary || 'Restored session engram.');
+            const sanitizedFiles = truncateText(JSON.stringify(engram.files_touched || []), 2000);
+            const sanitizedSuccesses = truncateText(JSON.stringify(engram.successes || []), 2000);
+
             const prompt = `
 Study the following episodic memory engram and identify key "lessons learned".
 Organize these lessons into a hierarchical branching tree (TREE -> LIMB -> BRANCH -> LEAF -> CELL).
@@ -73,13 +88,13 @@ Organize these lessons into a hierarchical branching tree (TREE -> LIMB -> BRANC
 - CELL: Implementation detail, snippet, or micro-optimization
 
 Engram Summary:
-${engram.tactical_summary}
+${sanitizedSummary}
 
 Files Touched:
-${JSON.stringify(engram.files_touched || [])}
+${sanitizedFiles}
 
 Successes:
-${JSON.stringify(engram.successes || [])}
+${sanitizedSuccesses}
 
 Instructions:
 1. Identify 3-5 distinct nodes.

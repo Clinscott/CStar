@@ -18,19 +18,41 @@ const geminiMemoryDir = path.join(os.homedir(), '.gemini', 'tmp', 'corvus', 'mem
 let engravedCount = 0;
 const repoId = `repo:${registry.getRoot()}`;
 
+// Use the script's own location to find the CStar directory robustly
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
+const cstarDir = path.resolve(__dirname, '..');
+
+console.log(`[ALFRED] Engraving sessions for ${repoId}`);
+console.log(`[ALFRED] Using database: ${path.join(registry.getRoot(), '.stats', 'pennyone.db')}`);
+
 async function engraveSessions() {
     for (const memoryDir of potentialDirs) {
         if (!fs.existsSync(memoryDir)) {
             continue;
         }
 
-        const files = fs.readdirSync(memoryDir).filter(f => 
-            (f.startsWith('session_') && f.endsWith('.json')) || 
-            (f.startsWith('session-') && (f.endsWith('.json') || f.endsWith('.jsonl')))
-        );
+        const files: string[] = [];
+        const findFilesRecursive = (dir: string) => {
+            const entries = fs.readdirSync(dir, { withFileTypes: true });
+            for (const entry of entries) {
+                const fullPath = path.join(dir, entry.name);
+                if (entry.isDirectory()) {
+                    // Avoid recursion into .agents/memory if it's the root we're already scanning
+                    if (entry.name !== '.agents') findFilesRecursive(fullPath);
+                } else if (
+                    (entry.name.startsWith('session_') && entry.name.endsWith('.json')) || 
+                    (entry.name.startsWith('session-') && (entry.name.endsWith('.json') || entry.name.endsWith('.jsonl'))) ||
+                    (dir !== memoryDir && entry.name.endsWith('.jsonl')) // Also pick up jsonl files in UUID subdirs
+                ) {
+                    files.push(fullPath);
+                }
+            }
+        };
 
-        for (const file of files) {
-            const filePath = path.join(memoryDir, file);
+        findFilesRecursive(memoryDir);
+
+        for (const filePath of files) {
+            const file = path.basename(filePath);
             try {
                 const stats = fs.statSync(filePath);
                 
@@ -163,21 +185,21 @@ async function engraveSessions() {
             // 1.5. Trigger Lesson Distillation (The Harvester)
             try {
                 const projectRoot = process.env.CSTAR_LAUNCH_CWD || process.cwd();
-                const cstarDir = path.join(projectRoot, 'CStar');
                 
-                // We use a separate process to avoid blocking the hook too long, 
-                // but since this is a hook we can also just run it here if we want immediate results.
+                // We use a separate process to avoid blocking the hook too long.
                 console.log(`[ALFRED] Studying session ${memoryId} for lessons learned...`);
                 
-                // We invoke the cstar binary directly to run the learn command we just added
-                const { spawnSync } = await import('node:child_process');
+                // We invoke the cstar binary directly to run the learn command
+                const { spawn } = await import('node:child_process');
                 const cstarBin = path.join(cstarDir, 'bin', 'cstar.js');
                 
-                spawnSync('node', [cstarBin, 'p1', '--learn', memoryId], {
+                const distillProc = spawn('node', [cstarBin, 'p1', '--learn', memoryId], {
                     cwd: projectRoot,
                     env: { ...process.env, CSTAR_LAUNCH_CWD: projectRoot },
-                    stdio: 'inherit'
+                    stdio: 'ignore', // Run silently in background
+                    detached: true
                 });
+                distillProc.unref(); // Allow the parent to exit
             } catch (distillErr) {
                 console.error(`[WARNING] Failed to distill lessons for ${memoryId}:`, distillErr);
             }

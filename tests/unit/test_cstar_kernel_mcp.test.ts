@@ -1,6 +1,14 @@
 import { describe, it, mock, beforeEach } from 'node:test';
 import assert from 'node:assert';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { database } from '../../src/tools/pennyone/intel/database.js';
+import type { HallMountedSpokeRecord } from '../../src/types/hall.js';
+
+const spokeStore = new Map<string, HallMountedSpokeRecord>();
+mock.method(database, 'getHallMountedSpoke', (slugOrId: string) => spokeStore.get(slugOrId) ?? null);
+mock.method(database, 'listHallMountedSpokes', () => [...spokeStore.values()]);
 
 const beadStore = new Map<string, any>();
 
@@ -57,21 +65,42 @@ mock.method(database, 'getDb', () => ({
     })
 }));
 
-import { 
-    handleHandoff, 
-    handleHallSearch, 
-    handleAugury, 
-    handleDoctor, 
-    handleVerifyPlan, 
+import {
+    handleHandoff,
+    handleHallSearch,
+    handleAugury,
+    handleDoctor,
+    handleVerifyPlan,
     handleBead,
     handleRecordResult,
+    handleSpokeBeadImport,
+    resolveSpokeAnchor,
     deriveMcpUsefulnessEvent,
     summarizeUsefulnessEvents,
 } from '../../src/tools/cstar-kernel-mcp.js';
 
+function makeSpoke(overrides: Partial<HallMountedSpokeRecord> = {}): HallMountedSpokeRecord {
+    const now = Date.now();
+    return {
+        spoke_id: 'spoke:test-spoke',
+        repo_id: 'repo:test-spoke',
+        slug: 'test-spoke',
+        kind: 'local',
+        root_path: '/tmp/test-spoke-root',
+        mount_status: 'active',
+        trust_level: 'trusted',
+        write_policy: 'read_write',
+        projection_status: 'projected',
+        created_at: now,
+        updated_at: now,
+        ...overrides,
+    } as HallMountedSpokeRecord;
+}
+
 describe('🔱 CStar Kernel MCP Tools', () => {
     beforeEach(() => {
         beadStore.clear();
+        spokeStore.clear();
     });
 
     it('cstar_handoff tool handler should return a valid MCP response', async () => {
@@ -344,5 +373,206 @@ describe('🔱 CStar Kernel MCP Tools', () => {
         assert.strictEqual(parsed.status, 'recorded');
         assert.strictEqual(parsed.token_path_observation_id, undefined,
             'malformed observation must be skipped, verdict still recorded');
+    });
+
+    describe('🜂 Spoke-anchored bead operations', () => {
+        it('resolveSpokeAnchor returns kernel repo when no spoke is named', () => {
+            const anchor = resolveSpokeAnchor(undefined);
+            assert.strictEqual(anchor.repoId, 'test-repo');
+            assert.strictEqual(anchor.spoke, null);
+            assert.strictEqual(anchor.metadata, null);
+        });
+
+        it('resolveSpokeAnchor anchors to the spoke repo when registered and trusted', () => {
+            spokeStore.set('test-spoke', makeSpoke());
+            const anchor = resolveSpokeAnchor('test-spoke');
+            assert.strictEqual(anchor.repoId, 'repo:test-spoke');
+            assert.ok(anchor.spoke);
+            assert.strictEqual(anchor.metadata?.spoke_slug, 'test-spoke');
+            assert.strictEqual(anchor.metadata?.spoke_trust_level, 'trusted');
+        });
+
+        it('resolveSpokeAnchor rejects an unregistered spoke', () => {
+            assert.throws(
+                () => resolveSpokeAnchor('not-a-real-spoke'),
+                /not registered in the Hall estate/,
+            );
+        });
+
+        it('resolveSpokeAnchor rejects a disconnected spoke', () => {
+            spokeStore.set('test-spoke', makeSpoke({ mount_status: 'disconnected' }));
+            assert.throws(
+                () => resolveSpokeAnchor('test-spoke'),
+                /is not active/,
+            );
+        });
+
+        it('resolveSpokeAnchor rejects a quarantined spoke', () => {
+            spokeStore.set('test-spoke', makeSpoke({ trust_level: 'quarantined' }));
+            assert.throws(
+                () => resolveSpokeAnchor('test-spoke'),
+                /quarantined/,
+            );
+        });
+
+        it('resolveSpokeAnchor rejects a read_only spoke', () => {
+            spokeStore.set('test-spoke', makeSpoke({ write_policy: 'read_only' }));
+            assert.throws(
+                () => resolveSpokeAnchor('test-spoke'),
+                /write_policy='read_only'/,
+            );
+        });
+
+        it('cstar_bead create with spoke anchors the bead to the spoke repo', async () => {
+            spokeStore.set('test-spoke', makeSpoke());
+
+            const result = await handleBead({
+                action: 'create',
+                bead_id: 'bead:spoke:anchor-1',
+                spoke: 'test-spoke',
+                rationale: 'Bead from a registered spoke.',
+                target_path: 'src/feature.rs',
+            });
+            const parsed = JSON.parse(result.content[0].text);
+            assert.strictEqual(parsed.status, 'created');
+            assert.strictEqual(parsed.spoke, 'test-spoke');
+            assert.strictEqual(parsed.repo_id, 'repo:test-spoke');
+
+            const stored = beadStore.get('bead:spoke:anchor-1');
+            assert.strictEqual(stored.repo_id, 'repo:test-spoke');
+            assert.strictEqual(stored.metadata.spoke_slug, 'test-spoke');
+            assert.strictEqual(stored.metadata.spoke_trust_level, 'trusted');
+        });
+
+        it('cstar_bead create with unregistered spoke errors out', async () => {
+            const result = await handleBead({
+                action: 'create',
+                bead_id: 'bead:spoke:should-fail',
+                spoke: 'ghost-spoke',
+                rationale: 'Should never land.',
+            });
+            assert.strictEqual(result.isError, true);
+            const parsed = JSON.parse(result.content[0].text);
+            assert.match(parsed.error, /'ghost-spoke' is not registered/);
+            assert.strictEqual(beadStore.has('bead:spoke:should-fail'), false);
+        });
+
+        it('cstar_bead create with no spoke arg keeps kernel-anchored behavior', async () => {
+            const result = await handleBead({
+                action: 'create',
+                bead_id: 'bead:kernel-anchored',
+                rationale: 'Kernel-side bead.',
+            });
+            const parsed = JSON.parse(result.content[0].text);
+            assert.strictEqual(parsed.status, 'created');
+            assert.strictEqual(parsed.spoke, undefined);
+            assert.strictEqual(beadStore.get('bead:kernel-anchored').repo_id, 'test-repo');
+        });
+    });
+
+    describe('🜂 cstar_spoke_bead_import — rich spoke handoff payload', () => {
+        let tmpSpokeRoot: string;
+        let lorePath: string;
+        let designPath: string;
+
+        beforeEach(() => {
+            tmpSpokeRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'spoke-bead-test-'));
+            fs.mkdirSync(path.join(tmpSpokeRoot, 'tests', 'features'), { recursive: true });
+            fs.mkdirSync(path.join(tmpSpokeRoot, 'docs', 'design'), { recursive: true });
+            lorePath = path.join(tmpSpokeRoot, 'tests', 'features', 'sample.feature');
+            designPath = path.join(tmpSpokeRoot, 'docs', 'design', 'SAMPLE.md');
+            fs.writeFileSync(lorePath, 'Feature: sample\n');
+            fs.writeFileSync(designPath, '# Sample Design\n');
+        });
+
+        it('imports a rich bead and stamps lore/design/threat-model metadata', async () => {
+            spokeStore.set('test-spoke', makeSpoke({ root_path: tmpSpokeRoot }));
+
+            const result = await handleSpokeBeadImport({
+                spoke: 'test-spoke',
+                bead_id: 'bead:spoke-import:1',
+                intent: 'Wire up the sample subsystem.',
+                acceptance_criteria: 'Sample subsystem passes triad.',
+                lore_path: 'tests/features/sample.feature',
+                design_doc_path: 'docs/design/SAMPLE.md',
+                wireframe_ref: 'wireframe.md#sample-pane',
+                threat_model_summary: 'In: filesystem payloads. Out: HID injection.',
+                target_paths: ['src/services/sample.rs', 'src/services/sample_helpers.rs'],
+                augury_block: '◈ Route: BUILD → SKILL: sample ◈',
+                checker_shell: 'cargo test --package sample',
+            });
+            const parsed = JSON.parse(result.content[0].text);
+            assert.strictEqual(parsed.status, 'created');
+            assert.strictEqual(parsed.spoke, 'test-spoke');
+            assert.strictEqual(parsed.repo_id, 'repo:test-spoke');
+
+            const stored = beadStore.get('bead:spoke-import:1');
+            assert.strictEqual(stored.repo_id, 'repo:test-spoke');
+            assert.strictEqual(stored.target_path, 'src/services/sample.rs');
+            assert.deepStrictEqual(
+                stored.metadata.extra_target_paths,
+                ['src/services/sample_helpers.rs'],
+            );
+            assert.strictEqual(stored.metadata.lore_path, 'tests/features/sample.feature');
+            assert.strictEqual(stored.metadata.design_doc_path, 'docs/design/SAMPLE.md');
+            assert.strictEqual(stored.metadata.wireframe_ref, 'wireframe.md#sample-pane');
+            assert.match(stored.metadata.threat_model_summary, /filesystem payloads/);
+            assert.match(stored.metadata.augury_block, /BUILD → SKILL: sample/);
+            assert.ok(stored.contract_refs.includes('lore:tests/features/sample.feature'));
+        });
+
+        it('rejects an import when lore_path does not exist on disk', async () => {
+            spokeStore.set('test-spoke', makeSpoke({ root_path: tmpSpokeRoot }));
+            const result = await handleSpokeBeadImport({
+                spoke: 'test-spoke',
+                intent: 'Should fail without lore.',
+                acceptance_criteria: 'N/A.',
+                lore_path: 'tests/features/missing.feature',
+            });
+            assert.strictEqual(result.isError, true);
+            const parsed = JSON.parse(result.content[0].text);
+            assert.match(parsed.error, /lore_path 'tests\/features\/missing.feature' does not exist/);
+        });
+
+        it('rejects an import for an unregistered spoke', async () => {
+            const result = await handleSpokeBeadImport({
+                spoke: 'ghost-spoke',
+                intent: 'No spoke, no bead.',
+                acceptance_criteria: 'N/A.',
+                lore_path: 'tests/features/sample.feature',
+            });
+            assert.strictEqual(result.isError, true);
+            const parsed = JSON.parse(result.content[0].text);
+            assert.match(parsed.error, /'ghost-spoke' is not registered/);
+        });
+
+        it('rejects an import for a read_only spoke', async () => {
+            spokeStore.set('test-spoke', makeSpoke({
+                root_path: tmpSpokeRoot,
+                write_policy: 'read_only',
+            }));
+            const result = await handleSpokeBeadImport({
+                spoke: 'test-spoke',
+                intent: 'Not allowed.',
+                acceptance_criteria: 'N/A.',
+                lore_path: 'tests/features/sample.feature',
+            });
+            assert.strictEqual(result.isError, true);
+            const parsed = JSON.parse(result.content[0].text);
+            assert.match(parsed.error, /write_policy='read_only'/);
+        });
+
+        it('rejects an import when required fields are missing', async () => {
+            spokeStore.set('test-spoke', makeSpoke({ root_path: tmpSpokeRoot }));
+            const result = await handleSpokeBeadImport({
+                spoke: 'test-spoke',
+                intent: '',
+                acceptance_criteria: 'set',
+                lore_path: 'tests/features/sample.feature',
+            });
+            assert.strictEqual(result.isError, true);
+            const parsed = JSON.parse(result.content[0].text);
+            assert.match(parsed.error, /intent is required/);
+        });
     });
 });

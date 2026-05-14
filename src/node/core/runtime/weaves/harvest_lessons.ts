@@ -56,6 +56,9 @@ export class HarvestLessonsWeave implements RuntimeAdapter<HarvestLessonsWeavePa
 
             for (const memoryId of targetIds) {
                 try {
+                    // [Ω] STABILITY: Add 500ms delay to prevent LiteRT/Local-Model congestion during batch harvest.
+                    await new Promise((resolve) => setTimeout(resolve, 500));
+
                     const distillResult = await this.dispatchPort.dispatch({
                         weave_id: 'weave:distill-lessons',
                         payload: {

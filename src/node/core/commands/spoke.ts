@@ -29,8 +29,16 @@ export function registerSpokeCommand(program: Command, projectRootSource: Worksp
         .option('--remote-url <url>', 'Remote git URL for imported or mirrored spokes')
         .option('--branch <branch>', 'Default branch for git-backed spokes', 'main')
         .option('--trust <trust>', 'Trust policy (trusted, observe, quarantined)', 'trusted')
-        .option('--write-policy <policy>', 'Write policy (read_write, read_only)', 'read_only')
-        .action((slug: string, rootPath: string, options: Record<string, string>) => {
+        .option(
+            '--write-policy <policy>',
+            'Write policy. Use read_write to allow this spoke to submit beads via cstar_bead/cstar_spoke_bead_import; read_only blocks all bead writes from this spoke (kernel MCP rejects with an explicit error).',
+            'read_only',
+        )
+        .option(
+            '--accept-beads',
+            'Shortcut for a bead-accepting spoke: sets --trust trusted and --write-policy read_write. Overrides --write-policy if both are supplied.',
+        )
+        .action((slug: string, rootPath: string, options: Record<string, string | boolean>) => {
             const workspaceRoot = resolveWorkspaceRoot(projectRootSource);
             registry.setRoot(workspaceRoot);
 
@@ -49,6 +57,9 @@ export function registerSpokeCommand(program: Command, projectRootSource: Worksp
             }
 
             const mountedRoot = absolutePath.replace(/\\/g, '/');
+            const acceptBeads = options.acceptBeads === true;
+            const trustLevel = (acceptBeads ? 'trusted' : (options.trust as string)) as 'trusted' | 'observe' | 'quarantined';
+            const writePolicy = (acceptBeads ? 'read_write' : (options.writePolicy as string)) as 'read_write' | 'read_only';
 
             saveHallMountedSpoke({
                 spoke_id: `spoke:${normalizedSlug}`,
@@ -56,21 +67,27 @@ export function registerSpokeCommand(program: Command, projectRootSource: Worksp
                 slug: normalizedSlug,
                 kind: (options.kind as 'local' | 'git' | 'mirror' | 'archive') ?? 'local',
                 root_path: mountedRoot,
-                remote_url: options.remoteUrl,
-                default_branch: options.branch,
+                remote_url: options.remoteUrl as string | undefined,
+                default_branch: options.branch as string | undefined,
                 mount_status: 'active',
-                trust_level: (options.trust as 'trusted' | 'observe' | 'quarantined') ?? 'trusted',
-                write_policy: (options.writePolicy as 'read_write' | 'read_only') ?? 'read_only',
+                trust_level: trustLevel ?? 'trusted',
+                write_policy: writePolicy ?? 'read_only',
                 projection_status: 'missing',
                 created_at: Date.now(),
                 updated_at: Date.now(),
                 metadata: {
                     source: 'spoke-command',
+                    accept_beads: acceptBeads,
                 },
             });
 
             StateRegistry.save(StateRegistry.get());
             console.log(chalk.green(`Mounted spoke '${normalizedSlug}' linked to ${mountedRoot}.`));
+            console.log(chalk.dim(`  trust=${trustLevel}  write_policy=${writePolicy}`));
+            if (writePolicy === 'read_only') {
+                console.log(chalk.dim('  bead submissions via cstar_bead/cstar_spoke_bead_import will be rejected.'));
+                console.log(chalk.dim('  re-run with --accept-beads (or --write-policy read_write) to allow them.'));
+            }
         });
 
     spoke
