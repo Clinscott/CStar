@@ -50,6 +50,14 @@ import {
     getScoreByShot,
     type RecordedEngram as WarGameRecordedEngram,
 } from './war_game/score_trigger.js';
+import { StateRegistry } from '../node/core/state.js';
+import {
+    tokenize,
+    loadRegistryManifest,
+    getRegistryIntentCategories,
+    resolveIntentCategoryFromGrammar,
+} from '../node/core/runtime/host_workflows/chant_parser.js';
+import { execa } from 'execa';
 
 /**
  * CStar Kernel MCP (v3.1)
@@ -2201,6 +2209,611 @@ server.tool(
         spoke: z.string().describe('Slug of a registered spoke'),
     },
     instrumentTool('cstar_spoke_journal', handleSpokeJournal)
+);
+
+// ─────────────────────────────────────────────────────────────────
+// Phase-1/2 promotion: deterministic kernel surfaces absorbed from
+// the legacy `cstar.ts` Commander CLI plus net-new MCP-only tools.
+// Each handler routes to deterministic kernel modules — no LLM
+// inference per Host-Agent Run First mandate.
+// ─────────────────────────────────────────────────────────────────
+
+// Shared hardening helpers for the Phase-1/2 surface.
+const MCP_ERROR_MESSAGE_MAX = 512;
+const MCP_PROPOSAL_MAX_BYTES = 512 * 1024;
+const MCP_SAFE_PROPOSAL_ID = /^[a-zA-Z0-9._-]+$/;
+
+function normalizeErrorMessage(error: unknown): string {
+    const raw = error instanceof Error ? error.message : String(error);
+    return raw.replace(/\s+/g, ' ').slice(0, MCP_ERROR_MESSAGE_MAX);
+}
+
+function errorResponse(error: unknown): McpTextResponse {
+    return textResponse({ error: normalizeErrorMessage(error) }, true);
+}
+
+function isPathInside(child: string, parent: string): boolean {
+    const resolvedChild = path.resolve(child);
+    const resolvedParent = path.resolve(parent);
+    if (resolvedChild === resolvedParent) {
+        return true;
+    }
+    const rel = path.relative(resolvedParent, resolvedChild);
+    return Boolean(rel) && !rel.startsWith('..') && !path.isAbsolute(rel);
+}
+
+// cstar_status — deterministic vitals snapshot from StateRegistry.
+export async function handleStatus(): Promise<McpTextResponse> {
+    try {
+        const root = registry.getRoot();
+        const snapshot = StateRegistry.get();
+        const fw = snapshot.framework;
+
+        let hallReachable = false;
+        try {
+            const db = database.getDb(root);
+            hallReachable = db !== null;
+        } catch {
+            hallReachable = false;
+        }
+
+        const uptimeSeconds = fw.last_awakening > 0
+            ? Math.max(0, Math.floor((Date.now() - fw.last_awakening) / 1000))
+            : null;
+
+        return textResponse({
+            framework: {
+                status: fw.status,
+                active_persona: fw.active_persona,
+                last_awakening: fw.last_awakening,
+                uptime_seconds: uptimeSeconds,
+                active_task: fw.active_task,
+                mission_id: fw.mission_id,
+                bead_id: fw.bead_id,
+                gungnir_score: fw.gungnir_score,
+                intent_integrity: fw.intent_integrity,
+            },
+            workspace: root,
+            hall_reachable: hallReachable,
+            managed_spokes: snapshot.managed_spokes.map((s) => ({
+                slug: s.slug,
+                mount_status: s.mount_status,
+                trust_level: s.trust_level,
+                write_policy: s.write_policy,
+                root_path: s.root_path,
+            })),
+            agents: Object.values(snapshot.agents).map((a) => ({
+                id: a.id,
+                name: a.name,
+                status: a.status,
+                last_seen: a.last_seen || null,
+            })),
+        });
+    } catch (error) {
+        return errorResponse(error);
+    }
+}
+
+server.tool(
+    'cstar_status',
+    'Deterministic kernel state snapshot: framework status, active persona, gungnir score, managed spokes, agent presence. Read-only.',
+    {},
+    instrumentTool('cstar_status', handleStatus),
+);
+
+// cstar_evolve — read-only deterministic ops over proposals and SPRT ledger.
+// Proposal generation and adversarial critique are LLM-driven and stay
+// host-native; this surface only exposes file/ledger inspection.
+type EvolveAction = 'list_proposals' | 'get_proposal' | 'list_sprt_history';
+
+export async function handleEvolve({
+    action,
+    proposal_id,
+    limit,
+}: {
+    action: EvolveAction;
+    proposal_id?: string;
+    limit?: number;
+}): Promise<McpTextResponse> {
+    try {
+        const root = registry.getRoot();
+        const proposalDir = path.join(root, '.agents', 'proposals', 'evolve');
+
+        if (action === 'list_proposals') {
+            if (!fs.existsSync(proposalDir)) {
+                return textResponse({ status: 'ok', count: 0, proposals: [] });
+            }
+            const all = fs
+                .readdirSync(proposalDir)
+                .filter((f) => f.endsWith('.json'))
+                .map((file) => {
+                    const full = path.join(proposalDir, file);
+                    let mtime = 0;
+                    try {
+                        mtime = fs.statSync(full).mtimeMs;
+                    } catch {
+                        // Unstatable — fall through with mtime 0.
+                    }
+                    return { file, full, mtime };
+                })
+                .sort((a, b) => b.mtime - a.mtime); // newest first
+
+            const cap = Math.min(limit ?? 20, 50);
+            const proposals = all.slice(0, cap).map(({ file, full }) => {
+                let summary = '';
+                let bead_id: string | undefined;
+                let created_at: number | undefined;
+                try {
+                    const stat = fs.statSync(full);
+                    if (stat.size <= MCP_PROPOSAL_MAX_BYTES) {
+                        const raw = JSON.parse(fs.readFileSync(full, 'utf-8')) as Record<string, unknown>;
+                        summary = String(raw.summary ?? raw.rationale ?? '').slice(0, 240);
+                        bead_id = typeof raw.bead_id === 'string' ? raw.bead_id : undefined;
+                        created_at = typeof raw.created_at === 'number' ? raw.created_at : undefined;
+                    } else {
+                        summary = `[oversized proposal — ${stat.size} bytes]`;
+                    }
+                } catch {
+                    // Malformed / unreadable — file-only entry.
+                }
+                return {
+                    proposal_id: file.replace(/\.json$/, ''),
+                    file,
+                    summary,
+                    bead_id,
+                    created_at,
+                };
+            });
+            return textResponse({ status: 'ok', count: all.length, proposals });
+        }
+
+        if (action === 'get_proposal') {
+            if (!proposal_id) {
+                return textResponse({ error: 'get_proposal requires proposal_id' }, true);
+            }
+            const bare = proposal_id.replace(/\.json$/, '');
+            if (!MCP_SAFE_PROPOSAL_ID.test(bare)) {
+                return textResponse(
+                    { error: 'proposal_id must match [a-zA-Z0-9._-]+ (no path components)' },
+                    true,
+                );
+            }
+            const full = path.join(proposalDir, `${bare}.json`);
+            if (!isPathInside(full, proposalDir)) {
+                return textResponse({ error: 'proposal_id resolves outside the proposals directory' }, true);
+            }
+            if (!fs.existsSync(full)) {
+                return textResponse({ error: `proposal not found: ${bare}` }, true);
+            }
+            const stat = fs.statSync(full);
+            if (stat.size > MCP_PROPOSAL_MAX_BYTES) {
+                return textResponse(
+                    { error: `proposal ${bare} exceeds size cap (${stat.size} > ${MCP_PROPOSAL_MAX_BYTES} bytes)` },
+                    true,
+                );
+            }
+            const raw = JSON.parse(fs.readFileSync(full, 'utf-8')) as Record<string, unknown>;
+            return textResponse({
+                status: 'ok',
+                proposal_id: bare,
+                size_bytes: stat.size,
+                proposal: raw,
+            });
+        }
+
+        if (action === 'list_sprt_history') {
+            const ledgerPath = path.join(root, '.agents', 'sprt_ledger.json');
+            if (!fs.existsSync(ledgerPath)) {
+                return textResponse({ status: 'ok', count: 0, history: [] });
+            }
+            const raw = JSON.parse(fs.readFileSync(ledgerPath, 'utf-8')) as { history?: unknown[] };
+            const history = Array.isArray(raw.history) ? raw.history : [];
+            const cap = Math.min(limit ?? 20, 100);
+            return textResponse({
+                status: 'ok',
+                count: history.length,
+                history: history.slice(-cap),
+            });
+        }
+
+        return textResponse({ error: `invalid evolve action: ${action}` }, true);
+    } catch (error) {
+        return errorResponse(error);
+    }
+}
+
+server.tool(
+    'cstar_evolve',
+    'Read-only inspection of Karpathy-loop artifacts: list_proposals, get_proposal, list_sprt_history. Proposal generation and adversarial critique are LLM-driven and stay host-native (not exposed here).',
+    {
+        action: z
+            .enum(['list_proposals', 'get_proposal', 'list_sprt_history'])
+            .describe('Read-only operation against .agents/proposals/evolve/ or .agents/sprt_ledger.json'),
+        proposal_id: z.string().optional().describe('Required for get_proposal; file stem in .agents/proposals/evolve/'),
+        limit: z.number().min(1).max(100).optional().describe('Cap on returned proposals (default 20) or SPRT history entries (default 20)'),
+    },
+    instrumentTool('cstar_evolve', handleEvolve),
+);
+
+// cstar_spoke — link / unlink / list / inspect for mounted estate spokes.
+// Completes the spoke surface already partly MCP'd via cstar_spoke_journal
+// and cstar_spoke_bead_import.
+function normalizeSpokeMcpSlug(input: string): string {
+    return input.trim().toLowerCase().replace(/[^a-z0-9._-]+/g, '-');
+}
+
+export async function handleSpoke({
+    action,
+    slug,
+    root_path,
+    kind,
+    remote_url,
+    branch,
+    trust_level,
+    write_policy,
+    accept_beads,
+}: {
+    action: 'list' | 'link' | 'unlink' | 'inspect';
+    slug?: string;
+    root_path?: string;
+    kind?: 'local' | 'git' | 'mirror' | 'archive';
+    remote_url?: string;
+    branch?: string;
+    trust_level?: 'trusted' | 'observe' | 'quarantined';
+    write_policy?: 'read_write' | 'read_only';
+    accept_beads?: boolean;
+}): Promise<McpTextResponse> {
+    try {
+        const root = registry.getRoot();
+        if (action === 'list') {
+            const mounted = database.listHallMountedSpokes(root);
+            return textResponse({
+                status: 'ok',
+                count: mounted.length,
+                spokes: mounted.map((s) => ({
+                    slug: s.slug,
+                    spoke_id: s.spoke_id,
+                    kind: s.kind,
+                    root_path: s.root_path,
+                    mount_status: s.mount_status,
+                    trust_level: s.trust_level,
+                    write_policy: s.write_policy,
+                    projection_status: s.projection_status,
+                })),
+            });
+        }
+        if (action === 'inspect') {
+            if (!slug) {
+                return textResponse({ error: 'inspect requires slug' }, true);
+            }
+            const normalized = normalizeSpokeMcpSlug(slug);
+            if (normalized.length === 0 || normalized.length > 64) {
+                return textResponse({ error: `slug must normalize to 1..64 chars` }, true);
+            }
+            const found = database.getHallMountedSpoke(normalized, root);
+            if (!found) {
+                return textResponse({ error: `spoke not registered: ${normalized}` }, true);
+            }
+            return textResponse({ status: 'ok', spoke: found });
+        }
+        if (action === 'unlink') {
+            if (!slug) {
+                return textResponse({ error: 'unlink requires slug' }, true);
+            }
+            const normalized = normalizeSpokeMcpSlug(slug);
+            if (normalized.length === 0 || normalized.length > 64) {
+                return textResponse({ error: `slug must normalize to 1..64 chars` }, true);
+            }
+            const removed = database.removeHallMountedSpoke(normalized, root);
+            if (!removed) {
+                return textResponse({ error: `spoke not registered: ${normalized}` }, true);
+            }
+            return textResponse({ status: 'unlinked', slug: normalized });
+        }
+        if (action === 'link') {
+            if (!slug) {
+                return textResponse({ error: 'link requires slug' }, true);
+            }
+            if (!root_path) {
+                return textResponse({ error: 'link requires root_path' }, true);
+            }
+            const absolutePath = path.resolve(root_path);
+            if (!fs.existsSync(absolutePath) || !fs.statSync(absolutePath).isDirectory()) {
+                return textResponse(
+                    { error: `root_path does not exist or is not a directory: ${absolutePath}` },
+                    true,
+                );
+            }
+            const repo = database.getHallRepository(root);
+            if (!repo) {
+                return textResponse(
+                    { error: 'failed to resolve Hall repository before linking' },
+                    true,
+                );
+            }
+            const normalizedSlug = normalizeSpokeMcpSlug(slug);
+            if (normalizedSlug.length === 0 || normalizedSlug.length > 64) {
+                return textResponse(
+                    { error: `slug must normalize to 1..64 chars (got "${normalizedSlug}")` },
+                    true,
+                );
+            }
+            const acceptBeads = accept_beads === true;
+            const resolvedTrust = (acceptBeads ? 'trusted' : trust_level ?? 'trusted') as
+                | 'trusted'
+                | 'observe'
+                | 'quarantined';
+            const resolvedWritePolicy = (acceptBeads ? 'read_write' : write_policy ?? 'read_only') as
+                | 'read_write'
+                | 'read_only';
+            const now = Date.now();
+            const existing = database.getHallMountedSpoke(normalizedSlug, root);
+            database.saveHallMountedSpoke({
+                spoke_id: `spoke:${normalizedSlug}`,
+                repo_id: repo.repo_id,
+                slug: normalizedSlug,
+                kind: kind ?? existing?.kind ?? 'local',
+                root_path: absolutePath.replace(/\\/g, '/'),
+                remote_url: remote_url ?? existing?.remote_url,
+                default_branch: branch ?? existing?.default_branch,
+                mount_status: 'active',
+                trust_level: resolvedTrust,
+                write_policy: resolvedWritePolicy,
+                projection_status: existing?.projection_status ?? 'missing',
+                created_at: existing?.created_at ?? now,
+                updated_at: now,
+                metadata: {
+                    ...(existing?.metadata ?? {}),
+                    source: 'cstar_spoke_mcp',
+                    accept_beads: acceptBeads,
+                },
+            });
+            return textResponse({
+                status: existing ? 'relinked' : 'linked',
+                slug: normalizedSlug,
+                root_path: absolutePath.replace(/\\/g, '/'),
+                trust_level: resolvedTrust,
+                write_policy: resolvedWritePolicy,
+                created_at: existing?.created_at ?? now,
+            });
+        }
+        return textResponse({ error: `invalid spoke action: ${action}` }, true);
+    } catch (error) {
+        return errorResponse(error);
+    }
+}
+
+server.tool(
+    'cstar_spoke',
+    'Mounted-spoke lifecycle: list / link / unlink / inspect. Completes the spoke surface alongside cstar_spoke_journal and cstar_spoke_bead_import. Deterministic Hall mutation; no LLM.',
+    {
+        action: z.enum(['list', 'link', 'unlink', 'inspect']).describe('Lifecycle operation'),
+        slug: z.string().optional().describe('Required for link, unlink, inspect'),
+        root_path: z.string().optional().describe('Required for link; absolute or relative path to spoke directory'),
+        kind: z.enum(['local', 'git', 'mirror', 'archive']).optional().describe('Spoke kind (default local)'),
+        remote_url: z.string().optional().describe('Optional remote URL for git/mirror kinds'),
+        branch: z.string().optional().describe('Default branch (link only)'),
+        trust_level: z.enum(['trusted', 'observe', 'quarantined']).optional().describe('Trust policy (link only; default trusted)'),
+        write_policy: z.enum(['read_write', 'read_only']).optional().describe('Whether spoke may submit beads (link only; default read_only)'),
+        accept_beads: z.boolean().optional().describe('Shortcut: forces trust=trusted and write_policy=read_write (link only)'),
+    },
+    instrumentTool('cstar_spoke', handleSpoke),
+);
+
+// cstar_intent_route — expose the intent grammar dispatcher.
+// Deterministic tokenization + table lookup against
+// `.agents/skill_registry.json` intent_grammar (falls back to in-code
+// INTENT_CATEGORIES when the registry is unreadable).
+const MCP_INTENT_PROMPT_MAX = 4096;
+
+export async function handleIntentRoute({ prompt }: { prompt: string }): Promise<McpTextResponse> {
+    try {
+        if (typeof prompt !== 'string' || prompt.trim().length === 0) {
+            return textResponse({ error: 'prompt must be a non-empty string' }, true);
+        }
+        if (prompt.length > MCP_INTENT_PROMPT_MAX) {
+            return textResponse(
+                { error: `prompt exceeds ${MCP_INTENT_PROMPT_MAX} chars (got ${prompt.length})` },
+                true,
+            );
+        }
+        const root = registry.getRoot();
+        const manifest = loadRegistryManifest(root);
+        const grammar = getRegistryIntentCategories(manifest);
+        const tokens = tokenize(prompt);
+        const match = resolveIntentCategoryFromGrammar(tokens, grammar);
+        if (!match) {
+            return textResponse({
+                status: 'unmatched',
+                tokens: tokens.slice(0, 32),
+                available_categories: Object.keys(grammar),
+            });
+        }
+        return textResponse({
+            status: 'matched',
+            intent_category: match.category,
+            default_path: match.default_path,
+            tier: match.tier,
+            matched_trigger: match.matched_trigger,
+        });
+    } catch (error) {
+        return errorResponse(error);
+    }
+}
+
+server.tool(
+    'cstar_intent_route',
+    'Resolve a prompt against the kernel intent grammar (.agents/skill_registry.json#intent_grammar). Returns the matched category, default_path, tier, and triggering token. Deterministic; no LLM inference.',
+    {
+        prompt: z.string().describe('Prompt or mission text to tokenize and match against the intent grammar'),
+    },
+    instrumentTool('cstar_intent_route', handleIntentRoute),
+);
+
+// cstar_warden — on-demand Sentinel Warden invocations.
+// Python wardens are deterministic (AST/text scans). The handler shells
+// out to a small Python driver (scripts/run_warden.py) that imports the
+// named warden, runs `.scan()`, and emits JSON. No LLM in the loop.
+const KNOWN_WARDENS = [
+    'norn',
+    'valkyrie',
+    'freya',
+    'mimir',
+    'ghost',
+    'security',
+    'huginn',
+    'taste',
+    'edda',
+    'scour',
+    'runecaster',
+    'shadow_forge',
+] as const;
+
+function resolveWardenPython(projectRoot: string): string {
+    const windows = path.join(projectRoot, '.venv', 'Scripts', 'python.exe');
+    const unix = path.join(projectRoot, '.venv', 'bin', 'python');
+    if (process.platform === 'win32' && fs.existsSync(windows)) return windows;
+    if (process.platform !== 'win32' && fs.existsSync(unix)) return unix;
+    return process.platform === 'win32' ? 'python' : 'python3';
+}
+
+const MCP_WARDEN_STDOUT_MAX = 256 * 1024;
+const MCP_WARDEN_TIMEOUT_MS = 60_000;
+
+export async function handleWarden({
+    action,
+    warden,
+    target,
+}: {
+    action: 'list' | 'bounties' | 'scan';
+    warden?: string;
+    target?: string;
+}): Promise<McpTextResponse> {
+    try {
+        const root = registry.getRoot();
+        if (action === 'list') {
+            return textResponse({ status: 'ok', wardens: [...KNOWN_WARDENS] });
+        }
+        if (action === 'bounties') {
+            const ledgerPath = path.join(root, '.agents', 'tech_debt_ledger.json');
+            if (!fs.existsSync(ledgerPath)) {
+                return textResponse({ status: 'ok', count: 0, top_targets: [] });
+            }
+            const raw = JSON.parse(fs.readFileSync(ledgerPath, 'utf-8')) as {
+                top_targets?: unknown[];
+                timestamp?: string;
+            };
+            const top = Array.isArray(raw.top_targets) ? raw.top_targets : [];
+            return textResponse({
+                status: 'ok',
+                timestamp: raw.timestamp,
+                count: top.length,
+                top_targets: top,
+            });
+        }
+        if (action === 'scan') {
+            if (!warden) {
+                return textResponse({ error: 'scan requires warden name (use list to see available)' }, true);
+            }
+            const normalized = warden.trim().toLowerCase();
+            if (!(KNOWN_WARDENS as readonly string[]).includes(normalized)) {
+                return textResponse(
+                    { error: `unknown warden: ${warden} (use list to see available)` },
+                    true,
+                );
+            }
+            const driver = path.join(root, 'scripts', 'run_warden.py');
+            if (!fs.existsSync(driver)) {
+                return textResponse({ error: 'warden driver missing: scripts/run_warden.py' }, true);
+            }
+
+            // Resolve and validate optional target against the project root.
+            // A `target` directory becomes the warden's effective root; a file
+            // is surfaced as advisory metadata. Either way it must stay inside
+            // the project root to prevent the warden from walking the host.
+            let resolvedTarget: string | undefined;
+            let targetIsDir = false;
+            if (target) {
+                const abs = path.resolve(root, target);
+                if (!isPathInside(abs, root) && abs !== path.resolve(root)) {
+                    return textResponse(
+                        { error: 'target must resolve to a path inside the project root' },
+                        true,
+                    );
+                }
+                if (!fs.existsSync(abs)) {
+                    return textResponse({ error: `target does not exist: ${target}` }, true);
+                }
+                resolvedTarget = abs;
+                targetIsDir = fs.statSync(abs).isDirectory();
+            }
+
+            const py = resolveWardenPython(root);
+            const args = [driver, '--warden', normalized];
+            if (resolvedTarget) {
+                args.push('--target', resolvedTarget);
+                if (targetIsDir) {
+                    args.push('--root', resolvedTarget);
+                }
+            }
+
+            let stdout: string;
+            try {
+                const result = await execa(py, args, {
+                    cwd: root,
+                    env: { ...process.env, PYTHONPATH: root },
+                    timeout: MCP_WARDEN_TIMEOUT_MS,
+                    maxBuffer: MCP_WARDEN_STDOUT_MAX,
+                });
+                stdout = result.stdout;
+            } catch (execErr: any) {
+                if (execErr?.timedOut) {
+                    return textResponse(
+                        { error: `warden '${normalized}' timed out after ${MCP_WARDEN_TIMEOUT_MS}ms` },
+                        true,
+                    );
+                }
+                if (execErr?.shortMessage?.includes('maxBuffer')) {
+                    return textResponse(
+                        { error: `warden '${normalized}' exceeded stdout cap (${MCP_WARDEN_STDOUT_MAX} bytes)` },
+                        true,
+                    );
+                }
+                return errorResponse(execErr);
+            }
+
+            try {
+                const parsed = JSON.parse(stdout);
+                return textResponse({
+                    status: 'ok',
+                    warden: normalized,
+                    root_used: targetIsDir ? resolvedTarget : root,
+                    ...parsed,
+                });
+            } catch {
+                return textResponse({
+                    status: 'ok',
+                    warden: normalized,
+                    root_used: targetIsDir ? resolvedTarget : root,
+                    raw_output: stdout.slice(0, 1024),
+                });
+            }
+        }
+        return textResponse({ error: `invalid warden action: ${action}` }, true);
+    } catch (error) {
+        return errorResponse(error);
+    }
+}
+
+server.tool(
+    'cstar_warden',
+    'On-demand Sentinel Warden invocation. action=list returns the available warden names; action=bounties returns the cached PennyOne tech-debt ledger; action=scan invokes a named Python warden against an optional target path. Wardens are deterministic AST/text scanners — no LLM inference.',
+    {
+        action: z.enum(['list', 'bounties', 'scan']).describe('list / bounties (cached ledger) / scan (live Python warden)'),
+        warden: z.string().optional().describe('Required for scan; one of: norn, valkyrie, freya, mimir, ghost, security, huginn, taste, edda, scour, runecaster, shadow_forge'),
+        target: z.string().optional().describe('Optional path inside the project root. Directory targets become the warden\'s effective root (constraining the scan); file targets are surfaced as advisory metadata. Paths outside the project root are rejected.'),
+    },
+    instrumentTool('cstar_warden', handleWarden),
 );
 
 
