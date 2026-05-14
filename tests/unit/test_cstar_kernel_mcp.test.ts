@@ -82,6 +82,7 @@ import {
     handleSpoke,
     handleIntentRoute,
     handleWarden,
+    handleTelemetry,
 } from '../../src/tools/cstar-kernel-mcp.js';
 
 function makeSpoke(overrides: Partial<HallMountedSpokeRecord> = {}): HallMountedSpokeRecord {
@@ -643,15 +644,18 @@ describe('🔱 CStar Kernel MCP Tools', () => {
             assert.ok(Array.isArray(parsed.available_categories));
         });
 
-        it('cstar_warden list returns the static warden inventory', async () => {
+        it('cstar_warden list returns the warden inventory and tags its source', async () => {
             const result = await handleWarden({ action: 'list' });
             const parsed = JSON.parse(result.content[0].text);
             assert.strictEqual(parsed.status, 'ok');
+            assert.ok(parsed.source === 'driver' || parsed.source === 'fallback');
             assert.ok(Array.isArray(parsed.wardens));
-            assert.ok(parsed.wardens.includes('norn'));
-            assert.ok(parsed.wardens.includes('valkyrie'));
-            assert.ok(parsed.wardens.includes('freya'));
-            assert.ok(parsed.wardens.includes('ghost'));
+            assert.ok(typeof parsed.count === 'number');
+            const slugs = parsed.wardens.map((w: any) => w.slug);
+            assert.ok(slugs.includes('norn'));
+            assert.ok(slugs.includes('valkyrie'));
+            assert.ok(slugs.includes('freya'));
+            assert.ok(slugs.includes('ghost'));
         });
 
         it('cstar_warden bounties tolerates a missing tech_debt_ledger.json', async () => {
@@ -662,11 +666,12 @@ describe('🔱 CStar Kernel MCP Tools', () => {
             assert.ok(Array.isArray(parsed.top_targets));
         });
 
-        it('cstar_warden scan rejects an unknown warden slug', async () => {
-            const result = await handleWarden({ action: 'scan', warden: 'no_such_warden' });
+        it('cstar_warden scan rejects a malformed warden slug at the gate', async () => {
+            // Use chars that violate /^[a-z0-9_]+$/ so we never spawn python in tests.
+            const result = await handleWarden({ action: 'scan', warden: 'bad-slug!' });
             assert.strictEqual(result.isError, true);
             const parsed = JSON.parse(result.content[0].text);
-            assert.match(parsed.error, /unknown warden/);
+            assert.match(parsed.error, /warden slug must match/);
         });
 
         it('cstar_warden scan requires the warden argument', async () => {
@@ -790,7 +795,137 @@ describe('🔱 CStar Kernel MCP Tools', () => {
             }
         });
 
-        it('cstar_spoke link rejects empty slug after normalization', async () => {
+        // ── Phase A: cstar_telemetry ────────────────────────────────
+        it('cstar_telemetry returns all three summary sections by default', async () => {
+            const result = await handleTelemetry({});
+            const parsed = JSON.parse(result.content[0].text);
+            assert.strictEqual(parsed.status, 'ok');
+            assert.strictEqual(parsed.section, 'all');
+            assert.ok(parsed.usage);
+            assert.strictEqual(typeof parsed.usage.total_calls_24h, 'number');
+            assert.ok(parsed.usefulness);
+            assert.strictEqual(typeof parsed.usefulness.total_calls_24h, 'number');
+            assert.ok(parsed.token_path);
+            assert.strictEqual(typeof parsed.token_path.advisor_available, 'boolean');
+        });
+
+        it('cstar_telemetry section=usage returns only the usage block', async () => {
+            const result = await handleTelemetry({ section: 'usage' });
+            const parsed = JSON.parse(result.content[0].text);
+            assert.strictEqual(parsed.section, 'usage');
+            assert.ok(parsed.usage);
+            assert.strictEqual(parsed.usefulness, undefined);
+            assert.strictEqual(parsed.token_path, undefined);
+        });
+
+        it('cstar_telemetry section=usefulness returns only the usefulness block', async () => {
+            const result = await handleTelemetry({ section: 'usefulness' });
+            const parsed = JSON.parse(result.content[0].text);
+            assert.strictEqual(parsed.section, 'usefulness');
+            assert.strictEqual(parsed.usage, undefined);
+            assert.ok(parsed.usefulness);
+            assert.strictEqual(parsed.token_path, undefined);
+        });
+
+        it('cstar_telemetry section=token_path returns only the token-path block', async () => {
+            const result = await handleTelemetry({ section: 'token_path' });
+            const parsed = JSON.parse(result.content[0].text);
+            assert.strictEqual(parsed.section, 'token_path');
+            assert.strictEqual(parsed.usage, undefined);
+            assert.strictEqual(parsed.usefulness, undefined);
+            assert.ok(parsed.token_path);
+        });
+
+        // ── Phase D: cstar_spoke list expansion ─────────────────────
+        it('cstar_spoke list exposes accept_beads, last_scan_at, last_health_at, default_branch, remote_url', async () => {
+            spokeStore.set('rich-spoke', makeSpoke({
+                slug: 'rich-spoke',
+                spoke_id: 'spoke:rich-spoke',
+                default_branch: 'trunk',
+                remote_url: 'https://example.com/repo.git',
+                last_scan_at: 1700000000000,
+                last_health_at: 1700000005000,
+                metadata: { accept_beads: true },
+            }));
+            const result = await handleSpoke({ action: 'list' });
+            const parsed = JSON.parse(result.content[0].text);
+            const entry = parsed.spokes.find((s: any) => s.slug === 'rich-spoke');
+            assert.ok(entry);
+            assert.strictEqual(entry.default_branch, 'trunk');
+            assert.strictEqual(entry.remote_url, 'https://example.com/repo.git');
+            assert.strictEqual(entry.last_scan_at, 1700000000000);
+            assert.strictEqual(entry.last_health_at, 1700000005000);
+            assert.strictEqual(entry.accept_beads, true);
+        });
+
+        it('cstar_spoke list synthesizes accept_beads from write_policy when metadata is absent', async () => {
+            spokeStore.set('legacy-spoke', makeSpoke({
+                slug: 'legacy-spoke',
+                spoke_id: 'spoke:legacy-spoke',
+                write_policy: 'read_only',
+                metadata: {},
+            }));
+            const result = await handleSpoke({ action: 'list' });
+            const parsed = JSON.parse(result.content[0].text);
+            const entry = parsed.spokes.find((s: any) => s.slug === 'legacy-spoke');
+            assert.strictEqual(entry.accept_beads, false);
+            assert.strictEqual(entry.default_branch, null);
+            assert.strictEqual(entry.remote_url, null);
+        });
+
+        // ── Phase E: cstar_intent_route explain action ──────────────
+        it('cstar_intent_route explain returns every matching category', async () => {
+            // "build a status check" hits BUILD (build), OBSERVE (status, check), VERIFY (check)
+            const result = await handleIntentRoute({
+                action: 'explain',
+                prompt: 'build a status check',
+            });
+            const parsed = JSON.parse(result.content[0].text);
+            assert.strictEqual(parsed.status, 'matched');
+            assert.ok(parsed.grammar_source === 'registry' || parsed.grammar_source === 'fallback');
+            assert.ok(parsed.match_count >= 2);
+            const categories = parsed.matches.map((m: any) => m.intent_category);
+            assert.ok(categories.includes('BUILD'));
+            assert.ok(categories.includes('OBSERVE'));
+        });
+
+        it('cstar_intent_route explain returns unmatched for prompts that hit no triggers', async () => {
+            const result = await handleIntentRoute({
+                action: 'explain',
+                prompt: 'lorem ipsum dolor sit amet',
+            });
+            const parsed = JSON.parse(result.content[0].text);
+            assert.strictEqual(parsed.status, 'unmatched');
+            assert.strictEqual(parsed.match_count, 0);
+            assert.deepStrictEqual(parsed.matches, []);
+        });
+
+        it('cstar_intent_route surfaces grammar_source on match responses', async () => {
+            const result = await handleIntentRoute({
+                action: 'match',
+                prompt: 'please build something',
+            });
+            const parsed = JSON.parse(result.content[0].text);
+            assert.strictEqual(parsed.status, 'matched');
+            assert.ok(parsed.grammar_source === 'registry' || parsed.grammar_source === 'fallback');
+        });
+
+        // ── Phase C: registry-aligned in-code grammar ───────────────
+        it('cstar_intent_route resolves the registry-only triggers (study/harvest/navigate)', async () => {
+            // These triggers were missing from the in-code fallback before Phase C
+            // and would have failed in registry-unreadable environments.
+            const study = JSON.parse((await handleIntentRoute({ prompt: 'study the last engram' })).content[0].text);
+            assert.strictEqual(study.status, 'matched');
+            assert.strictEqual(study.intent_category, 'DOCUMENT');
+
+            const navigate = JSON.parse((await handleIntentRoute({ prompt: 'navigate to the dashboard' })).content[0].text);
+            assert.strictEqual(navigate.status, 'matched');
+            assert.strictEqual(navigate.intent_category, 'OBSERVE');
+        });
+    });
+
+    describe('🜂 (rare) cstar_spoke link rejects empty slug after normalization-only', () => {
+        it('rejects empty slug after normalization', async () => {
             const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'spoke-empty-slug-'));
             try {
                 const result = await handleSpoke({

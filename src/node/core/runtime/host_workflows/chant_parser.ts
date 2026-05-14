@@ -117,6 +117,12 @@ export interface TraceSelectionGateValidation {
     trace: ParsedTraceSelectionGate | null;
 }
 
+// In-code fallback for INTENT_CATEGORIES.
+// Source of truth: `.agents/skill_registry.json#intent_grammar`. The registry is
+// loaded via `loadRegistryManifest` and `getRegistryIntentCategories`; this map
+// is only used when the registry is unreadable. Keep triggers synchronized with
+// the registry — drift means callers in registry-failed contexts (CI, fresh
+// clones, partial mounts) silently see a stale grammar.
 export const INTENT_CATEGORIES: Record<string, {
     triggers: string[];
     default_path: string;
@@ -126,13 +132,13 @@ export const INTENT_CATEGORIES: Record<string, {
     BUILD:       { triggers: ['build', 'create', 'scaffold', 'implement', 'new', 'add', 'feature'], default_path: 'creation_loop', tier: 'WEAVE' },
     VERIFY:      { triggers: ['test', 'verify', 'validate', 'check', 'assert', 'spec'], default_path: 'empire', tier: 'SKILL' },
     SCORE:       { triggers: ['score', 'grade', 'rate', 'audit', 'quality', 'gungnir'], default_path: 'calculus', tier: 'PRIME' },
-    OBSERVE:     { triggers: ['scan', 'search', 'find', 'query', 'status', 'health', 'look', 'show'], default_path: 'scan', tier: 'PRIME' },
+    OBSERVE:     { triggers: ['scan', 'search', 'find', 'query', 'status', 'health', 'look', 'show', 'browse', 'website', 'url', 'navigate'], default_path: 'scan', tier: 'PRIME' },
     HARDEN:      { triggers: ['contract', 'comply', 'sterling', 'harden', 'gherkin'], default_path: 'contract_hardening', tier: 'WEAVE' },
     EXPAND:      { triggers: ['deploy', 'link', 'mount', 'spoke', 'onboard'], default_path: 'expansion', tier: 'WEAVE' },
     EVOLVE:      { triggers: ['optimize', 'refactor', 'evolve', 'improve'], default_path: 'evolve', tier: 'WEAVE' },
-    ORCHESTRATE: { triggers: ['plan', 'dispatch', 'orchestrate'], default_path: 'orchestrate', tier: 'WEAVE' },
+    ORCHESTRATE: { triggers: ['plan', 'dispatch', 'autobot', 'orchestrate'], default_path: 'orchestrate', tier: 'WEAVE' },
     GUARD:       { triggers: ['protect', 'shield', 'lock', 'guard', 'drift'], default_path: 'silver_shield', tier: 'SPELL' },
-    DOCUMENT:    { triggers: ['document', 'explain', 'chronicle', 'architecture'], default_path: 'living_architecture', tier: 'WEAVE' },
+    DOCUMENT:    { triggers: ['document', 'explain', 'chronicle', 'architecture', 'study', 'harvest', 'learn'], default_path: 'mimir-harvester', tier: 'SKILL' },
 };
 
 export const CORVUS_STAR_AUGURY_HEADER = '// Corvus Star Augury [Ω]';

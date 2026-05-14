@@ -10,7 +10,7 @@ CStar has transitioned from a Commander-based CLI to a host-attached MCP server.
 
 - **`cstar.ts` is the legacy kernel.** It still works as a launcher and as a host for a few terminal-bound commands (`start`, `tui`, `ravens`, `bifrost`, OS install), but its CLI-exposed capabilities are being absorbed into MCP tools. Treat any new useful capability as belonging on the MCP unless it is intrinsically terminal-bound.
 - **Authority order**: registry + runtime contracts (`.agents/skill_registry.json`, `src/node/core/runtime/`, `src/tools/cstar-kernel-mcp.ts`) outrank prose. If `AGENTS.qmd`, `README.qmd`, `ARCHITECTURE.md`, or this file disagree with the MCP tool list or the runtime, follow the code.
-- **Prose drift to watch for**: docs still claim "the six-tool kernel" — that count is stale (current MCP exposes 19). Docs also describe a richer `.agents/skills/` ecosystem than exists on disk (only 3 `SKILL.md` files repo-wide). Verify before relying on a referenced path.
+- **Prose drift to watch for**: docs still claim "the six-tool kernel" — that count is stale (current MCP exposes 20). Docs also describe a richer `.agents/skills/` ecosystem than exists on disk (only 3 `SKILL.md` files repo-wide). Verify before relying on a referenced path.
 
 Read `AGENTS.qmd` at session start to sync with the Supreme Directive.
 
@@ -37,8 +37,9 @@ Source of truth: `src/tools/cstar-kernel-mcp.ts` (search for `server.tool(`).
 | `cstar_status` | Deterministic framework snapshot from `StateRegistry`: status, persona, gungnir score, managed spokes, agent presence. |
 | `cstar_evolve` | Read-only inspection of Karpathy-loop artifacts: `list_proposals`, `get_proposal`, `list_sprt_history`. Proposal generation and adversarial critique stay host-native. |
 | `cstar_spoke` | Mounted-spoke lifecycle: `list` / `link` / `unlink` / `inspect`. Completes the spoke surface alongside `cstar_spoke_journal` and `cstar_spoke_bead_import`. |
-| `cstar_intent_route` | Resolve a prompt against the kernel intent grammar (`.agents/skill_registry.json#intent_grammar`). Returns matched category / default_path / tier / trigger. |
-| `cstar_warden` | On-demand Sentinel Warden invocation. `list` returns the inventory, `bounties` returns the cached `tech_debt_ledger.json`, `scan` shells out to `scripts/run_warden.py` for a named Python warden (norn/valkyrie/freya/mimir/ghost/security/...). |
+| `cstar_intent_route` | Resolve a prompt against the kernel intent grammar (`.agents/skill_registry.json#intent_grammar`). `action=match` returns the first hit; `action=explain` enumerates every matching category. Response includes `grammar_source` (`registry` if the registry loaded, `fallback` for the in-code defaults). |
+| `cstar_warden` | On-demand Sentinel Warden invocation. `list` shells out to `scripts/run_warden.py --list-wardens` (driver is the source of truth), `bounties` returns the cached `tech_debt_ledger.json`, `scan` invokes a named Python warden. Structured `dependency_missing` envelope when a transitive Python dep is unavailable. |
+| `cstar_telemetry` | Read-only MCP telemetry summaries over the last 24h. `section=usage` returns raw call counts, `section=usefulness` returns outcome-derived rates (search hit, bead transitions, validation, augury routing), `section=token_path` returns the token-path advisor integration summary, `section=all` (default) returns every block. Sourced from `.agents/state/cstar-kernel-mcp-*.jsonl`. |
 
 ## Legacy CLI → MCP Mapping
 

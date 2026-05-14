@@ -2479,6 +2479,14 @@ export async function handleSpoke({
                     trust_level: s.trust_level,
                     write_policy: s.write_policy,
                     projection_status: s.projection_status,
+                    default_branch: s.default_branch ?? null,
+                    remote_url: s.remote_url ?? null,
+                    last_scan_at: s.last_scan_at ?? null,
+                    last_health_at: s.last_health_at ?? null,
+                    accept_beads:
+                        typeof s.metadata?.accept_beads === 'boolean'
+                            ? s.metadata.accept_beads
+                            : s.write_policy === 'read_write',
                 })),
             });
         }
@@ -2606,7 +2614,13 @@ server.tool(
 // INTENT_CATEGORIES when the registry is unreadable).
 const MCP_INTENT_PROMPT_MAX = 4096;
 
-export async function handleIntentRoute({ prompt }: { prompt: string }): Promise<McpTextResponse> {
+export async function handleIntentRoute({
+    prompt,
+    action,
+}: {
+    prompt: string;
+    action?: 'match' | 'explain';
+}): Promise<McpTextResponse> {
     try {
         if (typeof prompt !== 'string' || prompt.trim().length === 0) {
             return textResponse({ error: 'prompt must be a non-empty string' }, true);
@@ -2619,18 +2633,52 @@ export async function handleIntentRoute({ prompt }: { prompt: string }): Promise
         }
         const root = registry.getRoot();
         const manifest = loadRegistryManifest(root);
+        const grammarSource: 'registry' | 'fallback' = manifest?.intent_grammar ? 'registry' : 'fallback';
         const grammar = getRegistryIntentCategories(manifest);
         const tokens = tokenize(prompt);
+
+        if (action === 'explain') {
+            // Enumerate every category whose triggers intersect the tokens.
+            const matches: Array<{
+                intent_category: string;
+                default_path: string;
+                tier: string;
+                matched_triggers: string[];
+            }> = [];
+            const tokenSet = new Set(tokens);
+            for (const [category, config] of Object.entries(grammar)) {
+                const hits = config.triggers.filter((trigger) => tokenSet.has(trigger));
+                if (hits.length > 0) {
+                    matches.push({
+                        intent_category: category,
+                        default_path: config.default_path,
+                        tier: config.tier,
+                        matched_triggers: hits,
+                    });
+                }
+            }
+            return textResponse({
+                status: matches.length > 0 ? 'matched' : 'unmatched',
+                grammar_source: grammarSource,
+                tokens: tokens.slice(0, 32),
+                match_count: matches.length,
+                matches,
+            });
+        }
+
+        // Default 'match' action — single-winner behavior (first registry hit).
         const match = resolveIntentCategoryFromGrammar(tokens, grammar);
         if (!match) {
             return textResponse({
                 status: 'unmatched',
+                grammar_source: grammarSource,
                 tokens: tokens.slice(0, 32),
                 available_categories: Object.keys(grammar),
             });
         }
         return textResponse({
             status: 'matched',
+            grammar_source: grammarSource,
             intent_category: match.category,
             default_path: match.default_path,
             tier: match.tier,
@@ -2643,9 +2691,10 @@ export async function handleIntentRoute({ prompt }: { prompt: string }): Promise
 
 server.tool(
     'cstar_intent_route',
-    'Resolve a prompt against the kernel intent grammar (.agents/skill_registry.json#intent_grammar). Returns the matched category, default_path, tier, and triggering token. Deterministic; no LLM inference.',
+    'Resolve a prompt against the kernel intent grammar (.agents/skill_registry.json#intent_grammar). action=match returns the first winner; action=explain returns every category whose triggers intersect the tokens. Response includes grammar_source ("registry" if the registry loaded, "fallback" for the in-code defaults). Deterministic; no LLM inference.',
     {
         prompt: z.string().describe('Prompt or mission text to tokenize and match against the intent grammar'),
+        action: z.enum(['match', 'explain']).optional().default('match').describe('match returns the first hit; explain enumerates every matching category'),
     },
     instrumentTool('cstar_intent_route', handleIntentRoute),
 );
@@ -2654,7 +2703,13 @@ server.tool(
 // Python wardens are deterministic (AST/text scans). The handler shells
 // out to a small Python driver (scripts/run_warden.py) that imports the
 // named warden, runs `.scan()`, and emits JSON. No LLM in the loop.
-const KNOWN_WARDENS = [
+//
+// `KNOWN_WARDENS_FALLBACK` is the boot-time / driver-unavailable fallback.
+// Source of truth is `scripts/run_warden.py#WARDEN_REGISTRY`, which is
+// consulted lazily via `--list-wardens` by the `list` action. Drift
+// between this constant and the driver only matters when the driver is
+// missing or python is unavailable.
+const KNOWN_WARDENS_FALLBACK = [
     'norn',
     'valkyrie',
     'freya',
@@ -2680,6 +2735,43 @@ function resolveWardenPython(projectRoot: string): string {
 const MCP_WARDEN_STDOUT_MAX = 256 * 1024;
 const MCP_WARDEN_TIMEOUT_MS = 60_000;
 
+async function loadWardenInventoryFromDriver(
+    projectRoot: string,
+): Promise<
+    | { source: 'driver'; wardens: Array<{ slug: string; module: string; class: string }> }
+    | null
+> {
+    const driver = path.join(projectRoot, 'scripts', 'run_warden.py');
+    if (!fs.existsSync(driver)) {
+        return null;
+    }
+    try {
+        const result = await execa(
+            resolveWardenPython(projectRoot),
+            [driver, '--list-wardens'],
+            {
+                cwd: projectRoot,
+                env: { ...process.env, PYTHONPATH: projectRoot },
+                timeout: 10_000,
+                reject: false,
+            },
+        );
+        if (result.exitCode !== 0) {
+            return null;
+        }
+        const parsed = JSON.parse(result.stdout) as {
+            status?: string;
+            wardens?: Array<{ slug: string; module: string; class: string }>;
+        };
+        if (parsed.status !== 'ok' || !Array.isArray(parsed.wardens)) {
+            return null;
+        }
+        return { source: 'driver', wardens: parsed.wardens };
+    } catch {
+        return null;
+    }
+}
+
 export async function handleWarden({
     action,
     warden,
@@ -2692,7 +2784,23 @@ export async function handleWarden({
     try {
         const root = registry.getRoot();
         if (action === 'list') {
-            return textResponse({ status: 'ok', wardens: [...KNOWN_WARDENS] });
+            const live = await loadWardenInventoryFromDriver(root);
+            if (live) {
+                return textResponse({
+                    status: 'ok',
+                    source: 'driver',
+                    count: live.wardens.length,
+                    wardens: live.wardens,
+                });
+            }
+            // Driver unavailable — fall back to the cached static list.
+            return textResponse({
+                status: 'ok',
+                source: 'fallback',
+                count: KNOWN_WARDENS_FALLBACK.length,
+                wardens: KNOWN_WARDENS_FALLBACK.map((slug) => ({ slug })),
+                warning: 'scripts/run_warden.py unavailable; returning cached inventory',
+            });
         }
         if (action === 'bounties') {
             const ledgerPath = path.join(root, '.agents', 'tech_debt_ledger.json');
@@ -2716,9 +2824,17 @@ export async function handleWarden({
                 return textResponse({ error: 'scan requires warden name (use list to see available)' }, true);
             }
             const normalized = warden.trim().toLowerCase();
-            if (!(KNOWN_WARDENS as readonly string[]).includes(normalized)) {
+            // The Python driver is the source of truth for warden validity.
+            // The static `KNOWN_WARDENS_FALLBACK` only short-circuits a malformed
+            // slug; the driver still emits a structured `status: unknown_warden`
+            // envelope if the runtime registry doesn't contain it.
+            if (
+                !/^[a-z0-9_]+$/.test(normalized)
+                || normalized.length === 0
+                || normalized.length > 64
+            ) {
                 return textResponse(
-                    { error: `unknown warden: ${warden} (use list to see available)` },
+                    { error: `warden slug must match [a-z0-9_]+ (got "${warden}")` },
                     true,
                 );
             }
@@ -2757,15 +2873,23 @@ export async function handleWarden({
                 }
             }
 
+            // reject:false — the driver uses nonzero exit codes to flag
+            // structured conditions (dependency_missing=5, scan_failed=4,
+            // import_failed=3). We always read stdout and let the envelope's
+            // `status` field carry the meaning. Real process failures (timeout,
+            // maxBuffer) still surface through the thrown error path.
             let stdout: string;
+            let exitCode: number | undefined;
             try {
                 const result = await execa(py, args, {
                     cwd: root,
                     env: { ...process.env, PYTHONPATH: root },
                     timeout: MCP_WARDEN_TIMEOUT_MS,
                     maxBuffer: MCP_WARDEN_STDOUT_MAX,
+                    reject: false,
                 });
                 stdout = result.stdout;
+                exitCode = result.exitCode ?? undefined;
             } catch (execErr: any) {
                 if (execErr?.timedOut) {
                     return textResponse(
@@ -2782,21 +2906,32 @@ export async function handleWarden({
                 return errorResponse(execErr);
             }
 
+            const root_used = targetIsDir ? resolvedTarget : root;
             try {
-                const parsed = JSON.parse(stdout);
-                return textResponse({
-                    status: 'ok',
-                    warden: normalized,
-                    root_used: targetIsDir ? resolvedTarget : root,
-                    ...parsed,
-                });
+                const parsed = JSON.parse(stdout) as { status?: string } & Record<string, unknown>;
+                const envelopeStatus = typeof parsed.status === 'string' ? parsed.status : 'ok';
+                const isError = envelopeStatus !== 'ok' && envelopeStatus !== 'matched';
+                return textResponse(
+                    {
+                        status: envelopeStatus,
+                        warden: normalized,
+                        root_used,
+                        exit_code: exitCode,
+                        ...parsed,
+                    },
+                    isError,
+                );
             } catch {
-                return textResponse({
-                    status: 'ok',
-                    warden: normalized,
-                    root_used: targetIsDir ? resolvedTarget : root,
-                    raw_output: stdout.slice(0, 1024),
-                });
+                return textResponse(
+                    {
+                        status: exitCode === 0 ? 'ok' : 'scan_failed',
+                        warden: normalized,
+                        root_used,
+                        exit_code: exitCode,
+                        raw_output: stdout.slice(0, 1024),
+                    },
+                    exitCode !== 0,
+                );
             }
         }
         return textResponse({ error: `invalid warden action: ${action}` }, true);
@@ -2804,6 +2939,46 @@ export async function handleWarden({
         return errorResponse(error);
     }
 }
+
+// cstar_telemetry — first-class surface for the existing summarizers.
+// Identical data is buried inside cstar_doctor's health envelope; this tool
+// lets hosts introspect their own MCP usage without filtering doctor output.
+export async function handleTelemetry({
+    section,
+}: {
+    section?: 'all' | 'usage' | 'usefulness' | 'token_path';
+}): Promise<McpTextResponse> {
+    try {
+        const which = section ?? 'all';
+        const payload: Record<string, unknown> = {
+            status: 'ok',
+            section: which,
+            workspace: registry.getRoot(),
+            generated_at: new Date().toISOString(),
+        };
+        if (which === 'all' || which === 'usage') {
+            payload.usage = summarizeRecentMcpUsage();
+        }
+        if (which === 'all' || which === 'usefulness') {
+            payload.usefulness = summarizeRecentMcpUsefulness();
+        }
+        if (which === 'all' || which === 'token_path') {
+            payload.token_path = summarizeRecentTokenPathIntegration();
+        }
+        return textResponse(payload);
+    } catch (error) {
+        return errorResponse(error);
+    }
+}
+
+server.tool(
+    'cstar_telemetry',
+    'Read-only MCP telemetry summaries over the last 24h. section=usage returns raw call counts; section=usefulness returns outcome-derived rates (search hit, bead transitions, validation, augury routing); section=token_path returns the token-path advisor integration summary; section=all (default) returns every block. Sourced from .agents/state/cstar-kernel-mcp-*.jsonl.',
+    {
+        section: z.enum(['all', 'usage', 'usefulness', 'token_path']).optional().default('all').describe('Which summary block(s) to return'),
+    },
+    instrumentTool('cstar_telemetry', handleTelemetry),
+);
 
 server.tool(
     'cstar_warden',
