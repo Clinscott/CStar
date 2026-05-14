@@ -8,7 +8,7 @@
 - `docs/integrations/cstar_capability_discovery_api.md` — existing `cstar manifest` / `cstar skill-info` contract this bead extends.
 - `docs/architecture/SKILL_REGISTRY.md` — Universal Skill Registry authority manifest.
 - `docs/architecture/HALL_PER_SPOKE_TRAY.md` (PROPOSED, separate bead) — per-spoke Hall anchoring; this bead intentionally does **not** depend on it landing first.
-- `CorvusEye/.agents/skills/forge-contract-verify/SKILL.md` — first conforming spoke-local skill; serves as the v1 reference fixture.
+- `CorvusEye/.agents/skills/usb-forge-contract-verify/SKILL.md` — first conforming spoke-local skill; serves as the v1 reference fixture.
 
 **Operating Model**: Dia-Logos.
 
@@ -16,7 +16,7 @@
 
 ## 1. Why this bead, why now
 
-A spoke (CorvusEye) has shipped its first spoke-local skill: `forge-contract-verify` at `<spoke>/.agents/skills/forge-contract-verify/SKILL.md`. Today the kernel cannot see it. `cstar manifest --json` reads only the kernel's `.agents/skill_registry.json`; `cstar skill-info` resolves only kernel-registered IDs. The MCP layer has no spoke-aware discovery tool.
+A spoke (CorvusEye) has shipped its first spoke-local skill: `usb-forge-contract-verify` at `<spoke>/.agents/skills/usb-forge-contract-verify/SKILL.md`. Today the kernel cannot see it. `cstar manifest --json` reads only the kernel's `.agents/skill_registry.json`; `cstar skill-info` resolves only kernel-registered IDs. The MCP layer has no spoke-aware discovery tool.
 
 This creates a discovery hole that grows with every spoke skill we ship. The hub-and-spoke estate model already commits to hosting independently-evolving spokes; capability discovery has to match that model or we will silently centralise back into the kernel registry — which is precisely what the per-spoke architecture exists to avoid.
 
@@ -34,11 +34,11 @@ The bead does not touch Hall writes, does not touch the war-game scoring path, a
 
 **Ruling.** Primary: `<spoke_root>/.agents/skills/<skill_id>/SKILL.md` walk, mirroring the kernel's `.agents/extension/skills/` convention. Optional overlay: `<spoke_root>/.agents/skill_registry.json` if a spoke wants per-spoke registry metadata (tier, risk, ownership). When both are present, registry metadata supplements the SKILL.md frontmatter; on conflict, the registry wins because it is structured.
 
-CorvusEye already conforms (`CorvusEye/.agents/skills/forge-contract-verify/SKILL.md` with YAML frontmatter). No spoke is required to ship a registry — SKILL.md alone is sufficient.
+CorvusEye already conforms (`CorvusEye/.agents/skills/usb-forge-contract-verify/SKILL.md` with YAML frontmatter). No spoke is required to ship a registry — SKILL.md alone is sufficient.
 
 ### Q2. Namespace strategy for IDs
 
-**Ruling.** All spoke skills are namespaced as `<spoke_slug>:<skill_id>` (e.g. `corvuseye:forge-contract-verify`). Hub IDs stay bare (`empire`, `gungnir`, `restoration`). The colon is reserved as the spoke separator and is rejected in bare IDs at validation time. This makes hub/spoke distinction lexically unambiguous in `manifest` output and `skill-info <id>` resolution.
+**Ruling.** All spoke skills are namespaced as `<spoke_slug>:<skill_id>` (e.g. `corvuseye:usb-forge-contract-verify`). Hub IDs stay bare (`empire`, `gungnir`, `restoration`). The colon is reserved as the spoke separator and is rejected in bare IDs at validation time. This makes hub/spoke distinction lexically unambiguous in `manifest` output and `skill-info <id>` resolution.
 
 Collisions are impossible by construction: hub IDs cannot contain `:`; spoke IDs must contain exactly one `:`. The kernel's existing `resolveCapabilityById` gains a single branch on the presence of `:`.
 
@@ -178,8 +178,8 @@ Spoke skills get virtual entries in the manifest output with:
   "capabilities": [
     /* … kernel entries (unchanged) … */
     {
-      "id": "corvuseye:forge-contract-verify",
-      "bare_id": "forge-contract-verify",
+      "id": "corvuseye:usb-forge-contract-verify",
+      "bare_id": "usb-forge-contract-verify",
       "source": "spoke",
       "source_spoke": "corvuseye",
       "tier": "SKILL",
@@ -187,7 +187,7 @@ Spoke skills get virtual entries in the manifest output with:
       "entry_surface": "host-only",
       "execution_mode": "agent-native",
       "owner_runtime": "host-agent",
-      "authority_path": "/home/morderith/Corvus/CorvusEye/.agents/skills/forge-contract-verify/SKILL.md",
+      "authority_path": "/home/morderith/Corvus/CorvusEye/.agents/skills/usb-forge-contract-verify/SKILL.md",
       "active_in_runtime": false,
       "validation": "ok"
     }
@@ -195,15 +195,15 @@ Spoke skills get virtual entries in the manifest output with:
 }
 ```
 
-### 4.2 `cstar_skill_info({ id: 'corvuseye:forge-contract-verify' })`
+### 4.2 `cstar_skill_info({ id: 'corvuseye:usb-forge-contract-verify' })`
 
 ```jsonc
 {
   "capability": { /* same record as above */ },
   "documentation": {
     "kind": "markdown",
-    "path": "/home/morderith/Corvus/CorvusEye/.agents/skills/forge-contract-verify/SKILL.md",
-    "content": "---\nname: forge-contract-verify\n…"
+    "path": "/home/morderith/Corvus/CorvusEye/.agents/skills/usb-forge-contract-verify/SKILL.md",
+    "content": "---\nname: usb-forge-contract-verify\n…"
   },
   "invocation": {
     "agent_hint": "any-host-agent",
@@ -245,7 +245,7 @@ Spoke skills get virtual entries in the manifest output with:
   - Scenario: spoke root removed from disk reports `mount_status_drift`.
   - Scenario: `:`-bearing bare IDs rejected.
 - **Isolation (leg 2)**: `tests/unit/spoke_discovery/` — one file per Q ruling. Fixture: a temp directory acting as a synthetic spoke with deliberate variants (clean, missing-file, invalid-frontmatter, quarantined-marker).
-- **Integration (leg 3)**: `tests/integration/spoke_discovery_against_corvuseye.test.ts` — calls `walkSpokeSkills('corvuseye')` against the actual repo, asserts `corvuseye:forge-contract-verify` surfaces with `validation: 'ok'`. Uses the real `hall_mounted_spokes` row.
+- **Integration (leg 3)**: `tests/integration/spoke_discovery_against_corvuseye.test.ts` — calls `walkSpokeSkills('corvuseye')` against the actual repo, asserts `corvuseye:usb-forge-contract-verify` surfaces with `validation: 'ok'`. Uses the real `hall_mounted_spokes` row.
 - **Audit (leg 4)**: Gungnir on the integration PR. Wardens: Norn (lore coverage on every Q), Ghost (no new privileged surface — read-only, filesystem-bounded), Heimdall (no warden firings on first-walk), Valkyrie (no dead code branches in the walker).
 
 ---
@@ -256,7 +256,7 @@ The bead resolves when:
 
 1. **Lore exists** — `tests/features/spoke_discovery.feature` covers Q1–Q8.
 2. **Isolation passes** — `npm run test:node -- tests/unit/spoke_discovery/` green.
-3. **Integration passes** — `walkSpokeSkills('corvuseye')` returns ≥1 row including `corvuseye:forge-contract-verify` with `validation: 'ok'`. `cstar_spoke_journal({ spoke: 'corvuseye' })` reports all four files present.
+3. **Integration passes** — `walkSpokeSkills('corvuseye')` returns ≥1 row including `corvuseye:usb-forge-contract-verify` with `validation: 'ok'`. `cstar_spoke_journal({ spoke: 'corvuseye' })` reports all four files present.
 4. **MCP wired** — `cstar_manifest`, `cstar_skill_info`, `cstar_spoke_journal` registered in `src/tools/cstar-kernel-mcp.ts` and roundtrip via the MCP test harness.
 5. **CLI wired** — `./cstar manifest --scope=all --json` includes spoke entries; `./cstar spoke journal corvuseye --json` returns the journal payload.
 6. **Audit recorded** — Gungnir score on the integration PR; wardens listed in §5 green.
@@ -300,7 +300,7 @@ F1 and F2 are independent and can run in parallel if a second agent picks one up
 
 ## 10. Cross-references
 
-- Reference spoke skill (fixture for F3 integration test): `CorvusEye/.agents/skills/forge-contract-verify/SKILL.md`.
+- Reference spoke skill (fixture for F3 integration test): `CorvusEye/.agents/skills/usb-forge-contract-verify/SKILL.md`.
 - Existing CLI discovery contract this extends: `docs/integrations/cstar_capability_discovery_api.md`.
 - Universal Skill Registry authority manifest: `docs/architecture/SKILL_REGISTRY.md`.
 - Supreme Directive (justifies announce-only): `AGENTS.qmd` §0.

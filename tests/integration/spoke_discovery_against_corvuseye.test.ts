@@ -17,7 +17,7 @@ import type { HallMountedSpokeRecord } from '../../src/types/hall.js';
  * This proves the walker handles real-world content end-to-end without
  * brittle dependence on whether the user's pennyone.db has the spoke linked.
  *
- * Per design §6.3 acceptance: corvuseye:forge-contract-verify must surface
+ * Per design §6.3 acceptance: corvuseye:usb-forge-contract-verify must surface
  * with validation=ok, and all four journal files must report present.
  */
 
@@ -40,18 +40,18 @@ function corvusEyeSpoke(): HallMountedSpokeRecord {
 }
 
 const corvusEyeAvailable = fs.existsSync(CORVUSEYE_ROOT)
-    && fs.existsSync(path.join(CORVUSEYE_ROOT, '.agents', 'skills', 'forge-contract-verify', 'SKILL.md'));
+    && fs.existsSync(path.join(CORVUSEYE_ROOT, '.agents', 'skills', 'usb-forge-contract-verify', 'SKILL.md'));
 
-test('integration: walkSpokeSkillsForRecords surfaces corvuseye:forge-contract-verify', { skip: !corvusEyeAvailable }, () => {
+test('integration: walkSpokeSkillsForRecords surfaces corvuseye:usb-forge-contract-verify', { skip: !corvusEyeAvailable }, () => {
     const spoke = corvusEyeSpoke();
     const out = walkSpokeSkillsForRecords([spoke]);
-    const found = out.find((s) => s.id === 'corvuseye:forge-contract-verify');
-    assert.ok(found !== undefined, `expected corvuseye:forge-contract-verify in walker output; got ${out.map((s) => s.id).join(', ')}`);
+    const found = out.find((s) => s.id === 'corvuseye:usb-forge-contract-verify');
+    assert.ok(found !== undefined, `expected corvuseye:usb-forge-contract-verify in walker output; got ${out.map((s) => s.id).join(', ')}`);
     assert.strictEqual(found.validation, 'ok');
     assert.strictEqual(found.tier, 'SKILL');
     assert.strictEqual(found.risk, 'low');
     assert.strictEqual(found.spoke_slug, 'corvuseye');
-    assert.strictEqual(found.bare_id, 'forge-contract-verify');
+    assert.strictEqual(found.bare_id, 'usb-forge-contract-verify');
     assert.match(found.description, /three-Engram/);
 });
 
@@ -96,7 +96,7 @@ test('integration: CorvusEye tasks.md exposes open_tasks count', { skip: !corvus
 test('integration: corvuseye SKILL.md content is returned verbatim in documentation field', { skip: !corvusEyeAvailable }, () => {
     const spoke = corvusEyeSpoke();
     const out = walkSpokeSkillsForRecords([spoke]);
-    const found = out.find((s) => s.id === 'corvuseye:forge-contract-verify');
+    const found = out.find((s) => s.id === 'corvuseye:usb-forge-contract-verify');
     assert.ok(found !== undefined);
     // Sanity: the documentation should include both the frontmatter and the LOGIC PROTOCOL marker.
     assert.match(found.documentation, /^---/);

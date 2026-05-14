@@ -38,10 +38,10 @@ Feature: Spoke Discovery — Kernel Announces Spoke-Local Capabilities
   # ─── Q2: Namespace strategy — <slug>:<bare_id> with strict bare validation ─
 
   Scenario: Spoke skill IDs are namespaced as <slug>:<bare_id>
-    Given a spoke "corvuseye" with skill "forge-contract-verify"
+    Given a spoke "corvuseye" with skill "usb-forge-contract-verify"
     When the walker emits a manifest
-    Then the id is "corvuseye:forge-contract-verify"
-    And the bare_id is "forge-contract-verify"
+    Then the id is "corvuseye:usb-forge-contract-verify"
+    And the bare_id is "usb-forge-contract-verify"
 
   Scenario: Bare id containing a colon is invalid
     When validateBareId is called with "has:colon"
@@ -56,8 +56,8 @@ Feature: Spoke Discovery — Kernel Announces Spoke-Local Capabilities
   # ─── Q3: Announce-only — kernel returns SKILL.md, host executes ───────
 
   Scenario: Skill-info on a spoke skill returns the documentation and invocation contract
-    Given a registered spoke "corvuseye" with skill "forge-contract-verify" validation=ok
-    When cstar_skill_info is called with id "corvuseye:forge-contract-verify"
+    Given a registered spoke "corvuseye" with skill "usb-forge-contract-verify" validation=ok
+    When cstar_skill_info is called with id "corvuseye:usb-forge-contract-verify"
     Then the response includes documentation.content equal to the SKILL.md bytes
     And invocation.working_dir equals the spoke's root_path
     And invocation.command is null
@@ -194,5 +194,5 @@ Feature: Spoke Discovery — Kernel Announces Spoke-Local Capabilities
     And tests/unit/spoke_discovery/*.test.ts is green (Isolation)
     And tests/integration/spoke_discovery_against_corvuseye.test.ts is green (Integration)
     And Gungnir score on the integration PR is recorded (Audit)
-    And ./cstar manifest --scope=all --json includes corvuseye:forge-contract-verify (Hall closes)
+    And ./cstar manifest --scope=all --json includes corvuseye:usb-forge-contract-verify (Hall closes)
     Then the bead transitions from IN_PROGRESS to RESOLVED
