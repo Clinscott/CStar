@@ -222,11 +222,16 @@ describe('🔱 CStar Kernel MCP Tools', () => {
             bead_id: 'bead:mcp:test-transition',
             resolution_note: 'Accepted after focused verification.',
             resolved_validation_id: 'validation-1',
+            mandate_evidence: {
+                mandate_exempt: true,
+                exemption_reason: 'integration test (mandate exercised separately in sterling_mandate.test.ts)',
+            },
         });
         const resolveParsed = JSON.parse(resolveResult.content[0].text);
         assert.strictEqual(resolveParsed.status, 'resolved');
         assert.strictEqual(resolveParsed.bead.status, 'RESOLVED');
         assert.strictEqual(resolveParsed.bead.resolved_validation_id, 'validation-1');
+        assert.strictEqual(resolveParsed.sterling_mandate.verdict, 'EXEMPT');
     });
 
     it('cstar_bead rejects missing beads and invalid create payloads', async () => {

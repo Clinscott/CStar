@@ -171,6 +171,76 @@
           }
         }
       }
+    },
+    {
+      "id": "autobot",
+      "title": "Autobot — Hermes sub-agent delegation",
+      "description": "Delegate a bounded task from the host-native agent (Claude/Gemini/Codex in their harness) to a Hermes-managed sub-agent (default MiniMax-M2.7). Cost-audited via .agents/state/autobot-cost-ledger.jsonl. Structured intent + payload per docs/host-native-skill-bridge.md. File-locked per (project, intent_hash). Synchronous via delegate.py, async via enqueue.py + queue_processor.py.",
+      "tier": "SKILL",
+      "risk": "low",
+      "entry_surface": "cli",
+      "terminal_required": false,
+      "execution": {
+        "adapter_id": "host-native:autobot",
+        "language": "python",
+        "entry_point": ".agents/skills/autobot/scripts/delegate.py",
+        "queue_entry_point": ".agents/skills/autobot/scripts/enqueue.py",
+        "queue_drainer_entry_point": ".agents/skills/autobot/scripts/queue_processor.py",
+        "queue_inspect_entry_point": ".agents/skills/autobot/scripts/queue_inspect.py",
+        "mcp_tool": "cstar_autobot"
+      },
+      "intent_categories": ["ORCHESTRATE"],
+      "contract": {
+        "input_schema": {
+          "type": "object",
+          "required": ["intent"],
+          "properties": {
+            "intent": { "type": "string", "description": "One-sentence task statement" },
+            "project_root": { "type": "string", "description": "Anchors relative target_paths" },
+            "target_paths": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Files to read into the prompt as context (each capped at 32 KB)"
+            },
+            "payload": {
+              "type": "object",
+              "properties": {
+                "hermes_profile": { "type": "string", "default": "cstar-hub" },
+                "model": { "type": "string", "default": "MiniMax-M2.7" },
+                "expected_output": { "type": "string", "enum": ["markdown", "json", "plain"], "default": "markdown" },
+                "max_chars": { "type": "integer", "default": 4000 },
+                "session_name": { "type": ["string", "null"] },
+                "write_to": { "type": ["string", "null"] },
+                "append_with_separator": { "type": ["string", "null"] },
+                "tags": { "type": "array", "items": { "type": "string" } },
+                "timeout_seconds": { "type": "integer", "default": 300 }
+              }
+            }
+          }
+        },
+        "output_schema": {
+          "type": "object",
+          "properties": {
+            "status": { "type": "string", "enum": ["ok", "degraded", "invalid_intent"] },
+            "degraded_reason": { "type": ["string", "null"] },
+            "intent_id": { "type": "string" },
+            "duration_ms": { "type": "integer" },
+            "wrote_to": { "type": ["string", "null"] },
+            "ledger_entry": { "type": "string" }
+          }
+        }
+      },
+      "invariants": [
+        "No nested delegation (HERMES_AUTOBOT_DELEGATED env guard)",
+        "No writes outside payload.write_to / cost ledger / lock file / queue",
+        "No fallback to other providers when MiniMax is unreachable",
+        "Lock granularity = (project_root, intent_hash)",
+        "Honest degraded surfaces — never fakes success"
+      ],
+      "related_docs": [
+        "docs/host-native-skill-bridge.md",
+        ".agents/skills/autobot/SKILL.md"
+      ]
     }
   ],
   "authority_audit": []

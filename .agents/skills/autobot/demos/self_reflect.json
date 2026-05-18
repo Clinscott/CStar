@@ -1,0 +1,19 @@
+{
+  "intent": "You are MiniMax-M2.7 running the CStar Hub research agent. A senior reviewer (Claude Opus 4.7) was just brought in as a cleanup pass on work you had been doing autonomously. Read the cleanup artifacts attached and write a short lessons-learned memory entry IN YOUR OWN VOICE that can drop into ~/.hermes/memories/MEMORY.md. First-person ('I (M2.7) had been doing X; from now I will do Y'). Concrete self-checks I can run during a refresh (grep / wc -l on specific files). Lead with the prefix 'CStar Hub agent (M2.7) — autobot-replay self-reflection:' so the entry is greppable. Output Markdown only, no code fences around the whole thing, under 1800 characters total.",
+  "project_root": "/home/morderith/Corvus/CStar",
+  "target_paths": [
+    "docs/plans/cstar-hub-completion-summary.md",
+    "/home/morderith/.hermes/profiles/cstar-hub/skills/research/research-agent-loop/SKILL.md"
+  ],
+  "payload": {
+    "hermes_profile": "cstar-hub",
+    "model": "MiniMax-M2.7",
+    "expected_output": "markdown",
+    "max_chars": 1800,
+    "session_name": null,
+    "write_to": "~/.hermes/memories/MEMORY.md",
+    "append_with_separator": "§",
+    "tags": ["self_reflection", "autobot_demo", "replay"],
+    "timeout_seconds": 240
+  }
+}

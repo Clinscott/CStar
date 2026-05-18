@@ -34,6 +34,7 @@ export interface OperatorSession {
 }
 
 export interface RuntimeAuguryContract {
+    [key: string]: unknown;
     intent_category?: string;
     intent?: string;
     selection_tier?: string;
@@ -284,6 +285,24 @@ export type ArchitectWeavePayload = ArchitectServicePayload;
 export interface ArchitectProposalHostResponse {
     proposal_summary?: unknown;
     beads?: unknown;
+}
+
+export interface ArchitectProposalBead {
+    id?: unknown;
+    title?: unknown;
+    rationale?: unknown;
+    targets?: unknown;
+    acceptance_criteria?: unknown;
+    checker_shell?: unknown;
+    depends_on?: unknown;
+    focus_hint?: unknown;
+    target_symbol?: unknown;
+    test_file_path?: unknown;
+}
+
+export interface ArchitectProposal {
+    proposal_summary?: unknown;
+    beads?: unknown[];
 }
 
 export interface ArchitectReviewHostResponse {

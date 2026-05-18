@@ -13,6 +13,10 @@ import {
     HallFileRecord,
     HallMountedSpokeRecord,
     HallMountedSpokeStatus,
+    HallMountedSpokeKind,
+    HallMountedSpokeTrust,
+    HallMountedSpokeWritePolicy,
+    HallMountedSpokeProjectionStatus,
     HallGitCommitRecord,
     HallGitDiffRecord,
     HallBeadRecord,
@@ -235,6 +239,44 @@ export function listHallMountedSpokes(rootPath: string = registry.getRoot()): Ha
     }));
 }
 
+/**
+ * List EVERY mounted-spoke row in the Hall, ignoring the active hub's repo_id.
+ *
+ * Required by `cstar_spoke action=doctor` so foreign-repo phantoms (test-fixture
+ * residue under `/tmp/corvus-*` etc.) become visible. Production callers that
+ * only care about the active hub should keep using `listHallMountedSpokes`.
+ *
+ * @returns every row in `hall_mounted_spokes`, sorted by repo_id then slug
+ */
+export function listAllHallMountedSpokes(): HallMountedSpokeRecord[] {
+    const db = database.getDb();
+    const rows = db.prepare(`
+        SELECT spoke_id, repo_id, slug, kind, root_path, remote_url, default_branch,
+               mount_status, trust_level, write_policy, projection_status,
+               last_scan_at, last_health_at, metadata_json, created_at, updated_at
+        FROM hall_mounted_spokes
+        ORDER BY repo_id ASC, slug ASC
+    `).all() as Array<Record<string, unknown>>;
+    return rows.map((row) => ({
+        spoke_id: String(row.spoke_id),
+        repo_id: String(row.repo_id),
+        slug: String(row.slug),
+        kind: row.kind as HallMountedSpokeKind,
+        root_path: String(row.root_path),
+        remote_url: row.remote_url ? String(row.remote_url) : undefined,
+        default_branch: row.default_branch ? String(row.default_branch) : undefined,
+        mount_status: row.mount_status as HallMountedSpokeStatus,
+        trust_level: row.trust_level as HallMountedSpokeTrust,
+        write_policy: row.write_policy as HallMountedSpokeWritePolicy,
+        projection_status: row.projection_status as HallMountedSpokeProjectionStatus,
+        last_scan_at: row.last_scan_at ? Number(row.last_scan_at) : undefined,
+        last_health_at: row.last_health_at ? Number(row.last_health_at) : undefined,
+        metadata: parseJson<Record<string, unknown>>(row.metadata_json as string | null, {}),
+        created_at: Number(row.created_at ?? 0),
+        updated_at: Number(row.updated_at ?? 0),
+    }));
+}
+
 export function removeHallMountedSpoke(slugOrId: string, rootPath: string = registry.getRoot()): boolean {
     const db = database.getDb();
     const repoId = buildHallRepositoryId(normalizeHallPath(rootPath));
@@ -243,6 +285,53 @@ export function removeHallMountedSpoke(slugOrId: string, rootPath: string = regi
         WHERE repo_id = ? AND (slug = ? OR spoke_id = ?)
     `).run(repoId, slugOrId, slugOrId);
 
+    return result.changes > 0;
+}
+
+/**
+ * Touch `last_health_at` on a single hall_mounted_spokes row.
+ *
+ * Lightweight write — no metadata mutation, no projection_status change. Used
+ * by `cstar_spoke action=health` and as a heartbeat from any read path that
+ * just observed the spoke alive (link, project, manifest walk).
+ *
+ * Keys on (slug, repo_id) so heartbeat writes don't accidentally touch
+ * foreign-repo phantoms.
+ *
+ * @param slug normalized spoke slug
+ * @param repoId hub repo_id the heartbeat is recorded against
+ * @param timestampMs epoch milliseconds; defaults to now
+ * @returns true if a row was updated
+ */
+export function touchSpokeHeartbeat(slug: string, repoId: string, timestampMs: number = Date.now()): boolean {
+    const db = database.getDb();
+    const result = db.prepare(`
+        UPDATE hall_mounted_spokes
+        SET last_health_at = ?, updated_at = ?
+        WHERE slug = ? AND repo_id = ?
+    `).run(timestampMs, timestampMs, slug, repoId);
+    return result.changes > 0;
+}
+
+/**
+ * Delete a hall_mounted_spokes row by exact (slug, root_path) pair.
+ *
+ * Unlike `removeHallMountedSpoke`, this does NOT scope to the active hub's
+ * `repo_id`. Required for `cstar_spoke action=prune` to clean up phantom
+ * rows registered under foreign repo_ids (typically test-fixture residue
+ * left over after a scaffolded hub is torn down).
+ *
+ * @param slug normalized spoke slug
+ * @param rootPath exact root_path stored in the row (will be normalized via normalizeHallPath for matching)
+ * @returns true if a row was deleted
+ */
+export function removeHallMountedSpokeByRootPath(slug: string, rootPath: string): boolean {
+    const db = database.getDb();
+    const normalized = normalizeHallPath(rootPath);
+    const result = db.prepare(`
+        DELETE FROM hall_mounted_spokes
+        WHERE slug = ? AND root_path = ?
+    `).run(slug, normalized);
     return result.changes > 0;
 }
 

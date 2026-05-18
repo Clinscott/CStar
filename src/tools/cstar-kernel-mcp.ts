@@ -37,6 +37,32 @@ import {
     type SpokeSkillManifest,
 } from '../node/core/spokes/spoke_capability_walker.js';
 import {
+    projectSpoke,
+    SPOKE_PROJECTION_VERSION,
+    type ProjectSpokeResult,
+} from '../node/core/spokes/spoke_projector.js';
+import {
+    establishAuthority,
+    verifyMountToken,
+    SPOKE_CONTRACT_VERSION,
+    type EstablishAuthorityResult,
+} from '../node/core/spokes/spoke_authority.js';
+import {
+    surveySpokes,
+    pruneSpokes,
+    verifySpoke,
+    healthCheckSpoke,
+    type PruneTarget,
+} from '../node/core/spokes/spoke_doctor.js';
+import {
+    verifySterlingMandate,
+    mergeMandateEvidence,
+    type MandateEvidence,
+    type MandateVerdict,
+} from '../node/core/sterling_mandate.js';
+
+const HUB_KERNEL_VERSION = '1.0.0';
+import {
     buildCapabilityManifestPayload,
     buildCapabilityInfoPayload,
 } from '../node/core/commands/capability_discovery.js';
@@ -196,6 +222,9 @@ interface BeadToolArgs {
     triage_reason?: string;
     metadata?: Record<string, unknown>;
     spoke?: string;
+    mandate_evidence?: MandateEvidence;
+    force?: boolean;
+    force_reason?: string;
 }
 
 interface SpokeBeadImportArgs {
@@ -315,6 +344,14 @@ export function resolveSpokeAnchor(spokeSlug: string | undefined | null): SpokeA
         throw new Error(
             `Spoke '${slug}' has write_policy='${spoke.write_policy}'. ` +
             `Bead writes require 'read_write'.`,
+        );
+    }
+    const hallToken = (spoke.metadata?.authority as Record<string, unknown> | undefined)?.mount_token;
+    const tokenVerdict = verifyMountToken(spoke.root_path, typeof hallToken === 'string' ? hallToken : null);
+    if (tokenVerdict.verdict === 'mismatch' || tokenVerdict.verdict === 'identity_missing' || tokenVerdict.verdict === 'hall_missing') {
+        throw new Error(
+            `Spoke '${slug}' failed mount_token verification (${tokenVerdict.verdict}): ${tokenVerdict.reason}. ` +
+            `Re-project the spoke via cstar_spoke action=project, or relink to mint a fresh token.`,
         );
     }
     return {
@@ -1430,6 +1467,85 @@ server.tool(
     instrumentTool('cstar_verify_plan', handleVerifyPlan)
 );
 
+interface SterlingMandateAuditEntry {
+    verdict: MandateVerdict['verdict'];
+    evaluated_at: number;
+    legs: MandateVerdict['legs'];
+    reasons: string[];
+    exemption_reason?: string;
+    forced?: boolean;
+    force_reason?: string;
+    actor: string;
+}
+
+/**
+ * Gate a bead transition to RESOLVED through the Sterling Mandate verifier.
+ *
+ * - On REJECTED without `force=true`: throws with the cumulative reasons.
+ * - On REJECTED with `force=true` + non-empty `force_reason`: allows transition,
+ *   records the override in the returned audit entry.
+ * - On ACCEPTED / EXEMPT: returns the audit entry; the caller stamps it onto
+ *   `bead.metadata.sterling_mandate`.
+ *
+ * The function accepts a `SovereignBead` (what `database.getHallBead` returns)
+ * and adapts to the verifier's `HallBeadRecord` shape inline — the only delta
+ * is `bead.id` ↔ `bead.bead_id`.
+ *
+ * @param bead the bead about to transition to RESOLVED
+ * @param args the call-site BeadToolArgs (for evidence + force overrides)
+ * @param hubRoot hub root used for path resolution inside the verifier
+ * @returns audit entry to be persisted on the bead
+ */
+function gateSterlingMandate(bead: SovereignBead, args: BeadToolArgs, hubRoot: string): SterlingMandateAuditEntry {
+    const beadAsHallRecord = {
+        bead_id: bead.id,
+        repo_id: bead.repo_id,
+        rationale: bead.rationale,
+        status: bead.status,
+        baseline_scores: bead.baseline_scores,
+        metadata: bead.metadata,
+        created_at: bead.created_at,
+        updated_at: bead.updated_at,
+    } as HallBeadRecord;
+
+    const evidence = mergeMandateEvidence(beadAsHallRecord, args.mandate_evidence);
+    const verdict = verifySterlingMandate(beadAsHallRecord, evidence, hubRoot);
+
+    if (verdict.verdict === 'REJECTED') {
+        if (args.force === true) {
+            const forceReason = (args.force_reason ?? '').trim();
+            if (forceReason.length === 0) {
+                throw new Error(
+                    `Sterling Mandate REJECTED for bead '${bead.id}'. ` +
+                    `Override requires force=true AND a non-empty force_reason. Reasons: ${verdict.reasons.join('; ')}`,
+                );
+            }
+            return {
+                verdict: 'REJECTED',
+                evaluated_at: verdict.evaluated_at,
+                legs: verdict.legs,
+                reasons: verdict.reasons,
+                forced: true,
+                force_reason: forceReason,
+                actor: 'cstar-kernel-mcp',
+            };
+        }
+        throw new Error(
+            `Sterling Mandate REJECTED for bead '${bead.id}': ${verdict.reasons.join('; ')}. ` +
+            `Provide mandate_evidence with lore_paths + isolation_paths + audit, set mandate_exempt=true with exemption_reason, or override with force=true + force_reason.`,
+        );
+    }
+
+    return {
+        verdict: verdict.verdict,
+        evaluated_at: verdict.evaluated_at,
+        legs: verdict.legs,
+        reasons: verdict.reasons,
+        ...(verdict.exemption_reason !== undefined ? { exemption_reason: verdict.exemption_reason } : {}),
+        actor: 'cstar-kernel-mcp',
+    };
+}
+
 // 6. cstar_bead
 export async function handleBead(args: BeadToolArgs) {
     try {
@@ -1500,6 +1616,7 @@ export async function handleBead(args: BeadToolArgs) {
 
         if (args.action === 'update_status') {
             const status = args.status || (() => { throw new Error('status is required.'); })();
+            const sterlingPatch = status === 'RESOLVED' ? gateSterlingMandate(bead, args, root) : null;
             const updated = upsertBeadFromExisting(bead, {
                 status,
                 resolution_note: args.resolution_note ?? bead.resolution_note,
@@ -1509,12 +1626,14 @@ export async function handleBead(args: BeadToolArgs) {
                     ...(bead.metadata || {}),
                     ...(args.metadata || {}),
                     updated_by: 'cstar-kernel-mcp',
+                    ...(sterlingPatch !== null ? { sterling_mandate: sterlingPatch } : {}),
                 },
             });
             return textResponse({
                 status: 'updated',
                 action: 'update_status',
                 bead: compactBead(updated),
+                ...(sterlingPatch !== null ? { sterling_mandate: sterlingPatch } : {}),
             });
         }
 
@@ -1538,6 +1657,7 @@ export async function handleBead(args: BeadToolArgs) {
         }
 
         if (args.action === 'resolve') {
+            const sterlingPatch = gateSterlingMandate(bead, args, root);
             const updated = upsertBeadFromExisting(bead, {
                 status: 'RESOLVED',
                 resolution_note: args.resolution_note || bead.resolution_note || 'Resolved through cstar-kernel MCP.',
@@ -1546,12 +1666,14 @@ export async function handleBead(args: BeadToolArgs) {
                     ...(bead.metadata || {}),
                     ...(args.metadata || {}),
                     resolved_by: 'cstar-kernel-mcp',
+                    sterling_mandate: sterlingPatch,
                 },
             });
             return textResponse({
                 status: 'resolved',
                 action: 'resolve',
                 bead: compactBead(updated),
+                sterling_mandate: sterlingPatch,
             });
         }
 
@@ -1582,7 +1704,7 @@ export async function handleBead(args: BeadToolArgs) {
 
 server.tool(
     'cstar_bead',
-    'Create, inspect, claim, block, resolve, and list bounded Hall beads.',
+    'Create, inspect, claim, block, resolve, and list bounded Hall beads. Transitions to RESOLVED (via action=resolve OR action=update_status with status=RESOLVED) are gated by the Sterling Mandate: bead must carry mandate_evidence with lore_paths + isolation_paths + audit (any of warden_results/gungnir_score/validation_id), OR mandate_exempt=true + exemption_reason, OR force=true + force_reason. The verdict is recorded in metadata.sterling_mandate.',
     {
         action: z.enum(['get', 'list', 'create', 'update_status', 'claim', 'resolve', 'block']).describe('Bounded bead action'),
         bead_id: z.string().optional().describe('Hall bead id'),
@@ -1601,6 +1723,24 @@ server.tool(
         resolved_validation_id: z.string().optional().describe('Validation id used for resolution'),
         triage_reason: z.string().optional().describe('Reason for blocked/triage status'),
         metadata: z.record(z.string(), z.unknown()).optional().describe('Small metadata object'),
+        mandate_evidence: z.object({
+            lore_paths: z.array(z.string()).optional().describe('.feature Gherkin paths (relative to hub root or absolute); existence-checked'),
+            isolation_paths: z.array(z.string()).optional().describe('Unit-test paths (relative to hub root or absolute); existence-checked'),
+            audit: z.object({
+                gungnir_score: z.number().optional().describe('Numeric Gungnir score; must equal-or-improve over bead.baseline_scores.gungnir'),
+                warden_results: z.array(z.object({
+                    name: z.string(),
+                    verdict: z.enum(['ACCEPTED', 'REJECTED', 'INCONCLUSIVE']),
+                    ran_at: z.number(),
+                    notes: z.string().optional(),
+                })).optional().describe('Warden run results; need ≥1 ACCEPTED and zero REJECTED'),
+                validation_id: z.string().optional().describe('hall_validation_runs.validation_id; row must have verdict ACCEPTED or SUCCESS'),
+            }).optional().describe('Audit proof. ANY of the three sub-fields satisfies the leg.'),
+            mandate_exempt: z.boolean().optional().describe('Skip the mandate. Requires non-empty exemption_reason.'),
+            exemption_reason: z.string().optional().describe('Justification for the exemption; recorded on the bead.'),
+        }).optional().describe('Sterling Mandate evidence. Required for resolve / update_status=RESOLVED unless force=true.'),
+        force: z.boolean().optional().describe('Override a REJECTED Sterling Mandate verdict. Requires force_reason.'),
+        force_reason: z.string().optional().describe('Justification for the force override. Recorded in the audit trail.'),
         spoke: z.string().optional().describe('Slug of a registered Hall spoke. When set on create, the bead is anchored to that spoke\'s repo_id instead of the kernel\'s. Unregistered, quarantined, or read-only spokes are rejected.'),
     },
     instrumentTool('cstar_bead', handleBead)
@@ -2452,8 +2592,12 @@ export async function handleSpoke({
     trust_level,
     write_policy,
     accept_beads,
+    skip_init,
+    targets,
+    dry_run,
+    cleanup_artifacts,
 }: {
-    action: 'list' | 'link' | 'unlink' | 'inspect';
+    action: 'list' | 'link' | 'unlink' | 'inspect' | 'project' | 'doctor' | 'prune' | 'verify' | 'health';
     slug?: string;
     root_path?: string;
     kind?: 'local' | 'git' | 'mirror' | 'archive';
@@ -2462,6 +2606,10 @@ export async function handleSpoke({
     trust_level?: 'trusted' | 'observe' | 'quarantined';
     write_policy?: 'read_write' | 'read_only';
     accept_beads?: boolean;
+    skip_init?: boolean;
+    targets?: PruneTarget[];
+    dry_run?: boolean;
+    cleanup_artifacts?: boolean;
 }): Promise<McpTextResponse> {
     try {
         const root = registry.getRoot();
@@ -2556,6 +2704,41 @@ export async function handleSpoke({
                 | 'read_only';
             const now = Date.now();
             const existing = database.getHallMountedSpoke(normalizedSlug, root);
+
+            let projectionResult: ProjectSpokeResult | null = null;
+            let projectionError: string | undefined;
+            if (skip_init !== true) {
+                try {
+                    projectionResult = projectSpoke({ slug: normalizedSlug, rootPath: absolutePath });
+                } catch (err) {
+                    projectionError = err instanceof Error ? err.message : String(err);
+                }
+            }
+
+            const existingMetadata = (existing?.metadata ?? {}) as Record<string, unknown>;
+            const existingAuthority = (existingMetadata.authority ?? {}) as Record<string, unknown>;
+            const existingHallToken = typeof existingAuthority.mount_token === 'string' ? existingAuthority.mount_token : undefined;
+
+            let authorityResult: EstablishAuthorityResult | null = null;
+            let authorityError: string | undefined;
+            if (skip_init !== true) {
+                try {
+                    authorityResult = establishAuthority({
+                        slug: normalizedSlug,
+                        rootPath: absolutePath,
+                        hubRepoId: repo.repo_id,
+                        hubRoot: root,
+                        hubKernelVersion: HUB_KERNEL_VERSION,
+                        trustLevel: resolvedTrust,
+                        writePolicy: resolvedWritePolicy,
+                        projection: projectionResult?.projection,
+                        existingHallToken,
+                    });
+                } catch (err) {
+                    authorityError = err instanceof Error ? err.message : String(err);
+                }
+            }
+
             database.saveHallMountedSpoke({
                 spoke_id: `spoke:${normalizedSlug}`,
                 repo_id: repo.repo_id,
@@ -2567,13 +2750,25 @@ export async function handleSpoke({
                 mount_status: 'active',
                 trust_level: resolvedTrust,
                 write_policy: resolvedWritePolicy,
-                projection_status: existing?.projection_status ?? 'missing',
+                projection_status: projectionResult !== null ? 'current' : (existing?.projection_status ?? 'missing'),
+                last_scan_at: projectionResult !== null ? projectionResult.projection.projected_at : existing?.last_scan_at,
+                last_health_at: now,
                 created_at: existing?.created_at ?? now,
                 updated_at: now,
                 metadata: {
-                    ...(existing?.metadata ?? {}),
+                    ...existingMetadata,
                     source: 'cstar_spoke_mcp',
                     accept_beads: acceptBeads,
+                    ...(projectionResult !== null
+                        ? { projection: projectionResult.metadataPatch, projection_error: undefined }
+                        : projectionError !== undefined
+                            ? { projection_error: projectionError }
+                            : {}),
+                    ...(authorityResult !== null
+                        ? { authority: authorityResult.metadataPatch, authority_error: undefined }
+                        : authorityError !== undefined
+                            ? { authority_error: authorityError }
+                            : {}),
                 },
             });
             return textResponse({
@@ -2583,7 +2778,155 @@ export async function handleSpoke({
                 trust_level: resolvedTrust,
                 write_policy: resolvedWritePolicy,
                 created_at: existing?.created_at ?? now,
+                projection: projectionResult !== null ? {
+                    status: 'current',
+                    primary_stack: projectionResult.projection.primary_stack,
+                    counts: projectionResult.projection.counts,
+                    profile_md_path: projectionResult.projection.profile_md_path,
+                    profile_json_path: projectionResult.projection.profile_json_path,
+                    version: SPOKE_PROJECTION_VERSION,
+                } : { status: skip_init === true ? 'skipped' : 'failed', error: projectionError ?? null },
+                authority: authorityResult !== null ? {
+                    status: authorityResult.rotated ? 'minted' : 'preserved',
+                    contract_version: SPOKE_CONTRACT_VERSION,
+                    mount_token: authorityResult.identity.mount_token,
+                    files: authorityResult.files,
+                } : { status: skip_init === true ? 'skipped' : 'failed', error: authorityError ?? null },
             });
+        }
+        if (action === 'project') {
+            if (!slug) {
+                return textResponse({ error: 'project requires slug' }, true);
+            }
+            const normalized = normalizeSpokeMcpSlug(slug);
+            if (normalized.length === 0 || normalized.length > 64) {
+                return textResponse({ error: `slug must normalize to 1..64 chars` }, true);
+            }
+            const found = database.getHallMountedSpoke(normalized, root);
+            if (!found) {
+                return textResponse({ error: `spoke not registered: ${normalized}` }, true);
+            }
+            if (!fs.existsSync(found.root_path) || !fs.statSync(found.root_path).isDirectory()) {
+                return textResponse(
+                    { error: `spoke root_path missing on disk: ${found.root_path}` },
+                    true,
+                );
+            }
+            let projection: ProjectSpokeResult;
+            try {
+                projection = projectSpoke({ slug: normalized, rootPath: found.root_path });
+            } catch (err) {
+                return textResponse({ error: err instanceof Error ? err.message : String(err) }, true);
+            }
+
+            const existingMetadata = (found.metadata ?? {}) as Record<string, unknown>;
+            const existingAuthority = (existingMetadata.authority ?? {}) as Record<string, unknown>;
+            const existingHallToken = typeof existingAuthority.mount_token === 'string' ? existingAuthority.mount_token : undefined;
+            let authorityResult: EstablishAuthorityResult | null = null;
+            let authorityError: string | undefined;
+            try {
+                authorityResult = establishAuthority({
+                    slug: normalized,
+                    rootPath: found.root_path,
+                    hubRepoId: found.repo_id,
+                    hubRoot: root,
+                    hubKernelVersion: HUB_KERNEL_VERSION,
+                    trustLevel: found.trust_level,
+                    writePolicy: found.write_policy,
+                    projection: projection.projection,
+                    existingHallToken,
+                });
+            } catch (err) {
+                authorityError = err instanceof Error ? err.message : String(err);
+            }
+
+            const now = Date.now();
+            database.saveHallMountedSpoke({
+                ...found,
+                projection_status: 'current',
+                last_scan_at: projection.projection.projected_at,
+                last_health_at: now,
+                updated_at: now,
+                metadata: {
+                    ...existingMetadata,
+                    projection: projection.metadataPatch,
+                    projection_error: undefined,
+                    ...(authorityResult !== null
+                        ? { authority: authorityResult.metadataPatch, authority_error: undefined }
+                        : authorityError !== undefined
+                            ? { authority_error: authorityError }
+                            : {}),
+                },
+            });
+            return textResponse({
+                status: 'projected',
+                slug: normalized,
+                root_path: found.root_path,
+                projection: {
+                    primary_stack: projection.projection.primary_stack,
+                    counts: projection.projection.counts,
+                    profile_md_path: projection.projection.profile_md_path,
+                    profile_json_path: projection.projection.profile_json_path,
+                    version: SPOKE_PROJECTION_VERSION,
+                },
+                authority: authorityResult !== null ? {
+                    status: authorityResult.rotated ? 'minted' : 'preserved',
+                    contract_version: SPOKE_CONTRACT_VERSION,
+                    mount_token: authorityResult.identity.mount_token,
+                    files: authorityResult.files,
+                } : { status: 'failed', error: authorityError ?? null },
+            });
+        }
+        if (action === 'doctor') {
+            const repo = database.getHallRepository(root);
+            const hubRepoId = repo?.repo_id ?? buildHallRepositoryId(normalizeHallPath(root));
+            const report = surveySpokes(hubRepoId);
+            return textResponse({ status: 'ok', report });
+        }
+        if (action === 'health') {
+            if (!slug) {
+                return textResponse({ error: 'health requires slug' }, true);
+            }
+            const normalized = normalizeSpokeMcpSlug(slug);
+            if (normalized.length === 0 || normalized.length > 64) {
+                return textResponse({ error: `slug must normalize to 1..64 chars` }, true);
+            }
+            try {
+                const report = healthCheckSpoke(normalized);
+                return textResponse({ status: 'ok', report });
+            } catch (err) {
+                return textResponse({ error: err instanceof Error ? err.message : String(err) }, true);
+            }
+        }
+        if (action === 'verify') {
+            if (!slug) {
+                return textResponse({ error: 'verify requires slug' }, true);
+            }
+            const normalized = normalizeSpokeMcpSlug(slug);
+            if (normalized.length === 0 || normalized.length > 64) {
+                return textResponse({ error: `slug must normalize to 1..64 chars` }, true);
+            }
+            try {
+                const report = verifySpoke(normalized);
+                return textResponse({ status: 'ok', report });
+            } catch (err) {
+                return textResponse({ error: err instanceof Error ? err.message : String(err) }, true);
+            }
+        }
+        if (action === 'prune') {
+            if (!Array.isArray(targets) || targets.length === 0) {
+                return textResponse({ error: 'prune requires targets: [{slug, root_path}, ...]' }, true);
+            }
+            for (const t of targets) {
+                if (typeof t?.slug !== 'string' || typeof t?.root_path !== 'string') {
+                    return textResponse({ error: 'each target must have string slug and root_path' }, true);
+                }
+            }
+            const result = pruneSpokes(targets, {
+                dry_run: dry_run ?? true,
+                cleanup_artifacts: cleanup_artifacts === true,
+            });
+            return textResponse({ status: 'ok', result });
         }
         return textResponse({ error: `invalid spoke action: ${action}` }, true);
     } catch (error) {
@@ -2593,10 +2936,10 @@ export async function handleSpoke({
 
 server.tool(
     'cstar_spoke',
-    'Mounted-spoke lifecycle: list / link / unlink / inspect. Completes the spoke surface alongside cstar_spoke_journal and cstar_spoke_bead_import. Deterministic Hall mutation; no LLM.',
+    'Mounted-spoke lifecycle: list / link / unlink / inspect / project / doctor / prune / verify / health. link auto-runs the deterministic projector + authority establisher (writes 7 files into <spoke>/.cstar/ and patches Hall metadata). project re-runs both modules on an already-registered spoke without changing trust/write policy. doctor surveys all hall_mounted_spokes rows and classifies them into live/phantom/duplicate/stale (read-only). prune deletes the supplied (slug, root_path) targets — defaults to dry_run=true for safety. verify checks a single spoke for mount_token drift and contract sha256 drift against the recorded HUB_ACK (read-only). health probes path/perm/identity for a single spoke and bumps last_health_at. Deterministic; no LLM.',
     {
-        action: z.enum(['list', 'link', 'unlink', 'inspect']).describe('Lifecycle operation'),
-        slug: z.string().optional().describe('Required for link, unlink, inspect'),
+        action: z.enum(['list', 'link', 'unlink', 'inspect', 'project', 'doctor', 'prune', 'verify', 'health']).describe('Lifecycle operation'),
+        slug: z.string().optional().describe('Required for link, unlink, inspect, project, verify, health'),
         root_path: z.string().optional().describe('Required for link; absolute or relative path to spoke directory'),
         kind: z.enum(['local', 'git', 'mirror', 'archive']).optional().describe('Spoke kind (default local)'),
         remote_url: z.string().optional().describe('Optional remote URL for git/mirror kinds'),
@@ -2604,6 +2947,10 @@ server.tool(
         trust_level: z.enum(['trusted', 'observe', 'quarantined']).optional().describe('Trust policy (link only; default trusted)'),
         write_policy: z.enum(['read_write', 'read_only']).optional().describe('Whether spoke may submit beads (link only; default read_only)'),
         accept_beads: z.boolean().optional().describe('Shortcut: forces trust=trusted and write_policy=read_write (link only)'),
+        skip_init: z.boolean().optional().describe('Link only: skip the deterministic projection. Spoke registers with projection_status=missing; re-project later via action=project.'),
+        targets: z.array(z.object({ slug: z.string(), root_path: z.string() })).optional().describe('prune only: exact (slug, root_path) pairs to delete from hall_mounted_spokes. Match by both fields, NOT scoped to active hub repo_id (so foreign-repo phantoms can be cleaned).'),
+        dry_run: z.boolean().optional().describe('prune only: when true (default), report what would be deleted without mutating the Hall.'),
+        cleanup_artifacts: z.boolean().optional().describe('prune only: when true, also rm -rf <root>/.cstar/ for any target whose root_path still exists on disk. Default false.'),
     },
     instrumentTool('cstar_spoke', handleSpoke),
 );
@@ -2991,6 +3338,176 @@ server.tool(
     instrumentTool('cstar_warden', handleWarden),
 );
 
+interface AutobotArgs {
+    intent: string;
+    project_root?: string;
+    target_paths?: string[];
+    payload?: {
+        hermes_profile?: string;
+        model?: string;
+        expected_output?: 'markdown' | 'json' | 'plain';
+        max_chars?: number;
+        session_name?: string | null;
+        write_to?: string | null;
+        append_with_separator?: string | null;
+        tags?: string[];
+        timeout_seconds?: number;
+    };
+}
+
+export async function handleAutobot(args: AutobotArgs) {
+    try {
+        const root = registry.getRoot();
+        const projectRoot = args.project_root || root;
+        const intentObj = {
+            intent: args.intent,
+            project_root: projectRoot,
+            target_paths: args.target_paths || [],
+            payload: args.payload || {},
+        };
+
+        // Write the intent to a temp file the python helper consumes
+        const os = await import('node:os');
+        const fsp = await import('node:fs/promises');
+        const path = await import('node:path');
+        const cp = await import('node:child_process');
+
+        const tmpDir = await fsp.mkdtemp(path.join(os.tmpdir(), 'autobot-intent-'));
+        const intentPath = path.join(tmpDir, 'intent.json');
+        await fsp.writeFile(intentPath, JSON.stringify(intentObj, null, 2));
+
+        const scriptPath = path.join(root, '.agents', 'skills', 'autobot', 'scripts', 'delegate.py');
+        const timeoutSec = args.payload?.timeout_seconds ?? 300;
+        // Subprocess timeout is the delegate's own timeout + 30s slack so the
+        // caller never out-times the helper's own bookkeeping.
+        const subprocessTimeoutMs = (timeoutSec + 30) * 1000;
+
+        // [Ω] STABILITY: Constrain sub-agent resource usage to prevent system OOM in WSL2.
+        // We lower the JS heap cap for any Node.js processes spawned by the sub-agent
+        // (e.g., agent-browser) and ensure the environment is clean.
+        const constrainedEnv = {
+            ...process.env,
+            NODE_OPTIONS: '--max-old-space-size=2048 --expose-gc',
+            HERMES_AUTOBOT_DELEGATED: '', // Force-clear the nested-delegation guard
+        };
+
+        const result = cp.spawnSync(
+            'python3',
+            [scriptPath, '--intent-file', intentPath],
+            {
+                encoding: 'utf-8',
+                timeout: subprocessTimeoutMs,
+                env: constrainedEnv,
+            },
+        );
+
+        // Cleanup the tmp intent file regardless of outcome
+        try { await fsp.rm(tmpDir, { recursive: true, force: true }); } catch { /* best-effort */ }
+
+        if (result.error) {
+            return textResponse({
+                status: 'degraded',
+                degraded_reason: `mcp_subprocess_error:${result.error.message}`,
+                intent_summary: args.intent.slice(0, 160),
+            }, true);
+        }
+        if (result.status === 2) {
+            // Invalid intent — delegate.py reported the validation error to stderr
+            return textResponse({
+                status: 'invalid_intent',
+                error: result.stderr.trim() || 'unknown_validation_error',
+            }, true);
+        }
+        // Both ok (exit 0) and degraded (exit 1) write the envelope to stdout
+        try {
+            const envelope = JSON.parse(result.stdout);
+            const isError = envelope.status !== 'ok';
+            return textResponse(envelope, isError);
+        } catch (parseErr: any) {
+            return textResponse({
+                status: 'degraded',
+                degraded_reason: `envelope_parse_failed:${parseErr.message}`,
+                raw_stdout: result.stdout.slice(0, 500),
+                raw_stderr: result.stderr.slice(0, 500),
+            }, true);
+        }
+    } catch (error: any) {
+        return textResponse({ status: 'fail', error: error.message }, true);
+    }
+}
+
+server.tool(
+    'cstar_autobot',
+    'Delegate a bounded task from this host (the calling LLM) to a Hermes-managed sub-agent (default MiniMax-M2.7). Wraps `.agents/skills/autobot/scripts/delegate.py`. Use for bulk synthesis, classification, summarization, self-reflection, or queue-draining work where M2.7 is genuinely good enough and 10-50x cheaper than the host LLM. Every call is cost-audited to .agents/state/autobot-cost-ledger.jsonl. Returns a structured result envelope with status (ok|degraded|invalid_intent), duration_ms, est tokens, and the artifact path if `payload.write_to` was set. Honest degraded states — never falls back to other providers.',
+    {
+        intent: z.string().min(1).describe('One-sentence task statement for the sub-agent. Treat as the prompt\'s "your job" line.'),
+        project_root: z.string().optional().describe('Anchors relative target_paths. Defaults to the active CStar project root.'),
+        target_paths: z.array(z.string()).optional().describe('Files to read into the prompt as context. Each capped at 32 KB.'),
+        payload: z.object({
+            hermes_profile: z.string().optional().describe('Hermes profile to load. Default cstar-hub.'),
+            model: z.string().optional().describe('Hermes model id. Default MiniMax-M2.7.'),
+            expected_output: z.enum(['markdown', 'json', 'plain']).optional().describe('Output format the sub-agent must produce. Default markdown.'),
+            max_chars: z.number().int().positive().optional().describe('Soft length cap surfaced in the prompt. Default 4000.'),
+            session_name: z.string().nullable().optional().describe('If set, uses `hermes chat --continue <name>` for cross-call continuity.'),
+            write_to: z.string().nullable().optional().describe('If set, response is written here; else returned in the envelope.'),
+            append_with_separator: z.string().nullable().optional().describe('If set, response is appended after this separator (e.g., "§" for Hermes MEMORY.md).'),
+            tags: z.array(z.string()).optional().describe('Logged to the ledger for filtering.'),
+            timeout_seconds: z.number().int().positive().optional().describe('Subprocess timeout. Default 300.'),
+        }).optional().describe('Optional payload — defaults are sane for "summarize a few files into MEMORY.md."'),
+    },
+    instrumentTool('cstar_autobot', handleAutobot),
+);
+
+
+/**
+ * Watch the kernel source tree for changes and exit on edit so the host re-execs
+ * us with a fresh module cache. Node's ESM cache never invalidates; without this,
+ * `sterling_mandate.ts` and friends keep their boot-time bytecode for the entire
+ * process lifetime — meaning disk-side fixes silently fail to enforce until the
+ * MCP restarts. Opt out with CSTAR_KERNEL_DISABLE_WATCH=1.
+ *
+ * @param onExit invoked once a debounced change is observed; should perform graceful exit
+ * @returns a teardown function that detaches the watcher (idempotent)
+ */
+async function attachSourceWatcher(onExit: (reason: string) => void): Promise<() => Promise<void>> {
+    if (process.env.CSTAR_KERNEL_DISABLE_WATCH === '1') {
+        return async () => { /* no-op */ };
+    }
+    let chokidarMod: typeof import('chokidar');
+    try {
+        chokidarMod = await import('chokidar');
+    } catch (err) {
+        console.error(`[cstar-kernel] chokidar unavailable; auto-restart-on-edit disabled: ${(err as Error).message}`);
+        return async () => { /* no-op */ };
+    }
+    const chokidar = chokidarMod.default ?? chokidarMod;
+    const watchRoot = path.join(PROJECT_ROOT, 'src');
+    if (!fs.existsSync(watchRoot)) {
+        console.error(`[cstar-kernel] watch root ${watchRoot} not found; auto-restart disabled`);
+        return async () => { /* no-op */ };
+    }
+    const watcher = chokidar.watch(watchRoot, {
+        ignored: [/(^|[\\/])\../, '**/node_modules/**', '**/.stats/**'],
+        persistent: true,
+        ignoreInitial: true,
+    });
+    let pending: NodeJS.Timeout | null = null;
+    const trigger = (filePath: string): void => {
+        if (!/\.ts$/.test(filePath)) return;
+        if (pending) clearTimeout(pending);
+        pending = setTimeout(() => {
+            const rel = path.relative(PROJECT_ROOT, filePath);
+            onExit(`source change in ${rel}`);
+        }, 2000);
+    };
+    watcher.on('change', trigger);
+    watcher.on('add', trigger);
+    watcher.on('unlink', trigger);
+    return async () => {
+        if (pending) clearTimeout(pending);
+        await watcher.close();
+    };
+}
 
 async function main() {
     const transport = new StdioServerTransport();
@@ -2999,18 +3516,19 @@ async function main() {
     const keepAlive = setInterval(() => {
         // Keep stdio MCP server alive while the host owns the pipe.
     }, 60_000);
-    process.stdin.once('end', () => {
+    let detachWatcher: () => Promise<void> = async () => { /* no-op until attached */ };
+    let exiting = false;
+    const gracefulExit = (reason: string): void => {
+        if (exiting) return;
+        exiting = true;
+        console.error(`[cstar-kernel] exiting: ${reason}`);
         clearInterval(keepAlive);
-        process.exit(0);
-    });
-    process.stdin.once('close', () => {
-        clearInterval(keepAlive);
-        process.exit(0);
-    });
-    process.once('SIGTERM', () => {
-        clearInterval(keepAlive);
-        process.exit(0);
-    });
+        void detachWatcher().finally(() => process.exit(0));
+    };
+    detachWatcher = await attachSourceWatcher((reason) => gracefulExit(reason));
+    process.stdin.once('end', () => gracefulExit('stdin end'));
+    process.stdin.once('close', () => gracefulExit('stdin close'));
+    process.once('SIGTERM', () => gracefulExit('SIGTERM'));
 }
 
 function isDirectKernelMcpLaunch(): boolean {

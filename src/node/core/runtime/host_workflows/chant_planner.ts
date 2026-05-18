@@ -21,6 +21,8 @@ import type {
     ChantWeavePayload,
     ResearchWeavePayload,
     ArchitectServicePayload,
+    ArchitectProposal,
+    ArchitectProposalBead,
 } from '../contracts.ts';
 import type { ParsedTraceSelectionGate } from './chant_parser.js';
 import { inheritTraceInvocation } from '../trace_inheritance.js';

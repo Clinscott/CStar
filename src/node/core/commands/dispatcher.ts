@@ -14,16 +14,18 @@ import {
     resolveRegistryEntryForCommand,
     type EntrySurface,
 } from '../runtime/entry_surface.js';
-import { 
-    type WeaveInvocation, 
+import {
+    type WeaveInvocation,
     type ChantWeavePayload,
     type EvolveWeavePayload,
     type ArtifactForgeWeavePayload as ForgeWeavePayload,
+    type LessonDistillWeavePayload,
     type PennyOneWeavePayload,
     type RavensWeavePayload,
     type StartWeavePayload,
     type RuntimeDispatchPort,
 } from '../runtime/contracts.js';
+import type { HarvestLessonsWeavePayload } from '../runtime/weaves/harvest_lessons.js';
 import { resolveWorkspaceRoot, withCliWorkspaceTarget, type WorkspaceRootSource } from '../runtime/invocation.js';
 import type { SkillBead } from '../skills/types.js';
 const ACTIVE_CHANT_STATUSES: HallPlanningSessionStatus[] = [
@@ -95,7 +97,7 @@ export function buildDynamicCommandInvocation(
     args: string[],
     projectRoot: string,
     cwd: string = process.cwd(),
-): WeaveInvocation<StartWeavePayload | RavensWeavePayload | PennyOneWeavePayload | ChantWeavePayload | EvolveWeavePayload | ForgeWeavePayload> {
+): WeaveInvocation<StartWeavePayload | RavensWeavePayload | PennyOneWeavePayload | LessonDistillWeavePayload | HarvestLessonsWeavePayload | ChantWeavePayload | EvolveWeavePayload | ForgeWeavePayload> {
     if (command.toLowerCase() === 'start') {
         const taskIndex = args.findIndex((arg) => arg === '--task');
         const ledgerIndex = args.findIndex((arg) => arg === '--ledger');

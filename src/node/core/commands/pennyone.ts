@@ -2,7 +2,8 @@ import { Command } from 'commander';
 
 import { renderStandardCommandResult } from './command_context.js';
 import { RuntimeDispatcher } from  '../runtime/dispatcher.js';
-import { PennyOneWeavePayload, RuntimeDispatchPort, WeaveInvocation } from  '../runtime/contracts.js';
+import { LessonDistillWeavePayload, PennyOneWeavePayload, RuntimeDispatchPort, WeaveInvocation } from  '../runtime/contracts.js';
+import type { HarvestLessonsWeavePayload } from '../runtime/weaves/harvest_lessons.js';
 import { resolveWorkspaceRoot, withCliWorkspaceTarget, type WorkspaceRootSource } from  '../runtime/invocation.js';
 
 export function buildPennyOneInvocation(options: {

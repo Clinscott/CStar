@@ -16,6 +16,7 @@ import {
     getEpisodicMemoryById,
     saveEpisodicMemory,
     getValidationRuns,
+    getValidationRunById,
     getTracesForFile,
     saveValidationRun, listUnstudiedEngrams,
     saveTrace
@@ -83,6 +84,9 @@ import {
     listHallMountedSpokes,
     saveHallMountedSpoke,
     removeHallMountedSpoke,
+    removeHallMountedSpokeByRootPath,
+    listAllHallMountedSpokes,
+    touchSpokeHeartbeat,
     migrateLegacyHallRecords,
     getHallSummary,
     listHallDocuments,
@@ -147,6 +151,7 @@ export class HallDatabase {
     public getEpisodicMemory = getEpisodicMemoryById;
     public saveEpisodicMemory = saveEpisodicMemory;
     public getValidationRuns = getValidationRuns;
+    public getValidationRunById = getValidationRunById;
     public saveValidationRun = saveValidationRun;
     public getHallPlanningSession = getHallPlanningSession;
     public backfillHallPlanningSessionMetadata = backfillHallPlanningSessionMetadata;
@@ -203,6 +208,9 @@ export class HallDatabase {
     public listHallMountedSpokes = listHallMountedSpokes;
     public saveHallMountedSpoke = saveHallMountedSpoke;
     public removeHallMountedSpoke = removeHallMountedSpoke;
+    public removeHallMountedSpokeByRootPath = removeHallMountedSpokeByRootPath;
+    public listAllHallMountedSpokes = listAllHallMountedSpokes;
+    public touchSpokeHeartbeat = touchSpokeHeartbeat;
     public getHallSummary = getHallSummary;
     public updateFtsIndex = updateFtsIndex;
     public updateChronicleIndex = updateChronicleIndex;
@@ -264,6 +272,7 @@ export {
     saveEpisodicMemory,
     saveEpisodicMemory as saveHallEpisodicMemory,
     getValidationRuns,
+    getValidationRunById,
     getTracesForFile,
     saveValidationRun as saveHallValidationRun,
     saveTrace,
@@ -336,6 +345,9 @@ export {
     listHallMountedSpokes,
     saveHallMountedSpoke,
     removeHallMountedSpoke,
+    removeHallMountedSpokeByRootPath,
+    listAllHallMountedSpokes,
+    touchSpokeHeartbeat,
     migrateLegacyHallRecords,
     getHallSummary,
     updateFtsIndex,

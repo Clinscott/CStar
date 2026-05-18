@@ -56,6 +56,7 @@ export interface HostSkillActivationRequest {
 }
 
 export interface AuguryLearningMetadata {
+    [key: string]: unknown;
     schema_version: 1;
     steering_block_version: 2;
     steering_mode: AugurySteeringMode;

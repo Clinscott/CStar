@@ -6,7 +6,8 @@
         "bin/cstar-kernel-mcp.js"
       ],
       "env": {
-        "GEMINI_CLI_ACTIVE": "true"
+        "GEMINI_CLI_ACTIVE": "true",
+        "CSTAR_KERNEL_MCP": "1"
       }
     }
   }

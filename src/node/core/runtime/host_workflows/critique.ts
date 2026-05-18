@@ -6,7 +6,7 @@ import {
     WeaveInvocation,
     WeaveResult,
 } from '../contracts.ts';
-import { defaultHostTextInvoker, extractJsonObject, resolveRuntimeHostProvider, type HostTextInvoker } from  '../weaves/host_bridge.js';
+import { defaultHostTextInvoker, extractJsonObject, resolveRuntimeHostProvider, withRuntimeAuguryMetadata, type HostTextInvoker } from  '../weaves/host_bridge.js';
 import { saveHallOneMindBranch, saveHallOneMindRequest, summarizeHallOneMindBranches } from '../../../../tools/pennyone/intel/database.js';
 import { buildHallRepositoryId, normalizeHallPath, type HallOneMindBranchRecord } from '../../../../types/hall.js';
 import { requestHostDelegatedExecution } from '../../../../core/host_delegation.js';
@@ -331,7 +331,7 @@ export class CritiqueHostWorkflow implements RuntimeAdapter<CritiqueWeavePayload
                                     projectRoot: workspaceRoot,
                                     source: 'critique:host-workflow',
                                     env: context.env,
-                                    metadata: hostBridge.withRuntimeAuguryMetadata({
+                                    metadata: withRuntimeAuguryMetadata({
                                         runtime_weave: this.id,
                                         branch_group_id: branchGroupId,
                                         branch_index: index,

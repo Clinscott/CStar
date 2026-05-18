@@ -34,7 +34,6 @@ try {
     }
 
     const args = [
-        process.execPath,
         '--import',
         tsxLoader,
         join(ROOT, 'src', 'tools', 'cstar-kernel-mcp.ts'),
@@ -46,8 +45,21 @@ try {
         CSTAR_PROJECT_ROOT: process.env.CSTAR_PROJECT_ROOT ?? ROOT,
         CSTAR_WORKSPACE_ROOT: process.env.CSTAR_WORKSPACE_ROOT ?? ROOT,
     };
-    process.chdir(ROOT);
-    process.execve(process.execPath, args, env);
+    const { spawn } = await import('node:child_process');
+    const child = spawn(process.execPath, args, {
+        stdio: 'inherit',
+        env: env,
+        cwd: ROOT
+    });
+
+    child.on('exit', (code) => {
+        process.exit(code ?? 0);
+    });
+
+    child.on('error', (err) => {
+        logBootstrapError(err);
+        process.exit(1);
+    });
 } catch (error) {
     logBootstrapError(error);
     process.exit(1);

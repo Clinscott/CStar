@@ -268,7 +268,7 @@ export async function requestHostText(
         spoke_name: spokeName ?? null,
         requested_root: requestedRoot ?? null,
     }) : undefined;
-    const requestMetadata = {
+    const requestMetadata: Record<string, unknown> = {
         ...(request.metadata ?? {}),
         ...(auguryContract && auguryLearningMetadata ? {
             augury_learning_metadata: auguryLearningMetadata,

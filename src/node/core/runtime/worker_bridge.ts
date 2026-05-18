@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execa } from 'execa';
 import { OrchestratorProcessManager } from  './process_manager.js';
-import { RUNTIME_KERNEL_ROOT } from  '../kernel_root.js';
+import { RUNTIME_KERNEL_ROOT } from  './kernel_root.js';
 import { database } from  '../../../tools/pennyone/intel/database.js';
 import * as astSlicer from  './ast_slicer.js';
 

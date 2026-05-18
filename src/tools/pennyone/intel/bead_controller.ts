@@ -351,6 +351,29 @@ export function saveEpisodicMemory(record: HallEpisodicMemoryRecord): void {
     );
 }
 
+/**
+ * Look up a single validation run by its validation_id.
+ *
+ * Used by the Sterling Mandate gate to verify that a bead-resolution-time
+ * `audit.validation_id` actually points at a recorded validation event.
+ *
+ * @param validationId hall_validation_runs.validation_id
+ * @returns the row mapped to a HallValidationRun, or null if not found
+ */
+export function getValidationRunById(validationId: string): HallValidationRun | null {
+    const db = database.getDb();
+    const row = db.prepare('SELECT * FROM hall_validation_runs WHERE validation_id = ?').get(validationId) as any;
+    if (!row) return null;
+    const preScores = parseJson(row.pre_scores_json, {} as Record<string, number>);
+    const postScores = parseJson(row.post_scores_json, {} as Record<string, number>);
+    return {
+        ...row,
+        pre_scores: preScores,
+        post_scores: postScores,
+        benchmark: parseJson(row.benchmark_json, {}),
+    } as HallValidationRun;
+}
+
 export function getValidationRuns(beadId: string): HallValidationRun[] {
     const db = database.getDb();
     const rows = db.prepare('SELECT * FROM hall_validation_runs WHERE bead_id = ?').all(beadId) as any[];
