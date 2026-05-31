@@ -92,6 +92,9 @@ PennyOne represents the true operational state of the Corvus Star organism. It i
 - **Database Memory**: `pennyone.db` and `gravity.db` track real-time agent traversal, providing an intelligent compass for future scans without raw codebase blind-reads.
 - **Visualize**: PennyOne 3D topological telemetry and agent DVR playback (legacy launcher archived under `mind_archive/legacy_mcp_source/pennyone.js`).
 
+### 4. Cloud Mailbox Bridge: The Host Sync Worker
+The cloud **CStar Command Console** runs in mailbox mode against MongoDB Atlas. The host-side sync worker (`bin/cstar-sync-worker.js`) mirrors `hall_research_proposals` **up** into `proposal_mirror` and drains operator `intent_queue` decisions **down** through the sanctioned pipeline CLI — keeping `pennyone.db` authoritative. See [`docs/host-sync-worker.md`](docs/host-sync-worker.md) for env vars, `--once`, and the systemd unit.
+
 ---
 
 ## 🎭 Personas & Linguistic Lore
