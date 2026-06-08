@@ -19,6 +19,9 @@ GitHub Actions are optional and non-blocking unless this repo has separately
 opted into Actions-authoritative gates. PMT local validation evidence, CStar
 validation/result ids, and CStar Console witness receipts/status are the
 authority for Corvus validation.
+Existing Actions failures must be reported as advisory status only and must not
+block PMT/CStar validation unless this repo has separately opted into
+Actions-authoritative gates.
 
 - Local validation commands/results:
 - CStar validation result id(s):

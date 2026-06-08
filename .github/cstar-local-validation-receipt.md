@@ -26,3 +26,6 @@ Validation authority is PMT local validation evidence plus CStar validation
 result ids plus CStar Console witness receipts/status. GitHub Actions are
 optional and non-blocking unless a future repo explicitly opts into them through
 approved policy.
+Existing Actions failures are advisory by default and must not block PMT/CStar
+validation unless the repo has separately opted into Actions-authoritative
+gates.

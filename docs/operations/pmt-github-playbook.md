@@ -59,6 +59,9 @@ PMTs own local validation evidence. CStar owns validation/result ids. CStar
 Console is the witness/control-room surface for receipts and status. GitHub
 Actions are useful optional signal only; they are not the authority gate for
 Corvus work unless a future repo opts in through explicit MM/CoS/CEO policy.
+Existing Actions failures must be reported as advisory status, not used as a
+validation blocker, unless that repo has separately opted into
+Actions-authoritative gates.
 
 Required PR validation fields:
 

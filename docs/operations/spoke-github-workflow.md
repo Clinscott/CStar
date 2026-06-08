@@ -51,6 +51,8 @@ GitHub is the issue, branch, PR, and review ledger. GitHub Actions may exist as
 useful signal, but they are advisory by default. A missing, skipped, failing, or
 unconfigured GitHub Actions run does not by itself approve or block Corvus work
 unless MM/CoS/CEO have explicitly made that repo's Actions authoritative.
+Existing Actions failures must not block PMT/CStar validation evidence or PR
+review unless a repo has separately opted into Actions-authoritative gates.
 
 Every PR package must carry a local validation receipt with:
 
