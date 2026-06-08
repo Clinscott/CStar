@@ -8,7 +8,8 @@
 - **Registration site:** `server.tool(...)` calls in `cstar-kernel-mcp.ts`
 - **Server name:** `cstar-kernel`
 - **Transport:** stdio (JSON-RPC 2.0, newline-delimited)
-- **Protocol version:** `2024-11-05`
+- **Current SDK protocol:** `2024-11-05` over stdio
+- **2026-07-28 readiness posture:** tool handlers are protocol-session independent; cross-call state uses explicit CStar handles
 - **Registry shipped to hosts:** `gemini-extension.json#mcpServers` (Gemini) and `plugins/corvus-star/.mcp.json` (Codex)
 
 The driver `bin/cstar-kernel-mcp.js` re-execs Node with the TSX loader against `src/tools/cstar-kernel-mcp.ts`. The server keeps stdin open and exits cleanly on `SIGTERM` or stdin close.
@@ -19,6 +20,24 @@ The driver `bin/cstar-kernel-mcp.js` re-execs Node with the TSX loader against `
 2. **Registry outranks prose.** When in-tree docs disagree with `.agents/skill_registry.json` or the runtime, follow the registry/runtime.
 3. **Authority order for capability discovery.** `cstar_manifest` and `cstar_skill_info` are the canonical surfaces. Spoke skills are namespaced `<slug>:<id>`.
 4. **Bead anchoring.** Multi-file changes anchor to a Hall bead via `cstar_bead`. The `cstar_handoff` tool returns the active planning state for resuming work.
+5. **Stateless-protocol readiness.** No tool input schema may require protocol session ids, protocol version, or client metadata. If a workflow needs continuity, return and require an explicit domain handle such as `bead_id`, `validation_id`, `spoke`, `memory_id`, or `token_path_episode_id`.
+6. **Routing boundary.** Corvus implementation ownership routes CoS -> Corvus - MM -> PMT -> worker. The Researcher thread is a special monitored pipeline, not a normal PMT worker. Preserve operator gates for acceptance, dispatch, commit, push, merge, deletion, restarts, and publish actions.
+7. **Degraded MCP behavior.** If the MCP surface is unavailable or degraded, report the exact failure and remain read-only for control-plane state; do not mutate Hall or SQLite directly.
+
+## MCP 2026-07-28 Release-Candidate Readiness
+
+The MCP `2026-07-28` release candidate removes the protocol-level `initialize`/`initialized` handshake and `Mcp-Session-Id` session model for Streamable HTTP. It also moves protocol/client metadata onto each request, introduces `server/discover`, requires routable `Mcp-Method` / `Mcp-Name` headers for HTTP, adds cache metadata (`ttlMs`, `cacheScope`) for list/read results, moves Tasks into an extension, deprecates Roots/Sampling/Logging, and lifts tool schemas to full JSON Schema 2020-12.
+
+CStar's hardening stance:
+
+- Keep the current stdio SDK handshake as compatibility only. It must not become an application state contract.
+- Keep tool handlers deterministic and reentrant. Any request should be satisfiable from the request arguments plus persisted Hall/kernel state.
+- Use explicit CStar handles for stateful application behavior: `bead_id`, `validation_id`, `spoke`, `memory_id`, `token_path_episode_id`, and similar domain ids.
+- Do not add Roots, Sampling, or Logging dependencies to the kernel MCP surface. Use tool parameters, host-native provider integration, stderr for stdio bootstrap diagnostics, and existing telemetry files.
+- Treat Tasks and MCP Apps as future optional extensions. CStar beads already provide the canonical long-running work ledger; adopting Tasks should be a transport adapter decision, not a replacement for Hall authority.
+- Keep all tool input schemas object-rooted and avoid external `$ref` dependencies. Output remains a text content envelope today, but structured output additions should be bounded and JSON Schema 2020-12 compatible.
+
+Readiness coverage lives in `tests/features/cstar_mcp_release_candidate_readiness.feature` and `tests/integration/cstar_kernel_mcp_stdio.test.ts`.
 
 ## Response Envelope
 
@@ -37,7 +56,7 @@ The `text` field is always a JSON string. Parse it before consuming. On failure,
 
 ---
 
-## Tool Inventory (20)
+## Tool Inventory (21)
 
 | # | Tool | Tier |
 |:---|:---|:---|
@@ -45,22 +64,23 @@ The `text` field is always a JSON string. Parse it before consuming. On failure,
 | 2 | `cstar_hall_search` | Discovery |
 | 3 | `cstar_hall_maintenance` | Discovery |
 | 4 | `cstar_augury` | Routing |
-| 5 | `cstar_doctor` | Diagnostics |
-| 6 | `cstar_verify_plan` | Verification |
-| 7 | `cstar_bead` | Bead lifecycle |
-| 8 | `cstar_spoke_bead_import` | Bead lifecycle |
-| 9 | `cstar_record_result` | Verification |
-| 10 | `cstar_engram_record` | Memory write |
-| 11 | `cstar_war_game_score` | War games |
-| 12 | `cstar_manifest` | Capability discovery |
-| 13 | `cstar_skill_info` | Capability discovery |
-| 14 | `cstar_spoke_journal` | Spoke state |
-| 15 | `cstar_status` | Diagnostics |
-| 16 | `cstar_evolve` | Karpathy loop (read-only) |
-| 17 | `cstar_spoke` | Spoke lifecycle |
-| 18 | `cstar_intent_route` | Routing |
-| 19 | `cstar_warden` | Sentinel Wardens |
-| 20 | `cstar_telemetry` | Diagnostics |
+| 5 | `cstar_autobot` | Legacy AutoBot/Hermes delegation |
+| 6 | `cstar_doctor` | Diagnostics |
+| 7 | `cstar_verify_plan` | Verification |
+| 8 | `cstar_bead` | Bead lifecycle |
+| 9 | `cstar_spoke_bead_import` | Bead lifecycle |
+| 10 | `cstar_record_result` | Verification |
+| 11 | `cstar_engram_record` | Memory write |
+| 12 | `cstar_war_game_score` | War games |
+| 13 | `cstar_manifest` | Capability discovery |
+| 14 | `cstar_skill_info` | Capability discovery |
+| 15 | `cstar_spoke_journal` | Spoke state |
+| 16 | `cstar_status` | Diagnostics |
+| 17 | `cstar_evolve` | Karpathy loop (read-only) |
+| 18 | `cstar_spoke` | Spoke lifecycle |
+| 19 | `cstar_intent_route` | Routing |
+| 20 | `cstar_warden` | Sentinel Wardens |
+| 21 | `cstar_telemetry` | Diagnostics |
 
 ---
 
@@ -276,14 +296,21 @@ Read-only inspection of evolve proposals and SPRT history. Proposal generation a
 Mounted-spoke lifecycle. Completes the spoke surface alongside `cstar_spoke_journal` and `cstar_spoke_bead_import`.
 
 **Input:**
-- `action` ("list" | "link" | "unlink" | "inspect", required)
-- `slug` (string, required for link/unlink/inspect; normalized to `[a-z0-9._-]+`, 1..64 chars)
+- `action` ("list" | "link" | "unlink" | "inspect" | "project" | "doctor" | "prune" | "verify" | "health", required)
+- `slug` (string, required for link/unlink/inspect/project/verify/health; normalized to `[a-z0-9._-]+`, 1..64 chars)
 - `root_path` (string, required for link) — absolute or relative
 - `kind` ("local"|"git"|"mirror"|"archive", optional, default "local")
 - `remote_url`, `branch`, `trust_level`, `write_policy` (optional, link only)
 - `accept_beads` (boolean, optional) — shortcut: forces trust=trusted, write_policy=read_write
 
 **Output (link):** `{ status: 'linked'|'relinked', slug, root_path, trust_level, write_policy, created_at }`. Re-linking an existing slug preserves `created_at` and merges existing metadata.
+
+Mounted-spoke records are hub-scoped. The stored `repo_id` identifies the CStar
+hub repository that owns the mounted-spoke row, not the mounted spoke's own git
+repository. `list` and `inspect` expose `hub_repo_id`, `spoke_repo_id`, and
+`repo_id_semantics` so callers can distinguish hub ownership from the spoke
+root identity. `project` refreshes projection metadata and the spoke
+`default_branch` from git metadata where available.
 
 ## 18. `cstar_intent_route`
 
@@ -373,7 +400,7 @@ Read-only MCP telemetry summaries over the last 24h. Source: `.agents/state/csta
 Invoke directly via the MCP protocol — the host's tool-call mechanism wraps the JSON-RPC frames automatically. The tools above are listed under the `cstar-kernel` server.
 
 ### From a raw JSON-RPC client
-After the standard `initialize` + `notifications/initialized` handshake:
+With the current stdio SDK transport, the raw client still performs the SDK compatibility `initialize` + `notifications/initialized` handshake:
 
 ```jsonc
 // Request
@@ -388,6 +415,8 @@ After the standard `initialize` + `notifications/initialized` handshake:
 
 Example end-to-end test: `tests/integration/cstar_kernel_mcp_stdio.test.ts`.
 
+That handshake is not a CStar application session. Future Streamable HTTP adapters targeting MCP `2026-07-28` should route equivalent calls as self-contained requests carrying protocol/client metadata in request `_meta` and, where applicable, HTTP routing headers. The CStar tool arguments themselves must remain explicit-handle based.
+
 ## Adding a New Tool
 
 1. Add a `server.tool('cstar_<name>', '<description>', { /* Zod schema */ }, instrumentTool('cstar_<name>', handler))` registration in `src/tools/cstar-kernel-mcp.ts`.
@@ -395,7 +424,8 @@ Example end-to-end test: `tests/integration/cstar_kernel_mcp_stdio.test.ts`.
 3. Add an entry to this file in tool-number order.
 4. Add unit tests in `tests/unit/test_cstar_kernel_mcp.test.ts`.
 5. Add an assertion to the stdio integration test's "expected tools" list in `tests/integration/cstar_kernel_mcp_stdio.test.ts`.
-6. Run `npm run test:node` and `npm run validate:distributions` before committing.
+6. Confirm the new input schema is object-rooted and does not introduce protocol/session/client metadata as tool arguments.
+7. Run `npm run test:node` and `npm run validate:distributions` before committing.
 
 ## What Does Not Belong on This Surface
 
