@@ -127,6 +127,48 @@ Route one mission and return routing advice + Council expert + Mimir targets + t
 }
 ```
 
+When the caller supplies a new prompt and explicit `target_paths`,
+`cstar_augury` derives the current mission route from that prompt and target
+set. If an active planning session exists but its Mimir targets do not overlap
+the caller's targets, the active session is demoted to non-authoritative
+background:
+
+```json
+{
+  "intent_category": "HARDEN",
+  "current_mission_route": {
+    "source": "deterministic",
+    "intent_category": "HARDEN",
+    "selection": "WEAVE: contract_hardening",
+    "target_paths": ["<caller target>", "..."]
+  },
+  "active_session_suggestion": {
+    "authoritative": false,
+    "demoted": true,
+    "lead_bead_id": "<stale bead>",
+    "target_paths": ["<active session target>", "..."]
+  },
+  "routing_provenance": {
+    "source": "deterministic",
+    "diverged": true,
+    "active_session_authority": "background",
+    "divergence": {
+      "kind": "target_paths",
+      "requested_target_paths": ["<caller target>", "..."],
+      "session_target_paths": ["<active session target>", "..."]
+    }
+  }
+}
+```
+
+Agents must treat `current_mission_route` as the route for the current call.
+`active_session_suggestion` is historical/background context unless
+`authoritative` is `true`. A fail-loud response with
+`stale_session_divergence_blocker: true` is reserved for cases where Augury
+cannot safely determine a current route, where active-session continuity is
+explicitly requested but diverges from caller targets, or where the active
+session is the only available context.
+
 ## 5. `cstar_doctor`
 
 Kernel diagnostics. Returns registry / augury / database health plus telemetry summary.

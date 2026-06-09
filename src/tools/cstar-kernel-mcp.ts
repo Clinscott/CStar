@@ -260,6 +260,203 @@ function textResponse(payload: unknown, isError = false): McpTextResponse {
     };
 }
 
+type AuguryTargetDivergence = {
+    diverged: boolean;
+    requested_target_paths: string[];
+    session_target_paths: string[];
+    reason?: string;
+};
+
+type AuguryCurrentIntentCategoryMatch = {
+    category: string;
+    default_path: string;
+    tier: string;
+    matched_trigger: string;
+    matched_triggers: string[];
+    match_count: number;
+};
+
+type AugurySessionRoutingDecision = {
+    source: 'session' | 'deterministic' | 'fallback' | 'blocked';
+    use_session_as_primary: boolean;
+    stale_session_demoted: boolean;
+    stale_session_divergence_blocker: boolean;
+    divergence_warnings: string[];
+    required_operator_decision?: string;
+};
+
+function normalizeAuguryComparablePath(candidate: string, root: string): string {
+    const trimmed = candidate.trim();
+    if (!trimmed) {
+        return '';
+    }
+    return path.resolve(path.isAbsolute(trimmed) ? trimmed : path.join(root, trimmed));
+}
+
+function auguryPathsOverlap(left: string, right: string): boolean {
+    if (!left || !right) {
+        return false;
+    }
+    if (left === right) {
+        return true;
+    }
+    const normalizedLeft = left.endsWith(path.sep) ? left : `${left}${path.sep}`;
+    const normalizedRight = right.endsWith(path.sep) ? right : `${right}${path.sep}`;
+    return normalizedLeft.startsWith(normalizedRight) || normalizedRight.startsWith(normalizedLeft);
+}
+
+export function detectAuguryTargetDivergence(
+    requestedTargetPaths: string[] | undefined,
+    sessionTargetPaths: string[] | undefined,
+    root: string,
+): AuguryTargetDivergence {
+    const requested = (requestedTargetPaths ?? [])
+        .map((targetPath) => normalizeAuguryComparablePath(targetPath, root))
+        .filter(Boolean);
+    const session = (sessionTargetPaths ?? [])
+        .map((targetPath) => normalizeAuguryComparablePath(targetPath, root))
+        .filter(Boolean);
+
+    if (requested.length === 0 || session.length === 0) {
+        return {
+            diverged: false,
+            requested_target_paths: requested,
+            session_target_paths: session,
+        };
+    }
+
+    const allRequestedTargetsCovered = requested.every((requestedPath) =>
+        session.some((sessionPath) => auguryPathsOverlap(requestedPath, sessionPath)),
+    );
+
+    return {
+        diverged: !allRequestedTargetsCovered,
+        requested_target_paths: requested,
+        session_target_paths: session,
+        ...(allRequestedTargetsCovered ? {} : {
+            reason: 'Caller supplied target_paths are not fully covered by the active Augury/handoff session targets.',
+        }),
+    };
+}
+
+function normalizeAuguryIntentToken(token: string): string {
+    return token.toLowerCase().replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, '');
+}
+
+function auguryTokenMatchesTrigger(token: string, trigger: string): boolean {
+    if (!token || !trigger) {
+        return false;
+    }
+    if (token === trigger) {
+        return true;
+    }
+    return trigger.length >= 4 && token.startsWith(trigger);
+}
+
+export function resolveAuguryCurrentIntentCategory(
+    tokens: string[],
+    grammar: Record<string, { triggers: string[]; default_path: string; tier: string }>,
+): AuguryCurrentIntentCategoryMatch | null {
+    const normalizedTokens = tokens.map(normalizeAuguryIntentToken).filter(Boolean);
+    const matches: AuguryCurrentIntentCategoryMatch[] = [];
+
+    for (const [category, config] of Object.entries(grammar)) {
+        const matchedTriggers = config.triggers.filter((trigger) => {
+            const normalizedTrigger = normalizeAuguryIntentToken(trigger);
+            return normalizedTokens.some((token) => auguryTokenMatchesTrigger(token, normalizedTrigger));
+        });
+        if (matchedTriggers.length > 0) {
+            const matchCount = config.triggers.reduce((count, trigger) => {
+                const normalizedTrigger = normalizeAuguryIntentToken(trigger);
+                return count + normalizedTokens.filter((token) => auguryTokenMatchesTrigger(token, normalizedTrigger)).length;
+            }, 0);
+            matches.push({
+                category,
+                default_path: config.default_path,
+                tier: config.tier,
+                matched_trigger: matchedTriggers[0],
+                matched_triggers: matchedTriggers,
+                match_count: matchCount,
+            });
+        }
+    }
+
+    matches.sort((left, right) => {
+        const hitDiff = right.match_count - left.match_count;
+        if (hitDiff !== 0) {
+            return hitDiff;
+        }
+        return 0;
+    });
+
+    return matches[0] ?? null;
+}
+
+function callerRequestedActiveSessionContinuity(prompt: string, inferredIntent?: string): boolean {
+    const text = `${prompt} ${inferredIntent ?? ''}`.toLowerCase();
+    return /\b(active[- ]session|session continuity|continue active|resume active|use active handoff)\b/.test(text);
+}
+
+export function decideAugurySessionRouting(params: {
+    hasSessionRoute: boolean;
+    hasExplicitTargetPaths: boolean;
+    targetDiverged: boolean;
+    deterministicAvailable: boolean;
+    activeSessionContinuityRequested?: boolean;
+}): AugurySessionRoutingDecision {
+    if (!params.hasSessionRoute) {
+        return {
+            source: params.deterministicAvailable ? 'deterministic' : 'fallback',
+            use_session_as_primary: false,
+            stale_session_demoted: false,
+            stale_session_divergence_blocker: false,
+            divergence_warnings: [],
+        };
+    }
+
+    if (!params.hasExplicitTargetPaths && !params.deterministicAvailable) {
+        return {
+            source: 'blocked',
+            use_session_as_primary: false,
+            stale_session_demoted: false,
+            stale_session_divergence_blocker: true,
+            divergence_warnings: ['active_session_only_context'],
+            required_operator_decision: 'Provide an explicit prompt route or target_paths before using the active session as mission truth.',
+        };
+    }
+
+    if (params.targetDiverged) {
+        if (!params.deterministicAvailable || params.activeSessionContinuityRequested) {
+            return {
+                source: 'blocked',
+                use_session_as_primary: false,
+                stale_session_demoted: false,
+                stale_session_divergence_blocker: true,
+                divergence_warnings: ['stale_session_target_divergence'],
+                required_operator_decision: params.activeSessionContinuityRequested
+                    ? 'Caller requested active-session continuity, but supplied target_paths diverge from the active session. Select the intended session or clear the stale one.'
+                    : 'Clarify the prompt or target_paths so Augury can derive a safe current mission route.',
+            };
+        }
+
+        return {
+            source: 'deterministic',
+            use_session_as_primary: false,
+            stale_session_demoted: true,
+            stale_session_divergence_blocker: false,
+            divergence_warnings: ['stale_session_target_divergence'],
+        };
+    }
+
+    return {
+        source: 'session',
+        use_session_as_primary: true,
+        stale_session_demoted: false,
+        stale_session_divergence_blocker: false,
+        divergence_warnings: [],
+    };
+}
+
 function compactBead(bead: SovereignBead | null): Record<string, unknown> | null {
     if (!bead) {
         return null;
@@ -1282,25 +1479,117 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
             agent_next_action: 'Perform handoff to verify active state.',
             warnings: [],
         };
+        const root = registry.getRoot();
+        let activeSession: ReturnType<typeof resolveActivePlanningSession> = null;
+        let activeHandoff: ReturnType<typeof buildTraceAgentHandoffPayload> = null;
         try {
-            const root = registry.getRoot();
-            const session = resolveActivePlanningSession(root);
-            explain = buildAuguryExplainPayload(session, root);
+            activeSession = resolveActivePlanningSession(root);
+            activeHandoff = buildTraceAgentHandoffPayload(activeSession, root);
+            explain = buildAuguryExplainPayload(activeSession, root);
         } catch (error) {
             logBootstrapError(error);
         }
 
+        // Run the deterministic grammar resolver in parallel with the
+        // session lookup so divergence is always visible to the caller.
+        const manifest = loadRegistryManifest(root);
+        const grammarSource: 'registry' | 'fallback' = manifest?.intent_grammar ? 'registry' : 'fallback';
+        const grammar = getRegistryIntentCategories(manifest);
+        const tokens = tokenize(`${prompt} ${inferred_intent ?? ''}`);
+        const deterministicMatch = resolveAuguryCurrentIntentCategory(tokens, grammar)
+            ?? resolveIntentCategoryFromGrammar(tokens, grammar);
+        const deterministicProvenance = deterministicMatch
+            ? {
+                intent_category: deterministicMatch.category,
+                default_path: deterministicMatch.default_path,
+                tier: deterministicMatch.tier,
+                matched_trigger: deterministicMatch.matched_trigger,
+                grammar_source: grammarSource,
+            }
+            : null;
+        const sessionTargetPaths = explain.status === 'available'
+            ? explain.mimir?.targets ?? []
+            : [];
+        const sessionProvenance = explain.status === 'available' && explain.route
+            ? {
+                intent_category: explain.route.intent_category,
+                selection: explain.route.designation,
+            }
+            : null;
+        const targetDivergence = detectAuguryTargetDivergence(target_paths, sessionTargetPaths, root);
+        const routingDecision = decideAugurySessionRouting({
+            hasSessionRoute: Boolean(sessionProvenance),
+            hasExplicitTargetPaths: (target_paths ?? []).length > 0,
+            targetDiverged: targetDivergence.diverged,
+            deterministicAvailable: Boolean(deterministicProvenance),
+            activeSessionContinuityRequested: callerRequestedActiveSessionContinuity(prompt, inferred_intent),
+        });
+
+        if (routingDecision.stale_session_divergence_blocker) {
+            return textResponse({
+                status: 'blocked',
+                stale_session_divergence_blocker: true,
+                intent_category: deterministicProvenance?.intent_category ?? 'UNRESOLVED',
+                intent: inferred_intent || prompt.substring(0, 160),
+                scope: scope || explain.scope?.value || 'brain:CStar',
+                mimir_targets: (target_paths || []).slice(0, 3),
+                next_action: 'Do not use the active handoff route as current mission truth. Clarify routing input, select a matching session, or clear/supersede the stale session.',
+                required_operator_decision: routingDecision.required_operator_decision
+                    ?? 'Select or create a current mission bead/session, or explicitly clear/supersede the stale active session before routing work.',
+                current_mission_route: {
+                    source: deterministicProvenance ? 'deterministic' : 'unresolved',
+                    prompt: prompt.substring(0, 240),
+                    inferred_intent,
+                    intent_category: deterministicProvenance?.intent_category ?? null,
+                    selection: deterministicProvenance
+                        ? `${deterministicProvenance.tier}: ${deterministicProvenance.default_path}`
+                        : null,
+                    target_paths: target_paths ?? [],
+                },
+                active_session_suggestion: {
+                    session_id: activeSession?.session_id,
+                    status: activeSession?.status,
+                    lead_bead_id: activeHandoff?.lead_bead_id,
+                    authoritative: false,
+                    intent_category: sessionProvenance?.intent_category ?? null,
+                    selection: sessionProvenance?.selection ?? null,
+                    target_paths: sessionTargetPaths,
+                },
+                guardrail: mcpGuardrail(
+                    'block',
+                    'verify',
+                    'Augury could not safely derive a current mission route without operator clarification.',
+                    routingDecision.divergence_warnings,
+                    ['active_session'],
+                ),
+                routing_provenance: {
+                    source: 'blocked',
+                    deterministic: deterministicProvenance,
+                    session: sessionProvenance,
+                    diverged: true,
+                    divergence: {
+                        kind: 'target_paths',
+                        ...targetDivergence,
+                    },
+                },
+            });
+        }
+
         let result: Record<string, unknown>;
         let routingInput: TokenPathRoutingInput;
+        let resolvedIntentCategory: string;
+        let routingSource: 'session' | 'deterministic' | 'fallback';
 
-        if (explain.status === 'available' && explain.route) {
+        if (routingDecision.source === 'session' && explain.status === 'available' && explain.route) {
             const expert = explain.expert as (typeof explain.expert & KernelCouncilExpert);
             const designation = explain.route.designation || '';
             const colonIdx = designation.indexOf(':');
             const selectionTier = colonIdx >= 0 ? designation.slice(0, colonIdx).trim() : designation.trim();
             const selectionName = colonIdx >= 0 ? designation.slice(colonIdx + 1).trim() : undefined;
+            resolvedIntentCategory = explain.route.intent_category;
+            routingSource = 'session';
             result = {
-                intent_category: explain.route.intent_category,
+                intent_category: resolvedIntentCategory,
                 intent: explain.route.intent,
                 scope: explain.scope?.value || scope || 'brain:CStar',
                 selection: explain.route.designation,
@@ -1317,24 +1606,67 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
             routingInput = {
                 prompt,
                 inferred_intent,
-                intent_category: explain.route.intent_category,
+                intent_category: resolvedIntentCategory,
                 target_paths,
                 mimirs_well: explain.mimir?.targets,
                 scope: explain.scope?.value || scope,
                 selection_tier: selectionTier || undefined,
                 selection_name: selectionName,
             };
+        } else if (deterministicMatch) {
+            // Prefer the current prompt/target_paths route when an active
+            // session is stale or absent. Stale sessions are surfaced below as
+            // non-authoritative background, not route truth.
+            resolvedIntentCategory = deterministicMatch.category;
+            routingSource = 'deterministic';
+            const selectionTier = deterministicMatch.tier || 'SKILL';
+            const selectionName = deterministicMatch.default_path || 'cstar-kernel';
+            const selectedExpert = selectCouncilExpert({
+                intent_category: resolvedIntentCategory,
+                intent: inferred_intent || prompt.substring(0, 100),
+                selection_tier: selectionTier,
+                selection_name: selectionName,
+                mimirs_well: (target_paths || []).slice(0, 3),
+            }) as ReturnType<typeof selectCouncilExpert> & KernelCouncilExpert;
+            result = {
+                intent_category: resolvedIntentCategory,
+                intent: inferred_intent || prompt.substring(0, 100),
+                scope: scope || 'brain:CStar',
+                selection: `${selectionTier}: ${selectionName}`,
+                expert: selectedExpert.id,
+                expert_label: selectedExpert.label,
+                expert_lens: selectedExpert.lens,
+                expert_signature_question: selectedExpert.signature_question ?? '',
+                expert_guardrails: selectedExpert.anti_behavior.slice(0, 3),
+                mimir_targets: (target_paths || []).slice(0, 3),
+                next_action: routingDecision.stale_session_demoted
+                    ? 'Route derived from the current prompt and target_paths. Active session context was demoted to background because its targets diverge.'
+                    : 'No active planning session; route derived from deterministic grammar. Run cstar_handoff to anchor a session.',
+                council_candidates: selectedExpert.selection_candidates?.slice(0, 3) ?? [],
+                confidence: 0.85
+            };
+            routingInput = {
+                prompt,
+                inferred_intent,
+                intent_category: resolvedIntentCategory,
+                target_paths,
+                scope,
+                selection_tier: selectionTier,
+                selection_name: selectionName,
+            };
         } else {
             // Fallback for idle/missing state
+            resolvedIntentCategory = 'ORCHESTRATE';
+            routingSource = 'fallback';
             const selectedExpert = selectCouncilExpert({
-                intent_category: 'ORCHESTRATE',
+                intent_category: resolvedIntentCategory,
                 intent: inferred_intent || prompt.substring(0, 100),
                 selection_tier: 'SKILL',
                 selection_name: 'cstar-kernel',
                 mimirs_well: (target_paths || []).slice(0, 3),
             }) as ReturnType<typeof selectCouncilExpert> & KernelCouncilExpert;
             result = {
-                intent_category: 'ORCHESTRATE',
+                intent_category: resolvedIntentCategory,
                 intent: inferred_intent || prompt.substring(0, 100),
                 scope: scope || 'brain:CStar',
                 selection: 'SKILL: cstar-kernel',
@@ -1351,13 +1683,56 @@ export async function handleAugury({ prompt, inferred_intent, target_paths, scop
             routingInput = {
                 prompt,
                 inferred_intent,
-                intent_category: 'ORCHESTRATE',
+                intent_category: resolvedIntentCategory,
                 target_paths,
                 scope,
                 selection_tier: 'SKILL',
                 selection_name: 'cstar-kernel',
             };
         }
+
+        // Routing provenance: deterministic grammar vs session selection.
+        const diverged = Boolean(
+            sessionProvenance
+                && deterministicProvenance
+                && sessionProvenance.intent_category !== deterministicProvenance.intent_category,
+        ) || targetDivergence.diverged;
+        result.current_mission_route = {
+            source: routingSource,
+            prompt: prompt.substring(0, 240),
+            inferred_intent,
+            intent_category: resolvedIntentCategory,
+            selection: result.selection,
+            target_paths: target_paths ?? [],
+        };
+        if (sessionProvenance) {
+            result.active_session_suggestion = {
+                session_id: activeSession?.session_id,
+                status: activeSession?.status,
+                lead_bead_id: activeHandoff?.lead_bead_id,
+                authoritative: routingDecision.use_session_as_primary,
+                demoted: routingDecision.stale_session_demoted,
+                intent_category: sessionProvenance.intent_category,
+                selection: sessionProvenance.selection,
+                target_paths: sessionTargetPaths,
+            };
+        }
+        if (routingDecision.divergence_warnings.length > 0) {
+            result.divergence_warnings = routingDecision.divergence_warnings;
+        }
+        result.routing_provenance = {
+            source: routingSource,
+            deterministic: deterministicProvenance,
+            session: sessionProvenance,
+            diverged,
+            active_session_authority: routingDecision.use_session_as_primary ? 'primary' : 'background',
+            ...(targetDivergence.diverged ? {
+                divergence: {
+                    kind: 'target_paths',
+                    ...targetDivergence,
+                },
+            } : {}),
+        };
 
         const tokenPath = await runTokenPathAdvisor(routingInput);
         if (tokenPath) {
