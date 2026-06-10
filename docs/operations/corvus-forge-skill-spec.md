@@ -42,6 +42,16 @@ Required inputs:
 - Validation commands.
 - Expected receipts, artifact manifest, and CStar Console witness evidence.
 - Escalation class.
+- Current MM thread id and PMT reporting path health.
+- Quota/runtime availability evidence, including appended turns without agent
+  response and any `systemError` or runtime failure text.
+- Authorized PR/package exact head SHA for any live-fire request.
+- Current PR/package head SHA and head drift classification.
+- Dirty-root status for each relevant repo and the isolated exact-head worktree
+  or clone used for validation.
+- MongoDB/host-sync mode, which defaults to non-mutating `ENV_GATED`, plus
+  explicit live authorization, `CSTAR_MONGO_URI`, and the required live flag when
+  live Mongo proof is requested.
 - Selected target artifact list and generated manifest sidecar list.
 - Finalizer-result proof fields: status/completion, finalizer-worker worktree,
   worker branch, commit hash, `push_ok`, PR URL/state, changed files, target
@@ -87,6 +97,16 @@ Disallowed outputs:
 - Broad PMT memory rollout.
 - Durable skill installation.
 - Dirty spoke-root mutation.
+- Treating MM/PMT non-response, quota exhaustion, or `systemError` as a PMT
+  verdict, design acceptance, or live-fire bypass.
+- Live-fire/model-spend during a coordination/runtime availability outage unless
+  CoS explicitly approves a narrow yellow exception.
+- Packet generation or model spend after exact-head/head drift is detected.
+- Cleanup, reset, stash, deletion, checkout over, overwrite, or mutation of
+  user-owned dirty-root work, including MongoDB/host-sync work in
+  `/home/morderith/Corvus/cstar-console`.
+- Live MongoDB proof without explicit authorization, `CSTAR_MONGO_URI`, and the
+  required live flag.
 
 ## Gates
 
@@ -134,6 +154,25 @@ Disallowed outputs:
 - The skill must name local bare-remote plus fake-gh coverage for
   finalizer-worker branch ownership, commit, push, and PR mechanics before any
   live-fire proof is counted.
+- The skill must classify appended MM/PMT turns without agent response, quota
+  exhaustion evidence, or `systemError` runtime failure as a yellow
+  coordination/runtime availability gate. Non-response is never acceptance.
+- The skill must stop live-fire/model-spend until the MM/PMT reporting path is
+  healthy or CoS explicitly approves a narrow yellow exception. Non-live,
+  read-only, and docs consolidation may continue under CoS direction during the
+  outage.
+- The skill must require every live-fire authorization to name an exact
+  PR/package head SHA, compare it immediately before prelaunch, and fail before
+  packet generation or model spend if head drift is detected.
+- The skill must classify user-owned branch advancement and revalidate it in an
+  isolated exact-head environment before treating it as a new base.
+- The skill must protect dirty roots and user-owned work from cleanup, reset,
+  stash, deletion, checkout-over, overwrite, or mutation. Review and prelaunch
+  use isolated clones or worktrees when local roots are dirty or shifting.
+- The skill must keep MongoDB/host-sync checks non-mutating/`ENV_GATED` unless
+  live Mongo proof is separately authorized with `CSTAR_MONGO_URI` and the
+  required live flag. Forge live-fire and docs validation do not imply live Mongo
+  authorization.
 
 ## Installation Posture
 

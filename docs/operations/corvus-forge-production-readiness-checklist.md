@@ -14,15 +14,36 @@ It is a gate checklist, not live-fire authorization.
   blocker text is reported and no Hall/SQLite bypass is used.
 - GitHub issue/branch/PR packaging exists for source work unless an approved
   docs-only/no-GitHub exception applies.
+- MM/PMT coordination health is known. If turns append without agent response,
+  or thread metadata shows `systemError` or runtime failure consistent with
+  quota exhaustion, classify it as a yellow coordination/runtime availability
+  gate.
+- Non-response is not a PMT verdict, design acceptance, or permission to bypass
+  MM/PMT for live-fire/model-spend.
+- Further routing requires a healthy MM/PMT reporting path or an explicit CoS
+  yellow exception.
 
 ## Live-Fire Proof Bar
 
 Corvus Forge is not temporary-production-ready until all are true:
 
+- Every live-fire authorization names the exact PR/package head SHA.
+- Prelaunch compares the authorized exact head to the current PR/package head and
+  fails before packet generation or model spend on head drift.
+- User-owned branch advancement is classified and revalidated in an isolated
+  exact-head environment before it becomes the new base.
 - Three clean live-fire proofs are accepted by CoS.
 - At least two repos participate in accepted proofs.
 - At least one proof produces a real code/test worker PR, not docs-only work.
 - No dirty-root mutation occurs during dispatch or finalization.
+- Active user work in dirty roots, including `/home/morderith/Corvus/cstar-console`
+  MongoDB/host-sync work, is never cleaned, reset, stashed, deleted, checked out
+  over, or overwritten by Forge validation.
+- Isolated clones or worktrees are used for review and live-fire prelaunch when
+  local roots are dirty or shifting.
+- MongoDB and host-sync checks remain non-mutating/`ENV_GATED` unless live Mongo
+  proof is explicitly authorized with `CSTAR_MONGO_URI` and the required live
+  flag.
 - PMT review accepts every worker PR before MM summary.
 - CStar result ids are recorded for dispatch, validation, review, and closeout.
 - CStar Console witness receipts/status are attached when available.
@@ -104,6 +125,13 @@ or PR #28 disposition, dirty-root mutation, failed CStar result recording,
 secret/config mutation, deploy/restart, destructive cleanup, direct Hall/SQLite
 write, branch protection change, main/master publication, or any live-fire
 request without explicit CoS approval.
+
+Also stop when MM/PMT turns append without response, `systemError` or quota-like
+runtime failure blocks reporting, live-fire/model-spend is requested during a
+coordination outage, a live-fire request omits the exact head SHA, head drift is
+detected before prelaunch, isolated exact-head validation is missing after branch
+advancement, MongoDB/host-sync proof would run outside `ENV_GATED` constraints
+without explicit live authorization, or dirty user-owned work would be mutated.
 
 Also stop for missing selected-artifact scans, missing manifest sidecar runtime
 metadata, missing finalizer-result proof, role-authored unverified finalizer

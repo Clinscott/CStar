@@ -49,6 +49,53 @@ them as authority. Required evidence is PMT local validation, CStar validation
 result ids, CStar Console witness receipts/status when available, and reviewed
 PR artifacts.
 
+## Quota And Runtime Availability Gate
+
+If MM or PMT thread turns append but produce no agent response, or thread
+metadata shows `systemError` or another runtime failure and the evidence points
+to usage/quota exhaustion, classify the event as a yellow coordination/runtime
+availability gate.
+
+Non-response is not a PMT verdict, design acceptance, routing approval, or
+permission to bypass MM/PMT for live-fire. Live-fire/model-spend stops until the
+coordination runtime is healthy or CoS explicitly approves a narrow yellow
+exception. During a quota/runtime outage, CoS may perform non-live, read-only, or
+docs consolidation work, but must not launch live SwarmForge/model dispatch.
+
+## Exact-Head And Head-Drift Gate
+
+Every live-fire authorization must name the exact PR or package head SHA.
+Prelaunch must compare the authorized head against the current PR/package head
+and fail before packet generation or model spend if the head changed.
+
+If user-owned work advances the branch, classify the head drift, preserve the
+new user-owned head, and revalidate in an isolated exact-head environment before
+accepting that head as the new base. A shifted branch is never silently treated
+as the previously authorized package.
+
+## Dirty-Root And User-Owned Work Isolation
+
+Active user work in a spoke root must not be cleaned, reset, stashed, deleted,
+checked out over, or overwritten by Forge review, validation, prelaunch, or
+finalization. This explicitly includes user-owned MongoDB/host-sync work in
+`/home/morderith/Corvus/cstar-console`.
+
+When local roots are dirty or shifting, use isolated clones or worktrees for
+review and live-fire prelaunch. The isolated runtime root is the worker-facing
+access surface; dirty or prohibited roots remain evidence metadata and are not
+used for mutation.
+
+## Mongo And Host-Sync ENV_GATED Gate
+
+MongoDB and host-sync smoke checks default to non-mutating `ENV_GATED` behavior.
+They may report that live proof is skipped unless explicit live flags and
+required environment are present.
+
+Live MongoDB proof is a separate yellow gate. It requires explicit authorization,
+`CSTAR_MONGO_URI`, and the required live flag. It is not implied by Forge
+live-fire authorization, docs validation, PR review, or local non-live finalizer
+coverage.
+
 ## Dispatch Packet Invariants
 
 Every SwarmForge dispatch packet must include:
@@ -169,6 +216,14 @@ Stop and escalate to MM/CoS when any of these occur:
   requested.
 - GitHub Actions failure is treated as authority without explicit opt-in.
 - CStar MCP transport is unavailable and no approved degraded fallback is named.
+- MM/PMT reporting path is unhealthy, quota-limited, or producing appended turns
+  without agent responses, unless CoS approves a narrow yellow exception.
+- Live-fire authorization omits the exact PR/package head SHA.
+- PR/package head drift is detected before packet generation or model spend.
+- User-owned dirty-root work would need cleanup, checkout, stash, reset,
+  deletion, overwrite, or mutation.
+- MongoDB/host-sync proof would require live mutation without explicit
+  authorization, `CSTAR_MONGO_URI`, and the required live flag.
 - Evidence receipt, artifact manifest, or PR artifact scope is inconsistent.
 - Missing selected-artifact whitespace/conflict-marker scan.
 - Missing manifest sidecar runtime metadata.
