@@ -43,6 +43,21 @@ Corvus Forge is not temporary-production-ready until all are true:
 - Finalizer manifest sidecars are constrained, validated, and reviewed; they do
   not count against operator `max_changed_files` when produced as evidence
   sidecars, but they must not conceal product/source changes.
+- Generated manifest sidecars include schema/version id, bead id, decision id,
+  finalizer id, source role, `isolated_runtime_root`,
+  `prohibited_repo_roots`, source artifact root, target paths, path/hash
+  metadata, branch/commit metadata, push state, PR URL/state, and
+  finalizer-result status/completion.
+- Finalizer success requires controller-verified finalizer-result truthfulness:
+  finalizer-worker worktree, worker branch, commit hash, `push_ok`, PR
+  URL/state, changed files, target paths, artifact source/root metadata,
+  `isolated_runtime_root`, and `prohibited_repo_roots`.
+- Selected target artifacts and generated manifest sidecars, including
+  untracked role-worktree artifacts, pass direct whitespace and conflict-marker
+  scans before finalizer success, commit, push, or PR creation.
+- Prohibited roots are evidence metadata, not worker access paths. Worker-facing
+  commands use isolated runtime roots, and isolated runtime roots are not
+  mislabeled as prohibited roots.
 
 ## Dispatch Invariant Checks
 
@@ -59,7 +74,17 @@ Before dispatch, confirm:
 - One finalizer is named.
 - Branch ownership lock is present.
 - YOLO/headless policy is explicit.
+- Exactly one complete allowed role artifact source is present for deterministic
+  finalizer handoff.
+- Zero role artifact sources, multiple role artifact sources, missing runtime
+  metadata, or guard failures stop before PR creation.
 - Stop conditions and escalation class are explicit.
+
+## Non-Live Finalizer Coverage
+
+Before live-fire, local bare-remote and fake-gh coverage proves
+finalizer-worker branch ownership, commit, push, and PR mechanics without model
+spend, GitHub mutation, protected branch mutation, or dirty-root access.
 
 ## Readiness Verdicts
 
@@ -79,3 +104,8 @@ or PR #28 disposition, dirty-root mutation, failed CStar result recording,
 secret/config mutation, deploy/restart, destructive cleanup, direct Hall/SQLite
 write, branch protection change, main/master publication, or any live-fire
 request without explicit CoS approval.
+
+Also stop for missing selected-artifact scans, missing manifest sidecar runtime
+metadata, missing finalizer-result proof, role-authored unverified finalizer
+claims, stale lifecycle text, duplicate worker branch/PR, dirty or prohibited
+root access, main/master target, or a new yellow/red gate without approval.

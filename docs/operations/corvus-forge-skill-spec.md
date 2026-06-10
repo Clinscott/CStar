@@ -42,13 +42,22 @@ Required inputs:
 - Validation commands.
 - Expected receipts, artifact manifest, and CStar Console witness evidence.
 - Escalation class.
+- Selected target artifact list and generated manifest sidecar list.
+- Finalizer-result proof fields: status/completion, finalizer-worker worktree,
+  worker branch, commit hash, `push_ok`, PR URL/state, changed files, target
+  paths, artifact source/root metadata, `isolated_runtime_root`, and
+  `prohibited_repo_roots`.
+- Manifest sidecar runtime fields: schema/version id, bead id, decision id,
+  finalizer id, source role, isolated runtime root, prohibited repo roots,
+  path/hash metadata, branch metadata, commit hash, push state, and PR state.
+- Exactly one complete allowed role artifact source for deterministic handoff.
 
 Optional inputs:
 
 - Prior worker receipts.
 - Existing CStar result ids.
 - PR #26 and PR #28 disposition notes.
-- Local bare-remote non-live integration test location.
+- Local bare-remote and fake-gh non-live integration test location.
 
 ## Outputs
 
@@ -62,6 +71,9 @@ Allowed outputs:
 - Production-readiness checklist instance.
 - Stop-condition report.
 - Proposed CStar result closeout text.
+- Selected-artifact whitespace/conflict-marker scan checklist.
+- Manifest sidecar schema checklist.
+- Finalizer-result truthfulness checklist.
 
 Disallowed outputs:
 
@@ -102,7 +114,26 @@ Disallowed outputs:
   budget/spent, explicit YOLO/headless policy, and no worker PR target to
   `main` or `master`.
 - The skill must require that finalizer manifest sidecars stay constrained,
-  validated, and reviewed.
+  validated, reviewed, and excluded from operator `max_changed_files` only when
+  they are generated from derived target paths.
+- The skill must require direct whitespace and conflict-marker scans over
+  selected target artifacts and generated manifest sidecars, including
+  untracked role-worktree artifacts, before finalizer success, commit, push, or
+  PR creation.
+- The skill must reject role-authored unverified finalizer success claims. No
+  finalizer success is accepted without finalizer-result status/completion,
+  finalizer-worker worktree, worker branch, commit hash, `push_ok`, PR
+  URL/state, changed files, target paths, artifact source/root metadata,
+  `isolated_runtime_root`, and `prohibited_repo_roots`.
+- The skill must preserve the metadata/access split: prohibited roots remain
+  evidence metadata while worker-facing access paths and commands use isolated
+  runtime roots.
+- The skill must hand exactly one complete allowed role artifact source to the
+  finalizer. Zero sources, multiple sources, missing runtime metadata, or guard
+  failures stop before PR creation.
+- The skill must name local bare-remote plus fake-gh coverage for
+  finalizer-worker branch ownership, commit, push, and PR mechanics before any
+  live-fire proof is counted.
 
 ## Installation Posture
 
