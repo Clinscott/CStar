@@ -131,6 +131,60 @@ when they are generated as constrained evidence sidecars. Generated sidecars
 must remain bounded, named, validated, and reviewed; they are not a license to
 hide product/source diffs.
 
+## Proof Artifact Classes
+
+Live-fire proof packages must distinguish real code/test targets from
+docs/evidence artifacts:
+
+- Real code/test proof targets may be runtime source files, test files, and
+  generated manifest sidecars. They must pass syntax, selected-file safety,
+  output-quality, finalizer manifest, and lint requirements appropriate to the
+  target language, but they must not be forced to embed operational proof prose
+  inside source code.
+- Docs/evidence targets may be markdown receipts, proof narratives, readiness
+  notes, and generated manifest sidecars. They remain subject to stricter proof
+  narrative, stale-lifecycle, retry/decision, finalizer truthfulness, and
+  manifest evidence rules.
+
+Docs/evidence or lint-only work cannot satisfy the required real code/test
+proof slot. The code/test proof slot requires a reviewed worker PR whose selected
+target set includes runtime source or test files and verified finalization.
+
+## Finalizer Source Mode
+
+Live-fire packets must declare a machine-readable `finalizer_source_mode` when
+the proof shape depends on artifact source selection. For real code/test proofs,
+the normal mode is `packet_repo_root`, meaning the finalizer reads selected
+artifacts from the packet's isolated repo root rather than from ambient local
+state or prose claims.
+
+Allowed source mode values must be explicit in the dispatch packet and repeated
+in generated manifest sidecars. Multi-source ambiguity, missing source mode,
+default source selection, or disagreement between `finalizer_source_mode`,
+`packet_repo_root`, selected artifacts, and manifest metadata stops before
+finalizer mutation.
+
+## Prefinalizer Syntax And Selected-File Safety
+
+Before the finalizer command mutates a worker worktree, stages files, commits,
+pushes, or opens a worker PR, the controller must run direct checks over every
+selected target file and generated manifest sidecar:
+
+- JS/MJS/CJS runtime source or test targets require safe syntax validation such
+  as `node --check <file>` before finalizer mutation.
+- Runnable non-live test commands should run when dependency-safe.
+- Live MongoDB, secrets, config, or host-sync paths remain `ENV_GATED` and do
+  not run without explicit live authorization.
+- Selected-file safety checks must scan selected files and manifest sidecars
+  directly for trailing whitespace, conflict marker text, allowed target scope,
+  and unexpected selected-file diffs independent of Git tracking state.
+- Finalizer templates must mirror the prefinalizer syntax and selected-file
+  safety checks before staging, commit, push, or PR creation.
+
+Syntax failures, trailing whitespace failures, conflict marker hits, selected
+file scope drift, or unsafe diffs block before finalizer command execution,
+worker worktree mutation, commit, push, or worker PR creation.
+
 ## Finalizer Success Truth Gate
 
 Finalizer success is not accepted from role-authored claims alone. Before any
@@ -138,14 +192,19 @@ finalizer success, commit, push, or PR creation is accepted, the controller must
 perform a direct selected artifact safety gate over selected target artifacts
 and generated manifest sidecars, including untracked role-worktree artifacts:
 
-- Whitespace scan over selected artifacts.
-- Conflict-marker scan over selected artifacts.
+- Trailing whitespace scan over selected artifacts.
+- Conflict marker scan over selected artifacts.
 - Scope check against the allowed changed-file list.
+- Selected-file diff safety check independent of Git tracking state.
+- Syntax check for selected runtime source/test files when the language has a
+  safe non-live syntax gate.
 - Generated sidecar check against the derived target paths.
 
 The finalizer-result proof must include:
 
 - Finalizer-result `status` and `completion`.
+- Verified finalization status.
+- `finalizer_source_mode` and `packet_repo_root` when used.
 - Finalizer-worker worktree path.
 - Worker branch.
 - Commit hash.
@@ -169,6 +228,8 @@ include:
 
 - Schema/version id.
 - Bead id, decision id, worker id, finalizer id, and source role.
+- `finalizer_source_mode`.
+- `packet_repo_root` when the source mode is `packet_repo_root`.
 - `isolated_runtime_root`.
 - `prohibited_repo_roots`.
 - Source artifact root and selected artifact source path.

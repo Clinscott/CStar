@@ -42,6 +42,13 @@ Required inputs:
 - Validation commands.
 - Expected receipts, artifact manifest, and CStar Console witness evidence.
 - Escalation class.
+- Proof artifact class: real code/test or docs/evidence.
+- `finalizer_source_mode`, with `packet_repo_root` for real code/test proofs
+  when the finalizer reads selected artifacts from the isolated packet repo.
+- Selected source/test target files and docs/evidence target files, kept as
+  separate lists.
+- JS/MJS/CJS syntax check commands such as `node --check <file>` for selected
+  runtime source/test targets.
 - Current MM thread id and PMT reporting path health.
 - Quota/runtime availability evidence, including appended turns without agent
   response and any `systemError` or runtime failure text.
@@ -81,7 +88,9 @@ Allowed outputs:
 - Production-readiness checklist instance.
 - Stop-condition report.
 - Proposed CStar result closeout text.
-- Selected-artifact whitespace/conflict-marker scan checklist.
+- Selected-artifact trailing whitespace, conflict marker, and selected-file diff
+  safety checklist.
+- Prefinalizer syntax/output-quality checklist.
 - Manifest sidecar schema checklist.
 - Finalizer-result truthfulness checklist.
 
@@ -107,6 +116,14 @@ Disallowed outputs:
   `/home/morderith/Corvus/cstar-console`.
 - Live MongoDB proof without explicit authorization, `CSTAR_MONGO_URI`, and the
   required live flag.
+- Counting docs/evidence or lint-only artifacts as the required real code/test
+  proof.
+- Forcing operational proof prose into runtime source/test files.
+- Proceeding with missing `finalizer_source_mode`, ambiguous default source
+  selection, or multiple possible artifact sources.
+- Running a finalizer command, mutating a worker worktree, committing, pushing,
+  or opening a worker PR after JS/MJS/CJS syntax, trailing whitespace, conflict
+  marker, selected-file diff safety, manifest, or verified finalization failure.
 
 ## Gates
 
@@ -140,10 +157,33 @@ Disallowed outputs:
   selected target artifacts and generated manifest sidecars, including
   untracked role-worktree artifacts, before finalizer success, commit, push, or
   PR creation.
+- The skill must distinguish real code/test proof targets from docs/evidence
+  targets. Real code/test targets may be source/test files and generated
+  manifest sidecars; docs/evidence targets remain subject to stricter proof
+  narrative, stale-lifecycle, retry/decision, finalizer truthfulness, and
+  manifest evidence strictness.
+- The skill must not count docs/evidence or lint-only work as the required
+  Proof 3 real code/test proof, and must not require operational proof prose
+  inside runtime source/test files.
+- The skill must require `finalizer_source_mode` when proof shape depends on
+  artifact source selection. Real code/test proofs normally declare
+  `packet_repo_root`. Missing source mode, default source selection ambiguity, or
+  multiple source candidates stop before finalizer mutation.
+- The skill must require safe prefinalizer JS/MJS/CJS syntax gates such as
+  `node --check <file>` before finalizer command execution, worker worktree
+  mutation, commit, push, or worker PR creation. Runnable non-live tests should
+  run when dependency-safe; live MongoDB, secrets, config, and host-sync paths
+  remain `ENV_GATED`.
+- The skill must require selected-file safety directly over selected targets and
+  manifest sidecars: trailing whitespace, conflict marker text, selected-file
+  diff safety, and allowed target scope independent of Git tracking state.
+- The skill must make finalizer templates mirror prefinalizer syntax and
+  selected-file safety checks before staging, commit, push, or PR creation.
 - The skill must reject role-authored unverified finalizer success claims. No
   finalizer success is accepted without finalizer-result status/completion,
-  finalizer-worker worktree, worker branch, commit hash, `push_ok`, PR
-  URL/state, changed files, target paths, artifact source/root metadata,
+  verified finalization, `finalizer_source_mode`, `packet_repo_root` when used,
+  finalizer-worker worktree, worker branch, commit hash, `push_ok`, PR URL/state,
+  changed files, target paths, artifact source/root metadata,
   `isolated_runtime_root`, and `prohibited_repo_roots`.
 - The skill must preserve the metadata/access split: prohibited roots remain
   evidence metadata while worker-facing access paths and commands use isolated

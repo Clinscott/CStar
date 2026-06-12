@@ -33,6 +33,11 @@ Corvus Forge is not temporary-production-ready until all are true:
 - User-owned branch advancement is classified and revalidated in an isolated
   exact-head environment before it becomes the new base.
 - Three clean live-fire proofs are accepted by CoS.
+- Proof 1 is accepted as the initial finalization/manifest proof.
+- Proof 2 is accepted from a second repo.
+- Proof 3 is accepted as a real code/test proof, with selected runtime source or
+  test targets, generated manifest sidecars, verified finalization, and PMT
+  review. Docs/evidence or lint-only proof packages do not satisfy Proof 3.
 - At least two repos participate in accepted proofs.
 - At least one proof produces a real code/test worker PR, not docs-only work.
 - No dirty-root mutation occurs during dispatch or finalization.
@@ -65,17 +70,29 @@ Corvus Forge is not temporary-production-ready until all are true:
   not count against operator `max_changed_files` when produced as evidence
   sidecars, but they must not conceal product/source changes.
 - Generated manifest sidecars include schema/version id, bead id, decision id,
-  finalizer id, source role, `isolated_runtime_root`,
-  `prohibited_repo_roots`, source artifact root, target paths, path/hash
-  metadata, branch/commit metadata, push state, PR URL/state, and
-  finalizer-result status/completion.
+  finalizer id, source role, `finalizer_source_mode`, `packet_repo_root` when
+  used, `isolated_runtime_root`, `prohibited_repo_roots`, source artifact root,
+  target paths, path/hash metadata, branch/commit metadata, push state, PR
+  URL/state, and finalizer-result status/completion.
 - Finalizer success requires controller-verified finalizer-result truthfulness:
-  finalizer-worker worktree, worker branch, commit hash, `push_ok`, PR
-  URL/state, changed files, target paths, artifact source/root metadata,
+  verified finalization status, `finalizer_source_mode`, `packet_repo_root`
+  when used, finalizer-worker worktree, worker branch, commit hash, `push_ok`,
+  PR URL/state, changed files, target paths, artifact source/root metadata,
   `isolated_runtime_root`, and `prohibited_repo_roots`.
 - Selected target artifacts and generated manifest sidecars, including
-  untracked role-worktree artifacts, pass direct whitespace and conflict-marker
-  scans before finalizer success, commit, push, or PR creation.
+  untracked role-worktree artifacts, pass direct trailing whitespace, conflict
+  marker, and selected-file diff safety scans before finalizer success, commit,
+  push, or PR creation.
+- JS/MJS/CJS runtime source/test targets pass safe syntax validation such as
+  `node --check <file>` before finalizer command execution, worker worktree
+  mutation, commit, push, or worker PR creation.
+- Runnable non-live tests run when dependency-safe. Live MongoDB, secrets,
+  config, and host-sync paths remain `ENV_GATED`.
+- Runtime source/test targets must pass syntax/output-quality validation and
+  finalizer manifest/lint requirements without embedding operational proof prose
+  inside source code. Docs/evidence artifacts remain subject to proof narrative,
+  stale-lifecycle, retry/decision, finalizer truthfulness, and manifest evidence
+  strictness.
 - Prohibited roots are evidence metadata, not worker access paths. Worker-facing
   commands use isolated runtime roots, and isolated runtime roots are not
   mislabeled as prohibited roots.
@@ -95,6 +112,8 @@ Before dispatch, confirm:
 - One finalizer is named.
 - Branch ownership lock is present.
 - YOLO/headless policy is explicit.
+- `finalizer_source_mode` is explicit when proof shape depends on artifact source
+  selection; real code/test proofs normally use `packet_repo_root`.
 - Exactly one complete allowed role artifact source is present for deterministic
   finalizer handoff.
 - Zero role artifact sources, multiple role artifact sources, missing runtime
@@ -133,7 +152,10 @@ detected before prelaunch, isolated exact-head validation is missing after branc
 advancement, MongoDB/host-sync proof would run outside `ENV_GATED` constraints
 without explicit live authorization, or dirty user-owned work would be mutated.
 
-Also stop for missing selected-artifact scans, missing manifest sidecar runtime
-metadata, missing finalizer-result proof, role-authored unverified finalizer
-claims, stale lifecycle text, duplicate worker branch/PR, dirty or prohibited
-root access, main/master target, or a new yellow/red gate without approval.
+Also stop for missing selected-artifact scans, missing selected-file diff safety,
+missing JS/MJS/CJS syntax gate for runtime source/test targets, missing manifest
+sidecar runtime metadata, missing `finalizer_source_mode`, multi-source/default
+source ambiguity, missing finalizer-result proof or verified finalization,
+role-authored unverified finalizer claims, stale lifecycle text, duplicate
+worker branch/PR, dirty or prohibited root access, main/master target, or a new
+yellow/red gate without approval.
