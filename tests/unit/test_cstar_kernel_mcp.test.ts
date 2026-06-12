@@ -83,6 +83,9 @@ import {
     handleIntentRoute,
     handleWarden,
     handleTelemetry,
+    detectAuguryTargetDivergence,
+    decideAugurySessionRouting,
+    resolveAuguryCurrentIntentCategory,
 } from '../../src/tools/cstar-kernel-mcp.js';
 
 function makeSpoke(overrides: Partial<HallMountedSpokeRecord> = {}): HallMountedSpokeRecord {
@@ -137,12 +140,85 @@ describe('🔱 CStar Kernel MCP Tools', () => {
         assert.ok(result.content);
         const parsed = JSON.parse(result.content[0].text);
         if (parsed.error) console.error('Augury Error:', parsed.error);
-        assert.strictEqual(parsed.intent_category, 'ORCHESTRATE');
+        assert.strictEqual(parsed.intent_category, 'VERIFY');
         assert.ok(typeof parsed.expert === 'string');
         assert.ok(typeof parsed.expert_label === 'string');
         assert.ok(typeof parsed.expert_lens === 'string');
         assert.ok(typeof parsed.expert_signature_question === 'string');
         assert.ok(Array.isArray(parsed.expert_guardrails));
+        assert.strictEqual(parsed.routing_provenance.source, 'deterministic');
+        assert.strictEqual(parsed.routing_provenance.deterministic.intent_category, 'VERIFY');
+    });
+
+    it('detects stale Augury session target divergence', () => {
+        const divergence = detectAuguryTargetDivergence(
+            ['/home/morderith/Corvus/cstar-console', '/home/morderith/Corvus/Moonshot'],
+            ['.agents/skill_registry.json', 'src/packaging/distributions.ts'],
+            '/home/morderith/Corvus/CStar',
+        );
+
+        assert.strictEqual(divergence.diverged, true);
+        assert.match(divergence.reason ?? '', /not fully covered/);
+        assert.ok(divergence.requested_target_paths.some((targetPath) => targetPath.endsWith('/Corvus/cstar-console')));
+
+        const overlap = detectAuguryTargetDivergence(
+            ['/home/morderith/Corvus/CStar/src/tools/cstar-kernel-mcp.ts'],
+            ['src/tools'],
+            '/home/morderith/Corvus/CStar',
+        );
+        assert.strictEqual(overlap.diverged, false);
+    });
+
+    it('routes explicit prompt targets instead of stale active session context', () => {
+        const grammar = {
+            SCORE: { triggers: ['audit'], default_path: 'calculus', tier: 'PRIME' },
+            HARDEN: { triggers: ['harden'], default_path: 'contract_hardening', tier: 'WEAVE' },
+        };
+        const currentRoute = resolveAuguryCurrentIntentCategory(
+            [
+                'Run',
+                'Corvus',
+                'Forge',
+                'hardening',
+                'cycle:',
+                'audit',
+                'SwarmForge',
+                'harden',
+                'gates/dispatch/review',
+            ],
+            grammar,
+        );
+
+        assert.strictEqual(currentRoute?.category, 'HARDEN');
+        assert.deepStrictEqual(currentRoute?.matched_triggers, ['harden']);
+
+        const decision = decideAugurySessionRouting({
+            hasSessionRoute: true,
+            hasExplicitTargetPaths: true,
+            targetDiverged: true,
+            deterministicAvailable: true,
+        });
+
+        assert.strictEqual(decision.source, 'deterministic');
+        assert.strictEqual(decision.use_session_as_primary, false);
+        assert.strictEqual(decision.stale_session_demoted, true);
+        assert.strictEqual(decision.stale_session_divergence_blocker, false);
+        assert.deepStrictEqual(decision.divergence_warnings, ['stale_session_target_divergence']);
+    });
+
+    it('blocks stale session divergence only when no safe current route exists', () => {
+        const decision = decideAugurySessionRouting({
+            hasSessionRoute: true,
+            hasExplicitTargetPaths: true,
+            targetDiverged: true,
+            deterministicAvailable: false,
+        });
+
+        assert.strictEqual(decision.source, 'blocked');
+        assert.strictEqual(decision.use_session_as_primary, false);
+        assert.strictEqual(decision.stale_session_demoted, false);
+        assert.strictEqual(decision.stale_session_divergence_blocker, true);
+        assert.match(decision.required_operator_decision ?? '', /Clarify/);
     });
 
     it('cstar_doctor tool handler should return health status', async () => {
