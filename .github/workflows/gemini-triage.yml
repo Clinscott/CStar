@@ -1,4 +1,4 @@
-name: '🔀 Gemini Triage'
+name: '🔀 Gemini Triage (reusable, non-authoritative)'
 
 on:
   workflow_call:
@@ -7,6 +7,11 @@ on:
         type: 'string'
         description: 'Any additional context from the request'
         required: false
+
+# Advisory-only reusable workflow. Do not treat google-github-actions/run-gemini-cli
+# output, failures, labels, or comments as Corvus validation authority. PMT local
+# validation evidence, CStar validation/result ids, and CStar Console witness
+# receipts/status remain authoritative.
 
 concurrency:
   group: '${{ github.workflow }}-triage-${{ github.event_name }}-${{ github.event.pull_request.number || github.event.issue.number }}'
