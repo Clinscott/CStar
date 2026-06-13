@@ -20,7 +20,8 @@
   "type": "module",
   "bin": {
     "cstar": "./bin/cstar.js",
-    "cstar-kernel-mcp": "./bin/cstar-kernel-mcp.js"
+    "cstar-kernel-mcp": "./bin/cstar-kernel-mcp.js",
+    "cstar-sync-worker": "./bin/cstar-sync-worker.js"
   },
   "main": "cstar.ts",
   "directories": {
@@ -33,6 +34,9 @@
     "test:node": "node scripts/run-tsx.mjs --test tests/*.test.ts tests/unit/*.test.ts tests/unit/war_game/*.test.ts tests/unit/spoke_discovery/*.test.ts tests/integration/*.test.ts tests/crucible/*.ts",
     "test:ipc": "node scripts/run-tsx.mjs --test tests/integration/ipc/*.test.ts",
     "test:empire": "node scripts/run-tsx.mjs --test tests/empire_tests/test_corvus_process_empire.ts tests/empire_tests/test_gateway_empire.ts",
+    "sync:worker": "node bin/cstar-sync-worker.js",
+    "sync:once": "node bin/cstar-sync-worker.js --once",
+    "sync:smoke": "node scripts/mongo_smoke.mjs",
     "build:distributions": "node scripts/run-tsx.mjs scripts/build_distributions.ts",
     "build:release-bundles": "node scripts/run-tsx.mjs scripts/build_release_bundles.ts",
     "build:release-archives": "node scripts/run-tsx.mjs scripts/build_release_archives.ts",
@@ -75,6 +79,7 @@
     "graphology-library": "^0.8.0",
     "gsap": "^3.14.2",
     "maath": "^0.10.8",
+    "mongodb": "^6.21.0",
     "pino-pretty": "^13.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
