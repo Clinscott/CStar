@@ -628,6 +628,9 @@ describe('🔱 CStar Kernel MCP Tools', () => {
             assert.strictEqual(parsed.status, 'ok');
             assert.strictEqual(parsed.spoke.slug, 'alpha');
             assert.strictEqual(parsed.spoke.spoke_id, 'spoke:alpha');
+            assert.strictEqual(parsed.spoke.hub_repo_id, 'repo:test-spoke');
+            assert.strictEqual(parsed.spoke.spoke_repo_id, 'repo:/tmp/alpha');
+            assert.match(parsed.spoke.repo_id_semantics, /hub-scoped mounted-spoke owner/);
         });
 
         it('cstar_spoke inspect errors on unknown slug', async () => {
@@ -922,6 +925,8 @@ describe('🔱 CStar Kernel MCP Tools', () => {
             spokeStore.set('rich-spoke', makeSpoke({
                 slug: 'rich-spoke',
                 spoke_id: 'spoke:rich-spoke',
+                repo_id: 'repo:hub',
+                root_path: '/tmp/rich-spoke',
                 default_branch: 'trunk',
                 remote_url: 'https://example.com/repo.git',
                 last_scan_at: 1700000000000,
@@ -937,6 +942,51 @@ describe('🔱 CStar Kernel MCP Tools', () => {
             assert.strictEqual(entry.last_scan_at, 1700000000000);
             assert.strictEqual(entry.last_health_at, 1700000005000);
             assert.strictEqual(entry.accept_beads, true);
+            assert.strictEqual(entry.hub_repo_id, 'repo:hub');
+            assert.strictEqual(entry.spoke_repo_id, 'repo:/tmp/rich-spoke');
+            assert.match(entry.repo_id_semantics, /hub-scoped mounted-spoke owner/);
+        });
+
+        it('cstar_spoke project refreshes default_branch from spoke git metadata while preserving hub repo scope', async () => {
+            const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'spoke-project-default-'));
+            const originalSave = database.saveHallMountedSpoke;
+            mock.method(database, 'saveHallMountedSpoke', (record: any) => {
+                spokeStore.set(record.slug, record);
+            });
+            try {
+                await import('node:child_process').then(({ execFileSync }) => {
+                    execFileSync('git', ['-C', tmpRoot, 'init'], { stdio: 'ignore' });
+                    execFileSync('git', ['-C', tmpRoot, 'config', 'user.email', 'test@example.com'], { stdio: 'ignore' });
+                    execFileSync('git', ['-C', tmpRoot, 'config', 'user.name', 'Test User'], { stdio: 'ignore' });
+                    fs.writeFileSync(path.join(tmpRoot, 'README.md'), '# Demo\n');
+                    execFileSync('git', ['-C', tmpRoot, 'add', 'README.md'], { stdio: 'ignore' });
+                    execFileSync('git', ['-C', tmpRoot, 'commit', '-m', 'init'], { stdio: 'ignore' });
+                    execFileSync('git', ['-C', tmpRoot, 'branch', '-M', 'work/demo'], { stdio: 'ignore' });
+                    execFileSync('git', ['-C', tmpRoot, 'update-ref', 'refs/remotes/origin/master', 'HEAD'], { stdio: 'ignore' });
+                    execFileSync('git', ['-C', tmpRoot, 'symbolic-ref', 'refs/remotes/origin/HEAD', 'refs/remotes/origin/master'], { stdio: 'ignore' });
+                });
+                spokeStore.set('project-target', makeSpoke({
+                    slug: 'project-target',
+                    spoke_id: 'spoke:project-target',
+                    repo_id: 'repo:hub',
+                    root_path: tmpRoot,
+                    default_branch: 'main',
+                    metadata: { projection: { git_branch: 'old', git_head: 'old' } },
+                }));
+
+                const result = await handleSpoke({ action: 'project', slug: 'project-target' });
+                const parsed = JSON.parse(result.content[0].text);
+                assert.strictEqual(parsed.status, 'projected');
+                const stored = spokeStore.get('project-target');
+                assert.ok(stored);
+                assert.strictEqual(stored.repo_id, 'repo:hub');
+                assert.strictEqual(stored.default_branch, 'master');
+                assert.strictEqual((stored.metadata?.projection as any).git_branch, 'work/demo');
+                assert.match((stored.metadata?.projection as any).git_head, /^[0-9a-f]{40}$/);
+            } finally {
+                (database.saveHallMountedSpoke as any) = originalSave;
+                fs.rmSync(tmpRoot, { recursive: true, force: true });
+            }
         });
 
         it('cstar_spoke list synthesizes accept_beads from write_policy when metadata is absent', async () => {

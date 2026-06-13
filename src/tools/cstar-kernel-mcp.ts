@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import fs from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
@@ -2957,6 +2958,43 @@ function normalizeSpokeMcpSlug(input: string): string {
     return input.trim().toLowerCase().replace(/[^a-z0-9._-]+/g, '-');
 }
 
+function readGitOutput(rootPath: string, args: string[]): string | undefined {
+    try {
+        return execFileSync('git', ['-C', rootPath, ...args], {
+            encoding: 'utf8',
+            stdio: ['ignore', 'pipe', 'ignore'],
+        }).trim() || undefined;
+    } catch {
+        return undefined;
+    }
+}
+
+function detectSpokeDefaultBranch(rootPath: string): string | undefined {
+    const remoteHead = readGitOutput(rootPath, ['remote', 'show', 'origin']);
+    const match = remoteHead?.match(/HEAD branch:\s*(\S+)/);
+    if (match?.[1]) {
+        return match[1];
+    }
+    const symbolicRef = readGitOutput(rootPath, ['symbolic-ref', '--short', 'refs/remotes/origin/HEAD']);
+    if (symbolicRef?.startsWith('origin/')) {
+        return symbolicRef.slice('origin/'.length);
+    }
+    return readGitOutput(rootPath, ['branch', '--show-current']);
+}
+
+function enrichSpokeForMcp(spoke: HallMountedSpokeRecord): HallMountedSpokeRecord & {
+    hub_repo_id: string;
+    spoke_repo_id: string;
+    repo_id_semantics: string;
+} {
+    return {
+        ...spoke,
+        hub_repo_id: spoke.repo_id,
+        spoke_repo_id: buildHallRepositoryId(normalizeHallPath(spoke.root_path)),
+        repo_id_semantics: 'hub-scoped mounted-spoke owner; use spoke_repo_id for the spoke root repository identity',
+    };
+}
+
 export async function handleSpoke({
     action,
     slug,
@@ -3004,6 +3042,9 @@ export async function handleSpoke({
                     projection_status: s.projection_status,
                     default_branch: s.default_branch ?? null,
                     remote_url: s.remote_url ?? null,
+                    hub_repo_id: s.repo_id,
+                    spoke_repo_id: buildHallRepositoryId(normalizeHallPath(s.root_path)),
+                    repo_id_semantics: 'hub-scoped mounted-spoke owner; use spoke_repo_id for the spoke root repository identity',
                     last_scan_at: s.last_scan_at ?? null,
                     last_health_at: s.last_health_at ?? null,
                     accept_beads:
@@ -3025,7 +3066,7 @@ export async function handleSpoke({
             if (!found) {
                 return textResponse({ error: `spoke not registered: ${normalized}` }, true);
             }
-            return textResponse({ status: 'ok', spoke: found });
+            return textResponse({ status: 'ok', spoke: enrichSpokeForMcp(found) });
         }
         if (action === 'unlink') {
             if (!slug) {
@@ -3121,7 +3162,7 @@ export async function handleSpoke({
                 kind: kind ?? existing?.kind ?? 'local',
                 root_path: absolutePath.replace(/\\/g, '/'),
                 remote_url: remote_url ?? existing?.remote_url,
-                default_branch: branch ?? existing?.default_branch,
+                default_branch: branch ?? detectSpokeDefaultBranch(absolutePath) ?? existing?.default_branch,
                 mount_status: 'active',
                 trust_level: resolvedTrust,
                 write_policy: resolvedWritePolicy,
@@ -3216,8 +3257,10 @@ export async function handleSpoke({
             }
 
             const now = Date.now();
+            const refreshedDefaultBranch = detectSpokeDefaultBranch(found.root_path) ?? found.default_branch;
             database.saveHallMountedSpoke({
                 ...found,
+                default_branch: refreshedDefaultBranch,
                 projection_status: 'current',
                 last_scan_at: projection.projection.projected_at,
                 last_health_at: now,
