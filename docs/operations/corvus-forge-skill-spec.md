@@ -33,6 +33,8 @@ Required inputs:
 
 - CStar bead id and status.
 - GitHub issue link.
+- Corvus Focus Charter scope classification: `active`,
+  `business-separated`, `parked/watch-only`, or `reactivation-requested`.
 - PMT work branch.
 - Worker branch and worker PR target branch.
 - Decision id and decision scope.
@@ -141,6 +143,10 @@ Disallowed outputs:
 
 - The skill must preserve the route:
   `Researcher/PPR -> CStar bead -> GitHub issue -> PMT work branch -> Hermes MiniMax SwarmForge -> worker branch -> worker PR -> PMT review -> MM summary -> CoS decision`.
+- The skill must require Corvus Focus Charter scope classification before
+  packet assembly. Parked/watch-only work cannot enter live-fire, PMT, or
+  worker execution unless Morderith explicitly reactivates it and CStar can
+  represent the reactivation gate.
 - The skill must require packaging mode: `PR_REQUIRED`,
   `LOCAL_EXCEPTION_WITH_FOLLOWUP_PR`, or `NO_GITHUB_DOCS_ONLY`.
 - The skill must state that GitHub Actions are advisory/non-blocking unless a

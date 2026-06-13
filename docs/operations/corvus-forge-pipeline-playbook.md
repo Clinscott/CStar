@@ -15,6 +15,22 @@ Every step must retain the same CStar bead id and GitHub issue link. Work that
 cannot name its bead, issue, branch, validation evidence, and reviewer verdict
 is not ready for CoS decision.
 
+## Focus Charter Scope Gate
+
+Before Researcher/PPR work enters the Forge route, the PMT or CoS packet must
+classify the work against the Corvus Focus Charter:
+
+- `active`: CStar, Kernel, Researcher, Corvus Forge, Skills, XO, or Moonshot.
+- `business-separated`: ENM or another business surface with its own approved
+  business gate.
+- `parked/watch-only`: any project not currently active.
+- `reactivation-requested`: parked work that Morderith explicitly wants to
+  reconsider.
+
+Forge does not spend live-fire, PMT, or worker capacity on parked/watch-only
+work by default. Reactivation requires the charter's reactivation gate before a
+packet can become executable.
+
 ## Authority Model
 
 - CStar remains the authority for beads, acceptance criteria, lifecycle state,
