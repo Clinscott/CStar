@@ -247,6 +247,29 @@ describe('host sync worker — export (down)', () => {
         assert.deepEqual(mirror.deletes[0], { proposal_id: { $nin: ['A'] } });
     });
 
+    it('skips reconcile deletion when the export is empty', async () => {
+        const mirror = new FakeMirror();
+        const errors: Array<{ event: string; fields: Record<string, unknown> }> = [];
+        const cli = new FakeCli((argv) => (argv[0] === 'list' ? ok({ proposals: [] }) : ok()));
+        const worker = new SyncWorker({
+            intentQueue: new FakeIntentQueue([]),
+            mirror,
+            cli,
+            config: { runSync: false, reconcile: true, maxIntentsPerTick: 500 },
+            logger: {
+                info() {},
+                error(event, fields = {}) {
+                    errors.push({ event, fields });
+                },
+            },
+        });
+
+        const summary = await worker.exportMirror();
+        assert.deepEqual(summary, { exported: 0, reconciled: false });
+        assert.equal(mirror.deletes.length, 0);
+        assert.equal(errors[0]?.event, 'mirror.reconcile_skipped_empty_export');
+    });
+
     it('throws when list --history fails (so the tick records the error)', async () => {
         const cli = new FakeCli(() => fail('export boom'));
         const worker = new SyncWorker({

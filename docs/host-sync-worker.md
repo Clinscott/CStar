@@ -22,6 +22,9 @@ until this worker applies them.
    with **argv arrays** (`execFile`, never `shell:true`, never string
    interpolation) — operator-supplied intent fields are passed as discrete argv
    elements, so they cannot inject commands.
+   The child CLI receives only a minimal allowlisted environment (`PATH`, `HOME`,
+   user/temp process basics, and `CSTAR_GH_MODE` / `CSTAR_GH_MOCK_STORE`).
+   `CSTAR_MONGO_URI` and unrelated API keys are not inherited by the child.
 2. The worker **writes** `proposal_mirror` (the up push) and **reads+updates**
    `intent_queue`. Mirror reads by the console never block on the worker.
 3. `CSTAR_MONGO_URI` is a secret and is **never logged**. Use the redacted
@@ -81,6 +84,9 @@ Collection names are fixed: **`proposal_mirror`** and **`intent_queue`**.
    `pennyone.db` before export (`CSTAR_SYNC_RUN_SYNC`).
 3. **Export (down):** run `list --history`, upsert every proposal into
    `proposal_mirror` by `proposal_id` (optionally reconcile deletions).
+   Reconcile is fail-closed on empty exports: when `CSTAR_SYNC_RECONCILE=true`
+   and `list --history` returns zero proposals, the worker logs
+   `mirror.reconcile_skipped_empty_export` and does not delete mirror rows.
 
 ### Intent → CLI argv mapping
 
@@ -148,4 +154,14 @@ Prefer a timer instead of a daemon? Use `--once` from a
   (`npm run sync:smoke`): connects, round-trips one synthetic intent through a
   stubbed CLI into ephemeral collections, confirms it flips to `applied`, and
   confirms a mirror upsert/read. It is a no-op when `CSTAR_MONGO_URI` is unset
-  and prints booleans/ids only — never the URI. Run it on the open-egress host.
+  and prints booleans/ids only — never the URI. Run it on the open-egress host
+  only after explicit live-smoke approval.
+
+## Canon fit
+
+This worker is CStar control-plane infrastructure, not an autonomous authority
+surface. It supports the Focus Charter by keeping CStar and the Console in the
+active control-plane lane, and it preserves the White Paper authority split:
+Mongo is a mailbox/projection, `pennyone.db` remains authoritative, the pipeline
+CLI remains the sanctioned writer, and live/external effects stay behind
+operator gates.

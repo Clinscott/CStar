@@ -12,6 +12,44 @@ import path from 'node:path';
 
 import type { CliResult, CliRunner } from './types.js';
 
+const CHILD_ENV_ALLOWLIST = [
+    'PATH',
+    'HOME',
+    'USER',
+    'LOGNAME',
+    'SHELL',
+    'TMPDIR',
+    'TEMP',
+    'TMP',
+    'SystemRoot',
+    'WINDIR',
+    'ComSpec',
+    'PATHEXT',
+    'CSTAR_GH_MODE',
+    'CSTAR_GH_MOCK_STORE',
+] as const;
+
+/**
+ * Build the minimal environment passed to the sanctioned pipeline CLI.
+ *
+ * The worker itself needs `CSTAR_MONGO_URI`; the child CLI does not. Keep the
+ * child surface narrow so mailbox credentials and unrelated API keys are not
+ * inherited across the process boundary.
+ *
+ * @param baseEnv - Source environment to filter.
+ * @returns A minimal, allowlisted child environment.
+ */
+export function buildPipelineCliEnv(baseEnv: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
+    const env: NodeJS.ProcessEnv = {};
+    for (const key of CHILD_ENV_ALLOWLIST) {
+        const value = baseEnv[key];
+        if (value !== undefined) {
+            env[key] = value;
+        }
+    }
+    return env;
+}
+
 /** Construction options for {@link PipelineCli}. */
 export interface PipelineCliOptions {
     /** Absolute path to the cstar-console checkout (contains `scripts/…`). */
@@ -20,7 +58,7 @@ export interface PipelineCliOptions {
     pythonBin?: string;
     /** Explicit path to the pipeline script (default `<consoleDir>/scripts/sync_research_proposals.py`). */
     scriptPath?: string;
-    /** Environment for the child process (default `process.env`). The Mongo URI is never needed here. */
+    /** Environment for the child process (filtered through {@link buildPipelineCliEnv}). */
     env?: NodeJS.ProcessEnv;
     /** Per-invocation timeout in ms (default 120000). */
     timeoutMs?: number;
@@ -62,7 +100,7 @@ export class PipelineCli implements CliRunner {
         this.pythonBin = options.pythonBin ?? 'python3';
         this.scriptPath =
             options.scriptPath ?? path.join(options.consoleDir, 'scripts', 'sync_research_proposals.py');
-        this.env = options.env ?? process.env;
+        this.env = buildPipelineCliEnv(options.env ?? process.env);
         this.timeoutMs = options.timeoutMs ?? 120_000;
         this.maxBuffer = options.maxBuffer ?? 16 * 1024 * 1024;
     }

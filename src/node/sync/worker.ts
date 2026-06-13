@@ -223,8 +223,14 @@ export class SyncWorker {
 
         let reconciled = false;
         if (this.config.reconcile) {
-            await this.mirror.deleteMany(reconcileFilter(proposals));
-            reconciled = true;
+            if (proposals.length === 0) {
+                this.logger.error('mirror.reconcile_skipped_empty_export', {
+                    reason: 'empty export would delete all mirror documents',
+                });
+            } else {
+                await this.mirror.deleteMany(reconcileFilter(proposals));
+                reconciled = true;
+            }
         }
 
         return { exported: proposals.length, reconciled };
