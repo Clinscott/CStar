@@ -14,6 +14,27 @@ perform live dispatch, merge, deploy, restart, mutate secrets/config, write
 Hall/SQLite directly, install itself durably, or roll out PMT memory changes
 without separate approval.
 
+## Codex Runtime Binding
+
+CStar is the canonical doctrine source, but Codex follows rules only when they
+are visible in the active runtime. Corvus Forge rules must therefore be bound in
+all three layers:
+
+- Canonical layer: CStar docs define the durable rules and review standard.
+- Recall layer: the local `corvus-forge` Codex skill summarizes the active
+  gates and points back to CStar doctrine.
+- Prompt layer: CoS/MM/PMT/worker delegation packets repeat the relevant gates
+  for the current task, including exact head, dirty-root, live-proof, evidence
+  digest, deep-review, and explicit-file packaging rules.
+
+When the CoS thread is rooted outside CStar, such as in Corvus, Codex must still
+load the `corvus-forge` skill for Forge/PR-readiness work and must cite the
+active CStar doctrine in the delegation packet. A Corvus-root `AGENTS.md` may
+point to these rules, but it is a pointer, not the authority source.
+
+If model-visible runtime instructions conflict with CStar doctrine, stop and
+escalate instead of choosing the weaker rule.
+
 ## Trigger Signals
 
 Use the skill only after docs/runtime surfaces are accepted and CoS separately
@@ -77,6 +98,8 @@ Optional inputs:
 - Existing CStar result ids.
 - PR #26 and PR #28 disposition notes.
 - Local bare-remote and fake-gh non-live integration test location.
+- Prior author/reviewer context when it is relevant and safe to summarize.
+- Skill inventory or hygiene report when changing Forge, Corvus, or PMT skills.
 
 ## Outputs
 
@@ -95,6 +118,13 @@ Allowed outputs:
 - Prefinalizer syntax/output-quality checklist.
 - Manifest sidecar schema checklist.
 - Finalizer-result truthfulness checklist.
+- Deep PR review packet: behavior, root cause or ownership boundary, fix
+  quality, proof checked, residual risk, and provenance when traceable.
+- Redacted evidence digest for public or durable handoff surfaces.
+- Decision-ready owner brief with recommendation, proof, tradeoffs, residual
+  risk, and exact choices.
+- Skill hygiene checklist for duplicate triggers, stale skills, unused workflow
+  rules, and prompt-budget pressure.
 
 Disallowed outputs:
 
@@ -219,6 +249,31 @@ Disallowed outputs:
   live Mongo proof is separately authorized with `CSTAR_MONGO_URI` and the
   required live flag. Forge live-fire and docs validation do not imply live Mongo
   authorization.
+- The skill must require a deep PR review packet before accepting non-trivial
+  PMT/worker PRs or CoS merge decisions. The packet must state the behavior or
+  bug class, the root cause or ownership boundary when known, the best bounded
+  fix, proof checked, residual risk, and provenance when traceable.
+- The skill must produce redacted evidence digests instead of raw transcripts
+  for public PR bodies, CStar ledgers, or durable review artifacts. Evidence
+  digests may include visible decisions, validation commands, result ids,
+  artifact hashes, PR links, and blockers; they must exclude secrets, raw tool
+  dumps, unrelated local paths, private session content, and hidden prompts.
+- The skill must make owner questions decision-ready. It must not ask for
+  `merge`, `close`, `waive`, or `provide access` using only a URL or status
+  label; it must include recommendation, proof, tradeoffs, residual risk, and
+  exact choices.
+- The skill must preserve explicit-file packaging discipline. Commits,
+  finalizer staging, and generated manifest sidecars must name exact target
+  paths. Broad staging such as `git add .` is not acceptable for Forge-controlled
+  work.
+- The skill must include skill hygiene before broad rollout or skill mutation:
+  check duplicate triggers, stale local copies, unused rules, and prompt-budget
+  pressure, then keep only rules that improve the active Corvus route.
+- The skill must preserve runtime binding. Any CoS/MM/PMT/worker prompt that
+  asks for Forge review, PR readiness, live-fire, or merge decisions must carry
+  the relevant CStar gates inline, because downstream agents may not read the
+  full CStar docs. If a thread cannot see the local `corvus-forge` skill or the
+  CStar docs, it must receive the exact gate excerpt in the prompt.
 
 ## Installation Posture
 

@@ -71,7 +71,27 @@ Before approval or merge, Codex/CoS must verify:
 8. Dirty local roots are completely untouched: no cleaning, resetting, checking out, overwriting, stashing, deleting, or other mutation in the local working directory.
 9. Required GitHub checks pass when branch protection makes them mandatory. If checks are merely advisory, PMT/CoS local exact-head validation can satisfy the gate.
 10. CStar health and route checks pass for CStar, Forge, Researcher, or control-plane PRs.
-11. Any waived gate is named and justified.
+11. Non-trivial PRs have a deep-review packet that names the changed surface, root cause or purpose, proof checked, residual risk, and whether the current fix is the best bounded shape.
+12. Any waived gate is named and justified.
+
+## Deep Review Standard
+
+For non-trivial runtime, control-plane, Forge, Researcher, or integration PRs,
+CoS/PMT review must answer:
+
+- What behavior is being fixed or introduced.
+- Where the root cause or ownership boundary is, when a root cause exists.
+- Whether a broader refactor would improve correctness or merely widen risk.
+- What proof was checked: tests, live proof, CI, static validation, docs, or
+  dependency/source contract.
+- What remains risky or unverified.
+
+For regressions, the review should include bounded provenance when traceable by
+`git log`, `git blame`, linked PRs, or issue history. Unknown provenance should
+be stated as unknown, not guessed.
+
+Docs-only or proof-artifact PRs may use a shorter form, but they still need
+scope, exact head, validation, and residual-risk notes.
 
 ## Green Lane
 
@@ -157,6 +177,11 @@ Minimum audit contents:
 - Merge commit if merged.
 - Dirty-root isolation confirmation.
 - Remaining risk.
+
+When the PR decision asks for owner input, the brief must be decision-ready:
+state what changes, why the decision is needed now, completed proof, material
+tradeoffs, the recommended choice, and exact available actions. Do not ask the
+owner to decide from a raw URL or status label alone.
 
 ## Activation
 
