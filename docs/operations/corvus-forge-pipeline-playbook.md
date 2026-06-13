@@ -147,6 +147,49 @@ when they are generated as constrained evidence sidecars. Generated sidecars
 must remain bounded, named, validated, and reviewed; they are not a license to
 hide product/source diffs.
 
+## Agent Workflow Integrations
+
+Corvus may adapt external agent-workflow patterns when they strengthen the
+existing CStar route, but it must not vendor a third-party maintainer policy as
+authority. The accepted patterns are adapted from
+`https://github.com/steipete/agent-scripts`:
+
+- Deep PR review: every non-trivial PMT/CoS review states behavior, ownership
+  boundary or root cause, best bounded fix, proof checked, and residual risk.
+- Decision-ready owner briefs: CoS asks for user action only after the PR or
+  issue is prepared to the last safe autonomous boundary.
+- Evidence digest: agent transcripts are never uploaded raw. Public or
+  durable evidence is a redacted digest of visible decisions, validation
+  commands, result ids, artifact hashes, PR links, and remaining blockers.
+- Skill hygiene: Forge and adjacent skills should be periodically audited for
+  duplicate triggers, stale copies, prompt-budget cost, and unused workflow
+  rules before broad rollout.
+- Explicit-file packaging: commits and finalizer staging name exact files or
+  derived manifest sidecars. Broad `git add .` style packaging is not acceptable
+  for Forge-controlled work.
+
+These integrations support the route; they do not replace CStar beads, PMT
+review, GitHub PR proof, MM summary, or CoS decision authority.
+
+## Runtime Instruction Binding
+
+CStar owns the doctrine, but each Codex thread follows the instructions it can
+see. Therefore every Forge-related CoS order, MM route, PMT packet, and worker
+prompt must repeat the current task's relevant gates instead of assuming the
+agent will discover these docs. At minimum, prompts must carry:
+
+- CStar remains canonical; no Hall/SQLite bypass.
+- Exact-head and dirty-root isolation requirements.
+- Deep PR review standard for non-trivial PR decisions.
+- Redacted evidence digest requirement for durable/public evidence.
+- Decision-ready owner brief requirement when asking for user action.
+- Explicit-file packaging rule for commits, finalizer staging, and manifests.
+- Live-proof and `ENV_GATED` constraints for external systems.
+
+The local Codex `corvus-forge` skill is the recall wrapper for these rules. A
+Corvus-root `AGENTS.md` can point agents toward the skill and CStar docs, but it
+does not supersede the CStar doctrine or the explicit delegation packet.
+
 ## Proof Artifact Classes
 
 Live-fire proof packages must distinguish real code/test targets from

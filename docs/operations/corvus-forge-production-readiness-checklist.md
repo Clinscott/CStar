@@ -96,6 +96,20 @@ Corvus Forge is not temporary-production-ready until all are true:
 - Prohibited roots are evidence metadata, not worker access paths. Worker-facing
   commands use isolated runtime roots, and isolated runtime roots are not
   mislabeled as prohibited roots.
+- Non-trivial PR reviews include a deep-review packet: behavior or bug class,
+  root cause or ownership boundary, fix quality, proof checked, residual risk,
+  and provenance when traceable.
+- Public or durable agent evidence is a redacted evidence digest, not a raw
+  transcript. The digest includes visible decisions, commands, result ids,
+  hashes, PR links, and blockers; it excludes secrets, raw tool dumps, private
+  session logs, and unrelated local context.
+- Packaging uses explicit file lists and constrained generated sidecars. Broad
+  staging such as `git add .` is disallowed for Forge-controlled commits or
+  finalizer staging.
+- Owner decision requests are decision-ready: recommendation, proof, tradeoffs,
+  residual risk, and exact choices are stated before asking for action.
+- Skill hygiene is tracked before broad rollout: duplicate or overlapping skill
+  triggers, stale skill copies, and prompt-budget pressure are reviewed.
 
 ## Dispatch Invariant Checks
 
