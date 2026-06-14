@@ -16,6 +16,22 @@ the Focus Charter, and routes only bounded proposal candidates into CStar.
 Researcher is not a general backlog generator. It is a reproducible,
 maintainable, modular, and trackable evidence pipeline.
 
+## Operating Model Boundary
+
+Researcher is the Corvus research arm. Use it for estate research, evidence
+gathering, source synthesis, external relevance work, duplicate detection, and
+Focus Charter-scoped intake when the result should feed CStar.
+
+Researcher does not replace Corvus Forge, Hermes, MiniMax, PMTs, MM, CoS, or
+the user. Build, repair, drafting, implementation, finalization, and package
+work should route through Corvus Forge/Hermes/MiniMax by default after CStar
+representation and explicit dispatch approval. CoS/Codex decide, specify, gate,
+review, communicate, and retain merge/rollout/red-gate authority.
+
+Direct Codex-only research or synthesis is an exception when the user explicitly
+asks for it, when the Researcher path is unavailable and the user approves the
+exception, or when a small non-estate answer does not need to feed Corvus state.
+
 ## Active Scope
 
 The active Corvus research surface is:
@@ -39,6 +55,8 @@ Focus Charter is explicitly updated.
 - Accept, merge, publish, or implement proposals by itself.
 - Route around CStar beads, GitHub issues, PMT review, or operator gates.
 - Turn parked spokes or business-separated work into active Researcher scope.
+- Substitute for Corvus Forge/Hermes/MiniMax build, repair, implementation, or
+  package work.
 
 No live Researcher dispatch is authorized by this skill.
 
@@ -55,6 +73,8 @@ No live Researcher dispatch is authorized by this skill.
 6. Require `focus_contract` and `researcher_stats` on proposal records.
 7. Keep execution separate: CStar acceptance and operator dispatch are distinct
    gates.
+8. Route accepted build, repair, implementation, or package work to Corvus
+   Forge/Hermes/MiniMax by default; Researcher should not become the builder.
 
 ## Stats Contract
 

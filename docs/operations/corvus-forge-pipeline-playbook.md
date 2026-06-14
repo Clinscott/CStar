@@ -15,6 +15,32 @@ Every step must retain the same CStar bead id and GitHub issue link. Work that
 cannot name its bead, issue, branch, validation evidence, and reviewer verdict
 is not ready for CoS decision.
 
+## Default Operating Model
+
+Corvus Forge is the Corvus build arm. Researcher is the Corvus research arm.
+CoS and Codex should use these spokes for their intended work instead of
+silently replacing them with ad hoc Codex-only labor.
+
+- CoS/Codex decide, specify, gate, review, summarize, approve, reject, and
+  communicate with the user. They retain authority; they are not the default
+  implementation workforce.
+- Researcher handles estate research, evidence gathering, source synthesis,
+  external relevance work, duplicate detection, and Focus Charter-scoped intake
+  when the result should feed the Corvus estate.
+- Corvus Forge, Hermes, and MiniMax handle most drafting, implementation,
+  repair, build, and package work once CStar has represented the work and the
+  operator has approved the relevant dispatch gate.
+- PMTs validate, package, review, preserve branch/PR discipline, and report
+  concise project status upward.
+- CoS/Codex/user retain merge, rollout, red-gate, and exception authority.
+
+Direct Codex patching is an exception path. Use it only when the user explicitly
+asks for local patching, when a small emergency repair cannot wait for the Forge
+route, or when the Forge path is unavailable and the user approves the
+exception. Even then, preserve CStar beads/proposals, GitHub packaging mode,
+exact-head validation, dirty-root protection, PMT review, merge gates, live
+dispatch gates, and rollout gates.
+
 ## Focus Charter Scope Gate
 
 Before Researcher/PPR work enters the Forge route, the PMT or CoS packet must

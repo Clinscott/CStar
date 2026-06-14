@@ -14,6 +14,27 @@ perform live dispatch, merge, deploy, restart, mutate secrets/config, write
 Hall/SQLite directly, install itself durably, or roll out PMT memory changes
 without separate approval.
 
+## Default Labor Split
+
+Corvus Forge is the build arm, and Researcher is the research arm. The Forge
+skill must help CoS, MM, PMTs, and workers route work to the right Corvus spoke
+rather than making Codex the default research or implementation substitute.
+
+- Researcher is the default path for Corvus estate research, evidence
+  gathering, external relevance checks, source synthesis, duplicate detection,
+  and intake briefs when the output should feed CStar.
+- Corvus Forge, Hermes, and MiniMax are the default path for build, repair,
+  drafting, implementation, finalization, and packaging work after CStar
+  representation and dispatch approval.
+- CoS/Codex decide, specify, gate, review, communicate, and retain authority.
+  They may patch directly only by explicit user request, small emergency repair,
+  or unavailable Forge path with user approval.
+- PMTs validate, package, review, and preserve GitHub/CStar workflow discipline.
+
+This skill must repeat that using Researcher or Forge never bypasses CStar
+beads/proposals, GitHub issues/branches/PRs, PMT review, merge gates, live
+dispatch gates, rollout gates, or red-gate approvals.
+
 ## Codex Runtime Binding
 
 CStar is the canonical doctrine source, but Codex follows rules only when they
@@ -41,6 +62,7 @@ Use the skill only after docs/runtime surfaces are accepted and CoS separately
 approves skill installation. Candidate trigger signals:
 
 - `Corvus Forge`
+- `Use Forge to build`
 - `SwarmForge dispatch packet`
 - `temporary production readiness`
 - `Researcher/PPR -> CStar bead -> GitHub issue`

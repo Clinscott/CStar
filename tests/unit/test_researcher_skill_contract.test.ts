@@ -33,13 +33,27 @@ describe('Researcher skill contract', () => {
             'No live Researcher dispatch',
             'Focus Charter',
             'statistical analysis',
+            'Researcher is the Corvus research arm',
+            'Corvus Forge/Hermes/MiniMax by default',
         ]) {
             assert.match(skill, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
         }
+
+        assert.match(skill, /CoS\/Codex decide, specify, gate,\s+review, communicate/);
 
         assert.match(schema, /researcher\.stats\.v1/);
         assert.match(schema, /Gungnir v1\.0/);
         assert.match(schema, /features/);
         assert.match(schema, /statistical analysis/);
+    });
+
+    it('keeps the registry boundary between Researcher and Forge explicit', () => {
+        const registry = JSON.parse(fs.readFileSync(registryPath, 'utf-8'));
+        const entry = registry.entries.find((candidate: { id?: string }) => candidate.id === 'researcher');
+        const invariants = entry.invariants.join('\n');
+
+        assert.match(invariants, /Researcher is the research arm/);
+        assert.match(invariants, /Corvus Forge\/Hermes\/MiniMax/);
+        assert.match(invariants, /direct Codex patching is an explicit exception/);
     });
 });

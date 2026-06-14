@@ -245,7 +245,7 @@
     {
       "id": "researcher",
       "title": "Researcher — Corvus evidence intake and proposal stats",
-      "description": "Codifies the active-scope Researcher loop for evidence intake, Focus Charter gating, proposal sync, researcher.stats.v1 tracking, and Gungnir outcome analysis.",
+      "description": "Codifies the active-scope Researcher loop for estate evidence intake, Focus Charter gating, proposal sync, researcher.stats.v1 tracking, Gungnir outcome analysis, and the boundary that build/repair/package work routes to Corvus Forge/Hermes/MiniMax by default.",
       "tier": "SKILL",
       "risk": "medium",
       "entry_surface": "docs",
@@ -289,7 +289,9 @@
         "No live Researcher dispatch without explicit operator approval",
         "Active scope = CStar, Kernel, Researcher, Forge, Skills, XO, Moonshot",
         "researcher.stats.v1 is for statistical analysis, not automatic execution authority",
-        "CStar proposal acceptance and Hermes dispatch remain separate gates"
+        "CStar proposal acceptance and Hermes dispatch remain separate gates",
+        "Researcher is the research arm; Corvus Forge/Hermes/MiniMax are the default build, repair, implementation, and package path",
+        "CoS/Codex decide, specify, gate, review, and communicate; direct Codex patching is an explicit exception, not the default operating model"
       ],
       "related_docs": [
         ".agents/skills/researcher/SKILL.md",
