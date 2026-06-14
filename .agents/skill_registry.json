@@ -241,6 +241,61 @@
         "docs/host-native-skill-bridge.md",
         ".agents/skills/autobot/SKILL.md"
       ]
+    },
+    {
+      "id": "researcher",
+      "title": "Researcher — Corvus evidence intake and proposal stats",
+      "description": "Codifies the active-scope Researcher loop for evidence intake, Focus Charter gating, proposal sync, researcher.stats.v1 tracking, and Gungnir outcome analysis.",
+      "tier": "SKILL",
+      "risk": "medium",
+      "entry_surface": "docs",
+      "terminal_required": false,
+      "execution": {
+        "adapter_id": "docs:researcher",
+        "language": "markdown",
+        "entry_point": ".agents/skills/researcher/SKILL.md"
+      },
+      "intent_categories": ["DOCUMENT", "VERIFY"],
+      "contract": {
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "active_scope": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Expected active Corvus focus surfaces."
+            },
+            "proposal_id": {
+              "type": ["string", "null"],
+              "description": "Optional cstar-console proposal id being reviewed."
+            }
+          }
+        },
+        "output_schema": {
+          "type": "object",
+          "schema_version": "researcher.stats.v1",
+          "properties": {
+            "focus_contract": { "type": "object" },
+            "researcher_stats": { "type": "object" },
+            "gungnir": { "type": "object" },
+            "disposition": {
+              "type": "string",
+              "enum": ["discard", "watch", "brief", "proposal_candidate"]
+            }
+          }
+        }
+      },
+      "invariants": [
+        "No live Researcher dispatch without explicit operator approval",
+        "Active scope = CStar, Kernel, Researcher, Forge, Skills, XO, Moonshot",
+        "researcher.stats.v1 is for statistical analysis, not automatic execution authority",
+        "CStar proposal acceptance and Hermes dispatch remain separate gates"
+      ],
+      "related_docs": [
+        ".agents/skills/researcher/SKILL.md",
+        "docs/schemas/researcher-stats-v0.1.md",
+        "docs/operations/researcher-spatial-frontier-alignment.md"
+      ]
     }
   ],
   "authority_audit": []
