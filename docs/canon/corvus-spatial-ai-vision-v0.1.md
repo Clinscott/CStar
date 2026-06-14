@@ -202,12 +202,18 @@ world exists.
 Researcher must become the scout for this frontier.
 
 It should not merely collect interesting AR, VR, AI, game, or spatial computing
-links. It should rank signal against Corvus purpose:
+links. It should also research Corvus itself: CStar, Kernel, Researcher, Forge,
+Skills, XO, and Moonshot. Corvus must study its own structure and form with the
+same seriousness it applies to the outside frontier.
+
+Researcher should rank signal against Corvus purpose:
 
 - CStar control-plane implications
+- CStar, Kernel, Researcher, Forge, and Skills structure implications
 - Researcher pipeline implications
 - Forge and skill-loop implications
 - XO Compass implications
+- active-spoke implications for XO and Moonshot
 - Moonshot simulation/visualization implications
 - privacy and consent risks
 - technical feasibility

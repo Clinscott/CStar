@@ -22,6 +22,12 @@ manifestation of real spokes.`
 Everything else remains parked, business-separated, or watch-only unless the
 Focus Charter reactivation gate is satisfied.
 
+Researcher is also allowed, and expected, to research Corvus itself. That means
+it should study the active control plane, active build loop, active skill
+system, active Researcher pipeline, and active spokes to find better structure,
+form, validation, and implementation paths. Self-research is in scope when it
+improves CStar, Kernel, Researcher, Forge, Skills, XO, or Moonshot.
+
 ## Research Standard
 
 Every Researcher item should answer:
@@ -29,7 +35,7 @@ Every Researcher item should answer:
 1. What frontier signal changed?
 2. Why does it matter to the active Corvus charter?
 3. Which active surface does it affect: CStar, Kernel, Researcher, Forge,
-   Skills, XO, Moonshot, or spatial manifestation?
+   Skills, XO, Moonshot, spatial manifestation, or internal system structure?
 4. What evidence supports it?
 5. What risk, blocker, or false promise should be avoided?
 6. What is the smallest useful next experiment?
@@ -38,6 +44,29 @@ Every Researcher item should answer:
 Interesting is not enough.
 
 ## Priority Lanes
+
+### Lane 0: Corvus System Self-Research
+
+Research topics:
+
+- CStar control-plane structure, Hall/Augury/bead quality, and routing
+  correctness.
+- Kernel boundaries, deterministic surfaces, and authority contracts.
+- Researcher pipeline quality, source selection, proposal shape, duplicate
+  detection, and false-positive reduction.
+- Forge packet quality, PMT review loops, finalizer gates, and worker load
+  delegation.
+- Skill composition, skill recall, and skill installation gates.
+- XO and Moonshot structure, validation posture, and manifestation readiness.
+
+Output shape:
+
+- internal-system improvement brief
+- proposed invariant or contract change
+- active surface affected
+- validation evidence needed
+- smallest safe package or proposal
+- explicit non-goals for parked or business-separated systems
 
 ### Lane 1: Spatial Computing Substrate
 
@@ -211,6 +240,10 @@ The first sweep should answer:
 8. What spatial visualization would actually help Moonshot engineering truth?
 9. What should Forge look like when represented as a spatial workflow?
 10. Which platform claims are hype and should be ignored for now?
+11. Which parts of CStar, Kernel, Researcher, Forge, or Skills most need
+    structural improvement before spatial work accelerates?
+12. Which proposed PRs from Hermes are drifting outside active-scope research,
+    and what intake contract should block them before operator review?
 
 ## First Prototype Spine
 
@@ -221,7 +254,8 @@ Researcher should support this sequence:
 3. XO Compass web spatial mock.
 4. Corvus Forge spatial workflow mock.
 5. Personal Sanctum sketch.
-6. Researcher frontier brief loop feeding CStar proposals.
+6. Researcher internal-system brief loop feeding CStar proposals.
+7. Researcher frontier brief loop feeding CStar proposals.
 
 Do not research community zones, public marketplace, broad PvP, or world-scale
 AR overlays as build work until the private viewer and protocol are stable.
@@ -260,6 +294,8 @@ Stop Researcher routing and ask for CoS decision if a candidate:
 This alignment is working when Researcher produces fewer but better signals:
 
 - every brief maps to an active Corvus surface
+- internal CStar/Kernel/Researcher/Forge/Skills improvements are proposed
+  through explicit CStar gates
 - XO and Moonshot receive purpose-driven research, not ambient novelty
 - Forge receives better packet and skill-loop improvement ideas
 - CStar receives proposals with clear gates
