@@ -206,6 +206,17 @@ Default action:
 High score does not authorize execution. It authorizes routing into the CStar
 control plane for review.
 
+## Stats And Gungnir Tracking
+
+Every Researcher proposal candidate should preserve `researcher.stats.v1` from
+intake through dispatch preview. The stats object records Focus Charter fit,
+countable proposal features, and a Gungnir v1.0 matrix so Corvus can run
+statistical analysis over Researcher quality and downstream acceptance results.
+
+The score is evidence for later analysis, not a decision authority. Do not use
+Gungnir overall as an automatic accept, dispatch, or merge gate until enough
+outcome history exists to justify a threshold and confidence model.
+
 ## Required Output Sections
 
 Researcher briefs for this frontier should use:
