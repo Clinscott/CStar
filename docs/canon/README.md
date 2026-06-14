@@ -26,6 +26,9 @@ implemented without turning the full white paper into an executable spec.
    manifestation, and privacy posture.
 9. `founder-spoke-migration-notes.md` maps existing founder spokes into the
    new doctrine without making them mandatory global classes.
+10. `corvus-spatial-ai-vision-v0.1.md` names the Corvus spatial AI destination
+   and keeps it tied to real authority, proof, privacy, and Focus Charter
+   scope.
 
 ## Canonical Rule
 
@@ -42,3 +45,10 @@ are interoperability and authority grammar.
 
 A spoke may look like anything, but to enter shared play it must expose an
 interaction contract and pass Warden gates.
+
+## Spatial AI Rule
+
+Spatial presence is a manifestation layer over real CStar objects. It may make
+spokes, skills, beads, wardens, engrams, loadouts, auras, and sanctums visible,
+but it must not create authority, trust, validation, or public exposure by
+itself.
